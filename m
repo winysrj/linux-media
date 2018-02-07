@@ -1,918 +1,581 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:32494 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753630AbeBGLZi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 06:25:38 -0500
-Date: Wed, 7 Feb 2018 13:25:33 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFCv3 01/17] media: add request API core and UAPI
-Message-ID: <20180207112533.sk7re4ksoeywop2q@paasikivi.fi.intel.com>
-References: <20180207014821.164536-1-acourbot@chromium.org>
- <20180207014821.164536-2-acourbot@chromium.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180207014821.164536-2-acourbot@chromium.org>
+Received: from mail.free-electrons.com ([62.4.15.54]:50956 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754062AbeBGOYo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:24:44 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v6 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Date: Wed,  7 Feb 2018 15:24:37 +0100
+Message-Id: <20180207142437.14553-3-maxime.ripard@bootlin.com>
+In-Reply-To: <20180207142437.14553-1-maxime.ripard@bootlin.com>
+References: <20180207142437.14553-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
+The Cadence CSI-2 RX Controller is an hardware block meant to be used as a
+bridge between a CSI-2 bus and pixel grabbers.
 
-On Wed, Feb 07, 2018 at 10:48:05AM +0900, Alexandre Courbot wrote:
-> The request API provides a way to group buffers and device parameters
-> into units of work to be queued and executed. This patch introduces the
-> UAPI and core framework.
-> 
-> This patch is based on the previous work by Laurent Pinchart. The core
-> has changed considerably, but the UAPI is mostly untouched.
+It supports operating with internal or external D-PHY, with up to 4 lanes,
+or without any D-PHY. The current code only supports the former case.
 
-Thanks for the rebase.
+It also support dynamic mapping of the CSI-2 virtual channels to the
+associated pixel grabbers, but that isn't allowed at the moment either.
 
-What's the purpose of the split between media-request.c and
-media-request-mgr.c? The use of ops for the request manager suggests it
-could be replaced by an alternative implementation but then again the media
-request is almost entirely initialised in the media-request-mgr. Either
-could make some sense but not both --- I'd simply move the code from the
-media-request-mgr to the functions calling them in media-request.c. That
-should make this easier to read, too.
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/platform/Kconfig               |   1 +
+ drivers/media/platform/Makefile              |   2 +
+ drivers/media/platform/cadence/Kconfig       |  12 +
+ drivers/media/platform/cadence/Makefile      |   1 +
+ drivers/media/platform/cadence/cdns-csi2rx.c | 472 +++++++++++++++++++++++++++
+ 5 files changed, 488 insertions(+)
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
 
-A few more comments below.
-
-> 
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> ---
->  drivers/media/Makefile               |   3 +-
->  drivers/media/media-device.c         |   7 +
->  drivers/media/media-request-mgr.c    | 105 ++++++++++++
->  drivers/media/media-request.c        | 311 +++++++++++++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c |   2 +-
->  include/media/media-device.h         |   3 +
->  include/media/media-entity.h         |   9 +
->  include/media/media-request-mgr.h    |  73 ++++++++
->  include/media/media-request.h        | 186 +++++++++++++++++++++
->  include/uapi/linux/media.h           |  10 ++
->  10 files changed, 707 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/media/media-request-mgr.c
->  create mode 100644 drivers/media/media-request.c
->  create mode 100644 include/media/media-request-mgr.h
->  create mode 100644 include/media/media-request.h
-> 
-> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-> index 594b462ddf0e..06c43ddb52ea 100644
-> --- a/drivers/media/Makefile
-> +++ b/drivers/media/Makefile
-> @@ -3,7 +3,8 @@
->  # Makefile for the kernel multimedia device drivers.
->  #
->  
-> -media-objs	:= media-device.o media-devnode.o media-entity.o
-> +media-objs	:= media-device.o media-devnode.o media-entity.o \
-> +		   media-request.o media-request-mgr.o
->  
->  #
->  # I2C drivers should come before other drivers, otherwise they'll fail
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index e79f72b8b858..024ee81a8334 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -32,6 +32,8 @@
->  #include <media/media-device.h>
->  #include <media/media-devnode.h>
->  #include <media/media-entity.h>
-> +#include <media/media-request.h>
-> +#include <media/media-request-mgr.h>
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  
-> @@ -407,6 +409,7 @@ static const struct media_ioctl_info ioctl_info[] = {
->  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
->  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
->  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
-> +	MEDIA_IOC(REQUEST_CMD, media_device_request_cmd, 0),
->  };
->  
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> @@ -688,6 +691,10 @@ EXPORT_SYMBOL_GPL(media_device_init);
->  
->  void media_device_cleanup(struct media_device *mdev)
->  {
-> +	if (mdev->req_mgr) {
-> +		media_request_mgr_free(mdev->req_mgr);
-> +		mdev->req_mgr = NULL;
-> +	}
->  	ida_destroy(&mdev->entity_internal_idx);
->  	mdev->entity_internal_idx_max = 0;
->  	media_graph_walk_cleanup(&mdev->pm_count_walk);
-> diff --git a/drivers/media/media-request-mgr.c b/drivers/media/media-request-mgr.c
-> new file mode 100644
-> index 000000000000..686e877a884b
-> --- /dev/null
-> +++ b/drivers/media/media-request-mgr.c
-> @@ -0,0 +1,105 @@
-> +/*
-> + * Generic request manager implementation.
-> + *
-> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/slab.h>
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-request.h>
-> +#include <media/media-request-mgr.h>
-> +
-> +static struct media_request *
-> +media_request_alloc(struct media_request_mgr *mgr)
-> +{
-> +	struct media_request *req;
-> +
-> +	req = kzalloc(sizeof(*req), GFP_KERNEL);
-> +	if (!req)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	req->mgr = mgr;
-> +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> +	kref_init(&req->kref);
-> +	INIT_LIST_HEAD(&req->data);
-> +	init_waitqueue_head(&req->complete_wait);
-> +	ATOMIC_INIT_NOTIFIER_HEAD(&req->submit_notif);
-> +	mutex_init(&req->lock);
-> +
-> +	mutex_lock(&mgr->mutex);
-> +	req->id = ++mgr->req_id;
-> +	list_add_tail(&req->list, &mgr->requests);
-> +	mutex_unlock(&mgr->mutex);
-> +
-> +	return req;
-> +}
-> +
-> +static void media_request_free(struct media_request *req)
-> +{
-> +	struct media_request_mgr *mgr = req->mgr;
-> +	struct media_request_entity_data *data, *next;
-> +
-> +	mutex_lock(&mgr->mutex);
-> +	list_del(&req->list);
-> +	mutex_unlock(&mgr->mutex);
-> +
-> +	list_for_each_entry_safe(data, next, &req->data, list) {
-> +		list_del(&data->list);
-> +		data->entity->req_ops->data_free(data);
-> +	}
-> +
-> +	kfree(req);
-> +}
-> +
-> +void media_request_mgr_free(struct media_request_mgr *mgr)
-> +{
-> +	struct media_device *mdev = mgr->mdev;
-> +
-> +	/* Just a sanity check - we should have no remaining requests */
-> +	while (!list_empty(&mgr->requests)) {
-> +		struct media_request *req;
-> +
-> +		req = list_first_entry(&mgr->requests, typeof(*req), list);
-> +		dev_warn(mdev->dev,
-> +			"%s: request %u still referenced, deleting forcibly!\n",
-> +			__func__, req->id);
-> +		mgr->ops->req_free(req);
-> +	}
-> +
-> +	kfree(mgr);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_mgr_free);
-> +
-> +static const struct media_request_mgr_ops request_mgr_generic_ops = {
-> +	.req_alloc = media_request_alloc,
-> +	.req_free = media_request_free,
-> +};
-> +
-> +struct media_request_mgr *
-> +media_request_mgr_alloc(struct media_device *mdev)
-> +{
-> +	struct media_request_mgr *mgr;
-> +
-> +	mgr = kzalloc(sizeof(*mgr), GFP_KERNEL);
-> +	if (!mgr)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	mgr->mdev = mdev;
-> +	mutex_init(&mgr->mutex);
-> +	INIT_LIST_HEAD(&mgr->requests);
-> +	mgr->ops = &request_mgr_generic_ops;
-> +
-> +	return mgr;
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_mgr_alloc);
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> new file mode 100644
-> index 000000000000..30a23235b019
-> --- /dev/null
-> +++ b/drivers/media/media-request.c
-> @@ -0,0 +1,311 @@
-> +/*
-> + * Request base implementation
-> + *
-> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/anon_inodes.h>
-> +#include <linux/media.h>
-> +#include <linux/fs.h>
-> +#include <linux/file.h>
-> +#include <linux/slab.h>
-> +#include <linux/list.h>
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-request.h>
-> +#include <media/media-request-mgr.h>
-> +
-> +const struct file_operations request_fops;
-> +
-> +struct media_request *media_request_get(struct media_request *req)
-> +{
-> +	kref_get(&req->kref);
-> +	return req;
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_get);
-> +
-> +struct media_request *
-> +media_request_get_from_fd(int fd)
-> +{
-> +	struct file *f;
-> +	struct media_request *req;
-> +
-> +	f = fget(fd);
-> +	if (!f)
-> +		return NULL;
-> +
-> +	/* Not a request FD? */
-> +	if (f->f_op != &request_fops) {
-> +		fput(f);
-> +		return NULL;
-> +	}
-> +
-> +	req = f->private_data;
-> +	media_request_get(req);
-> +	fput(f);
-> +
-> +	return req;
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_get_from_fd);
-> +
-> +static void media_request_release(struct kref *kref)
-> +{
-> +	struct media_request *req =
-> +		container_of(kref, typeof(*req), kref);
-> +
-> +	req->mgr->ops->req_free(req);
-> +}
-> +
-> +void media_request_put(struct media_request *req)
-> +{
-> +	if (WARN_ON(req == NULL))
-> +		return;
-> +
-> +	kref_put(&req->kref, media_request_release);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_put);
-> +
-> +struct media_request_entity_data *
-> +media_request_get_entity_data(struct media_request *req,
-> +			      struct media_entity *entity, void *fh)
-> +{
-> +	struct media_request_entity_data *data;
-> +
-> +	mutex_lock(&req->lock);
-> +
-> +	/* First look whether we already have entity data */
-> +	list_for_each_entry(data, &req->data, list) {
-> +		if (data->entity == entity) {
-> +			/*
-> +			 * If so, then the fh must match otherwise this means
-> +			 * we are trying to set the same entity through
-> +			 * different handles
-> +			 */
-> +			if (data->fh != fh)
-> +				data = ERR_PTR(-EINVAL);
-> +			goto done;
-> +		}
-> +	}
-> +
-> +	/* No entity data found, let's create it */
-> +	data = entity->req_ops->data_alloc(entity, fh);
-> +	if (IS_ERR(data))
-> +		goto done;
-> +	data->fh = fh;
-> +	data->entity = entity;
-> +	list_add_tail(&data->list, &req->data);
-> +
-> +done:
-> +	mutex_unlock(&req->lock);
-> +	return data;
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_get_entity_data);
-> +
-> +static const char * const media_request_states[] __maybe_unused = {
-> +	"IDLE",
-> +	"SUBMITTED",
-> +	"COMPLETED",
-> +	"DELETED",
-> +};
-> +
-> +static const char *media_request_state(enum media_request_state state)
-> +{
-> +	return state < ARRAY_SIZE(media_request_states) ?
-> +		media_request_states[state] : "INVALID";
-> +}
-> +
-> +static int media_device_request_close(struct inode *inode, struct file *filp)
-> +{
-> +	struct media_request *req = filp->private_data;
-> +
-> +	if (req == NULL)
-> +		return 0;
-> +
-> +	media_request_put(req);
-> +
-> +	return 0;
-> +}
-> +
-> +static unsigned int media_request_poll(struct file *file, poll_table *wait)
-> +{
-> +	struct media_request *req = file->private_data;
-> +
-> +	poll_wait(file, &req->complete_wait, wait);
-> +
-> +	if (req->state == MEDIA_REQUEST_STATE_COMPLETED)
-> +		return POLLIN | POLLRDNORM;
-> +
-> +	return 0;
-> +}
-> +
-> +const struct file_operations request_fops = {
-> +	.owner = THIS_MODULE,
-> +	.poll = media_request_poll,
-> +	.release = media_device_request_close,
-> +};
-> +
-> +void media_request_complete(struct media_request *req)
-> +{
-> +	struct media_request_mgr *mgr = req->mgr;
-> +	struct media_device *mdev = mgr->mdev;
-> +
-> +	mutex_lock(&req->lock);
-> +
-> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_SUBMITTED)) {
-> +		dev_dbg(mdev->dev, "%s: can't complete %u, state %s\n",
-> +			__func__, req->id, media_request_state(req->state));
-> +		mutex_unlock(&req->lock);
-> +		return;
-> +	}
-> +
-> +	req->state = MEDIA_REQUEST_STATE_COMPLETED;
-> +
-> +	if (mgr->ops->req_complete)
-> +		mgr->ops->req_complete(req);
-> +
-> +	wake_up_interruptible(&req->complete_wait);
-> +
-> +	mutex_unlock(&req->lock);
-> +
-> +	/* Release the reference acquired when we submitted the request */
-> +	media_request_put(req);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_complete);
-> +
-> +/*
-> + * Process the MEDIA_REQ_CMD_ALLOC command
-> + */
-> +static int media_request_cmd_alloc(struct media_request_mgr *mgr,
-> +				   struct media_request_cmd *cmd)
-> +{
-> +	struct media_request *req;
-> +	int fd;
-> +
-> +	req = mgr->ops->req_alloc(mgr);
-> +	if (!req)
-> +		return -ENOMEM;
-> +
-> +	fd = anon_inode_getfd("media_request", &request_fops, req, O_CLOEXEC);
-> +	if (fd < 0)
-> +		return fd;
-> +
-> +	cmd->fd = fd;
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Process the MEDIA_REQ_CMD_SUBMIT command
-> + */
-> +static int media_request_cmd_submit(struct media_request *req)
-> +{
-> +	mutex_lock(&req->lock);
-> +
-> +	if (req->state != MEDIA_REQUEST_STATE_IDLE) {
-> +		dev_dbg(req->mgr->mdev->dev,
-> +			"%s: unable to submit request in state %s\n",
-> +			__func__, media_request_state(req->state));
-> +		mutex_unlock(&req->lock);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (atomic_read(&req->buf_cpt) == 0) {
-> +		dev_dbg(req->mgr->mdev->dev,
-> +			"%s: request has no buffers!\n", __func__);
-> +		mutex_unlock(&req->lock);
-> +		return -EINVAL;
-> +	}
-> +
-> +	req->state = MEDIA_REQUEST_STATE_SUBMITTED;
-> +
-> +	/* Hold a reference to the request until it is completed */
-> +	media_request_get(req);
-> +
-> +	mutex_unlock(&req->lock);
-> +
-> +	atomic_notifier_call_chain(&req->submit_notif, req->state, req);
-> +
-> +	return 0;
-> +}
-> +
-> +static int media_request_cmd_reinit(struct media_request *req)
-> +{
-> +	struct media_request_entity_data *data, *next;
-> +
-> +	mutex_lock(&req->lock);
-> +
-> +	if (req->state == MEDIA_REQUEST_STATE_SUBMITTED) {
-> +		dev_dbg(req->mgr->mdev->dev,
-> +			"%s: unable to reinit submitted request\n", __func__);
-> +		mutex_unlock(&req->lock);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* delete all entity data */
-> +	list_for_each_entry_safe(data, next, &req->data, list) {
-> +		list_del(&data->list);
-> +		data->entity->req_ops->data_free(data);
-> +	}
-> +
-> +	/* reinitialize request to idle state */
-> +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> +	atomic_set(&req->buf_cpt, 0);
-> +
-> +	mutex_unlock(&req->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +long media_device_request_cmd(struct media_device *mdev,
-> +			      struct media_request_cmd *cmd)
-> +{
-> +	struct media_request *req = NULL;
-> +	int ret;
-> +
-> +	if (!mdev->req_mgr)
-> +		return -ENOTTY;
-> +
-> +	if (cmd->cmd != MEDIA_REQ_CMD_ALLOC) {
-> +		req = media_request_get_from_fd(cmd->fd);
-> +		if (IS_ERR(req))
-> +			return PTR_ERR(req);
-> +
-> +		/* requests must belong to this media device's manager */
-> +		if (req->mgr != mdev->req_mgr) {
-> +			media_request_put(req);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	switch (cmd->cmd) {
-> +	case MEDIA_REQ_CMD_ALLOC:
-> +		ret = media_request_cmd_alloc(mdev->req_mgr, cmd);
-> +		break;
-> +
-> +	case MEDIA_REQ_CMD_SUBMIT:
-> +		ret = media_request_cmd_submit(req);
-> +		break;
-> +
-> +	case MEDIA_REQ_CMD_REINIT:
-> +		ret = media_request_cmd_reinit(req);
-> +		break;
-> +
-> +	default:
-> +		ret = -EINVAL;
-> +		break;
-> +	}
-> +
-> +	if (req)
-> +		media_request_put(req);
-> +
-> +	return ret;
-> +}
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 260288ca4f55..e5109e5b8bf5 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
->  	__u32 i;
->  
->  	/* zero the reserved fields */
-> -	c->reserved[0] = c->reserved[1] = 0;
-> +	c->reserved[0] = 0;
->  	for (i = 0; i < c->count; i++)
->  		c->controls[i].reserved2[0] = 0;
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index bcc6ec434f1f..f2d471b8a53f 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -27,6 +27,7 @@
->  
->  struct ida;
->  struct device;
-> +struct media_request_mgr;
->  
->  /**
->   * struct media_entity_notify - Media Entity Notify
-> @@ -158,6 +159,8 @@ struct media_device {
->  	void (*disable_source)(struct media_entity *entity);
->  
->  	const struct media_device_ops *ops;
-> +
-> +	struct media_request_mgr *req_mgr;
->  };
->  
->  /* We don't need to include pci.h or usb.h here */
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index a732af1dbba0..39f5e88e2b23 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -172,6 +172,8 @@ struct media_pad {
->  	unsigned long flags;
->  };
->  
-> +struct media_request;
-> +struct v4l2_ext_controls;
->  /**
->   * struct media_entity_operations - Media entity operations
->   * @get_fwnode_pad:	Return the pad number based on a fwnode endpoint or
-> @@ -197,6 +199,11 @@ struct media_entity_operations {
->  	int (*link_validate)(struct media_link *link);
->  };
->  
-> +struct media_entity_request_ops {
-> +	struct media_request_entity_data *(*data_alloc)(struct media_entity *entity, void *fh);
-> +	void (*data_free)(struct media_request_entity_data *data);
-> +};
-> +
->  /**
->   * enum media_entity_type - Media entity type
->   *
-> @@ -281,6 +288,8 @@ struct media_entity {
->  
->  	const struct media_entity_operations *ops;
->  
-> +	const struct media_entity_request_ops *req_ops;
-> +
->  	int stream_count;
->  	int use_count;
->  
-> diff --git a/include/media/media-request-mgr.h b/include/media/media-request-mgr.h
-> new file mode 100644
-> index 000000000000..a3161fa2add0
-> --- /dev/null
-> +++ b/include/media/media-request-mgr.h
-> @@ -0,0 +1,73 @@
-> +/*
-> + * Generic request manager.
-> + *
-> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef _MEDIA_REQUEST_MGR_H
-> +#define _MEDIA_REQUEST_MGR_H
-> +
-> +#include <linux/mutex.h>
-> +
-> +struct media_request_mgr;
-> +
-> +/**
-> + * struct media_request_mgr_ops - request manager operations
-> + *
-> + * @req_alloc:	allocate a request
-> + * @req_free:	free a previously allocated request
-> + * @req_complete: callback invoked when a request has completed
-> + *
-> + */
-> +struct media_request_mgr_ops {
-> +	struct media_request *(*req_alloc)(struct media_request_mgr *mgr);
-> +	void (*req_free)(struct media_request *req);
-> +	void (*req_complete)(struct media_request *req);
-> +};
-> +
-> +/**
-> + * struct media_request_mgr - requests manager
-> + *
-> + * @mdev:	media_device owning this manager
-> + * @ops:	implementation of the manager
-> + * @mutex:	protects requests, active_request, req_id, and all members of
-> + *		struct media_request
-
-The media request has a mutex as well. Is this outdated?
-
-> + * @requests:	list of alive requests produced by this manager
-> + * @req_id:	counter used to identify requests for debugging purposes
-> + */
-> +struct media_request_mgr {
-> +	struct media_device *mdev;
-> +	const struct media_request_mgr_ops *ops;
-> +
-> +	struct mutex mutex;
-> +	struct list_head requests;
-> +	u32 req_id;
-> +};
-> +
-> +/**
-> + * media_request_mgr_alloc() - return an instance of the generic manager
-> + *
-> + * @mdev:	owning media device
-> + */
-> +struct media_request_mgr *
-> +media_request_mgr_alloc(struct media_device *mdev);
-> +
-> +/**
-> + * media_request_mgr_free() - free a media manager
-> + *
-> + * This should only be called when all requests produced by this manager
-> + * has been destroyed. Will warn if that is not the case.
-> + *
-> + */
-> +void media_request_mgr_free(struct media_request_mgr *mgr);
-> +
-> +#endif
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> new file mode 100644
-> index 000000000000..817df13ef6e3
-> --- /dev/null
-> +++ b/include/media/media-request.h
-> @@ -0,0 +1,186 @@
-> +/*
-> + * Media requests.
-> + *
-> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef _MEDIA_REQUEST_H
-> +#define _MEDIA_REQUEST_H
-> +
-> +#include <linux/kref.h>
-> +#include <linux/list.h>
-> +#include <linux/notifier.h>
-> +#include <linux/wait.h>
-> +
-> +struct media_device;
-> +struct media_entity;
-> +struct media_request_cmd;
-> +struct media_request_entity_data;
-> +struct media_request_mgr;
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +
-> +enum media_request_state {
-> +	MEDIA_REQUEST_STATE_IDLE,
-> +	MEDIA_REQUEST_STATE_SUBMITTED,
-> +	MEDIA_REQUEST_STATE_COMPLETED,
-> +	MEDIA_REQUEST_STATE_DELETED,
-> +};
-> +
-> +/**
-> + * struct media_request - Media request base structure
-> + * @id:		request id, used internally for debugging
-> + * @mgr:	manager this request belongs to
-> + * @kref:	reference count
-> + * @list:	list entry in the media device requests list
-> + * @lock:	protects internal state against concurrent accesses
-> + * @state:	current state of the request
-> + * @data:	per-entity data list
-> + * @complete_wait:	wait queue that signals once the request has completed
-> + * @submit_notif:	notification list to call when the request is submitted
-> + * @buf_cpt:	counter of queued/completed buffers used to decide when the
-> + *		request is completed
-> + */
-> +struct media_request {
-> +	u32 id;
-> +	struct media_request_mgr *mgr;
-> +	struct kref kref;
-> +	struct list_head list;
-> +
-> +	struct mutex lock;
-> +	enum media_request_state state;
-> +	struct list_head data;
-> +	wait_queue_head_t complete_wait;
-> +	struct atomic_notifier_head submit_notif;
-> +	atomic_t buf_cpt;
-> +};
-> +
-> +/**
-> + * media_request_get() - increment the reference counter of a request
-> + *
-> + * The calling context must call media_request_put() once it does not need
-> + * the reference to the request anymore.
-> + *
-> + * Returns the request that has been passed as argument.
-> + *
-> + * @req:	request to acquire a reference of
-> + */
-> +struct media_request *media_request_get(struct media_request *req);
-> +
-> +/**
-> + * media_request_get_from_fd() - lookup request by fd and acquire a reference.
-> + *
-> + * Look a request up from its fd, acquire a reference and return a pointer to
-> + * the request. As for media_request_get(), media_request_put() must be called
-> + * once the reference is not used anymore.
-> + *
-> + * @req:	request to lookup and acquire.
-> + *
-> + */
-> +struct media_request *media_request_get_from_fd(int fd);
-> +
-> +/**
-> + * media_request_put() - decrement the reference counter of a request
-> + *
-> + * Mirror function of media_request_get() and media_request_get_from_fd(). Will
-> + * free the request if this was the last valid reference.
-> + *
-> + * @req:	request to release.
-> + */
-> +void media_request_put(struct media_request *req);
-> +
-> +/**
-> + * media_request_get_entity_data() - get per-entity data for a request
-> + * @req:	request to get entity data from
-> + * @entity:	entity to get data of
-> + * @fh:		cookie identifying the handle from which the entity is accessed
-> + *
-> + * Search and return the entity data associated associated to the request. If no
-> + * such data exists, it is allocated as per the entity operations.
-> + *
-> + * The fh arguments serves as a cookie to make sure the same entity is not
-> + * accessed through different opened file handles. The same handle must be
-> + * passed to all calls of this function for the same entity. Failure to do so
-> + * will return an error.
-> + *
-> + * Returns the per-entity data, or an error code if a problem happened. -EINVAL
-> + * means that data for the entity already existed, but has been allocated under
-> + * a different cookie.
-> + */
-> +struct media_request_entity_data *
-> +media_request_get_entity_data(struct media_request *req,
-> +			      struct media_entity *entity, void *fh);
-> +
-> +
-> +/**
-> + * media_request_complete() - to be invoked when the request is complete
-> + *
-> + * @req:	request which has completed
-> + */
-> +void media_request_complete(struct media_request *req);
-> +
-> +/**
-> + * struct media_request_entity_data - per-entity request data
-> + *
-> + * Base structure used to store request state data. To be extended by actual
-> + * implementation.
-> + *
-> + * @entity:	entity this data belongs to
-> + * @fh:		subsystem-dependent. For V4L2, the v4l2_fh of the opened device
-> + * @list:	entry in media_request::data
-> + * @applied:	whether this request has already been applied for this entity
-> + */
-> +struct media_request_entity_data {
-> +	struct media_entity *entity;
-> +	void *fh;
-> +	struct list_head list;
-> +	bool applied;
-> +};
-> +
-> +/**
-> + * media_device_request_cmd() - perform the REQUEST_CMD ioctl
-> + *
-> + * @mdev:	media device the ioctl has been called on
-> + * @cmd:	user-space request command structure
-> + */
-> +long media_device_request_cmd(struct media_device *mdev,
-> +			      struct media_request_cmd *cmd);
-> +
-> +#else /* CONFIG_MEDIA_CONTROLLER */
-> +
-> +static inline media_request_get(struct media_request *req)
-> +{
-> +}
-> +
-> +static inline struct media_request *media_request_get_from_fd(int fd)
-> +{
-> +	return ERR_PTR(-ENOSYS);
-> +}
-> +
-> +static inline void media_request_put(struct media_request *req)
-> +{
-> +}
-> +
-> +static inline struct media_request *media_request_get_entity_data(
-> +					  struct media_request *req,
-> +					  struct media_entity *entity, void *fh)
-> +{
-> +	return ERR_PTR(-ENOSYS);
-> +}
-> +
-> +static inline void media_request_entity_complete(struct media_request *req)
-> +{
-> +}
-> +
-> +#endif /* CONFIG_MEDIA_CONTROLLER */
-> +
-> +#endif
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index b9b9446095e9..6e20ac9848b5 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -406,6 +406,15 @@ struct media_v2_topology {
->  	__u64 ptr_links;
->  } __attribute__ ((packed));
->  
-> +#define MEDIA_REQ_CMD_ALLOC		0
-> +#define MEDIA_REQ_CMD_SUBMIT		1
-> +#define MEDIA_REQ_CMD_REINIT		2
-> +
-> +struct media_request_cmd {
-> +	__u32 cmd;
-> +	__s32 fd;
-> +} __attribute__ ((packed));
-> +
->  /* ioctls */
->  
->  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
-> @@ -413,5 +422,6 @@ struct media_v2_topology {
->  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
->  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
->  #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
-> +#define MEDIA_IOC_REQUEST_CMD		_IOWR('|', 0x05, struct media_request_cmd)
->  
->  #endif /* __LINUX_MEDIA_H */
-> -- 
-> 2.16.0.rc1.238.g530d649a79-goog
-> 
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index fd0c99859d6f..6e790a317fbc 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -26,6 +26,7 @@ config VIDEO_VIA_CAMERA
+ #
+ # Platform multimedia device configuration
+ #
++source "drivers/media/platform/cadence/Kconfig"
+ 
+ source "drivers/media/platform/davinci/Kconfig"
+ 
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 003b0bb2cddf..1cd2984c55d1 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -3,6 +3,8 @@
+ # Makefile for the video capture/playback device drivers.
+ #
+ 
++obj-$(CONFIG_VIDEO_CADENCE)		+= cadence/
++
+ obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
+ 
+ obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/platform/cadence/Kconfig
+new file mode 100644
+index 000000000000..d1b6bbb6a0eb
+--- /dev/null
++++ b/drivers/media/platform/cadence/Kconfig
+@@ -0,0 +1,12 @@
++config VIDEO_CADENCE
++	bool "Cadence Video Devices"
++
++if VIDEO_CADENCE
++
++config VIDEO_CADENCE_CSI2RX
++	tristate "Cadence MIPI-CSI2 RX Controller v1.3"
++	depends on MEDIA_CONTROLLER
++	depends on VIDEO_V4L2_SUBDEV_API
++	select V4L2_FWNODE
++
++endif
+diff --git a/drivers/media/platform/cadence/Makefile b/drivers/media/platform/cadence/Makefile
+new file mode 100644
+index 000000000000..99a4086b7448
+--- /dev/null
++++ b/drivers/media/platform/cadence/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_CADENCE_CSI2RX)	+= cdns-csi2rx.o
+diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c b/drivers/media/platform/cadence/cdns-csi2rx.c
+new file mode 100644
+index 000000000000..c532583cc1a6
+--- /dev/null
++++ b/drivers/media/platform/cadence/cdns-csi2rx.c
+@@ -0,0 +1,472 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Driver for Cadence MIPI-CSI2 RX Controller v1.3
++ *
++ * Copyright (C) 2017 Cadence Design Systems Inc.
++ */
++
++#include <linux/atomic.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/phy/phy.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
++
++#define CSI2RX_DEVICE_CFG_REG			0x000
++
++#define CSI2RX_SOFT_RESET_REG			0x004
++#define CSI2RX_SOFT_RESET_PROTOCOL			BIT(1)
++#define CSI2RX_SOFT_RESET_FRONT				BIT(0)
++
++#define CSI2RX_STATIC_CFG_REG			0x008
++#define CSI2RX_STATIC_CFG_DLANE_MAP(llane, plane)	((plane) << (16 + (llane) * 4))
++#define CSI2RX_STATIC_CFG_LANES_MASK			GENMASK(11, 8)
++
++#define CSI2RX_STREAM_BASE(n)		(((n) + 1) * 0x100)
++
++#define CSI2RX_STREAM_CTRL_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x000)
++#define CSI2RX_STREAM_CTRL_START			BIT(0)
++
++#define CSI2RX_STREAM_DATA_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x008)
++#define CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT		BIT(31)
++#define CSI2RX_STREAM_DATA_CFG_VC_SELECT(n)		BIT((n) + 16)
++
++#define CSI2RX_STREAM_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x00c)
++#define CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF		(1 << 8)
++
++#define CSI2RX_LANES_MAX	4
++#define CSI2RX_STREAMS_MAX	4
++
++enum csi2rx_pads {
++	CSI2RX_PAD_SINK,
++	CSI2RX_PAD_SOURCE_STREAM0,
++	CSI2RX_PAD_SOURCE_STREAM1,
++	CSI2RX_PAD_SOURCE_STREAM2,
++	CSI2RX_PAD_SOURCE_STREAM3,
++	CSI2RX_PAD_MAX,
++};
++
++struct csi2rx_priv {
++	struct device			*dev;
++	atomic_t			count;
++
++	void __iomem			*base;
++	struct clk			*sys_clk;
++	struct clk			*p_clk;
++	struct clk			*pixel_clk[CSI2RX_STREAMS_MAX];
++	struct phy			*dphy;
++
++	u8				lanes[CSI2RX_LANES_MAX];
++	u8				num_lanes;
++	u8				max_lanes;
++	u8				max_streams;
++	bool				has_internal_dphy;
++
++	struct v4l2_subdev		subdev;
++	struct v4l2_async_notifier	notifier;
++	struct media_pad		pads[CSI2RX_PAD_MAX];
++
++	/* Remote source */
++	struct v4l2_async_subdev	asd;
++	struct v4l2_subdev		*source_subdev;
++	int				source_pad;
++};
++
++static inline
++struct csi2rx_priv *v4l2_subdev_to_csi2rx(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct csi2rx_priv, subdev);
++}
++
++static void csi2rx_reset(struct csi2rx_priv *csi2rx)
++{
++	writel(CSI2RX_SOFT_RESET_PROTOCOL | CSI2RX_SOFT_RESET_FRONT,
++	       csi2rx->base + CSI2RX_SOFT_RESET_REG);
++
++	usleep_range(10, 20);
++
++	writel(0, csi2rx->base + CSI2RX_SOFT_RESET_REG);
++}
++
++static int csi2rx_start(struct csi2rx_priv *csi2rx)
++{
++	unsigned int i;
++	unsigned long lanes_used;
++	u32 reg;
++	int ret;
++
++	/*
++	 * We're not the first users, there's no need to enable the
++	 * whole controller.
++	 */
++	if (atomic_inc_return(&csi2rx->count) > 1)
++		return 0;
++
++	clk_prepare_enable(csi2rx->p_clk);
++
++	csi2rx_reset(csi2rx);
++
++	reg = csi2rx->num_lanes << 8;
++	for (i = 0; i < csi2rx->num_lanes; i++) {
++		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
++		set_bit(csi2rx->lanes[i], &lanes_used);
++	}
++
++	/*
++	 * Even the unused lanes need to be mapped. In order to avoid
++	 * to map twice to the same physical lane, keep the lanes used
++	 * in the previous loop, and only map unused physical lanes to
++	 * the rest of our logical lanes.
++	 */
++	for (i = csi2rx->num_lanes; i < csi2rx->max_lanes; i++) {
++		unsigned int idx = find_first_zero_bit(&lanes_used,
++						       sizeof(lanes_used));
++		set_bit(idx, &lanes_used);
++		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, i + 1);
++	}
++
++	writel(reg, csi2rx->base + CSI2RX_STATIC_CFG_REG);
++
++	ret = v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, true);
++	if (ret)
++		return ret;
++
++	/*
++	 * Create a static mapping between the CSI virtual channels
++	 * and the output stream.
++	 *
++	 * This should be enhanced, but v4l2 lacks the support for
++	 * changing that mapping dynamically.
++	 *
++	 * We also cannot enable and disable independant streams here,
++	 * hence the reference counting.
++	 */
++	for (i = 0; i < csi2rx->max_streams; i++) {
++		clk_prepare_enable(csi2rx->pixel_clk[i]);
++
++		writel(CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF,
++		       csi2rx->base + CSI2RX_STREAM_CFG_REG(i));
++
++		writel(CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT |
++		       CSI2RX_STREAM_DATA_CFG_VC_SELECT(i),
++		       csi2rx->base + CSI2RX_STREAM_DATA_CFG_REG(i));
++
++		writel(CSI2RX_STREAM_CTRL_START,
++		       csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
++	}
++
++	clk_prepare_enable(csi2rx->sys_clk);
++
++	clk_disable_unprepare(csi2rx->p_clk);
++
++	return 0;
++}
++
++static int csi2rx_stop(struct csi2rx_priv *csi2rx)
++{
++	unsigned int i;
++
++	/*
++	 * Let the last user turn off the lights
++	 */
++	if (!atomic_dec_and_test(&csi2rx->count))
++		return 0;
++
++	clk_prepare_enable(csi2rx->p_clk);
++
++	for (i = 0; i < csi2rx->max_streams; i++) {
++		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
++
++		clk_disable_unprepare(csi2rx->pixel_clk[i]);
++	}
++
++	clk_disable_unprepare(csi2rx->p_clk);
++
++	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false);
++}
++
++static int csi2rx_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(sd);
++	int ret;
++
++	if (enable)
++		ret = csi2rx_start(csi2rx);
++	else
++		ret = csi2rx_stop(csi2rx);
++
++	return ret;
++}
++
++static const struct v4l2_subdev_video_ops csi2rx_video_ops = {
++	.s_stream	= csi2rx_s_stream,
++};
++
++static const struct v4l2_subdev_ops csi2rx_subdev_ops = {
++	.video		= &csi2rx_video_ops,
++};
++
++static int csi2rx_async_bound(struct v4l2_async_notifier *notifier,
++			      struct v4l2_subdev *s_subdev,
++			      struct v4l2_async_subdev *asd)
++{
++	struct v4l2_subdev *subdev = notifier->sd;
++	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
++
++	csi2rx->source_pad = media_entity_get_fwnode_pad(&s_subdev->entity,
++							 s_subdev->fwnode,
++							 MEDIA_PAD_FL_SOURCE);
++	if (csi2rx->source_pad < 0) {
++		dev_err(csi2rx->dev, "Couldn't find output pad for subdev %s\n",
++			s_subdev->name);
++		return csi2rx->source_pad;
++	}
++
++	csi2rx->source_subdev = s_subdev;
++
++	dev_dbg(csi2rx->dev, "Bound %s pad: %d\n", s_subdev->name,
++		csi2rx->source_pad);
++
++	return media_create_pad_link(&csi2rx->source_subdev->entity,
++				     csi2rx->source_pad,
++				     &csi2rx->subdev.entity, 0,
++				     MEDIA_LNK_FL_ENABLED |
++				     MEDIA_LNK_FL_IMMUTABLE);
++}
++
++static const struct v4l2_async_notifier_operations csi2rx_notifier_ops = {
++	.bound		= csi2rx_async_bound,
++};
++
++static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
++				struct platform_device *pdev)
++{
++	struct resource *res;
++	unsigned char i;
++	u32 reg;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(csi2rx->base))
++		return PTR_ERR(csi2rx->base);
++
++	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
++	if (IS_ERR(csi2rx->sys_clk)) {
++		dev_err(&pdev->dev, "Couldn't get sys clock\n");
++		return PTR_ERR(csi2rx->sys_clk);
++	}
++
++	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
++	if (IS_ERR(csi2rx->p_clk)) {
++		dev_err(&pdev->dev, "Couldn't get P clock\n");
++		return PTR_ERR(csi2rx->p_clk);
++	}
++
++	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
++	if (IS_ERR(csi2rx->dphy)) {
++		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
++		return PTR_ERR(csi2rx->dphy);
++	}
++
++	/*
++	 * FIXME: Once we'll have external D-PHY support, the check
++	 * will need to be removed.
++	 */
++	if (csi2rx->dphy) {
++		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
++		return -EINVAL;
++	}
++
++	clk_prepare_enable(csi2rx->p_clk);
++	reg = readl(csi2rx->base + CSI2RX_DEVICE_CFG_REG);
++	clk_disable_unprepare(csi2rx->p_clk);
++
++	csi2rx->max_lanes = (reg & 7);
++	if (csi2rx->max_lanes > CSI2RX_LANES_MAX) {
++		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
++			csi2rx->max_lanes);
++		return -EINVAL;
++	}
++
++	csi2rx->max_streams = ((reg >> 4) & 7);
++	if (csi2rx->max_streams > CSI2RX_STREAMS_MAX) {
++		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
++			csi2rx->max_streams);
++		return -EINVAL;
++	}
++
++	csi2rx->has_internal_dphy = (reg & BIT(3)) ? true : false;
++
++	/*
++	 * FIXME: Once we'll have internal D-PHY support, the check
++	 * will need to be removed.
++	 */
++	if (csi2rx->has_internal_dphy) {
++		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
++		return -EINVAL;
++	}
++
++	for (i = 0; i < csi2rx->max_streams; i++) {
++		char clk_name[16];
++
++		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
++		csi2rx->pixel_clk[i] = devm_clk_get(&pdev->dev, clk_name);
++		if (IS_ERR(csi2rx->pixel_clk[i])) {
++			dev_err(&pdev->dev, "Couldn't get clock %s\n", clk_name);
++			return PTR_ERR(csi2rx->pixel_clk[i]);
++		}
++	}
++
++	return 0;
++}
++
++static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
++{
++	struct v4l2_fwnode_endpoint v4l2_ep;
++	struct fwnode_handle *fwh;
++	struct device_node *ep;
++	int ret;
++
++	ep = of_graph_get_endpoint_by_regs(csi2rx->dev->of_node, 0, 0);
++	if (!ep)
++		return -EINVAL;
++
++	fwh = of_fwnode_handle(ep);
++	ret = v4l2_fwnode_endpoint_parse(fwh, &v4l2_ep);
++	if (ret) {
++		dev_err(csi2rx->dev, "Could not parse v4l2 endpoint\n");
++		of_node_put(ep);
++		return ret;
++	}
++
++	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
++		dev_err(csi2rx->dev, "Unsupported media bus type: 0x%x\n",
++			v4l2_ep.bus_type);
++		of_node_put(ep);
++		return -EINVAL;
++	}
++
++	memcpy(csi2rx->lanes, v4l2_ep.bus.mipi_csi2.data_lanes,
++	       sizeof(csi2rx->lanes));
++	csi2rx->num_lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
++	if (csi2rx->num_lanes > csi2rx->max_lanes) {
++		dev_err(csi2rx->dev, "Unsupported number of data-lanes: %d\n",
++			csi2rx->num_lanes);
++		of_node_put(ep);
++		return -EINVAL;
++	}
++
++	csi2rx->asd.match.fwnode.fwnode = fwnode_graph_get_remote_port_parent(fwh);
++	csi2rx->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++	of_node_put(ep);
++
++	csi2rx->notifier.subdevs = devm_kzalloc(csi2rx->dev,
++						sizeof(*csi2rx->notifier.subdevs),
++						GFP_KERNEL);
++	if (!csi2rx->notifier.subdevs)
++		return -ENOMEM;
++
++	csi2rx->notifier.subdevs[0] = &csi2rx->asd;
++	csi2rx->notifier.num_subdevs = 1;
++	csi2rx->notifier.ops = &csi2rx_notifier_ops;
++
++	return v4l2_async_subdev_notifier_register(&csi2rx->subdev,
++						   &csi2rx->notifier);
++}
++
++static int csi2rx_probe(struct platform_device *pdev)
++{
++	struct csi2rx_priv *csi2rx;
++	unsigned int i;
++	int ret;
++
++	/*
++	 * Since the v4l2_subdev structure is embedded in our
++	 * csi2rx_priv structure, and that the structure is exposed to
++	 * the user-space, we cannot just use the devm_variant
++	 * here. Indeed, that would lead to a use-after-free in a
++	 * open() - unbind - close() pattern.
++	 */
++	csi2rx = kzalloc(sizeof(*csi2rx), GFP_KERNEL);
++	if (!csi2rx)
++		return -ENOMEM;
++	platform_set_drvdata(pdev, csi2rx);
++	csi2rx->dev = &pdev->dev;
++
++	ret = csi2rx_get_resources(csi2rx, pdev);
++	if (ret)
++		goto err_free_priv;
++
++	ret = csi2rx_parse_dt(csi2rx);
++	if (ret)
++		goto err_free_priv;
++
++	csi2rx->subdev.owner = THIS_MODULE;
++	csi2rx->subdev.dev = &pdev->dev;
++	v4l2_subdev_init(&csi2rx->subdev, &csi2rx_subdev_ops);
++	v4l2_set_subdevdata(&csi2rx->subdev, &pdev->dev);
++	snprintf(csi2rx->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
++		 KBUILD_MODNAME, dev_name(&pdev->dev));
++
++	/* Create our media pads */
++	csi2rx->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
++	csi2rx->pads[CSI2RX_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	for (i = CSI2RX_PAD_SOURCE_STREAM0; i < CSI2RX_PAD_MAX; i++)
++		csi2rx->pads[i].flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_pads_init(&csi2rx->subdev.entity, CSI2RX_PAD_MAX,
++				     csi2rx->pads);
++	if (ret)
++		goto err_free_priv;
++
++	ret = v4l2_async_register_subdev(&csi2rx->subdev);
++	if (ret < 0)
++		goto err_free_priv;
++
++	dev_info(&pdev->dev,
++		 "Probed CSI2RX with %u/%u lanes, %u streams, %s D-PHY\n",
++		 csi2rx->num_lanes, csi2rx->max_lanes, csi2rx->max_streams,
++		 csi2rx->has_internal_dphy ? "internal" : "no");
++
++	return 0;
++
++err_free_priv:
++	kfree(csi2rx);
++	return ret;
++}
++
++static int csi2rx_remove(struct platform_device *pdev)
++{
++	struct csi2rx_priv *csi2rx = platform_get_drvdata(pdev);
++
++	v4l2_async_unregister_subdev(&csi2rx->subdev);
++	kfree(csi2rx);
++
++	return 0;
++}
++
++static const struct of_device_id csi2rx_of_table[] = {
++	{ .compatible = "cdns,csi2rx" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, csi2rx_of_table);
++
++static struct platform_driver csi2rx_driver = {
++	.probe	= csi2rx_probe,
++	.remove	= csi2rx_remove,
++
++	.driver	= {
++		.name		= "cdns-csi2rx",
++		.of_match_table	= csi2rx_of_table,
++	},
++};
++module_platform_driver(csi2rx_driver);
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.3
