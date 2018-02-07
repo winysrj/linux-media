@@ -1,112 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:46909 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751165AbeBVSmc (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57803 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754118AbeBGRgP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 13:42:32 -0500
-Received: by mail-lf0-f52.google.com with SMTP id r80so8804436lfe.13
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 10:42:31 -0800 (PST)
-Subject: Re: [PATCH v3] vsp1: fix video output on R8A77970
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180118140600.363149670@cogentembedded.com>
- <11341738.DVmQoThvsb@avalon>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <9b378576-7547-105e-51dd-062c9eac5c05@cogentembedded.com>
-Date: Thu, 22 Feb 2018 21:42:29 +0300
+        Wed, 7 Feb 2018 12:36:15 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH v1 3/3] media: stm32-dcmi: improve error trace points
+Date: Wed, 7 Feb 2018 18:35:36 +0100
+Message-ID: <1518024936-2455-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1518024936-2455-1-git-send-email-hugues.fruchet@st.com>
+References: <1518024936-2455-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <11341738.DVmQoThvsb@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2018 07:26 PM, Laurent Pinchart wrote:
-> Hi Sergei,
-> 
-> Thank you for the patch.
-> 
-> On Thursday, 18 January 2018 16:05:51 EET Sergei Shtylyov wrote:
->> Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
->> and VSP2-D instances") added support for the VSP2-D found in the R-Car
->> V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
->> garbage-like line repeated every 8 screen rows. It turns out that R-Car
->> V3M has the LIF0 buffer attribute register that you need to set to a non-
->> default value in order to get rid of the output artifacts...
->>
->> Based on the original (and large) patch by Daisuke Matsushita
->> <daisuke.matsushita.ns@hitachi.com>.
->>
->> Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
->> VSP2-D instances") Signed-off-by: Sergei Shtylyov
->> <sergei.shtylyov@cogentembedded.com>
->>
->> ---
->> This patch is against the 'media_tree.git' repo's 'fixes' branch.
->>
->> Changes in version 3:
->> - reworded the comment in lif_configure();
->> - reworded the patch description.
->>
->> Changes in version 2:
->> - added a  comment before the V3M SoC check;
->> - fixed indetation in that check;
->> - reformatted  the patch description.
->>
->>  drivers/media/platform/vsp1/vsp1_lif.c  |   15 +++++++++++++++
->>  drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
->>  2 files changed, 20 insertions(+)
->>
->> Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
->> ===================================================================
->> --- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
->> +++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
->> @@ -155,6 +155,21 @@ static void lif_configure(struct vsp1_en
->>  			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
->>  			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
->>  			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
->> +
->> +	/*
->> +	 * On R-Car V3M the LIF0 buffer attribute register has to be set
->> +	 * to a non-default value to guarantee proper operation (otherwise
->> +	 * artifacts may appear on the output). The value required by
->> +	 * the manual is not explained but is likely a buffer size or
->> +	 * threshold...
-> 
-> One period is enough :-)
+Fix some missing "\n".
+Trace error returned by subdev streamon/streamoff.
+Remove extra "0x" unneeded with %pad formatter.
 
-   Naw, I just like ellipsis! :-)
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/stm32/stm32-dcmi.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
->> +	 */
->> +	if ((entity->vsp1->version &
->> +	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
->> +	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
->> +		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
->> +			       VI6_LIF_LBA_LBA0 |
->> +			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
->> +	}
-> 
-> There's no need for braces
-
-   Well, multi-line statement was asking for them...
-
-> or inner parentheses.
-
-   I thought so too. :-)
-
-> To make this easier to read I 
-> propose defining a new macro VI6_IP_VERSION_MASK that combines both the model 
-> and SoC. Otherwise this looks good to me,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> I'll post a v4 with that change in reply to this e-mail, please let me know if 
-> you're fine with it.
-
-   Generally fine, yes...
-
-[...]
-
-MBR, Sergei
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index dfab867..2fd8bed 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -234,7 +234,7 @@ static void dcmi_dma_callback(void *param)
+ 		/* Restart a new DMA transfer with next buffer */
+ 		if (dcmi->state == RUNNING) {
+ 			if (list_empty(&dcmi->buffers)) {
+-				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer",
++				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer\n",
+ 					__func__);
+ 				dcmi->errors_count++;
+ 				dcmi->active = NULL;
+@@ -249,7 +249,7 @@ static void dcmi_dma_callback(void *param)
+ 			list_del_init(&dcmi->active->list);
+ 
+ 			if (dcmi_start_capture(dcmi)) {
+-				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete",
++				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
+ 					__func__);
+ 
+ 				spin_unlock(&dcmi->irqlock);
+@@ -478,7 +478,7 @@ static int dcmi_buf_prepare(struct vb2_buffer *vb)
+ 
+ 		vb2_set_plane_payload(&buf->vb.vb2_buf, 0, buf->size);
+ 
+-		dev_dbg(dcmi->dev, "buffer[%d] phy=0x%pad size=%zu\n",
++		dev_dbg(dcmi->dev, "buffer[%d] phy=%pad size=%zu\n",
+ 			vb->index, &buf->paddr, buf->size);
+ 	}
+ 
+@@ -524,7 +524,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	ret = clk_enable(dcmi->mclk);
+ 	if (ret) {
+-		dev_err(dcmi->dev, "%s: Failed to start streaming, cannot enable clock",
++		dev_err(dcmi->dev, "%s: Failed to start streaming, cannot enable clock\n",
+ 			__func__);
+ 		goto err_release_buffers;
+ 	}
+@@ -600,7 +600,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	ret = dcmi_start_capture(dcmi);
+ 	if (ret) {
+-		dev_err(dcmi->dev, "%s: Start streaming failed, cannot start capture",
++		dev_err(dcmi->dev, "%s: Start streaming failed, cannot start capture\n",
+ 			__func__);
+ 
+ 		spin_unlock_irq(&dcmi->irqlock);
+@@ -651,7 +651,8 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
+ 	/* Disable stream on the sub device */
+ 	ret = v4l2_subdev_call(dcmi->entity.subdev, video, s_stream, 0);
+ 	if (ret && ret != -ENOIOCTLCMD)
+-		dev_err(dcmi->dev, "stream off failed in subdev\n");
++		dev_err(dcmi->dev, "%s: Failed to stop streaming, subdev streamoff error (%d)\n",
++			__func__, ret);
+ 
+ 	dcmi->state = STOPPING;
+ 
+@@ -667,7 +668,8 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
+ 	reg_clear(dcmi->regs, DCMI_CR, CR_ENABLE);
+ 
+ 	if (!timeout) {
+-		dev_err(dcmi->dev, "Timeout during stop streaming\n");
++		dev_err(dcmi->dev, "%s: Timeout during stop streaming\n",
++			__func__);
+ 		dcmi->state = STOPPED;
+ 	}
+ 
+-- 
+1.9.1
