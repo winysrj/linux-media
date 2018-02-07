@@ -1,154 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33985 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39513 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753824AbeBVMmw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:42:52 -0500
+        with ESMTP id S1750810AbeBGV6h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 16:58:37 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        David Airlie <airlied@linux.ie>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
-Date: Thu, 22 Feb 2018 14:43:35 +0200
-Message-ID: <3243006.srM2NAaUy0@avalon>
-In-Reply-To: <e09a145d-bf1b-6f8e-79aa-80445ce91e25@xs4all.nl>
-References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se> <2556801.UsItpXbr2P@avalon> <e09a145d-bf1b-6f8e-79aa-80445ce91e25@xs4all.nl>
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 2/2] drm: adv7511: Add support for i2c_new_secondary_device
+Date: Wed, 07 Feb 2018 23:59:02 +0200
+Message-ID: <506017617.snhEqs7y0U@avalon>
+In-Reply-To: <22aa9d42-e7df-cbe7-4044-3b120cd242c3@ideasonboard.com>
+References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com> <1650729.pzuqXiNcLL@avalon> <22aa9d42-e7df-cbe7-4044-3b120cd242c3@ideasonboard.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Kieran,
 
-On Thursday, 22 February 2018 09:38:46 EET Hans Verkuil wrote:
-> On 02/21/2018 09:16 PM, Laurent Pinchart wrote:
-> > On Tuesday, 20 February 2018 10:37:22 EET Hans Verkuil wrote:
-> >> On 02/19/2018 11:28 PM, Niklas S=F6derlund wrote:
-> >>> Hi Hans,
-> >>>=20
-> >>> Thanks for your feedback.
-> >>>=20
-> >>> [snip]
-> >>>=20
-> >>>>>>>> Can you then fix v4l2-compliance to stop testing colorspace
-> >>>>>>>> against 0xff
-> >>>>>>>> ?
-> >>>>>>>=20
-> >>>>>>> For now I can simply relax this test for subdevs with sources and
-> >>>>>>> sinks.
-> >>>>>>=20
-> >>>>>> You also need to relax it for video nodes with MC drivers, as the =
-DMA
-> >>>>>> engines don't care about colorspaces.
-> >>>>>=20
-> >>>>> Yes, they do. Many DMA engines can at least do RGB <-> YUV
-> >>>>> conversions, so they should get the colorspace info from their sour=
-ce
-> >>>>> and pass it on to userspace (after correcting for any conversions d=
-one
-> >>>>> by the DMA engine).
-> >>>>=20
-> >>>> Not in the MC case. Video nodes there only model the DMA engine, and
-> >>>> are thus not aware of colorspaces. What MC drivers do is check at
-> >>>> stream on time when validating the pipeline that the colorspace set =
-by
-> >>>> userspace on the video node corresponds to the colorspace on the sou=
-rce
-> >>>> pad of the connected subdev, but that's only to ensure that userspace
-> >>>> gets a coherent view of colorspace across the pipeline, not to progr=
-am
-> >>>> the hardware. There could be exceptions, but in the general case, the
-> >>>> video node implementation of an MC driver will accept any colorspace
-> >>>> and only validate it at stream on time, similarly to how it does for
-> >>>> the frame size format instance (and in the frame size case it will
-> >>>> usually enforce min/max limits when the DMA engine limits the frame
-> >>>> size).
-> >>>=20
-> >>> I'm afraid the issue described above by Laurent is what sparked me to
-> >>> write this commit to begin with. In my never ending VIN Gen3 patch-se=
-t I
-> >>> currency need to carry a patch [1] to implement a hack to make sure
-> >>> v4l2-compliance do not fail for the VIN Gen3 MC-centric use-case. This
-> >>> patch was an attempt to be able to validate the colorspace using the
-> >>> magic value 0xff.
+On Wednesday, 7 February 2018 17:14:09 EET Kieran Bingham wrote:
+> On 29/01/18 10:26, Laurent Pinchart wrote:
+> > On Monday, 22 January 2018 14:50:00 EET Kieran Bingham wrote:
+> >> The ADV7511 has four 256-byte maps that can be accessed via the main I=
+=B2C
+> >> ports. Each map has it own I=B2C address and acts as a standard slave
+> >> device on the I=B2C bus.
 > >>=20
-> >> This is NOT a magic value. The test that's done here is to memset the
-> >> format structure with 0xff, then call the ioctl. Afterwards it checks
-> >> if there are any remaining 0xff bytes left in the struct since it expe=
-cts
-> >> the driver to have overwritten it by something else. That's where the
-> >> 0xff comes from.
-> >=20
-> > It's no less or more magic than using 0xdeadbeef or any fixed value :-)=
- I
-> > think we all agree that it isn't a value that is meant to be handled
-> > specifically by drivers, so it's not magic in that sense.
-> >=20
-> >>> I don't feel strongly for this patch in particular and I'm happy to d=
-rop
-> >>> it.  But I would like to receive some guidance on how to then properly
-> >>> be able to handle this problem for the MC-centric VIN driver use-case.
-> >>> One option is as you suggested to relax the test in v4l-compliance to
-> >>> not check colorspace, but commit [2] is not enough to resolve the iss=
-ue
-> >>> for my MC use-case.
-> >>>=20
-> >>> As Laurent stated above, the use-case is that the video device shall
-> >>> accept any colorspace set from user-space. This colorspace is then on=
-ly
-> >>> used as stream on time to validate the MC pipeline. The VIN driver do
-> >>> not care about colorspace, but I care about not breaking v4l2-complia=
-nce
-> >>> as I find it's a very useful tool :-)
+> >> Allow a device tree node to override the default addresses so that
+> >> address conflicts with other devices on the same bus may be resolved at
+> >> the board description level.
 > >>=20
-> >> I think part of my confusion here is that there are two places where y=
-ou
-> >> deal with colorspaces in a DMA engine: first there is a input pad of t=
+> >> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> >> ---
+> >>=20
+> >>  .../bindings/display/bridge/adi,adv7511.txt        | 10 +++++-
+> >=20
+> > I don't mind personally, but device tree maintainers usually ask for DT
+> > bindings changes to be split to a separate patch.
+> >=20
+> >>  drivers/gpu/drm/bridge/adv7511/adv7511.h           |  4 +++
+> >>  drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 36 ++++++++++---=
+=2D-
+> >>  3 files changed, 37 insertions(+), 13 deletions(-)
+> >>=20
+> >> diff --git
+> >> a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> >> b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> >> index 0047b1394c70..f6bb9f6d3f48 100644
+> >> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> >> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> >>=20
+> >> @@ -70,6 +70,9 @@ Optional properties:
+> >>    rather than generate its own timings for HDMI output.
+> >> =20
+> >>  - clocks: from common clock binding: reference to the CEC clock.
+> >>  - clock-names: from common clock binding: must be "cec".
+> >>=20
+> >> +- reg-names : Names of maps with programmable addresses.
+> >> +	It can contain any map needing a non-default address.
+> >> +	Possible maps names are : "main", "edid", "cec", "packet"
+> >=20
+> > Is the reg-names property (and the additional maps) mandatory or option=
+al
+> > ? If mandatory you should also update the existing DT sources that use
+> > those bindings.
+>=20
+> They are currently optional. I do prefer it that way - but perhaps due to=
+ an
+> issue mentioned below we might need to make this driver mandatory ?
+>=20
+> > If optional you should define which I2C addresses will be used when
+> > the maps are not specified (and in that case I think we should go for
+> > the addresses listed as default in the datasheet, which correspond to t=
 he
-> >> DMA engine entity, secondly there is the v4l2_pix_format for the memory
-> >> description.
-> >>=20
-> >> The second is set by the driver based on what userspace specified for =
-the
-> >> input pad, together with any changes due to additional conversions such
-> >> as quantization range and RGB <-> YUV by the DMA engine.
-> >=20
-> > No, I'm sorry, for MC-based drivers this isn't correct. The media entity
-> > that symbolizes the DMA engine indeed has a sink pad, but it's a video
-> > node, not a subdev. It thus has no media bus format configured for its
-> > sink pad. The closest pad in the pipeline that has a media bus format is
-> > the source pad of the subdev connected to the video node.
-> >=20
-> > There's no communication within the kernel at G/S_FMT time between the
-> > video node and its connected subdev. The only time we look at the
-> > pipeline as a whole is when starting the stream to validate that the
-> > pipeline is correctly configured. We thus have to implement G/S_FMT on
-> > the video node without any knowledge about the connected subdev, and th=
-us
-> > accept any colorspace.
-> >=20
-> >> So any colorspace validation is done for the input pad. The question is
-> >> what that validation should be. It's never been defined.
-> >=20
-> > No format is set on the video node's entity sink pad for the reason abo=
-ve,
-> > so no validation occurs when setting the colorspace on the sink pad as
-> > that never happens.
+> > current driver implementation when the main address is 0x3d/0x7a).
 >=20
-> Is this documented anywhere? Certainly VIDIOC_G/S/TRY_FMT doesn't mention
-> it.
->=20
-> It is certainly a surprise to me.
+> The current addresses do not correspond to the datasheet, even when the
+> implementation main address is set to 0x3d.
 
-We don't document as such that no format is set on the video node's entity=
-=20
-sink pad, no. I've always considered that as implicit given that we don't=20
-expose an API to configure a format there :-)
+Don't they ? The driver currently uses the following (8-bit) I2C addresses:
+
+EDID:   main + 4  =3D 0x7e (0x3f)
+Packet: main - 10 =3D 0x70 (0x38)
+CEC:    main - 2  =3D 0x78 (0x3c)
+
+Those are the default addresses according to section 4.1 of the ADV7511W=20
+programming guide (rev. B), and they match the ones you set in this patch.
+
+> Thus, in my opinion - they are currently 'wrong' - but perhaps changing t=
+hem
+> is considered breakage too.
+>=20
+> A particular issue will arise here too - as on this device - when the dev=
+ice
+> is in low-power mode (after probe, before use) - the maps will respond on
+> their *hardware default* addresses (the ones implemented in this patch),
+> and thus consume that address on the I2C bus regardless of their settings
+> in the driver.
+
+We've discussed this previously and I share you concern. Just to make sure =
+I=20
+remember correctly, did all the secondary maps reset to their default=20
+addresses, or just the EDID map ?
+
+> > You should also update the definition of the reg property that currently
+> > just states
+> >=20
+> > - reg: I2C slave address
+> >=20
+> > And finally you might want to define the term "map" in this context.
+> > Here's a proposal (if we make all maps mandatory).
+> >=20
+> > The ADV7511 internal registers are split into four pages exposed through
+> > different I2C addresses, creating four register maps. The I2C addresses=
+ of
+> > all four maps shall be specified by the reg and reg-names property.
+> >=20
+> > - reg: I2C slave addresses, one per reg-names entry
+> > - reg-names: map names, shall be "main", "edid", "cec", "packet"
+> >=20
+> >>  Required nodes:
+> >> @@ -88,7 +91,12 @@ Example
+> >>=20
+> >>  	adv7511w: hdmi@39 {
+> >>  		compatible =3D "adi,adv7511w";
+> >> -		reg =3D <39>;
+> >> +		/*
+> >> +		 * The EDID page will be accessible on address 0x66 on the i2c
+> >> +		 * bus. All other maps continue to use their default addresses.
+> >> +		 */
+> >> +		reg =3D <0x39 0x66>;
+> >> +		reg-names =3D "main", "edid";
+> >>  		interrupt-parent =3D <&gpio3>;
+> >>  		interrupts =3D <29 IRQ_TYPE_EDGE_FALLING>;
+> >>  		clocks =3D <&cec_clock>;
+
+[snip]
+
+> >> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+> >> b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+> >> index efa29db5fc2b..7ec33837752b 100644
+> >> --- a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+> >> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+
+[snip]
+
+> >> @@ -1153,24 +1151,35 @@ static int adv7511_probe(struct i2c_client *i2=
+c,
+> >> const struct i2c_device_id *id)
+> >>  	if (ret)
+> >>  		goto uninit_regulators;
+> >>=20
+> >> -	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR,
+> >> edid_i2c_addr);
+> >> -	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
+> >> -		     main_i2c_addr - 0xa);
+> >> -	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
+> >> -		     main_i2c_addr - 2);
+> >> -
+> >>  	adv7511_packet_disable(adv7511, 0xffff);
+> >> -	adv7511->i2c_edid =3D i2c_new_dummy(i2c->adapter, edid_i2c_addr >> 1=
+);
+> >> +	adv7511->i2c_edid =3D i2c_new_secondary_device(i2c, "edid",
+> >> +					ADV7511_REG_EDID_I2C_ADDR_DEFAULT);
+> >>  	if (!adv7511->i2c_edid) {
+> >>  		ret =3D -ENOMEM;
+> >=20
+> > I wonder if this is the right error code. Maybe -EINVAL ? In most cases
+> > errors will be caused by invalid addresses (out of memory and
+> > device_register() failures can happen too but should be less common).
+>=20
+> It's arbitrary, as multiple error paths simply return NULL, but I think y=
+ou
+> are right - the 'most common' fault here is likely to be an in use addres=
+s.
+>=20
+> -ENOMEM was chosen here to mirror the equivalent code returned from the
+> adv7604 driver.
+>=20
+> Either way - -EINVAL does feel better at the moment. Although when mirror=
+ed
+> back to the ADV7604 that becomes a distinct change there.
+>=20
+> I don't think that matters though - so I'll apply this fix to both patche=
+s.
+>=20
+> > It would be nice if i2c_new_secondary_device() returned an ERR_PTR, but
+> > that's out of scope.
+>=20
+> I was about to say - well I'll add this, but the reality is it might requ=
+ire
+> updating all users of i2c_new_device, and i2c_new_dummy. Updating
+> i2c_new_secondary_device() on it's own seems a bit pointless otherwise.
+>=20
+> And that is definitely out of scope for the amount of time I currently ha=
+ve
+> :D
+>=20
+> >>  		goto uninit_regulators;
+> >>  	}
+> >>=20
+> >> +	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR,
+> >> +		     adv7511->i2c_edid->addr << 1);
+> >> +
+> >>  	ret =3D adv7511_init_cec_regmap(adv7511);
+> >>  	if (ret)
+> >>  		goto err_i2c_unregister_edid;
+> >>=20
+> >> +	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
+> >> +		     adv7511->i2c_cec->addr << 1);
+> >> +
+> >> +	adv7511->i2c_packet =3D i2c_new_secondary_device(i2c, "packet",
+> >> +					ADV7511_REG_PACKET_I2C_ADDR_DEFAULT);
+> >> +	if (!adv7511->i2c_packet) {
+> >> +		ret =3D -ENOMEM;
+> >> +		goto err_unregister_cec;
+> >> +	}
+> >> +
+> >> +	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
+> >> +		     adv7511->i2c_packet->addr << 1);
+> >> +
+> >>  	INIT_WORK(&adv7511->hpd_work, adv7511_hpd_work);
+> >>  =09
+> >>  	if (i2c->irq) {
+
+[snip]
 
 =2D-=20
 Regards,
