@@ -1,136 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48541 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751530AbeBBEqe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Feb 2018 23:46:34 -0500
-Message-ID: <7361756f953af4279fae97f9ed4e5659@smtp-cloud8.xs4all.net>
-Date: Fri, 02 Feb 2018 05:46:32 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:45881 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752806AbeBGBtR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:49:17 -0500
+Received: by mail-pg0-f68.google.com with SMTP id m136so1868180pga.12
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:49:17 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv3 16/17] media: vim2m: add media device
+Date: Wed,  7 Feb 2018 10:48:20 +0900
+Message-Id: <20180207014821.164536-17-acourbot@chromium.org>
+In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
+References: <20180207014821.164536-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Request API requires a media node. Add one to the vim2m driver so we can
+use requests with it.
 
-Results of the daily build of media_tree:
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/platform/vim2m.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-date:			Fri Feb  2 05:00:25 CET 2018
-media-tree git hash:	273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
-media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
-v4l-utils git hash:	aa287ca25393cf8bcb05d2679ccbe340a798d344
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.14.0-364
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-4.15-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-linux-4.15-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 065483e62db4..e0eb60310717 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -140,6 +140,9 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
+ struct vim2m_dev {
+ 	struct v4l2_device	v4l2_dev;
+ 	struct video_device	vfd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device	mdev;
++#endif
+ 
+ 	atomic_t		num_inst;
+ 	struct mutex		dev_mutex;
+@@ -1001,6 +1004,13 @@ static int vim2m_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&dev->irqlock);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->mdev.dev = &pdev->dev;
++	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
++	media_device_init(&dev->mdev);
++	dev->v4l2_dev.mdev = &dev->mdev;
++#endif
++
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+ 		return ret;
+@@ -1034,6 +1044,13 @@ static int vim2m_probe(struct platform_device *pdev)
+ 		goto err_m2m;
+ 	}
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* Register the media device node */
++	ret = media_device_register(&dev->mdev);
++	if (ret)
++		goto err_m2m;
++#endif
++
+ 	return 0;
+ 
+ err_m2m:
+@@ -1050,6 +1067,13 @@ static int vim2m_remove(struct platform_device *pdev)
+ 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
+ 
+ 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (media_devnode_is_registered(dev->mdev.devnode))
++		media_device_unregister(&dev->mdev);
++	media_device_cleanup(&dev->mdev);
++#endif
++
+ 	v4l2_m2m_release(dev->m2m_dev);
+ 	del_timer_sync(&dev->timer);
+ 	video_unregister_device(&dev->vfd);
+-- 
+2.16.0.rc1.238.g530d649a79-goog
