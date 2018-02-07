@@ -1,349 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:55865 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753519AbeBVKiU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 05:38:20 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v11 07/10] media: i2c: ov772x: Support frame interval handling
-Date: Thu, 22 Feb 2018 11:37:23 +0100
-Message-Id: <1519295846-11612-8-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from butterbrot.org ([176.9.106.16]:44015 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754049AbeBGNAp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 08:00:45 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 4/4] add video control handlers using V4L2 control framework
+Date: Wed,  7 Feb 2018 14:00:38 +0100
+Message-Id: <1518008438-26603-5-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
+References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to ov772x driver for frame intervals handling and enumeration.
-Tested with 10MHz and 24MHz input clock at VGA and QVGA resolutions for
-10, 15 and 30 frame per second rates.
+This patch registers four standard control handlers using the corresponding
+V4L2 framework.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/media/i2c/ov772x.c | 213 +++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 196 insertions(+), 17 deletions(-)
+ drivers/input/touchscreen/sur40.c | 64 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 23106d7..3edf0cb 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -250,6 +250,7 @@
- #define AEC_1p2         0x10	/*  01: 1/2  window */
- #define AEC_1p4         0x20	/*  10: 1/4  window */
- #define AEC_2p3         0x30	/*  11: Low 2/3 window */
-+#define COM4_RESERVED   0x01	/* Reserved bit */
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index d6fa25e..b92325b 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -38,6 +38,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-sg.h>
  
- /* COM5 */
- #define AFR_ON_OFF      0x80	/* Auto frame rate control ON/OFF selection */
-@@ -267,6 +268,10 @@
- 				/* AEC max step control */
- #define AEC_NO_LIMIT    0x01	/*   0 : AEC incease step has limit */
- 				/*   1 : No limit to AEC increase step */
-+/* CLKRC */
-+				/* Input clock divider register */
-+#define CLKRC_RESERVED  0x80	/* Reserved bit */
-+#define CLKRC_DIV(n)    ((n) - 1)
+@@ -209,6 +210,7 @@ struct sur40_state {
+ 	struct video_device vdev;
+ 	struct mutex lock;
+ 	struct v4l2_pix_format pix_fmt;
++	struct v4l2_ctrl_handler ctrls;
  
- /* COM7 */
- 				/* SCCB Register Reset */
-@@ -373,6 +378,19 @@
- #define VERSION(pid, ver) ((pid<<8)|(ver&0xFF))
+ 	struct vb2_queue queue;
+ 	struct list_head buf_list;
+@@ -218,6 +220,7 @@ struct sur40_state {
+ 	struct sur40_data *bulk_in_buffer;
+ 	size_t bulk_in_size;
+ 	u8 bulk_in_epaddr;
++	u8 vsvideo;
  
- /*
-+ * PLL multipliers
-+ */
-+static struct {
-+	unsigned int mult;
-+	u8 com4;
-+} ov772x_pll[] = {
-+	{ 1, PLL_BYPASS, },
-+	{ 4, PLL_4x, },
-+	{ 6, PLL_6x, },
-+	{ 8, PLL_8x, },
+ 	char phys[64];
+ };
+@@ -231,6 +234,11 @@ struct sur40_buffer {
+ static const struct video_device sur40_video_device;
+ static const struct vb2_queue sur40_queue;
+ static void sur40_process_video(struct sur40_state *sur40);
++static int sur40_s_ctrl(struct v4l2_ctrl *ctrl);
++
++static const struct v4l2_ctrl_ops sur40_ctrl_ops = {
++	.s_ctrl = sur40_s_ctrl,
 +};
-+
-+/*
-  * struct
-  */
- 
-@@ -388,6 +406,7 @@ struct ov772x_color_format {
- struct ov772x_win_size {
- 	char                     *name;
- 	unsigned char             com7_bit;
-+	unsigned int		  sizeimage;
- 	struct v4l2_rect	  rect;
- };
- 
-@@ -404,6 +423,7 @@ struct ov772x_priv {
- 	unsigned short                    flag_hflip:1;
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
- 	unsigned short                    band_filter;
-+	unsigned int			  fps;
- };
  
  /*
-@@ -487,27 +507,34 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
+  * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
+@@ -737,6 +745,36 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->vdev.queue = &sur40->queue;
+ 	video_set_drvdata(&sur40->vdev, sur40);
  
- static const struct ov772x_win_size ov772x_win_sizes[] = {
- 	{
--		.name     = "VGA",
--		.com7_bit = SLCT_VGA,
-+		.name		= "VGA",
-+		.com7_bit	= SLCT_VGA,
-+		.sizeimage	= 510 * 748,
- 		.rect = {
--			.left = 140,
--			.top = 14,
--			.width = VGA_WIDTH,
--			.height = VGA_HEIGHT,
-+			.left	= 140,
-+			.top	= 14,
-+			.width	= VGA_WIDTH,
-+			.height	= VGA_HEIGHT,
- 		},
- 	}, {
--		.name     = "QVGA",
--		.com7_bit = SLCT_QVGA,
-+		.name		= "QVGA",
-+		.com7_bit	= SLCT_QVGA,
-+		.sizeimage	= 278 * 576,
- 		.rect = {
--			.left = 252,
--			.top = 6,
--			.width = QVGA_WIDTH,
--			.height = QVGA_HEIGHT,
-+			.left	= 252,
-+			.top	= 6,
-+			.width	= QVGA_WIDTH,
-+			.height	= QVGA_HEIGHT,
- 		},
- 	},
- };
- 
- /*
-+ * frame rate settings lists
-+ */
-+static unsigned int ov772x_frame_intervals[] = { 5, 10, 15, 20, 30, 60 };
++	/* initialize the control handler for 4 controls */
++	v4l2_ctrl_handler_init(&sur40->ctrls, 4);
++	sur40->v4l2.ctrl_handler = &sur40->ctrls;
++	sur40->vsvideo = (SUR40_CONTRAST_DEF << 4) | SUR40_GAIN_DEF;
 +
-+/*
-  * general function
-  */
++	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_BRIGHTNESS,
++	  SUR40_BRIGHTNESS_MIN, SUR40_BRIGHTNESS_MAX, 1, clamp(brightness,
++	  (uint)SUR40_BRIGHTNESS_MIN, (uint)SUR40_BRIGHTNESS_MAX));
++
++	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_CONTRAST,
++	  SUR40_CONTRAST_MIN, SUR40_CONTRAST_MAX, 1, clamp(contrast,
++	  (uint)SUR40_CONTRAST_MIN, (uint)SUR40_CONTRAST_MAX));
++
++	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_GAIN,
++	  SUR40_GAIN_MIN, SUR40_GAIN_MAX, 1, clamp(gain,
++	  (uint)SUR40_GAIN_MIN, (uint)SUR40_GAIN_MAX));
++
++	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops,
++	  V4L2_CID_BACKLIGHT_COMPENSATION, SUR40_BACKLIGHT_MIN,
++	  SUR40_BACKLIGHT_MAX, 1, SUR40_BACKLIGHT_DEF);
++
++	v4l2_ctrl_handler_setup(&sur40->ctrls);
++
++	if (sur40->ctrls.error) {
++		dev_err(&interface->dev,
++			"Unable to register video controls.");
++		v4l2_ctrl_handler_free(&sur40->ctrls);
++		goto err_unreg_v4l2;
++	}
++
+ 	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
+ 	if (error) {
+ 		dev_err(&interface->dev,
+@@ -769,6 +807,7 @@ static void sur40_disconnect(struct usb_interface *interface)
+ {
+ 	struct sur40_state *sur40 = usb_get_intfdata(interface);
  
-@@ -574,6 +601,128 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
++	v4l2_ctrl_handler_free(&sur40->ctrls);
+ 	video_unregister_device(&sur40->vdev);
+ 	v4l2_device_unregister(&sur40->v4l2);
+ 
+@@ -962,6 +1001,31 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
  	return 0;
  }
  
-+static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-+				 struct v4l2_fract *tpf,
-+				 const struct ov772x_color_format *cfmt,
-+				 const struct ov772x_win_size *win)
++static int sur40_s_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	unsigned long fin = clk_get_rate(priv->clk);
-+	unsigned int fps = tpf->numerator ?
-+			   tpf->denominator / tpf->numerator :
-+			   tpf->denominator;
-+	unsigned int best_diff;
-+	unsigned int fsize;
-+	unsigned int pclk;
-+	unsigned int diff;
-+	unsigned int idx;
-+	unsigned int i;
-+	u8 clkrc = 0;
-+	u8 com4 = 0;
-+	int ret;
++	struct sur40_state *sur40  = container_of(ctrl->handler,
++	  struct sur40_state, ctrls);
++	u8 value = sur40->vsvideo;
 +
-+	/* Approximate to the closest supported frame interval. */
-+	best_diff = ~0L;
-+	for (i = 0, idx = 0; i < ARRAY_SIZE(ov772x_frame_intervals); i++) {
-+		diff = abs(fps - ov772x_frame_intervals[i]);
-+		if (diff < best_diff) {
-+			idx = i;
-+			best_diff = diff;
-+		}
-+	}
-+	fps = ov772x_frame_intervals[idx];
-+
-+	/* Use image size (with blankings) to calculate desired pixel clock. */
-+	switch (cfmt->com7 & OFMT_MASK) {
-+	case OFMT_BRAW:
-+		fsize = win->sizeimage;
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		sur40_set_irlevel(sur40, ctrl->val);
 +		break;
-+	case OFMT_RGB:
-+	case OFMT_YUV:
-+	default:
-+		fsize = win->sizeimage * 2;
++	case V4L2_CID_CONTRAST:
++		value = (value & 0x0F) | (ctrl->val << 4);
++		sur40_set_vsvideo(sur40, value);
++		break;
++	case V4L2_CID_GAIN:
++		value = (value & 0xF0) | (ctrl->val);
++		sur40_set_vsvideo(sur40, value);
++		break;
++	case V4L2_CID_BACKLIGHT_COMPENSATION:
++		sur40_set_preprocessor(sur40, ctrl->val);
 +		break;
 +	}
-+
-+	pclk = fps * fsize;
-+
-+	/*
-+	 * Pixel clock generation circuit is pretty simple:
-+	 *
-+	 * Fin -> [ / CLKRC_div] -> [ * PLL_mult] -> pclk
-+	 *
-+	 * Try to approximate the desired pixel clock testing all available
-+	 * PLL multipliers (1x, 4x, 6x, 8x) and calculate corresponding
-+	 * divisor with:
-+	 *
-+	 * div = PLL_mult * Fin / pclk
-+	 *
-+	 * and re-calculate the pixel clock using it:
-+	 *
-+	 * pclk = Fin * PLL_mult / CLKRC_div
-+	 *
-+	 * Choose the PLL_mult and CLKRC_div pair that gives a pixel clock
-+	 * closer to the desired one.
-+	 *
-+	 * The desired pixel clock is calculated using a known frame size
-+	 * (blanking included) and FPS.
-+	 */
-+	best_diff = ~0L;
-+	for (i = 0; i < ARRAY_SIZE(ov772x_pll); i++) {
-+		unsigned int pll_mult = ov772x_pll[i].mult;
-+		unsigned int pll_out = pll_mult * fin;
-+		unsigned int t_pclk;
-+		unsigned int div;
-+
-+		if (pll_out < pclk)
-+			continue;
-+
-+		div = DIV_ROUND_CLOSEST(pll_out, pclk);
-+		t_pclk = DIV_ROUND_CLOSEST(fin * pll_mult, div);
-+		diff = abs(pclk - t_pclk);
-+		if (diff < best_diff) {
-+			best_diff = diff;
-+			clkrc = CLKRC_DIV(div);
-+			com4 = ov772x_pll[i].com4;
-+		}
-+	}
-+
-+	ret = ov772x_write(client, COM4, com4 | COM4_RESERVED);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov772x_write(client, CLKRC, clkrc | CLKRC_RESERVED);
-+	if (ret < 0)
-+		return ret;
-+
-+	tpf->numerator = 1;
-+	tpf->denominator = fps;
-+	priv->fps = tpf->denominator;
-+
 +	return 0;
 +}
 +
-+static int ov772x_g_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_frame_interval *ival)
-+{
-+	struct ov772x_priv *priv = to_ov772x(sd);
-+	struct v4l2_fract *tpf = &ival->interval;
-+
-+	tpf->numerator = 1;
-+	tpf->denominator = priv->fps;
-+
-+	return 0;
-+}
-+
-+static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_frame_interval *ival)
-+{
-+	struct ov772x_priv *priv = to_ov772x(sd);
-+	struct v4l2_fract *tpf = &ival->interval;
-+
-+	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
-+}
-+
- static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ static int sur40_ioctl_parm(struct file *file, void *priv,
+ 			    struct v4l2_streamparm *p)
  {
- 	struct ov772x_priv *priv = container_of(ctrl->handler,
-@@ -757,6 +906,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			     const struct ov772x_win_size *win)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	struct v4l2_fract tpf;
- 	int ret;
- 	u8  val;
- 
-@@ -885,6 +1035,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
-+	/* COM4, CLKRC: Set pixel clock and framerate. */
-+	tpf.numerator = 1;
-+	tpf.denominator = priv->fps;
-+	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
-+	if (ret < 0)
-+		goto ov772x_set_fmt_error;
-+
- 	/*
- 	 * set COM8
- 	 */
-@@ -1043,6 +1200,24 @@ static const struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
- 	.s_power	= ov772x_s_power,
- };
- 
-+static int ov772x_enum_frame_interval(struct v4l2_subdev *sd,
-+				      struct v4l2_subdev_pad_config *cfg,
-+				      struct v4l2_subdev_frame_interval_enum *fie)
-+{
-+	if (fie->pad || fie->index >= ARRAY_SIZE(ov772x_frame_intervals))
-+		return -EINVAL;
-+
-+	if (fie->width != VGA_WIDTH && fie->width != QVGA_WIDTH)
-+		return -EINVAL;
-+	if (fie->height != VGA_HEIGHT && fie->height != QVGA_HEIGHT)
-+		return -EINVAL;
-+
-+	fie->interval.numerator = 1;
-+	fie->interval.denominator = ov772x_frame_intervals[fie->index];
-+
-+	return 0;
-+}
-+
- static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_mbus_code_enum *code)
-@@ -1055,14 +1230,17 @@ static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
- }
- 
- static const struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
--	.s_stream	= ov772x_s_stream,
-+	.s_stream		= ov772x_s_stream,
-+	.s_frame_interval	= ov772x_s_frame_interval,
-+	.g_frame_interval	= ov772x_g_frame_interval,
- };
- 
- static const struct v4l2_subdev_pad_ops ov772x_subdev_pad_ops = {
--	.enum_mbus_code = ov772x_enum_mbus_code,
--	.get_selection	= ov772x_get_selection,
--	.get_fmt	= ov772x_get_fmt,
--	.set_fmt	= ov772x_set_fmt,
-+	.enum_frame_interval	= ov772x_enum_frame_interval,
-+	.enum_mbus_code		= ov772x_enum_mbus_code,
-+	.get_selection		= ov772x_get_selection,
-+	.get_fmt		= ov772x_get_fmt,
-+	.set_fmt		= ov772x_set_fmt,
- };
- 
- static const struct v4l2_subdev_ops ov772x_subdev_ops = {
-@@ -1134,6 +1312,7 @@ static int ov772x_probe(struct i2c_client *client,
- 
- 	priv->cfmt = &ov772x_cfmts[0];
- 	priv->win = &ov772x_win_sizes[0];
-+	priv->fps = 15;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret)
 -- 
 2.7.4
