@@ -1,11 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:52059 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752015AbeBASOs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Feb 2018 13:14:48 -0500
-Subject: Re: [RFCv2 05/17] media: Document the media request API
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:45136 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753161AbeBGBsz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:48:55 -0500
+Received: by mail-pl0-f66.google.com with SMTP id p5so2482213plo.12
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:48:55 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Pawel Osciak <posciak@chromium.org>,
@@ -14,210 +15,214 @@ To: Alexandre Courbot <acourbot@chromium.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Gustavo Padovan <gustavo.padovan@collabora.com>
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-References: <20180131102427.207721-1-acourbot@chromium.org>
- <20180131102427.207721-6-acourbot@chromium.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <d23317ee-af0d-3fe8-cbfb-cff01f9d82b8@infradead.org>
-Date: Thu, 1 Feb 2018 10:14:41 -0800
-MIME-Version: 1.0
-In-Reply-To: <20180131102427.207721-6-acourbot@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv3 08/17] v4l2-ctrls: add core request API
+Date: Wed,  7 Feb 2018 10:48:12 +0900
+Message-Id: <20180207014821.164536-9-acourbot@chromium.org>
+In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
+References: <20180207014821.164536-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/31/2018 02:24 AM, Alexandre Courbot wrote:
-> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> The media request API is made of a new ioctl to implement request
-> management. Document it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> [acourbot@chromium.org: adapt for newest API]
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> ---
->  Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
->  .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 141 +++++++++++++++++++++
->  2 files changed, 142 insertions(+)
->  create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
-> 
-> diff --git a/Documentation/media/uapi/mediactl/media-funcs.rst b/Documentation/media/uapi/mediactl/media-funcs.rst
-> index 076856501cdb..e3a45d82ffcb 100644
-> --- a/Documentation/media/uapi/mediactl/media-funcs.rst
-> +++ b/Documentation/media/uapi/mediactl/media-funcs.rst
-> @@ -15,4 +15,5 @@ Function Reference
->      media-ioc-g-topology
->      media-ioc-enum-entities
->      media-ioc-enum-links
-> +    media-ioc-request-cmd
->      media-ioc-setup-link
-> diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
-> new file mode 100644
-> index 000000000000..723b422afcce
-> --- /dev/null
-> +++ b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
-> @@ -0,0 +1,141 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _media_ioc_request_cmd:
-> +
-> +***************************
-> +ioctl MEDIA_IOC_REQUEST_CMD
-> +***************************
-> +
-> +Name
-> +====
-> +
-> +MEDIA_IOC_REQUEST_CMD - Manage media device requests
-> +
-> +
-> +Synopsis
-> +========
-> +
-> +.. c:function:: int ioctl( int fd, MEDIA_IOC_REQUEST_CMD, struct media_request_cmd *argp )
-> +    :name: MEDIA_IOC_REQUEST_CMD
-> +
-> +
-> +Arguments
-> +=========
-> +
-> +``fd``
-> +    File descriptor returned by :ref:`open() <media-func-open>`.
-> +
-> +``argp``
-> +
-> +
-> +Description
-> +===========
-> +
-> +The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media device
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-                                   allows
+Add the four core request functions:
 
-> +requests. A request is an object that can group media device configuration
-> +parameters, including subsystem-specific parameters, in order to apply all the
-> +parameters atomically. Applications are responsible for allocating and
-> +deleting requests, filling them with configuration parameters submitting them.
+v4l2_ctrl_request_init() initializes a new (empty) request.
+v4l2_ctrl_request_clone() resets a request based on another request
+(or clears it if that request is NULL).
+v4l2_ctrl_request_get(): increase refcount
+v4l2_ctrl_request_put(): decrease refcount and delete if it reaches 0.
 
-                                                                and submitting them.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[acourbot@chromium.org: turn v4l2_ctrl_request_alloc into init function]
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 106 ++++++++++++++++++++++++++++++++++-
+ include/media/v4l2-ctrls.h           |   7 +++
+ 2 files changed, 110 insertions(+), 3 deletions(-)
 
-> +
-> +Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD ioctl
-> +with a pointer to a struct :c:type:`media_request_cmd` with the cmd field set
-> +to the appropriate command. :ref:`media-request-command` lists the commands
-> +supported by the ioctl.
-> +
-> +The struct :c:type:`media_request_cmd` request field contains the file
-> +descriptorof the request on which the command operates. For the
-
-   descriptor of
-
-> +``MEDIA_REQ_CMD_ALLOC`` command the field is set to zero by applications and
-> +filled by the driver. For all other commands the field is set by applications
-> +and left untouched by the driver.
-> +
-> +To allocate a new request applications use the ``MEDIA_REQ_CMD_ALLOC``
-> +command. The driver will allocate a new request and return its FD in the
-> +request field. After allocation, the request is "empty", which means that it
-> +does not hold any state of its own, and that the hardware's state will not be
-> +affected by it unless it is passed as argument to V4L2 or media controller
-> +commands.
-> +
-> +Requests are reference-counted. A newly allocated request is referenced
-> +by the returned file descriptor, and can be later referenced by
-> +subsystem-specific operations. Requests will thus be automatically deleted
-> +when they're not longer used after the returned file descriptor is closed.
-
-                 no longer
-
-> +
-> +If a request isn't needed applications can delete it by calling ``close()``
-> +on it. The driver will drop the file handle reference. The request will not
-> +be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will only be
-> +deleted when the last reference is released. If no other reference exists when
-> +``close()`` is invoked the request will be deleted immediately.
-> +
-> +After creating a request applications should fill it with configuration
-> +parameters. This is performed through subsystem-specific request APIs outside
-> +the scope of the media controller API. See the appropriate subsystem APIs for
-> +more information, including how they interact with the MEDIA_IOC_REQUEST_CMD
-> +ioctl.
-> +
-> +Once a request contains all the desired configuration parameters it can be
-> +submitted using the ``MEDIA_REQ_CMD_SUBMIT`` command. This will let the
-> +buffers queued for the request be passed to their respective drivers, which
-> +will then apply the request's parameters before processing them.
-> +
-> +Once a request has been queued applications are not allowed to modify its
-> +configuration parameters until the request has been fully processed. Any
-> +attempt to do so will result in the related subsystem API returning an error.
-> +The application that submitted the request can wait for its completion by
-> +polling on the request's file descriptor.
-> +
-> +Once a request has completed, it can be reused. The ``MEDIA_REQ_CMD_REINIT``
-> +command will bring it back to its initial state, so it can be prepared and
-> +submitted again.
-> +
-> +.. c:type:: media_request_cmd
-> +
-> +.. flat-table:: struct media_request_cmd
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths: 1 2 8
-> +
-> +    * - __u32
-> +      - ``cmd``
-> +      - Command, set by the application. See below for the list of supported
-> +        commands.
-> +    * - __u32
-> +      - ``fd``
-> +      - Request FD, set by the driver for the MEDIA_REQ_CMD_ALLOC command and
-> +        by the application for all other commands.
-> +
-> +
-> +.. _media-request-command:
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: Media request commands
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * .. _MEDIA-REQ-CMD-ALLOC:
-> +
-> +      - ``MEDIA_REQ_CMD_ALLOC``
-> +      - Allocate a new request.
-> +    * .. _MEDIA-REQ-CMD-SUBMIT:
-> +
-> +      - ``MEDIA_REQ_CMD_SUBMIT``
-> +      - Submit a request to be processed.
-> +    * .. _MEDIA-REQ-CMD-QUEUE:
-> +
-> +      - ``MEDIA_REQ_CMD_REINIT``
-> +      - Reinitializes a completed request.
-
-           Reinitialize
-to be consistent with other entries above.
-
-> +
-> +
-> +Return Value
-> +============
-> +
-> +On success 0 is returned, on error -1 and the ``errno`` variable is set
-> +appropriately. The generic error codes are described at the
-> +:ref:`Generic Error Codes <gen-errors>` chapter.
-> +
-> +EINVAL
-> +    The struct :c:type:`media_request_cmd` specifies an invalid command or
-> +    references a non-existing request.
-> +
-> +ENOSYS
-> +    Request API is not available on this device.
-> 
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 1ff8fc59fff5..c692a6d925c6 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1878,6 +1878,7 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+ /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 			   struct v4l2_ctrl *ctrl,
++			   struct v4l2_ctrl_ref **ctrl_ref,
+ 			   bool from_other_dev)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+@@ -1885,6 +1886,10 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	u32 id = ctrl->id;
+ 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
+ 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
++	unsigned int sz_extra = 0;
++
++	if (ctrl_ref)
++		*ctrl_ref = NULL;
+ 
+ 	/*
+ 	 * Automatically add the control class if it is not yet present and
+@@ -1898,11 +1903,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return hdl->error;
+ 
+-	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
++	if (hdl->is_request)
++		sz_extra = ctrl->elems * ctrl->elem_size;
++	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
+ 	if (!new_ref)
+ 		return handler_set_err(hdl, -ENOMEM);
+ 	new_ref->ctrl = ctrl;
+ 	new_ref->from_other_dev = from_other_dev;
++	if (sz_extra)
++		new_ref->p_req.p = &new_ref[1];
++
+ 	if (ctrl->handler == hdl) {
+ 		/* By default each control starts in a cluster of its own.
+ 		   new_ref->ctrl is basically a cluster array with one
+@@ -1942,6 +1952,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	/* Insert the control node in the hash */
+ 	new_ref->next = hdl->buckets[bucket];
+ 	hdl->buckets[bucket] = new_ref;
++	if (ctrl_ref)
++		*ctrl_ref = new_ref;
+ 
+ unlock:
+ 	mutex_unlock(hdl->lock);
+@@ -2083,7 +2095,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+ 	}
+ 
+-	if (handler_new_ref(hdl, ctrl, false)) {
++	if (handler_new_ref(hdl, ctrl, NULL, false)) {
+ 		kvfree(ctrl);
+ 		return NULL;
+ 	}
+@@ -2276,7 +2288,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 		/* Filter any unwanted controls */
+ 		if (filter && !filter(ctrl))
+ 			continue;
+-		ret = handler_new_ref(hdl, ctrl, from_other_dev);
++		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev);
+ 		if (ret)
+ 			break;
+ 	}
+@@ -2685,6 +2697,94 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
+ }
+ EXPORT_SYMBOL(v4l2_querymenu);
+ 
++int v4l2_ctrl_request_init(struct v4l2_ctrl_handler *hdl)
++{
++	int err;
++
++	err = v4l2_ctrl_handler_init(hdl, 0);
++	if (err)
++		return err;
++	hdl->is_request = true;
++	kref_init(&hdl->ref);
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_init);
++
++int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
++			    const struct v4l2_ctrl_handler *from,
++			    bool (*filter)(const struct v4l2_ctrl *ctrl))
++{
++	struct v4l2_ctrl_ref *ref;
++	int err;
++
++	if (WARN_ON(!hdl || hdl == from))
++		return -EINVAL;
++
++	if (hdl->error)
++		return hdl->error;
++
++	WARN_ON(hdl->lock != &hdl->_lock);
++	v4l2_ctrl_handler_free(hdl);
++	err = v4l2_ctrl_handler_init(hdl, (from->nr_of_buckets - 1) * 8);
++	hdl->is_request = true;
++	if (err)
++		return err;
++	if (!from)
++		return 0;
++
++	mutex_lock(from->lock);
++	list_for_each_entry(ref, &from->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl_ref *new_ref;
++
++		/* Skip refs inherited from other devices */
++		if (ref->from_other_dev)
++			continue;
++		/* And buttons and control classes */
++		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
++		    ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
++			continue;
++		/* Filter any unwanted controls */
++		if (filter && !filter(ctrl))
++			continue;
++		err = handler_new_ref(hdl, ctrl, &new_ref, false);
++		if (err)
++			break;
++		if (from->is_request)
++			ptr_to_ptr(ctrl, ref->p_req, new_ref->p_req);
++		else
++			ptr_to_ptr(ctrl, ctrl->p_cur, new_ref->p_req);
++	}
++	mutex_unlock(from->lock);
++	return err;
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_clone);
++
++void v4l2_ctrl_request_get(struct v4l2_ctrl_handler *hdl)
++{
++	if (WARN_ON(!hdl->is_request))
++		return;
++	kref_get(&hdl->ref);
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_get);
++
++static void v4l2_ctrl_request_release(struct kref *kref)
++{
++	struct v4l2_ctrl_handler *hdl =
++		container_of(kref, struct v4l2_ctrl_handler, ref);
++
++	v4l2_ctrl_handler_free(hdl);
++	kfree(hdl);
++}
++
++void v4l2_ctrl_request_put(struct v4l2_ctrl_handler *hdl)
++{
++	if (WARN_ON(!hdl->is_request))
++		return;
++	kref_put(&hdl->ref, v4l2_ctrl_request_release);
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_put);
+ 
+ /* Some general notes on the atomic requirements of VIDIOC_G/TRY/S_EXT_CTRLS:
+ 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 22b6be78057f..bddceb794961 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -1052,6 +1052,13 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+  */
+ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
+ 
++int v4l2_ctrl_request_init(struct v4l2_ctrl_handler *hdl);
++int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
++			    const struct v4l2_ctrl_handler *from,
++			    bool (*filter)(const struct v4l2_ctrl *ctrl));
++void v4l2_ctrl_request_get(struct v4l2_ctrl_handler *hdl);
++void v4l2_ctrl_request_put(struct v4l2_ctrl_handler *hdl);
++
+ /* Helpers for ioctl_ops */
+ 
+ /**
 -- 
-~Randy
+2.16.0.rc1.238.g530d649a79-goog
