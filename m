@@ -1,80 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:57956 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1033758AbeBPOJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Feb 2018 09:09:24 -0500
-Date: Fri, 16 Feb 2018 12:09:17 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        "chris\@chris-wilson.co.uk" <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH v4 16/18] scripts: kernel-doc: improve nested logic to
- handle multiple identifiers
-Message-ID: <20180216120917.628d08d1@vento.lan>
-In-Reply-To: <87eflnjuvu.fsf@intel.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-        <b89b7c5400afd8c03d88ccccd2b5edd3625a1997.1513599193.git.mchehab@s-opensource.com>
-        <874lmjlfmg.fsf@intel.com>
-        <20180214155314.1be00577@vento.lan>
-        <87eflnjuvu.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:59330 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752037AbeBHIhC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 03:37:02 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 09/15] media-types.rst: fix type, small improvements
+Date: Thu,  8 Feb 2018 09:36:49 +0100
+Message-Id: <20180208083655.32248-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Feb 2018 20:20:21 +0200
-Jani Nikula <jani.nikula@linux.intel.com> escreveu:
+data conector -> connector
 
-> On Wed, 14 Feb 2018, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> > There is a simple fix, though. Make inline comments to accept a dot:
-> >
-> > diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> > index fee8952037b1..06d7f3f2c094 100755
-> > --- a/scripts/kernel-doc
-> > +++ b/scripts/kernel-doc
-> > @@ -363,7 +363,7 @@ my $doc_sect = $doc_com .
-> >  my $doc_content = $doc_com_body . '(.*)';
-> >  my $doc_block = $doc_com . 'DOC:\s*(.*)?';
-> >  my $doc_inline_start = '^\s*/\*\*\s*$';
-> > -my $doc_inline_sect = '\s*\*\s*(@[\w\s]+):(.*)';
-> > +my $doc_inline_sect = '\s*\*\s*(@\s*[\w][\w\.]*\s*):(.*)';
-> >  my $doc_inline_end = '^\s*\*/\s*$';
-> >  my $doc_inline_oneline = '^\s*/\*\*\s*(@[\w\s]+):\s*(.*)\s*\*/\s*$';
-> >  my $export_symbol = '^\s*EXPORT_SYMBOL(_GPL)?\s*\(\s*(\w+)\s*\)\s*;';
-> >
-> > That requires a small change at the inline parameters, though:
-> >
-> > diff --git a/drivers/gpu/drm/i915/intel_dpio_phy.c b/drivers/gpu/drm/i915/intel_dpio_phy.c
-> > index 76473e9836c6..c8e9e44e5981 100644
-> > --- a/drivers/gpu/drm/i915/intel_dpio_phy.c
-> > +++ b/drivers/gpu/drm/i915/intel_dpio_phy.c
-> > @@ -147,7 +147,7 @@ struct bxt_ddi_phy_info {
-> >  	 */
-> >  	struct {
-> >  		/**
-> > -		 * @port: which port maps to this channel.
-> > +		 * @channel.port: which port maps to this channel.
-> >  		 */
-> >  		enum port port;
-> >  	} channel[2];  
-> 
-> Perhaps it would be slightly more elegant to be able to leave out
-> "channel." here and deduce that from the context... but the above
-> matches what you'd write in the higher level struct comment, and
-> produces the same output. It works and it's really simple. I like it.
-> 
-> Please submit this as a proper patch, with
-> 
-> Tested-by: Jani Nikula <jani.nikula@intel.com>
+... -> etc.
 
-Submitted. I ended by submitting as a patch series, as, when I
-did some tests with the examples, I found that kernel-doc have
-issues parsing them.
+'...' looked odd when my browser put the ... by itself on the next line, 'etc.'
+is clearer IMHO.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/mediactl/media-types.rst | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Thanks,
-Mauro
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 8d64b0c06ebc..9c1e3d3f590c 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -293,7 +293,7 @@ Types and flags used to represent the media graph elements
+ 
+        -  ``MEDIA_ENT_F_PROC_VIDEO_STATISTICS``
+ 
+-       -  Video statistics computation (histogram, 3A, ...). An entity
++       -  Video statistics computation (histogram, 3A, etc.). An entity
+ 	  capable of statistics computation must have one sink pad and
+ 	  one source pad. It computes statistics over the frames
+ 	  received on its sink pad and outputs the statistics data on
+@@ -318,8 +318,8 @@ Types and flags used to represent the media graph elements
+        - Video interface bridge. A video interface bridge entity must have at
+          least one sink pad and at least one source pad. It receives video
+          frames on its sink pad from an input video bus of one type (HDMI, eDP,
+-         MIPI CSI-2, ...), and outputs them on its source pad to an output
+-         video bus of another type (eDP, MIPI CSI-2, parallel, ...).
++         MIPI CSI-2, etc.), and outputs them on its source pad to an output
++         video bus of another type (eDP, MIPI CSI-2, parallel, etc.).
+ 
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+ 
+@@ -337,7 +337,7 @@ Types and flags used to represent the media graph elements
+        -  ``MEDIA_ENT_FL_DEFAULT``
+ 
+        -  Default entity for its type. Used to discover the default audio,
+-	  VBI and video devices, the default camera sensor, ...
++	  VBI and video devices, the default camera sensor, etc.
+ 
+     -  .. row 2
+ 
+@@ -345,7 +345,7 @@ Types and flags used to represent the media graph elements
+ 
+        -  ``MEDIA_ENT_FL_CONNECTOR``
+ 
+-       -  The entity represents a data conector
++       -  The entity represents a connector.
+ 
+ 
+ ..  tabularcolumns:: |p{6.5cm}|p{6.0cm}|p{5.0cm}|
+-- 
+2.15.1
