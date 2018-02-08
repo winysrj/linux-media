@@ -1,133 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52742 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1032203AbeBNQVC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 11:21:02 -0500
-Date: Wed, 14 Feb 2018 14:20:50 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 4/9] staging: atomisp: i2c: Disable non-preview
- configurations
-Message-ID: <20180214142050.2ef515ee@vento.lan>
-In-Reply-To: <20180122123125.24709-5-hverkuil@xs4all.nl>
-References: <20180122123125.24709-1-hverkuil@xs4all.nl>
-        <20180122123125.24709-5-hverkuil@xs4all.nl>
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:13722 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752359AbeBHP3f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 10:29:35 -0500
+Subject: Re: [PATCH v8 0/7] TDA1997x HDMI video reciver
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+ <c7771c44-a9ff-0207-38f6-28bcc06ccdee@xs4all.nl>
+ <CAJ+vNU1oiM0Y0rO-DHi57nVOqnw60A7pn_1=h5b46-BrY7_p2Q@mail.gmail.com>
+ <605fd4a8-43ab-c566-57b6-abb1c9f8f0f8@xs4all.nl>
+ <7cf38465-7a79-5d81-a995-9acfbacf5023@xs4all.nl>
+ <CAJ+vNU014FJZsb44YnidE3fFiqeB6o8A7kvGinJWu7=yq3_dhA@mail.gmail.com>
+ <d188a172-fc00-eb46-c6f5-833a86475390@xs4all.nl>
+ <1518086816.4359.4.camel@pengutronix.de>
+ <3b95357c-e44f-eed9-efd3-e2b0e4ff9eb2@xs4all.nl>
+ <e13db87e-761a-b0e5-3802-348c9776674a@xs4all.nl>
+ <1518102837.4359.6.camel@pengutronix.de>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <d2d376ef-c74e-3df0-01b3-3ab606664dba@cisco.com>
+Date: Thu, 8 Feb 2018 16:29:32 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1518102837.4359.6.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 22 Jan 2018 13:31:20 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 02/08/18 16:13, Philipp Zabel wrote:
+> On Thu, 2018-02-08 at 13:01 +0100, Hans Verkuil wrote:
+>>> These are likely to be filled correctly already. I've just added a commit
+>>> to v4l2-compliance to make it easier to see what function is used:
+>>>
+>>> 	v4l2-compliance -m0 -v
+>>
+>> Actually, can you run this using the latest v4l-utils version for the imx
+>> and post the output?
 > 
-> Disable configurations for non-preview modes until configuration selection
-> is improved.
+> I have tried with v4l-utils-1.14.0-111-g542af94c on a platform with a
+> Toshiba TC358743 connected via MIPI CSI-2. Apart from a crash [1], I get
+> a few:
+> - missing G_INPUT on the capture devices - is that really a bug?
 
-Again, a poor description. It just repeats the subject.
-A good subject/description should answer 3 questions:
+Depends who you ask :-)  It's an open issue, we had a patch for this that
+was never picked up. Hopefully this will resurrect that patch.
 
-	what?
-	why?
-	how?
+> - cap->timeperframe.numerator == 0 || cap->timeperframe.denominator == 0,
+>   where there is nothing connected that could provide timing information
+> - missing enum_mbus_code
+> - check_0(reserved) errors on subdev ioctls
 
-Anyway, looking at this patch's contents, it partially answers my
-questions:
+Should be fixed by https://patchwork.linuxtv.org/patch/46955/ and
+https://patchwork.linuxtv.org/patch/46950/
 
-the previous patch do cause regressions at the code.
+> - node->enum_frame_interval_pad != (int)pad
+> - subscribe event failures
+> - g_ext_ctrls does not support count == 0 (which no subdev implements)
 
-Ok, this is staging. So, we don't have very strict rules here,
-but still causing regressions without providing a very good
-reason why sucks.
-
-I would also merge this with the previous one, in order to place all
-regressions on a single patch.
-
+Was this patch applied? https://patchwork.linuxtv.org/patch/46958/
+That will probably fix this fail.
 
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/staging/media/atomisp/i2c/gc2235.h        | 2 ++
->  drivers/staging/media/atomisp/i2c/ov2722.h        | 2 ++
->  drivers/staging/media/atomisp/i2c/ov5693/ov5693.h | 2 ++
->  3 files changed, 6 insertions(+)
+> [1] https://patchwork.linuxtv.org/patch/46979/
 > 
-> diff --git a/drivers/staging/media/atomisp/i2c/gc2235.h b/drivers/staging/media/atomisp/i2c/gc2235.h
-> index 45a54fea5466..817c0068c1d3 100644
-> --- a/drivers/staging/media/atomisp/i2c/gc2235.h
-> +++ b/drivers/staging/media/atomisp/i2c/gc2235.h
-> @@ -574,6 +574,7 @@ static struct gc2235_resolution gc2235_res_preview[] = {
->  };
->  #define N_RES_PREVIEW (ARRAY_SIZE(gc2235_res_preview))
->  
-> +#if 0 /* Disable non-previes configurations for now */
+> The CSIs are currently marked as pixel formatters instead of IF bridges,
+>   
+> the vdics are marked as pixel formatters instead of deinterlacers, and
+> the ic_prp is marked as scaler instead of video splitter. The other
+> entity functions are initialized correctly.
 
-typo (here and other cut-and-paste paces)
-	non-previes -> non-previews
+Thanks for testing this!
 
-also, please add a FIXME: or HACK: and describe the need for a fix
-on atomisp TODO file.
+	Hans
 
->  static struct gc2235_resolution gc2235_res_still[] = {
->  	{
->  		.desc = "gc2235_1600_900_30fps",
-> @@ -658,6 +659,7 @@ static struct gc2235_resolution gc2235_res_video[] = {
->  
->  };
->  #define N_RES_VIDEO (ARRAY_SIZE(gc2235_res_video))
-> +#endif
->  
->  static struct gc2235_resolution *gc2235_res = gc2235_res_preview;
->  static unsigned long N_RES = N_RES_PREVIEW;
-> diff --git a/drivers/staging/media/atomisp/i2c/ov2722.h b/drivers/staging/media/atomisp/i2c/ov2722.h
-> index d8a973d71699..f133439adfd5 100644
-> --- a/drivers/staging/media/atomisp/i2c/ov2722.h
-> +++ b/drivers/staging/media/atomisp/i2c/ov2722.h
-> @@ -1148,6 +1148,7 @@ struct ov2722_resolution ov2722_res_preview[] = {
->  };
->  #define N_RES_PREVIEW (ARRAY_SIZE(ov2722_res_preview))
->  
-> +#if 0 /* Disable non-previes configurations for now */
->  struct ov2722_resolution ov2722_res_still[] = {
->  	{
->  		.desc = "ov2722_480P_30fps",
-> @@ -1250,6 +1251,7 @@ struct ov2722_resolution ov2722_res_video[] = {
->  	},
->  };
->  #define N_RES_VIDEO (ARRAY_SIZE(ov2722_res_video))
-> +#endif
->  
->  static struct ov2722_resolution *ov2722_res = ov2722_res_preview;
->  static unsigned long N_RES = N_RES_PREVIEW;
-> diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
-> index 68cfcb4a6c3c..15a33dcd2d59 100644
-> --- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
-> +++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
-> @@ -1147,6 +1147,7 @@ struct ov5693_resolution ov5693_res_preview[] = {
->  };
->  #define N_RES_PREVIEW (ARRAY_SIZE(ov5693_res_preview))
->  
-> +#if 0 /* Disable non-previes configurations for now */
->  struct ov5693_resolution ov5693_res_still[] = {
->  	{
->  		.desc = "ov5693_736x496_30fps",
-> @@ -1364,6 +1365,7 @@ struct ov5693_resolution ov5693_res_video[] = {
->  	},
->  };
->  #define N_RES_VIDEO (ARRAY_SIZE(ov5693_res_video))
-> +#endif
->  
->  static struct ov5693_resolution *ov5693_res = ov5693_res_preview;
->  static unsigned long N_RES = N_RES_PREVIEW;
+> Total: 1307, Succeeded: 1089, Failed: 218, Warnings: 4
 
+Total: 1307
 
+Cool!
 
-Thanks,
-Mauro
+	Hans
