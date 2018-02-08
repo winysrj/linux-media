@@ -1,71 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:45593 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752089AbeBGWnQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 17:43:16 -0500
-Received: by mail-pl0-f66.google.com with SMTP id p5-v6so951855plo.12
-        for <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 14:43:16 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v9 3/8] media: add digital video decoder entity function
-Date: Wed,  7 Feb 2018 14:42:42 -0800
-Message-Id: <1518043367-11531-4-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
-References: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:50078 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750954AbeBHIhC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 03:37:02 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 11/15] media-device.c: zero reserved field
+Date: Thu,  8 Feb 2018 09:36:51 +0100
+Message-Id: <20180208083655.32248-12-hverkuil@xs4all.nl>
+In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new media entity function definition for digital TV decoders:
-MEDIA_ENT_F_DTV_DECODER
+MEDIA_IOC_SETUP_LINK didn't zero the reserved field of the media_link_desc
+struct. Do so in media_device_setup_link().
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/mediactl/media-types.rst | 11 +++++++++++
- include/uapi/linux/media.h                        |  5 +++++
- 2 files changed, 16 insertions(+)
+ drivers/media/media-device.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 8d64b0c..195400e 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -321,6 +321,17 @@ Types and flags used to represent the media graph elements
-          MIPI CSI-2, ...), and outputs them on its source pad to an output
-          video bus of another type (eDP, MIPI CSI-2, parallel, ...).
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index e79f72b8b858..afbf23a19e16 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -218,6 +218,8 @@ static long media_device_setup_link(struct media_device *mdev,
+ 	if (link == NULL)
+ 		return -EINVAL;
  
-+    -  ..  row 31
++	memset(linkd->reserved, 0, sizeof(linkd->reserved));
 +
-+       ..  _MEDIA-ENT-F-DTV-DECODER:
-+
-+       -  ``MEDIA_ENT_F_DTV_DECODER``
-+
-+       -  Digital video decoder. The basic function of the video decoder is
-+	  to accept digital video from a wide variety of sources
-+	  and output it in some digital video standard, with appropriate
-+	  timing signals.
-+
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-entity-flag:
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index b9b9446..2f12328 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -110,6 +110,11 @@ struct media_device_info {
- #define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
- 
- /*
-+ * Digital video decoder entities
-+ */
-+#define MEDIA_ENT_F_DTV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
-+
-+/*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
+ 	/* Setup the link on both entities. */
+ 	return __media_entity_setup_link(link, linkd->flags);
+ }
 -- 
-2.7.4
+2.15.1
