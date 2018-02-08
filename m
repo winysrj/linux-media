@@ -1,53 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:35280 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751095AbeBYLzk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Feb 2018 06:55:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for 4.16] atomisp_fops.c: disable atomisp_compat_ioctl32
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <719145fe-b041-c88e-0afb-dcc15e9c8b8a@xs4all.nl>
-Date: Sun, 25 Feb 2018 12:55:32 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:50562 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752573AbeBHTx0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:53:26 -0500
+Received: by mail-wm0-f66.google.com with SMTP id f71so11561276wmf.0
+        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:53:25 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH 3/7] [media] ddbridge: adapt cxd2099 attach to new i2c_client way
+Date: Thu,  8 Feb 2018 20:53:14 +0100
+Message-Id: <20180208195318.612-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20180208195318.612-1-d.scheller.oss@gmail.com>
+References: <20180208195318.612-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The atomisp_compat_ioctl32() code has problems. This patch disables the
-compat_ioctl32 support until those issues have been fixed.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Contact Sakari or me for more details.
+Change the way the cxd2099 hardware is being attached to the new I2C
+client interface way.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: <stable@vger.kernel.org>      # for v4.12 and up
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-index 4f9f9dca5e6a..545ef024841d 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-@@ -1279,7 +1279,10 @@ const struct v4l2_file_operations atomisp_fops = {
- 	.mmap = atomisp_mmap,
- 	.unlocked_ioctl = video_ioctl2,
- #ifdef CONFIG_COMPAT
-+	/*
-+	 * There are problems with this code. Disable this for now.
- 	.compat_ioctl32 = atomisp_compat_ioctl32,
-+	 */
- #endif
- 	.poll = atomisp_poll,
+ drivers/media/pci/ddbridge/ddbridge-ci.c | 62 +++++++++++++++++++++++++++++---
+ drivers/media/pci/ddbridge/ddbridge.h    |  1 +
+ 2 files changed, 58 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+index ed19890710d6..6585ef54ac22 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -172,6 +172,7 @@ static void ci_attach(struct ddb_port *port)
+ 	memcpy(&ci->en, &en_templ, sizeof(en_templ));
+ 	ci->en.data = ci;
+ 	port->en = &ci->en;
++	port->en_freedata = 1;
+ 	ci->port = port;
+ 	ci->nr = port->nr - 2;
+ }
+@@ -304,6 +305,7 @@ static void ci_xo2_attach(struct ddb_port *port)
+ 	memcpy(&ci->en, &en_xo2_templ, sizeof(en_xo2_templ));
+ 	ci->en.data = ci;
+ 	port->en = &ci->en;
++	port->en_freedata = 1;
+ 	ci->port = port;
+ 	ci->nr = port->nr - 2;
+ 	ci->port->creg = 0;
+@@ -311,20 +313,58 @@ static void ci_xo2_attach(struct ddb_port *port)
+ 	write_creg(ci, 0x08, 0x08);
+ }
+ 
+-static struct cxd2099_cfg cxd_cfg = {
++static const struct cxd2099_cfg cxd_cfgtmpl = {
+ 	.bitrate =  72000,
+-	.adr     =  0x40,
+ 	.polarity = 1,
+ 	.clock_mode = 1,
+ 	.max_i2c = 512,
  };
-@@ -1291,7 +1294,10 @@ const struct v4l2_file_operations atomisp_file_fops = {
- 	.mmap = atomisp_file_mmap,
- 	.unlocked_ioctl = video_ioctl2,
- #ifdef CONFIG_COMPAT
-+	/*
-+	 * There are problems with this code. Disable this for now.
- 	.compat_ioctl32 = atomisp_compat_ioctl32,
-+	 */
- #endif
- 	.poll = atomisp_poll,
- };
+ 
++static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
++{
++	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
++	struct i2c_client *client;
++	struct i2c_board_info board_info = {
++		.type = "cxd2099",
++		.addr = 0x40,
++		.platform_data = &cxd_cfg,
++	};
++
++	cxd_cfg.bitrate = bitrate;
++	cxd_cfg.en = &port->en;
++
++	request_module(board_info.type);
++
++	client = i2c_new_device(&port->i2c->adap, &board_info);
++	if (!client || !client->dev.driver)
++		goto err_ret;
++
++	if (!try_module_get(client->dev.driver->owner))
++		goto err_i2c;
++
++	if (!port->en)
++		goto err_i2c;
++
++	port->dvb[0].i2c_client[0] = client;
++	port->en_freedata = 0;
++	return 0;
++
++err_i2c:
++	i2c_unregister_device(client);
++err_ret:
++	dev_err(port->dev->dev, "CXD2099AR attach failed\n");
++	return -ENODEV;
++}
++
+ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ {
++	int ret;
++
+ 	switch (port->type) {
+ 	case DDB_CI_EXTERNAL_SONY:
+-		cxd_cfg.bitrate = bitrate;
+-		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
++		ret = ci_cxd2099_attach(port, bitrate);
++		if (ret)
++			return -ENODEV;
+ 		break;
+ 	case DDB_CI_EXTERNAL_XO2:
+ 	case DDB_CI_EXTERNAL_XO2_B:
+@@ -345,11 +385,23 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 
+ void ddb_ci_detach(struct ddb_port *port)
+ {
++	struct i2c_client *client;
++
+ 	if (port->dvb[0].dev)
+ 		dvb_unregister_device(port->dvb[0].dev);
+ 	if (port->en) {
+ 		dvb_ca_en50221_release(port->en);
+-		kfree(port->en->data);
++
++		client = port->dvb[0].i2c_client[0];
++		if (client) {
++			module_put(client->dev.driver->owner);
++			i2c_unregister_device(client);
++		}
++
++		/* free alloc'ed memory if needed */
++		if (port->en_freedata)
++			kfree(port->en->data);
++
+ 		port->en = NULL;
+ 	}
+ }
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 095457737bc1..f223dc6c9963 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -276,6 +276,7 @@ struct ddb_port {
+ 	struct ddb_input      *input[2];
+ 	struct ddb_output     *output;
+ 	struct dvb_ca_en50221 *en;
++	u8                     en_freedata;
+ 	struct ddb_dvb         dvb[2];
+ 	u32                    gap;
+ 	u32                    obr;
+-- 
+2.13.6
