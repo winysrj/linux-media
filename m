@@ -1,141 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36496 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751541AbeBWQny (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 11:43:54 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] media: ttpci/ttusb: add extra parameter to filter callbacks
-Date: Fri, 23 Feb 2018 11:43:48 -0500
-Message-Id: <06bf50688ac75f5ee7af2cd2a9ae0d292f3002b9.1519404222.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-by2nam03on0069.outbound.protection.outlook.com ([104.47.42.69]:36310
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751269AbeBHBD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 20:03:58 -0500
+From: Satish Kumar Nagireddy <SATISHNA@xilinx.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>
+Subject: RE: [PATCH 0/8] Add support for multi-planar formats and 10 bit
+ formats
+Date: Thu, 8 Feb 2018 01:03:56 +0000
+Message-ID: <CY4PR02MB25974D7795FA94C8E9E6359FACF30@CY4PR02MB2597.namprd02.prod.outlook.com>
+References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
+ <20180207223336.6uqmczeejwvzoqod@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180207223336.6uqmczeejwvzoqod@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The filter callbaks now have an optional extra argument,
-meant to allow reporting statistics to userspace via mmap.
+Hi Sakari,
 
-Set those to NULL, in order to avoid those build errors:
-  + drivers/media/pci/ttpci/av7110.c: error: too few arguments to function 'dvbdmxfilter->feed->cb.sec':  => 325:10
-  + drivers/media/pci/ttpci/av7110.c: error: too few arguments to function 'dvbdmxfilter->feed->cb.ts':  => 332:11
-  + drivers/media/pci/ttpci/av7110_av.c: error: too few arguments to function 'feed->cb.ts':  => 817:3
+Thanks for the review. I will provide the rst documentation.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/ttpci/av7110.c        |  5 +++--
- drivers/media/pci/ttpci/av7110_av.c     |  6 +++---
- drivers/media/usb/ttusb-dec/ttusb_dec.c | 10 +++++-----
- 3 files changed, 11 insertions(+), 10 deletions(-)
+Regards,
+Satish
 
-diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
-index dc8e577b2f74..d6816effb878 100644
---- a/drivers/media/pci/ttpci/av7110.c
-+++ b/drivers/media/pci/ttpci/av7110.c
-@@ -324,14 +324,15 @@ static int DvbDmxFilterCallback(u8 *buffer1, size_t buffer1_len,
- 		}
- 		return dvbdmxfilter->feed->cb.sec(buffer1, buffer1_len,
- 						  buffer2, buffer2_len,
--						  &dvbdmxfilter->filter);
-+						  &dvbdmxfilter->filter, NULL);
- 	case DMX_TYPE_TS:
- 		if (!(dvbdmxfilter->feed->ts_type & TS_PACKET))
- 			return 0;
- 		if (dvbdmxfilter->feed->ts_type & TS_PAYLOAD_ONLY)
- 			return dvbdmxfilter->feed->cb.ts(buffer1, buffer1_len,
- 							 buffer2, buffer2_len,
--							 &dvbdmxfilter->feed->feed.ts);
-+							 &dvbdmxfilter->feed->feed.ts,
-+							 NULL);
- 		else
- 			av7110_p2t_write(buffer1, buffer1_len,
- 					 dvbdmxfilter->feed->pid,
-diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
-index 4daba76ec240..ef1bc17cdc4d 100644
---- a/drivers/media/pci/ttpci/av7110_av.c
-+++ b/drivers/media/pci/ttpci/av7110_av.c
-@@ -99,7 +99,7 @@ int av7110_record_cb(struct dvb_filter_pes2ts *p2t, u8 *buf, size_t len)
- 		buf[4] = buf[5] = 0;
- 	if (dvbdmxfeed->ts_type & TS_PAYLOAD_ONLY)
- 		return dvbdmxfeed->cb.ts(buf, len, NULL, 0,
--					 &dvbdmxfeed->feed.ts);
-+					 &dvbdmxfeed->feed.ts, NULL);
- 	else
- 		return dvb_filter_pes2ts(p2t, buf, len, 1);
- }
-@@ -109,7 +109,7 @@ static int dvb_filter_pes2ts_cb(void *priv, unsigned char *data)
- 	struct dvb_demux_feed *dvbdmxfeed = (struct dvb_demux_feed *) priv;
- 
- 	dvbdmxfeed->cb.ts(data, 188, NULL, 0,
--			  &dvbdmxfeed->feed.ts);
-+			  &dvbdmxfeed->feed.ts, NULL);
- 	return 0;
- }
- 
-@@ -814,7 +814,7 @@ static void p_to_t(u8 const *buf, long int length, u16 pid, u8 *counter,
- 			memcpy(obuf + l, buf + c, TS_SIZE - l);
- 			c = length;
- 		}
--		feed->cb.ts(obuf, 188, NULL, 0, &feed->feed.ts);
-+		feed->cb.ts(obuf, 188, NULL, 0, &feed->feed.ts, NULL);
- 		pes_start = 0;
- 	}
- }
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index a8900f5571f7..44ca66cb9b8f 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -428,7 +428,7 @@ static int ttusb_dec_audio_pes2ts_cb(void *priv, unsigned char *data)
- 	struct ttusb_dec *dec = priv;
- 
- 	dec->audio_filter->feed->cb.ts(data, 188, NULL, 0,
--				       &dec->audio_filter->feed->feed.ts);
-+				       &dec->audio_filter->feed->feed.ts, NULL);
- 
- 	return 0;
- }
-@@ -438,7 +438,7 @@ static int ttusb_dec_video_pes2ts_cb(void *priv, unsigned char *data)
- 	struct ttusb_dec *dec = priv;
- 
- 	dec->video_filter->feed->cb.ts(data, 188, NULL, 0,
--				       &dec->video_filter->feed->feed.ts);
-+				       &dec->video_filter->feed->feed.ts, NULL);
- 
- 	return 0;
- }
-@@ -490,7 +490,7 @@ static void ttusb_dec_process_pva(struct ttusb_dec *dec, u8 *pva, int length)
- 
- 		if (output_pva) {
- 			dec->video_filter->feed->cb.ts(pva, length, NULL, 0,
--				&dec->video_filter->feed->feed.ts);
-+				&dec->video_filter->feed->feed.ts, NULL);
- 			return;
- 		}
- 
-@@ -551,7 +551,7 @@ static void ttusb_dec_process_pva(struct ttusb_dec *dec, u8 *pva, int length)
- 	case 0x02:		/* MainAudioStream */
- 		if (output_pva) {
- 			dec->audio_filter->feed->cb.ts(pva, length, NULL, 0,
--				&dec->audio_filter->feed->feed.ts);
-+				&dec->audio_filter->feed->feed.ts, NULL);
- 			return;
- 		}
- 
-@@ -589,7 +589,7 @@ static void ttusb_dec_process_filter(struct ttusb_dec *dec, u8 *packet,
- 
- 	if (filter)
- 		filter->feed->cb.sec(&packet[2], length - 2, NULL, 0,
--				     &filter->filter);
-+				     &filter->filter, NULL);
- }
- 
- static void ttusb_dec_process_packet(struct ttusb_dec *dec)
--- 
-2.14.3
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Sakari Ailus
+> Sent: Wednesday, February 07, 2018 2:34 PM
+> To: Satish Kumar Nagireddy <SATISHNA@xilinx.com>
+> Cc: linux-media@vger.kernel.org; laurent.pinchart@ideasonboard.com;
+> michal.simek@xilinx.com; Hyun Kwon <hyunk@xilinx.com>; Satish Kumar
+> Nagireddy <SATISHNA@xilinx.com>
+> Subject: Re: [PATCH 0/8] Add support for multi-planar formats and 10 bit
+> formats
+>=20
+> Hi Satish,
+>=20
+> On Wed, Feb 07, 2018 at 02:29:30PM -0800, Satish Kumar Nagireddy wrote:
+> > Jeffrey Mouroux (1):
+> >   uapi: media: New fourcc codes needed by Xilinx Video IP
+> >
+> > Rohit Athavale (1):
+> >   media-bus: uapi: Add YCrCb 420 media bus format
+>=20
+> Could you add ReST documentation for these formats?
+>=20
+> --
+> Regards,
+>=20
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
