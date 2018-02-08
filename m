@@ -1,46 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:11780 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751405AbeBWQJG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 11:09:06 -0500
-From: Andy Yeh <andy.yeh@intel.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49001 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752013AbeBHIhB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 03:37:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: andy.yeh@intel.com, sakari.ailus@linux.intel.com, tfiga@google.com,
-        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>
-Subject: [v5 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
-Date: Sat, 24 Feb 2018 00:13:42 +0800
-Message-Id: <1519402422-9595-3-git-send-email-andy.yeh@intel.com>
-In-Reply-To: <1519402422-9595-1-git-send-email-andy.yeh@intel.com>
-References: <1519402422-9595-1-git-send-email-andy.yeh@intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 04/15] v4l2-subdev: without controls return -ENOTTY
+Date: Thu,  8 Feb 2018 09:36:44 +0100
+Message-Id: <20180208083655.32248-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Chiang <alanx.chiang@intel.com>
+If the subdev did not define any controls, then return -ENOTTY if
+userspace attempts to call these ioctls.
 
-Dongwoon DW9807 is a voice coil lens driver.
+The control framework functions will return -EINVAL, not -ENOTTY if
+vfh->ctrl_handler is NULL.
 
-Also add a vendor prefix for Dongwoon for one did not exist previously.
+Several of these framework functions are also called directly from
+drivers, so I don't want to change the error code there.
 
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+Found with vimc and v4l2-compliance.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
- 1 file changed, 9 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+ drivers/media/v4l2-core/v4l2-subdev.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-new file mode 100644
-index 0000000..0a1a860
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-@@ -0,0 +1,9 @@
-+Dongwoon Anatech DW9807 voice coil lens driver
-+
-+DW9807 is a 10-bit DAC with current sink capability. It is intended for
-+controlling voice coil lenses.
-+
-+Mandatory properties:
-+
-+- compatible: "dongwoon,dw9807"
-+- reg: I2C slave address
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 43fefa73e0a3..be7a19272614 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -187,27 +187,43 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_QUERY_EXT_CTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_QUERYMENU:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_querymenu(vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_G_CTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_S_CTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_G_EXT_CTRLS:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_S_EXT_CTRLS:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_TRY_EXT_CTRLS:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_DQEVENT:
 -- 
-2.7.4
+2.15.1
