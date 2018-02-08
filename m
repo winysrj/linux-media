@@ -1,43 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60560 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750821AbeBDNGr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 08:06:47 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: MEDIA_IOC_G_TOPOLOGY and pad indices
-Message-ID: <336b3d54-6c59-d6eb-8fd8-e0a9677c7f5f@xs4all.nl>
-Date: Sun, 4 Feb 2018 14:06:42 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34845 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752539AbeBHTxY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:53:24 -0500
+Received: by mail-wm0-f65.google.com with SMTP id r78so12230861wme.0
+        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:53:23 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH 1/7] [media] ddbridge/ci: further deduplicate code/logic in ddb_ci_attach()
+Date: Thu,  8 Feb 2018 20:53:12 +0100
+Message-Id: <20180208195318.612-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180208195318.612-1-d.scheller.oss@gmail.com>
+References: <20180208195318.612-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-I'm working on adding proper compliance tests for the MC but I think something
-is missing in the G_TOPOLOGY ioctl w.r.t. pads.
+Deduplicate the checks for a valid ptr in port->en, and also handle the
+default case to also catch eventually yet unsupported CI hardware.
 
-In several v4l-subdev ioctls you need to pass the pad. There the pad is an index
-for the corresponding entity. I.e. an entity has 3 pads, so the pad argument is
-[0-2].
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-ci.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-The G_TOPOLOGY ioctl returns a pad ID, which is > 0x01000000. I can't use that
-in the v4l-subdev ioctls, so how do I translate that to a pad index in my application?
-
-It seems to be a missing feature in the API. I assume this information is available
-in the core, so then I would add a field to struct media_v2_pad with the pad index
-for the entity.
-
-Next time we add new public API features I want to see compliance tests before
-accepting it. It's much too easy to overlook something, either in the design or
-in a driver or in the documentation, so this is really, really needed IMHO.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+index 5828111487b0..ed19890710d6 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -325,24 +325,20 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 	case DDB_CI_EXTERNAL_SONY:
+ 		cxd_cfg.bitrate = bitrate;
+ 		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
+-		if (!port->en)
+-			return -ENODEV;
+ 		break;
+-
+ 	case DDB_CI_EXTERNAL_XO2:
+ 	case DDB_CI_EXTERNAL_XO2_B:
+ 		ci_xo2_attach(port);
+-		if (!port->en)
+-			return -ENODEV;
+ 		break;
+-
+ 	case DDB_CI_INTERNAL:
+ 		ci_attach(port);
+-		if (!port->en)
+-			return -ENODEV;
+ 		break;
++	default:
++		return -ENODEV;
+ 	}
+ 
++	if (!port->en)
++		return -ENODEV;
+ 	dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+ 	return 0;
+ }
+-- 
+2.13.6
