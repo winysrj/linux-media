@@ -1,173 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34664 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbeBXSzp (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37651 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750847AbeBHQzx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 13:55:45 -0500
-Received: by mail-wm0-f68.google.com with SMTP id a20so11389657wmd.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:44 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 07/12] [media] ngene: add support for DuoFlex S2 V4 addon modules
-Date: Sat, 24 Feb 2018 19:55:29 +0100
-Message-Id: <20180224185534.13792-8-d.scheller.oss@gmail.com>
-In-Reply-To: <20180224185534.13792-1-d.scheller.oss@gmail.com>
-References: <20180224185534.13792-1-d.scheller.oss@gmail.com>
+        Thu, 8 Feb 2018 11:55:53 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec: improve debugging
+Message-ID: <7aa5cf07-d472-ff60-5c0e-3e4bb1f10695@xs4all.nl>
+Date: Thu, 8 Feb 2018 17:55:48 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+cec_transmit_msg_fh() first checked the message for errors, and only after
+the message was found to be valid did it log the message contents.
 
-Add support for the STV0910/STV6111/LNBH25 based DuoFlex S2 V4 DVB-S2
-addon modules by recognizing them from their XO2 type value and using
-the auxiliary stv0910, stv6111 and lnbh25 driver to form a complete
-DVB frontend.
+However, that makes it hard to associate an error in the kernel log with the
+message since the message contents was never logged in that case.
 
-This also adds autoselection (if MEDIA_SUBDRV_AUTOSELECT) of the STV0910,
-STV6111 and LNBH25 demod/tuner/LNB-IC drivers to Kconfig.
+So swap the order: first log the message (once some very basic checks are done),
+and only after that check for errors.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ngene/Kconfig       |  3 ++
- drivers/media/pci/ngene/ngene-cards.c | 83 +++++++++++++++++++++++++++++++++++
- 2 files changed, 86 insertions(+)
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 2b1e540587d6..7286f8595a90 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -711,16 +711,31 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 	else
+ 		msg->flags = 0;
 
-diff --git a/drivers/media/pci/ngene/Kconfig b/drivers/media/pci/ngene/Kconfig
-index f717567f54a5..e06d019996f3 100644
---- a/drivers/media/pci/ngene/Kconfig
-+++ b/drivers/media/pci/ngene/Kconfig
-@@ -11,6 +11,9 @@ config DVB_NGENE
- 	select DVB_STV0367 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_CXD2841ER if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA18212 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV0910 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV6111 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_LNBH25 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_CXD2099 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  Support for Micronas PCI express cards with nGene bridge.
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index cdc8db14c606..00b100660784 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -46,6 +46,9 @@
- #include "stv0367_priv.h"
- #include "tda18212.h"
- #include "cxd2841er.h"
-+#include "stv0910.h"
-+#include "stv6111.h"
-+#include "lnbh25.h"
- 
- /****************************************************************************/
- /* I2C transfer functions used for demod/tuner probing***********************/
-@@ -152,6 +155,30 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
- 	return 0;
- }
- 
-+static int tuner_attach_stv6111(struct ngene_channel *chan)
-+{
-+	struct device *pdev = &chan->dev->pci_dev->dev;
-+	struct i2c_adapter *i2c;
-+	struct dvb_frontend *fe;
-+	u8 adr = 4 + ((chan->number & 1) ? 0x63 : 0x60);
-+
-+	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-+	if (chan->number < 2)
-+		i2c = &chan->dev->channel[0].i2c_adapter;
-+	else
-+		i2c = &chan->dev->channel[1].i2c_adapter;
-+
-+	fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr);
-+	if (!fe) {
-+		fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr & ~4);
-+		if (!fe) {
-+			dev_err(pdev, "stv6111_attach() failed!\n");
-+			return -ENODEV;
-+		}
++	if (msg->len > 1 && msg->msg[1] == CEC_MSG_CDC_MESSAGE) {
++		msg->msg[2] = adap->phys_addr >> 8;
++		msg->msg[3] = adap->phys_addr & 0xff;
 +	}
-+	return 0;
-+}
 +
- static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct ngene_channel *chan = fe->sec_priv;
-@@ -283,6 +310,8 @@ static int tuner_attach_probe(struct ngene_channel *chan)
- 	case DEMOD_TYPE_SONY_C2T2:
- 	case DEMOD_TYPE_SONY_C2T2I:
- 		return tuner_attach_tda18212(chan, chan->demod_type);
-+	case DEMOD_TYPE_STV0910:
-+		return tuner_attach_stv6111(chan);
+ 	/* Sanity checks */
+ 	if (msg->len == 0 || msg->len > CEC_MAX_MSG_SIZE) {
+ 		dprintk(1, "%s: invalid length %d\n", __func__, msg->len);
+ 		return -EINVAL;
  	}
- 
- 	return -EINVAL;
-@@ -326,6 +355,54 @@ static int demod_attach_stv0900(struct ngene_channel *chan)
- 	return 0;
- }
- 
-+static struct stv0910_cfg stv0910_p = {
-+	.adr      = 0x68,
-+	.parallel = 1,
-+	.rptlvl   = 4,
-+	.clk      = 30000000,
-+};
 +
-+static struct lnbh25_config lnbh25_cfg = {
-+	.i2c_address = 0x0c << 1,
-+	.data2_config = LNBH25_TEN
-+};
++	memset(msg->msg + msg->len, 0, sizeof(msg->msg) - msg->len);
 +
-+static int demod_attach_stv0910(struct ngene_channel *chan,
-+				struct i2c_adapter *i2c)
-+{
-+	struct device *pdev = &chan->dev->pci_dev->dev;
-+	struct stv0910_cfg cfg = stv0910_p;
-+	struct lnbh25_config lnbcfg = lnbh25_cfg;
++	if (msg->timeout)
++		dprintk(2, "%s: %*ph (wait for 0x%02x%s)\n",
++			__func__, msg->len, msg->msg, msg->reply,
++			!block ? ", nb" : "");
++	else
++		dprintk(2, "%s: %*ph%s\n",
++			__func__, msg->len, msg->msg, !block ? " (nb)" : "");
 +
-+	chan->fe = dvb_attach(stv0910_attach, i2c, &cfg, (chan->number & 1));
-+	if (!chan->fe) {
-+		cfg.adr = 0x6c;
-+		chan->fe = dvb_attach(stv0910_attach, i2c,
-+				      &cfg, (chan->number & 1));
-+	}
-+	if (!chan->fe) {
-+		dev_err(pdev, "stv0910_attach() failed!\n");
-+		return -ENODEV;
-+	}
-+
-+	/*
-+	 * attach lnbh25 - leftshift by one as the lnbh25 driver expects 8bit
-+	 * i2c addresses
-+	 */
-+	lnbcfg.i2c_address = (((chan->number & 1) ? 0x0d : 0x0c) << 1);
-+	if (!dvb_attach(lnbh25_attach, chan->fe, &lnbcfg, i2c)) {
-+		lnbcfg.i2c_address = (((chan->number & 1) ? 0x09 : 0x08) << 1);
-+		if (!dvb_attach(lnbh25_attach, chan->fe, &lnbcfg, i2c)) {
-+			dev_err(pdev, "lnbh25_attach() failed!\n");
-+			dvb_frontend_detach(chan->fe);
-+			chan->fe = NULL;
-+			return -ENODEV;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static struct stv0367_config ddb_stv0367_config[] = {
- 	{
- 		.demod_address = 0x1f,
-@@ -586,6 +663,12 @@ static int cineS2_probe(struct ngene_channel *chan)
- 
- 				demod_attach_cxd28xx(chan, i2c, sony_osc24);
- 				break;
-+			case DEMOD_TYPE_STV0910:
-+				dev_info(pdev, "%s (XO2) on channel %d\n",
-+					 xo2names[xo2_id], chan->number);
-+				chan->demod_type = xo2_demodtype;
-+				demod_attach_stv0910(chan, i2c);
-+				break;
- 			default:
- 				dev_warn(pdev,
- 					 "Unsupported XO2 module on channel %d\n",
--- 
-2.16.1
+ 	if (msg->timeout && msg->len == 1) {
+-		dprintk(1, "%s: can't reply for poll msg\n", __func__);
++		dprintk(1, "%s: can't reply to poll msg\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	memset(msg->msg + msg->len, 0, sizeof(msg->msg) - msg->len);
+ 	if (msg->len == 1) {
+ 		if (cec_msg_destination(msg) == 0xf) {
+ 			dprintk(1, "%s: invalid poll message\n", __func__);
+@@ -780,19 +795,6 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 	if (!msg->sequence)
+ 		msg->sequence = ++adap->sequence;
+
+-	if (msg->len > 1 && msg->msg[1] == CEC_MSG_CDC_MESSAGE) {
+-		msg->msg[2] = adap->phys_addr >> 8;
+-		msg->msg[3] = adap->phys_addr & 0xff;
+-	}
+-
+-	if (msg->timeout)
+-		dprintk(2, "%s: %*ph (wait for 0x%02x%s)\n",
+-			__func__, msg->len, msg->msg, msg->reply,
+-			!block ? ", nb" : "");
+-	else
+-		dprintk(2, "%s: %*ph%s\n",
+-			__func__, msg->len, msg->msg, !block ? " (nb)" : "");
+-
+ 	data->msg = *msg;
+ 	data->fh = fh;
+ 	data->adap = adap;
