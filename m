@@ -1,67 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway20.websitewelcome.com ([192.185.69.18]:19927 "EHLO
-        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753040AbeBFQw0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 11:52:26 -0500
-Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
-        by gateway20.websitewelcome.com (Postfix) with ESMTP id C5003400FEE79
-        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:52:25 -0600 (CST)
-Date: Tue, 6 Feb 2018 10:52:24 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH v3 7/8] platform: sh_veu: use 64-bit arithmetic instead of
- 32-bit
-Message-ID: <502e55a2fd44a61126b639d581c8fa7447eb0e72.1517929336.git.gustavo@embeddedor.com>
-References: <cover.1517929336.git.gustavo@embeddedor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:56162 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752573AbeBHTx3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:53:29 -0500
+Received: by mail-wm0-f67.google.com with SMTP id 143so11546487wma.5
+        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:53:29 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH 7/7] [media] MAINTAINERS: add entry for cxd2099
+Date: Thu,  8 Feb 2018 20:53:18 +0100
+Message-Id: <20180208195318.612-8-d.scheller.oss@gmail.com>
+In-Reply-To: <20180208195318.612-1-d.scheller.oss@gmail.com>
+References: <20180208195318.612-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cast left and top to dma_addr_t in order to give the compiler complete
-information about the proper arithmetic to use. Notice that these
-variables are being used in contexts that expect expressions of
-type dma_addr_t (64 bit, unsigned).
+From: Jasmin Jessich <jasmin@anw.at>
 
-Such expressions are currently being evaluated using 32-bit arithmetic.
+The cxd2099 driver is now maintained and being taken care of by
 
-Also, move the expression (((dma_addr_t)left * veu->vfmt_out.fmt->depth) >> 3)
-at the end in order to avoid a line wrapping checkpatch.pl warning.
+  * Jasmin Jessich <jasmin@anw.at>
 
-Addresses-Coverity-ID: 1056807 ("Unintentional integer overflow")
-Addresses-Coverity-ID: 1056808 ("Unintentional integer overflow")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
-Changes in v2:
- - Update subject and changelog to better reflect the proposed code changes.
- - Move the expression (((dma_addr_t)left * veu->vfmt_out.fmt->depth) >> 3)
-   at the end in order to avoid a line wrapping checkpatch.pl warning.
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Changes in v3:
- - Mention the specific Coverity reports in the commit message.
-
- drivers/media/platform/sh_veu.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index 976ea0b..1a0cde0 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -520,8 +520,8 @@ static void sh_veu_colour_offset(struct sh_veu_dev *veu, struct sh_veu_vfmt *vfm
- 	/* dst_left and dst_top validity will be verified in CROP / COMPOSE */
- 	unsigned int left = vfmt->frame.left & ~0x03;
- 	unsigned int top = vfmt->frame.top;
--	dma_addr_t offset = ((left * veu->vfmt_out.fmt->depth) >> 3) +
--		top * veu->vfmt_out.bytesperline;
-+	dma_addr_t offset = (dma_addr_t)top * veu->vfmt_out.bytesperline +
-+			(((dma_addr_t)left * veu->vfmt_out.fmt->depth) >> 3);
- 	unsigned int y_line;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aee793bff977..c3b689e2583e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8540,6 +8540,14 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
+ F:	drivers/media/dvb-frontends/ascot2e*
  
- 	vfmt->offset_y = offset;
++MEDIA DRIVERS FOR CXD2099AR CI CONTROLLERS
++M:	Jasmin Jessich <jasmin@anw.at>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/dvb-frontends/cxd2099*
++
+ MEDIA DRIVERS FOR CXD2841ER
+ M:	Sergey Kozlov <serjk@netup.ru>
+ M:	Abylay Ospan <aospan@netup.ru>
 -- 
-2.7.4
+2.13.6
