@@ -1,219 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64265 "EHLO osg.samsung.com"
+Received: from mga12.intel.com ([192.55.52.136]:56031 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753040AbeBKL05 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Feb 2018 06:26:57 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Kees Cook <keescook@chromium.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: [PATCH v2 2/4] media: dmxdev: Fix the logic that enables DMA mmap support
-Date: Sun, 11 Feb 2018 09:26:48 -0200
-Message-Id: <2a934801a219411fabe0623470f3132b51f63e96.1518347588.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1518347588.git.mchehab@s-opensource.com>
-References: <cover.1518347588.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1518347588.git.mchehab@s-opensource.com>
-References: <cover.1518347588.git.mchehab@s-opensource.com>
+        id S1750847AbeBHMof (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 07:44:35 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: yong.zhi@intel.com, Yang@nauris.fi.intel.com,
+        Hyungwoo <hyungwoo.yang@intel.com>, Rapolu@nauris.fi.intel.com,
+        Chiranjeevi <chiranjeevi.rapolu@intel.com>, andy.yeh@intel.com
+Subject: [PATCH 3/5] v4l: common: Remove v4l2_find_nearest_format
+Date: Thu,  8 Feb 2018 14:44:26 +0200
+Message-Id: <1518093868-3444-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1518093868-3444-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1518093868-3444-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some conditions required for DVB mmap support to work are reversed.
-Also, the logic is not too clear.
+v4l2_find_nearest_format is not useful for drivers in finding the best
+matching format as it assumes a V4L2 specific struct. Drivers will use
+v4l2_find_nearest_size instead.
 
-So, improve the logic, making it easier to be handled.
-
-PS.: I'm pretty sure that I fixed it while testing, but, somehow,
-the change got lost.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-core/dmxdev.c | 76 +++++++++++++++++++++++------------------
- include/media/dmxdev.h          |  2 ++
- 2 files changed, 44 insertions(+), 34 deletions(-)
+ drivers/media/v4l2-core/v4l2-common.c | 26 --------------------------
+ include/media/v4l2-common.h           | 17 -----------------
+ 2 files changed, 43 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 15847b64698b..ad349fe26aa2 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -128,11 +128,7 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
- 	struct dmx_frontend *front;
--#ifndef CONFIG_DVB_MMAP
- 	bool need_ringbuffer = false;
--#else
--	const bool need_ringbuffer = true;
--#endif
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index c7a48f2..7bda367 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -357,32 +357,6 @@ void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
+ }
+ EXPORT_SYMBOL_GPL(v4l_bound_align_image);
  
- 	dprintk("%s\n", __func__);
- 
-@@ -144,17 +140,31 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 		return -ENODEV;
- 	}
- 
--#ifndef CONFIG_DVB_MMAP
-+	dmxdev->may_do_mmap = 0;
-+
-+	/*
-+	 * The logic here is a little tricky due to the ifdef.
-+	 *
-+	 * The ringbuffer is used for both read and mmap.
-+	 *
-+	 * It is not needed, however, on two situations:
-+	 * 	- Write devices (access with O_WRONLY);
-+	 *	- For duplex device nodes, opened with O_RDWR.
-+	 */
-+
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
- 		need_ringbuffer = true;
--#else
--	if ((file->f_flags & O_ACCMODE) == O_RDWR) {
-+	else if ((file->f_flags & O_ACCMODE) == O_RDWR) {
- 		if (!(dmxdev->capabilities & DMXDEV_CAP_DUPLEX)) {
-+#ifdef CONFIG_DVB_MMAP
-+			dmxdev->may_do_mmap = 1;
-+			need_ringbuffer = true;
-+#else
- 			mutex_unlock(&dmxdev->mutex);
- 			return -EOPNOTSUPP;
-+#endif
- 		}
- 	}
--#endif
- 
- 	if (need_ringbuffer) {
- 		void *mem;
-@@ -169,8 +179,9 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 			return -ENOMEM;
- 		}
- 		dvb_ringbuffer_init(&dmxdev->dvr_buffer, mem, DVR_BUFFER_SIZE);
--		dvb_vb2_init(&dmxdev->dvr_vb2_ctx, "dvr",
--			     file->f_flags & O_NONBLOCK);
-+		if (dmxdev->may_do_mmap)
-+			dvb_vb2_init(&dmxdev->dvr_vb2_ctx, "dvr",
-+				     file->f_flags & O_NONBLOCK);
- 		dvbdev->readers--;
- 	}
- 
-@@ -200,11 +211,6 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
--#ifndef CONFIG_DVB_MMAP
--	bool need_ringbuffer = false;
--#else
--	const bool need_ringbuffer = true;
--#endif
- 
- 	mutex_lock(&dmxdev->mutex);
- 
-@@ -213,15 +219,14 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- 		dmxdev->demux->connect_frontend(dmxdev->demux,
- 						dmxdev->dvr_orig_fe);
- 	}
--#ifndef CONFIG_DVB_MMAP
--	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
--		need_ringbuffer = true;
--#endif
- 
--	if (need_ringbuffer) {
--		if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
--			dvb_vb2_stream_off(&dmxdev->dvr_vb2_ctx);
--		dvb_vb2_release(&dmxdev->dvr_vb2_ctx);
-+	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-+	    dmxdev->may_do_mmap) {
-+		if (dmxdev->may_do_mmap) {
-+			if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-+				dvb_vb2_stream_off(&dmxdev->dvr_vb2_ctx);
-+			dvb_vb2_release(&dmxdev->dvr_vb2_ctx);
-+		}
- 		dvbdev->readers++;
- 		if (dmxdev->dvr_buffer.data) {
- 			void *mem = dmxdev->dvr_buffer.data;
-@@ -802,6 +807,12 @@ static int dvb_demux_open(struct inode *inode, struct file *file)
- 	mutex_init(&dmxdevfilter->mutex);
- 	file->private_data = dmxdevfilter;
- 
-+#ifdef CONFIG_DVB_MMAP
-+	dmxdev->may_do_mmap = 1;
-+#else
-+	dmxdev->may_do_mmap = 0;
-+#endif
-+
- 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
- 	dvb_vb2_init(&dmxdevfilter->vb2_ctx, "demux_filter",
- 		     file->f_flags & O_NONBLOCK);
-@@ -1206,6 +1217,9 @@ static int dvb_demux_mmap(struct file *file, struct vm_area_struct *vma)
- 	struct dmxdev *dmxdev = dmxdevfilter->dev;
- 	int ret;
- 
-+	if (!dmxdev->may_do_mmap)
-+		return -EOPNOTSUPP;
-+
- 	if (mutex_lock_interruptible(&dmxdev->mutex))
- 		return -ERESTARTSYS;
- 
-@@ -1323,12 +1337,6 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
- 	struct dmxdev *dmxdev = dvbdev->priv;
- 	unsigned int mask = 0;
- 
--#ifndef CONFIG_DVB_MMAP
--	bool need_ringbuffer = false;
--#else
--	const bool need_ringbuffer = true;
--#endif
+-const struct v4l2_frmsize_discrete *
+-v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
+-			  size_t num_sizes,
+-			  s32 width, s32 height)
+-{
+-	int i;
+-	u32 error, min_error = UINT_MAX;
+-	const struct v4l2_frmsize_discrete *size, *best = NULL;
 -
- 	dprintk("%s\n", __func__);
+-	if (!sizes)
+-		return NULL;
+-
+-	for (i = 0, size = sizes; i < num_sizes; i++, size++) {
+-		error = abs(size->width - width) + abs(size->height - height);
+-		if (error < min_error) {
+-			min_error = error;
+-			best = size;
+-		}
+-		if (!error)
+-			break;
+-	}
+-
+-	return best;
+-}
+-EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
+-
+ const void *
+ __v4l2_find_nearest_size(const void *arr, size_t num_entries, size_t entry_size,
+ 			 size_t width_offset, size_t height_offset,
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 520463e..0895942 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -316,23 +316,6 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
+ 			   unsigned int salign);
  
- 	if (dmxdev->exit)
-@@ -1338,11 +1346,8 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
- 
- 	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
- 
--#ifndef CONFIG_DVB_MMAP
--	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
--		need_ringbuffer = true;
--#endif
--	if (need_ringbuffer) {
-+	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-+	    dmxdev->may_do_mmap) {
- 		if (dmxdev->dvr_buffer.error)
- 			mask |= (POLLIN | POLLRDNORM | POLLPRI | POLLERR);
- 
-@@ -1361,6 +1366,9 @@ static int dvb_dvr_mmap(struct file *file, struct vm_area_struct *vma)
- 	struct dmxdev *dmxdev = dvbdev->priv;
- 	int ret;
- 
-+	if (!dmxdev->may_do_mmap)
-+		return -EOPNOTSUPP;
-+
- 	if (dmxdev->exit)
- 		return -ENODEV;
- 
-diff --git a/include/media/dmxdev.h b/include/media/dmxdev.h
-index 2f5cb2c7b6a7..baafa3b8aca4 100644
---- a/include/media/dmxdev.h
-+++ b/include/media/dmxdev.h
-@@ -163,6 +163,7 @@ struct dmxdev_filter {
-  * @demux:		pointer to &struct dmx_demux.
-  * @filternum:		number of filters.
-  * @capabilities:	demux capabilities as defined by &enum dmx_demux_caps.
-+ * @may_do_mmap:	flag used to indicate if the device may do mmap.
-  * @exit:		flag to indicate that the demux is being released.
-  * @dvr_orig_fe:	pointer to &struct dmx_frontend.
-  * @dvr_buffer:		embedded &struct dvb_ringbuffer for DVB output.
-@@ -180,6 +181,7 @@ struct dmxdev {
- 	int filternum;
- 	int capabilities;
- 
-+	unsigned int may_do_mmap:1;
- 	unsigned int exit:1;
- #define DMXDEV_CAP_DUPLEX 1
- 	struct dmx_frontend *dvr_orig_fe;
+ /**
+- * v4l2_find_nearest_format - find the nearest format size among a discrete
+- *	set of resolutions.
+- *
+- * @sizes: array of &struct v4l2_frmsize_discrete image sizes.
+- * @num_sizes: length of @sizes array.
+- * @width: desired width.
+- * @height: desired height.
+- *
+- * Finds the closest resolution to minimize the width and height differences
+- * between what requested and the supported resolutions.
+- */
+-const struct v4l2_frmsize_discrete *
+-v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
+-			  const size_t num_sizes,
+-			  s32 width, s32 height);
+-
+-/**
+  * v4l2_find_nearest_size - Find the nearest size among a discrete
+  *	set of resolutions contained in an array of a driver specific struct.
+  *
 -- 
-2.14.3
+2.7.4
