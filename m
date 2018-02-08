@@ -1,125 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:37546 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753251AbeBGBs6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:48:58 -0500
-Received: by mail-pl0-f65.google.com with SMTP id ay8so2482562plb.4
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:48:58 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:40454 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751562AbeBHJDH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 04:03:07 -0500
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv3 09/17] v4l2-ctrls: use ref in helper instead of ctrl
-Date: Wed,  7 Feb 2018 10:48:13 +0900
-Message-Id: <20180207014821.164536-10-acourbot@chromium.org>
-In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
-References: <20180207014821.164536-1-acourbot@chromium.org>
+        Todor Tomov <todor.tomov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
+Subject: [PATCH 1/2] dt-bindings: media: Binding document for OV7251 camera sensor
+Date: Thu,  8 Feb 2018 10:53:37 +0200
+Message-Id: <1518080018-10403-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add the document for ov7251 device tree binding.
 
-The next patch needs the reference to a control instead of the
-control itself, so change struct v4l2_ctrl_helper accordingly.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+CC: Rob Herring <robh+dt@kernel.org>
+CC: Mark Rutland <mark.rutland@arm.com>
+CC: devicetree@vger.kernel.org
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ .../devicetree/bindings/media/i2c/ov7251.txt       | 51 ++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index c692a6d925c6..9090a49eef91 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -37,8 +37,8 @@
- struct v4l2_ctrl_helper {
- 	/* Pointer to the control reference of the master control */
- 	struct v4l2_ctrl_ref *mref;
--	/* The control corresponding to the v4l2_ext_control ID field. */
--	struct v4l2_ctrl *ctrl;
-+	/* The control ref corresponding to the v4l2_ext_control ID field. */
-+	struct v4l2_ctrl_ref *ref;
- 	/* v4l2_ext_control index of the next control belonging to the
- 	   same cluster, or 0 if there isn't any. */
- 	u32 next;
-@@ -2856,6 +2856,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ref = find_ref_lock(hdl, id);
- 		if (ref == NULL)
- 			return -EINVAL;
-+		h->ref = ref;
- 		ctrl = ref->ctrl;
- 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
- 			return -EINVAL;
-@@ -2878,7 +2879,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
--		h->ctrl = ctrl;
- 		/* Initially set next to 0, meaning that there is no other
- 		   control in this helper array belonging to the same
- 		   cluster */
-@@ -2963,7 +2963,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	cs->error_idx = cs->count;
- 
- 	for (i = 0; !ret && i < cs->count; i++)
--		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-+		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
- 			ret = -EACCES;
- 
- 	for (i = 0; !ret && i < cs->count; i++) {
-@@ -2998,7 +2998,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 			do {
- 				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ctrl);
-+						   helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3137,7 +3137,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
- 
- 	cs->error_idx = cs->count;
- 	for (i = 0; i < cs->count; i++) {
--		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-+		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
- 		union v4l2_ctrl_ptr p_new;
- 
- 		cs->error_idx = i;
-@@ -3249,7 +3249,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			do {
- 				/* Check if the auto control is part of the
- 				   list, and remember the new value. */
--				if (helpers[tmp_idx].ctrl == master)
-+				if (helpers[tmp_idx].ref->ctrl == master)
- 					new_auto_val = cs->controls[tmp_idx].value;
- 				tmp_idx = helpers[tmp_idx].next;
- 			} while (tmp_idx);
-@@ -3262,7 +3262,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		/* Copy the new caller-supplied control values.
- 		   user_to_new() sets 'is_new' to 1. */
- 		do {
--			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-+			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
- 
- 			ret = user_to_new(cs->controls + idx, ctrl);
- 			if (!ret && ctrl->is_ptr)
-@@ -3278,7 +3278,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			idx = i;
- 			do {
- 				ret = new_to_user(cs->controls + idx,
--						helpers[idx].ctrl);
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7251.txt b/Documentation/devicetree/bindings/media/i2c/ov7251.txt
+new file mode 100644
+index 0000000..c807646
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7251.txt
+@@ -0,0 +1,51 @@
++* Omnivision 1/7.5-Inch B&W VGA CMOS Digital Image Sensor
++
++The Omnivision OV7251 is a 1/7.5-Inch CMOS active pixel digital image sensor with
++an active array size of 640H x 480V. It is programmable through a serial I2C
++interface.
++
++Required Properties:
++- compatible: Value should be "ovti,ov7251".
++- clocks: Reference to the xclk clock.
++- clock-names: Should be "xclk".
++- clock-frequency: Frequency of the xclk clock.
++- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
++  to the hardware pin XSHUTDOWN which is physically active low.
++- vdddo-supply: Chip digital IO regulator.
++- vdda-supply: Chip analog regulator.
++- vddd-supply: Chip digital core regulator.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	&i2c1 {
++		...
++
++		ov7251: ov7251@60 {
++			compatible = "ovti,ov7251";
++			reg = <0x60>;
++
++			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&camera_bw_default>;
++
++			clocks = <&clks 200>;
++			clock-names = "xclk";
++			clock-frequency = <24000000>;
++
++			vdddo-supply = <&camera_dovdd_1v8>;
++			vdda-supply = <&camera_avdd_2v8>;
++			vddd-supply = <&camera_dvdd_1v2>;
++
++			port {
++				ov7251_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0>;
++					remote-endpoint = <&csi0_ep>;
++				};
++			};
++		};
++	};
 -- 
-2.16.0.rc1.238.g530d649a79-goog
+2.7.4
