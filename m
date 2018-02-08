@@ -1,114 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0061.outbound.protection.outlook.com ([104.47.41.61]:4832
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751786AbeBGW34 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 17:29:56 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH 5/8] v4l: xilinx: dma: Update video format descriptor
-Date: Wed, 7 Feb 2018 14:29:35 -0800
-Message-ID: <1518042578-22771-6-git-send-email-satishna@xilinx.com>
-In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Received: from butterbrot.org ([176.9.106.16]:48475 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750969AbeBHIo3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 03:44:29 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 4/4] add video control handlers using V4L2 control framework
+Date: Thu,  8 Feb 2018 09:43:06 +0100
+Message-Id: <1518079386-4647-5-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1518079386-4647-1-git-send-email-floe@butterbrot.org>
+References: <1518079386-4647-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch updates video format descriptor to help information
-viz., number of planes per color format and chroma sub sampling
-factors.
+This patch registers four standard control handlers using the corresponding
+V4L2 framework.
 
-This commit adds the various 8-bit and 10-bit that are supported
-to the table queried by drivers.
-
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/media/platform/xilinx/xilinx-vip.c | 18 ++++++++++--------
- drivers/media/platform/xilinx/xilinx-vip.h | 11 ++++++++++-
- 2 files changed, 20 insertions(+), 9 deletions(-)
+ drivers/input/touchscreen/sur40.c | 64 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
-tform/xilinx/xilinx-vip.c
-index d306f44..51b7ef6 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -27,22 +27,24 @@
-  */
-
- static const struct xvip_video_format xvip_video_formats[] =3D {
-+       { XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-+         1, 15, V4L2_PIX_FMT_XV15M, 2, 2, 1, 2, "4:2:0, 10-bit 2-plane non=
--cont" },
-        { XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
--         2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
-+         2, 16, V4L2_PIX_FMT_YUYV, 1, 1, 2, 1, "4:2:2, packed, YUYV" },
-        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
--         3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
-+         3, 24, V4L2_PIX_FMT_VUY24, 1, 1, 1, 1, "4:4:4, packed, YUYV" },
-        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
--         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
-+         3, 24, V4L2_PIX_FMT_RGB24, 1, 1, 1, 1, "24-bit RGB" },
-        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
--         1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
-+         1, 8, V4L2_PIX_FMT_GREY, 1, 1, 1, 1, "Greyscale 8-bit" },
-        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
--         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
-+         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit RGGB" },
-        { XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
--         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
-+         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit GRBG" },
-        { XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
--         1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
-+         1, 8, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1, "Bayer 8-bit GBRG" },
-        { XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
--         1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
-+         1, 8, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1, "Bayer 8-bit BGGR" },
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index d6fa25e..b92325b 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -38,6 +38,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-sg.h>
+ 
+@@ -209,6 +210,7 @@ struct sur40_state {
+ 	struct video_device vdev;
+ 	struct mutex lock;
+ 	struct v4l2_pix_format pix_fmt;
++	struct v4l2_ctrl_handler hdl;
+ 
+ 	struct vb2_queue queue;
+ 	struct list_head buf_list;
+@@ -218,6 +220,7 @@ struct sur40_state {
+ 	struct sur40_data *bulk_in_buffer;
+ 	size_t bulk_in_size;
+ 	u8 bulk_in_epaddr;
++	u8 vsvideo;
+ 
+ 	char phys[64];
  };
-
- /**
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/pla=
-tform/xilinx/xilinx-vip.h
-index 42fee20..006dcf77 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.h
-+++ b/drivers/media/platform/xilinx/xilinx-vip.h
-@@ -109,8 +109,12 @@ struct xvip_device {
-  * @width: AXI4 format width in bits per component
-  * @pattern: CFA pattern for Mono/Sensor formats
-  * @code: media bus format code
-- * @bpp: bytes per pixel (when stored in memory)
-+ * @bpl_factor: Bytes per line factor
-  * @fourcc: V4L2 pixel format FCC identifier
-+ * @num_planes: number of planes w.r.t. color format
-+ * @buffers: number of buffers per format
-+ * @hsub: Horizontal sampling factor of Chroma
-+ * @vsub: Vertical sampling factor of Chroma
-  * @description: format description, suitable for userspace
-  */
- struct xvip_video_format {
-@@ -118,8 +122,13 @@ struct xvip_video_format {
-        unsigned int width;
-        const char *pattern;
-        unsigned int code;
-+       unsigned int bpl_factor;
-        unsigned int bpp;
-        u32 fourcc;
-+       u8 num_planes;
-+       u8 buffers;
-+       u8 hsub;
-+       u8 vsub;
-        const char *description;
- };
-
---
+@@ -231,6 +234,11 @@ struct sur40_buffer {
+ static const struct video_device sur40_video_device;
+ static const struct vb2_queue sur40_queue;
+ static void sur40_process_video(struct sur40_state *sur40);
++static int sur40_s_ctrl(struct v4l2_ctrl *ctrl);
++
++static const struct v4l2_ctrl_ops sur40_ctrl_ops = {
++	.s_ctrl = sur40_s_ctrl,
++};
+ 
+ /*
+  * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
+@@ -737,6 +745,36 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->vdev.queue = &sur40->queue;
+ 	video_set_drvdata(&sur40->vdev, sur40);
+ 
++	/* initialize the control handler for 4 controls */
++	v4l2_ctrl_handler_init(&sur40->hdl, 4);
++	sur40->v4l2.ctrl_handler = &sur40->hdl;
++	sur40->vsvideo = (SUR40_CONTRAST_DEF << 4) | SUR40_GAIN_DEF;
++
++	v4l2_ctrl_new_std(&sur40->hdl, &sur40_ctrl_ops, V4L2_CID_BRIGHTNESS,
++	  SUR40_BRIGHTNESS_MIN, SUR40_BRIGHTNESS_MAX, 1, clamp(brightness,
++	  (uint)SUR40_BRIGHTNESS_MIN, (uint)SUR40_BRIGHTNESS_MAX));
++
++	v4l2_ctrl_new_std(&sur40->hdl, &sur40_ctrl_ops, V4L2_CID_CONTRAST,
++	  SUR40_CONTRAST_MIN, SUR40_CONTRAST_MAX, 1, clamp(contrast,
++	  (uint)SUR40_CONTRAST_MIN, (uint)SUR40_CONTRAST_MAX));
++
++	v4l2_ctrl_new_std(&sur40->hdl, &sur40_ctrl_ops, V4L2_CID_GAIN,
++	  SUR40_GAIN_MIN, SUR40_GAIN_MAX, 1, clamp(gain,
++	  (uint)SUR40_GAIN_MIN, (uint)SUR40_GAIN_MAX));
++
++	v4l2_ctrl_new_std(&sur40->hdl, &sur40_ctrl_ops,
++	  V4L2_CID_BACKLIGHT_COMPENSATION, SUR40_BACKLIGHT_MIN,
++	  SUR40_BACKLIGHT_MAX, 1, SUR40_BACKLIGHT_DEF);
++
++	v4l2_ctrl_handler_setup(&sur40->hdl);
++
++	if (sur40->hdl.error) {
++		dev_err(&interface->dev,
++			"Unable to register video controls.");
++		v4l2_ctrl_handler_free(&sur40->hdl);
++		goto err_unreg_v4l2;
++	}
++
+ 	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
+ 	if (error) {
+ 		dev_err(&interface->dev,
+@@ -769,6 +807,7 @@ static void sur40_disconnect(struct usb_interface *interface)
+ {
+ 	struct sur40_state *sur40 = usb_get_intfdata(interface);
+ 
++	v4l2_ctrl_handler_free(&sur40->hdl);
+ 	video_unregister_device(&sur40->vdev);
+ 	v4l2_device_unregister(&sur40->v4l2);
+ 
+@@ -962,6 +1001,31 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int sur40_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct sur40_state *sur40  = container_of(ctrl->handler,
++	  struct sur40_state, hdl);
++	u8 value = sur40->vsvideo;
++
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		sur40_set_irlevel(sur40, ctrl->val);
++		break;
++	case V4L2_CID_CONTRAST:
++		value = (value & 0x0F) | (ctrl->val << 4);
++		sur40_set_vsvideo(sur40, value);
++		break;
++	case V4L2_CID_GAIN:
++		value = (value & 0xF0) | (ctrl->val);
++		sur40_set_vsvideo(sur40, value);
++		break;
++	case V4L2_CID_BACKLIGHT_COMPENSATION:
++		sur40_set_preprocessor(sur40, ctrl->val);
++		break;
++	}
++	return 0;
++}
++
+ static int sur40_ioctl_parm(struct file *file, void *priv,
+ 			    struct v4l2_streamparm *p)
+ {
+-- 
 2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
