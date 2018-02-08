@@ -1,177 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33974 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50748 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753719AbeBVMlJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:41:09 -0500
+        with ESMTP id S1752126AbeBHVvE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 16:51:04 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        David Airlie <airlied@linux.ie>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
-Date: Thu, 22 Feb 2018 14:41:52 +0200
-Message-ID: <1557033.P9RvW324FW@avalon>
-In-Reply-To: <247e07b2-6d21-331a-53d5-3bade8beec51@xs4all.nl>
-References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se> <20180221210140.qf77u5yf6ja6cmdi@valkosipuli.retiisi.org.uk> <247e07b2-6d21-331a-53d5-3bade8beec51@xs4all.nl>
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH 2/2] drm: adv7511: Add support for i2c_new_secondary_device
+Date: Thu, 08 Feb 2018 23:51:31 +0200
+Message-ID: <3477719.9Iy5Zezpfg@avalon>
+In-Reply-To: <5e144334-a747-7abf-4a8c-8f6f9134143b@ideasonboard.com>
+References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com> <506017617.snhEqs7y0U@avalon> <5e144334-a747-7abf-4a8c-8f6f9134143b@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Kieran,
 
-On Thursday, 22 February 2018 10:01:13 EET Hans Verkuil wrote:
-> On 02/21/2018 10:01 PM, Sakari Ailus wrote:
-> > On Wed, Feb 21, 2018 at 10:16:25PM +0200, Laurent Pinchart wrote:
-> >> No, I'm sorry, for MC-based drivers this isn't correct. The media entity
-> >> that symbolizes the DMA engine indeed has a sink pad, but it's a video
-> >> node, not a subdev. It thus has no media bus format configured for its
-> >> sink pad. The closest pad in the pipeline that has a media bus format is
-> >> the source pad of the subdev connected to the video node.
-> >> 
-> >> There's no communication within the kernel at G/S_FMT time between the
-> >> video node and its connected subdev. The only time we look at the
-> >> pipeline as a whole is when starting the stream to validate that the
-> >> pipeline is correctly configured. We thus have to implement G/S_FMT on
-> >> the video node without any knowledge about the connected subdev, and
-> >> thus accept any colorspace.
-> > 
-> > A few more notes related to this --- there's no propagation of sub-device
-> > format across the entities; there were several reasons for the design
-> > choice. The V4L2 pixel format in the video node must be compatible with
-> > the sub-device format when streaming is started. And... the streaming will
-> > start in the pipeline defined by the enabled links to/from the video node.
-> > In principle nothign prevents having multiple links there, and at the time
-> > S_FMT IOCTL is called on the video node, none of those links could be
-> > enabled. And that's perfectly valid use of the API.
-> > 
-> > A lot of the DMA engine drivers are simply devices that receive data and
-> > write that to system memory, they really don't necessarily know anything
-> > else. For the hardware this data is just pixels (or even bits, especially
-> > in the case of CSI-2!).
-> 
-> Not in my experience. Most DMA engines I've ever worked with can do at
-> least quantization and RGB <-> YUV conversions. Which is pretty much
-> required functionality if you work with video receivers.
+On Thursday, 8 February 2018 01:30:43 EET Kieran Bingham wrote:
+> On 07/02/18 21:59, Laurent Pinchart wrote:
+> > On Wednesday, 7 February 2018 17:14:09 EET Kieran Bingham wrote:
+> >> On 29/01/18 10:26, Laurent Pinchart wrote:
+> >>> On Monday, 22 January 2018 14:50:00 EET Kieran Bingham wrote:
+> >>>> The ADV7511 has four 256-byte maps that can be accessed via the main
+> >>>> I=B2C ports. Each map has it own I=B2C address and acts as a standar=
+d slave
+> >>>> device on the I=B2C bus.
+> >>>>=20
+> >>>> Allow a device tree node to override the default addresses so that
+> >>>> address conflicts with other devices on the same bus may be resolved=
+ at
+> >>>> the board description level.
+> >>>>=20
+> >>>> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> >>>> ---
+> >>>>=20
+> >>>>  .../bindings/display/bridge/adi,adv7511.txt        | 10 +++++-
+> >>>=20
+> >>> I don't mind personally, but device tree maintainers usually ask for =
+DT
+> >>> bindings changes to be split to a separate patch.
+> >>>=20
+> >>>>  drivers/gpu/drm/bridge/adv7511/adv7511.h           |  4 +++
+> >>>>  drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 36++++++++++--=
+=2D--
+> >>>>  3 files changed, 37 insertions(+), 13 deletions(-)
+> >>>>=20
+> >>>> diff --git
+> >>>> a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> >>>> b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> >>>> index 0047b1394c70..f6bb9f6d3f48 100644
+> >>>> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.t=
+xt
+> >>>> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.t=
+xt
+> >>>>=20
+> >>>> @@ -70,6 +70,9 @@ Optional properties:
+> >>>>    rather than generate its own timings for HDMI output.
+> >>>>  - clocks: from common clock binding: reference to the CEC clock.
+> >>>>  - clock-names: from common clock binding: must be "cec".
+> >>>> +- reg-names : Names of maps with programmable addresses.
+> >>>> +	It can contain any map needing a non-default address.
+> >>>> +	Possible maps names are : "main", "edid", "cec", "packet"
+> >>>=20
+> >>> Is the reg-names property (and the additional maps) mandatory or
+> >>> optional ? If mandatory you should also update the existing DT sources
+> >>> that use those bindings.
+> >>=20
+> >> They are currently optional. I do prefer it that way - but perhaps due=
+ to
+> >> an issue mentioned below we might need to make this driver mandatory ?=
+>>=20
+> >>=20
+> >>> If optional you should define which I2C addresses will be used when
+> >>> the maps are not specified (and in that case I think we should go for
+> >>> the addresses listed as default in the datasheet, which correspond to
+> >>> the current driver implementation when the main address is 0x3d/0x7a).
+> >>=20
+> >> The current addresses do not correspond to the datasheet, even when the
+> >> implementation main address is set to 0x3d.
+> >=20
+> > Don't they ? The driver currently uses the following (8-bit) I2C
+> > addresses:
+> >=20
+> > EDID:   main + 4  =3D 0x7e (0x3f)
+> > Packet: main - 10 =3D 0x70 (0x38)
+> > CEC:    main - 2  =3D 0x78 (0x3c)
+> >=20
+> > Those are the default addresses according to section 4.1 of the ADV7511W
+> > programming guide (rev. B), and they match the ones you set in this pat=
+ch.
+>=20
+> Sorry - I was clearly subtracting 8bit values from a 7bit address in my
+> failed assertion, to both you and Archit.
 
-That's because you have a coarser view of the hardware in the PC world, where 
-the RGB <-> YUV converter and DMA engine are bundled in a single block in 
-documentation. In the embedded world a DMA engine is just a DMA engine. There 
-is in many cases a RGB <-> YUV converter just before the DMA engine, but it's 
-then usually exposed as a subdevice separate from the video node.
+No worries.
 
-> And in order to program that correctly in the DMA engine you have to
-> know what you receive.
+> >> Thus, in my opinion - they are currently 'wrong' - but perhaps changing
+> >> them is considered breakage too.
+> >>=20
+> >> A particular issue will arise here too - as on this device - when the
+> >> device is in low-power mode (after probe, before use) - the maps will
+> >> respond on their *hardware default* addresses (the ones implemented in
+> >> this patch), and thus consume that address on the I2C bus regardless of
+> >> their settings in the driver.
+> >=20
+> > We've discussed this previously and I share you concern. Just to make s=
+ure
+> > I remember correctly, did all the secondary maps reset to their default
+> > addresses, or just the EDID map ?
+>=20
+> The following responds on the bus when programmed at alternative addresse=
+s,
+> and in low power mode. The responses are all 0, but that's still going to
+> conflict with other hardware if it tries to use the 'un-used' addresses.
+>=20
+> Packet (0x38),
+> Main (0x39),
+> Fixed (set to 0 by software, but shows up at 0x3e)
+> and EDID (0x3f).
+>=20
+> So actually it's only the CEC which don't respond when in "low-power-mode=
+".
+>=20
+> As far as I can see, (git grep  -B3 adi,adv75) - The r8a7792-wheat.dts is
+> the only instance of a device using 0x3d, which means that Sergei's patch
+> changed the behaviour of all the existing devices before that.
+>=20
+> Thus - this patch could be seen to be a 'correction' back to the original
+> behaviour for all devices except the Wheat, and possibly devices added af=
+ter
+> Sergei's patch went in.
+>=20
+> However - by my understanding, - any device which has only one ADV75(3,1)+
+> should use the hardware defined addresses (the hardware defaults will be
+> conflicting on the bus anyway, thus should be assigned to the ADV7511)
+>=20
+> Any platform which uses *two* ADV7511 devices on the same bus should
+> actually set *both* devices to use entirely separate addresses - or they
+> will still conflict with each other.
 
-Depending on the hardware I'm fine letting driver authors decide whether to 
-expose the RGB <-> YUV conversion as a separate subdev, or as part of the 
-video node. In the latter case the video node implementation will need to 
-program the RGB <-> YUV conversion hardware based on the output pixel format 
-and input media bus format. This can be done without any issue at stream on 
-time: the video node implementation can access the format of the connected 
-source pad in the pipeline when starting the stream, as links are configured 
-and frozen at that time. What the video node implementation can't do is access 
-that information at G/S_FMT time, as G/S_FMT on both subdevs and video nodes 
-must be contained to a single entity when using MC-based drivers.
+Agreed. No access should be made to the default addresses for the secondary=
+=20
+I2C clients, otherwise there's a risk of conflict.
 
-> Full-fledged colorspace converters that can convert between different
-> colorspaces and transfer functions are likely to be separate subdevs
-> due to the complexity of that.
-> 
-> > So I agree with Laurent here that requiring correct colour space for
-> > [GS]_FMT IOCTLs on video nodes in the general case is not feasible
-> > (especially on MC-centric devices), due to the way the Media controller
-> > pipeline and formats along that pipeline are configured and validated
-> > (i.e. at streamon time).
-> > 
-> > But what to do here then? The colourspace field is not verified even in
-> > link validation so there's no guarantee it's correctly set more or less
-> > anywhere else than in the source of the stream. And if the stream has
-> > multiple sources with different colour spaces, then what do you do? That's
-> > perhaps a theoretical case but the current frameworks and APIs do in
-> > principle support that.
-> 
-> It's not theoretical at all. But anyway, in that case it is up to userspace
-> to decide. A typical example is an sRGB OSD on top of a Rec.709 video.
-> 
-> In practice the differences in color at too small to be a problem, you'd
-> just use Rec. 709 and slight color differences in the sRGB OSD is not
-> something that is noticeable. But with HDR and BT.2020 this becomes much
-> more complicated.
-> 
-> However, that is out of scope of the kernel driver.
+When only one ADV7511 is present, but conflicts with another device, we cou=
+ld=20
+reprogram the other device only (assuming it doesn't lose its configuration=
+ in=20
+low-power mode), or reprogram both.
 
-What I believe should be in scope for the kernel driver is reporting correct 
-colorspace information. Once a pipeline is correctly configured for streaming, 
-the colorspace reported by G_FMT on a capture video node should correspond to 
-the colorspace of the data that will be written to memory. That's why we 
-validate pipelines at stream on time: even if the device would work exactly 
-the same way with a wrong colorspace set on the video node, an application 
-that calls G_FMT would see a colorspace that doesn't correspond to reality. Of 
-course the application can walk up the pipeline and check the colorspace on 
-the sensor at the input, but I think we need to keep parameters valid across 
-the whole pipeline to avoid confusion in userspace.
+> Now - if my understanding is correct - then I believe - that means that a=
+ll
+> existing devices except Wheat *should* be using the default addresses as
+> this patch updates them to.
+>=20
+> The Wheat - has an invalid configuration - and thus should be updated
+> anyway.
 
-To summarize my position, in the VIN case, we need to accept any colorspace at 
-S_FMT time, as the DMA engine is colorspace-agnostic and doesn't know at S_FMT 
-time what it will receive, and validate the configured colorspace at stream on 
-time to ensure that userspace receives consistent information.
+I agree.
 
-> > Perhaps we should specify that the user should always set the same
-> > colourspace on the sink end of a link that was there in the source? The
-> > same should likely apply to the rest of the fields apart from width,
-> > height and code, too. Before the user configures formats this doesn't work
-> > though, and this does not address the matter with v4l2-compliance.
-> > 
-> > Granted that the drivers will themselves handle the colour space
-> > information correctly, it'd still provide a way for the user to gain the
-> > knowledge of the colour space which I believe is what matters.
-> 
-> Urgh. It's really wrong IMHO that the DMA engine's input pad can't be
-> configured. It's inconsistent. I don't think we ever thought this through
-> properly.
+> >>> You should also update the definition of the reg property that curren=
+tly
+> >>> just states
+> >>>=20
+> >>> - reg: I2C slave address
+> >>>=20
+> >>> And finally you might want to define the term "map" in this context.
+> >>> Here's a proposal (if we make all maps mandatory).
+> >>>=20
+> >>> The ADV7511 internal registers are split into four pages exposed thro=
+ugh
+> >>> different I2C addresses, creating four register maps. The I2C address=
+es
+> >>> of all four maps shall be specified by the reg and reg-names property.
+> >>>=20
+> >>> - reg: I2C slave addresses, one per reg-names entry
+> >>> - reg-names: map names, shall be "main", "edid", "cec", "packet"
+> >>>=20
+> >>>>  Required nodes:
+> >>>> @@ -88,7 +91,12 @@ Example
+> >>>>=20
+> >>>>  	adv7511w: hdmi@39 {
+> >>>>  		compatible =3D "adi,adv7511w";
+> >>>>=20
+> >>>> -		reg =3D <39>;
+> >>>> +		/*
+> >>>> +		 * The EDID page will be accessible on address 0x66 on the i2c
+> >>>> +		 * bus. All other maps continue to use their default addresses.
+> >>>> +		 */
+> >>>> +		reg =3D <0x39 0x66>;
+> >>>> +		reg-names =3D "main", "edid";
+> >>>>  		interrupt-parent =3D <&gpio3>;
+> >>>>  		interrupts =3D <29 IRQ_TYPE_EDGE_FALLING>;
+> >>>>  		clocks =3D <&cec_clock>;
 
-The video node is an entity but isn't a subdev, so it has pads, but no media 
-bus format exposed there. And frankly I don't think that's an issue. Today we 
-do the following.
+[snip]
 
-1. In the VIDIOC_S_FMT handler, accept any colorspace, as we can't know what 
-we will be fed (as explained above and a few times before, S_FMT is contained 
-in a single entity, it doesn't follow links inside the kernel).
-
-2. At stream on time, validate the input link to verify that the colorspace on 
-the connected subdev's source pad is identical to the colorspace on the video 
-node.
-
-If we could configure the media bus format on the sink pad of the video node, 
-we would
-
-1. Require userspace to set the format on the sink pad. We would need to 
-accept any colorspace there too (again we can't know what we will be fed).
-
-2. In the VIDIOC_S_FMT handler, validate the passed colorspace to verify it is 
-identical to the colorspace configured on the sink pad.
-
-3. At stream on time, validate the input link to verify that the colorspace on 
-the connected subdev's source pad is identical to the colorspace on the video 
-node's sink pad.
-
-Why would that be better ? In both cases we need to accept any colorspace at 
-S_FMT time (on the video node in the first case, on the video node's sink pad 
-in the second case) and validate it at stream on time.
-
-> Let me first fix all the other compliance issues and then I'll have to get
-> back to this. It's a mess.
-
-How do we move forward with VIN though ? I don't think we should block the 
-driver due to this.
-
--- 
+=2D-=20
 Regards,
 
 Laurent Pinchart
