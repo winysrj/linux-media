@@ -1,128 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.microchip.iphmx.com ([68.232.147.91]:62205 "EHLO
-        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932121AbeBVMDf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:03:35 -0500
-From: Claudiu Beznea <claudiu.beznea@microchip.com>
-To: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
-        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
-        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
-        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
-        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
-        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
-        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>
-CC: <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: [PATCH v3 06/10] pwm: add PWM modes
-Date: Thu, 22 Feb 2018 14:01:17 +0200
-Message-ID: <1519300881-8136-7-git-send-email-claudiu.beznea@microchip.com>
-In-Reply-To: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:50566 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752539AbeBHTx1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:53:27 -0500
+Received: by mail-wm0-f66.google.com with SMTP id f71so11561392wmf.0
+        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:53:26 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH 4/7] [media] ngene: adapt cxd2099 attach to the new i2c_client way
+Date: Thu,  8 Feb 2018 20:53:15 +0100
+Message-Id: <20180208195318.612-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20180208195318.612-1-d.scheller.oss@gmail.com>
+References: <20180208195318.612-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PWM normal and complementary modes.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+Change the way the cxd2099 hardware is being attached to the new I2C
+client interface way.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
- Documentation/devicetree/bindings/pwm/pwm.txt |  9 +++++++--
- Documentation/pwm.txt                         | 26 +++++++++++++++++++++++---
- include/dt-bindings/pwm/pwm.h                 |  1 +
- 3 files changed, 31 insertions(+), 5 deletions(-)
+ drivers/media/pci/ngene/ngene-core.c | 41 ++++++++++++++++++++++++++++++++----
+ drivers/media/pci/ngene/ngene.h      |  1 +
+ 2 files changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pwm/pwm.txt b/Documentation/devicetree/bindings/pwm/pwm.txt
-index 8556263b8502..c2b4b9ba0e3f 100644
---- a/Documentation/devicetree/bindings/pwm/pwm.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm.txt
-@@ -46,11 +46,16 @@ period in nanoseconds.
- Optionally, the pwm-specifier can encode a number of flags (defined in
- <dt-bindings/pwm/pwm.h>) in a third cell:
- - PWM_POLARITY_INVERTED: invert the PWM signal polarity
-+- PWM_DTMODE_COMPLEMENTARY: PWM complementary working mode (for PWM
-+channels two outputs); if not specified, the default for PWM channel will
-+be used
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 8c92cb7f7e72..80db777cb7ec 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1562,9 +1562,8 @@ static int init_channels(struct ngene *dev)
+ 	return 0;
+ }
  
--Example with optional PWM specifier for inverse polarity
-+Example with optional PWM specifier for inverse polarity and complementary
-+mode:
- 
- 	bl: backlight {
--		pwms = <&pwm 0 5000000 PWM_POLARITY_INVERTED>;
-+		pwms = <&pwm 0 5000000
-+			(PWM_DTMODE_COMPLEMENTARY | PWM_POLARITY_INVERTED)>;
- 		pwm-names = "backlight";
- 	};
- 
-diff --git a/Documentation/pwm.txt b/Documentation/pwm.txt
-index 8fbf0aa3ba2d..59592f8cc381 100644
---- a/Documentation/pwm.txt
-+++ b/Documentation/pwm.txt
-@@ -61,9 +61,9 @@ In addition to the PWM state, the PWM API also exposes PWM arguments, which
- are the reference PWM config one should use on this PWM.
- PWM arguments are usually platform-specific and allows the PWM user to only
- care about dutycycle relatively to the full period (like, duty = 50% of the
--period). struct pwm_args contains 2 fields (period and polarity) and should
--be used to set the initial PWM config (usually done in the probe function
--of the PWM user). PWM arguments are retrieved with pwm_get_args().
-+period). struct pwm_args contains 3 fields (period, polarity and mode) and
-+should be used to set the initial PWM config (usually done in the probe
-+function of the PWM user). PWM arguments are retrieved with pwm_get_args().
- 
- Using PWMs with the sysfs interface
- -----------------------------------
-@@ -110,6 +110,26 @@ channel that was exported. The following properties will then be available:
- 	- 0 - disabled
- 	- 1 - enabled
- 
-+  mode
-+    Get/set PWM channel working mode.
+-static struct cxd2099_cfg cxd_cfg = {
++static const struct cxd2099_cfg cxd_cfgtmpl = {
+ 	.bitrate = 62000,
+-	.adr = 0x40,
+ 	.polarity = 0,
+ 	.clock_mode = 0,
+ };
+@@ -1572,18 +1571,52 @@ static struct cxd2099_cfg cxd_cfg = {
+ static void cxd_attach(struct ngene *dev)
+ {
+ 	struct ngene_ci *ci = &dev->ci;
++	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
++	struct i2c_client *client;
++	struct i2c_board_info board_info = {
++		.type = "cxd2099",
++		.addr = 0x40,
++		.platform_data = &cxd_cfg,
++	};
 +
-+    Normal mode - for PWM channels with one output; this should be the
-+        default working mode for every PWM channel; output waveforms looks
-+        like this:
-+             __    __    __    __
-+    PWM   __|  |__|  |__|  |__|  |__
-+            <--T-->
++	cxd_cfg.en = &ci->en;
 +
-+    Complementary mode - for PWM channels two outputs; output waveforms
-+        looks line this:
-+             __    __    __    __
-+    PWMH1 __|  |__|  |__|  |__|  |__
-+          __    __    __    __    __
-+    PWML1   |__|  |__|  |__|  |__|
-+            <--T-->
++	request_module(board_info.type);
 +
-+    Where T is the signal period.
++	client = i2c_new_device(&dev->channel[0].i2c_adapter, &board_info);
++	if (!client || !client->dev.driver)
++		goto err_ret;
 +
- Implementing a PWM driver
- -------------------------
++	if (!try_module_get(client->dev.driver->owner))
++		goto err_i2c;
++
++	if (!ci->en)
++		goto err_i2c;
  
-diff --git a/include/dt-bindings/pwm/pwm.h b/include/dt-bindings/pwm/pwm.h
-index ab9a077e3c7d..b4d61269aced 100644
---- a/include/dt-bindings/pwm/pwm.h
-+++ b/include/dt-bindings/pwm/pwm.h
-@@ -11,5 +11,6 @@
- #define _DT_BINDINGS_PWM_PWM_H
+-	ci->en = cxd2099_attach(&cxd_cfg, dev, &dev->channel[0].i2c_adapter);
+ 	ci->dev = dev;
++	dev->channel[0].i2c_client[0] = client;
++	return;
++
++err_i2c:
++	i2c_unregister_device(client);
++err_ret:
++	printk(KERN_ERR DEVICE_NAME ": CXD2099AR attach failed\n");
+ 	return;
+ }
  
- #define PWM_POLARITY_INVERTED			(1 << 0)
-+#define PWM_DTMODE_COMPLEMENTARY		(1 << 1)
+ static void cxd_detach(struct ngene *dev)
+ {
+ 	struct ngene_ci *ci = &dev->ci;
++	struct i2c_client *client;
  
- #endif
+ 	dvb_ca_en50221_release(ci->en);
+-	kfree(ci->en);
++
++	client = dev->channel[0].i2c_client[0];
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	ci->en = NULL;
+ }
+ 
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index 02dbd18f92d0..caf8602c7459 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -630,6 +630,7 @@ struct ngene_vopen {
+ struct ngene_channel {
+ 	struct device         device;
+ 	struct i2c_adapter    i2c_adapter;
++	struct i2c_client    *i2c_client[1];
+ 
+ 	struct ngene         *dev;
+ 	int                   number;
 -- 
-2.7.4
+2.13.6
