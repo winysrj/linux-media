@@ -1,444 +1,1608 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51706 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965676AbeBMVAc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 16:00:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 25/30] rcar-vin: parse Gen3 OF and setup media graph
-Date: Tue, 13 Feb 2018 23:01:03 +0200
-Message-ID: <10215234.Ncu5prJo3h@avalon>
-In-Reply-To: <20180129163435.24936-26-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-26-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from ns.mm-sol.com ([37.157.136.199]:40455 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751671AbeBHJDH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 04:03:07 -0500
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 2/2] media: Add a driver for the ov7251 camera sensor
+Date: Thu,  8 Feb 2018 10:53:38 +0200
+Message-Id: <1518080018-10403-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1518080018-10403-1-git-send-email-todor.tomov@linaro.org>
+References: <1518080018-10403-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
+Sensor from Omnivision.
 
-Thank you for the patch.
+The driver supports the following modes:
+- 640x480 30fps
+- 640x480 60fps
+- 640x480 90fps
 
-On Monday, 29 January 2018 18:34:30 EET Niklas S=F6derlund wrote:
-> The parsing and registering CSI-2 subdevices with the v4l2 async
-> framework is a collaborative effort shared between the VIN instances
-> which are part of the group. When the last VIN in the group is probed it
-> asks all other VINs to parse its share of OF and record the async
-> subdevices it finds in the notifier belonging to the last probed VIN.
->=20
-> Once all CSI-2 subdevices in this notifier are bound proceed to register
-> all VIN video devices of the group and crate media device links between
-> all CSI-2 and VIN entities according to the SoC specific routing
-> configuration.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 250 ++++++++++++++++++++++=
-++-
->  drivers/media/platform/rcar-vin/rcar-vin.h  |  12 +-
->  2 files changed, 258 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 4a64df5019ce45f7..f08277a0dc11f477 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -27,6 +27,23 @@
->=20
->  #include "rcar-vin.h"
->=20
-> +/*
-> + * The companion CSI-2 receiver driver (rcar-csi2) is known
-> + * and we know it have one source pad (pad 0) and four sink
+Output format is MIPI RAW 10.
 
-s/have/has/
+The driver supports configuration via user controls for:
+- exposure and gain;
+- horizontal and vertical flip;
+- test pattern.
 
-> + * pads (pad 1-4). So to translate a pad on the remote
-> + * CSI-2 receiver to/from the VIN internal channel number simply
-> + * subtract/add or one from the pad/chan number.
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ drivers/media/i2c/Kconfig  |   13 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/ov7251.c | 1523 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1537 insertions(+)
+ create mode 100644 drivers/media/i2c/ov7251.c
 
-s/or one/one/
-
-and maybe s/chan/channel/ ?
-
-> + */
-> +#define rvin_group_csi_pad_to_chan(pad) ((pad) - 1)
-> +#define rvin_group_csi_chan_to_pad(chan) ((chan) + 1)
-> +
-> +/*
-> + * Not all VINs are created equal, master VINs control the
-> + * routing for other VIN's. We can figure out which VIN is
-> + * master by looking at a VINs id
-> + */
-> +#define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
-> +
->  /* ---------------------------------------------------------------------=
-=2D--
->   * Gen3 CSI2 Group Allocator
->   */
-> @@ -77,6 +94,8 @@ static int rvin_group_init(struct rvin_group *group,
-> struct rvin_dev *vin) snprintf(mdev->bus_info, sizeof(mdev->bus_info),
-> "platform:%s",
->  		 dev_name(mdev->dev));
->=20
-> +	group->notifier =3D NULL;
-> +
-
-The group has been allocated with kzalloc() so this isn't necessary.
-
->  	media_device_init(mdev);
->=20
->  	ret =3D media_device_register(&group->mdev);
-> @@ -406,6 +425,218 @@ static int rvin_digital_graph_init(struct rvin_dev
-> *vin) return 0;
->  }
->=20
-> +/* ---------------------------------------------------------------------=
-=2D--
-> + * Group async notifier
-> + */
-> +
-> +static int rvin_group_notify_complete(struct v4l2_async_notifier *notifi=
-er)
-> +{
-> +	struct rvin_dev *vin =3D notifier_to_vin(notifier);
-> +	const struct rvin_group_route *route;
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	ret =3D v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
-> +	if (ret) {
-> +		vin_err(vin, "Failed to register subdev nodes\n");
-> +		return ret;
-> +	}
-> +
-> +	/* Register all video nodes for the group */
-> +	for (i =3D 0; i < RCAR_VIN_NUM; i++) {
-> +		if (vin->group->vin[i]) {
-> +			ret =3D rvin_v4l2_register(vin->group->vin[i]);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +	}
-> +
-> +	/* Create all media device links between VINs and CSI-2's */
-> +	mutex_lock(&vin->group->lock);
-> +	for (route =3D vin->info->routes; route->mask; route++) {
-> +		struct media_pad *source_pad, *sink_pad;
-> +		struct media_entity *source, *sink;
-> +		unsigned int source_idx;
-> +
-> +		/* Check that VIN is part of the group */
-> +		if (!vin->group->vin[route->vin])
-> +			continue;
-> +
-> +		/* Check that VIN' master is part of the group */
-> +		if (!vin->group->vin[rvin_group_id_to_master(route->vin)])
-> +			continue;
-> +
-> +		/* Check that CSI-2 is part of the group */
-> +		if (!vin->group->csi[route->csi].subdev)
-> +			continue;
-> +
-> +		source =3D &vin->group->csi[route->csi].subdev->entity;
-> +		source_idx =3D rvin_group_csi_chan_to_pad(route->chan);
-> +		source_pad =3D &source->pads[source_idx];
-> +
-> +		sink =3D &vin->group->vin[route->vin]->vdev.entity;
-> +		sink_pad =3D &sink->pads[0];
-> +
-> +		/* Skip if link already exists */
-> +		if (media_entity_find_link(source_pad, sink_pad))
-> +			continue;
-> +
-> +		ret =3D media_create_pad_link(source, source_idx, sink, 0, 0);
-> +		if (ret) {
-> +			vin_err(vin, "Error adding link from %s to %s\n",
-> +				source->name, sink->name);
-> +			break;
-> +		}
-> +	}
-> +	mutex_unlock(&vin->group->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifie=
-r,
-> +				     struct v4l2_subdev *subdev,
-> +				     struct v4l2_async_subdev *asd)
-> +{
-> +	struct rvin_dev *vin =3D notifier_to_vin(notifier);
-> +	unsigned int i;
-> +
-> +	for (i =3D 0; i < RCAR_VIN_NUM; i++)
-> +		if (vin->group->vin[i])
-> +			rvin_v4l2_unregister(vin->group->vin[i]);
-> +
-> +	mutex_lock(&vin->group->lock);
-> +
-> +	for (i =3D 0; i < RVIN_CSI_MAX; i++) {
-> +		if (vin->group->csi[i].fwnode !=3D asd->match.fwnode)
-> +			continue;
-> +		vin->group->csi[i].subdev =3D NULL;
-> +		vin_dbg(vin, "Unbind CSI-2 %s from slot %u\n", subdev->name, i);
-> +		break;
-> +	}
-> +
-> +	mutex_unlock(&vin->group->lock);
-> +}
-> +
-> +static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_subdev *subdev,
-> +				   struct v4l2_async_subdev *asd)
-> +{
-> +	struct rvin_dev *vin =3D notifier_to_vin(notifier);
-> +	unsigned int i;
-> +
-> +	mutex_lock(&vin->group->lock);
-> +
-> +	for (i =3D 0; i < RVIN_CSI_MAX; i++) {
-> +		if (vin->group->csi[i].fwnode !=3D asd->match.fwnode)
-> +			continue;
-> +		vin->group->csi[i].subdev =3D subdev;
-> +		vin_dbg(vin, "Bound CSI-2 %s to slot %u\n", subdev->name, i);
-> +		break;
-> +	}
-> +
-> +	mutex_unlock(&vin->group->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_async_notifier_operations rvin_group_notify_ops=
- =3D
-> {
-> +	.bound =3D rvin_group_notify_bound,
-> +	.unbind =3D rvin_group_notify_unbind,
-> +	.complete =3D rvin_group_notify_complete,
-> +};
-> +
-> +static int rvin_mc_parse_v4l2(struct device *dev,
-> +				   struct v4l2_fwnode_endpoint *vep,
-> +				   struct v4l2_async_subdev *asd)
-
-As this parses one endpoint, maybe rvin_mc_parse_of_endpoint() ?
-
-> +{
-> +	struct rvin_dev *vin =3D dev_get_drvdata(dev);
-> +	struct v4l2_async_notifier *notifier =3D vin->group->notifier;
-> +	unsigned int i;
-> +
-> +	if (vep->base.port !=3D 1 || vep->base.id >=3D RVIN_CSI_MAX)
-> +		return -EINVAL;
-> +
-> +	if (!of_device_is_available(to_of_node(asd->match.fwnode))) {
-> +		vin_dbg(vin, "Subdevice %pOF disabled, ignoring\n",
-> +			to_of_node(asd->match.fwnode));
-
-It's not the subdevice that is disabled, it's the OF node, so I'd write thi=
-s=20
-"OF device %pOF disabled, ignoring".
-
-> +		return -ENOTCONN;
-> +
-> +	}
-> +
-> +	for (i =3D 0; i < notifier->num_subdevs; i++) {
-> +		if (notifier->subdevs[i]->match.fwnode =3D=3D asd->match.fwnode) {
-> +			vin_dbg(vin, "Subdevice %pOF already handled\n",
-> +				to_of_node(asd->match.fwnode));
-
-Ditto.
-
-> +			return -ENOTCONN;
-> +		}
-> +	}
-
-Do you need a loop, or could you just test if vin->group->csi[vep-
->base.id].fwnode is non-NULL ?
-
-> +	vin->group->csi[vep->base.id].fwnode =3D asd->match.fwnode;
-> +
-> +	vin_dbg(vin, "Add group subdevice %pOF to slot %u\n",
-> +		to_of_node(asd->match.fwnode), vep->base.id);
-
-And here too.
-
-> +	return 0;
-> +}
-> +
-> +static int rvin_mc_try_parse(struct rvin_dev *vin)
-
-"try" parse ? Do you really expect this to be so difficult that we'll likel=
-y=20
-fail ? :-) How about rvin_mc_parse_of_graph() ?
-
-> +{
-> +	unsigned int i, count =3D 0;
-
-I'd split that on two lines.
-
-> +	int ret;
-> +
-> +	mutex_lock(&vin->group->lock);
-> +
-> +	/* If there already is a notifier something have gone wrong, bail */
-
-s/have/has/
-
-and I assume you mean "bail out", not "bail".
-
-> +	if (WARN_ON(vin->group->notifier)) {
-> +		mutex_unlock(&vin->group->lock);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* If not all VIN's are registered don't register the notifier */
-> +	for (i =3D 0; i < RCAR_VIN_NUM; i++)
-> +		if (vin->group->vin[i])
-> +			count++;
-> +
-> +	if (vin->group->count !=3D count) {
-> +		mutex_unlock(&vin->group->lock);
-> +		return 0;
-> +	}
-> +
-> +	/*
-> +	 * Have all VIN's look for subdevices. Some subdevices will overlap
-> +	 * but the parser function can handle it, so each subdevice will
-> +	 * only be registered once with the notifier
-
-Do you have anything particular against periods at end of sentences (and th=
-is=20
-also applies to single-sentence comments) ? If not, this comment applies to=
-=20
-the whole series.
-
-> +	 */
-> +
-> +	vin->group->notifier =3D &vin->notifier;
-> +
-> +	for (i =3D 0; i < RCAR_VIN_NUM; i++) {
-> +		if (!vin->group->vin[i])
-> +			continue;
-> +
-> +		ret =3D v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> +				vin->group->vin[i]->dev, vin->group->notifier,
-> +				sizeof(struct v4l2_async_subdev), 1,
-> +				rvin_mc_parse_v4l2);
-> +		if (ret) {
-> +			mutex_unlock(&vin->group->lock);
-> +			return ret;
-> +		}
-> +	}
-
-I'll refrain from telling how much this makes me want to cry. I know we hav=
-e=20
-no other choice for now, but still :(
-
-> +	mutex_unlock(&vin->group->lock);
-> +
-> +	vin->group->notifier->ops =3D &rvin_group_notify_ops;
-> +
-> +	ret =3D v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
-> +	if (ret < 0) {
-> +		vin_err(vin, "Notifier registration failed\n");
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int rvin_mc_init(struct rvin_dev *vin)
->  {
->  	int ret;
-> @@ -419,7 +650,15 @@ static int rvin_mc_init(struct rvin_dev *vin)
->  	if (ret)
->  		return ret;
->=20
-> -	return rvin_group_get(vin);
-> +	ret =3D rvin_group_get(vin);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret =3D rvin_mc_try_parse(vin);
-> +	if (ret)
-> +		rvin_group_put(vin);
-> +
-> +	return ret;
->  }
->=20
->  /* ---------------------------------------------------------------------=
-=2D--
-> @@ -539,10 +778,15 @@ static int rcar_vin_remove(struct platform_device
-> *pdev) v4l2_async_notifier_unregister(&vin->notifier);
->  	v4l2_async_notifier_cleanup(&vin->notifier);
->=20
-> -	if (vin->info->use_mc)
-> +	if (vin->info->use_mc) {
-> +		mutex_lock(&vin->group->lock);
-> +		if (vin->group->notifier =3D=3D &vin->notifier)
-> +			vin->group->notifier =3D NULL;
-> +		mutex_unlock(&vin->group->lock);
->  		rvin_group_put(vin);
-> -	else
-> +	} else {
->  		v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +	}
->=20
->  	rvin_dma_unregister(vin);
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> ca2c2a23cef8506c..6cef78df42047c8c 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -207,9 +207,13 @@ struct rvin_dev {
->   *
->   * @mdev:		media device which represents the group
->   *
-> - * @lock:		protects the count and vin members
-> + * @lock:		protects the count, notifier, vin and csi members
->   * @count:		number of enabled VIN instances found in DT
-> + * @notifier:		pointer to the notifier of a VIN which handles the
-> + *			groups async sub-devices.
->   * @vin:		VIN instances which are part of the group
-> + * @csi:		array of pairs of fwnode and subdev pointers
-> + *			to all CSI-2 subdevices.
->   */
->  struct rvin_group {
->  	struct kref refcount;
-> @@ -218,7 +222,13 @@ struct rvin_group {
->=20
->  	struct mutex lock;
->  	unsigned int count;
-> +	struct v4l2_async_notifier *notifier;
->  	struct rvin_dev *vin[RCAR_VIN_NUM];
-> +
-> +	struct {
-> +		struct fwnode_handle *fwnode;
-> +		struct v4l2_subdev *subdev;
-> +	} csi[RVIN_CSI_MAX];
->  };
->=20
->  int rvin_dma_register(struct rvin_dev *vin, int irq);
-
-With these small issues fixed,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-We clearly need a new review tag to tell "this is horrible but I agree to l=
-et=20
-it in" :-/
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 9f18cd2..bfa9aab 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -645,6 +645,19 @@ config VIDEO_OV5670
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov5670.
+ 
++config VIDEO_OV7251
++	tristate "OmniVision OV7251 sensor support"
++	depends on OF
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	select V4L2_FWNODE
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV7251 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov7251.
++
+ config VIDEO_OV7640
+ 	tristate "OmniVision OV7640 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index c0f94cd..be6b3d3 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -66,6 +66,7 @@ obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+ obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+ obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
++obj-$(CONFIG_VIDEO_OV7251) += ov7251.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV7740) += ov7740.o
+diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
+new file mode 100644
+index 0000000..f217177
+--- /dev/null
++++ b/drivers/media/i2c/ov7251.c
+@@ -0,0 +1,1523 @@
++/*
++ * Driver for the OV7251 camera sensor.
++ *
++ * Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2018, Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/bitops.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/gpio/consumer.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
++#include <linux/types.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
++
++#define OV7251_VOLTAGE_ANALOG               2800000
++#define OV7251_VOLTAGE_DIGITAL_CORE         1500000
++#define OV7251_VOLTAGE_DIGITAL_IO           1800000
++
++#define OV7251_SC_MODE_SELECT		0x0100
++#define OV7251_SC_MODE_SELECT_SW_STANDBY	0x0
++#define OV7251_SC_MODE_SELECT_STREAMING		0x1
++
++#define OV7251_CHIP_ID_HIGH		0x300a
++#define		OV7251_CHIP_ID_HIGH_BYTE	0x77
++#define OV7251_CHIP_ID_LOW		0x300b
++#define		OV7251_CHIP_ID_LOW_BYTE		0x50
++#define OV7251_SC_GP_IO_IN1		0x3029
++#define OV7251_AEC_EXPO_0		0x3500
++#define OV7251_AEC_EXPO_1		0x3501
++#define OV7251_AEC_EXPO_2		0x3502
++#define OV7251_AEC_AGC_ADJ_0		0x350a
++#define OV7251_AEC_AGC_ADJ_1		0x350b
++#define OV7251_TIMING_FORMAT1		0x3820
++#define		OV7251_SENSOR_VFLIP		BIT(2)
++#define OV7251_TIMING_FORMAT2		0x3821
++#define		OV7251_SENSOR_MIRROR		BIT(2)
++#define OV7251_PRE_ISP_00		0x5e00
++#define		OV7251_TEST_PATTERN_BAR_ENABLE	BIT(7)
++
++struct reg_value {
++	u16 reg;
++	u8 val;
++};
++
++struct ov7251_mode_info {
++	u32 width;
++	u32 height;
++	const struct reg_value *data;
++	u32 data_size;
++	u32 pixel_clock;
++	u32 link_freq;
++	u16 exposure_max;
++	u16 exposure_def;
++	struct v4l2_fract timeperframe;
++};
++
++struct ov7251 {
++	struct i2c_client *i2c_client;
++	struct device *dev;
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++	struct v4l2_fwnode_endpoint ep;
++	struct v4l2_mbus_framefmt fmt;
++	struct v4l2_rect crop;
++	struct clk *xclk;
++
++	struct regulator *io_regulator;
++	struct regulator *core_regulator;
++	struct regulator *analog_regulator;
++
++	const struct ov7251_mode_info *current_mode;
++
++	struct v4l2_ctrl_handler ctrls;
++	struct v4l2_ctrl *pixel_clock;
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_ctrl *exposure;
++	struct v4l2_ctrl *gain;
++
++	/* Cached register values */
++	u8 aec_pk_manual;
++	u8 pre_isp_00;
++	u8 timing_format1;
++	u8 timing_format2;
++
++	struct mutex power_lock; /* lock to protect power state */
++	int power_count;
++
++	struct gpio_desc *enable_gpio;
++};
++
++static inline struct ov7251 *to_ov7251(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct ov7251, sd);
++}
++
++static const struct reg_value ov7251_global_init_setting[] = {
++	{ 0x0103, 0x01 },
++	{ 0x303b, 0x02 },
++};
++
++static const struct reg_value ov7251_setting_vga_30fps[] = {
++	{ 0x3005, 0x00 },
++	{ 0x3012, 0xc0 },
++	{ 0x3013, 0xd2 },
++	{ 0x3014, 0x04 },
++	{ 0x3016, 0xf0 },
++	{ 0x3017, 0xf0 },
++	{ 0x3018, 0xf0 },
++	{ 0x301a, 0xf0 },
++	{ 0x301b, 0xf0 },
++	{ 0x301c, 0xf0 },
++	{ 0x3023, 0x05 },
++	{ 0x3037, 0xf0 },
++	{ 0x3098, 0x04 }, /* pll2 pre divider */
++	{ 0x3099, 0x28 }, /* pll2 multiplier */
++	{ 0x309a, 0x05 }, /* pll2 sys divider */
++	{ 0x309b, 0x04 }, /* pll2 adc divider */
++	{ 0x309d, 0x00 }, /* pll2 divider */
++	{ 0x30b0, 0x0a }, /* pll1 pix divider */
++	{ 0x30b1, 0x01 }, /* pll1 divider */
++	{ 0x30b3, 0x64 }, /* pll1 multiplier */
++	{ 0x30b4, 0x03 }, /* pll1 pre divider */
++	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
++	{ 0x3106, 0xda },
++	{ 0x3503, 0x07 },
++	{ 0x3509, 0x10 },
++	{ 0x3600, 0x1c },
++	{ 0x3602, 0x62 },
++	{ 0x3620, 0xb7 },
++	{ 0x3622, 0x04 },
++	{ 0x3626, 0x21 },
++	{ 0x3627, 0x30 },
++	{ 0x3630, 0x44 },
++	{ 0x3631, 0x35 },
++	{ 0x3634, 0x60 },
++	{ 0x3636, 0x00 },
++	{ 0x3662, 0x01 },
++	{ 0x3663, 0x70 },
++	{ 0x3664, 0x50 },
++	{ 0x3666, 0x0a },
++	{ 0x3669, 0x1a },
++	{ 0x366a, 0x00 },
++	{ 0x366b, 0x50 },
++	{ 0x3673, 0x01 },
++	{ 0x3674, 0xff },
++	{ 0x3675, 0x03 },
++	{ 0x3705, 0xc1 },
++	{ 0x3709, 0x40 },
++	{ 0x373c, 0x08 },
++	{ 0x3742, 0x00 },
++	{ 0x3757, 0xb3 },
++	{ 0x3788, 0x00 },
++	{ 0x37a8, 0x01 },
++	{ 0x37a9, 0xc0 },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x04 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x04 },
++	{ 0x3804, 0x02 },
++	{ 0x3805, 0x8b },
++	{ 0x3806, 0x01 },
++	{ 0x3807, 0xeb },
++	{ 0x3808, 0x02 }, /* width high */
++	{ 0x3809, 0x80 }, /* width low */
++	{ 0x380a, 0x01 }, /* height high */
++	{ 0x380b, 0xe0 }, /* height low */
++	{ 0x380c, 0x03 }, /* total horiz timing high */
++	{ 0x380d, 0xa0 }, /* total horiz timing low */
++	{ 0x380e, 0x06 }, /* total vertical timing high */
++	{ 0x380f, 0xbc }, /* total vertical timing low */
++	{ 0x3810, 0x00 },
++	{ 0x3811, 0x04 },
++	{ 0x3812, 0x00 },
++	{ 0x3813, 0x05 },
++	{ 0x3814, 0x11 },
++	{ 0x3815, 0x11 },
++	{ 0x3820, 0x40 },
++	{ 0x3821, 0x00 },
++	{ 0x382f, 0x0e },
++	{ 0x3832, 0x00 },
++	{ 0x3833, 0x05 },
++	{ 0x3834, 0x00 },
++	{ 0x3835, 0x0c },
++	{ 0x3837, 0x00 },
++	{ 0x3b80, 0x00 },
++	{ 0x3b81, 0xa5 },
++	{ 0x3b82, 0x10 },
++	{ 0x3b83, 0x00 },
++	{ 0x3b84, 0x08 },
++	{ 0x3b85, 0x00 },
++	{ 0x3b86, 0x01 },
++	{ 0x3b87, 0x00 },
++	{ 0x3b88, 0x00 },
++	{ 0x3b89, 0x00 },
++	{ 0x3b8a, 0x00 },
++	{ 0x3b8b, 0x05 },
++	{ 0x3b8c, 0x00 },
++	{ 0x3b8d, 0x00 },
++	{ 0x3b8e, 0x00 },
++	{ 0x3b8f, 0x1a },
++	{ 0x3b94, 0x05 },
++	{ 0x3b95, 0xf2 },
++	{ 0x3b96, 0x40 },
++	{ 0x3c00, 0x89 },
++	{ 0x3c01, 0x63 },
++	{ 0x3c02, 0x01 },
++	{ 0x3c03, 0x00 },
++	{ 0x3c04, 0x00 },
++	{ 0x3c05, 0x03 },
++	{ 0x3c06, 0x00 },
++	{ 0x3c07, 0x06 },
++	{ 0x3c0c, 0x01 },
++	{ 0x3c0d, 0xd0 },
++	{ 0x3c0e, 0x02 },
++	{ 0x3c0f, 0x0a },
++	{ 0x4001, 0x42 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x00 },
++	{ 0x404e, 0x01 },
++	{ 0x4300, 0xff },
++	{ 0x4301, 0x00 },
++	{ 0x4315, 0x00 },
++	{ 0x4501, 0x48 },
++	{ 0x4600, 0x00 },
++	{ 0x4601, 0x4e },
++	{ 0x4801, 0x0f },
++	{ 0x4806, 0x0f },
++	{ 0x4819, 0xaa },
++	{ 0x4823, 0x3e },
++	{ 0x4837, 0x19 },
++	{ 0x4a0d, 0x00 },
++	{ 0x4a47, 0x7f },
++	{ 0x4a49, 0xf0 },
++	{ 0x4a4b, 0x30 },
++	{ 0x5000, 0x85 },
++	{ 0x5001, 0x80 },
++};
++
++static const struct reg_value ov7251_setting_vga_60fps[] = {
++	{ 0x3005, 0x00 },
++	{ 0x3012, 0xc0 },
++	{ 0x3013, 0xd2 },
++	{ 0x3014, 0x04 },
++	{ 0x3016, 0x10 },
++	{ 0x3017, 0x00 },
++	{ 0x3018, 0x00 },
++	{ 0x301a, 0x00 },
++	{ 0x301b, 0x00 },
++	{ 0x301c, 0x00 },
++	{ 0x3023, 0x05 },
++	{ 0x3037, 0xf0 },
++	{ 0x3098, 0x04 }, /* pll2 pre divider */
++	{ 0x3099, 0x28 }, /* pll2 multiplier */
++	{ 0x309a, 0x05 }, /* pll2 sys divider */
++	{ 0x309b, 0x04 }, /* pll2 adc divider */
++	{ 0x309d, 0x00 }, /* pll2 divider */
++	{ 0x30b0, 0x0a }, /* pll1 pix divider */
++	{ 0x30b1, 0x01 }, /* pll1 divider */
++	{ 0x30b3, 0x64 }, /* pll1 multiplier */
++	{ 0x30b4, 0x03 }, /* pll1 pre divider */
++	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
++	{ 0x3106, 0xda },
++	{ 0x3503, 0x07 },
++	{ 0x3509, 0x10 },
++	{ 0x3600, 0x1c },
++	{ 0x3602, 0x62 },
++	{ 0x3620, 0xb7 },
++	{ 0x3622, 0x04 },
++	{ 0x3626, 0x21 },
++	{ 0x3627, 0x30 },
++	{ 0x3630, 0x44 },
++	{ 0x3631, 0x35 },
++	{ 0x3634, 0x60 },
++	{ 0x3636, 0x00 },
++	{ 0x3662, 0x01 },
++	{ 0x3663, 0x70 },
++	{ 0x3664, 0x50 },
++	{ 0x3666, 0x0a },
++	{ 0x3669, 0x1a },
++	{ 0x366a, 0x00 },
++	{ 0x366b, 0x50 },
++	{ 0x3673, 0x01 },
++	{ 0x3674, 0xff },
++	{ 0x3675, 0x03 },
++	{ 0x3705, 0xc1 },
++	{ 0x3709, 0x40 },
++	{ 0x373c, 0x08 },
++	{ 0x3742, 0x00 },
++	{ 0x3757, 0xb3 },
++	{ 0x3788, 0x00 },
++	{ 0x37a8, 0x01 },
++	{ 0x37a9, 0xc0 },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x04 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x04 },
++	{ 0x3804, 0x02 },
++	{ 0x3805, 0x8b },
++	{ 0x3806, 0x01 },
++	{ 0x3807, 0xeb },
++	{ 0x3808, 0x02 }, /* width high */
++	{ 0x3809, 0x80 }, /* width low */
++	{ 0x380a, 0x01 }, /* height high */
++	{ 0x380b, 0xe0 }, /* height low */
++	{ 0x380c, 0x03 }, /* total horiz timing high */
++	{ 0x380d, 0xa0 }, /* total horiz timing low */
++	{ 0x380e, 0x03 }, /* total vertical timing high */
++	{ 0x380f, 0x5c }, /* total vertical timing low */
++	{ 0x3810, 0x00 },
++	{ 0x3811, 0x04 },
++	{ 0x3812, 0x00 },
++	{ 0x3813, 0x05 },
++	{ 0x3814, 0x11 },
++	{ 0x3815, 0x11 },
++	{ 0x3820, 0x40 },
++	{ 0x3821, 0x00 },
++	{ 0x382f, 0x0e },
++	{ 0x3832, 0x00 },
++	{ 0x3833, 0x05 },
++	{ 0x3834, 0x00 },
++	{ 0x3835, 0x0c },
++	{ 0x3837, 0x00 },
++	{ 0x3b80, 0x00 },
++	{ 0x3b81, 0xa5 },
++	{ 0x3b82, 0x10 },
++	{ 0x3b83, 0x00 },
++	{ 0x3b84, 0x08 },
++	{ 0x3b85, 0x00 },
++	{ 0x3b86, 0x01 },
++	{ 0x3b87, 0x00 },
++	{ 0x3b88, 0x00 },
++	{ 0x3b89, 0x00 },
++	{ 0x3b8a, 0x00 },
++	{ 0x3b8b, 0x05 },
++	{ 0x3b8c, 0x00 },
++	{ 0x3b8d, 0x00 },
++	{ 0x3b8e, 0x00 },
++	{ 0x3b8f, 0x1a },
++	{ 0x3b94, 0x05 },
++	{ 0x3b95, 0xf2 },
++	{ 0x3b96, 0x40 },
++	{ 0x3c00, 0x89 },
++	{ 0x3c01, 0x63 },
++	{ 0x3c02, 0x01 },
++	{ 0x3c03, 0x00 },
++	{ 0x3c04, 0x00 },
++	{ 0x3c05, 0x03 },
++	{ 0x3c06, 0x00 },
++	{ 0x3c07, 0x06 },
++	{ 0x3c0c, 0x01 },
++	{ 0x3c0d, 0xd0 },
++	{ 0x3c0e, 0x02 },
++	{ 0x3c0f, 0x0a },
++	{ 0x4001, 0x42 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x00 },
++	{ 0x404e, 0x01 },
++	{ 0x4300, 0xff },
++	{ 0x4301, 0x00 },
++	{ 0x4315, 0x00 },
++	{ 0x4501, 0x48 },
++	{ 0x4600, 0x00 },
++	{ 0x4601, 0x4e },
++	{ 0x4801, 0x0f },
++	{ 0x4806, 0x0f },
++	{ 0x4819, 0xaa },
++	{ 0x4823, 0x3e },
++	{ 0x4837, 0x19 },
++	{ 0x4a0d, 0x00 },
++	{ 0x4a47, 0x7f },
++	{ 0x4a49, 0xf0 },
++	{ 0x4a4b, 0x30 },
++	{ 0x5000, 0x85 },
++	{ 0x5001, 0x80 },
++};
++
++static const struct reg_value ov7251_setting_vga_90fps[] = {
++	{ 0x3005, 0x00 },
++	{ 0x3012, 0xc0 },
++	{ 0x3013, 0xd2 },
++	{ 0x3014, 0x04 },
++	{ 0x3016, 0x10 },
++	{ 0x3017, 0x00 },
++	{ 0x3018, 0x00 },
++	{ 0x301a, 0x00 },
++	{ 0x301b, 0x00 },
++	{ 0x301c, 0x00 },
++	{ 0x3023, 0x05 },
++	{ 0x3037, 0xf0 },
++	{ 0x3098, 0x04 }, /* pll2 pre divider */
++	{ 0x3099, 0x28 }, /* pll2 multiplier */
++	{ 0x309a, 0x05 }, /* pll2 sys divider */
++	{ 0x309b, 0x04 }, /* pll2 adc divider */
++	{ 0x309d, 0x00 }, /* pll2 divider */
++	{ 0x30b0, 0x0a }, /* pll1 pix divider */
++	{ 0x30b1, 0x01 }, /* pll1 divider */
++	{ 0x30b3, 0x64 }, /* pll1 multiplier */
++	{ 0x30b4, 0x03 }, /* pll1 pre divider */
++	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
++	{ 0x3106, 0xda },
++	{ 0x3503, 0x07 },
++	{ 0x3509, 0x10 },
++	{ 0x3600, 0x1c },
++	{ 0x3602, 0x62 },
++	{ 0x3620, 0xb7 },
++	{ 0x3622, 0x04 },
++	{ 0x3626, 0x21 },
++	{ 0x3627, 0x30 },
++	{ 0x3630, 0x44 },
++	{ 0x3631, 0x35 },
++	{ 0x3634, 0x60 },
++	{ 0x3636, 0x00 },
++	{ 0x3662, 0x01 },
++	{ 0x3663, 0x70 },
++	{ 0x3664, 0x50 },
++	{ 0x3666, 0x0a },
++	{ 0x3669, 0x1a },
++	{ 0x366a, 0x00 },
++	{ 0x366b, 0x50 },
++	{ 0x3673, 0x01 },
++	{ 0x3674, 0xff },
++	{ 0x3675, 0x03 },
++	{ 0x3705, 0xc1 },
++	{ 0x3709, 0x40 },
++	{ 0x373c, 0x08 },
++	{ 0x3742, 0x00 },
++	{ 0x3757, 0xb3 },
++	{ 0x3788, 0x00 },
++	{ 0x37a8, 0x01 },
++	{ 0x37a9, 0xc0 },
++	{ 0x3800, 0x00 },
++	{ 0x3801, 0x04 },
++	{ 0x3802, 0x00 },
++	{ 0x3803, 0x04 },
++	{ 0x3804, 0x02 },
++	{ 0x3805, 0x8b },
++	{ 0x3806, 0x01 },
++	{ 0x3807, 0xeb },
++	{ 0x3808, 0x02 }, /* width high */
++	{ 0x3809, 0x80 }, /* width low */
++	{ 0x380a, 0x01 }, /* height high */
++	{ 0x380b, 0xe0 }, /* height low */
++	{ 0x380c, 0x03 }, /* total horiz timing high */
++	{ 0x380d, 0xa0 }, /* total horiz timing low */
++	{ 0x380e, 0x02 }, /* total vertical timing high */
++	{ 0x380f, 0x3c }, /* total vertical timing low */
++	{ 0x3810, 0x00 },
++	{ 0x3811, 0x04 },
++	{ 0x3812, 0x00 },
++	{ 0x3813, 0x05 },
++	{ 0x3814, 0x11 },
++	{ 0x3815, 0x11 },
++	{ 0x3820, 0x40 },
++	{ 0x3821, 0x00 },
++	{ 0x382f, 0x0e },
++	{ 0x3832, 0x00 },
++	{ 0x3833, 0x05 },
++	{ 0x3834, 0x00 },
++	{ 0x3835, 0x0c },
++	{ 0x3837, 0x00 },
++	{ 0x3b80, 0x00 },
++	{ 0x3b81, 0xa5 },
++	{ 0x3b82, 0x10 },
++	{ 0x3b83, 0x00 },
++	{ 0x3b84, 0x08 },
++	{ 0x3b85, 0x00 },
++	{ 0x3b86, 0x01 },
++	{ 0x3b87, 0x00 },
++	{ 0x3b88, 0x00 },
++	{ 0x3b89, 0x00 },
++	{ 0x3b8a, 0x00 },
++	{ 0x3b8b, 0x05 },
++	{ 0x3b8c, 0x00 },
++	{ 0x3b8d, 0x00 },
++	{ 0x3b8e, 0x00 },
++	{ 0x3b8f, 0x1a },
++	{ 0x3b94, 0x05 },
++	{ 0x3b95, 0xf2 },
++	{ 0x3b96, 0x40 },
++	{ 0x3c00, 0x89 },
++	{ 0x3c01, 0x63 },
++	{ 0x3c02, 0x01 },
++	{ 0x3c03, 0x00 },
++	{ 0x3c04, 0x00 },
++	{ 0x3c05, 0x03 },
++	{ 0x3c06, 0x00 },
++	{ 0x3c07, 0x06 },
++	{ 0x3c0c, 0x01 },
++	{ 0x3c0d, 0xd0 },
++	{ 0x3c0e, 0x02 },
++	{ 0x3c0f, 0x0a },
++	{ 0x4001, 0x42 },
++	{ 0x4004, 0x04 },
++	{ 0x4005, 0x00 },
++	{ 0x404e, 0x01 },
++	{ 0x4300, 0xff },
++	{ 0x4301, 0x00 },
++	{ 0x4315, 0x00 },
++	{ 0x4501, 0x48 },
++	{ 0x4600, 0x00 },
++	{ 0x4601, 0x4e },
++	{ 0x4801, 0x0f },
++	{ 0x4806, 0x0f },
++	{ 0x4819, 0xaa },
++	{ 0x4823, 0x3e },
++	{ 0x4837, 0x19 },
++	{ 0x4a0d, 0x00 },
++	{ 0x4a47, 0x7f },
++	{ 0x4a49, 0xf0 },
++	{ 0x4a4b, 0x30 },
++	{ 0x5000, 0x85 },
++	{ 0x5001, 0x80 },
++};
++
++static const s64 link_freq[] = {
++	240000000,
++};
++
++static const struct ov7251_mode_info ov7251_mode_info_data[] = {
++	{
++		.width = 640,
++		.height = 480,
++		.data = ov7251_setting_vga_30fps,
++		.data_size = ARRAY_SIZE(ov7251_setting_vga_30fps),
++		.pixel_clock = 48000000,
++		.link_freq = 0, /* an index in link_freq[] */
++		.exposure_max = 1704,
++		.exposure_def = 504,
++		.timeperframe = {
++			.numerator = 100,
++			.denominator = 3000
++		}
++	},
++	{
++		.width = 640,
++		.height = 480,
++		.data = ov7251_setting_vga_60fps,
++		.data_size = ARRAY_SIZE(ov7251_setting_vga_60fps),
++		.pixel_clock = 48000000,
++		.link_freq = 0, /* an index in link_freq[] */
++		.exposure_max = 840,
++		.exposure_def = 504,
++		.timeperframe = {
++			.numerator = 100,
++			.denominator = 6014
++		}
++	},
++	{
++		.width = 640,
++		.height = 480,
++		.data = ov7251_setting_vga_90fps,
++		.data_size = ARRAY_SIZE(ov7251_setting_vga_90fps),
++		.pixel_clock = 48000000,
++		.link_freq = 0, /* an index in link_freq[] */
++		.exposure_max = 552,
++		.exposure_def = 504,
++		.timeperframe = {
++			.numerator = 100,
++			.denominator = 9043
++		}
++	},
++};
++
++static int ov7251_regulators_enable(struct ov7251 *ov7251)
++{
++	int ret;
++
++	ret = regulator_enable(ov7251->io_regulator);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "set io voltage failed\n");
++		return ret;
++	}
++
++	ret = regulator_enable(ov7251->analog_regulator);
++	if (ret) {
++		dev_err(ov7251->dev, "set analog voltage failed\n");
++		goto err_disable_io;
++	}
++
++	ret = regulator_enable(ov7251->core_regulator);
++	if (ret) {
++		dev_err(ov7251->dev, "set core voltage failed\n");
++		goto err_disable_analog;
++	}
++
++	return 0;
++
++err_disable_analog:
++	regulator_disable(ov7251->analog_regulator);
++err_disable_io:
++	regulator_disable(ov7251->io_regulator);
++
++	return ret;
++}
++
++static void ov7251_regulators_disable(struct ov7251 *ov7251)
++{
++	int ret;
++
++	ret = regulator_disable(ov7251->core_regulator);
++	if (ret < 0)
++		dev_err(ov7251->dev, "core regulator disable failed\n");
++
++	ret = regulator_disable(ov7251->analog_regulator);
++	if (ret < 0)
++		dev_err(ov7251->dev, "analog regulator disable failed\n");
++
++	ret = regulator_disable(ov7251->io_regulator);
++	if (ret < 0)
++		dev_err(ov7251->dev, "io regulator disable failed\n");
++}
++
++static int ov7251_write_reg(struct ov7251 *ov7251, u16 reg, u8 val)
++{
++	u8 regbuf[3];
++	int ret;
++
++	regbuf[0] = reg >> 8;
++	regbuf[1] = reg & 0xff;
++	regbuf[2] = val;
++
++	ret = i2c_master_send(ov7251->i2c_client, regbuf, 3);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x, val=%x\n",
++			__func__, ret, reg, val);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_read_reg(struct ov7251 *ov7251, u16 reg, u8 *val)
++{
++	u8 regbuf[2];
++	int ret;
++
++	regbuf[0] = reg >> 8;
++	regbuf[1] = reg & 0xff;
++
++	ret = i2c_master_send(ov7251->i2c_client, regbuf, 2);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x\n",
++			__func__, ret, reg);
++		return ret;
++	}
++
++	ret = i2c_master_recv(ov7251->i2c_client, val, 1);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "%s: read reg error %d: reg=%x\n",
++			__func__, ret, reg);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_set_exposure(struct ov7251 *ov7251, s32 exposure)
++{
++	int ret;
++
++	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_0,
++			       (exposure & 0xf000) >> 12);
++	if (ret < 0)
++		return ret;
++
++	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_1,
++			       (exposure & 0x0ff0) >> 4);
++	if (ret < 0)
++		return ret;
++
++	return ov7251_write_reg(ov7251, OV7251_AEC_EXPO_2,
++				(exposure & 0x000f) << 4);
++}
++
++static int ov7251_set_gain(struct ov7251 *ov7251, s32 gain)
++{
++	int ret;
++
++	ret = ov7251_write_reg(ov7251, OV7251_AEC_AGC_ADJ_0,
++			       (gain & 0x0300) >> 8);
++	if (ret < 0)
++		return ret;
++
++	return ov7251_write_reg(ov7251, OV7251_AEC_AGC_ADJ_1, gain & 0xff);
++}
++
++static int ov7251_set_register_array(struct ov7251 *ov7251,
++				     const struct reg_value *settings,
++				     unsigned int num_settings)
++{
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < num_settings; ++i, ++settings) {
++		ret = ov7251_write_reg(ov7251, settings->reg, settings->val);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_set_power_on(struct ov7251 *ov7251)
++{
++	int ret;
++
++	ret = ov7251_regulators_enable(ov7251);
++	if (ret < 0) {
++		return ret;
++	}
++
++	ret = clk_prepare_enable(ov7251->xclk);
++	if (ret < 0) {
++		dev_err(ov7251->dev, "clk prepare enable failed\n");
++		ov7251_regulators_disable(ov7251);
++		return ret;
++	}
++
++	gpiod_set_value_cansleep(ov7251->enable_gpio, 1);
++
++	usleep_range(3000, 4000); /* 65536 / 24MHz = 2.73ms */
++
++	return 0;
++}
++
++static void ov7251_set_power_off(struct ov7251 *ov7251)
++{
++	clk_disable_unprepare(ov7251->xclk);
++	gpiod_set_value_cansleep(ov7251->enable_gpio, 0);
++	ov7251_regulators_disable(ov7251);
++}
++
++static int ov7251_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++	int ret = 0;
++
++	mutex_lock(&ov7251->power_lock);
++
++	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
++	 * update the power state.
++	 */
++	if (ov7251->power_count == !on) {
++		if (on) {
++			ret = ov7251_set_power_on(ov7251);
++			if (ret < 0)
++				goto exit;
++
++			ret = ov7251_set_register_array(ov7251,
++					ov7251_global_init_setting,
++					ARRAY_SIZE(ov7251_global_init_setting));
++			if (ret < 0) {
++				dev_err(ov7251->dev,
++					"could not set init registers\n");
++				ov7251_set_power_off(ov7251);
++				goto exit;
++			}
++		} else {
++			ov7251_set_power_off(ov7251);
++		}
++	}
++
++	/* Update the power count. */
++	ov7251->power_count += on ? 1 : -1;
++	WARN_ON(ov7251->power_count < 0);
++
++exit:
++	mutex_unlock(&ov7251->power_lock);
++
++	return ret;
++}
++
++static int ov7251_set_hflip(struct ov7251 *ov7251, s32 value)
++{
++	u8 val = ov7251->timing_format2;
++	int ret;
++
++	if (value)
++		val |= OV7251_SENSOR_MIRROR;
++	else
++		val &= ~OV7251_SENSOR_MIRROR;
++
++	ret = ov7251_write_reg(ov7251, OV7251_TIMING_FORMAT2, val);
++	if (!ret)
++		ov7251->timing_format2 = val;
++
++	return ret;
++}
++
++static int ov7251_set_vflip(struct ov7251 *ov7251, s32 value)
++{
++	u8 val = ov7251->timing_format1;
++	int ret;
++
++	if (value)
++		val |= OV7251_SENSOR_VFLIP;
++	else
++		val &= ~OV7251_SENSOR_VFLIP;
++
++	ret = ov7251_write_reg(ov7251, OV7251_TIMING_FORMAT1, val);
++	if (!ret)
++		ov7251->timing_format1 = val;
++
++	return ret;
++}
++
++static int ov7251_set_test_pattern(struct ov7251 *ov7251, s32 value)
++{
++	u8 val = ov7251->pre_isp_00;
++	int ret;
++
++	if (value)
++		val |= OV7251_TEST_PATTERN_BAR_ENABLE;
++	else
++		val &= ~OV7251_TEST_PATTERN_BAR_ENABLE;
++
++	ret = ov7251_write_reg(ov7251, OV7251_PRE_ISP_00, val);
++	if (!ret)
++		ov7251->pre_isp_00 = val;
++
++	return ret;
++}
++
++static const char * const ov7251_test_pattern_menu[] = {
++	"Disabled",
++	"Vertical Patern Bars",
++};
++
++static int ov7251_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ov7251 *ov7251 = container_of(ctrl->handler,
++					     struct ov7251, ctrls);
++	int ret;
++
++	mutex_lock(&ov7251->power_lock);
++	if (!ov7251->power_count) {
++		mutex_unlock(&ov7251->power_lock);
++		return 0;
++	}
++
++	switch (ctrl->id) {
++	case V4L2_CID_EXPOSURE:
++		ret = ov7251_set_exposure(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_GAIN:
++		ret = ov7251_set_gain(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = ov7251_set_test_pattern(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_HFLIP:
++		ret = ov7251_set_hflip(ov7251, ctrl->val);
++		break;
++	case V4L2_CID_VFLIP:
++		ret = ov7251_set_vflip(ov7251, ctrl->val);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	mutex_unlock(&ov7251->power_lock);
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops ov7251_ctrl_ops = {
++	.s_ctrl = ov7251_s_ctrl,
++};
++
++static int ov7251_enum_mbus_code(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->index > 0)
++		return -EINVAL;
++
++	code->code = MEDIA_BUS_FMT_SBGGR10_1X10;
++
++	return 0;
++}
++
++static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->code != MEDIA_BUS_FMT_SBGGR10_1X10)
++		return -EINVAL;
++
++	if (fse->index >= ARRAY_SIZE(ov7251_mode_info_data))
++		return -EINVAL;
++
++	fse->min_width = ov7251_mode_info_data[fse->index].width;
++	fse->max_width = ov7251_mode_info_data[fse->index].width;
++	fse->min_height = ov7251_mode_info_data[fse->index].height;
++	fse->max_height = ov7251_mode_info_data[fse->index].height;
++
++	return 0;
++}
++
++static int ov7251_enum_frame_ival(struct v4l2_subdev *subdev,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_interval_enum *fie)
++{
++	int index = fie->index;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(ov7251_mode_info_data); i++) {
++		if (fie->width != ov7251_mode_info_data[i].width ||
++		    fie->height != ov7251_mode_info_data[i].height)
++			continue;
++
++		if (index-- == 0) {
++			fie->interval = ov7251_mode_info_data[i].timeperframe;
++			return 0;
++		}
++	}
++
++	return -EINVAL;
++}
++
++static struct v4l2_mbus_framefmt *
++__ov7251_get_pad_format(struct ov7251 *ov7251,
++			struct v4l2_subdev_pad_config *cfg,
++			unsigned int pad,
++			enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(&ov7251->sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &ov7251->fmt;
++	default:
++		return NULL;
++	}
++}
++
++static int ov7251_get_format(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_format *format)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++
++	format->format = *__ov7251_get_pad_format(ov7251, cfg, format->pad,
++						  format->which);
++	return 0;
++}
++
++static struct v4l2_rect *
++__ov7251_get_pad_crop(struct ov7251 *ov7251, struct v4l2_subdev_pad_config *cfg,
++		      unsigned int pad, enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_crop(&ov7251->sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &ov7251->crop;
++	default:
++		return NULL;
++	}
++}
++
++static const struct ov7251_mode_info *
++ov7251_find_mode_by_size(unsigned int width, unsigned int height)
++{
++	unsigned int max_dist_match = (unsigned int) -1;
++	int i, n = 0;
++
++	for (i = 0; i < ARRAY_SIZE(ov7251_mode_info_data); i++) {
++		unsigned int dist = min(width, ov7251_mode_info_data[i].width)
++				* min(height, ov7251_mode_info_data[i].height);
++
++		dist = ov7251_mode_info_data[i].width *
++				ov7251_mode_info_data[i].height +
++			width * height - 2 * dist;
++
++		if (dist < max_dist_match) {
++			n = i;
++			max_dist_match = dist;
++		}
++	}
++
++	return &ov7251_mode_info_data[n];
++}
++
++#define TIMEPERFRAME_AVG_FPS(t)						\
++	(((t).denominator + ((t).numerator >> 1)) / (t).numerator)
++
++static const struct ov7251_mode_info *
++ov7251_find_mode_by_ival(struct ov7251 *ov7251, struct v4l2_fract *timeperframe)
++{
++	const struct ov7251_mode_info *mode = ov7251->current_mode;
++	int fps_req = TIMEPERFRAME_AVG_FPS(*timeperframe);
++	unsigned int max_dist_match = (unsigned int) -1;
++	int i, n = 0;
++
++	for (i = 0; i < ARRAY_SIZE(ov7251_mode_info_data); i++) {
++		unsigned int dist;
++		int fps_tmp;
++
++		if (mode->width != ov7251_mode_info_data[i].width ||
++		    mode->height != ov7251_mode_info_data[i].height)
++			continue;
++
++		fps_tmp = TIMEPERFRAME_AVG_FPS(
++					ov7251_mode_info_data[i].timeperframe);
++
++		if (fps_req > fps_tmp)
++			dist = fps_req - fps_tmp;
++		else
++			dist = fps_tmp - fps_req;
++
++		if (dist < max_dist_match) {
++			n = i;
++			max_dist_match = dist;
++		}
++	}
++
++	return &ov7251_mode_info_data[n];
++}
++
++static int ov7251_set_format(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_format *format)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++	struct v4l2_mbus_framefmt *__format;
++	struct v4l2_rect *__crop;
++	const struct ov7251_mode_info *new_mode;
++	int ret;
++
++	__crop = __ov7251_get_pad_crop(ov7251, cfg, format->pad,
++			format->which);
++
++	new_mode = ov7251_find_mode_by_size(format->format.width,
++					    format->format.height);
++	__crop->width = new_mode->width;
++	__crop->height = new_mode->height;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		ret = v4l2_ctrl_s_ctrl_int64(ov7251->pixel_clock,
++					     new_mode->pixel_clock);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_s_ctrl(ov7251->link_freq,
++				       new_mode->link_freq);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_modify_range(ov7251->exposure,
++					     1, new_mode->exposure_max,
++					     1, new_mode->exposure_def);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_s_ctrl(ov7251->exposure,
++				       new_mode->exposure_def);
++		if (ret < 0)
++			return ret;
++
++
++		ret = v4l2_ctrl_s_ctrl(ov7251->gain, 16);
++		if (ret < 0)
++			return ret;
++
++		ov7251->current_mode = new_mode;
++	}
++
++	__format = __ov7251_get_pad_format(ov7251, cfg, format->pad,
++			format->which);
++	__format->width = __crop->width;
++	__format->height = __crop->height;
++	__format->code = MEDIA_BUS_FMT_SBGGR10_1X10;
++	__format->field = V4L2_FIELD_NONE;
++	__format->colorspace = V4L2_COLORSPACE_SRGB;
++
++	format->format = *__format;
++
++	return 0;
++}
++
++static int ov7251_entity_init_cfg(struct v4l2_subdev *subdev,
++				  struct v4l2_subdev_pad_config *cfg)
++{
++	struct v4l2_subdev_format fmt = { 0 };
++
++	fmt.which = cfg ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
++	fmt.format.width = 640;
++	fmt.format.height = 480;
++
++	ov7251_set_format(subdev, cfg, &fmt);
++
++	return 0;
++}
++
++static int ov7251_get_selection(struct v4l2_subdev *sd,
++			   struct v4l2_subdev_pad_config *cfg,
++			   struct v4l2_subdev_selection *sel)
++{
++	struct ov7251 *ov7251 = to_ov7251(sd);
++
++	if (sel->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
++
++	sel->r = *__ov7251_get_pad_crop(ov7251, cfg, sel->pad,
++					sel->which);
++	return 0;
++}
++
++static int ov7251_s_stream(struct v4l2_subdev *subdev, int enable)
++{
++	struct ov7251 *ov7251 = to_ov7251(subdev);
++	int ret;
++
++	if (enable) {
++		ret = ov7251_set_register_array(ov7251,
++					ov7251->current_mode->data,
++					ov7251->current_mode->data_size);
++		if (ret < 0) {
++			dev_err(ov7251->dev, "could not set mode %dx%d\n",
++				ov7251->current_mode->width,
++				ov7251->current_mode->height);
++			return ret;
++		}
++		ret = v4l2_ctrl_handler_setup(&ov7251->ctrls);
++		if (ret < 0) {
++			dev_err(ov7251->dev, "could not sync v4l2 controls\n");
++			return ret;
++		}
++		ret = ov7251_write_reg(ov7251, OV7251_SC_MODE_SELECT,
++				       OV7251_SC_MODE_SELECT_STREAMING);
++		if (ret < 0)
++			return ret;
++	} else {
++		ret = ov7251_write_reg(ov7251, OV7251_SC_MODE_SELECT,
++				       OV7251_SC_MODE_SELECT_SW_STANDBY);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int ov7251_get_frame_interval(struct v4l2_subdev *subdev,
++				     struct v4l2_subdev_frame_interval *fi)
++{
++	struct ov7251 *ov7251 = to_ov7251(subdev);
++
++	fi->interval = ov7251->current_mode->timeperframe;
++
++	return 0;
++}
++
++static int ov7251_set_frame_interval(struct v4l2_subdev *subdev,
++				     struct v4l2_subdev_frame_interval *fi)
++{
++	struct ov7251 *ov7251 = to_ov7251(subdev);
++	const struct ov7251_mode_info *new_mode;
++
++	new_mode = ov7251_find_mode_by_ival(ov7251, &fi->interval);
++
++	if (new_mode != ov7251->current_mode) {
++		int ret;
++
++		ret = v4l2_ctrl_s_ctrl_int64(ov7251->pixel_clock,
++					     new_mode->pixel_clock);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_s_ctrl(ov7251->link_freq,
++				       new_mode->link_freq);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_modify_range(ov7251->exposure,
++					     1, new_mode->exposure_max,
++					     1, new_mode->exposure_def);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_s_ctrl(ov7251->exposure,
++				       new_mode->exposure_def);
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_ctrl_s_ctrl(ov7251->gain, 16);
++		if (ret < 0)
++			return ret;
++
++		ov7251->current_mode = new_mode;
++	}
++
++	fi->interval = ov7251->current_mode->timeperframe;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_core_ops ov7251_core_ops = {
++	.s_power = ov7251_s_power,
++};
++
++static const struct v4l2_subdev_video_ops ov7251_video_ops = {
++	.s_stream = ov7251_s_stream,
++	.g_frame_interval = ov7251_get_frame_interval,
++	.s_frame_interval = ov7251_set_frame_interval,
++};
++
++static const struct v4l2_subdev_pad_ops ov7251_subdev_pad_ops = {
++	.init_cfg = ov7251_entity_init_cfg,
++	.enum_mbus_code = ov7251_enum_mbus_code,
++	.enum_frame_size = ov7251_enum_frame_size,
++	.enum_frame_interval = ov7251_enum_frame_ival,
++	.get_fmt = ov7251_get_format,
++	.set_fmt = ov7251_set_format,
++	.get_selection = ov7251_get_selection,
++};
++
++static const struct v4l2_subdev_ops ov7251_subdev_ops = {
++	.core = &ov7251_core_ops,
++	.video = &ov7251_video_ops,
++	.pad = &ov7251_subdev_pad_ops,
++};
++
++static int ov7251_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct device_node *endpoint;
++	struct ov7251 *ov7251;
++	u8 chip_id_high, chip_id_low, chip_rev;
++	u32 xclk_freq;
++	int ret;
++
++	ov7251 = devm_kzalloc(dev, sizeof(struct ov7251), GFP_KERNEL);
++	if (!ov7251)
++		return -ENOMEM;
++
++	ov7251->i2c_client = client;
++	ov7251->dev = dev;
++
++	endpoint = of_graph_get_next_endpoint(dev->of_node, NULL);
++	if (!endpoint) {
++		dev_err(dev, "endpoint node not found\n");
++		return -EINVAL;
++	}
++
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint),
++					 &ov7251->ep);
++	if (ret < 0) {
++		dev_err(dev, "parsing endpoint node failed\n");
++		return ret;
++	}
++
++	of_node_put(endpoint);
++
++	if (ov7251->ep.bus_type != V4L2_MBUS_CSI2) {
++		dev_err(dev, "invalid bus type, must be CSI2\n");
++		return -EINVAL;
++	}
++
++	/* get system clock (xclk) */
++	ov7251->xclk = devm_clk_get(dev, "xclk");
++	if (IS_ERR(ov7251->xclk)) {
++		dev_err(dev, "could not get xclk");
++		return PTR_ERR(ov7251->xclk);
++	}
++
++	ret = of_property_read_u32(dev->of_node, "clock-frequency", &xclk_freq);
++	if (ret) {
++		dev_err(dev, "could not get xclk frequency\n");
++		return ret;
++	}
++
++	if (xclk_freq != 24000000) {
++		dev_err(dev, "external clock frequency %u is not supported\n",
++			xclk_freq);
++		return -EINVAL;
++	}
++
++	ret = clk_set_rate(ov7251->xclk, xclk_freq);
++	if (ret) {
++		dev_err(dev, "could not set xclk frequency\n");
++		return ret;
++	}
++
++	ov7251->io_regulator = devm_regulator_get(dev, "vdddo");
++	if (IS_ERR(ov7251->io_regulator)) {
++		dev_err(dev, "cannot get io regulator\n");
++		return PTR_ERR(ov7251->io_regulator);
++	}
++
++	ret = regulator_set_voltage(ov7251->io_regulator,
++				    OV7251_VOLTAGE_DIGITAL_IO,
++				    OV7251_VOLTAGE_DIGITAL_IO);
++	if (ret < 0) {
++		dev_err(dev, "cannot set io voltage\n");
++		return ret;
++	}
++
++	ov7251->core_regulator = devm_regulator_get(dev, "vddd");
++	if (IS_ERR(ov7251->core_regulator)) {
++		dev_err(dev, "cannot get core regulator\n");
++		return PTR_ERR(ov7251->core_regulator);
++	}
++
++	ret = regulator_set_voltage(ov7251->core_regulator,
++				    OV7251_VOLTAGE_DIGITAL_CORE,
++				    OV7251_VOLTAGE_DIGITAL_CORE);
++	if (ret < 0) {
++		dev_err(dev, "cannot set core voltage\n");
++		return ret;
++	}
++
++	ov7251->analog_regulator = devm_regulator_get(dev, "vdda");
++	if (IS_ERR(ov7251->analog_regulator)) {
++		dev_err(dev, "cannot get analog regulator\n");
++		return PTR_ERR(ov7251->analog_regulator);
++	}
++
++	ret = regulator_set_voltage(ov7251->analog_regulator,
++				    OV7251_VOLTAGE_ANALOG,
++				    OV7251_VOLTAGE_ANALOG);
++	if (ret < 0) {
++		dev_err(dev, "cannot set analog voltage\n");
++		return ret;
++	}
++
++	ov7251->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_HIGH);
++	if (IS_ERR(ov7251->enable_gpio)) {
++		dev_err(dev, "cannot get enable gpio\n");
++		return PTR_ERR(ov7251->enable_gpio);
++	}
++
++	mutex_init(&ov7251->power_lock);
++
++	v4l2_ctrl_handler_init(&ov7251->ctrls, 7);
++	v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++			  V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++			  V4L2_CID_VFLIP, 0, 1, 1, 0);
++	ov7251->exposure = v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++					     V4L2_CID_EXPOSURE, 1, 32, 1, 32);
++	ov7251->gain = v4l2_ctrl_new_std(&ov7251->ctrls, &ov7251_ctrl_ops,
++					 V4L2_CID_GAIN, 16, 1023, 1, 16);
++	v4l2_ctrl_new_std_menu_items(&ov7251->ctrls, &ov7251_ctrl_ops,
++				     V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(ov7251_test_pattern_menu) - 1,
++				     0, 0, ov7251_test_pattern_menu);
++	ov7251->pixel_clock = v4l2_ctrl_new_std(&ov7251->ctrls,
++						&ov7251_ctrl_ops,
++						V4L2_CID_PIXEL_RATE,
++						1, INT_MAX, 1, 1);
++	ov7251->link_freq = v4l2_ctrl_new_int_menu(&ov7251->ctrls,
++						   &ov7251_ctrl_ops,
++						   V4L2_CID_LINK_FREQ,
++						   ARRAY_SIZE(link_freq) - 1,
++						   0, link_freq);
++	if (ov7251->link_freq)
++		ov7251->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	ov7251->sd.ctrl_handler = &ov7251->ctrls;
++
++	if (ov7251->ctrls.error) {
++		dev_err(dev, "%s: control initialization error %d\n",
++		       __func__, ov7251->ctrls.error);
++		ret = ov7251->ctrls.error;
++		goto free_ctrl;
++	}
++
++	v4l2_i2c_subdev_init(&ov7251->sd, client, &ov7251_subdev_ops);
++	ov7251->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ov7251->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ov7251->sd.dev = &client->dev;
++	ov7251->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	ret = media_entity_pads_init(&ov7251->sd.entity, 1, &ov7251->pad);
++	if (ret < 0) {
++		dev_err(dev, "could not register media entity\n");
++		goto free_ctrl;
++	}
++
++	ret = ov7251_s_power(&ov7251->sd, true);
++	if (ret < 0) {
++		dev_err(dev, "could not power up OV7251\n");
++		goto free_entity;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_CHIP_ID_HIGH, &chip_id_high);
++	if (ret < 0 || chip_id_high != OV7251_CHIP_ID_HIGH_BYTE) {
++		dev_err(dev, "could not read ID high\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++	ret = ov7251_read_reg(ov7251, OV7251_CHIP_ID_LOW, &chip_id_low);
++	if (ret < 0 || chip_id_low != OV7251_CHIP_ID_LOW_BYTE) {
++		dev_err(dev, "could not read ID low\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_SC_GP_IO_IN1, &chip_rev);
++	if (ret < 0) {
++		dev_err(dev, "could not read revision\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++	chip_rev >>= 4;
++
++	dev_info(dev, "OV7251 revision %x (%s) detected at address 0x%02x\n",
++		 chip_rev,
++		 chip_rev == 0x4 ? "1A / 1B" :
++		 chip_rev == 0x5 ? "1C / 1D" :
++		 chip_rev == 0x6 ? "1E" :
++		 chip_rev == 0x7 ? "1F" : "unknown",
++		 client->addr);
++
++	ret = ov7251_read_reg(ov7251, OV7251_PRE_ISP_00,
++			      &ov7251->pre_isp_00);
++	if (ret < 0) {
++		dev_err(dev, "could not read test pattern value\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_TIMING_FORMAT1,
++			      &ov7251->timing_format1);
++	if (ret < 0) {
++		dev_err(dev, "could not read vflip value\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ret = ov7251_read_reg(ov7251, OV7251_TIMING_FORMAT2,
++			      &ov7251->timing_format2);
++	if (ret < 0) {
++		dev_err(dev, "could not read hflip value\n");
++		ret = -ENODEV;
++		goto power_down;
++	}
++
++	ov7251_s_power(&ov7251->sd, false);
++
++	ret = v4l2_async_register_subdev(&ov7251->sd);
++	if (ret < 0) {
++		dev_err(dev, "could not register v4l2 device\n");
++		goto free_entity;
++	}
++
++	ov7251_entity_init_cfg(&ov7251->sd, NULL);
++
++	return 0;
++
++power_down:
++	ov7251_s_power(&ov7251->sd, false);
++free_entity:
++	media_entity_cleanup(&ov7251->sd.entity);
++free_ctrl:
++	v4l2_ctrl_handler_free(&ov7251->ctrls);
++	mutex_destroy(&ov7251->power_lock);
++
++	return ret;
++}
++
++static int ov7251_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov7251 *ov7251 = to_ov7251(sd);
++
++	v4l2_async_unregister_subdev(&ov7251->sd);
++	media_entity_cleanup(&ov7251->sd.entity);
++	v4l2_ctrl_handler_free(&ov7251->ctrls);
++	mutex_destroy(&ov7251->power_lock);
++
++	return 0;
++}
++
++static const struct i2c_device_id ov7251_id[] = {
++	{ "ov7251", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, ov7251_id);
++
++static const struct of_device_id ov7251_of_match[] = {
++	{ .compatible = "ovti,ov7251" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, ov7251_of_match);
++
++static struct i2c_driver ov7251_i2c_driver = {
++	.driver = {
++		.of_match_table = of_match_ptr(ov7251_of_match),
++		.name  = "ov7251",
++	},
++	.probe  = ov7251_probe,
++	.remove = ov7251_remove,
++	.id_table = ov7251_id,
++};
++
++module_i2c_driver(ov7251_i2c_driver);
++
++MODULE_DESCRIPTION("Omnivision OV7251 Camera Driver");
++MODULE_AUTHOR("Todor Tomov <todor.tomov@linaro.org>");
++MODULE_LICENSE("GPL v2");
+-- 
+2.7.4
