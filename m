@@ -1,46 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:34223 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751015AbeBEUKZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 15:10:25 -0500
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-kernel@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 1/4] v4l: vsp1: fix mask creation for MULT_ALPHA_RATIO
-Date: Mon,  5 Feb 2018 21:09:58 +0100
-Message-Id: <20180205201002.23621-2-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
-References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41098 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750954AbeBHIhB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 03:37:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 02/15] vimc: use correct subdev functions
+Date: Thu,  8 Feb 2018 09:36:42 +0100
+Message-Id: <20180208083655.32248-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to a typo, the mask was destroyed by a comparison instead of a bit
-shift. No regression since the mask has not been used yet.
+Instead of calling everything a MEDIA_ENT_F_ATV_DECODER, pick the
+correct functions for these blocks.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Only build tested. To be applied individually per subsystem.
+ drivers/media/platform/vimc/vimc-debayer.c | 2 +-
+ drivers/media/platform/vimc/vimc-scaler.c  | 2 +-
+ drivers/media/platform/vimc/vimc-sensor.c  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
- drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index 26c4ffad2f4656..b1912c83a1dae2 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -225,7 +225,7 @@
- #define VI6_RPF_MULT_ALPHA_P_MMD_RATIO	(1 << 8)
- #define VI6_RPF_MULT_ALPHA_P_MMD_IMAGE	(2 << 8)
- #define VI6_RPF_MULT_ALPHA_P_MMD_BOTH	(3 << 8)
--#define VI6_RPF_MULT_ALPHA_RATIO_MASK	(0xff < 0)
-+#define VI6_RPF_MULT_ALPHA_RATIO_MASK	(0xff << 0)
- #define VI6_RPF_MULT_ALPHA_RATIO_SHIFT	0
- 
- /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
+index 4d663e89d33f..6e10b63ba9ec 100644
+--- a/drivers/media/platform/vimc/vimc-debayer.c
++++ b/drivers/media/platform/vimc/vimc-debayer.c
+@@ -533,7 +533,7 @@ static int vimc_deb_comp_bind(struct device *comp, struct device *master,
+ 	/* Initialize ved and sd */
+ 	ret = vimc_ent_sd_register(&vdeb->ved, &vdeb->sd, v4l2_dev,
+ 				   pdata->entity_name,
+-				   MEDIA_ENT_F_ATV_DECODER, 2,
++				   MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV, 2,
+ 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
+ 				   MEDIA_PAD_FL_SOURCE},
+ 				   &vimc_deb_ops);
+diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
+index e1602e0bc230..e583ec7a91da 100644
+--- a/drivers/media/platform/vimc/vimc-scaler.c
++++ b/drivers/media/platform/vimc/vimc-scaler.c
+@@ -395,7 +395,7 @@ static int vimc_sca_comp_bind(struct device *comp, struct device *master,
+ 	/* Initialize ved and sd */
+ 	ret = vimc_ent_sd_register(&vsca->ved, &vsca->sd, v4l2_dev,
+ 				   pdata->entity_name,
+-				   MEDIA_ENT_F_ATV_DECODER, 2,
++				   MEDIA_ENT_F_PROC_VIDEO_SCALER, 2,
+ 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
+ 				   MEDIA_PAD_FL_SOURCE},
+ 				   &vimc_sca_ops);
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 54184cd9e0ff..605e2a2d5dd5 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -386,7 +386,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 	/* Initialize ved and sd */
+ 	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
+ 				   pdata->entity_name,
+-				   MEDIA_ENT_F_ATV_DECODER, 1,
++				   MEDIA_ENT_F_CAM_SENSOR, 1,
+ 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
+ 				   &vimc_sen_ops);
+ 	if (ret)
 -- 
-2.11.0
+2.15.1
