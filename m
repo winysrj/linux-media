@@ -1,159 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56987 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753004AbeBSPpG (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57773 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751878AbeBHErv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 10:45:06 -0500
-From: Maciej Purski <m.purski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Cc: Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Maciej Purski <m.purski@samsung.com>
-Subject: [PATCH 2/8] media: s5p-jpeg: Use bulk clk API
-Date: Mon, 19 Feb 2018 16:44:00 +0100
-Message-id: <1519055046-2399-3-git-send-email-m.purski@samsung.com>
-In-reply-to: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
-References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
-        <CGME20180219154457eucas1p163264992903698a8878aa5abbc8aa17b@eucas1p1.samsung.com>
+        Wed, 7 Feb 2018 23:47:51 -0500
+Message-ID: <1c1ecc2259878fd4e5e6164971620586@smtp-cloud9.xs4all.net>
+Date: Thu, 08 Feb 2018 05:47:48 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using bulk clk functions simplifies the driver's code. Use devm_clk_bulk
-functions instead of iterating over an array of clks.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Maciej Purski <m.purski@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 45 ++++++++++++-----------------
- drivers/media/platform/s5p-jpeg/jpeg-core.h |  2 +-
- 2 files changed, 20 insertions(+), 27 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 79b63da..681a515 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2903,7 +2903,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- {
- 	struct s5p_jpeg *jpeg;
- 	struct resource *res;
--	int i, ret;
-+	int ret;
- 
- 	/* JPEG IP abstraction struct */
- 	jpeg = devm_kzalloc(&pdev->dev, sizeof(struct s5p_jpeg), GFP_KERNEL);
-@@ -2938,15 +2938,16 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 	}
- 
- 	/* clocks */
--	for (i = 0; i < jpeg->variant->num_clocks; i++) {
--		jpeg->clocks[i] = devm_clk_get(&pdev->dev,
--					      jpeg->variant->clk_names[i]);
--		if (IS_ERR(jpeg->clocks[i])) {
--			dev_err(&pdev->dev, "failed to get clock: %s\n",
--				jpeg->variant->clk_names[i]);
--			return PTR_ERR(jpeg->clocks[i]);
--		}
--	}
-+	jpeg->clocks = devm_clk_bulk_alloc(&pdev->dev,
-+					   jpeg->variant->num_clocks,
-+					   jpeg->variant->clk_names);
-+	if (IS_ERR(jpeg->clocks))
-+		return PTR_ERR(jpeg->clocks);
-+
-+	ret = devm_clk_bulk_get(&pdev->dev, jpeg->variant->num_clocks,
-+				jpeg->clocks);
-+	if (ret < 0)
-+		return ret;
- 
- 	/* v4l2 device */
- 	ret = v4l2_device_register(&pdev->dev, &jpeg->v4l2_dev);
-@@ -3047,7 +3048,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- static int s5p_jpeg_remove(struct platform_device *pdev)
- {
- 	struct s5p_jpeg *jpeg = platform_get_drvdata(pdev);
--	int i;
- 
- 	pm_runtime_disable(jpeg->dev);
- 
-@@ -3058,8 +3058,8 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
- 	v4l2_device_unregister(&jpeg->v4l2_dev);
- 
- 	if (!pm_runtime_status_suspended(&pdev->dev)) {
--		for (i = jpeg->variant->num_clocks - 1; i >= 0; i--)
--			clk_disable_unprepare(jpeg->clocks[i]);
-+		clk_bulk_disable_unprepare(jpeg->variant->num_clocks,
-+					   jpeg->clocks);
- 	}
- 
- 	return 0;
-@@ -3069,10 +3069,8 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
- static int s5p_jpeg_runtime_suspend(struct device *dev)
- {
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
--	int i;
- 
--	for (i = jpeg->variant->num_clocks - 1; i >= 0; i--)
--		clk_disable_unprepare(jpeg->clocks[i]);
-+	clk_bulk_disable_unprepare(jpeg->variant->num_clocks, jpeg->clocks);
- 
- 	return 0;
- }
-@@ -3081,16 +3079,11 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
- {
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
- 	unsigned long flags;
--	int i, ret;
--
--	for (i = 0; i < jpeg->variant->num_clocks; i++) {
--		ret = clk_prepare_enable(jpeg->clocks[i]);
--		if (ret) {
--			while (--i >= 0)
--				clk_disable_unprepare(jpeg->clocks[i]);
--			return ret;
--		}
--	}
-+	int ret;
-+
-+	ret = clk_bulk_prepare_enable(jpeg->variant->num_clocks, jpeg->clocks);
-+	if (ret)
-+		return ret;
- 
- 	spin_lock_irqsave(&jpeg->slock, flags);
- 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index a46465e..dc6ed98 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -133,7 +133,7 @@ struct s5p_jpeg {
- 	void __iomem		*regs;
- 	unsigned int		irq;
- 	enum exynos4_jpeg_result irq_ret;
--	struct clk		*clocks[JPEG_MAX_CLOCKS];
-+	struct clk_bulk_data	*clocks;
- 	struct device		*dev;
- 	struct s5p_jpeg_variant *variant;
- 	u32			irq_status;
--- 
-2.7.4
+date:			Thu Feb  8 05:00:18 CET 2018
+media-tree git hash:	273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
+media_build git hash:	b52cf3d6c0070f2a166639233301cb47e0f468b6
+v4l-utils git hash:	3455539533895a43adc14f579e0987a128181d83
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-364
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.49-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.115-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9.80-i686: WARNINGS
+linux-4.14.17-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-x86_64: WARNINGS
+linux-4.14.17-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
