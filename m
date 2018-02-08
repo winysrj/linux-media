@@ -1,67 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38218 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751432AbeBVW7v (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:34760 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752003AbeBHIhB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 17:59:51 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id EAE27600E0
-        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 00:59:49 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1eozq9-0004rO-DY
-        for linux-media@vger.kernel.org; Fri, 23 Feb 2018 00:59:49 +0200
-Date: Fri, 23 Feb 2018 00:59:49 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+        Thu, 8 Feb 2018 03:37:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.17] Add V4L2 framework function for selecting the
- most suitable size
-Message-ID: <20180222225948.pvmacepomaghhb6t@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 01/15] vimc: fix control event handling
+Date: Thu,  8 Feb 2018 09:36:41 +0100
+Message-Id: <20180208083655.32248-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The sensor subdev didn't handle control events. Add support for this.
+Found with v4l2-compliance.
 
-In drivers for hardware that have a discrete set of supported sizes, the
-size selection is a commonly needed functionality. This set implements it
-in a way that is usable in drivers and converts a few existing drivers to
-use it.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vimc/vimc-common.c | 4 +++-
+ drivers/media/platform/vimc/vimc-sensor.c | 8 ++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-Please pull.
-
-
-The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
-
-  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git v4l2-common-size
-
-for you to fetch changes up to 3839a37f69da4dc567d3b00dc5e985f8e8425811:
-
-  ov5670: Use v4l2_find_nearest_size (2018-02-22 15:44:57 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (5):
-      v4l: common: Add a function to obtain best size from a list
-      vivid: Use v4l2_find_nearest_size
-      v4l: common: Remove v4l2_find_nearest_format
-      ov13858: Use v4l2_find_nearest_size
-      ov5670: Use v4l2_find_nearest_size
-
- drivers/media/i2c/ov13858.c                  | 37 +++-------------------------
- drivers/media/i2c/ov5670.c                   | 34 +++----------------------
- drivers/media/platform/vivid/vivid-vid-cap.c |  6 ++---
- drivers/media/v4l2-core/v4l2-common.c        | 34 ++++++++++++++-----------
- include/media/v4l2-common.h                  | 34 ++++++++++++++++++-------
- 5 files changed, 53 insertions(+), 92 deletions(-)
-
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index 9d63c84a9876..617415c224fe 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -434,7 +434,9 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ 	v4l2_set_subdevdata(sd, ved);
+ 
+ 	/* Expose this subdev to user space */
+-	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	if (sd->ctrl_handler)
++		sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
+ 
+ 	/* Initialize the media entity */
+ 	ret = media_entity_pads_init(&sd->entity, num_pads, ved->pads);
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 457e211514c6..54184cd9e0ff 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -23,6 +23,7 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/vmalloc.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/tpg/v4l2-tpg.h>
+ 
+@@ -284,11 +285,18 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
++static struct v4l2_subdev_core_ops vimc_sen_core_ops = {
++	.log_status = v4l2_ctrl_subdev_log_status,
++	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
++};
++
+ static const struct v4l2_subdev_video_ops vimc_sen_video_ops = {
+ 	.s_stream = vimc_sen_s_stream,
+ };
+ 
+ static const struct v4l2_subdev_ops vimc_sen_ops = {
++	.core = &vimc_sen_core_ops,
+ 	.pad = &vimc_sen_pad_ops,
+ 	.video = &vimc_sen_video_ops,
+ };
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.15.1
