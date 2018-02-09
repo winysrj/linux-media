@@ -1,31 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:33459 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753521AbeBVLbI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48906 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750945AbeBIMsK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 06:31:08 -0500
+        Fri, 9 Feb 2018 07:48:10 -0500
+Date: Fri, 9 Feb 2018 14:48:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 00/15] Media Controller compliance fixes
+Message-ID: <20180209124806.4ukqlf6vejgloiua@valkosipuli.retiisi.org.uk>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180222102338.28896-2-rui.silva@linaro.org>
-References: <20180222102338.28896-1-rui.silva@linaro.org> <20180222102338.28896-2-rui.silva@linaro.org>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Thu, 22 Feb 2018 08:31:06 -0300
-Message-ID: <CAOMZO5ARc-b55bDoOsm+YO0wdu-MTjY=a=vhgnUowrGy0E9V7Q@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: ov2680: dt: Add bindings for OV2680
-To: Rui Miguel Silva <rmfrfs@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 22, 2018 at 7:23 AM, Rui Miguel Silva <rmfrfs@gmail.com> wrote:
-> Add device tree binding documentation for the OV5640 camera sensor.
+On Thu, Feb 08, 2018 at 09:36:40AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Hi all,
+> 
+> I've been posting random patches fixing various MC problems, but it is
+> easier to see them all in a single patch series.
+> 
+> All patches except 13 and 14 are identical to was I posted earlier.
+> For 13 and 14 I decided to drop the requirement that the application
+> clears the reserved field. Only the driver will clear it.
 
-s/OV5640/OV2680
+Thanks!
+
+For patches 5, 7, 8, 10, 12 and 14:
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
