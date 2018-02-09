@@ -1,71 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:47545 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752959AbeBEO4Q (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48844 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750909AbeBIMoK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 09:56:16 -0500
-Subject: Re: [PATCH 5/5] add default control values as module parameters
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
- <1517840981-12280-6-git-send-email-floe@butterbrot.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0be7b0ae-e0e0-7b25-fd76-8cf6387a4dd6@xs4all.nl>
-Date: Mon, 5 Feb 2018 15:56:11 +0100
+        Fri, 9 Feb 2018 07:44:10 -0500
+Date: Fri, 9 Feb 2018 14:44:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 06/15] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO
+ ioctl
+Message-ID: <20180209124407.sngsru4jd35iuuth@valkosipuli.retiisi.org.uk>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+ <20180208083655.32248-7-hverkuil@xs4all.nl>
+ <20180209120136.heg43pxmrkssy5l7@valkosipuli.retiisi.org.uk>
+ <8c4212b7-2171-7fa9-72d3-4ae38912f663@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1517840981-12280-6-git-send-email-floe@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8c4212b7-2171-7fa9-72d3-4ae38912f663@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 03:29 PM, Florian Echtler wrote:
-> Signed-off-by: Florian Echtler <floe@butterbrot.org>
-
-Please add a change log when you make a patch.
-
-I for one would like to know why this has to be supplied as a module option.
-Some documentation in the code would be helpful as well (e.g. I have no idea
-what a 'vsvideo' is).
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/input/touchscreen/sur40.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
+On Fri, Feb 09, 2018 at 01:18:18PM +0100, Hans Verkuil wrote:
+> On 02/09/18 13:01, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Thu, Feb 08, 2018 at 09:36:46AM +0100, Hans Verkuil wrote:
+> >> The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is also
+> >> present, since without that you cannot use v4l2-dbg.
+> >>
+> >> Just like the implementation in v4l2-ioctl.c this can be implemented in the
+> >> core and no drivers need to be modified.
+> >>
+> >> It also makes it possible for v4l2-compliance to properly test the
+> >> VIDIOC_DBG_G/S_REGISTER ioctls.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
+> >>  1 file changed, 13 insertions(+)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> >> index 6cabfa32d2ed..2a5b5a3fa7a3 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> >> @@ -255,6 +255,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+> >>  			return -EPERM;
+> >>  		return v4l2_subdev_call(sd, core, s_register, p);
+> >>  	}
+> >> +	case VIDIOC_DBG_G_CHIP_INFO:
+> >> +	{
+> >> +		struct v4l2_dbg_chip_info *p = arg;
+> >> +
+> >> +		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
+> >> +			return -EINVAL;
+> >> +		if (sd->ops->core && sd->ops->core->s_register)
+> >> +			p->flags |= V4L2_CHIP_FL_WRITABLE;
+> >> +		if (sd->ops->core && sd->ops->core->g_register)
+> >> +			p->flags |= V4L2_CHIP_FL_READABLE;
+> >> +		strlcpy(p->name, sd->name, sizeof(p->name));
+> >> +		return 0;
+> >> +	}
+> > 
+> > This is effectively doing the same as debugfs except that it's specific to
+> > V4L2. I don't think we should endorse its use, and especially not without a
+> > real use case.
 > 
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-> index c4b7cf1..d612f3f 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -173,6 +173,14 @@ int sur40_v4l2_contrast   = SUR40_CONTRAST_DEF;   /* blacklevel   */
->  int sur40_v4l2_gain       = SUR40_GAIN_DEF;       /* gain         */
->  int sur40_v4l2_backlight  = 1;                    /* preprocessor */
->  
-> +/* module parameters */
-> +static uint irlevel = SUR40_BRIGHTNESS_DEF;
-> +module_param(irlevel, uint, 0644);
-> +MODULE_PARM_DESC(irlevel, "set default irlevel");
-> +static uint vsvideo = SUR40_VSVIDEO_DEF;
-> +module_param(vsvideo, uint, 0644);
-> +MODULE_PARM_DESC(vsvideo, "set default vsvideo");
-> +
->  static const struct v4l2_pix_format sur40_pix_format[] = {
->  	{
->  		.pixelformat = V4L2_TCH_FMT_TU08,
-> @@ -372,6 +380,11 @@ static void sur40_open(struct input_polled_dev *polldev)
->  
->  	dev_dbg(sur40->dev, "open\n");
->  	sur40_init(sur40);
-> +
-> +	/* set default values */
-> +	sur40_set_irlevel(sur40, irlevel);
-> +	sur40_set_vsvideo(sur40, vsvideo);
-> +	sur40_set_preprocessor(sur40, SUR40_BACKLIGHT_DEF);
->  }
->  
->  /* Disable device, polling has stopped. */
+> We (Cisco) use it all the time. Furthermore, this works for any bus, not just
+> i2c. Also spi, internal register busses, etc.
 > 
+> It's been in use for many years. More importantly, there is no excuse to have
+> only half the API implemented.
+> 
+> It's all fine to talk about debugfs, but are you going to make that? This API
+> works, it's supported by v4l2-dbg, it's in use. Now, let's at least make it
+> pass v4l2-compliance.
+> 
+> I agree, if we would redesign it, we would use debugfs. But I think it didn't
+> even exist when this was made. So this API is here to stay and all it takes
+> is this ioctl of code to add the missing piece for subdevs.
+> 
+> Nobody is going to make a replacement for this using debugfs. Why spend effort
+> on it if we already have an API for this?
+
+It's not the first case when a more generic API replaces a subsystem
+specific one. We have another conversion to make, switching from
+implementing s_power() callback in drivers to runtime PM for instance.
+
+I simply want to point out that this patch is endorsing something which is
+obsolete and not needed: no-one has complained about the lack of this for
+sub-devices, haven't they?
+
+I'd just remove the check from v4l-compliance or make it optional. New
+drivers should use debugfs instead if something like that is needed.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
