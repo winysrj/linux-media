@@ -1,61 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway24.websitewelcome.com ([192.185.50.66]:27593 "EHLO
-        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752286AbeBFRKK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 12:10:10 -0500
-Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
-        by gateway24.websitewelcome.com (Postfix) with ESMTP id 12F85E9AD5
-        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:47:39 -0600 (CST)
-Date: Tue, 6 Feb 2018 10:47:37 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH v3 3/8] i2c: max2175: use 64-bit arithmetic instead of 32-bit
-Message-ID: <fdeffeff7451f52fd903e4773c6b10fe21f707e4.1517929336.git.gustavo@embeddedor.com>
-References: <cover.1517929336.git.gustavo@embeddedor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
+Received: from osg.samsung.com ([64.30.133.232]:52914 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752281AbeBIS6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Feb 2018 13:58:13 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/3] media: dvb: add continuity error indicators for memory mapped buffers
+Date: Fri,  9 Feb 2018 16:58:03 -0200
+Message-Id: <fc8eaff29d67ff9aa9488942caa92448eb6cfb8a.1518202672.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add suffix LL to constant 2 in order to give the compiler complete
-information about the proper arithmetic to use. Notice that this
-constant is used in a context that expects an expression of type
-s64 (64 bits, signed).
+While userspace can detect discontinuity errors, it is useful to
+also let Kernelspace reporting discontinuity, as it can help to
+identify if the data loss happened either at Kernel or userspace side.
 
-The expression 2 * (clock_rate - abs_nco_freq) is currently being
-evaluated using 32-bit arithmetic.
-
-Addresses-Coverity-ID: 1446589 ("Unintentional integer overflow")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Changes in v2:
- - Update subject and changelog to better reflect the proposed code changes.
- - Add suffix LL to constant instead of casting a variable.
+ include/uapi/linux/dvb/dmx.h | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-Changes in v3:
- - Mention the specific Coverity report in the commit message.
-
- drivers/media/i2c/max2175.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
-index 2f1966b..87cba15 100644
---- a/drivers/media/i2c/max2175.c
-+++ b/drivers/media/i2c/max2175.c
-@@ -643,7 +643,7 @@ static int max2175_set_nco_freq(struct max2175 *ctx, s32 nco_freq)
- 	if (abs_nco_freq < clock_rate / 2) {
- 		nco_val_desired = 2 * nco_freq;
- 	} else {
--		nco_val_desired = 2 * (clock_rate - abs_nco_freq);
-+		nco_val_desired = 2LL * (clock_rate - abs_nco_freq);
- 		if (nco_freq < 0)
- 			nco_val_desired = -nco_val_desired;
- 	}
+diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
+index 5f3c5a918f00..471c4afe738c 100644
+--- a/include/uapi/linux/dvb/dmx.h
++++ b/include/uapi/linux/dvb/dmx.h
+@@ -211,6 +211,32 @@ struct dmx_stc {
+ 	__u64 stc;
+ };
+ 
++/**
++ * enum dmx_buffer_flags - DMX memory-mapped buffer flags
++ *
++ * @DMX_BUFFER_FLAG_HAD_CRC32_DISCARD:
++ *	Indicates that the Kernel discarded one or more frames due to wrong
++ *	CRC32 checksum.
++ * @DMX_BUFFER_FLAG_TEI:
++ * 	Indicates that the Kernel has detected a Transport Error indicator
++ *	(TEI) on a filtered pid.
++ * @DMX_BUFFER_PKT_COUNTER_MISMATCH:
++ * 	Indicates that the Kernel has detected a packet counter mismatch
++ *	on a filtered pid.
++ * @DMX_BUFFER_FLAG_DISCONTINUITY_DETECTED:
++ * 	Indicates that the Kernel has detected one or more frame discontinuity.
++ * @DMX_BUFFER_FLAG_DISCONTINUITY_INDICATOR:
++ * 	Received at least one packet with a frame discontinuity indicator.
++ */
++
++enum dmx_buffer_flags {
++	DMX_BUFFER_FLAG_HAD_CRC32_DISCARD,
++	DMX_BUFFER_FLAG_TEI,
++	DMX_BUFFER_PKT_COUNTER_MISMATCH,
++	DMX_BUFFER_FLAG_DISCONTINUITY_DETECTED,
++	DMX_BUFFER_FLAG_DISCONTINUITY_INDICATOR,
++};
++
+ /**
+  * struct dmx_buffer - dmx buffer info
+  *
+@@ -220,6 +246,11 @@ struct dmx_stc {
+  *		offset from the start of the device memory for this plane,
+  *		(or a "cookie" that should be passed to mmap() as offset)
+  * @length:	size in bytes of the buffer
++ * @flags:	buffer flags as defined by &enum dmx_buffer_flags.
++ *		Filled only at &DMX_DQBUF. &DMX_QBUF should zero this field.
++ * @count:	monotonic counter for filled buffers. Helps to identify
++ *		data stream loses. Filled only at &DMX_DQBUF. &DMX_QBUF should
++ *		zero this field.
+  *
+  * Contains data exchanged by application and driver using one of the streaming
+  * I/O methods.
+@@ -229,6 +260,8 @@ struct dmx_buffer {
+ 	__u32			bytesused;
+ 	__u32			offset;
+ 	__u32			length;
++	__u32			flags;
++	__u32			count;
+ };
+ 
+ /**
 -- 
-2.7.4
+2.14.3
