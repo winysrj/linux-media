@@ -1,149 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42708 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752741AbeBLSMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 13:12:18 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 4/5] media: adv7604: Add support for i2c_new_secondary_device
-Date: Mon, 12 Feb 2018 18:11:56 +0000
-Message-Id: <1518459117-16733-5-git-send-email-kbingham@kernel.org>
-In-Reply-To: <1518459117-16733-1-git-send-email-kbingham@kernel.org>
-References: <1518459117-16733-1-git-send-email-kbingham@kernel.org>
+Received: from mail-sn1nam02on0085.outbound.protection.outlook.com ([104.47.36.85]:41888
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752056AbeBIBVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 20:21:14 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v2 0/9] Add support for multi-planar formats and 10 bit formats 
+Date: Thu, 8 Feb 2018 17:21:01 -0800
+Message-ID: <1518139261-21540-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+ The patches are for xilinx v4l. The patcheset enable support to handle mul=
+tiplanar
+ formats and 10 bit formats. The implemenation has handling of single plane=
+ formats
+ too for backward compatibility of some existing applications.
 
-The ADV7604 has thirteen 256-byte maps that can be accessed via the main
-I²C ports. Each map has it own I²C address and acts as a standard slave
-device on the I²C bus.
+ Some patches are included as dependencies and are intended to sync downstr=
+eam with
+ upstream as well.
 
-Allow a device tree node to override the default addresses so that
-address conflicts with other devices on the same bus may be resolved at
-the board description level.
+Hyun Kwon (1):
+  media: xilinx: vip: Add the pixel format for RGB24
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-[Kieran: Re-adapted for mainline]
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
-Based upon the original posting :
-  https://lkml.org/lkml/2014/10/22/469
+Jeffrey Mouroux (1):
+  uapi: media: New fourcc codes needed by Xilinx Video IP
 
-v2:
- - Split out DT bindings from driver updates
- - Return -EINVAL on error paths from adv76xx_dummy_client()
+Radhey Shyam Pandey (1):
+  v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
 
- drivers/media/i2c/adv7604.c | 62 +++++++++++++++++++++++++++++----------------
- 1 file changed, 40 insertions(+), 22 deletions(-)
+Rohit Athavale (1):
+  media-bus: uapi: Add YCrCb 420 media bus format
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 1544920ec52d..872e124793f8 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2734,6 +2734,27 @@ static const struct v4l2_ctrl_config adv76xx_ctrl_free_run_color = {
- 
- /* ----------------------------------------------------------------------- */
- 
-+struct adv76xx_register {
-+	const char *name;
-+	u8 default_addr;
-+};
-+
-+static const struct adv76xx_register adv76xx_secondary_names[] = {
-+	[ADV76XX_PAGE_IO] = { "main", 0x4c },
-+	[ADV7604_PAGE_AVLINK] = { "avlink", 0x42 },
-+	[ADV76XX_PAGE_CEC] = { "cec", 0x40 },
-+	[ADV76XX_PAGE_INFOFRAME] = { "infoframe", 0x3e },
-+	[ADV7604_PAGE_ESDP] = { "esdp", 0x38 },
-+	[ADV7604_PAGE_DPP] = { "dpp", 0x3c },
-+	[ADV76XX_PAGE_AFE] = { "afe", 0x26 },
-+	[ADV76XX_PAGE_REP] = { "rep", 0x32 },
-+	[ADV76XX_PAGE_EDID] = { "edid", 0x36 },
-+	[ADV76XX_PAGE_HDMI] = { "hdmi", 0x34 },
-+	[ADV76XX_PAGE_TEST] = { "test", 0x30 },
-+	[ADV76XX_PAGE_CP] = { "cp", 0x22 },
-+	[ADV7604_PAGE_VDP] = { "vdp", 0x24 },
-+};
-+
- static int adv76xx_core_init(struct v4l2_subdev *sd)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -2834,13 +2855,26 @@ static void adv76xx_unregister_clients(struct adv76xx_state *state)
- }
- 
- static struct i2c_client *adv76xx_dummy_client(struct v4l2_subdev *sd,
--							u8 addr, u8 io_reg)
-+					       unsigned int i)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct adv76xx_state *state = to_state(sd);
-+	struct adv76xx_platform_data *pdata = &state->pdata;
-+	unsigned int io_reg = 0xf2 + i;
-+	struct i2c_client *new_client;
-+
-+	if (pdata && pdata->i2c_addresses[i])
-+		new_client = i2c_new_dummy(client->adapter,
-+					   pdata->i2c_addresses[i]);
-+	else
-+		new_client = i2c_new_secondary_device(client,
-+				adv76xx_secondary_names[i].name,
-+				adv76xx_secondary_names[i].default_addr);
- 
--	if (addr)
--		io_write(sd, io_reg, addr << 1);
--	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
-+	if (new_client)
-+		io_write(sd, io_reg, new_client->addr << 1);
-+
-+	return new_client;
- }
- 
- static const struct adv76xx_reg_seq adv7604_recommended_settings_afe[] = {
-@@ -3115,20 +3149,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	/* Disable the interrupt for now as no DT-based board uses it. */
- 	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
- 
--	/* Use the default I2C addresses. */
--	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_CEC] = 0x40;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_INFOFRAME] = 0x3e;
--	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
--	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_AFE] = 0x26;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_REP] = 0x32;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_EDID] = 0x36;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_HDMI] = 0x34;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_TEST] = 0x30;
--	state->pdata.i2c_addresses[ADV76XX_PAGE_CP] = 0x22;
--	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
--
- 	/* Hardcode the remaining platform data fields. */
- 	state->pdata.disable_pwrdnb = 0;
- 	state->pdata.disable_cable_det_rst = 0;
-@@ -3478,11 +3498,9 @@ static int adv76xx_probe(struct i2c_client *client,
- 		if (!(BIT(i) & state->info->page_mask))
- 			continue;
- 
--		state->i2c_clients[i] =
--			adv76xx_dummy_client(sd, state->pdata.i2c_addresses[i],
--					     0xf2 + i);
-+		state->i2c_clients[i] = adv76xx_dummy_client(sd, i);
- 		if (!state->i2c_clients[i]) {
--			err = -ENOMEM;
-+			err = -EINVAL;
- 			v4l2_err(sd, "failed to create i2c client %u\n", i);
- 			goto err_i2c;
- 		}
--- 
+Satish Kumar Nagireddy (4):
+  v4l: xilinx: dma: Update video format descriptor
+  v4l: xilinx: dma: Add multi-planar support
+  v4l: xilinx: dma: Add scaling and padding factor functions
+  v4l: xilinx: dma: Get scaling and padding factor to calculate DMA
+    params
+
+ drivers/media/platform/xilinx/xilinx-dma.c  | 365 ++++++++++++++++++++++++=
+----
+ drivers/media/platform/xilinx/xilinx-dma.h  |   2 +-
+ drivers/media/platform/xilinx/xilinx-vip.c  |  61 ++++-
+ drivers/media/platform/xilinx/xilinx-vip.h  |  13 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c |  22 +-
+ include/uapi/linux/media-bus-format.h       |   3 +-
+ include/uapi/linux/videodev2.h              |  11 +
+ 7 files changed, 409 insertions(+), 68 deletions(-)
+
+--
 2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
