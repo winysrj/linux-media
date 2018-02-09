@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:25731 "EHLO mga01.intel.com"
+Received: from mail.kernel.org ([198.145.29.99]:45162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934173AbeBUSHP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 13:07:15 -0500
-From: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: tfiga@chromium.org, jian.xu.zheng@intel.com,
-        tian.shu.qiu@intel.com, andy.yeh@intel.com,
-        rajmohan.mani@intel.com, hyungwoo.yang@intel.com,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Subject: [PATCH v1] media: ov13858: Update to SPDX identifier
-Date: Wed, 21 Feb 2018 09:55:20 -0800
-Message-Id: <1519235720-23730-1-git-send-email-chiranjeevi.rapolu@intel.com>
+        id S1750945AbeBINSb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Feb 2018 08:18:31 -0500
+From: Kieran Bingham <kbingham@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        "Stable v4.14+" <stable@vger.kernel.org>
+Subject: [PATCH] v4l: vsp1: Fix continuous mode for dual pipelines
+Date: Fri,  9 Feb 2018 13:18:25 +0000
+Message-Id: <1518182305-17988-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace GPL v2 license notice with SPDX license identifier.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
+To allow dual pipelines utilising two WPF entities when available, the
+VSP was updated to support header-mode display list in continuous
+pipelines.
+
+A small bug in the status check of the command register causes the
+second pipeline to be directly afflicted by the running of the first;
+appearing as a perceived performance issue with stuttering display.
+
+Fix the vsp1_dl_list_hw_update_pending() call to ensure that the read
+comparison corresponds to the correct pipeline.
+
+Fixes: eaf4bfad6ad8 ("v4l: vsp1: Add support for header display
+lists in continuous mode")
+Cc: "Stable v4.14+" <stable@vger.kernel.org>
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/i2c/ov13858.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/media/platform/vsp1/vsp1_dl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index bf7d06f..c7183a4 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -1,16 +1,5 @@
--/*
-- * Copyright (c) 2017 Intel Corporation.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License version
-- * 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (c) 2017 Intel Corporation.
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 8cd03ee45f79..34b5ed2592f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -509,7 +509,8 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
+ 		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
+ 			  & VI6_DL_BODY_SIZE_UPD);
+ 	else
+-		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index) & VI6_CMD_UPDHDR));
++		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
++			  & VI6_CMD_UPDHDR);
+ }
  
- #include <linux/acpi.h>
- #include <linux/i2c.h>
+ static bool vsp1_dl_hw_active(struct vsp1_dl_manager *dlm)
 -- 
-1.9.1
+2.7.4
