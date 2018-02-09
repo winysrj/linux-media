@@ -1,140 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:35291 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966475AbeBOEqS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 23:46:18 -0500
-Message-ID: <17274d441feb424ad2a4b90316c3cdc4@smtp-cloud7.xs4all.net>
-Date: Thu, 15 Feb 2018 05:46:17 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail.kernel.org ([198.145.29.99]:39316 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751053AbeBIOuk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Feb 2018 09:50:40 -0500
+From: Kieran Bingham <kbingham@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        "Stable v4.14+" <stable@vger.kernel.org>
+Subject: [PATCH] v4l: vsp1: Fix header display list status check in continuous mode
+Date: Fri,  9 Feb 2018 14:50:34 +0000
+Message-Id: <1518187834-21267-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Results of the daily build of media_tree:
+To allow dual pipelines utilising two WPF entities when available, the
+VSP was updated to support header-mode display list in continuous
+pipelines.
 
-date:			Thu Feb 15 05:00:11 CET 2018
-media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
-media_build git hash:	0e5cdef4c99fc927bcf7a216215a323ac85d1d3a
-v4l-utils git hash:	30fc3b396ad1daada9234f9f93fc30950c3d5470
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+A small bug in the status check of the command register causes the
+second pipeline to be directly afflicted by the running of the first;
+appearing as a perceived performance issue with stuttering display.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+Fix the vsp1_dl_list_hw_update_pending() call to ensure that the read
+comparison corresponds to the correct pipeline.
 
-Detailed results are available here:
+Fixes: eaf4bfad6ad8 ("v4l: vsp1: Add support for header display
+lists in continuous mode")
+Cc: "Stable v4.14+" <stable@vger.kernel.org>
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 8cd03ee45f79..34b5ed2592f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -509,7 +509,8 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
+ 		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
+ 			  & VI6_DL_BODY_SIZE_UPD);
+ 	else
+-		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index) & VI6_CMD_UPDHDR));
++		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
++			  & VI6_CMD_UPDHDR);
+ }
+ 
+ static bool vsp1_dl_hw_active(struct vsp1_dl_manager *dlm)
+-- 
+2.7.4
