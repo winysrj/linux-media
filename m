@@ -1,128 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0059.outbound.protection.outlook.com ([104.47.38.59]:64192
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750750AbeBGW3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 17:29:54 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH 8/8] v4l: xilinx: dma: Get scaling and padding factor to calculate DMA params
-Date: Wed, 7 Feb 2018 14:29:38 -0800
-Message-ID: <1518042578-22771-9-git-send-email-satishna@xilinx.com>
-In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48878 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752089AbeBIMqq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Feb 2018 07:46:46 -0500
+Date: Fri, 9 Feb 2018 14:46:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 11/15] media-device.c: zero reserved field
+Message-ID: <20180209124644.a6ygvfuamuspaqkm@valkosipuli.retiisi.org.uk>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+ <20180208083655.32248-12-hverkuil@xs4all.nl>
+ <20180209121700.67gibke64bgcewkn@valkosipuli.retiisi.org.uk>
+ <8203381a-c3f1-d836-4ed1-54874ac7845e@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8203381a-c3f1-d836-4ed1-54874ac7845e@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Get multiplying factor to calculate bpp especially
-in case of 10 bit formats.
-Get multiplying factor to calculate padding width
+On Fri, Feb 09, 2018 at 01:20:41PM +0100, Hans Verkuil wrote:
+> On 02/09/18 13:17, Sakari Ailus wrote:
+> > On Thu, Feb 08, 2018 at 09:36:51AM +0100, Hans Verkuil wrote:
+> >> MEDIA_IOC_SETUP_LINK didn't zero the reserved field of the media_link_desc
+> >> struct. Do so in media_device_setup_link().
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/media-device.c | 2 ++
+> >>  1 file changed, 2 insertions(+)
+> >>
+> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> >> index e79f72b8b858..afbf23a19e16 100644
+> >> --- a/drivers/media/media-device.c
+> >> +++ b/drivers/media/media-device.c
+> >> @@ -218,6 +218,8 @@ static long media_device_setup_link(struct media_device *mdev,
+> >>  	if (link == NULL)
+> >>  		return -EINVAL;
+> >>  
+> >> +	memset(linkd->reserved, 0, sizeof(linkd->reserved));
+> >> +
+> > 
+> > Doesn't media_device_enum_links() need the same for its reserved field?
+> 
+> enum_links() already zeroes this (actually the whole media_link_desc struct is zeroed).
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 29 ++++++++++++++++++++++++++=
----
- 1 file changed, 26 insertions(+), 3 deletions(-)
+I can't see that being done in here and I also don't mean the compat
+variant. Can you point me to it?
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/pla=
-tform/xilinx/xilinx-dma.c
-index 656a87e..47b22e5 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -417,6 +417,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb=
-)
-        struct xvip_dma_buffer *buf =3D to_xvip_dma_buffer(vbuf);
-        struct dma_async_tx_descriptor *desc;
-        u32 flags, luma_size;
-+       u32 padding_factor_nume, padding_factor_deno, bpl_nume, bpl_deno;
-        dma_addr_t addr =3D vb2_dma_contig_plane_dma_addr(vb, 0);
-
-        if (dma->queue.type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-@@ -442,8 +443,15 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *v=
-b)
-                struct v4l2_pix_format_mplane *pix_mp;
-
-                pix_mp =3D &dma->format.fmt.pix_mp;
-+               xvip_width_padding_factor (pix_mp->pixelformat,
-+                                          &padding_factor_nume,
-+                                          &padding_factor_deno);
-+               xvip_bpl_scaling_factor (pix_mp->pixelformat, &bpl_nume,
-+                                        &bpl_deno);
-                dma->xt.frame_size =3D dma->fmtinfo->num_planes;
--               dma->sgl[0].size =3D pix_mp->width * dma->fmtinfo->bpl_fact=
-or;
-+               dma->sgl[0].size =3D (pix_mp->width * dma->fmtinfo->bpl_fac=
-tor *
-+                                  padding_factor_nume * bpl_nume)/
-+                                  (padding_factor_deno * bpl_deno);
-                dma->sgl[0].icg =3D pix_mp->plane_fmt[0].bytesperline -
-                                                        dma->sgl[0].size;
-                dma->xt.numf =3D pix_mp->height;
-@@ -472,8 +480,15 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *v=
-b)
-                struct v4l2_pix_format *pix;
-
-                pix =3D &dma->format.fmt.pix;
-+               xvip_width_padding_factor (pix->pixelformat,
-+                                          &padding_factor_nume,
-+                                          &padding_factor_deno);
-+               xvip_bpl_scaling_factor (pix->pixelformat, &bpl_nume,
-+                                        &bpl_deno);
-                dma->xt.frame_size =3D dma->fmtinfo->num_planes;
--               dma->sgl[0].size =3D pix->width * dma->fmtinfo->bpl_factor;
-+               dma->sgl[0].size =3D (pix->width * dma->fmtinfo->bpl_factor=
- *
-+                                  padding_factor_nume * bpl_nume)/
-+                                  (padding_factor_deno * bpl_deno);
-                dma->sgl[0].icg =3D pix->bytesperline - dma->sgl[0].size;
-                dma->xt.numf =3D pix->height;
-                dma->sgl[0].dst_icg =3D dma->sgl[0].size;
-@@ -682,6 +697,8 @@ __xvip_dma_try_format(struct xvip_dma *dma,
-        unsigned int align;
-        unsigned int bpl;
-        unsigned int i, hsub, vsub, plane_width, plane_height;
-+       unsigned int padding_factor_nume, padding_factor_deno;
-+       unsigned int bpl_nume, bpl_deno;
-
-        /* Retrieve format information and select the default format if the
-         * requested format isn't supported.
-@@ -696,6 +713,10 @@ __xvip_dma_try_format(struct xvip_dma *dma,
-        if (IS_ERR(info))
-                info =3D xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
-
-+       xvip_width_padding_factor (info->fourcc, &padding_factor_nume,
-+                                  &padding_factor_deno);
-+       xvip_bpl_scaling_factor (info->fourcc, &bpl_nume, &bpl_deno);
-+
-        /* The transfer alignment requirements are expressed in bytes. Comp=
-ute
-         * the minimum and maximum values, clamp the requested width and co=
-nvert
-         * it back to pixels.
-@@ -739,7 +760,9 @@ __xvip_dma_try_format(struct xvip_dma *dma,
-                        for (i =3D 0; i < info->num_planes; i++) {
-                                plane_width =3D pix_mp->width / (i ? hsub :=
- 1);
-                                plane_height =3D pix_mp->height / (i ? vsub=
- : 1);
--                               min_bpl =3D plane_width * info->bpl_factor;
-+                               min_bpl =3D (plane_width * info->bpl_factor=
- *
-+                                         padding_factor_nume * bpl_nume)/
-+                                         (padding_factor_deno * bpl_deno);
-                                max_bpl =3D rounddown(XVIP_DMA_MAX_WIDTH,
-                                                    dma->align);
-                                bpl =3D pix_mp->plane_fmt[i].bytesperline;
---
-2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
