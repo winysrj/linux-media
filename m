@@ -1,75 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48256 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750925AbeBIMBi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 07:01:38 -0500
-Date: Fri, 9 Feb 2018 14:01:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 06/15] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO
- ioctl
-Message-ID: <20180209120136.heg43pxmrkssy5l7@valkosipuli.retiisi.org.uk>
-References: <20180208083655.32248-1-hverkuil@xs4all.nl>
- <20180208083655.32248-7-hverkuil@xs4all.nl>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:39689 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751041AbeBIPeo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 10:34:44 -0500
+Received: by mail-lf0-f67.google.com with SMTP id h78so4586135lfg.6
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 07:34:43 -0800 (PST)
+Date: Fri, 9 Feb 2018 16:34:41 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: i2c: adv748x: Fix cleanup jump on chip
+ identification
+Message-ID: <20180209153441.GD7666@bigcity.dyn.berto.se>
+References: <1518037895-10921-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20180208083655.32248-7-hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1518037895-10921-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Kieran,
 
-On Thu, Feb 08, 2018 at 09:36:46AM +0100, Hans Verkuil wrote:
-> The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is also
-> present, since without that you cannot use v4l2-dbg.
+Thanks for your patch.
+
+On 2018-02-07 21:11:35 +0000, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
-> Just like the implementation in v4l2-ioctl.c this can be implemented in the
-> core and no drivers need to be modified.
+> The error handling for the adv748x_identify_chip() call erroneously
+> jumps to the err_cleanup_clients label before the clients have been
+> established.
 > 
-> It also makes it possible for v4l2-compliance to properly test the
-> VIDIOC_DBG_G/S_REGISTER ioctls.
+> Correct this by jumping to the next (and correct) label in the cleanup
+> code: err_cleanup_dt.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
 > ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
+>  drivers/media/i2c/adv748x/adv748x-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 6cabfa32d2ed..2a5b5a3fa7a3 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -255,6 +255,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  			return -EPERM;
->  		return v4l2_subdev_call(sd, core, s_register, p);
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 6d62b817ed00..6ccaad7e9eca 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -651,7 +651,7 @@ static int adv748x_probe(struct i2c_client *client,
+>  	ret = adv748x_identify_chip(state);
+>  	if (ret) {
+>  		adv_err(state, "Failed to identify chip");
+> -		goto err_cleanup_clients;
+> +		goto err_cleanup_dt;
 >  	}
-> +	case VIDIOC_DBG_G_CHIP_INFO:
-> +	{
-> +		struct v4l2_dbg_chip_info *p = arg;
-> +
-> +		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
-> +			return -EINVAL;
-> +		if (sd->ops->core && sd->ops->core->s_register)
-> +			p->flags |= V4L2_CHIP_FL_WRITABLE;
-> +		if (sd->ops->core && sd->ops->core->g_register)
-> +			p->flags |= V4L2_CHIP_FL_READABLE;
-> +		strlcpy(p->name, sd->name, sizeof(p->name));
-> +		return 0;
-> +	}
-
-This is effectively doing the same as debugfs except that it's specific to
-V4L2. I don't think we should endorse its use, and especially not without a
-real use case.
-
->  #endif
 >  
->  	case VIDIOC_LOG_STATUS: {
+>  	/* Configure remaining pages as I2C clients with regmap access */
 > -- 
-> 2.15.1
+> 2.7.4
 > 
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+Niklas Söderlund
