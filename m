@@ -1,149 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:53108 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751399AbeBXSzq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 13:55:46 -0500
-Received: by mail-wm0-f66.google.com with SMTP id t3so10466085wmc.2
-        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:45 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 08/12] [media] ngene: deduplicate I2C adapter evaluation
-Date: Sat, 24 Feb 2018 19:55:30 +0100
-Message-Id: <20180224185534.13792-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20180224185534.13792-1-d.scheller.oss@gmail.com>
-References: <20180224185534.13792-1-d.scheller.oss@gmail.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34615 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752021AbeBIPjT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 10:39:19 -0500
+Received: by mail-lf0-f66.google.com with SMTP id k19so11795646lfj.1
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 07:39:18 -0800 (PST)
+Date: Fri, 9 Feb 2018 16:39:15 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/2] media: i2c: adv748x: Simplify regmap configuration
+Message-ID: <20180209153915.GE7666@bigcity.dyn.berto.se>
+References: <1518024886-842-1-git-send-email-kbingham@kernel.org>
+ <1518024886-842-2-git-send-email-kbingham@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1518024886-842-2-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Kieran,
 
-The I2C adapter evaluation (based on chan->number) is duplicated at
-several places (tuner_attach_() functions, demod_attach_stv0900() and
-cineS2_probe()). Clean this up by wrapping that construct in a separate
-function which all users of that can pass the ngene_channel pointer and
-get the correct I2C adapter from.
+Thanks for your patch.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ngene/ngene-cards.c | 41 +++++++++++++----------------------
- 1 file changed, 15 insertions(+), 26 deletions(-)
+On 2018-02-07 17:34:45 +0000, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> The ADV748x has identical map configurations for each register map. The
+> duplication of each map can be simplified using a helper macro such that
+> each map is represented on a single line.
+> 
+> Define ADV748X_REGMAP_CONF for this purpose and un-define after it's
+> use.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 111 ++++++-------------------------
+>  1 file changed, 22 insertions(+), 89 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index fd92c9e4b519..71c69b816db2 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -35,98 +35,31 @@
+>   * Register manipulation
+>   */
+>  
+> -static const struct regmap_config adv748x_regmap_cnf[] = {
+> -	{
+> -		.name			= "io",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "dpll",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "cp",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "hdmi",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "edid",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "repeater",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "infoframe",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "cec",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "sdp",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -
+> -	{
+> -		.name			= "txb",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> -
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> -	{
+> -		.name			= "txa",
+> -		.reg_bits		= 8,
+> -		.val_bits		= 8,
+> +#define ADV748X_REGMAP_CONF(n) \
+> +{ \
+> +	.name = n, \
+> +	.reg_bits = 8, \
+> +	.val_bits = 8, \
+> +	.max_register = 0xff, \
+> +	.cache_type = REGCACHE_NONE, \
+> +}
+>  
+> -		.max_register		= 0xff,
+> -		.cache_type		= REGCACHE_NONE,
+> -	},
+> +static const struct regmap_config adv748x_regmap_cnf[] = {
+> +	ADV748X_REGMAP_CONF("io"),
+> +	ADV748X_REGMAP_CONF("dpll"),
+> +	ADV748X_REGMAP_CONF("cp"),
+> +	ADV748X_REGMAP_CONF("hdmi"),
+> +	ADV748X_REGMAP_CONF("edid"),
+> +	ADV748X_REGMAP_CONF("repeater"),
+> +	ADV748X_REGMAP_CONF("infoframe"),
+> +	ADV748X_REGMAP_CONF("cec"),
+> +	ADV748X_REGMAP_CONF("sdp"),
+> +	ADV748X_REGMAP_CONF("txa"),
+> +	ADV748X_REGMAP_CONF("txb"),
+>  };
+>  
+> +#undef ADV748X_REGMAP_CONF
+> +
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 00b100660784..dff55c7c9f86 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -118,17 +118,25 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
- /* Demod/tuner attachment ***************************************************/
- /****************************************************************************/
- 
-+static struct i2c_adapter *i2c_adapter_from_chan(struct ngene_channel *chan)
-+{
-+	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-+	if (chan->number < 2)
-+		return &chan->dev->channel[0].i2c_adapter;
-+
-+	return &chan->dev->channel[1].i2c_adapter;
-+}
-+
- static int tuner_attach_stv6110(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct stv090x_config *feconf = (struct stv090x_config *)
- 		chan->dev->card_info->fe_config[chan->number];
- 	struct stv6110x_config *tunerconf = (struct stv6110x_config *)
- 		chan->dev->card_info->tuner_config[chan->number];
- 	const struct stv6110x_devctl *ctl;
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
- 	if (chan->number < 2)
- 		i2c = &chan->dev->channel[0].i2c_adapter;
- 	else
-@@ -158,16 +166,10 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
- static int tuner_attach_stv6111(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct dvb_frontend *fe;
- 	u8 adr = 4 + ((chan->number & 1) ? 0x63 : 0x60);
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr);
- 	if (!fe) {
- 		fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr & ~4);
-@@ -197,10 +199,9 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
- static int tuner_attach_tda18271(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct dvb_frontend *fe;
- 
--	i2c = &chan->dev->channel[0].i2c_adapter;
- 	if (chan->fe->ops.i2c_gate_ctrl)
- 		chan->fe->ops.i2c_gate_ctrl(chan->fe, 1);
- 	fe = dvb_attach(tda18271c2dd_attach, chan->fe, i2c, 0x60);
-@@ -240,7 +241,7 @@ static int tuner_tda18212_ping(struct ngene_channel *chan,
- static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct i2c_client *client;
- 	struct tda18212_config config = {
- 		.fe = chan->fe,
-@@ -262,12 +263,6 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
- 	else
- 		board_info.addr = 0x60;
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	/*
- 	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
- 	 * combo, the tda18212 must be probed by reading it's id _twice_ when
-@@ -320,7 +315,7 @@ static int tuner_attach_probe(struct ngene_channel *chan)
- static int demod_attach_stv0900(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct stv090x_config *feconf = (struct stv090x_config *)
- 		chan->dev->card_info->fe_config[chan->number];
- 
-@@ -620,7 +615,7 @@ static int port_has_xo2(struct i2c_adapter *i2c, u8 *type, u8 *id)
- static int cineS2_probe(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct stv090x_config *fe_conf;
- 	u8 buf[3];
- 	u8 xo2_type, xo2_id, xo2_demodtype;
-@@ -628,12 +623,6 @@ static int cineS2_probe(struct ngene_channel *chan)
- 	struct i2c_msg i2c_msg = { .flags = 0, .buf = buf };
- 	int rc;
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	if (port_has_xo2(i2c, &xo2_type, &xo2_id)) {
- 		xo2_id >>= 2;
- 		dev_dbg(pdev, "XO2 on channel %d (type %d, id %d)\n",
+Why is this macro undefined here? It have a rather limited scope as it's 
+only local to this C file and it have a good prefix of ADV748X_ so 
+conflicts are highly unlikely. Is there something I'm missing?
+
+Is it really customary to undefine helper macros like this once they are 
+used to populate the structure?
+
+>  static int adv748x_configure_regmap(struct adv748x_state *state, int region)
+>  {
+>  	int err;
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.16.1
+Regards,
+Niklas Söderlund
