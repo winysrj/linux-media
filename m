@@ -1,89 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41988 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750962AbeBWI3t (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46910 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750925AbeBIMSY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 03:29:49 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, mchehab@s-opensource.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 1/1] videobuf2: Add VIDEOBUF2_V4L2 Kconfig option for videobuf2 V4L2 part
-Date: Fri, 23 Feb 2018 10:29:46 +0200
-Message-Id: <20180223082946.7471-1-sakari.ailus@linux.intel.com>
+        Fri, 9 Feb 2018 07:18:24 -0500
+Subject: Re: [PATCHv2 06/15] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO
+ ioctl
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+ <20180208083655.32248-7-hverkuil@xs4all.nl>
+ <20180209120136.heg43pxmrkssy5l7@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8c4212b7-2171-7fa9-72d3-4ae38912f663@xs4all.nl>
+Date: Fri, 9 Feb 2018 13:18:18 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180209120136.heg43pxmrkssy5l7@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Videobuf2 is now separate from V4L2 and can be now built without it, at
-least in principle --- enabling videobuf2 in kernel configuration attempts
-to compile videobuf2-v4l2.c but that will fail if CONFIG_VIDEO_V4L2 isn't
-enabled.
+On 02/09/18 13:01, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Thu, Feb 08, 2018 at 09:36:46AM +0100, Hans Verkuil wrote:
+>> The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is also
+>> present, since without that you cannot use v4l2-dbg.
+>>
+>> Just like the implementation in v4l2-ioctl.c this can be implemented in the
+>> core and no drivers need to be modified.
+>>
+>> It also makes it possible for v4l2-compliance to properly test the
+>> VIDIOC_DBG_G/S_REGISTER ioctls.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
+>>  1 file changed, 13 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+>> index 6cabfa32d2ed..2a5b5a3fa7a3 100644
+>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+>> @@ -255,6 +255,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>>  			return -EPERM;
+>>  		return v4l2_subdev_call(sd, core, s_register, p);
+>>  	}
+>> +	case VIDIOC_DBG_G_CHIP_INFO:
+>> +	{
+>> +		struct v4l2_dbg_chip_info *p = arg;
+>> +
+>> +		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
+>> +			return -EINVAL;
+>> +		if (sd->ops->core && sd->ops->core->s_register)
+>> +			p->flags |= V4L2_CHIP_FL_WRITABLE;
+>> +		if (sd->ops->core && sd->ops->core->g_register)
+>> +			p->flags |= V4L2_CHIP_FL_READABLE;
+>> +		strlcpy(p->name, sd->name, sizeof(p->name));
+>> +		return 0;
+>> +	}
+> 
+> This is effectively doing the same as debugfs except that it's specific to
+> V4L2. I don't think we should endorse its use, and especially not without a
+> real use case.
 
-Solve this by adding a separate Kconfig option for videobuf2-v4l2 and make
-it a separate module as well. This means that drivers now need to choose
-both the appropriate videobuf2 memory type
-(VIDEOBUF2_{VMALLOC,DMA_CONTIG,DMA_SG}) and VIDEOBUF2_V4L2 if they need
-both.
+We (Cisco) use it all the time. Furthermore, this works for any bus, not just
+i2c. Also spi, internal register busses, etc.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi Mauro,
+It's been in use for many years. More importantly, there is no excuse to have
+only half the API implemented.
 
-I'm proposing to merge this as it fixes build errors. We can later in
-rework the Kconfig options; the rework isn't related to fixing the build
-errors in general but rather is a change in the approach used to manage
-dependencies. Let's discuss that on #v4l.
+It's all fine to talk about debugfs, but are you going to make that? This API
+works, it's supported by v4l2-dbg, it's in use. Now, let's at least make it
+pass v4l2-compliance.
 
-since v1:
+I agree, if we would redesign it, we would use debugfs. But I think it didn't
+even exist when this was made. So this API is here to stay and all it takes
+is this ioctl of code to add the missing piece for subdevs.
 
-- Select VIDEOBUF2_V4L2 if both VIDEO_V4L2 and VIDEOBUF2_CORE are
-  selected. This way the patch no longer requires changing Kconfig entries
-  for effectively all drivers. In certain rare configurations (V4L2 and
-  VIDEOBUF2 are enabled but no V4L2 driver uses VIDEOBUF2) VIDEOBUF2_V4L2
-  could be enabled without it being needed. This is not really an issue
-  though.
+Nobody is going to make a replacement for this using debugfs. Why spend effort
+on it if we already have an API for this?
 
- drivers/media/common/videobuf2/Kconfig  | 3 +++
- drivers/media/common/videobuf2/Makefile | 3 ++-
- drivers/media/v4l2-core/Kconfig         | 1 +
- 3 files changed, 6 insertions(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/common/videobuf2/Kconfig b/drivers/media/common/videobuf2/Kconfig
-index 5df05250de94..17c32ea58395 100644
---- a/drivers/media/common/videobuf2/Kconfig
-+++ b/drivers/media/common/videobuf2/Kconfig
-@@ -3,6 +3,9 @@ config VIDEOBUF2_CORE
- 	select DMA_SHARED_BUFFER
- 	tristate
- 
-+config VIDEOBUF2_V4L2
-+	tristate
-+
- config VIDEOBUF2_MEMOPS
- 	tristate
- 	select FRAME_VECTOR
-diff --git a/drivers/media/common/videobuf2/Makefile b/drivers/media/common/videobuf2/Makefile
-index 19de5ccda20b..7e27bdd44dcc 100644
---- a/drivers/media/common/videobuf2/Makefile
-+++ b/drivers/media/common/videobuf2/Makefile
-@@ -1,5 +1,6 @@
- 
--obj-$(CONFIG_VIDEOBUF2_CORE) += videobuf2-core.o videobuf2-v4l2.o
-+obj-$(CONFIG_VIDEOBUF2_CORE) += videobuf2-core.o
-+obj-$(CONFIG_VIDEOBUF2_V4L2) += videobuf2-v4l2.o
- obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
- obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
- obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index bf52fbd07aed..8e37e7c5e0f7 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -7,6 +7,7 @@ config VIDEO_V4L2
- 	tristate
- 	depends on (I2C || I2C=n) && VIDEO_DEV
- 	select RATIONAL
-+	select VIDEOBUF2_V4L2 if VIDEOBUF2_CORE
- 	default (I2C || I2C=n) && VIDEO_DEV
- 
- config VIDEO_ADV_DEBUG
--- 
-2.11.0
+	Hans
+
+> 
+>>  #endif
+>>  
+>>  	case VIDIOC_LOG_STATUS: {
+>> -- 
+>> 2.15.1
+>>
+> 
