@@ -1,200 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43393 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753279AbeBVKhm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 05:37:42 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v11 00/10] Renesas Capture Engine Unit (CEU) V4L2 driver
-Date: Thu, 22 Feb 2018 11:37:16 +0100
-Message-Id: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:36641 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752261AbeBIGdI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 01:33:08 -0500
+Received: by mail-pl0-f67.google.com with SMTP id v3so1044958plg.3
+        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 22:33:08 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v10 8/8] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
+Date: Thu,  8 Feb 2018 22:32:36 -0800
+Message-Id: <1518157956-14220-9-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1518157956-14220-1-git-send-email-tharvey@gateworks.com>
+References: <1518157956-14220-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   Hans reported he sees a few warnings when compiling CEU driver with gcc7.3.0
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+v5:
+ - add missing audmux config
 
-I have silenced them, and the one reported in "probe" was actually a bug.
-That's the diff from v10:
+ arch/arm/boot/dts/imx6qdl-gw551x.dtsi | 138 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 138 insertions(+)
 
-diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
-index 6624fba..cfabe1a 100644
---- a/drivers/media/platform/renesas-ceu.c
-+++ b/drivers/media/platform/renesas-ceu.c
-@@ -412,6 +412,9 @@ static int ceu_hw_config(struct ceu_device *ceudev)
-                cfzsr   = (pix->height << 16) | pix->width;
-                cdwdr   = pix->width;
-                break;
+diff --git a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+index 30d4662..749548a 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+@@ -46,6 +46,8 @@
+  */
+ 
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/media/tda1997x.h>
++#include <dt-bindings/sound/fsl-imx-audmux.h>
+ 
+ / {
+ 	/* these are used by bootloader for disabling nodes */
+@@ -98,6 +100,50 @@
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+ 	};
 +
-+       default:
-+               return -EINVAL;
-        }
-
-        camcr |= mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
-@@ -1568,8 +1571,10 @@ static int ceu_probe(struct platform_device *pdev)
-
-        res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-        ceudev->base = devm_ioremap_resource(dev, res);
--       if (IS_ERR(ceudev->base))
-+       if (IS_ERR(ceudev->base)) {
-+               ret = PTR_ERR(ceudev->base);
-                goto error_free_ceudev;
-+       }
-
-        ret = platform_get_irq(pdev, 0);
-        if (ret < 0) {
-
-
-Now that I've switch to a new compiler I see two more warnings, which are to be
-ignored imo, as this behaviour is expected:
-
-../drivers/media/platform/renesas-ceu.c: In function ‘ceu_hw_config’:
-../drivers/media/platform/renesas-ceu.c:392:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
-   cdocr |= CEU_CDOCR_NO_DOWSAMPLE;
-../drivers/media/platform/renesas-ceu.c:393:2: note: here
-  case V4L2_PIX_FMT_NV12:
-  ^~~~
-../drivers/media/platform/renesas-ceu.c:405:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
-   cdocr |= CEU_CDOCR_NO_DOWSAMPLE;
-../drivers/media/platform/renesas-ceu.c:406:2: note: here
-  case V4L2_PIX_FMT_NV21:
-  ^~~~
-
-MAINTAINERS file update has been sent as separate series, and I guess Hans you
-can now send a pull request for this driver!
-
-Cheers!
-   j
-
-v10->v11:
-- Silence two compiler warnings reported by Hans on CEU driver v10
-
-v9->v10:
-- Close 0-days warning on ov772x frame interval
-- Set default format on CEU after input change
-- Drop ov7670 mbus frame format set not to block this series while topic
-  gets clarified
-
-v8->v9:
-- Address Laurent's review of ov772x frame rate
-- Address Sergei comment on ceu node name
-
-v7->v8:
-- Calculate PLL divider/multiplier and do not use static tables
-- Change RZ/A1-H to RZ/A1H (same for L) in bindings documentation
-- Use rounded clock rate in Migo-R board code as SH clk_set_clk()
-  implementation does not perform rounding
-- Set ycbcr_enc and other fields of v4l2_mbus_format for ov772x as patch
-  [11/11] does for ov7670
-
-v6->v7:
-- Add patch to handle ycbr_enc and other fields of v4l2_mbus_format for ov7670
-- Add patch to handle frame interval for ov772x
-- Rebased on Hans' media-tree/parm branch with v4l2_g/s_parm_cap
-- Drop const modifier in CEU releated fields of Migo-R setup.c board file
-  to silence complier warnings.
-
-v5->v6:
-- Add Hans' Acked-by to most patches
-- Fix a bad change in ov772x get_selection
-- Add .buf_prepare callack to CEU and verify plane sizes there
-- Remove VB2_USERPTR from supported io_modes in CEU driver
-- Remove read() fops in CEU driver
-
-v4->v5:
-- Added Rob's and Laurent's Reviewed-by tag to DT bindings
-- Change CEU driver module license to "GPL v2" to match SPDX identifier as
-  suggested by Philippe Ombredanne
-- Make struct ceu_data static as suggested by Laurent and add his
-  Reviewed-by to CEU driver.
-
-v3->v4:
-- Drop generic fallback compatible string "renesas,ceu"
-- Addressed Laurent's comments on [3/9]
-  - Fix error messages on irq get/request
-  - Do not leak ceudev if irq_get fails
-  - Make irq_mask a const field
-
-v2->v3:
-- Improved DT bindings removing standard properties (pinctrl- ones and
-  remote-endpoint) not specific to this driver and improved description of
-  compatible strings
-- Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
-- Made 'xclk' clock private to ov772x driver in Migo-R board file
-- Change 'rstb' GPIO active output level and changed ov772x and tw9910 drivers
-  accordingly as suggested by Fabio
-- Minor changes in CEU driver to address Laurent's comments
-- Moved Migo-R setup patch to the end of the series to silence 0-day bot
-- Renamed tw9910 clock to 'xti' as per video decoder manual
-- Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
-
-v1->v2:
- - DT
- -- Addressed Geert's comments and added clocks for CEU to mstp6 clock source
- -- Specified supported generic video iterfaces properties in dt-bindings and
-    simplified example
-
- - CEU driver
- -- Re-worked interrupt handler, interrupt management, reset(*) and capture
-    start operation
- -- Re-worked querycap/enum_input/enum_frameintervals to fix some
-    v4l2_compliance failures
- -- Removed soc_camera legacy operations g/s_mbus_format
- -- Update to new notifier implementation
- -- Fixed several comments from Hans, Laurent and Sakari
-
- - Migo-R
- -- Register clocks and gpios for sensor drivers in Migo-R setup
- -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
-    remarks from Hans and Laurent:
- --- Removed platform callbacks and handle clocks and gpios from sensor drivers
- --- Remove g/s_mbus_config operations
-
-
-
-Jacopo Mondi (10):
-  dt-bindings: media: Add Renesas CEU bindings
-  include: media: Add Renesas CEU driver interface
-  media: platform: Add Renesas CEU driver
-  ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-  media: i2c: Copy ov772x soc_camera sensor driver
-  media: i2c: ov772x: Remove soc_camera dependencies
-  media: i2c: ov772x: Support frame interval handling
-  media: i2c: Copy tw9910 soc_camera sensor driver
-  media: i2c: tw9910: Remove soc_camera dependencies
-  arch: sh: migor: Use new renesas-ceu camera driver
-
- .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
- arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
- arch/sh/boards/mach-migor/setup.c                  |  225 ++-
- arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
- drivers/media/i2c/Kconfig                          |   20 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/ov772x.c                         | 1365 ++++++++++++++++
- drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
- drivers/media/platform/Kconfig                     |    9 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/renesas-ceu.c               | 1675 ++++++++++++++++++++
- include/media/drv-intf/renesas-ceu.h               |   26 +
- include/media/i2c/ov772x.h                         |    6 +-
- include/media/i2c/tw9910.h                         |    9 +
- 14 files changed, 4344 insertions(+), 131 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
- create mode 100644 drivers/media/i2c/ov772x.c
- create mode 100644 drivers/media/i2c/tw9910.c
- create mode 100644 drivers/media/platform/renesas-ceu.c
- create mode 100644 include/media/drv-intf/renesas-ceu.h
-
---
++	sound-digital {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "tda1997x-audio";
++
++		simple-audio-card,dai-link@0 {
++			format = "i2s";
++
++			cpu {
++				sound-dai = <&ssi2>;
++			};
++
++			codec {
++				bitclock-master;
++				frame-master;
++				sound-dai = <&tda1997x>;
++			};
++		};
++	};
++};
++
++&audmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_audmux>; /* AUD5<->tda1997x */
++	status = "okay";
++
++	ssi1 {
++		fsl,audmux-port = <0>;
++		fsl,port-config = <
++			(IMX_AUDMUX_V2_PTCR_TFSDIR |
++			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
++			IMX_AUDMUX_V2_PTCR_TCLKDIR |
++			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
++			IMX_AUDMUX_V2_PTCR_SYN)
++			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
++		>;
++	};
++
++	aud5 {
++		fsl,audmux-port = <4>;
++		fsl,port-config = <
++			IMX_AUDMUX_V2_PTCR_SYN
++			IMX_AUDMUX_V2_PDCR_RXDSEL(0)>;
++	};
+ };
+ 
+ &can1 {
+@@ -263,6 +309,60 @@
+ 		#gpio-cells = <2>;
+ 	};
+ 
++	tda1997x: tda1997x@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3>;
++		AVDD-supply = <&reg_1p8b>;
++		DVDD-supply = <&reg_1p8a>;
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same cycle
++		 * which we map to VP[15:08]<->CSI_DATA[19:12]
++		 */
++		nxp,vidout-portcfg =
++			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <16>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
++	bus-width = <16>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
+ };
+ 
+ &pcie {
+@@ -320,6 +420,14 @@
+ };
+ 
+ &iomuxc {
++	pinctrl_audmux: audmuxgrp {
++		fsl,pins = <
++			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD	0x130b0
++			MX6QDL_PAD_DISP0_DAT14__AUD5_RXC	0x130b0
++			MX6QDL_PAD_DISP0_DAT13__AUD5_RXFS	0x130b0
++		>;
++	};
++
+ 	pinctrl_flexcan1: flexcan1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_KEY_ROW2__FLEXCAN1_RX	0x1b0b1
+@@ -375,6 +483,30 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ipu1_csi0: ipu1_csi0grp {
++		fsl,pins = <
++			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
++			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
++			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
++			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_pcie: pciegrp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_GPIO_0__GPIO1_IO00		0x1b0b0 /* PCIE RST */
+@@ -399,6 +531,12 @@
+ 		>;
+ 	};
+ 
++	pinctrl_tda1997x: tda1997xgrp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_7__GPIO1_IO07		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_uart2: uart2grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_SD4_DAT7__UART2_TX_DATA	0x1b0b1
+-- 
 2.7.4
