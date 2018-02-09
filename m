@@ -1,185 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:34444 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967531AbeBNLwl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:52:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.4 05/14] media: v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-Date: Wed, 14 Feb 2018 12:52:31 +0100
-Message-Id: <20180214115240.27650-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
-References: <20180214115240.27650-1-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:32861 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751053AbeBIM5y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 07:57:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 06/15] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO ioctl
+Date: Fri, 09 Feb 2018 14:58:24 +0200
+Message-ID: <2094650.vEkocqcH0X@avalon>
+In-Reply-To: <20180209124407.sngsru4jd35iuuth@valkosipuli.retiisi.org.uk>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl> <8c4212b7-2171-7fa9-72d3-4ae38912f663@xs4all.nl> <20180209124407.sngsru4jd35iuuth@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-commit 486c521510c44a04cd756a9267e7d1e271c8a4ba upstream.
+On Friday, 9 February 2018 14:44:07 EET Sakari Ailus wrote:
+> On Fri, Feb 09, 2018 at 01:18:18PM +0100, Hans Verkuil wrote:
+> > On 02/09/18 13:01, Sakari Ailus wrote:
+> >> On Thu, Feb 08, 2018 at 09:36:46AM +0100, Hans Verkuil wrote:
+> >>> The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is
+> >>> also present, since without that you cannot use v4l2-dbg.
+> >>> 
+> >>> Just like the implementation in v4l2-ioctl.c this can be implemented in
+> >>> the core and no drivers need to be modified.
+> >>> 
+> >>> It also makes it possible for v4l2-compliance to properly test the
+> >>> VIDIOC_DBG_G/S_REGISTER ioctls.
+> >>> 
+> >>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>> ---
+> >>> 
+> >>>  drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
+> >>>  1 file changed, 13 insertions(+)
+> >>> 
+> >>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> >>> b/drivers/media/v4l2-core/v4l2-subdev.c index
+> >>> 6cabfa32d2ed..2a5b5a3fa7a3 100644
+> >>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> >>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> >>> @@ -255,6 +255,19 @@ static long subdev_do_ioctl(struct file *file,
+> >>> unsigned int cmd, void *arg)
+> >>>  			return -EPERM;
+> >>>  		
+> >>>  		return v4l2_subdev_call(sd, core, s_register, p);
+> >>>  	}
+> >>> 
+> >>> +	case VIDIOC_DBG_G_CHIP_INFO:
+> >>> +	{
+> >>> +		struct v4l2_dbg_chip_info *p = arg;
+> >>> +
+> >>> +		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
+> >>> +			return -EINVAL;
+> >>> +		if (sd->ops->core && sd->ops->core->s_register)
+> >>> +			p->flags |= V4L2_CHIP_FL_WRITABLE;
+> >>> +		if (sd->ops->core && sd->ops->core->g_register)
+> >>> +			p->flags |= V4L2_CHIP_FL_READABLE;
+> >>> +		strlcpy(p->name, sd->name, sizeof(p->name));
+> >>> +		return 0;
+> >>> +	}
+> >> 
+> >> This is effectively doing the same as debugfs except that it's specific
+> >> to V4L2. I don't think we should endorse its use, and especially not
+> >> without a real use case.
+> > 
+> > We (Cisco) use it all the time. Furthermore, this works for any bus, not
+> > just i2c. Also spi, internal register busses, etc.
+> > 
+> > It's been in use for many years. More importantly, there is no excuse to
+> > have only half the API implemented.
+> > 
+> > It's all fine to talk about debugfs, but are you going to make that? This
+> > API works, it's supported by v4l2-dbg, it's in use. Now, let's at least
+> > make it pass v4l2-compliance.
+> > 
+> > I agree, if we would redesign it, we would use debugfs. But I think it
+> > didn't even exist when this was made. So this API is here to stay and all
+> > it takes is this ioctl of code to add the missing piece for subdevs.
+> > 
+> > Nobody is going to make a replacement for this using debugfs. Why spend
+> > effort on it if we already have an API for this?
+> 
+> It's not the first case when a more generic API replaces a subsystem
+> specific one. We have another conversion to make, switching from
+> implementing s_power() callback in drivers to runtime PM for instance.
+> 
+> I simply want to point out that this patch is endorsing something which is
+> obsolete and not needed: no-one has complained about the lack of this for
+> sub-devices, haven't they?
+> 
+> I'd just remove the check from v4l-compliance or make it optional. New
+> drivers should use debugfs instead if something like that is needed.
 
-These helper functions do not really help. Move the code to the
-__get/put_v4l2_format32 functions.
+I second Sakari's opinion here. While I don't like the log status operation as 
+we now have debugfs to implement the same functionality, I like the get/set 
+register operations exposed through the V4L2 API even less. Let's not endorse 
+usage of something we know is obsolete and work on replacing it with proper 
+upstream APIs. For this specific case the first step is to not implement 
+VIDIOC_DBG_G_CHIP_INFO and not consider the lack of support for this ioctl as 
+a compliance issue. We can do so as the API has never documented its usage for 
+subdevs.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 104 +++++---------------------
- 1 file changed, 20 insertions(+), 84 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index c849b67b98df..5ebc11476f63 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -89,78 +89,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	return 0;
- }
- 
--static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
--					     struct v4l2_pix_format_mplane __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
--					     struct v4l2_pix_format_mplane __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_sdr_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_sdr_format)))
--		return -EFAULT;
--	return 0;
--}
--
- struct v4l2_format32 {
- 	__u32	type;	/* enum v4l2_buf_type */
- 	union {
-@@ -199,23 +127,27 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
-+		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
-+				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
--						  &up->fmt.pix_mp);
-+		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
-+				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
--		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
-+		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
-+				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
--		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
-+		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
-+				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
--		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
-+		return copy_from_user(&kp->fmt.sdr, &up->fmt.sdr,
-+				      sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
- 			kp->type);
-@@ -246,23 +178,27 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
-+		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
-+				    sizeof(kp->fmt.pix)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
--						  &up->fmt.pix_mp);
-+		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
-+				    sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
--		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
-+		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
-+				    sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
--		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
-+		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
-+				    sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
--		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
-+		return copy_to_user(&up->fmt.sdr, &kp->fmt.sdr,
-+				    sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
- 			kp->type);
 -- 
-2.15.1
+Regards,
+
+Laurent Pinchart
