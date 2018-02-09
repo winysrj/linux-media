@@ -1,50 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f71.google.com ([209.85.214.71]:56033 "EHLO
-        mail-it0-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032283AbeBOOJd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 09:09:33 -0500
-Received: by mail-it0-f71.google.com with SMTP id z2so321111ite.5
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 06:09:32 -0800 (PST)
-MIME-Version: 1.0
-Message-ID: <001a113eda30dfe799056540c6b7@google.com>
-Date: Thu, 15 Feb 2018 14:09:32 +0000
-Subject: Targeted B2B Companies Emails List 
-From: sally.grant@dedicatedaccounts.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Content-Transfer-Encoding: base64
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:37459 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752261AbeBIONg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 09:13:36 -0500
+Received: by mail-pl0-f67.google.com with SMTP id ay8so1520171plb.4
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 06:13:35 -0800 (PST)
+From: Antonio Cardace <anto.cardace@gmail.com>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, andriy.shevchenko@linux.intel.com,
+        Antonio Cardace <anto.cardace@gmail.com>
+Subject: [PATCH] em28xx: use %*phC to print small buffers
+Date: Fri,  9 Feb 2018 14:13:26 +0000
+Message-Id: <20180209141326.12910-1-anto.cardace@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNCkkgd2FzIHdvbmRlcmluZyBpZiB5b3Ugd291bGQgYmUgaW50ZXJlc3RlZCBpbiB0YXJn
-ZXRpbmcgYSBjdXN0b21pemVkIGxpc3QgIA0Kb2YgeW91ciBjb21wZXRpdG9ycyBFbmQgVXNlcnMg
-SW5zdGFsbCBCYXNlIGZvciB5b3VyIHVwY29taW5nIE1hcmtldGluZyAgDQpTdHJhdGVneS4NCg0K
-4oCiIEVSUC0gSkQgRWR3YXJkcywgSW5mb3IgQmFhbiwgU0FQLCBFeGFjdCBTb2Z0d2FyZSwgTmV0
-U3VpdGUsIFBlb3BsZVNvZnQsICANCmV0Yy4NCuKAoiBDUk0tIFNhbGVzZm9yY2UsIE1TIER5bmFt
-aWNzLCBOZXRTdWl0ZSwgU2llYmVsLCBUZXJhZGF0YSwgRXBpY29yLCBJbmZvciwgIA0KQ0RDIFNv
-ZnR3YXJlLCBldGMuDQrigKIgRW5naW5lZXJpbmcgU29mdHdhcmUtIEF1dG9kZXNrLCBTaWVtZW5z
-IFBMTSwgQWRvYmUsIEF1dG9DQUQsIE1BWUEsIFJldml0LCAgDQpTb2xpZCB3b3JrcywgUFRDLCBN
-QURDQUQsIGV0Yy4NCuKAoiBDbG91ZCBDb21wdXRpbmctIEFtYXpvbiwgUmFjayBTcGFjZSwgR29v
-Z2xlIEFQUFMsIEh5cGVyLVYsIE5ldEFwcCwgZXRjLg0K4oCiIFN0b3JhZ2UgYXBwbGljYXRpb24g
-LSBOZXRBcHAsIEVNQywgQ2l0cml4LCBIUCwgQnJvY2FkZSwgREVMTCwgZXRjLg0K4oCiIFNlY3Vy
-aXR5IFNvZnR3YXJlLSBTeW1hbnRlYywgTWNBZmVlLCBJQk0sIFJpdmVyYmVkLCBUYWJiZXJnLCBD
-b21tdmF1bHQsICANCkp1bmlwZXIgTmV0d29ya3MsIEY1LCBldGMuDQrigKIgTmV0d29ya2luZy0g
-QnJvY2FkZSwgU3ltYW50ZWMsIEF2YXlhLCBDaXNjbywgU2hvcmV0ZWwsIGV0Yy4NCuKAoiBNZWRp
-Y2FsIFNvZnR3YXJlLSBOZXh0R2VuLCBBbGwgU2NyaXB0cywgRU1SLCBNY0tlc3NvbiwgUHJhY3Rp
-Y2UgRnVzaW9uLCAgDQplQ2xpbmljYWwgV29ya3MsIGV0Yy4NCuKAoiBBY2NvdW50aW5nIFNvZnR3
-YXJlLSBTYWdlLCBQZWFjaHRyZWUsIFRpbWJlcmxpbmUsIE1TIER5bmFtaWNzLCBOZXRTdWl0ZSwg
-IA0KRGVsdGVrLCBMYXdzb24sIFF1aWNrQm9va3MsIGV0Yy4NCuKAoiBCdXNpbmVzcyBJbnRlbGxp
-Z2VuY2UtIFNBUCBCdXNpbmVzcyBPYmplY3RzLCBNaWNyb3N0cmF0ZXJneSwgVGliY28sICANCk1p
-Y3Jvc29mdCBCSSwgUWxpa1RlY2gsIEluZm9ybWF0aW9uIEJ1aWxkZXJzLCBldGMuDQpXZSBwcm92
-aWRlIGRhdGEgYWNyb3NzIHRoZSBnbG9iZSAtIE5vcnRoIEFtZXJpY2EsIEVNRUEsIEFzaWEgUGFj
-aWZpYyBhbmQgIA0KTEFUQU0uIFdlIHByb3ZpZGUgdGhlIGRlY2lzaW9uIE1ha2VycyBjb250YWN0
-cyBsaWtlIENJTywgQ1RPLCBDSVNPLCBJVCBWUCwgIA0KSVQgRGlyZWN0b3IsIElUIG1hbmFnZXIs
-IElUIGhlYWQsIGV0Yy4NCg0KUGxlYXNlIHJldmlldyBhbmQgbGV0IG1lIGtub3cgaWYgeW91IGFy
-ZSBsb29raW5nIGZvciBhbnkgdHlwZSBvZiBsaXN0IGFuZCAgDQp3ZSBjYW4gc2VydmljZSB5b3Uu
-DQoNCklmIHlvdSBhcmUgaW50ZXJlc3RlZCwgbGV0IG1lIGtub3cgeW91ciB0YXJnZXRlZCBnZW9n
-cmFwaHkgc28gdGhhdCBJIHdpbGwgIA0KZ2V0IGJhY2sgdG8geW91IHdpdGggdGhlIGNvdW50cyBh
-bmQgbW9yZSBpbmZvcm1hdGlvbi4NCg0KQXdhaXQgeW91ciByZXNwb25zZSENClRoYW5rcywNClNh
-bGx5IEdyYW50DQpNYXJrZXRpbmcgRXhlY3V0aXZlDQoNCiAgSWYgeW91IGFyZSBub3QgaW50ZXJl
-c3RlZCBpbiByZWNlaXZpbmcgZnVydGhlciBlbWFpbHMsIHBsZWFzZSBhbnN3ZXIgYmFjayAgDQp3
-aXRoICJvdmVybG9vayIgaW4gdGhlIHRpdGxlLg0K
+Use %*phC format to print small buffers as hex strings
+
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Antonio Cardace <anto.cardace@gmail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 9bf49d666e5a..9ad958004990 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -710,8 +710,8 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
+ 		mc_start = (data[1] << 8) + 4;	/* usually 0x0004 */
+ 
+ 		dev_info(&dev->intf->dev,
+-			 "EEPROM ID = %02x %02x %02x %02x, EEPROM hash = 0x%08lx\n",
+-			 data[0], data[1], data[2], data[3], dev->hash);
++			 "EEPROM ID = %4ph, EEPROM hash = 0x%08lx\n",
++			 data, dev->hash);
+ 		dev_info(&dev->intf->dev,
+ 			 "EEPROM info:\n");
+ 		dev_info(&dev->intf->dev,
+@@ -776,8 +776,8 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
+ 		   data[2] == 0x67 && data[3] == 0x95) {
+ 		dev->hash = em28xx_hash_mem(data, len, 32);
+ 		dev_info(&dev->intf->dev,
+-			 "EEPROM ID = %02x %02x %02x %02x, EEPROM hash = 0x%08lx\n",
+-			 data[0], data[1], data[2], data[3], dev->hash);
++			 "EEPROM ID = %4ph, EEPROM hash = 0x%08lx\n",
++			 data, dev->hash);
+ 		dev_info(&dev->intf->dev,
+ 			 "EEPROM info:\n");
+ 	} else {
+-- 
+2.15.1.354.g95ec6b1b3
