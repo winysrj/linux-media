@@ -1,91 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:19175 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751544AbeBHSRr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 13:17:47 -0500
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH] media: intel-ipu3: cio2: Synchronize irqs at
- stop_streaming
-Date: Thu, 8 Feb 2018 18:17:43 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AEE4434@ORSMSX106.amr.corp.intel.com>
-References: <1518043670-4602-1-git-send-email-yong.zhi@intel.com>
- <20180208073811.ie5c2x6o3vbxvxqi@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20180208073811.ie5c2x6o3vbxvxqi@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:43635 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751122AbeBIGc5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 01:32:57 -0500
+Received: by mail-pg0-f65.google.com with SMTP id f6so2994114pgs.10
+        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 22:32:57 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v10 2/8] media: v4l-ioctl: fix clearing pad for VIDIOC_DV_TIMIGNS_CAP
+Date: Thu,  8 Feb 2018 22:32:30 -0800
+Message-Id: <1518157956-14220-3-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1518157956-14220-1-git-send-email-tharvey@gateworks.com>
+References: <1518157956-14220-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari,
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: Wednesday, February 7, 2018 11:38 PM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com;
-> tfiga@chromium.org; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Zheng, Jian
-> Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
-> <rajmohan.mani@intel.com>
-> Subject: Re: [PATCH] media: intel-ipu3: cio2: Synchronize irqs at
-> stop_streaming
-> 
-> Hi Yong,
-> 
-> On Wed, Feb 07, 2018 at 02:47:50PM -0800, Yong Zhi wrote:
-> > This is to avoid pending interrupts to be handled during stream off,
-> > in which case, the ready buffer will be removed from buffer list, thus
-> > not all buffers can be returned to VB2 as expected. Disable CIO2 irq
-> > at cio2_hw_exit() so no new interrupts are generated.
-> >
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> > ---
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> >
-> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> > b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> > index 725973f..8d75146 100644
-> > --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> > +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> > @@ -518,6 +518,8 @@ static void cio2_hw_exit(struct cio2_device *cio2,
-> struct cio2_queue *q)
-> >  	unsigned int i, maxloops = 1000;
-> >
-> >  	/* Disable CSI receiver and MIPI backend devices */
-> > +	writel(0, q->csi_rx_base + CIO2_REG_IRQCTRL_MASK);
-> > +	writel(0, q->csi_rx_base + CIO2_REG_IRQCTRL_ENABLE);
-> >  	writel(0, q->csi_rx_base + CIO2_REG_CSIRX_ENABLE);
-> >  	writel(0, q->csi_rx_base + CIO2_REG_MIPIBE_ENABLE);
-> >
-> > @@ -1027,6 +1029,7 @@ static void cio2_vb2_stop_streaming(struct
-> vb2_queue *vq)
-> >  			"failed to stop sensor streaming\n");
-> >
-> >  	cio2_hw_exit(cio2, q);
-> > +	synchronize_irq(cio2->pci_dev->irq);
-> 
-> Shouldn't this be put in cio2_hw_exit(), which is called from multiple
-> locations? Presumably the same issue exists there, too.
-> 
-
-Thanks for catching this, cio2_hw_exit() is used at two other places, and only one of them is subject to racing, so I will add synchronize_irq there in next update if it's OK.
-
-> >  	cio2_vb2_return_all_buffers(q, VB2_BUF_STATE_ERROR);
-> >  	media_pipeline_stop(&q->vdev.entity);
-> >  	pm_runtime_put(&cio2->pci_dev->dev);
-> 
-> --
-> Regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7961499..5f3670d 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2638,7 +2638,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
+ 	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
+ 	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
+-	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
++	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
+ 	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
+-- 
+2.7.4
