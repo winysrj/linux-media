@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46776 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753147AbeBFUib (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48950 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750863AbeBIMtN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 15:38:31 -0500
-Subject: Re: [PATCH v8 5/7] media: i2c: Add TDA1997x HDMI receiver driver
-To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
- <1517948874-21681-6-git-send-email-tharvey@gateworks.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3630ba30-eb18-0829-7b0c-f0a786232969@xs4all.nl>
-Date: Tue, 6 Feb 2018 21:38:24 +0100
+        Fri, 9 Feb 2018 07:49:13 -0500
+Date: Fri, 9 Feb 2018 14:49:10 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 00/15] Media Controller compliance fixes
+Message-ID: <20180209124910.yt7cv5gcz5wasfcy@valkosipuli.retiisi.org.uk>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+ <20180209124806.4ukqlf6vejgloiua@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1517948874-21681-6-git-send-email-tharvey@gateworks.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180209124806.4ukqlf6vejgloiua@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/2018 09:27 PM, Tim Harvey wrote:
-> Add support for the TDA1997x HDMI receivers.
+On Fri, Feb 09, 2018 at 02:48:07PM +0200, Sakari Ailus wrote:
+> On Thu, Feb 08, 2018 at 09:36:40AM +0100, Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Hi all,
+> > 
+> > I've been posting random patches fixing various MC problems, but it is
+> > easier to see them all in a single patch series.
+> > 
+> > All patches except 13 and 14 are identical to was I posted earlier.
+> > For 13 and 14 I decided to drop the requirement that the application
+> > clears the reserved field. Only the driver will clear it.
 > 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
-> ---
+> Thanks!
+> 
+> For patches 5, 7, 8, 10, 12 and 14:
 
-<snip>
+And patches 1 and 2 as well.
 
-> +static int tda1997x_get_dv_timings_cap(struct v4l2_subdev *sd,
-> +				       struct v4l2_dv_timings_cap *cap)
-> +{
-> +	if (cap->pad != TDA1997X_PAD_SOURCE)
-> +		return -EINVAL;
-> +
-> +	*cap = tda1997x_dv_timings_cap;
-> +	return 0;
-> +}
-> +
-> +static int tda1997x_enum_dv_timings(struct v4l2_subdev *sd,
-> +				    struct v4l2_enum_dv_timings *timings)
-> +{
-> +	if (timings->pad != TDA1997X_PAD_SOURCE)
-> +		return -EINVAL;
-> +
-> +	return v4l2_enum_dv_timings_cap(timings, &tda1997x_dv_timings_cap,
-> +					NULL, NULL);
-> +}
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> -- 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
 
-You shouldn't need this pad test: it's done in the v4l2-subdev.c core code
-already. But please double-check :-)
-
-Can you post the output of the v4l2-compliance test? I'm curious to see it.
-
-Can you also try to run v4l2-compliance -m /dev/mediaX? That also tests
-whether the right entity types are set (note: testing for that should
-also happen in the subdev compliance test, but I haven't done that yet).
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
