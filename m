@@ -1,175 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:10281 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750945AbeBINOT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 08:14:19 -0500
-Subject: Re: [PATCHv2 04/15] v4l2-subdev: without controls return -ENOTTY
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48256 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750925AbeBIMBi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Feb 2018 07:01:38 -0500
+Date: Fri, 9 Feb 2018 14:01:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 06/15] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO
+ ioctl
+Message-ID: <20180209120136.heg43pxmrkssy5l7@valkosipuli.retiisi.org.uk>
 References: <20180208083655.32248-1-hverkuil@xs4all.nl>
- <20180208083655.32248-5-hverkuil@xs4all.nl>
- <20180209114559.s3gpuzccdsemqhfe@valkosipuli.retiisi.org.uk>
- <c2c96e5d-518d-f858-29d5-2dfefdb17c03@cisco.com>
- <20180209123845.esj7dvqpq5fl2k5y@valkosipuli.retiisi.org.uk>
- <67ea6eb8-ed94-fe1f-a367-4fe79671f569@cisco.com>
- <20180209130952.2q3bhen5ynplimkx@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <f4cf0d14-7c1d-ff37-240d-99bbec9b74fd@cisco.com>
-Date: Fri, 9 Feb 2018 14:14:17 +0100
+ <20180208083655.32248-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180209130952.2q3bhen5ynplimkx@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180208083655.32248-7-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/18 14:09, Sakari Ailus wrote:
-> On Fri, Feb 09, 2018 at 01:48:49PM +0100, Hans Verkuil wrote:
->> On 02/09/18 13:38, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> On Fri, Feb 09, 2018 at 12:56:37PM +0100, Hans Verkuil wrote:
->>>> On 02/09/18 12:46, Sakari Ailus wrote:
->>>>> Hi Hans,
->>>>>
->>>>> On Thu, Feb 08, 2018 at 09:36:44AM +0100, Hans Verkuil wrote:
->>>>>> If the subdev did not define any controls, then return -ENOTTY if
->>>>>> userspace attempts to call these ioctls.
->>>>>>
->>>>>> The control framework functions will return -EINVAL, not -ENOTTY if
->>>>>> vfh->ctrl_handler is NULL.
->>>>>>
->>>>>> Several of these framework functions are also called directly from
->>>>>> drivers, so I don't want to change the error code there.
->>>>>>
->>>>>> Found with vimc and v4l2-compliance.
->>>>>>
->>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>
->>>>> Thanks for the patch.
->>>>>
->>>>> If the handler is NULL, can there be support for the IOCTL at all? I.e.
->>>>> should the missing handler as such result in returning -ENOTTY from these
->>>>> functions instead of -EINVAL?
->>>>
->>>> I didn't dare change the control framework. Some of these v4l2_... functions
->>>> are called by drivers and I didn't want to analyze them all. If these
->>>> functions were only called by v4l2-ioctl.c and v4l2-subdev.c, then I'd have
->>>> changed it in v4l2-ctrls.c, but that's not the case.
->>>>
->>>> It would be a useful project to replace all calls from drivers to these
->>>> functions (they really shouldn't be used by drivers), but that is out-of-scope
->>>> of this patch.
->>>
->>> Is your concern that the caller could check the return value and do
->>> something based on particular error code it gets?
->>
->> Or that the handler is NULL and it returns ENOTTY to userspace. You can have
->> multiple control handlers, some of which might be NULL. It's all unlikely,
->> but the code needs to be analyzed and that takes time. Hmm, atomisp is
->> definitely a big user of these functions.
->>
->> Also, the real issue is the use of these functions by drivers. What I want
->> to do is to have the drivers use the proper functions, then I can move those
->> functions to the core and stop exporting them. And at that moment they can
->> return -ENOTTY instead of -EINVAL.
->>
->> A worthwhile project, but right now I just want to fix v4l2-subdev.c.
-> 
-> Fair enough. How about adding a TODO comment on this in either in the
-> control framework or where the additional checks are now put, to avoid
-> forgetting it?
+Hi Hans,
 
-It's certainly worth a TODO comment, I'll add that. Very good point.
+On Thu, Feb 08, 2018 at 09:36:46AM +0100, Hans Verkuil wrote:
+> The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is also
+> present, since without that you cannot use v4l2-dbg.
+> 
+> Just like the implementation in v4l2-ioctl.c this can be implemented in the
+> core and no drivers need to be modified.
+> 
+> It also makes it possible for v4l2-compliance to properly test the
+> VIDIOC_DBG_G/S_REGISTER ioctls.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index 6cabfa32d2ed..2a5b5a3fa7a3 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -255,6 +255,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  			return -EPERM;
+>  		return v4l2_subdev_call(sd, core, s_register, p);
+>  	}
+> +	case VIDIOC_DBG_G_CHIP_INFO:
+> +	{
+> +		struct v4l2_dbg_chip_info *p = arg;
+> +
+> +		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
+> +			return -EINVAL;
+> +		if (sd->ops->core && sd->ops->core->s_register)
+> +			p->flags |= V4L2_CHIP_FL_WRITABLE;
+> +		if (sd->ops->core && sd->ops->core->g_register)
+> +			p->flags |= V4L2_CHIP_FL_READABLE;
+> +		strlcpy(p->name, sd->name, sizeof(p->name));
+> +		return 0;
+> +	}
 
-Regards,
+This is effectively doing the same as debugfs except that it's specific to
+V4L2. I don't think we should endorse its use, and especially not without a
+real use case.
 
-	Hans
+>  #endif
+>  
+>  	case VIDIOC_LOG_STATUS: {
+> -- 
+> 2.15.1
+> 
 
-> 
-> With that,
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>> Based on a quick glance there are a few tens of places these functions are
->>> used in drivers. Some seems legitimate; the caller having another device
->>> where a control needs to be accessed, for instance.
->>>
->>> And if handler is NULL, -ENOTTY appears to be a more suitable return value
->>> in a lot of the cases (and in many others it makes no difference).
->>>
->>> I wouldn't say this is something that should hold back addressing this in
->>> the control framework instead.
->>>
->>> I can submit a patch if you'd prefer that instead.
->>>
->>>>
->>>> Regards,
->>>>
->>>> 	Hans
->>>>
->>>>>
->>>>>> ---
->>>>>>  drivers/media/v4l2-core/v4l2-subdev.c | 16 ++++++++++++++++
->>>>>>  1 file changed, 16 insertions(+)
->>>>>>
->>>>>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->>>>>> index 43fefa73e0a3..be7a19272614 100644
->>>>>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->>>>>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->>>>>> @@ -187,27 +187,43 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->>>>>>  
->>>>>>  	switch (cmd) {
->>>>>>  	case VIDIOC_QUERYCTRL:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_queryctrl(vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_QUERY_EXT_CTRL:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_QUERYMENU:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_querymenu(vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_G_CTRL:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_S_CTRL:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_G_EXT_CTRLS:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_S_EXT_CTRLS:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_TRY_EXT_CTRLS:
->>>>>> +		if (!vfh->ctrl_handler)
->>>>>> +			return -ENOTTY;
->>>>>>  		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
->>>>>>  
->>>>>>  	case VIDIOC_DQEVENT:
->>>>>
->>>>
->>>
->>
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
