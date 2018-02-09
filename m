@@ -1,162 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:22895 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751628AbeBAJRQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Feb 2018 04:17:16 -0500
-Date: Thu, 01 Feb 2018 17:16:49 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
-Message-ID: <5a72db01.oG0rBQh4BE3Z2Qtb%fengguang.wu@intel.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:46354 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751034AbeBIPlf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 10:41:35 -0500
+Received: by mail-lf0-f66.google.com with SMTP id q194so11763371lfe.13
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 07:41:35 -0800 (PST)
+Date: Fri, 9 Feb 2018 16:41:33 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/2] media: i2c: adv748x: Add missing CBUS page.
+Message-ID: <20180209154133.GF7666@bigcity.dyn.berto.se>
+References: <1518024886-842-1-git-send-email-kbingham@kernel.org>
+ <1518024886-842-3-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1518024886-842-3-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 273caa260035c03d89ad63d72d8cd3d9e5c5e3f1  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+Hi Kieran,
 
-elapsed time: 283m
+Thanks for your patch,
 
-configs tested: 131
+On 2018-02-07 17:34:46 +0000, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> The ADV748x has 12 pages mapped onto I2C addresses.
+> 
+> In the existing implementation only 11 are mapped correctly in the page
+> enumerations, which causes an off-by-one fault on pages above the
+> infoframe definition due to a missing 'CBUS' page.
+> 
+> This causes the address for the CEC, SDP, TXA, and TXB to be incorrectly
+> programmed during the iterations in adv748x_initialise_clients().
+> 
+> Until now this has gone un-noticed due to the fact that following the
+> creation of the clients - the device is reset and the addresses are
+> reprogrammed in manually by the call to "adv748x_write_regs(state,
+> adv748x_set_slave_address);"
+> 
+> As part of moving to dynamic i2c address allocations repair this by
+> providing the missing CBUS page definition.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+I would drop the '.' from the subject line, with that fixed:
 
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-i386                   randconfig-x019-201804
-i386                   randconfig-x010-201804
-i386                   randconfig-x015-201804
-i386                   randconfig-x014-201804
-i386                   randconfig-x012-201804
-i386                   randconfig-x011-201804
-i386                   randconfig-x017-201804
-i386                   randconfig-x016-201804
-i386                   randconfig-x018-201804
-i386                   randconfig-x013-201804
-i386                     randconfig-n0-201804
-x86_64                 randconfig-x008-201804
-x86_64                 randconfig-x000-201804
-x86_64                 randconfig-x005-201804
-x86_64                 randconfig-x002-201804
-x86_64                 randconfig-x007-201804
-x86_64                 randconfig-x009-201804
-x86_64                 randconfig-x006-201804
-x86_64                 randconfig-x001-201804
-x86_64                 randconfig-x003-201804
-x86_64                 randconfig-x004-201804
-i386                     randconfig-i0-201804
-i386                     randconfig-i1-201804
-alpha                               defconfig
-parisc                            allnoconfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-arm                               allnoconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm64                               defconfig
-blackfin                BF526-EZBRD_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                  TCM-BF537_defconfig
-cris                 etrax-100lx_v2_defconfig
-powerpc                      katmai_defconfig
-sparc64                          allyesconfig
-x86_64                 randconfig-g0-02011358
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-i386                             allmodconfig
-i386                     randconfig-a0-201804
-i386                     randconfig-a1-201804
-x86_64                 randconfig-s0-02011538
-x86_64                 randconfig-s1-02011538
-x86_64                 randconfig-s2-02011538
-x86_64                 randconfig-x010-201804
-x86_64                 randconfig-x011-201804
-x86_64                 randconfig-x012-201804
-x86_64                 randconfig-x013-201804
-x86_64                 randconfig-x014-201804
-x86_64                 randconfig-x015-201804
-x86_64                 randconfig-x016-201804
-x86_64                 randconfig-x017-201804
-x86_64                 randconfig-x018-201804
-x86_64                 randconfig-x019-201804
-i386                             alldefconfig
-i386                              allnoconfig
-i386                                defconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-i386                     randconfig-s0-201804
-i386                     randconfig-s1-201804
-x86_64                 randconfig-s3-02011549
-x86_64                 randconfig-s4-02011549
-x86_64                 randconfig-s5-02011549
-arm                  colibri_pxa270_defconfig
-mips                           jazz_defconfig
-sh                        dreamcast_defconfig
-x86_64                 randconfig-u0-02011532
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-s390                        default_defconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-c6x                        evmc6678_defconfig
-h8300                    h8300h-sim_defconfig
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-nios2                         10m50_defconfig
-score                      spct6600_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-x86_64                              federa-25
-x86_64                                  kexec
-x86_64                                   rhel
-x86_64                               rhel-7.2
-x86_64                randconfig-ws0-02011240
-ia64                             alldefconfig
-ia64                              allnoconfig
-ia64                                defconfig
-x86_64                 randconfig-r0-02011337
-i386                   randconfig-x000-201804
-i386                   randconfig-x001-201804
-i386                   randconfig-x002-201804
-i386                   randconfig-x003-201804
-i386                   randconfig-x004-201804
-i386                   randconfig-x005-201804
-i386                   randconfig-x006-201804
-i386                   randconfig-x007-201804
-i386                   randconfig-x008-201804
-i386                   randconfig-x009-201804
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                                     txx9
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Thanks,
-Fengguang
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 3 +++
+>  drivers/media/i2c/adv748x/adv748x.h      | 2 ++
+>  2 files changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 71c69b816db2..6d62b817ed00 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -52,6 +52,7 @@ static const struct regmap_config adv748x_regmap_cnf[] = {
+>  	ADV748X_REGMAP_CONF("edid"),
+>  	ADV748X_REGMAP_CONF("repeater"),
+>  	ADV748X_REGMAP_CONF("infoframe"),
+> +	ADV748X_REGMAP_CONF("cbus"),
+>  	ADV748X_REGMAP_CONF("cec"),
+>  	ADV748X_REGMAP_CONF("sdp"),
+>  	ADV748X_REGMAP_CONF("txa"),
+> @@ -91,6 +92,7 @@ static int adv748x_i2c_addresses[ADV748X_PAGE_MAX] = {
+>  	ADV748X_I2C_EDID,
+>  	ADV748X_I2C_REPEATER,
+>  	ADV748X_I2C_INFOFRAME,
+> +	ADV748X_I2C_CBUS,
+>  	ADV748X_I2C_CEC,
+>  	ADV748X_I2C_SDP,
+>  	ADV748X_I2C_TXB,
+> @@ -354,6 +356,7 @@ static const struct adv748x_reg_value adv748x_set_slave_address[] = {
+>  	{ADV748X_PAGE_IO, 0xf6, ADV748X_I2C_EDID << 1},
+>  	{ADV748X_PAGE_IO, 0xf7, ADV748X_I2C_REPEATER << 1},
+>  	{ADV748X_PAGE_IO, 0xf8, ADV748X_I2C_INFOFRAME << 1},
+> +	{ADV748X_PAGE_IO, 0xf9, ADV748X_I2C_CBUS << 1},
+>  	{ADV748X_PAGE_IO, 0xfa, ADV748X_I2C_CEC << 1},
+>  	{ADV748X_PAGE_IO, 0xfb, ADV748X_I2C_SDP << 1},
+>  	{ADV748X_PAGE_IO, 0xfc, ADV748X_I2C_TXB << 1},
+> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+> index 6789e2f3bc8c..725662edc4b8 100644
+> --- a/drivers/media/i2c/adv748x/adv748x.h
+> +++ b/drivers/media/i2c/adv748x/adv748x.h
+> @@ -35,6 +35,7 @@
+>  #define ADV748X_I2C_EDID		0x36	/* EDID Map */
+>  #define ADV748X_I2C_REPEATER		0x32	/* HDMI RX Repeater Map */
+>  #define ADV748X_I2C_INFOFRAME		0x31	/* HDMI RX InfoFrame Map */
+> +#define ADV748X_I2C_CBUS		0x30	/* CBUS MHL Map */
+>  #define ADV748X_I2C_CEC			0x41	/* CEC Map */
+>  #define ADV748X_I2C_SDP			0x79	/* SDP Map */
+>  #define ADV748X_I2C_TXB			0x48	/* CSI-TXB Map */
+> @@ -48,6 +49,7 @@ enum adv748x_page {
+>  	ADV748X_PAGE_EDID,
+>  	ADV748X_PAGE_REPEATER,
+>  	ADV748X_PAGE_INFOFRAME,
+> +	ADV748X_PAGE_CBUS,
+>  	ADV748X_PAGE_CEC,
+>  	ADV748X_PAGE_SDP,
+>  	ADV748X_PAGE_TXB,
+> -- 
+> 2.7.4
+> 
+
+-- 
+Regards,
+Niklas Söderlund
