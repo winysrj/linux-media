@@ -1,69 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60481 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S937941AbeBUPcX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 10:32:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 02/15] vimc: use correct subdev functions
-Date: Wed, 21 Feb 2018 16:32:05 +0100
-Message-Id: <20180221153218.15654-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
-References: <20180221153218.15654-1-hverkuil@xs4all.nl>
+Received: from mail-sn1nam01on0074.outbound.protection.outlook.com ([104.47.32.74]:45263
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752172AbeBIBVu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 20:21:50 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Rohit Athavale <rohit.athavale@xilinx.com>,
+        Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v2 4/9] media-bus: uapi: Add YCrCb 420 media bus format
+Date: Thu, 8 Feb 2018 17:21:34 -0800
+Message-ID: <1518139294-21723-1-git-send-email-satishna@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of calling everything a MEDIA_ENT_F_ATV_DECODER, pick the
-correct functions for these blocks.
+From: Rohit Athavale <rohit.athavale@xilinx.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This commit adds a YUV 420 media bus format. Currently, one
+doesn't exist. VYYUYY8_1X24 does not describe the way the pixels are
+sent over the bus, but is an approximation.
+
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
 ---
- drivers/media/platform/vimc/vimc-debayer.c | 2 +-
- drivers/media/platform/vimc/vimc-scaler.c  | 2 +-
- drivers/media/platform/vimc/vimc-sensor.c  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ include/uapi/linux/media-bus-format.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-index 4d663e89d33f..6e10b63ba9ec 100644
---- a/drivers/media/platform/vimc/vimc-debayer.c
-+++ b/drivers/media/platform/vimc/vimc-debayer.c
-@@ -533,7 +533,7 @@ static int vimc_deb_comp_bind(struct device *comp, struct device *master,
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vdeb->ved, &vdeb->sd, v4l2_dev,
- 				   pdata->entity_name,
--				   MEDIA_ENT_F_ATV_DECODER, 2,
-+				   MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV, 2,
- 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
- 				   MEDIA_PAD_FL_SOURCE},
- 				   &vimc_deb_ops);
-diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-index e1602e0bc230..e583ec7a91da 100644
---- a/drivers/media/platform/vimc/vimc-scaler.c
-+++ b/drivers/media/platform/vimc/vimc-scaler.c
-@@ -395,7 +395,7 @@ static int vimc_sca_comp_bind(struct device *comp, struct device *master,
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vsca->ved, &vsca->sd, v4l2_dev,
- 				   pdata->entity_name,
--				   MEDIA_ENT_F_ATV_DECODER, 2,
-+				   MEDIA_ENT_F_PROC_VIDEO_SCALER, 2,
- 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
- 				   MEDIA_PAD_FL_SOURCE},
- 				   &vimc_sca_ops);
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 54184cd9e0ff..605e2a2d5dd5 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -386,7 +386,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
- 				   pdata->entity_name,
--				   MEDIA_ENT_F_ATV_DECODER, 1,
-+				   MEDIA_ENT_F_CAM_SENSOR, 1,
- 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
- 				   &vimc_sen_ops);
- 	if (ret)
--- 
-2.16.1
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/med=
+ia-bus-format.h
+index 9e35117..ade7e9d 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -62,7 +62,7 @@
+ #define MEDIA_BUS_FMT_RGB121212_1X36           0x1019
+ #define MEDIA_BUS_FMT_RGB161616_1X48           0x101a
+
+-/* YUV (including grey) - next is      0x202c */
++/* YUV (including grey) - next is      0x202d */
+ #define MEDIA_BUS_FMT_Y8_1X8                   0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8                  0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8              0x2002
+@@ -106,6 +106,7 @@
+ #define MEDIA_BUS_FMT_YUV12_1X36               0x2029
+ #define MEDIA_BUS_FMT_YUV16_1X48               0x202a
+ #define MEDIA_BUS_FMT_UYYVYY16_0_5X48          0x202b
++#define MEDIA_BUS_FMT_VYYUYY8_1X24             0x202c
+
+ /* Bayer - next is     0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8               0x3001
+--
+2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
