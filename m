@@ -1,97 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:43520 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751733AbeBVBkL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 20:40:11 -0500
-Received: by mail-pl0-f66.google.com with SMTP id f23so2016569plr.10
-        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 17:40:11 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 06/13] media: platform: video-mux: Register a subdev notifier
-Date: Wed, 21 Feb 2018 17:39:42 -0800
-Message-Id: <1519263589-19647-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-by2nam01on0079.outbound.protection.outlook.com ([104.47.34.79]:44000
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752103AbeBIBVz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 20:21:55 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v2 5/9] v4l: xilinx: dma: Update video format descriptor
+Date: Thu, 8 Feb 2018 17:21:41 -0800
+Message-ID: <1518139301-21764-1-git-send-email-satishna@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the video muxes input ports, add them to a
-subdev notifier, and register the subdev notifier for the video mux, by
-calling v4l2_async_register_fwnode_subdev().
+This patch updates video format descriptor to help information
+viz., number of planes per color format and chroma sub sampling
+factors.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+This commit adds the various 8-bit and 10-bit that are supported
+to the table queried by drivers.
+
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
 ---
- drivers/media/platform/video-mux.c | 35 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+ drivers/media/platform/xilinx/xilinx-vip.c | 18 ++++++++++--------
+ drivers/media/platform/xilinx/xilinx-vip.h | 11 ++++++++++-
+ 2 files changed, 20 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index ee89ad7..7996bd4 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_device.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
- struct video_mux {
-@@ -193,6 +194,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
- 	.video = &video_mux_subdev_video_ops,
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
+tform/xilinx/xilinx-vip.c
+index d306f44..51b7ef6 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -27,22 +27,24 @@
+  */
+
+ static const struct xvip_video_format xvip_video_formats[] =3D {
++       { XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
++         1, 15, V4L2_PIX_FMT_XV15M, 2, 2, 1, 2, "4:2:0, 10-bit 2-plane non=
+-cont" },
+        { XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-         2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
++         2, 16, V4L2_PIX_FMT_YUYV, 1, 1, 2, 1, "4:2:2, packed, YUYV" },
+        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+-         3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
++         3, 24, V4L2_PIX_FMT_VUY24, 1, 1, 1, 1, "4:4:4, packed, YUYV" },
+        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
++         3, 24, V4L2_PIX_FMT_RGB24, 1, 1, 1, 1, "24-bit RGB" },
+        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+-         1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
++         1, 8, V4L2_PIX_FMT_GREY, 1, 1, 1, 1, "Greyscale 8-bit" },
+        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+-         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
++         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit RGGB" },
+        { XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
+-         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
++         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit GRBG" },
+        { XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
+-         1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
++         1, 8, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1, "Bayer 8-bit GBRG" },
+        { XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
+-         1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
++         1, 8, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1, "Bayer 8-bit BGGR" },
  };
- 
-+static int video_mux_parse_endpoint(struct device *dev,
-+				    struct v4l2_fwnode_endpoint *vep,
-+				    struct v4l2_async_subdev *asd)
-+{
-+	/*
-+	 * it's not an error if remote is missing on a video-mux
-+	 * input port, return -ENOTCONN to skip this endpoint with
-+	 * no error.
-+	 */
-+	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
-+}
-+
-+static int video_mux_async_register(struct video_mux *vmux,
-+				    unsigned int num_pads)
-+{
-+	unsigned int i, *ports;
-+	int ret;
-+
-+	ports = kcalloc(num_pads - 1, sizeof(*ports), GFP_KERNEL);
-+	if (!ports)
-+		return -ENOMEM;
-+	for (i = 0; i < num_pads - 1; i++)
-+		ports[i] = i;
-+
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&vmux->subdev, sizeof(struct v4l2_async_subdev),
-+		ports, num_pads - 1, video_mux_parse_endpoint);
-+
-+	kfree(ports);
-+	return ret;
-+}
-+
- static int video_mux_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
-@@ -258,7 +291,7 @@ static int video_mux_probe(struct platform_device *pdev)
- 
- 	vmux->subdev.entity.ops = &video_mux_ops;
- 
--	return v4l2_async_register_subdev(&vmux->subdev);
-+	return video_mux_async_register(vmux, num_pads);
- }
- 
- static int video_mux_remove(struct platform_device *pdev)
--- 
+
+ /**
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/pla=
+tform/xilinx/xilinx-vip.h
+index 42fee20..006dcf77 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -109,8 +109,12 @@ struct xvip_device {
+  * @width: AXI4 format width in bits per component
+  * @pattern: CFA pattern for Mono/Sensor formats
+  * @code: media bus format code
+- * @bpp: bytes per pixel (when stored in memory)
++ * @bpl_factor: Bytes per line factor
+  * @fourcc: V4L2 pixel format FCC identifier
++ * @num_planes: number of planes w.r.t. color format
++ * @buffers: number of buffers per format
++ * @hsub: Horizontal sampling factor of Chroma
++ * @vsub: Vertical sampling factor of Chroma
+  * @description: format description, suitable for userspace
+  */
+ struct xvip_video_format {
+@@ -118,8 +122,13 @@ struct xvip_video_format {
+        unsigned int width;
+        const char *pattern;
+        unsigned int code;
++       unsigned int bpl_factor;
+        unsigned int bpp;
+        u32 fourcc;
++       u8 num_planes;
++       u8 buffers;
++       u8 hsub;
++       u8 vsub;
+        const char *description;
+ };
+
+--
 2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
