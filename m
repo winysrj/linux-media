@@ -1,90 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33406 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752013AbeBEV3q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 16:29:46 -0500
-Subject: Re: [PATCH v2 8/8] platform: vivid-cec: use 64-bit arithmetic instead
- of 32-bit
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-References: <cover.1517856716.git.gustavo@embeddedor.com>
- <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <dc931d9d-8cbd-bbd2-0199-b1846e41f274@xs4all.nl>
-Date: Mon, 5 Feb 2018 22:29:41 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33004 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751151AbeBIN1H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 08:27:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        "Stable v4.14+" <stable@vger.kernel.org>
+Subject: Re: [PATCH] v4l: vsp1: Fix continuous mode for dual pipelines
+Date: Fri, 09 Feb 2018 15:27:36 +0200
+Message-ID: <2830648.6d5UhGC3vQ@avalon>
+In-Reply-To: <1518182305-17988-1-git-send-email-kbingham@kernel.org>
+References: <1518182305-17988-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 09:36 PM, Gustavo A. R. Silva wrote:
-> Add suffix ULL to constant 10 in order to give the compiler complete
-> information about the proper arithmetic to use. Notice that this
-> constant is used in a context that expects an expression of type
-> u64 (64 bits, unsigned).
+Hi Kieran,
+
+Thank you for the patch.
+
+On Friday, 9 February 2018 15:18:25 EET Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
-> The expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is currently being
-> evaluated using 32-bit arithmetic.
+> To allow dual pipelines utilising two WPF entities when available, the
+> VSP was updated to support header-mode display list in continuous
+> pipelines.
 > 
-> Also, remove unnecessary parentheses and add a code comment to make it
-> clear what is the reason of the code change.
+> A small bug in the status check of the command register causes the
+> second pipeline to be directly afflicted by the running of the first;
+> appearing as a perceived performance issue with stuttering display.
 > 
-> Addresses-Coverity-ID: 1454996
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> Fix the vsp1_dl_list_hw_update_pending() call to ensure that the read
+> comparison corresponds to the correct pipeline.
+> 
+> Fixes: eaf4bfad6ad8 ("v4l: vsp1: Add support for header display
+> lists in continuous mode")
+> Cc: "Stable v4.14+" <stable@vger.kernel.org>
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Good catch !
+
+The patch looks good to me, but I wonder if we shouldn't write the subject 
+line as "v4l: vsp1: Fix header display list status check in continuous mode". 
+Sure, we're fixing continuous mode for dual pipelines, but that's more of a 
+side effect, it's header display lists that are broken as a whole in 
+continuous mode, even if we only use that for dual pipelines right now.
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Please let me know if you'd like to rewrite the commit message.
+
 > ---
-> Changes in v2:
->  - Update subject and changelog to better reflect the proposed code changes.
->  - Add suffix ULL to constant instead of casting a variable.
->  - Remove unncessary parentheses.
-
-unncessary -> unnecessary
-
->  - Add code comment.
+>  drivers/media/platform/vsp1/vsp1_dl.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
->  drivers/media/platform/vivid/vivid-cec.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+> b/drivers/media/platform/vsp1/vsp1_dl.c index 8cd03ee45f79..34b5ed2592f8
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -509,7 +509,8 @@ static bool vsp1_dl_list_hw_update_pending(struct
+> vsp1_dl_manager *dlm) return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
+>  			  & VI6_DL_BODY_SIZE_UPD);
+>  	else
+> -		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index) & VI6_CMD_UPDHDR));
+> +		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
+> +			  & VI6_CMD_UPDHDR);
+
+/me feels so ashamed.
+
+>  }
 > 
-> diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
-> index b55d278..614787b 100644
-> --- a/drivers/media/platform/vivid/vivid-cec.c
-> +++ b/drivers/media/platform/vivid/vivid-cec.c
-> @@ -82,8 +82,15 @@ static void vivid_cec_pin_adap_events(struct cec_adapter *adap, ktime_t ts,
->  
->  	if (adap == NULL)
->  		return;
-> -	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
-> -			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
-> +
-> +	/*
-> +	 * Suffix ULL on constant 10 makes the expression
-> +	 * CEC_TIM_START_BIT_TOTAL + 10ULL * len * CEC_TIM_DATA_BIT_TOTAL
-> +	 * be evaluated using 64-bit unsigned arithmetic (u64), which
-> +	 * is what ktime_sub_us expects as second argument.
-> +	 */
+>  static bool vsp1_dl_hw_active(struct vsp1_dl_manager *dlm)
 
-That's not really the comment that I was looking for. It still doesn't
-explain *why* this is needed at all. How about something like this:
-
-/*
- * Add the ULL suffix to the constant 10 to work around a false Coverity
- * "Unintentional integer overflow" warning. Coverity isn't smart enough
- * to understand that len is always <= 16, so there is no chance of an
- * integer overflow.
- */
-
+-- 
 Regards,
 
-	Hans
-
-> +	ts = ktime_sub_us(ts, CEC_TIM_START_BIT_TOTAL +
-> +			       10ULL * len * CEC_TIM_DATA_BIT_TOTAL);
->  	cec_queue_pin_cec_event(adap, false, ts);
->  	ts = ktime_add_us(ts, CEC_TIM_START_BIT_LOW);
->  	cec_queue_pin_cec_event(adap, true, ts);
-> 
+Laurent Pinchart
