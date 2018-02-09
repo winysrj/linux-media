@@ -1,78 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:27335 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752412AbeBHLBS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 06:01:18 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2] media: stm32-dcmi: add g/s_parm framerate support
-Date: Thu, 8 Feb 2018 12:00:45 +0100
-Message-ID: <1518087645-1394-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:42457 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753114AbeBIXLf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 18:11:35 -0500
+Received: by mail-qk0-f193.google.com with SMTP id c185so4570540qkg.9
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 15:11:35 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@kernel.org
+Cc: slongerbeam@gmail.com, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, ian.arkver.dev@gmail.com,
+        hans.verkuil@cisco.com, p.zabel@pengutronix.de,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Subject: [PATCH v2] media: imx-media-internal-sd: Use empty initializer
+Date: Fri,  9 Feb 2018 21:11:16 -0200
+Message-Id: <1518217876-7037-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add g/s_parm framerate support by calling subdev
-g/s_frame_interval ops.
-This allows user to control sensor framerate by
-calling ioctl G/S_PARM.
+From: Fabio Estevam <fabio.estevam@nxp.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+When building with W=1 the following warning shows up:
+
+drivers/staging/media/imx/imx-media-internal-sd.c:274:49: warning: Using plain integer as NULL pointer
+
+Fix this problem by using an empty initializer, which guarantees that all
+struct members are zero-cleared.
+
+Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
 ---
-version 2:
-  - Rebase on Hans branch to use new helpers:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg125769.html
+Changes since v1:
+- Use empty initializer insted of memset() - Ian
 
- drivers/media/platform/stm32/stm32-dcmi.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/staging/media/imx/imx-media-internal-sd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 9460b30..60dd24c 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -1167,6 +1167,22 @@ static int dcmi_enum_framesizes(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static int dcmi_g_parm(struct file *file, void *priv,
-+		       struct v4l2_streamparm *p)
-+{
-+	struct stm32_dcmi *dcmi = video_drvdata(file);
-+
-+	return v4l2_g_parm_cap(video_devdata(file), dcmi->entity.subdev, p);
-+}
-+
-+static int dcmi_s_parm(struct file *file, void *priv,
-+		       struct v4l2_streamparm *p)
-+{
-+	struct stm32_dcmi *dcmi = video_drvdata(file);
-+
-+	return v4l2_s_parm_cap(video_devdata(file), dcmi->entity.subdev, p);
-+}
-+
- static int dcmi_enum_frameintervals(struct file *file, void *fh,
- 				    struct v4l2_frmivalenum *fival)
+diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
+index 70833fe..daf66c2 100644
+--- a/drivers/staging/media/imx/imx-media-internal-sd.c
++++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+@@ -271,7 +271,7 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
+ 			       int ipu_id)
  {
-@@ -1269,6 +1285,9 @@ static int dcmi_release(struct file *file)
- 	.vidioc_g_input			= dcmi_g_input,
- 	.vidioc_s_input			= dcmi_s_input,
+ 	struct imx_media_internal_sd_platformdata pdata;
+-	struct platform_device_info pdevinfo = {0};
++	struct platform_device_info pdevinfo = {};
+ 	struct platform_device *pdev;
  
-+	.vidioc_g_parm			= dcmi_g_parm,
-+	.vidioc_s_parm			= dcmi_s_parm,
-+
- 	.vidioc_enum_framesizes		= dcmi_enum_framesizes,
- 	.vidioc_enum_frameintervals	= dcmi_enum_frameintervals,
- 
+ 	pdata.grp_id = isd->id->grp_id;
 -- 
-1.9.1
+2.7.4
