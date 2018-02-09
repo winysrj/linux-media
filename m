@@ -1,95 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:54579 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752511AbeBFRgF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 12:36:05 -0500
-Date: Tue, 6 Feb 2018 18:35:58 +0100 (CET)
-From: Enrico Mioso <mrkiko.rs@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrey Konovalov <andreyknvl@google.com>,
-        Piotr Oleszczyk <piotr.oleszczyk@gmail.com>,
-        Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH] media: cxusb, dib0700: ignore XC2028_I2C_FLUSH
-In-Reply-To: <d59f93e1aa90d5c9a9172f731b3c66093d7a031d.1516791902.git.mchehab@osg.samsung.com>
-Message-ID: <alpine.LNX.2.21.99.1802061834570.29822@mStation.localdomain>
-References: <d59f93e1aa90d5c9a9172f731b3c66093d7a031d.1516791902.git.mchehab@osg.samsung.com>
+Received: from mail-sn1nam01on0070.outbound.protection.outlook.com ([104.47.32.70]:25376
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752172AbeBIBVf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Feb 2018 20:21:35 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v2 2/9] media: xilinx: vip: Add the pixel format for RGB24
+Date: Thu, 8 Feb 2018 17:21:19 -0800
+Message-ID: <1518139279-21633-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thank you very very much!!
-Hoping this patch find it's way into mainline ASAP! :)
-It will make my life much easier, when dealing with systems with long uptime especially.
+From: Hyun Kwon <hyun.kwon@xilinx.com>
 
+The pixel format for RGB24 is missing, and the driver
+always falls back to YUYV as no format descriptor matches
+with RGB24 fourcc. The pixel format is added to RGB24
+format descriptor so that user can use the format.
 
-Enrico
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+---
+ drivers/media/platform/xilinx/xilinx-vip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
+tform/xilinx/xilinx-vip.c
+index 3112591..d306f44 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -32,7 +32,7 @@ static const struct xvip_video_format xvip_video_formats[=
+] =3D {
+        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+          3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
+        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-         3, 0, NULL },
++         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
+        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+          1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
+        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+--
+2.7.4
 
-On Wed, 24 Jan 2018, Mauro Carvalho Chehab wrote:
-
-> Date: Wed, 24 Jan 2018 12:05:24
-> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> To: Enrico Mioso <mrkiko.rs@gmail.com>,
->     Linux Media Mailing List <linux-media@vger.kernel.org>,
->     Jonathan Corbet <corbet@lwn.net>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
->     Mauro Carvalho Chehab <mchehab@infradead.org>,
->     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
->     Michael Krufky <mkrufky@linuxtv.org>, Sean Young <sean@mess.org>,
->     Hans Verkuil <hans.verkuil@cisco.com>,
->     Andrey Konovalov <andreyknvl@google.com>,
->     Piotr Oleszczyk <piotr.oleszczyk@gmail.com>,
->     Alexey Dobriyan <adobriyan@gmail.com>
-> Subject: [PATCH] media: cxusb, dib0700: ignore XC2028_I2C_FLUSH
-> 
-> The XC2028_I2C_FLUSH only needs to be implemented on a few
-> devices. Others can safely ignore it.
->
-> That prevents filling the dmesg with lots of messages like:
->
-> 	dib0700: stk7700ph_xc3028_callback: unknown command 2, arg 0
->
-> Reported-by: Enrico Mioso <mrkiko.rs@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
-> drivers/media/usb/dvb-usb/cxusb.c           | 2 ++
-> drivers/media/usb/dvb-usb/dib0700_devices.c | 1 +
-> 2 files changed, 3 insertions(+)
->
-> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-> index 37dea0adc695..cfe86b4864b3 100644
-> --- a/drivers/media/usb/dvb-usb/cxusb.c
-> +++ b/drivers/media/usb/dvb-usb/cxusb.c
-> @@ -677,6 +677,8 @@ static int dvico_bluebird_xc2028_callback(void *ptr, int component,
-> 	case XC2028_RESET_CLK:
-> 		deb_info("%s: XC2028_RESET_CLK %d\n", __func__, arg);
-> 		break;
-> +	case XC2028_I2C_FLUSH:
-> +		break;
-> 	default:
-> 		deb_info("%s: unknown command %d, arg %d\n", __func__,
-> 			 command, arg);
-> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-> index 366b05529915..a9968fb1e8e4 100644
-> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-> @@ -430,6 +430,7 @@ static int stk7700ph_xc3028_callback(void *ptr, int component,
-> 		state->dib7000p_ops.set_gpio(adap->fe_adap[0].fe, 8, 0, 1);
-> 		break;
-> 	case XC2028_RESET_CLK:
-> +	case XC2028_I2C_FLUSH:
-> 		break;
-> 	default:
-> 		err("%s: unknown command %d, arg %d\n", __func__,
-> -- 
-> 2.14.3
->
->
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
