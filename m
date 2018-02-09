@@ -1,92 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19168 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752402AbeBZJ5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 04:57:42 -0500
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Daniel Thompson <daniel.thompson@linaro.org>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Cc: thierry.reding@gmail.com, shc_work@mail.ru, kgene@kernel.org,
-        krzk@kernel.org, linux@armlinux.org.uk, mturquette@baylibre.com,
-        sboyd@codeaurora.org, joonas.lahtinen@linux.intel.com,
-        rodrigo.vivi@intel.com, airlied@linux.ie, kamil@wypas.org,
-        b.zolnierkie@samsung.com, jdelvare@suse.com, linux@roeck-us.net,
-        dmitry.torokhov@gmail.com, rpurdie@rpsys.net,
-        jacek.anaszewski@gmail.com, pavel@ucw.cz, mchehab@kernel.org,
-        sean@mess.org, lee.jones@linaro.org, jingoohan1@gmail.com,
-        milo.kim@ti.com, robh+dt@kernel.org, mark.rutland@arm.com,
-        corbet@lwn.net, nicolas.ferre@microchip.com,
-        alexandre.belloni@free-electrons.com, linux-pwm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-clk@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-hwmon@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-In-Reply-To: <20180222123308.mypx2r7n6o63mj5z@oak.lan>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com> <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com> <20180222123308.mypx2r7n6o63mj5z@oak.lan>
-Date: Mon, 26 Feb 2018 11:57:25 +0200
-Message-ID: <87po4s2hve.fsf@intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:50778 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752776AbeBIVbk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 16:31:40 -0500
+Received: by mail-wm0-f66.google.com with SMTP id f71so17699141wmf.0
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 13:31:40 -0800 (PST)
+Subject: Re: [PATCH] media: imx-media-internal-sd: Use memset to clear
+ pdevinfo struct
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+To: Fabio Estevam <fabio.estevam@nxp.com>, mchehab@kernel.org
+Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de,
+        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+        gregkh@linuxfoundation.org, festevam@gmail.com
+References: <20180209163640.8759-1-fabio.estevam@nxp.com>
+ <afdf4f21-538d-fbe1-b300-8bfa944b6754@gmail.com>
+Message-ID: <ca2367ef-3b50-65dc-199a-f94b646210de@gmail.com>
+Date: Fri, 9 Feb 2018 21:31:36 +0000
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <afdf4f21-538d-fbe1-b300-8bfa944b6754@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
-> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
->> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
->> were adapted to this change.
->> 
->> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+On 09/02/18 21:17, Ian Arkver wrote:
+> On 09/02/18 16:36, Fabio Estevam wrote:
+>> When building with W=1 the following warning shows up:
+>>
+>> drivers/staging/media/imx/imx-media-internal-sd.c:274:49: warning: 
+>> Using plain integer as NULL pointer
+>>
+>> Fix this problem by using memset() to clear the pdevinfo structure.
+> 
+> Hi Fabio,
+> 
+> I thought initializers were preferred to memset. I think the problem 
+> here is the first element of the struct is a pointer. Maybe this would 
+> be better?
+> 
+> struct platform_device_info pdevinfo = {NULL};
+
+Actually an empty initialiser list would be better again.
+
+eg:
+https://patchwork.kernel.org/patch/9480131/
+
+> I see similar patches, for example:
+> https://patchwork.kernel.org/patch/10095129/
+> 
+> Regards,
+> IanJ
+>>
+>> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
 >> ---
->>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
->>  drivers/bus/ts-nbus.c                |  2 +-
->>  drivers/clk/clk-pwm.c                |  3 ++-
->>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
->>  drivers/hwmon/pwm-fan.c              |  2 +-
->>  drivers/input/misc/max77693-haptic.c |  2 +-
->>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
->>  drivers/leds/leds-pwm.c              |  5 ++++-
->>  drivers/media/rc/ir-rx51.c           |  5 ++++-
->>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
->>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
->>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
->>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
->>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
->>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
->>  include/linux/pwm.h                  |  6 ++++--
->>  16 files changed, 70 insertions(+), 21 deletions(-)
->> 
->> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
->> index 2030a6b77a09..696fa25dafd2 100644
->> --- a/drivers/video/backlight/lm3630a_bl.c
->> +++ b/drivers/video/backlight/lm3630a_bl.c
->> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
->>  {
->>  	unsigned int period = pchip->pdata->pwm_period;
->>  	unsigned int duty = br * period / br_max;
->> +	struct pwm_caps caps = { };
->>  
->> -	pwm_config(pchip->pwmd, duty, period);
->> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
->> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
->
-> Well... I admit I've only really looked at the patches that impact 
-> backlight but dispersing this really odd looking bit twiddling 
-> throughout the kernel doesn't strike me a great API design.
->
-> IMHO callers should not be required to find the first set bit in
-> some specially crafted set of capability bits simply to get sane 
-> default behaviour.
-
-Agreed. IMHO the regular use case becomes rather tedious, ugly, and
-error prone.
-
-BR,
-Jani.
-
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+>>   drivers/staging/media/imx/imx-media-internal-sd.c | 3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c 
+>> b/drivers/staging/media/imx/imx-media-internal-sd.c
+>> index 70833fe503b5..377c20863b76 100644
+>> --- a/drivers/staging/media/imx/imx-media-internal-sd.c
+>> +++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+>> @@ -271,7 +271,7 @@ static int add_internal_subdev(struct 
+>> imx_media_dev *imxmd,
+>>                      int ipu_id)
+>>   {
+>>       struct imx_media_internal_sd_platformdata pdata;
+>> -    struct platform_device_info pdevinfo = {0};
+>> +    struct platform_device_info pdevinfo;
+>>       struct platform_device *pdev;
+>>       pdata.grp_id = isd->id->grp_id;
+>> @@ -283,6 +283,7 @@ static int add_internal_subdev(struct 
+>> imx_media_dev *imxmd,
+>>       imx_media_grp_id_to_sd_name(pdata.sd_name, sizeof(pdata.sd_name),
+>>                       pdata.grp_id, ipu_id);
+>> +    memset(&pdevinfo, 0, sizeof(pdevinfo));
+>>       pdevinfo.name = isd->id->name;
+>>       pdevinfo.id = ipu_id * num_isd + isd->id->index;
+>>       pdevinfo.parent = imxmd->md.dev;
+>>
