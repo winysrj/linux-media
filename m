@@ -1,107 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:44676 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753198AbeBVJuQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 04:50:16 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2] media: stm32-dcmi: rework overrun/error case
-Date: Thu, 22 Feb 2018 10:49:33 +0100
-Message-ID: <1519292973-19808-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:51095 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751004AbeBISWy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 13:22:54 -0500
+Received: by mail-wm0-f68.google.com with SMTP id f71so16948501wmf.0
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 10:22:53 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: post@helmutauer.de, rascobie@slingshot.co.nz,
+        d_spingler@freenet.de, Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH] [media] dvb-frontends/stv0910: rework and fix DiSEqC send
+Date: Fri,  9 Feb 2018 19:22:49 +0100
+Message-Id: <20180209182249.11896-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not stop/restart dma on overrun or errors.
-Dma will be restarted on current frame transfer
-completion. Frame transfer completion is ensured
-even if overrun or error occurs by DCMI continuous
-capture mode which restarts data transfer at next
-frame sync.
-Do no warn on overrun while in irq thread, this slows down
-system and lead to more overrun errors. Use a counter
-instead and log errors at stop streaming.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Rework both DiSEqC send functions (send_master_cmd() and send_burst()) to
+utilise the new SET_REG() and SET_FIELD() macros. Esp. due to SET_FIELD(),
+this makes sure that not all bits (with unrelated purposes) are always
+rewritten, but only those needed for sending DiSEqC commands. In
+send_burst(), this makes sure that DISEQC_MODE isn't changed from 3 to 2
+inbetween when sending SEC_MINI_A. Also, change both functions to write
+DISEQC_MODE first before setting DIS_PRECHARGE. This makes diseqc control
+work more reliable for "fullblown" DiSEqC strings in VDR's diseqc.conf in
+combination with certain multiswitches.
+
+Fixes: 448461af0e19 ("media: dvb-frontends/stv0910: implement diseqc_send_burst")
+
+Reported-by: Helmut Auer <post@helmutauer.de>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Helmut Auer <post@helmutauer.de>
+Tested-by: Richard Scobie <rascobie@slingshot.co.nz>
+Tested-by: Dietmar Spingler <d_spingler@freenet.de>
 ---
-version 2:
-  - Minor: remove extra line at end of dcmi_stop_streaming()
+ drivers/media/dvb-frontends/stv0910.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-  drivers/media/platform/stm32/stm32-dcmi.c | 29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 5de18ad..536c0d5 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -160,6 +160,7 @@ struct stm32_dcmi {
- 	dma_cookie_t			dma_cookie;
- 	u32				misr;
- 	int				errors_count;
-+	int				overrun_count;
- 	int				buffers_count;
- };
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index a2f7c0c1587f..52355c14fd64 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1673,15 +1673,15 @@ static int send_master_cmd(struct dvb_frontend *fe,
+ 			   struct dvb_diseqc_master_cmd *cmd)
+ {
+ 	struct stv *state = fe->demodulator_priv;
+-	u16 offs = state->nr ? 0x40 : 0;
+ 	int i;
  
-@@ -373,23 +374,9 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
+-	write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3E);
++	SET_FIELD(DISEQC_MODE, 2);
++	SET_FIELD(DIS_PRECHARGE, 1);
+ 	for (i = 0; i < cmd->msg_len; i++) {
+ 		wait_dis(state, 0x40, 0x00);
+-		write_reg(state, RSTV0910_P1_DISTXFIFO + offs, cmd->msg[i]);
++		SET_REG(DISTXFIFO, cmd->msg[i]);
  	}
- 
- 	if ((dcmi->misr & IT_OVR) || (dcmi->misr & IT_ERR)) {
--		/*
--		 * An overflow or an error has been detected,
--		 * stop current DMA transfert & restart it
--		 */
--		dev_warn(dcmi->dev, "%s: Overflow or error detected\n",
--			 __func__);
--
- 		dcmi->errors_count++;
--		dev_dbg(dcmi->dev, "Restarting capture after DCMI error\n");
--
--		spin_unlock_irq(&dcmi->irqlock);
--		dmaengine_terminate_all(dcmi->dma_chan);
--
--		if (dcmi_start_capture(dcmi))
--			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
--				__func__);
--		return IRQ_HANDLED;
-+		if (dcmi->misr & IT_OVR)
-+			dcmi->overrun_count++;
- 	}
- 
- 	spin_unlock_irq(&dcmi->irqlock);
-@@ -572,6 +559,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	dcmi->sequence = 0;
- 	dcmi->errors_count = 0;
-+	dcmi->overrun_count = 0;
- 	dcmi->buffers_count = 0;
- 	dcmi->active = NULL;
- 
-@@ -682,8 +670,13 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 
- 	clk_disable(dcmi->mclk);
- 
--	dev_dbg(dcmi->dev, "Stop streaming, errors=%d buffers=%d\n",
--		dcmi->errors_count, dcmi->buffers_count);
-+	if (dcmi->errors_count)
-+		dev_warn(dcmi->dev, "Some errors found while streaming: errors=%d (overrun=%d), buffers=%d\n",
-+			 dcmi->errors_count, dcmi->overrun_count,
-+			 dcmi->buffers_count);
-+	dev_dbg(dcmi->dev, "Stop streaming, errors=%d (overrun=%d), buffers=%d\n",
-+		dcmi->errors_count, dcmi->overrun_count,
-+		dcmi->buffers_count);
+-	write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3A);
++	SET_FIELD(DIS_PRECHARGE, 0);
+ 	wait_dis(state, 0x20, 0x20);
+ 	return 0;
  }
+@@ -1689,19 +1689,20 @@ static int send_master_cmd(struct dvb_frontend *fe,
+ static int send_burst(struct dvb_frontend *fe, enum fe_sec_mini_cmd burst)
+ {
+ 	struct stv *state = fe->demodulator_priv;
+-	u16 offs = state->nr ? 0x40 : 0;
+ 	u8 value;
  
- static const struct vb2_ops dcmi_video_qops = {
+ 	if (burst == SEC_MINI_A) {
+-		write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3F);
++		SET_FIELD(DISEQC_MODE, 3);
+ 		value = 0x00;
+ 	} else {
+-		write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3E);
++		SET_FIELD(DISEQC_MODE, 2);
+ 		value = 0xFF;
+ 	}
++
++	SET_FIELD(DIS_PRECHARGE, 1);
+ 	wait_dis(state, 0x40, 0x00);
+-	write_reg(state, RSTV0910_P1_DISTXFIFO + offs, value);
+-	write_reg(state, RSTV0910_P1_DISTXCFG + offs, 0x3A);
++	SET_REG(DISTXFIFO, value);
++	SET_FIELD(DIS_PRECHARGE, 0);
+ 	wait_dis(state, 0x20, 0x20);
+ 
+ 	return 0;
 -- 
-1.9.1
+2.13.6
