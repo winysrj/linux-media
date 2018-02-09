@@ -1,92 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:45390 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752256AbeBFJSa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 04:18:30 -0500
-Subject: Re: [PATCH 5/5] add default control values as module parameters
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
- <1517840981-12280-6-git-send-email-floe@butterbrot.org>
- <0be7b0ae-e0e0-7b25-fd76-8cf6387a4dd6@xs4all.nl>
-From: Florian Echtler <floe@butterbrot.org>
-Message-ID: <a7724625-de74-871f-7728-79b751481970@butterbrot.org>
-Date: Tue, 6 Feb 2018 10:18:25 +0100
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55089 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753087AbeBIN6Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 08:58:25 -0500
+Received: by mail-wm0-f67.google.com with SMTP id i186so15534284wmi.4
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 05:58:24 -0800 (PST)
+Subject: Re: [PATCH v2 9/9] [media] Add documentation for YUV420 bus format
+To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        michal.simek@xilinx.com, hyun.kwon@xilinx.com
+Cc: Satish Kumar Nagireddy <satishna@xilinx.com>
+References: <1518139327-21947-1-git-send-email-satishna@xilinx.com>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <97e51a9a-04da-e441-25ea-945acc249f80@gmail.com>
+Date: Fri, 9 Feb 2018 13:58:22 +0000
 MIME-Version: 1.0
-In-Reply-To: <0be7b0ae-e0e0-7b25-fd76-8cf6387a4dd6@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="Vq4OEuC6OZhnCNdvwzDnffhYppb2O2PCS"
+In-Reply-To: <1518139327-21947-1-git-send-email-satishna@xilinx.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Vq4OEuC6OZhnCNdvwzDnffhYppb2O2PCS
-Content-Type: multipart/mixed; boundary="wEc2UAGF14PcTCjwPo6j2KzkslocR2Yd4";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-Message-ID: <a7724625-de74-871f-7728-79b751481970@butterbrot.org>
-Subject: Re: [PATCH 5/5] add default control values as module parameters
-References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
- <1517840981-12280-6-git-send-email-floe@butterbrot.org>
- <0be7b0ae-e0e0-7b25-fd76-8cf6387a4dd6@xs4all.nl>
-In-Reply-To: <0be7b0ae-e0e0-7b25-fd76-8cf6387a4dd6@xs4all.nl>
+On 09/02/18 01:22, Satish Kumar Nagireddy wrote:
+> The code is MEDIA_BUS_FMT_VYYUYY8_1X24
+> 
+> Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+> ---
+>   Documentation/media/uapi/v4l/subdev-formats.rst | 34 +++++++++++++++++++++++++
+>   1 file changed, 34 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+> index b1eea44..a4d7d87 100644
+> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+> @@ -7283,6 +7283,40 @@ The following table list existing packed 48bit wide YUV formats.
+>         - y\ :sub:`1`
+>         - y\ :sub:`0`
+> 
+> +      - MEDIA_BUS_FMT_VYYUYY8_1X24
+> +      - 0x202c
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      - v\ :sub:`7`
+> +      - v\ :sub:`6`
+> +      - v\ :sub:`5`
+> +      - v\ :sub:`4`
+> +      - v\ :sub:`3`
+> +      - v\ :sub:`2`
+> +      - v\ :sub:`1`
+> +      - v\ :sub:`0`
+> +      - u\ :sub:`7`
+> +      - u\ :sub:`6`
+> +      - u\ :sub:`5`
+> +      - u\ :sub:`4`
+> +      - u\ :sub:`3`
+> +      - u\ :sub:`2`
+> +      - u\ :sub:`1`
+> +      - u\ :sub:`0`
+> +      - y\ :sub:`7`
+> +      - y\ :sub:`6`
+> +      - y\ :sub:`5`
+> +      - y\ :sub:`4`
+> +      - y\ :sub:`3`
+> +      - y\ :sub:`2`
+> +      - y\ :sub:`1`
+> +      - y\ :sub:`0`
 
---wEc2UAGF14PcTCjwPo6j2KzkslocR2Yd4
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+If this bus format name doesn't really describe how the pixels are sent 
+on the bus, maybe the documentation should? Is this for something like 
+MIPI CSI-2 YUV420 non-legacy modes where the bus format alternates on 
+odd/even lines?
 
-On 05.02.2018 15:56, Hans Verkuil wrote:
-> Please add a change log when you make a patch.
-> I for one would like to know why this has to be supplied as a module op=
-tion.
+Regards,
+IanJ
 
-The idea here was that each individual SUR40 device will likely have slig=
-htly
-different "ideal" settings for the parameters, and by using the module op=
-tions,
-you can set them right away at startup.
-
-I'm aware that the usual way to do this would be from userspace using v4l=
-2-ctl,
-but the SUR40 is sort of a special case: the video settings will also inf=
-luence
-the internal touch detection, and in the worst case, starting the driver =
-with
-the default parameters from flash will immediately cause so many false-po=
-sitive
-touch points to be detected that the graphical shell becomes unusable. Th=
-is has
-actually happened several times during testing, so we considered a module=
- option
-to be the easiest way for dealing with this.
-
-> Some documentation in the code would be helpful as well (e.g. I have no=
- idea
-> what a 'vsvideo' is).
-Right - will do that, too.
-
-Best regards, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
-
-
---wEc2UAGF14PcTCjwPo6j2KzkslocR2Yd4--
-
---Vq4OEuC6OZhnCNdvwzDnffhYppb2O2PCS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEARECAAYFAlp5cuEACgkQ7CzyshGvatjZcACeL0eqkiv3pcSCBOUVKpdNVvaW
-GVAAoONHdLxcpy/RQuNTpnjHaqKDOuR/
-=Rat+
------END PGP SIGNATURE-----
-
---Vq4OEuC6OZhnCNdvwzDnffhYppb2O2PCS--
+> 
+>   .. raw:: latex
+> 
+> --
+> 2.7.4
+> 
+> This email and any attachments are intended for the sole use of the named recipient(s) and contain(s) confidential information that may be proprietary, privileged or copyrighted under applicable law. If you are not the intended recipient, do not read, copy, or forward this email message or any attachments. Delete this email message and any attachments immediately.
+> 
