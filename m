@@ -1,81 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44830 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965186AbeBMQ6X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 11:58:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:10281 "EHLO
+        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750945AbeBINOT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 08:14:19 -0500
+Subject: Re: [PATCHv2 04/15] v4l2-subdev: without controls return -ENOTTY
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 16/30] rcar-vin: update bytesperline and sizeimage calculation
-Date: Tue, 13 Feb 2018 18:58:54 +0200
-Message-ID: <6654769.EFGEBSbQ1Q@avalon>
-In-Reply-To: <20180129163435.24936-17-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-17-niklas.soderlund+renesas@ragnatech.se>
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+ <20180208083655.32248-5-hverkuil@xs4all.nl>
+ <20180209114559.s3gpuzccdsemqhfe@valkosipuli.retiisi.org.uk>
+ <c2c96e5d-518d-f858-29d5-2dfefdb17c03@cisco.com>
+ <20180209123845.esj7dvqpq5fl2k5y@valkosipuli.retiisi.org.uk>
+ <67ea6eb8-ed94-fe1f-a367-4fe79671f569@cisco.com>
+ <20180209130952.2q3bhen5ynplimkx@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <f4cf0d14-7c1d-ff37-240d-99bbec9b74fd@cisco.com>
+Date: Fri, 9 Feb 2018 14:14:17 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20180209130952.2q3bhen5ynplimkx@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On 02/09/18 14:09, Sakari Ailus wrote:
+> On Fri, Feb 09, 2018 at 01:48:49PM +0100, Hans Verkuil wrote:
+>> On 02/09/18 13:38, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> On Fri, Feb 09, 2018 at 12:56:37PM +0100, Hans Verkuil wrote:
+>>>> On 02/09/18 12:46, Sakari Ailus wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> On Thu, Feb 08, 2018 at 09:36:44AM +0100, Hans Verkuil wrote:
+>>>>>> If the subdev did not define any controls, then return -ENOTTY if
+>>>>>> userspace attempts to call these ioctls.
+>>>>>>
+>>>>>> The control framework functions will return -EINVAL, not -ENOTTY if
+>>>>>> vfh->ctrl_handler is NULL.
+>>>>>>
+>>>>>> Several of these framework functions are also called directly from
+>>>>>> drivers, so I don't want to change the error code there.
+>>>>>>
+>>>>>> Found with vimc and v4l2-compliance.
+>>>>>>
+>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>
+>>>>> Thanks for the patch.
+>>>>>
+>>>>> If the handler is NULL, can there be support for the IOCTL at all? I.e.
+>>>>> should the missing handler as such result in returning -ENOTTY from these
+>>>>> functions instead of -EINVAL?
+>>>>
+>>>> I didn't dare change the control framework. Some of these v4l2_... functions
+>>>> are called by drivers and I didn't want to analyze them all. If these
+>>>> functions were only called by v4l2-ioctl.c and v4l2-subdev.c, then I'd have
+>>>> changed it in v4l2-ctrls.c, but that's not the case.
+>>>>
+>>>> It would be a useful project to replace all calls from drivers to these
+>>>> functions (they really shouldn't be used by drivers), but that is out-of-scope
+>>>> of this patch.
+>>>
+>>> Is your concern that the caller could check the return value and do
+>>> something based on particular error code it gets?
+>>
+>> Or that the handler is NULL and it returns ENOTTY to userspace. You can have
+>> multiple control handlers, some of which might be NULL. It's all unlikely,
+>> but the code needs to be analyzed and that takes time. Hmm, atomisp is
+>> definitely a big user of these functions.
+>>
+>> Also, the real issue is the use of these functions by drivers. What I want
+>> to do is to have the drivers use the proper functions, then I can move those
+>> functions to the core and stop exporting them. And at that moment they can
+>> return -ENOTTY instead of -EINVAL.
+>>
+>> A worthwhile project, but right now I just want to fix v4l2-subdev.c.
+> 
+> Fair enough. How about adding a TODO comment on this in either in the
+> control framework or where the additional checks are now put, to avoid
+> forgetting it?
 
-Thank you for the patch.
+It's certainly worth a TODO comment, I'll add that. Very good point.
 
-On Monday, 29 January 2018 18:34:21 EET Niklas S=F6derlund wrote:
-> Remove over complicated logic to calculate the value for bytesperline
-
-s/over complicated/overcomplicated/
-
-> and sizeimage that was carried over from the soc_camera port. Update the
-> calculations to match how other drivers are doing it.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 11 ++---------
->  1 file changed, 2 insertions(+), 9 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 1169e6a279ecfb55..bca6e204a574772f 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -118,10 +118,8 @@ static int rvin_format_align(struct rvin_dev *vin,
-> struct v4l2_pix_format *pix) v4l_bound_align_image(&pix->width, 2,
-> vin->info->max_width, walign, &pix->height, 4, vin->info->max_height, 2,
-> 0);
->=20
-> -	pix->bytesperline =3D max_t(u32, pix->bytesperline,
-> -				  rvin_format_bytesperline(pix));
-> -	pix->sizeimage =3D max_t(u32, pix->sizeimage,
-> -			       rvin_format_sizeimage(pix));
-> +	pix->bytesperline =3D rvin_format_bytesperline(pix);
-> +	pix->sizeimage =3D rvin_format_sizeimage(pix);
-
-Thus this mean that the driver will stop supporting configurable strides ?=
-=20
-Isn't that a regression ?
-
->  	if (vin->info->model =3D=3D RCAR_M1 &&
->  	    pix->pixelformat =3D=3D V4L2_PIX_FMT_XBGR32) {
-> @@ -270,11 +268,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	if (pix->field =3D=3D V4L2_FIELD_ANY)
->  		pix->field =3D vin->format.field;
->=20
-> -
-> -	/* Always recalculate */
-> -	pix->bytesperline =3D 0;
-> -	pix->sizeimage =3D 0;
-> -
->  	/* Limit to source capabilities */
->  	ret =3D __rvin_try_format_source(vin, which, pix);
->  	if (ret)
-
-
-=2D-=20
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> With that,
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> Based on a quick glance there are a few tens of places these functions are
+>>> used in drivers. Some seems legitimate; the caller having another device
+>>> where a control needs to be accessed, for instance.
+>>>
+>>> And if handler is NULL, -ENOTTY appears to be a more suitable return value
+>>> in a lot of the cases (and in many others it makes no difference).
+>>>
+>>> I wouldn't say this is something that should hold back addressing this in
+>>> the control framework instead.
+>>>
+>>> I can submit a patch if you'd prefer that instead.
+>>>
+>>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>
+>>>>>
+>>>>>> ---
+>>>>>>  drivers/media/v4l2-core/v4l2-subdev.c | 16 ++++++++++++++++
+>>>>>>  1 file changed, 16 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+>>>>>> index 43fefa73e0a3..be7a19272614 100644
+>>>>>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+>>>>>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+>>>>>> @@ -187,27 +187,43 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>>>>>>  
+>>>>>>  	switch (cmd) {
+>>>>>>  	case VIDIOC_QUERYCTRL:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_queryctrl(vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_QUERY_EXT_CTRL:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_QUERYMENU:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_querymenu(vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_G_CTRL:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_S_CTRL:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_G_EXT_CTRLS:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_S_EXT_CTRLS:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_TRY_EXT_CTRLS:
+>>>>>> +		if (!vfh->ctrl_handler)
+>>>>>> +			return -ENOTTY;
+>>>>>>  		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
+>>>>>>  
+>>>>>>  	case VIDIOC_DQEVENT:
+>>>>>
+>>>>
+>>>
+>>
+> 
