@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:53451 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751357AbeBWNOJ (ORCPT
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:34439 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751019AbeBJRKs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 08:14:09 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Tim Harvey <tharvey@gateworks.com>, Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: i2c: TDA1997x: add CONFIG_SND dependency
-Date: Fri, 23 Feb 2018 14:13:26 +0100
-Message-Id: <20180223131356.979530-1-arnd@arndb.de>
+        Sat, 10 Feb 2018 12:10:48 -0500
+Received: by mail-qt0-f172.google.com with SMTP id d14so14377578qtg.1
+        for <linux-media@vger.kernel.org>; Sat, 10 Feb 2018 09:10:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CA+JrePoxPFMteM2QvTy-px-tX+8Ojs97e1RQivxMvKMmOftqUw@mail.gmail.com>
+References: <CA+JrePoxPFMteM2QvTy-px-tX+8Ojs97e1RQivxMvKMmOftqUw@mail.gmail.com>
+From: John Cooper <mrgrymreaper@gmail.com>
+Date: Sat, 10 Feb 2018 17:10:46 +0000
+Message-ID: <CA+JrePq=P7nEw=-sh+uMQ+Jg7W4--BKFtsX6NNdpqmCvooktzA@mail.gmail.com>
+Subject: Fwd: Freeview UK Scan Tables - URGENT Attention Necessarily Required
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without CONFIG_SND, we get a link error:
+---------- Forwarded message ----------
+From: John Cooper <mrgrymreaper@gmail.com>
+Date: 10 February 2018 at 17:05
+Subject: Freeview UK Scan Tables - URGENT Attention Necessarily Required
+To: linux-media@vget.kernel.org
 
-ERROR: "snd_soc_register_codec" [drivers/media/i2c/tda1997x.ko] undefined!
-ERROR: "snd_soc_unregister_codec" [drivers/media/i2c/tda1997x.ko] undefined!
-ERROR: "snd_pcm_hw_constraint_minmax" [drivers/media/i2c/tda1997x.ko] undefined!
 
-This adds the same Kconfig dependency that we have in other
-media drivers, using 'select SND_PCM' to ensure that we have
-can call snd_pcm_hw_constraint_minmax, while depending on
-CONFIG_SND_SOC for registering the codec.
+Hi,
 
-Fixes: 9ac0038db9a7 ("media: i2c: Add TDA1997x HDMI receiver driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/i2c/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
+I have just had a talk with Dave from Digital UK so I can update my
+scan table locally. However in order for all of the United Kingdom's
+Freeview scan tables to be updated fully. So it can cope with the
+700MHz band clearance and be able to successfully scan the channels.
+As otherwise NO channels will be able to be found during the scan from
+software which uses DVBv5 via v4l.
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 94e32d75d632..a44e8c36f13c 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -59,6 +59,8 @@ config VIDEO_TDA9840
- config VIDEO_TDA1997X
- 	tristate "NXP TDA1997x HDMI receiver"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on SND_SOC
-+	select SND_PCM
- 	---help---
- 	  V4L2 subdevice driver for the NXP TDA1997x HDMI receivers.
- 
--- 
-2.9.0
+It is policy of Digital UK for someone from LinuxTV to send an email
+for the attention of Dave requesting the information necessary to
+update the scan tables.
+
+They can be reached at help@freeview.co.uk and it would be best if it
+is marked "Important - High"; as well as for follow up.
+
+Hope someone can do this today as there are already people in the
+United Kingdom who use the software and are on 4 different
+transmitters. Who are effectively cut off from receiving Freeview
+without updated scan tables, as of Wednesday (07 February 2018).
+
+For information about the clearance necessitating this update please
+visit: http://www.digitaluk.co.uk/operations/700mhz_clearance/clearance_events_in_2018
+http://www.digitaluk.co.uk/operations/700mhz_clearance/clearance_events_in_2018
+
+Thank you for your time and attention in this matter.
+
+Kind Regards,
+
+John Cooper
