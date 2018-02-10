@@ -1,242 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:39323 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1033317AbeBNRQ4 (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:45196 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751193AbeBJP3C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 12:16:56 -0500
-Subject: Re: [PATCHv2 2/9] media: convert g/s_parm to g/s_frame_interval in
- subdevs
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org,
+        Sat, 10 Feb 2018 10:29:02 -0500
+Received: by mail-pl0-f65.google.com with SMTP id p5so2832761plo.12
+        for <linux-media@vger.kernel.org>; Sat, 10 Feb 2018 07:29:01 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180122123125.24709-1-hverkuil@xs4all.nl>
- <20180122123125.24709-3-hverkuil@xs4all.nl>
- <20180214140257.1bfd266f@vento.lan>
- <959ca281-d231-0202-a0dc-89605a8270bb@xs4all.nl>
- <20180214150210.1011f331@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d164e24c-ca5d-90ee-c396-12d373c78cd6@xs4all.nl>
-Date: Wed, 14 Feb 2018 18:16:55 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180214150210.1011f331@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 1/2] media: ov2640: make set_fmt() work in power-down mode
+Date: Sun, 11 Feb 2018 00:28:37 +0900
+Message-Id: <1518276518-14034-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1518276518-14034-1-git-send-email-akinobu.mita@gmail.com>
+References: <1518276518-14034-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/02/18 18:02, Mauro Carvalho Chehab wrote:
-> Em Wed, 14 Feb 2018 17:34:17 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 14/02/18 17:03, Mauro Carvalho Chehab wrote:
->>> Em Mon, 22 Jan 2018 13:31:18 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>   
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Convert all g/s_parm calls to g/s_frame_interval. This allows us
->>>> to remove the g/s_parm ops since those are a duplicate of
->>>> g/s_frame_interval.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>  drivers/media/i2c/mt9v011.c                     | 31 +++++++-------------
->>>>  drivers/media/i2c/ov6650.c                      | 35 +++++++++-------------
->>>>  drivers/media/i2c/ov7670.c                      | 24 +++++++--------
->>>>  drivers/media/i2c/ov7740.c                      | 31 +++++++-------------
->>>>  drivers/media/i2c/tvp514x.c                     | 39 +++++++++----------------
->>>>  drivers/media/i2c/vs6624.c                      | 29 +++++++-----------
->>>>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
->>>>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
->>>>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++------
->>>>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
->>>>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
->>>>  drivers/media/platform/via-camera.c             |  4 +--
->>>>  drivers/media/usb/em28xx/em28xx-video.c         | 36 +++++++++++++++++++----
->>>>  13 files changed, 122 insertions(+), 165 deletions(-)
->>>>
->>>> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
->>>> index 5e29064fae91..3e23c5b0de1f 100644
->>>> --- a/drivers/media/i2c/mt9v011.c
->>>> +++ b/drivers/media/i2c/mt9v011.c
->>>> @@ -364,33 +364,24 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
->>>>  	return 0;
->>>>  }
->>>>  
->>>> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->>>> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
->>>> +				    struct v4l2_subdev_frame_interval *ival)
->>>>  {
->>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->>>> -
->>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->>>> -		return -EINVAL;
->>>> -
->>>> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
->>>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
->>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));  
->>>
->>> Hmm.. why to repeat memset everywhere? If the hole idea is to stop abusing,
->>> the best would be to do, instead:  
->>
->> g_frame_interval is called by bridge drivers through the subdev ops. So that
->> path doesn't go through subdev_do_ioctl(). So it doesn't help putting it in
->> v4l2-subdev.c.
-> 
-> True, but you could also do the same for v4l2 ioctl() handling logic.
-> 
-> That would mean just two places with memset() instead of repeating the same
-> pattern everywhere.
-> 
->> That doesn't mean it shouldn't be there as well. I believe my MC patch series
->> actually adds the memset in subdev_do_ioctl.
+The set_fmt() subdev pad operation for this driver currently does not
+only do the driver internal format selection but also do the actual
+register setup.
 
-What could be done is that this patch https://patchwork.linuxtv.org/patch/46955/
-is applied first. After that these memsets can be removed since internally we
-don't need to touch them.
+This doesn't work if the device power control via GPIO lines is enabled.
+Because the set_fmt() can be called when the device is placed into power
+down mode.
 
->>
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->>> index c5639817db34..b18b418c080f 100644
->>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->>> @@ -350,6 +350,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->>>  		if (fi->pad >= sd->entity.num_pads)
->>>  			return -EINVAL;
->>>  
->>> +		memset(fi->reserved, 0, sizeof(ival->reserved));
->>>  		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
->>>  	}
->>>  
->>> (same applies to s_frame_interval).
->>>
->>>   
->>>>  	calc_fps(sd,
->>>> -		 &cp->timeperframe.numerator,
->>>> -		 &cp->timeperframe.denominator);
->>>> +		 &ival->interval.numerator,
->>>> +		 &ival->interval.denominator);
->>>>  
->>>>  	return 0;
->>>>  }
->>>>  
->>>> -static int mt9v011_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->>>> +static int mt9v011_s_frame_interval(struct v4l2_subdev *sd,
->>>> +				    struct v4l2_subdev_frame_interval *ival)
->>>>  {
->>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->>>> -	struct v4l2_fract *tpf = &cp->timeperframe;
->>>> +	struct v4l2_fract *tpf = &ival->interval;
->>>>  	u16 speed;
->>>>  
->>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->>>> -		return -EINVAL;
->>>> -	if (cp->extendedmode != 0)
->>>> -		return -EINVAL;
->>>> -  
->>>
->>> Hmm... why are you removing those sanity checks everywhere?
->>> The core doesn't do it.
->>>
->>> All the above comments also apply to the other files modified by
->>> this patch.  
->>
->> struct v4l2_subdev_frame_interval has neither type nor extendedmode.
->>
->> The check for type is done in the v4l2_g/s_parm_cap helpers instead.
-> 
-> Well, the subdev handler at v4l2-subdev.c doesn't seem to be checking it.
+First of all, this fix adds flag to keep track of whether the device starts
+streaming or not.  Then, the set_fmt() postpones applying the actual
+register setup at this time.  Instead the setup will be applied when the
+streaming is started.
 
-????
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/media/i2c/ov2640.c | 71 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 57 insertions(+), 14 deletions(-)
 
-Are you confusing struct v4l2_streamparm with struct v4l2_subdev_frame_interval?
-
-v4l2_subdev.c deals with the latter, and struct v4l2_subdev_frame_interval has
-no type field. There is nothing to check.
-
-'type' makes no sense in subdev drivers anyway since it refers to a buffer type
-and subdevs do not deal with buffers.
-
-> 
-> 
->> And extendedmode is always set to 0.
->>
->>>   
->>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
->>>>  	speed = calc_speed(sd, tpf->numerator, tpf->denominator);
->>>>  
->>>>  	mt9v011_write(sd, R0A_MT9V011_CLK_SPEED, speed);
->>>> @@ -469,8 +460,8 @@ static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
->>>>  };
->>>>  
->>>>  static const struct v4l2_subdev_video_ops mt9v011_video_ops = {
->>>> -	.g_parm = mt9v011_g_parm,
->>>> -	.s_parm = mt9v011_s_parm,
->>>> +	.g_frame_interval = mt9v011_g_frame_interval,
->>>> +	.s_frame_interval = mt9v011_s_frame_interval,
->>>>  };
->>>>  
->>>>  static const struct v4l2_subdev_pad_ops mt9v011_pad_ops = {
->>>> diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
->>>> index 8975d16b2b24..3f962dae7534 100644
->>>> --- a/drivers/media/i2c/ov6650.c
->>>> +++ b/drivers/media/i2c/ov6650.c
->>>> @@ -201,7 +201,7 @@ struct ov6650 {
->>>>  	struct v4l2_rect	rect;		/* sensor cropping window */
->>>>  	unsigned long		pclk_limit;	/* from host */
->>>>  	unsigned long		pclk_max;	/* from resolution and format */
->>>> -	struct v4l2_fract	tpf;		/* as requested with s_parm */
->>>> +	struct v4l2_fract	tpf;		/* as requested with s_frame_interval */
->>>>  	u32 code;
->>>>  	enum v4l2_colorspace	colorspace;
->>>>  };
->>>> @@ -723,42 +723,33 @@ static int ov6650_enum_mbus_code(struct v4l2_subdev *sd,
->>>>  	return 0;
->>>>  }
->>>>  
->>>> -static int ov6650_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->>>> +static int ov6650_g_frame_interval(struct v4l2_subdev *sd,
->>>> +				   struct v4l2_subdev_frame_interval *ival)
->>>>  {
->>>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>>>  	struct ov6650 *priv = to_ov6650(client);
->>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->>>>  
->>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->>>> -		return -EINVAL;
->>>> -
->>>> -	memset(cp, 0, sizeof(*cp));
->>>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
->>>> -	cp->timeperframe.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
->>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
->>>> +	ival->interval.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
->>>>  			priv->pclk_limit, priv->pclk_max));
->>>> -	cp->timeperframe.denominator = FRAME_RATE_MAX;
->>>> +	ival->interval.denominator = FRAME_RATE_MAX;
->>>>  
->>>>  	dev_dbg(&client->dev, "Frame interval: %u/%u s\n",
->>>> -		cp->timeperframe.numerator, cp->timeperframe.denominator);
->>>> +		ival->interval.numerator, ival->interval.denominator);  
->>>
->>> Hmm... not sure if a debug is needed here. Yet, if this is needed, 
->>> IMHO, it would make mroe sense to move it to the core.  
->>
->> The core doesn't see this if this subdev op is called from a bridge driver.
-> 
-> True, but, when calling via a bridge driver, there's already a way to
-> enable such kind debug.
-
-It can debug VIDIOC_G/S_PARM, not the g_frame_interval op. Also, when called
-via a v4l-subdev device node there is currently NO core logging.
-
-For the record, I don't really care about this debug statement myself one
-way or another, but changing this one way or another doesn't belong in this
-patch series.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index 4c3b927..68a356d 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -307,6 +307,9 @@ struct ov2640_priv {
+ 
+ 	struct gpio_desc *resetb_gpio;
+ 	struct gpio_desc *pwdn_gpio;
++
++	struct mutex lock; /* lock to protect streaming */
++	bool streaming;
+ };
+ 
+ /*
+@@ -798,16 +801,13 @@ static const struct ov2640_win_size *ov2640_select_win(u32 width, u32 height)
+ static int ov2640_set_params(struct i2c_client *client,
+ 			     const struct ov2640_win_size *win, u32 code)
+ {
+-	struct ov2640_priv       *priv = to_ov2640(client);
+ 	const struct regval_list *selected_cfmt_regs;
+ 	u8 val;
+ 	int ret;
+ 
+-	/* select win */
+-	priv->win = win;
++	if (!win)
++		return -EINVAL;
+ 
+-	/* select format */
+-	priv->cfmt_code = 0;
+ 	switch (code) {
+ 	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+ 		dev_dbg(&client->dev, "%s: Selected cfmt RGB565 BE", __func__);
+@@ -846,13 +846,13 @@ static int ov2640_set_params(struct i2c_client *client,
+ 		goto err;
+ 
+ 	/* select preamble */
+-	dev_dbg(&client->dev, "%s: Set size to %s", __func__, priv->win->name);
++	dev_dbg(&client->dev, "%s: Set size to %s", __func__, win->name);
+ 	ret = ov2640_write_array(client, ov2640_size_change_preamble_regs);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* set size win */
+-	ret = ov2640_write_array(client, priv->win->regs);
++	ret = ov2640_write_array(client, win->regs);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -872,14 +872,11 @@ static int ov2640_set_params(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	priv->cfmt_code = code;
+-
+ 	return 0;
+ 
+ err:
+ 	dev_err(&client->dev, "%s: Error %d", __func__, ret);
+ 	ov2640_reset(client);
+-	priv->win = NULL;
+ 
+ 	return ret;
+ }
+@@ -915,11 +912,15 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov2640_priv *priv = to_ov2640(client);
+ 	const struct ov2640_win_size *win;
++	int ret = 0;
+ 
+ 	if (format->pad)
+ 		return -EINVAL;
+ 
++	mutex_lock(&priv->lock);
++
+ 	/* select suitable win */
+ 	win = ov2640_select_win(mf->width, mf->height);
+ 	mf->width	= win->width;
+@@ -941,10 +942,24 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+ 		break;
+ 	}
+ 
+-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		return ov2640_set_params(client, win, mf->code);
+-	cfg->try_fmt = *mf;
+-	return 0;
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		struct ov2640_priv *priv = to_ov2640(client);
++
++		if (priv->streaming) {
++			ret = -EBUSY;
++			goto out;
++		}
++		/* select win */
++		priv->win = win;
++		/* select format */
++		priv->cfmt_code = mf->code;
++	} else {
++		cfg->try_fmt = *mf;
++	}
++out:
++	mutex_unlock(&priv->lock);
++
++	return ret;
+ }
+ 
+ static int ov2640_enum_mbus_code(struct v4l2_subdev *sd,
+@@ -979,6 +994,26 @@ static int ov2640_get_selection(struct v4l2_subdev *sd,
+ 	}
+ }
+ 
++static int ov2640_s_stream(struct v4l2_subdev *sd, int on)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov2640_priv *priv = to_ov2640(client);
++	int ret = 0;
++
++	mutex_lock(&priv->lock);
++	if (priv->streaming == !on) {
++		if (on) {
++			ret = ov2640_set_params(client, priv->win,
++						priv->cfmt_code);
++		}
++	}
++	if (!ret)
++		priv->streaming = on;
++	mutex_unlock(&priv->lock);
++
++	return ret;
++}
++
+ static int ov2640_video_probe(struct i2c_client *client)
+ {
+ 	struct ov2640_priv *priv = to_ov2640(client);
+@@ -1040,9 +1075,14 @@ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+ 	.set_fmt	= ov2640_set_fmt,
+ };
+ 
++static const struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
++	.s_stream = ov2640_s_stream,
++};
++
+ static const struct v4l2_subdev_ops ov2640_subdev_ops = {
+ 	.core	= &ov2640_subdev_core_ops,
+ 	.pad	= &ov2640_subdev_pad_ops,
++	.video	= &ov2640_subdev_video_ops,
+ };
+ 
+ static int ov2640_probe_dt(struct i2c_client *client,
+@@ -1116,6 +1156,7 @@ static int ov2640_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 	priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	mutex_init(&priv->lock);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 2);
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+ 			V4L2_CID_VFLIP, 0, 1, 1, 0);
+@@ -1150,6 +1191,7 @@ static int ov2640_probe(struct i2c_client *client,
+ 	media_entity_cleanup(&priv->subdev.entity);
+ err_hdl:
+ 	v4l2_ctrl_handler_free(&priv->hdl);
++	mutex_destroy(&priv->lock);
+ err_clk:
+ 	clk_disable_unprepare(priv->clk);
+ 	return ret;
+@@ -1161,6 +1203,7 @@ static int ov2640_remove(struct i2c_client *client)
+ 
+ 	v4l2_async_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
++	mutex_destroy(&priv->lock);
+ 	media_entity_cleanup(&priv->subdev.entity);
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	clk_disable_unprepare(priv->clk);
+-- 
+2.7.4
