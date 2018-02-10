@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:33985 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031852AbeBNXB4 (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:49610 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750961AbeBJRuy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 18:01:56 -0500
-Subject: Re: [PATCH] staging: media: reformat line to 80 chars or less
-To: Parthiban Nallathambi <pn@denx.de>
-Cc: p.zabel@pengutronix.de, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-References: <20180212120548.7391-1-pn@denx.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <ee47261e-aa6d-150f-e7f0-b80c74fdec1d@gmail.com>
-Date: Wed, 14 Feb 2018 15:01:52 -0800
+        Sat, 10 Feb 2018 12:50:54 -0500
+Subject: Re: [PATCH v2] media: imx-media-internal-sd: Use empty initializer
+To: Fabio Estevam <festevam@gmail.com>, <mchehab@kernel.org>
+CC: <slongerbeam@gmail.com>, <gregkh@linuxfoundation.org>,
+        <linux-media@vger.kernel.org>, <ian.arkver.dev@gmail.com>,
+        <hans.verkuil@cisco.com>, <p.zabel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>
+References: <1518217876-7037-1-git-send-email-festevam@gmail.com>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <6e179cde-defc-b14d-b077-340869abcdc8@mentor.com>
+Date: Sat, 10 Feb 2018 09:50:41 -0800
 MIME-Version: 1.0
-In-Reply-To: <20180212120548.7391-1-pn@denx.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <1518217876-7037-1-git-send-email-festevam@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Parthiban, please rename the commit title to
-
-"media: imx: capture: reformat line to 80 chars or less"
-
-Otherwise it is fine with me.
-
-Steve
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
 
-On 02/12/2018 04:05 AM, Parthiban Nallathambi wrote:
-> This is a cleanup patch to fix line length issue found
-> by checkpatch.pl script.
+On 02/09/2018 03:11 PM, Fabio Estevam wrote:
+> From: Fabio Estevam <fabio.estevam@nxp.com>
 >
-> In this patch, line 144 have been wrapped.
+> When building with W=1 the following warning shows up:
 >
-> Signed-off-by: Parthiban Nallathambi <pn@denx.de>
+> drivers/staging/media/imx/imx-media-internal-sd.c:274:49: warning: Using plain integer as NULL pointer
+>
+> Fix this problem by using an empty initializer, which guarantees that all
+> struct members are zero-cleared.
+>
+> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
 > ---
->   drivers/staging/media/imx/imx-media-capture.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
+> Changes since v1:
+> - Use empty initializer insted of memset() - Ian
 >
-> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-> index 576bdc7e9c42..0ccabe04b0e1 100644
-> --- a/drivers/staging/media/imx/imx-media-capture.c
-> +++ b/drivers/staging/media/imx/imx-media-capture.c
-> @@ -141,7 +141,8 @@ static int capture_enum_frameintervals(struct file *file, void *fh,
+>   drivers/staging/media/imx/imx-media-internal-sd.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
+> index 70833fe..daf66c2 100644
+> --- a/drivers/staging/media/imx/imx-media-internal-sd.c
+> +++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+> @@ -271,7 +271,7 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
+>   			       int ipu_id)
+>   {
+>   	struct imx_media_internal_sd_platformdata pdata;
+> -	struct platform_device_info pdevinfo = {0};
+> +	struct platform_device_info pdevinfo = {};
+>   	struct platform_device *pdev;
 >   
->   	fie.code = cc->codes[0];
->   
-> -	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
-> +	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval,
-> +			       NULL, &fie);
->   	if (ret)
->   		return ret;
->   
+>   	pdata.grp_id = isd->id->grp_id;
