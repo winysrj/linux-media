@@ -1,132 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:36928 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753983AbeBGOjo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 09:39:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/7] Add SPDX headers for Cisco-authored sources
-Date: Wed,  7 Feb 2018 15:39:32 +0100
-Message-Id: <20180207143939.29491-1-hverkuil@xs4all.nl>
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:32939 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753142AbeBJBWL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 20:22:11 -0500
+Received: by mail-pg0-f54.google.com with SMTP id u1so4769227pgr.0
+        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 17:22:11 -0800 (PST)
+Subject: Re: [PATCH] media: imx: csi: fix enum_mbus_code for unknown mbus
+ format codes
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180208144749.10558-1-p.zabel@pengutronix.de>
+ <79024ebb-bb01-876a-9da9-4c65d3298112@gmail.com>
+ <a578997e-f8e7-a663-97c1-eefe1141a772@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <b18a5c5e-7adc-8790-77e5-dab5364bd463@gmail.com>
+Date: Fri, 9 Feb 2018 17:22:08 -0800
+MIME-Version: 1.0
+In-Reply-To: <a578997e-f8e7-a663-97c1-eefe1141a772@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-This replaces all the old boilerplate license code with the new SPDX
-tags for Cisco-authored files in the media subsystem.
 
-Regards,
+On 02/08/2018 12:01 PM, Hans Verkuil wrote:
+> On 02/08/2018 08:27 PM, Steve Longerbeam wrote:
+>>
+>> On 02/08/2018 06:47 AM, Philipp Zabel wrote:
+>>> If no imx_media_pixfmt is found for a given mbus format code,
+>>> we shouldn't crash. Return -EINVAL for any index.
+>> Hi Philipp,
+>>
+>> If imx_media_find_mbus_format() returns NULL at that location, it means
+>> the current format has an invalid pixel code. It's not possible for an
+>> ACTIVE
+>> format to have an invalid code, so it must be a TRY format with an
+>> uninitialized
+>> (zero) code. Which makes sense if enum_mbus_code(TRY) pad op is called
+>> before
+>> set_fmt(TRY), at the sink pad, was *ever* called. Am I right?
+>>
+>> It looks there is another location where this could possibly happen, in
+>> csi_try_fmt().
+>> In that case it would happen if set_fmt(TRY) is called on a source pad,
+>> before
+>> set_fmt(TRY) was ever called at the sink pad. That's a weird corner case
+>> because
+>> it's not clear what a set_fmt(TRY) at the source pads should choose for
+>> pixel
+>> code if there was never a set_fmt(TRY) at the sink pad.
+>>
+>> But perhaps the following should be added to this patch as well. It
+>> makes the
+>> assumption that the TRY code at the sink pad is the same as the default
+>> active code set from csi_registered().
+>>
+>> Or maybe I should ask the question, what should drivers do in set_fmt(TRY)
+>> at their source pads, if there was no prior set_fmt(TRY) at their sink pads?
+> Drivers can set the initial TRY value by implementing the init_cfg pad op.
+> See e.g. drivers/media/platform/vimc/vimc-sensor.c.
 
-	Hans
+Thanks. I will send a patch that implements init_cfg pad op in all
+imx-media subdevs.
 
-Hans Verkuil (7):
-  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
-  include/(uapi/)media: add SPDX license info
-  vivid: add SPDX license info
-  cobalt: add SPDX license info
-  cec: add SPDX license info
-  i2c: add SPDX license info
-  media: add SPDX license info
+Steve
 
- drivers/media/cec/cec-adap.c                       | 14 +----------
- drivers/media/cec/cec-api.c                        | 14 +----------
- drivers/media/cec/cec-core.c                       | 14 +----------
- drivers/media/cec/cec-edid.c                       | 14 +----------
- drivers/media/cec/cec-notifier.c                   | 14 +----------
- drivers/media/cec/cec-pin-priv.h                   | 14 +----------
- drivers/media/cec/cec-pin.c                        | 14 +----------
- drivers/media/cec/cec-priv.h                       | 14 +----------
- drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c    | 14 +----------
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      | 14 +----------
- drivers/media/i2c/ad9389b.c                        | 14 +----------
- drivers/media/i2c/adv7511.c                        | 14 +----------
- drivers/media/i2c/adv7604.c                        | 14 +----------
- drivers/media/i2c/adv7842.c                        | 15 +----------
- drivers/media/i2c/tc358743.c                       | 15 +----------
- drivers/media/i2c/tc358743_regs.h                  | 15 +----------
- drivers/media/pci/cobalt/Makefile                  |  1 +
- drivers/media/pci/cobalt/cobalt-alsa-main.c        | 14 +----------
- drivers/media/pci/cobalt/cobalt-alsa-pcm.c         | 14 +----------
- drivers/media/pci/cobalt/cobalt-alsa-pcm.h         | 14 +----------
- drivers/media/pci/cobalt/cobalt-alsa.h             | 14 +----------
- drivers/media/pci/cobalt/cobalt-cpld.c             | 14 +----------
- drivers/media/pci/cobalt/cobalt-cpld.h             | 14 +----------
- drivers/media/pci/cobalt/cobalt-driver.c           | 14 +----------
- drivers/media/pci/cobalt/cobalt-driver.h           | 14 +----------
- drivers/media/pci/cobalt/cobalt-flash.c            | 14 +----------
- drivers/media/pci/cobalt/cobalt-flash.h            | 14 +----------
- drivers/media/pci/cobalt/cobalt-i2c.c              | 14 +----------
- drivers/media/pci/cobalt/cobalt-i2c.h              | 14 +----------
- drivers/media/pci/cobalt/cobalt-irq.c              | 14 +----------
- drivers/media/pci/cobalt/cobalt-irq.h              | 14 +----------
- drivers/media/pci/cobalt/cobalt-omnitek.c          | 14 +----------
- drivers/media/pci/cobalt/cobalt-omnitek.h          | 14 +----------
- drivers/media/pci/cobalt/cobalt-v4l2.c             | 14 +----------
- drivers/media/pci/cobalt/cobalt-v4l2.h             | 14 +----------
- .../cobalt/m00233_video_measure_memmap_package.h   | 14 +----------
- .../pci/cobalt/m00235_fdma_packer_memmap_package.h | 14 +----------
- .../media/pci/cobalt/m00389_cvi_memmap_package.h   | 14 +----------
- .../media/pci/cobalt/m00460_evcnt_memmap_package.h | 14 +----------
- .../pci/cobalt/m00473_freewheel_memmap_package.h   | 14 +----------
- .../m00479_clk_loss_detector_memmap_package.h      | 14 +----------
- .../m00514_syncgen_flow_evcnt_memmap_package.h     | 14 +----------
- drivers/media/platform/cec-gpio/cec-gpio.c         | 14 +----------
- drivers/media/platform/vivid/vivid-cec.c           | 14 +----------
- drivers/media/platform/vivid/vivid-cec.h           | 14 +----------
- drivers/media/platform/vivid/vivid-core.c          | 14 +----------
- drivers/media/platform/vivid/vivid-core.h          | 14 +----------
- drivers/media/platform/vivid/vivid-ctrls.c         | 14 +----------
- drivers/media/platform/vivid/vivid-ctrls.h         | 14 +----------
- drivers/media/platform/vivid/vivid-kthread-cap.c   | 14 +----------
- drivers/media/platform/vivid/vivid-kthread-cap.h   | 14 +----------
- drivers/media/platform/vivid/vivid-kthread-out.c   | 14 +----------
- drivers/media/platform/vivid/vivid-kthread-out.h   | 14 +----------
- drivers/media/platform/vivid/vivid-osd.c           | 14 +----------
- drivers/media/platform/vivid/vivid-osd.h           | 14 +----------
- drivers/media/platform/vivid/vivid-radio-common.c  | 14 +----------
- drivers/media/platform/vivid/vivid-radio-common.h  | 14 +----------
- drivers/media/platform/vivid/vivid-radio-rx.c      | 14 +----------
- drivers/media/platform/vivid/vivid-radio-rx.h      | 14 +----------
- drivers/media/platform/vivid/vivid-radio-tx.c      | 14 +----------
- drivers/media/platform/vivid/vivid-radio-tx.h      | 14 +----------
- drivers/media/platform/vivid/vivid-rds-gen.c       | 14 +----------
- drivers/media/platform/vivid/vivid-rds-gen.h       | 14 +----------
- drivers/media/platform/vivid/vivid-sdr-cap.c       | 14 +----------
- drivers/media/platform/vivid/vivid-sdr-cap.h       | 14 +----------
- drivers/media/platform/vivid/vivid-vbi-cap.c       | 14 +----------
- drivers/media/platform/vivid/vivid-vbi-cap.h       | 14 +----------
- drivers/media/platform/vivid/vivid-vbi-gen.c       | 14 +----------
- drivers/media/platform/vivid/vivid-vbi-gen.h       | 14 +----------
- drivers/media/platform/vivid/vivid-vbi-out.c       | 14 +----------
- drivers/media/platform/vivid/vivid-vbi-out.h       | 14 +----------
- drivers/media/platform/vivid/vivid-vid-cap.c       | 14 +----------
- drivers/media/platform/vivid/vivid-vid-cap.h       | 14 +----------
- drivers/media/platform/vivid/vivid-vid-common.c    | 14 +----------
- drivers/media/platform/vivid/vivid-vid-common.h    | 14 +----------
- drivers/media/platform/vivid/vivid-vid-out.c       | 14 +----------
- drivers/media/platform/vivid/vivid-vid-out.h       | 14 +----------
- drivers/media/radio/radio-raremono.c               | 14 +----------
- drivers/media/radio/si4713/radio-usb-si4713.c      | 14 +----------
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  2 +-
- drivers/media/v4l2-core/v4l2-dv-timings.c          | 15 +----------
- include/media/cec-notifier.h                       | 14 +----------
- include/media/cec-pin.h                            | 14 +----------
- include/media/cec.h                                | 14 +----------
- include/media/i2c/ad9389b.h                        | 14 +----------
- include/media/i2c/adv7511.h                        | 14 +----------
- include/media/i2c/adv7604.h                        | 15 +----------
- include/media/i2c/adv7842.h                        | 15 +----------
- include/media/i2c/tc358743.h                       | 18 ++------------
- include/media/i2c/ths7303.h                        | 10 +-------
- include/media/i2c/uda1342.h                        | 15 +----------
- include/media/tpg/v4l2-tpg.h                       | 14 +----------
- include/media/v4l2-dv-timings.h                    | 15 +----------
- include/media/v4l2-rect.h                          | 14 +----------
- include/uapi/linux/cec-funcs.h                     | 29 ----------------------
- include/uapi/linux/cec.h                           | 29 ----------------------
- 96 files changed, 95 insertions(+), 1262 deletions(-)
-
--- 
-2.15.1
+>
+> I think you have two choices: either set it to some default format, or copy
+> the current ACTIVE format. It doesn't really matter, as long as there is
+> something valid.
+>
+> Many drivers will likely fail this test.
+>
+> Regards,
+>
+> 	Hans
+>
+>
