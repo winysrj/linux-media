@@ -1,53 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:48117 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751797AbeBDW4V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 17:56:21 -0500
-Subject: Re: [PATCH] media: uvcvideo: Fixed ktime_t to ns conversion
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        mchehab@s-opensource.com, arnd@arndb.de
-References: <1515925303-5160-1-git-send-email-jasmin@anw.at>
- <1778442.ouJt2D3mk7@avalon> <f2e313c8-6013-bd1b-09da-8fa4fc12814e@anw.at>
- <2251976.ODMGCFTTdz@avalon>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <c170e24a-2c78-c514-b4bc-ed944d45d6c7@anw.at>
-Date: Sun, 4 Feb 2018 23:56:14 +0100
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:37691 "EHLO
+        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750835AbeBJOjs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Feb 2018 09:39:48 -0500
+Received: by mail-oi0-f49.google.com with SMTP id t78so8170684oih.4
+        for <linux-media@vger.kernel.org>; Sat, 10 Feb 2018 06:39:47 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <2251976.ODMGCFTTdz@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1b6777bf-3467-2875-baab-505898ff8318@gmail.com>
+References: <1518217876-7037-1-git-send-email-festevam@gmail.com> <1b6777bf-3467-2875-baab-505898ff8318@gmail.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Sat, 10 Feb 2018 12:39:46 -0200
+Message-ID: <CAOMZO5BaovFDY7hRA-DOJmXvr+dc7TsAYf0VnDvdb=ge4Gk4VQ@mail.gmail.com>
+Subject: Re: [PATCH v2] media: imx-media-internal-sd: Use empty initializer
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        ian.arkver.dev@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Steve,
 
-> Strictly speaking, building the media subsystem on older kernels is a job of 
-> the media build system.
-Yes I agree.
+On Fri, Feb 9, 2018 at 9:42 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
 
-> In general I would thus ask for the fix to be merged in media-build.git.
-Which I do mostly, but in this case it is a coding error in mainline. 
+> There is one other case of the use of "{0}" to initialize a stack/local
+> struct, in prp_enum_frame_size(). It should be fixed there as well, to
+> be consistent.
 
-> In this specific case, as the mainline code uses both u64 and ktime_t types,
-> I'm fine with merging your patch to use explicit conversion functions in
-> mainline even if the two types are now equivalent.
-We had this already with other drivers and changes for ktime_t. In fact you
-should always use the macro accessors. We don't know what will be changed in
-the future with ktime_t, so using the macros -- on all places -- is save for
-the future also. And using the macro accessors is automatically backward
-compatible also.
+Yes, just sent a patch as you suggested.
 
-> However, as this doesn't fix a bug in the mainline kernel, I don't think this
-> patch is a candidate for stable releases, and should thus get merged in v4.17.
-I am fine with this.
-
-> It can also be included in media-build.git in order to build kernels that
-> currently fail.
-I just sent a temporary fix for media-build.
-media-build works always with the latest media.git. So once it is merged, the
-temporary fix can be removed again.
-
-BR,
-   Jasmin
+Thanks
