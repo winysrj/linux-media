@@ -1,77 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:39997 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753609AbeBSSWb (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:33479 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750787AbeBKGMQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 13:22:31 -0500
-MIME-Version: 1.0
-In-Reply-To: <1519055046-2399-2-git-send-email-m.purski@samsung.com>
-References: <CGME20180219154456eucas1p15f4073beaf61312238f142f217a8bb3c@eucas1p1.samsung.com>
- <1519055046-2399-1-git-send-email-m.purski@samsung.com> <1519055046-2399-2-git-send-email-m.purski@samsung.com>
-From: Emil Velikov <emil.l.velikov@gmail.com>
-Date: Mon, 19 Feb 2018 18:22:29 +0000
-Message-ID: <CACvgo50-Cx_=yvbLD-osxHXnrdENHpwFBkrXT_jV4R9vJniTjw@mail.gmail.com>
-Subject: Re: [PATCH 1/8] clk: Add clk_bulk_alloc functions
-To: Maciej Purski <m.purski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-        "moderated list:ARM/S5P EXYNOS AR..."
-        <linux-samsung-soc@vger.kernel.org>,
-        LAKML <linux-arm-kernel@lists.infradead.org>,
-        ML dri-devel <dri-devel@lists.freedesktop.org>,
-        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-        linux-clk@vger.kernel.org, David Airlie <airlied@linux.ie>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+        Sun, 11 Feb 2018 01:12:16 -0500
+Message-ID: <fecd586046d055cc7903135318a0f147@smtp-cloud8.xs4all.net>
+Date: Sun, 11 Feb 2018 07:12:13 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI Maciej,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Just sharing a couple of fly-by ideas - please don't read too much into them.
+Results of the daily build of media_tree:
 
-On 19 February 2018 at 15:43, Maciej Purski <m.purski@samsung.com> wrote:
-> When a driver is going to use clk_bulk_get() function, it has to
-> initialize an array of clk_bulk_data, by filling its id fields.
->
-> Add a new function to the core, which dynamically allocates
-> clk_bulk_data array and fills its id fields. Add clk_bulk_free()
-> function, which frees the array allocated by clk_bulk_alloc() function.
-> Add a managed version of clk_bulk_alloc().
->
-Most places use a small fixed number of struct clk pointers.
-Using devres + kalloc to allocate 1-4 pointers feels a bit strange.
+date:			Sun Feb 11 05:00:15 CET 2018
+media-tree git hash:	273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
+media_build git hash:	8b528caae224ca8e75642c9116c1e8a117355f5d
+v4l-utils git hash:	8e5654e63ae0b1a9a65e950d0e02a11e35263f23
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-364
 
-Quick grep shows over 150 instances that could be updated to use the new API.
-Adding a cocci script to simplify the transition would be a good idea.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.98-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.7.5-i686: OK
+linux-4.8-i686: OK
+linux-4.9.80-i686: OK
+linux-4.14.17-i686: OK
+linux-4.15.2-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-x86_64: OK
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-x86_64: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-x86_64: OK
+apps: WARNINGS
+spec-git: ERRORS
+smatch: OK
 
-> --- a/include/linux/clk.h
-> +++ b/include/linux/clk.h
-> @@ -15,6 +15,7 @@
->  #include <linux/err.h>
->  #include <linux/kernel.h>
->  #include <linux/notifier.h>
-> +#include <linux/slab.h>
->
-The extra header declaration should not be needed. One should be able
-to forward declare any undefined structs.
+Detailed results are available here:
 
-HTH
-Emil
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
