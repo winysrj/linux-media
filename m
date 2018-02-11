@@ -1,88 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52726 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965853AbeBMV4B (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 16:56:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 30/30] rcar-vin: enable support for r8a77970
-Date: Tue, 13 Feb 2018 23:56:32 +0200
-Message-ID: <1741412.ByeZXholkl@avalon>
-In-Reply-To: <20180129163435.24936-31-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-31-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from osg.samsung.com ([64.30.133.232]:52511 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753073AbeBKL05 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Feb 2018 06:26:57 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 0/4] Improve DVB memory mapped API
+Date: Sun, 11 Feb 2018 09:26:46 -0200
+Message-Id: <cover.1518347588.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+This series improve the DVB memory mapped API to allow it to
+report continuity errors.
 
-Thank you for the patch.
+Doing it for Digital TV standards is not mandatory, as
+MPEG-TS has already support for it. Yet, when trying to
+discover if the discontinuity happened due to a driver problem
+or due to userspace troubles can be tricky.
 
-On Monday, 29 January 2018 18:34:35 EET Niklas S=F6derlund wrote:
-> Add the SoC specific information for Renesas r8a77970.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+So, this patch series add two fields at the struct used by
+DMX_DQBUF (struct dmx_buffer):
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+- count: a simple monotonic uint32_t counter;
+- flags: a bitmap field that lets the DVB core to report if
+  it detects an error.
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 2305fedd293db241..496b7d2189d73d37 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -954,6 +954,25 @@ static const struct rvin_info rcar_info_r8a7796 =3D {
->  	.routes =3D rcar_info_r8a7796_routes,
->  };
->=20
-> +static const struct rvin_group_route _rcar_info_r8a77970_routes[] =3D {
-> +	{ .vin =3D 0, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(0) | BIT(=
-3) },
-> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(2) },
-> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(3) },
-> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(1) },
-> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 2, .mask =3D BIT(3) },
-> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(0) },
-> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 3, .mask =3D BIT(3) },
-> +	{ /* Sentinel */ }
-> +};
-> +
-> +static const struct rvin_info rcar_info_r8a77970 =3D {
-> +	.model =3D RCAR_GEN3,
-> +	.use_mc =3D true,
-> +	.max_width =3D 4096,
-> +	.max_height =3D 4096,
-> +	.routes =3D _rcar_info_r8a77970_routes,
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] =3D {
->  	{
->  		.compatible =3D "renesas,vin-r8a7778",
-> @@ -991,6 +1010,10 @@ static const struct of_device_id rvin_of_id_table[]=
- =3D
-> { .compatible =3D "renesas,vin-r8a7796",
->  		.data =3D &rcar_info_r8a7796,
->  	},
-> +	{
-> +		.compatible =3D "renesas,vin-r8a77970",
-> +		.data =3D &rcar_info_r8a77970,
-> +	},
->  	{ /* Sentinel */ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+There are already some logic inside the demux code that checks
+for discontinuity errors while receiving data. Make them to
+update the flags.
 
+Somehow, some changes I made while testing the DVB API never
+made upstream: Arnd had to write some fixes for it to be built
+and parts of the conditional support had a reverted logic.
 
-=2D-=20
-Regards,
+patch 1 actually addresses an old issue at the DVB demux API:
+if an ioctl fails due to invalid parameters, or if an ioctl
+doesn't exist, it returns the same error code (-EINVAL).
+The patch changes the latter to -ENOTTY>
 
-Laurent Pinchart
+patch 2 fixes the DMA mmap support, that was merged lacking
+a fix that got lost. I ended by rewriting the code, making it
+simpler.
+
+patch 3 adds count/flags to mmap API;
+
+patch 4 makes the DVB core to update count and flags.
+
+All those patches are at:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=dvb-mmap-v3
+
+The v4l-utils code, updated to use the mmap API, is at:
+	https://git.linuxtv.org/mchehab/experimental-v4l-utils.git/log/?h=dvb-mmap-v2
+
+Please notice that the API is experimental, and may still change
+until we release the final version of Kernel 4.16.
+
+Have fun,
+Mauro
+
+Mauro Carvalho Chehab (4):
+  media: dmxdev: fix error code for invalid ioctls
+  media: dmxdev: Fix the logic that enables DMA mmap support
+  media: dvb: add continuity error indicators for memory mapped buffers
+  media: dvb: update buffer mmaped flags and frame counter
+
+ Documentation/media/dmx.h.rst.exceptions  |  14 ++--
+ Documentation/media/uapi/dvb/dmx-qbuf.rst |   7 +-
+ drivers/media/dvb-core/dmxdev.c           |  98 +++++++++++++++-----------
+ drivers/media/dvb-core/dvb_demux.c        | 113 +++++++++++++++++++-----------
+ drivers/media/dvb-core/dvb_net.c          |   5 +-
+ drivers/media/dvb-core/dvb_vb2.c          |  31 +++++---
+ include/media/demux.h                     |  21 ++++--
+ include/media/dmxdev.h                    |   2 +
+ include/media/dvb_demux.h                 |   4 ++
+ include/media/dvb_vb2.h                   |  18 ++++-
+ include/uapi/linux/dvb/dmx.h              |  35 +++++++++
+ 11 files changed, 242 insertions(+), 106 deletions(-)
+
+-- 
+2.14.3
