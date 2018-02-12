@@ -1,43 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:46242 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032434AbeBOBQp (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:43948 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934880AbeBLN7k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 20:16:45 -0500
-Received: by mail-pg0-f66.google.com with SMTP id a11so2987105pgu.13
-        for <linux-media@vger.kernel.org>; Wed, 14 Feb 2018 17:16:44 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v11 2/8] media: v4l-ioctl: fix clearing pad for VIDIOC_DV_TIMIGNS_CAP
-Date: Wed, 14 Feb 2018 17:16:15 -0800
-Message-Id: <1518657381-29519-3-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518657381-29519-1-git-send-email-tharvey@gateworks.com>
-References: <1518657381-29519-1-git-send-email-tharvey@gateworks.com>
+        Mon, 12 Feb 2018 08:59:40 -0500
+Received: by mail-qt0-f195.google.com with SMTP id d26so8505814qtk.10
+        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 05:59:40 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CANiq72nNX1aRZEfzLBZxfPC7CVk0ts6Q_5o8a9_9B0DWSzj4-A@mail.gmail.com>
+References: <cover.1516008708.git.sean@mess.org> <0cb9a05c09295bcad4dd914ee44806ac6c244cbd.1516008708.git.sean@mess.org>
+ <CANiq72nNX1aRZEfzLBZxfPC7CVk0ts6Q_5o8a9_9B0DWSzj4-A@mail.gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 12 Feb 2018 14:59:39 +0100
+Message-ID: <CAMuHMdVXWQ4JzFAy52-o7CcyO2pz-f7eF0q2kYWvE8kJL_Q_Bw@mail.gmail.com>
+Subject: Re: [PATCH 1/5] auxdisplay: charlcd: no need to call charlcd_gotoxy()
+ if nothing changes
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Sean Young <sean@mess.org>, Willy Tarreau <w@1wt.eu>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Feb 12, 2018 at 2:42 PM, Miguel Ojeda
+<miguel.ojeda.sandonis@gmail.com> wrote:
+> On Mon, Jan 15, 2018 at 10:58 AM, Sean Young <sean@mess.org> wrote:
+>> If the line extends beyond the width to the screen, nothing changes. The
+>> existing code will call charlcd_gotoxy every time for this case.
+>>
+>> Signed-off-by: Sean Young <sean@mess.org>
+>> ---
+>>  drivers/auxdisplay/charlcd.c | 7 ++++---
+>>  1 file changed, 4 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/auxdisplay/charlcd.c b/drivers/auxdisplay/charlcd.c
+>> index 642afd88870b..45ec5ce697c4 100644
+>> --- a/drivers/auxdisplay/charlcd.c
+>> +++ b/drivers/auxdisplay/charlcd.c
+>> @@ -192,10 +192,11 @@ static void charlcd_print(struct charlcd *lcd, char c)
+>>                         c = lcd->char_conv[(unsigned char)c];
+>>                 lcd->ops->write_data(lcd, c);
+>>                 priv->addr.x++;
+>> +
+>> +               /* prevents the cursor from wrapping onto the next line */
+>> +               if (priv->addr.x == lcd->bwidth)
+>> +                       charlcd_gotoxy(lcd);
+>>         }
+>> -       /* prevents the cursor from wrapping onto the next line */
+>> -       if (priv->addr.x == lcd->bwidth)
+>> -               charlcd_gotoxy(lcd);
+>>  }
+>>
+>
+> Willy, Geert: is this fine with you? Seems fine: charlcd_write_char()
+> right now does an unconditional write_cmd() when writing a normal
+> character; so unless some HW requires the command for some reason even
+> if there is nothing changed, we can skip it.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7961499..5f3670d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2638,7 +2638,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
- 	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
- 	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
--	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
-+	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
- 	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
--- 
-2.7.4
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
