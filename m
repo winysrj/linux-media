@@ -1,159 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54266 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753696AbeBGNWz (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43735 "EHLO
+        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753347AbeBLU4Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 08:22:55 -0500
-Subject: Re: [PATCH 4/4] add video control handlers using V4L2 control
- framework
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
- <1518008438-26603-5-git-send-email-floe@butterbrot.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <aba77562-d4fc-b1e1-81a4-25316c953338@xs4all.nl>
-Date: Wed, 7 Feb 2018 14:22:50 +0100
-MIME-Version: 1.0
-In-Reply-To: <1518008438-26603-5-git-send-email-floe@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 12 Feb 2018 15:56:25 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 1/2] cx231xx: Add support for Hauppauge HVR-935C
+Date: Mon, 12 Feb 2018 14:55:53 -0600
+Message-Id: <1518468953-22655-1-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515515916-32108-2-git-send-email-brad@nextdimension.cc>
+References: <1515515916-32108-2-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/07/18 14:00, Florian Echtler wrote:
-> This patch registers four standard control handlers using the corresponding
-> V4L2 framework.
-> 
-> Signed-off-by: Florian Echtler <floe@butterbrot.org>
-> ---
->  drivers/input/touchscreen/sur40.c | 64 +++++++++++++++++++++++++++++++++++++++
->  1 file changed, 64 insertions(+)
-> 
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-> index d6fa25e..b92325b 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -38,6 +38,7 @@
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-ctrls.h>
->  #include <media/videobuf2-v4l2.h>
->  #include <media/videobuf2-dma-sg.h>
->  
-> @@ -209,6 +210,7 @@ struct sur40_state {
->  	struct video_device vdev;
->  	struct mutex lock;
->  	struct v4l2_pix_format pix_fmt;
-> +	struct v4l2_ctrl_handler ctrls;
+HVR-935C is hybrid PAL, DVB-C/T/T2 usb device.
 
-Please rename this to either hdl or ctrl_handler. 'ctrls' is confusing.
+CX23102 + Si2168 + Si2157
+and
+composite/s-video + stereo audio capture via breakout cable
 
->  
->  	struct vb2_queue queue;
->  	struct list_head buf_list;
-> @@ -218,6 +220,7 @@ struct sur40_state {
->  	struct sur40_data *bulk_in_buffer;
->  	size_t bulk_in_size;
->  	u8 bulk_in_epaddr;
-> +	u8 vsvideo;
->  
->  	char phys[64];
->  };
-> @@ -231,6 +234,11 @@ struct sur40_buffer {
->  static const struct video_device sur40_video_device;
->  static const struct vb2_queue sur40_queue;
->  static void sur40_process_video(struct sur40_state *sur40);
-> +static int sur40_s_ctrl(struct v4l2_ctrl *ctrl);
-> +
-> +static const struct v4l2_ctrl_ops sur40_ctrl_ops = {
-> +	.s_ctrl = sur40_s_ctrl,
-> +};
->  
->  /*
->   * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
-> @@ -737,6 +745,36 @@ static int sur40_probe(struct usb_interface *interface,
->  	sur40->vdev.queue = &sur40->queue;
->  	video_set_drvdata(&sur40->vdev, sur40);
->  
-> +	/* initialize the control handler for 4 controls */
-> +	v4l2_ctrl_handler_init(&sur40->ctrls, 4);
-> +	sur40->v4l2.ctrl_handler = &sur40->ctrls;
-> +	sur40->vsvideo = (SUR40_CONTRAST_DEF << 4) | SUR40_GAIN_DEF;
-> +
-> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_BRIGHTNESS,
-> +	  SUR40_BRIGHTNESS_MIN, SUR40_BRIGHTNESS_MAX, 1, clamp(brightness,
-> +	  (uint)SUR40_BRIGHTNESS_MIN, (uint)SUR40_BRIGHTNESS_MAX));
-> +
-> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_CONTRAST,
-> +	  SUR40_CONTRAST_MIN, SUR40_CONTRAST_MAX, 1, clamp(contrast,
-> +	  (uint)SUR40_CONTRAST_MIN, (uint)SUR40_CONTRAST_MAX));
-> +
-> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_GAIN,
-> +	  SUR40_GAIN_MIN, SUR40_GAIN_MAX, 1, clamp(gain,
-> +	  (uint)SUR40_GAIN_MIN, (uint)SUR40_GAIN_MAX));
-> +
-> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops,
-> +	  V4L2_CID_BACKLIGHT_COMPENSATION, SUR40_BACKLIGHT_MIN,
-> +	  SUR40_BACKLIGHT_MAX, 1, SUR40_BACKLIGHT_DEF);
-> +
-> +	v4l2_ctrl_handler_setup(&sur40->ctrls);
-> +
-> +	if (sur40->ctrls.error) {
-> +		dev_err(&interface->dev,
-> +			"Unable to register video controls.");
-> +		v4l2_ctrl_handler_free(&sur40->ctrls);
-> +		goto err_unreg_v4l2;
-> +	}
-> +
->  	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
->  	if (error) {
->  		dev_err(&interface->dev,
-> @@ -769,6 +807,7 @@ static void sur40_disconnect(struct usb_interface *interface)
->  {
->  	struct sur40_state *sur40 = usb_get_intfdata(interface);
->  
-> +	v4l2_ctrl_handler_free(&sur40->ctrls);
->  	video_unregister_device(&sur40->vdev);
->  	v4l2_device_unregister(&sur40->v4l2);
->  
-> @@ -962,6 +1001,31 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> +static int sur40_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct sur40_state *sur40  = container_of(ctrl->handler,
-> +	  struct sur40_state, ctrls);
-> +	u8 value = sur40->vsvideo;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_BRIGHTNESS:
-> +		sur40_set_irlevel(sur40, ctrl->val);
-> +		break;
-> +	case V4L2_CID_CONTRAST:
-> +		value = (value & 0x0F) | (ctrl->val << 4);
-> +		sur40_set_vsvideo(sur40, value);
-> +		break;
-> +	case V4L2_CID_GAIN:
-> +		value = (value & 0xF0) | (ctrl->val);
-> +		sur40_set_vsvideo(sur40, value);
-> +		break;
-> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
-> +		sur40_set_preprocessor(sur40, ctrl->val);
-> +		break;
-> +	}
-> +	return 0;
-> +}
-> +
->  static int sur40_ioctl_parm(struct file *file, void *priv,
->  			    struct v4l2_streamparm *p)
->  {
-> 
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+Changes since v1:
+- add capture properties to message
 
-Looks good otherwise.
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 42 +++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 75 +++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 3 files changed, 118 insertions(+)
 
-Regards,
-
-	Hans
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index f9ec7fe..c2efbff 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -922,6 +922,45 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_HAUPPAUGE_935C] = {
++		.name = "Hauppauge WinTV-HVR-935C",
++		.tuner_type = TUNER_ABSENT,
++		.tuner_addr = 0x60,
++		.tuner_gpio = RDE250_XCV_TUNER,
++		.tuner_sif_gpio = 0x05,
++		.tuner_scl_gpio = 0x1a,
++		.tuner_sda_gpio = 0x1b,
++		.decoder = CX231XX_AVDECODER,
++		.output_mode = OUT_MODE_VIP11,
++		.demod_xfer_mode = 0,
++		.ctl_pin_status_mask = 0xFFFFFFC4,
++		.agc_analog_digital_select_gpio = 0x0c,
++		.gpio_pin_status_mask = 0x4001000,
++		.tuner_i2c_master = I2C_1_MUX_3,
++		.demod_i2c_master = I2C_1_MUX_3,
++		.has_dvb = 1,
++		.demod_addr = 0x64, /* 0xc8 >> 1 */
++		.norm = V4L2_STD_PAL,
++
++		.input = {{
++			.type = CX231XX_VMUX_TELEVISION,
++			.vmux = CX231XX_VIN_3_1,
++			.amux = CX231XX_AMUX_VIDEO,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_COMPOSITE1,
++			.vmux = CX231XX_VIN_2_1,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_SVIDEO,
++			.vmux = CX231XX_VIN_1_1 |
++				(CX231XX_VIN_1_2 << 8) |
++				CX25840_SVIDEO_ON,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -953,6 +992,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
+ 	{USB_DEVICE(0x2040, 0xb123),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
++	{USB_DEVICE(0x2040, 0xb151),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
+ 	{USB_DEVICE(0x2040, 0xb130),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
+ 	{USB_DEVICE(0x2040, 0xb131),
+@@ -1211,6 +1252,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx:
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
+ 	case CX231XX_BOARD_HAUPPAUGE_955Q:
++	case CX231XX_BOARD_HAUPPAUGE_935C:
+ 		{
+ 			struct eeprom {
+ 				struct tveeprom tvee;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index fb56540..fa2ff92 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -1068,6 +1068,81 @@ static int dvb_init(struct cx231xx *dev)
+ 			   &astrometa_t2hybrid_r820t_config);
+ 		break;
+ 	}
++	case CX231XX_BOARD_HAUPPAUGE_935C:
++	{
++		struct i2c_client *client;
++		struct i2c_adapter *adapter;
++		struct i2c_board_info info = {};
++		struct si2157_config si2157_config = {};
++		struct si2168_config si2168_config = {};
++
++		/* attach demodulator chip */
++		si2168_config.ts_mode = SI2168_TS_SERIAL;
++		si2168_config.fe = &dev->dvb->frontend;
++		si2168_config.i2c_adapter = &adapter;
++		si2168_config.ts_clock_inv = true;
++
++		strlcpy(info.type, "si2168", sizeof(info.type));
++		info.addr = dev->board.demod_addr;
++		info.platform_data = &si2168_config;
++
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dev_err(dev->dev,
++				"Failed to attach %s frontend.\n", info.type);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
++
++		/* define general-purpose callback pointer */
++		dvb->frontend->callback = cx231xx_tuner_callback;
++
++		/* attach tuner */
++		si2157_config.fe = dev->dvb->frontend;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		si2157_config.mdev = dev->media_dev;
++#endif
++		si2157_config.if_port = 1;
++		si2157_config.inversion = true;
++
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++		info.addr = dev->board.tuner_addr;
++		info.platform_data = &si2157_config;
++		request_module("si2157");
++
++		client = i2c_new_device(adapter, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dev_err(dev->dev,
++				"Failed to obtain %s tuner.\n",	info.type);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dev->cx231xx_reset_analog_tuner = NULL;
++		dev->dvb->i2c_client_tuner = client;
++		break;
++	}
+ 	default:
+ 		dev_err(dev->dev,
+ 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 65b039c..1493192 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -81,6 +81,7 @@
+ #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
+ #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
+ #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
++#define CX231XX_BOARD_HAUPPAUGE_935C 26
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
+-- 
+2.7.4
