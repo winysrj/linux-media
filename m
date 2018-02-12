@@ -1,119 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:47067 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753616AbeB0PlD (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:36465 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932402AbeBLXB5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 10:41:03 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 10/13] media: ov772x: Re-organize in-code comments
-Date: Tue, 27 Feb 2018 16:40:27 +0100
-Message-Id: <1519746030-15407-11-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 12 Feb 2018 18:01:57 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 1/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Tue, 13 Feb 2018 00:01:31 +0100
+Message-Id: <20180212230132.5402-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A lot of comments that would fit a single line were spread on two or
-more lines. Also fix capitalization and punctuation where appropriate.
+Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+are located between the video sources (CSI-2 transmitters) and the video
+grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Each CSI-2 device is connected to more than one VIN device which
+simultaneously can receive video from the same CSI-2 device. Each VIN
+device can also be connected to more than one CSI-2 device. The routing
+of which links are used is controlled by the VIN devices. There are only
+a few possible routes which are set by hardware limitations, which are
+different for each SoC in the Gen3 family.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/ov772x.c | 32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ .../bindings/media/renesas,rcar-csi2.txt           | 99 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 100 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index a418455..8849da1 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -910,17 +910,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	int ret;
- 	u8  val;
- 
--	/*
--	 * reset hardware
--	 */
-+	/* Reset hardware. */
- 	ov772x_reset(client);
- 
--	/*
--	 * Edge Ctrl
--	 */
-+	/* Edge Ctrl. */
- 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
- 		/*
--		 * Manual Edge Control Mode
-+		 * Manual Edge Control Mode.
- 		 *
- 		 * Edge auto strength bit is set by default.
- 		 * Remove it when manual mode.
-@@ -944,9 +940,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 
- 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
- 		/*
--		 * Auto Edge Control Mode
-+		 * Auto Edge Control Mode.
- 		 *
--		 * set upper and lower limit
-+		 * Set upper and lower limit.
- 		 */
- 		ret = ov772x_mask_set(client,
- 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
-@@ -961,7 +957,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			goto ov772x_set_fmt_error;
- 	}
- 
--	/* Format and window size */
-+	/* Format and window size. */
- 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
-@@ -993,9 +989,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
--	/*
--	 * set DSP_CTRL3
--	 */
-+	/* Set DSP_CTRL3. */
- 	val = cfmt->dsp3;
- 	if (val) {
- 		ret = ov772x_mask_set(client,
-@@ -1011,9 +1005,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			goto ov772x_set_fmt_error;
- 	}
- 
--	/*
--	 * set COM3
--	 */
-+	/* Set COM3. */
- 	val = cfmt->com3;
- 	if (priv->info->flags & OV772X_FLAG_VFLIP)
- 		val |= VFLIP_IMG;
-@@ -1041,9 +1033,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
--	/*
--	 * set COM8
--	 */
-+	/* Set COM8. */
- 	if (priv->band_filter) {
- 		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
- 		if (!ret)
-@@ -1153,9 +1143,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 	if (ret < 0)
- 		return ret;
- 
--	/*
--	 * check and show product ID and manufacturer ID
--	 */
-+	/* Check and show product ID and manufacturer ID. */
- 	pid = ov772x_read(client, PID);
- 	ver = ov772x_read(client, VER);
+diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+new file mode 100644
+index 0000000000000000..6f71f997dc48eee9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+@@ -0,0 +1,99 @@
++Renesas R-Car MIPI CSI-2
++------------------------
++
++The R-Car CSI-2 receiver device provides MIPI CSI-2 capabilities for the
++Renesas R-Car family of devices. It is used in conjunction with the
++R-Car VIN module, which provides the video capture capabilities.
++
++Mandatory properties
++--------------------
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: reference to the parent clock
++
++The device node shall contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 shall connect to the CSI-2 source. Port 1
++shall connect to all the R-Car VIN modules that have a hardware
++connection to the CSI-2 receiver.
++
++- Port 0 - Video source (mandatory)
++	- Endpoint 0 - sub-node describing the endpoint that is the video source
++
++- Port 1 - VIN instances (optional)
++	- One endpoint sub-node for every R-Car VIN instance which is connected
++	  to the R-Car CSI-2 receiver.
++
++Example:
++
++	csi20: csi2@fea80000 {
++		compatible = "renesas,r8a7796-csi2";
++		reg = <0 0xfea80000 0 0x10000>;
++		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cpg CPG_MOD 714>;
++		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++		resets = <&cpg 714>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <0>;
++
++				csi20_in: endpoint@0 {
++					reg = <0>;
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
++			};
++
++			port@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				reg = <1>;
++
++				csi20vin0: endpoint@0 {
++					reg = <0>;
++					remote-endpoint = <&vin0csi20>;
++				};
++				csi20vin1: endpoint@1 {
++					reg = <1>;
++					remote-endpoint = <&vin1csi20>;
++				};
++				csi20vin2: endpoint@2 {
++					reg = <2>;
++					remote-endpoint = <&vin2csi20>;
++				};
++				csi20vin3: endpoint@3 {
++					reg = <3>;
++					remote-endpoint = <&vin3csi20>;
++				};
++				csi20vin4: endpoint@4 {
++					reg = <4>;
++					remote-endpoint = <&vin4csi20>;
++				};
++				csi20vin5: endpoint@5 {
++					reg = <5>;
++					remote-endpoint = <&vin5csi20>;
++				};
++				csi20vin6: endpoint@6 {
++					reg = <6>;
++					remote-endpoint = <&vin6csi20>;
++				};
++				csi20vin7: endpoint@7 {
++					reg = <7>;
++					remote-endpoint = <&vin7csi20>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aee793bff977d413..a0ca030b6bf6b82c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8651,6 +8651,7 @@ L:	linux-media@vger.kernel.org
+ L:	linux-renesas-soc@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
++F:	Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+ F:	Documentation/devicetree/bindings/media/rcar_vin.txt
+ F:	drivers/media/platform/rcar-vin/
  
 -- 
-2.7.4
+2.16.1
