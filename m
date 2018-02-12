@@ -1,320 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:36537 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752103AbeBGWnV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 17:43:21 -0500
-Received: by mail-pl0-f65.google.com with SMTP id v3-v6so965884plg.3
-        for <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 14:43:21 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v9 5/8] media: dt-bindings: Add bindings for TDA1997X
-Date: Wed,  7 Feb 2018 14:42:44 -0800
-Message-Id: <1518043367-11531-6-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
-References: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:54635 "EHLO
+        homiemail-a117.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932204AbeBLVpv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Feb 2018 16:45:51 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 7/7] cx231xx: Add second i2c demod to Hauppauge 975
+Date: Mon, 12 Feb 2018 15:45:19 -0600
+Message-Id: <1518471919-29885-1-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515773982-6411-8-git-send-email-brad@nextdimension.cc>
+References: <1515773982-6411-8-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Hauppauge HVR-975 is a hybrid, dual frontend, single tuner USB device.
+It contains lgdt3306a and si2168 frontends and one si2157 tuner. The
+lgdt3306a frontend is currently enabled. This creates the second
+demodulator and attaches it to the tuner.
+
+Enables lgdt3306a|si2168 + si2157
+
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
-v6:
- - replace copyright with SPDX tag
- - added Rob's ack
+Changes since v1:
+- memcpy tuner ops to frontend[1] instead of dvb attach
+- remove a couple redundant dev-> spots
+- moved failure messages one block up where probe would fail
 
-v5:
- - added Sakari's ack
+ drivers/media/usb/cx231xx/cx231xx-cards.c |  1 +
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 52 +++++++++++++++++++++++++++++--
+ 2 files changed, 50 insertions(+), 3 deletions(-)
 
-v4:
- - move include/dt-bindings/media/tda1997x.h to bindings patch
- - clarify port node details
-
-v3:
- - fix typo
-
-v2:
- - add vendor prefix and remove _ from vidout-portcfg
- - remove _ from labels
- - remove max-pixel-rate property
- - describe and provide example for single output port
- - update to new audio port bindings
-
- .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
- include/dt-bindings/media/tda1997x.h               |  74 +++++++++
- 2 files changed, 253 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
- create mode 100644 include/dt-bindings/media/tda1997x.h
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-new file mode 100644
-index 0000000..9ab53c3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-@@ -0,0 +1,179 @@
-+Device-Tree bindings for the NXP TDA1997x HDMI receiver
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 8582568..00e88a8f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -979,6 +979,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.demod_i2c_master = I2C_1_MUX_3,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x59, /* 0xb2 >> 1 */
++		.demod_addr2 = 0x64, /* 0xc8 >> 1 */
+ 		.norm = V4L2_STD_ALL,
+ 
+ 		.input = {{
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index ac3ad77..f1ffb57 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -1173,14 +1173,17 @@ static int dvb_init(struct cx231xx *dev)
+ 	{
+ 		struct i2c_client *client;
+ 		struct i2c_adapter *adapter;
++		struct i2c_adapter *adapter2;
+ 		struct i2c_board_info info = {};
+ 		struct si2157_config si2157_config = {};
+ 		struct lgdt3306a_config lgdt3306a_config = {};
++		struct si2168_config si2168_config = {};
+ 
+-		/* attach demodulator chip */
++		/* attach first demodulator chip */
+ 		lgdt3306a_config = hauppauge_955q_lgdt3306a_config;
+ 		lgdt3306a_config.fe = &dev->dvb->frontend[0];
+ 		lgdt3306a_config.i2c_adapter = &adapter;
++		lgdt3306a_config.deny_i2c_rptr = 0;
+ 
+ 		strlcpy(info.type, "lgdt3306a", sizeof(info.type));
+ 		info.addr = dev->board.demod_addr;
+@@ -1202,10 +1205,43 @@ static int dvb_init(struct cx231xx *dev)
+ 		}
+ 
+ 		dvb->i2c_client_demod[0] = client;
+-		dev->dvb->frontend[0]->ops.i2c_gate_ctrl = NULL;
 +
-+The TDA19971/73 are HDMI video receivers.
++		/* attach second demodulator chip */
++		si2168_config.ts_mode = SI2168_TS_SERIAL;
++		si2168_config.fe = &dev->dvb->frontend[1];
++		si2168_config.i2c_adapter = &adapter2;
++		si2168_config.ts_clock_inv = true;
 +
-+The TDA19971 Video port output pins can be used as follows:
-+ - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
-+ - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
-+ - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
-+ - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
-+ - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
-+ - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
-+ - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
-+ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2168", sizeof(info.type));
++		info.addr = dev->board.demod_addr2;
++		info.platform_data = &si2168_config;
 +
-+The TDA19973 Video port output pins can be used as follows:
-+ - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
-+ - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
-+ - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
-+ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
++		request_module(info.type);
++		client = i2c_new_device(adapter, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dev_err(dev->dev,
++				"Failed to attach %s frontend.\n", info.type);
++			module_put(dvb->i2c_client_demod[0]->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod[0]);
++			result = -ENODEV;
++			goto out_free;
++		}
 +
-+The Video port output pins are mapped via 4-bit 'pin groups' allowing
-+for a variety of connection possibilities including swapping pin order within
-+pin groups. The video_portcfg device-tree property consists of register mapping
-+pairs which map a chip-specific VP output register to a 4-bit pin group. If
-+the pin group needs to be bit-swapped you can use the *_S pin-group defines.
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod[0]->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod[0]);
++			result = -ENODEV;
++			goto out_free;
++		}
 +
-+Required Properties:
-+ - compatible          :
-+  - "nxp,tda19971" for the TDA19971
-+  - "nxp,tda19973" for the TDA19973
-+ - reg                 : I2C slave address
-+ - interrupts          : The interrupt number
-+ - DOVDD-supply        : Digital I/O supply
-+ - DVDD-supply         : Digital Core supply
-+ - AVDD-supply         : Analog supply
-+ - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
++		dvb->i2c_client_demod[1] = client;
++		dvb->frontend[1]->id = 1;
+ 
+ 		/* define general-purpose callback pointer */
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
++		dvb->frontend[1]->callback = cx231xx_tuner_callback;
+ 
+ 		/* attach tuner */
+ 		si2157_config.fe = dev->dvb->frontend[0];
+@@ -1225,6 +1261,8 @@ static int dvb_init(struct cx231xx *dev)
+ 		if (client == NULL || client->dev.driver == NULL) {
+ 			dev_err(dev->dev,
+ 				"Failed to obtain %s tuner.\n",	info.type);
++			module_put(dvb->i2c_client_demod[1]->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod[1]);
+ 			module_put(dvb->i2c_client_demod[0]->dev.driver->owner);
+ 			i2c_unregister_device(dvb->i2c_client_demod[0]);
+ 			result = -ENODEV;
+@@ -1233,6 +1271,8 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		if (!try_module_get(client->dev.driver->owner)) {
+ 			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod[1]->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod[1]);
+ 			module_put(dvb->i2c_client_demod[0]->dev.driver->owner);
+ 			i2c_unregister_device(dvb->i2c_client_demod[0]);
+ 			result = -ENODEV;
+@@ -1240,7 +1280,13 @@ static int dvb_init(struct cx231xx *dev)
+ 		}
+ 
+ 		dev->cx231xx_reset_analog_tuner = NULL;
+-		dev->dvb->i2c_client_tuner = client;
++		dvb->i2c_client_tuner = client;
 +
-+Optional Properties:
-+ - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
-+ - nxp,audout-width    : width of audio output data bus (1-4).
-+ - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
-+ - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
-+                         mclk.
++		dvb->frontend[1]->tuner_priv = dvb->frontend[0]->tuner_priv;
 +
-+The port node shall contain one endpoint child node for its digital
-+output video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Optional Endpoint Properties:
-+  The following three properties are defined in video-interfaces.txt and
-+  are valid for the output parallel bus endpoint:
-+  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
-+  - vsync-active: Vertical synchronization polarity. Defaults to active high.
-+  - data-active: Data polarity. Defaults to active high.
-+
-+Examples:
-+ - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same pixclk cycle.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same pixclk cycle.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
-+		 * 2 pixclk cycles.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+
-diff --git a/include/dt-bindings/media/tda1997x.h b/include/dt-bindings/media/tda1997x.h
-new file mode 100644
-index 0000000..bd9fbd7
---- /dev/null
-+++ b/include/dt-bindings/media/tda1997x.h
-@@ -0,0 +1,74 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (C) 2017 Gateworks Corporation
-+ */
-+#ifndef _DT_BINDINGS_MEDIA_TDA1997X_H
-+#define _DT_BINDINGS_MEDIA_TDA1997X_H
-+
-+/* TDA19973 36bit Video Port control registers */
-+#define TDA1997X_VP36_35_32	0
-+#define TDA1997X_VP36_31_28	1
-+#define TDA1997X_VP36_27_24	2
-+#define TDA1997X_VP36_23_20	3
-+#define TDA1997X_VP36_19_16	4
-+#define TDA1997X_VP36_15_12	5
-+#define TDA1997X_VP36_11_08	6
-+#define TDA1997X_VP36_07_04	7
-+#define TDA1997X_VP36_03_00	8
-+
-+/* TDA19971 24bit Video Port control registers */
-+#define TDA1997X_VP24_V23_20	0
-+#define TDA1997X_VP24_V19_16	1
-+#define TDA1997X_VP24_V15_12	3
-+#define TDA1997X_VP24_V11_08	4
-+#define TDA1997X_VP24_V07_04	6
-+#define TDA1997X_VP24_V03_00	7
-+
-+/* Pin groups */
-+#define TDA1997X_VP_OUT_EN        0x80	/* enable output group */
-+#define TDA1997X_VP_HIZ           0x40	/* hi-Z output group when not used */
-+#define TDA1997X_VP_SWP           0x10	/* pin-swap output group */
-+#define TDA1997X_R_CR_CBCR_3_0    (0 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_R_CR_CBCR_7_4    (1 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_R_CR_CBCR_11_8   (2 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_B_CB_3_0         (3 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_B_CB_7_4         (4 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_B_CB_11_8        (5 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_G_Y_3_0          (6 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_G_Y_7_4          (7 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_G_Y_11_8         (8 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+/* pinswapped groups */
-+#define TDA1997X_R_CR_CBCR_3_0_S  (TDA1997X_R_CR_CBCR_3_0 | TDA1997X_VP_SWAP)
-+#define TDA1997X_R_CR_CBCR_7_4_S  (TDA1997X_R_CR_CBCR_7_4 | TDA1997X_VP_SWAP)
-+#define TDA1997X_R_CR_CBCR_11_8_S (TDA1997X_R_CR_CBCR_11_8 | TDA1997X_VP_SWAP)
-+#define TDA1997X_B_CB_3_0_S       (TDA1997X_B_CB_3_0 | TDA1997X_VP_SWAP)
-+#define TDA1997X_B_CB_7_4_S       (TDA1997X_B_CB_7_4 | TDA1997X_VP_SWAP)
-+#define TDA1997X_B_CB_11_8_S      (TDA1997X_B_CB_11_8 | TDA1997X_VP_SWAP)
-+#define TDA1997X_G_Y_3_0_S        (TDA1997X_G_Y_3_0 | TDA1997X_VP_SWAP)
-+#define TDA1997X_G_Y_7_4_S        (TDA1997X_G_Y_7_4 | TDA1997X_VP_SWAP)
-+#define TDA1997X_G_Y_11_8_S       (TDA1997X_G_Y_11_8 | TDA1997X_VP_SWAP)
-+
-+/* Audio bus DAI format */
-+#define TDA1997X_I2S16			1 /* I2S 16bit */
-+#define TDA1997X_I2S32			2 /* I2S 32bit */
-+#define TDA1997X_SPDIF			3 /* SPDIF */
-+#define TDA1997X_OBA			4 /* One Bit Audio */
-+#define TDA1997X_DST			5 /* Direct Stream Transfer */
-+#define TDA1997X_I2S16_HBR		6 /* HBR straight in I2S 16bit mode */
-+#define TDA1997X_I2S16_HBR_DEMUX	7 /* HBR demux in I2S 16bit mode */
-+#define TDA1997X_I2S32_HBR_DEMUX	8 /* HBR demux in I2S 32bit mode */
-+#define TDA1997X_SPDIF_HBR_DEMUX	9 /* HBR demux in SPDIF mode */
-+
-+/* Audio bus channel layout */
-+#define TDA1997X_LAYOUT0	0	/* 2-channel */
-+#define TDA1997X_LAYOUT1	1	/* 8-channel */
-+
-+/* Audio bus clock */
-+#define TDA1997X_ACLK_16FS	0
-+#define TDA1997X_ACLK_32FS	1
-+#define TDA1997X_ACLK_64FS	2
-+#define TDA1997X_ACLK_128FS	3
-+#define TDA1997X_ACLK_256FS	4
-+#define TDA1997X_ACLK_512FS	5
-+
-+#endif /* _DT_BINDINGS_MEDIA_TDA1997X_H */
++		memcpy(&dvb->frontend[1]->ops.tuner_ops,
++			&dvb->frontend[0]->ops.tuner_ops,
++			sizeof(struct dvb_tuner_ops));
+ 		break;
+ 	}
+ 	default:
 -- 
 2.7.4
