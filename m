@@ -1,249 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hedonline.com ([12.133.124.242]:39615 "EHLO
-        HED-Exchange.hed.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1031294AbeBNP0v (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:44926 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932860AbeBLL47 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 10:26:51 -0500
-From: Matthew Starr <mstarr@hedonline.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: i.MX53 using imx-media to capture analog video through ADV7180
-Date: Wed, 14 Feb 2018 15:21:42 +0000
-Message-ID: <3C8219BAE02B894A9C69304A12E8AA0656AAF9AE@HED-Exchange.hed.local>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+        Mon, 12 Feb 2018 06:56:59 -0500
+Received: by mail-qt0-f196.google.com with SMTP id f18so18387728qth.11
+        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 03:56:59 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <259fa00659be126f371ecfa4d75a7830107c3eea.1516008708.git.sean@mess.org>
+References: <cover.1516008708.git.sean@mess.org> <259fa00659be126f371ecfa4d75a7830107c3eea.1516008708.git.sean@mess.org>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Mon, 12 Feb 2018 12:56:58 +0100
+Message-ID: <CANiq72krrK7S36atHbJNVirJXvtv8-C3OqiKGx7c=L+FzWeenw@mail.gmail.com>
+Subject: =?UTF-8?Q?Re=3A_=5BPATCH_3=2F5=5D_auxdisplay=3A_charlcd=3A_add_escape_sequ?=
+        =?UTF-8?Q?ence_for_brightness_on_NEC_=C2=B5PD16314?=
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have successfully modified device tree files in the mainline 4.15.1 kernel to get a display product using the i.MX53 processor to initialize the imx-media drivers.  I think up to this point they have only been tested on i.MX6 processors.  I am using two ADV7180 analog capture chips, one per CSI port, on this display product.
+On Mon, Jan 15, 2018 at 10:58 AM, Sean Young <sean@mess.org> wrote:
+> The NEC =C2=B5PD16314 can alter the the brightness of the LCD. Make it po=
+ssible
+> to set this via escape sequence Y0 - Y3. B and R were already taken, so
+> I picked Y for luminance.
+>
+> Signed-off-by: Sean Young <sean@mess.org>
 
-I have everything initialize successfully at boot, but I am unable to get the media-ctl command to link the ADV7180 devices to the CSI ports.  I used the following website as guidance of how to setup the links between media devices:
-https://linuxtv.org/downloads/v4l-dvb-apis/v4l-drivers/imx.html
+CC'ing Willy and Geert.
 
-When trying to link the ADV7180 chip to a CSI port, I use the following command and get the result below:
+> ---
+>  drivers/auxdisplay/charlcd.c | 20 ++++++++++++++++++--
+>  1 file changed, 18 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/auxdisplay/charlcd.c b/drivers/auxdisplay/charlcd.c
+> index a16c72779722..7a671ad959d1 100644
+> --- a/drivers/auxdisplay/charlcd.c
+> +++ b/drivers/auxdisplay/charlcd.c
+> @@ -39,6 +39,8 @@
+>  #define LCD_FLAG_F             0x0020  /* Large font mode */
+>  #define LCD_FLAG_N             0x0040  /* 2-rows mode */
+>  #define LCD_FLAG_L             0x0080  /* Backlight enabled */
+> +#define LCD_BRIGHTNESS_MASK    0x0300  /* Brightness */
+> +#define LCD_BRIGHTNESS_SHIFT   8
 
-	media-ctl -v -l "'adv7180 1-0021':0->'ipu1_csi0':0[1]"
-	
-	No link between "adv7180 1-0021":0 and "ipu1_csi0":0
-	media_parse_setup_link: Unable to parse link
-	Unable to parse link: Invalid argument (22)
+Not sure about the name (since the brightness is also used in
+priv->flags). By the way, should we start using the bitops.h stuff
+(e.g. BIT(9) | BIT(8), GENMASK(9, 8)...) in new code? Not sure how
+widespread they are.
 
-How do I get the ADV7180 and CSI port on the i.MX53 processor to link?
+>
+>  /* LCD commands */
+>  #define LCD_CMD_DISPLAY_CLEAR  0x01    /* Clear entire display */
+> @@ -490,6 +492,17 @@ static inline int handle_lcd_special_code(struct cha=
+rlcd *lcd)
+>                 charlcd_gotoxy(lcd);
+>                 processed =3D 1;
+>                 break;
+> +       case 'Y':       /* brightness (luma) */
+> +               switch (esc[1]) {
+> +               case '0':       /* 25% */
+> +               case '1':       /* 50% */
+> +               case '2':       /* 75% */
+> +               case '3':       /* 100% */
+> +                       priv->flags =3D (priv->flags & ~(LCD_BRIGHTNESS_M=
+ASK)) |
+> +                               (('3' - esc[1]) << LCD_BRIGHTNESS_SHIFT);
+> +                       processed =3D  1;
+> +                       break;
+> +               }
+>         }
+>
+>         /* TODO: This indent party here got ugly, clean it! */
+> @@ -507,12 +520,15 @@ static inline int handle_lcd_special_code(struct ch=
+arlcd *lcd)
+>                         ((priv->flags & LCD_FLAG_C) ? LCD_CMD_CURSOR_ON :=
+ 0) |
+>                         ((priv->flags & LCD_FLAG_B) ? LCD_CMD_BLINK_ON : =
+0));
+>         /* check whether one of F,N flags was changed */
 
-The difference for the i.MX53 compared to the i.MX6 processor is that there is only one IPU and no mipi support, so my device tree does not use any video-mux or mux devices.  Could this have something to do with why I can't link the ADV7180 to the CSI port?   
+Should we add "or brightness" to the comment?
 
-Here is the output of the "media-ctl -p -v" command:
-
-Opening media device /dev/media0
-Enumerating entities
-looking up device: 81:10
-looking up device: 81:11
-looking up device: 81:12
-looking up device: 81:4
-looking up device: 81:13
-looking up device: 81:5
-looking up device: 81:14
-looking up device: 81:15
-looking up device: 81:16
-looking up device: 81:17
-looking up device: 81:6
-looking up device: 81:18
-looking up device: 81:7
-looking up device: 81:19
-looking up device: 81:20
-looking up device: 81:8
-looking up device: 81:21
-looking up device: 81:9
-Found 18 entities
-Enumerating pads and links
-Media controller API version 4.15.1
-
-Media device information
-------------------------
-driver          imx-media
-model           imx-media
-serial          
-bus info        
-hw revision     0x0
-driver version  4.15.1
-
-Device topology
-- entity 1: adv7180 1-0021 (1 pad, 0 link)
-            type V4L2 subdev subtype Unknown flags 20004
-            device node name /dev/v4l-subdev0
-        pad0: Source
-                [fmt:UYVY8_2X8/720x480 field:interlaced]
-
-- entity 3: adv7180 1-0020 (1 pad, 0 link)
-            type V4L2 subdev subtype Unknown flags 20004
-            device node name /dev/v4l-subdev1
-        pad0: Source
-                [fmt:UYVY8_2X8/720x480 field:interlaced]
-
-- entity 5: ipu1_csi1 (3 pads, 3 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev2
-        pad0: Sink
-                [fmt:UYVY8_2X8/640x480 field:none
-                 crop.bounds:(0,0)/640x480
-                 crop:(0,0)/640x480
-                 compose.bounds:(0,0)/640x480
-                 compose:(0,0)/640x480]
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prp":0 []
-                -> "ipu1_vdic":0 []
-        pad2: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_csi1 capture":0 []
-
-- entity 9: ipu1_csi1 capture (1 pad, 1 link)
-            type Node subtype V4L flags 0
-            device node name /dev/video4
-        pad0: Sink
-                <- "ipu1_csi1":2 []
-
-- entity 15: ipu1_csi0 (3 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev3
-        pad0: Sink
-                [fmt:UYVY8_2X8/640x480 field:none
-                 crop.bounds:(0,0)/640x480
-                 crop:(0,0)/640x480
-                 compose.bounds:(0,0)/640x480
-                 compose:(0,0)/640x480]
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prp":0 []
-                -> "ipu1_vdic":0 [ENABLED]
-        pad2: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_csi0 capture":0 []
-
-- entity 19: ipu1_csi0 capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video5
-        pad0: Sink
-                <- "ipu1_csi0":2 []
-
-- entity 25: ipu1_ic_prp (3 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev4
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu1_csi1":1 []
-                <- "ipu1_csi0":1 []
-                <- "ipu1_vdic":2 [ENABLED]
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prpenc":0 []
-        pad2: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prpvf":0 [ENABLED]
-
-- entity 29: ipu1_vdic (3 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev5
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu1_csi1":1 []
-                <- "ipu1_csi0":1 [ENABLED]
-        pad1: Sink
-                [fmt:UYVY8_2X8/640x480 field:none]
-        pad2: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prp":0 [ENABLED]
-
-- entity 33: ipu2_vdic (3 pads, 1 link)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev6
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-        pad1: Sink
-                [fmt:UYVY8_2X8/640x480 field:none]
-        pad2: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu2_ic_prp":0 []
-
-- entity 37: ipu1_ic_prpenc (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev7
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu1_ic_prp":1 []
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prpenc capture":0 []
-
-- entity 40: ipu1_ic_prpenc capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video6
-        pad0: Sink
-                <- "ipu1_ic_prpenc":1 []
-
-- entity 46: ipu1_ic_prpvf (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev8
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu1_ic_prp":2 [ENABLED]
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu1_ic_prpvf capture":0 [ENABLED]
-
-- entity 49: ipu1_ic_prpvf capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video7
-        pad0: Sink
-                <- "ipu1_ic_prpvf":1 [ENABLED]
-
-- entity 55: ipu2_ic_prp (3 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev9
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu2_vdic":2 []
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu2_ic_prpenc":0 []
-        pad2: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu2_ic_prpvf":0 []
-
-- entity 59: ipu2_ic_prpenc (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev10
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu2_ic_prp":1 []
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu2_ic_prpenc capture":0 []
-
-- entity 62: ipu2_ic_prpenc capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video8
-        pad0: Sink
-                <- "ipu2_ic_prpenc":1 []
-
-- entity 68: ipu2_ic_prpvf (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev11
-        pad0: Sink
-                [fmt:AYUV8_1X32/640x480 field:none]
-                <- "ipu2_ic_prp":2 []
-        pad1: Source
-                [fmt:AYUV8_1X32/640x480 field:none]
-                -> "ipu2_ic_prpvf capture":0 []
-
-- entity 71: ipu2_ic_prpvf capture (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video9
-        pad0: Sink
-                <- "ipu2_ic_prpvf":1 []
-
-
-Best regards,
- 
-Matthew Starr
+> -       else if ((oldflags ^ priv->flags) & (LCD_FLAG_F | LCD_FLAG_N))
+> +       else if ((oldflags ^ priv->flags) & (LCD_FLAG_F | LCD_FLAG_N |
+> +                                            LCD_BRIGHTNESS_MASK))
+>                 lcd->ops->write_cmd(lcd,
+>                         LCD_CMD_FUNCTION_SET |
+>                         ((lcd->ifwidth =3D=3D 8) ? LCD_CMD_DATA_LEN_8BITS=
+ : 0) |
+>                         ((priv->flags & LCD_FLAG_F) ? LCD_CMD_FONT_5X10_D=
+OTS : 0) |
+> -                       ((priv->flags & LCD_FLAG_N) ? LCD_CMD_TWO_LINES :=
+ 0));
+> +                       ((priv->flags & LCD_FLAG_N) ? LCD_CMD_TWO_LINES :=
+ 0) |
+> +                       ((priv->flags & LCD_BRIGHTNESS_MASK) >>
+> +                                                       LCD_BRIGHTNESS_SH=
+IFT));
+>         /* check whether L flag was changed */
+>         else if ((oldflags ^ priv->flags) & LCD_FLAG_L)
+>                 charlcd_backlight(lcd, !!(priv->flags & LCD_FLAG_L));
+> --
+> 2.14.3
+>
