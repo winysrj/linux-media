@@ -1,75 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33729 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750725AbeBVS5l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 13:57:41 -0500
-Received: by mail-lf0-f52.google.com with SMTP id o145so5663447lff.0
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 10:57:41 -0800 (PST)
-Subject: Re: [PATCH v4] v4l: vsp1: Fix video output on R8A77970
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <11341738.DVmQoThvsb@avalon>
- <20180222163200.3900-1-laurent.pinchart+renesas@ideasonboard.com>
- <1b9689ae-487e-312f-a881-b97f140cb6a2@cogentembedded.com>
- <3820953.2gBQCZcdRS@avalon>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <091e9a6e-76e6-962d-ab8f-ff0bc9913940@cogentembedded.com>
-Date: Thu, 22 Feb 2018 21:57:38 +0300
+Received: from mail.kernel.org ([198.145.29.99]:58770 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932413AbeBLWIA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Feb 2018 17:08:00 -0500
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 0/5] Add support for i2c_new_secondary_device
+Date: Mon, 12 Feb 2018 22:07:48 +0000
+Message-Id: <1518473273-6333-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <3820953.2gBQCZcdRS@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2018 09:46 PM, Laurent Pinchart wrote:
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
->>> From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->>>
->>> Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
->>> and VSP2-D instances") added support for the VSP2-D found in the R-Car
->>> V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
->>> garbage-like line repeated every 8 screen rows. It turns out that R-Car
->>> V3M has the LIF0 buffer attribute register that you need to set to a non-
->>> default value in order to get rid of the output artifacts.
->>>
->>> Based on the original (and large) patch by Daisuke Matsushita
->>> <daisuke.matsushita.ns@hitachi.com>.
->>>
->>> Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
->>> VSP2-D instances") Signed-off-by: Sergei Shtylyov
->>> <sergei.shtylyov@cogentembedded.com> Reviewed-by: Laurent Pinchart
->>> <laurent.pinchart+renesas@ideasonboard.com> [Removed braces, added
->>> VI6_IP_VERSION_MASK to improve readabiliy]
->>> Signed-off-by: Laurent Pinchart
->>> <laurent.pinchart+renesas@ideasonboard.com>
->>
->> [...]
->>
->>> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
->>> b/drivers/media/platform/vsp1/vsp1_regs.h index
->>> b1912c83a1da..dae0c1901297 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_regs.h
->>> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
->>
->> [...]
->>
->>> @@ -705,6 +710,7 @@
->>>   */
->>>  
->>>  #define VI6_IP_VERSION			0x3f00
->>>
->>> +#define VI6_IP_VERSION_MASK		(0xffff << 0)
->>
->> Perhaps (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK) would be 
->> clearer?
-> 
-> I thought about it and the line length went over 80 characters so I went for 
-> an easy solution. I can change it if you want.
+Back in 2014, Jean-Michel provided patches [0] to implement a means of
+describing software defined I2C addresses for devices through the DT nodes.
 
-   OK, let's be leave it as is.
+The patch to implement the function "i2c_new_secondary_device()" was integrated,
+but the corresponding driver update didn't get applied.
 
-MBR, Sergei
+This short series re-bases Jean-Michel's patch to mainline for the ADV7604 driver
+in linux-media, and also provides a patch for the ADV7511 DRM Bridge driver taking
+the same approach.
+
+This series allows us to define the I2C address allocations of these devices in
+the device tree for the Renesas D3 platform where these two devices reside on
+the same bus and conflict with each other presently..
+
+[0] https://lkml.org/lkml/2014/10/22/468
+[1] https://lkml.org/lkml/2014/10/22/469
+
+v2:
+ - dt bindings split from driver changes
+ - fixed up dt binding property descriptions
+ - Update missing edid-i2c address setting (adv7511)
+ - Provide update for r8a7792 DTB to account for address conflict
+
+v3:
+ - Split map register addresses into individual declarations across all uses
+
+
+Jean-Michel Hautbois (2):
+  dt-bindings: media: adv7604: Add support for i2c_new_secondary_device
+  media: adv7604: Add support for i2c_new_secondary_device
+
+Kieran Bingham (3):
+  dt-bindings: adv7511: Add support for i2c_new_secondary_device
+  [RFT] ARM: dts: wheat: Fix ADV7513 address usage
+  drm: adv7511: Add support for i2c_new_secondary_device
+
+ .../bindings/display/bridge/adi,adv7511.txt        | 18 ++++++-
+ .../devicetree/bindings/media/i2c/adv7604.txt      | 18 ++++++-
+ arch/arm/boot/dts/r8a7792-wheat.dts                | 12 ++++-
+ drivers/gpu/drm/bridge/adv7511/adv7511.h           |  6 +++
+ drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 42 +++++++++------
+ drivers/media/i2c/adv7604.c                        | 62 ++++++++++++++--------
+ 6 files changed, 115 insertions(+), 43 deletions(-)
+
+-- 
+2.7.4
