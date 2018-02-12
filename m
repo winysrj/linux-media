@@ -1,172 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58070 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1033088AbeBOPPr (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43802 "EHLO
+        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753347AbeBLU55 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 10:15:47 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.17] Various fixes/improvements
-Message-ID: <9aa06912-c387-fc97-f7cf-a661dc930715@xs4all.nl>
-Date: Thu, 15 Feb 2018 16:15:46 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Mon, 12 Feb 2018 15:57:57 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v3 2/2] cx231xx: Add support for Hauppauge HVR-975
+Date: Mon, 12 Feb 2018 14:57:30 -0600
+Message-Id: <1518469050-22878-1-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515515916-32108-3-git-send-email-brad@nextdimension.cc>
+References: <1515515916-32108-3-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes/improvements all over the place.
+Hauppauge HVR-975 is hybrid NTSC/PAL, QAM/ATSC, and DVB-C/T/T2 usb device.
 
-Finally had time to clean out most of the random patches in my queue :-)
+Only ATSC/QAM front end is initially active. Second frontend support is
+work in progress.
 
-Regards,
+CX23102 + LG3306A/Si2168(WiP) + Si2157
+and
+composite/s-video + stereo audio capture via breakout cable
 
-	Hans
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+Changes since v2:
+- use i2c adapter from demod
+- moved failure messages to proper block
+- add capture properties to message
 
-The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
+Changes since v1:
+- removed double semicolon
 
-  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 42 ++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 74 +++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 3 files changed, 117 insertions(+)
 
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.17a
-
-for you to fetch changes up to 262f1f7863999b92165ab1bb9fe0f148cfc826fb:
-
-  media: i2c: adv748x: fix HDMI field heights (2018-02-15 16:04:12 +0100)
-
-----------------------------------------------------------------
-Alexandre Courbot (2):
-      v4l: vidioc-prepare-buf.rst: fix link to VIDIOC_QBUF
-      media: v4l2_fh.h: add missing kconfig.h include
-
-Antonio Cardace (2):
-      em28xx: use %*phC to print small buffers
-      gspca: dtcs033: use %*ph to print small buffer
-
-Arnd Bergmann (1):
-      media: au0828: fix VIDEO_V4L2 dependency
-
-Benjamin Gaignard (1):
-      media: platform: stm32: Adopt SPDX identifier
-
-Christopher Díaz Riveros (1):
-      media: s2255drv: Remove unneeded if else blocks
-
-Colin Ian King (1):
-      media: cx25821: prevent out-of-bounds read on array card
-
-Corentin Labbe (2):
-      media: cx18: remove unused cx18-alsa-mixer
-      media: ivtv: remove ivtv-alsa-mixer
-
-Gustavo A. R. Silva (9):
-      venus: hfi: use true for boolean values
-      staging: imx-media-vdic: fix inconsistent IS_ERR and PTR_ERR
-      rtl2832: use 64-bit arithmetic instead of 32-bit in rtl2832_set_frontend
-      dvb-frontends: ves1820: use 64-bit arithmetic instead of 32-bit
-      i2c: max2175: use 64-bit arithmetic instead of 32-bit
-      pci: cx88-input: use 64-bit arithmetic instead of 32-bit
-      rockchip/rga: use 64-bit arithmetic instead of 32-bit
-      platform: sh_veu: use 64-bit arithmetic instead of 32-bit
-      platform: vivid-cec: use 64-bit arithmetic instead of 32-bit
-
-Gustavo Padovan (1):
-      buffer.rst: fix link text of VIDIOC_QBUF
-
-Hans Verkuil (4):
-      vivid: fix incorrect capabilities for radio
-      v4l2-ctrls.h: fix wrong copy-and-paste comment
-      cec: improve debugging
-      vivid: check if the cec_adapter is valid
-
-Ian Douglas Scott (1):
-      media: usbtv: Add USB ID 1f71:3306 to the UTV007 driver
-
-Kieran Bingham (2):
-      v4l: doc: Clarify v4l2_mbus_fmt height definition
-      media: i2c: adv748x: fix HDMI field heights
-
-Masami Hiramatsu (1):
-      media: vb2: Fix videobuf2 to map correct area
-
-Niklas Söderlund (1):
-      v4l2-dev.h: fix symbol collision in media_entity_to_video_device()
-
-Oliver Neukum (1):
-      media: usbtv: prevent double free in error case
-
-Philipp Zabel (4):
-      media: dt-bindings: coda: Add compatible for CodaHx4 on i.MX51
-      media: coda: Add i.MX51 (CodaHx4) support
-      media: imx: allow to build with COMPILE_TEST
-      media: coda: bump maximum number of internal framebuffers to 19
-
-Sakari Ailus (1):
-      vb2: core: Finish buffers at the end of the stream
-
-Shuah Khan (1):
-      media: v4l2-core: v4l2-mc: Add SPDX license identifier
-
-Tomasz Figa (1):
-      media: mtk-vcodec: Always signal source change event on format change
-
-Wei Yongjun (2):
-      media: atmel-isc: Make local symbol fmt_configs_list static
-      media: rcar_drif: fix error return code in rcar_drif_alloc_dmachannels()
-
-Xiongfeng Wang (1):
-      media: media-device: use strlcpy() instead of strncpy()
-
- Documentation/devicetree/bindings/media/coda.txt    |   5 +-
- Documentation/media/uapi/v4l/buffer.rst             |   2 +-
- Documentation/media/uapi/v4l/subdev-formats.rst     |   8 ++-
- Documentation/media/uapi/v4l/vidioc-prepare-buf.rst |   2 +-
- drivers/media/cec/cec-adap.c                        |  32 +++++-----
- drivers/media/common/videobuf2/videobuf2-core.c     |   9 +++
- drivers/media/common/videobuf2/videobuf2-vmalloc.c  |   2 +-
- drivers/media/dvb-frontends/rtl2832.c               |   4 +-
- drivers/media/dvb-frontends/ves1820.c               |   2 +-
- drivers/media/i2c/adv748x/adv748x-hdmi.c            |   3 +
- drivers/media/i2c/max2175.c                         |   2 +-
- drivers/media/media-device.c                        |   2 +-
- drivers/media/pci/cx18/cx18-alsa-main.c             |   1 -
- drivers/media/pci/cx18/cx18-alsa-mixer.c            | 170 ---------------------------------------------------
- drivers/media/pci/cx18/cx18-alsa-mixer.h            |  18 ------
- drivers/media/pci/cx25821/cx25821-core.c            |   7 ++-
- drivers/media/pci/cx88/cx88-input.c                 |   4 +-
- drivers/media/pci/ivtv/ivtv-alsa-main.c             |  11 +---
- drivers/media/pci/ivtv/ivtv-alsa-mixer.c            | 165 -------------------------------------------------
- drivers/media/pci/ivtv/ivtv-alsa-mixer.h            |  18 ------
- drivers/media/platform/atmel/atmel-isc.c            |   2 +-
- drivers/media/platform/coda/coda-bit.c              |  46 ++++++++++----
- drivers/media/platform/coda/coda-common.c           |  44 +++++++++++--
- drivers/media/platform/coda/coda.h                  |   3 +-
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c  |   2 +
- drivers/media/platform/qcom/venus/hfi_msgs.c        |   4 +-
- drivers/media/platform/rcar_drif.c                  |   3 +-
- drivers/media/platform/rockchip/rga/rga-buf.c       |   3 +-
- drivers/media/platform/sh_veu.c                     |   4 +-
- drivers/media/platform/stm32/stm32-cec.c            |   5 +-
- drivers/media/platform/stm32/stm32-dcmi.c           |   2 +-
- drivers/media/platform/vivid/vivid-cec.c            |  11 +++-
- drivers/media/platform/vivid/vivid-ctrls.c          |   2 +
- drivers/media/platform/vivid/vivid-vid-common.c     |   3 +-
- drivers/media/usb/au0828/Kconfig                    |   5 +-
- drivers/media/usb/em28xx/em28xx-i2c.c               |   8 +--
- drivers/media/usb/gspca/dtcs033.c                   |   6 +-
- drivers/media/usb/s2255/s2255drv.c                  |   8 ---
- drivers/media/usb/usbtv/usbtv-core.c                |   3 +
- drivers/media/v4l2-core/v4l2-mc.c                   |  12 +---
- drivers/staging/media/imx/Kconfig                   |   3 +-
- drivers/staging/media/imx/imx-media-vdic.c          |   2 +-
- include/media/v4l2-ctrls.h                          |   4 +-
- include/media/v4l2-dev.h                            |   6 +-
- include/media/v4l2-fh.h                             |   1 +
- include/uapi/linux/v4l2-mediabus.h                  |   4 +-
- 46 files changed, 180 insertions(+), 483 deletions(-)
- delete mode 100644 drivers/media/pci/cx18/cx18-alsa-mixer.c
- delete mode 100644 drivers/media/pci/cx18/cx18-alsa-mixer.h
- delete mode 100644 drivers/media/pci/ivtv/ivtv-alsa-mixer.c
- delete mode 100644 drivers/media/pci/ivtv/ivtv-alsa-mixer.h
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index c2efbff..8582568 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -961,6 +961,45 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_HAUPPAUGE_975] = {
++		.name = "Hauppauge WinTV-HVR-975",
++		.tuner_type = TUNER_ABSENT,
++		.tuner_addr = 0x60,
++		.tuner_gpio = RDE250_XCV_TUNER,
++		.tuner_sif_gpio = 0x05,
++		.tuner_scl_gpio = 0x1a,
++		.tuner_sda_gpio = 0x1b,
++		.decoder = CX231XX_AVDECODER,
++		.output_mode = OUT_MODE_VIP11,
++		.demod_xfer_mode = 0,
++		.ctl_pin_status_mask = 0xFFFFFFC4,
++		.agc_analog_digital_select_gpio = 0x0c,
++		.gpio_pin_status_mask = 0x4001000,
++		.tuner_i2c_master = I2C_1_MUX_3,
++		.demod_i2c_master = I2C_1_MUX_3,
++		.has_dvb = 1,
++		.demod_addr = 0x59, /* 0xb2 >> 1 */
++		.norm = V4L2_STD_ALL,
++
++		.input = {{
++			.type = CX231XX_VMUX_TELEVISION,
++			.vmux = CX231XX_VIN_3_1,
++			.amux = CX231XX_AMUX_VIDEO,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_COMPOSITE1,
++			.vmux = CX231XX_VIN_2_1,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_SVIDEO,
++			.vmux = CX231XX_VIN_1_1 |
++				(CX231XX_VIN_1_2 << 8) |
++				CX25840_SVIDEO_ON,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -994,6 +1033,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
+ 	{USB_DEVICE(0x2040, 0xb151),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
++	{USB_DEVICE(0x2040, 0xb150),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_975},
+ 	{USB_DEVICE(0x2040, 0xb130),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
+ 	{USB_DEVICE(0x2040, 0xb131),
+@@ -1253,6 +1294,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
+ 	case CX231XX_BOARD_HAUPPAUGE_955Q:
+ 	case CX231XX_BOARD_HAUPPAUGE_935C:
++	case CX231XX_BOARD_HAUPPAUGE_975:
+ 		{
+ 			struct eeprom {
+ 				struct tveeprom tvee;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index fa2ff92..a3c5449 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -1143,6 +1143,80 @@ static int dvb_init(struct cx231xx *dev)
+ 		dev->dvb->i2c_client_tuner = client;
+ 		break;
+ 	}
++	case CX231XX_BOARD_HAUPPAUGE_975:
++	{
++		struct i2c_client *client;
++		struct i2c_adapter *adapter;
++		struct i2c_board_info info = {};
++		struct si2157_config si2157_config = {};
++		struct lgdt3306a_config lgdt3306a_config = {};
++
++		/* attach demodulator chip */
++		lgdt3306a_config = hauppauge_955q_lgdt3306a_config;
++		lgdt3306a_config.fe = &dev->dvb->frontend;
++		lgdt3306a_config.i2c_adapter = &adapter;
++
++		strlcpy(info.type, "lgdt3306a", sizeof(info.type));
++		info.addr = dev->board.demod_addr;
++		info.platform_data = &lgdt3306a_config;
++
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dev_err(dev->dev,
++				"Failed to attach %s frontend.\n", info.type);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
++
++		/* define general-purpose callback pointer */
++		dvb->frontend->callback = cx231xx_tuner_callback;
++
++		/* attach tuner */
++		si2157_config.fe = dev->dvb->frontend;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		si2157_config.mdev = dev->media_dev;
++#endif
++		si2157_config.if_port = 1;
++		si2157_config.inversion = true;
++
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++		info.addr = dev->board.tuner_addr;
++		info.platform_data = &si2157_config;
++		request_module("si2157");
++
++		client = i2c_new_device(adapter, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dev_err(dev->dev,
++				"Failed to obtain %s tuner.\n",	info.type);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dev->cx231xx_reset_analog_tuner = NULL;
++		dev->dvb->i2c_client_tuner = client;
++		break;
++	}
+ 	default:
+ 		dev_err(dev->dev,
+ 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 1493192..fa993f7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -82,6 +82,7 @@
+ #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
+ #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
+ #define CX231XX_BOARD_HAUPPAUGE_935C 26
++#define CX231XX_BOARD_HAUPPAUGE_975 27
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
+-- 
+2.7.4
