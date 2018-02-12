@@ -1,132 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:43681 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751632AbeBFVVW (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43523 "EHLO
+        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753328AbeBLUwo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 16:21:22 -0500
-Subject: Re: [PATCH v8 0/7] TDA1997x HDMI video reciver
-To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c7771c44-a9ff-0207-38f6-28bcc06ccdee@xs4all.nl>
-Date: Tue, 6 Feb 2018 22:21:17 +0100
-MIME-Version: 1.0
-In-Reply-To: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 12 Feb 2018 15:52:44 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 9/9] lgdt3306a: Add QAM AUTO support
+Date: Mon, 12 Feb 2018 14:52:29 -0600
+Message-Id: <1518468749-22162-1-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-10-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-10-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/2018 09:27 PM, Tim Harvey wrote:
+As configured currently, modulation in the driver is set to auto detect,
+no matter what the user sets modulation to. This leads to both QAM64
+and QAM256 having the same effect. QAM AUTO is explicitly added here for
+compatibility with scanning software who can use AUTO instead of doing
+essentially the same scan twice.
+Also included is a module option to enforce a specific QAM modulation if
+desired. The true modulation is read before calculating the snr.
+Changes are backwards compatible with current behaviour.
 
-<snip>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+Changes since v1:
+- fixed checkpatch complaint
 
-> v4l2-compliance test results:
->  - with the following kernel patches:
->    v4l2-subdev: clear reserved fields
->  . v4l2-subdev: without controls return -ENOTTY
-> 
-> v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
-> Media Driver Info:
-> 	Driver name      : imx-media
-> 	Model            : imx-media
-> 	Serial           : 
-> 	Bus info         : 
-> 	Media version    : 4.15.0
-> 	Hardware revision: 0x00000000 (0)
-> 	Driver version   : 4.15.0
-> Interface Info:
-> 	ID               : 0x0300008f
-> 	Type             : V4L Sub-Device
-> Entity Info:
-> 	ID               : 0x00000003 (3)
-> 	Name             : tda19971 2-0048
-> 	Function         : Unknown
+ drivers/media/dvb-frontends/lgdt3306a.c | 41 +++++++++++++++++++++++++--------
+ 1 file changed, 32 insertions(+), 9 deletions(-)
 
-This is missing. It should be one of these:
-
-https://hverkuil.home.xs4all.nl/spec/uapi/mediactl/media-types.html#media-entity-type
-
-However, we don't have a proper function defined.
-
-I would suggest adding a new MEDIA_ENT_F_DTV_DECODER analogous to MEDIA_ENT_F_ATV_DECODER.
-
-It would be a new patch adding this + documentation.
-
-> 	Pad 0x01000004   : Source
-> 	  Link 0x0200006f: to remote pad 0x1000063 of entity 'ipu1_csi0_mux': Data
-> 
-> Compliance test for device /dev/v4l-subdev1:
-> 
-> Allow for multiple opens:
-> 	test second /dev/v4l-subdev1 open: OK
-> 	test for unlimited opens: OK
-> 
-> Debug ioctls:
-> 	test VIDIOC_LOG_STATUS: OK
-> 
-> Input ioctls:
-> 	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-> 	Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
-> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
-> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK
-> 	test VIDIOC_DV_TIMINGS_CAP: OK
-> 	test VIDIOC_G/S_EDID: OK
-
-Nice!
-
-> 
-> Sub-Device ioctls (Source Pad 0):
-> 	test Try VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
-> 	test Try VIDIOC_SUBDEV_G/S_FMT: OK
-> 	test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
-> 	test Active VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
-> 	test Active VIDIOC_SUBDEV_G/S_FMT: OK
-> 	test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
-> 	test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
-> 
-> Control ioctls:
-> 	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-> 	test VIDIOC_QUERYCTRL: OK (Not Supported)
-> 	test VIDIOC_G/S_CTRL: OK (Not Supported)
-> 	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-> 	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-> 	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> 	Standard Controls: 0 Private Controls: 0
-
-Why doesn't this show anything? You have at least one control, so this should
-reflect that. Does 'v4l2-ctl -d /dev/v4l-subdev1 -l' show any controls?
-
-I think sd->ctrl_handler is never set to the v4l2_ctrl_handler pointer.
-
-Have you ever tested the controls?
-
-Looking closer I also notice that the control handler is never freed. Or
-checked for errors when it is created in the probe function. Hmm, I should
-have caught that earlier.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 377271d..ed70369 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -30,6 +30,17 @@ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, reg=2 (or-able))");
+ 
++/*
++ * Older drivers treated QAM64 and QAM256 the same; that is the HW always
++ * used "Auto" mode during detection.  Setting "forced_manual"=1 allows
++ * the user to treat these modes as separate.  For backwards compatibility,
++ * it's off by default.  QAM_AUTO can now be specified to achive that
++ * effect even if "forced_manual"=1
++ */
++static int forced_manual;
++module_param(forced_manual, int, 0644);
++MODULE_PARM_DESC(forced_manual, "if set, QAM64 and QAM256 will only lock to modulation specified");
++
+ #define DBG_INFO 1
+ #define DBG_REG  2
+ #define DBG_DUMP 4 /* FGR - comment out to remove dump code */
+@@ -566,7 +577,11 @@ static int lgdt3306a_set_qam(struct lgdt3306a_state *state, int modulation)
+ 	/* 3. : 64QAM/256QAM detection(manual, auto) */
+ 	ret = lgdt3306a_read_reg(state, 0x0009, &val);
+ 	val &= 0xfc;
+-	val |= 0x02; /* STDOPDETCMODE[1:0]=1=Manual 2=Auto */
++	/* Check for forced Manual modulation modes; otherwise always "auto" */
++	if (forced_manual && (modulation != QAM_AUTO))
++		val |= 0x01; /* STDOPDETCMODE[1:0]= 1=Manual */
++	else
++		val |= 0x02; /* STDOPDETCMODE[1:0]= 2=Auto */
+ 	ret = lgdt3306a_write_reg(state, 0x0009, val);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+@@ -642,10 +657,9 @@ static int lgdt3306a_set_modulation(struct lgdt3306a_state *state,
+ 		ret = lgdt3306a_set_vsb(state);
+ 		break;
+ 	case QAM_64:
+-		ret = lgdt3306a_set_qam(state, QAM_64);
+-		break;
+ 	case QAM_256:
+-		ret = lgdt3306a_set_qam(state, QAM_256);
++	case QAM_AUTO:
++		ret = lgdt3306a_set_qam(state, p->modulation);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -672,6 +686,7 @@ static int lgdt3306a_agc_setup(struct lgdt3306a_state *state,
+ 		break;
+ 	case QAM_64:
+ 	case QAM_256:
++	case QAM_AUTO:
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -726,6 +741,7 @@ static int lgdt3306a_spectral_inversion(struct lgdt3306a_state *state,
+ 		break;
+ 	case QAM_64:
+ 	case QAM_256:
++	case QAM_AUTO:
+ 		/* Auto ok for QAM */
+ 		ret = lgdt3306a_set_inversion_auto(state, 1);
+ 		break;
+@@ -749,6 +765,7 @@ static int lgdt3306a_set_if(struct lgdt3306a_state *state,
+ 		break;
+ 	case QAM_64:
+ 	case QAM_256:
++	case QAM_AUTO:
+ 		if_freq_khz = state->cfg->qam_if_khz;
+ 		break;
+ 	default:
+@@ -1607,6 +1624,7 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
+ 		switch (state->current_modulation) {
+ 		case QAM_256:
+ 		case QAM_64:
++		case QAM_AUTO:
+ 			if (lgdt3306a_qam_lock_poll(state) == LG3306_LOCK) {
+ 				*status |= FE_HAS_VITERBI;
+ 				*status |= FE_HAS_SYNC;
+@@ -1650,6 +1668,7 @@ static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
+ 	 * Calculate some sort of "strength" from SNR
+ 	 */
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
++	u8 val;
+ 	u16 snr; /* snr_x10 */
+ 	int ret;
+ 	u32 ref_snr; /* snr*100 */
+@@ -1662,11 +1681,15 @@ static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
+ 		 ref_snr = 1600; /* 16dB */
+ 		 break;
+ 	case QAM_64:
+-		 ref_snr = 2200; /* 22dB */
+-		 break;
+ 	case QAM_256:
+-		 ref_snr = 2800; /* 28dB */
+-		 break;
++	case QAM_AUTO:
++		/* need to know actual modulation to set proper SNR baseline */
++		lgdt3306a_read_reg(state, 0x00a6, &val);
++		if (val & 0x04)
++			ref_snr = 2800; /* QAM-256 28dB */
++		else
++			ref_snr = 2200; /* QAM-64  22dB */
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2136,7 +2159,7 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
+ 		.frequency_min      = 54000000,
+ 		.frequency_max      = 858000000,
+ 		.frequency_stepsize = 62500,
+-		.caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
++		.caps = FE_CAN_QAM_AUTO | FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
+ 	},
+ 	.i2c_gate_ctrl        = lgdt3306a_i2c_gate_ctrl,
+ 	.init                 = lgdt3306a_init,
+-- 
+2.7.4
