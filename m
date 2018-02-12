@@ -1,120 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45663 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752343AbeBZLJ4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 06:09:56 -0500
-Subject: Re: [PATCH v3] media: radio: Critical v4l2 registration bugfix for
- si470x over i2c
-To: Douglas Fischer <fischerdouglasc@gmail.com>,
-        linux-media@vger.kernel.org
-References: <20180225212506.7ba4a314@Constantine>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <067f751c-8129-f88b-f91e-8b10bc803754@xs4all.nl>
-Date: Mon, 26 Feb 2018 12:09:52 +0100
+Received: from mail.kernel.org ([198.145.29.99]:59220 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932554AbeBLWIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Feb 2018 17:08:32 -0500
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        David Airlie <airlied@linux.ie>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Inki Dae <inki.dae@samsung.com>
+Subject: [PATCH v3 5/5] drm: adv7511: Add support for i2c_new_secondary_device
+Date: Mon, 12 Feb 2018 22:07:53 +0000
+Message-Id: <1518473273-6333-6-git-send-email-kbingham@kernel.org>
+In-Reply-To: <1518473273-6333-1-git-send-email-kbingham@kernel.org>
+References: <1518473273-6333-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20180225212506.7ba4a314@Constantine>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/26/2018 03:25 AM, Douglas Fischer wrote:
-> Added the call to v4l2_device_register() required to add a new radio
-> device. Without this patch, it is impossible for the driver to load.
-> This does not affect USB devices.
-> 
-> Fixed cleanup order from v2.
-> 
-> Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
-> ---
-> 
-> diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
-> linux/drivers/media/radio/si470x/radio-si470x-i2c.c ---
-> linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
-> 2018-01-15 21:58:10.675620432 -0500 +++
-> linux/drivers/media/radio/si470x/radio-si470x-i2c.c	2018-02-25
-> 19:19:13.796927568 -0500 @@ -43,7 +43,6 @@ static const struct
-> i2c_device_id si470x MODULE_DEVICE_TABLE(i2c, si470x_i2c_id); 
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-This patch is still corrupt (wrap around). The other two are fine though.
+The ADV7511 has four 256-byte maps that can be accessed via the main I²C
+ports. Each map has it own I²C address and acts as a standard slave
+device on the I²C bus.
 
-Can you repost this one?
+Allow a device tree node to override the default addresses so that
+address conflicts with other devices on the same bus may be resolved at
+the board description level.
 
-Regards,
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+v2:
+ - Update missing edid-i2c address setting
+ - Split out DT bindings
+ - Rename and move the I2C default addresses to their own section
 
-	Hans
+ drivers/gpu/drm/bridge/adv7511/adv7511.h     |  6 ++++
+ drivers/gpu/drm/bridge/adv7511/adv7511_drv.c | 42 ++++++++++++++++++----------
+ 2 files changed, 33 insertions(+), 15 deletions(-)
 
-> -
->  /**************************************************************************
->   * Module Parameters
->   **************************************************************************/
-> @@ -362,22 +361,43 @@ static int si470x_i2c_probe(struct i2c_c
->  	mutex_init(&radio->lock);
->  	init_completion(&radio->completion);
->  
-> +	retval = v4l2_device_register(&client->dev, &radio->v4l2_dev);
-> +	if (retval < 0) {
-> +		dev_err(&client->dev, "couldn't register
-> v4l2_device\n");
-> +		goto err_radio;
-> +	}
-> +
-> +	v4l2_ctrl_handler_init(&radio->hdl, 2);
-> +	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
-> +			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> +	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
-> +			V4L2_CID_AUDIO_VOLUME, 0, 15, 1, 15);
-> +	if (radio->hdl.error) {
-> +		retval = radio->hdl.error;
-> +		dev_err(&client->dev, "couldn't register control\n");
-> +		goto err_dev;
-> +	}
-> +
->  	/* video device initialization */
->  	radio->videodev = si470x_viddev_template;
-> +	radio->videodev.ctrl_handler = &radio->hdl;
-> +	radio->videodev.lock = &radio->lock;
-> +	radio->videodev.v4l2_dev = &radio->v4l2_dev;
-> +	radio->videodev.release = video_device_release_empty;
->  	video_set_drvdata(&radio->videodev, radio);
->  
->  	/* power up : need 110ms */
->  	radio->registers[POWERCFG] = POWERCFG_ENABLE;
->  	if (si470x_set_register(radio, POWERCFG) < 0) {
->  		retval = -EIO;
-> -		goto err_radio;
-> +		goto err_ctrl;
->  	}
->  	msleep(110);
->  
->  	/* get device and chip versions */
->  	if (si470x_get_all_registers(radio) < 0) {
->  		retval = -EIO;
-> -		goto err_radio;
-> +		goto err_ctrl;
->  	}
->  	dev_info(&client->dev, "DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
->  			radio->registers[DEVICEID],
-> radio->registers[SI_CHIPID]); @@ -407,7 +427,7 @@ static int
-> si470x_i2c_probe(struct i2c_c radio->buffer = kmalloc(radio->buf_size,
-> GFP_KERNEL); if (!radio->buffer) {
->  		retval = -EIO;
-> -		goto err_radio;
-> +		goto err_ctrl;
->  	}
->  
->  	/* rds buffer configuration */
-> @@ -437,6 +457,10 @@ err_all:
->  	free_irq(client->irq, radio);
->  err_rds:
->  	kfree(radio->buffer);
-> +err_ctrl:
-> +	v4l2_ctrl_handler_free(&radio->hdl);
-> +err_dev:
-> +	v4l2_device_unregister(&radio->v4l2_dev);
->  err_radio:
->  	kfree(radio);
->  err_initial:
-> 
+diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511.h b/drivers/gpu/drm/bridge/adv7511/adv7511.h
+index d034b2cb5eee..04e6759ee45b 100644
+--- a/drivers/gpu/drm/bridge/adv7511/adv7511.h
++++ b/drivers/gpu/drm/bridge/adv7511/adv7511.h
+@@ -93,6 +93,11 @@
+ #define ADV7511_REG_CHIP_ID_HIGH		0xf5
+ #define ADV7511_REG_CHIP_ID_LOW			0xf6
+ 
++/* Hardware defined default addresses for i2c register maps */
++#define ADV7511_CEC_I2C_ADDR_DEFAULT		0x3c
++#define ADV7511_EDID_I2C_ADDR_DEFAULT		0x3f
++#define ADV7511_PACKET_I2C_ADDR_DEFAULT		0x38
++
+ #define ADV7511_CSC_ENABLE			BIT(7)
+ #define ADV7511_CSC_UPDATE_MODE			BIT(5)
+ 
+@@ -322,6 +327,7 @@ struct adv7511 {
+ 	struct i2c_client *i2c_main;
+ 	struct i2c_client *i2c_edid;
+ 	struct i2c_client *i2c_cec;
++	struct i2c_client *i2c_packet;
+ 
+ 	struct regmap *regmap;
+ 	struct regmap *regmap_cec;
+diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+index efa29db5fc2b..5e61b928c9c0 100644
+--- a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
++++ b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
+@@ -586,7 +586,7 @@ static int adv7511_get_modes(struct adv7511 *adv7511,
+ 	/* Reading the EDID only works if the device is powered */
+ 	if (!adv7511->powered) {
+ 		unsigned int edid_i2c_addr =
+-					(adv7511->i2c_main->addr << 1) + 4;
++					(adv7511->i2c_edid->addr << 1);
+ 
+ 		__adv7511_power_on(adv7511);
+ 
+@@ -969,10 +969,10 @@ static int adv7511_init_cec_regmap(struct adv7511 *adv)
+ {
+ 	int ret;
+ 
+-	adv->i2c_cec = i2c_new_dummy(adv->i2c_main->adapter,
+-				     adv->i2c_main->addr - 1);
++	adv->i2c_cec = i2c_new_secondary_device(adv->i2c_main, "cec",
++					ADV7511_CEC_I2C_ADDR_DEFAULT);
+ 	if (!adv->i2c_cec)
+-		return -ENOMEM;
++		return -EINVAL;
+ 	i2c_set_clientdata(adv->i2c_cec, adv);
+ 
+ 	adv->regmap_cec = devm_regmap_init_i2c(adv->i2c_cec,
+@@ -1082,8 +1082,6 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 	struct adv7511_link_config link_config;
+ 	struct adv7511 *adv7511;
+ 	struct device *dev = &i2c->dev;
+-	unsigned int main_i2c_addr = i2c->addr << 1;
+-	unsigned int edid_i2c_addr = main_i2c_addr + 4;
+ 	unsigned int val;
+ 	int ret;
+ 
+@@ -1153,24 +1151,35 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 	if (ret)
+ 		goto uninit_regulators;
+ 
+-	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR, edid_i2c_addr);
+-	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
+-		     main_i2c_addr - 0xa);
+-	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
+-		     main_i2c_addr - 2);
+-
+ 	adv7511_packet_disable(adv7511, 0xffff);
+ 
+-	adv7511->i2c_edid = i2c_new_dummy(i2c->adapter, edid_i2c_addr >> 1);
++	adv7511->i2c_edid = i2c_new_secondary_device(i2c, "edid",
++					ADV7511_EDID_I2C_ADDR_DEFAULT);
+ 	if (!adv7511->i2c_edid) {
+-		ret = -ENOMEM;
++		ret = -EINVAL;
+ 		goto uninit_regulators;
+ 	}
+ 
++	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR,
++		     adv7511->i2c_edid->addr << 1);
++
+ 	ret = adv7511_init_cec_regmap(adv7511);
+ 	if (ret)
+ 		goto err_i2c_unregister_edid;
+ 
++	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
++		     adv7511->i2c_cec->addr << 1);
++
++	adv7511->i2c_packet = i2c_new_secondary_device(i2c, "packet",
++					ADV7511_PACKET_I2C_ADDR_DEFAULT);
++	if (!adv7511->i2c_packet) {
++		ret = -EINVAL;
++		goto err_unregister_cec;
++	}
++
++	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
++		     adv7511->i2c_packet->addr << 1);
++
+ 	INIT_WORK(&adv7511->hpd_work, adv7511_hpd_work);
+ 
+ 	if (i2c->irq) {
+@@ -1181,7 +1190,7 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 						IRQF_ONESHOT, dev_name(dev),
+ 						adv7511);
+ 		if (ret)
+-			goto err_unregister_cec;
++			goto err_unregister_packet;
+ 	}
+ 
+ 	adv7511_power_off(adv7511);
+@@ -1203,6 +1212,8 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+ 	adv7511_audio_init(dev, adv7511);
+ 	return 0;
+ 
++err_unregister_packet:
++	i2c_unregister_device(adv7511->i2c_packet);
+ err_unregister_cec:
+ 	i2c_unregister_device(adv7511->i2c_cec);
+ 	if (adv7511->cec_clk)
+@@ -1234,6 +1245,7 @@ static int adv7511_remove(struct i2c_client *i2c)
+ 	cec_unregister_adapter(adv7511->cec_adap);
+ 
+ 	i2c_unregister_device(adv7511->i2c_edid);
++	i2c_unregister_device(adv7511->i2c_packet);
+ 
+ 	return 0;
+ }
+-- 
+2.7.4
