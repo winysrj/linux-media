@@ -1,95 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:19994 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752860AbeBELmS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51863 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751295AbeBLSaK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 06:42:18 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-CC: Hugues Fruchet <hugues.fruchet@st.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Sakari Ailus" <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: RE: [PATCH v5 4/5] media: ov5640: add support of DVP parallel
- interface
-Date: Mon, 5 Feb 2018 11:42:11 +0000
-Message-ID: <TY1PR06MB08954787E362BF24C7FD41DBC0FE0@TY1PR06MB0895.apcprd06.prod.outlook.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <1514973452-10464-5-git-send-email-hugues.fruchet@st.com>
- <TY1PR06MB089512437228BAFF910B133FC0FA0@TY1PR06MB0895.apcprd06.prod.outlook.com>
- <20180202185045.vvhmj5wtagalkucf@flea.lan>
-In-Reply-To: <20180202185045.vvhmj5wtagalkucf@flea.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        Mon, 12 Feb 2018 13:30:10 -0500
+Subject: Re: [PATCH v2 3/5] [RFT] ARM: dts: wheat: Fix ADV7513 address usage
+To: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Simon Horman <horms@verge.net.au>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+References: <1518459117-16733-1-git-send-email-kbingham@kernel.org>
+ <1518459117-16733-4-git-send-email-kbingham@kernel.org>
+ <bc0dfd28-652a-80e7-a08b-6909b0e34883@metafoo.de>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <cdeed793-55e1-131a-9265-b2f170cdfd16@ideasonboard.com>
+Date: Mon, 12 Feb 2018 18:30:06 +0000
 MIME-Version: 1.0
+In-Reply-To: <bc0dfd28-652a-80e7-a08b-6909b0e34883@metafoo.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Maxime,
+Hi Lars,
 
-thank you for your feedback.
+Thanks for your review!
 
-> > > +/*
-> > > + * configure parallel port control lines polarity
-> > > + *
-> > > + * POLARITY CTRL0
-> > > + * - [5]:PCLK polarity (0: active low, 1: active high)
-> > > + * - [1]:HREF polarity (0: active low, 1: active high)
-> > > + * - [0]:VSYNC polarity (mismatch here between
-> > > + *datasheet and hardware, 0 is active high
-> > > + *and 1 is active low...)
-> >
-> > I know that yourself and Maxime have both confirmed that VSYNC
-> > polarity is inverted, but I am looking at HSYNC and VSYNC with a
-> > logic analyser and I am dumping the values written to
-> > OV5640_REG_POLARITY_CTRL00 and to me it looks like that HSYNC is
-> > active HIGH when hsync_pol =3D=3D 0, and VSYNC is active HIGH when
-> > vsync_pol =3D=3D 1.
->
-> Which mode are you testing this on?
+On 12/02/18 18:24, Lars-Peter Clausen wrote:
+> On 02/12/2018 07:11 PM, Kieran Bingham wrote:
+> [...]
+>> +	/*
+>> +	 * The adv75xx resets its addresses to defaults during low power power
+>> +	 * mode. Because we have two ADV7513 devices on the same bus, we must
+>> +	 * change both of them away from the defaults so that they do not
+>> +	 * conflict.
+>> +	 */
+>>  	hdmi@3d {
+>>  		compatible = "adi,adv7513";
+>> -		reg = <0x3d>;
+>> +		reg = <0x3d 0x2d 0x4d, 0x5d>;
+> 
+> To have the correct semantics this should be:
+> 		reg = <0x3d>, <0x2d>, <0x4d>, <0x5d>;>
+> It is a set of 4 single cell addresses. The other thing is a single 4 cell
+> address. It will get compiled to the same bytes, but the DT tools should
+> complain about it, because it doesn't match #address-cells.
 
-My testing environment is made of the sensor connected to a SoC with 8 data=
- lines, vsync, hsync, and pclk, and of course I am specifying hsync-active,=
- vsync-active, and pclk-sample in the device tree on both ends so that they=
- configure themselves accordingly to work in DVP mode (V4L2_MBUS_PARALLEL),=
- with the correct polarities.
-Between the sensor and the SoC there is a noninverting bus transceiver (vol=
-tage translator), for my experiments I have plugged myself onto the outputs=
- of this transceiver only to be compliant with the voltage level of my logi=
-c analyser.
+Not to mention the spurious comma's!!! (at least I marked the patch RFT :D)
 
->
-> The non-active periods are insanely high in most modes (1896 for an
-> active horizontal length of 640 in 640x480 for example), especially
-> hsync, and it's really easy to invert the two.
+I'll resend a v2.1 RFT here, and update my local changes (with the same fault,
+sans comma) to my other DT files!
 
-I am looking at all the data lines, so that I don't confuse the non-active =
-periods with the active periods, and with my setup what I reported is what =
-I get. I wonder if this difference comes from the sensor revision at all? U=
-nfortunately I can only test the one camera I have got.
+Thanks for the fast review.
 
-Thanks,
-Fab
-
->
-> Maxime
->
-> --
-> Maxime Ripard, Bootlin (formerly Free Electrons)
-> Embedded Linux and Kernel engineering
-> http://bootlin.com
+--
+Kieran
 
 
-
-Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
-uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
- No. 04586709.
+> 
+>> +		reg-names = "main", "cec", "edid", "packet";
+>>  
+>>  		adi,input-depth = <8>;
+>>  		adi,input-colorspace = "rgb";
+>> @@ -272,7 +279,8 @@
+>>  
+>>  	hdmi@39 {
+>>  		compatible = "adi,adv7513";
+>> -		reg = <0x39>;
+>> +		reg = <0x39 0x29 0x49, 0x59>;
+> 
+> Same here.
+> 
+>> +		reg-names = "main", "cec", "edid", "packet";
+>>  
+>>  		adi,input-depth = <8>;
+>>  		adi,input-colorspace = "rgb";
+>>
+> 
