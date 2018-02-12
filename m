@@ -1,72 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:51066 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753189AbeBVKYS (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:35569 "EHLO
+        homiemail-a92.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932527AbeBLXoU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 05:24:18 -0500
-From: Rui Miguel Silva <rmfrfs@gmail.com>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH 1/2] media: ov2680: dt: Add bindings for OV2680
-Date: Thu, 22 Feb 2018 10:23:37 +0000
-Message-Id: <20180222102338.28896-2-rui.silva@linaro.org>
-In-Reply-To: <20180222102338.28896-1-rui.silva@linaro.org>
-References: <20180222102338.28896-1-rui.silva@linaro.org>
+        Mon, 12 Feb 2018 18:44:20 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 1/4] cx25840: Use subdev host data for PLL override
+Date: Mon, 12 Feb 2018 17:44:05 -0600
+Message-Id: <1518479048-10192-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1518479048-10192-1-git-send-email-brad@nextdimension.cc>
+References: <1518479048-10192-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV5640 camera sensor.
+The cx25840 driver currently configures 885, 887, and 888 using
+default divisors for each chip. This check to see if the cx23885
+driver has passed the cx25840 a non-default clock rate for a
+specific chip. If a cx23885 board has left clk_freq at 0, the
+clock default values will be used to configure the PLLs.
 
-CC: devicetree@vger.kernel.org
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+This patch only has effect on 888 boards who set clk_freq to 25M.
+
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- .../devicetree/bindings/media/i2c/ov2680.txt       | 34 ++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
+ drivers/media/i2c/cx25840/cx25840-core.c | 28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-new file mode 100644
-index 000000000000..f9dc63ce5044
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-@@ -0,0 +1,34 @@
-+* Omnivision OV2680 MIPI CSI-2 sensor
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index 98be63a..841c6bb 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -463,8 +463,13 @@ static void cx23885_initialize(struct i2c_client *client)
+ {
+ 	DEFINE_WAIT(wait);
+ 	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
++	u32 clk_freq = 0;
+ 	struct workqueue_struct *q;
+ 
++	/* cx23885 sets hostdata to clk_freq pointer */
++	if (v4l2_get_subdev_hostdata(&state->sd))
++		clk_freq = *((u32 *)v4l2_get_subdev_hostdata(&state->sd));
 +
-+Required Properties:
-+- compatible: should be "ovti,ov2680"
-+- clocks: reference to the xvclk input clock.
-+- clock-names: should be "xvclk".
-+
-+Optional Properties:
-+- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-+		     if any. This is an active high signal to the OV2680.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+&i2c2 {
-+	ov2680: camera-sensor@36 {
-+		compatible = "ovti,ov2680";
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov2680_mipi_ep: endpoint {
-+				remote-endpoint = <&mipi_sensor_ep>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
-+};
+ 	/*
+ 	 * Come out of digital power down
+ 	 * The CX23888, at least, needs this, otherwise registers aside from
+@@ -500,8 +505,13 @@ static void cx23885_initialize(struct i2c_client *client)
+ 		 * 50.0 MHz * (0xb + 0xe8ba26/0x2000000)/4 = 5 * 28.636363 MHz
+ 		 * 572.73 MHz before post divide
+ 		 */
+-		/* HVR1850 or 50MHz xtal */
+-		cx25840_write(client, 0x2, 0x71);
++		if (clk_freq == 25000000) {
++			/* 888/ImpactVCBe or 25Mhz xtal */
++			; /* nothing to do */
++		} else {
++			/* HVR1850 or 50MHz xtal */
++			cx25840_write(client, 0x2, 0x71);
++		}
+ 		cx25840_write4(client, 0x11c, 0x01d1744c);
+ 		cx25840_write4(client, 0x118, 0x00000416);
+ 		cx25840_write4(client, 0x404, 0x0010253e);
+@@ -544,9 +554,15 @@ static void cx23885_initialize(struct i2c_client *client)
+ 	/* HVR1850 */
+ 	switch (state->id) {
+ 	case CX23888_AV:
+-		/* 888/HVR1250 specific */
+-		cx25840_write4(client, 0x10c, 0x13333333);
+-		cx25840_write4(client, 0x108, 0x00000515);
++		if (clk_freq == 25000000) {
++			/* 888/ImpactVCBe or 25MHz xtal */
++			cx25840_write4(client, 0x10c, 0x01b6db7b);
++			cx25840_write4(client, 0x108, 0x00000512);
++		} else {
++			/* 888/HVR1250 or 50MHz xtal */
++			cx25840_write4(client, 0x10c, 0x13333333);
++			cx25840_write4(client, 0x108, 0x00000515);
++		}
+ 		break;
+ 	default:
+ 		cx25840_write4(client, 0x10c, 0x002be2c9);
+@@ -576,7 +592,7 @@ static void cx23885_initialize(struct i2c_client *client)
+ 		 * 368.64 MHz before post divide
+ 		 * 122.88 MHz / 0xa = 12.288 MHz
+ 		 */
+-		/* HVR1850  or 50MHz xtal */
++		/* HVR1850 or 50MHz xtal or 25MHz xtal */
+ 		cx25840_write4(client, 0x114, 0x017dbf48);
+ 		cx25840_write4(client, 0x110, 0x000a030e);
+ 		break;
 -- 
-2.16.2
+2.7.4
