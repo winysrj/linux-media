@@ -1,60 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55926 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750799AbeBBKJC (ORCPT
+Received: from mail-it0-f65.google.com ([209.85.214.65]:51435 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933366AbeBMHN0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Feb 2018 05:09:02 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH 1/1] vb2: core: Finish buffers at the end of the stream
-Date: Fri,  2 Feb 2018 12:08:59 +0200
-Message-Id: <20180202100859.4004-1-sakari.ailus@linux.intel.com>
+        Tue, 13 Feb 2018 02:13:26 -0500
+Received: by mail-it0-f65.google.com with SMTP id 193so7094858iti.1
+        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 23:13:26 -0800 (PST)
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+To: slongerbeam@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: todor.tomov@linaro.org, nicolas.dechesne@linaro.org,
+        dragonboard@lists.96boards.org, manivannanece23@gmail.com,
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Subject: [PATCH] media: i2c: ov5640: Add pixel clock support
+Date: Tue, 13 Feb 2018 12:43:08 +0530
+Message-Id: <1518505988-8389-2-git-send-email-manivannan.sadhasivam@linaro.org>
+In-Reply-To: <1518505988-8389-1-git-send-email-manivannan.sadhasivam@linaro.org>
+References: <1518505988-8389-1-git-send-email-manivannan.sadhasivam@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If buffers were prepared or queued and the buffers were released without
-starting the queue, the finish mem op (corresponding to the prepare mem
-op) was never called to the buffers.
+Some of the camera subsystems like camss in Qualcommm MSM chipsets
+require pixel clock support in camera sensor drivers. So, this commit
+adds a default pixel clock rate of 96MHz to OV5640 camera sensor driver.
 
-Before commit a136f59c0a1f there was no need to do this as in such a case
-the prepare mem op had not been called yet. Address the problem by
-explicitly calling finish mem op when the queue is stopped if the buffer
-is in either prepared or queued state.
+According to the datasheet, 96MHz can be used as a pixel clock rate for
+most of the modes.
 
-Fixes: a136f59c0a1f ("[media] vb2: Move buffer cache synchronisation to prepare from queue")
-Cc: stable@vger.kernel.org # for v4.13 and up
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
 ---
-Hi Devin,
+ drivers/media/i2c/ov5640.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Could you check whether this will resolve the problem you've found?
-
-Thanks.
-
- drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index f7109f827f6e..52a7c1d0a79a 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1696,6 +1696,15 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	for (i = 0; i < q->num_buffers; ++i) {
- 		struct vb2_buffer *vb = q->bufs[i];
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 39a2269..7152c84 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -162,6 +162,7 @@ struct ov5640_ctrls {
+ 		struct v4l2_ctrl *auto_gain;
+ 		struct v4l2_ctrl *gain;
+ 	};
++	struct v4l2_ctrl *pixel_clock;
+ 	struct v4l2_ctrl *brightness;
+ 	struct v4l2_ctrl *saturation;
+ 	struct v4l2_ctrl *contrast;
+@@ -2009,6 +2010,9 @@ static int ov5640_init_controls(struct ov5640_dev *sensor)
+ 	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN,
+ 					0, 1023, 1, 0);
  
-+		if (vb->state == VB2_BUF_STATE_PREPARED ||
-+		    vb->state == VB2_BUF_STATE_QUEUED) {
-+			unsigned int plane;
-+
-+			for (plane = 0; plane < vb->num_planes; ++plane)
-+				call_void_memop(vb, finish,
-+						vb->planes[plane].mem_priv);
-+		}
-+
- 		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
- 			vb->state = VB2_BUF_STATE_PREPARED;
- 			call_void_vb_qop(vb, buf_finish, vb);
++	/* Pixel clock (default of 96MHz) */
++	ctrls->pixel_clock = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_PIXEL_RATE,
++					1, INT_MAX, 1, 96000000);
+ 	ctrls->saturation = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION,
+ 					      0, 255, 1, 64);
+ 	ctrls->hue = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_HUE,
 -- 
-2.11.0
+2.7.4
