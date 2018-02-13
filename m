@@ -1,64 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34845 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752539AbeBHTxY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:53:24 -0500
-Received: by mail-wm0-f65.google.com with SMTP id r78so12230861wme.0
-        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:53:23 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at
-Subject: [PATCH 1/7] [media] ddbridge/ci: further deduplicate code/logic in ddb_ci_attach()
-Date: Thu,  8 Feb 2018 20:53:12 +0100
-Message-Id: <20180208195318.612-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20180208195318.612-1-d.scheller.oss@gmail.com>
-References: <20180208195318.612-1-d.scheller.oss@gmail.com>
+Received: from mail-io0-f172.google.com ([209.85.223.172]:39884 "EHLO
+        mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933444AbeBMHNW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Feb 2018 02:13:22 -0500
+Received: by mail-io0-f172.google.com with SMTP id b198so20252823iof.6
+        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 23:13:22 -0800 (PST)
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+To: slongerbeam@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: todor.tomov@linaro.org, nicolas.dechesne@linaro.org,
+        dragonboard@lists.96boards.org, manivannanece23@gmail.com,
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Subject: [PATCH] Add pixel clock support to OV5640 camera sensor
+Date: Tue, 13 Feb 2018 12:43:07 +0530
+Message-Id: <1518505988-8389-1-git-send-email-manivannan.sadhasivam@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Some of the camera subsystems like camss in Qualcommm MSM chipsets
+require pixel clock support in camera sensor drivers for proper functioning.
+So, add a default pixel clock rate of 96MHz to OV5640 camera sensor driver.
 
-Deduplicate the checks for a valid ptr in port->en, and also handle the
-default case to also catch eventually yet unsupported CI hardware.
+According to the datasheet, 96MHz can be used as a pixel clock rate for
+most of the modes.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-ci.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+This patch has been validated on Dragonboard410c with OV5640 connected
+using D3 Camera Mezzanine.
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index 5828111487b0..ed19890710d6 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -325,24 +325,20 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- 	case DDB_CI_EXTERNAL_SONY:
- 		cxd_cfg.bitrate = bitrate;
- 		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
--		if (!port->en)
--			return -ENODEV;
- 		break;
--
- 	case DDB_CI_EXTERNAL_XO2:
- 	case DDB_CI_EXTERNAL_XO2_B:
- 		ci_xo2_attach(port);
--		if (!port->en)
--			return -ENODEV;
- 		break;
--
- 	case DDB_CI_INTERNAL:
- 		ci_attach(port);
--		if (!port->en)
--			return -ENODEV;
- 		break;
-+	default:
-+		return -ENODEV;
- 	}
- 
-+	if (!port->en)
-+		return -ENODEV;
- 	dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
- 	return 0;
- }
+Manivannan Sadhasivam (1):
+  media: i2c: ov5640: Add pixel clock support
+
+ drivers/media/i2c/ov5640.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
 -- 
-2.13.6
+2.7.4
