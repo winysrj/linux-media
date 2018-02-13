@@ -1,49 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46527 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967619AbeBNLyU (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35488 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935182AbeBMM35 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:54:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.1 13/14] media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors
-Date: Wed, 14 Feb 2018 12:54:18 +0100
-Message-Id: <20180214115419.28156-14-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115419.28156-1-hverkuil@xs4all.nl>
-References: <20180214115419.28156-1-hverkuil@xs4all.nl>
+        Tue, 13 Feb 2018 07:29:57 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [RESEND PATCH v5 0/6] IR support for A83T
+Date: Tue, 13 Feb 2018 13:29:46 +0100
+Message-Id: <20180213122952.8420-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch series adds support for the sunxi A83T ir module and enhances 
+the sunxi-ir driver. Right now the base clock frequency for the ir driver
+is a hard coded define and is set to 8 MHz.
+This works for the most common ir receivers. On the Sinovoip Bananapi M3 
+the ir receiver needs, a 3 MHz base clock frequency to work without
+problems with this driver.
 
-commit d83a8243aaefe62ace433e4384a4f077bed86acb upstream.
+This patch series adds support for an optinal property that makes it able
+to override the default base clock frequency and enables the ir interface 
+on the a83t and the Bananapi M3.
 
-Some ioctls need to copy back the result even if the ioctl returned
-an error. However, don't do this for the error code -ENOTTY.
-It makes no sense in that cases.
+changes since v4:
+* rename cir pin from cir_pins to r_cir_pin
+* drop unit-adress from r_cir_pin
+* add a83t compatible to the cir node
+* move muxing options to dtsi
+* rename cir label and reorder it in the bananpim3.dts file
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 +++
- 1 file changed, 3 insertions(+)
+changes since v3:
+* collecting all acks & reviewd by
+* fixed typos
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 8371bbbda383..3e1d3ed3561c 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -946,6 +946,9 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		set_fs(old_fs);
- 	}
- 
-+	if (err == -ENOTTY)
-+		return err;
-+
- 	/* Special case: even after an error we need to put the
- 	   results back for these ioctls since the error_idx will
- 	   contain information on which control failed. */
+changes since v2:
+* reorder cir pin (alphabetical)
+* fix typo in documentation
+
+changes since v1:
+* fix typos, reword Documentation
+* initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
+* change dev_info() to dev_dbg()
+* change naming to cir* in dts/dtsi
+* Added acked Ackedi-by to related patch
+* use whole memory block instead of registers needed + fix for h3/h5
+
+changes since rfc:
+* The property is now optinal. If the property is not available in 
+  the dtb the driver uses the default base clock frequency.
+* the driver prints out the the selected base clock frequency.
+* changed devicetree property from base-clk-frequency to clock-frequency
+
+Regards,
+Philipp
+
+Philipp Rossak (6):
+  media: rc: update sunxi-ir driver to get base clock frequency from
+    devicetree
+  media: dt: bindings: Update binding documentation for sunxi IR
+    controller
+  arm: dts: sun8i: a83t: Add the cir pin for the A83T
+  arm: dts: sun8i: a83t: Add support for the cir interface
+  arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+  arm: dts: sun8i: h3-h5: ir register size should be the whole memory
+    block
+
+ Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
+ arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  5 +++++
+ arch/arm/boot/dts/sun8i-a83t.dtsi                    | 18 ++++++++++++++++++
+ arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
+ drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
+ 5 files changed, 38 insertions(+), 9 deletions(-)
+
 -- 
-2.15.1
+2.11.0
