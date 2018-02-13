@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0055.outbound.protection.outlook.com ([104.47.40.55]:37536
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751986AbeBGW36 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 17:29:58 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Rohit Athavale <rohit.athavale@xilinx.com>,
-        Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH 4/8] media-bus: uapi: Add YCrCb 420 media bus format
-Date: Wed, 7 Feb 2018 14:29:34 -0800
-Message-ID: <1518042578-22771-5-git-send-email-satishna@xilinx.com>
-In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:42164 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935246AbeBMMaD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Feb 2018 07:30:03 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [RESEND PATCH v5 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
+Date: Tue, 13 Feb 2018 13:29:50 +0100
+Message-Id: <20180213122952.8420-5-embed3d@gmail.com>
+In-Reply-To: <20180213122952.8420-1-embed3d@gmail.com>
+References: <20180213122952.8420-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rohit Athavale <rohit.athavale@xilinx.com>
+The cir interface is like on the H3 located at 0x01f02000 and is exactly
+the same. This patch adds support for the ir interface on the A83T.
 
-This commit adds a YUV 420 media bus format. Currently, one
-doesn't exist. VYYUYY8_1X24 does not describe the way the pixels are
-sent over the bus, but is an approximation.
-
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
 ---
- include/uapi/linux/media-bus-format.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/sun8i-a83t.dtsi | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/med=
-ia-bus-format.h
-index 9e35117..0297e19 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -62,7 +62,7 @@
- #define MEDIA_BUS_FMT_RGB121212_1X36           0x1019
- #define MEDIA_BUS_FMT_RGB161616_1X48           0x101a
-
--/* YUV (including grey) - next is      0x202c */
-+/* YUV (including grey) - next is      0x202d */
- #define MEDIA_BUS_FMT_Y8_1X8                   0x2001
- #define MEDIA_BUS_FMT_UV8_1X8                  0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8              0x2002
-@@ -106,6 +106,7 @@
- #define MEDIA_BUS_FMT_YUV12_1X36               0x2029
- #define MEDIA_BUS_FMT_YUV16_1X48               0x202a
- #define MEDIA_BUS_FMT_UYYVYY16_0_5X48          0x202b
-+#define MEDIA_BUS_FMT_VYYUYY8_1X24              0x202c
-
- /* Bayer - next is     0x3021 */
- #define MEDIA_BUS_FMT_SBGGR8_1X8               0x3001
---
-2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
+index f7f78a27e21d..1e04a5cfd32d 100644
+--- a/arch/arm/boot/dts/sun8i-a83t.dtsi
++++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
+@@ -704,6 +704,19 @@
+ 			#reset-cells = <1>;
+ 		};
+ 
++		r_cir: ir@1f02000 {
++			compatible = "allwinner,sun8i-a83t-ir",
++				     "allwinner,sun5i-a13-ir";
++			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
++			clock-names = "apb", "ir";
++			resets = <&r_ccu RST_APB0_IR>;
++			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
++			reg = <0x01f02000 0x400>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&r_cir_pin>;
++			status = "disabled";
++		};
++
+ 		r_pio: pinctrl@1f02c00 {
+ 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
+ 			reg = <0x01f02c00 0x400>;
+-- 
+2.11.0
