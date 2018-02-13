@@ -1,481 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:32799 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751172AbeBTEor (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42130 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934918AbeBMMSf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 23:44:47 -0500
-Received: by mail-pg0-f68.google.com with SMTP id g12so6722164pgs.0
-        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:44:47 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Tue, 13 Feb 2018 07:18:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv4 02/21] v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
-Date: Tue, 20 Feb 2018 13:44:06 +0900
-Message-Id: <20180220044425.169493-3-acourbot@chromium.org>
-In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
-References: <20180220044425.169493-1-acourbot@chromium.org>
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH v3 4/5] media: adv7604: Add support for i2c_new_secondary_device
+Date: Tue, 13 Feb 2018 14:19:06 +0200
+Message-ID: <12162268.j7DyVD3ArW@avalon>
+In-Reply-To: <1518473273-6333-5-git-send-email-kbingham@kernel.org>
+References: <1518473273-6333-1-git-send-email-kbingham@kernel.org> <1518473273-6333-5-git-send-email-kbingham@kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Kieran,
 
-Add a 'bool from_other_dev' argument: set to true if the two
-handlers refer to different devices (e.g. it is true when
-inheriting controls from a subdev into a main v4l2 bridge
-driver).
+Thank you for the patch.
 
-This will be used later when implementing support for the
-request API since we need to skip such controls.
+On Tuesday, 13 February 2018 00:07:52 EET Kieran Bingham wrote:
+> From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+>=20
+> The ADV7604 has thirteen 256-byte maps that can be accessed via the main
+> I=B2C ports. Each map has it own I=B2C address and acts as a standard sla=
+ve
+> device on the I=B2C bus.
+>=20
+> Allow a device tree node to override the default addresses so that
+> address conflicts with other devices on the same bus may be resolved at
+> the board description level.
+>=20
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> [Kieran: Re-adapted for mainline]
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>=20
+> ---
+> Based upon the original posting :
+>   https://lkml.org/lkml/2014/10/22/469
+>=20
+> v2:
+>  - Split out DT bindings from driver updates
+>  - Return -EINVAL on error paths from adv76xx_dummy_client()
+>=20
+>  drivers/media/i2c/adv7604.c | 62 ++++++++++++++++++++++++++-------------=
+=2D--
+>  1 file changed, 40 insertions(+), 22 deletions(-)
+>=20
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 1544920ec52d..872e124793f8 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -2734,6 +2734,27 @@ static const struct v4l2_ctrl_config
+> adv76xx_ctrl_free_run_color =3D {
+>=20
+>  /* ---------------------------------------------------------------------=
+ */
+>=20
+> +struct adv76xx_register {
 
-TODO: check drivers/staging/media/imx/imx-media-fim.c change.
+adv76xx_register seems to imply that this describes a particular register,=
+=20
+while the structure describes a registers map. How about adv76xx_register_m=
+ap,=20
+adv76xx_register_bank or adv76xx_register_page ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/dvb-frontends/rtl2832_sdr.c     |  5 +-
- drivers/media/pci/bt8xx/bttv-driver.c         |  2 +-
- drivers/media/pci/cx23885/cx23885-417.c       |  2 +-
- drivers/media/pci/cx88/cx88-blackbird.c       |  2 +-
- drivers/media/pci/cx88/cx88-video.c           |  2 +-
- drivers/media/pci/saa7134/saa7134-empress.c   |  4 +-
- drivers/media/pci/saa7134/saa7134-video.c     |  2 +-
- .../media/platform/exynos4-is/fimc-capture.c  |  2 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c   |  3 +-
- drivers/media/platform/rcar_drif.c            |  2 +-
- .../media/platform/soc_camera/soc_camera.c    |  3 +-
- drivers/media/platform/vivid/vivid-ctrls.c    | 46 +++++++++----------
- drivers/media/usb/cx231xx/cx231xx-417.c       |  2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c     |  4 +-
- drivers/media/usb/msi2500/msi2500.c           |  2 +-
- drivers/media/usb/tm6000/tm6000-video.c       |  2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c          | 11 +++--
- drivers/media/v4l2-core/v4l2-device.c         |  3 +-
- drivers/staging/media/imx/imx-media-dev.c     |  2 +-
- drivers/staging/media/imx/imx-media-fim.c     |  2 +-
- include/media/v4l2-ctrls.h                    |  4 +-
- 21 files changed, 58 insertions(+), 49 deletions(-)
+> +	const char *name;
+> +	u8 default_addr;
+> +};
+> +
+> +static const struct adv76xx_register adv76xx_secondary_names[] =3D {
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index c6e78d870ccd..6064d28224e8 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -1394,7 +1394,8 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
- 	case RTL2832_SDR_TUNER_E4000:
- 		v4l2_ctrl_handler_init(&dev->hdl, 9);
- 		if (subdev)
--			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler, NULL);
-+			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
-+					      NULL, true);
- 		break;
- 	case RTL2832_SDR_TUNER_R820T:
- 	case RTL2832_SDR_TUNER_R828D:
-@@ -1423,7 +1424,7 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
- 		v4l2_ctrl_handler_init(&dev->hdl, 2);
- 		if (subdev)
- 			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
--					      NULL);
-+					      NULL, true);
- 		break;
- 	default:
- 		v4l2_ctrl_handler_init(&dev->hdl, 0);
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index f697698fe38d..cdcb36d8c5c3 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -4211,7 +4211,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	/* register video4linux + input */
- 	if (!bttv_tvcards[btv->c.type].no_video) {
- 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
--				v4l2_ctrl_radio_filter);
-+				v4l2_ctrl_radio_filter, false);
- 		if (btv->radio_ctrl_handler.error) {
- 			result = btv->radio_ctrl_handler.error;
- 			goto fail2;
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index a71f3c7569ce..762823871c78 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1527,7 +1527,7 @@ int cx23885_417_register(struct cx23885_dev *dev)
- 	dev->cxhdl.priv = dev;
- 	dev->cxhdl.func = cx23885_api_func;
- 	cx2341x_handler_set_50hz(&dev->cxhdl, tsport->height == 576);
--	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL);
-+	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL, false);
- 
- 	/* Allocate and initialize V4L video device */
- 	dev->v4l_device = cx23885_video_dev_alloc(tsport,
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 0e0952e60795..39f69d89a663 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -1183,7 +1183,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	err = cx2341x_handler_init(&dev->cxhdl, 36);
- 	if (err)
- 		goto fail_core;
--	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL);
-+	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL, false);
- 
- 	/* blackbird stuff */
- 	pr_info("cx23416 based mpeg encoder (blackbird reference design)\n");
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index 9be682cdb644..e35bfa03a1e2 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -1378,7 +1378,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 		if (vc->id == V4L2_CID_CHROMA_AGC)
- 			core->chroma_agc = vc;
- 	}
--	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
-+	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL, false);
- 
- 	/* load and configure helper modules */
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 66acfd35ffc6..fc75ce00dbf8 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -265,9 +265,9 @@ static int empress_init(struct saa7134_dev *dev)
- 		 "%s empress (%s)", dev->name,
- 		 saa7134_boards[dev->board].name);
- 	v4l2_ctrl_handler_init(hdl, 21);
--	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter);
-+	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter, false);
- 	if (dev->empress_sd)
--		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL);
-+		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL, true);
- 	if (hdl->error) {
- 		video_device_release(dev->empress_dev);
- 		return hdl->error;
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 1ca6a32ad10e..065af5df77b6 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2136,7 +2136,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
- 		hdl = &dev->radio_ctrl_handler;
- 		v4l2_ctrl_handler_init(hdl, 2);
- 		v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler,
--				v4l2_ctrl_radio_filter);
-+				v4l2_ctrl_radio_filter, false);
- 		if (hdl->error)
- 			return hdl->error;
- 	}
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index ed9302caa004..64f3ab3584d7 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1421,7 +1421,7 @@ static int fimc_link_setup(struct media_entity *entity,
- 		return 0;
- 
- 	return v4l2_ctrl_add_handler(&vc->ctx->ctrls.handler,
--				     sensor->ctrl_handler, NULL);
-+				     sensor->ctrl_handler, NULL, true);
- }
- 
- static const struct media_entity_operations fimc_sd_media_ops = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b479b882da12..90246113fa03 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -900,7 +900,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
-+	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler,
-+				    NULL, true);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
-index b2e080ef5391..70cef10c81a6 100644
---- a/drivers/media/platform/rcar_drif.c
-+++ b/drivers/media/platform/rcar_drif.c
-@@ -1167,7 +1167,7 @@ static int rcar_drif_notify_complete(struct v4l2_async_notifier *notifier)
- 	}
- 
- 	ret = v4l2_ctrl_add_handler(&sdr->ctrl_hdl,
--				    sdr->ep.subdev->ctrl_handler, NULL);
-+				    sdr->ep.subdev->ctrl_handler, NULL, true);
- 	if (ret) {
- 		rdrif_err(sdr, "failed: ctrl add hdlr ret %d\n", ret);
- 		goto error;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index c86dd2fdab84..33fac0cdfc5e 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1180,7 +1180,8 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 
- 	v4l2_subdev_call(sd, video, g_tvnorms, &icd->vdev->tvnorms);
- 
--	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler, NULL);
-+	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler,
-+				    NULL, true);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index 4b6b5d715031..83e097de7d7d 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -1660,59 +1660,59 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
- 
- 	if (dev->has_vid_cap) {
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL, false);
- 		if (hdl_vid_cap->error)
- 			return hdl_vid_cap->error;
- 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
- 	}
- 	if (dev->has_vid_out) {
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL, false);
- 		if (hdl_vid_out->error)
- 			return hdl_vid_out->error;
- 		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
- 	}
- 	if (dev->has_vbi_cap) {
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL, false);
- 		if (hdl_vbi_cap->error)
- 			return hdl_vbi_cap->error;
- 		dev->vbi_cap_dev.ctrl_handler = hdl_vbi_cap;
- 	}
- 	if (dev->has_vbi_out) {
--		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL, false);
- 		if (hdl_vbi_out->error)
- 			return hdl_vbi_out->error;
- 		dev->vbi_out_dev.ctrl_handler = hdl_vbi_out;
- 	}
- 	if (dev->has_radio_rx) {
--		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL);
-+		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL, false);
- 		if (hdl_radio_rx->error)
- 			return hdl_radio_rx->error;
- 		dev->radio_rx_dev.ctrl_handler = hdl_radio_rx;
- 	}
- 	if (dev->has_radio_tx) {
--		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL);
-+		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL, false);
- 		if (hdl_radio_tx->error)
- 			return hdl_radio_tx->error;
- 		dev->radio_tx_dev.ctrl_handler = hdl_radio_tx;
- 	}
- 	if (dev->has_sdr_cap) {
--		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL, false);
- 		if (hdl_sdr_cap->error)
- 			return hdl_sdr_cap->error;
- 		dev->sdr_cap_dev.ctrl_handler = hdl_sdr_cap;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index b80e6857e2eb..fca16cf8b3bf 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1991,7 +1991,7 @@ int cx231xx_417_register(struct cx231xx *dev)
- 	dev->mpeg_ctrl_handler.ops = &cx231xx_ops;
- 	if (dev->sd_cx25840)
- 		v4l2_ctrl_add_handler(&dev->mpeg_ctrl_handler.hdl,
--				dev->sd_cx25840->ctrl_handler, NULL);
-+				dev->sd_cx25840->ctrl_handler, NULL, false);
- 	if (dev->mpeg_ctrl_handler.hdl.error) {
- 		err = dev->mpeg_ctrl_handler.hdl.error;
- 		dprintk(3, "%s: can't add cx25840 controls\n", dev->name);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 5b321b8ada3a..907cf095d54c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -2204,10 +2204,10 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 
- 	if (dev->sd_cx25840) {
- 		v4l2_ctrl_add_handler(&dev->ctrl_handler,
--				dev->sd_cx25840->ctrl_handler, NULL);
-+				dev->sd_cx25840->ctrl_handler, NULL, true);
- 		v4l2_ctrl_add_handler(&dev->radio_ctrl_handler,
- 				dev->sd_cx25840->ctrl_handler,
--				v4l2_ctrl_radio_filter);
-+				v4l2_ctrl_radio_filter, true);
- 	}
- 
- 	if (dev->ctrl_handler.error)
-diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
-index 65ef755adfdc..4aacd77a5d58 100644
---- a/drivers/media/usb/msi2500/msi2500.c
-+++ b/drivers/media/usb/msi2500/msi2500.c
-@@ -1278,7 +1278,7 @@ static int msi2500_probe(struct usb_interface *intf,
- 	}
- 
- 	/* currently all controls are from subdev */
--	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL);
-+	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL, true);
- 
- 	dev->v4l2_dev.ctrl_handler = &dev->hdl;
- 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index 8314d3fa9241..1cfbbc47adfc 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1623,7 +1623,7 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
- 	v4l2_ctrl_new_std(&dev->ctrl_handler, &tm6000_ctrl_ops,
- 			V4L2_CID_HUE, -128, 127, 1, 0);
- 	v4l2_ctrl_add_handler(&dev->ctrl_handler,
--			&dev->radio_ctrl_handler, NULL);
-+			&dev->radio_ctrl_handler, NULL, false);
- 
- 	if (dev->radio_ctrl_handler.error)
- 		ret = dev->radio_ctrl_handler.error;
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ce08b50b8290..5c705f5dde9b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1876,7 +1876,8 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
- 
- /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
- static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
--			   struct v4l2_ctrl *ctrl)
-+			   struct v4l2_ctrl *ctrl,
-+			   bool from_other_dev)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	struct v4l2_ctrl_ref *new_ref;
-@@ -1900,6 +1901,7 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	if (!new_ref)
- 		return handler_set_err(hdl, -ENOMEM);
- 	new_ref->ctrl = ctrl;
-+	new_ref->from_other_dev = from_other_dev;
- 	if (ctrl->handler == hdl) {
- 		/* By default each control starts in a cluster of its own.
- 		   new_ref->ctrl is basically a cluster array with one
-@@ -2080,7 +2082,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
- 	}
- 
--	if (handler_new_ref(hdl, ctrl)) {
-+	if (handler_new_ref(hdl, ctrl, false)) {
- 		kvfree(ctrl);
- 		return NULL;
- 	}
-@@ -2249,7 +2251,8 @@ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
- /* Add the controls from another handler to our own. */
- int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 			  struct v4l2_ctrl_handler *add,
--			  bool (*filter)(const struct v4l2_ctrl *ctrl))
-+			  bool (*filter)(const struct v4l2_ctrl *ctrl),
-+			  bool from_other_dev)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	int ret = 0;
-@@ -2272,7 +2275,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Filter any unwanted controls */
- 		if (filter && !filter(ctrl))
- 			continue;
--		ret = handler_new_ref(hdl, ctrl);
-+		ret = handler_new_ref(hdl, ctrl, from_other_dev);
- 		if (ret)
- 			break;
- 	}
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 937c6de85606..8391a7f0895b 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -178,7 +178,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 
- 	sd->v4l2_dev = v4l2_dev;
- 	/* This just returns 0 if either of the two args is NULL */
--	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
-+	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler,
-+				    NULL, true);
- 	if (err)
- 		goto error_module;
- 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 289d775c4820..08799beaea42 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -391,7 +391,7 @@ static int imx_media_inherit_controls(struct imx_media_dev *imxmd,
- 
- 		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
- 					    sd->ctrl_handler,
--					    NULL);
-+					    NULL, true);
- 		if (ret)
- 			return ret;
- 	}
-diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
-index 6df189135db8..8cf773eef9da 100644
---- a/drivers/staging/media/imx/imx-media-fim.c
-+++ b/drivers/staging/media/imx/imx-media-fim.c
-@@ -463,7 +463,7 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim)
- {
- 	/* add the FIM controls to the calling subdev ctrl handler */
- 	return v4l2_ctrl_add_handler(fim->sd->ctrl_handler,
--				     &fim->ctrl_handler, NULL);
-+				     &fim->ctrl_handler, NULL, false);
- }
- EXPORT_SYMBOL_GPL(imx_media_fim_add_controls);
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 05ebb9ef9e73..96f5c63c12d0 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -257,6 +257,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl_ref *next;
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
-+	bool from_other_dev;
- };
- 
- /**
-@@ -642,7 +643,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
-  */
- int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 			  struct v4l2_ctrl_handler *add,
--			  v4l2_ctrl_filter filter);
-+			  v4l2_ctrl_filter filter,
-+			  bool from_other_dev);
- 
- /**
-  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
--- 
-2.16.1.291.g4437f3f132-goog
+The table doesn't contain secondary names only as there's an entry for the=
+=20
+main map. How about calling it adv76xx_default_addresses or something along=
+=20
+the same line ?
+
+> +	[ADV76XX_PAGE_IO] =3D { "main", 0x4c },
+> +	[ADV7604_PAGE_AVLINK] =3D { "avlink", 0x42 },
+> +	[ADV76XX_PAGE_CEC] =3D { "cec", 0x40 },
+> +	[ADV76XX_PAGE_INFOFRAME] =3D { "infoframe", 0x3e },
+> +	[ADV7604_PAGE_ESDP] =3D { "esdp", 0x38 },
+> +	[ADV7604_PAGE_DPP] =3D { "dpp", 0x3c },
+> +	[ADV76XX_PAGE_AFE] =3D { "afe", 0x26 },
+> +	[ADV76XX_PAGE_REP] =3D { "rep", 0x32 },
+> +	[ADV76XX_PAGE_EDID] =3D { "edid", 0x36 },
+> +	[ADV76XX_PAGE_HDMI] =3D { "hdmi", 0x34 },
+> +	[ADV76XX_PAGE_TEST] =3D { "test", 0x30 },
+> +	[ADV76XX_PAGE_CP] =3D { "cp", 0x22 },
+> +	[ADV7604_PAGE_VDP] =3D { "vdp", 0x24 },
+> +};
+> +
+>  static int adv76xx_core_init(struct v4l2_subdev *sd)
+>  {
+>  	struct adv76xx_state *state =3D to_state(sd);
+> @@ -2834,13 +2855,26 @@ static void adv76xx_unregister_clients(struct
+> adv76xx_state *state) }
+>=20
+>  static struct i2c_client *adv76xx_dummy_client(struct v4l2_subdev *sd,
+> -							u8 addr, u8 io_reg)
+> +					       unsigned int i)
+
+Maybe unsigned int page ?
+
+With these fixed,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  {
+>  	struct i2c_client *client =3D v4l2_get_subdevdata(sd);
+> +	struct adv76xx_state *state =3D to_state(sd);
+> +	struct adv76xx_platform_data *pdata =3D &state->pdata;
+> +	unsigned int io_reg =3D 0xf2 + i;
+> +	struct i2c_client *new_client;
+> +
+> +	if (pdata && pdata->i2c_addresses[i])
+> +		new_client =3D i2c_new_dummy(client->adapter,
+> +					   pdata->i2c_addresses[i]);
+> +	else
+> +		new_client =3D i2c_new_secondary_device(client,
+> +				adv76xx_secondary_names[i].name,
+> +				adv76xx_secondary_names[i].default_addr);
+>=20
+> -	if (addr)
+> -		io_write(sd, io_reg, addr << 1);
+> -	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
+> +	if (new_client)
+> +		io_write(sd, io_reg, new_client->addr << 1);
+> +
+> +	return new_client;
+>  }
+>=20
+>  static const struct adv76xx_reg_seq adv7604_recommended_settings_afe[] =
+=3D {
+> @@ -3115,20 +3149,6 @@ static int adv76xx_parse_dt(struct adv76xx_state
+> *state) /* Disable the interrupt for now as no DT-based board uses it. */
+> state->pdata.int1_config =3D ADV76XX_INT1_CONFIG_DISABLED;
+>=20
+> -	/* Use the default I2C addresses. */
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] =3D 0x42;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_CEC] =3D 0x40;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_INFOFRAME] =3D 0x3e;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] =3D 0x38;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] =3D 0x3c;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_AFE] =3D 0x26;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_REP] =3D 0x32;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_EDID] =3D 0x36;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_HDMI] =3D 0x34;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_TEST] =3D 0x30;
+> -	state->pdata.i2c_addresses[ADV76XX_PAGE_CP] =3D 0x22;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] =3D 0x24;
+> -
+>  	/* Hardcode the remaining platform data fields. */
+>  	state->pdata.disable_pwrdnb =3D 0;
+>  	state->pdata.disable_cable_det_rst =3D 0;
+> @@ -3478,11 +3498,9 @@ static int adv76xx_probe(struct i2c_client *client,
+>  		if (!(BIT(i) & state->info->page_mask))
+>  			continue;
+>=20
+> -		state->i2c_clients[i] =3D
+> -			adv76xx_dummy_client(sd, state->pdata.i2c_addresses[i],
+> -					     0xf2 + i);
+> +		state->i2c_clients[i] =3D adv76xx_dummy_client(sd, i);
+>  		if (!state->i2c_clients[i]) {
+> -			err =3D -ENOMEM;
+> +			err =3D -EINVAL;
+>  			v4l2_err(sd, "failed to create i2c client %u\n", i);
+>  			goto err_i2c;
+>  		}
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
