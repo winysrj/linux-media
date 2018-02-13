@@ -1,97 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.194]:38131 "EHLO mout.perfora.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750979AbeBTG5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 01:57:01 -0500
-From: Quytelda Kahja <quytelda@tamalin.org>
-To: gregkh@linuxfoundation.org, dan.carpenter@oracle.com,
-        hans.verkuil@cisco.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, Quytelda Kahja <quytelda@tamalin.org>
-Subject: [PATCH v2] Staging: bcm2048: Fix function argument alignment in radio-bcm2048.c.
-Date: Mon, 19 Feb 2018 22:53:04 -0800
-Message-Id: <20180220065304.8943-1-quytelda@tamalin.org>
-In-Reply-To: <20180219072550.hz4vpomsaz2ajrnm@mwanda>
-References: <20180219072550.hz4vpomsaz2ajrnm@mwanda>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:43101 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933025AbeBMEbV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Feb 2018 23:31:21 -0500
+Message-ID: <88165bbb4e64b750343836499beb14f3@smtp-cloud8.xs4all.net>
+Date: Tue, 13 Feb 2018 05:31:17 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a coding style problem.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Quytelda Kahja <quytelda@tamalin.org>
----
-This is the patch without the unnecessary fixes for line length.
+Results of the daily build of media_tree:
 
- drivers/staging/media/bcm2048/radio-bcm2048.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+date:			Tue Feb 13 05:01:11 CET 2018
+media-tree git hash:	61605f79d576b0c2bea98fd0d1b2b3eeebb682f0
+media_build git hash:	8b528caae224ca8e75642c9116c1e8a117355f5d
+v4l-utils git hash:	30fc3b396ad1daada9234f9f93fc30950c3d5470
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 06d1920150da..f38a4f2acdde 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1864,7 +1864,7 @@ static int bcm2048_probe(struct bcm2048_device *bdev)
- 		goto unlock;
- 
- 	err = bcm2048_set_fm_search_rssi_threshold(bdev,
--					BCM2048_DEFAULT_RSSI_THRESHOLD);
-+						   BCM2048_DEFAULT_RSSI_THRESHOLD);
- 	if (err < 0)
- 		goto unlock;
- 
-@@ -1942,9 +1942,9 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
-  */
- #define property_write(prop, type, mask, check)				\
- static ssize_t bcm2048_##prop##_write(struct device *dev,		\
--					struct device_attribute *attr,	\
--					const char *buf,		\
--					size_t count)			\
-+				      struct device_attribute *attr,	\
-+				      const char *buf,			\
-+				      size_t count)			\
- {									\
- 	struct bcm2048_device *bdev = dev_get_drvdata(dev);		\
- 	type value;							\
-@@ -1966,8 +1966,8 @@ static ssize_t bcm2048_##prop##_write(struct device *dev,		\
- 
- #define property_read(prop, mask)					\
- static ssize_t bcm2048_##prop##_read(struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
-+				     struct device_attribute *attr,	\
-+				     char *buf)				\
- {									\
- 	struct bcm2048_device *bdev = dev_get_drvdata(dev);		\
- 	int value;							\
-@@ -1985,8 +1985,8 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 
- #define property_signed_read(prop, size, mask)				\
- static ssize_t bcm2048_##prop##_read(struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
-+				     struct device_attribute *attr,	\
-+				     char *buf)				\
- {									\
- 	struct bcm2048_device *bdev = dev_get_drvdata(dev);		\
- 	size value;							\
-@@ -2005,8 +2005,8 @@ property_read(prop, mask)						\
- 
- #define property_str_read(prop, size)					\
- static ssize_t bcm2048_##prop##_read(struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
-+				     struct device_attribute *attr,	\
-+				     char *buf)				\
- {									\
- 	struct bcm2048_device *bdev = dev_get_drvdata(dev);		\
- 	int count;							\
-@@ -2175,7 +2175,7 @@ static int bcm2048_fops_release(struct file *file)
- }
- 
- static __poll_t bcm2048_fops_poll(struct file *file,
--				      struct poll_table_struct *pts)
-+				  struct poll_table_struct *pts)
- {
- 	struct bcm2048_device *bdev = video_drvdata(file);
- 	__poll_t retval = 0;
--- 
-2.16.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.115-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.80-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14.17-i686: ERRORS
+linux-4.15.2-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.115-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.80-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14.17-x86_64: ERRORS
+linux-4.15.2-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
