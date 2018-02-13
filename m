@@ -1,185 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:16950 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752892AbeBULY6 (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35573 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965186AbeBMRLf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 06:24:58 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Alexandre Courbot <acourbot@chromium.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [ALPHA PATCH] vivid: add media device
-Message-ID: <81a74bba-388c-634c-00df-06e2de4f668a@cisco.com>
-Date: Wed, 21 Feb 2018 12:24:56 +0100
+        Tue, 13 Feb 2018 12:11:35 -0500
+Received: by mail-lf0-f65.google.com with SMTP id a204so26005067lfa.2
+        for <linux-media@vger.kernel.org>; Tue, 13 Feb 2018 09:11:35 -0800 (PST)
+Date: Tue, 13 Feb 2018 18:11:32 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 13/30] rcar-vin: add function to manipulate Gen3
+ chsel value
+Message-ID: <20180213171132.GF18618@bigcity.dyn.berto.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+ <6540925.qhrue9hUJl@avalon>
+ <20180213165809.GE18618@bigcity.dyn.berto.se>
+ <5978650.TJRMUHOLl6@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5978650.TJRMUHOLl6@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the media controller to the vivid driver.
+Hi Laurent,
 
-Very preliminary, but enough to help out Alexandre.
+On 2018-02-13 19:02:38 +0200, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> On Tuesday, 13 February 2018 18:58:09 EET Niklas Söderlund wrote:
+> > On 2018-02-13 18:41:33 +0200, Laurent Pinchart wrote:
+> > > On Monday, 29 January 2018 18:34:18 EET Niklas Söderlund wrote:
+> > > > On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+> > > > feature of this register is that it's only present in the VIN0 and VIN4
+> > > > instances. The register in VIN0 controls the routing for VIN0-3 and the
+> > > > register in VIN4 controls routing for VIN4-7.
+> > > > 
+> > > > To be able to control routing from a media device this function is need
+> > > > to control runtime PM for the subgroup master (VIN0 and VIN4). The
+> > > > subgroup master must be switched on before the register is manipulated,
+> > > > once the operation is complete it's safe to switch the master off and
+> > > > the new routing will still be in effect.
+> > > > 
+> > > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > > > ---
+> > >> 
+> > >>  drivers/media/platform/rcar-vin/rcar-dma.c | 28+++++++++++++++++++++++++
+> > >>  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
+> > >>  2 files changed, 30 insertions(+)
+> > >> 
+> > >> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > >> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> > >> 2f9ad1bec1c8a92f..ae286742f15a3ab5 100644
+> > >> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > >> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > >> @@ -16,6 +16,7 @@
+> > >> 
+> > >>  #include <linux/delay.h>
+> > >>  #include <linux/interrupt.h>
+> > >> +#include <linux/pm_runtime.h>
+> > >> 
+> > >>  #include <media/videobuf2-dma-contig.h>
+> > >> 
+> > >> @@ -1228,3 +1229,30 @@ int rvin_dma_register(struct rvin_dev *vin, int
+> > >> irq)
+> > >>  	return ret;
+> > >>  }
+> > >> 
+> > >> +
+> > >> +/* ---------------------------------------------------------------------
+> > >> + * Gen3 CHSEL manipulation
+> > >> + */
+> > >> +
+> > >> +void rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
+> > >> +{
+> > >> +	u32 ifmd, vnmc;
+> > >> +
+> > >> +	pm_runtime_get_sync(vin->dev);
+> > > 
+> > > No need to check for errors ?
+> > 
+> > You asked the samething for v9 so I will copy paste the same reply :-)
+> 
+> Oh so you expect me to remember what happened with previous versions ? :-)
 
-I need to add other entities representing tuner and video receivers
-and transmitters, i.e. give it a proper MC graph.
+:-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
-index 154de92dd809..86f29c9c2bc5 100644
---- a/drivers/media/platform/vivid/Kconfig
-+++ b/drivers/media/platform/vivid/Kconfig
-@@ -7,6 +7,7 @@ config VIDEO_VIVID
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-+	select MEDIA_CONTROLLER
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEOBUF2_DMA_CONTIG
- 	select VIDEO_V4L2_TPG
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 82ec216f2ad8..9f944df5eaae 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -657,6 +657,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+> 
+> >     Sakari asked the same thing in v4 :-)
+> > 
+> >     In short no its not needed please see Geert's response [1]. If I
+> >     recall correctly this was also discussed in more detail in another
+> >     thread for some other driver whit a bit longer answer saying that it
+> >     pm_runtime_get_sync() fails you have big problems but I can't find
+> >     that thread now :-(
+> > 
+> >     1. https://www.spinics.net/lists/linux-media/msg115241.html
+> 
+> If kmalloc() fails we also have big problems, but we nonetheless check every 
+> memory allocation.
 
- 	dev->inst = inst;
+I did some quick and dirty statistics for current upstream behavior,
 
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+
-+	/* Initialize media device */
-+	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
-+	dev->mdev.dev = &pdev->dev;
-+	media_device_init(&dev->mdev);
-+
- 	/* register v4l2_device */
- 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
- 			"%s-%03d", VIVID_MODULE_NAME, inst);
-@@ -1173,6 +1180,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->lock = &dev->mutex;
- 		video_set_drvdata(vfd, dev);
+$ git grep pm_runtime_get_sync | wc -l
+1044
+$ git grep pm_runtime_get_sync | grep = | wc -l
+367
 
-+		dev->vid_cap_pad.flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_cap_pad);
-+		if (ret)
-+			goto unreg_dev;
-+
- #ifdef CONFIG_VIDEO_VIVID_CEC
- 		if (in_type_counter[HDMI]) {
- 			struct cec_adapter *adap;
-@@ -1225,6 +1237,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->lock = &dev->mutex;
- 		video_set_drvdata(vfd, dev);
+It looks like a less then half checks the return value :-) But as it 
+will take at least one more incarnation of this patch set I will add a 
+check for it get to the good side of things.
 
-+		dev->vid_out_pad.flags = MEDIA_PAD_FL_SOURCE;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_out_pad);
-+		if (ret)
-+			goto unreg_dev;
-+
- #ifdef CONFIG_VIDEO_VIVID_CEC
- 		for (i = 0; i < dev->num_outputs; i++) {
- 			struct cec_adapter *adap;
-@@ -1274,6 +1291,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->tvnorms = tvnorms_cap;
- 		video_set_drvdata(vfd, dev);
+> 
+> > >> +
+> > >> +	/* Make register writes take effect immediately */
+> > >> +	vnmc = rvin_read(vin, VNMC_REG);
+> > >> +	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
+> > >> +
+> > >> +	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
+> > >> +		VNCSI_IFMD_CSI_CHSEL(chsel);
+> > >> +
+> > >> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
+> > >> +
+> > >> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
+> > >> +
+> > >> +	/* Restore VNMC */
+> > >> +	rvin_write(vin, vnmc, VNMC_REG);
+> > > 
+> > > No need for locking around all this ? What happens if this VIN instance
+> > > decides to write to another VIN register (for instance due to a userpace
+> > > call) when this function has disabled VNMC_VUP ?
+> > 
+> > You also asked a related question to this in v9 as a start I will copy
+> > in that reply.
+> > 
+> >     Media link changes are not allowed when any VIN in the group are
+> >     streaming so this should not be an issue.
+> > 
+> > And to compliment that. This function is only valid for a VIN which has
+> > the CHSEL register which currently is VIN0 and VIN4. It can only be
+> > modified when a media link is enabled. Catching media links are only
+> > allowed when all VIN in the system are _not_ streaming. And VNMC_VUP is
+> > only enabled when a VIN is streaming so there is no need for locking
+> > here.
+> 
+> This seems a bit fragile to me, could you please capture the explanation in a 
+> comment ?
+> 
 
-+		dev->vbi_cap_pad.flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_cap_pad);
-+		if (ret)
-+			goto unreg_dev;
-+
- 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_cap_nr[inst]);
- 		if (ret < 0)
- 			goto unreg_dev;
-@@ -1299,6 +1321,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->tvnorms = tvnorms_out;
- 		video_set_drvdata(vfd, dev);
+Will do.
 
-+		dev->vbi_out_pad.flags = MEDIA_PAD_FL_SOURCE;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_out_pad);
-+		if (ret)
-+			goto unreg_dev;
-+
- 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_out_nr[inst]);
- 		if (ret < 0)
- 			goto unreg_dev;
-@@ -1322,6 +1349,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->lock = &dev->mutex;
- 		video_set_drvdata(vfd, dev);
+> > >> +	pm_runtime_put(vin->dev);
+> > >> +}
+> > >> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> > >> b/drivers/media/platform/rcar-vin/rcar-vin.h index
+> > >> 146683142e6533fa..a5dae5b5e9cb704b 100644
+> > >> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> > >> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> > >> @@ -165,4 +165,6 @@ const struct rvin_video_format
+> > >> *rvin_format_from_pixel(u32 pixelformat); /* Cropping, composing and
+> > >> scaling */
+> > >> 
+> > >>  void rvin_crop_scale_comp(struct rvin_dev *vin);
+> > >> 
+> > >> +void rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
+> > >> +
+> > >>  #endif
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-+		dev->sdr_cap_pad.flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vfd->entity, 1, &dev->sdr_cap_pad);
-+		if (ret)
-+			goto unreg_dev;
-+
- 		ret = video_register_device(vfd, VFL_TYPE_SDR, sdr_cap_nr[inst]);
- 		if (ret < 0)
- 			goto unreg_dev;
-@@ -1368,12 +1400,21 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 					  video_device_node_name(vfd));
- 	}
-
-+	/* Register the media device */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret) {
-+		dev_err(dev->mdev.dev,
-+			"media device register failed (err=%d)\n", ret);
-+		goto unreg_dev;
-+	}
-+
- 	/* Now that everything is fine, let's add it to device list */
- 	vivid_devs[inst] = dev;
-
- 	return 0;
-
- unreg_dev:
-+	media_device_unregister(&dev->mdev);
- 	video_unregister_device(&dev->radio_tx_dev);
- 	video_unregister_device(&dev->radio_rx_dev);
- 	video_unregister_device(&dev->sdr_cap_dev);
-@@ -1444,6 +1485,8 @@ static int vivid_remove(struct platform_device *pdev)
- 		if (!dev)
- 			continue;
-
-+		media_device_unregister(&dev->mdev);
-+
- 		if (dev->has_vid_cap) {
- 			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
- 				video_device_node_name(&dev->vid_cap_dev));
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 477c80a4d44c..376858e91334 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -136,6 +136,7 @@ struct vivid_cec_work {
- struct vivid_dev {
- 	unsigned			inst;
- 	struct v4l2_device		v4l2_dev;
-+	struct media_device		mdev;
- 	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
- 	struct v4l2_ctrl_handler	ctrl_hdl_user_vid;
- 	struct v4l2_ctrl_handler	ctrl_hdl_user_aud;
-@@ -144,18 +145,23 @@ struct vivid_dev {
- 	struct v4l2_ctrl_handler	ctrl_hdl_loop_cap;
- 	struct v4l2_ctrl_handler	ctrl_hdl_fb;
- 	struct video_device		vid_cap_dev;
-+	struct media_pad 		vid_cap_pad;
- 	struct v4l2_ctrl_handler	ctrl_hdl_vid_cap;
- 	struct video_device		vid_out_dev;
-+	struct media_pad 		vid_out_pad;
- 	struct v4l2_ctrl_handler	ctrl_hdl_vid_out;
- 	struct video_device		vbi_cap_dev;
-+	struct media_pad 		vbi_cap_pad;
- 	struct v4l2_ctrl_handler	ctrl_hdl_vbi_cap;
- 	struct video_device		vbi_out_dev;
-+	struct media_pad 		vbi_out_pad;
- 	struct v4l2_ctrl_handler	ctrl_hdl_vbi_out;
- 	struct video_device		radio_rx_dev;
- 	struct v4l2_ctrl_handler	ctrl_hdl_radio_rx;
- 	struct video_device		radio_tx_dev;
- 	struct v4l2_ctrl_handler	ctrl_hdl_radio_tx;
- 	struct video_device		sdr_cap_dev;
-+	struct media_pad 		sdr_cap_pad;
- 	struct v4l2_ctrl_handler	ctrl_hdl_sdr_cap;
- 	spinlock_t			slock;
- 	struct mutex			mutex;
+-- 
+Regards,
+Niklas Söderlund
