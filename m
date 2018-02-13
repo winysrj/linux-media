@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from parrot.pmhahn.de ([88.198.50.102]:57264 "EHLO parrot.pmhahn.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750832AbeBJMhp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Feb 2018 07:37:45 -0500
-Date: Sat, 10 Feb 2018 13:28:15 +0100
-From: Philipp Matthias Hahn <pmhahn+video@pmhahn.de>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH] Potential fix for "[BUG] process stuck when closing
- saa7146 [dvb_ttpci]"
-Message-ID: <20180210122815.GA21239@pmhahn.de>
-References: <20160911133317.whw3j2pok4sktkeo@pmhahn.de>
- <20160916100028.8856-1-andrey_utkin@fastmail.com>
- <41790808-9100-2999-3d92-921d2076be3e@pmhahn.de>
- <20161016215219.4xob7nrbmrr7uxlj@pmhahn.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42902 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S965942AbeBMWwa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Feb 2018 17:52:30 -0500
+Date: Wed, 14 Feb 2018 00:52:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] videodev2.h: add helper to validate colorspace
+Message-ID: <20180213225227.kf42gxdizb7srykw@valkosipuli.retiisi.org.uk>
+References: <20180213220847.10856-1-niklas.soderlund+renesas@ragnatech.se>
+ <2862017.uVaJOSAbcn@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20161016215219.4xob7nrbmrr7uxlj@pmhahn.de>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2862017.uVaJOSAbcn@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Andrey,
+Hi Laurent and Niklas,
 
-On Sun, Oct 16, 2016 at 11:52:19PM +0200, Philipp Matthias Hahn wrote:
-> On Mon, Sep 19, 2016 at 07:08:52AM +0200, Philipp Hahn wrote:
-> > Am 16.09.2016 um 12:00 schrieb Andrey Utkin:
-> > > Please try this patch. It is purely speculative as I don't have the hardware,
-> > > but I hope my approach is right.
+On Wed, Feb 14, 2018 at 12:23:05AM +0200, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 14 February 2018 00:08:47 EET Niklas Söderlund wrote:
+> > There is no way for drivers to validate a colorspace value, which could
+> > be provided by user-space by VIDIOC_S_FMT for example. Add a helper to
+> > validate that the colorspace value is part of enum v4l2_colorspace.
 > > 
-> > Thanks you for the patch; I've built a new kernel but didn't have the
-> > time to test it yet; I'll mail you again as soon as I have tested it.
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  include/uapi/linux/videodev2.h | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > Hi,
+> > 
+> > I hope this is the correct header to add this helper to. I think it's
+> > since if it's in uapi not only can v4l2 drivers use it but tools like
+> > v4l-compliance gets access to it and can be updated to use this instead
+> > of the hard-coded check of just < 0xff as it was last time I checked.
+> > 
+> > // Niklas
+> > 
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 9827189651801e12..843afd7c5b000553 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -238,6 +238,11 @@ enum v4l2_colorspace {
+> >  	V4L2_COLORSPACE_DCI_P3        = 12,
+> >  };
+> > 
+> > +/* Determine if a colorspace is defined in enum v4l2_colorspace */
+> > +#define V4L2_COLORSPACE_IS_VALID(colorspace)		\
+> > +	(((colorspace) >= V4L2_COLORSPACE_DEFAULT) &&	\
+> > +	 ((colorspace) <= V4L2_COLORSPACE_DCI_P3))
+> > +
 > 
-> I tested your patch and during my limites testing I wan't able to
-> reproduce the previous problem. Seems you fixed it.
+> This looks pretty good to me. I'd remove the parentheses around each test 
+> though.
+
+Agreed.
+
 > 
-> Tested-by: Philipp Matthias Hahn <pmhahn@pmhahn.de>
+> One potential issue is that if this macro operates on an unsigned value (for 
+> instance an u32, which is the type used for the colorspace field in various 
+> structures) the compiler will generate a warning:
 > 
-> Thanks you again for looking into that issues.
+> enum.c: In function ‘test_4’:                                                                                                                                                                             
+> enum.c:30:16: warning: comparison of unsigned expression >= 0 is always true 
+> [-Wtype-limits]                                                                                                              
+>   return V4L2_COLORSPACE_IS_VALID(colorspace);
+> 
+> Dropping the first check would fix that, but wouldn't catch invalid values 
+> when operating on a signed type, such as int or enum v4l2_colorspace.
 
-Bad news: I'm running linux-4.15.2 by now and again got a stuck ffmpeg
-process after accessing /dev/video0:
+How about simply casting it to u32 first (and removing the first test)?
 
-| INFO: task read_thread:20579 blocked for more than 120 seconds.
-|       Tainted: P           O     4.15.2 #1
-| "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-| read_thread     D    0 20579   2949 0x80000000
-| Call Trace:
-|  ? __schedule+0x646/0x697
-|  schedule+0x79/0x94
-|  videobuf_waiton+0x11c/0x148 [videobuf_core]
-|  ? wait_woken+0x68/0x68
-|  saa7146_dma_free+0x34/0x55 [saa7146_vv]
-|  buffer_release+0x25/0x33 [saa7146_vv]
-|  videobuf_vm_close+0xd6/0x103 [videobuf_dma_sg]
-|  remove_vma+0x23/0x49
-|  exit_mmap+0xea/0x114
-|  mmput+0x45/0xdb
-|  do_exit+0x3a0/0x8c1
-|  do_group_exit+0x95/0x95
-|  get_signal+0x41c/0x447
-|  do_signal+0x1e/0x4c2
-|  ? __schedule+0x646/0x697
-|  ? do_task_dead+0x38/0x3a
-|  ? SyS_futex+0x127/0x137
-|  exit_to_usermode_loop+0x1f/0x69
-|  do_syscall_64+0xe3/0xea
-|  entry_SYSCALL_64_after_hwframe+0x21/0x86
-| RIP: 0033:0x7f56429927fd
-| RSP: 002b:00007f56217b3550 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
-| RAX: fffffffffffffe00 RBX: 00007f5608002320 RCX: 00007f56429927fd
-| RDX: 0000000000000000 RSI: 0000000000000080 RDI: 00007f560800234c
-| RBP: 0000000000000000 R08: 0000000000000000 R09: 00007f5608002320
-| R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
-| R13: 00007f56080022f8 R14: 0000000000000000 R15: 00007f560800234c
+-- 
+Regards,
 
-Your previous patch is applied since v4.10-rc1~71^2^2~34 , so the issue seems
-to be not fixed.
-The tainting is from the NVidia driver.
-
-Philipp
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
