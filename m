@@ -1,121 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:50359 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753163AbeB0Pku (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52688 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965843AbeBMVvo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 10:40:50 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 04/13] media: tw9910: Re-order variables declaration
-Date: Tue, 27 Feb 2018 16:40:21 +0100
-Message-Id: <1519746030-15407-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+        Tue, 13 Feb 2018 16:51:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 28/30] rcar-vin: enable support for r8a7795
+Date: Tue, 13 Feb 2018 23:52:15 +0200
+Message-ID: <4218499.oSW5kOTnQH@avalon>
+In-Reply-To: <20180129163435.24936-29-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-29-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Re-order variables declaration to respect 'reverse christmas tree'
-ordering whenever possible.
+Hi Niklas,
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/tw9910.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index 45afdb9..f88cc93 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
- 
- static int tw9910_power(struct i2c_client *client, int enable)
- {
--	int ret;
- 	u8 acntl1;
- 	u8 acntl2;
-+	int ret;
- 
- 	if (enable) {
- 		acntl1 = 0;
-@@ -428,8 +428,8 @@ static int tw9910_power(struct i2c_client *client, int enable)
- static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
- 							  u32 width, u32 height)
- {
--	const struct tw9910_scale_ctrl *scale;
- 	const struct tw9910_scale_ctrl *ret = NULL;
-+	const struct tw9910_scale_ctrl *scale;
- 	__u32 diff = 0xffffffff, tmp;
- 	int size, i;
- 
-@@ -462,8 +462,8 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct tw9910_priv *priv = to_tw9910(client);
--	u8 val;
- 	int ret;
-+	u8 val;
- 
- 	if (!enable) {
- 		switch (priv->revision) {
-@@ -512,10 +512,10 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct tw9910_priv *priv = to_tw9910(client);
--	const unsigned int hact = 720;
- 	const unsigned int hdelay = 15;
--	unsigned int vact;
-+	const unsigned int hact = 720;
- 	unsigned int vdelay;
-+	unsigned int vact;
- 	int ret;
- 
- 	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
-@@ -761,8 +761,8 @@ static int tw9910_get_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *format)
- {
--	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct tw9910_priv *priv = to_tw9910(client);
- 
- 	if (format->pad)
-@@ -813,8 +813,8 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *format)
- {
--	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct tw9910_priv *priv = to_tw9910(client);
- 	const struct tw9910_scale_ctrl *scale;
- 
-@@ -851,8 +851,8 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- static int tw9910_video_probe(struct i2c_client *client)
- {
- 	struct tw9910_priv *priv = to_tw9910(client);
--	s32 id;
- 	int ret;
-+	s32 id;
- 
- 	/*
- 	 * tw9910 only use 8 or 16 bit bus width
-@@ -949,10 +949,9 @@ static int tw9910_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- 
- {
--	struct tw9910_priv		*priv;
--	struct tw9910_video_info	*info;
--	struct i2c_adapter		*adapter =
--		to_i2c_adapter(client->dev.parent);
-+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-+	struct tw9910_video_info *info;
-+	struct tw9910_priv *priv;
- 	int ret;
- 
- 	if (!client->dev.platform_data) {
--- 
-2.7.4
+On Monday, 29 January 2018 18:34:33 EET Niklas S=F6derlund wrote:
+> Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+>  drivers/media/platform/rcar-vin/rcar-core.c | 120 ++++++++++++++++++++++=
++++
+>  2 files changed, 121 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/Kconfig
+> b/drivers/media/platform/rcar-vin/Kconfig index
+> af4c98b44d2e22cb..8fa7ee468c63afb9 100644
+> --- a/drivers/media/platform/rcar-vin/Kconfig
+> +++ b/drivers/media/platform/rcar-vin/Kconfig
+> @@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
+>  	select V4L2_FWNODE
+>  	---help---
+>  	  Support for Renesas R-Car Video Input (VIN) driver.
+> -	  Supports R-Car Gen2 SoCs.
+> +	  Supports R-Car Gen2 and Gen3 SoCs.
+>=20
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called rcar-vin.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> b/drivers/media/platform/rcar-vin/rcar-core.c index
+> 7ceff0de40078580..43d2fa83875817f0 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/slab.h>
+> +#include <linux/sys_soc.h>
+>=20
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-fwnode.h>
+> @@ -815,6 +816,104 @@ static const struct rvin_info rcar_info_gen2 =3D {
+>  	.max_height =3D 2048,
+>  };
+>=20
+> +static const struct rvin_group_route rcar_info_r8a7795_routes[] =3D {
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(0) | BIT(=
+3) },
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(1) | BIT(=
+4) },
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(2) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(0) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(1) | BIT(=
+3) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(4) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 2, .mask =3D BIT(3) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 2, .mask =3D BIT(4) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(1) | BIT(=
+2) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 3, .mask =3D BIT(3) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI20, .chan =3D 3, .mask =3D BIT(4) },
+> +	{ .vin =3D 4, .csi =3D RVIN_CSI41, .chan =3D 0, .mask =3D BIT(0) | BIT(=
+3) },
+> +	{ .vin =3D 4, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(1) | BIT(=
+4) },
+> +	{ .vin =3D 4, .csi =3D RVIN_CSI41, .chan =3D 1, .mask =3D BIT(2) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(0) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI41, .chan =3D 1, .mask =3D BIT(1) | BIT(=
+3) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI41, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(4) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI41, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI41, .chan =3D 2, .mask =3D BIT(3) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 2, .mask =3D BIT(4) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI41, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(1) | BIT(=
+2) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI41, .chan =3D 3, .mask =3D BIT(3) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI20, .chan =3D 3, .mask =3D BIT(4) },
+> +	{ /* Sentinel */ }
+> +};
+> +
+> +static const struct rvin_info rcar_info_r8a7795 =3D {
+> +	.model =3D RCAR_GEN3,
+> +	.use_mc =3D true,
+> +	.max_width =3D 4096,
+> +	.max_height =3D 4096,
+> +	.routes =3D rcar_info_r8a7795_routes,
+> +};
+> +
+> +static const struct rvin_group_route rcar_info_r8a7795es1_routes[] =3D {
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(0) | BIT(=
+3) },
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(1) | BIT(=
+4) },
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI21, .chan =3D 0, .mask =3D BIT(2) | BIT(=
+5) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(0) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI21, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(3) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(4) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI21, .chan =3D 1, .mask =3D BIT(5) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI21, .chan =3D 0, .mask =3D BIT(0) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 2, .mask =3D BIT(3) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 2, .mask =3D BIT(4) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI21, .chan =3D 2, .mask =3D BIT(5) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(1) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI21, .chan =3D 1, .mask =3D BIT(2) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 3, .mask =3D BIT(3) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI20, .chan =3D 3, .mask =3D BIT(4) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI21, .chan =3D 3, .mask =3D BIT(5) },
+> +	{ .vin =3D 4, .csi =3D RVIN_CSI41, .chan =3D 0, .mask =3D BIT(0) | BIT(=
+3) },
+> +	{ .vin =3D 4, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(1) | BIT(=
+4) },
+> +	{ .vin =3D 4, .csi =3D RVIN_CSI21, .chan =3D 0, .mask =3D BIT(2) | BIT(=
+5) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(0) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI21, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI41, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI41, .chan =3D 1, .mask =3D BIT(3) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(4) },
+> +	{ .vin =3D 5, .csi =3D RVIN_CSI21, .chan =3D 1, .mask =3D BIT(5) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI21, .chan =3D 0, .mask =3D BIT(0) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI41, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI41, .chan =3D 2, .mask =3D BIT(3) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 2, .mask =3D BIT(4) },
+> +	{ .vin =3D 6, .csi =3D RVIN_CSI21, .chan =3D 2, .mask =3D BIT(5) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI41, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(1) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI21, .chan =3D 1, .mask =3D BIT(2) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI41, .chan =3D 3, .mask =3D BIT(3) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI20, .chan =3D 3, .mask =3D BIT(4) },
+> +	{ .vin =3D 7, .csi =3D RVIN_CSI21, .chan =3D 3, .mask =3D BIT(5) },
+> +	{ /* Sentinel */ }
+> +};
+> +
+> +static const struct rvin_info rcar_info_r8a7795es1 =3D {
+> +	.model =3D RCAR_GEN3,
+> +	.use_mc =3D true,
+> +	.max_width =3D 4096,
+> +	.max_height =3D 4096,
+> +	.routes =3D rcar_info_r8a7795es1_routes,
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] =3D {
+>  	{
+>  		.compatible =3D "renesas,vin-r8a7778",
+> @@ -844,12 +943,25 @@ static const struct of_device_id rvin_of_id_table[]=
+ =3D
+> { .compatible =3D "renesas,rcar-gen2-vin",
+>  		.data =3D &rcar_info_gen2,
+>  	},
+> +	{
+> +		.compatible =3D "renesas,vin-r8a7795",
+> +		.data =3D &rcar_info_r8a7795,
+> +	},
+>  	{ /* Sentinel */ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+>=20
+> +static const struct soc_device_attribute r8a7795es1[] =3D {
+> +	{
+> +		.soc_id =3D "r8a7795", .revision =3D "ES1.*",
+> +		.data =3D &rcar_info_r8a7795es1,
+> +	},
+> +	{ /* Sentinel */ }
+> +};
+> +
+>  static int rcar_vin_probe(struct platform_device *pdev)
+>  {
+> +	const struct soc_device_attribute *attr;
+>  	struct rvin_dev *vin;
+>  	struct resource *mem;
+>  	int irq, ret;
+> @@ -861,6 +973,14 @@ static int rcar_vin_probe(struct platform_device *pd=
+ev)
+> vin->dev =3D &pdev->dev;
+>  	vin->info =3D of_device_get_match_data(&pdev->dev);
+>=20
+> +	/*
+> +	 * Special care is needed on r8a7795 ES1.x since it
+> +	 * uses different routing than r8a7795 ES2.0.
+> +	 */
+> +	attr =3D soc_device_match(r8a7795es1);
+> +	if (attr)
+> +		vin->info =3D attr->data;
+> +
+>  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (mem =3D=3D NULL)
+>  		return -EINVAL;
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
