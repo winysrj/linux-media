@@ -1,102 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49022 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44830 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753443AbeBST1N (ORCPT
+        with ESMTP id S965186AbeBMQ6X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 14:27:13 -0500
+        Tue, 13 Feb 2018 11:58:23 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [RFC PATCH] Add core tuner_standby op, use where needed
-Date: Mon, 19 Feb 2018 21:27:51 +0200
-Message-ID: <2482708.3kx7sGYsxZ@avalon>
-In-Reply-To: <b94bf7a2-27b3-94f5-5eb9-88462c92ca38@xs4all.nl>
-References: <b94bf7a2-27b3-94f5-5eb9-88462c92ca38@xs4all.nl>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 16/30] rcar-vin: update bytesperline and sizeimage calculation
+Date: Tue, 13 Feb 2018 18:58:54 +0200
+Message-ID: <6654769.EFGEBSbQ1Q@avalon>
+In-Reply-To: <20180129163435.24936-17-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-17-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Niklas,
 
 Thank you for the patch.
 
-On Monday, 19 February 2018 15:12:05 EET Hans Verkuil wrote:
-> The v4l2_subdev core s_power op was used to two different things: power
-> on/off sensors or video decoders/encoders and to put a tuner in standby
-> (and only the tuner). There is no 'tuner wakeup' op, that's done
-> automatically when the tuner is accessed.
-> 
-> The danger with calling (s_power, 0) to put a tuner into standby is that it
-> is usually broadcast for all subdevs. So a video receiver subdev that also
-> supports s_power will also be powered off, and since there is no
-> corresponding (s_power, 1) they will never be powered on again.
-> 
-> In addition, this is specifically meant for tuners only since they draw the
-> most current.
-> 
-> This patch adds a new core op called 'tuner_standby' and replaces all calls
-> to (s_power, 0) by tuner_standby. This prevents confusion between the two
-> uses of s_power. Note that there is no overlap: bridge drivers either just
-> want to put the tuner into standby, or they deal with powering on/off
-> sensors. Never both.
-> 
-> This also makes it easier to replace s_power for the remaining bridge
-> drivers with some PM code later.
-> 
-> Whether we want something similar for tuners in the future is a separate
-> topic. There is a lot of legacy code surrounding tuners, and I am very
-> hesitant about making changes there.
+On Monday, 29 January 2018 18:34:21 EET Niklas S=F6derlund wrote:
+> Remove over complicated logic to calculate the value for bytesperline
 
-While I don't request you to make changes, someone should. I assume the tuners 
-are still maintained, aren't they ? :-)
+s/over complicated/overcomplicated/
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> and sizeimage that was carried over from the soc_camera port. Update the
+> calculations to match how other drivers are doing it.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 11 ++---------
+>  1 file changed, 2 insertions(+), 9 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> 1169e6a279ecfb55..bca6e204a574772f 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -118,10 +118,8 @@ static int rvin_format_align(struct rvin_dev *vin,
+> struct v4l2_pix_format *pix) v4l_bound_align_image(&pix->width, 2,
+> vin->info->max_width, walign, &pix->height, 4, vin->info->max_height, 2,
+> 0);
+>=20
+> -	pix->bytesperline =3D max_t(u32, pix->bytesperline,
+> -				  rvin_format_bytesperline(pix));
+> -	pix->sizeimage =3D max_t(u32, pix->sizeimage,
+> -			       rvin_format_sizeimage(pix));
+> +	pix->bytesperline =3D rvin_format_bytesperline(pix);
+> +	pix->sizeimage =3D rvin_format_sizeimage(pix);
 
-[snip]
- 
->  static const struct v4l2_subdev_tuner_ops tuner_tuner_ops = {
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 980a86c08fce..b214da92a5c0 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -184,6 +184,9 @@ struct v4l2_subdev_io_pin_config {
->   * @s_power: puts subdevice in power saving mode (on == 0) or normal
-> operation *	mode (on == 1).
->   *
-> + * @tuner_standby: puts the tuner in standby mode. It will be woken up
-> + *	automatically the next time it is used.
-> + *
->   * @interrupt_service_routine: Called by the bridge chip's interrupt
-> service
->   *	handler, when an interrupt status has be raised due to this subdev,
->   *	so that this subdev can handle the details.  It may schedule work to be
-> @@ -212,6 +215,7 @@ struct v4l2_subdev_core_ops {
->  	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register
-> *reg); #endif
->  	int (*s_power)(struct v4l2_subdev *sd, int on);
-> +	int (*tuner_standby)(struct v4l2_subdev *sd);
+Thus this mean that the driver will stop supporting configurable strides ?=
+=20
+Isn't that a regression ?
 
-If it's a tuner operation, how about moving it to v4l2_subdev_tuner_ops ? That 
-would at least make it clear that it shouldn't be used by other drivers (and I 
-think we should also mention in the documentation that this is a legacy 
-operation that shouldn't be used for any new purpose).
+>  	if (vin->info->model =3D=3D RCAR_M1 &&
+>  	    pix->pixelformat =3D=3D V4L2_PIX_FMT_XBGR32) {
+> @@ -270,11 +268,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	if (pix->field =3D=3D V4L2_FIELD_ANY)
+>  		pix->field =3D vin->format.field;
+>=20
+> -
+> -	/* Always recalculate */
+> -	pix->bytesperline =3D 0;
+> -	pix->sizeimage =3D 0;
+> -
+>  	/* Limit to source capabilities */
+>  	ret =3D __rvin_try_format_source(vin, which, pix);
+>  	if (ret)
 
->  	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
->  						u32 status, bool *handled);
->  	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
 
-I'd prefer the bridge drivers to be fixed to use s_power in a balanced way, 
-but I understand that it might be difficult to achieve in a timely fashion. 
-I'm thus not against this patch, but I don't think it makes too much sense to 
-merge it without a user, that is a patch series that works on removing 
-s_power.
-
--- 
+=2D-=20
 Regards,
 
 Laurent Pinchart
