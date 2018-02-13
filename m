@@ -1,142 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.196]:37143 "EHLO mout.perfora.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751448AbeB0Bxr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 20:53:47 -0500
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53537 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966007AbeBMX2D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Feb 2018 18:28:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 10/30] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
+Date: Wed, 14 Feb 2018 01:28:34 +0200
+Message-ID: <6569122.ZeLMKUb12N@avalon>
+In-Reply-To: <20180213231250.GA23581@bigcity.dyn.berto.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <3791727.mLP5MD9T4p@avalon> <20180213231250.GA23581@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-In-Reply-To: <cb62e915-eb9c-9252-1f0a-cc85c8ea3530@xs4all.nl>
-References: <20180219072550.hz4vpomsaz2ajrnm@mwanda> <20180220065304.8943-1-quytelda@tamalin.org>
- <cb62e915-eb9c-9252-1f0a-cc85c8ea3530@xs4all.nl>
-From: Quytelda Kahja <quytelda@tamalin.org>
-Date: Mon, 26 Feb 2018 17:53:44 -0800
-Message-ID: <CAFLvi2357U3HAt3mXDdNdZs4QA9mqWntTny4XyvtSfV2hu1dmA@mail.gmail.com>
-Subject: Re: [PATCH v2] Staging: bcm2048: Fix function argument alignment in radio-bcm2048.c.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Hi Niklas,
 
-Thank you very much for your input on the patch; however this patch
-has already been applied to the staging tree.  Additionally:
+On Wednesday, 14 February 2018 01:12:50 EET Niklas S=F6derlund wrote:
+> On 2018-02-14 00:31:21 +0200, Laurent Pinchart wrote:
+> > On Tuesday, 13 February 2018 18:47:04 EET Niklas S=F6derlund wrote:
+> >> On 2018-02-13 18:26:34 +0200, Laurent Pinchart wrote:
+> >>> On Monday, 29 January 2018 18:34:15 EET Niklas S=F6derlund wrote:
+> >>>> There was never proper support in the VIN driver to deliver
+> >>>> ALTERNATING field format to user-space, remove this field option. The
+> >>>> problem is that ALTERNATING filed order requires the sequence numbers
+> >>>> of buffers returned to userspace to reflect if fields where dropped =
+or
+> >>>> not, something which is not possible with the VIN drivers capture
+> >>>> logic.
+> >>>>=20
+> >>>> The VIN driver can still capture from a video source which delivers
+> >>>> frames in ALTERNATING field order, but needs to combine them using
+> >>>> the VIN hardware into INTERLACED field order. Before this change if a
+> >>>> source was delivering fields using ALTERNATE the driver would default
+> >>>> to combining them using this hardware feature. Only if the user
+> >>>> explicitly requested ALTERNATE filed order would incorrect frames be
+> >>>> delivered.
+> >>>>=20
+> >>>> The height should not be cut in half for the format for TOP or BOTTOM
+> >>>> fields settings. This was a mistake and it was made visible by the
+> >>>> scaling refactoring. Correct behavior is that the user should request
+> >>>> a frame size that fits the half height frame reflected in the field
+> >>>> setting. If not the VIN will do its best to scale the top or bottom
+> >>>> to the requested format and cropping and scaling do not work as
+> >>>> expected.
+> >>>>=20
+> >>>> Signed-off-by: Niklas S=F6derlund
+> >>>> <niklas.soderlund+renesas@ragnatech.se>
+> >>>> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> ---
+> >>>>=20
+> >>>>  drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +-------
+> >>>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 53
+> >>>>  +++++++++++------------
+> >>>>  2 files changed, 24 insertions(+), 44 deletions(-)
+> >=20
+> > [snip]
+> >=20
+> >>>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>>> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> >>>> 4d5be2d0c79c9c9a..9f7902d29c62e205 100644
+> >>>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>>> @@ -103,6 +103,28 @@ static int rvin_get_source_format(struct
+> >>>> rvin_dev *vin,
+> >>>>  	if (ret)
+> >>>>  		return ret;
+> >>>>=20
+> >>>> +	switch (fmt.format.field) {
+> >>>> +	case V4L2_FIELD_TOP:
+> >>>> +	case V4L2_FIELD_BOTTOM:
+> >>>> +	case V4L2_FIELD_NONE:
+> >>>> +	case V4L2_FIELD_INTERLACED_TB:
+> >>>> +	case V4L2_FIELD_INTERLACED_BT:
+> >>>> +	case V4L2_FIELD_INTERLACED:
+> >>>> +		break;
+> >>>> +	case V4L2_FIELD_ALTERNATE:
+> >>>> +		/*
+> >>>> +		 * Driver do not (yet) support outputting ALTERNATE to a
+> >>>> +		 * userspace. It dose support outputting INTERLACED so use
+> >>>=20
+> >>> s/dose/does/
+> >>>=20
+> >>>> +		 * the VIN hardware to combine the two fields.
+> >>>> +		 */
+> >>>> +		fmt.format.field =3D V4L2_FIELD_INTERLACED;
+> >>>> +		fmt.format.height *=3D 2;
+> >>>> +		break;
+> >>>=20
+> >>> I don't like this much. The rvin_get_source_format() function is
+> >>> supposed to return the media bus format for the bus between the source
+> >>> and the VIN. It's the caller that should take the field limitations i=
+nto
+> >>> account, otherwise you end up with a mix of source and VIN data in the
+> >>> same structure.
+> >>=20
+> >> When I read your comments I understand your argument better. And I
+> >> understand this function is perhaps poorly named. Maybe it should be
+> >> renamed to rvin_get_vin_format_from_source().
+> >=20
+> > If you add a comment above the function I could live with that. Would it
+> > make sense to pass a v4l2_pix_format structure instead of a
+> > v4l2_mbus_framefmt ?
+>=20
+> I now see that the function name is misleading and I will change it as
+> per above. I will also add a comment and swap to v4l2_pix_format (which
+> was used before v10 but was changed due to your review comments, I'm
+> happy you come around :-)
 
-> What coding style problem? You should give a short description of
-> what you are fixing.
-The subject of the patch (which becomes the subject of the email when
-using `git format-patch`) describes the change more fully: "Staging:
-bcm2048: Fix function argument alignment in radio-bcm2048.c".  It's a
-really trivial patch, so there's not too much to say.  That extra
-comment is just redundant, I suppose.
+The argument type has to be consistent with the function's purpose and name=
+=2E=20
+Now that you propose changing the function's purpose, my previous comments=
+=20
+have to be updated. And I'm annoyed that you have such a good memory, it=20
+forces me to invent excuses :-)
 
-> Just drop this change: it will replace one warning (non-aligned) with
-> another (> 80 cols).
-Breaking the 80 character line limit is arguably excusable for this
-code because of the 36 character function name and 30 character
-constant name; additionally, it has been said that the 80 character
-line limit will probably be increased in the future since we run
-modern machines that aren't limited to 80 character terminals anymore,
-so this warning may soon be irrelevant anyway.
+> >> The source format is fetched at s_stream() time in order to do format
+> >> validation. At this time the field is also taken into account once more
+> >> to validate that the VIN format (calculated here) still is valid. It
+> >> also handles the question you ask later at s_stream() time, see bellow.
+> >>=20
+> >>>> +	default:
+> >>>> +		vin->format.field =3D V4L2_FIELD_NONE;
+> >>>> +		break;
+> >>>> +	}
+> >>>> +
+> >>>>  	memcpy(mbus_fmt, &fmt.format, sizeof(*mbus_fmt));
+> >>>>  =09
+> >>>>  	return 0;
 
-Thank you,
-Quytelda Kahja
+[snip]
 
-On Mon, Feb 26, 2018 at 5:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/20/2018 07:53 AM, Quytelda Kahja wrote:
->> Fix a coding style problem.
->
-> What coding style problem? You should give a short description of
-> what you are fixing.
->
->>
->> Signed-off-by: Quytelda Kahja <quytelda@tamalin.org>
->> ---
->> This is the patch without the unnecessary fixes for line length.
->>
->>  drivers/staging/media/bcm2048/radio-bcm2048.c | 22 +++++++++++-----------
->>  1 file changed, 11 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
->> index 06d1920150da..f38a4f2acdde 100644
->> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
->> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
->> @@ -1864,7 +1864,7 @@ static int bcm2048_probe(struct bcm2048_device *bdev)
->>               goto unlock;
->>
->>       err = bcm2048_set_fm_search_rssi_threshold(bdev,
->> -                                     BCM2048_DEFAULT_RSSI_THRESHOLD);
->> +                                                BCM2048_DEFAULT_RSSI_THRESHOLD);
->>       if (err < 0)
->>               goto unlock;
->>
->
-> Just drop this change: it will replace one warning (non-aligned) with
-> another (> 80 cols).
->
-> This code is fine as it is.
->
-> Regards,
->
->         Hans
->
->> @@ -1942,9 +1942,9 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
->>   */
->>  #define property_write(prop, type, mask, check)                              \
->>  static ssize_t bcm2048_##prop##_write(struct device *dev,            \
->> -                                     struct device_attribute *attr,  \
->> -                                     const char *buf,                \
->> -                                     size_t count)                   \
->> +                                   struct device_attribute *attr,    \
->> +                                   const char *buf,                  \
->> +                                   size_t count)                     \
->>  {                                                                    \
->>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>       type value;                                                     \
->> @@ -1966,8 +1966,8 @@ static ssize_t bcm2048_##prop##_write(struct device *dev,               \
->>
->>  #define property_read(prop, mask)                                    \
->>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
->> -                                     struct device_attribute *attr,  \
->> -                                     char *buf)                      \
->> +                                  struct device_attribute *attr,     \
->> +                                  char *buf)                         \
->>  {                                                                    \
->>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>       int value;                                                      \
->> @@ -1985,8 +1985,8 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,                \
->>
->>  #define property_signed_read(prop, size, mask)                               \
->>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
->> -                                     struct device_attribute *attr,  \
->> -                                     char *buf)                      \
->> +                                  struct device_attribute *attr,     \
->> +                                  char *buf)                         \
->>  {                                                                    \
->>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>       size value;                                                     \
->> @@ -2005,8 +2005,8 @@ property_read(prop, mask)                                               \
->>
->>  #define property_str_read(prop, size)                                        \
->>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
->> -                                     struct device_attribute *attr,  \
->> -                                     char *buf)                      \
->> +                                  struct device_attribute *attr,     \
->> +                                  char *buf)                         \
->>  {                                                                    \
->>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>       int count;                                                      \
->> @@ -2175,7 +2175,7 @@ static int bcm2048_fops_release(struct file *file)
->>  }
->>
->>  static __poll_t bcm2048_fops_poll(struct file *file,
->> -                                   struct poll_table_struct *pts)
->> +                               struct poll_table_struct *pts)
->>  {
->>       struct bcm2048_device *bdev = video_drvdata(file);
->>       __poll_t retval = 0;
->>
->
+=2D-=20
+Regards,
+
+Laurent Pinchart
