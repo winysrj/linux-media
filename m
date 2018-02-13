@@ -1,39 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33319 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752514AbeBFTEr (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52726 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965853AbeBMV4B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 14:04:47 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-ioctl.c: fix VIDIOC_DV_TIMINGS_CAP: don't clear pad
-Message-ID: <4b4680d3-047a-c229-3de7-e7a548883822@xs4all.nl>
-Date: Tue, 6 Feb 2018 20:04:42 +0100
+        Tue, 13 Feb 2018 16:56:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 30/30] rcar-vin: enable support for r8a77970
+Date: Tue, 13 Feb 2018 23:56:32 +0200
+Message-ID: <1741412.ByeZXholkl@avalon>
+In-Reply-To: <20180129163435.24936-31-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-31-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pad field should be passed on to the subdev driver, but it is cleared in
-v4l2-ioctl.c so the subdev driver always sees a 0 pad.
+Hi Niklas,
 
-Found with v4l2-compliance.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Tim Harvey <tharvey@gateworks.com>
----
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 260288ca4f55..f697c235f698 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2611,7 +2611,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
- 	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
- 	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
--	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
-+	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
- 	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
+On Monday, 29 January 2018 18:34:35 EET Niklas S=F6derlund wrote:
+> Add the SoC specific information for Renesas r8a77970.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> b/drivers/media/platform/rcar-vin/rcar-core.c index
+> 2305fedd293db241..496b7d2189d73d37 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -954,6 +954,25 @@ static const struct rvin_info rcar_info_r8a7796 =3D {
+>  	.routes =3D rcar_info_r8a7796_routes,
+>  };
+>=20
+> +static const struct rvin_group_route _rcar_info_r8a77970_routes[] =3D {
+> +	{ .vin =3D 0, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(0) | BIT(=
+3) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(2) },
+> +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(3) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(1) },
+> +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 2, .mask =3D BIT(3) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(0) },
+> +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 3, .mask =3D BIT(3) },
+> +	{ /* Sentinel */ }
+> +};
+> +
+> +static const struct rvin_info rcar_info_r8a77970 =3D {
+> +	.model =3D RCAR_GEN3,
+> +	.use_mc =3D true,
+> +	.max_width =3D 4096,
+> +	.max_height =3D 4096,
+> +	.routes =3D _rcar_info_r8a77970_routes,
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] =3D {
+>  	{
+>  		.compatible =3D "renesas,vin-r8a7778",
+> @@ -991,6 +1010,10 @@ static const struct of_device_id rvin_of_id_table[]=
+ =3D
+> { .compatible =3D "renesas,vin-r8a7796",
+>  		.data =3D &rcar_info_r8a7796,
+>  	},
+> +	{
+> +		.compatible =3D "renesas,vin-r8a77970",
+> +		.data =3D &rcar_info_r8a77970,
+> +	},
+>  	{ /* Sentinel */ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
