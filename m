@@ -1,66 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:60467 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932836AbeBLWEN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44858 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965285AbeBMRDP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 17:04:13 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        Tue, 13 Feb 2018 12:03:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] v4l: subdev: compat: update handling for VIDIOC_SUBDEV_[GS]_ROUTING
-Date: Mon, 12 Feb 2018 23:03:52 +0100
-Message-Id: <20180212220352.21629-1-niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 17/30] rcar-vin: update pixelformat check for M1
+Date: Tue, 13 Feb 2018 19:03:46 +0200
+Message-ID: <1940936.O8uNz50EkU@avalon>
+In-Reply-To: <20180129163435.24936-18-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-18-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement compat IOCTL handling for VIDIOC_SUBDEV_G_ROUTING and
-VIDIOC_SUBDEV_S_ROUTING IOCTLs.
+Hi Niklas,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-Hi Sakari,
+On Monday, 29 January 2018 18:34:22 EET Niklas S=F6derlund wrote:
+> If the pixelformat is not supported it should not fail but be set to
+> something that works. While we are at it move the check together with
+> other pixelformat checks of this function.
 
-With this fix on-top of your vc branch I get it work with v4.16-rc1, 
-feel free to squash it into your branch where appropriate. I tested this 
-with a ARM64 kernel and a ARM user-land with v4l2-ctl + my 
---{get,set}-routing patches for v4l-utils.
+Please ignore my related comment to patch 16/30 :-) However, could you move=
+=20
+this patch before 16/30 ?
 
-// Niklas
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index a1f71a83ac076d7f..30700658963d3227 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -1124,7 +1124,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 
- 	case VIDIOC_SUBDEV_G_ROUTING:
- 	case VIDIOC_SUBDEV_S_ROUTING:
--		err = get_v4l2_subdev_routing(&karg.subdev_routing, up);
-+		err = alloc_userspace(sizeof(struct v4l2_subdev_routing),
-+				      0, &up_native);
-+		if (!err)
-+			err = get_v4l2_subdev_routing(up_native, up);
- 		compatible_arg = 0;
- 		break;
- 
-@@ -1257,7 +1260,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		break;
- 	case VIDIOC_SUBDEV_G_ROUTING:
- 	case VIDIOC_SUBDEV_S_ROUTING:
--		err = put_v4l2_subdev_routing(&karg.subdev_routing, up);
-+		err = put_v4l2_subdev_routing(up_native, up);
- 		break;
- 	}
- 	if (err)
--- 
-2.16.1
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> bca6e204a574772f..841d62ca27e026d7 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -97,6 +97,10 @@ static int rvin_format_align(struct rvin_dev *vin, str=
+uct
+> v4l2_pix_format *pix) pix->pixelformat =3D RVIN_DEFAULT_FORMAT;
+>  	}
+>=20
+> +	if (vin->info->model =3D=3D RCAR_M1 &&
+> +	    pix->pixelformat =3D=3D V4L2_PIX_FMT_XBGR32)
+> +		pix->pixelformat =3D RVIN_DEFAULT_FORMAT;
+> +
+>  	/* Reject ALTERNATE  until support is added to the driver */
+>  	switch (pix->field) {
+>  	case V4L2_FIELD_TOP:
+> @@ -121,12 +125,6 @@ static int rvin_format_align(struct rvin_dev *vin,
+> struct v4l2_pix_format *pix) pix->bytesperline =3D
+> rvin_format_bytesperline(pix);
+>  	pix->sizeimage =3D rvin_format_sizeimage(pix);
+>=20
+> -	if (vin->info->model =3D=3D RCAR_M1 &&
+> -	    pix->pixelformat =3D=3D V4L2_PIX_FMT_XBGR32) {
+> -		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+> -		return -EINVAL;
+> -	}
+> -
+>  	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+>  		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
