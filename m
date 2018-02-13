@@ -1,131 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:36349 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752245AbeBZLGx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42026 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934661AbeBMMGV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 06:06:53 -0500
-Subject: Re: [PATCH v7 2/2] media: V3s: Add support for Allwinner CSI.
-To: Yong <yong.deng@magewell.com>, Randy Dunlap <rdunlap@infradead.org>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Tue, 13 Feb 2018 07:06:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-References: <1517217696-17816-1-git-send-email-yong.deng@magewell.com>
- <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
- <20180130104833.a06e44c558c7ddc6b38e20b3@magewell.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ce3a30b9-f017-61b6-1fe6-f5dcc8bd3ec3@xs4all.nl>
-Date: Mon, 26 Feb 2018 12:06:37 +0100
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v3 1/5] dt-bindings: media: adv7604: Add support for i2c_new_secondary_device
+Date: Tue, 13 Feb 2018 14:06:51 +0200
+Message-ID: <84376496.fPaZ5qpN3E@avalon>
+In-Reply-To: <1518473273-6333-2-git-send-email-kbingham@kernel.org>
+References: <1518473273-6333-1-git-send-email-kbingham@kernel.org> <1518473273-6333-2-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20180130104833.a06e44c558c7ddc6b38e20b3@magewell.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Kieran,
 
-On 01/30/2018 03:48 AM, Yong wrote:
-> Hi,
-> 
-> On Mon, 29 Jan 2018 13:49:14 -0800
-> Randy Dunlap <rdunlap@infradead.org> wrote:
-> 
->> On 01/29/2018 01:21 AM, Yong Deng wrote:
->>> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
->>> interface and CSI1 is used for parallel interface. This is not
->>> documented in datasheet but by test and guess.
->>>
->>> This patch implement a v4l2 framework driver for it.
->>>
->>> Currently, the driver only support the parallel interface. MIPI-CSI2,
->>> ISP's support are not included in this patch.
->>>
->>> Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
->>> Signed-off-by: Yong Deng <yong.deng@magewell.com>
->>> ---
->>
->>
->> A previous version (I think v6) had a build error with the use of
->> PHYS_OFFSET, so Kconfig was modified to depend on ARM and ARCH_SUNXI
->> (one of which seems to be overkill).  As is here, the COMPILE_TEST piece is
->> meaningless for all arches except ARM.  If you care enough for COMPILE_TEST
->> (and I would), then you could make COMPILE_TEST useful on any arch by
->> removing the "depends on ARM" (the ARCH_SUNXI takes care of that) and by
->> having an alternate value for PHYS_OFFSET, like so:
->>
->> +#if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
->> +#define PHYS_OFFSET	0
->> +#endif
->>
->> With those 2 changes, the driver builds for me on x86_64.
-> 
-> I have considered this method.
-> But it's so sick to put these code in dirver (for my own). I mean 
-> this is meaningless for the driver itself and make people confused.
-> 
-> I grepped the driver/ code and I found many drivers writing Kconfig
-> like this. For example:
-> ARM && COMPILE_TEST
-> MIPS && COMPILE_TEST
-> PPC64 && COMPILE_TEST
-> 
-> BTW, for my own, I do not care about COMPILE_TEST.
+Thank you for the patch.
 
-There was a discussion about this in the v6 patch, but it petered out.
+On Tuesday, 13 February 2018 00:07:49 EET Kieran Bingham wrote:
+> From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+>=20
+> The ADV7604 has thirteen 256-byte maps that can be accessed via the main
+> I=B2C ports. Each map has it own I=B2C address and acts as a standard sla=
+ve
+> device on the I=B2C bus.
+>=20
+> Extend the device tree node bindings to be able to override the default
+> addresses so that address conflicts with other devices on the same bus
+> may be resolved at the board description level.
+>=20
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> [Kieran: Re-adapted for mainline]
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
 
-I want to merge this driver, but I would very much prefer that this
-compiles with COMPILE_TEST. So unless someone has a better solution, then
-adding 'hack' that defines PHYS_OFFSET to 0 for COMPILE_TEST would be required.
+Nitpicking, I might not mention i2c_new_secondary_device in the subject, as=
+=20
+this is a DT bindings change. I don't mind too much though, as long as the=
+=20
+bindings themselves don't contain Linux-specific information, and they don'=
+t,=20
+so
 
-Otherwise this driver looks good, so it is just this issue blocking it.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+> ---
+> Based upon the original posting :
+>   https://lkml.org/lkml/2014/10/22/469
+>=20
+> v2:
+>  - DT Binding update separated from code change
+>  - Minor reword to commit message to account for DT only change.
+>  - Collected Rob's RB tag.
+>=20
+> v3:
+>  - Split map register addresses into individual declarations.
+>=20
+>  .../devicetree/bindings/media/i2c/adv7604.txt          | 18
+> ++++++++++++++++-- 1 file changed, 16 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
+> 9cbd92eb5d05..ebb5f070c05b 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> @@ -13,7 +13,11 @@ Required Properties:
+>      - "adi,adv7611" for the ADV7611
+>      - "adi,adv7612" for the ADV7612
+>=20
+> -  - reg: I2C slave address
+> +  - reg: I2C slave addresses
+> +    The ADV76xx has up to thirteen 256-byte maps that can be accessed via
+> the +    main I=B2C ports. Each map has it own I=B2C address and acts as a
+> standard +    slave device on the I=B2C bus. The main address is mandator=
+y,
+> others are +    optional and revert to defaults if not specified.
+>=20
+>    - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
+>      detection pins, one per HDMI input. The active flag indicates the GP=
+IO
+> @@ -35,6 +39,11 @@ Optional Properties:
+>=20
+>    - reset-gpios: Reference to the GPIO connected to the device's reset p=
+in.
+> - default-input: Select which input is selected after reset.
+> +  - reg-names : Names of maps with programmable addresses.
+> +		It can contain any map needing a non-default address.
+> +		Possible maps names are :
+> +		  "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe",
+> +		  "rep", "edid", "hdmi", "test", "cp", "vdp"
+>=20
+>  Optional Endpoint Properties:
+>=20
+> @@ -52,7 +61,12 @@ Example:
+>=20
+>  	hdmi_receiver@4c {
+>  		compatible =3D "adi,adv7611";
+> -		reg =3D <0x4c>;
+> +		/*
+> +		 * The edid page will be accessible @ 0x66 on the i2c bus. All
+> +		 * other maps will retain their default addresses.
+> +		 */
+> +		reg =3D <0x4c>, <0x66>;
+> +		reg-names "main", "edid";
+>=20
+>  		reset-gpios =3D <&ioexp 0 GPIO_ACTIVE_LOW>;
+>  		hpd-gpios =3D <&ioexp 2 GPIO_ACTIVE_HIGH>;
+
+
+=2D-=20
 Regards,
 
-	Hans
-
-> 
->>
->>> diff --git a/drivers/media/platform/sunxi/sun6i-csi/Kconfig b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
->>> new file mode 100644
->>> index 0000000..f80c965
->>> --- /dev/null
->>> +++ b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
->>> @@ -0,0 +1,10 @@
->>> +config VIDEO_SUN6I_CSI
->>> +	tristate "Allwinner V3s Camera Sensor Interface driver"
->>> +	depends on ARM
->>> +	depends on VIDEO_V4L2 && COMMON_CLK && VIDEO_V4L2_SUBDEV_API && HAS_DMA
->>> +	depends on ARCH_SUNXI || COMPILE_TEST
->>> +	select VIDEOBUF2_DMA_CONTIG
->>> +	select REGMAP_MMIO
->>> +	select V4L2_FWNODE
->>> +	---help---
->>> +	   Support for the Allwinner Camera Sensor Interface Controller on V3s.
->>
->> thanks,
->> -- 
->> ~Randy
-> 
-> 
-> Thanks,
-> Yong
-> 
+Laurent Pinchart
