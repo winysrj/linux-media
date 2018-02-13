@@ -1,282 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor2.renesas.com ([210.160.252.172]:19369 "EHLO
-        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752695AbeBARxY (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:60104 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965091AbeBMRFp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Feb 2018 12:53:24 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Sakari Ailus" <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Tue, 13 Feb 2018 12:05:45 -0500
+Date: Tue, 13 Feb 2018 18:05:43 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: RE: [PATCH v5 4/5] media: ov5640: add support of DVP parallel
- interface
-Date: Thu, 1 Feb 2018 17:53:18 +0000
-Message-ID: <TY1PR06MB089512437228BAFF910B133FC0FA0@TY1PR06MB0895.apcprd06.prod.outlook.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <1514973452-10464-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1514973452-10464-5-git-send-email-hugues.fruchet@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v3 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+Message-ID: <20180213170543.cj4n2deyn2rqbixh@flea.lan>
+References: <20180207142643.15746-1-maxime.ripard@bootlin.com>
+ <20180207142643.15746-3-maxime.ripard@bootlin.com>
+ <5149915.u4chh53YoO@avalon>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kwq3qdy3pmt5hjhl"
+Content-Disposition: inline
+In-Reply-To: <5149915.u4chh53YoO@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hugues,
 
-> Subject: [PATCH v5 4/5] media: ov5640: add support of DVP parallel interf=
-ace
->
-> Add support of DVP parallel mode in addition of
-> existing MIPI CSI mode. The choice between two modes
-> and configuration is made through device tree.
->
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/i2c/ov5640.c | 148 +++++++++++++++++++++++++++++++++++++++=
-------
->  1 file changed, 130 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 9f031f3..a44b680 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -34,13 +34,19 @@
->
->  #define OV5640_DEFAULT_SLAVE_ID 0x3c
->
-> +#define OV5640_REG_SYS_CTRL00x3008
->  #define OV5640_REG_CHIP_ID0x300a
-> +#define OV5640_REG_IO_MIPI_CTRL000x300e
-> +#define OV5640_REG_PAD_OUTPUT_ENABLE010x3017
-> +#define OV5640_REG_PAD_OUTPUT_ENABLE020x3018
->  #define OV5640_REG_PAD_OUTPUT000x3019
-> +#define OV5640_REG_SYSTEM_CONTROL10x302e
->  #define OV5640_REG_SC_PLL_CTRL00x3034
->  #define OV5640_REG_SC_PLL_CTRL10x3035
->  #define OV5640_REG_SC_PLL_CTRL20x3036
->  #define OV5640_REG_SC_PLL_CTRL30x3037
->  #define OV5640_REG_SLAVE_ID0x3100
-> +#define OV5640_REG_SCCB_SYS_CTRL10x3103
->  #define OV5640_REG_SYS_ROOT_DIVIDER0x3108
->  #define OV5640_REG_AWB_R_GAIN0x3400
->  #define OV5640_REG_AWB_G_GAIN0x3402
-> @@ -70,6 +76,7 @@
->  #define OV5640_REG_HZ5060_CTRL010x3c01
->  #define OV5640_REG_SIGMADELTA_CTRL0C0x3c0c
->  #define OV5640_REG_FRAME_CTRL010x4202
-> +#define OV5640_REG_POLARITY_CTRL000x4740
->  #define OV5640_REG_MIPI_CTRL000x4800
->  #define OV5640_REG_DEBUG_MODE0x4814
->  #define OV5640_REG_PRE_ISP_TEST_SET10x503d
-> @@ -982,7 +989,111 @@ static int ov5640_get_gain(struct ov5640_dev *senso=
-r)
->  return gain & 0x3ff;
->  }
->
-> -static int ov5640_set_stream(struct ov5640_dev *sensor, bool on)
-> +static int ov5640_set_stream_dvp(struct ov5640_dev *sensor, bool on)
-> +{
-> +int ret;
-> +unsigned int flags =3D sensor->ep.bus.parallel.flags;
-> +u8 pclk_pol =3D 0;
-> +u8 hsync_pol =3D 0;
-> +u8 vsync_pol =3D 0;
-> +
-> +/*
-> + * Note about parallel port configuration.
-> + *
-> + * When configured in parallel mode, the OV5640 will
-> + * output 10 bits data on DVP data lines [9:0].
-> + * If only 8 bits data are wanted, the 8 bits data lines
-> + * of the camera interface must be physically connected
-> + * on the DVP data lines [9:2].
-> + *
-> + * Control lines polarity can be configured through
-> + * devicetree endpoint control lines properties.
-> + * If no endpoint control lines properties are set,
-> + * polarity will be as below:
-> + * - VSYNC:active high
-> + * - HREF:active low
-> + * - PCLK:active low
-> + */
-> +
-> +if (on) {
-> +/*
-> + * reset MIPI PCLK/SERCLK divider
-> + *
-> + * SC PLL CONTRL1 0
-> + * - [3..0]:MIPI PCLK/SERCLK divider
-> + */
-> +ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1, 0x0f, 0);
-> +if (ret)
-> +return ret;
-> +
-> +/*
-> + * configure parallel port control lines polarity
-> + *
-> + * POLARITY CTRL0
-> + * - [5]:PCLK polarity (0: active low, 1: active high)
-> + * - [1]:HREF polarity (0: active low, 1: active high)
-> + * - [0]:VSYNC polarity (mismatch here between
-> + *datasheet and hardware, 0 is active high
-> + *and 1 is active low...)
+--kwq3qdy3pmt5hjhl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I know that yourself and Maxime have both confirmed that VSYNC polarity is =
-inverted, but I am looking at HSYNC and VSYNC with a logic analyser and I a=
-m dumping the values written to OV5640_REG_POLARITY_CTRL00 and to me it loo=
-ks like that HSYNC is active HIGH when hsync_pol =3D=3D 0, and VSYNC is act=
-ive HIGH when vsync_pol =3D=3D 1.
-Between the SoC and the sensor I have a voltage translator, 2.8V input -> 3=
-.3V output, I am measuring the signals at the translator outputs.
-Register 0x302A (chip revision register) on my sensor contains 0xb0.
+Hi Laurent,
 
-Could you please double check this? How is it possible that this works diff=
-erently on my sensor?
+On Thu, Feb 08, 2018 at 10:05:05PM +0200, Laurent Pinchart wrote:
+> On Wednesday, 7 February 2018 16:26:43 EET Maxime Ripard wrote:
+> > The Cadence MIPI-CSI2 TX controller is an hardware block meant to be us=
+ed
+> > as a bridge between pixel interfaces and a CSI-2 bus.
+> >=20
+> > It supports operating with an internal or external D-PHY, with up to 4
+> > lanes, or without any D-PHY. The current code only supports the former
+> > case.
+> >=20
+> > While the virtual channel input on the pixel interface can be directly
+> > mapped to CSI2, the datatype input is actually a selection signal (3-bi=
+ts)
+> > mapping to a table of up to 8 preconfigured datatypes/formats (programm=
+ed
+> > at start-up)
+> >=20
+> > The block supports up to 8 input datatypes.
+>=20
+> The DT bindings document four input streams. Does this mean that, to use =
+more=20
+> than 4 data types, a system would need to transmit multiplexed streams on=
+ a=20
+> single input stream with the 3 selection bits qualifying each sample ? Th=
+at=20
+> would be an interesting setup.
 
-Thanks,
-Fabrizio
+My understanding is that each input stream has an additional signal
+that defines a data type encoded on 3 bits. So yeah, I guess that
+would be possible if the upstream device is able to synchronize its
+stream generation and the datatype sent.
 
-> + */
-> +if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +pclk_pol =3D 1;
-> +if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +hsync_pol =3D 1;
-> +if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-> +vsync_pol =3D 1;
-> +
-> +ret =3D ov5640_write_reg(sensor,
-> +       OV5640_REG_POLARITY_CTRL00,
-> +       (pclk_pol << 5) |
-> +       (hsync_pol << 1) |
-> +       vsync_pol);
-> +
-> +if (ret)
-> +return ret;
-> +}
-> +
-> +/*
-> + * powerdown MIPI TX/RX PHY & disable MIPI
-> + *
-> + * MIPI CONTROL 00
-> + * 4: PWDN PHY TX
-> + * 3: PWDN PHY RX
-> + * 2: MIPI enable
-> + */
-> +ret =3D ov5640_write_reg(sensor,
-> +       OV5640_REG_IO_MIPI_CTRL00, on ? 0x18 : 0);
-> +if (ret)
-> +return ret;
-> +
-> +/*
-> + * enable VSYNC/HREF/PCLK DVP control lines
-> + * & D[9:6] DVP data lines
-> + *
-> + * PAD OUTPUT ENABLE 01
-> + * - 6:VSYNC output enable
-> + * - 5:HREF output enable
-> + * - 4:PCLK output enable
-> + * - [3:0]:D[9:6] output enable
-> + */
-> +ret =3D ov5640_write_reg(sensor,
-> +       OV5640_REG_PAD_OUTPUT_ENABLE01,
-> +       on ? 0x7f : 0);
-> +if (ret)
-> +return ret;
-> +
-> +/*
-> + * enable D[5:0] DVP data lines
-> + *
-> + * PAD OUTPUT ENABLE 02
-> + * - [7:2]:D[5:0] output enable
-> + */
-> +return ov5640_write_reg(sensor,
-> +OV5640_REG_PAD_OUTPUT_ENABLE02,
-> +on ? 0xfc : 0);
-> +}
-> +
-> +static int ov5640_set_stream_mipi(struct ov5640_dev *sensor, bool on)
->  {
->  int ret;
->
-> @@ -1604,17 +1715,19 @@ static int ov5640_set_power(struct ov5640_dev *se=
-nsor, bool on)
->  if (ret)
->  goto power_off;
->
-> -/*
-> - * start streaming briefly followed by stream off in
-> - * order to coax the clock lane into LP-11 state.
-> - */
-> -ret =3D ov5640_set_stream(sensor, true);
-> -if (ret)
-> -goto power_off;
-> -usleep_range(1000, 2000);
-> -ret =3D ov5640_set_stream(sensor, false);
-> -if (ret)
-> -goto power_off;
-> +if (sensor->ep.bus_type =3D=3D V4L2_MBUS_CSI2) {
-> +/*
-> + * start streaming briefly followed by stream off in
-> + * order to coax the clock lane into LP-11 state.
-> + */
-> +ret =3D ov5640_set_stream_mipi(sensor, true);
-> +if (ret)
-> +goto power_off;
-> +usleep_range(1000, 2000);
-> +ret =3D ov5640_set_stream_mipi(sensor, false);
-> +if (ret)
-> +goto power_off;
-> +}
->
->  return 0;
->  }
-> @@ -2188,7 +2301,11 @@ static int ov5640_s_stream(struct v4l2_subdev *sd,=
- int enable)
->  goto out;
->  }
->
-> -ret =3D ov5640_set_stream(sensor, enable);
-> +if (sensor->ep.bus_type =3D=3D V4L2_MBUS_CSI2)
-> +ret =3D ov5640_set_stream_mipi(sensor, enable);
-> +else
-> +ret =3D ov5640_set_stream_dvp(sensor, enable);
-> +
->  if (!ret)
->  sensor->streaming =3D enable;
->  }
-> @@ -2301,11 +2418,6 @@ static int ov5640_probe(struct i2c_client *client,
->  return ret;
->  }
->
-> -if (sensor->ep.bus_type !=3D V4L2_MBUS_CSI2) {
-> -dev_err(dev, "invalid bus type, must be MIPI CSI2\n");
-> -return -EINVAL;
-> -}
-> -
->  /* get system clock (xclk) */
->  sensor->xclk =3D devm_clk_get(dev, "xclk");
->  if (IS_ERR(sensor->xclk)) {
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > ---
+> >  drivers/media/platform/cadence/Kconfig       |   6 +
+> >  drivers/media/platform/cadence/Makefile      |   1 +
+> >  drivers/media/platform/cadence/cdns-csi2tx.c | 582 +++++++++++++++++++=
++++++
+> >  3 files changed, 589 insertions(+)
+> >  create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+> >=20
+> > diff --git a/drivers/media/platform/cadence/Kconfig
+> > b/drivers/media/platform/cadence/Kconfig index d1b6bbb6a0eb..db49328ee8=
+b2
+> > 100644
+> > --- a/drivers/media/platform/cadence/Kconfig
+> > +++ b/drivers/media/platform/cadence/Kconfig
+> > @@ -9,4 +9,10 @@ config VIDEO_CADENCE_CSI2RX
+> >  	depends on VIDEO_V4L2_SUBDEV_API
+> >  	select V4L2_FWNODE
+> >=20
+> > +config VIDEO_CADENCE_CSI2TX
+> > +	tristate "Cadence MIPI-CSI2 TX Controller"
+> > +	depends on MEDIA_CONTROLLER
+> > +	depends on VIDEO_V4L2_SUBDEV_API
+> > +	select V4L2_FWNODE
+>=20
+> A bit of documentation maybe ?
 
+Yeah, it was already queued for the next iteration :)
 
+> > +static const struct v4l2_mbus_framefmt fmt_default =3D {
+> > +	.width		=3D 320,
+> > +	.height		=3D 180,
+>=20
+> That's a pretty small default resolution. Is there any reason for not usi=
+ng a=20
+> more common format ?
 
-Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
-uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
- No. 04586709.
+What would be your suggestion?
+
+> > +static int csi2tx_init_cfg(struct v4l2_subdev *subdev,
+> > +			   struct v4l2_subdev_pad_config *cfg)
+> > +{
+> > +	struct csi2tx_priv *csi2tx =3D v4l2_subdev_to_csi2tx(subdev);
+> > +	unsigned int i;
+> > +
+> > +	for (i =3D 0; i < subdev->entity.num_pads; i++)
+> > +		csi2tx->pad_fmts[i] =3D fmt_default;
+>=20
+> .init_cfg() should initialize the formats stored in the cfg structure. Th=
+e=20
+> active formats stored in your driver-specific structure should be initial=
+ized=20
+> at probe time.
+
+Ok, I'll change it.
+
+> > +static int csi2tx_set_pad_format(struct v4l2_subdev *subdev,
+> > +				 struct v4l2_subdev_pad_config *cfg,
+> > +				 struct v4l2_subdev_format *fmt)
+> > +{
+> > +	struct csi2tx_priv *csi2tx =3D v4l2_subdev_to_csi2tx(subdev);
+> > +
+> > +	csi2tx->pad_fmts[fmt->pad] =3D fmt->format;
+>=20
+> Doesn't the IP have frame width or height limitations ? Or format
+> limitations ?
+
+In its current state, not really. There's also no clear limitations
+=66rom the registers on the formats / resolution used, since it's not
+configured at all in the device.
+
+The only constraint is that there's no buffer in the IP, so the input
+data rate and the output data rate should match. However, the way to
+do that is currently uncertain, so I guess we can address that later
+on.
+
+> > +static void csi2tx_reset(struct csi2tx_priv *csi2tx)
+> > +{
+> > +	writel(CSI2TX_CONFIG_SRST_REQ, csi2tx->base + CSI2TX_CONFIG_REG);
+> > +
+> > +	usleep_range(10, 20);
+>=20
+> As for the RX driver, udelay() might be better. Same comment for the othe=
+r=20
+> small delays below.
+
+I was asked by Benoit to change it to usleep_range in an earlier
+iteration, which one should I use?
+
+I'll change the driver according to your other comments.
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+http://bootlin.com
+
+--kwq3qdy3pmt5hjhl
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqDGuIACgkQ0rTAlCFN
+r3SRBA/+Jw6l94Ppm+jCLXSr+yctG7JdlY0Of24MCh871CYGD+eSw9zX7Ku5DA8n
+p8cYkTO5zL+gbOVocqPs1uVKb0dr/kLiHsroulg4auGcY/eNUAu2dQ5k5fMzugo1
+cxsyr8qFnthEfF9dkpcwwoEtEpX27egU+4YqvDU0yGhQ836HEw4c9QQU1Vl5K+Em
+Bx1vpxpvUDE1pk/yvmplIAT52V3kMg6AQdcz40wnhMtW2+zGfOWZHC3eEnNK72pc
+q5RQo74i2oDMRVZvvQuxolh3Wz+CLxIDd6Ti8YOz40hfc6fMKF/EPMU5FST//JEn
+0HfVtekGrUjMn6qfXGPNhgFh48jXlECRC01T04Im7a4KWpdZ8kk2l3BpUHTqGQaG
+W2qEGsN9CWxFjzrQ6wV88r8EhXnTIUFlafrO0IlXQrdro1xRqjWAPL02fsZ0FE7c
+gigN+mJaySSYOsCbME22004B+QEsBS2SGhvDjwAC28yxGYEo0LOv5okar3+47zhb
+KpPPIo1GmS/bt0PB1eFcsggtjzbdcAyeAK6lQOqMPsGLAlpSW/N0RgWvvgmQSOYQ
+t9Ndre2g90ZVChZ1u3sEz5RJiA+LgyH0Fv1ISfam1Q2ObBqRrvgdw0q/3F8r7QRf
+15XwWNSo+V59Gt3HoUjKF5L2Z379ja+lJtNgAI1zRv9byGPV2Q0=
+=FFYx
+-----END PGP SIGNATURE-----
+
+--kwq3qdy3pmt5hjhl--
