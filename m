@@ -1,80 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f195.google.com ([209.85.217.195]:40703 "EHLO
-        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750781AbeBBHmJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Feb 2018 02:42:09 -0500
-Received: by mail-ua0-f195.google.com with SMTP id t6so13615069ual.7
-        for <linux-media@vger.kernel.org>; Thu, 01 Feb 2018 23:42:09 -0800 (PST)
-Received: from mail-ua0-f182.google.com (mail-ua0-f182.google.com. [209.85.217.182])
-        by smtp.gmail.com with ESMTPSA id y123sm405512vkd.9.2018.02.01.23.42.06
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 01 Feb 2018 23:42:07 -0800 (PST)
-Received: by mail-ua0-f182.google.com with SMTP id n2so13637117uak.9
-        for <linux-media@vger.kernel.org>; Thu, 01 Feb 2018 23:42:06 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52710 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965912AbeBMVyn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Feb 2018 16:54:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v10 29/30] rcar-vin: enable support for r8a7796
+Date: Tue, 13 Feb 2018 23:55:14 +0200
+Message-ID: <32333350.Xs2tJUbvcX@avalon>
+In-Reply-To: <5136578.MxM64rYMOm@avalon>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-30-niklas.soderlund+renesas@ragnatech.se> <5136578.MxM64rYMOm@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20180202073316.ovee5fbe45npksnt@paasikivi.fi.intel.com>
-References: <20171215075625.27028-1-acourbot@chromium.org> <20171215075625.27028-2-acourbot@chromium.org>
- <20180126083936.5qxacbdprm6j7pcc@valkosipuli.retiisi.org.uk>
- <CAPBb6MVAaGPh-sxD0ZTMbo2Ejtp8Rpqb8+OaKxhAC=BaT360eQ@mail.gmail.com> <20180202073316.ovee5fbe45npksnt@paasikivi.fi.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 2 Feb 2018 16:41:45 +0900
-Message-ID: <CAAFQd5BtOac2Mi9yTpma=96RQhtjTcBXYoSc2LkStYJx+s7jSA@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/9] media: add request API core and UAPI
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 2, 2018 at 4:33 PM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->> >> +/**
->> >> + * struct media_request_queue - queue of requests
->> >> + *
->> >> + * @mdev:    media_device that manages this queue
->> >> + * @ops:     implementation of the queue
->> >> + * @mutex:   protects requests, active_request, req_id, and all members of
->> >> + *           struct media_request
->> >> + * @active_request: request being currently run by this queue
->> >> + * @requests:        list of requests (not in any particular order) that this
->> >> + *           queue owns.
->> >> + * @req_id:  counter used to identify requests for debugging purposes
->> >> + */
->> >> +struct media_request_queue {
->> >> +     struct media_device *mdev;
->> >> +     const struct media_request_queue_ops *ops;
->> >> +
->> >> +     struct mutex mutex;
->> >
->> > Any particular reason for using a mutex? The request queue lock will need
->> > to be acquired from interrupts, too, so this should be changed to a
->> > spinlock.
->>
->> Will it be acquired from interrupts? In any case it should be possible
->> to change this to a spinlock.
->
-> Using mutexes will effectively make this impossible, and I don't think we
-> can safely say there's not going to be a need for that. So spinlocks,
-> please.
->
+On Tuesday, 13 February 2018 23:54:55 EET Laurent Pinchart wrote:
+> Hi Niklas,
+>=20
+> Thank you for the patch.
+>=20
+> On Monday, 29 January 2018 18:34:34 EET Niklas S=F6derlund wrote:
+> > Add the SoC specific information for Renesas r8a7796.
+> >=20
+> > Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.s=
+e>
 
-IMHO whether a mutex or spinlock is the right thing depends on what
-kind of critical section it is used for. If it only protects data (and
-according to the comment, this one seems to do so), spinlock might
-actually have better properties, e.g. not introducing the need to
-reschedule, if another CPU is accessing the data at the moment. It
-might also depend on how heavy the data accesses are, though. We
-shouldn't need to spin for too long time.
+And also
 
-Best regards,
-Tomasz
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> > ---
+> >=20
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 44
+> >  ++++++++++++++++++++++++++
+> >  1 file changed, 44 insertions(+)
+> >=20
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> > b/drivers/media/platform/rcar-vin/rcar-core.c index
+> > 43d2fa83875817f0..2305fedd293db241 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -914,6 +914,46 @@ static const struct rvin_info rcar_info_r8a7795es1=
+ =3D
+> > {
+> >=20
+> >  	.routes =3D rcar_info_r8a7795es1_routes,
+> > =20
+> >  };
+> >=20
+> > +static const struct rvin_group_route rcar_info_r8a7796_routes[] =3D {
+> > +	{ .vin =3D 0, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(0) | BI=
+T(3) },
+> > +	{ .vin =3D 0, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(1) | BI=
+T(4) },
+> > +	{ .vin =3D 1, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(0) },
+> > +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(2) },
+> > +	{ .vin =3D 1, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(3) },
+> > +	{ .vin =3D 1, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(4) },
+> > +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(1) },
+> > +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(2) },
+> > +	{ .vin =3D 2, .csi =3D RVIN_CSI40, .chan =3D 2, .mask =3D BIT(3) },
+> > +	{ .vin =3D 2, .csi =3D RVIN_CSI20, .chan =3D 2, .mask =3D BIT(4) },
+> > +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(0) },
+> > +	{ .vin =3D 3, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(1) },
+> > +	{ .vin =3D 3, .csi =3D RVIN_CSI40, .chan =3D 3, .mask =3D BIT(3) },
+> > +	{ .vin =3D 3, .csi =3D RVIN_CSI20, .chan =3D 3, .mask =3D BIT(4) },
+> > +	{ .vin =3D 4, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(0) | BI=
+T(3) },
+> > +	{ .vin =3D 4, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(1) | BI=
+T(4) },
+> > +	{ .vin =3D 5, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(0) },
+> > +	{ .vin =3D 5, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(2) },
+> > +	{ .vin =3D 5, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(3) },
+> > +	{ .vin =3D 5, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(4) },
+> > +	{ .vin =3D 6, .csi =3D RVIN_CSI40, .chan =3D 0, .mask =3D BIT(1) },
+> > +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 0, .mask =3D BIT(2) },
+> > +	{ .vin =3D 6, .csi =3D RVIN_CSI40, .chan =3D 2, .mask =3D BIT(3) },
+> > +	{ .vin =3D 6, .csi =3D RVIN_CSI20, .chan =3D 2, .mask =3D BIT(4) },
+> > +	{ .vin =3D 7, .csi =3D RVIN_CSI40, .chan =3D 1, .mask =3D BIT(0) },
+> > +	{ .vin =3D 7, .csi =3D RVIN_CSI20, .chan =3D 1, .mask =3D BIT(1) },
+> > +	{ .vin =3D 7, .csi =3D RVIN_CSI40, .chan =3D 3, .mask =3D BIT(3) },
+> > +	{ .vin =3D 7, .csi =3D RVIN_CSI20, .chan =3D 3, .mask =3D BIT(4) },
+> > +	{ /* Sentinel */ }
+> > +};
+> > +
+> > +static const struct rvin_info rcar_info_r8a7796 =3D {
+> > +	.model =3D RCAR_GEN3,
+> > +	.use_mc =3D true,
+> > +	.max_width =3D 4096,
+> > +	.max_height =3D 4096,
+> > +	.routes =3D rcar_info_r8a7796_routes,
+> > +};
+> > +
+> >=20
+> >  static const struct of_device_id rvin_of_id_table[] =3D {
+> > =20
+> >  	{
+> >  =09
+> >  		.compatible =3D "renesas,vin-r8a7778",
+> >=20
+> > @@ -947,6 +987,10 @@ static const struct of_device_id rvin_of_id_table[=
+] =3D
+> > { .compatible =3D "renesas,vin-r8a7795",
+> >=20
+> >  		.data =3D &rcar_info_r8a7795,
+> >  =09
+> >  	},
+> >=20
+> > +	{
+> > +		.compatible =3D "renesas,vin-r8a7796",
+> > +		.data =3D &rcar_info_r8a7796,
+> > +	},
+> >=20
+> >  	{ /* Sentinel */ },
+> > =20
+> >  };
+> >  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
