@@ -1,235 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:36852 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751130AbeBGWnM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 17:43:12 -0500
-Received: by mail-pf0-f194.google.com with SMTP id k5so969613pff.3
-        for <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 14:43:11 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v9 1/8] v4l2-dv-timings: add v4l2_hdmi_colorimetry()
-Date: Wed,  7 Feb 2018 14:42:40 -0800
-Message-Id: <1518043367-11531-2-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
-References: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42051 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934801AbeBMMJx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Feb 2018 07:09:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        David Airlie <airlied@linux.ie>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Brown <broonie@kernel.org>,
+        Archit Taneja <architt@codeaurora.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v3 2/5] dt-bindings: adv7511: Add support for i2c_new_secondary_device
+Date: Tue, 13 Feb 2018 14:10:23 +0200
+Message-ID: <138061694.kW5LlSP0Rd@avalon>
+In-Reply-To: <1518473273-6333-3-git-send-email-kbingham@kernel.org>
+References: <1518473273-6333-1-git-send-email-kbingham@kernel.org> <1518473273-6333-3-git-send-email-kbingham@kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Hi Kieran,
 
-Add the v4l2_hdmi_colorimetry() function so we have a single function
-that determines the colorspace, YCbCr encoding, quantization range and
-transfer function from the InfoFrame data.
+Thank you for the patch.
 
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-v9:
- - fix kernel-doc format (Randy)
- - remove redundant pad bounds check already in v4l2-subdev.c
- - assign entity function (Hans)
- - properly assign/check/free ctrl_handler (Hans)
- - fixed typo 'Rull Range' -> 'Full Range'
- - update csc after quant range change
+On Tuesday, 13 February 2018 00:07:50 EET Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>=20
+> The ADV7511 has four 256-byte maps that can be accessed via the main I=B2C
+> ports. Each map has it own I=B2C address and acts as a standard slave
+> device on the I=B2C bus.
+>=20
+> Extend the device tree node bindings to be able to override the default
+> addresses so that address conflicts with other devices on the same bus
+> may be resolved at the board description level.
+>=20
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
 
- drivers/media/v4l2-core/v4l2-dv-timings.c | 141 ++++++++++++++++++++++++++++++
- include/media/v4l2-dv-timings.h           |  21 +++++
- 2 files changed, 162 insertions(+)
+Same comment as for 1/5 about the subject line.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 930f9c5..5663d86 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -27,6 +27,7 @@
- #include <linux/v4l2-dv-timings.h>
- #include <media/v4l2-dv-timings.h>
- #include <linux/math64.h>
-+#include <linux/hdmi.h>
- 
- MODULE_AUTHOR("Hans Verkuil");
- MODULE_DESCRIPTION("V4L2 DV Timings Helper Functions");
-@@ -814,3 +815,143 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
- 	return aspect;
- }
- EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
-+
-+/** v4l2_hdmi_rx_colorimetry - determine HDMI colorimetry information
-+ *	based on various InfoFrames.
-+ * @avi: the AVI InfoFrame
-+ * @hdmi: the HDMI Vendor InfoFrame, may be NULL
-+ * @height: the frame height
-+ *
-+ * Determines the HDMI colorimetry information, i.e. how the HDMI
-+ * pixel color data should be interpreted.
-+ *
-+ * Note that some of the newer features (DCI-P3, HDR) are not yet
-+ * implemented: the hdmi.h header needs to be updated to the HDMI 2.0
-+ * and CTA-861-G standards.
-+ */
-+struct v4l2_hdmi_colorimetry
-+v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
-+			 const struct hdmi_vendor_infoframe *hdmi,
-+			 unsigned int height)
-+{
-+	struct v4l2_hdmi_colorimetry c = {
-+		V4L2_COLORSPACE_SRGB,
-+		V4L2_YCBCR_ENC_DEFAULT,
-+		V4L2_QUANTIZATION_FULL_RANGE,
-+		V4L2_XFER_FUNC_SRGB
-+	};
-+	bool is_ce = avi->video_code || (hdmi && hdmi->vic);
-+	bool is_sdtv = height <= 576;
-+	bool default_is_lim_range_rgb = avi->video_code > 1;
-+
-+	switch (avi->colorspace) {
-+	case HDMI_COLORSPACE_RGB:
-+		/* RGB pixel encoding */
-+		switch (avi->colorimetry) {
-+		case HDMI_COLORIMETRY_EXTENDED:
-+			switch (avi->extended_colorimetry) {
-+			case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
-+				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
-+				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_BT2020:
-+				c.colorspace = V4L2_COLORSPACE_BT2020;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			default:
-+				break;
-+			}
-+			break;
-+		default:
-+			break;
-+		}
-+		switch (avi->quantization_range) {
-+		case HDMI_QUANTIZATION_RANGE_LIMITED:
-+			c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+			break;
-+		case HDMI_QUANTIZATION_RANGE_FULL:
-+			break;
-+		default:
-+			if (default_is_lim_range_rgb)
-+				c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+			break;
-+		}
-+		break;
-+
-+	default:
-+		/* YCbCr pixel encoding */
-+		c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+		switch (avi->colorimetry) {
-+		case HDMI_COLORIMETRY_NONE:
-+			if (!is_ce)
-+				break;
-+			if (is_sdtv) {
-+				c.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+			} else {
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
-+			}
-+			c.xfer_func = V4L2_XFER_FUNC_709;
-+			break;
-+		case HDMI_COLORIMETRY_ITU_601:
-+			c.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+			c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+			c.xfer_func = V4L2_XFER_FUNC_709;
-+			break;
-+		case HDMI_COLORIMETRY_ITU_709:
-+			c.colorspace = V4L2_COLORSPACE_REC709;
-+			c.ycbcr_enc = V4L2_YCBCR_ENC_709;
-+			c.xfer_func = V4L2_XFER_FUNC_709;
-+			break;
-+		case HDMI_COLORIMETRY_EXTENDED:
-+			switch (avi->extended_colorimetry) {
-+			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_601:
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_709:
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_S_YCC_601:
-+				c.colorspace = V4L2_COLORSPACE_SRGB;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+				c.xfer_func = V4L2_XFER_FUNC_SRGB;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
-+				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_BT2020:
-+				c.colorspace = V4L2_COLORSPACE_BT2020;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM:
-+				c.colorspace = V4L2_COLORSPACE_BT2020;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020_CONST_LUM;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			default: /* fall back to ITU_709 */
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			}
-+			break;
-+		default:
-+			break;
-+		}
-+		/*
-+		 * YCC Quantization Range signaling is more-or-less broken,
-+		 * let's just ignore this.
-+		 */
-+		break;
-+	}
-+	return c;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_hdmi_rx_colorimetry);
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 61a1889..835aef7 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -223,5 +223,26 @@ static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
- 	return false;
- }
- 
-+/**
-+ * struct v4l2_hdmi_rx_colorimetry - describes the HDMI colorimetry information
-+ * @colorspace:		enum v4l2_colorspace, the colorspace
-+ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-+ * @quantization:	enum v4l2_quantization, colorspace quantization
-+ * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
-+ */
-+struct v4l2_hdmi_colorimetry {
-+	enum v4l2_colorspace colorspace;
-+	enum v4l2_ycbcr_encoding ycbcr_enc;
-+	enum v4l2_quantization quantization;
-+	enum v4l2_xfer_func xfer_func;
-+};
-+
-+struct hdmi_avi_infoframe;
-+struct hdmi_vendor_infoframe;
-+
-+struct v4l2_hdmi_colorimetry
-+v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
-+			 const struct hdmi_vendor_infoframe *hdmi,
-+			 unsigned int height);
- 
- #endif
--- 
-2.7.4
+> ---
+> v2:
+>  - Fixed up reg: property description to account for multiple optional
+>    addresses.
+>  - Minor reword to commit message to account for DT only change
+>  - Collected Robs RB tag
+>=20
+> v3:
+>  - Split map register addresses into individual declarations.
+>=20
+>  .../devicetree/bindings/display/bridge/adi,adv7511.txt | 18 ++++++++++++=
++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+>=20
+> diff --git
+> a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt index
+> 0047b1394c70..3f85c351dd39 100644
+> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
+> @@ -14,7 +14,13 @@ Required properties:
+>  		"adi,adv7513"
+>  		"adi,adv7533"
+>=20
+> -- reg: I2C slave address
+> +- reg: I2C slave addresses
+> +  The ADV7511 internal registers are split into four pages exposed throu=
+gh
+> +  different I2C addresses, creating four register maps. Each map has it =
+own
+> +  I2C address and acts as a standard slave device on the I=B2C bus. The =
+main
+> +  address is mandatory, others are optional and revert to defaults if not
+> +  specified.
+
+Nitpicking again, you're mixing I2C and I=B2C.
+
+> +
+>=20
+>  The ADV7511 supports a large number of input data formats that differ by
+> their color depth, color format, clock mode, bit justification and random
+> @@ -70,6 +76,9 @@ Optional properties:
+>    rather than generate its own timings for HDMI output.
+>  - clocks: from common clock binding: reference to the CEC clock.
+>  - clock-names: from common clock binding: must be "cec".
+> +- reg-names : Names of maps with programmable addresses.
+> +	It can contain any map needing a non-default address.
+> +	Possible maps names are : "main", "edid", "cec", "packet"
+>=20
+>  Required nodes:
+>=20
+> @@ -88,7 +97,12 @@ Example
+>=20
+>  	adv7511w: hdmi@39 {
+>  		compatible =3D "adi,adv7511w";
+> -		reg =3D <39>;
+> +		/*
+> +		 * The EDID page will be accessible on address 0x66 on the i2c
+
+And now you're using lowercase :-)
+
+> +		 * bus. All other maps continue to use their default addresses.
+> +		 */
+> +		reg =3D <0x39>, <0x66>;
+> +		reg-names =3D "main", "edid";
+>  		interrupt-parent =3D <&gpio3>;
+>  		interrupts =3D <29 IRQ_TYPE_EDGE_FALLING>;
+>  		clocks =3D <&cec_clock>;
+
+With these fixed (or not, up to you),
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
