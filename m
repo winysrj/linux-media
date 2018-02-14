@@ -1,64 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57750 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031139AbeBNPCx (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52086 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967537AbeBNL7j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 10:02:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v7 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Date: Wed, 14 Feb 2018 17:03:26 +0200
-Message-ID: <1952975.8AbmfkeE6m@avalon>
-In-Reply-To: <20180214131933.t75jg5b5cjfuo7r6@flea.home>
-References: <20180208150830.9219-1-maxime.ripard@bootlin.com> <2517178.9jmyBy62ST@avalon> <20180214131933.t75jg5b5cjfuo7r6@flea.home>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 14 Feb 2018 06:59:39 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.16 08/14] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+Date: Wed, 14 Feb 2018 12:59:32 +0100
+Message-Id: <20180214115938.28296-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <20180214115938.28296-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wednesday, 14 February 2018 15:19:33 EET Maxime Ripard wrote:
-> On Thu, Feb 08, 2018 at 08:17:19PM +0200, Laurent Pinchart wrote:
-> >> +	/*
-> >> +	 * Create a static mapping between the CSI virtual channels
-> >> +	 * and the output stream.
-> >> +	 *
-> >> +	 * This should be enhanced, but v4l2 lacks the support for
-> >> +	 * changing that mapping dynamically.
-> >> +	 *
-> >> +	 * We also cannot enable and disable independant streams here,
-> >> +	 * hence the reference counting.
-> >> +	 */
-> > 
-> > If you start all streams in one go, will s_stream(1) be called multiple
-> > times ? If not, you could possibly skip the whole reference counting and
-> > avoid locking.
-> 
-> I guess that while we should expect the CSI-2 bus to be always
-> enabled, the downstream camera interface could be shutdown
-> independently, so I guess s_stream would be called each time one is
-> brought up or brought down?
+commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
 
-That's the idea. However, we don't have support for multiplexed streams in 
-mainline yet, so there's no way it can be implemented today in your driver.
+The struct v4l2_plane32 should set m.userptr as well. The same
+happens in v4l2_buffer32 and v4l2-compliance tests for this.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index c9d9f23e660a..3a72a735a940 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -287,19 +287,24 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	if (memory == V4L2_MEMORY_USERPTR) {
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
++		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
++				 sizeof(up32->m.mem_offset)))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_USERPTR:
+ 		if (get_user(p, &up32->m.userptr))
+ 			return -EFAULT;
+ 		up_pln = compat_ptr(p);
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
+-	} else if (memory == V4L2_MEMORY_DMABUF) {
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
+ 			return -EFAULT;
+-	} else {
+-		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-				 sizeof(up32->m.mem_offset)))
+-			return -EFAULT;
++		break;
+ 	}
+ 
+ 	return 0;
+@@ -308,22 +313,32 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ static int put_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ 			    enum v4l2_memory memory)
+ {
++	unsigned long p;
++
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up32->data_offset, &up->data_offset,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	/* For MMAP, driver might've set up the offset, so copy it back.
+-	 * USERPTR stays the same (was userspace-provided), so no copying. */
+-	if (memory == V4L2_MEMORY_MMAP)
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+ 				 sizeof(up->m.mem_offset)))
+ 			return -EFAULT;
+-	/* For DMABUF, driver might've set up the fd, so copy it back. */
+-	if (memory == V4L2_MEMORY_DMABUF)
++		break;
++	case V4L2_MEMORY_USERPTR:
++		if (get_user(p, &up->m.userptr) ||
++		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
++			     &up32->m.userptr))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up32->m.fd, &up->m.fd,
+ 				 sizeof(up->m.fd)))
+ 			return -EFAULT;
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -384,6 +399,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (get_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -397,10 +413,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
+ 			}
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (get_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (get_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+@@ -457,6 +469,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (put_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -464,10 +477,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			if (put_user(kp->m.userptr, &up->m.userptr))
+ 				return -EFAULT;
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (put_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (put_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
