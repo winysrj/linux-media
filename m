@@ -1,60 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39659 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752211AbeBZL5a (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46548 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967448AbeBNLog (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 06:57:30 -0500
-Subject: Re: [PATCH v3] media: radio: Critical interrupt bugfix for si470x
- over i2c
-To: Douglas Fischer <fischerdouglasc@gmail.com>,
-        linux-media@vger.kernel.org
-References: <20180225212713.3d78dead@Constantine>
+        Wed, 14 Feb 2018 06:44:36 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cff191f8-6957-e49c-a51a-db1afb781a69@xs4all.nl>
-Date: Mon, 26 Feb 2018 12:57:26 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180225212713.3d78dead@Constantine>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.14 07/13] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+Date: Wed, 14 Feb 2018 12:44:28 +0100
+Message-Id: <20180214114434.26842-8-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114434.26842-1-hverkuil@xs4all.nl>
+References: <20180214114434.26842-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/26/2018 03:27 AM, Douglas Fischer wrote:
-> Fixed si470x_start() disabling the interrupt signal, causing tune
-> operations to never complete. This does not affect USB radios
-> because they poll the registers instead of using the IRQ line.
-> 
-> Stylistic and comment changes from v2.
-> 
-> Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
-> ---
-> 
-> diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c linux/drivers/media/radio/si470x/radio-si470x-common.c
-> --- linux.orig/drivers/media/radio/si470x/radio-si470x-common.c	2018-01-15 21:58:10.675620432 -0500
-> +++ linux/drivers/media/radio/si470x/radio-si470x-common.c	2018-02-25 19:16:31.785934211 -0500
-> @@ -377,8 +377,11 @@ int si470x_start(struct si470x_device *r
->  		goto done;
->  
->  	/* sysconfig 1 */
-> -	radio->registers[SYSCONFIG1] =
-> -		(de << 11) & SYSCONFIG1_DE;		/* DE*/
-> +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN|SYSCONFIG1_STCIEN|SYSCONFIG1_RDS;
-> +	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
-> +	radio->registers[SYSCONFIG1] |= (0x01 << 2); /* GPIO2 */
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, but what does this do? Enable GPIO2? The header defines two bits for
-GPIO1/2/3, but it doesn't say what those bits mean. So the question here is
-what it means to set bit 2 to 1 and bit 3 to 0? The header doesn't give any
-information about that, nor does this comment.
+commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
 
-Regards,
+The struct v4l2_plane32 should set m.userptr as well. The same
+happens in v4l2_buffer32 and v4l2-compliance tests for this.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-> +	if (de)
-> +		radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
->  	retval = si470x_set_register(radio, SYSCONFIG1);
->  	if (retval < 0)
->  		goto done;
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index d156b8975f1e..62d44fab5671 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -310,19 +310,24 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	if (memory == V4L2_MEMORY_USERPTR) {
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
++		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
++				 sizeof(up32->m.mem_offset)))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_USERPTR:
+ 		if (get_user(p, &up32->m.userptr))
+ 			return -EFAULT;
+ 		up_pln = compat_ptr(p);
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
+-	} else if (memory == V4L2_MEMORY_DMABUF) {
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
+ 			return -EFAULT;
+-	} else {
+-		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-				 sizeof(up32->m.mem_offset)))
+-			return -EFAULT;
++		break;
+ 	}
+ 
+ 	return 0;
+@@ -331,22 +336,32 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
+ 			    enum v4l2_memory memory)
+ {
++	unsigned long p;
++
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up32->data_offset, &up->data_offset,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	/* For MMAP, driver might've set up the offset, so copy it back.
+-	 * USERPTR stays the same (was userspace-provided), so no copying. */
+-	if (memory == V4L2_MEMORY_MMAP)
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+ 				 sizeof(up->m.mem_offset)))
+ 			return -EFAULT;
+-	/* For DMABUF, driver might've set up the fd, so copy it back. */
+-	if (memory == V4L2_MEMORY_DMABUF)
++		break;
++	case V4L2_MEMORY_USERPTR:
++		if (get_user(p, &up->m.userptr) ||
++		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
++			     &up32->m.userptr))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up32->m.fd, &up->m.fd,
+ 				 sizeof(up->m.fd)))
+ 			return -EFAULT;
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -408,6 +423,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (get_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -421,10 +437,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
+ 			}
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (get_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (get_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+@@ -481,6 +493,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (put_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -488,10 +501,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			if (put_user(kp->m.userptr, &up->m.userptr))
+ 				return -EFAULT;
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (put_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (put_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+-- 
+2.15.1
