@@ -1,72 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39440 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750790AbeBVSpa (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37810 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967453AbeBNLog (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 13:45:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v4] v4l: vsp1: Fix video output on R8A77970
-Date: Thu, 22 Feb 2018 20:46:14 +0200
-Message-ID: <3820953.2gBQCZcdRS@avalon>
-In-Reply-To: <1b9689ae-487e-312f-a881-b97f140cb6a2@cogentembedded.com>
-References: <11341738.DVmQoThvsb@avalon> <20180222163200.3900-1-laurent.pinchart+renesas@ideasonboard.com> <1b9689ae-487e-312f-a881-b97f140cb6a2@cogentembedded.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 14 Feb 2018 06:44:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.14 09/13] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+Date: Wed, 14 Feb 2018 12:44:30 +0100
+Message-Id: <20180214114434.26842-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114434.26842-1-hverkuil@xs4all.nl>
+References: <20180214114434.26842-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thursday, 22 February 2018 20:34:37 EET Sergei Shtylyov wrote:
-> On 02/22/2018 07:32 PM, Laurent Pinchart wrote:
-> > From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > 
-> > Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
-> > and VSP2-D instances") added support for the VSP2-D found in the R-Car
-> > V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
-> > garbage-like line repeated every 8 screen rows. It turns out that R-Car
-> > V3M has the LIF0 buffer attribute register that you need to set to a non-
-> > default value in order to get rid of the output artifacts.
-> > 
-> > Based on the original (and large) patch by Daisuke Matsushita
-> > <daisuke.matsushita.ns@hitachi.com>.
-> > 
-> > Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
-> > VSP2-D instances") Signed-off-by: Sergei Shtylyov
-> > <sergei.shtylyov@cogentembedded.com> Reviewed-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com> [Removed braces, added
-> > VI6_IP_VERSION_MASK to improve readabiliy]
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> [...]
-> 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
-> > b/drivers/media/platform/vsp1/vsp1_regs.h index
-> > b1912c83a1da..dae0c1901297 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-> 
-> [...]
-> 
-> > @@ -705,6 +710,7 @@
-> >   */
-> >  
-> >  #define VI6_IP_VERSION			0x3f00
-> > 
-> > +#define VI6_IP_VERSION_MASK		(0xffff << 0)
-> 
-> Perhaps (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK) would be 
-> clearer?
+commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
 
-I thought about it and the line length went over 80 characters so I went for 
-an easy solution. I can change it if you want.
+put_v4l2_window32() didn't copy back the clip list to userspace.
+Drivers can update the clip rectangles, so this should be done.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 59 ++++++++++++++++++---------
+ 1 file changed, 40 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index d11334712c65..de3e99dc3caa 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -50,6 +50,11 @@ struct v4l2_window32 {
+ 
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
++	struct v4l2_clip32 __user *uclips;
++	struct v4l2_clip __user *kclips;
++	compat_caddr_t p;
++	u32 n;
++
+ 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 	    get_user(kp->field, &up->field) ||
+@@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 		return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+-	if (kp->clipcount) {
+-		struct v4l2_clip32 __user *uclips;
+-		struct v4l2_clip __user *kclips;
+-		int n = kp->clipcount;
+-		compat_caddr_t p;
++	if (!kp->clipcount) {
++		kp->clips = NULL;
++		return 0;
++	}
+ 
+-		if (get_user(p, &up->clips))
++	n = kp->clipcount;
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	kclips = compat_alloc_user_space(n * sizeof(*kclips));
++	kp->clips = kclips;
++	while (n--) {
++		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+ 			return -EFAULT;
+-		uclips = compat_ptr(p);
+-		kclips = compat_alloc_user_space(n * sizeof(*kclips));
+-		kp->clips = kclips;
+-		while (--n >= 0) {
+-			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+-				return -EFAULT;
+-			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
+-				return -EFAULT;
+-			uclips += 1;
+-			kclips += 1;
+-		}
+-	} else
+-		kp->clips = NULL;
++		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
++			return -EFAULT;
++		uclips++;
++		kclips++;
++	}
+ 	return 0;
+ }
+ 
+ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
++	struct v4l2_clip __user *kclips = kp->clips;
++	struct v4l2_clip32 __user *uclips;
++	u32 n = kp->clipcount;
++	compat_caddr_t p;
++
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+ 	    put_user(kp->field, &up->field) ||
+ 	    put_user(kp->chromakey, &up->chromakey) ||
+ 	    put_user(kp->clipcount, &up->clipcount) ||
+ 	    put_user(kp->global_alpha, &up->global_alpha))
+ 		return -EFAULT;
++
++	if (!kp->clipcount)
++		return 0;
++
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	while (n--) {
++		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
++			return -EFAULT;
++		uclips++;
++		kclips++;
++	}
+ 	return 0;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
