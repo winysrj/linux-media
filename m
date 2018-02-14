@@ -1,207 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48618 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967440AbeBNLog (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:38909 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967531AbeBNLyU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:44:36 -0500
+        Wed, 14 Feb 2018 06:54:20 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+Cc: linux-media@vger.kernel.org,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.14 05/13] media: v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-Date: Wed, 14 Feb 2018 12:44:26 +0100
-Message-Id: <20180214114434.26842-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180214114434.26842-1-hverkuil@xs4all.nl>
-References: <20180214114434.26842-1-hverkuil@xs4all.nl>
+Subject: [PATCH for v4.1 02/14] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+Date: Wed, 14 Feb 2018 12:54:07 +0100
+Message-Id: <20180214115419.28156-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115419.28156-1-hverkuil@xs4all.nl>
+References: <20180214115419.28156-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
 
-commit 486c521510c44a04cd756a9267e7d1e271c8a4ba upstream.
+commit 3171cc2b4eb9831ab4df1d80d0410a945b8bc84e upstream.
 
-These helper functions do not really help. Move the code to the
-__get/put_v4l2_format32 functions.
+According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
 
+V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
+VIDIOC_DQBUF it is always cleared ...
+
+Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
+can be tested with vivid and dev_debug:
+
+[257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
+type=vid-cap, flags=0x00002004, field=none, sequence=163,
+memory=userptr, bytesused=460800, offset/userptr=0x344b000,
+length=460800
+
+This patch forces FLAG_DONE to 0 after calling DQBUF.
+
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 124 +++++---------------------
- 1 file changed, 24 insertions(+), 100 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 44644a2ea3e9..297c924aefce 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -92,92 +92,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index fd9b252e2b34..079ee4ae9436 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2119,6 +2119,11 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/*
++	 * After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
++	 * cleared.
++	 */
++	b->flags &= ~V4L2_BUF_FLAG_DONE;
  	return 0;
  }
  
--static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
--					     struct v4l2_pix_format_mplane __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
--					     struct v4l2_pix_format_mplane __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_sdr_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_sdr_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_meta_format(struct v4l2_meta_format *kp, struct v4l2_meta_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_meta_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_meta_format(struct v4l2_meta_format *kp, struct v4l2_meta_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_meta_format)))
--		return -EFAULT;
--	return 0;
--}
--
- struct v4l2_format32 {
- 	__u32	type;	/* enum v4l2_buf_type */
- 	union {
-@@ -217,25 +131,30 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
-+		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
-+				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
--						  &up->fmt.pix_mp);
-+		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
-+				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
--		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
-+		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
-+				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
--		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
-+		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
-+				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
--		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
-+		return copy_from_user(&kp->fmt.sdr, &up->fmt.sdr,
-+				      sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
--		return get_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
-+		return copy_from_user(&kp->fmt.meta, &up->fmt.meta,
-+				      sizeof(kp->fmt.meta)) ? -EFAULT : 0;
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
- 			kp->type);
-@@ -266,25 +185,30 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
-+		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
-+				    sizeof(kp->fmt.pix)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
--						  &up->fmt.pix_mp);
-+		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
-+				    sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
--		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
-+		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
-+				    sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
--		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
-+		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
-+				    sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
- 	case V4L2_BUF_TYPE_SDR_OUTPUT:
--		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
-+		return copy_to_user(&up->fmt.sdr, &kp->fmt.sdr,
-+				    sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
--		return put_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
-+		return copy_to_user(&up->fmt.meta, &kp->fmt.meta,
-+				    sizeof(kp->fmt.meta)) ? -EFAULT : 0;
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
- 			kp->type);
 -- 
 2.15.1
