@@ -1,115 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33110 "EHLO mail.kernel.org"
+Received: from osg.samsung.com ([64.30.133.232]:60716 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750798AbeBWLCQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 06:02:16 -0500
-Date: Fri, 23 Feb 2018 11:02:08 +0000
-From: James Hogan <jhogan@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-metag@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Marc Zyngier <marc.zyngier@arm.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Wim Van Sebroeck <wim@linux-watchdog.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
-        linux-watchdog@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-i2c@vger.kernel.org
-Subject: Re: [PATCH 00/13] Remove metag architecture
-Message-ID: <20180223110207.GA14446@saruman>
-References: <20180221233825.10024-1-jhogan@kernel.org>
- <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
+        id S1031713AbeBNPuY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 10:50:24 -0500
+Date: Wed, 14 Feb 2018 13:50:18 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 1/9] v4l2-common: create v4l2_g/s_parm_cap helpers
+Message-ID: <20180214135018.356ee06d@vento.lan>
+In-Reply-To: <20180122123125.24709-2-hverkuil@xs4all.nl>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+        <20180122123125.24709-2-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Mon, 22 Jan 2018 13:31:17 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
---tThc/1wpZn/ma/RB
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Create helpers to handle VIDIOC_G/S_PARM by querying the
+> g/s_frame_interval v4l2_subdev ops.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-common.c | 48 +++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-common.h           | 26 +++++++++++++++++++
+>  2 files changed, 74 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index 8650ad92b64d..96c1b31de9e3 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -392,3 +392,51 @@ void v4l2_get_timestamp(struct timeval *tv)
+>  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
+> +
+> +int v4l2_g_parm_cap(struct video_device *vdev,
+> +		    struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+> +{
+> +	struct v4l2_subdev_frame_interval ival = { 0 };
+> +	int ret;
+> +
+> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+> +	    a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return -EINVAL;
+> +
+> +	if (vdev->device_caps & V4L2_CAP_READWRITE)
+> +		a->parm.capture.readbuffers = 2;
 
-On Fri, Feb 23, 2018 at 11:26:58AM +0100, Arnd Bergmann wrote:
-> On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
-> > So lets call it a day and drop the Meta architecture port from the
-> > kernel. RIP Meta.
->=20
-> Since I brought up the architecture removal independently, I could
-> pick this up into a git tree that also has the removal of some of the
-> other architectures.
->=20
-> I see your tree is part of linux-next, so you could also just put it
-> in there and send a pull request at the merge window if you prefer.
->=20
-> The only real reason I see for a shared git tree would be to avoid
-> conflicts when we touch the same Kconfig files or #ifdefs in driver,
-> but Meta only appears in
->=20
-> config FRAME_POINTER
->         bool "Compile the kernel with frame pointers"
->         depends on DEBUG_KERNEL && \
->                 (CRIS || M68K || FRV || UML || \
->                  SUPERH || BLACKFIN || MN10300 || METAG) || \
->                 ARCH_WANT_FRAME_POINTERS
->=20
-> and
->=20
-> include/trace/events/mmflags.h:#elif defined(CONFIG_PARISC) ||
-> defined(CONFIG_METAG) || defined(CONFIG_IA64)
->=20
-> so there is little risk.
+Hmm... why don't you also initialize readbuffers otherwise?
 
-I'm happy to put v2 in linux-next now (only patch 4 has changed, I just
-sent an updated version), and send you a pull request early next week so
-you can take it from there. The patches can't be directly applied with
-git-am anyway thanks to the -D option to make them more concise.
+> +	if (v4l2_subdev_has_op(sd, video, g_frame_interval))
+> +		a->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> +	ret = v4l2_subdev_call(sd, video, g_frame_interval, &ival);
+> +	if (!ret)
+> +		a->parm.capture.timeperframe = ival.interval;
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_g_parm_cap);
+> +
+> +int v4l2_s_parm_cap(struct video_device *vdev,
+> +		    struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+> +{
+> +	struct v4l2_subdev_frame_interval ival = {
+> +		.interval = a->parm.capture.timeperframe
+> +	};
+> +	int ret;
+> +
+> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+> +	    a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return -EINVAL;
+> +
+> +	memset(&a->parm, 0, sizeof(a->parm));
+> +	if (vdev->device_caps & V4L2_CAP_READWRITE)
+> +		a->parm.capture.readbuffers = 2;
+> +	else
+> +		a->parm.capture.readbuffers = 0;
+> +
+> +	if (v4l2_subdev_has_op(sd, video, g_frame_interval))
+> +		a->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> +	ret = v4l2_subdev_call(sd, video, s_frame_interval, &ival);
+> +	if (!ret)
+> +		a->parm.capture.timeperframe = ival.interval;
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_s_parm_cap);
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index e0d95a7c5d48..f3aa1d728c0b 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -341,4 +341,30 @@ v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
+>   */
+>  void v4l2_get_timestamp(struct timeval *tv);
+>  
+> +/**
+> + * v4l2_g_parm_cap - helper routine for vidioc_g_parm to fill this in by
+> + *      calling the g_frame_interval op of the given subdev. It only works
+> + *      for V4L2_BUF_TYPE_VIDEO_CAPTURE(_MPLANE), hence the _cap in the
+> + *      function name.
+> + *
+> + * @vdev: the struct video_device pointer. Used to determine the device caps.
+> + * @sd: the sub-device pointer.
+> + * @a: the VIDIOC_G_PARM argument.
+> + */
+> +int v4l2_g_parm_cap(struct video_device *vdev,
+> +		    struct v4l2_subdev *sd, struct v4l2_streamparm *a);
+> +
+> +/**
+> + * v4l2_s_parm_cap - helper routine for vidioc_s_parm to fill this in by
+> + *      calling the s_frame_interval op of the given subdev. It only works
+> + *      for V4L2_BUF_TYPE_VIDEO_CAPTURE(_MPLANE), hence the _cap in the
+> + *      function name.
+> + *
+> + * @vdev: the struct video_device pointer. Used to determine the device caps.
+> + * @sd: the sub-device pointer.
+> + * @a: the VIDIOC_S_PARM argument.
+> + */
+> +int v4l2_s_parm_cap(struct video_device *vdev,
+> +		    struct v4l2_subdev *sd, struct v4l2_streamparm *a);
+> +
+>  #endif /* V4L2_COMMON_H_ */
 
-Sound okay?
 
-Thanks
-James
 
---tThc/1wpZn/ma/RB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEd80NauSabkiESfLYbAtpk944dnoFAlqP9K8ACgkQbAtpk944
-dnqGqg//RwJWuqjtS6xKfuWgErALcEI5BIrgC7QevCr8kr37+YnzqVJM+Wmz/ROv
-xW5kdhL8v/ocuxe+YBECennMjzbbPPvHWq1WieTxXOgOB8nxGduvsNFQiUg8I99O
-ltjgj7sjnGp0R0GW4HflETXKGWjLn7NirFoCLjyTQT3Gwjpn8shDLx1trMPb8ujH
-N6DvyyrojnBJ0kACtzEyGBPphrtk/a0t+zySdIuRLXReU9Q2/5yW2Vof4irxL9Ov
-JQljE0/dTi4JgTvrieojAItgUsS3/D+XVe2HDTJw2PcwAX0AmExTtaT1ADh9Ujyr
-TOg0uFwmed74V/wUwBxW6KMOyu0d0ITmTghXnWl4jbJvpR0pNXjJG1JCtpjyYgmd
-3Lx7fzwDckUB+4ma2X2C7OAU4JaBU2tEKPo5a/b/pO0d7HqRGJIA0HApTaF8YQ4Z
-tREK4jme67OuLs3POFHgbPLVrORrk4dhiBZHarPERXIEXYYD/0kVA5S7npvSmzD0
-AmFh1T6b0VcQWak6aU9PoTmdIpPwmyhvOBsMAzOwounp2kmwObdgdgDB8yQkC5VK
-EQCcmCWImEf7hz1RyTc6bawPRFkCip1k4ucmOO7KLYhuFL6uYj/Mg5JaDZLNQRyn
-izvAzQ5AK0+VzznxZHkbKgISt54p1SuEMQuCvxYzpujBNY0Ti98=
-=BIkF
------END PGP SIGNATURE-----
-
---tThc/1wpZn/ma/RB--
+Thanks,
+Mauro
