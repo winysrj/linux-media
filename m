@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:39445 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752961AbeBVJro (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42835 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967521AbeBNLyU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 04:47:44 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 1/3] MAINTAINERS: Add entry for Renesas CEU
-Date: Thu, 22 Feb 2018 10:47:17 +0100
-Message-Id: <1519292839-7028-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519292839-7028-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519292839-7028-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 14 Feb 2018 06:54:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.1 03/14] media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+Date: Wed, 14 Feb 2018 12:54:08 +0100
+Message-Id: <20180214115419.28156-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115419.28156-1-hverkuil@xs4all.nl>
+References: <20180214115419.28156-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add entry for Renesas Capture Engine Interface listing myself as
-maintainer.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+commit 3ee6d040719ae09110e5cdf24d5386abe5d1b776 upstream.
+
+The result of the VIDIOC_PREPARE_BUF ioctl was never copied back
+to userspace since it was missing in the switch.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index aee793b..de0d4c6 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8617,6 +8617,16 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Supported
- F:	drivers/media/pci/netup_unidvb/*
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 4f002d0bebb1..42d402948ea2 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -999,6 +999,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		err = put_v4l2_create32(&karg.v2crt, up);
+ 		break;
  
-+MEDIA DRIVERS FOR RENESAS - CEU
-+M:	Jacopo Mondi <jacopo@jmondi.org>
-+L:	linux-media@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	Documentation/devicetree/bindings/media/renesas,ceu.txt
-+F:	drivers/media/platform/renesas-ceu.c
-+F:	include/media/drv-intf/renesas-ceu.h
-+
- MEDIA DRIVERS FOR RENESAS - DRIF
- M:	Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
- L:	linux-media@vger.kernel.org
++	case VIDIOC_PREPARE_BUF:
+ 	case VIDIOC_QUERYBUF:
+ 	case VIDIOC_QBUF:
+ 	case VIDIOC_DQBUF:
 -- 
-2.7.4
+2.15.1
