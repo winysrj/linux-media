@@ -1,123 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35273 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932942AbeBVQ2r (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 11:28:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3] vsp1: fix video output on R8A77970
-Date: Thu, 22 Feb 2018 18:29:31 +0200
-Message-ID: <1728090.GRuQRXDi5g@avalon>
-In-Reply-To: <11341738.DVmQoThvsb@avalon>
-References: <20180118140600.363149670@cogentembedded.com> <11341738.DVmQoThvsb@avalon>
+Received: from butterbrot.org ([176.9.106.16]:54110 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S967450AbeBNM1P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 07:27:15 -0500
+Subject: Re: exposing a large-ish calibration table through V4L2?
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
+ <5c3a596e-df46-488e-4a15-c847dc699815@xs4all.nl>
+From: Florian Echtler <floe@butterbrot.org>
+Message-ID: <43eab066-0025-501d-60d9-beb20204ebdd@butterbrot.org>
+Date: Wed, 14 Feb 2018 13:27:10 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <5c3a596e-df46-488e-4a15-c847dc699815@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="WLKSNKuGRPrvzzrOrog6HXRQZ8vUt6hGi"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--WLKSNKuGRPrvzzrOrog6HXRQZ8vUt6hGi
+Content-Type: multipart/mixed; boundary="FiL3u4kN1yk3uQKDK8eiJPwiq97USSRKJ";
+ protected-headers="v1"
+From: Florian Echtler <floe@butterbrot.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+ Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <43eab066-0025-501d-60d9-beb20204ebdd@butterbrot.org>
+Subject: Re: exposing a large-ish calibration table through V4L2?
+References: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
+ <5c3a596e-df46-488e-4a15-c847dc699815@xs4all.nl>
+In-Reply-To: <5c3a596e-df46-488e-4a15-c847dc699815@xs4all.nl>
 
-On Thursday, 22 February 2018 18:26:20 EET Laurent Pinchart wrote:
-> On Thursday, 18 January 2018 16:05:51 EET Sergei Shtylyov wrote:
-> > Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
-> > and VSP2-D instances") added support for the VSP2-D found in the R-Car
-> > V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
-> > garbage-like line repeated every 8 screen rows. It turns out that R-Car
-> > V3M has the LIF0 buffer attribute register that you need to set to a non-
-> > default value in order to get rid of the output artifacts...
-> > 
-> > Based on the original (and large) patch by Daisuke Matsushita
-> > <daisuke.matsushita.ns@hitachi.com>.
-> > 
-> > Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
-> > VSP2-D instances") Signed-off-by: Sergei Shtylyov
-> > <sergei.shtylyov@cogentembedded.com>
-> > 
-> > ---
-> > This patch is against the 'media_tree.git' repo's 'fixes' branch.
-> > 
-> > Changes in version 3:
-> > - reworded the comment in lif_configure();
-> > - reworded the patch description.
-> > 
-> > Changes in version 2:
-> > - added a  comment before the V3M SoC check;
-> > - fixed indetation in that check;
-> > - reformatted  the patch description.
-> > 
-> >  drivers/media/platform/vsp1/vsp1_lif.c  |   15 +++++++++++++++
-> >  drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
-> >  2 files changed, 20 insertions(+)
-> > 
-> > Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
-> > ===================================================================
-> > --- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
-> > +++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
-> > @@ -155,6 +155,21 @@ static void lif_configure(struct vsp1_en
-> > 
-> >  			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
-> >  			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
-> >  			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
-> > 
-> > +
-> > +	/*
-> > +	 * On R-Car V3M the LIF0 buffer attribute register has to be set
-> > +	 * to a non-default value to guarantee proper operation (otherwise
-> > +	 * artifacts may appear on the output). The value required by
-> > +	 * the manual is not explained but is likely a buffer size or
-> > +	 * threshold...
-> 
-> One period is enough :-)
-> 
-> > +	 */
-> > +	if ((entity->vsp1->version &
-> > +	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
-> > +	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
-> > +		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
-> > +			       VI6_LIF_LBA_LBA0 |
-> > +			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
-> > +	}
-> 
-> There's no need for braces or inner parentheses.
+--FiL3u4kN1yk3uQKDK8eiJPwiq97USSRKJ
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-There's of course a need for the inner parentheses, please ignore this 
-comment.
+Hello Hans,
 
-> To make this easier to read I propose defining a new macro
-> VI6_IP_VERSION_MASK that combines both the model and SoC. Otherwise this
-> looks good to me,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> I'll post a v4 with that change in reply to this e-mail, please let me know
-> if you're fine with it.
-> 
-> >  }
-> >  
-> >  static const struct vsp1_entity_operations lif_entity_ops = {
-> > 
-> > Index: media_tree/drivers/media/platform/vsp1/vsp1_regs.h
-> > ===================================================================
-> > --- media_tree.orig/drivers/media/platform/vsp1/vsp1_regs.h
-> > +++ media_tree/drivers/media/platform/vsp1/vsp1_regs.h
-> > @@ -693,6 +693,11 @@
-> >  #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
-> >  #define VI6_LIF_CSBTH_LBTH_SHIFT	0
-> > 
-> > +#define VI6_LIF_LBA			0x3b0c
-> > +#define VI6_LIF_LBA_LBA0		(1 << 31)
-> > +#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
-> > +#define VI6_LIF_LBA_LBA1_SHIFT		16
-> > +
-> >  /* ----------------------------------------------------------------------
-> >   * Security Control Registers
-> >   */
+On 14.02.2018 13:13, Hans Verkuil wrote:
+>=20
+> On 14/02/18 13:09, Florian Echtler wrote:
+>>
+>> The internal device memory contains a table with two bytes for each se=
+nsor pixel
+>> (i.e. 960x540x2 =3D 1036800 bytes) that basically provide individual b=
+lack and
+>> white levels per-pixel that are used in preprocessing. The table can e=
+ither be
+>> set externally, or the sensor can be covered with a black/white surfac=
+e and a
+>> custom command triggers an internal calibration.
+>>
+>> AFAICT the usual V4L2 controls are unsuitable for this sort of data; d=
+o you have
+>> any suggestions on how to approach this? Maybe something like a custom=
+ IOCTL?
+>=20
+> So the table has a fixed size?
+> You can use array controls for that, a V4L2_CTRL_TYPE_U16 in a two-dime=
+nsional array
+> would do it.
 
--- 
-Regards,
+Good to know, thanks.
 
-Laurent Pinchart
+> See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-queryctrl.html=
+ for more
+> information on how this works.
+
+This means I have to implement QUERY_EXT_CTRL, G_EXT_CTRLS and S_EXT_CTRL=
+S,
+correct? Will this work in parallel to the "regular" controls that use th=
+e
+control framework?
+
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--FiL3u4kN1yk3uQKDK8eiJPwiq97USSRKJ--
+
+--WLKSNKuGRPrvzzrOrog6HXRQZ8vUt6hGi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEARECAAYFAlqEKx4ACgkQ7CzyshGvathaFgCfQbcd+EaPUN7od4SLP8lzb7RN
+A+AAn0zU7aO3hj9v250P1LSLyBMi9h9+
+=HvWt
+-----END PGP SIGNATURE-----
+
+--WLKSNKuGRPrvzzrOrog6HXRQZ8vUt6hGi--
