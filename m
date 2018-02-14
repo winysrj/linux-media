@@ -1,72 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36476 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1946175AbeBOR4Q (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39990 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967454AbeBNLog (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 12:56:16 -0500
-Received: by mail-pg0-f68.google.com with SMTP id j9so353752pgv.3
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 09:56:16 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
+        Wed, 14 Feb 2018 06:44:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v13 3/8] media: add digital video decoder entity functions
-Date: Thu, 15 Feb 2018 09:55:31 -0800
-Message-Id: <1518717336-6271-4-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518717336-6271-1-git-send-email-tharvey@gateworks.com>
-References: <1518717336-6271-1-git-send-email-tharvey@gateworks.com>
+Subject: [PATCH for v4.14 10/13] media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+Date: Wed, 14 Feb 2018 12:44:31 +0100
+Message-Id: <20180214114434.26842-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114434.26842-1-hverkuil@xs4all.nl>
+References: <20180214114434.26842-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new media entity function definition for digital TV decoders:
-MEDIA_ENT_F_DTV_DECODER
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+commit 169f24ca68bf0f247d111aef07af00dd3a02ae88 upstream.
+
+There is nothing wrong with using an unknown buffer type. So
+stop spamming the kernel log whenever this happens. The kernel
+will just return -EINVAL to signal this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/mediactl/media-types.rst | 11 +++++++++++
- include/uapi/linux/media.h                        |  5 +++++
- 2 files changed, 16 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 8d64b0c..195400e 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -321,6 +321,17 @@ Types and flags used to represent the media graph elements
-          MIPI CSI-2, ...), and outputs them on its source pad to an output
-          video bus of another type (eDP, MIPI CSI-2, parallel, ...).
- 
-+    -  ..  row 31
-+
-+       ..  _MEDIA-ENT-F-DTV-DECODER:
-+
-+       -  ``MEDIA_ENT_F_DTV_DECODER``
-+
-+       -  Digital video decoder. The basic function of the video decoder is
-+	  to accept digital video from a wide variety of sources
-+	  and output it in some digital video standard, with appropriate
-+	  timing signals.
-+
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-entity-flag:
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index b9b9446..2f12328 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -110,6 +110,11 @@ struct media_device_info {
- #define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
- 
- /*
-+ * Digital video decoder entities
-+ */
-+#define MEDIA_ENT_F_DTV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
-+
-+/*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index de3e99dc3caa..bef9c990c9bd 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -179,8 +179,6 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return copy_from_user(&kp->fmt.meta, &up->fmt.meta,
+ 				      sizeof(kp->fmt.meta)) ? -EFAULT : 0;
+ 	default:
+-		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-			kp->type);
+ 		return -EINVAL;
+ 	}
+ }
+@@ -233,8 +231,6 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return copy_to_user(&up->fmt.meta, &kp->fmt.meta,
+ 				    sizeof(kp->fmt.meta)) ? -EFAULT : 0;
+ 	default:
+-		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-			kp->type);
+ 		return -EINVAL;
+ 	}
+ }
 -- 
-2.7.4
+2.15.1
