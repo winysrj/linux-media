@@ -1,123 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:9767 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750973AbeBINAz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 08:00:55 -0500
-Subject: Re: [PATCHv2 06/15] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO
- ioctl
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180208083655.32248-1-hverkuil@xs4all.nl>
- <20180208083655.32248-7-hverkuil@xs4all.nl>
- <20180209120136.heg43pxmrkssy5l7@valkosipuli.retiisi.org.uk>
- <8c4212b7-2171-7fa9-72d3-4ae38912f663@xs4all.nl>
- <20180209124407.sngsru4jd35iuuth@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <e56fae29-52ba-29c4-bc2e-c328d433db8f@cisco.com>
-Date: Fri, 9 Feb 2018 14:00:53 +0100
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:43664 "EHLO
+        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031596AbeBNPok (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 10:44:40 -0500
+Received: by mail-oi0-f46.google.com with SMTP id 4so16790047ois.10
+        for <linux-media@vger.kernel.org>; Wed, 14 Feb 2018 07:44:39 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20180209124407.sngsru4jd35iuuth@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <3C8219BAE02B894A9C69304A12E8AA0656AAF9AE@HED-Exchange.hed.local>
+References: <3C8219BAE02B894A9C69304A12E8AA0656AAF9AE@HED-Exchange.hed.local>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Wed, 14 Feb 2018 13:44:38 -0200
+Message-ID: <CAOMZO5AyPnAfzbAOB247N9mwEp0n7-kUFxdAhm9RK0SEWP=1iA@mail.gmail.com>
+Subject: Re: i.MX53 using imx-media to capture analog video through ADV7180
+To: Matthew Starr <mstarr@hedonline.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/18 13:44, Sakari Ailus wrote:
-> On Fri, Feb 09, 2018 at 01:18:18PM +0100, Hans Verkuil wrote:
->> On 02/09/18 13:01, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> On Thu, Feb 08, 2018 at 09:36:46AM +0100, Hans Verkuil wrote:
->>>> The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is also
->>>> present, since without that you cannot use v4l2-dbg.
->>>>
->>>> Just like the implementation in v4l2-ioctl.c this can be implemented in the
->>>> core and no drivers need to be modified.
->>>>
->>>> It also makes it possible for v4l2-compliance to properly test the
->>>> VIDIOC_DBG_G/S_REGISTER ioctls.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>  drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
->>>>  1 file changed, 13 insertions(+)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->>>> index 6cabfa32d2ed..2a5b5a3fa7a3 100644
->>>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->>>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->>>> @@ -255,6 +255,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->>>>  			return -EPERM;
->>>>  		return v4l2_subdev_call(sd, core, s_register, p);
->>>>  	}
->>>> +	case VIDIOC_DBG_G_CHIP_INFO:
->>>> +	{
->>>> +		struct v4l2_dbg_chip_info *p = arg;
->>>> +
->>>> +		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
->>>> +			return -EINVAL;
->>>> +		if (sd->ops->core && sd->ops->core->s_register)
->>>> +			p->flags |= V4L2_CHIP_FL_WRITABLE;
->>>> +		if (sd->ops->core && sd->ops->core->g_register)
->>>> +			p->flags |= V4L2_CHIP_FL_READABLE;
->>>> +		strlcpy(p->name, sd->name, sizeof(p->name));
->>>> +		return 0;
->>>> +	}
->>>
->>> This is effectively doing the same as debugfs except that it's specific to
->>> V4L2. I don't think we should endorse its use, and especially not without a
->>> real use case.
->>
->> We (Cisco) use it all the time. Furthermore, this works for any bus, not just
->> i2c. Also spi, internal register busses, etc.
->>
->> It's been in use for many years. More importantly, there is no excuse to have
->> only half the API implemented.
->>
->> It's all fine to talk about debugfs, but are you going to make that? This API
->> works, it's supported by v4l2-dbg, it's in use. Now, let's at least make it
->> pass v4l2-compliance.
->>
->> I agree, if we would redesign it, we would use debugfs. But I think it didn't
->> even exist when this was made. So this API is here to stay and all it takes
->> is this ioctl of code to add the missing piece for subdevs.
->>
->> Nobody is going to make a replacement for this using debugfs. Why spend effort
->> on it if we already have an API for this?
-> 
-> It's not the first case when a more generic API replaces a subsystem
-> specific one. We have another conversion to make, switching from
-> implementing s_power() callback in drivers to runtime PM for instance.
-> 
-> I simply want to point out that this patch is endorsing something which is
-> obsolete and not needed: no-one has complained about the lack of this for
-> sub-devices, haven't they?
-> 
-> I'd just remove the check from v4l-compliance or make it optional. New
-> drivers should use debugfs instead if something like that is needed.
-> 
+[Adding Steve and Philipp in case they could provide some suggestions]
 
-You are correct in one respect: we use this API, but with video devices.
-So subdevices support the g/s_register ops, and they are called via /dev/videoX.
-
-We can remove the ioctl support from v4l2-subdev.c (not the g/s_register ops!).
-Without VIDIOC_DBG_G_CHIP_INFO I don't think v4l2-dbg is usable. Although it
-is always possible to call the ioctl directly, of course.
-
-So if Mauro would agree to this, the DBG ioctl support in v4l2-subdev can be
-removed.
-
-But either remove them, or add this ioctl. Don't leave it in a zombie state.
-
-Personally I see no harm whatsoever in just adding VIDIOC_DBG_G_CHIP_INFO.
-If someone ever makes a patch to switch over to debugfs then these ioctls
-can be removed.
-
-BTW, how would new drivers use debugfs for this? Does regmap provide such
-access?
-
-Regards,
-
-	Hans
+On Wed, Feb 14, 2018 at 1:21 PM, Matthew Starr <mstarr@hedonline.com> wrote=
+:
+> I have successfully modified device tree files in the mainline 4.15.1 ker=
+nel to get a display product using the i.MX53 processor to initialize the i=
+mx-media drivers.  I think up to this point they have only been tested on i=
+.MX6 processors.  I am using two ADV7180 analog capture chips, one per CSI =
+port, on this display product.
+>
+> I have everything initialize successfully at boot, but I am unable to get=
+ the media-ctl command to link the ADV7180 devices to the CSI ports.  I use=
+d the following website as guidance of how to setup the links between media=
+ devices:
+> https://linuxtv.org/downloads/v4l-dvb-apis/v4l-drivers/imx.html
+>
+> When trying to link the ADV7180 chip to a CSI port, I use the following c=
+ommand and get the result below:
+>
+>         media-ctl -v -l "'adv7180 1-0021':0->'ipu1_csi0':0[1]"
+>
+>         No link between "adv7180 1-0021":0 and "ipu1_csi0":0
+>         media_parse_setup_link: Unable to parse link
+>         Unable to parse link: Invalid argument (22)
+>
+> How do I get the ADV7180 and CSI port on the i.MX53 processor to link?
+>
+> The difference for the i.MX53 compared to the i.MX6 processor is that the=
+re is only one IPU and no mipi support, so my device tree does not use any =
+video-mux or mux devices.  Could this have something to do with why I can't=
+ link the ADV7180 to the CSI port?
+>
+> Here is the output of the "media-ctl -p -v" command:
+>
+> Opening media device /dev/media0
+> Enumerating entities
+> looking up device: 81:10
+> looking up device: 81:11
+> looking up device: 81:12
+> looking up device: 81:4
+> looking up device: 81:13
+> looking up device: 81:5
+> looking up device: 81:14
+> looking up device: 81:15
+> looking up device: 81:16
+> looking up device: 81:17
+> looking up device: 81:6
+> looking up device: 81:18
+> looking up device: 81:7
+> looking up device: 81:19
+> looking up device: 81:20
+> looking up device: 81:8
+> looking up device: 81:21
+> looking up device: 81:9
+> Found 18 entities
+> Enumerating pads and links
+> Media controller API version 4.15.1
+>
+> Media device information
+> ------------------------
+> driver          imx-media
+> model           imx-media
+> serial
+> bus info
+> hw revision     0x0
+> driver version  4.15.1
+>
+> Device topology
+> - entity 1: adv7180 1-0021 (1 pad, 0 link)
+>             type V4L2 subdev subtype Unknown flags 20004
+>             device node name /dev/v4l-subdev0
+>         pad0: Source
+>                 [fmt:UYVY8_2X8/720x480 field:interlaced]
+>
+> - entity 3: adv7180 1-0020 (1 pad, 0 link)
+>             type V4L2 subdev subtype Unknown flags 20004
+>             device node name /dev/v4l-subdev1
+>         pad0: Source
+>                 [fmt:UYVY8_2X8/720x480 field:interlaced]
+>
+> - entity 5: ipu1_csi1 (3 pads, 3 links)
+>             type V4L2 subdev subtype Unknown flags 0
+>             device node name /dev/v4l-subdev2
+>         pad0: Sink
+>                 [fmt:UYVY8_2X8/640x480 field:none
+>                  crop.bounds:(0,0)/640x480
+>                  crop:(0,0)/640x480
+>                  compose.bounds:(0,0)/640x480
+>                  compose:(0,0)/640x480]
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prp":0 []
+>                 -> "ipu1_vdic":0 []
+>         pad2: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_csi1 capture":0 []
+>
+> - entity 9: ipu1_csi1 capture (1 pad, 1 link)
+>             type Node subtype V4L flags 0
+>             device node name /dev/video4
+>         pad0: Sink
+>                 <- "ipu1_csi1":2 []
+>
+> - entity 15: ipu1_csi0 (3 pads, 3 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev3
+>         pad0: Sink
+>                 [fmt:UYVY8_2X8/640x480 field:none
+>                  crop.bounds:(0,0)/640x480
+>                  crop:(0,0)/640x480
+>                  compose.bounds:(0,0)/640x480
+>                  compose:(0,0)/640x480]
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prp":0 []
+>                 -> "ipu1_vdic":0 [ENABLED]
+>         pad2: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_csi0 capture":0 []
+>
+> - entity 19: ipu1_csi0 capture (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video5
+>         pad0: Sink
+>                 <- "ipu1_csi0":2 []
+>
+> - entity 25: ipu1_ic_prp (3 pads, 5 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev4
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu1_csi1":1 []
+>                 <- "ipu1_csi0":1 []
+>                 <- "ipu1_vdic":2 [ENABLED]
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prpenc":0 []
+>         pad2: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prpvf":0 [ENABLED]
+>
+> - entity 29: ipu1_vdic (3 pads, 3 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev5
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu1_csi1":1 []
+>                 <- "ipu1_csi0":1 [ENABLED]
+>         pad1: Sink
+>                 [fmt:UYVY8_2X8/640x480 field:none]
+>         pad2: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prp":0 [ENABLED]
+>
+> - entity 33: ipu2_vdic (3 pads, 1 link)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev6
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>         pad1: Sink
+>                 [fmt:UYVY8_2X8/640x480 field:none]
+>         pad2: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu2_ic_prp":0 []
+>
+> - entity 37: ipu1_ic_prpenc (2 pads, 2 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev7
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu1_ic_prp":1 []
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prpenc capture":0 []
+>
+> - entity 40: ipu1_ic_prpenc capture (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video6
+>         pad0: Sink
+>                 <- "ipu1_ic_prpenc":1 []
+>
+> - entity 46: ipu1_ic_prpvf (2 pads, 2 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev8
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu1_ic_prp":2 [ENABLED]
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu1_ic_prpvf capture":0 [ENABLED]
+>
+> - entity 49: ipu1_ic_prpvf capture (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video7
+>         pad0: Sink
+>                 <- "ipu1_ic_prpvf":1 [ENABLED]
+>
+> - entity 55: ipu2_ic_prp (3 pads, 3 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev9
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu2_vdic":2 []
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu2_ic_prpenc":0 []
+>         pad2: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu2_ic_prpvf":0 []
+>
+> - entity 59: ipu2_ic_prpenc (2 pads, 2 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev10
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu2_ic_prp":1 []
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu2_ic_prpenc capture":0 []
+>
+> - entity 62: ipu2_ic_prpenc capture (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video8
+>         pad0: Sink
+>                 <- "ipu2_ic_prpenc":1 []
+>
+> - entity 68: ipu2_ic_prpvf (2 pads, 2 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev11
+>         pad0: Sink
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 <- "ipu2_ic_prp":2 []
+>         pad1: Source
+>                 [fmt:AYUV8_1X32/640x480 field:none]
+>                 -> "ipu2_ic_prpvf capture":0 []
+>
+> - entity 71: ipu2_ic_prpvf capture (1 pad, 1 link)
+>              type Node subtype V4L flags 0
+>              device node name /dev/video9
+>         pad0: Sink
+>                 <- "ipu2_ic_prpvf":1 []
+>
+>
+> Best regards,
+>
+> Matthew Starr
