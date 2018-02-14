@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:52305 "EHLO gofer.mess.org"
+Received: from osg.samsung.com ([64.30.133.232]:35176 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752602AbeB0KFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 05:05:17 -0500
-Date: Tue, 27 Feb 2018 10:05:15 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.17] Minor RC fixes
-Message-ID: <20180227100514.7n5x6t3hcdug7zkz@gofer.mess.org>
+        id S1162205AbeBNSoy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 13:44:54 -0500
+Date: Wed, 14 Feb 2018 16:44:48 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.17] rc changes
+Message-ID: <20180214164448.32a4c989@vento.lan>
+In-Reply-To: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
+References: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sean,
 
-Just two minor changes for RC.
+Em Mon, 12 Feb 2018 20:03:18 +0000
+Sean Young <sean@mess.org> escreveu:
+
+> Hi Mauro,
+> 
+> Just very minor changes this time (other stuff is not ready yet). I would
+> really appreciate if you could cast an extra critical eye on the commit 
+> "no need to check for transitions", just to be sure it is the right change.
+
+Did you send all patches in separate? This is important to allow us
+to comment on an specific issue inside a patch...
+
+>       media: rc: no need to check for transitions
+
+I don't remember the exact reason for that, but, as far as I
+remember, on a few devices, a pulse (or space) event could be
+broken into two consecutive events of the same type, e. g.,
+a pulse with a 125 ms could be broken into two pulses, like
+one with 100 ms and the other with 25 ms.
+
+That's said, I'm not sure if the current implementation are
+adding the timings for both pulses into a single one.
+
+For now, I'll keep this patch out of the merge.
 
 Thanks,
-Sean
-
-The following changes since commit 15ea2df9143729a2b722d4ca2b52cfa14a819d8e:
-
-  media: ov2685: mark PM functions as __maybe_unused (2018-02-26 10:38:56 -0500)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.17b
-
-for you to fetch changes up to 66b3840b6bdbbef998741122bd19e6a54c32793d:
-
-  media: rc: fix race condition in ir_raw_event_store_edge() handling (2018-02-27 09:00:21 +0000)
-
-----------------------------------------------------------------
-Sean Young (2):
-      media: rc: no need to announce major number
-      media: rc: fix race condition in ir_raw_event_store_edge() handling
-
- Documentation/media/uapi/rc/lirc-dev-intro.rst |  1 -
- drivers/media/rc/lirc_dev.c                    |  4 ++--
- drivers/media/rc/rc-core-priv.h                |  5 +++--
- drivers/media/rc/rc-ir-raw.c                   | 24 +++++++++++++++++++++---
- 4 files changed, 26 insertions(+), 8 deletions(-)
+Mauro
