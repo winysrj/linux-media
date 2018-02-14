@@ -1,82 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0070.outbound.protection.outlook.com ([104.47.41.70]:27424
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754808AbeBOGml (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 01:42:41 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v3 5/9] [media] Add documentation for YUV420 bus format
-Date: Wed, 14 Feb 2018 22:42:28 -0800
-Message-ID: <1518676948-19560-1-git-send-email-satishna@xilinx.com>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53485 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1032588AbeBNQeS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 11:34:18 -0500
+Subject: Re: [PATCHv2 2/9] media: convert g/s_parm to g/s_frame_interval in
+ subdevs
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+ <20180122123125.24709-3-hverkuil@xs4all.nl>
+ <20180214140257.1bfd266f@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <959ca281-d231-0202-a0dc-89605a8270bb@xs4all.nl>
+Date: Wed, 14 Feb 2018 17:34:17 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20180214140257.1bfd266f@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code is MEDIA_BUS_FMT_VYYUYY8_1X24
+On 14/02/18 17:03, Mauro Carvalho Chehab wrote:
+> Em Mon, 22 Jan 2018 13:31:18 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Convert all g/s_parm calls to g/s_frame_interval. This allows us
+>> to remove the g/s_parm ops since those are a duplicate of
+>> g/s_frame_interval.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/mt9v011.c                     | 31 +++++++-------------
+>>  drivers/media/i2c/ov6650.c                      | 35 +++++++++-------------
+>>  drivers/media/i2c/ov7670.c                      | 24 +++++++--------
+>>  drivers/media/i2c/ov7740.c                      | 31 +++++++-------------
+>>  drivers/media/i2c/tvp514x.c                     | 39 +++++++++----------------
+>>  drivers/media/i2c/vs6624.c                      | 29 +++++++-----------
+>>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
+>>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
+>>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++------
+>>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
+>>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
+>>  drivers/media/platform/via-camera.c             |  4 +--
+>>  drivers/media/usb/em28xx/em28xx-video.c         | 36 +++++++++++++++++++----
+>>  13 files changed, 122 insertions(+), 165 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
+>> index 5e29064fae91..3e23c5b0de1f 100644
+>> --- a/drivers/media/i2c/mt9v011.c
+>> +++ b/drivers/media/i2c/mt9v011.c
+>> @@ -364,33 +364,24 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
+>>  	return 0;
+>>  }
+>>  
+>> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+>> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
+>> +				    struct v4l2_subdev_frame_interval *ival)
+>>  {
+>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+>> -
+>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -
+>> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
+>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
+>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+> 
+> Hmm.. why to repeat memset everywhere? If the hole idea is to stop abusing,
+> the best would be to do, instead:
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 34 +++++++++++++++++++++=
-++++
- 1 file changed, 34 insertions(+)
+g_frame_interval is called by bridge drivers through the subdev ops. So that
+path doesn't go through subdev_do_ioctl(). So it doesn't help putting it in
+v4l2-subdev.c.
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentatio=
-n/media/uapi/v4l/subdev-formats.rst
-index b1eea44..afff6d5 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -7283,6 +7283,40 @@ The following table list existing packed 48bit wide =
-YUV formats.
-       - y\ :sub:`1`
-       - y\ :sub:`0`
+That doesn't mean it shouldn't be there as well. I believe my MC patch series
+actually adds the memset in subdev_do_ioctl.
 
-+      - MEDIA_BUS_FMT_VYYUYY8_1X24
-+      - 0x202c
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index c5639817db34..b18b418c080f 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -350,6 +350,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  		if (fi->pad >= sd->entity.num_pads)
+>  			return -EINVAL;
+>  
+> +		memset(fi->reserved, 0, sizeof(ival->reserved));
+>  		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
+>  	}
+>  
+> (same applies to s_frame_interval).
+> 
+> 
+>>  	calc_fps(sd,
+>> -		 &cp->timeperframe.numerator,
+>> -		 &cp->timeperframe.denominator);
+>> +		 &ival->interval.numerator,
+>> +		 &ival->interval.denominator);
+>>  
+>>  	return 0;
+>>  }
+>>  
+>> -static int mt9v011_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+>> +static int mt9v011_s_frame_interval(struct v4l2_subdev *sd,
+>> +				    struct v4l2_subdev_frame_interval *ival)
+>>  {
+>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+>> -	struct v4l2_fract *tpf = &cp->timeperframe;
+>> +	struct v4l2_fract *tpf = &ival->interval;
+>>  	u16 speed;
+>>  
+>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -	if (cp->extendedmode != 0)
+>> -		return -EINVAL;
+>> -
+> 
+> Hmm... why are you removing those sanity checks everywhere?
+> The core doesn't do it.
+> 
+> All the above comments also apply to the other files modified by
+> this patch.
 
- .. raw:: latex
+struct v4l2_subdev_frame_interval has neither type nor extendedmode.
 
---
-2.7.4
+The check for type is done in the v4l2_g/s_parm_cap helpers instead.
+And extendedmode is always set to 0.
 
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+> 
+>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+>>  	speed = calc_speed(sd, tpf->numerator, tpf->denominator);
+>>  
+>>  	mt9v011_write(sd, R0A_MT9V011_CLK_SPEED, speed);
+>> @@ -469,8 +460,8 @@ static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
+>>  };
+>>  
+>>  static const struct v4l2_subdev_video_ops mt9v011_video_ops = {
+>> -	.g_parm = mt9v011_g_parm,
+>> -	.s_parm = mt9v011_s_parm,
+>> +	.g_frame_interval = mt9v011_g_frame_interval,
+>> +	.s_frame_interval = mt9v011_s_frame_interval,
+>>  };
+>>  
+>>  static const struct v4l2_subdev_pad_ops mt9v011_pad_ops = {
+>> diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
+>> index 8975d16b2b24..3f962dae7534 100644
+>> --- a/drivers/media/i2c/ov6650.c
+>> +++ b/drivers/media/i2c/ov6650.c
+>> @@ -201,7 +201,7 @@ struct ov6650 {
+>>  	struct v4l2_rect	rect;		/* sensor cropping window */
+>>  	unsigned long		pclk_limit;	/* from host */
+>>  	unsigned long		pclk_max;	/* from resolution and format */
+>> -	struct v4l2_fract	tpf;		/* as requested with s_parm */
+>> +	struct v4l2_fract	tpf;		/* as requested with s_frame_interval */
+>>  	u32 code;
+>>  	enum v4l2_colorspace	colorspace;
+>>  };
+>> @@ -723,42 +723,33 @@ static int ov6650_enum_mbus_code(struct v4l2_subdev *sd,
+>>  	return 0;
+>>  }
+>>  
+>> -static int ov6650_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+>> +static int ov6650_g_frame_interval(struct v4l2_subdev *sd,
+>> +				   struct v4l2_subdev_frame_interval *ival)
+>>  {
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  	struct ov6650 *priv = to_ov6650(client);
+>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+>>  
+>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -
+>> -	memset(cp, 0, sizeof(*cp));
+>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
+>> -	cp->timeperframe.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
+>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+>> +	ival->interval.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
+>>  			priv->pclk_limit, priv->pclk_max));
+>> -	cp->timeperframe.denominator = FRAME_RATE_MAX;
+>> +	ival->interval.denominator = FRAME_RATE_MAX;
+>>  
+>>  	dev_dbg(&client->dev, "Frame interval: %u/%u s\n",
+>> -		cp->timeperframe.numerator, cp->timeperframe.denominator);
+>> +		ival->interval.numerator, ival->interval.denominator);
+> 
+> Hmm... not sure if a debug is needed here. Yet, if this is needed, 
+> IMHO, it would make mroe sense to move it to the core.
+
+The core doesn't see this if this subdev op is called from a bridge driver.
+
+Regards,
+
+	Hans
