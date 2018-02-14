@@ -1,72 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa6.microchip.iphmx.com ([216.71.154.253]:57713 "EHLO
-        esa6.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932121AbeBVMDG (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36372 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754715AbeBNMDY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:03:06 -0500
-From: Claudiu Beznea <claudiu.beznea@microchip.com>
-To: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
-        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
-        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
-        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
-        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
-        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
-        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>
-CC: <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: [PATCH v3 03/10] pwm: cros-ec: populate PWM mode in of_xlate function
-Date: Thu, 22 Feb 2018 14:01:14 +0200
-Message-ID: <1519300881-8136-4-git-send-email-claudiu.beznea@microchip.com>
-In-Reply-To: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Wed, 14 Feb 2018 07:03:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.2 09/12] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+Date: Wed, 14 Feb 2018 13:03:20 +0100
+Message-Id: <20180214120323.28778-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
+References: <20180214120323.28778-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Populate PWM mode in of_xlate function to avoid pwm_apply_state() failure.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
+
+put_v4l2_window32() didn't copy back the clip list to userspace.
+Drivers can update the clip rectangles, so this should be done.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/pwm/pwm-cros-ec.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/video/v4l2-compat-ioctl32.c | 59 +++++++++++++++++++++----------
+ 1 file changed, 40 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/pwm/pwm-cros-ec.c b/drivers/pwm/pwm-cros-ec.c
-index 9c13694eaa24..e54954c13323 100644
---- a/drivers/pwm/pwm-cros-ec.c
-+++ b/drivers/pwm/pwm-cros-ec.c
-@@ -137,6 +137,7 @@ static struct pwm_device *
- cros_ec_pwm_xlate(struct pwm_chip *pc, const struct of_phandle_args *args)
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index a7b71a256d56..6c3e15f7703e 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -51,6 +51,11 @@ struct v4l2_window32 {
+ 
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
  {
- 	struct pwm_device *pwm;
-+	struct pwm_caps caps;
- 
- 	if (args->args[0] >= pc->npwm)
- 		return ERR_PTR(-EINVAL);
-@@ -145,8 +146,11 @@ cros_ec_pwm_xlate(struct pwm_chip *pc, const struct of_phandle_args *args)
- 	if (IS_ERR(pwm))
- 		return pwm;
- 
-+	pwm_get_caps(pc, pwm, &caps);
++	struct v4l2_clip32 __user *uclips;
++	struct v4l2_clip __user *kclips;
++	compat_caddr_t p;
++	u32 n;
 +
- 	/* The EC won't let us change the period */
- 	pwm->args.period = EC_PWM_MAX_DUTY;
-+	pwm->args.mode = BIT(ffs(caps.modes) - 1);
+ 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 	    get_user(kp->field, &up->field) ||
+@@ -60,38 +65,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 		return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+-	if (kp->clipcount) {
+-		struct v4l2_clip32 __user *uclips;
+-		struct v4l2_clip __user *kclips;
+-		int n = kp->clipcount;
+-		compat_caddr_t p;
++	if (!kp->clipcount) {
++		kp->clips = NULL;
++		return 0;
++	}
  
- 	return pwm;
+-		if (get_user(p, &up->clips))
++	n = kp->clipcount;
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	kclips = compat_alloc_user_space(n * sizeof(*kclips));
++	kp->clips = kclips;
++	while (n--) {
++		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+ 			return -EFAULT;
+-		uclips = compat_ptr(p);
+-		kclips = compat_alloc_user_space(n * sizeof(*kclips));
+-		kp->clips = kclips;
+-		while (--n >= 0) {
+-			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+-				return -EFAULT;
+-			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
+-				return -EFAULT;
+-			uclips += 1;
+-			kclips += 1;
+-		}
+-	} else
+-		kp->clips = NULL;
++		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
++			return -EFAULT;
++		uclips++;
++		kclips++;
++	}
+ 	return 0;
  }
+ 
+ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
++	struct v4l2_clip __user *kclips = kp->clips;
++	struct v4l2_clip32 __user *uclips;
++	u32 n = kp->clipcount;
++	compat_caddr_t p;
++
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+ 	    put_user(kp->field, &up->field) ||
+ 	    put_user(kp->chromakey, &up->chromakey) ||
+ 	    put_user(kp->clipcount, &up->clipcount) ||
+ 	    put_user(kp->global_alpha, &up->global_alpha))
+ 		return -EFAULT;
++
++	if (!kp->clipcount)
++		return 0;
++
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	while (n--) {
++		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
++			return -EFAULT;
++		uclips++;
++		kclips++;
++	}
+ 	return 0;
+ }
+ 
 -- 
-2.7.4
+2.15.1
