@@ -1,109 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:41566 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752935AbeBEOhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 09:37:31 -0500
-From: Florian Echtler <floe@butterbrot.org>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: linux-input@vger.kernel.org, modin@yuri.at,
-        Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 3/5] add video control register handlers
-Date: Mon,  5 Feb 2018 15:29:39 +0100
-Message-Id: <1517840981-12280-4-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
-References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60537 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967555AbeBNLwm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:52:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.4 12/14] media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+Date: Wed, 14 Feb 2018 12:52:38 +0100
+Message-Id: <20180214115240.27650-13-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
+References: <20180214115240.27650-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 70 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 0dbb004..63c7264b 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -247,6 +255,80 @@ static int sur40_command(struct sur40_state *dev,
- 			       0x00, index, buffer, size, 1000);
+commit 169f24ca68bf0f247d111aef07af00dd3a02ae88 upstream.
+
+There is nothing wrong with using an unknown buffer type. So
+stop spamming the kernel log whenever this happens. The kernel
+will just return -EINVAL to signal this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 84fb4c54b101..c8635e4f91ef 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -175,8 +175,6 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return copy_from_user(&kp->fmt.sdr, &up->fmt.sdr,
+ 				      sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
+ 	default:
+-		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-			kp->type);
+ 		return -EINVAL;
+ 	}
  }
- 
-+/* poke a byte in the panel register space */
-+static int sur40_poke(struct sur40_state *dev, u8 offset, u8 value)
-+{
-+	int result;
-+	u8 index = 0x96; // 0xae for permanent write
-+
-+	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
-+		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		0x32, index, NULL, 0, 1000);
-+	if (result < 0)
-+		goto error;
-+	msleep(5);
-+
-+	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
-+		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		0x72, offset, NULL, 0, 1000);
-+	if (result < 0)
-+		goto error;
-+	msleep(5);
-+
-+	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
-+		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		0xb2, value, NULL, 0, 1000);
-+	if (result < 0)
-+		goto error;
-+	msleep(5);
-+
-+error:
-+	return result;
-+}
-+
-+static int sur40_set_preprocessor(struct sur40_state *dev, u8 value)
-+{
-+	u8 setting_07[2] = { 0x01, 0x00 };
-+	u8 setting_17[2] = { 0x85, 0x80 };
-+	int result;
-+
-+	if (value > 1)
-+		return -ERANGE;
-+
-+	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
-+		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		0x07, setting_07[value], NULL, 0, 1000);
-+	if (result < 0)
-+		goto error;
-+	msleep(5);
-+
-+	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
-+		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+		0x17, setting_17[value], NULL, 0, 1000);
-+	if (result < 0)
-+		goto error;
-+	msleep(5);
-+
-+error:
-+	return result;
-+}
-+
-+static void sur40_set_vsvideo(struct sur40_state *handle, u8 value)
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; i++)
-+		sur40_poke(handle, 0x1c+i, value);
-+}
-+
-+static void sur40_set_irlevel(struct sur40_state *handle, u8 value)
-+{
-+	int i;
-+
-+	for (i = 0; i < 8; i++)
-+		sur40_poke(handle, 0x08+(2*i), value);
-+}
-+
- /* Initialization routine, called from sur40_open */
- static int sur40_init(struct sur40_state *dev)
- {
+@@ -226,8 +224,6 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return copy_to_user(&up->fmt.sdr, &kp->fmt.sdr,
+ 				    sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
+ 	default:
+-		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-			kp->type);
+ 		return -EINVAL;
+ 	}
+ }
 -- 
-2.7.4
+2.15.1
