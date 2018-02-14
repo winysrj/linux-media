@@ -1,88 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41687 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751629AbeBBOJY (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:52684 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967546AbeBNL7k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Feb 2018 09:09:24 -0500
-Subject: Re: [Patch v8 11/12] [media] s5p-mfc: Add support for HEVC encoder
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-References: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
- <CGME20180202125018epcas1p31771ade936e0290e579b8e0805f3f0a1@epcas1p3.samsung.com>
- <1517574348-22111-12-git-send-email-smitha.t@samsung.com>
+        Wed, 14 Feb 2018 06:59:40 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <37e3531b-b677-9d3c-e954-25d8f989e774@xs4all.nl>
-Date: Fri, 2 Feb 2018 15:09:19 +0100
-MIME-Version: 1.0
-In-Reply-To: <1517574348-22111-12-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.16 11/14] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+Date: Wed, 14 Feb 2018 12:59:35 +0100
+Message-Id: <20180214115938.28296-12-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <20180214115938.28296-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/18 13:25, Smitha T Murthy wrote:
-> Add HEVC encoder support and necessary registers, V4L2 CIDs,
-> and hevc encoder parameters
-> 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Not quite, one last comment:
+commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
 
-> ---
->  drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  28 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc.c        |   1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |   3 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  54 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 536 ++++++++++++++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |   8 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 182 ++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |   8 +
->  8 files changed, 818 insertions(+), 2 deletions(-)
-> 
+put_v4l2_window32() didn't copy back the clip list to userspace.
+Drivers can update the clip rectangles, so this should be done.
 
-<snip>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 59 ++++++++++++++++++---------
+ 1 file changed, 40 insertions(+), 19 deletions(-)
 
->  static inline int vui_sar_idc(enum v4l2_mpeg_video_h264_vui_sar_idc sar)
->  {
->  	static unsigned int t[V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED + 1] = {
-> @@ -1635,6 +2024,153 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
->  		p->codec.vp8.profile = ctrl->val;
->  		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:
-> +		p->codec.hevc.rc_frame_qp = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:
-> +		p->codec.hevc.rc_p_frame_qp = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:
-> +		p->codec.hevc.rc_b_frame_qp = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:
-> +		p->codec.hevc.rc_framerate = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:
-> +		p->codec.hevc.rc_min_qp = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:
-> +		p->codec.hevc.rc_max_qp = ctrl->val;
-> +		break;
-
-When you change this, you should call __v4l2_ctrl_modify_range to modify the
-range of the controls that depend on this.
-
-You can make a patch '13/12' for this or post a v9 for this patch. I would like to
-see this implemented. It's one of those things that never gets implemented if you
-don't address this now.
-
-It shouldn't be difficult to do.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index de69afde9e86..e7ebd20b6c6a 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -50,6 +50,11 @@ struct v4l2_window32 {
+ 
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
++	struct v4l2_clip32 __user *uclips;
++	struct v4l2_clip __user *kclips;
++	compat_caddr_t p;
++	u32 n;
++
+ 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 	    get_user(kp->field, &up->field) ||
+@@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 		return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+-	if (kp->clipcount) {
+-		struct v4l2_clip32 __user *uclips;
+-		struct v4l2_clip __user *kclips;
+-		int n = kp->clipcount;
+-		compat_caddr_t p;
++	if (!kp->clipcount) {
++		kp->clips = NULL;
++		return 0;
++	}
+ 
+-		if (get_user(p, &up->clips))
++	n = kp->clipcount;
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	kclips = compat_alloc_user_space(n * sizeof(*kclips));
++	kp->clips = kclips;
++	while (n--) {
++		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+ 			return -EFAULT;
+-		uclips = compat_ptr(p);
+-		kclips = compat_alloc_user_space(n * sizeof(*kclips));
+-		kp->clips = kclips;
+-		while (--n >= 0) {
+-			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+-				return -EFAULT;
+-			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
+-				return -EFAULT;
+-			uclips += 1;
+-			kclips += 1;
+-		}
+-	} else
+-		kp->clips = NULL;
++		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
++			return -EFAULT;
++		uclips++;
++		kclips++;
++	}
+ 	return 0;
+ }
+ 
+ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
++	struct v4l2_clip __user *kclips = kp->clips;
++	struct v4l2_clip32 __user *uclips;
++	u32 n = kp->clipcount;
++	compat_caddr_t p;
++
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+ 	    put_user(kp->field, &up->field) ||
+ 	    put_user(kp->chromakey, &up->chromakey) ||
+ 	    put_user(kp->clipcount, &up->clipcount) ||
+ 	    put_user(kp->global_alpha, &up->global_alpha))
+ 		return -EFAULT;
++
++	if (!kp->clipcount)
++		return 0;
++
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	while (n--) {
++		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
++			return -EFAULT;
++		uclips++;
++		kclips++;
++	}
+ 	return 0;
+ }
+ 
+-- 
+2.15.1
