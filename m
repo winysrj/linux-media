@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:59330 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47444 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752037AbeBHIhC (ORCPT
+        by vger.kernel.org with ESMTP id S967378AbeBNLog (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 03:37:02 -0500
+        Wed, 14 Feb 2018 06:44:36 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 09/15] media-types.rst: fix type, small improvements
-Date: Thu,  8 Feb 2018 09:36:49 +0100
-Message-Id: <20180208083655.32248-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
-References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH for v4.14 00/13] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
+Date: Wed, 14 Feb 2018 12:44:21 +0100
+Message-Id: <20180214114434.26842-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-data conector -> connector
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-... -> etc.
+This patch series fixes a number of bugs and culminates in the removal
+of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
 
-'...' looked odd when my browser put the ... by itself on the next line, 'etc.'
-is clearer IMHO.
+This was tested with a VM running 4.14, the vivid driver (since that
+emulates almost all V4L2 ioctls that need to pass through v4l2-compat-ioctl32.c)
+and a 32-bit v4l2-compliance utility since that exercises almost all ioctls
+as well. Combined this gives good test coverage.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/uapi/mediactl/media-types.rst | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
+v4l2-compliance complained about. The purpose is to 1) make it easy to
+verify that the final patch didn't introduce errors by first eliminating
+errors caused by other bugs, and 2) keep the final patch at least somewhat
+readable.
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 8d64b0c06ebc..9c1e3d3f590c 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -293,7 +293,7 @@ Types and flags used to represent the media graph elements
- 
-        -  ``MEDIA_ENT_F_PROC_VIDEO_STATISTICS``
- 
--       -  Video statistics computation (histogram, 3A, ...). An entity
-+       -  Video statistics computation (histogram, 3A, etc.). An entity
- 	  capable of statistics computation must have one sink pad and
- 	  one source pad. It computes statistics over the frames
- 	  received on its sink pad and outputs the statistics data on
-@@ -318,8 +318,8 @@ Types and flags used to represent the media graph elements
-        - Video interface bridge. A video interface bridge entity must have at
-          least one sink pad and at least one source pad. It receives video
-          frames on its sink pad from an input video bus of one type (HDMI, eDP,
--         MIPI CSI-2, ...), and outputs them on its source pad to an output
--         video bus of another type (eDP, MIPI CSI-2, parallel, ...).
-+         MIPI CSI-2, etc.), and outputs them on its source pad to an output
-+         video bus of another type (eDP, MIPI CSI-2, parallel, etc.).
- 
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
-@@ -337,7 +337,7 @@ Types and flags used to represent the media graph elements
-        -  ``MEDIA_ENT_FL_DEFAULT``
- 
-        -  Default entity for its type. Used to discover the default audio,
--	  VBI and video devices, the default camera sensor, ...
-+	  VBI and video devices, the default camera sensor, etc.
- 
-     -  .. row 2
- 
-@@ -345,7 +345,7 @@ Types and flags used to represent the media graph elements
- 
-        -  ``MEDIA_ENT_FL_CONNECTOR``
- 
--       -  The entity represents a data conector
-+       -  The entity represents a connector.
- 
- 
- ..  tabularcolumns:: |p{6.5cm}|p{6.0cm}|p{5.0cm}|
+Rgards,
+
+	Hans
+
+Daniel Mentz (1):
+  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
+
+Hans Verkuil (12):
+  media: v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
+  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
+  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+  media: v4l2-compat-ioctl32.c: fix the indentation
+  media: v4l2-compat-ioctl32.c: move 'helper' functions to
+    __get/put_v4l2_format32
+  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
+  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
+    errors
+  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1032 +++++++++++++++----------
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  145 ++--
+ 2 files changed, 665 insertions(+), 512 deletions(-)
+
 -- 
 2.15.1
