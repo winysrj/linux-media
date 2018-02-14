@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f174.google.com ([209.85.216.174]:37411 "EHLO
-        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752230AbeBTPWG (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45640 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967530AbeBNLwl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 10:22:06 -0500
-MIME-Version: 1.0
-In-Reply-To: <5a8c18fe.594a620a.7443c.50c7@mx.google.com>
-References: <5a8c18fe.594a620a.7443c.50c7@mx.google.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 20 Feb 2018 16:22:04 +0100
-Message-ID: <CAK8P3a3ma6aO_rBCj5e4AhUMhxRH383Ag2KzKQ9qfk2=Nkx-oQ@mail.gmail.com>
-Subject: Re: stable-rc build: 3 warnings 0 failures (stable-rc/v4.14.20-119-g1b1ab1d)
-To: stable <stable@vger.kernel.org>,
-        gregkh <gregkh@linuxfoundation.org>
-Cc: Olof Johansson <olof@lixom.net>,
-        Kernel Build Reports Mailman List
-        <kernel-build-reports@lists.linaro.org>,
-        "Olof's autobuilder" <build@lixom.net>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 14 Feb 2018 06:52:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.4 03/14] media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+Date: Wed, 14 Feb 2018 12:52:29 +0100
+Message-Id: <20180214115240.27650-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
+References: <20180214115240.27650-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 20, 2018 at 1:47 PM, Olof's autobuilder <build@lixom.net> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Warnings:
->
->         arm64.allmodconfig:
-> drivers/media/tuners/r820t.c:1334:1: warning: the frame size of 2896 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+commit 3ee6d040719ae09110e5cdf24d5386abe5d1b776 upstream.
 
-Hi Greg,
+The result of the VIDIOC_PREPARE_BUF ioctl was never copied back
+to userspace since it was missing in the switch.
 
-please add
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-16c3ada89cff ("media: r820t: fix r820t_write_reg for KASAN")
-
-This is an old bug, but hasn't shown up before as the stack warning
-limit was turned off
-in allmodconfig kernels. The fix is also on the backport lists I sent
-for 4.9 and 4.4.
-
-        Arnd
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 4379b949bb93..f47a30b89281 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1022,6 +1022,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		err = put_v4l2_create32(&karg.v2crt, up);
+ 		break;
+ 
++	case VIDIOC_PREPARE_BUF:
+ 	case VIDIOC_QUERYBUF:
+ 	case VIDIOC_QBUF:
+ 	case VIDIOC_DQBUF:
+-- 
+2.15.1
