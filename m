@@ -1,107 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57803 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754118AbeBGRgP (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:41063 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967534AbeBNL7j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 12:36:15 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 3/3] media: stm32-dcmi: improve error trace points
-Date: Wed, 7 Feb 2018 18:35:36 +0100
-Message-ID: <1518024936-2455-4-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1518024936-2455-1-git-send-email-hugues.fruchet@st.com>
-References: <1518024936-2455-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Wed, 14 Feb 2018 06:59:39 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.16 06/14] media: v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
+Date: Wed, 14 Feb 2018 12:59:30 +0100
+Message-Id: <20180214115938.28296-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <20180214115938.28296-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix some missing "\n".
-Trace error returned by subdev streamon/streamoff.
-Remove extra "0x" unneeded with %pad formatter.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+commit 486c521510c44a04cd756a9267e7d1e271c8a4ba upstream.
+
+These helper functions do not really help. Move the code to the
+__get/put_v4l2_format32 functions.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/stm32/stm32-dcmi.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 92 ++++++---------------------
+ 1 file changed, 20 insertions(+), 72 deletions(-)
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index dfab867..2fd8bed 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -234,7 +234,7 @@ static void dcmi_dma_callback(void *param)
- 		/* Restart a new DMA transfer with next buffer */
- 		if (dcmi->state == RUNNING) {
- 			if (list_empty(&dcmi->buffers)) {
--				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer",
-+				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer\n",
- 					__func__);
- 				dcmi->errors_count++;
- 				dcmi->active = NULL;
-@@ -249,7 +249,7 @@ static void dcmi_dma_callback(void *param)
- 			list_del_init(&dcmi->active->list);
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index a3e62cf3acaa..f76ed4ee7df9 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -89,64 +89,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 	return 0;
+ }
  
- 			if (dcmi_start_capture(dcmi)) {
--				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete",
-+				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
- 					__func__);
+-static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-					     struct v4l2_pix_format_mplane __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-					     struct v4l2_pix_format_mplane __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+ struct v4l2_format32 {
+ 	__u32	type;	/* enum v4l2_buf_type */
+ 	union {
+@@ -184,20 +126,23 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	switch (kp->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
++		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
++				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+-						  &up->fmt.pix_mp);
++		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
++				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+-		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
++		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
++				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+-		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
++		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
++				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
+ 	default:
+ 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 		       kp->type);
+@@ -225,20 +170,23 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	switch (kp->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
++		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
++				    sizeof(kp->fmt.pix)) ?  -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+-						  &up->fmt.pix_mp);
++		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
++				    sizeof(kp->fmt.pix_mp)) ?  -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+-		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
++		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
++				    sizeof(kp->fmt.vbi)) ?  -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+-		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
++		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
++				    sizeof(kp->fmt.sliced)) ?  -EFAULT : 0;
+ 	default:
+ 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 		       kp->type);
+@@ -545,10 +493,10 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
+ 	    get_user(tmp, &up->base) ||
+ 	    get_user(kp->capability, &up->capability) ||
+-	    get_user(kp->flags, &up->flags))
++	    get_user(kp->flags, &up->flags) ||
++	    copy_from_user(&kp->fmt, &up->fmt, sizeof(up->fmt)))
+ 		return -EFAULT;
+ 	kp->base = compat_ptr(tmp);
+-	get_v4l2_pix_format(&kp->fmt, &up->fmt);
+ 	return 0;
+ }
  
- 				spin_unlock(&dcmi->irqlock);
-@@ -478,7 +478,7 @@ static int dcmi_buf_prepare(struct vb2_buffer *vb)
- 
- 		vb2_set_plane_payload(&buf->vb.vb2_buf, 0, buf->size);
- 
--		dev_dbg(dcmi->dev, "buffer[%d] phy=0x%pad size=%zu\n",
-+		dev_dbg(dcmi->dev, "buffer[%d] phy=%pad size=%zu\n",
- 			vb->index, &buf->paddr, buf->size);
- 	}
- 
-@@ -524,7 +524,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	ret = clk_enable(dcmi->mclk);
- 	if (ret) {
--		dev_err(dcmi->dev, "%s: Failed to start streaming, cannot enable clock",
-+		dev_err(dcmi->dev, "%s: Failed to start streaming, cannot enable clock\n",
- 			__func__);
- 		goto err_release_buffers;
- 	}
-@@ -600,7 +600,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	ret = dcmi_start_capture(dcmi);
- 	if (ret) {
--		dev_err(dcmi->dev, "%s: Start streaming failed, cannot start capture",
-+		dev_err(dcmi->dev, "%s: Start streaming failed, cannot start capture\n",
- 			__func__);
- 
- 		spin_unlock_irq(&dcmi->irqlock);
-@@ -651,7 +651,8 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 	/* Disable stream on the sub device */
- 	ret = v4l2_subdev_call(dcmi->entity.subdev, video, s_stream, 0);
- 	if (ret && ret != -ENOIOCTLCMD)
--		dev_err(dcmi->dev, "stream off failed in subdev\n");
-+		dev_err(dcmi->dev, "%s: Failed to stop streaming, subdev streamoff error (%d)\n",
-+			__func__, ret);
- 
- 	dcmi->state = STOPPING;
- 
-@@ -667,7 +668,8 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 	reg_clear(dcmi->regs, DCMI_CR, CR_ENABLE);
- 
- 	if (!timeout) {
--		dev_err(dcmi->dev, "Timeout during stop streaming\n");
-+		dev_err(dcmi->dev, "%s: Timeout during stop streaming\n",
-+			__func__);
- 		dcmi->state = STOPPED;
- 	}
+@@ -559,9 +507,9 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
+ 	    put_user(tmp, &up->base) ||
+ 	    put_user(kp->capability, &up->capability) ||
+-	    put_user(kp->flags, &up->flags))
++	    put_user(kp->flags, &up->flags) ||
++	    copy_to_user(&up->fmt, &kp->fmt, sizeof(up->fmt)))
+ 		return -EFAULT;
+-	put_v4l2_pix_format(&kp->fmt, &up->fmt);
+ 	return 0;
+ }
  
 -- 
-1.9.1
+2.15.1
