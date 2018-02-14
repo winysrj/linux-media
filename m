@@ -1,74 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55582 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750799AbeBBJXA (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42500 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754716AbeBNMDY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Feb 2018 04:23:00 -0500
-Date: Fri, 2 Feb 2018 11:22:57 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: Re: [PATCH 4/8] i2c: ov9650: fix potential integer overflow in
- __ov965x_set_frame_interval
-Message-ID: <20180202092257.xknpdvc4bcrg4dyi@valkosipuli.retiisi.org.uk>
-References: <cover.1517268667.git.gustavo@embeddedor.com>
- <8ccf6acf10745fd1b9f33a7cacd5365e125633bf.1517268668.git.gustavo@embeddedor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8ccf6acf10745fd1b9f33a7cacd5365e125633bf.1517268668.git.gustavo@embeddedor.com>
+        Wed, 14 Feb 2018 07:03:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.2 10/12] media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+Date: Wed, 14 Feb 2018 13:03:21 +0100
+Message-Id: <20180214120323.28778-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
+References: <20180214120323.28778-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 29, 2018 at 06:32:01PM -0600, Gustavo A. R. Silva wrote:
-> Cast fi->interval.numerator to u64 in order to avoid a potential integer
-> overflow. This variable is being used in a context that expects an
-> expression of type u64.
-> 
-> Addresses-Coverity-ID: 1324146 ("Unintentional integer overflow")
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
->  drivers/media/i2c/ov9650.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index e519f27..c674a49 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -1130,7 +1130,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
->  	if (fi->interval.denominator == 0)
->  		return -EINVAL;
->  
-> -	req_int = (u64)(fi->interval.numerator * 10000) /
-> +	req_int = (u64)fi->interval.numerator * 10000 /
->  		fi->interval.denominator;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This requires do_div(). I've applied the patch with this change:
+commit 169f24ca68bf0f247d111aef07af00dd3a02ae88 upstream.
 
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 88276dba828d..5bea31cd41aa 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -1136,8 +1136,8 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
- 	if (fi->interval.denominator == 0)
+There is nothing wrong with using an unknown buffer type. So
+stop spamming the kernel log whenever this happens. The kernel
+will just return -EINVAL to signal this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 6c3e15f7703e..44e8a8d15558 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -175,8 +175,6 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 			return -EFAULT;
+ 		return 0;
+ 	default:
+-		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-		       kp->type);
  		return -EINVAL;
- 
--	req_int = (u64)fi->interval.numerator * 10000 /
--		fi->interval.denominator;
-+	req_int = (u64)fi->interval.numerator * 10000;
-+	do_div(req_int, fi->interval.denominator);
- 
- 	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
- 		const struct ov965x_interval *iv = &ov965x_intervals[i];
-
->  
->  	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
-> -- 
-> 2.7.4
-> 
-
+ 	}
+ }
+@@ -223,8 +221,6 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 			return -EFAULT;
+ 		return 0;
+ 	default:
+-		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-		       kp->type);
+ 		return -EINVAL;
+ 	}
+ }
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.15.1
