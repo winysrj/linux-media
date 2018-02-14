@@ -1,69 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34266 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750766AbeBHHiP (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49798 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754713AbeBNMDY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 02:38:15 -0500
-Date: Thu, 8 Feb 2018 09:38:11 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        tfiga@chromium.org, tian.shu.qiu@intel.com,
-        jian.xu.zheng@intel.com, rajmohan.mani@intel.com
-Subject: Re: [PATCH] media: intel-ipu3: cio2: Synchronize irqs at
- stop_streaming
-Message-ID: <20180208073811.ie5c2x6o3vbxvxqi@valkosipuli.retiisi.org.uk>
-References: <1518043670-4602-1-git-send-email-yong.zhi@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1518043670-4602-1-git-send-email-yong.zhi@intel.com>
+        Wed, 14 Feb 2018 07:03:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.2 07/12] media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+Date: Wed, 14 Feb 2018 13:03:18 +0100
+Message-Id: <20180214120323.28778-8-hverkuil@xs4all.nl>
+In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
+References: <20180214120323.28778-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, Feb 07, 2018 at 02:47:50PM -0800, Yong Zhi wrote:
-> This is to avoid pending interrupts to be handled during
-> stream off, in which case, the ready buffer will be removed
-> from buffer list, thus not all buffers can be returned to VB2
-> as expected. Disable CIO2 irq at cio2_hw_exit() so no new
-> interrupts are generated.
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> index 725973f..8d75146 100644
-> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> @@ -518,6 +518,8 @@ static void cio2_hw_exit(struct cio2_device *cio2, struct cio2_queue *q)
->  	unsigned int i, maxloops = 1000;
->  
->  	/* Disable CSI receiver and MIPI backend devices */
-> +	writel(0, q->csi_rx_base + CIO2_REG_IRQCTRL_MASK);
-> +	writel(0, q->csi_rx_base + CIO2_REG_IRQCTRL_ENABLE);
->  	writel(0, q->csi_rx_base + CIO2_REG_CSIRX_ENABLE);
->  	writel(0, q->csi_rx_base + CIO2_REG_MIPIBE_ENABLE);
->  
-> @@ -1027,6 +1029,7 @@ static void cio2_vb2_stop_streaming(struct vb2_queue *vq)
->  			"failed to stop sensor streaming\n");
->  
->  	cio2_hw_exit(cio2, q);
-> +	synchronize_irq(cio2->pci_dev->irq);
+commit b8c601e8af2d08f733d74defa8465303391bb930 upstream.
 
-Shouldn't this be put in cio2_hw_exit(), which is called from multiple
-locations? Presumably the same issue exists there, too.
+ctrl_is_pointer just hardcoded two known string controls, but that
+caused problems when using e.g. custom controls that use a pointer
+for the payload.
 
->  	cio2_vb2_return_all_buffers(q, VB2_BUF_STATE_ERROR);
->  	media_pipeline_stop(&q->vdev.entity);
->  	pm_runtime_put(&cio2->pci_dev->dev);
+Reimplement this function: it now finds the v4l2_ctrl (if the driver
+uses the control framework) or it calls vidioc_query_ext_ctrl (if the
+driver implements that directly).
 
+In both cases it can now check if the control is a pointer control
+or not.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c | 51 +++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 7477feff92b1..925271c25177 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -17,6 +17,9 @@
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #ifdef CONFIG_COMPAT
+ 
+@@ -568,24 +571,32 @@ struct v4l2_ext_control32 {
+ 	};
+ } __attribute__ ((packed));
+ 
+-/* The following function really belong in v4l2-common, but that causes
+-   a circular dependency between modules. We need to think about this, but
+-   for now this will do. */
+-
+-/* Return non-zero if this control is a pointer type. Currently only
+-   type STRING is a pointer type. */
+-static inline int ctrl_is_pointer(u32 id)
++/* Return true if this control is a pointer type. */
++static inline bool ctrl_is_pointer(struct file *file, u32 id)
+ {
+-	switch (id) {
+-	case V4L2_CID_RDS_TX_PS_NAME:
+-	case V4L2_CID_RDS_TX_RADIO_TEXT:
+-		return 1;
+-	default:
+-		return 0;
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_fh *fh = NULL;
++	struct v4l2_ctrl_handler *hdl = NULL;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vdev->flags))
++		fh = file->private_data;
++
++	if (fh && fh->ctrl_handler)
++		hdl = fh->ctrl_handler;
++	else if (vdev->ctrl_handler)
++		hdl = vdev->ctrl_handler;
++
++	if (hdl) {
++		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, id);
++
++		return ctrl && ctrl->type == V4L2_CTRL_TYPE_STRING;
+ 	}
++	return false;
+ }
+ 
+-static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++static int get_v4l2_ext_controls32(struct file *file,
++				   struct v4l2_ext_controls *kp,
++				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+ 	struct v4l2_ext_control __user *kcontrols;
+@@ -613,7 +624,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	while (--n >= 0) {
+ 		if (copy_in_user(kcontrols, ucontrols, sizeof(*ucontrols)))
+ 			return -EFAULT;
+-		if (ctrl_is_pointer(kcontrols->id)) {
++		if (ctrl_is_pointer(file, kcontrols->id)) {
+ 			void __user *s;
+ 
+ 			if (get_user(p, &ucontrols->string))
+@@ -628,7 +639,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	return 0;
+ }
+ 
+-static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++static int put_v4l2_ext_controls32(struct file *file,
++				   struct v4l2_ext_controls *kp,
++				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+ 	struct v4l2_ext_control __user *kcontrols = kp->controls;
+@@ -656,7 +669,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 		/* Do not modify the pointer when copying a pointer control.
+ 		   The contents of the pointer was changed, not the pointer
+ 		   itself. */
+-		if (ctrl_is_pointer(kcontrols->id))
++		if (ctrl_is_pointer(file, kcontrols->id))
+ 			size -= sizeof(ucontrols->value64);
+ 		if (copy_in_user(ucontrols, kcontrols, size))
+ 			return -EFAULT;
+@@ -819,7 +832,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS:
+-		err = get_v4l2_ext_controls32(&karg.v2ecs, up);
++		err = get_v4l2_ext_controls32(file, &karg.v2ecs, up);
+ 		compatible_arg = 0;
+ 		break;
+ 	case VIDIOC_DQEVENT:
+@@ -846,7 +859,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS:
+-		if (put_v4l2_ext_controls32(&karg.v2ecs, up))
++		if (put_v4l2_ext_controls32(file, &karg.v2ecs, up))
+ 			err = -EFAULT;
+ 		break;
+ 	}
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.15.1
