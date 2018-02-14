@@ -1,72 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:60864 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752085AbeBFINf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 03:13:35 -0500
-Subject: Re: [PATCH v2] media: vb2: Fix videobuf2 to map correct area
-To: Masami Hiramatsu <mhiramat@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        orito.takao@socionext.com,
-        Fumihiro ATSUMI <atsumi@infinitegra.co.jp>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <cd355844-89d0-b49a-0244-c0e45fc68724@samsung.com>
-Date: Tue, 06 Feb 2018 09:13:30 +0100
-MIME-version: 1.0
-In-reply-to: <151790414344.19507.15297848847845554616.stgit@devbox>
-Content-type: text/plain; charset="utf-8"; format="flowed"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <CGME20180206080251epcas1p2845745f8edcb71fcce8babcd0c5c4f3a@epcas1p2.samsung.com>
-        <151790414344.19507.15297848847845554616.stgit@devbox>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37861 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967538AbeBNL7k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:59:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.16 09/14] media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+Date: Wed, 14 Feb 2018 12:59:33 +0100
+Message-Id: <20180214115938.28296-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <20180214115938.28296-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Masami,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 2018-02-06 09:02, Masami Hiramatsu wrote:
-> Fixes vb2_vmalloc_get_userptr() to ioremap correct area.
-> Since the current code does ioremap the page address, if the offset > 0,
-> it does not do ioremap the last page and results in kernel panic.
->
-> This fixes to pass the size + offset to ioremap so that ioremap
-> can map correct area. Also, this uses __pfn_to_phys() to get the physical
-> address of given PFN.
->
-> Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
-> Reported-by: Takao Orito <orito.takao@socionext.com>
-> Reported-by: Fumihiro ATSUMI <atsumi@infinitegra.co.jp>
+commit b8c601e8af2d08f733d74defa8465303391bb930 upstream.
 
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+ctrl_is_pointer just hardcoded two known string controls, but that
+caused problems when using e.g. custom controls that use a pointer
+for the payload.
 
-> ---
->    Chanegs in v2:
->     - Fix to pass size + offset instead of changing address.
-> ---
->   drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> index 3a7c80cd1a17..359fb9804d16 100644
-> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> @@ -106,7 +106,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
->   			if (nums[i-1] + 1 != nums[i])
->   				goto fail_map;
->   		buf->vaddr = (__force void *)
-> -				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
-> +			ioremap_nocache(__pfn_to_phys(nums[0]), size + offset);
->   	} else {
->   		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
->   					PAGE_KERNEL);
->
->
->
->
+Reimplement this function: it now finds the v4l2_ctrl (if the driver
+uses the control framework) or it calls vidioc_query_ext_ctrl (if the
+driver implements that directly).
 
-Best regards
+In both cases it can now check if the control is a pointer control
+or not.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 50 +++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 3a72a735a940..69d772d1237d 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -18,6 +18,8 @@
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-subdev.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-ioctl.h>
+ 
+ static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -567,24 +569,32 @@ struct v4l2_ext_control32 {
+ 	};
+ } __attribute__ ((packed));
+ 
+-/* The following function really belong in v4l2-common, but that causes
+-   a circular dependency between modules. We need to think about this, but
+-   for now this will do. */
+-
+-/* Return non-zero if this control is a pointer type. Currently only
+-   type STRING is a pointer type. */
+-static inline int ctrl_is_pointer(u32 id)
++/* Return true if this control is a pointer type. */
++static inline bool ctrl_is_pointer(struct file *file, u32 id)
+ {
+-	switch (id) {
+-	case V4L2_CID_RDS_TX_PS_NAME:
+-	case V4L2_CID_RDS_TX_RADIO_TEXT:
+-		return 1;
+-	default:
+-		return 0;
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_fh *fh = NULL;
++	struct v4l2_ctrl_handler *hdl = NULL;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vdev->flags))
++		fh = file->private_data;
++
++	if (fh && fh->ctrl_handler)
++		hdl = fh->ctrl_handler;
++	else if (vdev->ctrl_handler)
++		hdl = vdev->ctrl_handler;
++
++	if (hdl) {
++		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, id);
++
++		return ctrl && ctrl->type == V4L2_CTRL_TYPE_STRING;
+ 	}
++	return false;
+ }
+ 
+-static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++static int get_v4l2_ext_controls32(struct file *file,
++				   struct v4l2_ext_controls *kp,
++				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+ 	struct v4l2_ext_control __user *kcontrols;
+@@ -612,7 +622,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	while (--n >= 0) {
+ 		if (copy_in_user(kcontrols, ucontrols, sizeof(*ucontrols)))
+ 			return -EFAULT;
+-		if (ctrl_is_pointer(kcontrols->id)) {
++		if (ctrl_is_pointer(file, kcontrols->id)) {
+ 			void __user *s;
+ 
+ 			if (get_user(p, &ucontrols->string))
+@@ -627,7 +637,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	return 0;
+ }
+ 
+-static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++static int put_v4l2_ext_controls32(struct file *file,
++				   struct v4l2_ext_controls *kp,
++				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+ 	struct v4l2_ext_control __user *kcontrols = kp->controls;
+@@ -655,7 +667,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 		/* Do not modify the pointer when copying a pointer control.
+ 		   The contents of the pointer was changed, not the pointer
+ 		   itself. */
+-		if (ctrl_is_pointer(kcontrols->id))
++		if (ctrl_is_pointer(file, kcontrols->id))
+ 			size -= sizeof(ucontrols->value64);
+ 		if (copy_in_user(ucontrols, kcontrols, size))
+ 			return -EFAULT;
+@@ -869,7 +881,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS:
+-		err = get_v4l2_ext_controls32(&karg.v2ecs, up);
++		err = get_v4l2_ext_controls32(file, &karg.v2ecs, up);
+ 		compatible_arg = 0;
+ 		break;
+ 	case VIDIOC_DQEVENT:
+@@ -896,7 +908,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS:
+-		if (put_v4l2_ext_controls32(&karg.v2ecs, up))
++		if (put_v4l2_ext_controls32(file, &karg.v2ecs, up))
+ 			err = -EFAULT;
+ 		break;
+ 	}
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.15.1
