@@ -1,154 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:49624 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754471AbeBUPQx (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34415 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967355AbeBNLwl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 10:16:53 -0500
-Date: Wed, 21 Feb 2018 16:16:44 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 07/11] media: i2c: ov772x: Support frame interval
- handling
-Message-ID: <20180221151644.GI7203@w540>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
- <1519059584-30844-8-git-send-email-jacopo+renesas@jmondi.org>
- <f154f229-6977-4d3e-38b9-6d1669adbf91@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <f154f229-6977-4d3e-38b9-6d1669adbf91@xs4all.nl>
+        Wed, 14 Feb 2018 06:52:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH for v4.4 00/14] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
+Date: Wed, 14 Feb 2018 12:52:26 +0100
+Message-Id: <20180214115240.27650-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, Feb 21, 2018 at 01:12:14PM +0100, Hans Verkuil wrote:
+This patch series fixes a number of bugs and culminates in the removal
+of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
 
-[snip]
+This was tested with a VM running 4.4, the vivid driver (since that
+emulates almost all V4L2 ioctls that need to pass through v4l2-compat-ioctl32.c)
+and a 32-bit v4l2-compliance utility since that exercises almost all ioctls
+as well. Combined this gives good test coverage.
 
-> > +static int ov772x_g_frame_interval(struct v4l2_subdev *sd,
-> > +				   struct v4l2_subdev_frame_interval *ival)
-> > +{
-> > +	struct ov772x_priv *priv = to_ov772x(sd);
-> > +	struct v4l2_fract *tpf = &ival->interval;
-> > +
-> > +	memset(ival->reserved, 0, sizeof(ival->reserved));
->
-> This memset...
->
-> > +	tpf->numerator = 1;
-> > +	tpf->denominator = priv->fps;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
-> > +				   struct v4l2_subdev_frame_interval *ival)
-> > +{
-> > +	struct ov772x_priv *priv = to_ov772x(sd);
-> > +	struct v4l2_fract *tpf = &ival->interval;
-> > +
-> > +	memset(ival->reserved, 0, sizeof(ival->reserved));
->
-> ... and this memset can be dropped. The core code will memset this for you.
->
->
+Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
+v4l2-compliance complained about. The purpose is to 1) make it easy to
+verify that the final patch didn't introduce errors by first eliminating
+errors caused by other known bugs, and 2) keep the final patch at least
+somewhat readable.
 
-I see! Ok, I'll drop them in v10
+Regards,
 
-> > +
-> > +	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
-> > +}
-> > +
-> >  static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
-> >  {
-> >  	struct ov772x_priv *priv = container_of(ctrl->handler,
-> > @@ -757,6 +905,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
-> >  			     const struct ov772x_win_size *win)
-> >  {
-> >  	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> > +	struct v4l2_fract tpf;
-> >  	int ret;
-> >  	u8  val;
-> >
-> > @@ -885,6 +1034,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
-> >  	if (ret < 0)
-> >  		goto ov772x_set_fmt_error;
-> >
-> > +	/* COM4, CLKRC: Set pixel clock and framerate. */
-> > +	tpf.numerator = 1;
-> > +	tpf.denominator = priv->fps;
-> > +	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
-> > +	if (ret < 0)
-> > +		goto ov772x_set_fmt_error;
-> > +
-> >  	/*
-> >  	 * set COM8
-> >  	 */
-> > @@ -1043,6 +1199,24 @@ static const struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
-> >  	.s_power	= ov772x_s_power,
-> >  };
-> >
-> > +static int ov772x_enum_frame_interval(struct v4l2_subdev *sd,
-> > +				      struct v4l2_subdev_pad_config *cfg,
-> > +				      struct v4l2_subdev_frame_interval_enum *fie)
-> > +{
-> > +	if (fie->pad || fie->index >= OV772X_N_FRAME_INTERVALS)
-> > +		return -EINVAL;
-> > +
-> > +	if (fie->width != VGA_WIDTH && fie->width != QVGA_WIDTH)
-> > +		return -EINVAL;
-> > +	if (fie->height != VGA_HEIGHT && fie->height != QVGA_HEIGHT)
-> > +		return -EINVAL;
-> > +
-> > +	fie->interval.numerator = 1;
-> > +	fie->interval.denominator = ov772x_frame_intervals[fie->index];
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
-> >  		struct v4l2_subdev_pad_config *cfg,
-> >  		struct v4l2_subdev_mbus_code_enum *code)
-> > @@ -1055,14 +1229,17 @@ static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
-> >  }
-> >
-> >  static const struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
-> > -	.s_stream	= ov772x_s_stream,
-> > +	.s_stream		= ov772x_s_stream,
-> > +	.s_frame_interval	= ov772x_s_frame_interval,
-> > +	.g_frame_interval	= ov772x_g_frame_interval,
-> >  };
-> >
-> >  static const struct v4l2_subdev_pad_ops ov772x_subdev_pad_ops = {
-> > -	.enum_mbus_code = ov772x_enum_mbus_code,
-> > -	.get_selection	= ov772x_get_selection,
-> > -	.get_fmt	= ov772x_get_fmt,
-> > -	.set_fmt	= ov772x_set_fmt,
-> > +	.enum_frame_interval	= ov772x_enum_frame_interval,
-> > +	.enum_mbus_code		= ov772x_enum_mbus_code,
-> > +	.get_selection		= ov772x_get_selection,
-> > +	.get_fmt		= ov772x_get_fmt,
-> > +	.set_fmt		= ov772x_set_fmt,
->
-> Shouldn't these last four ops be added in the previous patch?
-> They don't have anything to do with the frame interval support.
->
+	Hans
 
-If you look closely you'll notice I have just re-aligned them, since I
-was at there to add enum_frame_interval operation
+Daniel Mentz (2):
+  media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
+  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
 
-> Anyway, after taking care of the memsets and these four ops you can add
-> my:
->
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hans Verkuil (11):
+  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
+  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+  media: v4l2-compat-ioctl32.c: fix the indentation
+  media: v4l2-compat-ioctl32.c: move 'helper' functions to
+    __get/put_v4l2_format32
+  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
+  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
+    errors
 
-Thanks
-   j
+Ricardo Ribalda Delgado (1):
+  vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1023 +++++++++++++++----------
+ drivers/media/v4l2-core/v4l2-ioctl.c          |    5 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |    6 +
+ 3 files changed, 624 insertions(+), 410 deletions(-)
+
+-- 
+2.15.1
