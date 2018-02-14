@@ -1,126 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42008 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752246AbeBFKl7 (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:52847 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967518AbeBNLsc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 05:41:59 -0500
-Subject: Re: [PATCH v2 8/8] platform: vivid-cec: use 64-bit arithmetic instead
- of 32-bit
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <cover.1517856716.git.gustavo@embeddedor.com>
- <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
- <dc931d9d-8cbd-bbd2-0199-b1846e41f274@xs4all.nl>
- <20180205155419.Horde.WgpJoLkqF8wsBtPMp9n7V8U@gator4166.hostgator.com>
+        Wed, 14 Feb 2018 06:48:32 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <238647bc-106d-8dbf-569e-82e7968f887d@xs4all.nl>
-Date: Tue, 6 Feb 2018 11:41:54 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180205155419.Horde.WgpJoLkqF8wsBtPMp9n7V8U@gator4166.hostgator.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.9 07/13] media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+Date: Wed, 14 Feb 2018 12:48:24 +0100
+Message-Id: <20180214114830.27171-8-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114830.27171-1-hverkuil@xs4all.nl>
+References: <20180214114830.27171-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/18 22:54, Gustavo A. R. Silva wrote:
-> Hi Hans,
-> 
-> Quoting Hans Verkuil <hverkuil@xs4all.nl>:
-> 
->> On 02/05/2018 09:36 PM, Gustavo A. R. Silva wrote:
->>> Add suffix ULL to constant 10 in order to give the compiler complete
->>> information about the proper arithmetic to use. Notice that this
->>> constant is used in a context that expects an expression of type
->>> u64 (64 bits, unsigned).
->>>
->>> The expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is currently being
->>> evaluated using 32-bit arithmetic.
->>>
->>> Also, remove unnecessary parentheses and add a code comment to make it
->>> clear what is the reason of the code change.
->>>
->>> Addresses-Coverity-ID: 1454996
->>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->>> ---
->>> Changes in v2:
->>>  - Update subject and changelog to better reflect the proposed code changes.
->>>  - Add suffix ULL to constant instead of casting a variable.
->>>  - Remove unncessary parentheses.
->>
->> unncessary -> unnecessary
->>
-> 
-> Thanks for this.
-> 
->>>  - Add code comment.
->>>
->>>  drivers/media/platform/vivid/vivid-cec.c | 11 +++++++++--
->>>  1 file changed, 9 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/vivid/vivid-cec.c  
->>> b/drivers/media/platform/vivid/vivid-cec.c
->>> index b55d278..614787b 100644
->>> --- a/drivers/media/platform/vivid/vivid-cec.c
->>> +++ b/drivers/media/platform/vivid/vivid-cec.c
->>> @@ -82,8 +82,15 @@ static void vivid_cec_pin_adap_events(struct  
->>> cec_adapter *adap, ktime_t ts,
->>>
->>>  	if (adap == NULL)
->>>  		return;
->>> -	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
->>> -			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
->>> +
->>> +	/*
->>> +	 * Suffix ULL on constant 10 makes the expression
->>> +	 * CEC_TIM_START_BIT_TOTAL + 10ULL * len * CEC_TIM_DATA_BIT_TOTAL
->>> +	 * be evaluated using 64-bit unsigned arithmetic (u64), which
->>> +	 * is what ktime_sub_us expects as second argument.
->>> +	 */
->>
->> That's not really the comment that I was looking for. It still doesn't
->> explain *why* this is needed at all. How about something like this:
->>
-> 
-> In MHO the reason for the change is simply the discrepancy between the  
-> arithmetic expected by
-> the function ktime_sub_us and the arithmetic in which the expression  
-> is being evaluated. And this
-> has nothing to do with any particular tool.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hmm, you have a point.
+commit b8c601e8af2d08f733d74defa8465303391bb930 upstream.
 
-OK, I've looked at the other patches in this patch series as well, and
-the only thing I would like to see changed is the 'Addresses-Coverity-ID'
-line in the patches: patch 4 says:
+ctrl_is_pointer just hardcoded two known string controls, but that
+caused problems when using e.g. custom controls that use a pointer
+for the payload.
 
-Addresses-Coverity-ID: 1324146 ("Unintentional integer overflow")
+Reimplement this function: it now finds the v4l2_ctrl (if the driver
+uses the control framework) or it calls vidioc_query_ext_ctrl (if the
+driver implements that directly).
 
-but that's the only one that mentions the specific coverity error.
-It would be nice if that can be added to the other patches as well so
-we have a record of the actual coverity error.
+In both cases it can now check if the control is a pointer control
+or not.
 
-> 
->> /*
->>  * Add the ULL suffix to the constant 10 to work around a false Coverity
->>  * "Unintentional integer overflow" warning. Coverity isn't smart enough
->>  * to understand that len is always <= 16, so there is no chance of an
->>  * integer overflow.
->>  */
->>
-> 
-> :P
-> 
-> In my opinion it is not a good idea to tie the code to a particular tool.
-> There are only three appearances of the word 'Coverity' in the whole  
-> code base, and, honestly I don't want to add more.
-> 
-> So I think I will document this issue as a FP in the Coverity platform.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 57 ++++++++++++++++++---------
+ 1 file changed, 38 insertions(+), 19 deletions(-)
 
-FP?
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 2ddeecdababe..c8dd39884f6e 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -18,6 +18,8 @@
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-subdev.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-ioctl.h>
+ 
+ static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -587,24 +589,39 @@ struct v4l2_ext_control32 {
+ 	};
+ } __attribute__ ((packed));
+ 
+-/* The following function really belong in v4l2-common, but that causes
+-   a circular dependency between modules. We need to think about this, but
+-   for now this will do. */
+-
+-/* Return non-zero if this control is a pointer type. Currently only
+-   type STRING is a pointer type. */
+-static inline int ctrl_is_pointer(u32 id)
++/* Return true if this control is a pointer type. */
++static inline bool ctrl_is_pointer(struct file *file, u32 id)
+ {
+-	switch (id) {
+-	case V4L2_CID_RDS_TX_PS_NAME:
+-	case V4L2_CID_RDS_TX_RADIO_TEXT:
+-		return 1;
+-	default:
+-		return 0;
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_fh *fh = NULL;
++	struct v4l2_ctrl_handler *hdl = NULL;
++	struct v4l2_query_ext_ctrl qec = { id };
++	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vdev->flags))
++		fh = file->private_data;
++
++	if (fh && fh->ctrl_handler)
++		hdl = fh->ctrl_handler;
++	else if (vdev->ctrl_handler)
++		hdl = vdev->ctrl_handler;
++
++	if (hdl) {
++		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, id);
++
++		return ctrl && ctrl->is_ptr;
+ 	}
++
++	if (!ops->vidioc_query_ext_ctrl)
++		return false;
++
++	return !ops->vidioc_query_ext_ctrl(file, fh, &qec) &&
++		(qec.flags & V4L2_CTRL_FLAG_HAS_PAYLOAD);
+ }
+ 
+-static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++static int get_v4l2_ext_controls32(struct file *file,
++				   struct v4l2_ext_controls *kp,
++				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+ 	struct v4l2_ext_control __user *kcontrols;
+@@ -636,7 +653,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 			return -EFAULT;
+ 		if (get_user(id, &kcontrols->id))
+ 			return -EFAULT;
+-		if (ctrl_is_pointer(id)) {
++		if (ctrl_is_pointer(file, id)) {
+ 			void __user *s;
+ 
+ 			if (get_user(p, &ucontrols->string))
+@@ -651,7 +668,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	return 0;
+ }
+ 
+-static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++static int put_v4l2_ext_controls32(struct file *file,
++				   struct v4l2_ext_controls *kp,
++				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+ 	struct v4l2_ext_control __user *kcontrols =
+@@ -683,7 +702,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 		/* Do not modify the pointer when copying a pointer control.
+ 		   The contents of the pointer was changed, not the pointer
+ 		   itself. */
+-		if (ctrl_is_pointer(id))
++		if (ctrl_is_pointer(file, id))
+ 			size -= sizeof(ucontrols->value64);
+ 		if (copy_in_user(ucontrols, kcontrols, size))
+ 			return -EFAULT;
+@@ -897,7 +916,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS:
+-		err = get_v4l2_ext_controls32(&karg.v2ecs, up);
++		err = get_v4l2_ext_controls32(file, &karg.v2ecs, up);
+ 		compatible_arg = 0;
+ 		break;
+ 	case VIDIOC_DQEVENT:
+@@ -924,7 +943,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_G_EXT_CTRLS:
+ 	case VIDIOC_S_EXT_CTRLS:
+ 	case VIDIOC_TRY_EXT_CTRLS:
+-		if (put_v4l2_ext_controls32(&karg.v2ecs, up))
++		if (put_v4l2_ext_controls32(file, &karg.v2ecs, up))
+ 			err = -EFAULT;
+ 		break;
+ 	}
+-- 
+2.15.1
