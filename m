@@ -1,162 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:49659 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753136AbeBEQci (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 11:32:38 -0500
-Date: Mon, 5 Feb 2018 14:32:28 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: media_device.c question: can this workaround be removed?
-Message-ID: <20180205143228.728d0e73@vento.lan>
-In-Reply-To: <10d299e0-4edf-75dc-56f1-3acfb6ed719b@xs4all.nl>
-References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
-        <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
-        <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
-        <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
-        <10d299e0-4edf-75dc-56f1-3acfb6ed719b@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57851 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967615AbeBNLyU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:54:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.1 09/14] media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+Date: Wed, 14 Feb 2018 12:54:14 +0100
+Message-Id: <20180214115419.28156-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115419.28156-1-hverkuil@xs4all.nl>
+References: <20180214115419.28156-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 5 Feb 2018 16:19:28 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hansverk@cisco.com>
 
-> On 02/05/2018 03:30 PM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Mon, Feb 05, 2018 at 01:30:04PM +0100, Hans Verkuil wrote:  
-> >> On 02/05/2018 12:59 PM, Sakari Ailus wrote:  
-> >>> Hi Hans,
-> >>>
-> >>> On Mon, Feb 05, 2018 at 11:26:47AM +0100, Hans Verkuil wrote:  
-> >>>> The function media_device_enum_entities() has this workaround:
-> >>>>
-> >>>>         /*
-> >>>>          * Workaround for a bug at media-ctl <= v1.10 that makes it to
-> >>>>          * do the wrong thing if the entity function doesn't belong to
-> >>>>          * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
-> >>>>          * Ranges.
-> >>>>          *
-> >>>>          * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
-> >>>>          * or, otherwise, will be silently ignored by media-ctl when
-> >>>>          * printing the graphviz diagram. So, map them into the devnode
-> >>>>          * old range.
-> >>>>          */
-> >>>>         if (ent->function < MEDIA_ENT_F_OLD_BASE ||
-> >>>>             ent->function > MEDIA_ENT_F_TUNER) {
-> >>>>                 if (is_media_entity_v4l2_subdev(ent))
-> >>>>                         entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-> >>>>                 else if (ent->function != MEDIA_ENT_F_IO_V4L)
-> >>>>                         entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
-> >>>>         }
-> >>>>
-> >>>> But this means that the entity type returned by ENUM_ENTITIES just overwrites
-> >>>> perfectly fine types by bogus values and thus the returned value differs
-> >>>> from that returned by G_TOPOLOGY.
-> >>>>
-> >>>> Can we please, please remove this workaround? I have no idea why a workaround
-> >>>> for media-ctl of all things ever made it in the kernel.  
-> >>>
-> >>> The entity types were replaced by entity functions back in 2015 with the
-> >>> big Media controller reshuffle. While I agree functions are better for
-> >>> describing entities than types (and those types had Linux specific
-> >>> interfaces in them), the new function-based API still may support a single
-> >>> value, i.e. a single function per device.
-> >>>
-> >>> This also created two different name spaces for describing entities: the
-> >>> old types used by the MC API and the new functions used by MC v2 API.
-> >>>
-> >>> This doesn't go well with the fact that, as you noticed, the pad
-> >>> information is not available through MC v2 API. The pad information is
-> >>> required by the user space so software continues to use the original MC
-> >>> API.
-> >>>
-> >>> I don't think there's a way to avoid maintaining two name spaces (types and
-> >>> functions) without breaking at least one of the APIs.  
-> >>
-> >> The comment specifically claims that this workaround is for media-ctl and
-> >> it suggests that it is fixed after v1.10. Is that comment bogus? I can't
-> >> really tell which commit fixed media-ctl. Does anyone know?
-> >>
-> >> As far as I can tell the function defines have been chosen in such a way that
-> >> they will equally well work with the old name space. There should be no
-> >> problem there whatsoever and media-ctl should switch to use the new defines.  
-> > 
-> > The old interface (type) was centered around the uAPI for the entity.
-> > That's no longer the case for functions. The entity type
-> > (MEDIA_ENT_TYPE_MASK) tells the uAPI which affects the interpretation of
-> > the dev union in struct media_entity_struct as well as the interface that
-> > device node implements. With the new function field that's no longer the
-> > case.
-> > 
-> > Also, the new MC v2 API makes a separation between the entity function and
-> > the uAPI (interface) which was lacking in the old API.
-> >   
-> >>
-> >> We now have a broken ENUM_ENTITIES ioctl (it rudely overwrites VBI/DVB/etc types)
-> >> and a broken G_TOPOLOGY ioctl (no pad index).
-> >>
-> >> This sucks. Let's fix both so that they at least report consistent information.  
-> > 
-> > The existing user space may assume that the type field of the entity
-> > conveys that the entity does provide a V4L2 sub-device interface if that's
-> > the case actually.
-> > 
-> > This is what media-ctl does and I presume if existing user space checks for
-> > the type field, it may well have similar checks: it was how the API was
-> > defined. Therefore it's not entirely accurate to say that only media-ctl
-> > has this "bug", I'd generally assume programs that use MC (v1) API do this.
-> > 
-> > You could argue about the merits (or lack of them) of the old API, no
-> > disagrement there.  
-> 
-> The old API is already broken. E.g. using MEDIA_ENT_F_PROC_VIDEO_SCALER in
-> vimc/vimc-scaler.c (instead of the current - and bogus - MEDIA_ENT_F_ATV_DECODER)
-> gives me this with media-ctl:
-> 
-> - entity 21: Scaler (2 pads, 4 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev5
->         pad0: Sink
->                 [fmt:RGB888_1X24/640x480 field:none]
->                 <- "Debayer A":1 [ENABLED]
->                 <- "Debayer B":1 []
->                 <- "RGB/YUV Input":0 []
->         pad1: Source
->                 [fmt:RGB888_1X24/1920x1440 field:none]
->                 -> "RGB/YUV Capture":0 [ENABLED,IMMUTABLE]  
-> 
-> Useless. We now have an old API that gives us pad indices but not the
-> function, and a new API that gives us the function but not the pad index.
+commit 273caa260035c03d89ad63d72d8cd3d9e5c5e3f1 upstream.
 
-Adding pad index to new API is trivial, as your RFC patch pointed.
+If the device is of type VFL_TYPE_SUBDEV then vdev->ioctl_ops
+is NULL so the 'if (!ops->vidioc_query_ext_ctrl)' check would crash.
+Add a test for !ops to the condition.
 
-Changing media-ctl to fully use the new ioctl is not trivial, as it
-was written on a non-portable way, very dependent on the kernel API
-specifics[1]. I suspect that it is a lot more easier to add support
-for MEDIA_IOC_SETUP_LINK to mc_nextgen_test and rename it to
-media-ctl[2].
+All sub-devices that have controls will use the control framework,
+so they do not have an equivalent to ops->vidioc_query_ext_ctrl.
+Returning false if ops is NULL is the correct thing to do here.
 
-[1] I tried it before working at contrib/test/mc_nextgen_test.c. The
-internal data model used by media-ctl library was just a clone of the
-model returned by the ioctls. Even a minimal change on the way ioctls 
-return things (even adding new entity types) is enough to break it.
+Fixes: b8c601e8af ("v4l2-compat-ioctl32.c: fix ctrl_is_pointer")
 
-[2] It would be possible, however, to make media-ctl to use 
-G_TOPOLOGY, ignoring new features that can't be represented using
-the old ioctls and providing fallback to entity functions in order
-to represent media types. It won't be too much elegant though.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> How about adding a 'function' field to struct media_entity_desc
-> and fill that? Keep the type for backwards compatibility.
-
-Nah, Let's not touch the old ioctls. Instead, we should stick
-with the new API and convert (or replace) existing applications to
-use it, as the old ioctl set can't even represent the interfaces.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 52205d37f97f..626a3b345075 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -603,7 +603,7 @@ static inline bool ctrl_is_pointer(struct file *file, u32 id)
+ 		return ctrl && ctrl->is_ptr;
+ 	}
+ 
+-	if (!ops->vidioc_query_ext_ctrl)
++	if (!ops || !ops->vidioc_query_ext_ctrl)
+ 		return false;
+ 
+ 	return !ops->vidioc_query_ext_ctrl(file, fh, &qec) &&
+-- 
+2.15.1
