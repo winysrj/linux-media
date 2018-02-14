@@ -1,131 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:49026 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S937994AbeBUPcY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 10:32:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 04/15] v4l2-subdev: clear reserved fields
-Date: Wed, 21 Feb 2018 16:32:07 +0100
-Message-Id: <20180221153218.15654-5-hverkuil@xs4all.nl>
-In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
-References: <20180221153218.15654-1-hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:37149 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1031553AbeBNQDM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 11:03:12 -0500
+Date: Wed, 14 Feb 2018 14:03:05 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 2/9] media: convert g/s_parm to g/s_frame_interval in
+ subdevs
+Message-ID: <20180214140257.1bfd266f@vento.lan>
+In-Reply-To: <20180122123125.24709-3-hverkuil@xs4all.nl>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+        <20180122123125.24709-3-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clear the reserved fields for these ioctls according to the specification:
+Em Mon, 22 Jan 2018 13:31:18 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL
-VIDIOC_SUBDEV_ENUM_FRAME_SIZE
-VIDIOC_SUBDEV_ENUM_MBUS_CODE
-VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP
-VIDIOC_SUBDEV_G_FMT, VIDIOC_SUBDEV_S_FMT
-VIDIOC_SUBDEV_G_FRAME_INTERVAL, VIDIOC_SUBDEV_S_FRAME_INTERVAL
-VIDIOC_SUBDEV_G_SELECTION, VIDIOC_SUBDEV_S_SELECTION
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Convert all g/s_parm calls to g/s_frame_interval. This allows us
+> to remove the g/s_parm ops since those are a duplicate of
+> g/s_frame_interval.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/i2c/mt9v011.c                     | 31 +++++++-------------
+>  drivers/media/i2c/ov6650.c                      | 35 +++++++++-------------
+>  drivers/media/i2c/ov7670.c                      | 24 +++++++--------
+>  drivers/media/i2c/ov7740.c                      | 31 +++++++-------------
+>  drivers/media/i2c/tvp514x.c                     | 39 +++++++++----------------
+>  drivers/media/i2c/vs6624.c                      | 29 +++++++-----------
+>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
+>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
+>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++------
+>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
+>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
+>  drivers/media/platform/via-camera.c             |  4 +--
+>  drivers/media/usb/em28xx/em28xx-video.c         | 36 +++++++++++++++++++----
+>  13 files changed, 122 insertions(+), 165 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
+> index 5e29064fae91..3e23c5b0de1f 100644
+> --- a/drivers/media/i2c/mt9v011.c
+> +++ b/drivers/media/i2c/mt9v011.c
+> @@ -364,33 +364,24 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+>  
+> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
+> +				    struct v4l2_subdev_frame_interval *ival)
+>  {
+> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+> -
+> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> -		return -EINVAL;
+> -
+> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
+> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
+> +	memset(ival->reserved, 0, sizeof(ival->reserved));
 
-Found with v4l2-compliance.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Hmm.. why to repeat memset everywhere? If the hole idea is to stop abusing,
+the best would be to do, instead:
 
 diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index b14c5e1705ca..168ecb4bed23 100644
+index c5639817db34..b18b418c080f 100644
 --- a/drivers/media/v4l2-core/v4l2-subdev.c
 +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -284,6 +284,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
- 
-+		memset(format->reserved, 0, sizeof(format->reserved));
-+		memset(format->format.reserved, 0, sizeof(format->format.reserved));
- 		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
- 	}
- 
-@@ -294,6 +296,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
- 
-+		memset(format->reserved, 0, sizeof(format->reserved));
-+		memset(format->format.reserved, 0, sizeof(format->format.reserved));
- 		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
- 	}
- 
-@@ -301,6 +305,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		struct v4l2_subdev_crop *crop = arg;
- 		struct v4l2_subdev_selection sel;
- 
-+		memset(crop->reserved, 0, sizeof(crop->reserved));
- 		rval = check_crop(sd, crop);
- 		if (rval)
- 			return rval;
-@@ -326,6 +331,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
- 
-+		memset(crop->reserved, 0, sizeof(crop->reserved));
- 		memset(&sel, 0, sizeof(sel));
- 		sel.which = crop->which;
- 		sel.pad = crop->pad;
-@@ -350,6 +356,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (code->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
-+		memset(code->reserved, 0, sizeof(code->reserved));
- 		return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh->pad,
- 					code);
- 	}
-@@ -364,6 +371,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (fse->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
-+		memset(fse->reserved, 0, sizeof(fse->reserved));
- 		return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh->pad,
- 					fse);
- 	}
-@@ -374,6 +382,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+@@ -350,6 +350,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
  		if (fi->pad >= sd->entity.num_pads)
  			return -EINVAL;
  
-+		memset(fi->reserved, 0, sizeof(fi->reserved));
++		memset(fi->reserved, 0, sizeof(ival->reserved));
  		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
  	}
  
-@@ -383,6 +392,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (fi->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
-+		memset(fi->reserved, 0, sizeof(fi->reserved));
- 		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
- 	}
- 
-@@ -396,6 +406,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (fie->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
-+		memset(fie->reserved, 0, sizeof(fie->reserved));
- 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh->pad,
- 					fie);
- 	}
-@@ -407,6 +418,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
- 
-+		memset(sel->reserved, 0, sizeof(sel->reserved));
- 		return v4l2_subdev_call(
- 			sd, pad, get_selection, subdev_fh->pad, sel);
- 	}
-@@ -418,6 +430,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (rval)
- 			return rval;
- 
-+		memset(sel->reserved, 0, sizeof(sel->reserved));
- 		return v4l2_subdev_call(
- 			sd, pad, set_selection, subdev_fh->pad, sel);
- 	}
--- 
-2.16.1
+(same applies to s_frame_interval).
+
+
+>  	calc_fps(sd,
+> -		 &cp->timeperframe.numerator,
+> -		 &cp->timeperframe.denominator);
+> +		 &ival->interval.numerator,
+> +		 &ival->interval.denominator);
+>  
+>  	return 0;
+>  }
+>  
+> -static int mt9v011_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+> +static int mt9v011_s_frame_interval(struct v4l2_subdev *sd,
+> +				    struct v4l2_subdev_frame_interval *ival)
+>  {
+> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+> -	struct v4l2_fract *tpf = &cp->timeperframe;
+> +	struct v4l2_fract *tpf = &ival->interval;
+>  	u16 speed;
+>  
+> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> -		return -EINVAL;
+> -	if (cp->extendedmode != 0)
+> -		return -EINVAL;
+> -
+
+Hmm... why are you removing those sanity checks everywhere?
+The core doesn't do it.
+
+All the above comments also apply to the other files modified by
+this patch.
+
+> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+>  	speed = calc_speed(sd, tpf->numerator, tpf->denominator);
+>  
+>  	mt9v011_write(sd, R0A_MT9V011_CLK_SPEED, speed);
+> @@ -469,8 +460,8 @@ static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops mt9v011_video_ops = {
+> -	.g_parm = mt9v011_g_parm,
+> -	.s_parm = mt9v011_s_parm,
+> +	.g_frame_interval = mt9v011_g_frame_interval,
+> +	.s_frame_interval = mt9v011_s_frame_interval,
+>  };
+>  
+>  static const struct v4l2_subdev_pad_ops mt9v011_pad_ops = {
+> diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
+> index 8975d16b2b24..3f962dae7534 100644
+> --- a/drivers/media/i2c/ov6650.c
+> +++ b/drivers/media/i2c/ov6650.c
+> @@ -201,7 +201,7 @@ struct ov6650 {
+>  	struct v4l2_rect	rect;		/* sensor cropping window */
+>  	unsigned long		pclk_limit;	/* from host */
+>  	unsigned long		pclk_max;	/* from resolution and format */
+> -	struct v4l2_fract	tpf;		/* as requested with s_parm */
+> +	struct v4l2_fract	tpf;		/* as requested with s_frame_interval */
+>  	u32 code;
+>  	enum v4l2_colorspace	colorspace;
+>  };
+> @@ -723,42 +723,33 @@ static int ov6650_enum_mbus_code(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+>  
+> -static int ov6650_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+> +static int ov6650_g_frame_interval(struct v4l2_subdev *sd,
+> +				   struct v4l2_subdev_frame_interval *ival)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  	struct ov6650 *priv = to_ov6650(client);
+> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+>  
+> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> -		return -EINVAL;
+> -
+> -	memset(cp, 0, sizeof(*cp));
+> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
+> -	cp->timeperframe.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
+> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+> +	ival->interval.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
+>  			priv->pclk_limit, priv->pclk_max));
+> -	cp->timeperframe.denominator = FRAME_RATE_MAX;
+> +	ival->interval.denominator = FRAME_RATE_MAX;
+>  
+>  	dev_dbg(&client->dev, "Frame interval: %u/%u s\n",
+> -		cp->timeperframe.numerator, cp->timeperframe.denominator);
+> +		ival->interval.numerator, ival->interval.denominator);
+
+Hmm... not sure if a debug is needed here. Yet, if this is needed, 
+IMHO, it would make mroe sense to move it to the core.
+
+Thanks,
+Mauro
