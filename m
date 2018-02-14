@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:52986 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46716 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967521AbeBNLsc (ORCPT
+        by vger.kernel.org with ESMTP id S967537AbeBNLwl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:48:32 -0500
+        Wed, 14 Feb 2018 06:52:41 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: stable@vger.kernel.org
 Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.9 08/13] media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
-Date: Wed, 14 Feb 2018 12:48:25 +0100
-Message-Id: <20180214114830.27171-9-hverkuil@xs4all.nl>
-In-Reply-To: <20180214114830.27171-1-hverkuil@xs4all.nl>
-References: <20180214114830.27171-1-hverkuil@xs4all.nl>
+Subject: [PATCH for v4.4 09/14] media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+Date: Wed, 14 Feb 2018 12:52:35 +0100
+Message-Id: <20180214115240.27650-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
+References: <20180214115240.27650-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -40,7 +40,7 @@ Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index c8dd39884f6e..da55322bbb0f 100644
+index 2104d3af94f5..0c3949a00570 100644
 --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
 +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
 @@ -612,7 +612,7 @@ static inline bool ctrl_is_pointer(struct file *file, u32 id)
