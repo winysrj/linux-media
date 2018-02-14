@@ -1,73 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:48329 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750924AbeBLUDT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 15:03:19 -0500
-Date: Mon, 12 Feb 2018 20:03:18 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.17] rc changes
-Message-ID: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56182 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1032526AbeBNQrI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 11:47:08 -0500
+Subject: Re: [PATCHv2 1/9] v4l2-common: create v4l2_g/s_parm_cap helpers
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+ <20180122123125.24709-2-hverkuil@xs4all.nl>
+ <20180214135018.356ee06d@vento.lan>
+ <dc7bebaa-48e8-1cbc-7a87-c3f35deebda9@xs4all.nl>
+ <20180214143531.3643cc4e@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9e430611-c504-4033-9b82-b298f2566ff1@xs4all.nl>
+Date: Wed, 14 Feb 2018 17:47:07 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20180214143531.3643cc4e@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 14/02/18 17:35, Mauro Carvalho Chehab wrote:
+> Em Wed, 14 Feb 2018 17:23:51 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 14/02/18 16:50, Mauro Carvalho Chehab wrote:
+>>> Em Mon, 22 Jan 2018 13:31:17 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>   
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Create helpers to handle VIDIOC_G/S_PARM by querying the
+>>>> g/s_frame_interval v4l2_subdev ops.
+>>>>
+>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> ---
+>>>>  drivers/media/v4l2-core/v4l2-common.c | 48 +++++++++++++++++++++++++++++++++++
+>>>>  include/media/v4l2-common.h           | 26 +++++++++++++++++++
+>>>>  2 files changed, 74 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+>>>> index 8650ad92b64d..96c1b31de9e3 100644
+>>>> --- a/drivers/media/v4l2-core/v4l2-common.c
+>>>> +++ b/drivers/media/v4l2-core/v4l2-common.c
+>>>> @@ -392,3 +392,51 @@ void v4l2_get_timestamp(struct timeval *tv)
+>>>>  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+>>>>  }
+>>>>  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
+>>>> +
+>>>> +int v4l2_g_parm_cap(struct video_device *vdev,
+>>>> +		    struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+>>>> +{
+>>>> +	struct v4l2_subdev_frame_interval ival = { 0 };
+>>>> +	int ret;
+>>>> +
+>>>> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>>>> +	    a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>>>> +		return -EINVAL;
+>>>> +
+>>>> +	if (vdev->device_caps & V4L2_CAP_READWRITE)
+>>>> +		a->parm.capture.readbuffers = 2;  
+>>>
+>>> Hmm... why don't you also initialize readbuffers otherwise?  
+>>
+>> It's specifically for read(). If read() is not supported, then this
+>> is meaningless and should just stay 0. v4l2-compliance checks for this.
+> 
+> Well, API states that:
+> 
+> "When an application requests zero buffers, drivers should just return the current setting rather than the minimum or an error code."
+> 
+> So, something should zero it, if not used and type is capture or
+> capture_mplane.
 
-Just very minor changes this time (other stuff is not ready yet). I would
-really appreciate if you could cast an extra critical eye on the commit 
-"no need to check for transitions", just to be sure it is the right change.
+All fields after the type field are zeroed by the core in v4l2-ioctl.c:
 
-Thanks,
+        IOCTL_INFO_FNC(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
 
-Sean
+> 
+>> The 'readbuffers' field is completely outdated and once this is in
+>> the next step is to see if we can come up with something better. I hate
+>> G/S_PARM.
+> 
+> Yes, it is a weird ioctl, but I'm not yet convinced that we should
+> increase API complexity by adding newer ioctls due to that.
+> 
+> Instead, I would just get rid of .g_parm/.s_parm callbacks, implementing
+> a better kAPI, without bothering adding more complexity to uAPI.
 
-The following changes since commit 61605f79d576b0c2bea98fd0d1b2b3eeebb682f0:
+I will probably do that as a second step anyway. We can discuss the pros and
+cons of adding a new ioctl after that. I rather like the VIDIOC_SUBDEV_G/S_FRAME_INTERVAL
+ioctls. Simple and to the point. It's really what you would expect as an
+end-user.
 
-  Merge tag 'v4.16-rc1' into patchwork (2018-02-12 07:52:06 -0500)
+Regards,
 
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.17a
-
-for you to fetch changes up to 42ed0e7cd25fe42cf2ba16b0962fe018676b4da6:
-
-  media: rc: get start time just before calling driver tx (2018-02-12 14:56:59 +0000)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      media: rc: ir-hix5hd2: fix error handling of clk_prepare_enable()
-
-Andi Kleen (1):
-      media: rc: don't mark IR decoders default y
-
-Sean Young (8):
-      media: rc: ir-spi: fix duty cycle
-      media: rc: no need to check for transitions
-      media: rc: unnecessary use of do_div
-      media: rc: replace IR_dprintk() with dev_dbg in IR decoders
-      media: rc: remove IR_dprintk() from rc-core
-      media: rc: remove obsolete comment
-      media: rc: remove useless if statement
-      media: rc: get start time just before calling driver tx
-
- drivers/media/rc/Kconfig              | 11 -----
- drivers/media/rc/ir-hix5hd2.c         | 35 +++++++++++---
- drivers/media/rc/ir-jvc-decoder.c     | 14 +++---
- drivers/media/rc/ir-mce_kbd-decoder.c | 66 ++++++++++++-------------
- drivers/media/rc/ir-nec-decoder.c     | 20 ++++----
- drivers/media/rc/ir-rc5-decoder.c     | 15 +++---
- drivers/media/rc/ir-rc6-decoder.c     | 35 ++++++--------
- drivers/media/rc/ir-sanyo-decoder.c   | 18 +++----
- drivers/media/rc/ir-sharp-decoder.c   | 17 +++----
- drivers/media/rc/ir-sony-decoder.c    | 14 +++---
- drivers/media/rc/ir-spi.c             | 24 +--------
- drivers/media/rc/ir-xmp-decoder.c     | 29 +++++------
- drivers/media/rc/lirc_dev.c           | 24 +++++----
- drivers/media/rc/rc-core-priv.h       | 13 -----
- drivers/media/rc/rc-ir-raw.c          |  7 ++-
- drivers/media/rc/rc-main.c            | 91 +++++++++++++++++------------------
- include/media/rc-core.h               |  7 ---
- 17 files changed, 196 insertions(+), 244 deletions(-)
+	Hans
