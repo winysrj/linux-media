@@ -1,82 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:59615 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753019AbeBEMjI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Feb 2018 07:39:08 -0500
-Date: Mon, 5 Feb 2018 10:39:05 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH] media-device: add index field to media_v2_pad
-Message-ID: <20180205103905.6ff43f9e@vento.lan>
-In-Reply-To: <f29798d5-6f90-e433-93d5-81ba3e420d34@xs4all.nl>
-References: <f29798d5-6f90-e433-93d5-81ba3e420d34@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48618 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967440AbeBNLog (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:44:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.14 05/13] media: v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
+Date: Wed, 14 Feb 2018 12:44:26 +0100
+Message-Id: <20180214114434.26842-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114434.26842-1-hverkuil@xs4all.nl>
+References: <20180214114434.26842-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 4 Feb 2018 14:53:31 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Userspace has no way of knowing the pad index for the entity that
-> owns the pad with the MEDIA_IOC_G_TOPOLOGY ioctl. However, various
-> v4l-subdev ioctls need to pass this as an argument.
+commit 486c521510c44a04cd756a9267e7d1e271c8a4ba upstream.
 
-While I'm OK on adding a pad index, it still misses a way for Kernelspace
-to inform the kind of signal it is expected for the cases where an entity
-provides multiple PAD inputs or outputs with different meanings, e. g.
-for cases like TV tuner, where different PAD outputs have different
-signals and should be connected to different entities, based on the PAD
-type.
+These helper functions do not really help. Move the code to the
+__get/put_v4l2_format32 functions.
 
-In other words, we need also either a:
-	- pad name;
-	- pad type;
-	- pad signal.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 124 +++++---------------------
+ 1 file changed, 24 insertions(+), 100 deletions(-)
 
-> 
-> Add this missing information.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> RFC, so no documentation yet. This works fine, but how would applications
-> know that media_v2_pad has been extended with a new index field? Currently
-> this is 0, which is a valid index.
-> 
-> If no one is using this API (or only for DVB devices) then we can do that.
-> The other alternative is to add a new pad flag MEDIA_PAD_FL_HAS_INDEX.
-> ---
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index e79f72b8b858..16964d3dfb1e 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -318,6 +320,7 @@ static long media_device_get_topology(struct media_device *mdev,
->  		kpad.id = pad->graph_obj.id;
->  		kpad.entity_id = pad->entity->graph_obj.id;
->  		kpad.flags = pad->flags;
-> +		kpad.index = pad->index;
-> 
->  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
->  			ret = -EFAULT;
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index b9b9446095e9..c3e7a668e122 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -375,7 +375,8 @@ struct media_v2_pad {
->  	__u32 id;
->  	__u32 entity_id;
->  	__u32 flags;
-> -	__u32 reserved[5];
-> +	__u16 index;
-> +	__u16 reserved[9];
->  } __attribute__ ((packed));
-> 
->  struct media_v2_link {
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 44644a2ea3e9..297c924aefce 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -92,92 +92,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 	return 0;
+ }
+ 
+-static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-					     struct v4l2_pix_format_mplane __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-					     struct v4l2_pix_format_mplane __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_sdr_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_sdr_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_meta_format(struct v4l2_meta_format *kp, struct v4l2_meta_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_meta_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_meta_format(struct v4l2_meta_format *kp, struct v4l2_meta_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_meta_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+ struct v4l2_format32 {
+ 	__u32	type;	/* enum v4l2_buf_type */
+ 	union {
+@@ -217,25 +131,30 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	switch (kp->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
++		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
++				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+-						  &up->fmt.pix_mp);
++		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
++				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+-		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
++		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
++				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+-		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
++		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
++				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+ 	case V4L2_BUF_TYPE_SDR_OUTPUT:
+-		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
++		return copy_from_user(&kp->fmt.sdr, &up->fmt.sdr,
++				      sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
+-		return get_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
++		return copy_from_user(&kp->fmt.meta, &up->fmt.meta,
++				      sizeof(kp->fmt.meta)) ? -EFAULT : 0;
+ 	default:
+ 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 			kp->type);
+@@ -266,25 +185,30 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	switch (kp->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
++		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
++				    sizeof(kp->fmt.pix)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+-						  &up->fmt.pix_mp);
++		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
++				    sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+-		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
++		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
++				    sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+-		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
++		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
++				    sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+ 	case V4L2_BUF_TYPE_SDR_OUTPUT:
+-		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
++		return copy_to_user(&up->fmt.sdr, &kp->fmt.sdr,
++				    sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
+-		return put_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
++		return copy_to_user(&up->fmt.meta, &kp->fmt.meta,
++				    sizeof(kp->fmt.meta)) ? -EFAULT : 0;
+ 	default:
+ 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 			kp->type);
+-- 
+2.15.1
