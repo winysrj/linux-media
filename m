@@ -1,48 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:43598 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753358AbeBFU2P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 15:28:15 -0500
-Received: by mail-pl0-f66.google.com with SMTP id f4so1972170plr.10
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 12:28:15 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:47787 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967493AbeBNLwl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:52:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v8 3/7] MAINTAINERS: add entry for NXP TDA1997x driver
-Date: Tue,  6 Feb 2018 12:27:50 -0800
-Message-Id: <1517948874-21681-4-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+Subject: [PATCH for v4.4 02/14] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+Date: Wed, 14 Feb 2018 12:52:28 +0100
+Message-Id: <20180214115240.27650-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
+References: <20180214115240.27650-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 845fc25..439b500 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13262,6 +13262,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
- S:	Maintained
- F:	drivers/media/tuners/tda18271*
+commit 3171cc2b4eb9831ab4df1d80d0410a945b8bc84e upstream.
+
+According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
+
+V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
+VIDIOC_DQBUF it is always cleared ...
+
+Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
+can be tested with vivid and dev_debug:
+
+[257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
+type=vid-cap, flags=0x00002004, field=none, sequence=163,
+memory=userptr, bytesused=460800, offset/userptr=0x344b000,
+length=460800
+
+This patch forces FLAG_DONE to 0 after calling DQBUF.
+
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 6c441be8f893..bf23234d957e 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -593,6 +593,12 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 			b->flags & V4L2_BUF_FLAG_LAST)
+ 		q->last_buffer_dequeued = true;
  
-+TDA1997x MEDIA DRIVER
-+M:	Tim Harvey <tharvey@gateworks.com>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+S:	Maintained
-+F:	drivers/media/i2c/tda1997x.*
++	/*
++	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
++	 *  cleared.
++	 */
++	b->flags &= ~V4L2_BUF_FLAG_DONE;
 +
- TDA827x MEDIA DRIVER
- M:	Michael Krufky <mkrufky@linuxtv.org>
- L:	linux-media@vger.kernel.org
+ 	return ret;
+ }
+ 
 -- 
-2.7.4
+2.15.1
