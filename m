@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23428 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750735AbeBUBD1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 20:03:27 -0500
-From: Rajmohan Mani <rajmohan.mani@intel.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH] media: dw9714: Update to SPDX license identifier
-Date: Tue, 20 Feb 2018 16:54:05 -0800
-Message-Id: <1519174445-6114-1-git-send-email-rajmohan.mani@intel.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:59468 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754615AbeBNMN4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 07:13:56 -0500
+Subject: Re: exposing a large-ish calibration table through V4L2?
+To: Florian Echtler <floe@butterbrot.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5c3a596e-df46-488e-4a15-c847dc699815@xs4all.nl>
+Date: Wed, 14 Feb 2018 13:13:55 +0100
+MIME-Version: 1.0
+In-Reply-To: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the GPL v2 license boilerplate and update with the SPDX license
-identifier.
+Hi Florian,
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
- drivers/media/i2c/dw9714.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+On 14/02/18 13:09, Florian Echtler wrote:
+> Hello Hans,
+> 
+> I've picked up work on the sur40 driver again recently. There is one major
+> feature left that is currently unsupported by the Linux driver, which is the
+> hardware-based calibration.
+> 
+> The internal device memory contains a table with two bytes for each sensor pixel
+> (i.e. 960x540x2 = 1036800 bytes) that basically provide individual black and
+> white levels per-pixel that are used in preprocessing. The table can either be
+> set externally, or the sensor can be covered with a black/white surface and a
+> custom command triggers an internal calibration.
+> 
+> AFAICT the usual V4L2 controls are unsuitable for this sort of data; do you have
+> any suggestions on how to approach this? Maybe something like a custom IOCTL?
 
-diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
-index 8dbbf0f..91fae01 100644
---- a/drivers/media/i2c/dw9714.c
-+++ b/drivers/media/i2c/dw9714.c
-@@ -1,15 +1,5 @@
--/*
-- * Copyright (c) 2015--2017 Intel Corporation.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License version
-- * 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (c) 2015--2017 Intel Corporation.
- 
- #include <linux/delay.h>
- #include <linux/i2c.h>
--- 
-1.9.1
+So the table has a fixed size?
+
+You can use array controls for that, a V4L2_CTRL_TYPE_U16 in a two-dimensional array
+would do it.
+
+See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-queryctrl.html for more
+information on how this works.
+
+Regards,
+
+	Hans
