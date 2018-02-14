@@ -1,70 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37830 "EHLO
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:33426 "EHLO
         lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754714AbeBNMDY (ORCPT
+        by vger.kernel.org with ESMTP id S967589AbeBNNDB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 07:03:24 -0500
+        Wed, 14 Feb 2018 08:03:01 -0500
+Subject: Re: exposing a large-ish calibration table through V4L2?
+To: Florian Echtler <floe@butterbrot.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
+ <5c3a596e-df46-488e-4a15-c847dc699815@xs4all.nl>
+ <43eab066-0025-501d-60d9-beb20204ebdd@butterbrot.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.2 08/12] media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
-Date: Wed, 14 Feb 2018 13:03:19 +0100
-Message-Id: <20180214120323.28778-9-hverkuil@xs4all.nl>
-In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
-References: <20180214120323.28778-1-hverkuil@xs4all.nl>
+Message-ID: <8021c6bf-2b24-6515-b6e2-af257e1606f5@xs4all.nl>
+Date: Wed, 14 Feb 2018 14:03:00 +0100
+MIME-Version: 1.0
+In-Reply-To: <43eab066-0025-501d-60d9-beb20204ebdd@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Mentz <danielmentz@google.com>
+On 14/02/18 13:27, Florian Echtler wrote:
+> Hello Hans,
+> 
+> On 14.02.2018 13:13, Hans Verkuil wrote:
+>>
+>> On 14/02/18 13:09, Florian Echtler wrote:
+>>>
+>>> The internal device memory contains a table with two bytes for each sensor pixel
+>>> (i.e. 960x540x2 = 1036800 bytes) that basically provide individual black and
+>>> white levels per-pixel that are used in preprocessing. The table can either be
+>>> set externally, or the sensor can be covered with a black/white surface and a
+>>> custom command triggers an internal calibration.
+>>>
+>>> AFAICT the usual V4L2 controls are unsuitable for this sort of data; do you have
+>>> any suggestions on how to approach this? Maybe something like a custom IOCTL?
+>>
+>> So the table has a fixed size?
+>> You can use array controls for that, a V4L2_CTRL_TYPE_U16 in a two-dimensional array
+>> would do it.
+> 
+> Good to know, thanks.
+> 
+>> See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/vidioc-queryctrl.html for more
+>> information on how this works.
+> 
+> This means I have to implement QUERY_EXT_CTRL, G_EXT_CTRLS and S_EXT_CTRLS,
+> correct? Will this work in parallel to the "regular" controls that use the
+> control framework?
 
-commit 025a26fa14f8fd55d50ab284a30c016a5be953d0 upstream.
+No, just use the control framework. You need to make a custom control that is
+specific to your driver
 
-Commit b2787845fb91 ("V4L/DVB (5289): Add support for video output
-overlays.") added the field global_alpha to struct v4l2_window but did
-not update the compat layer accordingly. This change adds global_alpha
-to struct v4l2_window32 and copies the value for global_alpha back and
-forth.
+So reserve a range for your driver in include/uapi/linux/v4l2-controls.h
+(search for 'USER-class private control IDs'). Then you can define a control
+ID. The next step is to configure the control:
 
-Signed-off-by: Daniel Mentz <danielmentz@google.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+static const struct v4l2_ctrl_config cal_table_control = {
+        .ops = &cal_ctrl_ops,
+        .id = V4L2_CID_SUR40_CAL_TABLE,
+        .name = "Calibration Table",
+        .type = V4L2_CTRL_TYPE_U16,
+        .max = 0xffff,
+        .step = 1,
+        .def = 0,
+        .dims = { 960, 540 },
+};
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 925271c25177..a7b71a256d56 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -46,6 +46,7 @@ struct v4l2_window32 {
- 	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
- 	__u32			clipcount;
- 	compat_caddr_t		bitmap;
-+	__u8                    global_alpha;
- };
- 
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
-@@ -54,7 +55,8 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
- 	    get_user(kp->chromakey, &up->chromakey) ||
--	    get_user(kp->clipcount, &up->clipcount))
-+	    get_user(kp->clipcount, &up->clipcount) ||
-+	    get_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
-@@ -87,7 +89,8 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
--	    put_user(kp->clipcount, &up->clipcount))
-+	    put_user(kp->clipcount, &up->clipcount) ||
-+	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
- 	return 0;
- }
--- 
-2.15.1
+And register it with a control handler:
+
+v4l2_ctrl_new_custom(hdl, &cal_table_control, NULL);
+
+See e.g. drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c and the DETECT_MD controls.
+
+Regards,
+
+	Hans
