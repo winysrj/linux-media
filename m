@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:33781 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752103AbeBGWnT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 17:43:19 -0500
-Received: by mail-pl0-f67.google.com with SMTP id t4-v6so971733plo.0
-        for <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 14:43:19 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57387 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967547AbeBNL7k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:59:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v9 4/8] MAINTAINERS: add entry for NXP TDA1997x driver
-Date: Wed,  7 Feb 2018 14:42:43 -0800
-Message-Id: <1518043367-11531-5-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
-References: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
+Subject: [PATCH for v3.16 12/14] media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+Date: Wed, 14 Feb 2018 12:59:36 +0100
+Message-Id: <20180214115938.28296-13-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <20180214115938.28296-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 845fc25..439b500 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13262,6 +13262,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
- S:	Maintained
- F:	drivers/media/tuners/tda18271*
- 
-+TDA1997x MEDIA DRIVER
-+M:	Tim Harvey <tharvey@gateworks.com>
-+L:	linux-media@vger.kernel.org
-+W:	https://linuxtv.org
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+S:	Maintained
-+F:	drivers/media/i2c/tda1997x.*
-+
- TDA827x MEDIA DRIVER
- M:	Michael Krufky <mkrufky@linuxtv.org>
- L:	linux-media@vger.kernel.org
+commit 169f24ca68bf0f247d111aef07af00dd3a02ae88 upstream.
+
+There is nothing wrong with using an unknown buffer type. So
+stop spamming the kernel log whenever this happens. The kernel
+will just return -EINVAL to signal this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index e7ebd20b6c6a..2a03bd72cefc 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -170,8 +170,6 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
+ 				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
+ 	default:
+-		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-		       kp->type);
+ 		return -EINVAL;
+ 	}
+ }
+@@ -214,8 +212,6 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
+ 				    sizeof(kp->fmt.sliced)) ?  -EFAULT : 0;
+ 	default:
+-		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-		       kp->type);
+ 		return -EINVAL;
+ 	}
+ }
 -- 
-2.7.4
+2.15.1
