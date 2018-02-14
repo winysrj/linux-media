@@ -1,56 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46716 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:50078 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967537AbeBNLwl (ORCPT
+        by vger.kernel.org with ESMTP id S1754616AbeBNMDY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:52:41 -0500
+        Wed, 14 Feb 2018 07:03:24 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.4 09/14] media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
-Date: Wed, 14 Feb 2018 12:52:35 +0100
-Message-Id: <20180214115240.27650-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
-References: <20180214115240.27650-1-hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH for v3.2 00/12] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
+Date: Wed, 14 Feb 2018 13:03:11 +0100
+Message-Id: <20180214120323.28778-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-commit 273caa260035c03d89ad63d72d8cd3d9e5c5e3f1 upstream.
+This patch series fixes a number of bugs and culminates in the removal
+of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
 
-If the device is of type VFL_TYPE_SUBDEV then vdev->ioctl_ops
-is NULL so the 'if (!ops->vidioc_query_ext_ctrl)' check would crash.
-Add a test for !ops to the condition.
+This was tested with a VM running 3.2, the vivi driver (a poor substitute for
+the much improved vivid driver that's available in later kernels, but it's the
+best I had) since that emulates the more common V4L2 ioctls that need to pass
+through v4l2-compat-ioctl32.c) and the 32-bit v4l2-compliance + 32-bit v4l2-ctl
+utilities that together exercised the most common ioctls.
 
-All sub-devices that have controls will use the control framework,
-so they do not have an equivalent to ops->vidioc_query_ext_ctrl.
-Returning false if ops is NULL is the correct thing to do here.
+Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
+v4l2-compliance complained about. The purpose is to 1) make it easy to
+verify that the final patch didn't introduce errors by first eliminating
+errors caused by other known bugs, and 2) keep the final patch at least
+somewhat readable.
 
-Fixes: b8c601e8af ("v4l2-compat-ioctl32.c: fix ctrl_is_pointer")
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+	Hans
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 2104d3af94f5..0c3949a00570 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -612,7 +612,7 @@ static inline bool ctrl_is_pointer(struct file *file, u32 id)
- 		return ctrl && ctrl->is_ptr;
- 	}
- 
--	if (!ops->vidioc_query_ext_ctrl)
-+	if (!ops || !ops->vidioc_query_ext_ctrl)
- 		return false;
- 
- 	return !ops->vidioc_query_ext_ctrl(file, fh, &qec) &&
+Daniel Mentz (2):
+  media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
+  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
+
+Hans Verkuil (10):
+  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
+  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+  media: v4l2-compat-ioctl32.c: fix the indentation
+  media: v4l2-compat-ioctl32.c: move 'helper' functions to
+    __get/put_v4l2_format32
+  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
+  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
+    errors
+
+ drivers/media/video/Makefile              |   7 +-
+ drivers/media/video/v4l2-compat-ioctl32.c | 966 ++++++++++++++++++------------
+ drivers/media/video/v4l2-ioctl.c          |   6 +-
+ 3 files changed, 597 insertions(+), 382 deletions(-)
+
 -- 
 2.15.1
