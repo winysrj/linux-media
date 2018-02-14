@@ -1,48 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33404 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([88.97.38.141]:58699 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752294AbeBECbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 21:31:06 -0500
-From: Masami Hiramatsu <mhiramat@kernel.org>
-To: Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Cc: mhiramat@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        orito.takao@socionext.com
-Subject: [PATCH] [BUGFIX] media: vb2: Fix videobuf2 to map correct area
-Date: Mon,  5 Feb 2018 11:30:41 +0900
-Message-Id: <151779784111.20697.5012233804870630070.stgit@devbox>
+        id S1030501AbeBNVcI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 16:32:08 -0500
+Date: Wed, 14 Feb 2018 21:32:07 +0000
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.17] rc changes
+Message-ID: <20180214213207.axrs6k3cl6tevb2h@gofer.mess.org>
+References: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
+ <20180214164448.32a4c989@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180214164448.32a4c989@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes vb2_vmalloc_get_userptr() to ioremap correct area.
-Since the current code does ioremap the page address, if the offset > 0,
-it does not do ioremap the last page and results in kernel panic.
+Hi Mauro,
 
-This fixes to pass the page address + offset to ioremap so that ioremap
-can map correct area. Also, this uses __pfn_to_phys() to get the physical
-address of given PFN.
+On Wed, Feb 14, 2018 at 04:44:48PM -0200, Mauro Carvalho Chehab wrote:
+> Hi Sean,
+> 
+> Em Mon, 12 Feb 2018 20:03:18 +0000
+> Sean Young <sean@mess.org> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > Just very minor changes this time (other stuff is not ready yet). I would
+> > really appreciate if you could cast an extra critical eye on the commit 
+> > "no need to check for transitions", just to be sure it is the right change.
+> 
+> Did you send all patches in separate? This is important to allow us
+> to comment on an specific issue inside a patch...
 
-Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
-Reported-by: Takao Orito <orito.takao@socionext.com>
----
- drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+All the patches were emailed to linux-media, some of them on the same day
+as the pull request. Maybe I should wait longer. The patch below was sent
+out on the 28th of January.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 3a7c80cd1a17..896f2f378b40 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -106,7 +106,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
- 			if (nums[i-1] + 1 != nums[i])
- 				goto fail_map;
- 		buf->vaddr = (__force void *)
--				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
-+			ioremap_nocache(__pfn_to_phys(nums[0]) + offset, size);
- 	} else {
- 		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
- 					PAGE_KERNEL);
+> >       media: rc: no need to check for transitions
+> 
+> I don't remember the exact reason for that, but, as far as I
+> remember, on a few devices, a pulse (or space) event could be
+> broken into two consecutive events of the same type, e. g.,
+> a pulse with a 125 ms could be broken into two pulses, like
+> one with 100 ms and the other with 25 ms.
+
+If that is the case, then the IR decoders could not deal with this anyway.
+For example, the first state transition rc6 is:
+
+	if (!eq_margin(ev.duration, RC6_PREFIX_PULSE, RC6_UNIT))
+
+So if ev.duration is not the complete duration, then decoding will fail;
+I tried to explain in the commit message that if this was the case, then
+decoding would not work so the check was unnecessary.
+
+> That's said, I'm not sure if the current implementation are
+> adding the timings for both pulses into a single one.
+
+That depends on whether the driver uses ir_raw_event_store() or
+ir_raw_event_store_with_filter(). The latter exists precisely for this
+reason.
+
+> For now, I'll keep this patch out of the merge.
+
+Ok. So in summary, I think:
+
+1. Any driver which produces consequentive pulse events is broken
+   and should be fixed;
+2. The IR decoders cannot deal with consequentive pulses and the current
+   prev_ev code does not help with this (possibly in very special
+   cases).
+
+
+Sean
