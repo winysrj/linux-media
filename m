@@ -1,42 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:42958 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753122AbeBFU2N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 15:28:13 -0500
-Received: by mail-pl0-f66.google.com with SMTP id 11so1980110plc.9
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 12:28:13 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v8 2/7] media: v4l-ioctl: fix pad for VIDIOC_DV_TIMIGNS_CAP
-Date: Tue,  6 Feb 2018 12:27:49 -0800
-Message-Id: <1517948874-21681-3-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48819 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967450AbeBNLyU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:54:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH for v4.1 00/14] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
+Date: Wed, 14 Feb 2018 12:54:05 +0100
+Message-Id: <20180214115419.28156-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7961499..5f3670d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2638,7 +2638,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
- 	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
- 	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
--	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
-+	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
- 	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
+This patch series fixes a number of bugs and culminates in the removal
+of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
+
+This was tested with a VM running 4.1, the vivid driver (since that
+emulates almost all V4L2 ioctls that need to pass through v4l2-compat-ioctl32.c)
+and a 32-bit v4l2-compliance utility since that exercises almost all ioctls
+as well. Combined this gives good test coverage.
+
+Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
+v4l2-compliance complained about. The purpose is to 1) make it easy to
+verify that the final patch didn't introduce errors by first eliminating
+errors caused by other known bugs, and 2) keep the final patch at least
+somewhat readable.
+
+Regards,
+
+	Hans
+
+Daniel Mentz (2):
+  media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
+  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
+
+Hans Verkuil (11):
+  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
+  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+  media: v4l2-compat-ioctl32.c: fix the indentation
+  media: v4l2-compat-ioctl32.c: move 'helper' functions to
+    __get/put_v4l2_format32
+  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
+  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
+    errors
+
+Ricardo Ribalda Delgado (1):
+  vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1014 +++++++++++++++----------
+ drivers/media/v4l2-core/v4l2-ioctl.c          |    5 +-
+ drivers/media/v4l2-core/videobuf2-core.c      |    5 +
+ 3 files changed, 625 insertions(+), 399 deletions(-)
+
 -- 
-2.7.4
+2.15.1
