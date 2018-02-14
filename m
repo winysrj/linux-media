@@ -1,106 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41811 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751797AbeBDW43 (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59389 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967530AbeBNL7j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 17:56:29 -0500
-Subject: Re: [PATCH] build: Added temporarily
- v4.9_uvcvideo_ktime_conversion.patch
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com
-References: <1517783595-5858-1-git-send-email-jasmin@anw.at>
+        Wed, 14 Feb 2018 06:59:39 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8660f3f4-3d50-6453-e76d-cb26e146c066@xs4all.nl>
-Date: Sun, 4 Feb 2018 23:56:24 +0100
-MIME-Version: 1.0
-In-Reply-To: <1517783595-5858-1-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.16 04/14] media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+Date: Wed, 14 Feb 2018 12:59:28 +0100
+Message-Id: <20180214115938.28296-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <20180214115938.28296-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/2018 11:33 PM, Jasmin J. wrote:
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Due the delay with merging patches to media_tree, add the mentioned
-> patch temporarily to backports. Once this patch is merged to media_tree,
-> revert this patch.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Merged!
+commit 3ee6d040719ae09110e5cdf24d5386abe5d1b776 upstream.
 
-Please notify me when I can revert this patch, just in case I forget.
+The result of the VIDIOC_PREPARE_BUF ioctl was never copied back
+to userspace since it was missing in the switch.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-	Hans
-
-> 
-> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> ---
->  backports/backports.txt                        |  1 +
->  backports/v4.9_uvcvideo_ktime_conversion.patch | 42 ++++++++++++++++++++++++++
->  2 files changed, 43 insertions(+)
->  create mode 100644 backports/v4.9_uvcvideo_ktime_conversion.patch
-> 
-> diff --git a/backports/backports.txt b/backports/backports.txt
-> index c30ccf0..c148a75 100644
-> --- a/backports/backports.txt
-> +++ b/backports/backports.txt
-> @@ -43,6 +43,7 @@ add v4.10_refcount.patch
->  add v4.9_mm_address.patch
->  add v4.9_dvb_net_max_mtu.patch
->  add v4.9_ktime_cleanups.patch
-> +add v4.9_uvcvideo_ktime_conversion.patch
->  
->  [4.8.255]
->  add v4.8_user_pages_flag.patch
-> diff --git a/backports/v4.9_uvcvideo_ktime_conversion.patch b/backports/v4.9_uvcvideo_ktime_conversion.patch
-> new file mode 100644
-> index 0000000..2f56541
-> --- /dev/null
-> +++ b/backports/v4.9_uvcvideo_ktime_conversion.patch
-> @@ -0,0 +1,42 @@
-> +From fb650b38998f5f84d6f35e52aefd1baec2f54b39 Mon Sep 17 00:00:00 2001
-> +From: Jasmin Jessich <jasmin@anw.at>
-> +Date: Sun, 14 Jan 2018 10:11:08 +0000
-> +Subject: [PATCH] media: uvcvideo: Fixed ktime_t to ns conversion
-> +
-> +Commit 828ee8c71950 ("media: uvcvideo: Use ktime_t for timestamps")
-> +changed to use ktime_t for timestamps. Older Kernels use a struct for
-> +ktime_t, which requires the conversion function ktime_to_ns to be used on
-> +some places. With this patch it will compile now also for older Kernel
-> +versions.
-> +
-> +Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> +---
-> + drivers/media/usb/uvc/uvc_video.c | 5 +++--
-> + 1 file changed, 3 insertions(+), 2 deletions(-)
-> +
-> +diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> +index 5441553..1670aeb 100644
-> +--- a/drivers/media/usb/uvc/uvc_video.c
-> ++++ b/drivers/media/usb/uvc/uvc_video.c
-> +@@ -1009,7 +1009,7 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
-> + 
-> + 		buf->buf.field = V4L2_FIELD_NONE;
-> + 		buf->buf.sequence = stream->sequence;
-> +-		buf->buf.vb2_buf.timestamp = uvc_video_get_time();
-> ++		buf->buf.vb2_buf.timestamp = ktime_to_ns(uvc_video_get_time());
-> + 
-> + 		/* TODO: Handle PTS and SCR. */
-> + 		buf->state = UVC_BUF_STATE_ACTIVE;
-> +@@ -1191,7 +1191,8 @@ static void uvc_video_decode_meta(struct uvc_streaming *stream,
-> + 
-> + 	uvc_trace(UVC_TRACE_FRAME,
-> + 		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u frame SOF %u\n",
-> +-		  __func__, time, meta->sof, meta->length, meta->flags,
-> ++		  __func__, ktime_to_ns(time), meta->sof, meta->length,
-> ++		  meta->flags,
-> + 		  has_pts ? *(u32 *)meta->buf : 0,
-> + 		  has_scr ? *(u32 *)scr : 0,
-> + 		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
-> +-- 
-> +2.7.4
-> +
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 0f747ba40b52..ebedf95a31ed 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -980,6 +980,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		err = put_v4l2_create32(&karg.v2crt, up);
+ 		break;
+ 
++	case VIDIOC_PREPARE_BUF:
+ 	case VIDIOC_QUERYBUF:
+ 	case VIDIOC_QBUF:
+ 	case VIDIOC_DQBUF:
+-- 
+2.15.1
