@@ -1,52 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38382 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752545AbeBSKiN (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:43637 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967530AbeBNLsc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 05:38:13 -0500
+        Wed, 14 Feb 2018 06:48:32 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 06/15] subdev-formats.rst: fix incorrect types
-Date: Mon, 19 Feb 2018 11:37:57 +0100
-Message-Id: <20180219103806.17032-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180219103806.17032-1-hverkuil@xs4all.nl>
-References: <20180219103806.17032-1-hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.9 09/13] media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
+Date: Wed, 14 Feb 2018 12:48:26 +0100
+Message-Id: <20180214114830.27171-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114830.27171-1-hverkuil@xs4all.nl>
+References: <20180214114830.27171-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
+From: Daniel Mentz <danielmentz@google.com>
 
+commit 025a26fa14f8fd55d50ab284a30c016a5be953d0 upstream.
+
+Commit b2787845fb91 ("V4L/DVB (5289): Add support for video output
+overlays.") added the field global_alpha to struct v4l2_window but did
+not update the compat layer accordingly. This change adds global_alpha
+to struct v4l2_window32 and copies the value for global_alpha back and
+forth.
+
+Signed-off-by: Daniel Mentz <danielmentz@google.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/v4l/subdev-formats.rst | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index b1eea44550e1..4f0c0b282f98 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -33,17 +33,17 @@ Media Bus Formats
-       - Image colorspace, from enum
- 	:c:type:`v4l2_colorspace`. See
- 	:ref:`colorspaces` for details.
--    * - enum :c:type:`v4l2_ycbcr_encoding`
-+    * - __u16
-       - ``ycbcr_enc``
-       - This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
--    * - enum :c:type:`v4l2_quantization`
-+    * - __u16
-       - ``quantization``
-       - This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
--    * - enum :c:type:`v4l2_xfer_func`
-+    * - __u16
-       - ``xfer_func``
-       - This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index da55322bbb0f..c32feb94b3e5 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -45,6 +45,7 @@ struct v4l2_window32 {
+ 	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
+ 	__u32			clipcount;
+ 	compat_caddr_t		bitmap;
++	__u8                    global_alpha;
+ };
+ 
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+@@ -53,7 +54,8 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 	    get_user(kp->field, &up->field) ||
+ 	    get_user(kp->chromakey, &up->chromakey) ||
+-	    get_user(kp->clipcount, &up->clipcount))
++	    get_user(kp->clipcount, &up->clipcount) ||
++	    get_user(kp->global_alpha, &up->global_alpha))
+ 		return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+@@ -86,7 +88,8 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+ 	    put_user(kp->field, &up->field) ||
+ 	    put_user(kp->chromakey, &up->chromakey) ||
+-	    put_user(kp->clipcount, &up->clipcount))
++	    put_user(kp->clipcount, &up->clipcount) ||
++	    put_user(kp->global_alpha, &up->global_alpha))
+ 		return -EFAULT;
+ 	return 0;
+ }
 -- 
-2.16.1
+2.15.1
