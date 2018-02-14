@@ -1,127 +1,443 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0050.outbound.protection.outlook.com ([104.47.37.50]:11808
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750736AbeBGW36 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 17:29:58 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Jeffrey Mouroux <jmouroux@xilinx.com>,
-        Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH 3/8] uapi: media: New fourcc codes needed by Xilinx Video IP
-Date: Wed, 7 Feb 2018 14:29:33 -0800
-Message-ID: <1518042578-22771-4-git-send-email-satishna@xilinx.com>
-In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53456 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S967441AbeBNLsc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Feb 2018 06:48:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v4.9 03/13] media: v4l2-compat-ioctl32.c: fix the indentation
+Date: Wed, 14 Feb 2018 12:48:20 +0100
+Message-Id: <20180214114830.27171-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180214114830.27171-1-hverkuil@xs4all.nl>
+References: <20180214114830.27171-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jeffrey Mouroux <jmouroux@xilinx.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The Xilinx Video Framebuffer DMA IP supports video memory formats
-that are not represented in the current V4L2 fourcc library. This
-patch adds those missing fourcc codes. This includes both new
-8-bit and 10-bit pixel formats.
+commit b7b957d429f601d6d1942122b339474f31191d75 upstream.
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+The indentation of this source is all over the place. Fix this.
+This patch only changes whitespace.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/uapi/linux/videodev2.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 208 +++++++++++++-------------
+ 1 file changed, 104 insertions(+), 104 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.=
-h
-index 9827189..9fa4313c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -509,7 +509,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2', '4') /* 32  BGRX-8=
--8-8-8  */
- #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-=
-8-8-8   */
- #define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8=
--8-8-8  */
-+#define V4L2_PIX_FMT_BGRA32  v4l2_fourcc('A', 'B', 'G', 'R') /* 32  ABGR-8=
--8-8-8  */
- #define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8=
--8-8-8  */
-+#define V4L2_PIX_FMT_BGRX32  v4l2_fourcc('X', 'B', 'G', 'R') /* 32  XBGR-8=
--8-8-8 */
-+#define V4L2_PIX_FMT_XBGR30  v4l2_fourcc('R', 'X', '3', '0') /* 32  XBGR-2=
--10-10-10 */
-
- /* Grey formats */
- #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greysc=
-ale     */
-@@ -537,12 +540,16 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:=
-2:2     */
- #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:=
-1:1     */
- #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyy=
-yy uuuuvvvv */
-+#define V4L2_PIX_FMT_XVUY32  v4l2_fourcc('X', 'V', '3', '2') /* 32  XVUY 8=
-:8:8:8 */
-+#define V4L2_PIX_FMT_AVUY32  v4l2_fourcc('A', 'V', '3', '2') /* 32  AVUY 8=
-:8:8:8 */
-+#define V4L2_PIX_FMT_VUY24   v4l2_fourcc('V', 'U', '2', '4') /* 24  VUY 8:=
-8:8 */
- #define V4L2_PIX_FMT_YUV555  v4l2_fourcc('Y', 'U', 'V', 'O') /* 16  YUV-5-=
-5-5     */
- #define V4L2_PIX_FMT_YUV565  v4l2_fourcc('Y', 'U', 'V', 'P') /* 16  YUV-5-=
-6-5     */
- #define V4L2_PIX_FMT_YUV32   v4l2_fourcc('Y', 'U', 'V', '4') /* 32  YUV-8-=
-8-8-8   */
- #define V4L2_PIX_FMT_HI240   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit =
-color   */
- #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:=
-2:0 16x16 macroblocks */
- #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:=
-2:0 2 lines y, 1 line uv interleaved */
-+#define V4L2_PIX_FMT_XVUY10  v4l2_fourcc('X', 'Y', '1', '0') /* 32  XVUY 2=
--10-10-10 */
-
- /* two planes -- one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr=
- 4:2:0  */
-@@ -551,6 +558,8 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb=
- 4:2:2  */
- #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr=
- 4:4:4  */
- #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb=
- 4:4:4  */
-+#define V4L2_PIX_FMT_XV20    v4l2_fourcc('X', 'V', '2', '0') /* 32  XY/UV =
-4:2:2 10-bit */
-+#define V4L2_PIX_FMT_XV15    v4l2_fourcc('X', 'V', '1', '5') /* 32  XY/UV =
-4:2:0 10-bit */
-
- /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr=
- 4:2:0  */
-@@ -558,6 +567,8 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr=
- 4:2:2  */
- #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb=
- 4:2:2  */
- #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr=
- 4:2:0 64x32 macroblocks */
-+#define V4L2_PIX_FMT_XV20M   v4l2_fourcc('X', 'M', '2', '0') /* 32  XY/UV =
-4:2:2 10-bit */
-+#define V4L2_PIX_FMT_XV15M   v4l2_fourcc('X', 'M', '1', '5') /* 32  XY/UV =
-4:2:0 10-bit */
- #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y=
-/CbCr 4:2:0 16x16 macroblocks */
-
- /* three planes - Y Cb, Cr */
---
-2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 049380bbf4cf..57211c7fc491 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -48,11 +48,11 @@ struct v4l2_window32 {
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_window32)) ||
+-		copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+-		get_user(kp->field, &up->field) ||
+-		get_user(kp->chromakey, &up->chromakey) ||
+-		get_user(kp->clipcount, &up->clipcount))
+-			return -EFAULT;
++	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
++	    get_user(kp->field, &up->field) ||
++	    get_user(kp->chromakey, &up->chromakey) ||
++	    get_user(kp->clipcount, &up->clipcount))
++		return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+ 	if (kp->clipcount) {
+@@ -82,10 +82,10 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+-		put_user(kp->field, &up->field) ||
+-		put_user(kp->chromakey, &up->chromakey) ||
+-		put_user(kp->clipcount, &up->clipcount))
+-			return -EFAULT;
++	    put_user(kp->field, &up->field) ||
++	    put_user(kp->chromakey, &up->chromakey) ||
++	    put_user(kp->clipcount, &up->clipcount))
++		return -EFAULT;
+ 	return 0;
+ }
+ 
+@@ -97,7 +97,7 @@ static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pi
+ }
+ 
+ static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-				struct v4l2_pix_format_mplane __user *up)
++					     struct v4l2_pix_format_mplane __user *up)
+ {
+ 	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
+ 		return -EFAULT;
+@@ -112,7 +112,7 @@ static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pi
+ }
+ 
+ static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-				struct v4l2_pix_format_mplane __user *up)
++					     struct v4l2_pix_format_mplane __user *up)
+ {
+ 	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
+ 		return -EFAULT;
+@@ -218,7 +218,7 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
+ 	default:
+ 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-								kp->type);
++			kp->type);
+ 		return -EINVAL;
+ 	}
+ }
+@@ -265,7 +265,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
+ 	default:
+ 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+-								kp->type);
++			kp->type);
+ 		return -EINVAL;
+ 	}
+ }
+@@ -299,7 +299,7 @@ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
+ {
+ 	/* other fields are not set by the user, nor used by the driver */
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_standard32)) ||
+-		get_user(kp->index, &up->index))
++	    get_user(kp->index, &up->index))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -307,13 +307,13 @@ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
+ static int put_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
+ {
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_standard32)) ||
+-		put_user(kp->index, &up->index) ||
+-		put_user(kp->id, &up->id) ||
+-		copy_to_user(up->name, kp->name, 24) ||
+-		copy_to_user(&up->frameperiod, &kp->frameperiod, sizeof(kp->frameperiod)) ||
+-		put_user(kp->framelines, &up->framelines) ||
+-		copy_to_user(up->reserved, kp->reserved, 4 * sizeof(__u32)))
+-			return -EFAULT;
++	    put_user(kp->index, &up->index) ||
++	    put_user(kp->id, &up->id) ||
++	    copy_to_user(up->name, kp->name, 24) ||
++	    copy_to_user(&up->frameperiod, &kp->frameperiod, sizeof(kp->frameperiod)) ||
++	    put_user(kp->framelines, &up->framelines) ||
++	    copy_to_user(up->reserved, kp->reserved, 4 * sizeof(__u32)))
++		return -EFAULT;
+ 	return 0;
+ }
+ 
+@@ -353,14 +353,14 @@ struct v4l2_buffer32 {
+ };
+ 
+ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
+-				enum v4l2_memory memory)
++			    enum v4l2_memory memory)
+ {
+ 	void __user *up_pln;
+ 	compat_long_t p;
+ 
+ 	if (copy_in_user(up, up32, 2 * sizeof(__u32)) ||
+-		copy_in_user(&up->data_offset, &up32->data_offset,
+-				sizeof(__u32)))
++	    copy_in_user(&up->data_offset, &up32->data_offset,
++			 sizeof(__u32)))
+ 		return -EFAULT;
+ 
+ 	if (memory == V4L2_MEMORY_USERPTR) {
+@@ -374,7 +374,7 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 			return -EFAULT;
+ 	} else {
+ 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-					sizeof(__u32)))
++				 sizeof(__u32)))
+ 			return -EFAULT;
+ 	}
+ 
+@@ -382,23 +382,23 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ }
+ 
+ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
+-				enum v4l2_memory memory)
++			    enum v4l2_memory memory)
+ {
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+-		copy_in_user(&up32->data_offset, &up->data_offset,
+-				sizeof(__u32)))
++	    copy_in_user(&up32->data_offset, &up->data_offset,
++			 sizeof(__u32)))
+ 		return -EFAULT;
+ 
+ 	/* For MMAP, driver might've set up the offset, so copy it back.
+ 	 * USERPTR stays the same (was userspace-provided), so no copying. */
+ 	if (memory == V4L2_MEMORY_MMAP)
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+-					sizeof(__u32)))
++				 sizeof(__u32)))
+ 			return -EFAULT;
+ 	/* For DMABUF, driver might've set up the fd, so copy it back. */
+ 	if (memory == V4L2_MEMORY_DMABUF)
+ 		if (copy_in_user(&up32->m.fd, &up->m.fd,
+-					sizeof(int)))
++				 sizeof(int)))
+ 			return -EFAULT;
+ 
+ 	return 0;
+@@ -413,19 +413,19 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	int ret;
+ 
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
+-		get_user(kp->index, &up->index) ||
+-		get_user(kp->type, &up->type) ||
+-		get_user(kp->flags, &up->flags) ||
+-		get_user(kp->memory, &up->memory) ||
+-		get_user(kp->length, &up->length))
+-			return -EFAULT;
++	    get_user(kp->index, &up->index) ||
++	    get_user(kp->type, &up->type) ||
++	    get_user(kp->flags, &up->flags) ||
++	    get_user(kp->memory, &up->memory) ||
++	    get_user(kp->length, &up->length))
++		return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
+ 		if (get_user(kp->bytesused, &up->bytesused) ||
+-			get_user(kp->field, &up->field) ||
+-			get_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
+-			get_user(kp->timestamp.tv_usec,
+-					&up->timestamp.tv_usec))
++		    get_user(kp->field, &up->field) ||
++		    get_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
++		    get_user(kp->timestamp.tv_usec,
++			     &up->timestamp.tv_usec))
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+@@ -442,13 +442,13 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 
+ 		uplane32 = compat_ptr(p);
+ 		if (!access_ok(VERIFY_READ, uplane32,
+-				num_planes * sizeof(struct v4l2_plane32)))
++			       num_planes * sizeof(struct v4l2_plane32)))
+ 			return -EFAULT;
+ 
+ 		/* We don't really care if userspace decides to kill itself
+ 		 * by passing a very big num_planes value */
+ 		uplane = compat_alloc_user_space(num_planes *
+-						sizeof(struct v4l2_plane));
++						 sizeof(struct v4l2_plane));
+ 		kp->m.planes = (__force struct v4l2_plane *)uplane;
+ 
+ 		while (--num_planes >= 0) {
+@@ -466,12 +466,12 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 			{
+-			compat_long_t tmp;
++				compat_long_t tmp;
+ 
+-			if (get_user(tmp, &up->m.userptr))
+-				return -EFAULT;
++				if (get_user(tmp, &up->m.userptr))
++					return -EFAULT;
+ 
+-			kp->m.userptr = (unsigned long)compat_ptr(tmp);
++				kp->m.userptr = (unsigned long)compat_ptr(tmp);
+ 			}
+ 			break;
+ 		case V4L2_MEMORY_OVERLAY:
+@@ -497,22 +497,22 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	int ret;
+ 
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_buffer32)) ||
+-		put_user(kp->index, &up->index) ||
+-		put_user(kp->type, &up->type) ||
+-		put_user(kp->flags, &up->flags) ||
+-		put_user(kp->memory, &up->memory))
+-			return -EFAULT;
++	    put_user(kp->index, &up->index) ||
++	    put_user(kp->type, &up->type) ||
++	    put_user(kp->flags, &up->flags) ||
++	    put_user(kp->memory, &up->memory))
++		return -EFAULT;
+ 
+ 	if (put_user(kp->bytesused, &up->bytesused) ||
+-		put_user(kp->field, &up->field) ||
+-		put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
+-		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+-		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+-		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
+-		put_user(kp->reserved, &up->reserved) ||
+-		put_user(kp->length, &up->length))
+-			return -EFAULT;
++	    put_user(kp->field, &up->field) ||
++	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
++	    put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
++	    copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
++	    put_user(kp->sequence, &up->sequence) ||
++	    put_user(kp->reserved2, &up->reserved2) ||
++	    put_user(kp->reserved, &up->reserved) ||
++	    put_user(kp->length, &up->length))
++		return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+ 		num_planes = kp->length;
+@@ -576,11 +576,11 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ 	u32 tmp;
+ 
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
+-		get_user(tmp, &up->base) ||
+-		get_user(kp->capability, &up->capability) ||
+-		get_user(kp->flags, &up->flags) ||
+-		copy_from_user(&kp->fmt, &up->fmt, sizeof(up->fmt)))
+-			return -EFAULT;
++	    get_user(tmp, &up->base) ||
++	    get_user(kp->capability, &up->capability) ||
++	    get_user(kp->flags, &up->flags) ||
++	    copy_from_user(&kp->fmt, &up->fmt, sizeof(up->fmt)))
++		return -EFAULT;
+ 	kp->base = (__force void *)compat_ptr(tmp);
+ 	return 0;
+ }
+@@ -590,11 +590,11 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ 	u32 tmp = (u32)((unsigned long)kp->base);
+ 
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
+-		put_user(tmp, &up->base) ||
+-		put_user(kp->capability, &up->capability) ||
+-		put_user(kp->flags, &up->flags) ||
+-		copy_to_user(&up->fmt, &kp->fmt, sizeof(up->fmt)))
+-			return -EFAULT;
++	    put_user(tmp, &up->base) ||
++	    put_user(kp->capability, &up->capability) ||
++	    put_user(kp->flags, &up->flags) ||
++	    copy_to_user(&up->fmt, &kp->fmt, sizeof(up->fmt)))
++		return -EFAULT;
+ 	return 0;
+ }
+ 
+@@ -669,12 +669,12 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	compat_caddr_t p;
+ 
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_ext_controls32)) ||
+-		get_user(kp->which, &up->which) ||
+-		get_user(kp->count, &up->count) ||
+-		get_user(kp->error_idx, &up->error_idx) ||
+-		copy_from_user(kp->reserved, up->reserved,
+-			       sizeof(kp->reserved)))
+-			return -EFAULT;
++	    get_user(kp->which, &up->which) ||
++	    get_user(kp->count, &up->count) ||
++	    get_user(kp->error_idx, &up->error_idx) ||
++	    copy_from_user(kp->reserved, up->reserved,
++			   sizeof(kp->reserved)))
++		return -EFAULT;
+ 	n = kp->count;
+ 	if (n == 0) {
+ 		kp->controls = NULL;
+@@ -684,7 +684,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 		return -EFAULT;
+ 	ucontrols = compat_ptr(p);
+ 	if (!access_ok(VERIFY_READ, ucontrols,
+-			n * sizeof(struct v4l2_ext_control32)))
++		       n * sizeof(struct v4l2_ext_control32)))
+ 		return -EFAULT;
+ 	kcontrols = compat_alloc_user_space(n * sizeof(struct v4l2_ext_control));
+ 	kp->controls = (__force struct v4l2_ext_control *)kcontrols;
+@@ -719,11 +719,11 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	compat_caddr_t p;
+ 
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_ext_controls32)) ||
+-		put_user(kp->which, &up->which) ||
+-		put_user(kp->count, &up->count) ||
+-		put_user(kp->error_idx, &up->error_idx) ||
+-		copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
+-			return -EFAULT;
++	    put_user(kp->which, &up->which) ||
++	    put_user(kp->count, &up->count) ||
++	    put_user(kp->error_idx, &up->error_idx) ||
++	    copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
++		return -EFAULT;
+ 	if (!kp->count)
+ 		return 0;
+ 
+@@ -731,7 +731,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 		return -EFAULT;
+ 	ucontrols = compat_ptr(p);
+ 	if (!access_ok(VERIFY_WRITE, ucontrols,
+-			n * sizeof(struct v4l2_ext_control32)))
++		       n * sizeof(struct v4l2_ext_control32)))
+ 		return -EFAULT;
+ 
+ 	while (--n >= 0) {
+@@ -769,15 +769,15 @@ struct v4l2_event32 {
+ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *up)
+ {
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_event32)) ||
+-		put_user(kp->type, &up->type) ||
+-		copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
+-		put_user(kp->pending, &up->pending) ||
+-		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
+-		put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
+-		put_user(kp->id, &up->id) ||
+-		copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
+-			return -EFAULT;
++	    put_user(kp->type, &up->type) ||
++	    copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
++	    put_user(kp->pending, &up->pending) ||
++	    put_user(kp->sequence, &up->sequence) ||
++	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
++	    put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
++	    put_user(kp->id, &up->id) ||
++	    copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
++		return -EFAULT;
+ 	return 0;
+ }
+ 
+@@ -794,12 +794,12 @@ static int get_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
+ 	u32 tmp;
+ 
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_edid32)) ||
+-		get_user(kp->pad, &up->pad) ||
+-		get_user(kp->start_block, &up->start_block) ||
+-		get_user(kp->blocks, &up->blocks) ||
+-		get_user(tmp, &up->edid) ||
+-		copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+-			return -EFAULT;
++	    get_user(kp->pad, &up->pad) ||
++	    get_user(kp->start_block, &up->start_block) ||
++	    get_user(kp->blocks, &up->blocks) ||
++	    get_user(tmp, &up->edid) ||
++	    copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++		return -EFAULT;
+ 	kp->edid = (__force u8 *)compat_ptr(tmp);
+ 	return 0;
+ }
+@@ -809,12 +809,12 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
+ 	u32 tmp = (u32)((unsigned long)kp->edid);
+ 
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_edid32)) ||
+-		put_user(kp->pad, &up->pad) ||
+-		put_user(kp->start_block, &up->start_block) ||
+-		put_user(kp->blocks, &up->blocks) ||
+-		put_user(tmp, &up->edid) ||
+-		copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
+-			return -EFAULT;
++	    put_user(kp->pad, &up->pad) ||
++	    put_user(kp->start_block, &up->start_block) ||
++	    put_user(kp->blocks, &up->blocks) ||
++	    put_user(tmp, &up->edid) ||
++	    copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
++		return -EFAULT;
+ 	return 0;
+ }
+ 
+-- 
+2.15.1
