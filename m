@@ -1,92 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47437 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751089AbeBWKEy (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:33509 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754708AbeBNMDY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 05:04:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH 01/13] media: v4l2-fwnode: Let parse_endpoint callback decide if no remote is error
-Date: Fri, 23 Feb 2018 12:05:38 +0200
-Message-ID: <2571855.0gglA1aPyk@avalon>
-In-Reply-To: <1519379812.7712.1.camel@pengutronix.de>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com> <3283028.CgXzGkPyKt@avalon> <1519379812.7712.1.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 14 Feb 2018 07:03:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.2 06/12] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+Date: Wed, 14 Feb 2018 13:03:17 +0100
+Message-Id: <20180214120323.28778-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
+References: <20180214120323.28778-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Friday, 23 February 2018 11:56:52 EET Philipp Zabel wrote:
-> On Fri, 2018-02-23 at 11:29 +0200, Laurent Pinchart wrote:
-> > On Thursday, 22 February 2018 03:39:37 EET Steve Longerbeam wrote:
-> >> For some subdevices, a fwnode endpoint that has no connection to a
-> >> remote endpoint may not be an error. Let the parse_endpoint callback
-> > make that decision in v4l2_async_notifier_fwnode_parse_endpoint(). If
-> >> the callback indicates that is not an error, skip adding the asd to the
-> >> notifier and return 0.
-> >> 
-> >> For the current users of v4l2_async_notifier_parse_fwnode_endpoints()
-> >> (omap3isp, rcar-vin, intel-ipu3), return -EINVAL in the callback for
-> >> unavailable remote fwnodes to maintain the previous behavior.
-> > 
-> > I'm not sure this should be a per-driver decision.
-> > 
-> > Generally speaking, if an endpoint node has no remote-endpoint property,
-> > the endpoint node is not needed. I've always considered such an endpoint
-> > node as invalid. The OF graphs DT bindings are however not clear on this
-> > subject.
-> 
-> Documentation/devicetree/bindings/graph.txt says:
-> 
->   Each endpoint should contain a 'remote-endpoint' phandle property
->   that points to the corresponding endpoint in the port of the remote
->   device.
-> 
-> ("should", not "must").
+commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
 
-The DT bindings documentation has historically used "should" to mean "must" in 
-many places :-( That was a big mistake.
+The struct v4l2_plane32 should set m.userptr as well. The same
+happens in v4l2_buffer32 and v4l2-compliance tests for this.
 
-> Later, the remote-node property explicitly lists the remote-endpoint
-> property as optional.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c | 30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
-I've seen that too, and that's why I mentioned that the documentation isn't 
-clear on the subject.
-
-> > I have either failed to notice when they got merged, or they slowly
-> > evolved over time to contain contradictory information. In any case, I
-> > think we should decide on whether such a situation is valid or not from
-> > an OF graph point of view, and then always reject or always accept and
-> > ignore those endpoints.
-> 
-> We are currently using this on i.MX6 to provide empty labeled endpoints
-> in the dtsi files for board DT writers to link to, both for the display
-> output and video capture ports.
-> See for example the endpoints with the labels ipu1_di0_disp0 and
-> ipu1_csi0_mux_from_parallel_sensor in arch/arm/boot/dts/imx6q.dtsi.
-
-This could also be achieved by adding the endpoints in the board DT files. See 
-for instance the hdmi@fead0000 node in arch/arm64/boot/dts/renesas/
-r8a7795.dtsi and how it gets extended in arch/arm64/boot/dts/renesas/r8a7795-
-salvator-x.dts. On the other hand, I also have empty endpoints in the 
-display@feb00000 node of arch/arm64/boot/dts/renesas/r8a7795.dtsi.
-
-I think we should first decide what we want to do going forward (allowing for 
-empty endpoints or not), clarify the documentation, and then update the code. 
-In any case I don't think it should be a per-device decision.
-
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index e2dee29eaaa5..7477feff92b1 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -293,16 +293,20 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	if (memory == V4L2_MEMORY_USERPTR) {
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
++		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
++				 sizeof(up32->m.mem_offset)))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_USERPTR:
+ 		if (get_user(p, &up32->m.userptr))
+ 			return -EFAULT;
+ 		up_pln = compat_ptr(p);
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
+-	} else {
+-		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-				 sizeof(up32->m.mem_offset)))
+-			return -EFAULT;
++		break;
+ 	}
+ 
+ 	return 0;
+@@ -311,17 +315,27 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ static int put_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ 			    enum v4l2_memory memory)
+ {
++	unsigned long p;
++
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up32->data_offset, &up->data_offset,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	/* For MMAP, driver might've set up the offset, so copy it back.
+-	 * USERPTR stays the same (was userspace-provided), so no copying. */
+-	if (memory == V4L2_MEMORY_MMAP)
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+ 				 sizeof(up->m.mem_offset)))
+ 			return -EFAULT;
++		break;
++	case V4L2_MEMORY_USERPTR:
++		if (get_user(p, &up->m.userptr) ||
++		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
++			     &up32->m.userptr))
++			return -EFAULT;
++		break;
++	}
+ 
+ 	return 0;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
