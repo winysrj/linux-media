@@ -1,210 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:51219 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751640AbeBUGCQ (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:50374 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1032203AbeBNQUx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 01:02:16 -0500
-Received: by mail-it0-f68.google.com with SMTP id o9so956156itc.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 22:02:16 -0800 (PST)
-Received: from mail-it0-f53.google.com (mail-it0-f53.google.com. [209.85.214.53])
-        by smtp.gmail.com with ESMTPSA id 90sm11610917iod.27.2018.02.20.22.02.13
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 20 Feb 2018 22:02:14 -0800 (PST)
-Received: by mail-it0-f53.google.com with SMTP id a203so7781717itd.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 22:02:13 -0800 (PST)
+        Wed, 14 Feb 2018 11:20:53 -0500
+Subject: Re: [PATCH v10 6/8] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1518157956-14220-1-git-send-email-tharvey@gateworks.com>
+ <1518157956-14220-7-git-send-email-tharvey@gateworks.com>
+ <cf5c51f4-ca86-e468-ba16-d47d224a2428@xs4all.nl>
+ <CAJ+vNU0ZCamOaJ2dZ_jisxcLFrUCTtajdvabBsHgpuedCVFbyw@mail.gmail.com>
+ <890204e0-489b-1bd6-d4c5-14e6437e8edc@xs4all.nl>
+ <CAJ+vNU22eAwxLFNjsj96Spgi9qLwpWpEk7A2dJy50L8LyW_uCQ@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <73d8842c-999d-e2d5-1814-dfd0d43964e4@xs4all.nl>
+Date: Wed, 14 Feb 2018 17:20:51 +0100
 MIME-Version: 1.0
-In-Reply-To: <ea10280d-bfb4-b1af-79cc-64f40e1007f1@xs4all.nl>
-References: <20180220044425.169493-1-acourbot@chromium.org>
- <20180220044425.169493-17-acourbot@chromium.org> <ea10280d-bfb4-b1af-79cc-64f40e1007f1@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Wed, 21 Feb 2018 15:01:53 +0900
-Message-ID: <CAPBb6MU+uFyNdEbXavEWO5_AQrYT8d3qBXqZ0LuvLpU_qy-xNA@mail.gmail.com>
-Subject: Re: [RFCv4 16/21] v4l2: video_device: support for creating requests
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAJ+vNU22eAwxLFNjsj96Spgi9qLwpWpEk7A2dJy50L8LyW_uCQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 21, 2018 at 1:35 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/20/2018 05:44 AM, Alexandre Courbot wrote:
->> Add a new VIDIOC_NEW_REQUEST ioctl, which allows to instanciate requests
->> on devices that support the request API. Requests created that way can
->> only control the device they originate from, making them suitable for
->> simple devices, but not complex pipelines.
+On 14/02/18 16:46, Tim Harvey wrote:
+> On Wed, Feb 14, 2018 at 6:08 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Tim,
 >>
->> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->> ---
->>  Documentation/ioctl/ioctl-number.txt |  1 +
->>  drivers/media/v4l2-core/v4l2-dev.c   |  2 ++
->>  drivers/media/v4l2-core/v4l2-ioctl.c | 25 +++++++++++++++++++++++++
->>  include/media/v4l2-dev.h             |  2 ++
->>  include/uapi/linux/videodev2.h       |  3 +++
->>  5 files changed, 33 insertions(+)
+>> On 12/02/18 23:27, Tim Harvey wrote:
+>>> On Fri, Feb 9, 2018 at 12:08 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> Hi Tim,
+>>>>
+>>>> We're almost there. Two more comments:
+>>>>
+>>>> On 02/09/2018 07:32 AM, Tim Harvey wrote:
+>>>>> +static int
+>>>>> +tda1997x_detect_std(struct tda1997x_state *state,
+>>>>> +                 struct v4l2_dv_timings *timings)
+>>>>> +{
+>>>>> +     struct v4l2_subdev *sd = &state->sd;
+>>>>> +     u32 vper;
+>>>>> +     u16 hper;
+>>>>> +     u16 hsper;
+>>>>> +     int i;
+>>>>> +
+>>>>> +     /*
+>>>>> +      * Read the FMT registers
+>>>>> +      *   REG_V_PER: Period of a frame (or two fields) in MCLK(27MHz) cycles
+>>>>> +      *   REG_H_PER: Period of a line in MCLK(27MHz) cycles
+>>>>> +      *   REG_HS_WIDTH: Period of horiz sync pulse in MCLK(27MHz) cycles
+>>>>> +      */
+>>>>> +     vper = io_read24(sd, REG_V_PER) & MASK_VPER;
+>>>>> +     hper = io_read16(sd, REG_H_PER) & MASK_HPER;
+>>>>> +     hsper = io_read16(sd, REG_HS_WIDTH) & MASK_HSWIDTH;
+>>>>> +     if (!vper || !hper || !hsper)
+>>>>> +             return -ENOLINK;
+>>>>
+>>>> See my comment for g_input_status below. This condition looks more like a
+>>>> ENOLCK.
+>>>>
+>>>> Or perhaps it should be:
+>>>>
+>>>>         if (!vper && !hper && !hsper)
+>>>>                 return -ENOLINK;
+>>>>         if (!vper || !hper || !hsper)
+>>>>                 return -ENOLCK;
+>>>>
+>>>> I would recommend that you test a bit with no signal and a bad signal (perhaps
+>>>> one that uses a pixelclock that is too high for this device?).
+>>>
+>>> I can't figure out how to produce a signal that can't be locked onto
+>>> with what I have available.
 >>
->> diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
->> index 6501389d55b9..afdc9ed255b0 100644
->> --- a/Documentation/ioctl/ioctl-number.txt
->> +++ b/Documentation/ioctl/ioctl-number.txt
->> @@ -286,6 +286,7 @@ Code  Seq#(hex)   Include File            Comments
->>                                       <mailto:oe@port.de>
->>  'z'  10-4F   drivers/s390/crypto/zcrypt_api.h        conflict!
->>  '|'  00-7F   linux/media.h
->> +'|'  80-9F   linux/media-request.h
->>  0x80 00-1F   linux/fb.h
->>  0x89 00-06   arch/x86/include/asm/sockios.h
->>  0x89 0B-DF   linux/sockios.h
->
-> This ^^^^ doesn't belong in this patch.
-
-Do you mean we need a separate patch for this?
-
->
->> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
->> index 0301fe426a43..062ebee5bffc 100644
->> --- a/drivers/media/v4l2-core/v4l2-dev.c
->> +++ b/drivers/media/v4l2-core/v4l2-dev.c
->> @@ -559,6 +559,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
->>               set_bit(_IOC_NR(VIDIOC_TRY_EXT_CTRLS), valid_ioctls);
->>       if (vdev->ctrl_handler || ops->vidioc_querymenu)
->>               set_bit(_IOC_NR(VIDIOC_QUERYMENU), valid_ioctls);
->> +     if (vdev->req_mgr)
->> +             set_bit(_IOC_NR(VIDIOC_NEW_REQUEST), valid_ioctls);
->>       SET_VALID_IOCTL(ops, VIDIOC_G_FREQUENCY, vidioc_g_frequency);
->>       SET_VALID_IOCTL(ops, VIDIOC_S_FREQUENCY, vidioc_s_frequency);
->>       SET_VALID_IOCTL(ops, VIDIOC_LOG_STATUS, vidioc_log_status);
->> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
->> index ab4968ea443f..a45fe078f8ae 100644
->> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->> @@ -21,6 +21,7 @@
+>> Are you using a signal generator or just a laptop or something similar as the
+>> source?
 >>
->>  #include <linux/videodev2.h>
+>> Without a good signal generator it is tricky to test this. A very long HDMI
+>> cable would likely do it. But for 1080p60 you probably need 20 meters or
+>> more.
 >>
->> +#include <media/media-request.h>
->>  #include <media/v4l2-common.h>
->>  #include <media/v4l2-ioctl.h>
->>  #include <media/v4l2-ctrls.h>
->> @@ -842,6 +843,13 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
->>                       p->rangehigh, p->modulation);
->>  }
+> 
+> I'm using a Marshall V-SG4K-HDI
+> (http://www.lcdracks.com/racks/DLW/V-SG4K-HDI-signal-generator.php).
+> It does support 'user defined timings' (see
+> http://www.lcdracks.com/racks/pdf-pages/instruction_sheets/V-SG4K-HDI_Manual-web.pdf
+> Timings Details Menu page) and it looks like the max pixel-clock is
+> 300MHz so perhaps I can create a timing that can't be locked onto that
+> way.
+
+Yeah, that's what I usually do: try with a signal that's too high/too low.
+
+> 
+> The TDA19971 datasheet
+> (http://tharvey/src/nxp/tda1997x/TDA19971-datasheet-rev3.pdf) says it
+> supports:
+> - All HDTV formats up to 1920x1080p at 50/60 Hz with support for
+> reduced blanking
+> - 3D formats including all primary formats up to 1920x1080p at 30 Hz
+> Frame Packing and 1920x1080p at 60 Hz Side-by-Side and Top-and-Bottom
+> - PC formats up to UXGA (1600x1200p at 60 Hz) and WUXGA (1920x1200p at 60 Hz)
+
+The max pixelclock is probably around 170 MHz. So something above that should
+do it.
+
+> 
+>>>
+> <snip>
+>>>>
+>>>>> +static int
+>>>>> +tda1997x_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>>>>> +{
+>>>>> +     struct tda1997x_state *state = to_state(sd);
+>>>>> +     u32 vper;
+>>>>> +     u16 hper;
+>>>>> +     u16 hsper;
+>>>>> +
+>>>>> +     mutex_lock(&state->lock);
+>>>>> +     v4l2_dbg(1, debug, sd, "inputs:%d/%d\n",
+>>>>> +              state->input_detect[0], state->input_detect[1]);
+>>>>> +     if (state->input_detect[0] || state->input_detect[1])
+>>>>
+>>>> I'm confused. This device has two HDMI inputs?
+>>>>
+>>>> Does 'detecting input' equate to 'I see a signal and I am locked'?
+>>>> I gather from the irq function that sets these values that it is closer
+>>>> to 'I see a signal' and that 'I am locked' is something you would test
+>>>> by looking at the vper/hper/hsper.
+>>>
+>>> The TDA19972 and/or TDA19973 has an A and B input but only a single
+>>> output. I'm not entirely clear if/how to select between the two and I
+>>> don't have proper documentation for the three chips.
+>>>
+>>> The TDA19971 which I have on my board only has 1 input which is
+>>> reported as the 'A' input. I can likely nuke the stuff looking at the
+>>> B input and/or put some qualifiers around it but I didn't want to
+>>> remove code that was derived from some vendor code that might help
+>>> support the other chips in the future. So I would rather like to leave
+>>> the 'if A or B' stuff.
 >>
->> +static void vidioc_print_new_request(const void *arg, bool write_only)
->> +{
->> +     const struct media_request_new *new = arg;
->> +
->> +     pr_cont("fd=0x%x\n", new->fd);
->
-> I'd use %d since fds are typically shown as signed integers.
-
-Right.
-
->
->> +}
->> +
->>  static void v4l_print_edid(const void *arg, bool write_only)
->>  {
->>       const struct v4l2_edid *p = arg;
->> @@ -2486,6 +2494,22 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
->>       return -ENOTTY;
->>  }
+>> OK. Can you add a comment somewhere in the driver about this?
 >>
->> +static int vidioc_new_request(const struct v4l2_ioctl_ops *ops,
->> +                           struct file *file, void *fh, void *arg)
->> +{
->> +#if IS_ENABLED(CONFIG_MEDIA_REQUEST_API)
->> +     struct media_request_new *new = arg;
->> +     struct video_device *vfd = video_devdata(file);
->> +
->> +     if (!vfd->req_mgr)
->> +             return -ENOTTY;
->> +
->> +     return media_request_ioctl_new(vfd->req_mgr, new);
->> +#else
->> +     return -ENOTTY;
->> +#endif
->> +}
->
-> You don't need the #ifdef's here. media_request_ioctl_new() will be stubbed if
-> CONFIG_MEDIA_REQUEST_API isn't set.
-
-Correct.
-
->
->> +
->>  struct v4l2_ioctl_info {
->>       unsigned int ioctl;
->>       u32 flags;
->> @@ -2617,6 +2641,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->>       IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
->>       IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
->>       IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
->> +     IOCTL_INFO_FNC(VIDIOC_NEW_REQUEST, vidioc_new_request, vidioc_print_new_request, 0),
->>  };
->>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+>> It sounds like it is similar to what the adv7604 has: several inputs but
+>> only one is used for streaming. But the EDID is made available on both inputs.
 >>
->> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
->> index 53f32022fabe..e6c4e10889bc 100644
->> --- a/include/media/v4l2-dev.h
->> +++ b/include/media/v4l2-dev.h
->> @@ -209,6 +209,7 @@ struct v4l2_file_operations {
->>   * @entity: &struct media_entity
->>   * @intf_devnode: pointer to &struct media_intf_devnode
->>   * @pipe: &struct media_pipeline
->> + * @req_mgr: request manager to use if this device supports creating requests
->>   * @fops: pointer to &struct v4l2_file_operations for the video device
->>   * @device_caps: device capabilities as used in v4l2_capabilities
->>   * @dev: &struct device for the video device
->> @@ -251,6 +252,7 @@ struct video_device
->>       struct media_intf_devnode *intf_devnode;
->>       struct media_pipeline pipe;
->>  #endif
->> +     struct media_request_mgr *req_mgr;
->>       const struct v4l2_file_operations *fops;
+> 
+> sure, I will comment about it. I believe that is the way the it works as well.
+> 
+>>>>
+>>>>> +             *status = 0;
+>>>>> +     else {
+>>>>> +             vper = io_read24(sd, REG_V_PER) & MASK_VPER;
+>>>>> +             hper = io_read16(sd, REG_H_PER) & MASK_HPER;
+>>>>> +             hsper = io_read16(sd, REG_HS_WIDTH) & MASK_HSWIDTH;
+>>>>> +             v4l2_dbg(1, debug, sd, "timings:%d/%d/%d\n", vper, hper, hsper);
+>>>>> +             if (!vper || !hper || !hsper)
+>>>>> +                     *status |= V4L2_IN_ST_NO_SYNC;
+>>>>> +             else
+>>>>> +                     *status |= V4L2_IN_ST_NO_SIGNAL;
+>>>>
+>>>> So if we have valid vper, hper and hsper, then there is no signal? That doesn't
+>>>> make sense.
+>>>>
+>>>> I'd expect to see something like this:
+>>>>
+>>>>         if (!input_detect[0] && !input_detect[1])
+>>>>                 // no signal
+>>>>         else if (!vper || !hper || !vsper)
+>>>>                 // no sync
+>>>>         else
+>>>>                 // have signal and sync
+>>>
+>>> sure... reads a bit cleaner. I can't guarantee that any of
+>>> vper/hper/vsper will be 0 if a signal can't be locked onto without
+>>> proper documentation or ability to generate such a signal. I do know
+>>> if I yank the source I get non-zero random values and must rely on the
+>>> input_detect logic.
 >>
->>       u32 device_caps;
->> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->> index 91cfe0cbd5c5..35706204e81d 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -63,6 +63,7 @@
->>  #include <linux/compiler.h>
->>  #include <linux/ioctl.h>
->>  #include <linux/types.h>
->> +#include <linux/media-request.h>
->>  #include <linux/v4l2-common.h>
->>  #include <linux/v4l2-controls.h>
+>> Add a comment about this as well. It's good to be clear that this code
+>> is partially guesswork and partially based on testing.
+> 
+> ok
+> 
 >>
->> @@ -2407,6 +2408,8 @@ struct v4l2_create_buffers {
+>>>
+>>>>
+>>>> I'm not sure about the precise meaning of input_detect, so I might be wrong about
+>>>> that bit.
+>>>
+>>> ya... me either. I'm trying my hardest to get this driver up to shape
+>>> but the documentation I have is utter crap and I'm doing some guessing
+>>> as well as to what all the registers are and what the meaning of the
+>>> very obfuscated vendor code does.
+>>>
+>>> would you object to detecting timings and displaying via v4l2_dbg when
+>>> a resolution change is detected (just not 'using' those timings for
+>>> anything?):
 >>
->>  #define VIDIOC_QUERY_EXT_CTRL        _IOWR('V', 103, struct v4l2_query_ext_ctrl)
+>> No, not at all. Also useful is to log the detected timings in the log_status
+>> call. It is *very* handy when testing.
 >>
->> +#define VIDIOC_NEW_REQUEST   _IOWR('V', 104, struct media_request_new)
->
-> Hmm, I probably call this VIDIOC_CREATE_REQUEST (analogous to CREATE_BUFS).
-> Ditto struct media_create_request and MEDIA_IOC_CREATE_REQUEST.
+>> I.e. if 'v4l2-ctl --log-status' gives you both the configured timings and the
+>> detected timings, then that makes it much easier to debug the driver.
+>>
+> 
+> ok
+> 
+>>>
+>>> @@ -1384,6 +1386,7 @@ static void tda1997x_irq_sus(struct tda1997x_state *state,
+>>>  u8 *flags)
+>>>                         v4l_err(state->client, "BAD SUS STATUS\n");
+>>>                         return;
+>>>                 }
+>>> +               if (debug)
+>>> +                              tda1997x_detect_std(state, NULL);
+>>>                 /* notify user of change in resolution */
+>>>                 v4l2_subdev_notify_event(&state->sd, &tda1997x_ev_fmt);
+>>>         }
+>>>
+>>> @@ -1140,16 +1140,18 @@ tda1997x_detect_std(struct tda1997x_state *state,
+>>>                 /* hsmatch matches the hswidth */
+>>>                 hsmatch = ((hsper <= hsmax) && (hsper >= hsmin)) ? 1 : 0;
+>>>                 if (hmatch && vmatch && hsmatch) {
+>>> -                       *timings = v4l2_dv_timings_presets[i];
+>>>                         v4l2_print_dv_timings(sd->name, "Detected format: ",
+>>> -                                             timings, false);
+>>> +                                             &v4l2_dv_timings_presets[i],
+>>> +                                             false);
+>>> +                       if (timings)
+>>> +                               *timings = v4l2_dv_timings_presets[i];
+>>>                         return 0;
+>>>                 }
+>>>         }
+>>>
+>>> It seems to make sense to me to be seeing a kernel message when
+>>> timings change and what they change to without having to query :)
+>>
+>> Right.
+>>
+>> I'll wait for v11 and I'll make a pull request for it.
+>>
+> 
+> hopefully I'll get to v11 later today.
+> 
+> Thanks!
+> 
+> Tim
+> 
 
-Agree, it is better to keep consistency somehow.
+Regards,
 
->
-> I'm still not convinced this is the right approach (as opposed to using the media
-> device node). I plan to dig deeper into the data structures tomorrow morning.
-
-I see no reason why this would not work. This seems more elegant than
-relying on the media node for this, and also does not require pulling
-the whole media controller support just to use requests on a simple
-codec or m2m device.
-
-But of course, I may not be seeing everything. :)
-
-Thanks for the review!
-Alex.
+	Hans
