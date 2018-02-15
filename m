@@ -1,118 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54316 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751531AbeBZVoq (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43525 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1030307AbeBOMsE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 16:44:46 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH 00/15] R-Car VSP1: Dynamically assign blend units to display pipelines
-Date: Mon, 26 Feb 2018 23:45:01 +0200
-Message-Id: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+        Thu, 15 Feb 2018 07:48:04 -0500
+Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se>
+ <2053928.E9OymEAqzL@avalon> <0f0adb80-7af7-9fd4-319f-faa6b45ef1a4@xs4all.nl>
+ <37073075.RbtH2Do48G@avalon> <258fbbf3-9f2b-79e8-8a28-b177ea3d05ad@xs4all.nl>
+Message-ID: <7d93ee8e-5a62-bf6d-6511-8d21e9360ab0@xs4all.nl>
+Date: Thu, 15 Feb 2018 13:48:02 +0100
+MIME-Version: 1.0
+In-Reply-To: <258fbbf3-9f2b-79e8-8a28-b177ea3d05ad@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 15/02/18 13:32, Hans Verkuil wrote:
+> On 15/02/18 13:06, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Thursday, 15 February 2018 13:56:44 EET Hans Verkuil wrote:
+>>> On 15/02/18 12:08, Laurent Pinchart wrote:
+>>>> On Thursday, 15 February 2018 12:57:44 EET Hans Verkuil wrote:
+>>>>> On 14/02/18 16:16, Laurent Pinchart wrote:
+>>>>>> On Wednesday, 14 February 2018 12:36:43 EET Niklas Söderlund wrote:
+>>>>>>> There is no way for drivers to validate a colorspace value, which could
+>>>>>>> be provided by user-space by VIDIOC_S_FMT for example. Add a helper to
+>>>>>>> validate that the colorspace value is part of enum v4l2_colorspace.
+>>>>>>>
+>>>>>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>>>>>> ---
+>>>>>>>
+>>>>>>>  include/uapi/linux/videodev2.h | 4 ++++
+>>>>>>>  1 file changed, 4 insertions(+)
+>>>>>>>
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> I hope this is the correct header to add this helper to. I think it's
+>>>>>>> since if it's in uapi not only can v4l2 drivers use it but tools like
+>>>>>>> v4l-compliance gets access to it and can be updated to use this instead
+>>>>>>> of the hard-coded check of just < 0xff as it was last time I checked.
+>>>>>>>
+>>>>>>> * Changes since v1
+>>>>>>> - Cast colorspace to u32 as suggested by Sakari and only check the
+>>>>>>>   upper boundary to address a potential issue brought up by Laurent if
+>>>>>>>   the data type tested is u32 which is not uncommon:
+>>>>>>>     enum.c:30:16: warning: comparison of unsigned expression >= 0 is
+>>>>>>>     always true [-Wtype-limits]
+>>>>>>>
+>>>>>>>       return V4L2_COLORSPACE_IS_VALID(colorspace);
+>>>>>>>
+>>>>>>> diff --git a/include/uapi/linux/videodev2.h
+>>>>>>> b/include/uapi/linux/videodev2.h index
+>>>>>>> 9827189651801e12..1f27c0f4187cbded 100644
+>>>>>>> --- a/include/uapi/linux/videodev2.h
+>>>>>>> +++ b/include/uapi/linux/videodev2.h
+>>>>>>> @@ -238,6 +238,10 @@ enum v4l2_colorspace {
+>>>>>>>  	V4L2_COLORSPACE_DCI_P3        = 12,
+>>>>>>>  };
+>>>>>>>
+>>>>>>> +/* Determine if a colorspace is defined in enum v4l2_colorspace */
+>>>>>>> +#define V4L2_COLORSPACE_IS_VALID(colorspace)		\
+>>>>>>> +	((u32)(colorspace) <= V4L2_COLORSPACE_DCI_P3)
+>>>>>
+>>>>> Sorry, this won't work. Use __u32. u32 is only available in the kernel,
+>>>>> not in userspace and this is a public header.
+>>>>
+>>>> Indeed, that I should have caught.
+>>>>
+>>>>> I am not convinced about the usefulness of this check either. Drivers
+>>>>> will typically only support a subset of the available colorspaces, so
+>>>>> they need a switch to test for that.
+>>>>
+>>>> Most MC drivers won't, as they don't care about colorspaces in most
+>>>> subdevs. It's important for the colorspace to be propagated within
+>>>> subdevs, and validated across the pipeline, but in most case, apart from
+>>>> the image source subdev, other subdevs won't care. They should accept any
+>>>> valid colorspace given to them and propagate it to their source pads
+>>>> unchanged (except of course for subdevs that can change the colorspace,
+>>>> but that's the exception, not the rule).
+>>>
+>>> Right. So 'passthrough' subdevs should just copy this information from
+>>> source to sink, and only pure source or pure sink subdevs should validate
+>>> these fields. That makes sense.
+>>>
+>>>>> There is nothing wrong with userspace giving them an unknown colorspace:
+>>>>> either they will map anything they don't support to something that they
+>>>>> DO
+>>>>> support, or they will return -EINVAL.
+>>>>
+>>>> The former, not the latter. S_FMT should not return -EINVAL for
+>>>> unsupported
+>>>> colorspace, the same way it doesn't return -EINVAL for unsupported pixel
+>>>> formats.
+>>>>
+>>>>> If memory serves the spec requires the first option, so anything unknown
+>>>>> will just be replaced.
+>>>>>
+>>>>> And anyway, this raises the question of why you do this for the
+>>>>> colorspace
+>>>>> but not for all the other enums in the V4L2 API.
+>>>>
+>>>> Because v4l2-compliance tries to set a colorspace > 0xff and expects that
+>>>> to be replaced by a colorspace <= 0xff. That seems like a bogus check to
+>>>> me, 0xff is as random as it can get.
+>>>
+>>> v4l2-compliance fills all fields with 0xff, then it checks after calling the
+>>> ioctl if all fields have been set to valid values.
+>>>
+>>> But in this case it should ignore the colorspace-related fields for
+>>> passthrough subdevs. The only passthrough devices that should set
+>>> colorspace are colorspace converter devices. I'm not sure if we can
+>>> reliably detect that.
+>>>
+>>>>> It all seems rather pointless to me.
+>>>>>
+>>>>> I won't accept this unless I see it being used in a driver in a useful
+>>>>> way.
+>>>>>
+>>>>> So for now:
+>>>>>
+>>>>> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Can you then fix v4l2-compliance to stop testing colorspace against 0xff ?
+>>>
+>>> For now I can simply relax this test for subdevs with sources and sinks.
+>>
+>> You also need to relax it for video nodes with MC drivers, as the DMA engines 
+>> don't care about colorspaces.
+> 
+> Yes, they do. Many DMA engines can at least do RGB <-> YUV conversions, so they
+> should get the colorspace info from their source and pass it on to userspace
+> (after correcting for any conversions done by the DMA engine).
 
-On R-Car H3 ES2.0+ and M3-N SoCs, two display pipelines are served by the same
-VSP instance (named VSPDL). The VSPDL includes two blending units named BRU
-and BRS, unlike the other display-related VSPD that serves a single display
-channel with a single blending unit.
+Of course this assumes that the colorspace information of the subdev that feeds
+the DMA engine is correct. That's something I haven't looked at yet.
 
-The VSPDL has five inputs and can freely assign them at runtime to two display
-pipelines, using the BRU and BRS to blend multiple inputs. The BRU supports
-blending up to five inputs, while the BRS is limited to two inputs.
-
-Each display pipeline requires a blending unit, and the BRU and BRS are
-currently assigned statically to the first and second pipeline respectively.
-This artificially limits the number of inputs for the second pipeline to two.
-To overcome that limitation, the BRU and BRS need to be dynamically assigned
-to the display pipelines, which is what this patch series does.
-
-Patches 01/15 to 10/15 perform small cleanups and refactoring to prepare for
-the rest of the series. Patches 11/15 and 12/15 implement new internal
-features for the same purpose, and patch 13/15 performs the bulk of the work
-by implementing dynamic BRU and BRS assignment to pipelines.
-
-Reassigning the BRU and BRS when two pipelines are running results in flicker
-as one pipeline has to first release its blending unit. Synchronization
-between the two pipelines also require locking that effectively serializes
-page flips for the two pipelines, even when not interacting with each other.
-This is currently believed to be unavoidable due to the hardware design, but
-please feel free to prove me wrong (ideally with a patch - one can always
-dream).
-
-Patch 14/15 then adds messages useful for debugging this new feature. I have
-kept it separate from 13/15 to make it easier to remove those messages once
-dynamic assignment of blending units will be deemed perfectly stable, but I
-won't oppose squashing it with 13/15 if that is preferred.
-
-Patch 15/15 finally rename BRU to BRx to avoid confusion between the BRU terms
-that refer to the BRU in particular, and the ones that refer to any of the BRU
-or BRS. As this might be a bit controversial I've put the patch last in the
-series in case it needs to be dropped.
-
-I have decided to CC the dri-devel mailing list even though the code doesn't
-touch the R-Car DU driver and will be merged through the Linux media tree as
-the display is involved and the series could benefit from the expertise of the
-DRM/KMS community from that point of view.
-
-The patches are based on top of the latest Linux media master branch. For
-convenience their are available from
-
-	git://linuxtv.org/pinchartl/media.git v4l2/vsp1/bru-brs
-
-The series passes the DU test suite with the new BRx dynamic assignment
-test available from
-
-	git://git.ideasonboard.com/renesas/kms-tests.git bru-brs
-
-The VSP test suite also runs without any noticed regression.
-
-Laurent Pinchart (15):
-  v4l: vsp1: Don't start/stop media pipeline for DRM
-  v4l: vsp1: Remove outdated comment
-  v4l: vsp1: Remove unused field from vsp1_drm_pipeline structure
-  v4l: vsp1: Store pipeline pointer in vsp1_entity
-  v4l: vsp1: Use vsp1_entity.pipe to check if entity belongs to a
-    pipeline
-  v4l: vsp1: Share duplicated DRM pipeline configuration code
-  v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
-  v4l: vsp1: Setup BRU at atomic commit time
-  v4l: vsp1: Replace manual DRM pipeline input setup in
-    vsp1_du_setup_lif
-  v4l: vsp1: Move DRM pipeline output setup code to a function
-  v4l: vsp1: Add per-display list completion notification support
-  v4l: vsp1: Generalize detection of entity removal from DRM pipeline
-  v4l: vsp1: Assign BRU and BRS to pipelines dynamically
-  v4l: vsp1: Add BRx dynamic assignment debugging messages
-  v4l: vsp1: Rename BRU to BRx
-
- drivers/media/platform/vsp1/Makefile               |   2 +-
- drivers/media/platform/vsp1/vsp1.h                 |   6 +-
- .../media/platform/vsp1/{vsp1_bru.c => vsp1_brx.c} | 202 ++---
- .../media/platform/vsp1/{vsp1_bru.h => vsp1_brx.h} |  18 +-
- drivers/media/platform/vsp1/vsp1_dl.c              |  27 +-
- drivers/media/platform/vsp1/vsp1_dl.h              |   4 +-
- drivers/media/platform/vsp1/vsp1_drm.c             | 829 ++++++++++++---------
- drivers/media/platform/vsp1/vsp1_drm.h             |  16 +-
- drivers/media/platform/vsp1/vsp1_drv.c             |   8 +-
- drivers/media/platform/vsp1/vsp1_entity.h          |   2 +
- drivers/media/platform/vsp1/vsp1_histo.c           |   2 +-
- drivers/media/platform/vsp1/vsp1_histo.h           |   3 -
- drivers/media/platform/vsp1/vsp1_pipe.c            |  50 +-
- drivers/media/platform/vsp1/vsp1_pipe.h            |   7 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |  12 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  37 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |   8 +-
- 18 files changed, 705 insertions(+), 532 deletions(-)
- rename drivers/media/platform/vsp1/{vsp1_bru.c => vsp1_brx.c} (63%)
- rename drivers/media/platform/vsp1/{vsp1_bru.h => vsp1_brx.h} (66%)
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
