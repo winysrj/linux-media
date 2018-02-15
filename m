@@ -1,50 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f72.google.com ([209.85.214.72]:51361 "EHLO
-        mail-it0-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032283AbeBOOJp (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55567 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1032974AbeBOO3i (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 09:09:45 -0500
-Received: by mail-it0-f72.google.com with SMTP id e64so339320itd.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 06:09:45 -0800 (PST)
+        Thu, 15 Feb 2018 09:29:38 -0500
+Subject: Re: [PATCH] media: radio: Tuning bugfix for si470x over i2c
+To: Douglas Fischer <fischerdouglasc@gmail.com>,
+        linux-media@vger.kernel.org
+References: <20180120141914.233d6d00@Constantine>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8eb3118e-ed8f-ec2a-06f2-c60b35ebfa31@xs4all.nl>
+Date: Thu, 15 Feb 2018 15:29:37 +0100
 MIME-Version: 1.0
-Message-ID: <001a113fbc929dcd44056540c77d@google.com>
-Date: Thu, 15 Feb 2018 14:09:44 +0000
-Subject: Targeted B2B Companies Emails List 
-From: sally.grant@dedicatedaccounts.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Content-Transfer-Encoding: base64
+In-Reply-To: <20180120141914.233d6d00@Constantine>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNCkkgd2FzIHdvbmRlcmluZyBpZiB5b3Ugd291bGQgYmUgaW50ZXJlc3RlZCBpbiB0YXJn
-ZXRpbmcgYSBjdXN0b21pemVkIGxpc3QgIA0Kb2YgeW91ciBjb21wZXRpdG9ycyBFbmQgVXNlcnMg
-SW5zdGFsbCBCYXNlIGZvciB5b3VyIHVwY29taW5nIE1hcmtldGluZyAgDQpTdHJhdGVneS4NCg0K
-4oCiIEVSUC0gSkQgRWR3YXJkcywgSW5mb3IgQmFhbiwgU0FQLCBFeGFjdCBTb2Z0d2FyZSwgTmV0
-U3VpdGUsIFBlb3BsZVNvZnQsICANCmV0Yy4NCuKAoiBDUk0tIFNhbGVzZm9yY2UsIE1TIER5bmFt
-aWNzLCBOZXRTdWl0ZSwgU2llYmVsLCBUZXJhZGF0YSwgRXBpY29yLCBJbmZvciwgIA0KQ0RDIFNv
-ZnR3YXJlLCBldGMuDQrigKIgRW5naW5lZXJpbmcgU29mdHdhcmUtIEF1dG9kZXNrLCBTaWVtZW5z
-IFBMTSwgQWRvYmUsIEF1dG9DQUQsIE1BWUEsIFJldml0LCAgDQpTb2xpZCB3b3JrcywgUFRDLCBN
-QURDQUQsIGV0Yy4NCuKAoiBDbG91ZCBDb21wdXRpbmctIEFtYXpvbiwgUmFjayBTcGFjZSwgR29v
-Z2xlIEFQUFMsIEh5cGVyLVYsIE5ldEFwcCwgZXRjLg0K4oCiIFN0b3JhZ2UgYXBwbGljYXRpb24g
-LSBOZXRBcHAsIEVNQywgQ2l0cml4LCBIUCwgQnJvY2FkZSwgREVMTCwgZXRjLg0K4oCiIFNlY3Vy
-aXR5IFNvZnR3YXJlLSBTeW1hbnRlYywgTWNBZmVlLCBJQk0sIFJpdmVyYmVkLCBUYWJiZXJnLCBD
-b21tdmF1bHQsICANCkp1bmlwZXIgTmV0d29ya3MsIEY1LCBldGMuDQrigKIgTmV0d29ya2luZy0g
-QnJvY2FkZSwgU3ltYW50ZWMsIEF2YXlhLCBDaXNjbywgU2hvcmV0ZWwsIGV0Yy4NCuKAoiBNZWRp
-Y2FsIFNvZnR3YXJlLSBOZXh0R2VuLCBBbGwgU2NyaXB0cywgRU1SLCBNY0tlc3NvbiwgUHJhY3Rp
-Y2UgRnVzaW9uLCAgDQplQ2xpbmljYWwgV29ya3MsIGV0Yy4NCuKAoiBBY2NvdW50aW5nIFNvZnR3
-YXJlLSBTYWdlLCBQZWFjaHRyZWUsIFRpbWJlcmxpbmUsIE1TIER5bmFtaWNzLCBOZXRTdWl0ZSwg
-IA0KRGVsdGVrLCBMYXdzb24sIFF1aWNrQm9va3MsIGV0Yy4NCuKAoiBCdXNpbmVzcyBJbnRlbGxp
-Z2VuY2UtIFNBUCBCdXNpbmVzcyBPYmplY3RzLCBNaWNyb3N0cmF0ZXJneSwgVGliY28sICANCk1p
-Y3Jvc29mdCBCSSwgUWxpa1RlY2gsIEluZm9ybWF0aW9uIEJ1aWxkZXJzLCBldGMuDQpXZSBwcm92
-aWRlIGRhdGEgYWNyb3NzIHRoZSBnbG9iZSAtIE5vcnRoIEFtZXJpY2EsIEVNRUEsIEFzaWEgUGFj
-aWZpYyBhbmQgIA0KTEFUQU0uIFdlIHByb3ZpZGUgdGhlIGRlY2lzaW9uIE1ha2VycyBjb250YWN0
-cyBsaWtlIENJTywgQ1RPLCBDSVNPLCBJVCBWUCwgIA0KSVQgRGlyZWN0b3IsIElUIG1hbmFnZXIs
-IElUIGhlYWQsIGV0Yy4NCg0KUGxlYXNlIHJldmlldyBhbmQgbGV0IG1lIGtub3cgaWYgeW91IGFy
-ZSBsb29raW5nIGZvciBhbnkgdHlwZSBvZiBsaXN0IGFuZCAgDQp3ZSBjYW4gc2VydmljZSB5b3Uu
-DQoNCklmIHlvdSBhcmUgaW50ZXJlc3RlZCwgbGV0IG1lIGtub3cgeW91ciB0YXJnZXRlZCBnZW9n
-cmFwaHkgc28gdGhhdCBJIHdpbGwgIA0KZ2V0IGJhY2sgdG8geW91IHdpdGggdGhlIGNvdW50cyBh
-bmQgbW9yZSBpbmZvcm1hdGlvbi4NCg0KQXdhaXQgeW91ciByZXNwb25zZSENClRoYW5rcywNClNh
-bGx5IEdyYW50DQpNYXJrZXRpbmcgRXhlY3V0aXZlDQoNCiAgSWYgeW91IGFyZSBub3QgaW50ZXJl
-c3RlZCBpbiByZWNlaXZpbmcgZnVydGhlciBlbWFpbHMsIHBsZWFzZSBhbnN3ZXIgYmFjayAgDQp3
-aXRoICJvdmVybG9vayIgaW4gdGhlIHRpdGxlLg0K
+Hi Douglas,
+
+My apologies for the delay, but I have finally time to look at this.
+
+First of all: all your patches are mangles. Your mailer probably is trying
+to wrap around long lines and the end result is not usable. Please check this
+next time.
+
+Also, when you post newer versions of patches it is good practice to add a
+version number: e.g. '[PATCHv3] media: radio: Tuning bugfix for si470x over i2c'.
+
+That helps us keeping track of different versions.
+
+On 20/01/18 20:19, Douglas Fischer wrote:
+> Fixed si470x_set_channel() trying to tune before chip is turned
+> on, which causes warnings in dmesg and when probing, makes driver
+> wait for 3s for tuning timeout. This issue did not affect USB
+> devices because they have a different probing sequence.
+> 
+> Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
+> ---
+> 
+> diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+> linux/drivers/media/radio/si470x/radio-si470x-common.c ---
+> linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+> 2018-01-15 21:58:10.675620432 -0500 +++
+> linux/drivers/media/radio/si470x/radio-si470x-common.c
+> 2018-01-16 17:04:59.706409128 -0500 @@ -207,29 +207,37 @@ static int
+> si470x_set_chan(struct si470x unsigned long time_left; bool timed_out =
+> false; 
+> -	/* start tuning */
+> -	radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
+> -	radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
+> -	retval = si470x_set_register(radio, CHANNEL);
+> -	if (retval < 0)
+> -		goto done;
+> +	retval = si470x_get_register(radio, POWERCFG);
+> +	if (retval)
+> +		return retval;
+>  
+> -	/* wait till tune operation has completed */
+> -	reinit_completion(&radio->completion);
+> -	time_left = wait_for_completion_timeout(&radio->completion,
+> -
+> msecs_to_jiffies(tune_timeout));
+> -	if (time_left == 0)
+> -		timed_out = true;
+> +	if ( (radio->registers[POWERCFG] & POWERCFG_ENABLE) && 
+> +		(radio->registers[POWERCFG] & POWERCFG_DMUTE) ) { 
+>  
+
+Just do:
+
+	if (radio->registers[POWERCFG] & POWERCFG_ENABLE) & (POWERCFG_ENABLE | POWERCFG_DMUTE) !=
+	    POWERCFG_ENABLE | POWERCFG_DMUTE)
+		return 0;
+
+And the remainder of the code can be indented one tab to the left. It's easier to read
+and the diff is also smaller.
+
+Regards,
+
+	Hans
+
+> -	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+> -		dev_warn(&radio->videodev.dev, "tune does not
+> complete\n");
+> -	if (timed_out)
+> -		dev_warn(&radio->videodev.dev,
+> -			"tune timed out after %u ms\n", tune_timeout);
+> +		/* start tuning */
+> +		radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
+> +		radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
+> +		retval = si470x_set_register(radio, CHANNEL);
+> +		if (retval < 0)
+> +			goto done;
+>  
+> -	/* stop tuning */
+> -	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
+> -	retval = si470x_set_register(radio, CHANNEL);
+> +		/* wait till tune operation has completed */
+> +		reinit_completion(&radio->completion);
+> +		time_left =
+> wait_for_completion_timeout(&radio->completion,
+> +
+> msecs_to_jiffies(tune_timeout));
+> +		if (time_left == 0)
+> +			timed_out = true;
+> +	
+> +		if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) ==
+> 0)
+> +			dev_warn(&radio->videodev.dev, "tune does not
+> complete\n");
+> +		if (timed_out)
+> +			dev_warn(&radio->videodev.dev,
+> +				"tune timed out after %u ms\n",
+> tune_timeout);
+> +	
+> +		/* stop tuning */
+> +		radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
+> +		retval = si470x_set_register(radio, CHANNEL);
+> +	}
+>  
+>  done:
+>  	return retval;
+> 
