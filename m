@@ -1,406 +1,675 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:53275 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753486AbeBSRHW (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:49077 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1424582AbeBOPt2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 12:07:22 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v9 10/11] arch: sh: migor: Use new renesas-ceu camera driver
-Date: Mon, 19 Feb 2018 17:59:43 +0100
-Message-Id: <1519059584-30844-11-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 15 Feb 2018 10:49:28 -0500
+Subject: Re: [PATCH RESEND] media: video-i2c: add video-i2c driver
+To: Matt Ranostay <matt.ranostay@konsulko.com>,
+        linux-media@vger.kernel.org
+Cc: Luca Barbato <lu_zero@gentoo.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20180113035747.8935-1-matt.ranostay@konsulko.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7309bded-fa0b-3cb9-5150-1fa3354b1978@xs4all.nl>
+Date: Thu, 15 Feb 2018 16:49:26 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180113035747.8935-1-matt.ranostay@konsulko.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Migo-R platform uses sh_mobile_ceu camera driver, which is now being
-replaced by a proper V4L2 camera driver named 'renesas-ceu'.
+Hi Matt,
 
-Move Migo-R platform to use the v4l2 renesas-ceu camera driver
-interface and get rid of soc_camera defined components used to register
-sensor drivers and of platform specific enable/disable routines.
+Here is a quick review. Apologies for the delay, it has been very busy for
+the last few weeks.
 
-Register clock source and GPIOs for sensor drivers, so they can use
-clock and gpio APIs.
+On 13/01/18 04:57, Matt Ranostay wrote:
+> There are several thermal sensors that only have a low-speed bus
+> interface but output valid video data. This patchset enables support
+> for the AMG88xx "Grid-Eye" sensor family.
+> 
+> Cc: Luca Barbato <lu_zero@gentoo.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> ---
+>  drivers/media/i2c/Kconfig     |   9 +
+>  drivers/media/i2c/Makefile    |   1 +
+>  drivers/media/i2c/video-i2c.c | 556 ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 566 insertions(+)
+>  create mode 100644 drivers/media/i2c/video-i2c.c
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 9f18cd296841..549f1e9fc01e 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -908,6 +908,15 @@ config VIDEO_M52790
+>  
+>  	 To compile this driver as a module, choose M here: the
+>  	 module will be called m52790.
+> +
+> +config VIDEO_I2C
+> +	tristate "I2C transport video support"
+> +	depends on VIDEO_V4L2 && I2C
+> +	select VIDEOBUF2_VMALLOC
+> +	---help---
+> +	  Enable the I2C transport video support which supports the
+> +	  following:
+> +	   * Panasonic AMG88xx Grid-Eye Sensors
+>  endmenu
+>  
+>  menu "Sensors used on soc_camera driver"
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index c0f94cd8d56d..5ca4c98a4bea 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -90,6 +90,7 @@ obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+>  obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+>  obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+> +obj-$(CONFIG_VIDEO_I2C)		+= video-i2c.o
+>  obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+>  obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+>  obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> new file mode 100644
+> index 000000000000..9df9b5ebd156
+> --- /dev/null
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -0,0 +1,556 @@
+> +/*
+> + * video-i2c.c - Support for I2C transport video devices
+> + *
+> + * Copyright (C) 2018 Matt Ranostay <matt.ranostay@konsulko.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
 
-Also, memory for CEU video buffers is now reserved with membocks APIs,
-and need to be declared as dma_coherent during machine initialization to
-remove that architecture specific part from CEU driver.
+Please use the SPDX tags instead of this license text. See
+https://git.linuxtv.org/media_tree.git/tree/Documentation/process/license-rules.rst
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/sh/boards/mach-migor/setup.c      | 225 +++++++++++++++------------------
- arch/sh/kernel/cpu/sh4a/clock-sh7722.c |   2 +-
- 2 files changed, 101 insertions(+), 126 deletions(-)
+> + *
+> + * Supported:
+> + * - Panasonic AMG88xx Grid-Eye Sensors
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/freezer.h>
+> +#include <linux/i2c.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-fh.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-v4l2.h>
+> +#include <media/videobuf2-vmalloc.h>
+> +
+> +#define VIDEO_I2C_DRIVER	"video-i2c"
+> +#define MAX_BUFFER_SIZE		128
+> +
+> +struct video_i2c_chip;
+> +
+> +struct video_i2c_buffer {
+> +	struct vb2_v4l2_buffer vb;
+> +	struct list_head list;
+> +};
+> +
+> +struct video_i2c_data {
+> +	struct i2c_client *client;
+> +	const struct video_i2c_chip *chip;
+> +	struct mutex lock;
+> +	spinlock_t slock;
+> +	struct mutex queue_lock;
+> +
+> +	struct v4l2_device v4l2_dev;
+> +	struct video_device vdev;
+> +	struct vb2_queue vb_vidq;
+> +
+> +	struct task_struct *kthread_vid_cap;
+> +	struct list_head vid_cap_active;
+> +};
+> +
+> +static struct v4l2_fmtdesc amg88xx_format = {
+> +	.pixelformat = V4L2_PIX_FMT_Y12,
+> +};
+> +
+> +static struct v4l2_frmsize_discrete amg88xx_size = {
+> +	.width = 8,
+> +	.height = 8,
+> +};
+> +
+> +struct video_i2c_chip {
+> +	/* video dimensions */
+> +	const struct v4l2_fmtdesc *format;
+> +	const struct v4l2_frmsize_discrete *size;
+> +
+> +	/* max frames per second */
+> +	unsigned int max_fps;
+> +
+> +	/* pixel buffer size */
+> +	unsigned int buffer_size;
+> +
+> +	/* pixel size in bits */
+> +	unsigned int bpp;
+> +
+> +	/* xfer function */
+> +	int (*xfer)(struct video_i2c_data *data, char *buf);
+> +};
+> +
+> +static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
+> +{
+> +	struct i2c_client *client = data->client;
+> +	struct i2c_msg msg[2];
+> +	u8 reg = 0x80;
+> +	int ret;
+> +
+> +	msg[0].addr = client->addr;
+> +	msg[0].flags = 0;
+> +	msg[0].len = 1;
+> +	msg[0].buf  = (char *) &reg;
+> +
+> +	msg[1].addr = client->addr;
+> +	msg[1].flags = I2C_M_RD;
+> +	msg[1].len = data->chip->buffer_size;
+> +	msg[1].buf = (char *) buf;
+> +
+> +	ret = i2c_transfer(client->adapter, msg, 2);
+> +
+> +	return (ret == 2) ? 0 : -EIO;
+> +}
+> +
+> +static const struct video_i2c_chip video_i2c_chip = {
+> +	.size		= &amg88xx_size,
+> +	.format		= &amg88xx_format,
+> +	.max_fps	= 10,
+> +	.buffer_size	= 128,
+> +	.bpp		= 16,
+> +	.xfer		= &amg88xx_xfer,
+> +};
+> +
+> +static const struct v4l2_file_operations video_i2c_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.open		= v4l2_fh_open,
+> +	.release	= vb2_fop_release,
+> +	.poll		= vb2_fop_poll,
+> +	.read		= vb2_fop_read,
+> +	.mmap		= vb2_fop_mmap,
+> +	.unlocked_ioctl = video_ioctl2,
+> +};
+> +
+> +static int queue_setup(struct vb2_queue *vq,
+> +		       unsigned int *nbuffers, unsigned int *nplanes,
+> +		       unsigned int sizes[], struct device *alloc_devs[])
+> +{
+> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +	unsigned int size = data->chip->buffer_size;
+> +
+> +	if (vq->num_buffers + *nbuffers < 2)
+> +		*nbuffers = 2;
+> +
+> +	if (*nplanes)
+> +		return sizes[0] < size ? -EINVAL : 0;
+> +
+> +	*nplanes = 1;
+> +	sizes[0] = size;
+> +
+> +	return 0;
+> +}
+> +
+> +static int buffer_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
+> +	unsigned int size = data->chip->buffer_size;
+> +
+> +	if (vb2_plane_size(vb, 0) < size)
+> +		return -EINVAL;
+> +
+> +	vb2_set_plane_payload(vb, 0, size);
+> +
+> +	return 0;
+> +}
+> +
+> +static void buffer_queue(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct video_i2c_buffer *buf =
+> +			container_of(vbuf, struct video_i2c_buffer, vb);
+> +
+> +	spin_lock(&data->slock);
+> +	list_add_tail(&buf->list, &data->vid_cap_active);
+> +	spin_unlock(&data->slock);
+> +}
+> +
+> +static int video_i2c_thread_vid_cap(void *priv)
+> +{
+> +	struct video_i2c_data *data = priv;
+> +
+> +	set_freezable();
+> +
+> +	do {
+> +		unsigned long start_jiffies = jiffies;
+> +		unsigned int delay = msecs_to_jiffies(1000 / data->chip->max_fps);
+> +		struct video_i2c_buffer *vid_cap_buf = NULL;
+> +		int schedule_delay;
+> +
+> +		try_to_freeze();
+> +
+> +		spin_lock(&data->slock);
+> +
+> +		if (!list_empty(&data->vid_cap_active)) {
+> +			vid_cap_buf = list_entry(data->vid_cap_active.next,
+> +						 struct video_i2c_buffer, list);
+> +			list_del(&vid_cap_buf->list);
+> +		}
+> +
+> +		spin_unlock(&data->slock);
+> +
+> +		if (vid_cap_buf) {
+> +			struct vb2_buffer *vb2_buf = &vid_cap_buf->vb.vb2_buf;
+> +			void *vbuf = vb2_plane_vaddr(vb2_buf, 0);
+> +			int ret = data->chip->xfer(data, vbuf);
+> +
+> +			vb2_buf->timestamp = ktime_get_ns();
+> +			vb2_buffer_done(vb2_buf, ret ?
+> +					VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+> +		}
+> +
+> +		schedule_delay = delay - (jiffies - start_jiffies);
+> +
+> +		if (time_after(jiffies, start_jiffies + delay))
+> +			schedule_delay = delay;
+> +
+> +		schedule_timeout_interruptible(schedule_delay);
+> +	} while (!kthread_should_stop());
+> +
+> +	return 0;
+> +}
+> +
+> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> +{
+> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +
+> +	if (data->kthread_vid_cap)
+> +		return 0;
+> +
+> +	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
+> +					    "%s-vid-cap", data->v4l2_dev.name);
+> +	if (IS_ERR(data->kthread_vid_cap)) {
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 0bcbe58..271dfc2 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -1,17 +1,16 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Renesas System Solutions Asia Pte. Ltd - Migo-R
-  *
-  * Copyright (C) 2008 Magnus Damm
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file "COPYING" in the main directory of this archive
-- * for more details.
-  */
-+#include <linux/clkdev.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/input.h>
- #include <linux/input/sh_keysc.h>
-+#include <linux/memblock.h>
- #include <linux/mmc/host.h>
- #include <linux/mtd/physmap.h>
- #include <linux/mfd/tmio.h>
-@@ -23,10 +22,11 @@
- #include <linux/delay.h>
- #include <linux/clk.h>
- #include <linux/gpio.h>
-+#include <linux/gpio/machine.h>
- #include <linux/videodev2.h>
- #include <linux/sh_intc.h>
- #include <video/sh_mobile_lcdc.h>
--#include <media/drv-intf/sh_mobile_ceu.h>
-+#include <media/drv-intf/renesas-ceu.h>
- #include <media/i2c/ov772x.h>
- #include <media/soc_camera.h>
- #include <media/i2c/tw9910.h>
-@@ -45,6 +45,9 @@
-  * 0x18000000       8GB    8   NAND Flash (K9K8G08U0A)
-  */
- 
-+#define CEU_BUFFER_MEMORY_SIZE		(4 << 20)
-+static phys_addr_t ceu_dma_membase;
-+
- static struct smc91x_platdata smc91x_info = {
- 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
- };
-@@ -301,65 +304,24 @@ static struct platform_device migor_lcdc_device = {
- 	},
- };
- 
--static struct clk *camera_clk;
--static DEFINE_MUTEX(camera_lock);
--
--static void camera_power_on(int is_tw)
--{
--	mutex_lock(&camera_lock);
--
--	/* Use 10 MHz VIO_CKO instead of 24 MHz to work
--	 * around signal quality issues on Panel Board V2.1.
--	 */
--	camera_clk = clk_get(NULL, "video_clk");
--	clk_set_rate(camera_clk, 10000000);
--	clk_enable(camera_clk);	/* start VIO_CKO */
--
--	/* use VIO_RST to take camera out of reset */
--	mdelay(10);
--	if (is_tw) {
--		gpio_set_value(GPIO_PTT2, 0);
--		gpio_set_value(GPIO_PTT0, 0);
--	} else {
--		gpio_set_value(GPIO_PTT0, 1);
--	}
--	gpio_set_value(GPIO_PTT3, 0);
--	mdelay(10);
--	gpio_set_value(GPIO_PTT3, 1);
--	mdelay(10); /* wait to let chip come out of reset */
--}
--
--static void camera_power_off(void)
--{
--	clk_disable(camera_clk); /* stop VIO_CKO */
--	clk_put(camera_clk);
--
--	gpio_set_value(GPIO_PTT3, 0);
--	mutex_unlock(&camera_lock);
--}
--
--static int ov7725_power(struct device *dev, int mode)
--{
--	if (mode)
--		camera_power_on(0);
--	else
--		camera_power_off();
--
--	return 0;
--}
--
--static int tw9910_power(struct device *dev, int mode)
--{
--	if (mode)
--		camera_power_on(1);
--	else
--		camera_power_off();
--
--	return 0;
--}
--
--static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
--	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
-+static struct ceu_platform_data ceu_pdata = {
-+	.num_subdevs			= 2,
-+	.subdevs = {
-+		{ /* [0] = ov772x */
-+			.flags		= 0,
-+			.bus_width	= 8,
-+			.bus_shift	= 0,
-+			.i2c_adapter_id	= 0,
-+			.i2c_address	= 0x21,
-+		},
-+		{ /* [1] = tw9910 */
-+			.flags		= 0,
-+			.bus_width	= 8,
-+			.bus_shift	= 0,
-+			.i2c_adapter_id	= 0,
-+			.i2c_address	= 0x45,
-+		},
-+	},
- };
- 
- static struct resource migor_ceu_resources[] = {
-@@ -373,18 +335,32 @@ static struct resource migor_ceu_resources[] = {
- 		.start  = evt2irq(0x880),
- 		.flags  = IORESOURCE_IRQ,
- 	},
--	[2] = {
--		/* place holder for contiguous memory */
--	},
- };
- 
- static struct platform_device migor_ceu_device = {
--	.name		= "sh_mobile_ceu",
--	.id             = 0, /* "ceu0" clock */
-+	.name		= "renesas-ceu",
-+	.id             = 0, /* ceu.0 */
- 	.num_resources	= ARRAY_SIZE(migor_ceu_resources),
- 	.resource	= migor_ceu_resources,
- 	.dev	= {
--		.platform_data	= &sh_mobile_ceu_info,
-+		.platform_data	= &ceu_pdata,
-+	},
-+};
-+
-+/* Powerdown/reset gpios for CEU image sensors */
-+static struct gpiod_lookup_table ov7725_gpios = {
-+	.dev_id		= "0-0021",
-+	.table		= {
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
-+	},
-+};
-+
-+static struct gpiod_lookup_table tw9910_gpios = {
-+	.dev_id		= "0-0045",
-+	.table		= {
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT2, "pdn", GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
- 	},
- };
- 
-@@ -423,6 +399,15 @@ static struct platform_device sdhi_cn9_device = {
- 	},
- };
- 
-+static struct ov772x_camera_info ov7725_info = {
-+	.flags		= 0,
-+};
-+
-+static struct tw9910_video_info tw9910_info = {
-+	.buswidth       = 8,
-+	.mpout          = TW9910_MPO_FIELD,
-+};
-+
- static struct i2c_board_info migor_i2c_devices[] = {
- 	{
- 		I2C_BOARD_INFO("rs5c372b", 0x32),
-@@ -434,51 +419,13 @@ static struct i2c_board_info migor_i2c_devices[] = {
- 	{
- 		I2C_BOARD_INFO("wm8978", 0x1a),
- 	},
--};
--
--static struct i2c_board_info migor_i2c_camera[] = {
- 	{
- 		I2C_BOARD_INFO("ov772x", 0x21),
-+		.platform_data = &ov7725_info,
- 	},
- 	{
- 		I2C_BOARD_INFO("tw9910", 0x45),
--	},
--};
--
--static struct ov772x_camera_info ov7725_info;
--
--static struct soc_camera_link ov7725_link = {
--	.power		= ov7725_power,
--	.board_info	= &migor_i2c_camera[0],
--	.i2c_adapter_id	= 0,
--	.priv		= &ov7725_info,
--};
--
--static struct tw9910_video_info tw9910_info = {
--	.buswidth	= SOCAM_DATAWIDTH_8,
--	.mpout		= TW9910_MPO_FIELD,
--};
--
--static struct soc_camera_link tw9910_link = {
--	.power		= tw9910_power,
--	.board_info	= &migor_i2c_camera[1],
--	.i2c_adapter_id	= 0,
--	.priv		= &tw9910_info,
--};
--
--static struct platform_device migor_camera[] = {
--	{
--		.name	= "soc-camera-pdrv",
--		.id	= 0,
--		.dev	= {
--			.platform_data = &ov7725_link,
--		},
--	}, {
--		.name	= "soc-camera-pdrv",
--		.id	= 1,
--		.dev	= {
--			.platform_data = &tw9910_link,
--		},
-+		.platform_data = &tw9910_info,
- 	},
- };
- 
-@@ -486,12 +433,9 @@ static struct platform_device *migor_devices[] __initdata = {
- 	&smc91x_eth_device,
- 	&sh_keysc_device,
- 	&migor_lcdc_device,
--	&migor_ceu_device,
- 	&migor_nor_flash_device,
- 	&migor_nand_flash_device,
- 	&sdhi_cn9_device,
--	&migor_camera[0],
--	&migor_camera[1],
- };
- 
- extern char migor_sdram_enter_start;
-@@ -501,6 +445,8 @@ extern char migor_sdram_leave_end;
- 
- static int __init migor_devices_setup(void)
- {
-+	struct clk *video_clk;
-+
- 	/* register board specific self-refresh code */
- 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF,
- 					&migor_sdram_enter_start,
-@@ -620,20 +566,8 @@ static int __init migor_devices_setup(void)
- 	gpio_request(GPIO_FN_VIO_D9, NULL);
- 	gpio_request(GPIO_FN_VIO_D8, NULL);
- 
--	gpio_request(GPIO_PTT3, NULL); /* VIO_RST */
--	gpio_direction_output(GPIO_PTT3, 0);
--	gpio_request(GPIO_PTT2, NULL); /* TV_IN_EN */
--	gpio_direction_output(GPIO_PTT2, 1);
--	gpio_request(GPIO_PTT0, NULL); /* CAM_EN */
--#ifdef CONFIG_SH_MIGOR_RTA_WVGA
--	gpio_direction_output(GPIO_PTT0, 0);
--#else
--	gpio_direction_output(GPIO_PTT0, 1);
--#endif
- 	__raw_writew(__raw_readw(PORT_MSELCRB) | 0x2000, PORT_MSELCRB); /* D15->D8 */
- 
--	platform_resource_setup_memory(&migor_ceu_device, "ceu", 4 << 20);
--
- 	/* SIU: Port B */
- 	gpio_request(GPIO_FN_SIUBOLR, NULL);
- 	gpio_request(GPIO_FN_SIUBOBT, NULL);
-@@ -647,9 +581,36 @@ static int __init migor_devices_setup(void)
- 	 */
- 	__raw_writew(__raw_readw(PORT_MSELCRA) | 1, PORT_MSELCRA);
- 
-+	 /*
-+	  * Use 10 MHz VIO_CKO instead of 24 MHz to work around signal quality
-+	  * issues on Panel Board V2.1.
-+	  */
-+	video_clk = clk_get(NULL, "video_clk");
-+	if (!IS_ERR(video_clk)) {
-+		clk_set_rate(video_clk, clk_round_rate(video_clk, 10000000));
-+		clk_put(video_clk);
-+	}
-+
-+	/* Add a clock alias for ov7725 xclk source. */
-+	clk_add_alias("xclk", "0-0021", "video_clk", NULL);
-+
-+	/* Register GPIOs for video sources. */
-+	gpiod_add_lookup_table(&ov7725_gpios);
-+	gpiod_add_lookup_table(&tw9910_gpios);
-+
- 	i2c_register_board_info(0, migor_i2c_devices,
- 				ARRAY_SIZE(migor_i2c_devices));
- 
-+	/* Initialize CEU platform device separately to map memory first */
-+	device_initialize(&migor_ceu_device.dev);
-+	arch_setup_pdev_archdata(&migor_ceu_device);
-+	dma_declare_coherent_memory(&migor_ceu_device.dev,
-+				    ceu_dma_membase, ceu_dma_membase,
-+				    ceu_dma_membase + CEU_BUFFER_MEMORY_SIZE - 1,
-+				    DMA_MEMORY_EXCLUSIVE);
-+
-+	platform_device_add(&migor_ceu_device);
-+
- 	return platform_add_devices(migor_devices, ARRAY_SIZE(migor_devices));
- }
- arch_initcall(migor_devices_setup);
-@@ -665,10 +626,24 @@ static int migor_mode_pins(void)
- 	return MODE_PIN0 | MODE_PIN1 | MODE_PIN5;
- }
- 
-+/* Reserve a portion of memory for CEU buffers */
-+static void __init migor_mv_mem_reserve(void)
-+{
-+	phys_addr_t phys;
-+	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
-+
-+	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
-+	memblock_free(phys, size);
-+	memblock_remove(phys, size);
-+
-+	ceu_dma_membase = phys;
-+}
-+
- /*
-  * The Machine Vector
-  */
- static struct sh_machine_vector mv_migor __initmv = {
- 	.mv_name		= "Migo-R",
- 	.mv_mode_pins		= migor_mode_pins,
-+	.mv_mem_reserve		= migor_mv_mem_reserve,
- };
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
-index 8f07a1a..d85091e 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
-@@ -223,7 +223,7 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_DEV_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
- 	CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
- 	CLKDEV_CON_ID("beu0", &mstp_clks[HWBLK_BEU]),
--	CLKDEV_DEV_ID("sh_mobile_ceu.0", &mstp_clks[HWBLK_CEU]),
-+	CLKDEV_DEV_ID("renesas-ceu.0", &mstp_clks[HWBLK_CEU]),
- 	CLKDEV_CON_ID("veu0", &mstp_clks[HWBLK_VEU]),
- 	CLKDEV_CON_ID("vpu0", &mstp_clks[HWBLK_VPU]),
- 	CLKDEV_DEV_ID("sh_mobile_lcdc_fb.0", &mstp_clks[HWBLK_LCDC]),
--- 
-2.7.4
+Change this to:
+
+	if (!IS_ERR(data->kthread_vid_cap))
+		return 0;
+
+Then do the cleanup for the error case.
+
+> +		struct video_i2c_buffer *buf, *tmp;
+> +
+> +		spin_lock(&data->slock);
+> +
+> +		list_for_each_entry_safe(buf, tmp, &data->vid_cap_active, list) {
+> +			list_del(&buf->list);
+> +			vb2_buffer_done(&buf->vb.vb2_buf,
+> +					VB2_BUF_STATE_QUEUED);
+> +		}
+> +
+> +		spin_unlock(&data->slock);
+> +
+> +		return PTR_ERR(data->kthread_vid_cap);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void stop_streaming(struct vb2_queue *vq)
+> +{
+> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +
+> +	if (data->kthread_vid_cap == NULL)
+> +		return;
+> +
+> +	kthread_stop(data->kthread_vid_cap);
+> +
+> +	spin_lock(&data->slock);
+> +
+> +	while (!list_empty(&data->vid_cap_active)) {
+> +		struct video_i2c_buffer *buf;
+> +
+> +		buf = list_entry(data->vid_cap_active.next,
+> +				 struct video_i2c_buffer, list);
+> +		list_del(&buf->list);
+> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+> +	}
+> +	spin_unlock(&data->slock);
+> +
+> +	data->kthread_vid_cap = NULL;
+> +}
+> +
+> +static struct vb2_ops video_i2c_video_qops = {
+> +	.queue_setup		= queue_setup,
+> +	.buf_prepare		= buffer_prepare,
+> +	.buf_queue		= buffer_queue,
+> +	.start_streaming	= start_streaming,
+> +	.stop_streaming		= stop_streaming,
+> +	.wait_prepare		= vb2_ops_wait_prepare,
+> +	.wait_finish		= vb2_ops_wait_finish,
+> +};
+> +
+> +static int video_i2c_querycap(struct file *file, void  *priv,
+> +				struct v4l2_capability *vcap)
+> +{
+> +	struct video_i2c_data *data = video_drvdata(file);
+> +	struct i2c_client *client = data->client;
+> +
+> +	strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
+> +	sprintf(vcap->card, "I2C %d-%d Transport Video",
+> +					     client->adapter->nr, client->addr);
+> +
+> +	sprintf(vcap->bus_info, "I2C:%d-%d", client->adapter->nr, client->addr);
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_g_input(struct file *file, void *fh, unsigned int *inp)
+> +{
+> +	*inp = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_s_input(struct file *file, void *fh, unsigned int inp)
+> +{
+> +	return (inp > 0) ? -EINVAL : 0;
+> +}
+> +
+> +static int video_i2c_enum_input(struct file *file, void *fh,
+> +				  struct v4l2_input *vin)
+> +{
+> +	if (vin->index > 0)
+> +		return -EINVAL;
+> +
+> +	strlcpy(vin->name, "Camera", sizeof(vin->name));
+> +
+> +	vin->type = V4L2_INPUT_TYPE_CAMERA;
+> +	vin->audioset = 0;
+> +	vin->tuner = 0;
+> +	vin->std = 0;
+> +	vin->status = 0;
+
+No need to zero this, it's done for you in v4l2-ioctl.c via the INFO_FL_CLEAR
+flag.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_enum_fmt_vid_cap(struct file *file, void *fh,
+> +					struct v4l2_fmtdesc *fmt)
+> +{
+> +	struct video_i2c_data *data = video_drvdata(file);
+> +	enum v4l2_buf_type type = fmt->type;
+> +
+> +	if (fmt->index > 0)
+> +		return -EINVAL;
+> +
+> +	*fmt = *data->chip->format;
+> +	fmt->type = type;
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_enum_framesizes(struct file *file, void *fh,
+> +				       struct v4l2_frmsizeenum *fsize)
+> +{
+> +	const struct video_i2c_data *data = video_drvdata(file);
+> +	const struct v4l2_frmsize_discrete *size = data->chip->size;
+> +
+> +	/* currently only one frame size is allowed */
+> +	if (fsize->index > 0)
+> +		return -EINVAL;
+> +
+> +	if (fsize->pixel_format != data->chip->format->pixelformat)
+> +		return -EINVAL;
+> +
+> +	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +	fsize->discrete.width = size->width;
+> +	fsize->discrete.height = size->height;
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_enum_frameintervals(struct file *file, void *priv,
+> +					   struct v4l2_frmivalenum *fe)
+> +{
+> +	const struct video_i2c_data *data = video_drvdata(file);
+> +	const struct v4l2_frmsize_discrete *size = data->chip->size;
+> +
+> +	if (fe->index > 0)
+> +		return -EINVAL;
+> +
+> +	if (fe->width != size->width || fe->height != size->height)
+> +		return -EINVAL;
+> +
+> +	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +	fe->discrete.numerator = 1;
+> +	fe->discrete.denominator = data->chip->max_fps;
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_try_fmt_vid_cap(struct file *file, void *fh,
+> +				       struct v4l2_format *fmt)
+> +{
+> +	const struct video_i2c_data *data = video_drvdata(file);
+> +	const struct v4l2_frmsize_discrete *size = data->chip->size;
+> +	struct v4l2_pix_format *pix = &fmt->fmt.pix;
+> +	unsigned int bpp = data->chip->bpp / 8;
+> +
+> +	pix->width = size->width;
+> +	pix->height = size->height;
+> +	pix->pixelformat = data->chip->format->pixelformat;
+> +	pix->field = V4L2_FIELD_NONE;
+> +	pix->bytesperline = pix->width * bpp;
+> +	pix->sizeimage = pix->width * pix->height * bpp;
+> +	pix->colorspace = V4L2_COLORSPACE_RAW;
+> +	pix->priv = 0;
+
+No need to set priv.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_s_fmt_vid_cap(struct file *file, void *fh,
+> +				     struct v4l2_format *fmt)
+> +{
+> +	struct video_i2c_data *data = video_drvdata(file);
+> +
+
+You need to call video_i2c_try_fmt_vid_cap first, otherwise the format
+is never updated.
+
+> +	if (vb2_is_busy(&data->vb_vidq))
+> +		return -EBUSY;
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_i2c_g_parm(struct file *filp, void *priv,
+> +			      struct v4l2_streamparm *parm)
+> +{
+> +	struct video_i2c_data *data = video_drvdata(filp);
+> +
+> +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +		return -EINVAL;
+> +
+> +	parm->parm.capture.readbuffers = 1;
+> +	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> +	parm->parm.capture.timeperframe.numerator = 1;
+> +	parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
+> +	.vidioc_querycap		= video_i2c_querycap,
+> +	.vidioc_g_input			= video_i2c_g_input,
+> +	.vidioc_s_input			= video_i2c_s_input,
+> +	.vidioc_enum_input		= video_i2c_enum_input,
+> +	.vidioc_enum_fmt_vid_cap	= video_i2c_enum_fmt_vid_cap,
+> +	.vidioc_enum_framesizes		= video_i2c_enum_framesizes,
+> +	.vidioc_enum_frameintervals	= video_i2c_enum_frameintervals,
+> +	.vidioc_g_fmt_vid_cap		= video_i2c_try_fmt_vid_cap,
+> +	.vidioc_s_fmt_vid_cap		= video_i2c_s_fmt_vid_cap,
+> +	.vidioc_g_parm			= video_i2c_g_parm,
+> +	.vidioc_s_parm			= video_i2c_g_parm,
+> +	.vidioc_try_fmt_vid_cap		= video_i2c_try_fmt_vid_cap,
+> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
+> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
+> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
+> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+> +	.vidioc_streamon		= vb2_ioctl_streamon,
+> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
+> +};
+> +
+> +static void video_i2c_release(struct video_device *vdev)
+> +{
+> +	kfree(video_get_drvdata(vdev));
+> +}
+> +
+> +static int video_i2c_probe(struct i2c_client *client,
+> +			     const struct i2c_device_id *id)
+> +{
+> +	struct video_i2c_data *data;
+> +	struct v4l2_device *v4l2_dev;
+> +	struct vb2_queue *queue;
+> +	int ret;
+> +
+> +	data = kzalloc(sizeof(*data), GFP_KERNEL);
+> +	if (!data)
+> +		return -ENOMEM;
+> +
+> +	data->chip = &video_i2c_chip;
+> +	data->client = client;
+> +	v4l2_dev = &data->v4l2_dev;
+> +	strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
+> +
+> +	ret = v4l2_device_register(&client->dev, v4l2_dev);
+> +	if (ret < 0)
+> +		goto error_free_device;
+> +
+> +	mutex_init(&data->lock);
+> +	mutex_init(&data->queue_lock);
+> +
+> +	queue = &data->vb_vidq;
+> +	queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	queue->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+> +	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC |
+> +				 V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
+
+V4L2_BUF_FLAG_TSTAMP_SRC_EOF == 0, so you can drop it.
+
+> +	queue->drv_priv = data;
+> +	queue->buf_struct_size = sizeof(struct video_i2c_buffer);
+> +	queue->min_buffers_needed = 1;
+> +	queue->ops = &video_i2c_video_qops;
+> +	queue->mem_ops = &vb2_vmalloc_memops;
+> +
+> +	ret = vb2_queue_init(queue);
+> +	if (ret < 0)
+> +		goto error_unregister_device;
+> +
+> +	data->vdev.queue = queue;
+> +	data->vdev.queue->lock = &data->queue_lock;
+> +
+> +	sprintf(data->vdev.name, "I2C %d-%d Transport Video",
+> +				 client->adapter->nr, client->addr);
+> +
+> +	data->vdev.v4l2_dev = v4l2_dev;
+> +	data->vdev.fops = &video_i2c_fops;
+> +	data->vdev.lock = &data->lock;
+> +	data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
+> +	data->vdev.release = video_i2c_release;
+> +	data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+> +				 V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> +
+> +	spin_lock_init(&data->slock);
+> +	INIT_LIST_HEAD(&data->vid_cap_active);
+> +
+> +	video_set_drvdata(&data->vdev, data);
+> +	i2c_set_clientdata(client, data);
+> +
+> +	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
+> +	if (ret < 0)
+> +		goto error_unregister_device;
+> +
+> +	return 0;
+> +
+> +error_unregister_device:
+> +	v4l2_device_unregister(v4l2_dev);
+> +
+> +error_free_device:
+> +	kfree(data);
+> +
+> +	return ret;
+> +}
+> +
+> +static int video_i2c_remove(struct i2c_client *client)
+> +{
+> +	struct video_i2c_data *data = i2c_get_clientdata(client);
+> +
+> +	video_unregister_device(&data->vdev);
+> +	v4l2_device_unregister(&data->v4l2_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id video_i2c_id_table[] = {
+> +	{ "amg88xx", 0 },
+
+It makes more sense if you pass the chip info as argument here. It makes it
+easier to add new devices. See e.g. adv7604.c.
+
+There is no static const struct of_device_id []? Wouldn't it make sense to
+add device tree support?
+
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(i2c, video_i2c_id_table);
+> +
+> +static struct i2c_driver video_i2c_driver = {
+> +	.driver = {
+> +		.name	= VIDEO_I2C_DRIVER,
+> +	},
+> +	.probe		= video_i2c_probe,
+> +	.remove		= video_i2c_remove,
+> +	.id_table	= video_i2c_id_table,
+> +};
+> +
+> +module_i2c_driver(video_i2c_driver);
+> +
+> +MODULE_AUTHOR("Matt Ranostay <matt.ranostay@konsulko.com>");
+> +MODULE_DESCRIPTION("I2C transport video support");
+> +MODULE_LICENSE("GPL");
+> 
+
+Regards,
+
+	Hans
