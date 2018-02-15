@@ -1,150 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:43116 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750726AbeBGWF0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 17:05:26 -0500
-Received: by mail-wr0-f195.google.com with SMTP id b52so2684746wrd.10
-        for <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 14:05:25 -0800 (PST)
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:56089 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1033253AbeBOOb2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 09:31:28 -0500
+Subject: Re: [PATCH] media: radio: Critical v4l2 registration bugfix for
+ si470x over i2c
+To: Douglas Fischer <fischerdouglasc@gmail.com>,
+        linux-media@vger.kernel.org
+References: <20180120141957.3621a22c@Constantine>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <46922bef-ce56-3f74-786c-4637dd4feaf9@xs4all.nl>
+Date: Thu, 15 Feb 2018 15:31:27 +0100
 MIME-Version: 1.0
-In-Reply-To: <7cf38465-7a79-5d81-a995-9acfbacf5023@xs4all.nl>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
- <c7771c44-a9ff-0207-38f6-28bcc06ccdee@xs4all.nl> <CAJ+vNU1oiM0Y0rO-DHi57nVOqnw60A7pn_1=h5b46-BrY7_p2Q@mail.gmail.com>
- <605fd4a8-43ab-c566-57b6-abb1c9f8f0f8@xs4all.nl> <7cf38465-7a79-5d81-a995-9acfbacf5023@xs4all.nl>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Wed, 7 Feb 2018 14:05:24 -0800
-Message-ID: <CAJ+vNU014FJZsb44YnidE3fFiqeB6o8A7kvGinJWu7=yq3_dhA@mail.gmail.com>
-Subject: Re: [PATCH v8 0/7] TDA1997x HDMI video reciver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180120141957.3621a22c@Constantine>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 7, 2018 at 1:09 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/07/18 09:22, Hans Verkuil wrote:
->> On 02/07/2018 12:29 AM, Tim Harvey wrote:
->>> Media Controller ioctls:
->>>                 fail: v4l2-test-media.cpp(141): ent.function ==
->>> MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
->>
->> Weird, this shouldn't happen. I'll look into this a bit more.
->
-> Can you run 'mc_nextgen_test -e -i' and post the output?
->
-> It's found in contrib/test.
->
+Hi Douglas,
 
-root@ventana:~# ./v4l-utils/contrib/test/mc_nextgen_test -e -i
-Device: imx-media (driver imx-media)
-Bus:
-version: 0
-number of entities: 24
-number of interfaces: 24
-number of pads: 48
-number of links: 50
-entity entity#1: 'unknown entity type' adv7180 2-0020, 1 pad(s), 1 source(s)
-entity entity#3: 'unknown entity type' tda19971 2-0048, 1 pad(s), 1 source(s)
-entity entity#5: 'unknown entity type' ipu1_vdic, 3 pad(s), 2 sink(s),
-1 source(s)
-entity entity#9: 'unknown entity type' ipu2_vdic, 3 pad(s), 2 sink(s),
-1 source(s)
-entity entity#13: 'unknown entity type' ipu1_ic_prp, 3 pad(s), 1
-sink(s), 2 source(s)
-entity entity#17: 'unknown entity type' ipu1_ic_prpenc, 2 pad(s), 1
-sink(s), 1 source(s)
-entity entity#20: 'V4L I/O' ipu1_ic_prpenc capture, 1 pad(s), 1 sink(s)
-entity entity#26: 'unknown entity type' ipu1_ic_prpvf, 2 pad(s), 1
-sink(s), 1 source(s)
-entity entity#29: 'V4L I/O' ipu1_ic_prpvf capture, 1 pad(s), 1 sink(s)
-entity entity#35: 'unknown entity type' ipu2_ic_prp, 3 pad(s), 1
-sink(s), 2 source(s)
-entity entity#39: 'unknown entity type' ipu2_ic_prpenc, 2 pad(s), 1
-sink(s), 1 source(s)
-entity entity#42: 'V4L I/O' ipu2_ic_prpenc capture, 1 pad(s), 1 sink(s)
-entity entity#48: 'unknown entity type' ipu2_ic_prpvf, 2 pad(s), 1
-sink(s), 1 source(s)
-entity entity#51: 'V4L I/O' ipu2_ic_prpvf capture, 1 pad(s), 1 sink(s)
-entity entity#57: 'unknown entity type' ipu1_csi0, 3 pad(s), 1
-sink(s), 2 source(s)
-entity entity#61: 'V4L I/O' ipu1_csi0 capture, 1 pad(s), 1 sink(s)
-entity entity#67: 'unknown entity type' ipu1_csi1, 3 pad(s), 1
-sink(s), 2 source(s)
-entity entity#71: 'V4L I/O' ipu1_csi1 capture, 1 pad(s), 1 sink(s)
-entity entity#77: 'unknown entity type' ipu2_csi0, 3 pad(s), 1
-sink(s), 2 source(s)
-entity entity#81: 'V4L I/O' ipu2_csi0 capture, 1 pad(s), 1 sink(s)
-entity entity#87: 'unknown entity type' ipu2_csi1, 3 pad(s), 1
-sink(s), 2 source(s)
-entity entity#91: 'V4L I/O' ipu2_csi1 capture, 1 pad(s), 1 sink(s)
-entity entity#97: 'unknown entity type' ipu1_csi0_mux, 3 pad(s), 2
-sink(s), 1 source(s)
-entity entity#101: 'unknown entity type' ipu2_csi1_mux, 3 pad(s), 2
-sink(s), 1 source(s)
-interface intf_devnode#21: video /dev/video0
-interface intf_devnode#30: video /dev/video1
-interface intf_devnode#43: video /dev/video2
-interface intf_devnode#52: video /dev/video3
-interface intf_devnode#62: video /dev/video4
-interface intf_devnode#72: video /dev/video5
-interface intf_devnode#82: video /dev/video6
-interface intf_devnode#92: video /dev/video7
-interface intf_devnode#141: v4l2-subdev /dev/v4l-subdev0
-interface intf_devnode#143: v4l2-subdev /dev/v4l-subdev1
-interface intf_devnode#145: v4l2-subdev /dev/v4l-subdev2
-interface intf_devnode#147: v4l2-subdev /dev/v4l-subdev3
-interface intf_devnode#149: v4l2-subdev /dev/v4l-subdev4
-interface intf_devnode#151: v4l2-subdev /dev/v4l-subdev5
-interface intf_devnode#153: v4l2-subdev /dev/v4l-subdev6
-interface intf_devnode#155: v4l2-subdev /dev/v4l-subdev7
-interface intf_devnode#157: v4l2-subdev /dev/v4l-subdev8
-interface intf_devnode#159: v4l2-subdev /dev/v4l-subdev9
-interface intf_devnode#161: v4l2-subdev /dev/v4l-subdev10
-interface intf_devnode#163: v4l2-subdev /dev/v4l-subdev11
-interface intf_devnode#165: v4l2-subdev /dev/v4l-subdev12
-interface intf_devnode#167: v4l2-subdev /dev/v4l-subdev13
-interface intf_devnode#169: v4l2-subdev /dev/v4l-subdev14
-interface intf_devnode#171: v4l2-subdev /dev/v4l-subdev15
+On 20/01/18 20:19, Douglas Fischer wrote:
+> Added the call to v4l2_device_register() required to add a new radio
+> device. Without this patch, it is impossible for the driver to load.
+> This does not affect USB devices.
+> 
+> Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
+> ---
+> 
+> diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
+> linux/drivers/media/radio/si470x/radio-si470x-i2c.c ---
+> linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
+> 2018-01-15 21:58:10.675620432 -0500 +++
+> linux/drivers/media/radio/si470x/radio-si470x-i2c.c	2018-01-16
+> 17:08:02.929734342 -0500 @@ -43,7 +43,6 @@ static const struct
+> i2c_device_id si470x MODULE_DEVICE_TABLE(i2c, si470x_i2c_id); 
+> -
+>  /**************************************************************************
+>   * Module Parameters
+>   **************************************************************************/
+> @@ -362,8 +361,29 @@ static int si470x_i2c_probe(struct i2c_c
+>  	mutex_init(&radio->lock);
+>  	init_completion(&radio->completion);
+>  
+> +	retval = v4l2_device_register(&client->dev, &radio->v4l2_dev);
+> +	if (retval < 0) {
+> +		dev_err(&client->dev, "couldn't register
+> v4l2_device\n");
+> +		goto err_initial;
+> +	}
+> +
+> +	v4l2_ctrl_handler_init(&radio->hdl, 2);
+> +	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
+> +			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+> +	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
+> +			V4L2_CID_AUDIO_VOLUME, 0, 15, 1, 15);
+> +	if (radio->hdl.error) {
+> +		retval = radio->hdl.error;
+> +		dev_err(&client->dev, "couldn't register control\n");
+> +		goto err_dev;
+> +	}
 
-I updated v4l2-compliance and ran again:
-root@ventana:~# v4l2-compliance -m0 -M
-v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
-Media Driver Info:
-        Driver name      : imx-media
-        Model            : imx-media
-        Serial           :
-        Bus info         :
-        Media version    : 4.15.0
-        Hardware revision: 0x00000000 (0)
-        Driver version   : 4.15.0
+You don't explain in the commit log why this is added as well.
 
-Compliance test for device /dev/media0:
+> +
+>  	/* video device initialization */
+>  	radio->videodev = si470x_viddev_template;
+> +	radio->videodev.ctrl_handler =
+> &radio->hdl;				// no?
+> +	radio->videodev.lock =
+> &radio->lock;					// no?
 
-Required ioctls:
-        test MEDIA_IOC_DEVICE_INFO: OK
+'no?' what?
 
-Allow for multiple opens:
-        test second /dev/media0 open: OK
-        test MEDIA_IOC_DEVICE_INFO: OK
-        test for unlimited opens: OK
+> +	radio->videodev.v4l2_dev = &radio->v4l2_dev;
+> +	radio->videodev.release = video_device_release_empty;
+>  	video_set_drvdata(&radio->videodev, radio);
+>  
+>  	/* power up : need 110ms */
+> @@ -435,6 +455,8 @@ static int si470x_i2c_probe(struct i2c_c
+>  	return 0;
+>  err_all:
+>  	free_irq(client->irq, radio);
+> +err_dev:
+> +	v4l2_device_unregister(&radio->v4l2_dev);
 
-Media Controller ioctls:
-                fail: v4l2-test-media.cpp(94): function ==
-MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
-                fail: v4l2-test-media.cpp(156):
-checkFunction(ent.function, true)
-        test MEDIA_IOC_G_TOPOLOGY: FAIL
-                fail: v4l2-test-media.cpp(275): num_data_links != num_links
-        test MEDIA_IOC_ENUM_ENTITIES/LINKS: FAIL
-        test MEDIA_IOC_SETUP_LINK: OK
+This can't be right. radio->buffer is allocated after the v4l2_device, so the
+kfree for that should come before err_dev.
 
-Total: 7, Succeeded: 5, Failed: 2, Warnings: 0
+Please double check the cleanup order.
+
+>  err_rds:
+>  	kfree(radio->buffer);
+>  err_radio:
+> 
 
 Regards,
 
-Tim
+	Hans
