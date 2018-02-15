@@ -1,270 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f46.google.com ([209.85.218.46]:43664 "EHLO
-        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031596AbeBNPok (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:46865 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755165AbeBOJuU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 10:44:40 -0500
-Received: by mail-oi0-f46.google.com with SMTP id 4so16790047ois.10
-        for <linux-media@vger.kernel.org>; Wed, 14 Feb 2018 07:44:39 -0800 (PST)
+        Thu, 15 Feb 2018 04:50:20 -0500
+Date: Thu, 15 Feb 2018 10:50:18 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v7 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20180215095018.hslnarg4ykegqsbo@flea.lan>
+References: <20180208150830.9219-1-maxime.ripard@bootlin.com>
+ <2517178.9jmyBy62ST@avalon>
+ <20180214131933.t75jg5b5cjfuo7r6@flea.home>
+ <1952975.8AbmfkeE6m@avalon>
 MIME-Version: 1.0
-In-Reply-To: <3C8219BAE02B894A9C69304A12E8AA0656AAF9AE@HED-Exchange.hed.local>
-References: <3C8219BAE02B894A9C69304A12E8AA0656AAF9AE@HED-Exchange.hed.local>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Wed, 14 Feb 2018 13:44:38 -0200
-Message-ID: <CAOMZO5AyPnAfzbAOB247N9mwEp0n7-kUFxdAhm9RK0SEWP=1iA@mail.gmail.com>
-Subject: Re: i.MX53 using imx-media to capture analog video through ADV7180
-To: Matthew Starr <mstarr@hedonline.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="zkbrrwh56qyk3crj"
+Content-Disposition: inline
+In-Reply-To: <1952975.8AbmfkeE6m@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[Adding Steve and Philipp in case they could provide some suggestions]
 
-On Wed, Feb 14, 2018 at 1:21 PM, Matthew Starr <mstarr@hedonline.com> wrote=
-:
-> I have successfully modified device tree files in the mainline 4.15.1 ker=
-nel to get a display product using the i.MX53 processor to initialize the i=
-mx-media drivers.  I think up to this point they have only been tested on i=
-.MX6 processors.  I am using two ADV7180 analog capture chips, one per CSI =
-port, on this display product.
->
-> I have everything initialize successfully at boot, but I am unable to get=
- the media-ctl command to link the ADV7180 devices to the CSI ports.  I use=
-d the following website as guidance of how to setup the links between media=
- devices:
-> https://linuxtv.org/downloads/v4l-dvb-apis/v4l-drivers/imx.html
->
-> When trying to link the ADV7180 chip to a CSI port, I use the following c=
-ommand and get the result below:
->
->         media-ctl -v -l "'adv7180 1-0021':0->'ipu1_csi0':0[1]"
->
->         No link between "adv7180 1-0021":0 and "ipu1_csi0":0
->         media_parse_setup_link: Unable to parse link
->         Unable to parse link: Invalid argument (22)
->
-> How do I get the ADV7180 and CSI port on the i.MX53 processor to link?
->
-> The difference for the i.MX53 compared to the i.MX6 processor is that the=
-re is only one IPU and no mipi support, so my device tree does not use any =
-video-mux or mux devices.  Could this have something to do with why I can't=
- link the ADV7180 to the CSI port?
->
-> Here is the output of the "media-ctl -p -v" command:
->
-> Opening media device /dev/media0
-> Enumerating entities
-> looking up device: 81:10
-> looking up device: 81:11
-> looking up device: 81:12
-> looking up device: 81:4
-> looking up device: 81:13
-> looking up device: 81:5
-> looking up device: 81:14
-> looking up device: 81:15
-> looking up device: 81:16
-> looking up device: 81:17
-> looking up device: 81:6
-> looking up device: 81:18
-> looking up device: 81:7
-> looking up device: 81:19
-> looking up device: 81:20
-> looking up device: 81:8
-> looking up device: 81:21
-> looking up device: 81:9
-> Found 18 entities
-> Enumerating pads and links
-> Media controller API version 4.15.1
->
-> Media device information
-> ------------------------
-> driver          imx-media
-> model           imx-media
-> serial
-> bus info
-> hw revision     0x0
-> driver version  4.15.1
->
-> Device topology
-> - entity 1: adv7180 1-0021 (1 pad, 0 link)
->             type V4L2 subdev subtype Unknown flags 20004
->             device node name /dev/v4l-subdev0
->         pad0: Source
->                 [fmt:UYVY8_2X8/720x480 field:interlaced]
->
-> - entity 3: adv7180 1-0020 (1 pad, 0 link)
->             type V4L2 subdev subtype Unknown flags 20004
->             device node name /dev/v4l-subdev1
->         pad0: Source
->                 [fmt:UYVY8_2X8/720x480 field:interlaced]
->
-> - entity 5: ipu1_csi1 (3 pads, 3 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev2
->         pad0: Sink
->                 [fmt:UYVY8_2X8/640x480 field:none
->                  crop.bounds:(0,0)/640x480
->                  crop:(0,0)/640x480
->                  compose.bounds:(0,0)/640x480
->                  compose:(0,0)/640x480]
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prp":0 []
->                 -> "ipu1_vdic":0 []
->         pad2: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_csi1 capture":0 []
->
-> - entity 9: ipu1_csi1 capture (1 pad, 1 link)
->             type Node subtype V4L flags 0
->             device node name /dev/video4
->         pad0: Sink
->                 <- "ipu1_csi1":2 []
->
-> - entity 15: ipu1_csi0 (3 pads, 3 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev3
->         pad0: Sink
->                 [fmt:UYVY8_2X8/640x480 field:none
->                  crop.bounds:(0,0)/640x480
->                  crop:(0,0)/640x480
->                  compose.bounds:(0,0)/640x480
->                  compose:(0,0)/640x480]
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prp":0 []
->                 -> "ipu1_vdic":0 [ENABLED]
->         pad2: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_csi0 capture":0 []
->
-> - entity 19: ipu1_csi0 capture (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video5
->         pad0: Sink
->                 <- "ipu1_csi0":2 []
->
-> - entity 25: ipu1_ic_prp (3 pads, 5 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev4
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu1_csi1":1 []
->                 <- "ipu1_csi0":1 []
->                 <- "ipu1_vdic":2 [ENABLED]
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prpenc":0 []
->         pad2: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prpvf":0 [ENABLED]
->
-> - entity 29: ipu1_vdic (3 pads, 3 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev5
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu1_csi1":1 []
->                 <- "ipu1_csi0":1 [ENABLED]
->         pad1: Sink
->                 [fmt:UYVY8_2X8/640x480 field:none]
->         pad2: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prp":0 [ENABLED]
->
-> - entity 33: ipu2_vdic (3 pads, 1 link)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev6
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->         pad1: Sink
->                 [fmt:UYVY8_2X8/640x480 field:none]
->         pad2: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu2_ic_prp":0 []
->
-> - entity 37: ipu1_ic_prpenc (2 pads, 2 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev7
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu1_ic_prp":1 []
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prpenc capture":0 []
->
-> - entity 40: ipu1_ic_prpenc capture (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video6
->         pad0: Sink
->                 <- "ipu1_ic_prpenc":1 []
->
-> - entity 46: ipu1_ic_prpvf (2 pads, 2 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev8
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu1_ic_prp":2 [ENABLED]
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu1_ic_prpvf capture":0 [ENABLED]
->
-> - entity 49: ipu1_ic_prpvf capture (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video7
->         pad0: Sink
->                 <- "ipu1_ic_prpvf":1 [ENABLED]
->
-> - entity 55: ipu2_ic_prp (3 pads, 3 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev9
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu2_vdic":2 []
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu2_ic_prpenc":0 []
->         pad2: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu2_ic_prpvf":0 []
->
-> - entity 59: ipu2_ic_prpenc (2 pads, 2 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev10
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu2_ic_prp":1 []
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu2_ic_prpenc capture":0 []
->
-> - entity 62: ipu2_ic_prpenc capture (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video8
->         pad0: Sink
->                 <- "ipu2_ic_prpenc":1 []
->
-> - entity 68: ipu2_ic_prpvf (2 pads, 2 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev11
->         pad0: Sink
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 <- "ipu2_ic_prp":2 []
->         pad1: Source
->                 [fmt:AYUV8_1X32/640x480 field:none]
->                 -> "ipu2_ic_prpvf capture":0 []
->
-> - entity 71: ipu2_ic_prpvf capture (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video9
->         pad0: Sink
->                 <- "ipu2_ic_prpvf":1 []
->
->
-> Best regards,
->
-> Matthew Starr
+--zkbrrwh56qyk3crj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Feb 14, 2018 at 05:03:26PM +0200, Laurent Pinchart wrote:
+> On Wednesday, 14 February 2018 15:19:33 EET Maxime Ripard wrote:
+> > On Thu, Feb 08, 2018 at 08:17:19PM +0200, Laurent Pinchart wrote:
+> > >> +	/*
+> > >> +	 * Create a static mapping between the CSI virtual channels
+> > >> +	 * and the output stream.
+> > >> +	 *
+> > >> +	 * This should be enhanced, but v4l2 lacks the support for
+> > >> +	 * changing that mapping dynamically.
+> > >> +	 *
+> > >> +	 * We also cannot enable and disable independant streams here,
+> > >> +	 * hence the reference counting.
+> > >> +	 */
+> > >=20
+> > > If you start all streams in one go, will s_stream(1) be called multip=
+le
+> > > times ? If not, you could possibly skip the whole reference counting =
+and
+> > > avoid locking.
+> >=20
+> > I guess that while we should expect the CSI-2 bus to be always
+> > enabled, the downstream camera interface could be shutdown
+> > independently, so I guess s_stream would be called each time one is
+> > brought up or brought down?
+>=20
+> That's the idea. However, we don't have support for multiplexed streams i=
+n=20
+> mainline yet, so there's no way it can be implemented today in your drive=
+r.
+
+Ok, but we definitely plan on supporting that soon, so I guess that
+wouldn't too much of a burden to keep it there.
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+http://bootlin.com
+
+--zkbrrwh56qyk3crj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqFV9kACgkQ0rTAlCFN
+r3RU5Q/9H1VTrVPGgvRJJmgI1F8/xIpOdCMFliYvjkxul/fF4fUn5JJiq/PTwApi
+yzrSKmRrarcYXqNZ1bSwQ9naN7sZHsiRT1L7xKUMPKEeMcWMvCSoCVrO0nrO9aWp
+OwY4lcTapDwQO1gXmcevgxkMiO+TytcHVUxVYjueeC9fnvqlwpGynmRZuV6/ODZ1
+gKOGzqdoAp3s4E4wm9OlrP4AjlgttZ7u4sdfC3bagSeqE0LIwNu4zCapg4toMbWu
+8jwBQX84mK3s1270KB3VYBO5kaei/8phAiCNdaOJUD8NuoBqEg/0s9VAJt7DjLuf
+QXjAbkx9KblNJK6NwYQzkuW1/7baf+eg1gM6SWnFmW0E4QFzxw21Cn5OlJOo/Pm8
+uhRox+j+He9ZzmdNNtMja8flZrz7arZfoqiWO+UYKEti8OhrsnrqoIbvE2F+q8Y8
+P0BS1WStp4h0tGwmMktK+66oO/ir3sgMkIz+Jt9LO1gbc8/1nUw3jOOwfOnF0GU8
+mAQgJX0xJfW3z/aiHIbLgEup/JOoVpiys3b2/uNUPW08sNYIYDTrthHkyZ3dhial
+MEC17MFx2nMqUf9JMfngLmeZfM6OvPGg/aelmRyslxD7IibWJ1gynozyW7yJnWcZ
+LBs2cI4+SquekTbyI7HZl3Lz28uhOx8iZR6gsyXQQJxucn7dY7E=
+=VPeT
+-----END PGP SIGNATURE-----
+
+--zkbrrwh56qyk3crj--
