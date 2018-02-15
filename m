@@ -1,160 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44845 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934388AbeBMRCH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:02:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 13/30] rcar-vin: add function to manipulate Gen3 chsel value
-Date: Tue, 13 Feb 2018 19:02:38 +0200
-Message-ID: <5978650.TJRMUHOLl6@avalon>
-In-Reply-To: <20180213165809.GE18618@bigcity.dyn.berto.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <6540925.qhrue9hUJl@avalon> <20180213165809.GE18618@bigcity.dyn.berto.se>
+Received: from osg.samsung.com ([64.30.133.232]:45854 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S966589AbeBOLQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 06:16:24 -0500
+Date: Thu, 15 Feb 2018 09:16:18 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.17] rc changes
+Message-ID: <20180215091618.2db36d39@vento.lan>
+In-Reply-To: <20180214213207.axrs6k3cl6tevb2h@gofer.mess.org>
+References: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
+        <20180214164448.32a4c989@vento.lan>
+        <20180214213207.axrs6k3cl6tevb2h@gofer.mess.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Em Wed, 14 Feb 2018 21:32:07 +0000
+Sean Young <sean@mess.org> escreveu:
 
-On Tuesday, 13 February 2018 18:58:09 EET Niklas S=F6derlund wrote:
-> On 2018-02-13 18:41:33 +0200, Laurent Pinchart wrote:
-> > On Monday, 29 January 2018 18:34:18 EET Niklas S=F6derlund wrote:
-> > > On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. O=
-ne
-> > > feature of this register is that it's only present in the VIN0 and VI=
-N4
-> > > instances. The register in VIN0 controls the routing for VIN0-3 and t=
-he
-> > > register in VIN4 controls routing for VIN4-7.
-> > >=20
-> > > To be able to control routing from a media device this function is ne=
-ed
-> > > to control runtime PM for the subgroup master (VIN0 and VIN4). The
-> > > subgroup master must be switched on before the register is manipulate=
-d,
-> > > once the operation is complete it's safe to switch the master off and
-> > > the new routing will still be in effect.
-> > >=20
-> > > Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
-=2Ese>
-> > > ---
-> >>=20
-> >>  drivers/media/platform/rcar-vin/rcar-dma.c | 28++++++++++++++++++++++=
-+++
-> >>  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
-> >>  2 files changed, 30 insertions(+)
-> >>=20
-> >> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> >> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> >> 2f9ad1bec1c8a92f..ae286742f15a3ab5 100644
-> >> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> >> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> >> @@ -16,6 +16,7 @@
-> >>=20
-> >>  #include <linux/delay.h>
-> >>  #include <linux/interrupt.h>
-> >> +#include <linux/pm_runtime.h>
-> >>=20
-> >>  #include <media/videobuf2-dma-contig.h>
-> >>=20
-> >> @@ -1228,3 +1229,30 @@ int rvin_dma_register(struct rvin_dev *vin, int
-> >> irq)
-> >>  	return ret;
-> >>  }
-> >>=20
-> >> +
-> >> +/* ------------------------------------------------------------------=
-=2D--
-> >> + * Gen3 CHSEL manipulation
-> >> + */
-> >> +
-> >> +void rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
-> >> +{
-> >> +	u32 ifmd, vnmc;
-> >> +
-> >> +	pm_runtime_get_sync(vin->dev);
-> >=20
-> > No need to check for errors ?
->=20
-> You asked the samething for v9 so I will copy paste the same reply :-)
+> Hi Mauro,
+> 
+> On Wed, Feb 14, 2018 at 04:44:48PM -0200, Mauro Carvalho Chehab wrote:
+> > Hi Sean,
+> > 
+> > Em Mon, 12 Feb 2018 20:03:18 +0000
+> > Sean Young <sean@mess.org> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > Just very minor changes this time (other stuff is not ready yet). I would
+> > > really appreciate if you could cast an extra critical eye on the commit 
+> > > "no need to check for transitions", just to be sure it is the right change.  
+> > 
+> > Did you send all patches in separate? This is important to allow us
+> > to comment on an specific issue inside a patch...  
+> 
+> All the patches were emailed to linux-media, some of them on the same day
+> as the pull request. Maybe I should wait longer. The patch below was sent
+> out on the 28th of January.
+> 
+> > >       media: rc: no need to check for transitions  
 
-Oh so you expect me to remember what happened with previous versions ? :-)
+No need to wait longer. Yet, it seems that I lost the above patch, as I
+couldn't find anything on my email with the above subject.
 
->     Sakari asked the same thing in v4 :-)
->=20
->     In short no its not needed please see Geert's response [1]. If I
->     recall correctly this was also discussed in more detail in another
->     thread for some other driver whit a bit longer answer saying that it
->     pm_runtime_get_sync() fails you have big problems but I can't find
->     that thread now :-(
->=20
->     1. https://www.spinics.net/lists/linux-media/msg115241.html
+Perhaps the e-mail got lost somehow on my inbox.
 
-If kmalloc() fails we also have big problems, but we nonetheless check ever=
-y=20
-memory allocation.
+> > 
+> > I don't remember the exact reason for that, but, as far as I
+> > remember, on a few devices, a pulse (or space) event could be
+> > broken into two consecutive events of the same type, e. g.,
+> > a pulse with a 125 ms could be broken into two pulses, like
+> > one with 100 ms and the other with 25 ms.  
+> 
+> If that is the case, then the IR decoders could not deal with this anyway.
+> For example, the first state transition rc6 is:
+> 
+> 	if (!eq_margin(ev.duration, RC6_PREFIX_PULSE, RC6_UNIT))
+> 
+> So if ev.duration is not the complete duration, then decoding will fail;
+> I tried to explain in the commit message that if this was the case, then
+> decoding would not work so the check was unnecessary.
+> 
+> > That's said, I'm not sure if the current implementation are
+> > adding the timings for both pulses into a single one.  
+> 
+> That depends on whether the driver uses ir_raw_event_store() or
+> ir_raw_event_store_with_filter(). The latter exists precisely for this
+> reason.
 
-> >> +
-> >> +	/* Make register writes take effect immediately */
-> >> +	vnmc =3D rvin_read(vin, VNMC_REG);
-> >> +	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
-> >> +
-> >> +	ifmd =3D VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-> >> +		VNCSI_IFMD_CSI_CHSEL(chsel);
-> >> +
-> >> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-> >> +
-> >> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-> >> +
-> >> +	/* Restore VNMC */
-> >> +	rvin_write(vin, vnmc, VNMC_REG);
-> >=20
-> > No need for locking around all this ? What happens if this VIN instance
-> > decides to write to another VIN register (for instance due to a userpace
-> > call) when this function has disabled VNMC_VUP ?
->=20
-> You also asked a related question to this in v9 as a start I will copy
-> in that reply.
->=20
->     Media link changes are not allowed when any VIN in the group are
->     streaming so this should not be an issue.
->=20
-> And to compliment that. This function is only valid for a VIN which has
-> the CHSEL register which currently is VIN0 and VIN4. It can only be
-> modified when a media link is enabled. Catching media links are only
-> allowed when all VIN in the system are _not_ streaming. And VNMC_VUP is
-> only enabled when a VIN is streaming so there is no need for locking
-> here.
+OK.
 
-This seems a bit fragile to me, could you please capture the explanation in=
- a=20
-comment ?
+> 
+> > For now, I'll keep this patch out of the merge.  
+> 
+> Ok. So in summary, I think:
+> 
+> 1. Any driver which produces consequentive pulse events is broken
+>    and should be fixed;
 
-> >> +	pm_runtime_put(vin->dev);
-> >> +}
-> >> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> >> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> >> 146683142e6533fa..a5dae5b5e9cb704b 100644
-> >> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> >> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> >> @@ -165,4 +165,6 @@ const struct rvin_video_format
-> >> *rvin_format_from_pixel(u32 pixelformat); /* Cropping, composing and
-> >> scaling */
-> >>=20
-> >>  void rvin_crop_scale_comp(struct rvin_dev *vin);
-> >>=20
-> >> +void rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
-> >> +
-> >>  #endif
+Agreed.
 
-=2D-=20
-Regards,
+> 2. The IR decoders cannot deal with consequentive pulses and the current
+>    prev_ev code does not help with this (possibly in very special
+>    cases).
 
-Laurent Pinchart
+Ok. Yet, maybe it would worth to produce a warning if this happen, and
+reset the state machine, as it would help to identify problems at
+the driver or at the hardware.
+
+
+Thanks,
+Mauro
