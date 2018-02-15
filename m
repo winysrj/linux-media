@@ -1,94 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45047 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965277AbeBMRuy (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36778 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966589AbeBOK5s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:50:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        Thu, 15 Feb 2018 05:57:48 -0500
+Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 19/30] rcar-vin: set a default field to fallback on
-Date: Tue, 13 Feb 2018 19:51:25 +0200
-Message-ID: <2513002.daXBhrgmYI@avalon>
-In-Reply-To: <20180129163435.24936-20-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-20-niklas.soderlund+renesas@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se>
+ <3434065.V6QgqqWRc5@avalon>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ecea7e97-de20-6d11-3ad4-680bab4628f0@xs4all.nl>
+Date: Thu, 15 Feb 2018 11:57:44 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <3434065.V6QgqqWRc5@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On 14/02/18 16:16, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 14 February 2018 12:36:43 EET Niklas Söderlund wrote:
+>> There is no way for drivers to validate a colorspace value, which could
+>> be provided by user-space by VIDIOC_S_FMT for example. Add a helper to
+>> validate that the colorspace value is part of enum v4l2_colorspace.
+>>
+>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>> ---
+>>  include/uapi/linux/videodev2.h | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> Hi,
+>>
+>> I hope this is the correct header to add this helper to. I think it's
+>> since if it's in uapi not only can v4l2 drivers use it but tools like
+>> v4l-compliance gets access to it and can be updated to use this instead
+>> of the hard-coded check of just < 0xff as it was last time I checked.
+>>
+>> * Changes since v1
+>> - Cast colorspace to u32 as suggested by Sakari and only check the upper
+>>   boundary to address a potential issue brought up by Laurent if the
+>>   data type tested is u32 which is not uncommon:
+>>
+>>     enum.c:30:16: warning: comparison of unsigned expression >= 0 is always
+>> true [-Wtype-limits]
+>>       return V4L2_COLORSPACE_IS_VALID(colorspace);
+>>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 9827189651801e12..1f27c0f4187cbded 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -238,6 +238,10 @@ enum v4l2_colorspace {
+>>  	V4L2_COLORSPACE_DCI_P3        = 12,
+>>  };
+>>
+>> +/* Determine if a colorspace is defined in enum v4l2_colorspace */
+>> +#define V4L2_COLORSPACE_IS_VALID(colorspace)		\
+>> +	((u32)(colorspace) <= V4L2_COLORSPACE_DCI_P3)
 
-Thank you for the patch.
+Sorry, this won't work. Use __u32. u32 is only available in the kernel, not
+in userspace and this is a public header.
 
-On Monday, 29 January 2018 18:34:24 EET Niklas S=F6derlund wrote:
-> If the field is not supported by the driver it should not try to keep
-> the current field. Instead it should set it to a default fallback. Since
-> trying a format should always result in the same state regardless of the
-> current state of the device.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 6403650aff22a2ed..f69ae76b3fda50c7 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,6 +23,7 @@
->  #include "rcar-vin.h"
->=20
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> +#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
->  #define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
->=20
->  /* ---------------------------------------------------------------------=
-=2D--
-> @@ -171,7 +172,7 @@ static int rvin_get_source_format(struct rvin_dev
-> *vin, fmt.format.height *=3D 2;
->  		break;
->  	default:
-> -		vin->format.field =3D V4L2_FIELD_NONE;
-> +		vin->format.field =3D RVIN_DEFAULT_FIELD;
->  		break;
->  	}
->=20
-> @@ -267,9 +268,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  {
->  	int ret;
->=20
-> -	/* Keep current field if no specific one is asked for */
->  	if (pix->field =3D=3D V4L2_FIELD_ANY)
-> -		pix->field =3D vin->format.field;
-> +		pix->field =3D RVIN_DEFAULT_FIELD;
+I am not convinced about the usefulness of this check either. Drivers will
+typically only support a subset of the available colorspaces, so they need
+a switch to test for that. There is nothing wrong with userspace giving them
+an unknown colorspace: either they will map anything they don't support to
+something that they DO support, or they will return -EINVAL. If memory serves
+the spec requires the first option, so anything unknown will just be replaced.
 
-Won't this also be caught by the field check in the above function, called=
-=20
-from __rvin_try_format_source() ? You could just remove this check complete=
-ly.
+And anyway, this raises the question of why you do this for the colorspace
+but not for all the other enums in the V4L2 API.
 
-However as mentioned in a comment for a previous patch I don't think the fi=
-eld=20
-handling belongs in rvin_get_source_format(), so you could merge both here.=
-=20
-Or, if you repurpose and rename rvin_get_source_format(), then the check ca=
-n=20
-probably be removed completely. I haven't checked the consolidated code aft=
-er=20
-applying all patches from this series, but some refactoring might be useful=
-=2E=20
-We'll see.
+It all seems rather pointless to me.
 
->  	/* Limit to source capabilities */
->  	ret =3D __rvin_try_format_source(vin, which, pix);
+I won't accept this unless I see it being used in a driver in a useful way.
 
-=2D-=20
-Regards,
+So for now:
 
-Laurent Pinchart
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Sorry,
+
+	Hans
+
+>> +
+> 
+> Casting to u32 has the added benefit that the colorspace expression is 
+> evaluated once only, I like that.
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+>>  /*
+>>   * Determine how COLORSPACE_DEFAULT should map to a proper colorspace.
+>>   * This depends on whether this is a SDTV image (use SMPTE 170M), an
+> 
+> 
