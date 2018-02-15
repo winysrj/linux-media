@@ -1,166 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:36465 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932402AbeBLXB5 (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:53033 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032208AbeBONdt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 18:01:57 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v13 1/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-Date: Tue, 13 Feb 2018 00:01:31 +0100
-Message-Id: <20180212230132.5402-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 15 Feb 2018 08:33:49 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v8 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+Date: Thu, 15 Feb 2018 14:33:34 +0100
+Message-Id: <20180215133335.9335-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180215133335.9335-1-maxime.ripard@bootlin.com>
+References: <20180215133335.9335-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-are located between the video sources (CSI-2 transmitters) and the video
-grabbers (VIN) on Gen3 of Renesas R-Car SoC.
+The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
+4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+the hardware implementation.
 
-Each CSI-2 device is connected to more than one VIN device which
-simultaneously can receive video from the same CSI-2 device. Each VIN
-device can also be connected to more than one CSI-2 device. The routing
-of which links are used is controlled by the VIN devices. There are only
-a few possible routes which are set by hardware limitations, which are
-different for each SoC in the Gen3 family.
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Benoit Parrot <bparrot@ti.com>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- .../bindings/media/renesas,rcar-csi2.txt           | 99 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 100 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+ .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 +++++++++++++++++++++
+ 1 file changed, 100 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
 new file mode 100644
-index 0000000000000000..6f71f997dc48eee9
+index 000000000000..6b02a0657ad9
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-@@ -0,0 +1,99 @@
-+Renesas R-Car MIPI CSI-2
-+------------------------
++++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+@@ -0,0 +1,100 @@
++Cadence MIPI-CSI2 RX controller
++===============================
 +
-+The R-Car CSI-2 receiver device provides MIPI CSI-2 capabilities for the
-+Renesas R-Car family of devices. It is used in conjunction with the
-+R-Car VIN module, which provides the video capture capabilities.
++The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
++lanes in input, and 4 different pixel streams in output.
 +
-+Mandatory properties
-+--------------------
-+ - compatible: Must be one or more of the following
-+   - "renesas,r8a7795-csi2" for the R8A7795 device.
-+   - "renesas,r8a7796-csi2" for the R8A7796 device.
++Required properties:
++  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * sys_clk: main clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
 +
-+ - reg: the register base and size for the device registers
-+ - interrupts: the interrupt for the device
-+ - clocks: reference to the parent clock
++Optional properties:
++  - phys: phandle to the external D-PHY, phy-names must be provided
++  - phy-names: must contain "dphy", if the implementation uses an
++               external D-PHY
 +
-+The device node shall contain two 'port' child nodes according to the
-+bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt. Port 0 shall connect to the CSI-2 source. Port 1
-+shall connect to all the R-Car VIN modules that have a hardware
-+connection to the CSI-2 receiver.
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows:
 +
-+- Port 0 - Video source (mandatory)
-+	- Endpoint 0 - sub-node describing the endpoint that is the video source
++           Port Description
++           -----------------------------
++           0    CSI-2 input
++           1    Stream 0 output
++           2    Stream 1 output
++           3    Stream 2 output
++           4    Stream 3 output
 +
-+- Port 1 - VIN instances (optional)
-+	- One endpoint sub-node for every R-Car VIN instance which is connected
-+	  to the R-Car CSI-2 receiver.
++           The stream output port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design.Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
 +
 +Example:
 +
-+	csi20: csi2@fea80000 {
-+		compatible = "renesas,r8a7796-csi2";
-+		reg = <0 0xfea80000 0 0x10000>;
-+		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 714>;
-+		power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
-+		resets = <&cpg 714>;
++csi2rx: csi-bridge@0d060000 {
++	compatible = "cdns,csi2rx";
++	reg = <0x0d060000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "sys_clk", "p_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
 +
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
 +
-+			port@0 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
++		port@0 {
++			reg = <0>;
 +
-+				reg = <0>;
-+
-+				csi20_in: endpoint@0 {
-+					reg = <0>;
-+					clock-lanes = <0>;
-+					data-lanes = <1>;
-+					remote-endpoint = <&adv7482_txb>;
-+				};
++			csi2rx_in_sensor: endpoint {
++				remote-endpoint = <&sensor_out_csi2rx>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
 +			};
++		};
 +
-+			port@1 {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
++		port@1 {
++			reg = <1>;
 +
-+				reg = <1>;
++			csi2rx_out_grabber0: endpoint {
++				remote-endpoint = <&grabber0_in_csi2rx>;
++			};
++		};
 +
-+				csi20vin0: endpoint@0 {
-+					reg = <0>;
-+					remote-endpoint = <&vin0csi20>;
-+				};
-+				csi20vin1: endpoint@1 {
-+					reg = <1>;
-+					remote-endpoint = <&vin1csi20>;
-+				};
-+				csi20vin2: endpoint@2 {
-+					reg = <2>;
-+					remote-endpoint = <&vin2csi20>;
-+				};
-+				csi20vin3: endpoint@3 {
-+					reg = <3>;
-+					remote-endpoint = <&vin3csi20>;
-+				};
-+				csi20vin4: endpoint@4 {
-+					reg = <4>;
-+					remote-endpoint = <&vin4csi20>;
-+				};
-+				csi20vin5: endpoint@5 {
-+					reg = <5>;
-+					remote-endpoint = <&vin5csi20>;
-+				};
-+				csi20vin6: endpoint@6 {
-+					reg = <6>;
-+					remote-endpoint = <&vin6csi20>;
-+				};
-+				csi20vin7: endpoint@7 {
-+					reg = <7>;
-+					remote-endpoint = <&vin7csi20>;
-+				};
++		port@2 {
++			reg = <2>;
++
++			csi2rx_out_grabber1: endpoint {
++				remote-endpoint = <&grabber1_in_csi2rx>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2rx_out_grabber2: endpoint {
++				remote-endpoint = <&grabber2_in_csi2rx>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2rx_out_grabber3: endpoint {
++				remote-endpoint = <&grabber3_in_csi2rx>;
 +			};
 +		};
 +	};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index aee793bff977d413..a0ca030b6bf6b82c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8651,6 +8651,7 @@ L:	linux-media@vger.kernel.org
- L:	linux-renesas-soc@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Supported
-+F:	Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
- F:	Documentation/devicetree/bindings/media/rcar_vin.txt
- F:	drivers/media/platform/rcar-vin/
- 
++};
 -- 
-2.16.1
+2.14.3
