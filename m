@@ -1,155 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:50947 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754008AbeBGOYn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:24:43 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v6 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-Date: Wed,  7 Feb 2018 15:24:36 +0100
-Message-Id: <20180207142437.14553-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180207142437.14553-1-maxime.ripard@bootlin.com>
-References: <20180207142437.14553-1-maxime.ripard@bootlin.com>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:45212 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1946054AbeBORnk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 12:43:40 -0500
+Received: by mail-wr0-f195.google.com with SMTP id q16so466049wrf.12
+        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 09:43:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <10f08dfb-cc23-a9e3-7439-95955661cb77@xs4all.nl>
+References: <1518712767-21928-1-git-send-email-tharvey@gateworks.com>
+ <1518712767-21928-7-git-send-email-tharvey@gateworks.com> <10f08dfb-cc23-a9e3-7439-95955661cb77@xs4all.nl>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 15 Feb 2018 09:43:38 -0800
+Message-ID: <CAJ+vNU1ZZnrMJgmOA+XBRjnV0WE8uyc4OSJvdKyZ_eooWGLqRA@mail.gmail.com>
+Subject: Re: [PATCH v12 6/8] media: i2c: Add TDA1997x HDMI receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
-4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
-the hardware implementation.
+On Thu, Feb 15, 2018 at 9:16 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 15/02/18 17:39, Tim Harvey wrote:
+>> Add support for the TDA1997x HDMI receivers.
+>>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+>> ---
+>> v12:
+>>  - fix coccinelle warnings
+>
+> Did you post the right version? I still see the owner being set and the
+> other kbuild warning ('note: in expansion of macro 'v4l_dbg'') is also
+> still there.
+>
+> Note that the last one also shows these errors:
+>
+> drivers/media/i2c/tda1997x.c:387:5-8: WARNING: Unsigned expression compared with zero: val < 0
+> drivers/media/i2c/tda1997x.c:391:5-8: WARNING: Unsigned expression compared with zero: val < 0
+> drivers/media/i2c/tda1997x.c:404:5-8: WARNING: Unsigned expression compared with zero: val < 0
+> drivers/media/i2c/tda1997x.c:408:5-8: WARNING: Unsigned expression compared with zero: val < 0
+> drivers/media/i2c/tda1997x.c:412:5-8: WARNING: Unsigned expression compared with zero: val < 0
+> drivers/media/i2c/tda1997x.c:427:6-9: WARNING: Unsigned expression compared with zero: val < 0
+>
+> This is indeed wrong.
+>
+> Regards,
+>
+>         Hans
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+oh geez... no I goofed that up. I'll send a v13 now.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 +++++++++++++++++++++
- 1 file changed, 100 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
-
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
-new file mode 100644
-index 000000000000..56d51902b2eb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
-@@ -0,0 +1,100 @@
-+Cadence MIPI-CSI2 RX controller
-+===============================
-+
-+The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
-+lanes in input, and 4 different pixel streams in output.
-+
-+Required properties:
-+  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * sys_clk: main clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
-+
-+Optional properties:
-+  - phys: phandle to the external D-PHY, phy-names must be provided
-+  - phy-names: must contain dphy, if the implementation uses an
-+               external D-PHY
-+
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes numbered as follows.
-+
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 input
-+           1    Stream 0 output
-+           2    Stream 1 output
-+           3    Stream 2 output
-+           4    Stream 3 output
-+
-+           The stream output port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design.Since there is only one endpoint per port,
-+           the endpoints are not numbered.
-+
-+
-+Example:
-+
-+csi2rx: csi-bridge@0d060000 {
-+	compatible = "cdns,csi2rx";
-+	reg = <0x0d060000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "sys_clk", "p_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi2rx_in_sensor: endpoint {
-+				remote-endpoint = <&sensor_out_csi2rx>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi2rx_out_grabber0: endpoint {
-+				remote-endpoint = <&grabber0_in_csi2rx>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2rx_out_grabber1: endpoint {
-+				remote-endpoint = <&grabber1_in_csi2rx>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2rx_out_grabber2: endpoint {
-+				remote-endpoint = <&grabber2_in_csi2rx>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2rx_out_grabber3: endpoint {
-+				remote-endpoint = <&grabber3_in_csi2rx>;
-+			};
-+		};
-+	};
-+};
--- 
-2.14.3
+Tim
