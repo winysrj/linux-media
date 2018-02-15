@@ -1,41 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45209 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750961AbeBHOsP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 09:48:15 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] media: imx: csi: fix enum_mbus_code for unknown mbus format codes
-Date: Thu,  8 Feb 2018 15:47:49 +0100
-Message-Id: <20180208144749.10558-1-p.zabel@pengutronix.de>
+Received: from mail-by2nam03on0059.outbound.protection.outlook.com ([104.47.42.59]:14880
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754837AbeBOGnC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 01:43:02 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v3 8/9] v4l: xilinx: dma: Add scaling and padding factor functions
+Date: Wed, 14 Feb 2018 22:42:50 -0800
+Message-ID: <1518676970-19707-1-git-send-email-satishna@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If no imx_media_pixfmt is found for a given mbus format code,
-we shouldn't crash. Return -EINVAL for any index.
+scaling_factor function returns multiplying factor to calculate
+bytes per component based on color format.
+For eg. scaling factor of YUV420 8 bit format is 1
+so multiplying factor is 1 (8/8)
+scaling factor of YUV420 10 bit format is 1.25 (10/8)
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+padding_factor function returns multiplying factor to calculate
+actual width of video according to color format.
+For eg. padding factor of YUV420 8 bit format: 8 bits per 1 component
+no padding bits here, so multiplying factor is 1
+padding factor of YUV422 10 bit format: 32 bits per 3 components
+each component is 10 bit and the factor is 32/30
+
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/platform/xilinx/xilinx-vip.c | 43 ++++++++++++++++++++++++++=
+++++
+ drivers/media/platform/xilinx/xilinx-vip.h |  2 ++
+ 2 files changed, 45 insertions(+)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index eb7be5093a9d..89903f267d60 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1138,6 +1138,10 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
- 
- 	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, code->which);
- 	incc = imx_media_find_mbus_format(infmt->code, CS_SEL_ANY, true);
-+	if (!incc) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	switch (code->pad) {
- 	case CSI_SINK_PAD:
--- 
-2.15.1
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
+tform/xilinx/xilinx-vip.c
+index 51b7ef6..7543b75 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -94,6 +94,49 @@ const struct xvip_video_format *xvip_get_format_by_fourc=
+c(u32 fourcc)
+ EXPORT_SYMBOL_GPL(xvip_get_format_by_fourcc);
+
+ /**
++ * xvip_bpl_scaling_factor - Retrieve bpl scaling factor for a 4CC
++ * @fourcc: the format 4CC
++ *
++ * Return: Return numerator and denominator values by address
++ */
++void xvip_bpl_scaling_factor(u32 fourcc, u32 *numerator, u32 *denominator)
++{
++       switch (fourcc) {
++       case V4L2_PIX_FMT_XV15M:
++               *numerator =3D 10;
++               *denominator =3D 8;
++               break;
++       default:
++               *numerator   =3D 1;
++               *denominator =3D 1;
++               break;
++       }
++}
++EXPORT_SYMBOL_GPL(xvip_bpl_scaling_factor);
++
++/**
++ * xvip_width_padding_factor - Retrieve width's padding factor for a 4CC
++ * @fourcc: the format 4CC
++ *
++ * Return: Return numerator and denominator values by address
++ */
++void xvip_width_padding_factor(u32 fourcc, u32 *numerator, u32 *denominato=
+r)
++{
++       switch (fourcc) {
++       case V4L2_PIX_FMT_XV15M:
++               /* 32 bits are required per 30 bits of data */
++               *numerator =3D 32;
++               *denominator =3D 30;
++               break;
++       default:
++               *numerator   =3D 1;
++               *denominator =3D 1;
++               break;
++       }
++}
++EXPORT_SYMBOL_GPL(xvip_width_padding_factor);
++
++/**
+  * xvip_of_get_format - Parse a device tree node and return format informa=
+tion
+  * @node: the device tree node
+  *
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/pla=
+tform/xilinx/xilinx-vip.h
+index 006dcf77..26fada7 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -135,6 +135,8 @@ struct xvip_video_format {
+ const struct xvip_video_format *xvip_get_format_by_code(unsigned int code)=
+;
+ const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc);
+ const struct xvip_video_format *xvip_of_get_format(struct device_node *nod=
+e);
++void xvip_bpl_scaling_factor(u32 fourcc, u32 *numerator, u32 *denominator)=
+;
++void xvip_width_padding_factor(u32 fourcc, u32 *numerator, u32 *denominato=
+r);
+ void xvip_set_format_size(struct v4l2_mbus_framefmt *format,
+                          const struct v4l2_subdev_format *fmt);
+ int xvip_enum_mbus_code(struct v4l2_subdev *subdev,
+--
+2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
