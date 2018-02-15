@@ -1,116 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:41651 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752682AbeBGBtB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:49:01 -0500
-Received: by mail-pg0-f68.google.com with SMTP id 141so1879551pgd.8
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:49:01 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv3 10/17] v4l2-ctrls: support g/s_ext_ctrls for requests
-Date: Wed,  7 Feb 2018 10:48:14 +0900
-Message-Id: <20180207014821.164536-11-acourbot@chromium.org>
-In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
-References: <20180207014821.164536-1-acourbot@chromium.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53972 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755557AbeBOTqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 14:46:20 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by galahad.ideasonboard.com (Postfix) with ESMTPSA id B4CF0200BF
+        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 20:44:45 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.17] uvcvideo changes
+Date: Thu, 15 Feb 2018 21:46:54 +0200
+Message-ID: <5514459.NidxLMrFhA@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-The v4l2_g/s_ext_ctrls functions now support control handlers that
-represent requests.
+The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 37 ++++++++++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 
+-0500)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 9090a49eef91..4fa7adef7531 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1528,6 +1528,13 @@ static int new_to_user(struct v4l2_ext_control *c,
- 	return ptr_to_user(c, ctrl, ctrl->p_new);
- }
- 
-+/* Helper function: copy the request value back to the caller */
-+static int req_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl_ref *ref)
-+{
-+	return ptr_to_user(c, ref->ctrl, ref->p_req);
-+}
-+
- /* Helper function: copy the initial control value back to the caller */
- static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
- {
-@@ -1647,6 +1654,14 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- 	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
- }
- 
-+/* Copy the new value to the request value */
-+static void new_to_req(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
-+}
-+
- /* Return non-zero if one or more of the controls in the cluster has a new
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
-@@ -2971,7 +2986,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 				    struct v4l2_ctrl *ctrl);
- 		struct v4l2_ctrl *master;
- 
--		ctrl_to_user = def_value ? def_to_user : cur_to_user;
-+		ctrl_to_user = def_value ? def_to_user :
-+			       (hdl->is_request ? NULL : cur_to_user);
- 
- 		if (helpers[i].mref == NULL)
- 			continue;
-@@ -2997,8 +3013,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 			u32 idx = i;
- 
- 			do {
--				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ref->ctrl);
-+				if (ctrl_to_user)
-+					ret = ctrl_to_user(cs->controls + idx,
-+						helpers[idx].ref->ctrl);
-+				else
-+					ret = req_to_user(cs->controls + idx,
-+						helpers[idx].ref);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3271,7 +3291,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		} while (!ret && idx);
- 
- 		if (!ret)
--			ret = try_or_set_cluster(fh, master, set, 0);
-+			ret = try_or_set_cluster(fh, master,
-+						 !hdl->is_request && set, 0);
-+		if (!ret && hdl->is_request && set) {
-+			for (j = 0; j < master->ncontrols; j++) {
-+				struct v4l2_ctrl_ref *ref =
-+					find_ref(hdl, master->cluster[j]->id);
-+
-+				new_to_req(ref);
-+			}
-+		}
- 
- 		/* Copy the new values back to userspace. */
- 		if (!ret) {
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git uvc/next
+
+for you to fetch changes up to df0d402a05dfe57cc6069d189ae9844f5bb4e852:
+
+  uvcvideo: Fixed ktime_t to ns conversion (2018-02-15 10:16:34 +0200)
+
+----------------------------------------------------------------
+Edgar Thier (1):
+      uvcvideo: Apply flags from device to actual properties
+
+Jasmin Jessich (1):
+      uvcvideo: Fixed ktime_t to ns conversion
+
+Laurent Pinchart (4):
+      uvcvideo: Drop extern keyword in function declarations
+      uvcvideo: Use kernel integer types
+      uvcvideo: Use internal kernel integer types
+      uvcvideo: Use parentheses around sizeof operand
+
+Philipp Zabel (1):
+      uvcvideo: Support multiple frame descriptors with the same dimensions
+
+ drivers/media/usb/uvc/uvc_ctrl.c   | 114 +++++++++-------
+ drivers/media/usb/uvc/uvc_driver.c |  97 +++++++-------
+ drivers/media/usb/uvc/uvc_isight.c |   6 +-
+ drivers/media/usb/uvc/uvc_status.c |   4 +-
+ drivers/media/usb/uvc/uvc_v4l2.c   | 139 +++++++++++++-------
+ drivers/media/usb/uvc/uvc_video.c  |  47 +++----
+ drivers/media/usb/uvc/uvcvideo.h   | 320 +++++++++++++++++-----------------
+ 7 files changed, 395 insertions(+), 332 deletions(-)
+
 -- 
-2.16.0.rc1.238.g530d649a79-goog
+Regards,
+
+Laurent Pinchart
