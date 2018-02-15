@@ -1,136 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.microchip.iphmx.com ([68.232.147.91]:62285 "EHLO
-        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932103AbeBVMEM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:04:12 -0500
-From: Claudiu Beznea <claudiu.beznea@microchip.com>
-To: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
-        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
-        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
-        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
-        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
-        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
-        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>
-CC: <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: [PATCH v3 10/10] pwm: atmel: add push-pull mode support
-Date: Thu, 22 Feb 2018 14:01:21 +0200
-Message-ID: <1519300881-8136-11-git-send-email-claudiu.beznea@microchip.com>
-In-Reply-To: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+Received: from mail-bn3nam01on0082.outbound.protection.outlook.com ([104.47.33.82]:51740
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754829AbeBOGmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 01:42:52 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v3 6/9] v4l: xilinx: dma: Update video format descriptor
+Date: Wed, 14 Feb 2018 22:42:36 -0800
+Message-ID: <1518676956-19618-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
 Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for PWM push-pull mode. This is only supported by SAMA5D2 SoCs.
+This patch updates video format descriptor to help information
+viz., number of planes per color format and chroma sub sampling
+factors.
 
-Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+This commit adds the various 8-bit and 10-bit that are supported
+to the table queried by drivers.
+
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
 ---
- drivers/pwm/pwm-atmel.c | 40 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 36 insertions(+), 4 deletions(-)
+ drivers/media/platform/xilinx/xilinx-vip.c | 18 ++++++++++--------
+ drivers/media/platform/xilinx/xilinx-vip.h | 11 ++++++++++-
+ 2 files changed, 20 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/pwm/pwm-atmel.c b/drivers/pwm/pwm-atmel.c
-index d2482fe28cfa..da4b58c1ecf2 100644
---- a/drivers/pwm/pwm-atmel.c
-+++ b/drivers/pwm/pwm-atmel.c
-@@ -33,8 +33,11 @@
- 
- #define PWM_CMR			0x0
- /* Bit field in CMR */
--#define PWM_CMR_CPOL		(1 << 9)
--#define PWM_CMR_UPD_CDTY	(1 << 10)
-+#define PWM_CMR_CPOL		BIT(9)
-+#define PWM_CMR_UPD_CDTY	BIT(10)
-+#define PWM_CMR_DTHI		BIT(17)
-+#define PWM_CMR_DTLI		BIT(18)
-+#define PWM_CMR_PPM		BIT(19)
- #define PWM_CMR_CPRE_MSK	0xF
- 
- /* The following registers for PWM v1 */
-@@ -219,16 +222,19 @@ static int atmel_pwm_apply(struct pwm_chip *chip, struct pwm_device *pwm,
- {
- 	struct atmel_pwm_chip *atmel_pwm = to_atmel_pwm_chip(chip);
- 	struct pwm_state cstate;
-+	struct pwm_caps caps;
- 	unsigned long cprd, cdty;
- 	u32 pres, val;
- 	int ret;
- 
- 	pwm_get_state(pwm, &cstate);
-+	pwm_get_caps(chip, pwm, &caps);
- 
- 	if (state->enabled) {
- 		if (cstate.enabled &&
- 		    cstate.polarity == state->polarity &&
--		    cstate.period == state->period) {
-+		    cstate.period == state->period &&
-+		    cstate.mode == state->mode) {
- 			cprd = atmel_pwm_ch_readl(atmel_pwm, pwm->hwpwm,
- 						  atmel_pwm->data->regs.period);
- 			atmel_pwm_calculate_cdty(state, cprd, &cdty);
-@@ -263,6 +269,18 @@ static int atmel_pwm_apply(struct pwm_chip *chip, struct pwm_device *pwm,
- 			val &= ~PWM_CMR_CPOL;
- 		else
- 			val |= PWM_CMR_CPOL;
-+
-+		/* PWM mode. */
-+		if (caps.modes & PWM_MODE(PUSH_PULL)) {
-+			if (state->mode == PWM_MODE(PUSH_PULL)) {
-+				val |= PWM_CMR_PPM | PWM_CMR_DTLI;
-+				val &= ~PWM_CMR_DTHI;
-+			} else {
-+				val &= ~(PWM_CMR_PPM | PWM_CMR_DTLI |
-+					 PWM_CMR_DTHI);
-+			}
-+		}
-+
- 		atmel_pwm_ch_writel(atmel_pwm, pwm->hwpwm, PWM_CMR, val);
- 		atmel_pwm_set_cprd_cdty(chip, pwm, cprd, cdty);
- 		mutex_lock(&atmel_pwm->isr_lock);
-@@ -315,6 +333,20 @@ static const struct atmel_pwm_data atmel_pwm_data_v2 = {
- 	},
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
+tform/xilinx/xilinx-vip.c
+index d306f44..51b7ef6 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -27,22 +27,24 @@
+  */
+
+ static const struct xvip_video_format xvip_video_formats[] =3D {
++       { XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
++         1, 15, V4L2_PIX_FMT_XV15M, 2, 2, 1, 2, "4:2:0, 10-bit 2-plane non=
+-cont" },
+        { XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
+-         2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
++         2, 16, V4L2_PIX_FMT_YUYV, 1, 1, 2, 1, "4:2:2, packed, YUYV" },
+        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+-         3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
++         3, 24, V4L2_PIX_FMT_VUY24, 1, 1, 1, 1, "4:4:4, packed, YUYV" },
+        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
+-         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
++         3, 24, V4L2_PIX_FMT_RGB24, 1, 1, 1, 1, "24-bit RGB" },
+        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+-         1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
++         1, 8, V4L2_PIX_FMT_GREY, 1, 1, 1, 1, "Greyscale 8-bit" },
+        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+-         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
++         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit RGGB" },
+        { XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
+-         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
++         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit GRBG" },
+        { XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
+-         1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
++         1, 8, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1, "Bayer 8-bit GBRG" },
+        { XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
+-         1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
++         1, 8, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1, "Bayer 8-bit BGGR" },
  };
- 
-+static const struct atmel_pwm_data atmel_pwm_data_v3 = {
-+	.regs = {
-+		.period		= PWMV2_CPRD,
-+		.period_upd	= PWMV2_CPRDUPD,
-+		.duty		= PWMV2_CDTY,
-+		.duty_upd	= PWMV2_CDTYUPD,
-+	},
-+	.caps = {
-+		.modes = PWM_MODE(NORMAL) |
-+			 PWM_MODE(COMPLEMENTARY) |
-+			 PWM_MODE(PUSH_PULL),
-+	},
-+};
-+
- static const struct platform_device_id atmel_pwm_devtypes[] = {
- 	{
- 		.name = "at91sam9rl-pwm",
-@@ -337,7 +369,7 @@ static const struct of_device_id atmel_pwm_dt_ids[] = {
- 		.data = &atmel_pwm_data_v2,
- 	}, {
- 		.compatible = "atmel,sama5d2-pwm",
--		.data = &atmel_pwm_data_v2,
-+		.data = &atmel_pwm_data_v3,
- 	}, {
- 		/* sentinel */
- 	},
--- 
+
+ /**
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/pla=
+tform/xilinx/xilinx-vip.h
+index 42fee20..006dcf77 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -109,8 +109,12 @@ struct xvip_device {
+  * @width: AXI4 format width in bits per component
+  * @pattern: CFA pattern for Mono/Sensor formats
+  * @code: media bus format code
+- * @bpp: bytes per pixel (when stored in memory)
++ * @bpl_factor: Bytes per line factor
+  * @fourcc: V4L2 pixel format FCC identifier
++ * @num_planes: number of planes w.r.t. color format
++ * @buffers: number of buffers per format
++ * @hsub: Horizontal sampling factor of Chroma
++ * @vsub: Vertical sampling factor of Chroma
+  * @description: format description, suitable for userspace
+  */
+ struct xvip_video_format {
+@@ -118,8 +122,13 @@ struct xvip_video_format {
+        unsigned int width;
+        const char *pattern;
+        unsigned int code;
++       unsigned int bpl_factor;
+        unsigned int bpp;
+        u32 fourcc;
++       u8 num_planes;
++       u8 buffers;
++       u8 hsub;
++       u8 vsub;
+        const char *description;
+ };
+
+--
 2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
