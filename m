@@ -1,60 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50673 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965701AbeBMUKS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 15:10:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 23/30] rcar-vin: change name of video device
-Date: Tue, 13 Feb 2018 22:10:49 +0200
-Message-ID: <3546910.V9PaBWYjKi@avalon>
-In-Reply-To: <20180129163435.24936-24-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-24-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-sn1nam01on0072.outbound.protection.outlook.com ([104.47.32.72]:43584
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753412AbeBOGmJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 01:42:09 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
+        Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH v3 1/9] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
+Date: Wed, 14 Feb 2018 22:41:53 -0800
+Message-ID: <1518676913-19380-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
 
-Thank you for the patch.
+In current implementation driver only checks the colorspace
+between the last subdev in the pipeline and the connected video node,
+the pipeline could be configured with wrong colorspace information
+until the very end. It thus makes little sense to check the
+colorspace only at the video node. So check can be dropped until
+we find a better solution to carry colorspace information
+through pipelines and to userspace.
 
-On Monday, 29 January 2018 18:34:28 EET Niklas S=F6derlund wrote:
-> The rcar-vin driver needs to be part of a media controller to support
-> Gen3. Give each VIN instance a unique name so it can be referenced from
-> userspace.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+---
+ drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/pla=
+tform/xilinx/xilinx-dma.c
+index 522cdfd..cb20ada 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 292e1f22a4be36c7..3ac6cdcb18ce4a21 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -1012,7 +1012,7 @@ int rvin_v4l2_register(struct rvin_dev *vin)
->  	/* video node */
->  	vdev->v4l2_dev =3D &vin->v4l2_dev;
->  	vdev->queue =3D &vin->queue;
-> -	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
-> +	snprintf(vdev->name, sizeof(vdev->name), "VIN%u output", vin->id);
->  	vdev->release =3D video_device_release_empty;
->  	vdev->lock =3D &vin->lock;
->  	vdev->device_caps =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+        if (dma->fmtinfo->code !=3D fmt.format.code ||
+            dma->format.height !=3D fmt.format.height ||
+-           dma->format.width !=3D fmt.format.width ||
+-           dma->format.colorspace !=3D fmt.format.colorspace)
++           dma->format.width !=3D fmt.format.width)
+                return -EINVAL;
 
+        return 0;
+--
+2.7.4
 
-=2D-=20
-Regards,
-
-Laurent Pinchart
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
