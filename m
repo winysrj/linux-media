@@ -1,182 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35293 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752816AbeBGBsi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:48:38 -0500
-Received: by mail-pg0-f65.google.com with SMTP id o13so1893371pgs.2
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:48:37 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv3 02/17] videodev2.h: Add request_fd field to v4l2_buffer
-Date: Wed,  7 Feb 2018 10:48:06 +0900
-Message-Id: <20180207014821.164536-3-acourbot@chromium.org>
-In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
-References: <20180207014821.164536-1-acourbot@chromium.org>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:42202 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1427401AbeBORhK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Feb 2018 12:37:10 -0500
+Received: by mail-pg0-f67.google.com with SMTP id y8so295494pgr.9
+        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 09:37:10 -0800 (PST)
+Subject: Re: [PATCH] imx/Kconfig: add depends on HAS_DMA
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+References: <ec6cb539-4571-f006-513d-9ac5e955e236@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <f3cee891-ee06-6362-50a2-ec1f1f9d1fc8@gmail.com>
+Date: Thu, 15 Feb 2018 09:37:05 -0800
+MIME-Version: 1.0
+In-Reply-To: <ec6cb539-4571-f006-513d-9ac5e955e236@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-When queuing buffers allow for passing the request that should
-be associated with this buffer.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[acourbot@chromium.org: make request ID 32-bit]
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 3 ++-
- drivers/media/usb/cpia2/cpia2_v4l.c             | 2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c   | 9 ++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c            | 4 ++--
- include/media/videobuf2-v4l2.h                  | 2 ++
- include/uapi/linux/videodev2.h                  | 3 ++-
- 6 files changed, 15 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index fac3cd6f901d..0034f4d190f2 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->reserved2 = 0;
-+	b->request_fd = vbuf->request_fd;
- 	b->reserved = 0;
- 
- 	if (q->is_multiplanar) {
-@@ -320,6 +320,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
- 	}
- 	vb->timestamp = 0;
- 	vbuf->sequence = 0;
-+	vbuf->request_fd = b->request_fd;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		if (b->memory == VB2_MEMORY_USERPTR) {
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index a1c59f19cf2d..54c5aa0ecd26 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->sequence = cam->buffers[buf->index].seq;
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
--	buf->reserved2 = 0;
-+	buf->request_fd = 0;
- 	buf->reserved = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 5198c9eeb348..32bf47489a2e 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -386,7 +386,7 @@ struct v4l2_buffer32 {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__s32			request_fd;
- 	__u32			reserved;
- };
- 
-@@ -486,6 +486,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
- {
- 	u32 type;
- 	u32 length;
-+	s32 request_fd;
- 	enum v4l2_memory memory;
- 	struct v4l2_plane32 __user *uplane32;
- 	struct v4l2_plane __user *uplane;
-@@ -500,7 +501,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	    get_user(memory, &up->memory) ||
- 	    put_user(memory, &kp->memory) ||
- 	    get_user(length, &up->length) ||
--	    put_user(length, &kp->length))
-+	    put_user(length, &kp->length) ||
-+	    get_user(request_fd, &up->request_fd) ||
-+	    put_user(request_fd, &kp->request_fd))
- 		return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(type))
-@@ -604,7 +607,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
- 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
- 	    assign_in_user(&up->sequence, &kp->sequence) ||
--	    assign_in_user(&up->reserved2, &kp->reserved2) ||
-+	    assign_in_user(&up->request_fd, &kp->request_fd) ||
- 	    assign_in_user(&up->reserved, &kp->reserved) ||
- 	    get_user(length, &kp->length) ||
- 	    put_user(length, &up->length))
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index e5109e5b8bf5..2f40ac0cdf6e 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 	const struct v4l2_plane *plane;
- 	int i;
- 
--	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
-+	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%u, flags=0x%08x, field=%s, sequence=%d, memory=%s",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
--			prt_names(p->type, v4l2_type_names),
-+			prt_names(p->type, v4l2_type_names), p->request_fd,
- 			p->flags, prt_names(p->field, v4l2_field_names),
- 			p->sequence, prt_names(p->memory, v4l2_memory_names));
- 
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 126cf559d4ce..a0eef2d42f0d 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -32,6 +32,7 @@
-  *		&enum v4l2_field.
-  * @timecode:	frame timecode.
-  * @sequence:	sequence count of this frame.
-+ * @request_fd:	fd of the request used by the buffer.
-  *
-  * Should contain enough information to be able to cover all the fields
-  * of &struct v4l2_buffer at ``videodev2.h``.
-@@ -43,6 +44,7 @@ struct vb2_v4l2_buffer {
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
-+	__s32			request_fd;
- };
- 
- /*
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 982718965180..4fd46ae8fad5 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -909,6 +909,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @request_fd: fd of the request that this buffer should use
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -932,7 +933,7 @@ struct v4l2_buffer {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__s32			request_fd;
- 	__u32			reserved;
- };
- 
--- 
-2.16.0.rc1.238.g530d649a79-goog
+On 02/15/2018 07:54 AM, Hans Verkuil wrote:
+> Add missing dependency.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+> index 59b380cc6d22..bfc17de56b17 100644
+> --- a/drivers/staging/media/imx/Kconfig
+> +++ b/drivers/staging/media/imx/Kconfig
+> @@ -3,6 +3,7 @@ config VIDEO_IMX_MEDIA
+>   	depends on ARCH_MXC || COMPILE_TEST
+>   	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && IMX_IPUV3_CORE
+>   	depends on VIDEO_V4L2_SUBDEV_API
+> +	depends on HAS_DMA
+>   	select VIDEOBUF2_DMA_CONTIG
+>   	select V4L2_FWNODE
+>   	---help---
