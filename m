@@ -1,76 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:38117 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751089AbeBWJ5F (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48384 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1031501AbeBONwe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 04:57:05 -0500
-Message-ID: <1519379812.7712.1.camel@pengutronix.de>
-Subject: Re: [PATCH 01/13] media: v4l2-fwnode: Let parse_endpoint callback
- decide if no remote is error
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 23 Feb 2018 10:56:52 +0100
-In-Reply-To: <3283028.CgXzGkPyKt@avalon>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
-         <1519263589-19647-2-git-send-email-steve_longerbeam@mentor.com>
-         <3283028.CgXzGkPyKt@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Thu, 15 Feb 2018 08:52:34 -0500
+Subject: Re: [PATCH v3 4/8] i2c: ov9650: use 64-bit arithmetic instead of
+ 32-bit
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1517929336.git.gustavo@embeddedor.com>
+ <6f6fd607cf3428d6ab115f1deaa82c4963b170f1.1517929336.git.gustavo@embeddedor.com>
+ <20180207215944.quwowjy52dclk7uc@valkosipuli.retiisi.org.uk>
+ <3518830f-180c-2bf0-1319-eb4af8cc556f@embeddedor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <16032bbb-5063-4f94-bebd-3f512bed8199@xs4all.nl>
+Date: Thu, 15 Feb 2018 14:52:33 +0100
+MIME-Version: 1.0
+In-Reply-To: <3518830f-180c-2bf0-1319-eb4af8cc556f@embeddedor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Fri, 2018-02-23 at 11:29 +0200, Laurent Pinchart wrote:
-> Hi Steve,
+On 08/02/18 17:39, Gustavo A. R. Silva wrote:
+> Hi Sakari,
 > 
-> Thank you for the patch.
+> On 02/07/2018 03:59 PM, Sakari Ailus wrote:
+>> Hi Gustavo,
+>>
+>> On Tue, Feb 06, 2018 at 10:47:50AM -0600, Gustavo A. R. Silva wrote:
+>>> Add suffix ULL to constants 10000 and 1000000 in order to give the
+>>> compiler complete information about the proper arithmetic to use.
+>>> Notice that these constants are used in contexts that expect
+>>> expressions of type u64 (64 bits, unsigned).
+>>>
+>>> The following expressions:
+>>>
+>>> (u64)(fi->interval.numerator * 10000)
+>>> (u64)(iv->interval.numerator * 10000)
+>>> fiv->interval.numerator * 1000000 / fiv->interval.denominator
+>>>
+>>> are currently being evaluated using 32-bit arithmetic.
+>>>
+>>> Notice that those casts to u64 for the first two expressions are only
+>>> effective after such expressions are evaluated using 32-bit arithmetic,
+>>> which leads to potential integer overflows. So based on those casts, it
+>>> seems that the original intention of the code is to actually use 64-bit
+>>> arithmetic instead of 32-bit.
+>>>
+>>> Also, notice that once the suffix ULL is added to the constants, the
+>>> outer casts to u64 are no longer needed.
+>>>
+>>> Addresses-Coverity-ID: 1324146 ("Unintentional integer overflow")
+>>> Fixes: 84a15ded76ec ("[media] V4L: Add driver for OV9650/52 image sensors")
+>>> Fixes: 79211c8ed19c ("remove abs64()")
+>>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+>>> ---
+>>> Changes in v2:
+>>>   - Update subject and changelog to better reflect the proposed code changes.
+>>>   - Add suffix ULL to constants instead of casting variables.
+>>>   - Remove unnecessary casts to u64 as part of the code change.
+>>>   - Extend the same code change to other similar expressions.
+>>>
+>>> Changes in v3:
+>>>   - None.
+>>>
+>>>   drivers/media/i2c/ov9650.c | 9 +++++----
+>>>   1 file changed, 5 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+>>> index e519f27..e716e98 100644
+>>> --- a/drivers/media/i2c/ov9650.c
+>>> +++ b/drivers/media/i2c/ov9650.c
+>>> @@ -1130,7 +1130,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+>>>       if (fi->interval.denominator == 0)
+>>>           return -EINVAL;
+>>>   -    req_int = (u64)(fi->interval.numerator * 10000) /
+>>> +    req_int = fi->interval.numerator * 10000ULL /
+>>>           fi->interval.denominator;
+>>
+>> This has been addressed by your earlier patch "i2c: ov9650: fix potential integer overflow in
+>> __ov965x_set_frame_interval" I tweaked a little. It's not in media tree
+>> master yet.
+>>
 > 
-> On Thursday, 22 February 2018 03:39:37 EET Steve Longerbeam wrote:
-> > For some subdevices, a fwnode endpoint that has no connection to a remote
-> > endpoint may not be an error. Let the parse_endpoint callback make that
-> > decision in v4l2_async_notifier_fwnode_parse_endpoint(). If the callback
-> > indicates that is not an error, skip adding the asd to the notifier and
-> > return 0.
-> > 
-> > For the current users of v4l2_async_notifier_parse_fwnode_endpoints()
-> > (omap3isp, rcar-vin, intel-ipu3), return -EINVAL in the callback for
-> > unavailable remote fwnodes to maintain the previous behavior.
+> Yeah. Actually this patch is supposed to be an improved version of the one you mention. That is why this is version 3.
 > 
-> I'm not sure this should be a per-driver decision.
+> Also, I wonder if the same issue you mention below regarding 32-bit ARM applies in this case too?
 > 
-> Generally speaking, if an endpoint node has no remote-endpoint property, the 
-> endpoint node is not needed. I've always considered such an endpoint node as 
-> invalid. The OF graphs DT bindings are however not clear on this subject.
+>>>         for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
+>>> @@ -1139,7 +1139,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+>>>           if (mbus_fmt->width != iv->size.width ||
+>>>               mbus_fmt->height != iv->size.height)
+>>>               continue;
+>>> -        err = abs((u64)(iv->interval.numerator * 10000) /
+>>> +        err = abs(iv->interval.numerator * 10000ULL /
+>>
+>> This and the chunk below won't work on e.g. 32-bit ARM. do_div(), please.
+>>
+> 
+> Thanks for pointing this out.
+> 
+>>>                   iv->interval.denominator - req_int);
+>>>           if (err < min_err) {
+>>>               fiv = iv;
+>>> @@ -1148,8 +1148,9 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+>>>       }
+>>>       ov965x->fiv = fiv;
+>>>   -    v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %u us\n",
+>>> -         fiv->interval.numerator * 1000000 / fiv->interval.denominator);
+>>> +    v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %llu us\n",
+>>> +         fiv->interval.numerator * 1000000ULL /
+>>> +         fiv->interval.denominator);
+> 
+> I wonder if do_div should be used for the code above?
 
-Documentation/devicetree/bindings/graph.txt says:
+Yes, do_div should be used.
 
-  Each endpoint should contain a 'remote-endpoint' phandle property
-  that points to the corresponding endpoint in the port of the remote
-  device.
+Hans
 
-("should", not "must"). Later, the remote-node property explicitly lists
-the remote-endpoint property as optional.
-
-> I have either failed to notice when they got merged, or they slowly evolved over 
-> time to contain contradictory information. In any case, I think we should 
-> decide on whether such a situation is valid or not from an OF graph point of 
-> view, and then always reject or always accept and ignore those endpoints.
-
-We are currently using this on i.MX6 to provide empty labeled endpoints
-in the dtsi files for board DT writers to link to, both for the display
-output and video capture ports.
-See for example the endpoints with the labels ipu1_di0_disp0 and
-ipu1_csi0_mux_from_parallel_sensor in arch/arm/boot/dts/imx6q.dtsi.
-
-regards
-Philipp
+> 
+> I appreciate your feedback.
+> 
+> Thank you!
