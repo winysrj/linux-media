@@ -1,183 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57059 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753059AbeBSPpK (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34869 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1946187AbeBOR4S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 10:45:10 -0500
-From: Maciej Purski <m.purski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Cc: Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Thu, 15 Feb 2018 12:56:18 -0500
+Received: by mail-pg0-f67.google.com with SMTP id l131so355132pga.2
+        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 09:56:17 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Hans Verkuil <hansverk@cisco.com>,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Maciej Purski <m.purski@samsung.com>
-Subject: [PATCH 7/8] [media] exynos-gsc: Use clk bulk API
-Date: Mon, 19 Feb 2018 16:44:05 +0100
-Message-id: <1519055046-2399-8-git-send-email-m.purski@samsung.com>
-In-reply-to: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
-References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
-        <CGME20180219154502eucas1p20e8daf3edc6737817f8d62db5a2099f2@eucas1p2.samsung.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v13 4/8] MAINTAINERS: add entry for NXP TDA1997x driver
+Date: Thu, 15 Feb 2018 09:55:32 -0800
+Message-Id: <1518717336-6271-5-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1518717336-6271-1-git-send-email-tharvey@gateworks.com>
+References: <1518717336-6271-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using bulk clk functions simplifies the driver's code. Use devm_clk_bulk
-functions instead of iterating over an array of clks.
-
-Signed-off-by: Maciej Purski <m.purski@samsung.com>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 55 ++++++++++------------------
- drivers/media/platform/exynos-gsc/gsc-core.h |  2 +-
- 2 files changed, 20 insertions(+), 37 deletions(-)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 17854a3..fa7e993 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1149,7 +1149,6 @@ static int gsc_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	const struct gsc_driverdata *drv_data = of_device_get_match_data(dev);
- 	int ret;
--	int i;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 845fc25..439b500 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13262,6 +13262,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda18271*
  
- 	gsc = devm_kzalloc(dev, sizeof(struct gsc_dev), GFP_KERNEL);
- 	if (!gsc)
-@@ -1187,25 +1186,19 @@ static int gsc_probe(struct platform_device *pdev)
- 		return -ENXIO;
- 	}
- 
--	for (i = 0; i < gsc->num_clocks; i++) {
--		gsc->clock[i] = devm_clk_get(dev, drv_data->clk_names[i]);
--		if (IS_ERR(gsc->clock[i])) {
--			dev_err(dev, "failed to get clock: %s\n",
--				drv_data->clk_names[i]);
--			return PTR_ERR(gsc->clock[i]);
--		}
--	}
-+	gsc->clocks = devm_clk_bulk_alloc(dev, gsc->num_clocks,
-+					  drv_data->clk_names);
-+	if (IS_ERR(gsc->clocks))
-+		return PTR_ERR(gsc->clocks);
- 
--	for (i = 0; i < gsc->num_clocks; i++) {
--		ret = clk_prepare_enable(gsc->clock[i]);
--		if (ret) {
--			dev_err(dev, "clock prepare failed for clock: %s\n",
--				drv_data->clk_names[i]);
--			while (--i >= 0)
--				clk_disable_unprepare(gsc->clock[i]);
--			return ret;
--		}
--	}
-+	ret = devm_clk_bulk_get(dev, gsc->num_clocks,
-+				gsc->clocks);
-+	if (ret)
-+		return ret;
++TDA1997x MEDIA DRIVER
++M:	Tim Harvey <tharvey@gateworks.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++S:	Maintained
++F:	drivers/media/i2c/tda1997x.*
 +
-+	ret = clk_bulk_prepare_enable(gsc->num_clocks, gsc->clocks);
-+	if (ret)
-+		return ret;
- 
- 	ret = devm_request_irq(dev, res->start, gsc_irq_handler,
- 				0, pdev->name, gsc);
-@@ -1239,15 +1232,14 @@ static int gsc_probe(struct platform_device *pdev)
- err_v4l2:
- 	v4l2_device_unregister(&gsc->v4l2_dev);
- err_clk:
--	for (i = gsc->num_clocks - 1; i >= 0; i--)
--		clk_disable_unprepare(gsc->clock[i]);
-+	clk_bulk_disable_unprepare(gsc->num_clocks, gsc->clocks);
-+
- 	return ret;
- }
- 
- static int gsc_remove(struct platform_device *pdev)
- {
- 	struct gsc_dev *gsc = platform_get_drvdata(pdev);
--	int i;
- 
- 	pm_runtime_get_sync(&pdev->dev);
- 
-@@ -1255,8 +1247,7 @@ static int gsc_remove(struct platform_device *pdev)
- 	v4l2_device_unregister(&gsc->v4l2_dev);
- 
- 	vb2_dma_contig_clear_max_seg_size(&pdev->dev);
--	for (i = 0; i < gsc->num_clocks; i++)
--		clk_disable_unprepare(gsc->clock[i]);
-+	clk_bulk_disable_unprepare(gsc->num_clocks, gsc->clocks);
- 
- 	pm_runtime_put_noidle(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
-@@ -1307,18 +1298,12 @@ static int gsc_runtime_resume(struct device *dev)
- {
- 	struct gsc_dev *gsc = dev_get_drvdata(dev);
- 	int ret = 0;
--	int i;
- 
- 	pr_debug("gsc%d: state: 0x%lx\n", gsc->id, gsc->state);
- 
--	for (i = 0; i < gsc->num_clocks; i++) {
--		ret = clk_prepare_enable(gsc->clock[i]);
--		if (ret) {
--			while (--i >= 0)
--				clk_disable_unprepare(gsc->clock[i]);
--			return ret;
--		}
--	}
-+	ret = clk_bulk_prepare_enable(gsc->num_clocks, gsc->clocks);
-+	if (ret)
-+		return ret;
- 
- 	gsc_hw_set_sw_reset(gsc);
- 	gsc_wait_reset(gsc);
-@@ -1331,14 +1316,12 @@ static int gsc_runtime_suspend(struct device *dev)
- {
- 	struct gsc_dev *gsc = dev_get_drvdata(dev);
- 	int ret = 0;
--	int i;
- 
- 	ret = gsc_m2m_suspend(gsc);
- 	if (ret)
- 		return ret;
- 
--	for (i = gsc->num_clocks - 1; i >= 0; i--)
--		clk_disable_unprepare(gsc->clock[i]);
-+	clk_bulk_disable_unprepare(gsc->num_clocks, gsc->clocks);
- 
- 	pr_debug("gsc%d: state: 0x%lx\n", gsc->id, gsc->state);
- 	return ret;
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index 715d9c9d..08ff7b9 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -334,7 +334,7 @@ struct gsc_dev {
- 	struct gsc_variant		*variant;
- 	u16				id;
- 	int				num_clocks;
--	struct clk			*clock[GSC_MAX_CLOCKS];
-+	struct clk_bulk_data		*clocks;
- 	void __iomem			*regs;
- 	wait_queue_head_t		irq_queue;
- 	struct gsc_m2m_device		m2m;
+ TDA827x MEDIA DRIVER
+ M:	Michael Krufky <mkrufky@linuxtv.org>
+ L:	linux-media@vger.kernel.org
 -- 
 2.7.4
