@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:34734 "EHLO
-        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752228AbeBWTas (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44682 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1163046AbeBOSbf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 14:30:48 -0500
-Received: by mail-lf0-f41.google.com with SMTP id l191so13891856lfe.1
-        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 11:30:47 -0800 (PST)
+        Thu, 15 Feb 2018 13:31:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.17] Add tda1997x.c
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Tim Harvey <tharvey@gateworks.com>
+Message-ID: <80317de5-c7d1-600d-2851-fb4ba8227aaa@xs4all.nl>
+Date: Thu, 15 Feb 2018 19:31:33 +0100
 MIME-Version: 1.0
-From: Federico Allegretti <allegfede@gmail.com>
-Date: Fri, 23 Feb 2018 20:30:25 +0100
-Message-ID: <CAGUPqz7AX0t6M0U6ZKNtqjyW3_5Aj7PsOHVTERTGX1tApVCWbQ@mail.gmail.com>
-Subject: pinnacle 300i driver crashed after first device access
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i noticed that my pinnacle 300i could accept full resolution settings:
-v4l2-ctl --set-fmt-video=width=720,height=576
+This pull requests adds the new tda1997x HDMI receiver.
 
-only the first time the command is fired.
+Regards,
 
-after that, evey time i try to set that resolution with the same
-command, i get instead only the half vertical resolution:
-v4l2-ctl --get-fmt-video
-Format Video Capture:
-    Width/Height      : 720/288
-    Pixel Format      : 'YU12'
-    Field             : Bottom
-    Bytes per Line    : 720
-    Size Image        : 311040
-    Colorspace        : SMPTE 170M
-    Transfer Function : Default
-    YCbCr/HSV Encoding: Default
-    Quantization      : Default
-    Flags             :
+	Hans
 
-I noticed that behaviour when streaming with ffmpeg:
+The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
 
-ffmpeg -re -f video4linux2 -i /dev/video0 -f pulse -ar 44100  -strict
-experimental -acodec aac -ab 56k -vcodec libx264 -vb 452k -profile:v
-high -level 40 -g 100 -f flv
-"rtmp://vps222134.ovh.net:8081/publish/first?passsegretapervideostreaming"
+  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
 
-first time i get audio and video full frame and no problems.
-second time instead ffmpeg drops a lot of frames and fires warnings:
+are available in the Git repository at:
 
-" ... Thread message queue blocking; consider raising the
-thread_queue_size option (current value: 8) ..."
--- 
-Open TV Architecture project: http://sourceforge.net/projects/otva/
+  git://linuxtv.org/hverkuil/media_tree.git tda
 
-Messagenet VOIP: 5338759
+for you to fetch changes up to feecd372500a8470d68a4320996201e47b0f19f9:
 
-YouTube Channel: v1p3r's lab
+  media: i2c: Add TDA1997x HDMI receiver driver (2018-02-15 19:25:54 +0100)
 
-VIMEO HD videos: http://www.vimeo.com/user1912745/videos
+----------------------------------------------------------------
+Hans Verkuil (1):
+      v4l2-dv-timings: add v4l2_hdmi_colorimetry()
+
+Tim Harvey (5):
+      media: v4l-ioctl: fix clearing pad for VIDIOC_DV_TIMINGS_CAP
+      media: add digital video decoder entity functions
+      MAINTAINERS: add entry for NXP TDA1997x driver
+      media: dt-bindings: Add bindings for TDA1997X
+      media: i2c: Add TDA1997x HDMI receiver driver
+
+ Documentation/devicetree/bindings/media/i2c/tda1997x.txt |  178 +++
+ Documentation/media/uapi/mediactl/media-types.rst        |   11 +
+ MAINTAINERS                                              |    8 +
+ drivers/media/i2c/Kconfig                                |    9 +
+ drivers/media/i2c/Makefile                               |    1 +
+ drivers/media/i2c/tda1997x.c                             | 2820 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/tda1997x_regs.h                        |  641 +++++++++++
+ drivers/media/v4l2-core/v4l2-dv-timings.c                |  141 +++
+ drivers/media/v4l2-core/v4l2-ioctl.c                     |    2 +-
+ include/dt-bindings/media/tda1997x.h                     |   74 ++
+ include/media/i2c/tda1997x.h                             |   42 +
+ include/media/v4l2-dv-timings.h                          |   21 +
+ include/uapi/linux/media.h                               |    5 +
+ 13 files changed, 3952 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+ create mode 100644 drivers/media/i2c/tda1997x.c
+ create mode 100644 drivers/media/i2c/tda1997x_regs.h
+ create mode 100644 include/dt-bindings/media/tda1997x.h
+ create mode 100644 include/media/i2c/tda1997x.h
