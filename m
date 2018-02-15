@@ -1,103 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:40267 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966064AbeBMXms (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44369 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1422912AbeBORQ7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 18:42:48 -0500
-Date: Tue, 13 Feb 2018 17:42:46 -0600
-From: Rob Herring <robh@kernel.org>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 1/2] dt-bindings: media: Binding document for OV7251
- camera sensor
-Message-ID: <20180213234246.vmiwrxlxuprlak4z@rob-hp-laptop>
-References: <1518080018-10403-1-git-send-email-todor.tomov@linaro.org>
+        Thu, 15 Feb 2018 12:16:59 -0500
+Subject: Re: [PATCH v12 6/8] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1518712767-21928-1-git-send-email-tharvey@gateworks.com>
+ <1518712767-21928-7-git-send-email-tharvey@gateworks.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <10f08dfb-cc23-a9e3-7439-95955661cb77@xs4all.nl>
+Date: Thu, 15 Feb 2018 18:16:57 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1518080018-10403-1-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1518712767-21928-7-git-send-email-tharvey@gateworks.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 08, 2018 at 10:53:37AM +0200, Todor Tomov wrote:
-> Add the document for ov7251 device tree binding.
+On 15/02/18 17:39, Tim Harvey wrote:
+> Add support for the TDA1997x HDMI receivers.
 > 
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: Mark Rutland <mark.rutland@arm.com>
-> CC: devicetree@vger.kernel.org
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 > ---
->  .../devicetree/bindings/media/i2c/ov7251.txt       | 51 ++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7251.txt b/Documentation/devicetree/bindings/media/i2c/ov7251.txt
-> new file mode 100644
-> index 0000000..c807646
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov7251.txt
-> @@ -0,0 +1,51 @@
-> +* Omnivision 1/7.5-Inch B&W VGA CMOS Digital Image Sensor
-> +
-> +The Omnivision OV7251 is a 1/7.5-Inch CMOS active pixel digital image sensor with
-> +an active array size of 640H x 480V. It is programmable through a serial I2C
-> +interface.
-> +
-> +Required Properties:
-> +- compatible: Value should be "ovti,ov7251".
-> +- clocks: Reference to the xclk clock.
-> +- clock-names: Should be "xclk".
-> +- clock-frequency: Frequency of the xclk clock.
-> +- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
-> +  to the hardware pin XSHUTDOWN which is physically active low.
-> +- vdddo-supply: Chip digital IO regulator.
-> +- vdda-supply: Chip analog regulator.
-> +- vddd-supply: Chip digital core regulator.
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	&i2c1 {
-> +		...
-> +
-> +		ov7251: ov7251@60 {
+> v12:
+>  - fix coccinelle warnings
 
-camera-sensor@60
+Did you post the right version? I still see the owner being set and the
+other kbuild warning ('note: in expansion of macro 'v4l_dbg'') is also
+still there.
 
-With that,
+Note that the last one also shows these errors:
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+drivers/media/i2c/tda1997x.c:387:5-8: WARNING: Unsigned expression compared with zero: val < 0
+drivers/media/i2c/tda1997x.c:391:5-8: WARNING: Unsigned expression compared with zero: val < 0
+drivers/media/i2c/tda1997x.c:404:5-8: WARNING: Unsigned expression compared with zero: val < 0
+drivers/media/i2c/tda1997x.c:408:5-8: WARNING: Unsigned expression compared with zero: val < 0
+drivers/media/i2c/tda1997x.c:412:5-8: WARNING: Unsigned expression compared with zero: val < 0
+drivers/media/i2c/tda1997x.c:427:6-9: WARNING: Unsigned expression compared with zero: val < 0
 
-> +			compatible = "ovti,ov7251";
-> +			reg = <0x60>;
-> +
-> +			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&camera_bw_default>;
-> +
-> +			clocks = <&clks 200>;
-> +			clock-names = "xclk";
-> +			clock-frequency = <24000000>;
-> +
-> +			vdddo-supply = <&camera_dovdd_1v8>;
-> +			vdda-supply = <&camera_avdd_2v8>;
-> +			vddd-supply = <&camera_dvdd_1v2>;
-> +
-> +			port {
-> +				ov7251_ep: endpoint {
-> +					clock-lanes = <1>;
-> +					data-lanes = <0>;
-> +					remote-endpoint = <&csi0_ep>;
-> +				};
-> +			};
-> +		};
-> +	};
-> -- 
-> 2.7.4
-> 
+This is indeed wrong.
+
+Regards,
+
+	Hans
