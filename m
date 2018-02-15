@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:65426 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750853AbeBHMTU (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:38620 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755126AbeBOJ0S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 07:19:20 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH] media: ov5640: fix framerate update
-Date: Thu, 8 Feb 2018 13:18:57 +0100
-Message-ID: <1518092337-6518-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Thu, 15 Feb 2018 04:26:18 -0500
+From: Parthiban Nallathambi <pn@denx.de>
+To: slongerbeam@gmail.com
+Cc: p.zabel@pengutronix.de, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Parthiban Nallathambi <pn@denx.de>
+Subject: [PATCH v2] media: imx: capture: reformat line to 80 chars or less
+Date: Thu, 15 Feb 2018 10:25:45 +0100
+Message-Id: <20180215092545.25475-1-pn@denx.de>
+In-Reply-To: <ee47261e-aa6d-150f-e7f0-b80c74fdec1d@gmail.com>
+References: <ee47261e-aa6d-150f-e7f0-b80c74fdec1d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After a framerate update through s_frame_interval(), the new
-framerate was not taken into account when streaming,
-but was taken into account on next session.
-This was due to sensor->current_mode not updated accordingly to new
-framerate setting in ov5640_s_frame_interval().
+This is a cleanup patch to fix line length issue found
+by checkpatch.pl script.
 
-Change-Id: I6d62510b708c181ec0310601b6e4fa1be06ffe90
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+In this patch, line 144 have been wrapped.
+
+Signed-off-by: Parthiban Nallathambi <pn@denx.de>
 ---
- drivers/media/i2c/ov5640.c | 2 ++
- 1 file changed, 2 insertions(+)
+Changes in v2:
+- Changed commit message
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 3e7b43c..03940f0 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2374,6 +2374,8 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
+ drivers/staging/media/imx/imx-media-capture.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+index 576bdc7e9c42..0ccabe04b0e1 100644
+--- a/drivers/staging/media/imx/imx-media-capture.c
++++ b/drivers/staging/media/imx/imx-media-capture.c
+@@ -141,7 +141,8 @@ static int capture_enum_frameintervals(struct file *file, void *fh,
  
- 	sensor->current_fr = frame_rate;
- 	sensor->frame_interval = fi->interval;
-+	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->width,
-+						mode->height, true);
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
+ 	fie.code = cc->codes[0];
+ 
+-	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
++	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval,
++			       NULL, &fie);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
-1.9.1
+2.14.3
