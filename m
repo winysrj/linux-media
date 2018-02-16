@@ -1,169 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49140 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751007AbeBINJz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 08:09:55 -0500
-Date: Fri, 9 Feb 2018 15:09:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hansverk@cisco.com>
+Received: from osg.samsung.com ([64.30.133.232]:56310 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965644AbeBPMEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Feb 2018 07:04:23 -0500
+Date: Fri, 16 Feb 2018 10:04:13 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 04/15] v4l2-subdev: without controls return -ENOTTY
-Message-ID: <20180209130952.2q3bhen5ynplimkx@valkosipuli.retiisi.org.uk>
-References: <20180208083655.32248-1-hverkuil@xs4all.nl>
- <20180208083655.32248-5-hverkuil@xs4all.nl>
- <20180209114559.s3gpuzccdsemqhfe@valkosipuli.retiisi.org.uk>
- <c2c96e5d-518d-f858-29d5-2dfefdb17c03@cisco.com>
- <20180209123845.esj7dvqpq5fl2k5y@valkosipuli.retiisi.org.uk>
- <67ea6eb8-ed94-fe1f-a367-4fe79671f569@cisco.com>
+Subject: Re: [PATCHv2 4/9] staging: atomisp: i2c: Disable non-preview
+ configurations
+Message-ID: <20180216100413.06c8ab1c@vento.lan>
+In-Reply-To: <20180216101220.ncl7gda4xq2vzcqw@valkosipuli.retiisi.org.uk>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+        <20180122123125.24709-5-hverkuil@xs4all.nl>
+        <20180214142050.2ef515ee@vento.lan>
+        <20180216101220.ncl7gda4xq2vzcqw@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <67ea6eb8-ed94-fe1f-a367-4fe79671f569@cisco.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 09, 2018 at 01:48:49PM +0100, Hans Verkuil wrote:
-> On 02/09/18 13:38, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Fri, Feb 09, 2018 at 12:56:37PM +0100, Hans Verkuil wrote:
-> >> On 02/09/18 12:46, Sakari Ailus wrote:
-> >>> Hi Hans,
-> >>>
-> >>> On Thu, Feb 08, 2018 at 09:36:44AM +0100, Hans Verkuil wrote:
-> >>>> If the subdev did not define any controls, then return -ENOTTY if
-> >>>> userspace attempts to call these ioctls.
-> >>>>
-> >>>> The control framework functions will return -EINVAL, not -ENOTTY if
-> >>>> vfh->ctrl_handler is NULL.
-> >>>>
-> >>>> Several of these framework functions are also called directly from
-> >>>> drivers, so I don't want to change the error code there.
-> >>>>
-> >>>> Found with vimc and v4l2-compliance.
-> >>>>
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>
-> >>> Thanks for the patch.
-> >>>
-> >>> If the handler is NULL, can there be support for the IOCTL at all? I.e.
-> >>> should the missing handler as such result in returning -ENOTTY from these
-> >>> functions instead of -EINVAL?
-> >>
-> >> I didn't dare change the control framework. Some of these v4l2_... functions
-> >> are called by drivers and I didn't want to analyze them all. If these
-> >> functions were only called by v4l2-ioctl.c and v4l2-subdev.c, then I'd have
-> >> changed it in v4l2-ctrls.c, but that's not the case.
-> >>
-> >> It would be a useful project to replace all calls from drivers to these
-> >> functions (they really shouldn't be used by drivers), but that is out-of-scope
-> >> of this patch.
-> > 
-> > Is your concern that the caller could check the return value and do
-> > something based on particular error code it gets?
-> 
-> Or that the handler is NULL and it returns ENOTTY to userspace. You can have
-> multiple control handlers, some of which might be NULL. It's all unlikely,
-> but the code needs to be analyzed and that takes time. Hmm, atomisp is
-> definitely a big user of these functions.
-> 
-> Also, the real issue is the use of these functions by drivers. What I want
-> to do is to have the drivers use the proper functions, then I can move those
-> functions to the core and stop exporting them. And at that moment they can
-> return -ENOTTY instead of -EINVAL.
-> 
-> A worthwhile project, but right now I just want to fix v4l2-subdev.c.
+Em Fri, 16 Feb 2018 12:12:20 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Fair enough. How about adding a TODO comment on this in either in the
-control framework or where the additional checks are now put, to avoid
-forgetting it?
-
-With that,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+> Hi Mauro,
 > 
-> Regards,
+> On Wed, Feb 14, 2018 at 02:20:50PM -0200, Mauro Carvalho Chehab wrote:
+> > Em Mon, 22 Jan 2018 13:31:20 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> > > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > 
+> > > Disable configurations for non-preview modes until configuration selection
+> > > is improved.  
+> > 
+> > Again, a poor description. It just repeats the subject.
+> > A good subject/description should answer 3 questions:
+> > 
+> > 	what?
+> > 	why?
+> > 	how?
+> > 
+> > Anyway, looking at this patch's contents, it partially answers my
+> > questions:
+> > 
+> > the previous patch do cause regressions at the code.
+> > 
+> > Ok, this is staging. So, we don't have very strict rules here,
+> > but still causing regressions without providing a very good
+> > reason why sucks.
+> > 
+> > I would also merge this with the previous one, in order to place all
+> > regressions on a single patch.  
 > 
-> 	Hans
-> 
-> > Based on a quick glance there are a few tens of places these functions are
-> > used in drivers. Some seems legitimate; the caller having another device
-> > where a control needs to be accessed, for instance.
-> > 
-> > And if handler is NULL, -ENOTTY appears to be a more suitable return value
-> > in a lot of the cases (and in many others it makes no difference).
-> > 
-> > I wouldn't say this is something that should hold back addressing this in
-> > the control framework instead.
-> > 
-> > I can submit a patch if you'd prefer that instead.
-> > 
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >>>
-> >>>> ---
-> >>>>  drivers/media/v4l2-core/v4l2-subdev.c | 16 ++++++++++++++++
-> >>>>  1 file changed, 16 insertions(+)
-> >>>>
-> >>>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> >>>> index 43fefa73e0a3..be7a19272614 100644
-> >>>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >>>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >>>> @@ -187,27 +187,43 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-> >>>>  
-> >>>>  	switch (cmd) {
-> >>>>  	case VIDIOC_QUERYCTRL:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_queryctrl(vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_QUERY_EXT_CTRL:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_QUERYMENU:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_querymenu(vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_G_CTRL:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_S_CTRL:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_G_EXT_CTRLS:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_S_EXT_CTRLS:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_TRY_EXT_CTRLS:
-> >>>> +		if (!vfh->ctrl_handler)
-> >>>> +			return -ENOTTY;
-> >>>>  		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
-> >>>>  
-> >>>>  	case VIDIOC_DQEVENT:
-> >>>
-> >>
-> > 
-> 
+> It's trivial to bring back the configurations disabled here by just
+> reverting this patch. The other patch does not disable any. That's why
+> they're separate.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Yes, and I'm not saying otherwise.
+
+The main issue here is that it lacks a description (as what's
+there is just a copy of the subject).
+
+Why is it needed to "disable non-preview configurations"?
+
+Also, as you're actually commenting the code with #if 0, I'm assuming
+that you're thinking on re-enable the code (or re-implement with a
+different logic) in the future.
+
+So, please add a note before the #if 0, as otherwise I'm pretty
+sure someone will end by sending us patches just stripping it.
+
+Regards,
+Mauro
