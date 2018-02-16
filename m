@@ -1,68 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:36726 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752155AbeBFI3A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 03:29:00 -0500
-Date: Tue, 6 Feb 2018 09:28:56 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-samsung-soc@vger.kernel.org, netdev <netdev@vger.kernel.org>
-Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
- with a mask
-Message-ID: <20180206082856.qx4pj7of36yytetc@ninjato>
-References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
- <CAMuHMdWnV17DCxr71k6n3w+5jPtQmeuPugr58xadq9U_qchJnQ@mail.gmail.com>
+Received: from mail-bl2nam02on0051.outbound.protection.outlook.com ([104.47.38.51]:59456
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755898AbeBPRGy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Feb 2018 12:06:54 -0500
+Date: Fri, 16 Feb 2018 09:06:44 -0800
+From: Hyun Kwon <hyun.kwon@xilinx.com>
+To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>,
+        Satish Kumar Nagireddy <SATISHNA@xilinx.com>
+Subject: Re: [PATCH v3 9/9] v4l: xilinx: dma: Get scaling and padding factor
+ to calculate DMA params
+Message-ID: <20180216170643.GC9719@smtp.xilinx.com>
+References: <1518676980-19750-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="i7fjmlnpcylye3br"
+Content-Type: text/plain; charset="utf-8"
 Content-Disposition: inline
-In-Reply-To: <CAMuHMdWnV17DCxr71k6n3w+5jPtQmeuPugr58xadq9U_qchJnQ@mail.gmail.com>
+In-Reply-To: <1518676980-19750-1-git-send-email-satishna@xilinx.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Satish,
 
---i7fjmlnpcylye3br
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks for that patch.
+
+On Wed, 2018-02-14 at 22:43:00 -0800, Satish Kumar Nagireddy wrote:
+> Get multiplying factor to calculate bpp especially
+> in case of 10 bit formats.
+> Get multiplying factor to calculate padding width
+> 
+> Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+> ---
+>  drivers/media/platform/xilinx/xilinx-dma.c | 29 ++++++++++++++++++++++++++---
+>  1 file changed, 26 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> index 664981b..3c2fd02 100644
+> --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> @@ -417,6 +417,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+>  	struct xvip_dma_buffer *buf = to_xvip_dma_buffer(vbuf);
+>  	struct dma_async_tx_descriptor *desc;
+>  	u32 flags, luma_size;
+> +	u32 padding_factor_nume, padding_factor_deno, bpl_nume, bpl_deno;
+>  	dma_addr_t addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+>  
+>  	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+> @@ -442,8 +443,15 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+>  		struct v4l2_pix_format_mplane *pix_mp;
+>  
+>  		pix_mp = &dma->format.fmt.pix_mp;
+> +		xvip_width_padding_factor(pix_mp->pixelformat,
+> +					  &padding_factor_nume,
+> +					  &padding_factor_deno);
+> +		xvip_bpl_scaling_factor(pix_mp->pixelformat, &bpl_nume,
+> +					&bpl_deno);
+>  		dma->xt.frame_size = dma->fmtinfo->num_planes;
+> -		dma->sgl[0].size = pix_mp->width * dma->fmtinfo->bpl_factor;
+> +		dma->sgl[0].size = (pix_mp->width * dma->fmtinfo->bpl_factor *
+> +				    padding_factor_nume * bpl_nume) /
+> +				    (padding_factor_deno * bpl_deno);
+
+We don't want to lose fractional here. DIV_ROUND_UP()? Then just nit, my personal
+preference is not to use extra parenthesis where order is clear.
+
+>  		dma->sgl[0].icg = pix_mp->plane_fmt[0].bytesperline -
+>  							dma->sgl[0].size;
+>  		dma->xt.numf = pix_mp->height;
+> @@ -472,8 +480,15 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
+>  		struct v4l2_pix_format *pix;
+>  
+>  		pix = &dma->format.fmt.pix;
+> +		xvip_width_padding_factor(pix->pixelformat,
+> +					  &padding_factor_nume,
+> +					  &padding_factor_deno);
+> +		xvip_bpl_scaling_factor(pix->pixelformat, &bpl_nume,
+> +					&bpl_deno);
+>  		dma->xt.frame_size = dma->fmtinfo->num_planes;
+> -		dma->sgl[0].size = pix->width * dma->fmtinfo->bpl_factor;
+> +		dma->sgl[0].size = (pix->width * dma->fmtinfo->bpl_factor *
+> +				    padding_factor_nume * bpl_nume) /
+> +				    (padding_factor_deno * bpl_deno);
+>  		dma->sgl[0].icg = pix->bytesperline - dma->sgl[0].size;
+>  		dma->xt.numf = pix->height;
+>  		dma->sgl[0].dst_icg = dma->sgl[0].size;
+> @@ -682,6 +697,8 @@ __xvip_dma_try_format(struct xvip_dma *dma,
+>  	unsigned int align;
+>  	unsigned int bpl;
+>  	unsigned int i, hsub, vsub, plane_width, plane_height;
+> +	unsigned int padding_factor_nume, padding_factor_deno;
+> +	unsigned int bpl_nume, bpl_deno;
+>  
+>  	/* Retrieve format information and select the default format if the
+>  	 * requested format isn't supported.
+> @@ -694,6 +711,10 @@ __xvip_dma_try_format(struct xvip_dma *dma,
+>  	if (IS_ERR(info))
+>  		info = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
+>  
+> +	xvip_width_padding_factor(info->fourcc, &padding_factor_nume,
+> +				  &padding_factor_deno);
+> +	xvip_bpl_scaling_factor(info->fourcc, &bpl_nume, &bpl_deno);
+> +
+>  	/* The transfer alignment requirements are expressed in bytes. Compute
+>  	 * the minimum and maximum values, clamp the requested width and convert
+>  	 * it back to pixels.
+> @@ -737,7 +758,9 @@ __xvip_dma_try_format(struct xvip_dma *dma,
+>  			for (i = 0; i < info->num_planes; i++) {
+>  				plane_width = pix_mp->width / (i ? hsub : 1);
+>  				plane_height = pix_mp->height / (i ? vsub : 1);
+> -				min_bpl = plane_width * info->bpl_factor;
+> +				min_bpl = (plane_width * info->bpl_factor *
+> +					   padding_factor_nume * bpl_nume) /
+> +					   (padding_factor_deno * bpl_deno);
+
+Ditto as above.
+
+This can be squashed into the previous patch that addsfunctions, but I let you decide.
+Please consider if use of macro-pixel or any other approach can simplify this change.
+
+Thanks,
+-hyun
 
 
-> I found two more using "git grep 'define.*0x[0-9a-f]* < '":
-
-I added '[0-9]\+' at the end of the regex to reduce the number of false
-positives...
-
-> drivers/net/can/m_can/m_can.c:#define RXFC_FWM_MASK     (0x7f < RXFC_FWM_SHIFT)
-> drivers/usb/gadget/udc/goku_udc.h:#define INT_EPnNAK(n)
-> (0x00100 < (n))         /* 0 < n < 4 */
-
-... but you found those two true positives in there. Nice, thanks!
-
-
---i7fjmlnpcylye3br
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlp5Z0QACgkQFA3kzBSg
-KbbYSA//brJm3Wk+jt6LxTyCknABbUX/AufrL2WXLokJ0ZmBYFIXcLww7cpJsl87
-xpIkpfJmefWYgLTI3pqDWKZmAFKSV3r4auXeGTfGcZs+TceknU4GubxM75Swq0v9
-1hXwREddK/RO5nnpfIER8oubrmZgCmHF6Z9ZrLOAOvXDaIbsxkLDnVXtxi3Xkii3
-JvQ6tEer53ghJsLUj+PFN28yxgcBbQScisgr0Help/yEld++jf9nyAf02Ktccn9D
-HPpXfqOrIgE9XYplI4dl0dDUYM6wV7yOPvj4cQSTDRLX2Qf1iZ9sNVdkAAXFRSia
-9YlmKE9+Zc0rcCrIjkbmFz+RDwYiT1/2UmxjPUvvPJskXqbdw6DBYEkcEqs/Xy7G
-Api/nktPfnbyT2f17k7kTWKh5YK5ZQfuf4WGTC/Nf54a2k8lASZrFyMqigxq1YXA
-DW5ypA/mqS+jZTi9R8FaZNz+oVn5HCMts2aDrATJ7+u2RaqzlN+rHk2qoa7AVEQW
-4pRelcKxktnxIQWr1N/KH7EX4ktREprBRPAQH6O6CG/pIO+t9uILs0+ba21tt/Uf
-fFgoM+xBO/SO9R43kcYKq5uNs57KYI/Y9qyMln4ae4MmsDDRx3XM/6EoSJa5Q+Yu
-bpSI8U7C1v1elUOudk8RqPy7eWn2x7ufHBApRBkFZNvsqb/4CzY=
-=7Gs7
------END PGP SIGNATURE-----
-
---i7fjmlnpcylye3br--
+>  				max_bpl = rounddown(XVIP_DMA_MAX_WIDTH,
+>  						    dma->align);
+>  				bpl = pix_mp->plane_fmt[i].bytesperline;
+> -- 
+> 2.7.4
+> 
