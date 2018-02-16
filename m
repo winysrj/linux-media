@@ -1,92 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38455 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S937980AbeBUPcY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 10:32:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 03/15] v4l2-subdev: without controls return -ENOTTY
-Date: Wed, 21 Feb 2018 16:32:06 +0100
-Message-Id: <20180221153218.15654-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
-References: <20180221153218.15654-1-hverkuil@xs4all.nl>
+Received: from mail-sn1nam02on0047.outbound.protection.outlook.com ([104.47.36.47]:59392
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755771AbeBPRAU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Feb 2018 12:00:20 -0500
+Date: Fri, 16 Feb 2018 09:00:15 -0800
+From: Hyun Kwon <hyun.kwon@xilinx.com>
+To: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "michal.simek@xilinx.com" <michal.simek@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>,
+        Satish Kumar Nagireddy <SATISHNA@xilinx.com>
+Subject: Re: [PATCH v3 5/9] [media] Add documentation for YUV420 bus format
+Message-ID: <20180216170015.GB9665@smtp.xilinx.com>
+References: <1518676948-19560-1-git-send-email-satishna@xilinx.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <1518676948-19560-1-git-send-email-satishna@xilinx.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the subdev did not define any controls, then return -ENOTTY if
-userspace attempts to call these ioctls.
+Hi Satish,
 
-The control framework functions will return -EINVAL, not -ENOTTY if
-vfh->ctrl_handler is NULL.
+Thanks for the patch.
 
-Several of these framework functions are also called directly from
-drivers, so I don't want to change the error code there.
+On Wed, 2018-02-14 at 22:42:28 -0800, Satish Kumar Nagireddy wrote:
+> The code is MEDIA_BUS_FMT_VYYUYY8_1X24
+> 
+> Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+> ---
+>  Documentation/media/uapi/v4l/subdev-formats.rst | 34 +++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+> index b1eea44..afff6d5 100644
+> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+> @@ -7283,6 +7283,40 @@ The following table list existing packed 48bit wide YUV formats.
+>        - y\ :sub:`1`
+>        - y\ :sub:`0`
+>  
+> +      - MEDIA_BUS_FMT_VYYUYY8_1X24
+> +      - 0x202c
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      -
+> +      - v\ :sub:`3`
+> +      - v\ :sub:`2`
+> +      - v\ :sub:`1`
+> +      - v\ :sub:`0`
+> +      - y\ :sub:`7`
+> +      - y\ :sub:`6`
+> +      - y\ :sub:`5`
+> +      - y\ :sub:`4`
+> +      - y\ :sub:`3`
+> +      - y\ :sub:`2`
+> +      - y\ :sub:`1`
+> +      - y\ :sub:`0`
+> +      - u\ :sub:`3`
+> +      - u\ :sub:`2`
+> +      - u\ :sub:`1`
+> +      - u\ :sub:`0`
+> +      - y\ :sub:`7`
+> +      - y\ :sub:`6`
+> +      - y\ :sub:`5`
+> +      - y\ :sub:`4`
+> +      - y\ :sub:`3`
+> +      - y\ :sub:`2`
+> +      - y\ :sub:`1`
+> +      - y\ :sub:`0`
 
-Found with vimc and v4l2-compliance.
+This is under 48bit yub bus format section. Better to be grouped with
+other similar formats, ex 24bit yuv bus formats.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+Then this can be squashed into the patch where the bus format is added.
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index c5639817db34..b14c5e1705ca 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -187,27 +187,51 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-+		/*
-+		 * TODO: this really should be folded into v4l2_queryctrl (this
-+		 * currently returns -EINVAL for NULL control handlers).
-+		 * However, v4l2_queryctrl() is still called directly by
-+		 * drivers as well and until that has been addressed I believe
-+		 * it is safer to do the check here. The same is true for the
-+		 * other control ioctls below.
-+		 */
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_QUERY_EXT_CTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_QUERYMENU:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_querymenu(vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_G_CTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_S_CTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_G_EXT_CTRLS:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_S_EXT_CTRLS:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_TRY_EXT_CTRLS:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
- 
- 	case VIDIOC_DQEVENT:
--- 
-2.16.1
+Thanks,
+-hyun
+
+>  
+>  .. raw:: latex
+>  
+> -- 
+> 2.7.4
+> 
