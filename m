@@ -1,136 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36933 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750744AbeBDEqa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Feb 2018 23:46:30 -0500
-Message-ID: <18d263d2e5b4d9ac4a9684e4e1d8db6b@smtp-cloud9.xs4all.net>
-Date: Sun, 04 Feb 2018 05:46:28 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from osg.samsung.com ([64.30.133.232]:57956 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1033758AbeBPOJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Feb 2018 09:09:24 -0500
+Date: Fri, 16 Feb 2018 12:09:17 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        "chris\@chris-wilson.co.uk" <chris@chris-wilson.co.uk>
+Subject: Re: [PATCH v4 16/18] scripts: kernel-doc: improve nested logic to
+ handle multiple identifiers
+Message-ID: <20180216120917.628d08d1@vento.lan>
+In-Reply-To: <87eflnjuvu.fsf@intel.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+        <b89b7c5400afd8c03d88ccccd2b5edd3625a1997.1513599193.git.mchehab@s-opensource.com>
+        <874lmjlfmg.fsf@intel.com>
+        <20180214155314.1be00577@vento.lan>
+        <87eflnjuvu.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Wed, 14 Feb 2018 20:20:21 +0200
+Jani Nikula <jani.nikula@linux.intel.com> escreveu:
 
-Results of the daily build of media_tree:
+> On Wed, 14 Feb 2018, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> > There is a simple fix, though. Make inline comments to accept a dot:
+> >
+> > diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+> > index fee8952037b1..06d7f3f2c094 100755
+> > --- a/scripts/kernel-doc
+> > +++ b/scripts/kernel-doc
+> > @@ -363,7 +363,7 @@ my $doc_sect = $doc_com .
+> >  my $doc_content = $doc_com_body . '(.*)';
+> >  my $doc_block = $doc_com . 'DOC:\s*(.*)?';
+> >  my $doc_inline_start = '^\s*/\*\*\s*$';
+> > -my $doc_inline_sect = '\s*\*\s*(@[\w\s]+):(.*)';
+> > +my $doc_inline_sect = '\s*\*\s*(@\s*[\w][\w\.]*\s*):(.*)';
+> >  my $doc_inline_end = '^\s*\*/\s*$';
+> >  my $doc_inline_oneline = '^\s*/\*\*\s*(@[\w\s]+):\s*(.*)\s*\*/\s*$';
+> >  my $export_symbol = '^\s*EXPORT_SYMBOL(_GPL)?\s*\(\s*(\w+)\s*\)\s*;';
+> >
+> > That requires a small change at the inline parameters, though:
+> >
+> > diff --git a/drivers/gpu/drm/i915/intel_dpio_phy.c b/drivers/gpu/drm/i915/intel_dpio_phy.c
+> > index 76473e9836c6..c8e9e44e5981 100644
+> > --- a/drivers/gpu/drm/i915/intel_dpio_phy.c
+> > +++ b/drivers/gpu/drm/i915/intel_dpio_phy.c
+> > @@ -147,7 +147,7 @@ struct bxt_ddi_phy_info {
+> >  	 */
+> >  	struct {
+> >  		/**
+> > -		 * @port: which port maps to this channel.
+> > +		 * @channel.port: which port maps to this channel.
+> >  		 */
+> >  		enum port port;
+> >  	} channel[2];  
+> 
+> Perhaps it would be slightly more elegant to be able to leave out
+> "channel." here and deduce that from the context... but the above
+> matches what you'd write in the higher level struct comment, and
+> produces the same output. It works and it's really simple. I like it.
+> 
+> Please submit this as a proper patch, with
+> 
+> Tested-by: Jani Nikula <jani.nikula@intel.com>
 
-date:			Sun Feb  4 05:00:16 CET 2018
-media-tree git hash:	273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
-media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
-v4l-utils git hash:	ff5ed3c00f84eccbefb73d1b3b85e5dd92734ae3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.14.0-364
+Submitted. I ended by submitting as a patch series, as, when I
+did some tests with the examples, I found that kernel-doc have
+issues parsing them.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-4.15-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-linux-4.15-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: OK
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Mauro
