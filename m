@@ -1,194 +1,546 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:40325 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753088AbeBVJaw (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47318 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757503AbeBPJEi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 04:30:52 -0500
-Received: by mail-io0-f194.google.com with SMTP id v6so4196435iog.7
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 01:30:52 -0800 (PST)
-Received: from mail-it0-f41.google.com (mail-it0-f41.google.com. [209.85.214.41])
-        by smtp.gmail.com with ESMTPSA id h90sm5980764ioi.61.2018.02.22.01.30.51
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 22 Feb 2018 01:30:51 -0800 (PST)
-Received: by mail-it0-f41.google.com with SMTP id v186so5728300itc.5
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 01:30:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <c016f8f1-06f3-cc3b-03d1-7a17c39dbec0@xs4all.nl>
-References: <20180220044425.169493-1-acourbot@chromium.org>
- <20180220044425.169493-2-acourbot@chromium.org> <5fd863ad-a0fe-88d7-05bd-90c2b4096145@xs4all.nl>
- <CAPBb6MUUuo+50zfs-XaRcVD6sV3uaownVeFKgX=A6NkTO1he1w@mail.gmail.com> <c016f8f1-06f3-cc3b-03d1-7a17c39dbec0@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Thu, 22 Feb 2018 18:30:30 +0900
-Message-ID: <CAPBb6MXmALFZp+EB8BjKnYO7FYV3eU9LisJwR4Qp265GRhA3eg@mail.gmail.com>
-Subject: Re: [RFCv4 01/21] media: add request API core and UAPI
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
+        Fri, 16 Feb 2018 04:04:38 -0500
+Date: Fri, 16 Feb 2018 11:04:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 3/9] staging: atomisp: Kill subdev s_parm abuse
+Message-ID: <20180216090436.muvu3acgz7444vdf@valkosipuli.retiisi.org.uk>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+ <20180122123125.24709-4-hverkuil@xs4all.nl>
+ <20180214141430.1866afeb@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180214141430.1866afeb@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 21, 2018 at 4:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/21/2018 07:01 AM, Alexandre Courbot wrote:
->> Hi Hans,
->>
->> On Tue, Feb 20, 2018 at 7:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 02/20/18 05:44, Alexandre Courbot wrote:
->
-> <snip>
->
->>>> +#define MEDIA_REQUEST_IOC(__cmd, func)                                       \
->>>> +     [_IOC_NR(MEDIA_REQUEST_IOC_##__cmd) - 0x80] = {                 \
->>>> +             .cmd = MEDIA_REQUEST_IOC_##__cmd,                       \
->>>> +             .fn = func,                                             \
->>>> +     }
->>>> +
->>>> +struct media_request_ioctl_info {
->>>> +     unsigned int cmd;
->>>> +     long (*fn)(struct media_request *req);
->>>> +};
->>>> +
->>>> +static const struct media_request_ioctl_info ioctl_info[] = {
->>>> +     MEDIA_REQUEST_IOC(SUBMIT, media_request_ioctl_submit),
->>>> +     MEDIA_REQUEST_IOC(REINIT, media_request_ioctl_reinit),
->>>
->>> There are only two ioctls, so there is really no need for the
->>> MEDIA_REQUEST_IOC define. Just keep it simple.
->>
->> The number of times it is used doesn't change the fact that it helps
->> with readability IMHO.
->
-> But this macro just boils down to:
->
-> static const struct media_request_ioctl_info ioctl_info[] = {
->         { MEDIA_REQUEST_IOC_SUBMIT, media_request_ioctl_submit },
->         { MEDIA_REQUEST_IOC_REINIT, media_request_ioctl_reinit },
-> };
->
-> It's absolutely identical! So it seems senseless to me.
+On Wed, Feb 14, 2018 at 02:14:30PM -0200, Mauro Carvalho Chehab wrote:
+> Sakari,
+> 
+> Em Mon, 22 Jan 2018 13:31:19 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Remove sensor driver's interface that made use of use case specific
+> > knowledge of platform capabilities.
+> 
+> Could you better describe it? What s_param abuse?
+> What happens after this patch? It seems that atomISP relies on
 
-This expands to more than that - the index needs to be offset by 0x80,
-something we probably don't want to repeat every line.
+I'd like to remind you this is a staging driver that got where it is
+without any review. If you insist on improving the commit message, then
+this is what I propose:
 
->
->>
->>>
->>>> +};
->>>> +
->>>> +static long media_request_ioctl(struct file *filp, unsigned int cmd,
->>>> +                             unsigned long __arg)
->>>> +{
->>>> +     struct media_request *req = filp->private_data;
->>>> +     const struct media_request_ioctl_info *info;
->>>> +
->>>> +     if ((_IOC_NR(cmd) < 0x80) ||
->>>
->>> Why start the ioctl number at 0x80? Why not just 0?
->>> It avoids all this hassle with the 0x80 offset.
->
-> There is no clash with the MC ioctls, so I really don't believe the 0x80
-> offset is needed.
+Remove sensor driver's interface for setting the use case specific mode
+list as well as the mode lists that are related to other than
+CI_MODE_PREVIEW. This removes s_parm abuse in using driver specific values
+in v4l2_streamparm.capture.capturemode. The drivers already support
+[gs]_frame_interval so removing support for [gs]_parm is enough.
 
-I suppose your comment in patch 16 supersedes this one. :)
-
->
->>>
->>>> +          _IOC_NR(cmd) >= 0x80 + ARRAY_SIZE(ioctl_info) ||
->>>> +          ioctl_info[_IOC_NR(cmd) - 0x80].cmd != cmd)
->>>> +             return -ENOIOCTLCMD;
->>>> +
->>>> +     info = &ioctl_info[_IOC_NR(cmd) - 0x80];
->>>> +
->>>> +     return info->fn(req);
->>>> +}
->
-> <snip>
->
->>>> diff --git a/include/uapi/linux/media-request.h b/include/uapi/linux/media-request.h
->>>> new file mode 100644
->>>> index 000000000000..5d30f731a442
->>>> --- /dev/null
->>>> +++ b/include/uapi/linux/media-request.h
->>>> @@ -0,0 +1,37 @@
->>>> +/*
->>>> + * Media requests UAPI
->>>> + *
->>>> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or modify
->>>> + * it under the terms of the GNU General Public License version 2 as
->>>> + * published by the Free Software Foundation.
->>>> + *
->>>> + * This program is distributed in the hope that it will be useful,
->>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>>> + * GNU General Public License for more details.
->>>> + */
->>>> +
->>>> +#ifndef __LINUX_MEDIA_REQUEST_H
->>>> +#define __LINUX_MEDIA_REQUEST_H
->>>> +
->>>> +#ifndef __KERNEL__
->>>> +#include <stdint.h>
->>>> +#endif
->>>> +#include <linux/ioctl.h>
->>>> +#include <linux/types.h>
->>>> +#include <linux/version.h>
->>>> +
->>>> +/* Only check that requests can be used, do not allocate */
->>>> +#define MEDIA_REQUEST_FLAG_TEST                      0x00000001
->>>> +
->>>> +struct media_request_new {
->>>> +     __u32 flags;
->>>> +     __s32 fd;
->>>> +} __attribute__ ((packed));
->>>> +
->>>> +#define MEDIA_REQUEST_IOC_SUBMIT       _IO('|',  128)
->>>> +#define MEDIA_REQUEST_IOC_REINIT       _IO('|',  129)
->>>> +
->>>> +#endif
->>>>
->>>
->>> I need to think a bit more on this internal API, so I might come back
->>> to this patch for more comments.
->>
->> I think I should probably elaborate on why I think it is advantageous
->> to have these ioctls handled here.
->
-> Sorry for the confusion, I was not actually referring to these ioctls.
-> In fact, I really like them. It was more a general comment about the
-> request API core.
->
-> I should have been more clear.
->
+> gc0310_res. So, I would be expecting that a patch removing
+> s_param would be also adding/changing other parts of the code
+> accordingly, in order to get rid of that as a hole (or initialize
+> it somewhere else).
+> 
 > Regards,
->
->         Hans
->
->>
->> One of the reasons if that it does not force user-space to keep track
->> of who issued the request to operate on it. Semantically, the only
->> device a request could be submitted to is the device that produced it
->> anyway, so since that argument is constant we may as well get rid of
->> it (and we also don't need to pass the request FD as argument
->> anymore).
->>
->> It also gives us more freedom when designing new request-related
->> ioctls: before, all request-related operations were multiplexed under
->> a single MEDIA_IOC_REQUEST_CMD ioctl, which cmd field indicated the
->> actual operation to perform. With this design, all the arguments must
->> fit within the media_request_cmd structure, which may cause confusion
->> as it will have to be variable-sized. I am thinking in particular
->> about a future atomic-like API to set topology, controls and buffers
->> related to a request all at the same time. Having it as a request
->> ioctl seems perfectly fitting to me.
->>
->
+> Mauro
+> 
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/staging/media/atomisp/i2c/atomisp-gc0310.c | 26 ---------
+> >  drivers/staging/media/atomisp/i2c/atomisp-gc2235.c | 26 ---------
+> >  drivers/staging/media/atomisp/i2c/atomisp-ov2680.c | 29 ---------
+> >  drivers/staging/media/atomisp/i2c/atomisp-ov2722.c | 26 ---------
+> >  drivers/staging/media/atomisp/i2c/gc0310.h         | 43 --------------
+> >  drivers/staging/media/atomisp/i2c/gc2235.h         |  1 -
+> >  drivers/staging/media/atomisp/i2c/ov2680.h         | 68 ----------------------
+> >  .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 27 ---------
+> >  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |  9 +--
+> >  .../media/atomisp/pci/atomisp2/atomisp_subdev.c    | 12 +---
+> >  10 files changed, 3 insertions(+), 264 deletions(-)
+> > 
+> > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+> > index 61b7598469eb..572c9127c24d 100644
+> > --- a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+> > +++ b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+> > @@ -1224,37 +1224,12 @@ static int gc0310_g_parm(struct v4l2_subdev *sd,
+> >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> >  		param->parm.capture.timeperframe.numerator = 1;
+> > -		param->parm.capture.capturemode = dev->run_mode;
+> >  		param->parm.capture.timeperframe.denominator =
+> >  			gc0310_res[dev->fmt_idx].fps;
+> >  	}
+> >  	return 0;
+> >  }
+> >  
+> > -static int gc0310_s_parm(struct v4l2_subdev *sd,
+> > -			struct v4l2_streamparm *param)
+> > -{
+> > -	struct gc0310_device *dev = to_gc0310_sensor(sd);
+> > -	dev->run_mode = param->parm.capture.capturemode;
+> > -
+> > -	mutex_lock(&dev->input_lock);
+> > -	switch (dev->run_mode) {
+> > -	case CI_MODE_VIDEO:
+> > -		gc0310_res = gc0310_res_video;
+> > -		N_RES = N_RES_VIDEO;
+> > -		break;
+> > -	case CI_MODE_STILL_CAPTURE:
+> > -		gc0310_res = gc0310_res_still;
+> > -		N_RES = N_RES_STILL;
+> > -		break;
+> > -	default:
+> > -		gc0310_res = gc0310_res_preview;
+> > -		N_RES = N_RES_PREVIEW;
+> > -	}
+> > -	mutex_unlock(&dev->input_lock);
+> > -	return 0;
+> > -}
+> > -
+> >  static int gc0310_g_frame_interval(struct v4l2_subdev *sd,
+> >  				   struct v4l2_subdev_frame_interval *interval)
+> >  {
+> > @@ -1314,7 +1289,6 @@ static const struct v4l2_subdev_sensor_ops gc0310_sensor_ops = {
+> >  static const struct v4l2_subdev_video_ops gc0310_video_ops = {
+> >  	.s_stream = gc0310_s_stream,
+> >  	.g_parm = gc0310_g_parm,
+> > -	.s_parm = gc0310_s_parm,
+> >  	.g_frame_interval = gc0310_g_frame_interval,
+> >  };
+> >  
+> > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+> > index d8de46da64ae..2bc179f3afe5 100644
+> > --- a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+> > +++ b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+> > @@ -964,37 +964,12 @@ static int gc2235_g_parm(struct v4l2_subdev *sd,
+> >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> >  		param->parm.capture.timeperframe.numerator = 1;
+> > -		param->parm.capture.capturemode = dev->run_mode;
+> >  		param->parm.capture.timeperframe.denominator =
+> >  			gc2235_res[dev->fmt_idx].fps;
+> >  	}
+> >  	return 0;
+> >  }
+> >  
+> > -static int gc2235_s_parm(struct v4l2_subdev *sd,
+> > -			struct v4l2_streamparm *param)
+> > -{
+> > -	struct gc2235_device *dev = to_gc2235_sensor(sd);
+> > -	dev->run_mode = param->parm.capture.capturemode;
+> > -
+> > -	mutex_lock(&dev->input_lock);
+> > -	switch (dev->run_mode) {
+> > -	case CI_MODE_VIDEO:
+> > -		gc2235_res = gc2235_res_video;
+> > -		N_RES = N_RES_VIDEO;
+> > -		break;
+> > -	case CI_MODE_STILL_CAPTURE:
+> > -		gc2235_res = gc2235_res_still;
+> > -		N_RES = N_RES_STILL;
+> > -		break;
+> > -	default:
+> > -		gc2235_res = gc2235_res_preview;
+> > -		N_RES = N_RES_PREVIEW;
+> > -	}
+> > -	mutex_unlock(&dev->input_lock);
+> > -	return 0;
+> > -}
+> > -
+> >  static int gc2235_g_frame_interval(struct v4l2_subdev *sd,
+> >  				   struct v4l2_subdev_frame_interval *interval)
+> >  {
+> > @@ -1053,7 +1028,6 @@ static const struct v4l2_subdev_sensor_ops gc2235_sensor_ops = {
+> >  static const struct v4l2_subdev_video_ops gc2235_video_ops = {
+> >  	.s_stream = gc2235_s_stream,
+> >  	.g_parm = gc2235_g_parm,
+> > -	.s_parm = gc2235_s_parm,
+> >  	.g_frame_interval = gc2235_g_frame_interval,
+> >  };
+> >  
+> > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+> > index 84f8d33ce2d1..e3e0fdd0c816 100644
+> > --- a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+> > +++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+> > @@ -1300,40 +1300,12 @@ static int ov2680_g_parm(struct v4l2_subdev *sd,
+> >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> >  		param->parm.capture.timeperframe.numerator = 1;
+> > -		param->parm.capture.capturemode = dev->run_mode;
+> >  		param->parm.capture.timeperframe.denominator =
+> >  			ov2680_res[dev->fmt_idx].fps;
+> >  	}
+> >  	return 0;
+> >  }
+> >  
+> > -static int ov2680_s_parm(struct v4l2_subdev *sd,
+> > -			struct v4l2_streamparm *param)
+> > -{
+> > -	struct ov2680_device *dev = to_ov2680_sensor(sd);
+> > -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > -	dev->run_mode = param->parm.capture.capturemode;
+> > -
+> > -	v4l2_info(client, "\n%s:run_mode :%x\n", __func__, dev->run_mode);
+> > -
+> > -	mutex_lock(&dev->input_lock);
+> > -	switch (dev->run_mode) {
+> > -	case CI_MODE_VIDEO:
+> > -		ov2680_res = ov2680_res_video;
+> > -		N_RES = N_RES_VIDEO;
+> > -		break;
+> > -	case CI_MODE_STILL_CAPTURE:
+> > -		ov2680_res = ov2680_res_still;
+> > -		N_RES = N_RES_STILL;
+> > -		break;
+> > -	default:
+> > -		ov2680_res = ov2680_res_preview;
+> > -		N_RES = N_RES_PREVIEW;
+> > -	}
+> > -	mutex_unlock(&dev->input_lock);
+> > -	return 0;
+> > -}
+> > -
+> >  static int ov2680_g_frame_interval(struct v4l2_subdev *sd,
+> >  				   struct v4l2_subdev_frame_interval *interval)
+> >  {
+> > @@ -1388,7 +1360,6 @@ static int ov2680_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+> >  static const struct v4l2_subdev_video_ops ov2680_video_ops = {
+> >  	.s_stream = ov2680_s_stream,
+> >  	.g_parm = ov2680_g_parm,
+> > -	.s_parm = ov2680_s_parm,
+> >  	.g_frame_interval = ov2680_g_frame_interval,
+> >  };
+> >  
+> > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+> > index 2b6ae0faf972..cd9f6433cd42 100644
+> > --- a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+> > +++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+> > @@ -1103,37 +1103,12 @@ static int ov2722_g_parm(struct v4l2_subdev *sd,
+> >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> >  		param->parm.capture.timeperframe.numerator = 1;
+> > -		param->parm.capture.capturemode = dev->run_mode;
+> >  		param->parm.capture.timeperframe.denominator =
+> >  			ov2722_res[dev->fmt_idx].fps;
+> >  	}
+> >  	return 0;
+> >  }
+> >  
+> > -static int ov2722_s_parm(struct v4l2_subdev *sd,
+> > -			struct v4l2_streamparm *param)
+> > -{
+> > -	struct ov2722_device *dev = to_ov2722_sensor(sd);
+> > -	dev->run_mode = param->parm.capture.capturemode;
+> > -
+> > -	mutex_lock(&dev->input_lock);
+> > -	switch (dev->run_mode) {
+> > -	case CI_MODE_VIDEO:
+> > -		ov2722_res = ov2722_res_video;
+> > -		N_RES = N_RES_VIDEO;
+> > -		break;
+> > -	case CI_MODE_STILL_CAPTURE:
+> > -		ov2722_res = ov2722_res_still;
+> > -		N_RES = N_RES_STILL;
+> > -		break;
+> > -	default:
+> > -		ov2722_res = ov2722_res_preview;
+> > -		N_RES = N_RES_PREVIEW;
+> > -	}
+> > -	mutex_unlock(&dev->input_lock);
+> > -	return 0;
+> > -}
+> > -
+> >  static int ov2722_g_frame_interval(struct v4l2_subdev *sd,
+> >  				   struct v4l2_subdev_frame_interval *interval)
+> >  {
+> > @@ -1193,7 +1168,6 @@ static const struct v4l2_subdev_sensor_ops ov2722_sensor_ops = {
+> >  static const struct v4l2_subdev_video_ops ov2722_video_ops = {
+> >  	.s_stream = ov2722_s_stream,
+> >  	.g_parm = ov2722_g_parm,
+> > -	.s_parm = ov2722_s_parm,
+> >  	.g_frame_interval = ov2722_g_frame_interval,
+> >  };
+> >  
+> > diff --git a/drivers/staging/media/atomisp/i2c/gc0310.h b/drivers/staging/media/atomisp/i2c/gc0310.h
+> > index c422d0398fc7..af6b11f6e5e7 100644
+> > --- a/drivers/staging/media/atomisp/i2c/gc0310.h
+> > +++ b/drivers/staging/media/atomisp/i2c/gc0310.h
+> > @@ -150,7 +150,6 @@ struct gc0310_device {
+> >  	struct camera_sensor_platform_data *platform_data;
+> >  	int vt_pix_clk_freq_mhz;
+> >  	int fmt_idx;
+> > -	int run_mode;
+> >  	u8 res;
+> >  	u8 type;
+> >  };
+> > @@ -400,48 +399,6 @@ struct gc0310_resolution gc0310_res_preview[] = {
+> >  };
+> >  #define N_RES_PREVIEW (ARRAY_SIZE(gc0310_res_preview))
+> >  
+> > -struct gc0310_resolution gc0310_res_still[] = {
+> > -	{
+> > -		.desc = "gc0310_VGA_30fps",
+> > -		.width = 656, // 648,
+> > -		.height = 496, // 488,
+> > -		.fps = 30,
+> > -		//.pix_clk_freq = 73,
+> > -		.used = 0,
+> > -#if 0
+> > -		.pixels_per_line = 0x0314,
+> > -		.lines_per_frame = 0x0213,
+> > -#endif
+> > -		.bin_factor_x = 1,
+> > -		.bin_factor_y = 1,
+> > -		.bin_mode = 0,
+> > -		.skip_frames = 2,
+> > -		.regs = gc0310_VGA_30fps,
+> > -	},
+> > -};
+> > -#define N_RES_STILL (ARRAY_SIZE(gc0310_res_still))
+> > -
+> > -struct gc0310_resolution gc0310_res_video[] = {
+> > -	{
+> > -		.desc = "gc0310_VGA_30fps",
+> > -		.width = 656, // 648,
+> > -		.height = 496, // 488,
+> > -		.fps = 30,
+> > -		//.pix_clk_freq = 73,
+> > -		.used = 0,
+> > -#if 0
+> > -		.pixels_per_line = 0x0314,
+> > -		.lines_per_frame = 0x0213,
+> > -#endif
+> > -		.bin_factor_x = 1,
+> > -		.bin_factor_y = 1,
+> > -		.bin_mode = 0,
+> > -		.skip_frames = 2,
+> > -		.regs = gc0310_VGA_30fps,
+> > -	},
+> > -};
+> > -#define N_RES_VIDEO (ARRAY_SIZE(gc0310_res_video))
+> > -
+> >  static struct gc0310_resolution *gc0310_res = gc0310_res_preview;
+> >  static unsigned long N_RES = N_RES_PREVIEW;
+> >  #endif
+> > diff --git a/drivers/staging/media/atomisp/i2c/gc2235.h b/drivers/staging/media/atomisp/i2c/gc2235.h
+> > index 3c30a05c3991..45a54fea5466 100644
+> > --- a/drivers/staging/media/atomisp/i2c/gc2235.h
+> > +++ b/drivers/staging/media/atomisp/i2c/gc2235.h
+> > @@ -156,7 +156,6 @@ struct gc2235_device {
+> >  	struct camera_sensor_platform_data *platform_data;
+> >  	int vt_pix_clk_freq_mhz;
+> >  	int fmt_idx;
+> > -	int run_mode;
+> >  	u8 res;
+> >  	u8 type;
+> >  };
+> > diff --git a/drivers/staging/media/atomisp/i2c/ov2680.h b/drivers/staging/media/atomisp/i2c/ov2680.h
+> > index 03f75dd80f87..cb38e6e79409 100644
+> > --- a/drivers/staging/media/atomisp/i2c/ov2680.h
+> > +++ b/drivers/staging/media/atomisp/i2c/ov2680.h
+> > @@ -850,74 +850,6 @@ struct ov2680_format {
+> >  };
+> >  #define N_RES_PREVIEW (ARRAY_SIZE(ov2680_res_preview))
+> >  
+> > -static struct ov2680_resolution ov2680_res_still[] = {
+> > -	{
+> > -		.desc = "ov2680_1616x1216_30fps",
+> > -		.width = 1616,
+> > -		.height = 1216,
+> > -		.pix_clk_freq = 66,
+> > -		.fps = 30,
+> > -		.used = 0,
+> > -		.pixels_per_line = 1698,//1704,
+> > -		.lines_per_frame = 1294,
+> > -		.bin_factor_x = 0,
+> > -		.bin_factor_y = 0,
+> > -		.bin_mode = 0,
+> > -		.skip_frames = 3,
+> > -		.regs = ov2680_1616x1216_30fps,
+> > -	},
+> > -   	{
+> > -		.desc = "ov2680_1616x916_30fps",
+> > -		.width = 1616,
+> > -		.height = 916,
+> > -		.fps = 30,
+> > -		.pix_clk_freq = 66,
+> > -		.used = 0,
+> > -		.pixels_per_line = 1698,//1704,
+> > -		.lines_per_frame = 1294,
+> > -		.bin_factor_x = 0,
+> > -		.bin_factor_y = 0,
+> > -		.bin_mode = 0,
+> > -		.skip_frames = 3,
+> > -		.regs = ov2680_1616x916_30fps,
+> > -	},
+> > -};
+> > -#define N_RES_STILL (ARRAY_SIZE(ov2680_res_still))
+> > -
+> > -static struct ov2680_resolution ov2680_res_video[] = {
+> > -	{
+> > -		.desc = "ov2680_1616x1216_30fps",
+> > -		.width = 1616,
+> > -		.height = 1216,
+> > -		.pix_clk_freq = 66,
+> > -		.fps = 30,
+> > -		.used = 0,
+> > -		.pixels_per_line = 1698,//1704,
+> > -		.lines_per_frame = 1294,
+> > -		.bin_factor_x = 0,
+> > -		.bin_factor_y = 0,
+> > -		.bin_mode = 0,
+> > -		.skip_frames = 3,
+> > -		.regs = ov2680_1616x1216_30fps,
+> > -	},
+> > -	{
+> > -		.desc = "ov2680_720p_30fps",
+> > -		.width = 1616,
+> > -		.height = 916,
+> > -		.fps = 30,
+> > -		.pix_clk_freq = 66,
+> > -		.used = 0,
+> > -		.pixels_per_line = 1698,//1704,
+> > -		.lines_per_frame = 1294,
+> > -		.bin_factor_x = 0,
+> > -		.bin_factor_y = 0,
+> > -		.bin_mode = 0,
+> > -		.skip_frames = 3,
+> > -		.regs = ov2680_1616x916_30fps,
+> > -	},
+> > -};
+> > -#define N_RES_VIDEO (ARRAY_SIZE(ov2680_res_video))
+> > -
+> >  static struct ov2680_resolution *ov2680_res = ov2680_res_preview;
+> >  static unsigned long N_RES = N_RES_PREVIEW;
+> >  
+> > diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+> > index 40d01bf4bf28..7f594c7de76e 100644
+> > --- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+> > +++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+> > @@ -1825,38 +1825,12 @@ static int ov5693_g_parm(struct v4l2_subdev *sd,
+> >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> >  		param->parm.capture.timeperframe.numerator = 1;
+> > -		param->parm.capture.capturemode = dev->run_mode;
+> >  		param->parm.capture.timeperframe.denominator =
+> >  			ov5693_res[dev->fmt_idx].fps;
+> >  	}
+> >  	return 0;
+> >  }
+> >  
+> > -static int ov5693_s_parm(struct v4l2_subdev *sd,
+> > -			struct v4l2_streamparm *param)
+> > -{
+> > -	struct ov5693_device *dev = to_ov5693_sensor(sd);
+> > -
+> > -	dev->run_mode = param->parm.capture.capturemode;
+> > -
+> > -	mutex_lock(&dev->input_lock);
+> > -	switch (dev->run_mode) {
+> > -	case CI_MODE_VIDEO:
+> > -		ov5693_res = ov5693_res_video;
+> > -		N_RES = N_RES_VIDEO;
+> > -		break;
+> > -	case CI_MODE_STILL_CAPTURE:
+> > -		ov5693_res = ov5693_res_still;
+> > -		N_RES = N_RES_STILL;
+> > -		break;
+> > -	default:
+> > -		ov5693_res = ov5693_res_preview;
+> > -		N_RES = N_RES_PREVIEW;
+> > -	}
+> > -	mutex_unlock(&dev->input_lock);
+> > -	return 0;
+> > -}
+> > -
+> >  static int ov5693_g_frame_interval(struct v4l2_subdev *sd,
+> >  				   struct v4l2_subdev_frame_interval *interval)
+> >  {
+> > @@ -1900,7 +1874,6 @@ static int ov5693_enum_frame_size(struct v4l2_subdev *sd,
+> >  static const struct v4l2_subdev_video_ops ov5693_video_ops = {
+> >  	.s_stream = ov5693_s_stream,
+> >  	.g_parm = ov5693_g_parm,
+> > -	.s_parm = ov5693_s_parm,
+> >  	.g_frame_interval = ov5693_g_frame_interval,
+> >  };
+> >  
+> > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> > index debf0e3853ff..3410a7fb1fcf 100644
+> > --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> > +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> > @@ -2091,7 +2091,7 @@ int atomisp_set_sensor_runmode(struct atomisp_sub_device *asd,
+> >  	struct atomisp_device *isp = asd->isp;
+> >  	struct v4l2_ctrl *c;
+> >  	struct v4l2_streamparm p = {0};
+> > -	int ret;
+> > +	int ret = 0;
+> >  	int modes[] = { CI_MODE_NONE,
+> >  			CI_MODE_VIDEO,
+> >  			CI_MODE_STILL_CAPTURE,
+> > @@ -2105,13 +2105,8 @@ int atomisp_set_sensor_runmode(struct atomisp_sub_device *asd,
+> >  	c = v4l2_ctrl_find(isp->inputs[asd->input_curr].camera->ctrl_handler,
+> >  			   V4L2_CID_RUN_MODE);
+> >  
+> > -	if (c) {
+> > +	if (c)
+> >  		ret = v4l2_ctrl_s_ctrl(c, runmode->mode);
+> > -	} else {
+> > -		p.parm.capture.capturemode = modes[runmode->mode];
+> > -		ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
+> > -				       video, s_parm, &p);
+> > -	}
+> >  
+> >  	mutex_unlock(asd->ctrl_handler.lock);
+> >  	return ret;
+> > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+> > index f3e18d627b0a..b78276ac22da 100644
+> > --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+> > +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+> > @@ -819,12 +819,6 @@ static int __atomisp_update_run_mode(struct atomisp_sub_device *asd)
+> >  	struct atomisp_device *isp = asd->isp;
+> >  	struct v4l2_ctrl *ctrl = asd->run_mode;
+> >  	struct v4l2_ctrl *c;
+> > -	struct v4l2_streamparm p = {0};
+> > -	int modes[] = { CI_MODE_NONE,
+> > -			CI_MODE_VIDEO,
+> > -			CI_MODE_STILL_CAPTURE,
+> > -			CI_MODE_CONTINUOUS,
+> > -			CI_MODE_PREVIEW };
+> >  	s32 mode;
+> >  
+> >  	if (ctrl->val != ATOMISP_RUN_MODE_VIDEO &&
+> > @@ -840,11 +834,7 @@ static int __atomisp_update_run_mode(struct atomisp_sub_device *asd)
+> >  	if (c)
+> >  		return v4l2_ctrl_s_ctrl(c, mode);
+> >  
+> > -	/* Fall back to obsolete s_parm */
+> > -	p.parm.capture.capturemode = modes[mode];
+> > -
+> > -	return v4l2_subdev_call(
+> > -		isp->inputs[asd->input_curr].camera, video, s_parm, &p);
+> > +	return 0;
+> >  }
+> >  
+> >  int atomisp_update_run_mode(struct atomisp_sub_device *asd)
+> 
+> 
+> 
+> Thanks,
+> Mauro
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
