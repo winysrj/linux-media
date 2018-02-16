@@ -1,1044 +1,559 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:49214 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751624AbeBFN4a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 08:56:30 -0500
-Subject: Re: [PATCH v5 09/16] media: rkisp1: add rockchip isp1 core driver
-To: Shunqian Zheng <zhengsq@rock-chips.com>,
-        linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        jacob2.chen@rock-chips.com, Jacob Chen <cc@rock-chips.com>
-References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
- <1514533978-20408-10-git-send-email-zhengsq@rock-chips.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5b8cf5ab-153d-0c57-9691-d0cf25316fa1@xs4all.nl>
-Date: Tue, 6 Feb 2018 14:56:24 +0100
+Received: from osg.samsung.com ([64.30.133.232]:41792 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965036AbeBPL6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Feb 2018 06:58:40 -0500
+Date: Fri, 16 Feb 2018 09:58:26 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 3/9] staging: atomisp: Kill subdev s_parm abuse
+Message-ID: <20180216095826.569575d9@vento.lan>
+In-Reply-To: <20180216090436.muvu3acgz7444vdf@valkosipuli.retiisi.org.uk>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+        <20180122123125.24709-4-hverkuil@xs4all.nl>
+        <20180214141430.1866afeb@vento.lan>
+        <20180216090436.muvu3acgz7444vdf@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1514533978-20408-10-git-send-email-zhengsq@rock-chips.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/29/17 08:52, Shunqian Zheng wrote:
-> From: Jacob Chen <jacob2.chen@rock-chips.com>
+Em Fri, 16 Feb 2018 11:04:36 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+
+> On Wed, Feb 14, 2018 at 02:14:30PM -0200, Mauro Carvalho Chehab wrote:
+> > Sakari,
+> > 
+> > Em Mon, 22 Jan 2018 13:31:19 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> > > From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > 
+> > > Remove sensor driver's interface that made use of use case specific
+> > > knowledge of platform capabilities.  
+> > 
+> > Could you better describe it? What s_param abuse?
+> > What happens after this patch? It seems that atomISP relies on  
 > 
-> Add the core driver for rockchip isp1.
+> I'd like to remind you this is a staging driver that got where it is
+> without any review.
+
+Ok, but this is not an excuse to not properly document any further
+patches to it.
+
+> If you insist on improving the commit message, then
+> this is what I propose:
 > 
-> Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
-> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> Signed-off-by: Yichong Zhong <zyc@rock-chips.com>
-> Signed-off-by: Jacob Chen <cc@rock-chips.com>
-> Signed-off-by: Eddie Cai <eddie.cai.linux@gmail.com>
-> Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
-> Signed-off-by: Allon Huang <allon.huang@rock-chips.com>
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  drivers/media/platform/Kconfig                |  10 +
->  drivers/media/platform/Makefile               |   1 +
->  drivers/media/platform/rockchip/isp1/Makefile |   8 +
->  drivers/media/platform/rockchip/isp1/common.h | 137 ++++++
->  drivers/media/platform/rockchip/isp1/dev.c    | 653 ++++++++++++++++++++++++++
->  drivers/media/platform/rockchip/isp1/dev.h    | 120 +++++
->  6 files changed, 929 insertions(+)
->  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
->  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
+> Remove sensor driver's interface for setting the use case specific mode
+> list as well as the mode lists that are related to other than
+> CI_MODE_PREVIEW. This removes s_parm abuse in using driver specific values
+> in v4l2_streamparm.capture.capturemode. The drivers already support
+> [gs]_frame_interval so removing support for [gs]_parm is enough.
+
+Works for me.
+
 > 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index fd0c998..062fffc 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -117,6 +117,16 @@ config VIDEO_QCOM_CAMSS
->  	select VIDEOBUF2_DMA_SG
->  	select V4L2_FWNODE
->  
-> +config VIDEO_ROCKCHIP_ISP1
-> +	tristate "Rockchip Image Signal Processing v1 Unit driver"
-> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on ARCH_ROCKCHIP || COMPILE_TEST
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select V4L2_FWNODE
-> +	default n
-> +	---help---
-> +	  Support for ISP1 on the rockchip SoC.
-> +
->  config VIDEO_S3C_CAMIF
->  	tristate "Samsung S3C24XX/S3C64XX SoC Camera Interface driver"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 003b0bb..d235908 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -67,6 +67,7 @@ obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
->  obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
->  obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
->  
-> +obj-$(CONFIG_VIDEO_ROCKCHIP_ISP1)	+= rockchip/isp1/
->  obj-$(CONFIG_VIDEO_ROCKCHIP_RGA)	+= rockchip/rga/
->  
->  obj-y	+= omap/
-> diff --git a/drivers/media/platform/rockchip/isp1/Makefile b/drivers/media/platform/rockchip/isp1/Makefile
-> new file mode 100644
-> index 0000000..18af648
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/isp1/Makefile
-> @@ -0,0 +1,8 @@
-> +obj-$(CONFIG_VIDEO_ROCKCHIP_ISP1) += 	video_rkisp1.o
-> +video_rkisp1-objs 	   += 	rkisp1.o \
-> +				dev.o \
-> +				regs.o \
-> +				isp_stats.o \
-> +				isp_params.o \
-> +				mipi_dphy_sy.o \
-> +				capture.o
-> diff --git a/drivers/media/platform/rockchip/isp1/common.h b/drivers/media/platform/rockchip/isp1/common.h
-> new file mode 100644
-> index 0000000..1adfb90
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/isp1/common.h
-> @@ -0,0 +1,137 @@
-> +/*
-> + * Rockchip isp1 driver
-> + *
-> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
-> + *
-> + * This software is available to you under a choice of one of two
-> + * licenses.  You may choose to be licensed under the terms of the GNU
-> + * General Public License (GPL) Version 2, available from the file
-> + * COPYING in the main directory of this source tree, or the
-> + * OpenIB.org BSD license below:
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#ifndef _RKISP1_COMMON_H
-> +#define _RKISP1_COMMON_H
-> +
-> +#include <linux/mutex.h>
-> +#include <media/media-device.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/videobuf2-v4l2.h>
-> +
-> +#define RKISP1_DEFAULT_WIDTH		800
-> +#define RKISP1_DEFAULT_HEIGHT		600
-> +
-> +#define RKISP1_MAX_STREAM		2
-> +#define RKISP1_STREAM_SP		0
-> +#define RKISP1_STREAM_MP		1
-> +
-> +#define RKISP1_PLANE_Y			0
-> +#define RKISP1_PLANE_CB			1
-> +#define RKISP1_PLANE_CR			2
-> +
-> +enum rkisp1_sd_type {
-> +	RKISP1_SD_SENSOR,
-> +	RKISP1_SD_PHY_CSI,
-> +	RKISP1_SD_VCM,
-> +	RKISP1_SD_FLASH,
-> +	RKISP1_SD_MAX,
-> +};
-> +
-> +/* One structure per video node */
-> +struct rkisp1_vdev_node {
-> +	struct vb2_queue buf_queue;
-> +	/* vfd lock */
-> +	struct mutex vlock;
-> +	struct video_device vdev;
-> +	struct media_pad pad;
-> +};
-> +
-> +enum rkisp1_fmt_pix_type {
-> +	FMT_YUV,
-> +	FMT_RGB,
-> +	FMT_BAYER,
-> +	FMT_JPEG,
-> +	FMT_MAX
-> +};
-> +
-> +enum rkisp1_fmt_raw_pat_type {
-> +	RAW_RGGB = 0,
-> +	RAW_GRBG,
-> +	RAW_GBRG,
-> +	RAW_BGGR,
-> +};
-> +
-> +enum rkisp1_state {
-> +	/* path not yet opened: */
-> +	RKISP1_STATE_DISABLED,
-> +	/* path opened and configured, ready for streaming: */
-> +	RKISP1_STATE_READY,
-> +	/* path is streaming: */
-> +	RKISP1_STATE_STREAMING
-> +};
-> +
-> +struct rkisp1_buffer {
-> +	struct vb2_v4l2_buffer vb;
-> +	struct list_head queue;
-> +	union {
-> +		u32 buff_addr[VIDEO_MAX_PLANES];
-> +		void *vaddr[VIDEO_MAX_PLANES];
-> +	};
-> +};
-> +
-> +struct rkisp1_dummy_buffer {
-> +	void *vaddr;
-> +	dma_addr_t dma_addr;
-> +	u32 size;
-> +};
-> +
-> +extern int rkisp1_debug;
-> +
-> +static inline
-> +struct rkisp1_vdev_node *vdev_to_node(struct video_device *vdev)
-> +{
-> +	return container_of(vdev, struct rkisp1_vdev_node, vdev);
-> +}
-> +
-> +static inline struct rkisp1_vdev_node *queue_to_node(struct vb2_queue *q)
-> +{
-> +	return container_of(q, struct rkisp1_vdev_node, buf_queue);
-> +}
-> +
-> +static inline struct rkisp1_buffer *to_rkisp1_buffer(struct vb2_v4l2_buffer *vb)
-> +{
-> +	return container_of(vb, struct rkisp1_buffer, vb);
-> +}
-> +
-> +static inline struct vb2_queue *to_vb2_queue(struct file *file)
-> +{
-> +	struct rkisp1_vdev_node *vnode = video_drvdata(file);
-> +
-> +	return &vnode->buf_queue;
-> +}
-> +
-> +#endif /* _RKISP1_COMMON_H */
-> diff --git a/drivers/media/platform/rockchip/isp1/dev.c b/drivers/media/platform/rockchip/isp1/dev.c
-> new file mode 100644
-> index 0000000..248751c
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/isp1/dev.c
-> @@ -0,0 +1,653 @@
-> +/*
-> + * Rockchip isp1 driver
-> + *
-> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
-> + *
-> + * This software is available to you under a choice of one of two
-> + * licenses.  You may choose to be licensed under the terms of the GNU
-> + * General Public License (GPL) Version 2, available from the file
-> + * COPYING in the main directory of this source tree, or the
-> + * OpenIB.org BSD license below:
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/of_platform.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include "common.h"
-> +#include "regs.h"
-> +
-> +struct isp_match_data {
-> +	const char * const *clks;
-> +	int size;
-> +};
-> +
-> +int rkisp1_debug;
-> +module_param_named(debug, rkisp1_debug, int, 0644);
-> +MODULE_PARM_DESC(debug, "Debug level (0-1)");
-> +
-> +/**************************** pipeline operations *****************************/
-> +
-> +static int __isp_pipeline_prepare(struct rkisp1_pipeline *p,
-> +				  struct media_entity *me)
-> +{
-> +	struct rkisp1_device *dev = container_of(p, struct rkisp1_device, pipe);
-> +	struct v4l2_subdev *sd;
-> +	int i;
-> +
-> +	p->num_subdevs = 0;
-> +	memset(p->subdevs, 0, sizeof(p->subdevs));
-> +
-> +	while (1) {
-> +		struct media_pad *pad = NULL;
-> +
-> +		/* Find remote source pad */
-> +		for (i = 0; i < me->num_pads; i++) {
-> +			struct media_pad *spad = &me->pads[i];
-> +
-> +			if (!(spad->flags & MEDIA_PAD_FL_SINK))
-> +				continue;
-> +			pad = media_entity_remote_pad(spad);
-> +			if (pad)
-> +				break;
-> +		}
-> +
-> +		if (!pad)
-> +			break;
-> +
-> +		sd = media_entity_to_v4l2_subdev(pad->entity);
-> +		if (sd != &dev->isp_sdev.sd)
-> +			p->subdevs[p->num_subdevs++] = sd;
-> +
-> +		me = &sd->entity;
-> +		if (me->num_pads == 1)
-> +			break;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int __subdev_set_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	int ret;
-> +
-> +	if (!sd)
-> +		return -ENXIO;
-> +
-> +	ret = v4l2_subdev_call(sd, core, s_power, on);
-> +
-> +	return ret != -ENOIOCTLCMD ? ret : 0;
-> +}
-> +
-> +static int __isp_pipeline_s_power(struct rkisp1_pipeline *p, bool on)
-> +{
-> +	struct rkisp1_device *dev = container_of(p, struct rkisp1_device, pipe);
-> +	int i, ret;
-> +
-> +	if (on) {
-> +		__subdev_set_power(&dev->isp_sdev.sd, true);
-> +
-> +		for (i = p->num_subdevs - 1; i >= 0; --i) {
-> +			ret = __subdev_set_power(p->subdevs[i], true);
-> +			if (ret < 0 && ret != -ENXIO)
-> +				goto err_power_off;
-> +		}
-> +	} else {
-> +		for (i = 0; i < p->num_subdevs; ++i)
-> +			__subdev_set_power(p->subdevs[i], false);
-> +
-> +		__subdev_set_power(&dev->isp_sdev.sd, false);
-> +	}
-> +
-> +	return 0;
-> +
-> +err_power_off:
-> +	for (++i; i < p->num_subdevs; ++i)
-> +		__subdev_set_power(p->subdevs[i], false);
-> +	__subdev_set_power(&dev->isp_sdev.sd, true);
-> +	return ret;
-> +}
-> +
-> +static int rkisp1_pipeline_open(struct rkisp1_pipeline *p,
-> +				struct media_entity *me,
-> +				bool prepare)
-> +{
-> +	int ret;
-> +
-> +	if (WARN_ON(!p || !me))
-> +		return -EINVAL;
-> +	if (atomic_inc_return(&p->power_cnt) > 1)
-> +		return 0;
-> +
-> +	/* go through media graphic and get subdevs */
-> +	if (prepare)
-> +		__isp_pipeline_prepare(p, me);
-> +
-> +	if (!p->num_subdevs)
-> +		return -EINVAL;
-> +
-> +	ret = __isp_pipeline_s_power(p, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +static int rkisp1_pipeline_close(struct rkisp1_pipeline *p)
-> +{
-> +	int ret;
-> +
-> +	if (atomic_dec_return(&p->power_cnt) > 0)
-> +		return 0;
-> +	ret = __isp_pipeline_s_power(p, 0);
-> +
-> +	return ret == -ENXIO ? 0 : ret;
-> +}
-> +
-> +/*
-> + * stream-on order: isp_subdev, mipi dphy, sensor
-> + * stream-off order: mipi dphy, sensor, isp_subdev
-> + */
-> +static int rkisp1_pipeline_set_stream(struct rkisp1_pipeline *p, bool on)
-> +{
-> +	struct rkisp1_device *dev = container_of(p, struct rkisp1_device, pipe);
-> +	int i, ret;
-> +
-> +	if ((on && atomic_inc_return(&p->stream_cnt) > 1) ||
-> +	    (!on && atomic_dec_return(&p->stream_cnt) > 0))
-> +		return 0;
-> +
-> +	if (on)
-> +		v4l2_subdev_call(&dev->isp_sdev.sd, video, s_stream, true);
-> +
-> +	/* phy -> sensor */
-> +	for (i = 0; i < p->num_subdevs; ++i) {
-> +		ret = v4l2_subdev_call(p->subdevs[i], video, s_stream, on);
-> +		if (on && ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> +			goto err_stream_off;
-> +	}
-> +
-> +	if (!on)
-> +		v4l2_subdev_call(&dev->isp_sdev.sd, video, s_stream, false);
-> +
-> +	return 0;
-> +
-> +err_stream_off:
-> +	for (--i; i >= 0; --i)
-> +		v4l2_subdev_call(p->subdevs[i], video, s_stream, false);
-> +	v4l2_subdev_call(&dev->isp_sdev.sd, video, s_stream, false);
-> +	return ret;
-> +}
-> +
-> +/***************************** media controller *******************************/
-> +/* See http://opensource.rock-chips.com/wiki_Rockchip-isp1 for Topology */
-> +
-> +static int rkisp1_create_links(struct rkisp1_device *dev)
-> +{
-> +	struct media_entity *source, *sink;
-> +	unsigned int flags, s, pad;
-> +	int ret;
-> +
-> +	/* sensor links(or mipi-phy) */
-> +	for (s = 0; s < dev->num_sensors; ++s) {
-> +		struct rkisp1_sensor_info *sensor = &dev->sensors[s];
-> +
-> +		for (pad = 0; pad < sensor->sd->entity.num_pads; pad++)
-> +			if (sensor->sd->entity.pads[pad].flags &
-> +				MEDIA_PAD_FL_SOURCE)
-> +				break;
-> +
-> +		if (pad == sensor->sd->entity.num_pads) {
-> +			dev_err(dev->dev,
-> +				"failed to find src pad for %s\n",
-> +				sensor->sd->name);
-> +
-> +			return -ENXIO;
-> +		}
-> +
-> +		ret = media_create_pad_link(
-> +				&sensor->sd->entity, pad,
-> +				&dev->isp_sdev.sd.entity,
-> +				RKISP1_ISP_PAD_SINK + s,
-> +				s ? 0 : MEDIA_LNK_FL_ENABLED);
-> +		if (ret) {
-> +			dev_err(dev->dev,
-> +				"failed to create link for %s\n",
-> +				sensor->sd->name);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	/* params links */
-> +	source = &dev->params_vdev.vnode.vdev.entity;
-> +	sink = &dev->isp_sdev.sd.entity;
-> +	flags = MEDIA_LNK_FL_ENABLED;
-> +	ret = media_create_pad_link(source, 0, sink,
-> +				       RKISP1_ISP_PAD_SINK_PARAMS, flags);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* create isp internal links */
-> +	/* SP links */
-> +	source = &dev->isp_sdev.sd.entity;
-> +	sink = &dev->stream[RKISP1_STREAM_SP].vnode.vdev.entity;
-> +	ret = media_create_pad_link(source, RKISP1_ISP_PAD_SOURCE_PATH,
-> +				       sink, 0, flags);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* MP links */
-> +	source = &dev->isp_sdev.sd.entity;
-> +	sink = &dev->stream[RKISP1_STREAM_MP].vnode.vdev.entity;
-> +	ret = media_create_pad_link(source, RKISP1_ISP_PAD_SOURCE_PATH,
-> +				       sink, 0, flags);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* 3A stats links */
-> +	source = &dev->isp_sdev.sd.entity;
-> +	sink = &dev->stats_vdev.vnode.vdev.entity;
-> +	return media_create_pad_link(source, RKISP1_ISP_PAD_SOURCE_STATS,
-> +					sink, 0, flags);
-> +}
-> +
-> +static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
-> +{
-> +	struct rkisp1_device *dev;
-> +	int ret;
-> +
-> +	dev = container_of(notifier, struct rkisp1_device, notifier);
-> +
-> +	mutex_lock(&dev->media_dev.graph_mutex);
-> +	ret = rkisp1_create_links(dev);
-> +	if (ret < 0)
-> +		goto unlock;
-> +	ret = v4l2_device_register_subdev_nodes(&dev->v4l2_dev);
-> +	if (ret < 0)
-> +		goto unlock;
-> +
-> +	v4l2_info(&dev->v4l2_dev, "Async subdev notifier completed\n");
-> +
-> +unlock:
-> +	mutex_unlock(&dev->media_dev.graph_mutex);
-> +	return ret;
-> +}
-> +
-> +struct rkisp1_async_subdev {
-> +	struct v4l2_async_subdev asd;
-> +	struct v4l2_mbus_config mbus;
-> +};
-> +
-> +static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
-> +				 struct v4l2_subdev *subdev,
-> +				 struct v4l2_async_subdev *asd)
-> +{
-> +	struct rkisp1_device *isp_dev = container_of(notifier,
-> +					struct rkisp1_device, notifier);
-> +	struct rkisp1_async_subdev *s_asd = container_of(asd,
-> +					struct rkisp1_async_subdev, asd);
-> +
-> +	if (isp_dev->num_sensors == ARRAY_SIZE(isp_dev->sensors))
-> +		return -EBUSY;
-> +
-> +	isp_dev->sensors[isp_dev->num_sensors].mbus = s_asd->mbus;
-> +	isp_dev->sensors[isp_dev->num_sensors].sd = subdev;
-> +	++isp_dev->num_sensors;
-> +
-> +	v4l2_dbg(1, rkisp1_debug, subdev, "Async registered subdev\n");
-> +
-> +	return 0;
-> +}
-> +
-> +static int rkisp1_fwnode_parse(struct device *dev,
-> +			       struct v4l2_fwnode_endpoint *vep,
-> +			       struct v4l2_async_subdev *asd)
-> +{
-> +	struct rkisp1_async_subdev *rk_asd =
-> +			container_of(asd, struct rkisp1_async_subdev, asd);
-> +	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
-> +
-> +	/*
-> +	 * MIPI sensor is linked with a mipi dphy and its media bus config can
-> +	 * not be get in here
-> +	 */
-> +	if (vep->bus_type != V4L2_MBUS_BT656 &&
-> +		vep->bus_type != V4L2_MBUS_PARALLEL)
-> +		return 0;
-> +
-> +	rk_asd->mbus.flags = bus->flags;
-> +	rk_asd->mbus.type = vep->bus_type;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_async_notifier_operations subdev_notifier_ops = {
-> +	.bound = subdev_notifier_bound,
-> +	.complete = subdev_notifier_complete,
-> +};
-> +
-> +static int isp_subdev_notifier(struct rkisp1_device *isp_dev)
-> +{
-> +	struct v4l2_async_notifier *ntf = &isp_dev->notifier;
-> +	struct device *dev = isp_dev->dev;
-> +	int ret;
-> +
-> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-> +		dev, ntf, sizeof(struct rkisp1_async_subdev),
-> +		rkisp1_fwnode_parse);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (!ntf->num_subdevs)
-> +		return -ENODEV;	/* no endpoint */
-> +
-> +	ntf->ops = &subdev_notifier_ops;
-> +
-> +	return v4l2_async_notifier_register(&isp_dev->v4l2_dev, ntf);
-> +}
-> +
-> +/***************************** platform deive *******************************/
-> +
-> +static int rkisp1_register_platform_subdevs(struct rkisp1_device *dev)
-> +{
-> +	int ret;
-> +
-> +	ret = rkisp1_register_isp_subdev(dev, &dev->v4l2_dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = rkisp1_register_stream_vdevs(dev);
-> +	if (ret < 0)
-> +		goto err_unreg_isp_subdev;
-> +
-> +	ret = rkisp1_register_stats_vdev(&dev->stats_vdev, &dev->v4l2_dev, dev);
-> +	if (ret < 0)
-> +		goto err_unreg_stream_vdev;
-> +
-> +	ret = rkisp1_register_params_vdev(&dev->params_vdev, &dev->v4l2_dev,
-> +					  dev);
-> +	if (ret < 0)
-> +		goto err_unreg_stats_vdev;
-> +
-> +	ret = isp_subdev_notifier(dev);
-> +	if (ret < 0) {
-> +		v4l2_err(&dev->v4l2_dev,
-> +			 "Failed to register subdev notifier(%d)\n", ret);
-> +		goto err_unreg_params_vdev;
-> +	}
-> +
-> +	return 0;
-> +err_unreg_params_vdev:
-> +	rkisp1_unregister_params_vdev(&dev->params_vdev);
-> +err_unreg_stats_vdev:
-> +	rkisp1_unregister_stats_vdev(&dev->stats_vdev);
-> +err_unreg_stream_vdev:
-> +	rkisp1_unregister_stream_vdevs(dev);
-> +err_unreg_isp_subdev:
-> +	rkisp1_unregister_isp_subdev(dev);
-> +	return ret;
-> +}
-> +
-> +static const char * const rk3399_isp_clks[] = {
-> +	"clk_isp",
-> +	"aclk_isp",
-> +	"hclk_isp",
-> +	"aclk_isp_wrap",
-> +	"hclk_isp_wrap",
-> +};
-> +
-> +static const char * const rk3288_isp_clks[] = {
-> +	"clk_isp",
-> +	"aclk_isp",
-> +	"hclk_isp",
-> +	"pclk_isp_in",
-> +	"sclk_isp_jpe",
-> +};
-> +
-> +static const struct isp_match_data rk3288_isp_clk_data = {
-> +	.clks = rk3288_isp_clks,
-> +	.size = ARRAY_SIZE(rk3288_isp_clks),
-> +};
-> +
-> +static const struct isp_match_data rk3399_isp_clk_data = {
-> +	.clks = rk3399_isp_clks,
-> +	.size = ARRAY_SIZE(rk3399_isp_clks),
-> +};
-> +
-> +static const struct of_device_id rkisp1_plat_of_match[] = {
-> +	{
-> +		.compatible = "rockchip,rk3288-cif-isp",
-> +		.data = &rk3288_isp_clk_data,
-> +	}, {
-> +		.compatible = "rockchip,rk3399-cif-isp",
-> +		.data = &rk3399_isp_clk_data,
-> +	},
-> +	{},
-> +};
-> +
-> +static irqreturn_t rkisp1_irq_handler(int irq, void *ctx)
-> +{
-> +	struct device *dev = ctx;
-> +	struct rkisp1_device *rkisp1_dev = dev_get_drvdata(dev);
-> +	void __iomem *base = rkisp1_dev->base_addr;
-> +	unsigned int mis_val, i;
-> +
-> +	mis_val = readl(rkisp1_dev->base_addr + CIF_ISP_MIS);
-> +	if (mis_val)
-> +		rkisp1_isp_isr(mis_val, rkisp1_dev);
-> +
-> +	mis_val = readl(rkisp1_dev->base_addr + CIF_MIPI_MIS);
-> +	if (mis_val)
-> +		rkisp1_mipi_isr(mis_val, rkisp1_dev);
-> +
-> +	for (i = 0; i < RKISP1_MAX_STREAM; ++i) {
-> +		struct rkisp1_stream *stream = &rkisp1_dev->stream[i];
-> +
-> +		if (stream->ops->is_frame_end_int_masked(base))
-> +			rkisp1_mi_isr(stream);
-> +	}
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static void rkisp1_disable_sys_clk(struct rkisp1_device *rkisp1_dev)
-> +{
-> +	int i;
-> +
-> +	for (i = rkisp1_dev->clk_size - 1; i >= 0; i--)
-> +		clk_disable_unprepare(rkisp1_dev->clks[i]);
-> +}
-> +
-> +static int rkisp1_enable_sys_clk(struct rkisp1_device *rkisp1_dev)
-> +{
-> +	int i, ret = -EINVAL;
-> +
-> +	for (i = 0; i < rkisp1_dev->clk_size; i++) {
-> +		ret = clk_prepare_enable(rkisp1_dev->clks[i]);
-> +		if (ret < 0)
-> +			goto err;
-> +	}
-> +	return 0;
-> +err:
-> +	for (--i; i >= 0; --i)
-> +		clk_disable_unprepare(rkisp1_dev->clks[i]);
-> +	return ret;
-> +}
-> +
-> +static int rkisp1_plat_probe(struct platform_device *pdev)
-> +{
-> +	const struct of_device_id *match;
-> +	struct device_node *node = pdev->dev.of_node;
-> +	struct device *dev = &pdev->dev;
-> +	struct v4l2_device *v4l2_dev;
-> +	struct rkisp1_device *isp_dev;
-> +	const struct isp_match_data *clk_data;
-> +
-> +	struct resource *res;
-> +	int i, ret, irq;
-> +
-> +	match = of_match_node(rkisp1_plat_of_match, node);
-> +	isp_dev = devm_kzalloc(dev, sizeof(*isp_dev), GFP_KERNEL);
-> +	if (!isp_dev)
-> +		return -ENOMEM;
-> +
-> +	dev_set_drvdata(dev, isp_dev);
-> +	isp_dev->dev = dev;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	isp_dev->base_addr = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(isp_dev->base_addr))
-> +		return PTR_ERR(isp_dev->base_addr);
-> +
-> +	irq = platform_get_irq(pdev, 0);
-> +	if (irq < 0)
-> +		return irq;
-> +
-> +	ret = devm_request_irq(dev, irq, rkisp1_irq_handler, IRQF_SHARED,
-> +			       dev_driver_string(dev), dev);
-> +	if (ret < 0) {
-> +		dev_err(dev, "request irq failed: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	isp_dev->irq = irq;
-> +	clk_data = match->data;
-> +	for (i = 0; i < clk_data->size; i++) {
-> +		struct clk *clk = devm_clk_get(dev, clk_data->clks[i]);
-> +
-> +		if (IS_ERR(clk)) {
-> +			dev_err(dev, "failed to get %s\n", clk_data->clks[i]);
-> +			return PTR_ERR(clk);
-> +		}
-> +		isp_dev->clks[i] = clk;
-> +	}
-> +	isp_dev->clk_size = clk_data->size;
-> +
-> +	atomic_set(&isp_dev->pipe.power_cnt, 0);
-> +	atomic_set(&isp_dev->pipe.stream_cnt, 0);
-> +	isp_dev->pipe.open = rkisp1_pipeline_open;
-> +	isp_dev->pipe.close = rkisp1_pipeline_close;
-> +	isp_dev->pipe.set_stream = rkisp1_pipeline_set_stream;
-> +
-> +	rkisp1_stream_init(isp_dev, RKISP1_STREAM_SP);
-> +	rkisp1_stream_init(isp_dev, RKISP1_STREAM_MP);
-> +
-> +	strlcpy(isp_dev->media_dev.model, "rkisp1",
-> +		sizeof(isp_dev->media_dev.model));
-> +	isp_dev->media_dev.dev = &pdev->dev;
-> +	media_device_init(&isp_dev->media_dev);
-> +
-> +	v4l2_dev = &isp_dev->v4l2_dev;
-> +	v4l2_dev->mdev = &isp_dev->media_dev;
-> +	strlcpy(v4l2_dev->name, "rkisp1", sizeof(v4l2_dev->name));
-> +	v4l2_ctrl_handler_init(&isp_dev->ctrl_handler, 5);
-> +	v4l2_dev->ctrl_handler = &isp_dev->ctrl_handler;
-> +
-> +	ret = v4l2_device_register(isp_dev->dev, &isp_dev->v4l2_dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = media_device_register(&isp_dev->media_dev);
-> +	if (ret < 0) {
-> +		v4l2_err(v4l2_dev, "Failed to register media device: %d\n",
-> +			 ret);
-> +		goto err_unreg_v4l2_dev;
-> +	}
-> +
-> +	/* create & register platefom subdev (from of_node) */
-> +	ret = rkisp1_register_platform_subdevs(isp_dev);
-> +	if (ret < 0)
-> +		goto err_unreg_media_dev;
-> +
-> +	pm_runtime_enable(&pdev->dev);
-> +
-> +	return 0;
-> +
-> +err_unreg_media_dev:
-> +	media_device_unregister(&isp_dev->media_dev);
-> +err_unreg_v4l2_dev:
-> +	v4l2_device_unregister(&isp_dev->v4l2_dev);
-> +	return ret;
-> +}
-> +
-> +static int rkisp1_plat_remove(struct platform_device *pdev)
-> +{
-> +	struct rkisp1_device *isp_dev = platform_get_drvdata(pdev);
-> +
-> +	pm_runtime_disable(&pdev->dev);
-> +	media_device_unregister(&isp_dev->media_dev);
-> +	v4l2_device_unregister(&isp_dev->v4l2_dev);
-> +	rkisp1_unregister_params_vdev(&isp_dev->params_vdev);
-> +	rkisp1_unregister_stats_vdev(&isp_dev->stats_vdev);
-> +	rkisp1_unregister_stream_vdevs(isp_dev);
-> +	rkisp1_unregister_isp_subdev(isp_dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused rkisp1_runtime_suspend(struct device *dev)
-> +{
-> +	struct rkisp1_device *isp_dev = dev_get_drvdata(dev);
-> +
-> +	rkisp1_disable_sys_clk(isp_dev);
-> +	return pinctrl_pm_select_sleep_state(dev);
-> +}
-> +
-> +static int __maybe_unused rkisp1_runtime_resume(struct device *dev)
-> +{
-> +	struct rkisp1_device *isp_dev = dev_get_drvdata(dev);
-> +	int ret;
-> +
-> +	ret = pinctrl_pm_select_default_state(dev);
-> +	if (ret < 0)
-> +		return ret;
-> +	rkisp1_enable_sys_clk(isp_dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops rkisp1_plat_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-> +				pm_runtime_force_resume)
-> +	SET_RUNTIME_PM_OPS(rkisp1_runtime_suspend, rkisp1_runtime_resume, NULL)
-> +};
-> +
-> +static struct platform_driver rkisp1_plat_drv = {
-> +	.driver = {
-> +		   .name = DRIVER_NAME,
-> +		   .of_match_table = of_match_ptr(rkisp1_plat_of_match),
-> +		   .pm = &rkisp1_plat_pm_ops,
-> +	},
-> +	.probe = rkisp1_plat_probe,
-> +	.remove = rkisp1_plat_remove,
-> +};
-> +
-> +module_platform_driver(rkisp1_plat_drv);
-> +MODULE_AUTHOR("Rockchip Camera/ISP team");
-> +MODULE_DESCRIPTION("Rockchip ISP1 platform driver");
-> +MODULE_LICENSE("Dual BSD/GPL");
-> diff --git a/drivers/media/platform/rockchip/isp1/dev.h b/drivers/media/platform/rockchip/isp1/dev.h
-> new file mode 100644
-> index 0000000..f28cde3
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/isp1/dev.h
-> @@ -0,0 +1,120 @@
-> +/*
-> + * Rockchip isp1 driver
-> + *
-> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
-> + *
-> + * This software is available to you under a choice of one of two
-> + * licenses.  You may choose to be licensed under the terms of the GNU
-> + * General Public License (GPL) Version 2, available from the file
-> + * COPYING in the main directory of this source tree, or the
-> + * OpenIB.org BSD license below:
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#ifndef _RKISP1_DEV_H
-> +#define _RKISP1_DEV_H
-> +
-> +#include "capture.h"
-> +#include "rkisp1.h"
-> +#include "isp_params.h"
-> +#include "isp_stats.h"
-> +
-> +#define DRIVER_NAME "rkisp1"
-> +#define ISP_VDEV_NAME DRIVER_NAME  "_ispdev"
-> +#define SP_VDEV_NAME DRIVER_NAME   "_selfpath"
-> +#define MP_VDEV_NAME DRIVER_NAME   "_mainpath"
-> +#define DMA_VDEV_NAME DRIVER_NAME  "_dmapath"
-> +
-> +#define GRP_ID_SENSOR			BIT(0)
-> +#define GRP_ID_MIPIPHY			BIT(1)
-> +#define GRP_ID_ISP			BIT(2)
-> +#define GRP_ID_ISP_MP			BIT(3)
-> +#define GRP_ID_ISP_SP			BIT(4)
-> +
-> +#define RKISP1_MAX_BUS_CLK	8
-> +#define RKISP1_MAX_SENSOR	2
-> +#define RKISP1_MAX_PIPELINE	4
-> +
-> +/*
-> + * struct rkisp1_pipeline - An ISP hardware pipeline
-> + *
-> + * Capture device call other devices via pipeline
-> + *
-> + * @num_subdevs: number of linked subdevs
-> + * @power_cnt: pipeline power count
-> + * @stream_cnt: stream power count
-> + */
-> +struct rkisp1_pipeline {
-> +	struct media_pipeline pipe;
-> +	int num_subdevs;
-> +	atomic_t power_cnt;
-> +	atomic_t stream_cnt;
-> +	struct v4l2_subdev *subdevs[RKISP1_MAX_PIPELINE];
-> +	int (*open)(struct rkisp1_pipeline *p,
-> +		    struct media_entity *me, bool prepare);
-> +	int (*close)(struct rkisp1_pipeline *p);
-> +	int (*set_stream)(struct rkisp1_pipeline *p, bool on);
-> +};
-> +
-> +/*
-> + * struct rkisp1_sensor_info - Sensor infomations
-
-infomations -> information
-
-> + * @mbus: media bus configuration
-> + */
-> +struct rkisp1_sensor_info {
-> +	struct v4l2_subdev *sd;
-> +	struct v4l2_mbus_config mbus;
-
-As mentioned before, this is dubious. I'll discuss this with Thomas on
-irc tomorrow.
-
-> +};
-> +
-> +/*
-> + * struct rkisp1_device - ISP platform device
-> + * @base_addr: base register address
-> + * @active_sensor: sensor in-use, set when streaming on
-> + * @isp_sdev: ISP sub-device
-> + * @rkisp1_stream: capture video device
-> + * @stats_vdev: ISP statistics output device
-> + * @params_vdev: ISP input parameters device
-> + */
-> +struct rkisp1_device {
-> +	void __iomem *base_addr;
-> +	int irq;
-> +	struct device *dev;
-> +	struct clk *clks[RKISP1_MAX_BUS_CLK];
-> +	int clk_size;
-> +	struct v4l2_device v4l2_dev;
-> +	struct v4l2_ctrl_handler ctrl_handler;
-> +	struct media_device media_dev;
-> +	struct v4l2_async_notifier notifier;
-> +	struct v4l2_subdev *subdevs[RKISP1_SD_MAX];
-> +	struct rkisp1_sensor_info *active_sensor;
-> +	struct rkisp1_sensor_info sensors[RKISP1_MAX_SENSOR];
-> +	int num_sensors;
-> +	struct rkisp1_isp_subdev isp_sdev;
-> +	struct rkisp1_stream stream[RKISP1_MAX_STREAM];
-> +	struct rkisp1_isp_stats_vdev stats_vdev;
-> +	struct rkisp1_isp_params_vdev params_vdev;
-> +	struct rkisp1_pipeline pipe;
-> +	struct vb2_alloc_ctx *alloc_ctx;
-> +};
-> +
-> +#endif
+> > gc0310_res. So, I would be expecting that a patch removing
+> > s_param would be also adding/changing other parts of the code
+> > accordingly, in order to get rid of that as a hole (or initialize
+> > it somewhere else).
+> > 
+> > Regards,
+> > Mauro
+> >   
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > ---
+> > >  drivers/staging/media/atomisp/i2c/atomisp-gc0310.c | 26 ---------
+> > >  drivers/staging/media/atomisp/i2c/atomisp-gc2235.c | 26 ---------
+> > >  drivers/staging/media/atomisp/i2c/atomisp-ov2680.c | 29 ---------
+> > >  drivers/staging/media/atomisp/i2c/atomisp-ov2722.c | 26 ---------
+> > >  drivers/staging/media/atomisp/i2c/gc0310.h         | 43 --------------
+> > >  drivers/staging/media/atomisp/i2c/gc2235.h         |  1 -
+> > >  drivers/staging/media/atomisp/i2c/ov2680.h         | 68 ----------------------
+> > >  .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 27 ---------
+> > >  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |  9 +--
+> > >  .../media/atomisp/pci/atomisp2/atomisp_subdev.c    | 12 +---
+> > >  10 files changed, 3 insertions(+), 264 deletions(-)
+> > > 
+> > > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+> > > index 61b7598469eb..572c9127c24d 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+> > > +++ b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+> > > @@ -1224,37 +1224,12 @@ static int gc0310_g_parm(struct v4l2_subdev *sd,
+> > >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> > >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> > >  		param->parm.capture.timeperframe.numerator = 1;
+> > > -		param->parm.capture.capturemode = dev->run_mode;
+> > >  		param->parm.capture.timeperframe.denominator =
+> > >  			gc0310_res[dev->fmt_idx].fps;
+> > >  	}
+> > >  	return 0;
+> > >  }
+> > >  
+> > > -static int gc0310_s_parm(struct v4l2_subdev *sd,
+> > > -			struct v4l2_streamparm *param)
+> > > -{
+> > > -	struct gc0310_device *dev = to_gc0310_sensor(sd);
+> > > -	dev->run_mode = param->parm.capture.capturemode;
+> > > -
+> > > -	mutex_lock(&dev->input_lock);
+> > > -	switch (dev->run_mode) {
+> > > -	case CI_MODE_VIDEO:
+> > > -		gc0310_res = gc0310_res_video;
+> > > -		N_RES = N_RES_VIDEO;
+> > > -		break;
+> > > -	case CI_MODE_STILL_CAPTURE:
+> > > -		gc0310_res = gc0310_res_still;
+> > > -		N_RES = N_RES_STILL;
+> > > -		break;
+> > > -	default:
+> > > -		gc0310_res = gc0310_res_preview;
+> > > -		N_RES = N_RES_PREVIEW;
+> > > -	}
+> > > -	mutex_unlock(&dev->input_lock);
+> > > -	return 0;
+> > > -}
+> > > -
+> > >  static int gc0310_g_frame_interval(struct v4l2_subdev *sd,
+> > >  				   struct v4l2_subdev_frame_interval *interval)
+> > >  {
+> > > @@ -1314,7 +1289,6 @@ static const struct v4l2_subdev_sensor_ops gc0310_sensor_ops = {
+> > >  static const struct v4l2_subdev_video_ops gc0310_video_ops = {
+> > >  	.s_stream = gc0310_s_stream,
+> > >  	.g_parm = gc0310_g_parm,
+> > > -	.s_parm = gc0310_s_parm,
+> > >  	.g_frame_interval = gc0310_g_frame_interval,
+> > >  };
+> > >  
+> > > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+> > > index d8de46da64ae..2bc179f3afe5 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+> > > +++ b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+> > > @@ -964,37 +964,12 @@ static int gc2235_g_parm(struct v4l2_subdev *sd,
+> > >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> > >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> > >  		param->parm.capture.timeperframe.numerator = 1;
+> > > -		param->parm.capture.capturemode = dev->run_mode;
+> > >  		param->parm.capture.timeperframe.denominator =
+> > >  			gc2235_res[dev->fmt_idx].fps;
+> > >  	}
+> > >  	return 0;
+> > >  }
+> > >  
+> > > -static int gc2235_s_parm(struct v4l2_subdev *sd,
+> > > -			struct v4l2_streamparm *param)
+> > > -{
+> > > -	struct gc2235_device *dev = to_gc2235_sensor(sd);
+> > > -	dev->run_mode = param->parm.capture.capturemode;
+> > > -
+> > > -	mutex_lock(&dev->input_lock);
+> > > -	switch (dev->run_mode) {
+> > > -	case CI_MODE_VIDEO:
+> > > -		gc2235_res = gc2235_res_video;
+> > > -		N_RES = N_RES_VIDEO;
+> > > -		break;
+> > > -	case CI_MODE_STILL_CAPTURE:
+> > > -		gc2235_res = gc2235_res_still;
+> > > -		N_RES = N_RES_STILL;
+> > > -		break;
+> > > -	default:
+> > > -		gc2235_res = gc2235_res_preview;
+> > > -		N_RES = N_RES_PREVIEW;
+> > > -	}
+> > > -	mutex_unlock(&dev->input_lock);
+> > > -	return 0;
+> > > -}
+> > > -
+> > >  static int gc2235_g_frame_interval(struct v4l2_subdev *sd,
+> > >  				   struct v4l2_subdev_frame_interval *interval)
+> > >  {
+> > > @@ -1053,7 +1028,6 @@ static const struct v4l2_subdev_sensor_ops gc2235_sensor_ops = {
+> > >  static const struct v4l2_subdev_video_ops gc2235_video_ops = {
+> > >  	.s_stream = gc2235_s_stream,
+> > >  	.g_parm = gc2235_g_parm,
+> > > -	.s_parm = gc2235_s_parm,
+> > >  	.g_frame_interval = gc2235_g_frame_interval,
+> > >  };
+> > >  
+> > > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+> > > index 84f8d33ce2d1..e3e0fdd0c816 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+> > > +++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+> > > @@ -1300,40 +1300,12 @@ static int ov2680_g_parm(struct v4l2_subdev *sd,
+> > >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> > >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> > >  		param->parm.capture.timeperframe.numerator = 1;
+> > > -		param->parm.capture.capturemode = dev->run_mode;
+> > >  		param->parm.capture.timeperframe.denominator =
+> > >  			ov2680_res[dev->fmt_idx].fps;
+> > >  	}
+> > >  	return 0;
+> > >  }
+> > >  
+> > > -static int ov2680_s_parm(struct v4l2_subdev *sd,
+> > > -			struct v4l2_streamparm *param)
+> > > -{
+> > > -	struct ov2680_device *dev = to_ov2680_sensor(sd);
+> > > -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > > -	dev->run_mode = param->parm.capture.capturemode;
+> > > -
+> > > -	v4l2_info(client, "\n%s:run_mode :%x\n", __func__, dev->run_mode);
+> > > -
+> > > -	mutex_lock(&dev->input_lock);
+> > > -	switch (dev->run_mode) {
+> > > -	case CI_MODE_VIDEO:
+> > > -		ov2680_res = ov2680_res_video;
+> > > -		N_RES = N_RES_VIDEO;
+> > > -		break;
+> > > -	case CI_MODE_STILL_CAPTURE:
+> > > -		ov2680_res = ov2680_res_still;
+> > > -		N_RES = N_RES_STILL;
+> > > -		break;
+> > > -	default:
+> > > -		ov2680_res = ov2680_res_preview;
+> > > -		N_RES = N_RES_PREVIEW;
+> > > -	}
+> > > -	mutex_unlock(&dev->input_lock);
+> > > -	return 0;
+> > > -}
+> > > -
+> > >  static int ov2680_g_frame_interval(struct v4l2_subdev *sd,
+> > >  				   struct v4l2_subdev_frame_interval *interval)
+> > >  {
+> > > @@ -1388,7 +1360,6 @@ static int ov2680_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+> > >  static const struct v4l2_subdev_video_ops ov2680_video_ops = {
+> > >  	.s_stream = ov2680_s_stream,
+> > >  	.g_parm = ov2680_g_parm,
+> > > -	.s_parm = ov2680_s_parm,
+> > >  	.g_frame_interval = ov2680_g_frame_interval,
+> > >  };
+> > >  
+> > > diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+> > > index 2b6ae0faf972..cd9f6433cd42 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+> > > +++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+> > > @@ -1103,37 +1103,12 @@ static int ov2722_g_parm(struct v4l2_subdev *sd,
+> > >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> > >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> > >  		param->parm.capture.timeperframe.numerator = 1;
+> > > -		param->parm.capture.capturemode = dev->run_mode;
+> > >  		param->parm.capture.timeperframe.denominator =
+> > >  			ov2722_res[dev->fmt_idx].fps;
+> > >  	}
+> > >  	return 0;
+> > >  }
+> > >  
+> > > -static int ov2722_s_parm(struct v4l2_subdev *sd,
+> > > -			struct v4l2_streamparm *param)
+> > > -{
+> > > -	struct ov2722_device *dev = to_ov2722_sensor(sd);
+> > > -	dev->run_mode = param->parm.capture.capturemode;
+> > > -
+> > > -	mutex_lock(&dev->input_lock);
+> > > -	switch (dev->run_mode) {
+> > > -	case CI_MODE_VIDEO:
+> > > -		ov2722_res = ov2722_res_video;
+> > > -		N_RES = N_RES_VIDEO;
+> > > -		break;
+> > > -	case CI_MODE_STILL_CAPTURE:
+> > > -		ov2722_res = ov2722_res_still;
+> > > -		N_RES = N_RES_STILL;
+> > > -		break;
+> > > -	default:
+> > > -		ov2722_res = ov2722_res_preview;
+> > > -		N_RES = N_RES_PREVIEW;
+> > > -	}
+> > > -	mutex_unlock(&dev->input_lock);
+> > > -	return 0;
+> > > -}
+> > > -
+> > >  static int ov2722_g_frame_interval(struct v4l2_subdev *sd,
+> > >  				   struct v4l2_subdev_frame_interval *interval)
+> > >  {
+> > > @@ -1193,7 +1168,6 @@ static const struct v4l2_subdev_sensor_ops ov2722_sensor_ops = {
+> > >  static const struct v4l2_subdev_video_ops ov2722_video_ops = {
+> > >  	.s_stream = ov2722_s_stream,
+> > >  	.g_parm = ov2722_g_parm,
+> > > -	.s_parm = ov2722_s_parm,
+> > >  	.g_frame_interval = ov2722_g_frame_interval,
+> > >  };
+> > >  
+> > > diff --git a/drivers/staging/media/atomisp/i2c/gc0310.h b/drivers/staging/media/atomisp/i2c/gc0310.h
+> > > index c422d0398fc7..af6b11f6e5e7 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/gc0310.h
+> > > +++ b/drivers/staging/media/atomisp/i2c/gc0310.h
+> > > @@ -150,7 +150,6 @@ struct gc0310_device {
+> > >  	struct camera_sensor_platform_data *platform_data;
+> > >  	int vt_pix_clk_freq_mhz;
+> > >  	int fmt_idx;
+> > > -	int run_mode;
+> > >  	u8 res;
+> > >  	u8 type;
+> > >  };
+> > > @@ -400,48 +399,6 @@ struct gc0310_resolution gc0310_res_preview[] = {
+> > >  };
+> > >  #define N_RES_PREVIEW (ARRAY_SIZE(gc0310_res_preview))
+> > >  
+> > > -struct gc0310_resolution gc0310_res_still[] = {
+> > > -	{
+> > > -		.desc = "gc0310_VGA_30fps",
+> > > -		.width = 656, // 648,
+> > > -		.height = 496, // 488,
+> > > -		.fps = 30,
+> > > -		//.pix_clk_freq = 73,
+> > > -		.used = 0,
+> > > -#if 0
+> > > -		.pixels_per_line = 0x0314,
+> > > -		.lines_per_frame = 0x0213,
+> > > -#endif
+> > > -		.bin_factor_x = 1,
+> > > -		.bin_factor_y = 1,
+> > > -		.bin_mode = 0,
+> > > -		.skip_frames = 2,
+> > > -		.regs = gc0310_VGA_30fps,
+> > > -	},
+> > > -};
+> > > -#define N_RES_STILL (ARRAY_SIZE(gc0310_res_still))
+> > > -
+> > > -struct gc0310_resolution gc0310_res_video[] = {
+> > > -	{
+> > > -		.desc = "gc0310_VGA_30fps",
+> > > -		.width = 656, // 648,
+> > > -		.height = 496, // 488,
+> > > -		.fps = 30,
+> > > -		//.pix_clk_freq = 73,
+> > > -		.used = 0,
+> > > -#if 0
+> > > -		.pixels_per_line = 0x0314,
+> > > -		.lines_per_frame = 0x0213,
+> > > -#endif
+> > > -		.bin_factor_x = 1,
+> > > -		.bin_factor_y = 1,
+> > > -		.bin_mode = 0,
+> > > -		.skip_frames = 2,
+> > > -		.regs = gc0310_VGA_30fps,
+> > > -	},
+> > > -};
+> > > -#define N_RES_VIDEO (ARRAY_SIZE(gc0310_res_video))
+> > > -
+> > >  static struct gc0310_resolution *gc0310_res = gc0310_res_preview;
+> > >  static unsigned long N_RES = N_RES_PREVIEW;
+> > >  #endif
+> > > diff --git a/drivers/staging/media/atomisp/i2c/gc2235.h b/drivers/staging/media/atomisp/i2c/gc2235.h
+> > > index 3c30a05c3991..45a54fea5466 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/gc2235.h
+> > > +++ b/drivers/staging/media/atomisp/i2c/gc2235.h
+> > > @@ -156,7 +156,6 @@ struct gc2235_device {
+> > >  	struct camera_sensor_platform_data *platform_data;
+> > >  	int vt_pix_clk_freq_mhz;
+> > >  	int fmt_idx;
+> > > -	int run_mode;
+> > >  	u8 res;
+> > >  	u8 type;
+> > >  };
+> > > diff --git a/drivers/staging/media/atomisp/i2c/ov2680.h b/drivers/staging/media/atomisp/i2c/ov2680.h
+> > > index 03f75dd80f87..cb38e6e79409 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/ov2680.h
+> > > +++ b/drivers/staging/media/atomisp/i2c/ov2680.h
+> > > @@ -850,74 +850,6 @@ struct ov2680_format {
+> > >  };
+> > >  #define N_RES_PREVIEW (ARRAY_SIZE(ov2680_res_preview))
+> > >  
+> > > -static struct ov2680_resolution ov2680_res_still[] = {
+> > > -	{
+> > > -		.desc = "ov2680_1616x1216_30fps",
+> > > -		.width = 1616,
+> > > -		.height = 1216,
+> > > -		.pix_clk_freq = 66,
+> > > -		.fps = 30,
+> > > -		.used = 0,
+> > > -		.pixels_per_line = 1698,//1704,
+> > > -		.lines_per_frame = 1294,
+> > > -		.bin_factor_x = 0,
+> > > -		.bin_factor_y = 0,
+> > > -		.bin_mode = 0,
+> > > -		.skip_frames = 3,
+> > > -		.regs = ov2680_1616x1216_30fps,
+> > > -	},
+> > > -   	{
+> > > -		.desc = "ov2680_1616x916_30fps",
+> > > -		.width = 1616,
+> > > -		.height = 916,
+> > > -		.fps = 30,
+> > > -		.pix_clk_freq = 66,
+> > > -		.used = 0,
+> > > -		.pixels_per_line = 1698,//1704,
+> > > -		.lines_per_frame = 1294,
+> > > -		.bin_factor_x = 0,
+> > > -		.bin_factor_y = 0,
+> > > -		.bin_mode = 0,
+> > > -		.skip_frames = 3,
+> > > -		.regs = ov2680_1616x916_30fps,
+> > > -	},
+> > > -};
+> > > -#define N_RES_STILL (ARRAY_SIZE(ov2680_res_still))
+> > > -
+> > > -static struct ov2680_resolution ov2680_res_video[] = {
+> > > -	{
+> > > -		.desc = "ov2680_1616x1216_30fps",
+> > > -		.width = 1616,
+> > > -		.height = 1216,
+> > > -		.pix_clk_freq = 66,
+> > > -		.fps = 30,
+> > > -		.used = 0,
+> > > -		.pixels_per_line = 1698,//1704,
+> > > -		.lines_per_frame = 1294,
+> > > -		.bin_factor_x = 0,
+> > > -		.bin_factor_y = 0,
+> > > -		.bin_mode = 0,
+> > > -		.skip_frames = 3,
+> > > -		.regs = ov2680_1616x1216_30fps,
+> > > -	},
+> > > -	{
+> > > -		.desc = "ov2680_720p_30fps",
+> > > -		.width = 1616,
+> > > -		.height = 916,
+> > > -		.fps = 30,
+> > > -		.pix_clk_freq = 66,
+> > > -		.used = 0,
+> > > -		.pixels_per_line = 1698,//1704,
+> > > -		.lines_per_frame = 1294,
+> > > -		.bin_factor_x = 0,
+> > > -		.bin_factor_y = 0,
+> > > -		.bin_mode = 0,
+> > > -		.skip_frames = 3,
+> > > -		.regs = ov2680_1616x916_30fps,
+> > > -	},
+> > > -};
+> > > -#define N_RES_VIDEO (ARRAY_SIZE(ov2680_res_video))
+> > > -
+> > >  static struct ov2680_resolution *ov2680_res = ov2680_res_preview;
+> > >  static unsigned long N_RES = N_RES_PREVIEW;
+> > >  
+> > > diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+> > > index 40d01bf4bf28..7f594c7de76e 100644
+> > > --- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+> > > +++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+> > > @@ -1825,38 +1825,12 @@ static int ov5693_g_parm(struct v4l2_subdev *sd,
+> > >  	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+> > >  		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> > >  		param->parm.capture.timeperframe.numerator = 1;
+> > > -		param->parm.capture.capturemode = dev->run_mode;
+> > >  		param->parm.capture.timeperframe.denominator =
+> > >  			ov5693_res[dev->fmt_idx].fps;
+> > >  	}
+> > >  	return 0;
+> > >  }
+> > >  
+> > > -static int ov5693_s_parm(struct v4l2_subdev *sd,
+> > > -			struct v4l2_streamparm *param)
+> > > -{
+> > > -	struct ov5693_device *dev = to_ov5693_sensor(sd);
+> > > -
+> > > -	dev->run_mode = param->parm.capture.capturemode;
+> > > -
+> > > -	mutex_lock(&dev->input_lock);
+> > > -	switch (dev->run_mode) {
+> > > -	case CI_MODE_VIDEO:
+> > > -		ov5693_res = ov5693_res_video;
+> > > -		N_RES = N_RES_VIDEO;
+> > > -		break;
+> > > -	case CI_MODE_STILL_CAPTURE:
+> > > -		ov5693_res = ov5693_res_still;
+> > > -		N_RES = N_RES_STILL;
+> > > -		break;
+> > > -	default:
+> > > -		ov5693_res = ov5693_res_preview;
+> > > -		N_RES = N_RES_PREVIEW;
+> > > -	}
+> > > -	mutex_unlock(&dev->input_lock);
+> > > -	return 0;
+> > > -}
+> > > -
+> > >  static int ov5693_g_frame_interval(struct v4l2_subdev *sd,
+> > >  				   struct v4l2_subdev_frame_interval *interval)
+> > >  {
+> > > @@ -1900,7 +1874,6 @@ static int ov5693_enum_frame_size(struct v4l2_subdev *sd,
+> > >  static const struct v4l2_subdev_video_ops ov5693_video_ops = {
+> > >  	.s_stream = ov5693_s_stream,
+> > >  	.g_parm = ov5693_g_parm,
+> > > -	.s_parm = ov5693_s_parm,
+> > >  	.g_frame_interval = ov5693_g_frame_interval,
+> > >  };
+> > >  
+> > > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> > > index debf0e3853ff..3410a7fb1fcf 100644
+> > > --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> > > +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+> > > @@ -2091,7 +2091,7 @@ int atomisp_set_sensor_runmode(struct atomisp_sub_device *asd,
+> > >  	struct atomisp_device *isp = asd->isp;
+> > >  	struct v4l2_ctrl *c;
+> > >  	struct v4l2_streamparm p = {0};
+> > > -	int ret;
+> > > +	int ret = 0;
+> > >  	int modes[] = { CI_MODE_NONE,
+> > >  			CI_MODE_VIDEO,
+> > >  			CI_MODE_STILL_CAPTURE,
+> > > @@ -2105,13 +2105,8 @@ int atomisp_set_sensor_runmode(struct atomisp_sub_device *asd,
+> > >  	c = v4l2_ctrl_find(isp->inputs[asd->input_curr].camera->ctrl_handler,
+> > >  			   V4L2_CID_RUN_MODE);
+> > >  
+> > > -	if (c) {
+> > > +	if (c)
+> > >  		ret = v4l2_ctrl_s_ctrl(c, runmode->mode);
+> > > -	} else {
+> > > -		p.parm.capture.capturemode = modes[runmode->mode];
+> > > -		ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
+> > > -				       video, s_parm, &p);
+> > > -	}
+> > >  
+> > >  	mutex_unlock(asd->ctrl_handler.lock);
+> > >  	return ret;
+> > > diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+> > > index f3e18d627b0a..b78276ac22da 100644
+> > > --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+> > > +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
+> > > @@ -819,12 +819,6 @@ static int __atomisp_update_run_mode(struct atomisp_sub_device *asd)
+> > >  	struct atomisp_device *isp = asd->isp;
+> > >  	struct v4l2_ctrl *ctrl = asd->run_mode;
+> > >  	struct v4l2_ctrl *c;
+> > > -	struct v4l2_streamparm p = {0};
+> > > -	int modes[] = { CI_MODE_NONE,
+> > > -			CI_MODE_VIDEO,
+> > > -			CI_MODE_STILL_CAPTURE,
+> > > -			CI_MODE_CONTINUOUS,
+> > > -			CI_MODE_PREVIEW };
+> > >  	s32 mode;
+> > >  
+> > >  	if (ctrl->val != ATOMISP_RUN_MODE_VIDEO &&
+> > > @@ -840,11 +834,7 @@ static int __atomisp_update_run_mode(struct atomisp_sub_device *asd)
+> > >  	if (c)
+> > >  		return v4l2_ctrl_s_ctrl(c, mode);
+> > >  
+> > > -	/* Fall back to obsolete s_parm */
+> > > -	p.parm.capture.capturemode = modes[mode];
+> > > -
+> > > -	return v4l2_subdev_call(
+> > > -		isp->inputs[asd->input_curr].camera, video, s_parm, &p);
+> > > +	return 0;
+> > >  }
+> > >  
+> > >  int atomisp_update_run_mode(struct atomisp_sub_device *asd)  
+> > 
+> > 
+> > 
+> > Thanks,
+> > Mauro  
 > 
 
-Regards,
 
-	Hans
+
+Thanks,
+Mauro
