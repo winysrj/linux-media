@@ -1,271 +1,437 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:51201 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933559AbeBPKhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Feb 2018 05:37:38 -0500
-Received: from [192.168.178.26] ([46.91.232.19]) by smtp.web.de (mrweb101
- [213.165.67.124]) with ESMTPSA (Nemesis) id 0MBTQo-1etkOd1CnW-00AW8n for
- <linux-media@vger.kernel.org>; Fri, 16 Feb 2018 11:37:37 +0100
-To: linux-media@vger.kernel.org
-From: Aurelius Wendelken <foto-wendelken@web.de>
-Subject: Trying to build V4L on an Orange Pi One Plus - Build failed - Help
- wanted
-Message-ID: <34c125cf-0b6f-3ee1-6a6c-93a6a891caf7@web.de>
-Date: Fri, 16 Feb 2018 11:37:36 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:37572 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751086AbeBQPDg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Feb 2018 10:03:36 -0500
+Received: by mail-wm0-f67.google.com with SMTP id v71so7873021wmv.2
+        for <linux-media@vger.kernel.org>; Sat, 17 Feb 2018 07:03:35 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH v2 2/7] [media] staging/cxd2099: convert to regmap API
+Date: Sat, 17 Feb 2018 16:03:23 +0100
+Message-Id: <20180217150328.686-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20180217150328.686-1-d.scheller.oss@gmail.com>
+References: <20180217150328.686-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey guys,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-I want to build V4L on an Orange Pi One Plus. Unfortunately I am running 
-in an error while building on ARM64.
-https://www.aliexpress.com/store/product/Orange-Pi-One-Plus-H6-1GB-Quad-core-64bit-development-board-Support-android7-0-mini-PC/1553371_32848891030.html.
+Convert the cxd2099 driver to use regmap for I2C accesses, removing all
+own i2c_*() functions. With that, make the driver a proper I2C client
+driver. This also adds the benefit of having a proper cleanup function
+(cxd2099_remove() in this case) that takes care of resource cleanup
+upon I2C client deregistration.
 
+At this point, keep the static inline declared cxd2099_attach()
+function so that drivers using the legacy/proprietary style attach way
+still compile, albeit lacking the cxd2099 driver functionality. This
+is taken care of in the next two patches.
 
-BOARD IMAGE:
-http://www.orangepi.org/downloadresources/orangepioneplus/2018-01-24/orangepioneplus6e6042bd7a15ee4b06ad1.html
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/staging/media/cxd2099/cxd2099.c | 209 ++++++++++++++++----------------
+ drivers/staging/media/cxd2099/cxd2099.h |  11 +-
+ 2 files changed, 108 insertions(+), 112 deletions(-)
 
-ENVIROMENT:
-Ubuntu_Server from vendor
-
-
-BOARD KERNEL: (uname -a)
-Linux OrangePi 3.10.65 #35 SMP PREEMPT Tue Jan 23 18:13:02 CST 2018 
-aarch64 aarch64 aarch64 GNU/Linux
-
-
-DVB STICK:
-HMP-Combo DVB C/T2 Hybrid USB TUNER
-
-lsusb
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 003: ID 0572:0320 Conexant Systems (Rockwell), Inc. 
-DVBSky T330 DVB-T2/C tuner
-Bus 002 Device 002: ID 04b4:6560 Cypress Semiconductor Corp. CY7C65640 
-USB-2.0 "TetraHub"
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 006 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-Bus 005 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-
-dmesg
-[    2.250891] usb 2-1.4: New USB device found, idVendor=0572, 
-idProduct=0320
-[    2.250895] usb 2-1.4: New USB device strings: Mfr=1, Product=2, 
-SerialNumber=3
-[    2.250899] usb 2-1.4: Product: DVB-T2/C USB-Stick
-[    2.250902] usb 2-1.4: Manufacturer: Bestunar Inc
-[    2.250906] usb 2-1.4: SerialNumber: 20140126
-
-
-cat /etc/apt/sources.list from vendor
-deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial main restricted 
-universe multiverse
-deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-updates main 
-restricted universe multiverse
-deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-backports main 
-restricted universe multiverse
-deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-security main 
-restricted universe multiverse
-deb https://dl.bintray.com/tvheadend/deb xenial release-4.2
-
-
-BUILD V4L:
-./build
-perl: warning: Setting locale failed.
-perl: warning: Please check that your locale settings:
-     LANGUAGE = (unset),
-     LC_ALL = (unset),
-     LC_CTYPE = "de_DE.UTF-8",
-     LANG = "de_DE.UTF-8"
-     are supported and installed on your system.
-perl: warning: Falling back to the standard locale ("C").
-Checking if the needed tools for Ubuntu 16.04.3 LTS are available
-Needed package dependencies are met.
-
-************************************************************
-* This script will download the latest tarball and build it*
-* Assuming that your kernel is compatible with the latest  *
-* drivers. If not, you'll need to add some extra backports,*
-* ./backports/<kernel> directory.                          *
-* It will also update this tree to be sure that all compat *
-* bits are there, to avoid compilation failures            *
-************************************************************
-************************************************************
-* All drivers and build system are under GPLv2 License     *
-* Firmware files are under the license terms found at:     *
-* http://www.linuxtv.org/downloads/firmware/               *
-* Please abort in the next 5 secs if you don't agree with  *
-* the license                                              *
-************************************************************
-
-Not aborted. It means that the licence was agreed. Proceeding...
-
-****************************
-Updating the building system
-****************************
- From git://linuxtv.org/media_build
-  * branch            master     -> FETCH_HEAD
-Already up-to-date.
-make: Entering directory '/root/git/media_build/linux'
-wget http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5 
--O linux-media.tar.bz2.md5.tmp
---2018-02-15 12:08:02-- 
-http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
-Resolving linuxtv.org (linuxtv.org)... 130.149.80.248
-Connecting to linuxtv.org (linuxtv.org)|130.149.80.248|:80... connected.
-HTTP request sent, awaiting response... 301 Moved Permanently
-Location: 
-https://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5 
-[following]
---2018-02-15 12:08:02-- 
-https://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
-Connecting to linuxtv.org (linuxtv.org)|130.149.80.248|:443... connected.
-WARNING: cannot verify linuxtv.org's certificate, issued by 'CN=Let\'s 
-Encrypt Authority X3,O=Let\'s Encrypt,C=US':
-   Unable to locally verify the issuer's authority.
-HTTP request sent, awaiting response... 200 OK
-Length: 105 [application/x-bzip2]
-Saving to: 'linux-media.tar.bz2.md5.tmp'
-
-linux-media.tar.bz2.md5.tmp 
-100%[======================================================================================================>] 
-105  --.-KB/s    in 0s
-
-2018-02-15 12:08:02 (1.40 MB/s) - 'linux-media.tar.bz2.md5.tmp' saved 
-[105/105]
-
-make: Leaving directory '/root/git/media_build/linux'
-make: Entering directory '/root/git/media_build/linux'
-tar xfj linux-media.tar.bz2
-rm -f .patches_applied .linked_dir .git_log.md5
-make: Leaving directory '/root/git/media_build/linux'
-**********************************************************
-* Downloading firmwares from linuxtv.org.                *
-**********************************************************
-as102_data1_st.hex
-as102_data2_st.hex
-cmmb_vega_12mhz.inp
-cmmb_venice_12mhz.inp
-dvb-fe-bcm3510-01.fw
-dvb-fe-drxj-mc-1.0.8.fw
-dvb-fe-drxj-mc-vsb-1.0.8.fw
-dvb-fe-drxj-mc-vsb-qam-1.0.8.fw
-dvb-fe-or51132-qam.fw
-dvb-fe-or51132-vsb.fw
-dvb-fe-or51211.fw
-dvb-fe-xc4000-1.4.1.fw
-dvb-fe-xc5000-1.6.114.fw
-dvb-fe-xc5000c-4.1.30.7.fw
-dvb-firmwares.tar.bz2
-dvb-ttpci-01.fw-261a
-dvb-ttpci-01.fw-261b
-dvb-ttpci-01.fw-261c
-dvb-ttpci-01.fw-261d
-dvb-ttpci-01.fw-261f
-dvb-ttpci-01.fw-2622
-dvb-usb-avertv-a800-02.fw
-dvb-usb-bluebird-01.fw
-dvb-usb-dib0700-1.20.fw
-dvb-usb-dibusb-5.0.0.11.fw
-dvb-usb-dibusb-6.0.0.8.fw
-dvb-usb-dtt200u-01.fw
-dvb-usb-it9135-01.fw
-dvb-usb-it9135-02.fw
-dvb-usb-terratec-h5-drxk.fw
-dvb-usb-terratec-h7-az6007.fw
-dvb-usb-terratec-h7-drxk.fw
-dvb-usb-umt-010-02.fw
-dvb-usb-vp702x-01.fw
-dvb-usb-vp7045-01.fw
-dvb-usb-wt220u-01.fw
-dvb-usb-wt220u-02.fw
-dvb_nova_12mhz.inp
-dvb_nova_12mhz_b0.inp
-isdbt_nova_12mhz.inp
-isdbt_nova_12mhz_b0.inp
-isdbt_rio.inp
-sms1xxx-hcw-55xxx-dvbt-02.fw
-sms1xxx-hcw-55xxx-isdbt-02.fw
-sms1xxx-nova-a-dvbt-01.fw
-sms1xxx-nova-b-dvbt-01.fw
-sms1xxx-stellar-dvbt-01.fw
-tdmb_nova_12mhz.inp
-v4l-cx231xx-avcore-01.fw
-v4l-cx23418-apu.fw
-v4l-cx23418-cpu.fw
-v4l-cx23418-dig.fw
-v4l-cx23885-avcore-01.fw
-v4l-cx23885-enc-broken.fw
-v4l-cx25840.fw
-******************
-* Start building *
-******************
-make -C /root/git/media_build/v4l allyesconfig
-make[1]: Entering directory '/root/git/media_build/v4l'
-make[2]: Entering directory '/root/git/media_build/linux'
-Applying patches for kernel 3.10.65
-patch -s -f -N -p1 -i ../backports/api_version.patch
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-patch -s -f -N -p1 -i ../backports/debug.patch
-patch -s -f -N -p1 -i ../backports/drx39xxj.patch
-patch -s -f -N -p1 -i ../backports/v4.14_compiler_h.patch
-patch -s -f -N -p1 -i ../backports/v4.14_saa7146_timer_cast.patch
-patch -s -f -N -p1 -i ../backports/v4.14_module_param_call.patch
-patch -s -f -N -p1 -i 
-../backports/v4.12_revert_solo6x10_copykerneluser.patch
-patch -s -f -N -p1 -i ../backports/v4.10_sched_signal.patch
-patch -s -f -N -p1 -i ../backports/v4.10_fault_page.patch
-patch -s -f -N -p1 -i ../backports/v4.10_refcount.patch
-patch -s -f -N -p1 -i ../backports/v4.9_mm_address.patch
-patch -s -f -N -p1 -i ../backports/v4.9_dvb_net_max_mtu.patch
-patch -s -f -N -p1 -i ../backports/v4.9_ktime_cleanups.patch
-patch -s -f -N -p1 -i ../backports/v4.9_uvcvideo_ktime_conversion.patch
-patch -s -f -N -p1 -i ../backports/v4.8_user_pages_flag.patch
-patch -s -f -N -p1 -i ../backports/v4.7_dma_attrs.patch
-patch -s -f -N -p1 -i ../backports/v4.7_pci_alloc_irq_vectors.patch
-patch -s -f -N -p1 -i ../backports/v4.6_i2c_mux.patch
-patch -s -f -N -p1 -i ../backports/v4.5_gpiochip_data_pointer.patch
-patch -s -f -N -p1 -i ../backports/v4.5_get_user_pages.patch
-patch -s -f -N -p1 -i ../backports/v4.5_uvc_super_plus.patch
-patch -s -f -N -p1 -i ../backports/v4.4_gpio_chip_parent.patch
-patch -s -f -N -p1 -i ../backports/v4.3_add_autorepeat_handling.patch
-patch -s -f -N -p1 -i ../backports/v4.2_atomic64.patch
-patch -s -f -N -p1 -i ../backports/v4.2_frame_vector.patch
-patch -s -f -N -p1 -i ../backports/v4.1_pat_enabled.patch
-patch -s -f -N -p1 -i ../backports/v4.1_drop_fwnode.patch
-patch -s -f -N -p1 -i ../backports/v4.0_dma_buf_export.patch
-patch -s -f -N -p1 -i ../backports/v4.0_drop_trace.patch
-patch -s -f -N -p1 -i ../backports/v4.0_fwnode.patch
-patch -s -f -N -p1 -i ../backports/v3.19_get_user_pages_unlocked.patch
-patch -s -f -N -p1 -i ../backports/v3.19_get_user_pages_locked.patch
-patch -s -f -N -p1 -i ../backports/v3.18_drop_property_h.patch
-patch -s -f -N -p1 -i ../backports/v3.18_ktime_get_real_seconds.patch
-patch -s -f -N -p1 -i ../backports/v3.17_fix_clamp.patch
-patch -s -f -N -p1 -i ../backports/v3.16_netdev.patch
-patch -s -f -N -p1 -i ../backports/v3.16_wait_on_bit.patch
-patch -s -f -N -p1 -i ../backports/v3.16_void_gpiochip_remove.patch
-patch -s -f -N -p1 -i ../backports/v3.13_ddbridge_pcimsi.patch
-patch -s -f -N -p1 -i ../backports/v3.12_kfifo_in.patch
-2 out of 3 hunks FAILED
-Makefile:130: recipe for target 'apply_patches' failed
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory '/root/git/media_build/linux'
-Makefile:374: recipe for target 'allyesconfig' failed
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory '/root/git/media_build/v4l'
-Makefile:26: recipe for target 'allyesconfig' failed
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 525
-
-
-
-Any help is appreciated,
-
-Regards
-Aurelius
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index dc9cbd8f2104..c0a5849b76bb 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
++#include <linux/regmap.h>
+ #include <linux/wait.h>
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+@@ -33,8 +34,9 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount);
+ struct cxd {
+ 	struct dvb_ca_en50221 en;
+ 
+-	struct i2c_adapter *i2c;
+ 	struct cxd2099_cfg cfg;
++	struct i2c_client *client;
++	struct regmap *regmap;
+ 
+ 	u8     regs[0x23];
+ 	u8     lastaddress;
+@@ -56,69 +58,12 @@ struct cxd {
+ 	u8     wbuf[1028];
+ };
+ 
+-static int i2c_write_reg(struct i2c_adapter *adapter, u8 adr,
+-			 u8 reg, u8 data)
+-{
+-	u8 m[2] = {reg, data};
+-	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = m, .len = 2};
+-
+-	if (i2c_transfer(adapter, &msg, 1) != 1) {
+-		dev_err(&adapter->dev,
+-			"Failed to write to I2C register %02x@%02x!\n",
+-			reg, adr);
+-		return -1;
+-	}
+-	return 0;
+-}
+-
+-static int i2c_write(struct i2c_adapter *adapter, u8 adr,
+-		     u8 *data, u16 len)
+-{
+-	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = data, .len = len};
+-
+-	if (i2c_transfer(adapter, &msg, 1) != 1) {
+-		dev_err(&adapter->dev, "Failed to write to I2C!\n");
+-		return -1;
+-	}
+-	return 0;
+-}
+-
+-static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr,
+-			u8 reg, u8 *val)
+-{
+-	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
+-				   .buf = &reg, .len = 1},
+-				  {.addr = adr, .flags = I2C_M_RD,
+-				   .buf = val, .len = 1} };
+-
+-	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		dev_err(&adapter->dev, "error in %s()\n", __func__);
+-		return -1;
+-	}
+-	return 0;
+-}
+-
+-static int i2c_read(struct i2c_adapter *adapter, u8 adr,
+-		    u8 reg, u8 *data, u16 n)
+-{
+-	struct i2c_msg msgs[2] = {{.addr = adr, .flags = 0,
+-				   .buf = &reg, .len = 1},
+-				  {.addr = adr, .flags = I2C_M_RD,
+-				   .buf = data, .len = n} };
+-
+-	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		dev_err(&adapter->dev, "error in %s()\n", __func__);
+-		return -1;
+-	}
+-	return 0;
+-}
+-
+ static int read_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ {
+ 	int status = 0;
+ 
+ 	if (ci->lastaddress != adr)
+-		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
++		status = regmap_write(ci->regmap, 0, adr);
+ 	if (!status) {
+ 		ci->lastaddress = adr;
+ 
+@@ -127,7 +72,7 @@ static int read_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 
+ 			if (ci->cfg.max_i2c && len > ci->cfg.max_i2c)
+ 				len = ci->cfg.max_i2c;
+-			status = i2c_read(ci->i2c, ci->cfg.adr, 1, data, len);
++			status = regmap_raw_read(ci->regmap, 1, data, len);
+ 			if (status)
+ 				return status;
+ 			data += len;
+@@ -145,64 +90,66 @@ static int read_reg(struct cxd *ci, u8 reg, u8 *val)
+ static int read_pccard(struct cxd *ci, u16 address, u8 *data, u8 n)
+ {
+ 	int status;
+-	u8 addr[3] = {2, address & 0xff, address >> 8};
++	u8 addr[2] = {address & 0xff, address >> 8};
+ 
+-	status = i2c_write(ci->i2c, ci->cfg.adr, addr, 3);
++	status = regmap_raw_write(ci->regmap, 2, addr, 2);
+ 	if (!status)
+-		status = i2c_read(ci->i2c, ci->cfg.adr, 3, data, n);
++		status = regmap_raw_read(ci->regmap, 3, data, n);
+ 	return status;
+ }
+ 
+ static int write_pccard(struct cxd *ci, u16 address, u8 *data, u8 n)
+ {
+ 	int status;
+-	u8 addr[3] = {2, address & 0xff, address >> 8};
++	u8 addr[2] = {address & 0xff, address >> 8};
+ 
+-	status = i2c_write(ci->i2c, ci->cfg.adr, addr, 3);
++	status = regmap_raw_write(ci->regmap, 2, addr, 2);
+ 	if (!status) {
+-		u8 buf[256] = {3};
++		u8 buf[256];
+ 
+-		memcpy(buf + 1, data, n);
+-		status = i2c_write(ci->i2c, ci->cfg.adr, buf, n + 1);
++		memcpy(buf, data, n);
++		status = regmap_raw_write(ci->regmap, 3, buf, n);
+ 	}
+ 	return status;
+ }
+ 
+-static int read_io(struct cxd *ci, u16 address, u8 *val)
++static int read_io(struct cxd *ci, u16 address, unsigned int *val)
+ {
+ 	int status;
+-	u8 addr[3] = {2, address & 0xff, address >> 8};
++	u8 addr[2] = {address & 0xff, address >> 8};
+ 
+-	status = i2c_write(ci->i2c, ci->cfg.adr, addr, 3);
++	status = regmap_raw_write(ci->regmap, 2, addr, 2);
+ 	if (!status)
+-		status = i2c_read(ci->i2c, ci->cfg.adr, 3, val, 1);
++		status = regmap_read(ci->regmap, 3, val);
+ 	return status;
+ }
+ 
+ static int write_io(struct cxd *ci, u16 address, u8 val)
+ {
+ 	int status;
+-	u8 addr[3] = {2, address & 0xff, address >> 8};
+-	u8 buf[2] = {3, val};
++	u8 addr[2] = {address & 0xff, address >> 8};
+ 
+-	status = i2c_write(ci->i2c, ci->cfg.adr, addr, 3);
++	status = regmap_raw_write(ci->regmap, 2, addr, 2);
+ 	if (!status)
+-		status = i2c_write(ci->i2c, ci->cfg.adr, buf, 2);
++		status = regmap_write(ci->regmap, 3, val);
+ 	return status;
+ }
+ 
+ static int write_regm(struct cxd *ci, u8 reg, u8 val, u8 mask)
+ {
+ 	int status = 0;
++	unsigned int regval;
+ 
+ 	if (ci->lastaddress != reg)
+-		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, reg);
+-	if (!status && reg >= 6 && reg <= 8 && mask != 0xff)
+-		status = i2c_read_reg(ci->i2c, ci->cfg.adr, 1, &ci->regs[reg]);
++		status = regmap_write(ci->regmap, 0, reg);
++	if (!status && reg >= 6 && reg <= 8 && mask != 0xff) {
++		status = regmap_read(ci->regmap, 1, &regval);
++		ci->regs[reg] = regval;
++	}
+ 	ci->lastaddress = reg;
+ 	ci->regs[reg] = (ci->regs[reg] & (~mask)) | val;
+ 	if (!status)
+-		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 1, ci->regs[reg]);
++		status = regmap_write(ci->regmap, 1, ci->regs[reg]);
+ 	if (reg == 0x20)
+ 		ci->regs[reg] &= 0x7f;
+ 	return status;
+@@ -219,19 +166,18 @@ static int write_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 	u8 *buf = ci->wbuf;
+ 
+ 	if (ci->lastaddress != adr)
+-		status = i2c_write_reg(ci->i2c, ci->cfg.adr, 0, adr);
++		status = regmap_write(ci->regmap, 0, adr);
+ 	if (status)
+ 		return status;
+ 
+ 	ci->lastaddress = adr;
+-	buf[0] = 1;
+ 	while (n) {
+ 		int len = n;
+ 
+ 		if (ci->cfg.max_i2c && (len + 1 > ci->cfg.max_i2c))
+ 			len = ci->cfg.max_i2c - 1;
+-		memcpy(buf + 1, data, len);
+-		status = i2c_write(ci->i2c, ci->cfg.adr, buf, len + 1);
++		memcpy(buf, data, len);
++		status = regmap_raw_write(ci->regmap, 1, buf, len);
+ 		if (status)
+ 			return status;
+ 		n -= len;
+@@ -273,7 +219,7 @@ static void cam_mode(struct cxd *ci, int mode)
+ 		if (!ci->en.read_data)
+ 			return;
+ 		ci->write_busy = 0;
+-		dev_info(&ci->i2c->dev, "enable cam buffer mode\n");
++		dev_info(&ci->client->dev, "enable cam buffer mode\n");
+ 		write_reg(ci, 0x0d, 0x00);
+ 		write_reg(ci, 0x0e, 0x01);
+ 		write_regm(ci, 0x08, 0x40, 0x40);
+@@ -464,7 +410,7 @@ static int read_cam_control(struct dvb_ca_en50221 *ca,
+ 			    int slot, u8 address)
+ {
+ 	struct cxd *ci = ca->data;
+-	u8 val;
++	unsigned int val;
+ 
+ 	mutex_lock(&ci->lock);
+ 	set_mode(ci, 0);
+@@ -518,7 +464,7 @@ static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
+ {
+ 	struct cxd *ci = ca->data;
+ 
+-	dev_dbg(&ci->i2c->dev, "%s\n", __func__);
++	dev_dbg(&ci->client->dev, "%s\n", __func__);
+ 	if (ci->cammode)
+ 		read_data(ca, slot, ci->rbuf, 0);
+ 	mutex_lock(&ci->lock);
+@@ -577,7 +523,7 @@ static int campoll(struct cxd *ci)
+ 			if (ci->slot_stat) {
+ 				ci->slot_stat = 0;
+ 				write_regm(ci, 0x03, 0x00, 0x08);
+-				dev_info(&ci->i2c->dev, "NO CAM\n");
++				dev_info(&ci->client->dev, "NO CAM\n");
+ 				ci->ready = 0;
+ 			}
+ 		}
+@@ -660,26 +606,41 @@ static struct dvb_ca_en50221 en_templ = {
+ 	.write_data          = write_data,
+ };
+ 
+-struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+-				      void *priv,
+-				      struct i2c_adapter *i2c)
++static int cxd2099_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
+ {
+ 	struct cxd *ci;
+-	u8 val;
++	struct cxd2099_cfg *cfg = client->dev.platform_data;
++	static const struct regmap_config rm_cfg = {
++		.reg_bits = 8,
++		.val_bits = 8,
++	};
++	unsigned int val;
++	int ret;
+ 
+-	if (i2c_read_reg(i2c, cfg->adr, 0, &val) < 0) {
+-		dev_info(&i2c->dev, "No CXD2099AR detected at 0x%02x\n",
+-			 cfg->adr);
+-		return NULL;
++	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
++	if (!ci) {
++		ret = -ENOMEM;
++		goto err;
+ 	}
+ 
+-	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
+-	if (!ci)
+-		return NULL;
++	ci->client = client;
++	memcpy(&ci->cfg, cfg, sizeof(ci->cfg));
++
++	ci->regmap = regmap_init_i2c(client, &rm_cfg);
++	if (IS_ERR(ci->regmap)) {
++		ret = PTR_ERR(ci->regmap);
++		goto err_kfree;
++	}
++
++	ret = regmap_read(ci->regmap, 0x00, &val);
++	if (ret < 0) {
++		dev_info(&client->dev, "No CXD2099AR detected at 0x%02x\n",
++			 client->addr);
++		goto err_rmexit;
++	}
+ 
+ 	mutex_init(&ci->lock);
+-	ci->cfg = *cfg;
+-	ci->i2c = i2c;
+ 	ci->lastaddress = 0xff;
+ 	ci->clk_reg_b = 0x4a;
+ 	ci->clk_reg_f = 0x1b;
+@@ -687,18 +648,56 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 	ci->en = en_templ;
+ 	ci->en.data = ci;
+ 	init(ci);
+-	dev_info(&i2c->dev, "Attached CXD2099AR at 0x%02x\n", ci->cfg.adr);
++	dev_info(&client->dev, "Attached CXD2099AR at 0x%02x\n", client->addr);
++
++	*cfg->en = &ci->en;
+ 
+ 	if (!buffermode) {
+ 		ci->en.read_data = NULL;
+ 		ci->en.write_data = NULL;
+ 	} else {
+-		dev_info(&i2c->dev, "Using CXD2099AR buffer mode");
++		dev_info(&client->dev, "Using CXD2099AR buffer mode");
+ 	}
+ 
+-	return &ci->en;
++	i2c_set_clientdata(client, ci);
++
++	return 0;
++
++err_rmexit:
++	regmap_exit(ci->regmap);
++err_kfree:
++	kfree(ci);
++err:
++
++	return ret;
+ }
+-EXPORT_SYMBOL(cxd2099_attach);
++
++static int cxd2099_remove(struct i2c_client *client)
++{
++	struct cxd *ci = i2c_get_clientdata(client);
++
++	regmap_exit(ci->regmap);
++	kfree(ci);
++
++	return 0;
++}
++
++static const struct i2c_device_id cxd2099_id[] = {
++	{"cxd2099", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, cxd2099_id);
++
++static struct i2c_driver cxd2099_driver = {
++	.driver = {
++		.name	= "cxd2099",
++	},
++	.probe		= cxd2099_probe,
++	.remove		= cxd2099_remove,
++	.id_table	= cxd2099_id,
++};
++
++module_i2c_driver(cxd2099_driver);
+ 
+ MODULE_DESCRIPTION("CXD2099AR Common Interface controller driver");
+ MODULE_AUTHOR("Ralph Metzler");
+diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
+index 253e3155a6df..679e87512799 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.h
++++ b/drivers/staging/media/cxd2099/cxd2099.h
+@@ -25,14 +25,12 @@ struct cxd2099_cfg {
+ 	u8  clock_mode;
+ 
+ 	u32 max_i2c;
+-};
+ 
+-#if defined(CONFIG_DVB_CXD2099) || \
+-	(defined(CONFIG_DVB_CXD2099_MODULE) && defined(MODULE))
+-struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+-				      void *priv, struct i2c_adapter *i2c);
+-#else
++	/* ptr to DVB CA struct */
++	struct dvb_ca_en50221 **en;
++};
+ 
++/* TODO: remove when done */
+ static inline struct
+ dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg, void *priv,
+ 			       struct i2c_adapter *i2c)
+@@ -40,6 +38,5 @@ dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg, void *priv,
+ 	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+-#endif
+ 
+ #endif
+-- 
+2.13.6
