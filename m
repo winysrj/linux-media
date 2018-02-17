@@ -1,133 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa3.microchip.iphmx.com ([68.232.153.233]:10478 "EHLO
-        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752972AbeB0LlL (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36141 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750948AbeBQEuR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 06:41:11 -0500
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-To: Daniel Thompson <daniel.thompson@linaro.org>
-CC: Jani Nikula <jani.nikula@linux.intel.com>,
-        <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
-        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
-        <jdelvare@suse.com>, <linux@roeck-us.net>,
-        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
-        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
-        <sean@mess.org>, <lee.jones@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>,
-        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
- <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
- <20180222123308.mypx2r7n6o63mj5z@oak.lan> <87po4s2hve.fsf@intel.com>
- <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
- <20180227105444.lo4pee7vh4we3foq@oak.lan>
-From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Message-ID: <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
-Date: Tue, 27 Feb 2018 13:40:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180227105444.lo4pee7vh4we3foq@oak.lan>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 16 Feb 2018 23:50:17 -0500
+Message-ID: <eccfb4b685be954455dbff6653f71f73@smtp-cloud8.xs4all.net>
+Date: Sat, 17 Feb 2018 05:50:15 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ABI WARNING
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 27.02.2018 12:54, Daniel Thompson wrote:
-> On Mon, Feb 26, 2018 at 04:24:15PM +0200, Claudiu Beznea wrote:
->> On 26.02.2018 11:57, Jani Nikula wrote:
->>> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
->>>> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
->>>>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
->>>>> were adapted to this change.
->>>>>
->>>>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
->>>>> ---
->>>>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
->>>>>  drivers/bus/ts-nbus.c                |  2 +-
->>>>>  drivers/clk/clk-pwm.c                |  3 ++-
->>>>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
->>>>>  drivers/hwmon/pwm-fan.c              |  2 +-
->>>>>  drivers/input/misc/max77693-haptic.c |  2 +-
->>>>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
->>>>>  drivers/leds/leds-pwm.c              |  5 ++++-
->>>>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
->>>>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
->>>>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
->>>>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
->>>>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
->>>>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
->>>>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
->>>>>  include/linux/pwm.h                  |  6 ++++--
->>>>>  16 files changed, 70 insertions(+), 21 deletions(-)
->>>>>
->>>>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
->>>>> index 2030a6b77a09..696fa25dafd2 100644
->>>>> --- a/drivers/video/backlight/lm3630a_bl.c
->>>>> +++ b/drivers/video/backlight/lm3630a_bl.c
->>>>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
->>>>>  {
->>>>>  	unsigned int period = pchip->pdata->pwm_period;
->>>>>  	unsigned int duty = br * period / br_max;
->>>>> +	struct pwm_caps caps = { };
->>>>>  
->>>>> -	pwm_config(pchip->pwmd, duty, period);
->>>>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
->>>>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
->>>>
->>>> Well... I admit I've only really looked at the patches that impact 
->>>> backlight but dispersing this really odd looking bit twiddling 
->>>> throughout the kernel doesn't strike me a great API design.
->>>>
->>>> IMHO callers should not be required to find the first set bit in
->>>> some specially crafted set of capability bits simply to get sane 
->>>> default behaviour.
->>>
->>> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
->>> error prone.
->>
->> Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
->> from your side?
->>
->> Or, what about using a function like pwm_mode_first() to get the first supported
->> mode by PWM channel?
->>
->> Or, would you prefer to solve this inside pwm_config() function, let's say, in
->> case an invalid mode is passed as argument, to let pwm_config() to choose the
->> first available PWM mode for PWM channel passed as argument?
-> 
-> What is it that actually needs solving?
-> 
-> If a driver requests normal mode and the PWM driver cannot support it
-> why not just return an error an move on.
-Because, simply, I wasn't aware of what these PWM client drivers needs for.
+date:			Sat Feb 17 05:00:13 CET 2018
+media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
+media_build git hash:	d144cfe4b3c37ece55ae27778c99765d4943c4fa
+v4l-utils git hash:	432d9ebfcea65337647fd4e458f76b0417ea1c2f
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-> 
-> Put another way, what is the use case for secretly adopting a mode the
-> caller didn't want? Under what circumstances is this a good thing?
-No one... But I wasn't aware of what the PWM clients needs for from their PWM
-controllers. At this moment having BIT(ffs(caps.modes)) instead of
-PWM_MODE(NORMAL) is mostly the same since all the driver that has not explicitly
-registered PWM caps will use PWM normal mode.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: WARNINGS
+linux-3.2.98-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-multi
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for arm-stm32
+ABI WARNING: change for arm64
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: OK
 
-I will use PWM_MODE(NORMAL) instead of this in all the cases if this is OK from
-your side.
+Detailed results are available here:
 
-Thank you,
-Claudiu Beznea
-> 
-> 
-> Daniel.
-> 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
