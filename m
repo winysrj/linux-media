@@ -1,46 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f176.google.com ([209.85.216.176]:43119 "EHLO
-        mail-qt0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751931AbeBZC13 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:53955 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751090AbeBQPDi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Feb 2018 21:27:29 -0500
-Received: by mail-qt0-f176.google.com with SMTP id d26so17143026qtk.10
-        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 18:27:29 -0800 (PST)
-Date: Sun, 25 Feb 2018 21:27:13 -0500
-From: Douglas Fischer <fischerdouglasc@gmail.com>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: [PATCH v3] media: radio: Critical interrupt bugfix for si470x over
- i2c
-Message-ID: <20180225212713.3d78dead@Constantine>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sat, 17 Feb 2018 10:03:38 -0500
+Received: by mail-wm0-f68.google.com with SMTP id t74so7942729wme.3
+        for <linux-media@vger.kernel.org>; Sat, 17 Feb 2018 07:03:38 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH v2 5/7] [media] staging/cxd2099: remove remainders from old attach way
+Date: Sat, 17 Feb 2018 16:03:26 +0100
+Message-Id: <20180217150328.686-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20180217150328.686-1-d.scheller.oss@gmail.com>
+References: <20180217150328.686-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed si470x_start() disabling the interrupt signal, causing tune
-operations to never complete. This does not affect USB radios
-because they poll the registers instead of using the IRQ line.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Stylistic and comment changes from v2.
+As all drivers using the cxd2099 are converted to handle attach/detach
+the generic I2C client way, the static inline cxd2099_attach isn't
+required anymore. Thus cleanup cxd2099.h from the remainders, the adr
+struct member isn't used anymore aswell.
 
-Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
+ drivers/staging/media/cxd2099/cxd2099.h | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c linux/drivers/media/radio/si470x/radio-si470x-common.c
---- linux.orig/drivers/media/radio/si470x/radio-si470x-common.c	2018-01-15 21:58:10.675620432 -0500
-+++ linux/drivers/media/radio/si470x/radio-si470x-common.c	2018-02-25 19:16:31.785934211 -0500
-@@ -377,8 +377,11 @@ int si470x_start(struct si470x_device *r
- 		goto done;
+diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
+index 679e87512799..8fa45a4c615a 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.h
++++ b/drivers/staging/media/cxd2099/cxd2099.h
+@@ -20,7 +20,6 @@
  
- 	/* sysconfig 1 */
--	radio->registers[SYSCONFIG1] =
--		(de << 11) & SYSCONFIG1_DE;		/* DE*/
-+	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN|SYSCONFIG1_STCIEN|SYSCONFIG1_RDS;
-+	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
-+	radio->registers[SYSCONFIG1] |= (0x01 << 2); /* GPIO2 */
-+	if (de)
-+		radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
- 	retval = si470x_set_register(radio, SYSCONFIG1);
- 	if (retval < 0)
- 		goto done;
+ struct cxd2099_cfg {
+ 	u32 bitrate;
+-	u8  adr;
+ 	u8  polarity;
+ 	u8  clock_mode;
+ 
+@@ -30,13 +29,4 @@ struct cxd2099_cfg {
+ 	struct dvb_ca_en50221 **en;
+ };
+ 
+-/* TODO: remove when done */
+-static inline struct
+-dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg, void *priv,
+-			       struct i2c_adapter *i2c)
+-{
+-	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+-	return NULL;
+-}
+-
+ #endif
+-- 
+2.13.6
