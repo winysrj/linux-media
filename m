@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:55255 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754103AbeBGNrf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 08:47:35 -0500
-Date: Wed, 7 Feb 2018 15:47:32 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Andy Yeh <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
-        Jason Chen <jasonx.z.chen@intel.com>,
-        Alan Chiang <alanx.chiang@intel.com>
-Subject: Re: [PATCH v5] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180207134731.n6zziksk2mcsqzor@paasikivi.fi.intel.com>
-References: <1516903135-23136-1-git-send-email-andy.yeh@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1516903135-23136-1-git-send-email-andy.yeh@intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:53944 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751090AbeBQPDe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Feb 2018 10:03:34 -0500
+Received: by mail-wm0-f66.google.com with SMTP id t74so7942508wme.3
+        for <linux-media@vger.kernel.org>; Sat, 17 Feb 2018 07:03:33 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH v2 1/7] [media] ddbridge/ci: further deduplicate code/logic in ddb_ci_attach()
+Date: Sat, 17 Feb 2018 16:03:22 +0100
+Message-Id: <20180217150328.686-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180217150328.686-1-d.scheller.oss@gmail.com>
+References: <20180217150328.686-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Thanks for the update.
+Deduplicate the checks for a valid ptr in port->en, and also handle the
+default case to also catch eventually yet unsupported CI hardware.
 
-On Fri, Jan 26, 2018 at 01:58:55AM +0800, Andy Yeh wrote:
-> Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
-> This is a camera sensor using the I2C bus for control and the
-> CSI-2 bus for data.
-> 
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> Signed-off-by: Jason Chen <jasonx.z.chen@intel.com>
-> Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
-> ---
-> since v2:
-> -- Update the streaming function to remove SW_STANDBY in the beginning.
-> -- Adjust the delay time from 1ms to 12ms before set stream-on register.
-> since v3:
-> -- fix the sd.entity to make code be compiled on the mainline kernel.
-> since v4:
-> -- Enabled AG, DG, and Exposure time control correctly.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-ci.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-This patch seems to include also DIGITAL_GAIN control support but also the
-removal of the VBLANK control from s_ctrl callback. Is there still an
-intent to support the VBLANK control?
-
-Also registers are written one octet at a time rather than two, which could
-lead to sensor using settings that are only half-updated (does the
-datasheet say this is safe?). Is there a reason for this?
-
-Seems fine otherwise to me.
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+index 5828111487b0..ed19890710d6 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -325,24 +325,20 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 	case DDB_CI_EXTERNAL_SONY:
+ 		cxd_cfg.bitrate = bitrate;
+ 		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
+-		if (!port->en)
+-			return -ENODEV;
+ 		break;
+-
+ 	case DDB_CI_EXTERNAL_XO2:
+ 	case DDB_CI_EXTERNAL_XO2_B:
+ 		ci_xo2_attach(port);
+-		if (!port->en)
+-			return -ENODEV;
+ 		break;
+-
+ 	case DDB_CI_INTERNAL:
+ 		ci_attach(port);
+-		if (!port->en)
+-			return -ENODEV;
+ 		break;
++	default:
++		return -ENODEV;
+ 	}
+ 
++	if (!port->en)
++		return -ENODEV;
+ 	dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+ 	return 0;
+ }
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.13.6
