@@ -1,95 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:52094 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967713AbeBNNTp (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:50407 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751106AbeBQPDh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 08:19:45 -0500
-Date: Wed, 14 Feb 2018 14:19:33 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v7 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20180214131933.t75jg5b5cjfuo7r6@flea.home>
-References: <20180208150830.9219-1-maxime.ripard@bootlin.com>
- <20180208150830.9219-3-maxime.ripard@bootlin.com>
- <2517178.9jmyBy62ST@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="feaizwvindirbxfr"
-Content-Disposition: inline
-In-Reply-To: <2517178.9jmyBy62ST@avalon>
+        Sat, 17 Feb 2018 10:03:37 -0500
+Received: by mail-wm0-f68.google.com with SMTP id k87so7929474wmi.0
+        for <linux-media@vger.kernel.org>; Sat, 17 Feb 2018 07:03:37 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH v2 4/7] [media] ngene: adapt cxd2099 attach to the new i2c_client way
+Date: Sat, 17 Feb 2018 16:03:25 +0100
+Message-Id: <20180217150328.686-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20180217150328.686-1-d.scheller.oss@gmail.com>
+References: <20180217150328.686-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
---feaizwvindirbxfr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Change the way the cxd2099 hardware is being attached to the new I2C
+client interface way. Also, add I2C_FUNC_I2C to the I2C interface
+functionality.
 
-Hi Laurent,
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/pci/ngene/ngene-core.c | 41 ++++++++++++++++++++++++++++++++----
+ drivers/media/pci/ngene/ngene-i2c.c  |  2 +-
+ drivers/media/pci/ngene/ngene.h      |  1 +
+ 3 files changed, 39 insertions(+), 5 deletions(-)
 
-On Thu, Feb 08, 2018 at 08:17:19PM +0200, Laurent Pinchart wrote:
-> > +	/*
-> > +	 * Create a static mapping between the CSI virtual channels
-> > +	 * and the output stream.
-> > +	 *
-> > +	 * This should be enhanced, but v4l2 lacks the support for
-> > +	 * changing that mapping dynamically.
-> > +	 *
-> > +	 * We also cannot enable and disable independant streams here,
-> > +	 * hence the reference counting.
-> > +	 */
->=20
-> If you start all streams in one go, will s_stream(1) be called multiple t=
-imes=20
-> ? If not, you could possibly skip the whole reference counting and avoid=
-=20
-> locking.
-
-I guess that while we should expect the CSI-2 bus to be always
-enabled, the downstream camera interface could be shutdown
-independently, so I guess s_stream would be called each time one is
-brought up or brought down?
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-http://bootlin.com
-
---feaizwvindirbxfr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqEN2QACgkQ0rTAlCFN
-r3Q36g/+KS4LmieOgw+WCi+8sgZVCYtu8lyuPVa+uL48xh1KhHUUO+dlFm4OZKzS
-0WcVhQ+KAMffU8kfG5jap7kLOFMBJj7PN9nHB6qsbBxlw+4M34gjBi/z0yjwY4FQ
-1hWyMQwzb7lXR/IABfJVb5MvIrOHoRKQOualAi/6BtK91Kk2J2Q7oFcJZLlQPjp3
-4Qsx0DMLw9XD/GtMvd5YOI//8BD0FKn3V1DIsDx3XbIQSxuiOJEY0jMtmRYGRNP5
-kioOsF3NR8zgqsR88O0WVKMB9XnpLWhVd0BatCXHJegnrcYbc4QYXZ12iMsXKmZ/
-XDDIK6/ImIrmlC//jt2PynHTDWZJGasZZOPb6UroImAhL5Oyi2xq9zeHxmA1Lf7g
-dAVWGUocAO85KxImPlL0MI2u/df0daNcqmqVQqXESXBCCHX0+d2a7KDDrZWX89yV
-rrPYjWSLBwbnhC8+Hat0IVjkIyHIyF31o+TxP0CwTOnQ6AtHP7VgLNsoTYV3iu3M
-j9nfroZejvvhGpUWRL3ifTVbF9SAzY6oSWqQNYLmDangPxdnLUof0JoCFKxaNkUi
-izvW3ZWxyhfZsv3BzaySHxG7etwbdRJ7xH4Qb/4wQx/cBncu7G0hEiXaoQMkh9Ku
-xAjr7iERh1BDk88Ampyyheqgj7cV6JK7bDhzHS/ZKcBKcIWxPls=
-=rZVy
------END PGP SIGNATURE-----
-
---feaizwvindirbxfr--
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 8c92cb7f7e72..80db777cb7ec 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1562,9 +1562,8 @@ static int init_channels(struct ngene *dev)
+ 	return 0;
+ }
+ 
+-static struct cxd2099_cfg cxd_cfg = {
++static const struct cxd2099_cfg cxd_cfgtmpl = {
+ 	.bitrate = 62000,
+-	.adr = 0x40,
+ 	.polarity = 0,
+ 	.clock_mode = 0,
+ };
+@@ -1572,18 +1571,52 @@ static struct cxd2099_cfg cxd_cfg = {
+ static void cxd_attach(struct ngene *dev)
+ {
+ 	struct ngene_ci *ci = &dev->ci;
++	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
++	struct i2c_client *client;
++	struct i2c_board_info board_info = {
++		.type = "cxd2099",
++		.addr = 0x40,
++		.platform_data = &cxd_cfg,
++	};
++
++	cxd_cfg.en = &ci->en;
++
++	request_module(board_info.type);
++
++	client = i2c_new_device(&dev->channel[0].i2c_adapter, &board_info);
++	if (!client || !client->dev.driver)
++		goto err_ret;
++
++	if (!try_module_get(client->dev.driver->owner))
++		goto err_i2c;
++
++	if (!ci->en)
++		goto err_i2c;
+ 
+-	ci->en = cxd2099_attach(&cxd_cfg, dev, &dev->channel[0].i2c_adapter);
+ 	ci->dev = dev;
++	dev->channel[0].i2c_client[0] = client;
++	return;
++
++err_i2c:
++	i2c_unregister_device(client);
++err_ret:
++	printk(KERN_ERR DEVICE_NAME ": CXD2099AR attach failed\n");
+ 	return;
+ }
+ 
+ static void cxd_detach(struct ngene *dev)
+ {
+ 	struct ngene_ci *ci = &dev->ci;
++	struct i2c_client *client;
+ 
+ 	dvb_ca_en50221_release(ci->en);
+-	kfree(ci->en);
++
++	client = dev->channel[0].i2c_client[0];
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	ci->en = NULL;
+ }
+ 
+diff --git a/drivers/media/pci/ngene/ngene-i2c.c b/drivers/media/pci/ngene/ngene-i2c.c
+index 3004947f300b..092d46c2a3a9 100644
+--- a/drivers/media/pci/ngene/ngene-i2c.c
++++ b/drivers/media/pci/ngene/ngene-i2c.c
+@@ -147,7 +147,7 @@ static int ngene_i2c_master_xfer(struct i2c_adapter *adapter,
+ 
+ static u32 ngene_i2c_functionality(struct i2c_adapter *adap)
+ {
+-	return I2C_FUNC_SMBUS_EMUL;
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+ static const struct i2c_algorithm ngene_i2c_algo = {
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index 02dbd18f92d0..caf8602c7459 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -630,6 +630,7 @@ struct ngene_vopen {
+ struct ngene_channel {
+ 	struct device         device;
+ 	struct i2c_adapter    i2c_adapter;
++	struct i2c_client    *i2c_client[1];
+ 
+ 	struct ngene         *dev;
+ 	int                   number;
+-- 
+2.13.6
