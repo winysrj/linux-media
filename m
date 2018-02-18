@@ -1,155 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48442 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967918AbeBOL4q (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44610 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751073AbeBREnZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 06:56:46 -0500
-Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se>
- <3434065.V6QgqqWRc5@avalon> <ecea7e97-de20-6d11-3ad4-680bab4628f0@xs4all.nl>
- <2053928.E9OymEAqzL@avalon>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0f0adb80-7af7-9fd4-319f-faa6b45ef1a4@xs4all.nl>
-Date: Thu, 15 Feb 2018 12:56:44 +0100
-MIME-Version: 1.0
-In-Reply-To: <2053928.E9OymEAqzL@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Sat, 17 Feb 2018 23:43:25 -0500
+Message-ID: <112c966a4a8c05d4c0264cc5fb00dd1f@smtp-cloud8.xs4all.net>
+Date: Sun, 18 Feb 2018 05:43:22 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/02/18 12:08, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Thursday, 15 February 2018 12:57:44 EET Hans Verkuil wrote:
->> On 14/02/18 16:16, Laurent Pinchart wrote:
->>> On Wednesday, 14 February 2018 12:36:43 EET Niklas Söderlund wrote:
->>>> There is no way for drivers to validate a colorspace value, which could
->>>> be provided by user-space by VIDIOC_S_FMT for example. Add a helper to
->>>> validate that the colorspace value is part of enum v4l2_colorspace.
->>>>
->>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>>> ---
->>>>
->>>>  include/uapi/linux/videodev2.h | 4 ++++
->>>>  1 file changed, 4 insertions(+)
->>>>
->>>> Hi,
->>>>
->>>> I hope this is the correct header to add this helper to. I think it's
->>>> since if it's in uapi not only can v4l2 drivers use it but tools like
->>>> v4l-compliance gets access to it and can be updated to use this instead
->>>> of the hard-coded check of just < 0xff as it was last time I checked.
->>>>
->>>> * Changes since v1
->>>> - Cast colorspace to u32 as suggested by Sakari and only check the upper
->>>>
->>>>   boundary to address a potential issue brought up by Laurent if the
->>>>   
->>>>   data type tested is u32 which is not uncommon:
->>>>     enum.c:30:16: warning: comparison of unsigned expression >= 0 is
->>>>     always
->>>>
->>>> true [-Wtype-limits]
->>>>
->>>>       return V4L2_COLORSPACE_IS_VALID(colorspace);
->>>>
->>>> diff --git a/include/uapi/linux/videodev2.h
->>>> b/include/uapi/linux/videodev2.h index
->>>> 9827189651801e12..1f27c0f4187cbded 100644
->>>> --- a/include/uapi/linux/videodev2.h
->>>> +++ b/include/uapi/linux/videodev2.h
->>>> @@ -238,6 +238,10 @@ enum v4l2_colorspace {
->>>>
->>>>  	V4L2_COLORSPACE_DCI_P3        = 12,
->>>>  
->>>>  };
->>>>
->>>> +/* Determine if a colorspace is defined in enum v4l2_colorspace */
->>>> +#define V4L2_COLORSPACE_IS_VALID(colorspace)		\
->>>> +	((u32)(colorspace) <= V4L2_COLORSPACE_DCI_P3)
->>
->> Sorry, this won't work. Use __u32. u32 is only available in the kernel, not
->> in userspace and this is a public header.
-> 
-> Indeed, that I should have caught.
-> 
->> I am not convinced about the usefulness of this check either. Drivers will
->> typically only support a subset of the available colorspaces, so they need
->> a switch to test for that.
-> 
-> Most MC drivers won't, as they don't care about colorspaces in most subdevs. 
-> It's important for the colorspace to be propagated within subdevs, and 
-> validated across the pipeline, but in most case, apart from the image source 
-> subdev, other subdevs won't care. They should accept any valid colorspace 
-> given to them and propagate it to their source pads unchanged (except of 
-> course for subdevs that can change the colorspace, but that's the exception, 
-> not the rule).
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Right. So 'passthrough' subdevs should just copy this information from source
-to sink, and only pure source or pure sink subdevs should validate these
-fields. That makes sense.
+Results of the daily build of media_tree:
 
-> 
->> There is nothing wrong with userspace giving them an unknown colorspace:
->> either they will map anything they don't support to something that they DO
->> support, or they will return -EINVAL.
-> 
-> The former, not the latter. S_FMT should not return -EINVAL for unsupported 
-> colorspace, the same way it doesn't return -EINVAL for unsupported pixel 
-> formats.
-> 
->> If memory serves the spec requires the first option, so anything unknown
->> will just be replaced.
->>
->> And anyway, this raises the question of why you do this for the colorspace
->> but not for all the other enums in the V4L2 API.
-> 
-> Because v4l2-compliance tries to set a colorspace > 0xff and expects that to 
-> be replaced by a colorspace <= 0xff. That seems like a bogus check to me, 0xff 
-> is as random as it can get.
+date:			Sun Feb 18 05:00:11 CET 2018
+media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
+media_build git hash:	d144cfe4b3c37ece55ae27778c99765d4943c4fa
+v4l-utils git hash:	432d9ebfcea65337647fd4e458f76b0417ea1c2f
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-v4l2-compliance fills all fields with 0xff, then it checks after calling the
-ioctl if all fields have been set to valid values.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: WARNINGS
+linux-3.2.98-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-But in this case it should ignore the colorspace-related fields for passthrough
-subdevs. The only passthrough devices that should set colorspace are colorspace
-converter devices. I'm not sure if we can reliably detect that.
+Detailed results are available here:
 
-> 
->> It all seems rather pointless to me.
->>
->> I won't accept this unless I see it being used in a driver in a useful way.
->>
->> So for now:
->>
->> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Can you then fix v4l2-compliance to stop testing colorspace against 0xff ?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-For now I can simply relax this test for subdevs with sources and sinks.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-	Hans
+The Media Infrastructure API from this daily build is here:
 
-> 
->>>> +
->>>
->>> Casting to u32 has the added benefit that the colorspace expression is
->>> evaluated once only, I like that.
->>>
->>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>
->>>>  /*
->>>>   * Determine how COLORSPACE_DEFAULT should map to a proper colorspace.
->>>>   * This depends on whether this is a SDTV image (use SMPTE 170M), an
-> 
+http://www.xs4all.nl/~hverkuil/spec/index.html
