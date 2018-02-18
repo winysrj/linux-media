@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53955 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751090AbeBQPDi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Feb 2018 10:03:38 -0500
-Received: by mail-wm0-f68.google.com with SMTP id t74so7942729wme.3
-        for <linux-media@vger.kernel.org>; Sat, 17 Feb 2018 07:03:38 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at
-Subject: [PATCH v2 5/7] [media] staging/cxd2099: remove remainders from old attach way
-Date: Sat, 17 Feb 2018 16:03:26 +0100
-Message-Id: <20180217150328.686-6-d.scheller.oss@gmail.com>
-In-Reply-To: <20180217150328.686-1-d.scheller.oss@gmail.com>
-References: <20180217150328.686-1-d.scheller.oss@gmail.com>
+Received: from mail.anw.at ([195.234.101.228]:53571 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751659AbeBRVS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Feb 2018 16:18:26 -0500
+Subject: Re: [PATCH V2 0/3] Add timers to en50221 protocol driver
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com,
+        d.scheller@gmx.net
+References: <1513862559-19725-1-git-send-email-jasmin@anw.at>
+ <ef72a382-5d30-526c-ae09-ed50d9d4790d@anw.at>
+ <23177.59478.243278.702389@morden.metzler>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <2c7a385f-2d98-a30e-6714-ab6aa86288d2@anw.at>
+Date: Sun, 18 Feb 2018 22:18:19 +0100
+MIME-Version: 1.0
+In-Reply-To: <23177.59478.243278.702389@morden.metzler>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hallo Ralph!
 
-As all drivers using the cxd2099 are converted to handle attach/detach
-the generic I2C client way, the static inline cxd2099_attach isn't
-required anymore. Thus cleanup cxd2099.h from the remainders, the adr
-struct member isn't used anymore aswell.
+> 1. The SW bit is cleared too early during the whole buffer size negotiation.
+> This should be fixed.
+I will look into this when I have time again. Probably end of next week.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/staging/media/cxd2099/cxd2099.h | 10 ----------
- 1 file changed, 10 deletions(-)
+> 2. IRQEN = CMDREG_DAIE = 0x80 is always set in the command register.
+> So, they should probably only be used if both the host and module say they
+> support it.
+How can we know that in the driver?
+I haven't seen an API for this.
+There is the flag "da_irq_supported", which might be used to set the IRQEN
+bit it the bit is set.
 
-diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
-index 679e87512799..8fa45a4c615a 100644
---- a/drivers/staging/media/cxd2099/cxd2099.h
-+++ b/drivers/staging/media/cxd2099/cxd2099.h
-@@ -20,7 +20,6 @@
- 
- struct cxd2099_cfg {
- 	u32 bitrate;
--	u8  adr;
- 	u8  polarity;
- 	u8  clock_mode;
- 
-@@ -30,13 +29,4 @@ struct cxd2099_cfg {
- 	struct dvb_ca_en50221 **en;
- };
- 
--/* TODO: remove when done */
--static inline struct
--dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg, void *priv,
--			       struct i2c_adapter *i2c)
--{
--	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--
- #endif
--- 
-2.13.6
+Any suggestions how to proceed with item 2?
+
+BR,
+   Jasmin
