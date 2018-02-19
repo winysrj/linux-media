@@ -1,37 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53797 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753215AbeBCTSn (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:39462 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752962AbeBSPhb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Feb 2018 14:18:43 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media-ioc-g-topology.rst: fix interface-to-entity link
- description
-Message-ID: <2447b7c8-b707-e98a-db92-fb55a1894f6c@xs4all.nl>
-Date: Sat, 3 Feb 2018 20:18:38 +0100
+        Mon, 19 Feb 2018 10:37:31 -0500
+Received: by mail-io0-f196.google.com with SMTP id b34so8833333ioj.6
+        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 07:37:30 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+From: "Mrs.Louisa Benicio" <mrslouisabeni@gmail.com>
+Date: Mon, 19 Feb 2018 15:37:28 +0000
+Message-ID: <CAH6k8Fp-nabkOZzLHHWM96CZ8M4rTfOD_8sYgOq2d9PQ=Wsagg@mail.gmail.com>
+Subject: Waiting for your Urgent Responds,
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The source_id and sink_id descriptions were the same for interface-to-entity
-links. The source_id is the interface ID, not the entity ID. Fix this.
+My Sincere Greetings,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index 997e6b17440d..870a6c0d1f7a 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -334,7 +334,7 @@ desired arrays with the media graph elements.
+I am (Mrs.Louisa Benicio) I have decided to donate ($5.5million
+Dollars) to you / Motherless babies/ less privileged/ Churches/ Widows
+from what I have inherited from my late Husband because I am
+diagnosing of throat Cancer and hospitalize for 2 years and some
+months now.
 
-        -  On pad to pad links: unique ID for the source pad.
+I will appreciate your utmost confidentiality and trust in this matter
+to accomplish my heart desire, as I don=E2=80=99t want anything that will
+jeopardize my last wish. As soon you get back to me, I shall give you
+my info which you will use to contact the bank by quoting my personal
+file routing and account information. I know I don't know you but all
+is by the Grace of God Almighty, I found your email address through
+random search from internet and I decided to contact you.
 
--	  On interface to entity links: unique ID for the entity.
-+	  On interface to entity links: unique ID for the interface.
+I am presently sending you this email seeking your assistance in
+helping me set up a charity organization in your country by your names
+which would be in existence long after am gone out of this world. I
+will be going in for a surgery soon and I want to make sure that I
+make this donation before undergoing my surgery.
 
-     -  .. row 3
+Please if you would be able to use the funds for the work of humanity
+as I have stated hear to fulfilled my late husband wishes  kindly
+reply back to me through this email address
+(mrslouisabenicio@yahoo.com) for more details.
+
+Waiting for your Urgent Responds,
+Yours Sincerely.
+Mrs.Louisa Benicio.
