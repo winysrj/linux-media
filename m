@@ -1,153 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:50562 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752573AbeBHTx0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:53:26 -0500
-Received: by mail-wm0-f66.google.com with SMTP id f71so11561276wmf.0
-        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:53:25 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at
-Subject: [PATCH 3/7] [media] ddbridge: adapt cxd2099 attach to new i2c_client way
-Date: Thu,  8 Feb 2018 20:53:14 +0100
-Message-Id: <20180208195318.612-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20180208195318.612-1-d.scheller.oss@gmail.com>
-References: <20180208195318.612-1-d.scheller.oss@gmail.com>
+Received: from userp2120.oracle.com ([156.151.31.85]:51414 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752142AbeBSOdC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Feb 2018 09:33:02 -0500
+Date: Mon, 19 Feb 2018 17:27:52 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [bug report] V4L/DVB (3420): Added iocls to configure VBI on tvp5150
+Message-ID: <20180219142751.GA10113@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+[ This is obviously ancient code.  It's probably fine.  I've just been
+  going through all array overflow warnings recently.  - dan ]
 
-Change the way the cxd2099 hardware is being attached to the new I2C
-client interface way.
+Hello Mauro Carvalho Chehab,
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/pci/ddbridge/ddbridge-ci.c | 62 +++++++++++++++++++++++++++++---
- drivers/media/pci/ddbridge/ddbridge.h    |  1 +
- 2 files changed, 58 insertions(+), 5 deletions(-)
+The patch 12db56071b47: "V4L/DVB (3420): Added iocls to configure VBI
+on tvp5150" from Jan 23, 2006, leads to the following static checker
+warning:
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index ed19890710d6..6585ef54ac22 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -172,6 +172,7 @@ static void ci_attach(struct ddb_port *port)
- 	memcpy(&ci->en, &en_templ, sizeof(en_templ));
- 	ci->en.data = ci;
- 	port->en = &ci->en;
-+	port->en_freedata = 1;
- 	ci->port = port;
- 	ci->nr = port->nr - 2;
- }
-@@ -304,6 +305,7 @@ static void ci_xo2_attach(struct ddb_port *port)
- 	memcpy(&ci->en, &en_xo2_templ, sizeof(en_xo2_templ));
- 	ci->en.data = ci;
- 	port->en = &ci->en;
-+	port->en_freedata = 1;
- 	ci->port = port;
- 	ci->nr = port->nr - 2;
- 	ci->port->creg = 0;
-@@ -311,20 +313,58 @@ static void ci_xo2_attach(struct ddb_port *port)
- 	write_creg(ci, 0x08, 0x08);
- }
- 
--static struct cxd2099_cfg cxd_cfg = {
-+static const struct cxd2099_cfg cxd_cfgtmpl = {
- 	.bitrate =  72000,
--	.adr     =  0x40,
- 	.polarity = 1,
- 	.clock_mode = 1,
- 	.max_i2c = 512,
- };
- 
-+static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
-+{
-+	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
-+	struct i2c_client *client;
-+	struct i2c_board_info board_info = {
-+		.type = "cxd2099",
-+		.addr = 0x40,
-+		.platform_data = &cxd_cfg,
-+	};
-+
-+	cxd_cfg.bitrate = bitrate;
-+	cxd_cfg.en = &port->en;
-+
-+	request_module(board_info.type);
-+
-+	client = i2c_new_device(&port->i2c->adap, &board_info);
-+	if (!client || !client->dev.driver)
-+		goto err_ret;
-+
-+	if (!try_module_get(client->dev.driver->owner))
-+		goto err_i2c;
-+
-+	if (!port->en)
-+		goto err_i2c;
-+
-+	port->dvb[0].i2c_client[0] = client;
-+	port->en_freedata = 0;
-+	return 0;
-+
-+err_i2c:
-+	i2c_unregister_device(client);
-+err_ret:
-+	dev_err(port->dev->dev, "CXD2099AR attach failed\n");
-+	return -ENODEV;
-+}
-+
- int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- {
-+	int ret;
-+
- 	switch (port->type) {
- 	case DDB_CI_EXTERNAL_SONY:
--		cxd_cfg.bitrate = bitrate;
--		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
-+		ret = ci_cxd2099_attach(port, bitrate);
-+		if (ret)
-+			return -ENODEV;
- 		break;
- 	case DDB_CI_EXTERNAL_XO2:
- 	case DDB_CI_EXTERNAL_XO2_B:
-@@ -345,11 +385,23 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- 
- void ddb_ci_detach(struct ddb_port *port)
- {
-+	struct i2c_client *client;
-+
- 	if (port->dvb[0].dev)
- 		dvb_unregister_device(port->dvb[0].dev);
- 	if (port->en) {
- 		dvb_ca_en50221_release(port->en);
--		kfree(port->en->data);
-+
-+		client = port->dvb[0].i2c_client[0];
-+		if (client) {
-+			module_put(client->dev.driver->owner);
-+			i2c_unregister_device(client);
-+		}
-+
-+		/* free alloc'ed memory if needed */
-+		if (port->en_freedata)
-+			kfree(port->en->data);
-+
- 		port->en = NULL;
- 	}
- }
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 095457737bc1..f223dc6c9963 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -276,6 +276,7 @@ struct ddb_port {
- 	struct ddb_input      *input[2];
- 	struct ddb_output     *output;
- 	struct dvb_ca_en50221 *en;
-+	u8                     en_freedata;
- 	struct ddb_dvb         dvb[2];
- 	u32                    gap;
- 	u32                    obr;
--- 
-2.13.6
+	drivers/media/i2c/tvp5150.c:730 tvp5150_get_vbi()
+	error: buffer overflow 'regs' 5 <= 14
+
+drivers/media/i2c/tvp5150.c
+   699  static int tvp5150_get_vbi(struct v4l2_subdev *sd,
+   700                          const struct i2c_vbi_ram_value *regs, int line)
+   701  {
+   702          struct tvp5150 *decoder = to_tvp5150(sd);
+   703          v4l2_std_id std = decoder->norm;
+   704          u8 reg;
+   705          int pos, type = 0;
+   706          int i, ret = 0;
+   707  
+   708          if (std == V4L2_STD_ALL) {
+   709                  dev_err(sd->dev, "VBI can't be configured without knowing number of lines\n");
+   710                  return 0;
+   711          } else if (std & V4L2_STD_625_50) {
+   712                  /* Don't follow NTSC Line number convension */
+   713                  line += 3;
+   714          }
+   715  
+   716          if (line < 6 || line > 27)
+   717                  return 0;
+   718  
+   719          reg = ((line - 6) << 1) + TVP5150_LINE_MODE_INI;
+   720  
+   721          for (i = 0; i <= 1; i++) {
+   722                  ret = tvp5150_read(sd, reg + i);
+   723                  if (ret < 0) {
+   724                          dev_err(sd->dev, "%s: failed with error = %d\n",
+   725                                   __func__, ret);
+   726                          return 0;
+   727                  }
+   728                  pos = ret & 0x0f;
+   729                  if (pos < 0x0f)
+                            ^^^^^^^^^^
+Smatch thinks this implies pos can be 0-14.
+
+   730                          type |= regs[pos].type.vbi_type;
+                                        ^^^^^^^^^
+This array only has 5 elements.
+
+   731          }
+   732  
+   733          return type;
+   734  }
+
+
+regards,
+dan carpenter
