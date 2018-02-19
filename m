@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:1072 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753390AbeBGRgN (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:59935 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750998AbeBSOYI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 12:36:13 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mon, 19 Feb 2018 09:24:08 -0500
+Message-ID: <1519050231.3408.21.camel@pengutronix.de>
+Subject: Re: [PATCH] staging: imx-media-vdic: fix inconsistent IS_ERR and
+ PTR_ERR
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 2/3] media: stm32-dcmi: remove redundant clear of interrupt flags
-Date: Wed, 7 Feb 2018 18:35:35 +0100
-Message-ID: <1518024936-2455-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1518024936-2455-1-git-send-email-hugues.fruchet@st.com>
-References: <1518024936-2455-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Date: Mon, 19 Feb 2018 15:23:51 +0100
+In-Reply-To: <4305212e-5946-0bb3-1624-ec23a0f37708@embeddedor.com>
+References: <20180124004340.GA25212@embeddedgus>
+         <5e53d6d8-d336-da37-fe12-0638904e1799@gmail.com>
+         <4305212e-5946-0bb3-1624-ec23a0f37708@embeddedor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is already cleared in dcmi_irq_callback().
+Hi Gustavo,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/stm32/stm32-dcmi.c | 2 --
- 1 file changed, 2 deletions(-)
+On Wed, 2018-02-14 at 14:57 -0600, Gustavo A. R. Silva wrote:
+> Hi all,
+> 
+> I was just wondering about the status of this patch.
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index abc79d8..dfab867 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -385,8 +385,6 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- 		dcmi->errors_count++;
- 		dmaengine_terminate_all(dcmi->dma_chan);
- 
--		reg_set(dcmi->regs, DCMI_ICR, IT_FRAME | IT_OVR | IT_ERR);
--
- 		dev_dbg(dcmi->dev, "Restarting capture after DCMI error\n");
- 
- 		if (dcmi_start_capture(dcmi)) {
--- 
-1.9.1
+It is en route as commit dcd71a9292b1 ("staging: imx-media-vdic: fix
+inconsistent IS_ERR and PTR_ERR") in Hans' for-v4.17a branch:
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.17a
+
+regards
+Philipp
