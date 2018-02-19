@@ -1,230 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:39447 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932644AbeBLW14 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45942 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752572AbeBSLG2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 17:27:56 -0500
-Received: by mail-wm0-f48.google.com with SMTP id b21so12712734wme.4
-        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 14:27:55 -0800 (PST)
+        Mon, 19 Feb 2018 06:06:28 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 14A496011D
+        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 13:06:26 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1enjH7-0004Ff-Aw
+        for linux-media@vger.kernel.org; Mon, 19 Feb 2018 13:06:25 +0200
+Date: Mon, 19 Feb 2018 13:06:24 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.17] Sensor and lens driver patches
+Message-ID: <20180219110623.3vyxchxrn2lz3cod@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <cf5c51f4-ca86-e468-ba16-d47d224a2428@xs4all.nl>
-References: <1518157956-14220-1-git-send-email-tharvey@gateworks.com>
- <1518157956-14220-7-git-send-email-tharvey@gateworks.com> <cf5c51f4-ca86-e468-ba16-d47d224a2428@xs4all.nl>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Mon, 12 Feb 2018 14:27:53 -0800
-Message-ID: <CAJ+vNU0ZCamOaJ2dZ_jisxcLFrUCTtajdvabBsHgpuedCVFbyw@mail.gmail.com>
-Subject: Re: [PATCH v10 6/8] media: i2c: Add TDA1997x HDMI receiver driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 9, 2018 at 12:08 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Tim,
->
-> We're almost there. Two more comments:
->
-> On 02/09/2018 07:32 AM, Tim Harvey wrote:
->> +static int
->> +tda1997x_detect_std(struct tda1997x_state *state,
->> +                 struct v4l2_dv_timings *timings)
->> +{
->> +     struct v4l2_subdev *sd = &state->sd;
->> +     u32 vper;
->> +     u16 hper;
->> +     u16 hsper;
->> +     int i;
->> +
->> +     /*
->> +      * Read the FMT registers
->> +      *   REG_V_PER: Period of a frame (or two fields) in MCLK(27MHz) cycles
->> +      *   REG_H_PER: Period of a line in MCLK(27MHz) cycles
->> +      *   REG_HS_WIDTH: Period of horiz sync pulse in MCLK(27MHz) cycles
->> +      */
->> +     vper = io_read24(sd, REG_V_PER) & MASK_VPER;
->> +     hper = io_read16(sd, REG_H_PER) & MASK_HPER;
->> +     hsper = io_read16(sd, REG_HS_WIDTH) & MASK_HSWIDTH;
->> +     if (!vper || !hper || !hsper)
->> +             return -ENOLINK;
->
-> See my comment for g_input_status below. This condition looks more like a
-> ENOLCK.
->
-> Or perhaps it should be:
->
->         if (!vper && !hper && !hsper)
->                 return -ENOLINK;
->         if (!vper || !hper || !hsper)
->                 return -ENOLCK;
->
-> I would recommend that you test a bit with no signal and a bad signal (perhaps
-> one that uses a pixelclock that is too high for this device?).
+Hi Mauro,
 
-I can't figure out how to produce a signal that can't be locked onto
-with what I have available.
+Here's the first pile of sensor and lens driver patches for 4.17.
 
->
->> +     v4l2_dbg(1, debug, sd, "Signal Timings: %u/%u/%u\n", vper, hper, hsper);
->> +
->> +     for (i = 0; v4l2_dv_timings_presets[i].bt.width; i++) {
->> +             const struct v4l2_bt_timings *bt;
->> +             u32 lines, width, _hper, _hsper;
->> +             u32 vmin, vmax, hmin, hmax, hsmin, hsmax;
->> +             bool vmatch, hmatch, hsmatch;
->> +
->> +             bt = &v4l2_dv_timings_presets[i].bt;
->> +             width = V4L2_DV_BT_FRAME_WIDTH(bt);
->> +             lines = V4L2_DV_BT_FRAME_HEIGHT(bt);
->> +             _hper = (u32)bt->pixelclock / width;
->> +             if (bt->interlaced)
->> +                     lines /= 2;
->> +             /* vper +/- 0.7% */
->> +             vmin = ((27000000 / 1000) * 993) / _hper * lines;
->> +             vmax = ((27000000 / 1000) * 1007) / _hper * lines;
->> +             /* hper +/- 1.0% */
->> +             hmin = ((27000000 / 100) * 99) / _hper;
->> +             hmax = ((27000000 / 100) * 101) / _hper;
->> +             /* hsper +/- 2 (take care to avoid 32bit overflow) */
->> +             _hsper = 27000 * bt->hsync / ((u32)bt->pixelclock/1000);
->> +             hsmin = _hsper - 2;
->> +             hsmax = _hsper + 2;
->> +
->> +             /* vmatch matches the framerate */
->> +             vmatch = ((vper <= vmax) && (vper >= vmin)) ? 1 : 0;
->> +             /* hmatch matches the width */
->> +             hmatch = ((hper <= hmax) && (hper >= hmin)) ? 1 : 0;
->> +             /* hsmatch matches the hswidth */
->> +             hsmatch = ((hsper <= hsmax) && (hsper >= hsmin)) ? 1 : 0;
->> +             if (hmatch && vmatch && hsmatch) {
->> +                     *timings = v4l2_dv_timings_presets[i];
->> +                     v4l2_print_dv_timings(sd->name, "Detected format: ",
->> +                                           timings, false);
->> +                     return 0;
->> +             }
->> +     }
->> +
->> +     v4l_err(state->client, "no resolution match for timings: %d/%d/%d\n",
->> +             vper, hper, hsper);
->> +     return -EINVAL;
->> +}
->
-> -EINVAL isn't the correct error code here. I would go for -ERANGE. It's not
-> perfect, but close enough.
->
-> -EINVAL indicates that the user filled in wrong values, but that's not the
-> case here.
+The most noteworthy parts are perhaps
 
-done
+- moving unmaintained imx074 and mt9t031 SoC camera drivers to staging in
+  hope someone would start looking after them,
 
->
->> +static int
->> +tda1997x_g_input_status(struct v4l2_subdev *sd, u32 *status)
->> +{
->> +     struct tda1997x_state *state = to_state(sd);
->> +     u32 vper;
->> +     u16 hper;
->> +     u16 hsper;
->> +
->> +     mutex_lock(&state->lock);
->> +     v4l2_dbg(1, debug, sd, "inputs:%d/%d\n",
->> +              state->input_detect[0], state->input_detect[1]);
->> +     if (state->input_detect[0] || state->input_detect[1])
->
-> I'm confused. This device has two HDMI inputs?
->
-> Does 'detecting input' equate to 'I see a signal and I am locked'?
-> I gather from the irq function that sets these values that it is closer
-> to 'I see a signal' and that 'I am locked' is something you would test
-> by looking at the vper/hper/hsper.
+- add DT bindings and driver upport for the bindings for ov9650, ov7670,
+  ov5695 and ov2685 sensors and
 
-The TDA19972 and/or TDA19973 has an A and B input but only a single
-output. I'm not entirely clear if/how to select between the two and I
-don't have proper documentation for the three chips.
+- JPEG support for ov5640.
 
-The TDA19971 which I have on my board only has 1 input which is
-reported as the 'A' input. I can likely nuke the stuff looking at the
-B input and/or put some qualifiers around it but I didn't want to
-remove code that was derived from some vendor code that might help
-support the other chips in the future. So I would rather like to leave
-the 'if A or B' stuff.
+The rest are related or random fixes.
 
->
->> +             *status = 0;
->> +     else {
->> +             vper = io_read24(sd, REG_V_PER) & MASK_VPER;
->> +             hper = io_read16(sd, REG_H_PER) & MASK_HPER;
->> +             hsper = io_read16(sd, REG_HS_WIDTH) & MASK_HSWIDTH;
->> +             v4l2_dbg(1, debug, sd, "timings:%d/%d/%d\n", vper, hper, hsper);
->> +             if (!vper || !hper || !hsper)
->> +                     *status |= V4L2_IN_ST_NO_SYNC;
->> +             else
->> +                     *status |= V4L2_IN_ST_NO_SIGNAL;
->
-> So if we have valid vper, hper and hsper, then there is no signal? That doesn't
-> make sense.
->
-> I'd expect to see something like this:
->
->         if (!input_detect[0] && !input_detect[1])
->                 // no signal
->         else if (!vper || !hper || !vsper)
->                 // no sync
->         else
->                 // have signal and sync
+Please pull.
 
-sure... reads a bit cleaner. I can't guarantee that any of
-vper/hper/vsper will be 0 if a signal can't be locked onto without
-proper documentation or ability to generate such a signal. I do know
-if I yank the source I get non-zero random values and must rely on the
-input_detect logic.
 
->
-> I'm not sure about the precise meaning of input_detect, so I might be wrong about
-> that bit.
+The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
 
-ya... me either. I'm trying my hardest to get this driver up to shape
-but the documentation I have is utter crap and I'm doing some guessing
-as well as to what all the registers are and what the meaning of the
-very obfuscated vendor code does.
+  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
 
-would you object to detecting timings and displaying via v4l2_dbg when
-a resolution change is detected (just not 'using' those timings for
-anything?):
+are available in the git repository at:
 
-@@ -1384,6 +1386,7 @@ static void tda1997x_irq_sus(struct tda1997x_state *state,
- u8 *flags)
-                        v4l_err(state->client, "BAD SUS STATUS\n");
-                        return;
-                }
-+               if (debug)
-+                              tda1997x_detect_std(state, NULL);
-                /* notify user of change in resolution */
-                v4l2_subdev_notify_event(&state->sd, &tda1997x_ev_fmt);
-        }
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.17-1
 
-@@ -1140,16 +1140,18 @@ tda1997x_detect_std(struct tda1997x_state *state,
-                /* hsmatch matches the hswidth */
-                hsmatch = ((hsper <= hsmax) && (hsper >= hsmin)) ? 1 : 0;
-                if (hmatch && vmatch && hsmatch) {
--                       *timings = v4l2_dv_timings_presets[i];
-                        v4l2_print_dv_timings(sd->name, "Detected format: ",
--                                             timings, false);
-+                                             &v4l2_dv_timings_presets[i],
-+                                             false);
-+                       if (timings)
-+                               *timings = v4l2_dv_timings_presets[i];
-                        return 0;
-                }
-        }
+for you to fetch changes up to 4c2de036e83693d29e21b945f0ae9f6f697fa478:
 
-It seems to make sense to me to be seeing a kernel message when
-timings change and what they change to without having to query :)
+  media: ov5640: fix framerate update (2018-02-19 13:02:13 +0200)
 
-Tim
+----------------------------------------------------------------
+Akinobu Mita (3):
+      media: MAINTAINERS: add entry for ov9650 driver
+      media: ov9650: add device tree binding
+      media: ov9650: support device tree probing
+
+Chiranjeevi Rapolu (1):
+      media: ov13858: Avoid possible null first frame
+
+Gustavo A. R. Silva (2):
+      ov13858: Use false for boolean value
+      i2c: ov9650: fix potential integer overflow in __ov965x_set_frame_interval
+
+Hans Verkuil (2):
+      imx074: deprecate, move to staging
+      mt9t031: deprecate, move to staging
+
+Hugues Fruchet (5):
+      media: ov5640: add JPEG support
+      media: ov5640: add error trace in case of i2c read failure
+      media: ov5640: various typo & style fixes
+      media: ov5640: fix virtual_channel parameter permissions
+      media: ov5640: fix framerate update
+
+Jacopo Mondi (2):
+      media: dt-bindings: Add OF properties to ov7670
+      v4l2: i2c: ov7670: Implement OF mbus configuration
+
+Sakari Ailus (1):
+      ov2685: Assign ret in default case in s_ctrl callback
+
+Shunqian Zheng (4):
+      dt-bindings: media: Add bindings for OV5695
+      media: ov5695: add support for OV5695 sensor
+      dt-bindings: media: Add bindings for OV2685
+      media: ov2685: add support for OV2685 sensor
+
+ .../devicetree/bindings/media/i2c/ov2685.txt       |   41 +
+ .../devicetree/bindings/media/i2c/ov5695.txt       |   41 +
+ .../devicetree/bindings/media/i2c/ov7670.txt       |   16 +-
+ .../devicetree/bindings/media/i2c/ov9650.txt       |   36 +
+ MAINTAINERS                                        |   24 +
+ drivers/media/i2c/Kconfig                          |   23 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/ov13858.c                        |    6 +-
+ drivers/media/i2c/ov2685.c                         |  846 ++++++++++++
+ drivers/media/i2c/ov5640.c                         |   99 +-
+ drivers/media/i2c/ov5695.c                         | 1399 ++++++++++++++++++++
+ drivers/media/i2c/ov7670.c                         |   98 +-
+ drivers/media/i2c/ov9650.c                         |  134 +-
+ drivers/media/i2c/soc_camera/Kconfig               |   12 -
+ drivers/media/i2c/soc_camera/Makefile              |    2 -
+ drivers/staging/media/Kconfig                      |    4 +
+ drivers/staging/media/Makefile                     |    2 +
+ drivers/staging/media/imx074/Kconfig               |    5 +
+ drivers/staging/media/imx074/Makefile              |    1 +
+ drivers/staging/media/imx074/TODO                  |    5 +
+ .../soc_camera => staging/media/imx074}/imx074.c   |    0
+ drivers/staging/media/mt9t031/Kconfig              |   11 +
+ drivers/staging/media/mt9t031/Makefile             |    1 +
+ drivers/staging/media/mt9t031/TODO                 |    5 +
+ .../soc_camera => staging/media/mt9t031}/mt9t031.c |    0
+ 25 files changed, 2718 insertions(+), 95 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov9650.txt
+ create mode 100644 drivers/media/i2c/ov2685.c
+ create mode 100644 drivers/media/i2c/ov5695.c
+ create mode 100644 drivers/staging/media/imx074/Kconfig
+ create mode 100644 drivers/staging/media/imx074/Makefile
+ create mode 100644 drivers/staging/media/imx074/TODO
+ rename drivers/{media/i2c/soc_camera => staging/media/imx074}/imx074.c (100%)
+ create mode 100644 drivers/staging/media/mt9t031/Kconfig
+ create mode 100644 drivers/staging/media/mt9t031/Makefile
+ create mode 100644 drivers/staging/media/mt9t031/TODO
+ rename drivers/{media/i2c/soc_camera => staging/media/mt9t031}/mt9t031.c (100%)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
