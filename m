@@ -1,152 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56606 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752924AbeBEOam (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:56987 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753004AbeBSPpG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 09:30:42 -0500
-Date: Mon, 5 Feb 2018 16:30:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: media_device.c question: can this workaround be removed?
-Message-ID: <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
-References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
- <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
- <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
+        Mon, 19 Feb 2018 10:45:06 -0500
+From: Maciej Purski <m.purski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc: Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Maciej Purski <m.purski@samsung.com>
+Subject: [PATCH 2/8] media: s5p-jpeg: Use bulk clk API
+Date: Mon, 19 Feb 2018 16:44:00 +0100
+Message-id: <1519055046-2399-3-git-send-email-m.purski@samsung.com>
+In-reply-to: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+        <CGME20180219154457eucas1p163264992903698a8878aa5abbc8aa17b@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Using bulk clk functions simplifies the driver's code. Use devm_clk_bulk
+functions instead of iterating over an array of clks.
 
-On Mon, Feb 05, 2018 at 01:30:04PM +0100, Hans Verkuil wrote:
-> On 02/05/2018 12:59 PM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Mon, Feb 05, 2018 at 11:26:47AM +0100, Hans Verkuil wrote:
-> >> The function media_device_enum_entities() has this workaround:
-> >>
-> >>         /*
-> >>          * Workaround for a bug at media-ctl <= v1.10 that makes it to
-> >>          * do the wrong thing if the entity function doesn't belong to
-> >>          * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
-> >>          * Ranges.
-> >>          *
-> >>          * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
-> >>          * or, otherwise, will be silently ignored by media-ctl when
-> >>          * printing the graphviz diagram. So, map them into the devnode
-> >>          * old range.
-> >>          */
-> >>         if (ent->function < MEDIA_ENT_F_OLD_BASE ||
-> >>             ent->function > MEDIA_ENT_F_TUNER) {
-> >>                 if (is_media_entity_v4l2_subdev(ent))
-> >>                         entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-> >>                 else if (ent->function != MEDIA_ENT_F_IO_V4L)
-> >>                         entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
-> >>         }
-> >>
-> >> But this means that the entity type returned by ENUM_ENTITIES just overwrites
-> >> perfectly fine types by bogus values and thus the returned value differs
-> >> from that returned by G_TOPOLOGY.
-> >>
-> >> Can we please, please remove this workaround? I have no idea why a workaround
-> >> for media-ctl of all things ever made it in the kernel.
-> > 
-> > The entity types were replaced by entity functions back in 2015 with the
-> > big Media controller reshuffle. While I agree functions are better for
-> > describing entities than types (and those types had Linux specific
-> > interfaces in them), the new function-based API still may support a single
-> > value, i.e. a single function per device.
-> > 
-> > This also created two different name spaces for describing entities: the
-> > old types used by the MC API and the new functions used by MC v2 API.
-> > 
-> > This doesn't go well with the fact that, as you noticed, the pad
-> > information is not available through MC v2 API. The pad information is
-> > required by the user space so software continues to use the original MC
-> > API.
-> > 
-> > I don't think there's a way to avoid maintaining two name spaces (types and
-> > functions) without breaking at least one of the APIs.
-> 
-> The comment specifically claims that this workaround is for media-ctl and
-> it suggests that it is fixed after v1.10. Is that comment bogus? I can't
-> really tell which commit fixed media-ctl. Does anyone know?
-> 
-> As far as I can tell the function defines have been chosen in such a way that
-> they will equally well work with the old name space. There should be no
-> problem there whatsoever and media-ctl should switch to use the new defines.
+Signed-off-by: Maciej Purski <m.purski@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 45 ++++++++++++-----------------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h |  2 +-
+ 2 files changed, 20 insertions(+), 27 deletions(-)
 
-The old interface (type) was centered around the uAPI for the entity.
-That's no longer the case for functions. The entity type
-(MEDIA_ENT_TYPE_MASK) tells the uAPI which affects the interpretation of
-the dev union in struct media_entity_struct as well as the interface that
-device node implements. With the new function field that's no longer the
-case.
-
-Also, the new MC v2 API makes a separation between the entity function and
-the uAPI (interface) which was lacking in the old API.
-
-> 
-> We now have a broken ENUM_ENTITIES ioctl (it rudely overwrites VBI/DVB/etc types)
-> and a broken G_TOPOLOGY ioctl (no pad index).
-> 
-> This sucks. Let's fix both so that they at least report consistent information.
-
-The existing user space may assume that the type field of the entity
-conveys that the entity does provide a V4L2 sub-device interface if that's
-the case actually.
-
-This is what media-ctl does and I presume if existing user space checks for
-the type field, it may well have similar checks: it was how the API was
-defined. Therefore it's not entirely accurate to say that only media-ctl
-has this "bug", I'd generally assume programs that use MC (v1) API do this.
-
-You could argue about the merits (or lack of them) of the old API, no
-disagrement there.
-
-> 
-> > 
-> >>
-> >> I'm adding media support to the vivid driver and because of this media-ctl -p
-> >> gives me this:
-> >>
-> >> Device topology
-> >> - entity 1: vivid-000-vid-cap (1 pad, 0 link)
-> >>             type Node subtype V4L flags 0
-> >>             device node name /dev/video0
-> >>         pad0: Source
-> >>
-> >> - entity 5: vivid-000-vid-out (1 pad, 0 link)
-> >>             type Node subtype V4L flags 0
-> >>             device node name /dev/video1
-> >>         pad0: Sink
-> >>
-> >> - entity 9: vivid-000-vbi-cap (1 pad, 0 link)
-> >>             type Unknown subtype Unknown flags 0
-> >>         pad0: Source
-> >>
-> >> - entity 13: vivid-000-vbi-out (1 pad, 0 link)
-> >>              type Unknown subtype Unknown flags 0
-> >>         pad0: Sink
-> >>
-> >> - entity 17: vivid-000-sdr-cap (1 pad, 0 link)
-> >>              type Unknown subtype Unknown flags 0
-> >>         pad0: Source
-> > 
-> > It may be that there's no corresponding type for certain functions.
-> 
-> 'type' can be interpreted as 'function'. All possible legacy type/subtype
-> combinations map to a unique function. It's how the spec defines this as well.
-> But it is subverted by this awful workaround.
-> 
-> Regards,
-> 
-> 	Hans
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 79b63da..681a515 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2903,7 +2903,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ {
+ 	struct s5p_jpeg *jpeg;
+ 	struct resource *res;
+-	int i, ret;
++	int ret;
+ 
+ 	/* JPEG IP abstraction struct */
+ 	jpeg = devm_kzalloc(&pdev->dev, sizeof(struct s5p_jpeg), GFP_KERNEL);
+@@ -2938,15 +2938,16 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* clocks */
+-	for (i = 0; i < jpeg->variant->num_clocks; i++) {
+-		jpeg->clocks[i] = devm_clk_get(&pdev->dev,
+-					      jpeg->variant->clk_names[i]);
+-		if (IS_ERR(jpeg->clocks[i])) {
+-			dev_err(&pdev->dev, "failed to get clock: %s\n",
+-				jpeg->variant->clk_names[i]);
+-			return PTR_ERR(jpeg->clocks[i]);
+-		}
+-	}
++	jpeg->clocks = devm_clk_bulk_alloc(&pdev->dev,
++					   jpeg->variant->num_clocks,
++					   jpeg->variant->clk_names);
++	if (IS_ERR(jpeg->clocks))
++		return PTR_ERR(jpeg->clocks);
++
++	ret = devm_clk_bulk_get(&pdev->dev, jpeg->variant->num_clocks,
++				jpeg->clocks);
++	if (ret < 0)
++		return ret;
+ 
+ 	/* v4l2 device */
+ 	ret = v4l2_device_register(&pdev->dev, &jpeg->v4l2_dev);
+@@ -3047,7 +3048,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ static int s5p_jpeg_remove(struct platform_device *pdev)
+ {
+ 	struct s5p_jpeg *jpeg = platform_get_drvdata(pdev);
+-	int i;
+ 
+ 	pm_runtime_disable(jpeg->dev);
+ 
+@@ -3058,8 +3058,8 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
+ 	v4l2_device_unregister(&jpeg->v4l2_dev);
+ 
+ 	if (!pm_runtime_status_suspended(&pdev->dev)) {
+-		for (i = jpeg->variant->num_clocks - 1; i >= 0; i--)
+-			clk_disable_unprepare(jpeg->clocks[i]);
++		clk_bulk_disable_unprepare(jpeg->variant->num_clocks,
++					   jpeg->clocks);
+ 	}
+ 
+ 	return 0;
+@@ -3069,10 +3069,8 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
+ static int s5p_jpeg_runtime_suspend(struct device *dev)
+ {
+ 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
+-	int i;
+ 
+-	for (i = jpeg->variant->num_clocks - 1; i >= 0; i--)
+-		clk_disable_unprepare(jpeg->clocks[i]);
++	clk_bulk_disable_unprepare(jpeg->variant->num_clocks, jpeg->clocks);
+ 
+ 	return 0;
+ }
+@@ -3081,16 +3079,11 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
+ {
+ 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
+ 	unsigned long flags;
+-	int i, ret;
+-
+-	for (i = 0; i < jpeg->variant->num_clocks; i++) {
+-		ret = clk_prepare_enable(jpeg->clocks[i]);
+-		if (ret) {
+-			while (--i >= 0)
+-				clk_disable_unprepare(jpeg->clocks[i]);
+-			return ret;
+-		}
+-	}
++	int ret;
++
++	ret = clk_bulk_prepare_enable(jpeg->variant->num_clocks, jpeg->clocks);
++	if (ret)
++		return ret;
+ 
+ 	spin_lock_irqsave(&jpeg->slock, flags);
+ 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+index a46465e..dc6ed98 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+@@ -133,7 +133,7 @@ struct s5p_jpeg {
+ 	void __iomem		*regs;
+ 	unsigned int		irq;
+ 	enum exynos4_jpeg_result irq_ret;
+-	struct clk		*clocks[JPEG_MAX_CLOCKS];
++	struct clk_bulk_data	*clocks;
+ 	struct device		*dev;
+ 	struct s5p_jpeg_variant *variant;
+ 	u32			irq_status;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
