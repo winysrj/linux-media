@@ -1,49 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f169.google.com ([209.85.216.169]:42673 "EHLO
-        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752488AbeB1OtN (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38382 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752545AbeBSKiN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 09:49:13 -0500
-Received: by mail-qt0-f169.google.com with SMTP id t6so3231704qtn.9
-        for <linux-media@vger.kernel.org>; Wed, 28 Feb 2018 06:49:13 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <df78951777f4edb8f627b043a12c710f0ba2497d.1519753238.git.mchehab@s-opensource.com>
-References: <df78951777f4edb8f627b043a12c710f0ba2497d.1519753238.git.mchehab@s-opensource.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Wed, 28 Feb 2018 09:49:12 -0500
-Message-ID: <CAGoCfixqh-p6YWV3Fb9hGpX5Wv=qiWHFseuFRva66XsYtGkgFQ@mail.gmail.com>
-Subject: Re: [PATCH RFC] media: em28xx: don't use coherent buffer for DMA transfers
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 19 Feb 2018 05:38:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 06/15] subdev-formats.rst: fix incorrect types
+Date: Mon, 19 Feb 2018 11:37:57 +0100
+Message-Id: <20180219103806.17032-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180219103806.17032-1-hverkuil@xs4all.nl>
+References: <20180219103806.17032-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 27, 2018 at 12:42 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> While coherent memory is cheap on x86, it has problems on
-> arm. So, stop using it.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->
-> I wrote this patch in order to check if this would make things better
-> for ISOCH transfers on Raspberry Pi3. It didn't. Yet, keep using
-> coherent memory at USB drivers seem an overkill.
->
-> So, I'm actually not sure if we should either go ahead and merge it
-> or not.
->
-> Comments? Tests?
+The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
 
-For what it's worth, while I haven't tested this patch you're
-proposing, I've been running what is essentially the same change in a
-private tree for several years in order for the device to work better
-with several TI Davinci SOC platforms.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/v4l/subdev-formats.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Devin
-
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index b1eea44550e1..4f0c0b282f98 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -33,17 +33,17 @@ Media Bus Formats
+       - Image colorspace, from enum
+ 	:c:type:`v4l2_colorspace`. See
+ 	:ref:`colorspaces` for details.
+-    * - enum :c:type:`v4l2_ycbcr_encoding`
++    * - __u16
+       - ``ycbcr_enc``
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_quantization`
++    * - __u16
+       - ``quantization``
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_xfer_func`
++    * - __u16
+       - ``xfer_func``
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.16.1
