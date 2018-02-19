@@ -1,145 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37301 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967455AbeBNLsc (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50381 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751997AbeBSOIH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:48:32 -0500
+        Mon, 19 Feb 2018 09:08:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.9 06/13] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-Date: Wed, 14 Feb 2018 12:48:23 +0100
-Message-Id: <20180214114830.27171-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180214114830.27171-1-hverkuil@xs4all.nl>
-References: <20180214114830.27171-1-hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 01/10] v4l2-subdev: clear reserved fields
+Date: Mon, 19 Feb 2018 15:07:53 +0100
+Message-Id: <20180219140802.3514-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180219140802.3514-1-hverkuil@xs4all.nl>
+References: <20180219140802.3514-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Clear the reserved fields for these ioctls according to the specification:
 
-commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
+VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL
+VIDIOC_SUBDEV_ENUM_FRAME_SIZE
+VIDIOC_SUBDEV_ENUM_MBUS_CODE
+VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP
+VIDIOC_SUBDEV_G_FMT, VIDIOC_SUBDEV_S_FMT
+VIDIOC_SUBDEV_G_FRAME_INTERVAL, VIDIOC_SUBDEV_S_FRAME_INTERVAL
+VIDIOC_SUBDEV_G_SELECTION, VIDIOC_SUBDEV_S_SELECTION
 
-The struct v4l2_plane32 should set m.userptr as well. The same
-happens in v4l2_buffer32 and v4l2-compliance tests for this.
+Found with v4l2-compliance.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ drivers/media/v4l2-core/v4l2-subdev.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 64e3977ab851..2ddeecdababe 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -299,19 +299,24 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index c5639817db34..74fe8083cf26 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -260,6 +260,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
  
--	if (memory == V4L2_MEMORY_USERPTR) {
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
-+		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
-+				 sizeof(up32->m.mem_offset)))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_USERPTR:
- 		if (get_user(p, &up32->m.userptr))
- 			return -EFAULT;
- 		up_pln = compat_ptr(p);
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
--	} else if (memory == V4L2_MEMORY_DMABUF) {
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
--	} else {
--		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(up32->m.mem_offset)))
--			return -EFAULT;
-+		break;
++		memset(format->reserved, 0, sizeof(format->reserved));
++		memset(format->format.reserved, 0, sizeof(format->format.reserved));
+ 		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
  	}
  
- 	return 0;
-@@ -320,22 +325,32 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
- 			    enum v4l2_memory memory)
- {
-+	unsigned long p;
-+
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
+@@ -270,6 +272,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
  
--	/* For MMAP, driver might've set up the offset, so copy it back.
--	 * USERPTR stays the same (was userspace-provided), so no copying. */
--	if (memory == V4L2_MEMORY_MMAP)
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
- 				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
--	/* For DMABUF, driver might've set up the fd, so copy it back. */
--	if (memory == V4L2_MEMORY_DMABUF)
-+		break;
-+	case V4L2_MEMORY_USERPTR:
-+		if (get_user(p, &up->m.userptr) ||
-+		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
-+			     &up32->m.userptr))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
- 				 sizeof(up->m.fd)))
- 			return -EFAULT;
-+		break;
-+	}
++		memset(format->reserved, 0, sizeof(format->reserved));
++		memset(format->format.reserved, 0, sizeof(format->format.reserved));
+ 		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
+ 	}
  
- 	return 0;
- }
-@@ -395,6 +410,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -408,10 +424,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
- 			}
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (get_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (get_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
-@@ -468,6 +480,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -475,10 +488,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			if (put_user(kp->m.userptr, &up->m.userptr))
- 				return -EFAULT;
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (put_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (put_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
+@@ -281,6 +285,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
+ 
++		memset(crop->reserved, 0, sizeof(crop->reserved));
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+@@ -298,6 +303,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		struct v4l2_subdev_crop *crop = arg;
+ 		struct v4l2_subdev_selection sel;
+ 
++		memset(crop->reserved, 0, sizeof(crop->reserved));
+ 		rval = check_crop(sd, crop);
+ 		if (rval)
+ 			return rval;
+@@ -326,6 +332,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (code->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
++		memset(code->reserved, 0, sizeof(code->reserved));
+ 		return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh->pad,
+ 					code);
+ 	}
+@@ -340,6 +347,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (fse->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
++		memset(fse->reserved, 0, sizeof(fse->reserved));
+ 		return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh->pad,
+ 					fse);
+ 	}
+@@ -350,6 +358,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (fi->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
++		memset(fi->reserved, 0, sizeof(fi->reserved));
+ 		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
+ 	}
+ 
+@@ -359,6 +368,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (fi->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
++		memset(fi->reserved, 0, sizeof(fi->reserved));
+ 		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
+ 	}
+ 
+@@ -372,6 +382,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (fie->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
++		memset(fie->reserved, 0, sizeof(fie->reserved));
+ 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh->pad,
+ 					fie);
+ 	}
+@@ -383,6 +394,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
+ 
++		memset(sel->reserved, 0, sizeof(sel->reserved));
+ 		return v4l2_subdev_call(
+ 			sd, pad, get_selection, subdev_fh->pad, sel);
+ 	}
+@@ -394,6 +406,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (rval)
+ 			return rval;
+ 
++		memset(sel->reserved, 0, sizeof(sel->reserved));
+ 		return v4l2_subdev_call(
+ 			sd, pad, set_selection, subdev_fh->pad, sel);
+ 	}
 -- 
 2.15.1
