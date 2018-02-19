@@ -1,144 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53537 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966007AbeBMX2D (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:59469 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753336AbeBSRGp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 18:28:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 10/30] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
-Date: Wed, 14 Feb 2018 01:28:34 +0200
-Message-ID: <6569122.ZeLMKUb12N@avalon>
-In-Reply-To: <20180213231250.GA23581@bigcity.dyn.berto.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <3791727.mLP5MD9T4p@avalon> <20180213231250.GA23581@bigcity.dyn.berto.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        Mon, 19 Feb 2018 12:06:45 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v9 02/11] include: media: Add Renesas CEU driver interface
+Date: Mon, 19 Feb 2018 17:59:35 +0100
+Message-Id: <1519059584-30844-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Add renesas-ceu header file.
 
-On Wednesday, 14 February 2018 01:12:50 EET Niklas S=F6derlund wrote:
-> On 2018-02-14 00:31:21 +0200, Laurent Pinchart wrote:
-> > On Tuesday, 13 February 2018 18:47:04 EET Niklas S=F6derlund wrote:
-> >> On 2018-02-13 18:26:34 +0200, Laurent Pinchart wrote:
-> >>> On Monday, 29 January 2018 18:34:15 EET Niklas S=F6derlund wrote:
-> >>>> There was never proper support in the VIN driver to deliver
-> >>>> ALTERNATING field format to user-space, remove this field option. The
-> >>>> problem is that ALTERNATING filed order requires the sequence numbers
-> >>>> of buffers returned to userspace to reflect if fields where dropped =
-or
-> >>>> not, something which is not possible with the VIN drivers capture
-> >>>> logic.
-> >>>>=20
-> >>>> The VIN driver can still capture from a video source which delivers
-> >>>> frames in ALTERNATING field order, but needs to combine them using
-> >>>> the VIN hardware into INTERLACED field order. Before this change if a
-> >>>> source was delivering fields using ALTERNATE the driver would default
-> >>>> to combining them using this hardware feature. Only if the user
-> >>>> explicitly requested ALTERNATE filed order would incorrect frames be
-> >>>> delivered.
-> >>>>=20
-> >>>> The height should not be cut in half for the format for TOP or BOTTOM
-> >>>> fields settings. This was a mistake and it was made visible by the
-> >>>> scaling refactoring. Correct behavior is that the user should request
-> >>>> a frame size that fits the half height frame reflected in the field
-> >>>> setting. If not the VIN will do its best to scale the top or bottom
-> >>>> to the requested format and cropping and scaling do not work as
-> >>>> expected.
-> >>>>=20
-> >>>> Signed-off-by: Niklas S=F6derlund
-> >>>> <niklas.soderlund+renesas@ragnatech.se>
-> >>>> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> ---
-> >>>>=20
-> >>>>  drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +-------
-> >>>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 53
-> >>>>  +++++++++++------------
-> >>>>  2 files changed, 24 insertions(+), 44 deletions(-)
-> >=20
-> > [snip]
-> >=20
-> >>>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> >>>> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> >>>> 4d5be2d0c79c9c9a..9f7902d29c62e205 100644
-> >>>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> >>>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> >>>> @@ -103,6 +103,28 @@ static int rvin_get_source_format(struct
-> >>>> rvin_dev *vin,
-> >>>>  	if (ret)
-> >>>>  		return ret;
-> >>>>=20
-> >>>> +	switch (fmt.format.field) {
-> >>>> +	case V4L2_FIELD_TOP:
-> >>>> +	case V4L2_FIELD_BOTTOM:
-> >>>> +	case V4L2_FIELD_NONE:
-> >>>> +	case V4L2_FIELD_INTERLACED_TB:
-> >>>> +	case V4L2_FIELD_INTERLACED_BT:
-> >>>> +	case V4L2_FIELD_INTERLACED:
-> >>>> +		break;
-> >>>> +	case V4L2_FIELD_ALTERNATE:
-> >>>> +		/*
-> >>>> +		 * Driver do not (yet) support outputting ALTERNATE to a
-> >>>> +		 * userspace. It dose support outputting INTERLACED so use
-> >>>=20
-> >>> s/dose/does/
-> >>>=20
-> >>>> +		 * the VIN hardware to combine the two fields.
-> >>>> +		 */
-> >>>> +		fmt.format.field =3D V4L2_FIELD_INTERLACED;
-> >>>> +		fmt.format.height *=3D 2;
-> >>>> +		break;
-> >>>=20
-> >>> I don't like this much. The rvin_get_source_format() function is
-> >>> supposed to return the media bus format for the bus between the source
-> >>> and the VIN. It's the caller that should take the field limitations i=
-nto
-> >>> account, otherwise you end up with a mix of source and VIN data in the
-> >>> same structure.
-> >>=20
-> >> When I read your comments I understand your argument better. And I
-> >> understand this function is perhaps poorly named. Maybe it should be
-> >> renamed to rvin_get_vin_format_from_source().
-> >=20
-> > If you add a comment above the function I could live with that. Would it
-> > make sense to pass a v4l2_pix_format structure instead of a
-> > v4l2_mbus_framefmt ?
->=20
-> I now see that the function name is misleading and I will change it as
-> per above. I will also add a comment and swap to v4l2_pix_format (which
-> was used before v10 but was changed due to your review comments, I'm
-> happy you come around :-)
+Do not remove the existing sh_mobile_ceu.h one as long as the original
+driver does not go away.
 
-The argument type has to be consistent with the function's purpose and name=
-=2E=20
-Now that you propose changing the function's purpose, my previous comments=
-=20
-have to be updated. And I'm annoyed that you have such a good memory, it=20
-forces me to invent excuses :-)
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
 
-> >> The source format is fetched at s_stream() time in order to do format
-> >> validation. At this time the field is also taken into account once more
-> >> to validate that the VIN format (calculated here) still is valid. It
-> >> also handles the question you ask later at s_stream() time, see bellow.
-> >>=20
-> >>>> +	default:
-> >>>> +		vin->format.field =3D V4L2_FIELD_NONE;
-> >>>> +		break;
-> >>>> +	}
-> >>>> +
-> >>>>  	memcpy(mbus_fmt, &fmt.format, sizeof(*mbus_fmt));
-> >>>>  =09
-> >>>>  	return 0;
-
-[snip]
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
+new file mode 100644
+index 0000000..52841d1
+--- /dev/null
++++ b/include/media/drv-intf/renesas-ceu.h
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * renesas-ceu.h - Renesas CEU driver interface
++ *
++ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ */
++
++#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
++#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
++
++#define CEU_MAX_SUBDEVS		2
++
++struct ceu_async_subdev {
++	unsigned long flags;
++	unsigned char bus_width;
++	unsigned char bus_shift;
++	unsigned int i2c_adapter_id;
++	unsigned int i2c_address;
++};
++
++struct ceu_platform_data {
++	unsigned int num_subdevs;
++	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
++};
++
++#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
+-- 
+2.7.4
