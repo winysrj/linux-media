@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:43328 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751482AbeBXSzr (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49005 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753549AbeBSTSx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 13:55:47 -0500
-Received: by mail-wr0-f194.google.com with SMTP id u49so17217199wrc.10
-        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:47 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 10/12] [media] ngene: don't treat non-existing demods as error
-Date: Sat, 24 Feb 2018 19:55:32 +0100
-Message-Id: <20180224185534.13792-11-d.scheller.oss@gmail.com>
-In-Reply-To: <20180224185534.13792-1-d.scheller.oss@gmail.com>
-References: <20180224185534.13792-1-d.scheller.oss@gmail.com>
+        Mon, 19 Feb 2018 14:18:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: magnus.damm@gmail.com, geert@glider.be, hverkuil@xs4all.nl,
+        mchehab@kernel.org, festevam@gmail.com, sakari.ailus@iki.fi,
+        robh+dt@kernel.org, mark.rutland@arm.com, pombredanne@nexb.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
+Date: Mon, 19 Feb 2018 21:19:32 +0200
+Message-ID: <1963190.TI9O1pFqZp@avalon>
+In-Reply-To: <1519059584-30844-12-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org> <1519059584-30844-12-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Jacopo,
 
-When probing the I2C busses in cineS2_probe(), it's no error when there's
-no hardware connected to the probed expansion connector, so print this
-informal message with info severity.
+Thank you for the patch.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ngene/ngene-cards.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
+> The sensor driver sets mbus format colorspace information and sizes,
+> but not ycbcr encoding, quantization and xfer function. When supplied
+> with an badly initialized mbus frame format structure, those fields
+> need to be set explicitly not to leave them uninitialized. This is
+> tested by v4l2-compliance, which supplies a mbus format description
+> structure and checks for all fields to be properly set.
+> 
+> Without this commit, v4l2-compliance fails when testing formats with:
+> fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/i2c/ov7670.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index 25b26d4..61c472e 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev
+> *sd, fmt->height = wsize->height;
+>  	fmt->colorspace = ov7670_formats[index].colorspace;
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index d603d0af703e..37e9f0eb6d20 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -728,7 +728,7 @@ static int cineS2_probe(struct ngene_channel *chan)
- 		dev_info(pdev, "STV0367 on channel %d\n", chan->number);
- 		demod_attach_stv0367(chan, i2c);
- 	} else {
--		dev_err(pdev, "No demod found on chan %d\n", chan->number);
-+		dev_info(pdev, "No demod found on chan %d\n", chan->number);
- 		return -ENODEV;
- 	}
- 	return 0;
+On a side note, if I'm not mistaken the colorspace field is set to SRGB for 
+all entries. Shouldn't you hardcode it here and remove the field ?
+
+> +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
+> +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
+> +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
+
+How about setting the values explicitly instead of relying on defaults ? That 
+would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and 
+V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see if the 
+sensor outputs limited or full range ?
+
+>  	info->format = *fmt;
+> 
+>  	return 0;
+
 -- 
-2.16.1
+Regards,
+
+Laurent Pinchart
