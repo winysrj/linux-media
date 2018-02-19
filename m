@@ -1,35 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49290 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751797AbeBDWK1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47911 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752633AbeBSQTQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 17:10:27 -0500
-Date: Mon, 5 Feb 2018 00:10:24 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media-types.rst: fix type, small improvements
-Message-ID: <20180204221024.qki4maf7qzsntsc7@valkosipuli.retiisi.org.uk>
-References: <e23dc203-bad7-229c-2d91-a6763b4f99ed@xs4all.nl>
+        Mon, 19 Feb 2018 11:19:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Alexandre-Xavier =?ISO-8859-1?Q?Labont=E9=2DLamoureux?=
+        <axdoomer@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
+Date: Mon, 19 Feb 2018 18:19:55 +0200
+Message-ID: <3383770.t3Sncl0gtc@avalon>
+In-Reply-To: <alpine.DEB.2.20.1802191456110.8694@axis700.grange>
+References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com> <dd70c226-e7db-e55e-e467-a6b0d1e7849d@ideasonboard.com> <alpine.DEB.2.20.1802191456110.8694@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e23dc203-bad7-229c-2d91-a6763b4f99ed@xs4all.nl>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 04, 2018 at 02:40:37PM +0100, Hans Verkuil wrote:
-> data conector -> connector
-> 
-> ... -> etc.
-> 
-> ... looked odd when my browser put the ... by itself on the next line, 'etc.'
-> is clearer IMHO.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Monday, 19 February 2018 15:58:40 EET Guennadi Liakhovetski wrote:
+> On Mon, 19 Feb 2018, Kieran Bingham wrote:
+> > On 17/02/18 20:47, Alexandre-Xavier Labont=E9-Lamoureux wrote:
+> >> Hi,
+> >>=20
+> >> I'm running Linux 4.9.0-5-amd64 on Debian. I built the drivers from
+> >> the latest git and installed the modules.
+> >=20
+> > Could you please be specific here?
+> >=20
+> > Are you referring to linux-media/master branch or such? The latest from
+> > Linus' tree?
+> >=20
+> > Please also detail the steps you have taken to reproduce this issue - a=
+nd
+> > of course - if you have made any code changes to make the latest UVC
+> > module compile against a v4.9 kernel...
+> >=20
+> > Building the latest git tree and installing as a module on a v4.9 kernel
+> > is quite a leap... I wouldn't have expected that to work.
+> >=20
+> > The code would have to be compiled against a v4.9 kernel directly, and I
+> > didn't think compiling the UVC driver against older kernels worked.
+> >=20
+> > (at least it didn't work cleanly when I tried to compile v4.15 against a
+> > v4.14 kernel last month)
+> >=20
+> >> Now, two device nodes are created for my webcam. This is not normal as
+> >> it has never happened to me before. If I connect another webcam to my
+> >> laptop, two more device nodes will be created for this webcam. So two
+> >> new device nodes are created for a single webcam.
+> >=20
+> > I believe Guennadi's latest work for handling meta-data (in the latest
+> > v4.16-rc1 I think) will create two device nodes.
+>=20
+> That's correct. The lower index node (/dev/video0) is a video node, the
+> higher videoo node (/dev/video1) is a metadata node.
+>=20
+> > > The name of my webcam appears twice in the device comobox in Guvcview
+> > > because of this. One of them will not work if I select it.
+> >=20
+> > It would be expected that only the device with video functions as a
+> > streaming camera device, while the other would not.
+>=20
+> Exactly.
+>=20
+> > > My webcam has completely stopped working with Cheese and VLC.
+> >=20
+> > This part is of particular concern however.
+> >=20
+> > Guennadi - Have you tested Cheese/VLC with your series?
+>=20
+> Sure, with cheese you can specify which camera you need by using its
+> --device=3D parameter. Eventually it's expected, that those programs will=
+ be
+> updated to recognise metadata nodes and not attempt to use them.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+I've tested VLC (2.2.8) and haven't noticed any issue. If a program is=20
+directed to the metadata video node and tries to capture video from it it w=
+ill=20
+obviously fail. That being said, software that work today should continue=20
+working, otherwise it's a regression, and we'll have to handle that.
+
+> > Are there any known issues that need looking at ?
+> >=20
+> >>> v4l2-ctl --list-devices
+> >>=20
+> >> Laptop_Integrated_Webcam_E4HD:  (usb-0000:00:1a.0-1.5):
+> >>     /dev/video0
+> >>     /dev/video1
+> >>>=20
+> >>> ls /dev/video*
+> >>=20
+> >> /dev/video0  /dev/video1
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
