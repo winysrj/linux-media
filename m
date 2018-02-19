@@ -1,122 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33612 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753712AbeBVMOK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:14:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
-Date: Thu, 22 Feb 2018 14:14:53 +0200
-Message-ID: <2864762.IPlziE6Y0S@avalon>
-In-Reply-To: <20180222120412.GL7203@w540>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org> <56271779.hLAmkO6BAC@avalon> <20180222120412.GL7203@w540>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:33352 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752897AbeBSQ31 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Feb 2018 11:29:27 -0500
+Subject: Re: [PATCH 1/8] clk: Add clk_bulk_alloc functions
+To: Maciej Purski <m.purski@samsung.com>, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc: David Airlie <airlied@linux.ie>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+ <CGME20180219154456eucas1p15f4073beaf61312238f142f217a8bb3c@eucas1p1.samsung.com>
+ <1519055046-2399-2-git-send-email-m.purski@samsung.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Message-ID: <b67b5043-f5e5-826a-f0b8-f7cf722c61e6@arm.com>
+Date: Mon, 19 Feb 2018 16:29:12 +0000
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1519055046-2399-2-git-send-email-m.purski@samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hi Maciej,
 
-On Thursday, 22 February 2018 14:04:12 EET jacopo mondi wrote:
-> On Wed, Feb 21, 2018 at 10:28:06PM +0200, Laurent Pinchart wrote:
-> > On Tuesday, 20 February 2018 10:58:57 EET jacopo mondi wrote:
-> > > On Mon, Feb 19, 2018 at 09:19:32PM +0200, Laurent Pinchart wrote:
-> > > > On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
-> > > >> The sensor driver sets mbus format colorspace information and sizes,
-> > > >> but not ycbcr encoding, quantization and xfer function. When supplied
-> > > >> with an badly initialized mbus frame format structure, those fields
-> > > >> need to be set explicitly not to leave them uninitialized. This is
-> > > >> tested by v4l2-compliance, which supplies a mbus format description
-> > > >> structure and checks for all fields to be properly set.
-> > > >> 
-> > > >> Without this commit, v4l2-compliance fails when testing formats with:
-> > > >> fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
-> > > >> 
-> > > >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > > >> ---
-> > > >> 
-> > > >>  drivers/media/i2c/ov7670.c | 4 ++++
-> > > >>  1 file changed, 4 insertions(+)
-> > > >> 
-> > > >> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> > > >> index 25b26d4..61c472e 100644
-> > > >> --- a/drivers/media/i2c/ov7670.c
-> > > >> +++ b/drivers/media/i2c/ov7670.c
-> > > >> @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct
-> > > >> v4l2_subdev
-> > > >> *sd, fmt->height = wsize->height;
-> > > >> 
-> > > >>  	fmt->colorspace = ov7670_formats[index].colorspace;
-> > > > 
-> > > > On a side note, if I'm not mistaken the colorspace field is set to
-> > > > SRGB
-> > > > for all entries. Shouldn't you hardcode it here and remove the field ?
-> > > > 
-> > > >> +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-> > > >> +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-> > > >> +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-> > > > 
-> > > > How about setting the values explicitly instead of relying on defaults
-> > > > ?
-> > > > That would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and
-> > > > V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see
-> > > > if
-> > > > the sensor outputs limited or full range ?
-> > > 
-> > > This actually makes me wonder if those informations (ycbcb_enc,
-> > > quantization and xfer_func) shouldn't actually be part of the
-> > > supported format list... I blindly added those default fields in the
-> > > try_fmt function, but I doubt they applies to all supported formats.
-> > > 
-> > > Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
-> > > RGB 565) and 1 raw format (BGGR). I now have a question here:
-> > > 
-> > > 1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
-> > > applies to RGB and raw formats? I don't think so, and what value is
-> > > the correct one for the ycbcr_enc field in this case? I assume
-> > > xfer_func and quantization applies to all formats instead..
-> > 
-> > There's no encoding for RGB formats if I understand things correctly, so
-> > I'd set ycbcr_enc to V4L2_YCBCR_ENC_DEFAULT. The transfer function and
-> > the quantization apply to all formats, but I'd be surprised to find a
-> > sensor outputting limited range for RGB.
+On 19/02/18 15:43, Maciej Purski wrote:
+> When a driver is going to use clk_bulk_get() function, it has to
+> initialize an array of clk_bulk_data, by filling its id fields.
 > 
-> Ack, we got the same understanding for RGB formats. I wonder if for
-> those formats we wouldn't need a V4L2_YCBCR_ENC_NONE or similar...
+> Add a new function to the core, which dynamically allocates
+> clk_bulk_data array and fills its id fields. Add clk_bulk_free()
+> function, which frees the array allocated by clk_bulk_alloc() function.
+> Add a managed version of clk_bulk_alloc().
 
-That, or explicitly documenting that when the format is not YUV the field 
-should be set by both drivers and applications to V4L2_YCBCR_ENC_DEFAULT when 
-written and ignored when read.
+Seeing how every subsequent patch ends up with the roughly this same stanza:
 
-> > Have you been able to check whether the sensor outputs limited range of
-> > full range YUV ? If it outputs full range you can hardcode quantization
-> > to V4L2_QUANTIZATION_FULL_RANGE for all formats.
+	x = devm_clk_bulk_alloc(dev, num, names);
+	if (IS_ERR(x)
+		return PTR_ERR(x);
+	ret = devm_clk_bulk_get(dev, x, num);
+
+I wonder if it might be better to simply implement:
+
+	int devm_clk_bulk_alloc_get(dev, &x, num, names)
+
+that does the whole lot in one go, and let drivers that want to do more 
+fiddly things continue to open-code the allocation.
+
+But perhaps that's an abstraction too far... I'm not all that familiar 
+with the lie of the land here.
+
+> Signed-off-by: Maciej Purski <m.purski@samsung.com>
+> ---
+>   drivers/clk/clk-bulk.c   | 16 ++++++++++++
+>   drivers/clk/clk-devres.c | 37 +++++++++++++++++++++++++---
+>   include/linux/clk.h      | 64 ++++++++++++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 113 insertions(+), 4 deletions(-)
 > 
-> In YUYV mode, I see values > 0xf0 ( > 240, which is the max value for
-> CbCr samples in limited quantization range), so I assume quantization
-> is full range.
 
-It should be, yes. What's the minimum and maximum values you get ?
+[...]
+> @@ -598,6 +645,23 @@ struct clk *clk_get_sys(const char *dev_id, const char *con_id);
+>   
+>   #else /* !CONFIG_HAVE_CLK */
+>   
+> +static inline struct clk_bulk_data *clk_bulk_alloc(int num_clks,
+> +						   const char **clk_ids)
+> +{
+> +	return NULL;
 
-> Actually the hardest part here was having a white enough surface to
-> point the sensor to :)
+Either way, is it intentional not returning an ERR_PTR() value in this 
+case? Since NULL will pass an IS_ERR() check, it seems a bit fragile for 
+an allocation call to apparently succeed when the whole API is 
+configured out (and I believe introducing new uses of IS_ERR_OR_NULL() 
+is in general strongly discouraged.)
 
-Pointing a flashlight to the sensor usually does the trick.
+Robin.
 
-> >>>>  	info->format = *fmt;
-> >>>>  	
-> >>>>  	return 0;
-
--- 
-Regards,
-
-Laurent Pinchart
+> +}
+> +
+> +static inline struct clk_bulk_data *devm_clk_bulk_alloc(struct device *dev,
+> +							int num_clks,
+> +							const char **clk_ids)
+> +{
+> +	return NULL;
+> +}
+> +
+> +static inline void clk_bulk_free(struct clk_bulk_data *clks)
+> +{
+> +}
+> +
+>   static inline struct clk *clk_get(struct device *dev, const char *id)
+>   {
+>   	return NULL;
+> 
