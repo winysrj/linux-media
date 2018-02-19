@@ -1,135 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39086 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751022AbeBZI5M (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39128 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752377AbeBSKiL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 03:57:12 -0500
+        Mon, 19 Feb 2018 05:38:11 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, dri-devel@lists.freedesktop.org,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/6] cec: add core error injection support
-Date: Mon, 26 Feb 2018 09:57:01 +0100
-Message-Id: <20180226085706.41526-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180226085706.41526-1-hverkuil@xs4all.nl>
-References: <20180226085706.41526-1-hverkuil@xs4all.nl>
+Subject: [PATCHv3 00/15] Media Controller compliance fixes
+Date: Mon, 19 Feb 2018 11:37:51 +0100
+Message-Id: <20180219103806.17032-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add two new ops (error_inj_show and error_inj_parse_line) to support
-error injection functionality for CEC adapters. If both are present,
-then the core will add a new error-inj debugfs file that can be used
-to see the current error injection commands and to set error injection
-commands.
+Hi all,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-core.c | 58 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/cec.h          |  5 ++++
- 2 files changed, 63 insertions(+)
+Here is v3 of this patch series fixing various MC compliance and 
+documentation issues.
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index e47ea22b3c23..ea3eccfdba15 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -195,6 +195,55 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
- EXPORT_SYMBOL_GPL(cec_register_cec_notifier);
- #endif
- 
-+#ifdef CONFIG_DEBUG_FS
-+static ssize_t cec_error_inj_write(struct file *file,
-+	const char __user *ubuf, size_t count, loff_t *ppos)
-+{
-+	struct seq_file *sf = file->private_data;
-+	struct cec_adapter *adap = sf->private;
-+	char *buf;
-+	char *line;
-+	char *p;
-+
-+	buf = memdup_user_nul(ubuf, min_t(size_t, PAGE_SIZE, count));
-+	if (IS_ERR(buf))
-+		return PTR_ERR(buf);
-+	p = buf;
-+	while (p && *p && count >= 0) {
-+		p = skip_spaces(p);
-+		line = strsep(&p, "\n");
-+		if (!*line || *line == '#')
-+			continue;
-+		if (!adap->ops->error_inj_parse_line(adap, line)) {
-+			count = -EINVAL;
-+			break;
-+		}
-+	}
-+	kfree(buf);
-+	return count;
-+}
-+
-+static int cec_error_inj_show(struct seq_file *sf, void *unused)
-+{
-+	struct cec_adapter *adap = sf->private;
-+
-+	return adap->ops->error_inj_show(adap, sf);
-+}
-+
-+static int cec_error_inj_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, cec_error_inj_show, inode->i_private);
-+}
-+
-+static const struct file_operations cec_error_inj_fops = {
-+	.open = cec_error_inj_open,
-+	.write = cec_error_inj_write,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = single_release,
-+};
-+#endif
-+
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 					 void *priv, const char *name, u32 caps,
- 					 u8 available_las)
-@@ -334,7 +383,16 @@ int cec_register_adapter(struct cec_adapter *adap,
- 		pr_warn("cec-%s: Failed to create status file\n", adap->name);
- 		debugfs_remove_recursive(adap->cec_dir);
- 		adap->cec_dir = NULL;
-+		return 0;
- 	}
-+	if (!adap->ops->error_inj_show || !adap->ops->error_inj_parse_line)
-+		return 0;
-+	adap->error_inj_file = debugfs_create_file("error-inj", 0644,
-+						   adap->cec_dir, adap,
-+						   &cec_error_inj_fops);
-+	if (IS_ERR_OR_NULL(adap->error_inj_file))
-+		pr_warn("cec-%s: Failed to create error-inj file\n",
-+			adap->name);
- #endif
- 	return 0;
- }
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 9afba9b558df..41df048efc55 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -117,6 +117,10 @@ struct cec_adap_ops {
- 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
- 	void (*adap_free)(struct cec_adapter *adap);
- 
-+	/* Error injection callbacks */
-+	int (*error_inj_show)(struct cec_adapter *adap, struct seq_file *sf);
-+	bool (*error_inj_parse_line)(struct cec_adapter *adap, char *line);
-+
- 	/* High-level CEC message callback */
- 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
- };
-@@ -189,6 +193,7 @@ struct cec_adapter {
- 
- 	struct dentry *cec_dir;
- 	struct dentry *status_file;
-+	struct dentry *error_inj_file;
- 
- 	u16 phys_addrs[15];
- 	u32 sequence;
+Changes since v2:
+
+- I dropped "v4l2-ioctl.c: fix VIDIOC_DV_TIMINGS_CAP: don't clear pad"
+  as it is already included in the pull request for the tda1997x driver
+  which needs this fix.
+- I added a TODO as requested by Sakari to "v4l2-subdev: without controls 
+  return -ENOTTY"
+- The "media: document and zero reservedX fields in media_v2_topology"
+  patch has been split up in separate code and doc patches.
+- I now also zero the reserved field of struct media_links_enum.
+  (Thanks Sakari!)
+- Rebased and added Acks from Sakari.
+- Added missing documentation for the reserved field of struct
+  media_links_enum.
+- Instead of requiring that apps and drivers zero the reserved fields,
+  now change that to just drivers.
+
+Please check patches 13 and 14 and see if you agree with the proposed
+text (i.e. drivers should zero these fields). Or should apps also
+zero the fields? Realistically the only time this might make sense is with
+the SETUP_LINK ioctl. But since we never documented this as a requirement,
+I don't think we should suddenly change this.
+
+Sakari, I dropped your Ack from patch 14 since I changed the wording in
+this version.
+
+I kept the controversial VIDIOC_DBG_G_CHIP_INFO patch. In my opinion this
+is useful and I see no reason whatsoever not to just fix this API. The
+main reason this API was added at the time was to be able to debug video
+receivers. And it is still actively used for that to this day. We (Cisco)
+would have noticed long ago that this subdev API was missing this ioctl
+if it wasn't for the fact that none of our products use the MC (all just
+use /dev/videoX).
+
+The current situation is that if I have an adv7604 device then this API
+works when used with a non-MC bridge driver through /dev/videoX, but not
+when used with an MC platform driver that exposes a /dev/v4l-subdevX.
+That makes no sense. Just add these 13 lines of code and be done with it.
+
+Please review the other patches first so we don't get bogged down into
+discussions about this patch. It is easy to postpone that patch, it's been
+broken for years and the other patches are much more important.
+
+The final patch reorganizes media.h so it is actually understandable.
+See here for how it looks after the patch is applied:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/plain/include/uapi/linux/media.h?h=media-fixes
+
+The patch itself is hard to read, so looking at the reorganized header
+is easier.
+
+The two core changes in media.h are:
+
+1) all functions are now grouped together
+2) all legacy defines are now all moved to the end of the header
+
+I would really like to see this merged soon. This fixes the most immediate
+problems that I found.
+
+Regards,
+
+	Hans
+
+Alexandre Courbot (1):
+  media: media-types.rst: fix typo
+
+Hans Verkuil (14):
+  vimc: fix control event handling
+  vimc: use correct subdev functions
+  v4l2-subdev: without controls return -ENOTTY
+  v4l2-subdev: clear reserved fields
+  v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO ioctl
+  subdev-formats.rst: fix incorrect types
+  media-ioc-g-topology.rst: fix interface-to-entity link description
+  media-types.rst: fix type, small improvements
+  media-device.c: zero reserved fields
+  media.h: fix confusing typo in comment
+  media: zero reservedX fields in media_v2_topology
+  media: document the reservedX fields in media_v2_topology
+  media-ioc-enum-entities/links.rst: document reserved fields
+  media.h: reorganize header to make it easier to understand
+
+ .../uapi/mediactl/media-ioc-enum-entities.rst      |  18 +-
+ .../media/uapi/mediactl/media-ioc-enum-links.rst   |  25 ++
+ .../media/uapi/mediactl/media-ioc-g-topology.rst   |  54 +++-
+ Documentation/media/uapi/mediactl/media-types.rst  |  12 +-
+ Documentation/media/uapi/v4l/subdev-formats.rst    |   6 +-
+ drivers/media/media-device.c                       |   7 +
+ drivers/media/media-entity.c                       |  16 -
+ drivers/media/platform/vimc/vimc-common.c          |   4 +-
+ drivers/media/platform/vimc/vimc-debayer.c         |   2 +-
+ drivers/media/platform/vimc/vimc-scaler.c          |   2 +-
+ drivers/media/platform/vimc/vimc-sensor.c          |  10 +-
+ drivers/media/v4l2-core/v4l2-subdev.c              |  50 +++
+ include/uapi/linux/media.h                         | 345 ++++++++++-----------
+ 13 files changed, 328 insertions(+), 223 deletions(-)
+
 -- 
-2.15.1
+2.16.1
