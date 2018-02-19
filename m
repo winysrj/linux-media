@@ -1,86 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58257 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751731AbeAZMna (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53090 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753452AbeBSTEq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 07:43:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>
-Subject: [PATCH 00/12] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
-Date: Fri, 26 Jan 2018 13:43:15 +0100
-Message-Id: <20180126124327.16653-1-hverkuil@xs4all.nl>
+        Mon, 19 Feb 2018 14:04:46 -0500
+Date: Mon, 19 Feb 2018 20:04:42 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com,
+        sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        clayton@craftyguy.net, martijn@brixit.nl,
+        Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: next-20180219: camera problems on n900
+Message-ID: <20180219181715.GA19366@amd>
+References: <20171227210543.GA19719@amd>
+ <20171227211718.favif66afztygfje@kekkonen.localdomain>
+ <20171228202453.GA20142@amd>
+ <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="NklN7DEeGtkPCoo3"
+Content-Disposition: inline
+In-Reply-To: <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series fixes a number of bugs and culminates in the removal
-of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
+--NklN7DEeGtkPCoo3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-See http://people.canonical.com/~ubuntu-security/cve/2017/CVE-2017-13166.html
-for why this set_fs call is a bad idea.
+Hi!
 
-In order to test this I used vivid and a 32-bit v4l2-compliance. The
-advantage of vivid is that it implements almost all ioctls, and those
-are all tested by v4l2-compliance. This ensures good test coverage.
+> > > > In v4.14, back camera on N900 works. On v4.15-rc1.. it works for few
+> > > > seconds, but then I get repeated oopses.
+> > > >=20
+> > > > On v4.15-rc0.5 (commit ed30b147e1f6e396e70a52dbb6c7d66befedd786),
+> > > > camera does not start.	 =20
+> > > >=20
+> > > > Any ideas what might be wrong there?
+> > >=20
+> > > What kind of oopses do you get?
+> >=20
+> > Hmm. bisect pointed to commit that can't be responsible.... Ideas
+> > welcome.
+>=20
+> Hi Pavel,
+>=20
+> I tested N9 and capture appears to be working from the CSI-2 receiver
+> (media tree master, i.e. v4.15-rc3 now).
+>=20
+> Which pipeline did you use?
 
-Since I had to track down all failures that v4l2-compliance reported
-in order to verify whether those were introduced by the final patch
-or if those were pre-existing bugs, this series starts off with fixes
-for bugs that v4l2-compliance found, mostly in v4l2-compat-ioctl32.c.
-It is clear that v4l2-compat-ioctl32.c doesn't receive a lot of
-testing.
+I tested next-20180219 and camera does not work there. It leads to
+nasty oops. I tried to capture the oops with dmesg > file, and that
+one oopsed, too. usb networking also has problems... fun.
 
-There are also three patches that just clean up v4l2-compat-ioctl32.c
-in order to simplify the final patch:
+Camera works ok in V4.16-rc1, but if I use the camera, next shutdown
+will oops. I'll try to collect more data there, too.
 
-  v4l2-compat-ioctl32.c: fix the indentation
-  v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-  v4l2-compat-ioctl32.c: avoid sizeof(type)
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-No functional changes are introduced in these three patches.
+--NklN7DEeGtkPCoo3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Note the "fix ctrl_is_pointer" patch: we've discussed this in the past,
-but now I really had to fix this.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-It would be really nice if the next time someone finds a security risk
-in V4L2 core code they would contact the V4L2 maintainers. We only heard
-about this last week, while all the information about this CVE has been
-out there for 6 months or so.
+iEYEARECAAYFAlqLH8oACgkQMOfwapXb+vKrMwCgvQzZUCCQd86YKbYEfqyLpZyt
+0lwAoLJQMkFEUbNfoS3m7W8vc2dtCyWr
+=M7hn
+-----END PGP SIGNATURE-----
 
-Backporting this will be a bit of a nightmare since v4l2-compat-ioctl32.c
-changes frequently, so assuming we'll only backport this to lts kernels
-then for each lts the patch series needs to be adapted. But let's get
-this upstream first before looking at that.
-
-Please review!
-
-Regards,
-
-	Hans
-
-Daniel Mentz (1):
-  v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32
-
-Hans Verkuil (11):
-  vivid: fix module load error when enabling fb and no_error_inj=1
-  v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
-  v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
-  v4l2-compat-ioctl32.c: fix the indentation
-  v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-  v4l2-compat-ioctl32.c: avoid sizeof(type)
-  v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-  v4l2-compat-ioctl32.c: fix ctrl_is_pointer
-  v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-  v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
-  v4l2-compat-ioctl32.c: don't copy back the result for certain errors
-
- drivers/media/platform/vivid/vivid-core.h     |   1 +
- drivers/media/platform/vivid/vivid-ctrls.c    |  35 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 962 +++++++++++++++-----------
- drivers/media/v4l2-core/v4l2-ioctl.c          | 140 ++--
- 4 files changed, 646 insertions(+), 492 deletions(-)
-
--- 
-2.15.1
+--NklN7DEeGtkPCoo3--
