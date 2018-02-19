@@ -1,109 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:44926 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932860AbeBLL47 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49022 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753443AbeBST1N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 06:56:59 -0500
-Received: by mail-qt0-f196.google.com with SMTP id f18so18387728qth.11
-        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 03:56:59 -0800 (PST)
+        Mon, 19 Feb 2018 14:27:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [RFC PATCH] Add core tuner_standby op, use where needed
+Date: Mon, 19 Feb 2018 21:27:51 +0200
+Message-ID: <2482708.3kx7sGYsxZ@avalon>
+In-Reply-To: <b94bf7a2-27b3-94f5-5eb9-88462c92ca38@xs4all.nl>
+References: <b94bf7a2-27b3-94f5-5eb9-88462c92ca38@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <259fa00659be126f371ecfa4d75a7830107c3eea.1516008708.git.sean@mess.org>
-References: <cover.1516008708.git.sean@mess.org> <259fa00659be126f371ecfa4d75a7830107c3eea.1516008708.git.sean@mess.org>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Mon, 12 Feb 2018 12:56:58 +0100
-Message-ID: <CANiq72krrK7S36atHbJNVirJXvtv8-C3OqiKGx7c=L+FzWeenw@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_=5BPATCH_3=2F5=5D_auxdisplay=3A_charlcd=3A_add_escape_sequ?=
-        =?UTF-8?Q?ence_for_brightness_on_NEC_=C2=B5PD16314?=
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 15, 2018 at 10:58 AM, Sean Young <sean@mess.org> wrote:
-> The NEC =C2=B5PD16314 can alter the the brightness of the LCD. Make it po=
-ssible
-> to set this via escape sequence Y0 - Y3. B and R were already taken, so
-> I picked Y for luminance.
->
-> Signed-off-by: Sean Young <sean@mess.org>
+Hi Hans,
 
-CC'ing Willy and Geert.
+Thank you for the patch.
 
+On Monday, 19 February 2018 15:12:05 EET Hans Verkuil wrote:
+> The v4l2_subdev core s_power op was used to two different things: power
+> on/off sensors or video decoders/encoders and to put a tuner in standby
+> (and only the tuner). There is no 'tuner wakeup' op, that's done
+> automatically when the tuner is accessed.
+> 
+> The danger with calling (s_power, 0) to put a tuner into standby is that it
+> is usually broadcast for all subdevs. So a video receiver subdev that also
+> supports s_power will also be powered off, and since there is no
+> corresponding (s_power, 1) they will never be powered on again.
+> 
+> In addition, this is specifically meant for tuners only since they draw the
+> most current.
+> 
+> This patch adds a new core op called 'tuner_standby' and replaces all calls
+> to (s_power, 0) by tuner_standby. This prevents confusion between the two
+> uses of s_power. Note that there is no overlap: bridge drivers either just
+> want to put the tuner into standby, or they deal with powering on/off
+> sensors. Never both.
+> 
+> This also makes it easier to replace s_power for the remaining bridge
+> drivers with some PM code later.
+> 
+> Whether we want something similar for tuners in the future is a separate
+> topic. There is a lot of legacy code surrounding tuners, and I am very
+> hesitant about making changes there.
+
+While I don't request you to make changes, someone should. I assume the tuners 
+are still maintained, aren't they ? :-)
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  drivers/auxdisplay/charlcd.c | 20 ++++++++++++++++++--
->  1 file changed, 18 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/auxdisplay/charlcd.c b/drivers/auxdisplay/charlcd.c
-> index a16c72779722..7a671ad959d1 100644
-> --- a/drivers/auxdisplay/charlcd.c
-> +++ b/drivers/auxdisplay/charlcd.c
-> @@ -39,6 +39,8 @@
->  #define LCD_FLAG_F             0x0020  /* Large font mode */
->  #define LCD_FLAG_N             0x0040  /* 2-rows mode */
->  #define LCD_FLAG_L             0x0080  /* Backlight enabled */
-> +#define LCD_BRIGHTNESS_MASK    0x0300  /* Brightness */
-> +#define LCD_BRIGHTNESS_SHIFT   8
 
-Not sure about the name (since the brightness is also used in
-priv->flags). By the way, should we start using the bitops.h stuff
-(e.g. BIT(9) | BIT(8), GENMASK(9, 8)...) in new code? Not sure how
-widespread they are.
+[snip]
+ 
+>  static const struct v4l2_subdev_tuner_ops tuner_tuner_ops = {
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 980a86c08fce..b214da92a5c0 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -184,6 +184,9 @@ struct v4l2_subdev_io_pin_config {
+>   * @s_power: puts subdevice in power saving mode (on == 0) or normal
+> operation *	mode (on == 1).
+>   *
+> + * @tuner_standby: puts the tuner in standby mode. It will be woken up
+> + *	automatically the next time it is used.
+> + *
+>   * @interrupt_service_routine: Called by the bridge chip's interrupt
+> service
+>   *	handler, when an interrupt status has be raised due to this subdev,
+>   *	so that this subdev can handle the details.  It may schedule work to be
+> @@ -212,6 +215,7 @@ struct v4l2_subdev_core_ops {
+>  	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register
+> *reg); #endif
+>  	int (*s_power)(struct v4l2_subdev *sd, int on);
+> +	int (*tuner_standby)(struct v4l2_subdev *sd);
 
->
->  /* LCD commands */
->  #define LCD_CMD_DISPLAY_CLEAR  0x01    /* Clear entire display */
-> @@ -490,6 +492,17 @@ static inline int handle_lcd_special_code(struct cha=
-rlcd *lcd)
->                 charlcd_gotoxy(lcd);
->                 processed =3D 1;
->                 break;
-> +       case 'Y':       /* brightness (luma) */
-> +               switch (esc[1]) {
-> +               case '0':       /* 25% */
-> +               case '1':       /* 50% */
-> +               case '2':       /* 75% */
-> +               case '3':       /* 100% */
-> +                       priv->flags =3D (priv->flags & ~(LCD_BRIGHTNESS_M=
-ASK)) |
-> +                               (('3' - esc[1]) << LCD_BRIGHTNESS_SHIFT);
-> +                       processed =3D  1;
-> +                       break;
-> +               }
->         }
->
->         /* TODO: This indent party here got ugly, clean it! */
-> @@ -507,12 +520,15 @@ static inline int handle_lcd_special_code(struct ch=
-arlcd *lcd)
->                         ((priv->flags & LCD_FLAG_C) ? LCD_CMD_CURSOR_ON :=
- 0) |
->                         ((priv->flags & LCD_FLAG_B) ? LCD_CMD_BLINK_ON : =
-0));
->         /* check whether one of F,N flags was changed */
+If it's a tuner operation, how about moving it to v4l2_subdev_tuner_ops ? That 
+would at least make it clear that it shouldn't be used by other drivers (and I 
+think we should also mention in the documentation that this is a legacy 
+operation that shouldn't be used for any new purpose).
 
-Should we add "or brightness" to the comment?
+>  	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
+>  						u32 status, bool *handled);
+>  	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
 
-> -       else if ((oldflags ^ priv->flags) & (LCD_FLAG_F | LCD_FLAG_N))
-> +       else if ((oldflags ^ priv->flags) & (LCD_FLAG_F | LCD_FLAG_N |
-> +                                            LCD_BRIGHTNESS_MASK))
->                 lcd->ops->write_cmd(lcd,
->                         LCD_CMD_FUNCTION_SET |
->                         ((lcd->ifwidth =3D=3D 8) ? LCD_CMD_DATA_LEN_8BITS=
- : 0) |
->                         ((priv->flags & LCD_FLAG_F) ? LCD_CMD_FONT_5X10_D=
-OTS : 0) |
-> -                       ((priv->flags & LCD_FLAG_N) ? LCD_CMD_TWO_LINES :=
- 0));
-> +                       ((priv->flags & LCD_FLAG_N) ? LCD_CMD_TWO_LINES :=
- 0) |
-> +                       ((priv->flags & LCD_BRIGHTNESS_MASK) >>
-> +                                                       LCD_BRIGHTNESS_SH=
-IFT));
->         /* check whether L flag was changed */
->         else if ((oldflags ^ priv->flags) & LCD_FLAG_L)
->                 charlcd_backlight(lcd, !!(priv->flags & LCD_FLAG_L));
-> --
-> 2.14.3
->
+I'd prefer the bridge drivers to be fixed to use s_power in a balanced way, 
+but I understand that it might be difficult to achieve in a timely fashion. 
+I'm thus not against this patch, but I don't think it makes too much sense to 
+merge it without a user, that is a patch series that works on removing 
+s_power.
+
+-- 
+Regards,
+
+Laurent Pinchart
