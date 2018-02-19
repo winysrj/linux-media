@@ -1,115 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:47049 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751405AbeBWO4o (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:37278 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752875AbeBSOII (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 09:56:44 -0500
-Received: by mail-wr0-f195.google.com with SMTP id 34so14367691wre.13
-        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 06:56:43 -0800 (PST)
-References: <20180222102338.28896-1-rui.silva@linaro.org> <20180222102338.28896-2-rui.silva@linaro.org> <20180222105932.t4j7ranj2qp4jhj6@paasikivi.fi.intel.com>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: ov2680: dt: Add bindings for OV2680
-In-reply-to: <20180222105932.t4j7ranj2qp4jhj6@paasikivi.fi.intel.com>
-Date: Fri, 23 Feb 2018 14:56:41 +0000
-Message-ID: <m3k1v3kb4m.fsf@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+        Mon, 19 Feb 2018 09:08:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 05/10] staging: atomisp: i2c: Disable non-preview configurations
+Date: Mon, 19 Feb 2018 15:07:57 +0100
+Message-Id: <20180219140802.3514-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180219140802.3514-1-hverkuil@xs4all.nl>
+References: <20180219140802.3514-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-Thanks for the review.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-On Thu 22 Feb 2018 at 10:59, Sakari Ailus wrote:
-> Hi Rui,
->
-> Thanks for the patchset.
->
-> Could you use "dt: bindings: " prefix in the subject?
+These sensor drivers have use case specific mode lists. This is currently
+not used nor there is a standard API for selecting the mode list. Disable
+configurations for non-preview modes until configuration selection is
+improved so that all the configurations are always usable.
 
-Sure, no problem.
-
->
-> On Thu, Feb 22, 2018 at 10:23:37AM +0000, Rui Miguel Silva 
-> wrote:
->> Add device tree binding documentation for the OV5640 camera 
->> sensor.
->> 
->> CC: devicetree@vger.kernel.org
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  .../devicetree/bindings/media/i2c/ov2680.txt       | 34 
->>  ++++++++++++++++++++++
->>  1 file changed, 34 insertions(+)
->>  create mode 100644 
->>  Documentation/devicetree/bindings/media/i2c/ov2680.txt
->> 
->> diff --git 
->> a/Documentation/devicetree/bindings/media/i2c/ov2680.txt 
->> b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
->> new file mode 100644
->> index 000000000000..f9dc63ce5044
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
->> @@ -0,0 +1,34 @@
->> +* Omnivision OV2680 MIPI CSI-2 sensor
->> +
->> +Required Properties:
->> +- compatible: should be "ovti,ov2680"
->> +- clocks: reference to the xvclk input clock.
->> +- clock-names: should be "xvclk".
->> +
->> +Optional Properties:
->> +- powerdown-gpios: reference to the GPIO connected to the 
->> powerdown pin,
->> +		     if any. This is an active high signal to the 
->> OV2680.
->> +
->> +The device node must contain one 'port' child node for its 
->> digital output
->
-> Please add that the port contains a single endpoint as well.
-
-Ack.
-
->
->> +video port, in accordance with the video interface bindings 
->> defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->
-> Please list required and optional endpoint properties as well.
-
-OK.
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+[hans.verkuil@cisco.com: clarify that this functionality it currently unused]
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Cheers,
-	Rui
+ drivers/staging/media/atomisp/i2c/gc2235.h        | 6 ++++++
+ drivers/staging/media/atomisp/i2c/ov2722.h        | 6 ++++++
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.h | 6 ++++++
+ 3 files changed, 18 insertions(+)
 
->
->> +
->> +Example:
->> +
->> +&i2c2 {
->> +	ov2680: camera-sensor@36 {
->> +		compatible = "ovti,ov2680";
->> +		reg = <0x36>;
->> +		clocks = <&osc>;
->> +		clock-names = "xvclk";
->> +		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
->> +
->> +		port {
->> +			ov2680_mipi_ep: endpoint {
->> +				remote-endpoint = 
->> <&mipi_sensor_ep>;
->> +				clock-lanes = <0>;
->> +				data-lanes = <1>;
->> +			};
->> +		};
->> +	};
->> +};
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.h b/drivers/staging/media/atomisp/i2c/gc2235.h
+index 45a54fea5466..0e805bcfa4d8 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.h
++++ b/drivers/staging/media/atomisp/i2c/gc2235.h
+@@ -574,6 +574,11 @@ static struct gc2235_resolution gc2235_res_preview[] = {
+ };
+ #define N_RES_PREVIEW (ARRAY_SIZE(gc2235_res_preview))
+ 
++/*
++ * Disable non-preview configurations until the configuration selection is
++ * improved.
++ */
++#if 0
+ static struct gc2235_resolution gc2235_res_still[] = {
+ 	{
+ 		.desc = "gc2235_1600_900_30fps",
+@@ -658,6 +663,7 @@ static struct gc2235_resolution gc2235_res_video[] = {
+ 
+ };
+ #define N_RES_VIDEO (ARRAY_SIZE(gc2235_res_video))
++#endif
+ 
+ static struct gc2235_resolution *gc2235_res = gc2235_res_preview;
+ static unsigned long N_RES = N_RES_PREVIEW;
+diff --git a/drivers/staging/media/atomisp/i2c/ov2722.h b/drivers/staging/media/atomisp/i2c/ov2722.h
+index d8a973d71699..028b04aaaa8f 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2722.h
++++ b/drivers/staging/media/atomisp/i2c/ov2722.h
+@@ -1148,6 +1148,11 @@ struct ov2722_resolution ov2722_res_preview[] = {
+ };
+ #define N_RES_PREVIEW (ARRAY_SIZE(ov2722_res_preview))
+ 
++/*
++ * Disable non-preview configurations until the configuration selection is
++ * improved.
++ */
++#if 0
+ struct ov2722_resolution ov2722_res_still[] = {
+ 	{
+ 		.desc = "ov2722_480P_30fps",
+@@ -1250,6 +1255,7 @@ struct ov2722_resolution ov2722_res_video[] = {
+ 	},
+ };
+ #define N_RES_VIDEO (ARRAY_SIZE(ov2722_res_video))
++#endif
+ 
+ static struct ov2722_resolution *ov2722_res = ov2722_res_preview;
+ static unsigned long N_RES = N_RES_PREVIEW;
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+index 68cfcb4a6c3c..6d27dd849a62 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+@@ -1147,6 +1147,11 @@ struct ov5693_resolution ov5693_res_preview[] = {
+ };
+ #define N_RES_PREVIEW (ARRAY_SIZE(ov5693_res_preview))
+ 
++/*
++ * Disable non-preview configurations until the configuration selection is
++ * improved.
++ */
++#if 0
+ struct ov5693_resolution ov5693_res_still[] = {
+ 	{
+ 		.desc = "ov5693_736x496_30fps",
+@@ -1364,6 +1369,7 @@ struct ov5693_resolution ov5693_res_video[] = {
+ 	},
+ };
+ #define N_RES_VIDEO (ARRAY_SIZE(ov5693_res_video))
++#endif
+ 
+ static struct ov5693_resolution *ov5693_res = ov5693_res_preview;
+ static unsigned long N_RES = N_RES_PREVIEW;
+-- 
+2.15.1
