@@ -1,91 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35290 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932942AbeBVQbT (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59796 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753009AbeBSPpG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 11:31:19 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCH v4] v4l: vsp1: Fix video output on R8A77970
-Date: Thu, 22 Feb 2018 18:32:00 +0200
-Message-Id: <20180222163200.3900-1-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <11341738.DVmQoThvsb@avalon>
-References: <11341738.DVmQoThvsb@avalon>
+        Mon, 19 Feb 2018 10:45:06 -0500
+From: Maciej Purski <m.purski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc: Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Maciej Purski <m.purski@samsung.com>
+Subject: [PATCH 1/8] clk: Add clk_bulk_alloc functions
+Date: Mon, 19 Feb 2018 16:43:59 +0100
+Message-id: <1519055046-2399-2-git-send-email-m.purski@samsung.com>
+In-reply-to: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+        <CGME20180219154456eucas1p15f4073beaf61312238f142f217a8bb3c@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+When a driver is going to use clk_bulk_get() function, it has to
+initialize an array of clk_bulk_data, by filling its id fields.
 
-Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
-and VSP2-D instances") added support for the VSP2-D found in the R-Car
-V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
-garbage-like line repeated every 8 screen rows. It turns out that R-Car
-V3M has the LIF0 buffer attribute register that you need to set to a non-
-default value in order to get rid of the output artifacts.
+Add a new function to the core, which dynamically allocates
+clk_bulk_data array and fills its id fields. Add clk_bulk_free()
+function, which frees the array allocated by clk_bulk_alloc() function.
+Add a managed version of clk_bulk_alloc().
 
-Based on the original (and large) patch by Daisuke Matsushita
-<daisuke.matsushita.ns@hitachi.com>.
-
-Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances")
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-[Removed braces, added VI6_IP_VERSION_MASK to improve readabiliy]
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Maciej Purski <m.purski@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_lif.c  | 12 ++++++++++++
- drivers/media/platform/vsp1/vsp1_regs.h |  6 ++++++
- 2 files changed, 18 insertions(+)
+ drivers/clk/clk-bulk.c   | 16 ++++++++++++
+ drivers/clk/clk-devres.c | 37 +++++++++++++++++++++++++---
+ include/linux/clk.h      | 64 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 113 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index e6fa16d7fda8..704920753998 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -155,6 +155,18 @@ static void lif_configure(struct vsp1_entity *entity,
- 			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
- 			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
- 			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
+diff --git a/drivers/clk/clk-bulk.c b/drivers/clk/clk-bulk.c
+index 4c10456..2f16941 100644
+--- a/drivers/clk/clk-bulk.c
++++ b/drivers/clk/clk-bulk.c
+@@ -19,6 +19,22 @@
+ #include <linux/clk.h>
+ #include <linux/device.h>
+ #include <linux/export.h>
++#include <linux/slab.h>
 +
-+	/*
-+	 * On R-Car V3M the LIF0 buffer attribute register has to be set to a
-+	 * non-default value to guarantee proper operation (otherwise artifacts
-+	 * may appear on the output). The value required by the manual is not
-+	 * explained but is likely a buffer size or threshold.
-+	 */
-+	if ((entity->vsp1->version & VI6_IP_VERSION_MASK) ==
-+	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M))
-+		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
-+			       VI6_LIF_LBA_LBA0 |
-+			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
++struct clk_bulk_data *clk_bulk_alloc(int num_clocks, const char *const *clk_ids)
++{
++	struct clk_bulk_data *ptr;
++	int i;
++
++	ptr = kcalloc(num_clocks, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return ERR_PTR(-ENOMEM);
++
++	for (i = 0; i < num_clocks; i++)
++		ptr[i].id = clk_ids[i];
++
++	return ptr;
++}
+ 
+ void clk_bulk_put(int num_clks, struct clk_bulk_data *clks)
+ {
+diff --git a/drivers/clk/clk-devres.c b/drivers/clk/clk-devres.c
+index d854e26..2115b97 100644
+--- a/drivers/clk/clk-devres.c
++++ b/drivers/clk/clk-devres.c
+@@ -9,6 +9,39 @@
+ #include <linux/export.h>
+ #include <linux/gfp.h>
+ 
++struct clk_bulk_devres {
++	struct clk_bulk_data *clks;
++	int num_clks;
++};
++
++static void devm_clk_alloc_release(struct device *dev, void *res)
++{
++	struct clk_bulk_devres *devres = res;
++
++	clk_bulk_free(devres->clks);
++}
++
++struct clk_bulk_data *devm_clk_bulk_alloc(struct device *dev, int num_clks,
++					  const char *const *clk_ids)
++{
++	struct clk_bulk_data **ptr, *clk_bulk;
++
++	ptr = devres_alloc(devm_clk_alloc_release,
++			   num_clks * sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return ERR_PTR(-ENOMEM);
++
++	clk_bulk = clk_bulk_alloc(num_clks, clk_ids);
++	if (clk_bulk) {
++		*ptr = clk_bulk;
++		devres_add(dev, ptr);
++	} else {
++		devres_free(ptr);
++	}
++
++	return clk_bulk;
++}
++
+ static void devm_clk_release(struct device *dev, void *res)
+ {
+ 	clk_put(*(struct clk **)res);
+@@ -34,10 +67,6 @@ struct clk *devm_clk_get(struct device *dev, const char *id)
  }
+ EXPORT_SYMBOL(devm_clk_get);
  
- static const struct vsp1_entity_operations lif_entity_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index b1912c83a1da..dae0c1901297 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -693,6 +693,11 @@
- #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
- #define VI6_LIF_CSBTH_LBTH_SHIFT	0
+-struct clk_bulk_devres {
+-	struct clk_bulk_data *clks;
+-	int num_clks;
+-};
  
-+#define VI6_LIF_LBA			0x3b0c
-+#define VI6_LIF_LBA_LBA0		(1 << 31)
-+#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
-+#define VI6_LIF_LBA_LBA1_SHIFT		16
+ static void devm_clk_bulk_release(struct device *dev, void *res)
+ {
+diff --git a/include/linux/clk.h b/include/linux/clk.h
+index 4c4ef9f..7d66f41 100644
+--- a/include/linux/clk.h
++++ b/include/linux/clk.h
+@@ -15,6 +15,7 @@
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+ #include <linux/notifier.h>
++#include <linux/slab.h>
+ 
+ struct device;
+ struct clk;
+@@ -240,6 +241,52 @@ static inline void clk_bulk_unprepare(int num_clks, struct clk_bulk_data *clks)
+ #endif
+ 
+ #ifdef CONFIG_HAVE_CLK
 +
- /* -----------------------------------------------------------------------------
-  * Security Control Registers
-  */
-@@ -705,6 +710,7 @@
-  */
++/**
++ * clk_bulk_alloc - allocates an array of clk_bulk_data and fills their
++ *		    id field
++ * @num_clks: number of clk_bulk_data
++ * @clk_ids: array of clock consumer ID's
++ *
++ * This function allows drivers to dynamically create an array of clk_bulk_data
++ * and fill their id field in one operation. If successful, it allows calling
++ * clk_bulk_get on the pointer returned by this function.
++ *
++ * Returns a pointer to a clk_bulk_data array, or valid IS_ERR() condition
++ * containing errno.
++ */
++struct clk_bulk_data *clk_bulk_alloc(int num_clks, const char *const *clk_ids);
++
++/**
++ * devm_clk_bulk_alloc - allocates an array of clk_bulk_data and fills their
++ *			 id field
++ * @dev: device for clock "consumer"
++ * @num_clks: number of clk_bulk_data
++ * @clk_ids: array of clock consumer ID's
++ *
++ * This function allows drivers to dynamically create an array of clk_bulk_data
++ * and fill their id field in one operation with management, the array will
++ * automatically be freed when the device is unbound. If successful, it allows
++ * calling clk_bulk_get on the pointer returned by this function.
++ *
++ * Returns a pointer to a clk_bulk_data array, or valid IS_ERR() condition
++ * containing errno.
++ */
++struct clk_bulk_data *devm_clk_bulk_alloc(struct device *dev, int num_clks,
++					  const char * const *clk_ids);
++
++/**
++ * clk_bulk_free - frees the array of clk_bulk_data
++ * @clks: pointer to clk_bulk_data array
++ *
++ * This function frees the array allocated by clk_bulk_data. It must be called
++ * when all clks are freed.
++ */
++static inline void clk_bulk_free(struct clk_bulk_data *clks)
++{
++	kfree(clks);
++}
++
+ /**
+  * clk_get - lookup and obtain a reference to a clock producer.
+  * @dev: device for clock "consumer"
+@@ -598,6 +645,23 @@ struct clk *clk_get_sys(const char *dev_id, const char *con_id);
  
- #define VI6_IP_VERSION			0x3f00
-+#define VI6_IP_VERSION_MASK		(0xffff << 0)
- #define VI6_IP_VERSION_MODEL_MASK	(0xff << 8)
- #define VI6_IP_VERSION_MODEL_VSPS_H2	(0x09 << 8)
- #define VI6_IP_VERSION_MODEL_VSPR_H2	(0x0a << 8)
+ #else /* !CONFIG_HAVE_CLK */
+ 
++static inline struct clk_bulk_data *clk_bulk_alloc(int num_clks,
++						   const char **clk_ids)
++{
++	return NULL;
++}
++
++static inline struct clk_bulk_data *devm_clk_bulk_alloc(struct device *dev,
++							int num_clks,
++							const char **clk_ids)
++{
++	return NULL;
++}
++
++static inline void clk_bulk_free(struct clk_bulk_data *clks)
++{
++}
++
+ static inline struct clk *clk_get(struct device *dev, const char *id)
+ {
+ 	return NULL;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
