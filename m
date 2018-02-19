@@ -1,110 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:34652 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753454AbeBGIdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 03:33:07 -0500
-Subject: Re: [PATCH 5/5] add module parameters for default values
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
- <1517950905-5015-6-git-send-email-floe@butterbrot.org>
- <c64ae317-d393-1784-1184-4a24a2907112@xs4all.nl>
-From: Florian Echtler <floe@butterbrot.org>
-Message-ID: <039aaa61-4150-ebde-5f9e-a0ffc8888cfb@butterbrot.org>
-Date: Wed, 7 Feb 2018 09:33:05 +0100
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52528 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753652AbeBSUgF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Feb 2018 15:36:05 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 78E20600C7
+        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 22:36:03 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1ensAN-0004KB-2e
+        for linux-media@vger.kernel.org; Mon, 19 Feb 2018 22:36:03 +0200
+Date: Mon, 19 Feb 2018 22:36:02 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL v2 for 4.17] Sensor and lens driver patches
+Message-ID: <20180219203602.cnvm7pudb35minmn@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <c64ae317-d393-1784-1184-4a24a2907112@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="gzgaKotpDcjeVqV1kflh7qO0M4NUhojcr"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gzgaKotpDcjeVqV1kflh7qO0M4NUhojcr
-Content-Type: multipart/mixed; boundary="eeXsxodfpvHtaXO1HB4PKdj32PqS8Hxj5";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-Message-ID: <039aaa61-4150-ebde-5f9e-a0ffc8888cfb@butterbrot.org>
-Subject: Re: [PATCH 5/5] add module parameters for default values
-References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
- <1517950905-5015-6-git-send-email-floe@butterbrot.org>
- <c64ae317-d393-1784-1184-4a24a2907112@xs4all.nl>
-In-Reply-To: <c64ae317-d393-1784-1184-4a24a2907112@xs4all.nl>
+Hi Mauro,
 
---eeXsxodfpvHtaXO1HB4PKdj32PqS8Hxj5
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+Here's the first pile of sensor and lens driver patches for 4.17.
 
-On 06.02.2018 22:31, Hans Verkuil wrote:
-> On 02/06/2018 10:01 PM, Florian Echtler wrote:
->> To allow setting custom parameters for the sensor directly at startup,=
- the
->> three primary controls are exposed as module parameters in this patch.=
+The most noteworthy parts are perhaps
 
->>
->> +/* module parameters */
->> +static uint brightness =3D SUR40_BRIGHTNESS_DEF;
->> +module_param(brightness, uint, 0644);
->> +MODULE_PARM_DESC(brightness, "set default brightness");
->> +static uint contrast =3D SUR40_CONTRAST_DEF;
->> +module_param(contrast, uint, 0644);
->> +MODULE_PARM_DESC(contrast, "set default contrast");
->> +static uint gain =3D SUR40_GAIN_DEF;
->> +module_param(gain, uint, 0644);
->> +MODULE_PARM_DESC(contrast, "set default gain");
->
-> contrast -> gain
+- moving unmaintained imx074 and mt9t031 SoC camera drivers to staging in
+  hope someone would start looking after them,
 
-Ah, typo. Thanks, will fix that.
+- add DT bindings and driver upport for the bindings for ov9650, ov7670,
+  ov5695 and ov2685 sensors and
 
-> Isn't 'initial gain' better than 'default gain'?
+- JPEG support for ov5640.
 
-Probably correct, yes.
+The rest are related or random fixes.
 
-> If I load this module with gain=3DX, will the gain control also
-> start off at X? I didn't see any code for that.
+since v1:
 
-This reminds me: how can I get/set the control from inside the driver?
-Should I use something like the following:
+- Select V4L2_FWNODE for ov7670
 
-struct v4l2_ctrl *ctrl =3D v4l2_ctrl_find(&sur40->ctrls, V4L2_CID_BRIGHTN=
-ESS);
-int val =3D v4l2_ctrl_g_ctrl(ctrl);
-// modify val...
-v4l2_ctrl_s_ctrl(ctrl, val);
-
-> It might be useful to add the allowed range in the description.
-> E.g.: "set initial gain, range=3D0-255". Perhaps mention even the
-> default value, but I'm not sure if that's really needed.
-
-Good point, though - right now the code directly sets the registers witho=
-ut any
-clamping, I guess it would be better to call the control framework as men=
-tioned
-above?
-
-Best regards, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
+Please pull.
 
 
---eeXsxodfpvHtaXO1HB4PKdj32PqS8Hxj5--
+The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
 
---gzgaKotpDcjeVqV1kflh7qO0M4NUhojcr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+are available in the git repository at:
 
-iEYEARECAAYFAlp6ucEACgkQ7CzyshGvatj44gCffEoL0yfYDKEuCn4zEHpb1ZSF
-S+IAn1tui7qi8kmZaSGOOO9t3e6Wb4Ff
-=CMDU
------END PGP SIGNATURE-----
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.17-1
 
---gzgaKotpDcjeVqV1kflh7qO0M4NUhojcr--
+for you to fetch changes up to 4c2de036e83693d29e21b945f0ae9f6f697fa478:
+
+  media: ov5640: fix framerate update (2018-02-19 13:02:13 +0200)
+
+----------------------------------------------------------------
+Akinobu Mita (3):
+      media: MAINTAINERS: add entry for ov9650 driver
+      media: ov9650: add device tree binding
+      media: ov9650: support device tree probing
+
+Chiranjeevi Rapolu (1):
+      media: ov13858: Avoid possible null first frame
+
+Gustavo A. R. Silva (2):
+      ov13858: Use false for boolean value
+      i2c: ov9650: fix potential integer overflow in __ov965x_set_frame_interval
+
+Hans Verkuil (2):
+      imx074: deprecate, move to staging
+      mt9t031: deprecate, move to staging
+
+Hugues Fruchet (5):
+      media: ov5640: add JPEG support
+      media: ov5640: add error trace in case of i2c read failure
+      media: ov5640: various typo & style fixes
+      media: ov5640: fix virtual_channel parameter permissions
+      media: ov5640: fix framerate update
+
+Jacopo Mondi (2):
+      media: dt-bindings: Add OF properties to ov7670
+      v4l2: i2c: ov7670: Implement OF mbus configuration
+
+Sakari Ailus (1):
+      ov2685: Assign ret in default case in s_ctrl callback
+
+Shunqian Zheng (4):
+      dt-bindings: media: Add bindings for OV5695
+      media: ov5695: add support for OV5695 sensor
+      dt-bindings: media: Add bindings for OV2685
+      media: ov2685: add support for OV2685 sensor
+
+ .../devicetree/bindings/media/i2c/ov2685.txt       |   41 +
+ .../devicetree/bindings/media/i2c/ov5695.txt       |   41 +
+ .../devicetree/bindings/media/i2c/ov7670.txt       |   16 +-
+ .../devicetree/bindings/media/i2c/ov9650.txt       |   36 +
+ MAINTAINERS                                        |   24 +
+ drivers/media/i2c/Kconfig                          |   23 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/ov13858.c                        |    6 +-
+ drivers/media/i2c/ov2685.c                         |  846 ++++++++++++
+ drivers/media/i2c/ov5640.c                         |   99 +-
+ drivers/media/i2c/ov5695.c                         | 1399 ++++++++++++++++++++
+ drivers/media/i2c/ov7670.c                         |   98 +-
+ drivers/media/i2c/ov9650.c                         |  134 +-
+ drivers/media/i2c/soc_camera/Kconfig               |   12 -
+ drivers/media/i2c/soc_camera/Makefile              |    2 -
+ drivers/staging/media/Kconfig                      |    4 +
+ drivers/staging/media/Makefile                     |    2 +
+ drivers/staging/media/imx074/Kconfig               |    5 +
+ drivers/staging/media/imx074/Makefile              |    1 +
+ drivers/staging/media/imx074/TODO                  |    5 +
+ .../soc_camera => staging/media/imx074}/imx074.c   |    0
+ drivers/staging/media/mt9t031/Kconfig              |   11 +
+ drivers/staging/media/mt9t031/Makefile             |    1 +
+ drivers/staging/media/mt9t031/TODO                 |    5 +
+ .../soc_camera => staging/media/mt9t031}/mt9t031.c |    0
+ 25 files changed, 2718 insertions(+), 95 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov9650.txt
+ create mode 100644 drivers/media/i2c/ov2685.c
+ create mode 100644 drivers/media/i2c/ov5695.c
+ create mode 100644 drivers/staging/media/imx074/Kconfig
+ create mode 100644 drivers/staging/media/imx074/Makefile
+ create mode 100644 drivers/staging/media/imx074/TODO
+ rename drivers/{media/i2c/soc_camera => staging/media/imx074}/imx074.c (100%)
+ create mode 100644 drivers/staging/media/mt9t031/Kconfig
+ create mode 100644 drivers/staging/media/mt9t031/Makefile
+ create mode 100644 drivers/staging/media/mt9t031/TODO
+ rename drivers/{media/i2c/soc_camera => staging/media/mt9t031}/mt9t031.c (100%)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
