@@ -1,144 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:41053 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752925AbeBEPTe (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:56983 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753002AbeBSPpG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 10:19:34 -0500
-Subject: Re: media_device.c question: can this workaround be removed?
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
- <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
- <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
- <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <10d299e0-4edf-75dc-56f1-3acfb6ed719b@xs4all.nl>
-Date: Mon, 5 Feb 2018 16:19:28 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Feb 2018 10:45:06 -0500
+From: Maciej Purski <m.purski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc: Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Maciej Purski <m.purski@samsung.com>
+Subject: [PATCH 0/8] Use clk bulk API in exynos5433 drivers
+Date: Mon, 19 Feb 2018 16:43:58 +0100
+Message-id: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+References: <CGME20180219154456eucas1p178a82b3bb643028dc7c99ccca9c6eaca@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 03:30 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Feb 05, 2018 at 01:30:04PM +0100, Hans Verkuil wrote:
->> On 02/05/2018 12:59 PM, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> On Mon, Feb 05, 2018 at 11:26:47AM +0100, Hans Verkuil wrote:
->>>> The function media_device_enum_entities() has this workaround:
->>>>
->>>>         /*
->>>>          * Workaround for a bug at media-ctl <= v1.10 that makes it to
->>>>          * do the wrong thing if the entity function doesn't belong to
->>>>          * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
->>>>          * Ranges.
->>>>          *
->>>>          * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
->>>>          * or, otherwise, will be silently ignored by media-ctl when
->>>>          * printing the graphviz diagram. So, map them into the devnode
->>>>          * old range.
->>>>          */
->>>>         if (ent->function < MEDIA_ENT_F_OLD_BASE ||
->>>>             ent->function > MEDIA_ENT_F_TUNER) {
->>>>                 if (is_media_entity_v4l2_subdev(ent))
->>>>                         entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
->>>>                 else if (ent->function != MEDIA_ENT_F_IO_V4L)
->>>>                         entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
->>>>         }
->>>>
->>>> But this means that the entity type returned by ENUM_ENTITIES just overwrites
->>>> perfectly fine types by bogus values and thus the returned value differs
->>>> from that returned by G_TOPOLOGY.
->>>>
->>>> Can we please, please remove this workaround? I have no idea why a workaround
->>>> for media-ctl of all things ever made it in the kernel.
->>>
->>> The entity types were replaced by entity functions back in 2015 with the
->>> big Media controller reshuffle. While I agree functions are better for
->>> describing entities than types (and those types had Linux specific
->>> interfaces in them), the new function-based API still may support a single
->>> value, i.e. a single function per device.
->>>
->>> This also created two different name spaces for describing entities: the
->>> old types used by the MC API and the new functions used by MC v2 API.
->>>
->>> This doesn't go well with the fact that, as you noticed, the pad
->>> information is not available through MC v2 API. The pad information is
->>> required by the user space so software continues to use the original MC
->>> API.
->>>
->>> I don't think there's a way to avoid maintaining two name spaces (types and
->>> functions) without breaking at least one of the APIs.
->>
->> The comment specifically claims that this workaround is for media-ctl and
->> it suggests that it is fixed after v1.10. Is that comment bogus? I can't
->> really tell which commit fixed media-ctl. Does anyone know?
->>
->> As far as I can tell the function defines have been chosen in such a way that
->> they will equally well work with the old name space. There should be no
->> problem there whatsoever and media-ctl should switch to use the new defines.
-> 
-> The old interface (type) was centered around the uAPI for the entity.
-> That's no longer the case for functions. The entity type
-> (MEDIA_ENT_TYPE_MASK) tells the uAPI which affects the interpretation of
-> the dev union in struct media_entity_struct as well as the interface that
-> device node implements. With the new function field that's no longer the
-> case.
-> 
-> Also, the new MC v2 API makes a separation between the entity function and
-> the uAPI (interface) which was lacking in the old API.
-> 
->>
->> We now have a broken ENUM_ENTITIES ioctl (it rudely overwrites VBI/DVB/etc types)
->> and a broken G_TOPOLOGY ioctl (no pad index).
->>
->> This sucks. Let's fix both so that they at least report consistent information.
-> 
-> The existing user space may assume that the type field of the entity
-> conveys that the entity does provide a V4L2 sub-device interface if that's
-> the case actually.
-> 
-> This is what media-ctl does and I presume if existing user space checks for
-> the type field, it may well have similar checks: it was how the API was
-> defined. Therefore it's not entirely accurate to say that only media-ctl
-> has this "bug", I'd generally assume programs that use MC (v1) API do this.
-> 
-> You could argue about the merits (or lack of them) of the old API, no
-> disagrement there.
+Hi all,
 
-The old API is already broken. E.g. using MEDIA_ENT_F_PROC_VIDEO_SCALER in
-vimc/vimc-scaler.c (instead of the current - and bogus - MEDIA_ENT_F_ATV_DECODER)
-gives me this with media-ctl:
+the main goal of this patchset is to simplify clk management code in
+exynos5433 drivers by using clk bulk API. In order to achieve that,
+patch #1 adds a new function to clk core, which dynamically allocates
+clk_bulk_data array and fills its id fields.
 
-- entity 21: Scaler (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev5
-        pad0: Sink
-                [fmt:RGB888_1X24/640x480 field:none]
-                <- "Debayer A":1 [ENABLED]
-                <- "Debayer B":1 []
-                <- "RGB/YUV Input":0 []
-        pad1: Source
-                [fmt:RGB888_1X24/1920x1440 field:none]
-                -> "RGB/YUV Capture":0 [ENABLED,IMMUTABLE]
+Best regards,
 
-Useless. We now have an old API that gives us pad indices but not the
-function, and a new API that gives us the function but not the pad index.
+Maciej Purski
 
-How about adding a 'function' field to struct media_entity_desc
-and fill that? Keep the type for backwards compatibility.
+Maciej Purski (8):
+  clk: Add clk_bulk_alloc functions
+  media: s5p-jpeg: Use bulk clk API
+  drm/exynos/decon: Use clk bulk API
+  drm/exynos/dsi: Use clk bulk API
+  drm/exynos: mic: Use clk bulk API
+  drm/exynos/hdmi: Use clk bulk API
+  [media] exynos-gsc: Use clk bulk API
+  [media] s5p-mfc: Use clk bulk API
 
-Then have a define like this:
+ drivers/clk/clk-bulk.c                          | 16 +++++
+ drivers/clk/clk-devres.c                        | 37 +++++++++--
+ drivers/gpu/drm/exynos/exynos5433_drm_decon.c   | 50 +++++----------
+ drivers/gpu/drm/exynos/exynos_drm_dsi.c         | 68 +++++++++-----------
+ drivers/gpu/drm/exynos/exynos_drm_mic.c         | 44 +++++--------
+ drivers/gpu/drm/exynos/exynos_hdmi.c            | 85 ++++++++-----------------
+ drivers/media/platform/exynos-gsc/gsc-core.c    | 55 ++++++----------
+ drivers/media/platform/exynos-gsc/gsc-core.h    |  2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c     | 45 ++++++-------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h     |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  6 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     | 41 +++++-------
+ include/linux/clk.h                             | 64 +++++++++++++++++++
+ 13 files changed, 263 insertions(+), 252 deletions(-)
 
-#define MEDIA_ENT_HAS_FUNCTION(media_version) ((media_version) >= KERNEL_VERSION(a, b, c))
-
-that can be used to detect if the MC has function support.
-
-Regards,
-
-	Hans
+-- 
+2.7.4
