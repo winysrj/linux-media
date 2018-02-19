@@ -1,159 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:39761 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751587AbeB0RmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 12:42:13 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC] media: em28xx: don't use coherent buffer for DMA transfers
-Date: Tue, 27 Feb 2018 14:42:09 -0300
-Message-Id: <df78951777f4edb8f627b043a12c710f0ba2497d.1519753238.git.mchehab@s-opensource.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:57023 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753034AbeBSPpI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Feb 2018 10:45:08 -0500
+From: Maciej Purski <m.purski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc: Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Maciej Purski <m.purski@samsung.com>
+Subject: [PATCH 4/8] drm/exynos/dsi: Use clk bulk API
+Date: Mon, 19 Feb 2018 16:44:02 +0100
+Message-id: <1519055046-2399-5-git-send-email-m.purski@samsung.com>
+In-reply-to: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
+        <CGME20180219154459eucas1p147525b88de5d34f646aa25cb8de1f1d0@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While coherent memory is cheap on x86, it has problems on
-arm. So, stop using it.
+Using bulk clk functions simplifies the driver's code. Use devm_clk_bulk
+functions instead of iterating over an array of clks.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+In order to achieve consistency with other drivers, define clock names
+in driver's variants structures.
+
+Signed-off-by: Maciej Purski <m.purski@samsung.com>
 ---
+ drivers/gpu/drm/exynos/exynos_drm_dsi.c | 68 +++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 38 deletions(-)
 
-I wrote this patch in order to check if this would make things better
-for ISOCH transfers on Raspberry Pi3. It didn't. Yet, keep using
-coherent memory at USB drivers seem an overkill.
-
-So, I'm actually not sure if we should either go ahead and merge it
-or not.
-
-Comments? Tests?
-
- drivers/media/usb/em28xx/em28xx-core.c | 49 +++++++++++++++-------------------
- drivers/media/usb/em28xx/em28xx.h      |  2 +-
- 2 files changed, 22 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 1d0d8cc06103..6fadcb03093f 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -800,7 +800,6 @@ void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode)
- {
- 	struct urb *urb;
- 	struct em28xx_usb_bufs *usb_bufs;
--	struct usb_device *udev = interface_to_usbdev(dev->intf);
- 	int i;
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_dsi.c b/drivers/gpu/drm/exynos/exynos_drm_dsi.c
+index 7904ffa..46a8b5c 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_dsi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_dsi.c
+@@ -209,11 +209,7 @@
+ #define DSI_XFER_TIMEOUT_MS		100
+ #define DSI_RX_FIFO_EMPTY		0x30800002
  
- 	em28xx_isocdbg("em28xx: called em28xx_uninit_usb_xfer in mode %d\n",
-@@ -819,23 +818,16 @@ void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode)
- 			else
- 				usb_unlink_urb(urb);
+-#define OLD_SCLK_MIPI_CLK_NAME "pll_clk"
+-
+-static char *clk_names[5] = { "bus_clk", "sclk_mipi",
+-	"phyclk_mipidphy0_bitclkdiv8", "phyclk_mipidphy0_rxclkesc0",
+-	"sclk_rgb_vclk_to_dsim0" };
++#define DSI_MAX_CLOCKS			5
  
--			if (usb_bufs->transfer_buffer[i]) {
--				usb_free_coherent(udev,
--						  urb->transfer_buffer_length,
--						  usb_bufs->transfer_buffer[i],
--						  urb->transfer_dma);
+ enum exynos_dsi_transfer_type {
+ 	EXYNOS_DSI_TX,
+@@ -243,6 +239,7 @@ struct exynos_dsi_driver_data {
+ 	unsigned int plltmr_reg;
+ 	unsigned int has_freqband:1;
+ 	unsigned int has_clklane_stop:1;
++	const char *clock_names[DSI_MAX_CLOCKS];
+ 	unsigned int num_clks;
+ 	unsigned int max_freq;
+ 	unsigned int wait_for_reset;
+@@ -259,7 +256,7 @@ struct exynos_dsi {
+ 
+ 	void __iomem *reg_base;
+ 	struct phy *phy;
+-	struct clk **clks;
++	struct clk_bulk_data *clks;
+ 	struct regulator_bulk_data supplies[2];
+ 	int irq;
+ 	int te_gpio;
+@@ -453,6 +450,7 @@ static const struct exynos_dsi_driver_data exynos3_dsi_driver_data = {
+ 	.plltmr_reg = 0x50,
+ 	.has_freqband = 1,
+ 	.has_clklane_stop = 1,
++	.clock_names = {"bus_clk", "pll_clk"},
+ 	.num_clks = 2,
+ 	.max_freq = 1000,
+ 	.wait_for_reset = 1,
+@@ -465,6 +463,7 @@ static const struct exynos_dsi_driver_data exynos4_dsi_driver_data = {
+ 	.plltmr_reg = 0x50,
+ 	.has_freqband = 1,
+ 	.has_clklane_stop = 1,
++	.clock_names = {"bus_clk", "sclk_mipi"},
+ 	.num_clks = 2,
+ 	.max_freq = 1000,
+ 	.wait_for_reset = 1,
+@@ -475,6 +474,7 @@ static const struct exynos_dsi_driver_data exynos4_dsi_driver_data = {
+ static const struct exynos_dsi_driver_data exynos5_dsi_driver_data = {
+ 	.reg_ofs = exynos_reg_ofs,
+ 	.plltmr_reg = 0x58,
++	.clock_names = {"bus_clk", "pll_clk"},
+ 	.num_clks = 2,
+ 	.max_freq = 1000,
+ 	.wait_for_reset = 1,
+@@ -486,6 +486,10 @@ static const struct exynos_dsi_driver_data exynos5433_dsi_driver_data = {
+ 	.reg_ofs = exynos5433_reg_ofs,
+ 	.plltmr_reg = 0xa0,
+ 	.has_clklane_stop = 1,
++	.clock_names = {"bus_clk", "phyclk_mipidphy0_bitclkdiv8",
++			"phyclk_mipidphy0_rxclkesc0",
++			"sclk_rgb_vclk_to_dsim0",
++			"sclk_mipi"},
+ 	.num_clks = 5,
+ 	.max_freq = 1500,
+ 	.wait_for_reset = 0,
+@@ -497,6 +501,7 @@ static const struct exynos_dsi_driver_data exynos5422_dsi_driver_data = {
+ 	.reg_ofs = exynos5433_reg_ofs,
+ 	.plltmr_reg = 0xa0,
+ 	.has_clklane_stop = 1,
++	.clock_names = {"bus_clk", "pll_clk"},
+ 	.num_clks = 2,
+ 	.max_freq = 1500,
+ 	.wait_for_reset = 1,
+@@ -1711,7 +1716,7 @@ static int exynos_dsi_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *res;
+ 	struct exynos_dsi *dsi;
+-	int ret, i;
++	int ret;
+ 
+ 	dsi = devm_kzalloc(dev, sizeof(*dsi), GFP_KERNEL);
+ 	if (!dsi)
+@@ -1743,26 +1748,15 @@ static int exynos_dsi_probe(struct platform_device *pdev)
+ 		return -EPROBE_DEFER;
+ 	}
+ 
+-	dsi->clks = devm_kzalloc(dev,
+-			sizeof(*dsi->clks) * dsi->driver_data->num_clks,
+-			GFP_KERNEL);
+-	if (!dsi->clks)
+-		return -ENOMEM;
++	dsi->clks = devm_clk_bulk_alloc(dev, dsi->driver_data->num_clks,
++					dsi->driver_data->clock_names);
++	if (IS_ERR(dsi->clks))
++		return PTR_ERR(dsi->clks);
+ 
+-	for (i = 0; i < dsi->driver_data->num_clks; i++) {
+-		dsi->clks[i] = devm_clk_get(dev, clk_names[i]);
+-		if (IS_ERR(dsi->clks[i])) {
+-			if (strcmp(clk_names[i], "sclk_mipi") == 0) {
+-				strcpy(clk_names[i], OLD_SCLK_MIPI_CLK_NAME);
+-				i--;
+-				continue;
 -			}
- 			usb_free_urb(urb);
- 			usb_bufs->urb[i] = NULL;
- 		}
--		usb_bufs->transfer_buffer[i] = NULL;
+-
+-			dev_info(dev, "failed to get the clock: %s\n",
+-					clk_names[i]);
+-			return PTR_ERR(dsi->clks[i]);
+-		}
+-	}
++	ret = devm_clk_bulk_get(dev, dsi->driver_data->num_clks,
++				dsi->clks);
++	if (ret < 0)
++		return ret;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	dsi->reg_base = devm_ioremap_resource(dev, res);
+@@ -1817,7 +1811,7 @@ static int __maybe_unused exynos_dsi_suspend(struct device *dev)
+ 	struct drm_encoder *encoder = dev_get_drvdata(dev);
+ 	struct exynos_dsi *dsi = encoder_to_dsi(encoder);
+ 	const struct exynos_dsi_driver_data *driver_data = dsi->driver_data;
+-	int ret, i;
++	int ret;
+ 
+ 	usleep_range(10000, 20000);
+ 
+@@ -1833,8 +1827,7 @@ static int __maybe_unused exynos_dsi_suspend(struct device *dev)
+ 
+ 	phy_power_off(dsi->phy);
+ 
+-	for (i = driver_data->num_clks - 1; i > -1; i--)
+-		clk_disable_unprepare(dsi->clks[i]);
++	clk_bulk_disable_unprepare(driver_data->num_clks, dsi->clks);
+ 
+ 	ret = regulator_bulk_disable(ARRAY_SIZE(dsi->supplies), dsi->supplies);
+ 	if (ret < 0)
+@@ -1848,7 +1841,7 @@ static int __maybe_unused exynos_dsi_resume(struct device *dev)
+ 	struct drm_encoder *encoder = dev_get_drvdata(dev);
+ 	struct exynos_dsi *dsi = encoder_to_dsi(encoder);
+ 	const struct exynos_dsi_driver_data *driver_data = dsi->driver_data;
+-	int ret, i;
++	int ret;
+ 
+ 	ret = regulator_bulk_enable(ARRAY_SIZE(dsi->supplies), dsi->supplies);
+ 	if (ret < 0) {
+@@ -1856,23 +1849,22 @@ static int __maybe_unused exynos_dsi_resume(struct device *dev)
+ 		return ret;
  	}
  
- 	kfree(usb_bufs->urb);
--	kfree(usb_bufs->transfer_buffer);
-+	kfree(usb_bufs->buf);
+-	for (i = 0; i < driver_data->num_clks; i++) {
+-		ret = clk_prepare_enable(dsi->clks[i]);
+-		if (ret < 0)
+-			goto err_clk;
+-	}
++	ret = clk_bulk_prepare_enable(driver_data->num_clks, dsi->clks);
++	if (ret < 0)
++		goto err_clk;
  
- 	usb_bufs->urb = NULL;
--	usb_bufs->transfer_buffer = NULL;
-+	usb_bufs->buf = NULL;
- 	usb_bufs->num_bufs = 0;
- 
- 	em28xx_capture_start(dev, 0);
-@@ -912,14 +904,13 @@ int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 
- 	usb_bufs->num_bufs = num_bufs;
- 
--	usb_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
-+	usb_bufs->urb = kcalloc(sizeof(void *), num_bufs,  GFP_KERNEL);
- 	if (!usb_bufs->urb)
- 		return -ENOMEM;
- 
--	usb_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
--					     GFP_KERNEL);
--	if (!usb_bufs->transfer_buffer) {
--		kfree(usb_bufs->urb);
-+	usb_bufs->buf = kcalloc(sizeof(void *), num_bufs, GFP_KERNEL);
-+	if (!usb_bufs->buf) {
-+		kfree(usb_bufs->buf);
- 		return -ENOMEM;
+ 	ret = phy_power_on(dsi->phy);
+ 	if (ret < 0) {
+ 		dev_err(dsi->dev, "cannot enable phy %d\n", ret);
+-		goto err_clk;
++		goto err_phy;
  	}
  
-@@ -942,37 +933,39 @@ int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 		}
- 		usb_bufs->urb[i] = urb;
+ 	return 0;
  
--		usb_bufs->transfer_buffer[i] = usb_alloc_coherent(udev,
--			sb_size, GFP_KERNEL, &urb->transfer_dma);
--		if (!usb_bufs->transfer_buffer[i]) {
-+		usb_bufs->buf[i] = kzalloc(sb_size, GFP_KERNEL);
-+		if (!usb_bufs->buf[i]) {
- 			dev_err(&dev->intf->dev,
- 				"unable to allocate %i bytes for transfer buffer %i%s\n",
- 			       sb_size, i,
- 			       in_interrupt() ? " while in int" : "");
- 			em28xx_uninit_usb_xfer(dev, mode);
++err_phy:
++	clk_bulk_disable_unprepare(driver_data->num_clks, dsi->clks);
 +
-+			while (i) {
-+				kfree(usb_bufs->buf[i]);
-+				i--;
-+			}
-+			kfree(usb_bufs->buf);
-+
- 			return -ENOMEM;
- 		}
--		memset(usb_bufs->transfer_buffer[i], 0, sb_size);
+ err_clk:
+-	while (--i > -1)
+-		clk_disable_unprepare(dsi->clks[i]);
+ 	regulator_bulk_disable(ARRAY_SIZE(dsi->supplies), dsi->supplies);
  
- 		if (xfer_bulk) { /* bulk */
- 			pipe = usb_rcvbulkpipe(udev,
- 					       mode == EM28XX_ANALOG_MODE ?
- 					       dev->analog_ep_bulk :
- 					       dev->dvb_ep_bulk);
--			usb_fill_bulk_urb(urb, udev, pipe,
--					  usb_bufs->transfer_buffer[i], sb_size,
--					  em28xx_irq_callback, dev);
--			urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
-+			usb_fill_bulk_urb(urb, udev, pipe, usb_bufs->buf[i],
-+					  sb_size, em28xx_irq_callback, dev);
-+			urb->transfer_flags = URB_FREE_BUFFER;
- 		} else { /* isoc */
- 			pipe = usb_rcvisocpipe(udev,
- 					       mode == EM28XX_ANALOG_MODE ?
- 					       dev->analog_ep_isoc :
- 					       dev->dvb_ep_isoc);
--			usb_fill_int_urb(urb, udev, pipe,
--					 usb_bufs->transfer_buffer[i], sb_size,
--					 em28xx_irq_callback, dev, 1);
--			urb->transfer_flags = URB_ISO_ASAP |
--					      URB_NO_TRANSFER_DMA_MAP;
-+			usb_fill_int_urb(urb, udev, pipe, usb_bufs->buf[i],
-+					 sb_size, em28xx_irq_callback, dev, 1);
-+			urb->transfer_flags = URB_ISO_ASAP | URB_FREE_BUFFER;
- 			k = 0;
- 			for (j = 0; j < usb_bufs->num_packets; j++) {
- 				urb->iso_frame_desc[j].offset = k;
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 88084f24f033..bd6eaf642662 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -239,7 +239,7 @@ struct em28xx_usb_bufs {
- 	struct urb			**urb;
- 
- 		/* transfer buffers for isoc/bulk transfer */
--	char				**transfer_buffer;
-+	char				**buf;
- };
- 
- struct em28xx_usb_ctl {
+ 	return ret;
 -- 
-2.14.3
+2.7.4
