@@ -1,114 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:26276 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753325AbeBZOY1 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39128 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752380AbeBSKiO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 09:24:27 -0500
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-To: Jani Nikula <jani.nikula@linux.intel.com>,
-        Daniel Thompson <daniel.thompson@linaro.org>
-CC: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
-        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
-        <jdelvare@suse.com>, <linux@roeck-us.net>,
-        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
-        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
-        <sean@mess.org>, <lee.jones@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>,
-        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
- <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
- <20180222123308.mypx2r7n6o63mj5z@oak.lan> <87po4s2hve.fsf@intel.com>
-From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Message-ID: <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
-Date: Mon, 26 Feb 2018 16:24:15 +0200
-MIME-Version: 1.0
-In-Reply-To: <87po4s2hve.fsf@intel.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Feb 2018 05:38:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 11/15] media.h: fix confusing typo in comment
+Date: Mon, 19 Feb 2018 11:38:02 +0100
+Message-Id: <20180219103806.17032-12-hverkuil@xs4all.nl>
+In-Reply-To: <20180219103806.17032-1-hverkuil@xs4all.nl>
+References: <20180219103806.17032-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Subdevs are initialized with MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN, not
+MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/uapi/linux/media.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 26.02.2018 11:57, Jani Nikula wrote:
-> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
->> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
->>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
->>> were adapted to this change.
->>>
->>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
->>> ---
->>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
->>>  drivers/bus/ts-nbus.c                |  2 +-
->>>  drivers/clk/clk-pwm.c                |  3 ++-
->>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
->>>  drivers/hwmon/pwm-fan.c              |  2 +-
->>>  drivers/input/misc/max77693-haptic.c |  2 +-
->>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
->>>  drivers/leds/leds-pwm.c              |  5 ++++-
->>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
->>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
->>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
->>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
->>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
->>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
->>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
->>>  include/linux/pwm.h                  |  6 ++++--
->>>  16 files changed, 70 insertions(+), 21 deletions(-)
->>>
->>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
->>> index 2030a6b77a09..696fa25dafd2 100644
->>> --- a/drivers/video/backlight/lm3630a_bl.c
->>> +++ b/drivers/video/backlight/lm3630a_bl.c
->>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
->>>  {
->>>  	unsigned int period = pchip->pdata->pwm_period;
->>>  	unsigned int duty = br * period / br_max;
->>> +	struct pwm_caps caps = { };
->>>  
->>> -	pwm_config(pchip->pwmd, duty, period);
->>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
->>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
->>
->> Well... I admit I've only really looked at the patches that impact 
->> backlight but dispersing this really odd looking bit twiddling 
->> throughout the kernel doesn't strike me a great API design.
->>
->> IMHO callers should not be required to find the first set bit in
->> some specially crafted set of capability bits simply to get sane 
->> default behaviour.
-> 
-> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
-> error prone.
-
-Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
-from your side?
-
-Or, what about using a function like pwm_mode_first() to get the first supported
-mode by PWM channel?
-
-Or, would you prefer to solve this inside pwm_config() function, let's say, in
-case an invalid mode is passed as argument, to let pwm_config() to choose the
-first available PWM mode for PWM channel passed as argument?
-
-Thank you,
-Claudiu Beznea
-
-> 
-> BR,
-> Jani.
-> 
-> 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index b9b9446095e9..573da38a21c3 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -131,7 +131,7 @@ struct media_device_info {
+  * with the legacy v1 API.The number range is out of range by purpose:
+  * several previously reserved numbers got excluded from this range.
+  *
+- * Subdevs are initialized with MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN,
++ * Subdevs are initialized with MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN,
+  * in order to preserve backward compatibility.
+  * Drivers must change to the proper subdev type before
+  * registering the entity.
+-- 
+2.16.1
