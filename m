@@ -1,83 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59975 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753846AbeBGNUg (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:32823 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751473AbeBTEpW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 08:20:36 -0500
-Subject: Re: [PATCH 2/4] add default settings and module parameters for video
- controls
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
- <1518008438-26603-3-git-send-email-floe@butterbrot.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <40460636-1de2-c280-fe23-ec93f27242ed@xs4all.nl>
-Date: Wed, 7 Feb 2018 14:20:30 +0100
-MIME-Version: 1.0
-In-Reply-To: <1518008438-26603-3-git-send-email-floe@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Feb 2018 23:45:22 -0500
+Received: by mail-pg0-f65.google.com with SMTP id g12so6722724pgs.0
+        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:45:21 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv4 14/21] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Tue, 20 Feb 2018 13:44:18 +0900
+Message-Id: <20180220044425.169493-15-acourbot@chromium.org>
+In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
+References: <20180220044425.169493-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/07/18 14:00, Florian Echtler wrote:
-> This patch adds parameter definitions and module parameters for the four
-> userspace controls that the SUR40 can currently provide.
-> 
-> Signed-off-by: Florian Echtler <floe@butterbrot.org>
-> ---
->  drivers/input/touchscreen/sur40.c | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
-> 
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-> index 8375b06..8a5b031 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -149,6 +149,34 @@ struct sur40_image_header {
->  #define SUR40_TOUCH	0x02
->  #define SUR40_TAG	0x04
->  
-> +/* video controls */
-> +#define SUR40_BRIGHTNESS_MAX 0xFF
-> +#define SUR40_BRIGHTNESS_MIN 0x00
-> +#define SUR40_BRIGHTNESS_DEF 0xFF
-> +
-> +#define SUR40_CONTRAST_MAX 0x0F
-> +#define SUR40_CONTRAST_MIN 0x00
-> +#define SUR40_CONTRAST_DEF 0x0A
+Allow to specify a request to be used with the S_EXT_CTRLS and
+G_EXT_CTRLS operations.
 
-It's kernel style to use lowercase hex values.
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
+ include/uapi/linux/videodev2.h       | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-> +
-> +#define SUR40_GAIN_MAX 0x09
-> +#define SUR40_GAIN_MIN 0x00
-> +#define SUR40_GAIN_DEF 0x08
-> +
-> +#define SUR40_BACKLIGHT_MAX 0x01
-> +#define SUR40_BACKLIGHT_MIN 0x00
-> +#define SUR40_BACKLIGHT_DEF 0x01
-> +
-> +/* module parameters */
-> +static uint brightness = SUR40_BRIGHTNESS_DEF;
-> +module_param(brightness, uint, 0644);
-> +MODULE_PARM_DESC(brightness, "set initial brightness");
-
-No range in the param description? I think you can do some macro magic so you
-can use the MIN/MAX defines in the string.
-
-Regards,
-
-	Hans
-
-> +static uint contrast = SUR40_CONTRAST_DEF;
-> +module_param(contrast, uint, 0644);
-> +MODULE_PARM_DESC(contrast, "set initial contrast");
-> +static uint gain = SUR40_GAIN_DEF;
-> +module_param(gain, uint, 0644);
-> +MODULE_PARM_DESC(gain, "set initial gain");
-> +
->  static const struct v4l2_pix_format sur40_pix_format[] = {
->  	{
->  		.pixelformat = V4L2_TCH_FMT_TU08,
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7bfeaf233d5a..2f40ac0cdf6e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
+ 
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4fd46ae8fad5..91cfe0cbd5c5 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
+ 
+-- 
+2.16.1.291.g4437f3f132-goog
