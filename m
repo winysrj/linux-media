@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:19407 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbeBRUz4 (ORCPT
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:43336 "EHLO
+        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752343AbeBTSSR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Feb 2018 15:55:56 -0500
-From: Ralph Metzler <rjkm@metzlerbros.de>
+        Tue, 20 Feb 2018 13:18:17 -0500
+Received: by mail-qk0-f177.google.com with SMTP id i184so17596964qkf.10
+        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 10:18:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <23177.59478.243278.702389@morden.metzler>
-Date: Sun, 18 Feb 2018 21:55:50 +0100
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com,
-        rjkm@metzlerbros.de, d.scheller@gmx.net
-Subject: Re: [PATCH V2 0/3] Add timers to en50221 protocol driver
-In-Reply-To: <ef72a382-5d30-526c-ae09-ed50d9d4790d@anw.at>
-References: <1513862559-19725-1-git-send-email-jasmin@anw.at>
-        <ef72a382-5d30-526c-ae09-ed50d9d4790d@anw.at>
+In-Reply-To: <3383770.t3Sncl0gtc@avalon>
+References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com>
+ <dd70c226-e7db-e55e-e467-a6b0d1e7849d@ideasonboard.com> <alpine.DEB.2.20.1802191456110.8694@axis700.grange>
+ <3383770.t3Sncl0gtc@avalon>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Tue, 20 Feb 2018 13:18:16 -0500
+Message-ID: <CAGoCfiy296wh1u+LE-RoSVVzc8kNKngDvne-R2cDdOBM9LtVfg@mail.gmail.com>
+Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+        <axdoomer@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jasmin,
+Hi Laurent,
 
-Jasmin J. writes:
- > Hi!
- > 
- > Please hold on in merging this series, because I have to investigate a hint
- > I got related to the buffer size handshake of the protocol driver:
- >   https://www.linuxtv.org/pipermail/linux-dvb/2007-July/019116.html
- > 
- > BR,
- >    Jasmin
+On Mon, Feb 19, 2018 at 11:19 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> I've tested VLC (2.2.8) and haven't noticed any issue. If a program is
+> directed to the metadata video node and tries to capture video from it it will
+> obviously fail. That being said, software that work today should continue
+> working, otherwise it's a regression, and we'll have to handle that.
 
+Perhaps it shouldn't be a video node then (as we do with VBI devices).
+Would something like /dev/videometadataX would be more appropriate?
 
-So, there seem to be two bugs:
+People have for years operated under the expectation that /dev/videoX
+nodes are video nodes.  If we're going to be creating things with that
+name which aren't video nodes then that is going to cause considerable
+confusion as well as messing up all sorts of existing applications
+which operate under that expectation.
 
-1. The SW bit is cleared too early during the whole buffer size negotiation.
+I know that some of the older PCI boards have always exposed a bunch
+of video nodes for various things (i.e. raw video vs. mpeg, etc), but
+because USB devices have traditionally been simpler they generally
+expose only one node of each type (i.e. one /dev/videoX, /dev/vbiX
+/dev/radioX).  I've already gotten an email from a customer who has a
+ton of scripts which depend on this behavior, so please seriously
+consider the implications of this design decision.
 
-This should be fixed.
+It's easy to brush this off as "all the existing applications will
+eventually be updated", but you're talking about changing the basic
+behavior of how these device nodes have been presented for over a
+decade.
 
+Devin
 
-2. IRQEN = CMDREG_DAIE = 0x80 is always set in the command register.
-
-DAIE and FRIE were introduced as recommendation in Cenelec R06-001:1998 and are a requirement for
-CI+.
-
-They could cause problems if the IRQ line goes high and the interrupt is enabled but not handled.
-They should not cause a problem if the host ignores the interrupt or if the CAM does not support it,
-but one never knows with some CAMs ...
-
-So, they should probably only be used if both the host and module say they support it.
-R06 does not mention it but CI+ also requires a CIS entry to be present in modules 
-supporting this feature.
-
-
-
-Regards,
-Ralph
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
