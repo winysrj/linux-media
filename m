@@ -1,40 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:9868 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751725AbeBFNyg (ORCPT
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:40732 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751131AbeBTEo4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 08:54:36 -0500
-Date: Tue, 6 Feb 2018 14:54:29 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Wolfram Sang <wsa@the-dreams.de>
-cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
- with a mask
-In-Reply-To: <20180206135310.deiaz55xemc26xn4@ninjato>
-Message-ID: <alpine.DEB.2.20.1802061453440.3306@hadrien>
-References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com> <20180206131044.oso33fvv553trrd7@mwanda> <alpine.DEB.2.20.1802061414340.3306@hadrien> <20180206132335.luut6em3kut7f7ej@mwanda> <alpine.DEB.2.20.1802061439110.3306@hadrien>
- <20180206135310.deiaz55xemc26xn4@ninjato>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 19 Feb 2018 23:44:56 -0500
+Received: by mail-pl0-f68.google.com with SMTP id g18so6834796plo.7
+        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:44:56 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv4 05/21] v4l2-ctrls: use ref in helper instead of ctrl
+Date: Tue, 20 Feb 2018 13:44:09 +0900
+Message-Id: <20180220044425.169493-6-acourbot@chromium.org>
+In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
+References: <20180220044425.169493-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The next patch needs the reference to a control instead of the
+control itself, so change struct v4l2_ctrl_helper accordingly.
 
-On Tue, 6 Feb 2018, Wolfram Sang wrote:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-> Hi Julia,
->
-> > and got the results below.  I can make a version for the kernel shortly.
->
-> It should probably take care of right-shifting, too?
-
-I did that too but got no results.  Perhaps right shifting constants is
-pretty uncommon.  I can put that in the complete rule though.
-
-julia
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 784879816c24..b3be022b219f 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -37,8 +37,8 @@
+ struct v4l2_ctrl_helper {
+ 	/* Pointer to the control reference of the master control */
+ 	struct v4l2_ctrl_ref *mref;
+-	/* The control corresponding to the v4l2_ext_control ID field. */
+-	struct v4l2_ctrl *ctrl;
++	/* The control ref corresponding to the v4l2_ext_control ID field. */
++	struct v4l2_ctrl_ref *ref;
+ 	/* v4l2_ext_control index of the next control belonging to the
+ 	   same cluster, or 0 if there isn't any. */
+ 	u32 next;
+@@ -2856,6 +2856,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		ref = find_ref_lock(hdl, id);
+ 		if (ref == NULL)
+ 			return -EINVAL;
++		h->ref = ref;
+ 		ctrl = ref->ctrl;
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+ 			return -EINVAL;
+@@ -2878,7 +2879,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+-		h->ctrl = ctrl;
+ 		/* Initially set next to 0, meaning that there is no other
+ 		   control in this helper array belonging to the same
+ 		   cluster */
+@@ -2963,7 +2963,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	cs->error_idx = cs->count;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++)
+-		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
++		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 			ret = -EACCES;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++) {
+@@ -2998,7 +2998,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 
+ 			do {
+ 				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ctrl);
++						   helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3137,7 +3137,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
+ 
+ 	cs->error_idx = cs->count;
+ 	for (i = 0; i < cs->count; i++) {
+-		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
++		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
+ 		union v4l2_ctrl_ptr p_new;
+ 
+ 		cs->error_idx = i;
+@@ -3249,7 +3249,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			do {
+ 				/* Check if the auto control is part of the
+ 				   list, and remember the new value. */
+-				if (helpers[tmp_idx].ctrl == master)
++				if (helpers[tmp_idx].ref->ctrl == master)
+ 					new_auto_val = cs->controls[tmp_idx].value;
+ 				tmp_idx = helpers[tmp_idx].next;
+ 			} while (tmp_idx);
+@@ -3262,7 +3262,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
++			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
+ 
+ 			ret = user_to_new(cs->controls + idx, ctrl);
+ 			if (!ret && ctrl->is_ptr)
+@@ -3278,7 +3278,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			idx = i;
+ 			do {
+ 				ret = new_to_user(cs->controls + idx,
+-						helpers[idx].ctrl);
++						helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+-- 
+2.16.1.291.g4437f3f132-goog
