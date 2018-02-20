@@ -1,82 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0069.outbound.protection.outlook.com ([104.47.41.69]:45611
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752207AbeBIBWQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 20:22:16 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v2 9/9] [media] Add documentation for YUV420 bus format
-Date: Thu, 8 Feb 2018 17:22:07 -0800
-Message-ID: <1518139327-21947-1-git-send-email-satishna@xilinx.com>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58508 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752186AbeBTPY6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Feb 2018 10:24:58 -0500
+Subject: Re: [RFCv4 11/21] media: v4l2_fh: add request entity field
+To: Alexandre Courbot <acourbot@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20180220044425.169493-1-acourbot@chromium.org>
+ <20180220044425.169493-12-acourbot@chromium.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5b0fcac9-18e1-433f-7977-2a90f3d961f8@xs4all.nl>
+Date: Tue, 20 Feb 2018 16:24:53 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20180220044425.169493-12-acourbot@chromium.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code is MEDIA_BUS_FMT_VYYUYY8_1X24
+On 02/20/18 05:44, Alexandre Courbot wrote:
+> Allow drivers to assign a request entity to v4l2_fh. This will be useful
+> for request-aware ioctls to find out which request entity to use.
+> 
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> ---
+>  include/media/v4l2-fh.h | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+> index ea73fef8bdc0..f54cb319dd64 100644
+> --- a/include/media/v4l2-fh.h
+> +++ b/include/media/v4l2-fh.h
+> @@ -28,6 +28,7 @@
+>  
+>  struct video_device;
+>  struct v4l2_ctrl_handler;
+> +struct media_request_entity;
+>  
+>  /**
+>   * struct v4l2_fh - Describes a V4L2 file handler
+> @@ -43,6 +44,7 @@ struct v4l2_ctrl_handler;
+>   * @navailable: number of available events at @available list
+>   * @sequence: event sequence number
+>   * @m2m_ctx: pointer to &struct v4l2_m2m_ctx
+> + * @entity: the request entity this fh operates on behalf of
+>   */
+>  struct v4l2_fh {
+>  	struct list_head	list;
+> @@ -60,6 +62,7 @@ struct v4l2_fh {
+>  #if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
+>  	struct v4l2_m2m_ctx	*m2m_ctx;
+>  #endif
+> +	struct media_request_entity *entity;
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 34 +++++++++++++++++++++=
-++++
- 1 file changed, 34 insertions(+)
+The name 'media_request_entity' is very confusing.
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentatio=
-n/media/uapi/v4l/subdev-formats.rst
-index b1eea44..a4d7d87 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -7283,6 +7283,40 @@ The following table list existing packed 48bit wide =
-YUV formats.
-       - y\ :sub:`1`
-       - y\ :sub:`0`
+In the media controller API terminology an entity represents a piece
+of hardware with inputs and outputs (very rough description), but a
+request is not an entity. It may be associated with an entity, though.
 
-+      - MEDIA_BUS_FMT_VYYUYY8_1X24
-+      - 0x202c
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - v\ :sub:`7`
-+      - v\ :sub:`6`
-+      - v\ :sub:`5`
-+      - v\ :sub:`4`
-+      - v\ :sub:`3`
-+      - v\ :sub:`2`
-+      - v\ :sub:`1`
-+      - v\ :sub:`0`
-+      - u\ :sub:`7`
-+      - u\ :sub:`6`
-+      - u\ :sub:`5`
-+      - u\ :sub:`4`
-+      - u\ :sub:`3`
-+      - u\ :sub:`2`
-+      - u\ :sub:`1`
-+      - u\ :sub:`0`
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
+So calling this field 'entity' is also very misleading.
 
- .. raw:: latex
+As with previous patches, I'll have to think about this and try and
+come up with better, less confusing names.
 
---
-2.7.4
+Regards,
 
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+	Hans
+
+>  };
+>  
+>  /**
+> 
