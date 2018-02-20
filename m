@@ -1,57 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f172.google.com ([209.85.216.172]:34439 "EHLO
-        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751019AbeBJRKs (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:56486 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751135AbeBTI7I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Feb 2018 12:10:48 -0500
-Received: by mail-qt0-f172.google.com with SMTP id d14so14377578qtg.1
-        for <linux-media@vger.kernel.org>; Sat, 10 Feb 2018 09:10:47 -0800 (PST)
+        Tue, 20 Feb 2018 03:59:08 -0500
+Date: Tue, 20 Feb 2018 09:58:57 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
+Message-ID: <20180220085857.GC7203@w540>
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1519059584-30844-12-git-send-email-jacopo+renesas@jmondi.org>
+ <1963190.TI9O1pFqZp@avalon>
 MIME-Version: 1.0
-In-Reply-To: <CA+JrePoxPFMteM2QvTy-px-tX+8Ojs97e1RQivxMvKMmOftqUw@mail.gmail.com>
-References: <CA+JrePoxPFMteM2QvTy-px-tX+8Ojs97e1RQivxMvKMmOftqUw@mail.gmail.com>
-From: John Cooper <mrgrymreaper@gmail.com>
-Date: Sat, 10 Feb 2018 17:10:46 +0000
-Message-ID: <CA+JrePq=P7nEw=-sh+uMQ+Jg7W4--BKFtsX6NNdpqmCvooktzA@mail.gmail.com>
-Subject: Fwd: Freeview UK Scan Tables - URGENT Attention Necessarily Required
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <1963190.TI9O1pFqZp@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----------- Forwarded message ----------
-From: John Cooper <mrgrymreaper@gmail.com>
-Date: 10 February 2018 at 17:05
-Subject: Freeview UK Scan Tables - URGENT Attention Necessarily Required
-To: linux-media@vget.kernel.org
+Hi Laurent,
 
+On Mon, Feb 19, 2018 at 09:19:32PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+>
+> Thank you for the patch.
+>
+> On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
+> > The sensor driver sets mbus format colorspace information and sizes,
+> > but not ycbcr encoding, quantization and xfer function. When supplied
+> > with an badly initialized mbus frame format structure, those fields
+> > need to be set explicitly not to leave them uninitialized. This is
+> > tested by v4l2-compliance, which supplies a mbus format description
+> > structure and checks for all fields to be properly set.
+> >
+> > Without this commit, v4l2-compliance fails when testing formats with:
+> > fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/i2c/ov7670.c | 4 ++++
+> >  1 file changed, 4 insertions(+)
+> >
+> > diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> > index 25b26d4..61c472e 100644
+> > --- a/drivers/media/i2c/ov7670.c
+> > +++ b/drivers/media/i2c/ov7670.c
+> > @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev
+> > *sd, fmt->height = wsize->height;
+> >  	fmt->colorspace = ov7670_formats[index].colorspace;
+>
+> On a side note, if I'm not mistaken the colorspace field is set to SRGB for
+> all entries. Shouldn't you hardcode it here and remove the field ?
+>
+> > +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
+> > +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
+> > +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
+>
+> How about setting the values explicitly instead of relying on defaults ? That
+> would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and
+> V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see if the
+> sensor outputs limited or full range ?
+>
 
-Hi,
+This actually makes me wonder if those informations (ycbcb_enc,
+quantization and xfer_func) shouldn't actually be part of the
+supported format list... I blindly added those default fields in the
+try_fmt function, but I doubt they applies to all supported formats.
 
-I have just had a talk with Dave from Digital UK so I can update my
-scan table locally. However in order for all of the United Kingdom's
-Freeview scan tables to be updated fully. So it can cope with the
-700MHz band clearance and be able to successfully scan the channels.
-As otherwise NO channels will be able to be found during the scan from
-software which uses DVBv5 via v4l.
+Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
+RGB 565) and 1 raw format (BGGR). I now have a question here:
 
-It is policy of Digital UK for someone from LinuxTV to send an email
-for the attention of Dave requesting the information necessary to
-update the scan tables.
+1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
+applies to RGB and raw formats? I don't think so, and what value is
+the correct one for the ycbcr_enc field in this case? I assume
+xfer_func and quantization applies to all formats instead..
 
-They can be reached at help@freeview.co.uk and it would be best if it
-is marked "Important - High"; as well as for follow up.
+Thanks
+   j
 
-Hope someone can do this today as there are already people in the
-United Kingdom who use the software and are on 4 different
-transmitters. Who are effectively cut off from receiving Freeview
-without updated scan tables, as of Wednesday (07 February 2018).
-
-For information about the clearance necessitating this update please
-visit: http://www.digitaluk.co.uk/operations/700mhz_clearance/clearance_events_in_2018
-http://www.digitaluk.co.uk/operations/700mhz_clearance/clearance_events_in_2018
-
-Thank you for your time and attention in this matter.
-
-Kind Regards,
-
-John Cooper
+> >  	info->format = *fmt;
+> >
+> >  	return 0;
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
