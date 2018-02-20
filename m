@@ -1,71 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway20.websitewelcome.com ([192.185.69.18]:22479 "EHLO
-        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752286AbeBFQtH (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:54111 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751180AbeBTIH5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 11:49:07 -0500
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway20.websitewelcome.com (Postfix) with ESMTP id B08FB40138B76
-        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:49:05 -0600 (CST)
-Date: Tue, 6 Feb 2018 10:49:04 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH v3 5/8] pci: cx88-input: use 64-bit arithmetic instead of
- 32-bit
-Message-ID: <9db3fe5d4564caf97acb5bee69e92727ada4a633.1517929336.git.gustavo@embeddedor.com>
-References: <cover.1517929336.git.gustavo@embeddedor.com>
+        Tue, 20 Feb 2018 03:07:57 -0500
+Received: by mail-wm0-f67.google.com with SMTP id t74so19633793wme.3
+        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 00:07:56 -0800 (PST)
+Subject: Re: [PATCH v2] [media] Use common error handling code in 20 functions
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        Sean Young <sean@mess.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Shyam Saini <mayhs11saini@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Wei Yongjun <weiyongjun1@huawei.com>
+Cc: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Brian Johnson <brijohn@gmail.com>,
+        =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        Daniele Nicolodi <daniele@grinta.net>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Devendra Sharma <devendra.sharma9091@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
+        Kees Cook <keescook@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Mike Isely <isely@pobox.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <fd7945f1-cdf5-932f-2fa4-c4144305fc11@linaro.org>
+Date: Tue, 20 Feb 2018 10:07:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
+In-Reply-To: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add suffix LL to constant 1000000 in order to give the compiler
-complete information about the proper arithmetic to use. Notice
-that this constant is used in a context that expects an expression
-of type ktime_t (64 bits, signed).
+Hi Markus,
 
-The expression ir->polling * 1000000 is currently being evaluated
-using 32-bit arithmetic.
+Thank you for the patch.
 
-Addresses-Coverity-ID: 1392628 ("Unintentional integer overflow")
-Addresses-Coverity-ID: 1392630 ("Unintentional integer overflow")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
-Changes in v2:
- - Update subject and changelog to better reflect the proposed code changes.
- - Add suffix LL to constant instead of casting a variable.
+On 19.02.2018 20:11, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 19 Feb 2018 18:50:40 +0100
+> 
+> Adjust jump targets so that a bit of exception handling can be better
+> reused at the end of these functions.
+> 
+> This issue was partly detected by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+> 
+> v2:
+> Hans Verkuil insisted on patch squashing. Thus several changes
+> were recombined based on source files from Linux next-20180216.
+> 
+> The implementation of the function "tda8261_set_params" was improved
+> after a notification by Christoph Böhmwalder on 2017-09-26.
+> 
+>  drivers/media/dvb-core/dmxdev.c                    | 16 ++++----
+>  drivers/media/dvb-frontends/tda1004x.c             | 20 ++++++----
+>  drivers/media/dvb-frontends/tda8261.c              | 19 ++++++----
+>  drivers/media/pci/bt8xx/dst.c                      | 19 ++++++----
+>  drivers/media/pci/bt8xx/dst_ca.c                   | 30 +++++++--------
+>  drivers/media/pci/cx88/cx88-input.c                | 17 +++++----
+>  drivers/media/platform/omap3isp/ispvideo.c         | 29 +++++++--------
+>  .../media/platform/qcom/camss-8x16/camss-csid.c    | 20 +++++-----
+>  drivers/media/tuners/tuner-xc2028.c                | 30 +++++++--------
+>  drivers/media/usb/cpia2/cpia2_usb.c                | 13 ++++---
+>  drivers/media/usb/gspca/gspca.c                    | 17 +++++----
+>  drivers/media/usb/gspca/sn9c20x.c                  | 17 +++++----
+>  drivers/media/usb/pvrusb2/pvrusb2-ioread.c         | 10 +++--
+>  drivers/media/usb/tm6000/tm6000-cards.c            |  7 ++--
+>  drivers/media/usb/tm6000/tm6000-dvb.c              | 11 ++++--
+>  drivers/media/usb/tm6000/tm6000-video.c            | 13 ++++---
+>  drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c  | 13 +++----
+>  drivers/media/usb/ttusb-dec/ttusb_dec.c            | 43 ++++++++--------------
+>  drivers/media/usb/uvc/uvc_v4l2.c                   | 13 ++++---
+>  19 files changed, 180 insertions(+), 177 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+> index 6d53af00190e..6a0411c91195 100644
 
-Changes in v3:
- - Mention the specific Coverity reports in the commit message.
+<snip>
 
- drivers/media/pci/cx88/cx88-input.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.c b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+> index 64df82817de3..92d4dc6b4a66 100644
+> --- a/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+> +++ b/drivers/media/platform/qcom/camss-8x16/camss-csid.c
+> @@ -328,16 +328,12 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
+>  			return ret;
+>  
+>  		ret = csid_set_clock_rates(csid);
+> -		if (ret < 0) {
+> -			regulator_disable(csid->vdda);
+> -			return ret;
+> -		}
+> +		if (ret < 0)
+> +			goto disable_regulator;
+>  
+>  		ret = camss_enable_clocks(csid->nclocks, csid->clock, dev);
+> -		if (ret < 0) {
+> -			regulator_disable(csid->vdda);
+> -			return ret;
+> -		}
+> +		if (ret < 0)
+> +			goto disable_regulator;
+>  
+>  		enable_irq(csid->irq);
+>  
+> @@ -345,8 +341,7 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
+>  		if (ret < 0) {
+>  			disable_irq(csid->irq);
+>  			camss_disable_clocks(csid->nclocks, csid->clock);
+> -			regulator_disable(csid->vdda);
+> -			return ret;
+> +			goto disable_regulator;
+>  		}
+>  
+>  		hw_version = readl_relaxed(csid->base + CAMSS_CSID_HW_VERSION);
+> @@ -357,6 +352,11 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
+>  		ret = regulator_disable(csid->vdda);
+>  	}
+>  
+> +	goto exit;
 
-diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
-index 4e9953e..6f4e692 100644
---- a/drivers/media/pci/cx88/cx88-input.c
-+++ b/drivers/media/pci/cx88/cx88-input.c
-@@ -180,7 +180,7 @@ static enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
- 	struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
- 
- 	cx88_ir_handle_key(ir);
--	missed = hrtimer_forward_now(&ir->timer, ir->polling * 1000000);
-+	missed = hrtimer_forward_now(&ir->timer, ir->polling * 1000000LL);
- 	if (missed > 1)
- 		ir_dprintk("Missed ticks %ld\n", missed - 1);
- 
-@@ -200,7 +200,7 @@ static int __cx88_ir_start(void *priv)
- 	if (ir->polling) {
- 		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 		ir->timer.function = cx88_ir_work;
--		hrtimer_start(&ir->timer, ir->polling * 1000000,
-+		hrtimer_start(&ir->timer, ir->polling * 1000000LL,
- 			      HRTIMER_MODE_REL);
- 	}
- 	if (ir->sampling) {
+I think it will be cleaner if you remove the exit label and return here instead.
+
+> +
+> +disable_regulator:
+> +	regulator_disable(csid->vdda);
+> +exit:
+>  	return ret;
+>  }
+
 -- 
-2.7.4
+Best regards,
+Todor Tomov
