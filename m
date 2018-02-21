@@ -1,148 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52040 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967204AbeBOMc4 (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:41476 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932328AbeBUQ2d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 07:32:56 -0500
-Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se>
- <2053928.E9OymEAqzL@avalon> <0f0adb80-7af7-9fd4-319f-faa6b45ef1a4@xs4all.nl>
- <37073075.RbtH2Do48G@avalon>
+        Wed, 21 Feb 2018 11:28:33 -0500
+Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
+To: jacopo mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1519059584-30844-12-git-send-email-jacopo+renesas@jmondi.org>
+ <1963190.TI9O1pFqZp@avalon> <20180220085857.GC7203@w540>
+ <20180221154712.GJ7203@w540>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <258fbbf3-9f2b-79e8-8a28-b177ea3d05ad@xs4all.nl>
-Date: Thu, 15 Feb 2018 13:32:55 +0100
+Message-ID: <287b38a5-d952-7600-2180-df08ab002b03@xs4all.nl>
+Date: Wed, 21 Feb 2018 17:28:27 +0100
 MIME-Version: 1.0
-In-Reply-To: <37073075.RbtH2Do48G@avalon>
+In-Reply-To: <20180221154712.GJ7203@w540>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/02/18 13:06, Laurent Pinchart wrote:
-> Hi Hans,
+On 02/21/2018 04:47 PM, jacopo mondi wrote:
+> Hello again,
 > 
-> On Thursday, 15 February 2018 13:56:44 EET Hans Verkuil wrote:
->> On 15/02/18 12:08, Laurent Pinchart wrote:
->>> On Thursday, 15 February 2018 12:57:44 EET Hans Verkuil wrote:
->>>> On 14/02/18 16:16, Laurent Pinchart wrote:
->>>>> On Wednesday, 14 February 2018 12:36:43 EET Niklas Söderlund wrote:
->>>>>> There is no way for drivers to validate a colorspace value, which could
->>>>>> be provided by user-space by VIDIOC_S_FMT for example. Add a helper to
->>>>>> validate that the colorspace value is part of enum v4l2_colorspace.
->>>>>>
->>>>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>>>>> ---
->>>>>>
->>>>>>  include/uapi/linux/videodev2.h | 4 ++++
->>>>>>  1 file changed, 4 insertions(+)
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> I hope this is the correct header to add this helper to. I think it's
->>>>>> since if it's in uapi not only can v4l2 drivers use it but tools like
->>>>>> v4l-compliance gets access to it and can be updated to use this instead
->>>>>> of the hard-coded check of just < 0xff as it was last time I checked.
->>>>>>
->>>>>> * Changes since v1
->>>>>> - Cast colorspace to u32 as suggested by Sakari and only check the
->>>>>>   upper boundary to address a potential issue brought up by Laurent if
->>>>>>   the data type tested is u32 which is not uncommon:
->>>>>>     enum.c:30:16: warning: comparison of unsigned expression >= 0 is
->>>>>>     always true [-Wtype-limits]
->>>>>>
->>>>>>       return V4L2_COLORSPACE_IS_VALID(colorspace);
->>>>>>
->>>>>> diff --git a/include/uapi/linux/videodev2.h
->>>>>> b/include/uapi/linux/videodev2.h index
->>>>>> 9827189651801e12..1f27c0f4187cbded 100644
->>>>>> --- a/include/uapi/linux/videodev2.h
->>>>>> +++ b/include/uapi/linux/videodev2.h
->>>>>> @@ -238,6 +238,10 @@ enum v4l2_colorspace {
->>>>>>  	V4L2_COLORSPACE_DCI_P3        = 12,
->>>>>>  };
->>>>>>
->>>>>> +/* Determine if a colorspace is defined in enum v4l2_colorspace */
->>>>>> +#define V4L2_COLORSPACE_IS_VALID(colorspace)		\
->>>>>> +	((u32)(colorspace) <= V4L2_COLORSPACE_DCI_P3)
+> On Tue, Feb 20, 2018 at 09:58:57AM +0100, jacopo mondi wrote:
+>> Hi Laurent,
+>>
+>> On Mon, Feb 19, 2018 at 09:19:32PM +0200, Laurent Pinchart wrote:
+>>> Hi Jacopo,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
+>>>> The sensor driver sets mbus format colorspace information and sizes,
+>>>> but not ycbcr encoding, quantization and xfer function. When supplied
+>>>> with an badly initialized mbus frame format structure, those fields
+>>>> need to be set explicitly not to leave them uninitialized. This is
+>>>> tested by v4l2-compliance, which supplies a mbus format description
+>>>> structure and checks for all fields to be properly set.
 >>>>
->>>> Sorry, this won't work. Use __u32. u32 is only available in the kernel,
->>>> not in userspace and this is a public header.
->>>
->>> Indeed, that I should have caught.
->>>
->>>> I am not convinced about the usefulness of this check either. Drivers
->>>> will typically only support a subset of the available colorspaces, so
->>>> they need a switch to test for that.
->>>
->>> Most MC drivers won't, as they don't care about colorspaces in most
->>> subdevs. It's important for the colorspace to be propagated within
->>> subdevs, and validated across the pipeline, but in most case, apart from
->>> the image source subdev, other subdevs won't care. They should accept any
->>> valid colorspace given to them and propagate it to their source pads
->>> unchanged (except of course for subdevs that can change the colorspace,
->>> but that's the exception, not the rule).
->>
->> Right. So 'passthrough' subdevs should just copy this information from
->> source to sink, and only pure source or pure sink subdevs should validate
->> these fields. That makes sense.
->>
->>>> There is nothing wrong with userspace giving them an unknown colorspace:
->>>> either they will map anything they don't support to something that they
->>>> DO
->>>> support, or they will return -EINVAL.
->>>
->>> The former, not the latter. S_FMT should not return -EINVAL for
->>> unsupported
->>> colorspace, the same way it doesn't return -EINVAL for unsupported pixel
->>> formats.
->>>
->>>> If memory serves the spec requires the first option, so anything unknown
->>>> will just be replaced.
+>>>> Without this commit, v4l2-compliance fails when testing formats with:
+>>>> fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
 >>>>
->>>> And anyway, this raises the question of why you do this for the
->>>> colorspace
->>>> but not for all the other enums in the V4L2 API.
+>>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>>>> ---
+>>>>  drivers/media/i2c/ov7670.c | 4 ++++
+>>>>  1 file changed, 4 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+>>>> index 25b26d4..61c472e 100644
+>>>> --- a/drivers/media/i2c/ov7670.c
+>>>> +++ b/drivers/media/i2c/ov7670.c
+>>>> @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev
+>>>> *sd, fmt->height = wsize->height;
+>>>>  	fmt->colorspace = ov7670_formats[index].colorspace;
 >>>
->>> Because v4l2-compliance tries to set a colorspace > 0xff and expects that
->>> to be replaced by a colorspace <= 0xff. That seems like a bogus check to
->>> me, 0xff is as random as it can get.
->>
->> v4l2-compliance fills all fields with 0xff, then it checks after calling the
->> ioctl if all fields have been set to valid values.
->>
->> But in this case it should ignore the colorspace-related fields for
->> passthrough subdevs. The only passthrough devices that should set
->> colorspace are colorspace converter devices. I'm not sure if we can
->> reliably detect that.
->>
->>>> It all seems rather pointless to me.
->>>>
->>>> I won't accept this unless I see it being used in a driver in a useful
->>>> way.
->>>>
->>>> So for now:
->>>>
->>>> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> On a side note, if I'm not mistaken the colorspace field is set to SRGB for
+>>> all entries. Shouldn't you hardcode it here and remove the field ?
 >>>
->>> Can you then fix v4l2-compliance to stop testing colorspace against 0xff ?
+>>>> +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
+>>>> +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
+>>>> +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
+>>>
+>>> How about setting the values explicitly instead of relying on defaults ? That
+>>> would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and
+>>> V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see if the
+>>> sensor outputs limited or full range ?
+>>>
 >>
->> For now I can simply relax this test for subdevs with sources and sinks.
+>> This actually makes me wonder if those informations (ycbcb_enc,
+>> quantization and xfer_func) shouldn't actually be part of the
+>> supported format list... I blindly added those default fields in the
+>> try_fmt function, but I doubt they applies to all supported formats.
+>>
+>> Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
+>> RGB 565) and 1 raw format (BGGR). I now have a question here:
+>>
+>> 1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
+>> applies to RGB and raw formats? I don't think so, and what value is
+>> the correct one for the ycbcr_enc field in this case? I assume
+>> xfer_func and quantization applies to all formats instead..
+>>
 > 
-> You also need to relax it for video nodes with MC drivers, as the DMA engines 
-> don't care about colorspaces.
+> What if I repropose this as separate patch not part of the CEU series
+> in order not to hold back v10 (which I hope will be the last CEU
+> iteration)?
 
-Yes, they do. Many DMA engines can at least do RGB <-> YUV conversions, so they
-should get the colorspace info from their source and pass it on to userspace
-(after correcting for any conversions done by the DMA engine).
+I would definitely be fine with that. We first need to define what
+exactly should be done by drivers. See also this thread:
+
+https://www.spinics.net/lists/linux-renesas-soc/msg23888.html
+
+I'll work on that going forward as part of the compliance tests.
 
 Regards,
 
 	Hans
+
+> 
+>> Thanks
+>>    j
+>>
+>>>>  	info->format = *fmt;
+>>>>
+>>>>  	return 0;
+>>>
+>>> --
+>>> Regards,
+>>>
+>>> Laurent Pinchart
+>>>
