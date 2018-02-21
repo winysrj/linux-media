@@ -1,325 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:61716 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753154AbeB1RUt (ORCPT
+Received: from mail-it0-f68.google.com ([209.85.214.68]:55968 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751709AbeBUGCK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 12:20:49 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2] media: stm32-dcmi: add JPEG support
-Date: Wed, 28 Feb 2018 18:20:16 +0100
-Message-ID: <1519838416-15455-1-git-send-email-hugues.fruchet@st.com>
+        Wed, 21 Feb 2018 01:02:10 -0500
+Received: by mail-it0-f68.google.com with SMTP id n7so937293ita.5
+        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 22:02:09 -0800 (PST)
+Received: from mail-it0-f52.google.com (mail-it0-f52.google.com. [209.85.214.52])
+        by smtp.gmail.com with ESMTPSA id e94sm2417286itd.21.2018.02.20.22.02.07
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 20 Feb 2018 22:02:08 -0800 (PST)
+Received: by mail-it0-f52.google.com with SMTP id l129so965247ita.3
+        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 22:02:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <86ad101f-f400-c7fd-2aa5-4dc618973f3d@xs4all.nl>
+References: <20180220044425.169493-1-acourbot@chromium.org>
+ <20180220044425.169493-14-acourbot@chromium.org> <86ad101f-f400-c7fd-2aa5-4dc618973f3d@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Wed, 21 Feb 2018 15:01:46 +0900
+Message-ID: <CAPBb6MVH0ezPye53MOL1fwuU5SEAMamG-S0jkJoF2Kp-LVok+A@mail.gmail.com>
+Subject: Re: [RFCv4 13/21] media: videobuf2-v4l2: support for requests
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DCMI JPEG support.
+On Wed, Feb 21, 2018 at 1:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 02/20/2018 05:44 AM, Alexandre Courbot wrote:
+>> Add a new vb2_qbuf_request() (a request-aware version of vb2_qbuf())
+>> that request-aware drivers can call to queue a buffer into a request
+>> instead of directly into the vb2 queue if relevent.
+>>
+>> This function expects that drivers invoking it are using instances of
+>> v4l2_request_entity and v4l2_request_entity_data to describe their
+>> entity and entity data respectively.
+>>
+>> Also add the vb2_request_submit() helper function which drivers can
+>> invoke in order to queue all the buffers previously queued into a
+>> request into the regular vb2 queue.
+>>
+>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>> ---
+>>  .../media/common/videobuf2/videobuf2-v4l2.c   | 129 +++++++++++++++++-
+>>  include/media/videobuf2-v4l2.h                |  59 ++++++++
+>>  2 files changed, 187 insertions(+), 1 deletion(-)
+>>
+>
+> <snip>
+>
+>> @@ -776,10 +899,14 @@ EXPORT_SYMBOL_GPL(vb2_ioctl_querybuf);
+>>  int vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+>>  {
+>>       struct video_device *vdev = video_devdata(file);
+>> +     struct v4l2_fh *fh = NULL;
+>> +
+>> +     if (test_bit(V4L2_FL_USES_V4L2_FH, &vdev->flags))
+>> +             fh = file->private_data;
+>
+> No need for this. All drivers using vb2 will also use v4l2_fh.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
-version 2:
-  - Removed V4L2_FMT_FLAG_COMPRESSED flag setting already set by V4L2 core
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg126825.html
+Fixed.
 
- drivers/media/platform/stm32/stm32-dcmi.c | 193 ++++++++++++++++++++++--------
- 1 file changed, 146 insertions(+), 47 deletions(-)
+>
+>>
+>>       if (vb2_queue_is_busy(vdev, file))
+>>               return -EBUSY;
+>> -     return vb2_qbuf(vdev->queue, p);
+>> +     return vb2_qbuf_request(vdev->queue, p, fh ? fh->entity : NULL);
+>>  }
+>>  EXPORT_SYMBOL_GPL(vb2_ioctl_qbuf);
+>>
+>> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+>> index 3d5e2d739f05..d4dfa266a0da 100644
+>> --- a/include/media/videobuf2-v4l2.h
+>> +++ b/include/media/videobuf2-v4l2.h
+>> @@ -23,6 +23,12 @@
+>>  #error VB2_MAX_PLANES != VIDEO_MAX_PLANES
+>>  #endif
+>>
+>> +struct media_entity;
+>> +struct v4l2_fh;
+>> +struct media_request;
+>> +struct media_request_entity;
+>> +struct v4l2_request_entity_data;
+>> +
+>>  /**
+>>   * struct vb2_v4l2_buffer - video buffer information for v4l2.
+>>   *
+>> @@ -116,6 +122,59 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+>>   */
+>>  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
+>>
+>> +#if IS_ENABLED(CONFIG_MEDIA_REQUEST_API)
+>> +
+>> +/**
+>> + * vb2_qbuf_request() - Queue a buffer, with request support
+>> + * @q:               pointer to &struct vb2_queue with videobuf2 queue.
+>> + * @b:               buffer structure passed from userspace to
+>> + *           &v4l2_ioctl_ops->vidioc_qbuf handler in driver
+>> + * @entity:  request entity to queue for if requests are used.
+>> + *
+>> + * Should be called from &v4l2_ioctl_ops->vidioc_qbuf handler of a driver.
+>> + *
+>> + * If requests are not in use, calling this is equivalent to calling vb2_qbuf().
+>> + *
+>> + * If the request_fd member of b is set, then the buffer represented by b is
+>> + * queued in the request instead of the vb2 queue. The buffer will be passed
+>> + * to the vb2 queue when the request is submitted.
+>
+> I would definitely also prepare the buffer at this time. That way you'll see any
+> errors relating to the prepare early on.
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 269e963..36f9a77 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -93,6 +93,11 @@ enum state {
- #define MIN_HEIGHT	16U
- #define MAX_HEIGHT	2048U
- 
-+#define MIN_JPEG_WIDTH	16U
-+#define MAX_JPEG_WIDTH	2592U
-+#define MIN_JPEG_HEIGHT	16U
-+#define MAX_JPEG_HEIGHT	2592U
-+
- #define TIMEOUT_MS	1000
- 
- struct dcmi_graph_entity {
-@@ -191,14 +196,67 @@ static inline void reg_clear(void __iomem *base, u32 reg, u32 mask)
- 
- static int dcmi_start_capture(struct stm32_dcmi *dcmi);
- 
-+static void dcmi_buffer_done(struct stm32_dcmi *dcmi,
-+			     struct dcmi_buf *buf,
-+			     size_t bytesused,
-+			     int err)
-+{
-+	struct vb2_v4l2_buffer *vbuf;
-+
-+	if (!buf)
-+		return;
-+
-+	vbuf = &buf->vb;
-+
-+	vbuf->sequence = dcmi->sequence++;
-+	vbuf->field = V4L2_FIELD_NONE;
-+	vbuf->vb2_buf.timestamp = ktime_get_ns();
-+	vb2_set_plane_payload(&vbuf->vb2_buf, 0, bytesused);
-+	vb2_buffer_done(&vbuf->vb2_buf,
-+			err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-+	dev_dbg(dcmi->dev, "buffer[%d] done seq=%d, bytesused=%zu\n",
-+		vbuf->vb2_buf.index, vbuf->sequence, bytesused);
-+
-+	dcmi->buffers_count++;
-+	dcmi->active = NULL;
-+}
-+
-+static int dcmi_restart_capture(struct stm32_dcmi *dcmi)
-+{
-+	spin_lock_irq(&dcmi->irqlock);
-+
-+	if (dcmi->state != RUNNING) {
-+		spin_unlock_irq(&dcmi->irqlock);
-+		return -EINVAL;
-+	}
-+
-+	/* Restart a new DMA transfer with next buffer */
-+	if (list_empty(&dcmi->buffers)) {
-+		dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer\n",
-+			__func__);
-+		dcmi->errors_count++;
-+		dcmi->active = NULL;
-+
-+		spin_unlock_irq(&dcmi->irqlock);
-+		return -EINVAL;
-+	}
-+
-+	dcmi->active = list_entry(dcmi->buffers.next,
-+				  struct dcmi_buf, list);
-+	list_del_init(&dcmi->active->list);
-+
-+	spin_unlock_irq(&dcmi->irqlock);
-+
-+	return dcmi_start_capture(dcmi);
-+}
-+
- static void dcmi_dma_callback(void *param)
- {
- 	struct stm32_dcmi *dcmi = (struct stm32_dcmi *)param;
- 	struct dma_chan *chan = dcmi->dma_chan;
- 	struct dma_tx_state state;
- 	enum dma_status status;
--
--	spin_lock_irq(&dcmi->irqlock);
-+	struct dcmi_buf *buf = dcmi->active;
- 
- 	/* Check DMA status */
- 	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
-@@ -216,53 +274,18 @@ static void dcmi_dma_callback(void *param)
- 	case DMA_COMPLETE:
- 		dev_dbg(dcmi->dev, "%s: Received DMA_COMPLETE\n", __func__);
- 
--		if (dcmi->active) {
--			struct dcmi_buf *buf = dcmi->active;
--			struct vb2_v4l2_buffer *vbuf = &dcmi->active->vb;
--
--			vbuf->sequence = dcmi->sequence++;
--			vbuf->field = V4L2_FIELD_NONE;
--			vbuf->vb2_buf.timestamp = ktime_get_ns();
--			vb2_set_plane_payload(&vbuf->vb2_buf, 0, buf->size);
--			vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
--			dev_dbg(dcmi->dev, "buffer[%d] done seq=%d\n",
--				vbuf->vb2_buf.index, vbuf->sequence);
--
--			dcmi->buffers_count++;
--			dcmi->active = NULL;
--		}
--
--		/* Restart a new DMA transfer with next buffer */
--		if (dcmi->state == RUNNING) {
--			if (list_empty(&dcmi->buffers)) {
--				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer\n",
--					__func__);
--				dcmi->errors_count++;
--				dcmi->active = NULL;
--
--				spin_unlock_irq(&dcmi->irqlock);
--				return;
--			}
--
--			dcmi->active = list_entry(dcmi->buffers.next,
--						  struct dcmi_buf, list);
--
--			list_del_init(&dcmi->active->list);
--
--			spin_unlock_irq(&dcmi->irqlock);
--			if (dcmi_start_capture(dcmi))
--				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
--					__func__);
--			return;
--		}
-+		/* Return buffer to V4L2 */
-+		dcmi_buffer_done(dcmi, buf, buf->size, 0);
- 
-+		/* Restart capture */
-+		if (dcmi_restart_capture(dcmi))
-+			dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
-+				__func__);
- 		break;
- 	default:
- 		dev_err(dcmi->dev, "%s: Received unknown status\n", __func__);
- 		break;
- 	}
--
--	spin_unlock_irq(&dcmi->irqlock);
- }
- 
- static int dcmi_start_dma(struct stm32_dcmi *dcmi,
-@@ -355,6 +378,52 @@ static void dcmi_set_crop(struct stm32_dcmi *dcmi)
- 	reg_set(dcmi->regs, DCMI_CR, CR_CROP);
- }
- 
-+static void dcmi_process_jpeg(struct stm32_dcmi *dcmi)
-+{
-+	struct dma_tx_state state;
-+	enum dma_status status;
-+	struct dma_chan *chan = dcmi->dma_chan;
-+	struct dcmi_buf *buf = dcmi->active;
-+
-+	if (!buf)
-+		return;
-+
-+	/*
-+	 * Because of variable JPEG buffer size sent by sensor,
-+	 * DMA transfer never completes due to transfer size
-+	 * never reached.
-+	 * In order to ensure that all the JPEG data are transferred
-+	 * in active buffer memory, DMA is drained.
-+	 * Then DMA tx status gives the amount of data transferred
-+	 * to memory, which is then returned to V4L2 through the active
-+	 * buffer payload.
-+	 */
-+
-+	/* Drain DMA */
-+	dmaengine_synchronize(chan);
-+
-+	/* Get DMA residue to get JPEG size */
-+	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
-+	if (status != DMA_ERROR && state.residue < buf->size) {
-+		/* Return JPEG buffer to V4L2 with received JPEG buffer size */
-+		dcmi_buffer_done(dcmi, buf, buf->size - state.residue, 0);
-+	} else {
-+		dcmi->errors_count++;
-+		dev_err(dcmi->dev, "%s: Cannot get JPEG size from DMA\n",
-+			__func__);
-+		/* Return JPEG buffer to V4L2 in ERROR state */
-+		dcmi_buffer_done(dcmi, buf, 0, -EIO);
-+	}
-+
-+	/* Abort DMA operation */
-+	dmaengine_terminate_all(dcmi->dma_chan);
-+
-+	/* Restart capture */
-+	if (dcmi_restart_capture(dcmi))
-+		dev_err(dcmi->dev, "%s: Cannot restart capture on JPEG received\n",
-+			__func__);
-+}
-+
- static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- {
- 	struct stm32_dcmi *dcmi = arg;
-@@ -379,6 +448,14 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- 			dcmi->overrun_count++;
- 	}
- 
-+	if (dcmi->sd_format->fourcc == V4L2_PIX_FMT_JPEG &&
-+	    dcmi->misr & IT_FRAME) {
-+		/* JPEG received */
-+		spin_unlock_irq(&dcmi->irqlock);
-+		dcmi_process_jpeg(dcmi);
-+		return IRQ_HANDLED;
-+	}
-+
- 	spin_unlock_irq(&dcmi->irqlock);
- 	return IRQ_HANDLED;
- }
-@@ -552,6 +629,10 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (dcmi->do_crop)
- 		dcmi_set_crop(dcmi);
- 
-+	/* Enable jpeg capture */
-+	if (dcmi->sd_format->fourcc == V4L2_PIX_FMT_JPEG)
-+		reg_set(dcmi->regs, DCMI_CR, CR_CM);/* Snapshot mode */
-+
- 	/* Enable dcmi */
- 	reg_set(dcmi->regs, DCMI_CR, CR_ENABLE);
- 
-@@ -752,6 +833,7 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
- 	struct v4l2_subdev_format format = {
- 		.which = V4L2_SUBDEV_FORMAT_TRY,
- 	};
-+	bool do_crop;
- 	int ret;
- 
- 	sd_fmt = find_format_by_fourcc(dcmi, pix->pixelformat);
-@@ -761,10 +843,19 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
- 	}
- 
- 	/* Limit to hardware capabilities */
--	pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH);
--	pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT);
-+	if (pix->pixelformat == V4L2_PIX_FMT_JPEG) {
-+		pix->width = clamp(pix->width, MIN_JPEG_WIDTH, MAX_JPEG_WIDTH);
-+		pix->height =
-+			clamp(pix->height, MIN_JPEG_HEIGHT, MAX_JPEG_HEIGHT);
-+	} else {
-+		pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH);
-+		pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT);
-+	}
-+
-+	/* No crop if JPEG is requested */
-+	do_crop = dcmi->do_crop && (pix->pixelformat != V4L2_PIX_FMT_JPEG);
- 
--	if (dcmi->do_crop && dcmi->num_of_sd_framesizes) {
-+	if (do_crop && dcmi->num_of_sd_framesizes) {
- 		struct dcmi_framesize outer_sd_fsize;
- 		/*
- 		 * If crop is requested and sensor have discrete frame sizes,
-@@ -788,7 +879,7 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
- 	sd_fsize.width = pix->width;
- 	sd_fsize.height = pix->height;
- 
--	if (dcmi->do_crop) {
-+	if (do_crop) {
- 		struct v4l2_rect c = dcmi->crop;
- 		struct v4l2_rect max_rect;
- 
-@@ -843,6 +934,10 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
- 	if (ret)
- 		return ret;
- 
-+	/* Disable crop if JPEG is requested */
-+	if (pix->pixelformat == V4L2_PIX_FMT_JPEG)
-+		dcmi->do_crop = false;
-+
- 	/* pix to mbus format */
- 	v4l2_fill_mbus_format(mf, pix,
- 			      sd_format->mbus_code);
-@@ -1315,6 +1410,10 @@ static int dcmi_set_default_fmt(struct stm32_dcmi *dcmi)
- 		.fourcc = V4L2_PIX_FMT_UYVY,
- 		.mbus_code = MEDIA_BUS_FMT_UYVY8_2X8,
- 		.bpp = 2,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_JPEG,
-+		.mbus_code = MEDIA_BUS_FMT_JPEG_1X8,
-+		.bpp = 1,
- 	},
- };
- 
--- 
-1.9.1
+I was wondering about that, so glad to have your opinion on this. Will
+make sure buffers are prepared before queuing them to a request.
+
+>
+>> + *
+>> + * The return values from this function are intended to be directly returned
+>> + * from &v4l2_ioctl_ops->vidioc_qbuf handler in driver.
+>> + */
+>> +int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
+>> +                  struct media_request_entity *entity);
+>> +
+>> +/**
+>> + * vb2_request_submit() - Queue all the buffers in a v4l2 request.
+>> + * @data:    request entity data to queue buffers of
+>> + *
+>> + * This function should be called from the media_request_entity_ops::submit
+>> + * hook for instances of media_request_v4l2_entity_data. It will immediately
+>> + * queue all the request-bound buffers to their respective vb2 queues.
+>> + *
+>> + * Errors from vb2_core_qbuf() are returned if something happened. Also, since
+>> + * v4l2 request entities require at least one buffer for the request to trigger,
+>> + * this function will return -EINVAL if no buffer have been bound at all for
+>> + * this entity.
+>> + */
+>> +int vb2_request_submit(struct v4l2_request_entity_data *data);
+>> +
+>> +#else /* CONFIG_MEDIA_REQUEST_API */
+>> +
+>> +static inline int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
+>> +                                struct media_request_entity *entity)
+>> +{
+>> +     return vb2_qbuf(q, b);
+>> +}
+>> +
+>> +static inline int vb2_request_submit(struct v4l2_request_entity_data *data)
+>> +{
+>> +     return -ENOTSUPP;
+>> +}
+>> +
+>> +#endif /* CONFIG_MEDIA_REQUEST_API */
+>> +
+>>  /**
+>>   * vb2_expbuf() - Export a buffer as a file descriptor
+>>   * @q:               pointer to &struct vb2_queue with videobuf2 queue.
+>>
+>
+> Regards,
+>
+>         Hans
