@@ -1,65 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:32823 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751473AbeBTEpW (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:54722 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753932AbeBUNRm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 23:45:22 -0500
-Received: by mail-pg0-f65.google.com with SMTP id g12so6722724pgs.0
-        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:45:21 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv4 14/21] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Tue, 20 Feb 2018 13:44:18 +0900
-Message-Id: <20180220044425.169493-15-acourbot@chromium.org>
-In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
-References: <20180220044425.169493-1-acourbot@chromium.org>
+        Wed, 21 Feb 2018 08:17:42 -0500
+Subject: Re: [PATCHv3 10/15] media-device.c: zero reserved fields
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180219103806.17032-1-hverkuil@xs4all.nl>
+ <20180219103806.17032-11-hverkuil@xs4all.nl>
+ <20180221124954.4tgygs34mpl3s2ze@valkosipuli.retiisi.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8c18e38e-11f4-3779-3767-f3001afec053@xs4all.nl>
+Date: Wed, 21 Feb 2018 14:17:37 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180221124954.4tgygs34mpl3s2ze@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow to specify a request to be used with the S_EXT_CTRLS and
-G_EXT_CTRLS operations.
+On 02/21/18 13:49, Sakari Ailus wrote:
+> On Mon, Feb 19, 2018 at 11:38:01AM +0100, Hans Verkuil wrote:
+>> MEDIA_IOC_SETUP_LINK didn't zero the reserved field of the media_link_desc
+>> struct. Do so in media_device_setup_link().
+>>
+>> MEDIA_IOC_ENUM_LINKS didn't zero the reserved field of the media_links_enum
+>> struct. Do so in media_device_enum_links().
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> If you haven't sent a pull request including your patch "media-device: zero
+> reserved media_links_enum field", could you add it to the next version of
+> this set (or the same pull request)?
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
- include/uapi/linux/videodev2.h       | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+It's folded into this patch. It made no sense to have that in a separate patch.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7bfeaf233d5a..2f40ac0cdf6e 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
- 
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved[0] = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 4fd46ae8fad5..91cfe0cbd5c5 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	struct v4l2_ext_control *controls;
- };
- 
--- 
-2.16.1.291.g4437f3f132-goog
+Regards,
+
+	Hans
