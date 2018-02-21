@@ -1,29 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46965 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751422AbeBXQLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 11:11:54 -0500
-Subject: Re: [PATCH] [media] dvb_ca_en50221: fix severity of successful CAM
- init log message
-To: Daniel Scheller <d.scheller.oss@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-References: <20180224145557.4179-1-d.scheller.oss@gmail.com>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <cd09ee7f-97bb-4f54-1d2e-c1277153570b@anw.at>
-Date: Sat, 24 Feb 2018 17:11:45 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180224145557.4179-1-d.scheller.oss@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:37549 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S938336AbeBUPcY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 10:32:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 06/15] subdev-formats.rst: fix incorrect types
+Date: Wed, 21 Feb 2018 16:32:09 +0100
+Message-Id: <20180221153218.15654-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
+References: <20180221153218.15654-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
 
-Is OK for me, so:
-  Acked-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/v4l/subdev-formats.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-BR,
-   Jasmin
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index b1eea44550e1..4f0c0b282f98 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -33,17 +33,17 @@ Media Bus Formats
+       - Image colorspace, from enum
+ 	:c:type:`v4l2_colorspace`. See
+ 	:ref:`colorspaces` for details.
+-    * - enum :c:type:`v4l2_ycbcr_encoding`
++    * - __u16
+       - ``ycbcr_enc``
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_quantization`
++    * - __u16
+       - ``quantization``
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_xfer_func`
++    * - __u16
+       - ``xfer_func``
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+-- 
+2.16.1
