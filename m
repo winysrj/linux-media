@@ -1,103 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:47583 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751329AbeBBIAm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52082 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751432AbeBUTgv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Feb 2018 03:00:42 -0500
-Subject: Re: [RFC PATCH 1/9] media: add request API core and UAPI
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-References: <20171215075625.27028-1-acourbot@chromium.org>
- <20171215075625.27028-2-acourbot@chromium.org>
- <20180126083936.5qxacbdprm6j7pcc@valkosipuli.retiisi.org.uk>
- <CAPBb6MVAaGPh-sxD0ZTMbo2Ejtp8Rpqb8+OaKxhAC=BaT360eQ@mail.gmail.com>
- <20180202073316.ovee5fbe45npksnt@paasikivi.fi.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6292179f-4b3d-573b-09c9-7a1efc101d44@xs4all.nl>
-Date: Fri, 2 Feb 2018 09:00:32 +0100
+        Wed, 21 Feb 2018 14:36:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: chf.fritz@googlemail.com
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Norbert Wesp <n.wesp@phytec.de>
+Subject: Re: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
+Date: Wed, 21 Feb 2018 21:37:33 +0200
+Message-ID: <1971379.NnuTUWjF6a@avalon>
+In-Reply-To: <1519212389.11643.13.camel@googlemail.com>
+References: <1519212389.11643.13.camel@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180202073316.ovee5fbe45npksnt@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2018 08:33 AM, Sakari Ailus wrote:
+Hi Christoph,
 
-<snip>
+Thank you for the patch.
 
->>>> +struct media_request_entity_data *
->>>> +media_request_get_entity_data(struct media_request *req,
->>>> +                           struct media_entity *entity, void *fh)
->>>
->>> This makes the assumption that request data is bound to entities. How does
->>> this work with links?
->>>
->>> I wonder if it should rather be bound to graph objects, or certain graph
->>> objects. Having a standard way to bind request specific information e.g. to
->>> entities is definitely worth having, though.
->>>
->>> V4L2 framework specific information would be needed across the media graph
->>> and it'd be good to store it in a non-driver specific way. What I think
->>> you'd need is an interface that allows storing information based on two
->>> keys --- the request and e.g. a pointer provided by the caller. The V4L2
->>> framework would have one key, e.g. a pointer to an empty struct defined
->>> somewhere in the V4L2 framework could be used for the purpose.
->>>
->>> Going forward, the entire media graph state will be subject to changing
->>> through requests. This includes link state, media bus and pixel formats,
->>> cropping and scaling configurations, everything. Let's not try to go there
->>> yet in this patchset, but what I'm asking is to keep the goal in mind when
->>> implementating the request API.
->>
->> Yeah, I think a similar idea is brought up in the cover letter of the
->> next revision (although for different reasons). Entities are probably
->> not a one-fit for all use-cases.
->>
->> For the case of links though, I believe that the "entity" that would
->> control them would be the media controller itself, since it is the one
->> that takes the MEDIA_IOC_SETUP_LINK ioctl. But even for this case, we
->> cannot use an entity to look up the media_device, so something more
->> generic like an opaque key would probably be needed.
+On Wednesday, 21 February 2018 13:26:29 EET Christoph Fritz wrote:
+> This patch adds a quirk to force Phytec CAM 004H to format GBRG because
+> it is announcing its format wrong.
+
+Could you please send me the output of 'lsusb -d 199e:8302 -v' (if possible 
+running as root) ?
+
+> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> Tested-by: Norbert Wesp <n.wesp@phytec.de>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+>  drivers/media/usb/uvc/uvcvideo.h   |  1 +
+>  2 files changed, 17 insertions(+)
 > 
-> Perhaps in the near future we still need a little less than that. Changing
-> something that has a state in V4L2 will be troublesome and will require
-> managing state of what is now stream centric.
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index cde43b6..8bfa40b 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -406,6 +406,13 @@ static int uvc_parse_format(struct uvc_device *dev,
+>  				width_multiplier = 2;
+>  			}
+>  		}
+> +		if (dev->quirks & UVC_QUIRK_FORCE_GBRG) {
+> +			if (format->fcc == V4L2_PIX_FMT_SGRBG8) {
+> +				strlcpy(format->name, "GBRG Bayer (GBRG)",
+> +					sizeof(format->name));
+> +				format->fcc = V4L2_PIX_FMT_SGBRG8;
+> +			}
+> +		}
 > 
-> I still think that the framework would need to do the job of managing the
-> video buffers related to a request as well as controls without necessarily
-> trying to generalise that right now. But how to store these in a meaningful
-> way? Putting them to the request itself would be one option: you'll need to
-> dig the request up anyway when things are associated to it, and the driver
-> needs it when it is queued.
+>  		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+>  			ftype = UVC_VS_FRAME_UNCOMPRESSED;
+> @@ -2631,6 +2638,15 @@ static struct usb_device_id uvc_ids[] = {
+>  	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0 },
+> +	/* PHYTEC CAM 004H cameras */
+> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> +	  .idVendor		= 0x199e,
+> +	  .idProduct		= 0x8302,
+> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> +	  .bInterfaceSubClass	= 1,
+> +	  .bInterfaceProtocol	= 0,
+> +	  .driver_info		= UVC_QUIRK_FORCE_GBRG },
+>  	/* Bodelin ProScopeHR */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
 > 
-> I wonder what Hans and Laurent think.
+>  				| USB_DEVICE_ID_MATCH_DEV_HI
+> 
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 7e4d3ee..ad51002 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -164,6 +164,7 @@
+>  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+>  #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+>  #define UVC_QUIRK_FORCE_Y8		0x00000800
+> +#define UVC_QUIRK_FORCE_GBRG		0x00001000
 
-I think this is something for the future. I want to avoid delaying the Request
-API for endless internal design discussions. The public API should be solid,
-but the internal framework will undoubtedly need to change in the future.
+I don't think we should add a quirk flag for every format that needs to be 
+forced. Instead, now that we have a new way to store per-device parameters 
+since commit 3bc85817d798 ("media: uvcvideo: Add extensible device 
+information"), how about making use of it and adding a field to the 
+uvc_device_info structure to store the forced format ?
 
-That's OK. The reality is that there is a lot of demand for the Request API for
-stateless codecs, and that is what we should concentrate on.
+>  /* Format flags */
+>  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
 
-Should the framework manage the buffers? I don't even know what is meant with
-that exactly, let alone that I can give an answer.
-
-Let's stay focused: 1) solid uAPI, 2) stateless codec support. The internal
-framework shouldn't of course make it harder than it needs to to later extend
-the support to camera pipelines, but neither should we spend much time on it
-or we will never get this in.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
