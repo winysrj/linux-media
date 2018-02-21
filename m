@@ -1,73 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:49948 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752582AbeBEQ6L (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59149 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932556AbeBULp6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 11:58:11 -0500
-Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tim Harvey <tharvey@gateworks.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
- <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
- <20180205143729.12783826@vento.lan>
+        Wed, 21 Feb 2018 06:45:58 -0500
+Subject: Re: [PATCH] v4l2-compliance: Relax g/s_parm type check
+To: Jacopo Mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org
+References: <1519058764-30045-1-git-send-email-jacopo@jmondi.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0d974a93-f37a-e727-ada1-28ad97a7429d@xs4all.nl>
-Date: Mon, 5 Feb 2018 17:58:06 +0100
+Message-ID: <bf6f33d8-efed-29b1-47f0-426c1450910b@xs4all.nl>
+Date: Wed, 21 Feb 2018 12:45:53 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180205143729.12783826@vento.lan>
+In-Reply-To: <1519058764-30045-1-git-send-email-jacopo@jmondi.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 05:37 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 5 Feb 2018 08:21:54 -0800
-> Tim Harvey <tharvey@gateworks.com> escreveu:
-> 
->> Hans,
->>
->> I'm failing compile (of master 4ee9911) with:
->>
->>   CXX      v4l2_compliance-media-info.o
->> media-info.cpp: In function ‘media_type media_detect_type(const char*)’:
->> media-info.cpp:79:39: error: no matching function for call to
->> ‘std::basic_ifstream<char>::basic_ifstream(std::__cxx11::string&)’
->>   std::ifstream uevent_file(uevent_path);
->>                                        ^
-> 
-> Btw, while on it, a few days ago, I noticed several class warnings when
-> building v4l-utils on Raspbian, saying that it was using some features
-> that future versions of gcc would stop using at qv4l2. See enclosed.
-> 
-> I didn't have time to look on them.
-> 
-> Thanks,
-> Mauro
-> 
-> In file included from /usr/include/c++/6/map:60:0,
->                  from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qmetatype.h:57,
->                  from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qobject.h:54,
->                  from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qwidget.h:44,
->                  from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qmainwindow.h:43,
->                  from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/QMainWindow:1,
->                  from qv4l2.h:25,
->                  from ctrl-tab.cpp:20:
-> /usr/include/c++/6/bits/stl_tree.h: In member function ‘std::pair<std::_Rb_tree_node_base*, std::_Rb_tree_node_base*> std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_get_insert_hint_unique_pos(std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, const key_type&) [with _Key = unsigned int; _Val = std::pair<const unsigned int, v4l2_query_ext_ctrl>; _KeyOfValue = std::_Select1st<std::pair<const unsigned int, v4l2_query_ext_ctrl> >; _Compare = std::less<unsigned int>; _Alloc = std::allocator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >]’:
-> /usr/include/c++/6/bits/stl_tree.h:1928:5: note: parameter passing for argument of type ‘std::_Rb_tree<unsigned int, std::pair<const unsigned int, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}’ will change in GCC 7.1
->      _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
->      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Hi Jacopo,
 
-I've seen it too, but I have no idea what to do with it. I'm not even sure that it is in my
-code instead of in Qt headers or even c++ header.
+I've made a different implementation which is simpler. It's just been
+committed.
 
-It's not exactly an informative message.
-
-Since I compile with g++ version 7.2 it appears that it is just fine since it doesn't complain.
+Thanks for the report and suggested patch though!
 
 Regards,
 
 	Hans
+
+On 02/19/18 17:46, Jacopo Mondi wrote:
+> Since commit
+> 
+> commit 2e564ee56978874ddd4a8d061d37be088f130fd9
+> Author: Hans Verkuil <hans.verkuil@cisco.com>
+> 	vidioc-g-parm.rst: also allow _MPLANE buffer types
+> 
+> V4L2 allows _MPLANE buffer types for capture/output on s/g_parm
+> operations.
+> 
+> Relax v4l2-compliance check to comply with this.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+> ---
+>  utils/v4l2-compliance/v4l2-test-formats.cpp | 17 ++++++++++++++---
+>  1 file changed, 14 insertions(+), 3 deletions(-)
+> 
+> diff --git a/utils/v4l2-compliance/v4l2-test-formats.cpp b/utils/v4l2-compliance/v4l2-test-formats.cpp
+> index b7a32fe..25c4da5 100644
+> --- a/utils/v4l2-compliance/v4l2-test-formats.cpp
+> +++ b/utils/v4l2-compliance/v4l2-test-formats.cpp
+> @@ -1235,9 +1235,20 @@ int testParm(struct node *node)
+>  			    type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
+>  			    type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>  				return fail("G/S_PARM is only allowed for video capture/output\n");
+> -			if (!(node->g_caps() & buftype2cap[type]))
+> -				return fail("%s cap not set, but G/S_PARM worked\n",
+> -						buftype2s(type).c_str());
+> +
+> +			if (!((node->g_caps() & V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+> +					node->g_caps() & V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) &&
+> +					((buftype2cap[type] == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+> +					buftype2cap[type] == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)))
+> +						return fail("%s cap not set, but G/S_PARM worked\n",
+> +								buftype2s(type).c_str());
+> +
+> +			if (!((node->g_caps() & V4L2_BUF_TYPE_VIDEO_OUTPUT ||
+> +					node->g_caps() & V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)) &&
+> +					((buftype2cap[type] == V4L2_BUF_TYPE_VIDEO_OUTPUT ||
+> +					buftype2cap[type] == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)))
+> +						return fail("%s cap not set, but G/S_PARM worked\n",
+> +								buftype2s(type).c_str());
+>  		}
+>  	}
+> 
+> --
+> 2.7.4
+> 
