@@ -1,126 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:40732 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751131AbeBTEo4 (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:35328 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751679AbeBUGB6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 23:44:56 -0500
-Received: by mail-pl0-f68.google.com with SMTP id g18so6834796plo.7
-        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:44:56 -0800 (PST)
+        Wed, 21 Feb 2018 01:01:58 -0500
+Received: by mail-it0-f67.google.com with SMTP id v194so980660itb.0
+        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 22:01:58 -0800 (PST)
+Received: from mail-io0-f181.google.com (mail-io0-f181.google.com. [209.85.223.181])
+        by smtp.gmail.com with ESMTPSA id f193sm5770477ita.27.2018.02.20.22.01.57
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 20 Feb 2018 22:01:57 -0800 (PST)
+Received: by mail-io0-f181.google.com with SMTP id t22so920276iob.3
+        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 22:01:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <5b0fcac9-18e1-433f-7977-2a90f3d961f8@xs4all.nl>
+References: <20180220044425.169493-1-acourbot@chromium.org>
+ <20180220044425.169493-12-acourbot@chromium.org> <5b0fcac9-18e1-433f-7977-2a90f3d961f8@xs4all.nl>
 From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Date: Wed, 21 Feb 2018 15:01:36 +0900
+Message-ID: <CAPBb6MVAKKjStJoaa7QJJc+Ay7kgYRbYsgchf5Sr+HrY7rOAsA@mail.gmail.com>
+Subject: Re: [RFCv4 11/21] media: v4l2_fh: add request entity field
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Pawel Osciak <posciak@chromium.org>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv4 05/21] v4l2-ctrls: use ref in helper instead of ctrl
-Date: Tue, 20 Feb 2018 13:44:09 +0900
-Message-Id: <20180220044425.169493-6-acourbot@chromium.org>
-In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
-References: <20180220044425.169493-1-acourbot@chromium.org>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Feb 21, 2018 at 12:24 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 02/20/18 05:44, Alexandre Courbot wrote:
+>> Allow drivers to assign a request entity to v4l2_fh. This will be useful
+>> for request-aware ioctls to find out which request entity to use.
+>>
+>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>> ---
+>>  include/media/v4l2-fh.h | 3 +++
+>>  1 file changed, 3 insertions(+)
+>>
+>> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+>> index ea73fef8bdc0..f54cb319dd64 100644
+>> --- a/include/media/v4l2-fh.h
+>> +++ b/include/media/v4l2-fh.h
+>> @@ -28,6 +28,7 @@
+>>
+>>  struct video_device;
+>>  struct v4l2_ctrl_handler;
+>> +struct media_request_entity;
+>>
+>>  /**
+>>   * struct v4l2_fh - Describes a V4L2 file handler
+>> @@ -43,6 +44,7 @@ struct v4l2_ctrl_handler;
+>>   * @navailable: number of available events at @available list
+>>   * @sequence: event sequence number
+>>   * @m2m_ctx: pointer to &struct v4l2_m2m_ctx
+>> + * @entity: the request entity this fh operates on behalf of
+>>   */
+>>  struct v4l2_fh {
+>>       struct list_head        list;
+>> @@ -60,6 +62,7 @@ struct v4l2_fh {
+>>  #if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
+>>       struct v4l2_m2m_ctx     *m2m_ctx;
+>>  #endif
+>> +     struct media_request_entity *entity;
+>
+> The name 'media_request_entity' is very confusing.
+>
+> In the media controller API terminology an entity represents a piece
+> of hardware with inputs and outputs (very rough description), but a
+> request is not an entity. It may be associated with an entity, though.
+>
+> So calling this field 'entity' is also very misleading.
 
-The next patch needs the reference to a control instead of the
-control itself, so change struct v4l2_ctrl_helper accordingly.
+Note that this field is not a request though, it is a pointer to a
+piece of hardware referenced by a request, which is closer to the MC
+terminology. Or do you mean this should just be renamed
+"request_entity"?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+If we go all the way, the media_ prefix is also misleading - it
+implies a dependency to the media controller framework, while there is
+none (in this patchset at least).
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 784879816c24..b3be022b219f 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -37,8 +37,8 @@
- struct v4l2_ctrl_helper {
- 	/* Pointer to the control reference of the master control */
- 	struct v4l2_ctrl_ref *mref;
--	/* The control corresponding to the v4l2_ext_control ID field. */
--	struct v4l2_ctrl *ctrl;
-+	/* The control ref corresponding to the v4l2_ext_control ID field. */
-+	struct v4l2_ctrl_ref *ref;
- 	/* v4l2_ext_control index of the next control belonging to the
- 	   same cluster, or 0 if there isn't any. */
- 	u32 next;
-@@ -2856,6 +2856,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ref = find_ref_lock(hdl, id);
- 		if (ref == NULL)
- 			return -EINVAL;
-+		h->ref = ref;
- 		ctrl = ref->ctrl;
- 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
- 			return -EINVAL;
-@@ -2878,7 +2879,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
--		h->ctrl = ctrl;
- 		/* Initially set next to 0, meaning that there is no other
- 		   control in this helper array belonging to the same
- 		   cluster */
-@@ -2963,7 +2963,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	cs->error_idx = cs->count;
- 
- 	for (i = 0; !ret && i < cs->count; i++)
--		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-+		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
- 			ret = -EACCES;
- 
- 	for (i = 0; !ret && i < cs->count; i++) {
-@@ -2998,7 +2998,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 			do {
- 				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ctrl);
-+						   helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3137,7 +3137,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
- 
- 	cs->error_idx = cs->count;
- 	for (i = 0; i < cs->count; i++) {
--		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-+		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
- 		union v4l2_ctrl_ptr p_new;
- 
- 		cs->error_idx = i;
-@@ -3249,7 +3249,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			do {
- 				/* Check if the auto control is part of the
- 				   list, and remember the new value. */
--				if (helpers[tmp_idx].ctrl == master)
-+				if (helpers[tmp_idx].ref->ctrl == master)
- 					new_auto_val = cs->controls[tmp_idx].value;
- 				tmp_idx = helpers[tmp_idx].next;
- 			} while (tmp_idx);
-@@ -3262,7 +3262,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		/* Copy the new caller-supplied control values.
- 		   user_to_new() sets 'is_new' to 1. */
- 		do {
--			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-+			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
- 
- 			ret = user_to_new(cs->controls + idx, ctrl);
- 			if (!ret && ctrl->is_ptr)
-@@ -3278,7 +3278,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 			idx = i;
- 			do {
- 				ret = new_to_user(cs->controls + idx,
--						helpers[idx].ctrl);
-+						helpers[idx].ref->ctrl);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
--- 
-2.16.1.291.g4437f3f132-goog
+However I thought that 'request' alone (instead of media_request) may
+name-conflict with something else, and since 'media' is also the
+umbrella term for anything under drivers/media it sounds fitting on
+the other hand. Suggestions are welcome though.
+
+>
+> As with previous patches, I'll have to think about this and try and
+> come up with better, less confusing names.
+
+I will gladly take suggestions, have been trying to come with a better
+name to reply to your comment above but could not find any. :)
