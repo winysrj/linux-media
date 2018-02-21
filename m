@@ -1,581 +1,542 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:50956 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754062AbeBGOYo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:24:44 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v6 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Date: Wed,  7 Feb 2018 15:24:37 +0100
-Message-Id: <20180207142437.14553-3-maxime.ripard@bootlin.com>
-In-Reply-To: <20180207142437.14553-1-maxime.ripard@bootlin.com>
-References: <20180207142437.14553-1-maxime.ripard@bootlin.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38455 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966051AbeBUPc0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 10:32:26 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 15/15] media.h: reorganize header to make it easier to understand
+Date: Wed, 21 Feb 2018 16:32:18 +0100
+Message-Id: <20180221153218.15654-16-hverkuil@xs4all.nl>
+In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
+References: <20180221153218.15654-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence CSI-2 RX Controller is an hardware block meant to be used as a
-bridge between a CSI-2 bus and pixel grabbers.
+The media.h public header is very messy. It mixes legacy and 'new' defines
+and it is not easy to figure out what should and what shouldn't be used. It
+also contains confusing comment that are either out of date or completely
+uninteresting for anyone that needs to use this header.
 
-It supports operating with internal or external D-PHY, with up to 4 lanes,
-or without any D-PHY. The current code only supports the former case.
+The patch groups all entity functions together, including the 'old' defines
+based on the old range base. The reader just wants to know about the available
+functions and doesn't care about what range is used.
 
-It also support dynamic mapping of the CSI-2 virtual channels to the
-associated pixel grabbers, but that isn't allowed at the moment either.
+All legacy defines are moved to the end of the header, so it is easier to
+locate them and just ignore them.
 
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+The legacy structs in the struct media_entity_desc are put under
+also a much more effective signal to the reader that they shouldn't be used
+compared to the old method of relying on '#if 1' followed by a comment.
+
+The unused MEDIA_INTF_T_ALSA_* defines are also moved to the end of the header
+in the legacy area. They are also dropped from intf_type() in media-entity.c.
+
+All defines are also aligned at the same tab making the header easier to read.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/Kconfig               |   1 +
- drivers/media/platform/Makefile              |   2 +
- drivers/media/platform/cadence/Kconfig       |  12 +
- drivers/media/platform/cadence/Makefile      |   1 +
- drivers/media/platform/cadence/cdns-csi2rx.c | 472 +++++++++++++++++++++++++++
- 5 files changed, 488 insertions(+)
- create mode 100644 drivers/media/platform/cadence/Kconfig
- create mode 100644 drivers/media/platform/cadence/Makefile
- create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+ drivers/media/media-entity.c |  16 --
+ include/uapi/linux/media.h   | 345 +++++++++++++++++++++----------------------
+ 2 files changed, 166 insertions(+), 195 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index fd0c99859d6f..6e790a317fbc 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -26,6 +26,7 @@ config VIDEO_VIA_CAMERA
- #
- # Platform multimedia device configuration
- #
-+source "drivers/media/platform/cadence/Kconfig"
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index f7c6d64e6031..3498551e618e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -64,22 +64,6 @@ static inline const char *intf_type(struct media_interface *intf)
+ 		return "v4l-swradio";
+ 	case MEDIA_INTF_T_V4L_TOUCH:
+ 		return "v4l-touch";
+-	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+-		return "alsa-pcm-capture";
+-	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+-		return "alsa-pcm-playback";
+-	case MEDIA_INTF_T_ALSA_CONTROL:
+-		return "alsa-control";
+-	case MEDIA_INTF_T_ALSA_COMPRESS:
+-		return "alsa-compress";
+-	case MEDIA_INTF_T_ALSA_RAWMIDI:
+-		return "alsa-rawmidi";
+-	case MEDIA_INTF_T_ALSA_HWDEP:
+-		return "alsa-hwdep";
+-	case MEDIA_INTF_T_ALSA_SEQUENCER:
+-		return "alsa-sequencer";
+-	case MEDIA_INTF_T_ALSA_TIMER:
+-		return "alsa-timer";
+ 	default:
+ 		return "unknown-intf";
+ 	}
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 573da38a21c3..b5043ee59108 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -15,10 +15,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
  
- source "drivers/media/platform/davinci/Kconfig"
+ #ifndef __LINUX_MEDIA_H
+@@ -42,108 +38,65 @@ struct media_device_info {
+ 	__u32 reserved[31];
+ };
  
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 003b0bb2cddf..1cd2984c55d1 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -3,6 +3,8 @@
- # Makefile for the video capture/playback device drivers.
- #
- 
-+obj-$(CONFIG_VIDEO_CADENCE)		+= cadence/
-+
- obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
- 
- obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
-diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/platform/cadence/Kconfig
-new file mode 100644
-index 000000000000..d1b6bbb6a0eb
---- /dev/null
-+++ b/drivers/media/platform/cadence/Kconfig
-@@ -0,0 +1,12 @@
-+config VIDEO_CADENCE
-+	bool "Cadence Video Devices"
-+
-+if VIDEO_CADENCE
-+
-+config VIDEO_CADENCE_CSI2RX
-+	tristate "Cadence MIPI-CSI2 RX Controller v1.3"
-+	depends on MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	select V4L2_FWNODE
-+
-+endif
-diff --git a/drivers/media/platform/cadence/Makefile b/drivers/media/platform/cadence/Makefile
-new file mode 100644
-index 000000000000..99a4086b7448
---- /dev/null
-+++ b/drivers/media/platform/cadence/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_CADENCE_CSI2RX)	+= cdns-csi2rx.o
-diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c b/drivers/media/platform/cadence/cdns-csi2rx.c
-new file mode 100644
-index 000000000000..c532583cc1a6
---- /dev/null
-+++ b/drivers/media/platform/cadence/cdns-csi2rx.c
-@@ -0,0 +1,472 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Driver for Cadence MIPI-CSI2 RX Controller v1.3
+-#define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
+-
+-/*
+- * Initial value to be used when a new entity is created
+- * Drivers should change it to something useful
+- */
+-#define MEDIA_ENT_F_UNKNOWN	0x00000000
+-
+ /*
+  * Base number ranges for entity functions
+  *
+- * NOTE: those ranges and entity function number are phased just to
+- * make it easier to maintain this file. Userspace should not rely on
+- * the ranges to identify a group of function types, as newer
+- * functions can be added with any name within the full u32 range.
++ * NOTE: Userspace should not rely on these ranges to identify a group
++ * of function types, as newer functions can be added with any name within
++ * the full u32 range.
 + *
-+ * Copyright (C) 2017 Cadence Design Systems Inc.
++ * Some older functions use the MEDIA_ENT_F_OLD_*_BASE range. Do not
++ * changes this, this is for backwards compatibility. When adding new
++ * functions always use MEDIA_ENT_F_BASE.
+  */
+-#define MEDIA_ENT_F_BASE		0x00000000
+-#define MEDIA_ENT_F_OLD_BASE		0x00010000
+-#define MEDIA_ENT_F_OLD_SUBDEV_BASE	0x00020000
++#define MEDIA_ENT_F_BASE			0x00000000
++#define MEDIA_ENT_F_OLD_BASE			0x00010000
++#define MEDIA_ENT_F_OLD_SUBDEV_BASE		0x00020000
+ 
+ /*
+- * DVB entities
++ * Initial value to be used when a new entity is created
++ * Drivers should change it to something useful.
+  */
+-#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
+-#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
+-#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
+-#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
++#define MEDIA_ENT_F_UNKNOWN			MEDIA_ENT_F_BASE
+ 
+ /*
+- * I/O entities
++ * Subdevs are initialized with MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN in order
++ * to preserve backward compatibility. Drivers must change to the proper
++ * subdev function before registering the entity.
+  */
+-#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
+-#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
+-#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
++#define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN		MEDIA_ENT_F_OLD_SUBDEV_BASE
+ 
+ /*
+- * Analog TV IF-PLL decoders
+- *
+- * It is a responsibility of the master/bridge drivers to create links
+- * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
++ * DVB entity functions
+  */
+-#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
+-#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
++#define MEDIA_ENT_F_DTV_DEMOD			(MEDIA_ENT_F_BASE + 0x00001)
++#define MEDIA_ENT_F_TS_DEMUX			(MEDIA_ENT_F_BASE + 0x00002)
++#define MEDIA_ENT_F_DTV_CA			(MEDIA_ENT_F_BASE + 0x00003)
++#define MEDIA_ENT_F_DTV_NET_DECAP		(MEDIA_ENT_F_BASE + 0x00004)
+ 
+ /*
+- * Audio Entity Functions
++ * I/O entity functions
+  */
+-#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03001)
+-#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03002)
+-#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
++#define MEDIA_ENT_F_IO_V4L  			(MEDIA_ENT_F_OLD_BASE + 1)
++#define MEDIA_ENT_F_IO_DTV			(MEDIA_ENT_F_BASE + 0x01001)
++#define MEDIA_ENT_F_IO_VBI			(MEDIA_ENT_F_BASE + 0x01002)
++#define MEDIA_ENT_F_IO_SWRADIO			(MEDIA_ENT_F_BASE + 0x01003)
+ 
+ /*
+- * Processing entities
++ * Sensor functions
+  */
+-#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
+-#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
+-#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
+-#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
+-#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
+-#define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
++#define MEDIA_ENT_F_CAM_SENSOR			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 1)
++#define MEDIA_ENT_F_FLASH			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
++#define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+ 
+ /*
+- * Switch and bridge entitites
++ * Analog video decoder functions
+  */
+-#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+-#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
++#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+ 
+ /*
+- * Connectors
+- */
+-/* It is a responsibility of the entity drivers to add connectors and links */
+-#ifdef __KERNEL__
+-	/*
+-	 * For now, it should not be used in userspace, as some
+-	 * definitions may change
+-	 */
+-
+-#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+-#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+-#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+-
+-#endif
+-
+-/*
+- * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+- * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
+- * with the legacy v1 API.The number range is out of range by purpose:
+- * several previously reserved numbers got excluded from this range.
++ * Digital TV, analog TV, radio and/or software defined radio tuner functions.
+  *
+- * Subdevs are initialized with MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN,
+- * in order to preserve backward compatibility.
+- * Drivers must change to the proper subdev type before
+- * registering the entity.
+- */
+-
+-#define MEDIA_ENT_F_IO_V4L  		(MEDIA_ENT_F_OLD_BASE + 1)
+-
+-#define MEDIA_ENT_F_CAM_SENSOR		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 1)
+-#define MEDIA_ENT_F_FLASH		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
+-#define MEDIA_ENT_F_LENS		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+-#define MEDIA_ENT_F_ATV_DECODER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+-/*
+  * It is a responsibility of the master/bridge drivers to add connectors
+  * and links for MEDIA_ENT_F_TUNER. Please notice that some old tuners
+  * may require the usage of separate I2C chips to decode analog TV signals,
+@@ -151,49 +104,46 @@ struct media_device_info {
+  * On such cases, the IF-PLL staging is mapped via one or two entities:
+  * MEDIA_ENT_F_IF_VID_DECODER and/or MEDIA_ENT_F_IF_AUD_DECODER.
+  */
+-#define MEDIA_ENT_F_TUNER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
++#define MEDIA_ENT_F_TUNER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
+ 
+-#define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_F_OLD_SUBDEV_BASE
++/*
++ * Analog TV IF-PLL decoder functions
++ *
++ * It is a responsibility of the master/bridge drivers to create links
++ * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
 + */
-+
-+#include <linux/atomic.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/phy/phy.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-subdev.h>
-+
-+#define CSI2RX_DEVICE_CFG_REG			0x000
-+
-+#define CSI2RX_SOFT_RESET_REG			0x004
-+#define CSI2RX_SOFT_RESET_PROTOCOL			BIT(1)
-+#define CSI2RX_SOFT_RESET_FRONT				BIT(0)
-+
-+#define CSI2RX_STATIC_CFG_REG			0x008
-+#define CSI2RX_STATIC_CFG_DLANE_MAP(llane, plane)	((plane) << (16 + (llane) * 4))
-+#define CSI2RX_STATIC_CFG_LANES_MASK			GENMASK(11, 8)
-+
-+#define CSI2RX_STREAM_BASE(n)		(((n) + 1) * 0x100)
-+
-+#define CSI2RX_STREAM_CTRL_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x000)
-+#define CSI2RX_STREAM_CTRL_START			BIT(0)
-+
-+#define CSI2RX_STREAM_DATA_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x008)
-+#define CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT		BIT(31)
-+#define CSI2RX_STREAM_DATA_CFG_VC_SELECT(n)		BIT((n) + 16)
-+
-+#define CSI2RX_STREAM_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x00c)
-+#define CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF		(1 << 8)
-+
-+#define CSI2RX_LANES_MAX	4
-+#define CSI2RX_STREAMS_MAX	4
-+
-+enum csi2rx_pads {
-+	CSI2RX_PAD_SINK,
-+	CSI2RX_PAD_SOURCE_STREAM0,
-+	CSI2RX_PAD_SOURCE_STREAM1,
-+	CSI2RX_PAD_SOURCE_STREAM2,
-+	CSI2RX_PAD_SOURCE_STREAM3,
-+	CSI2RX_PAD_MAX,
-+};
-+
-+struct csi2rx_priv {
-+	struct device			*dev;
-+	atomic_t			count;
-+
-+	void __iomem			*base;
-+	struct clk			*sys_clk;
-+	struct clk			*p_clk;
-+	struct clk			*pixel_clk[CSI2RX_STREAMS_MAX];
-+	struct phy			*dphy;
-+
-+	u8				lanes[CSI2RX_LANES_MAX];
-+	u8				num_lanes;
-+	u8				max_lanes;
-+	u8				max_streams;
-+	bool				has_internal_dphy;
-+
-+	struct v4l2_subdev		subdev;
-+	struct v4l2_async_notifier	notifier;
-+	struct media_pad		pads[CSI2RX_PAD_MAX];
-+
-+	/* Remote source */
-+	struct v4l2_async_subdev	asd;
-+	struct v4l2_subdev		*source_subdev;
-+	int				source_pad;
-+};
-+
-+static inline
-+struct csi2rx_priv *v4l2_subdev_to_csi2rx(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct csi2rx_priv, subdev);
-+}
-+
-+static void csi2rx_reset(struct csi2rx_priv *csi2rx)
-+{
-+	writel(CSI2RX_SOFT_RESET_PROTOCOL | CSI2RX_SOFT_RESET_FRONT,
-+	       csi2rx->base + CSI2RX_SOFT_RESET_REG);
-+
-+	usleep_range(10, 20);
-+
-+	writel(0, csi2rx->base + CSI2RX_SOFT_RESET_REG);
-+}
-+
-+static int csi2rx_start(struct csi2rx_priv *csi2rx)
-+{
-+	unsigned int i;
-+	unsigned long lanes_used;
-+	u32 reg;
-+	int ret;
-+
-+	/*
-+	 * We're not the first users, there's no need to enable the
-+	 * whole controller.
-+	 */
-+	if (atomic_inc_return(&csi2rx->count) > 1)
-+		return 0;
-+
-+	clk_prepare_enable(csi2rx->p_clk);
-+
-+	csi2rx_reset(csi2rx);
-+
-+	reg = csi2rx->num_lanes << 8;
-+	for (i = 0; i < csi2rx->num_lanes; i++) {
-+		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
-+		set_bit(csi2rx->lanes[i], &lanes_used);
-+	}
-+
-+	/*
-+	 * Even the unused lanes need to be mapped. In order to avoid
-+	 * to map twice to the same physical lane, keep the lanes used
-+	 * in the previous loop, and only map unused physical lanes to
-+	 * the rest of our logical lanes.
-+	 */
-+	for (i = csi2rx->num_lanes; i < csi2rx->max_lanes; i++) {
-+		unsigned int idx = find_first_zero_bit(&lanes_used,
-+						       sizeof(lanes_used));
-+		set_bit(idx, &lanes_used);
-+		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, i + 1);
-+	}
-+
-+	writel(reg, csi2rx->base + CSI2RX_STATIC_CFG_REG);
-+
-+	ret = v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, true);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Create a static mapping between the CSI virtual channels
-+	 * and the output stream.
-+	 *
-+	 * This should be enhanced, but v4l2 lacks the support for
-+	 * changing that mapping dynamically.
-+	 *
-+	 * We also cannot enable and disable independant streams here,
-+	 * hence the reference counting.
-+	 */
-+	for (i = 0; i < csi2rx->max_streams; i++) {
-+		clk_prepare_enable(csi2rx->pixel_clk[i]);
-+
-+		writel(CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF,
-+		       csi2rx->base + CSI2RX_STREAM_CFG_REG(i));
-+
-+		writel(CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT |
-+		       CSI2RX_STREAM_DATA_CFG_VC_SELECT(i),
-+		       csi2rx->base + CSI2RX_STREAM_DATA_CFG_REG(i));
-+
-+		writel(CSI2RX_STREAM_CTRL_START,
-+		       csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
-+	}
-+
-+	clk_prepare_enable(csi2rx->sys_clk);
-+
-+	clk_disable_unprepare(csi2rx->p_clk);
-+
-+	return 0;
-+}
-+
-+static int csi2rx_stop(struct csi2rx_priv *csi2rx)
-+{
-+	unsigned int i;
-+
-+	/*
-+	 * Let the last user turn off the lights
-+	 */
-+	if (!atomic_dec_and_test(&csi2rx->count))
-+		return 0;
-+
-+	clk_prepare_enable(csi2rx->p_clk);
-+
-+	for (i = 0; i < csi2rx->max_streams; i++) {
-+		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
-+
-+		clk_disable_unprepare(csi2rx->pixel_clk[i]);
-+	}
-+
-+	clk_disable_unprepare(csi2rx->p_clk);
-+
-+	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false);
-+}
-+
-+static int csi2rx_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(sd);
-+	int ret;
-+
-+	if (enable)
-+		ret = csi2rx_start(csi2rx);
-+	else
-+		ret = csi2rx_stop(csi2rx);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_subdev_video_ops csi2rx_video_ops = {
-+	.s_stream	= csi2rx_s_stream,
-+};
-+
-+static const struct v4l2_subdev_ops csi2rx_subdev_ops = {
-+	.video		= &csi2rx_video_ops,
-+};
-+
-+static int csi2rx_async_bound(struct v4l2_async_notifier *notifier,
-+			      struct v4l2_subdev *s_subdev,
-+			      struct v4l2_async_subdev *asd)
-+{
-+	struct v4l2_subdev *subdev = notifier->sd;
-+	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
-+
-+	csi2rx->source_pad = media_entity_get_fwnode_pad(&s_subdev->entity,
-+							 s_subdev->fwnode,
-+							 MEDIA_PAD_FL_SOURCE);
-+	if (csi2rx->source_pad < 0) {
-+		dev_err(csi2rx->dev, "Couldn't find output pad for subdev %s\n",
-+			s_subdev->name);
-+		return csi2rx->source_pad;
-+	}
-+
-+	csi2rx->source_subdev = s_subdev;
-+
-+	dev_dbg(csi2rx->dev, "Bound %s pad: %d\n", s_subdev->name,
-+		csi2rx->source_pad);
-+
-+	return media_create_pad_link(&csi2rx->source_subdev->entity,
-+				     csi2rx->source_pad,
-+				     &csi2rx->subdev.entity, 0,
-+				     MEDIA_LNK_FL_ENABLED |
-+				     MEDIA_LNK_FL_IMMUTABLE);
-+}
-+
-+static const struct v4l2_async_notifier_operations csi2rx_notifier_ops = {
-+	.bound		= csi2rx_async_bound,
-+};
-+
-+static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
-+				struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	unsigned char i;
-+	u32 reg;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(csi2rx->base))
-+		return PTR_ERR(csi2rx->base);
-+
-+	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
-+	if (IS_ERR(csi2rx->sys_clk)) {
-+		dev_err(&pdev->dev, "Couldn't get sys clock\n");
-+		return PTR_ERR(csi2rx->sys_clk);
-+	}
-+
-+	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
-+	if (IS_ERR(csi2rx->p_clk)) {
-+		dev_err(&pdev->dev, "Couldn't get P clock\n");
-+		return PTR_ERR(csi2rx->p_clk);
-+	}
-+
-+	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
-+	if (IS_ERR(csi2rx->dphy)) {
-+		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
-+		return PTR_ERR(csi2rx->dphy);
-+	}
-+
-+	/*
-+	 * FIXME: Once we'll have external D-PHY support, the check
-+	 * will need to be removed.
-+	 */
-+	if (csi2rx->dphy) {
-+		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
-+		return -EINVAL;
-+	}
-+
-+	clk_prepare_enable(csi2rx->p_clk);
-+	reg = readl(csi2rx->base + CSI2RX_DEVICE_CFG_REG);
-+	clk_disable_unprepare(csi2rx->p_clk);
-+
-+	csi2rx->max_lanes = (reg & 7);
-+	if (csi2rx->max_lanes > CSI2RX_LANES_MAX) {
-+		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
-+			csi2rx->max_lanes);
-+		return -EINVAL;
-+	}
-+
-+	csi2rx->max_streams = ((reg >> 4) & 7);
-+	if (csi2rx->max_streams > CSI2RX_STREAMS_MAX) {
-+		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
-+			csi2rx->max_streams);
-+		return -EINVAL;
-+	}
-+
-+	csi2rx->has_internal_dphy = (reg & BIT(3)) ? true : false;
-+
-+	/*
-+	 * FIXME: Once we'll have internal D-PHY support, the check
-+	 * will need to be removed.
-+	 */
-+	if (csi2rx->has_internal_dphy) {
-+		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < csi2rx->max_streams; i++) {
-+		char clk_name[16];
-+
-+		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
-+		csi2rx->pixel_clk[i] = devm_clk_get(&pdev->dev, clk_name);
-+		if (IS_ERR(csi2rx->pixel_clk[i])) {
-+			dev_err(&pdev->dev, "Couldn't get clock %s\n", clk_name);
-+			return PTR_ERR(csi2rx->pixel_clk[i]);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
-+{
-+	struct v4l2_fwnode_endpoint v4l2_ep;
-+	struct fwnode_handle *fwh;
-+	struct device_node *ep;
-+	int ret;
-+
-+	ep = of_graph_get_endpoint_by_regs(csi2rx->dev->of_node, 0, 0);
-+	if (!ep)
-+		return -EINVAL;
-+
-+	fwh = of_fwnode_handle(ep);
-+	ret = v4l2_fwnode_endpoint_parse(fwh, &v4l2_ep);
-+	if (ret) {
-+		dev_err(csi2rx->dev, "Could not parse v4l2 endpoint\n");
-+		of_node_put(ep);
-+		return ret;
-+	}
-+
-+	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
-+		dev_err(csi2rx->dev, "Unsupported media bus type: 0x%x\n",
-+			v4l2_ep.bus_type);
-+		of_node_put(ep);
-+		return -EINVAL;
-+	}
-+
-+	memcpy(csi2rx->lanes, v4l2_ep.bus.mipi_csi2.data_lanes,
-+	       sizeof(csi2rx->lanes));
-+	csi2rx->num_lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
-+	if (csi2rx->num_lanes > csi2rx->max_lanes) {
-+		dev_err(csi2rx->dev, "Unsupported number of data-lanes: %d\n",
-+			csi2rx->num_lanes);
-+		of_node_put(ep);
-+		return -EINVAL;
-+	}
-+
-+	csi2rx->asd.match.fwnode.fwnode = fwnode_graph_get_remote_port_parent(fwh);
-+	csi2rx->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	of_node_put(ep);
-+
-+	csi2rx->notifier.subdevs = devm_kzalloc(csi2rx->dev,
-+						sizeof(*csi2rx->notifier.subdevs),
-+						GFP_KERNEL);
-+	if (!csi2rx->notifier.subdevs)
-+		return -ENOMEM;
-+
-+	csi2rx->notifier.subdevs[0] = &csi2rx->asd;
-+	csi2rx->notifier.num_subdevs = 1;
-+	csi2rx->notifier.ops = &csi2rx_notifier_ops;
-+
-+	return v4l2_async_subdev_notifier_register(&csi2rx->subdev,
-+						   &csi2rx->notifier);
-+}
-+
-+static int csi2rx_probe(struct platform_device *pdev)
-+{
-+	struct csi2rx_priv *csi2rx;
-+	unsigned int i;
-+	int ret;
-+
-+	/*
-+	 * Since the v4l2_subdev structure is embedded in our
-+	 * csi2rx_priv structure, and that the structure is exposed to
-+	 * the user-space, we cannot just use the devm_variant
-+	 * here. Indeed, that would lead to a use-after-free in a
-+	 * open() - unbind - close() pattern.
-+	 */
-+	csi2rx = kzalloc(sizeof(*csi2rx), GFP_KERNEL);
-+	if (!csi2rx)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, csi2rx);
-+	csi2rx->dev = &pdev->dev;
-+
-+	ret = csi2rx_get_resources(csi2rx, pdev);
-+	if (ret)
-+		goto err_free_priv;
-+
-+	ret = csi2rx_parse_dt(csi2rx);
-+	if (ret)
-+		goto err_free_priv;
-+
-+	csi2rx->subdev.owner = THIS_MODULE;
-+	csi2rx->subdev.dev = &pdev->dev;
-+	v4l2_subdev_init(&csi2rx->subdev, &csi2rx_subdev_ops);
-+	v4l2_set_subdevdata(&csi2rx->subdev, &pdev->dev);
-+	snprintf(csi2rx->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
-+		 KBUILD_MODNAME, dev_name(&pdev->dev));
-+
-+	/* Create our media pads */
-+	csi2rx->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-+	csi2rx->pads[CSI2RX_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-+	for (i = CSI2RX_PAD_SOURCE_STREAM0; i < CSI2RX_PAD_MAX; i++)
-+		csi2rx->pads[i].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	ret = media_entity_pads_init(&csi2rx->subdev.entity, CSI2RX_PAD_MAX,
-+				     csi2rx->pads);
-+	if (ret)
-+		goto err_free_priv;
-+
-+	ret = v4l2_async_register_subdev(&csi2rx->subdev);
-+	if (ret < 0)
-+		goto err_free_priv;
-+
-+	dev_info(&pdev->dev,
-+		 "Probed CSI2RX with %u/%u lanes, %u streams, %s D-PHY\n",
-+		 csi2rx->num_lanes, csi2rx->max_lanes, csi2rx->max_streams,
-+		 csi2rx->has_internal_dphy ? "internal" : "no");
-+
-+	return 0;
-+
-+err_free_priv:
-+	kfree(csi2rx);
-+	return ret;
-+}
-+
-+static int csi2rx_remove(struct platform_device *pdev)
-+{
-+	struct csi2rx_priv *csi2rx = platform_get_drvdata(pdev);
-+
-+	v4l2_async_unregister_subdev(&csi2rx->subdev);
-+	kfree(csi2rx);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id csi2rx_of_table[] = {
-+	{ .compatible = "cdns,csi2rx" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, csi2rx_of_table);
-+
-+static struct platform_driver csi2rx_driver = {
-+	.probe	= csi2rx_probe,
-+	.remove	= csi2rx_remove,
-+
-+	.driver	= {
-+		.name		= "cdns-csi2rx",
-+		.of_match_table	= csi2rx_of_table,
-+	},
-+};
-+module_platform_driver(csi2rx_driver);
++#define MEDIA_ENT_F_IF_VID_DECODER		(MEDIA_ENT_F_BASE + 0x02001)
++#define MEDIA_ENT_F_IF_AUD_DECODER		(MEDIA_ENT_F_BASE + 0x02002)
+ 
+-#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
++/*
++ * Audio entity functions
++ */
++#define MEDIA_ENT_F_AUDIO_CAPTURE		(MEDIA_ENT_F_BASE + 0x03001)
++#define MEDIA_ENT_F_AUDIO_PLAYBACK		(MEDIA_ENT_F_BASE + 0x03002)
++#define MEDIA_ENT_F_AUDIO_MIXER			(MEDIA_ENT_F_BASE + 0x03003)
+ 
+ /*
+- * Legacy symbols used to avoid userspace compilation breakages
+- *
+- * Those symbols map the entity function into types and should be
+- * used only on legacy programs for legacy hardware. Don't rely
+- * on those for MEDIA_IOC_G_TOPOLOGY.
++ * Processing entity functions
+  */
+-#define MEDIA_ENT_TYPE_SHIFT		16
+-#define MEDIA_ENT_TYPE_MASK		0x00ff0000
+-#define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+-
+-/* End of the old subdev reserved numberspace */
+-#define MEDIA_ENT_T_DEVNODE_UNKNOWN	(MEDIA_ENT_T_DEVNODE | \
+-					 MEDIA_ENT_SUBTYPE_MASK)
+-
+-#define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
+-#define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
+-#define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+-#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+-#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+-
+-#define MEDIA_ENT_T_UNKNOWN		MEDIA_ENT_F_UNKNOWN
+-#define MEDIA_ENT_T_V4L2_VIDEO		MEDIA_ENT_F_IO_V4L
+-#define MEDIA_ENT_T_V4L2_SUBDEV		MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
+-#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_F_CAM_SENSOR
+-#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_F_FLASH
+-#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_F_LENS
+-#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	MEDIA_ENT_F_ATV_DECODER
+-#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_F_TUNER
++#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
++#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
++#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
++#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
++#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
++#define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+ 
+-/* Obsolete symbol for media_version, no longer used in the kernel */
+-#define MEDIA_API_VERSION		KERNEL_VERSION(0, 1, 0)
+-#endif
++/*
++ * Switch and bridge entity functions
++ */
++#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
++#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+ 
+ /* Entity flags */
+-#define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+-#define MEDIA_ENT_FL_CONNECTOR		(1 << 1)
++#define MEDIA_ENT_FL_DEFAULT			(1 << 0)
++#define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
++
++/* Flags for struct media_entity_desc id field */
++#define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+ 
+ struct media_entity_desc {
+ 	__u32 id;
+@@ -214,7 +164,7 @@ struct media_entity_desc {
+ 			__u32 minor;
+ 		} dev;
+ 
+-#if 1
++#if !defined(__KERNEL__)
+ 		/*
+ 		 * TODO: this shouldn't have been added without
+ 		 * actual drivers that use this. When the first real driver
+@@ -225,24 +175,17 @@ struct media_entity_desc {
+ 		 * contain the subdevice information. In addition, struct dev
+ 		 * can only refer to a single device, and not to multiple (e.g.
+ 		 * pcm and mixer devices).
+-		 *
+-		 * So for now mark this as a to do.
+ 		 */
+ 		struct {
+ 			__u32 card;
+ 			__u32 device;
+ 			__u32 subdevice;
+ 		} alsa;
+-#endif
+ 
+-#if 1
+ 		/*
+ 		 * DEPRECATED: previous node specifications. Kept just to
+-		 * avoid breaking compilation, but media_entity_desc.dev
+-		 * should be used instead. In particular, alsa and dvb
+-		 * fields below are wrong: for all devnodes, there should
+-		 * be just major/minor inside the struct, as this is enough
+-		 * to represent any devnode, no matter what type.
++		 * avoid breaking compilation. Use media_entity_desc.dev
++		 * instead.
+ 		 */
+ 		struct {
+ 			__u32 major;
+@@ -261,9 +204,9 @@ struct media_entity_desc {
+ 	};
+ };
+ 
+-#define MEDIA_PAD_FL_SINK		(1 << 0)
+-#define MEDIA_PAD_FL_SOURCE		(1 << 1)
+-#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
++#define MEDIA_PAD_FL_SINK			(1 << 0)
++#define MEDIA_PAD_FL_SOURCE			(1 << 1)
++#define MEDIA_PAD_FL_MUST_CONNECT		(1 << 2)
+ 
+ struct media_pad_desc {
+ 	__u32 entity;		/* entity ID */
+@@ -272,13 +215,13 @@ struct media_pad_desc {
+ 	__u32 reserved[2];
+ };
+ 
+-#define MEDIA_LNK_FL_ENABLED		(1 << 0)
+-#define MEDIA_LNK_FL_IMMUTABLE		(1 << 1)
+-#define MEDIA_LNK_FL_DYNAMIC		(1 << 2)
++#define MEDIA_LNK_FL_ENABLED			(1 << 0)
++#define MEDIA_LNK_FL_IMMUTABLE			(1 << 1)
++#define MEDIA_LNK_FL_DYNAMIC			(1 << 2)
+ 
+-#define MEDIA_LNK_FL_LINK_TYPE		(0xf << 28)
+-#  define MEDIA_LNK_FL_DATA_LINK	(0 << 28)
+-#  define MEDIA_LNK_FL_INTERFACE_LINK	(1 << 28)
++#define MEDIA_LNK_FL_LINK_TYPE			(0xf << 28)
++#  define MEDIA_LNK_FL_DATA_LINK		(0 << 28)
++#  define MEDIA_LNK_FL_INTERFACE_LINK		(1 << 28)
+ 
+ struct media_link_desc {
+ 	struct media_pad_desc source;
+@@ -298,57 +241,47 @@ struct media_links_enum {
+ 
+ /* Interface type ranges */
+ 
+-#define MEDIA_INTF_T_DVB_BASE	0x00000100
+-#define MEDIA_INTF_T_V4L_BASE	0x00000200
+-#define MEDIA_INTF_T_ALSA_BASE	0x00000300
++#define MEDIA_INTF_T_DVB_BASE			0x00000100
++#define MEDIA_INTF_T_V4L_BASE			0x00000200
+ 
+ /* Interface types */
+ 
+-#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
+-#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
+-#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
+-#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
+-#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
+-
+-#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
+-#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
+-#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
+-#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+-#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+-#define MEDIA_INTF_T_V4L_TOUCH	(MEDIA_INTF_T_V4L_BASE + 5)
+-
+-#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+-#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+-#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+-#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+-#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+-#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+-#define MEDIA_INTF_T_ALSA_SEQUENCER     (MEDIA_INTF_T_ALSA_BASE + 6)
+-#define MEDIA_INTF_T_ALSA_TIMER         (MEDIA_INTF_T_ALSA_BASE + 7)
++#define MEDIA_INTF_T_DVB_FE    			(MEDIA_INTF_T_DVB_BASE)
++#define MEDIA_INTF_T_DVB_DEMUX  		(MEDIA_INTF_T_DVB_BASE + 1)
++#define MEDIA_INTF_T_DVB_DVR    		(MEDIA_INTF_T_DVB_BASE + 2)
++#define MEDIA_INTF_T_DVB_CA     		(MEDIA_INTF_T_DVB_BASE + 3)
++#define MEDIA_INTF_T_DVB_NET    		(MEDIA_INTF_T_DVB_BASE + 4)
++
++#define MEDIA_INTF_T_V4L_VIDEO  		(MEDIA_INTF_T_V4L_BASE)
++#define MEDIA_INTF_T_V4L_VBI    		(MEDIA_INTF_T_V4L_BASE + 1)
++#define MEDIA_INTF_T_V4L_RADIO  		(MEDIA_INTF_T_V4L_BASE + 2)
++#define MEDIA_INTF_T_V4L_SUBDEV 		(MEDIA_INTF_T_V4L_BASE + 3)
++#define MEDIA_INTF_T_V4L_SWRADIO 		(MEDIA_INTF_T_V4L_BASE + 4)
++#define MEDIA_INTF_T_V4L_TOUCH			(MEDIA_INTF_T_V4L_BASE + 5)
++
++#if defined(__KERNEL__)
+ 
+ /*
+- * MC next gen API definitions
++ * Connector functions
+  *
+- * NOTE: The declarations below are close to the MC RFC for the Media
+- *	 Controller, the next generation. Yet, there are a few adjustments
+- *	 to do, as we want to be able to have a functional API before
+- *	 the MC properties change. Those will be properly marked below.
+- *	 Please also notice that I removed "num_pads", "num_links",
+- *	 from the proposal, as a proper userspace application will likely
+- *	 use lists for pads/links, just as we intend to do in Kernelspace.
+- *	 The API definition should be freed from fields that are bound to
+- *	 some specific data structure.
++ * For now these should not be used in userspace, as some definitions may
++ * change.
+  *
+- * FIXME: Currently, I opted to name the new types as "media_v2", as this
+- *	  won't cause any conflict with the Kernelspace namespace, nor with
+- *	  the previous kAPI media_*_desc namespace. This can be changed
+- *	  later, before the adding this API upstream.
++ * It is the responsibility of the entity drivers to add connectors and links.
+  */
++#define MEDIA_ENT_F_CONN_RF			(MEDIA_ENT_F_BASE + 0x30001)
++#define MEDIA_ENT_F_CONN_SVIDEO			(MEDIA_ENT_F_BASE + 0x30002)
++#define MEDIA_ENT_F_CONN_COMPOSITE		(MEDIA_ENT_F_BASE + 0x30003)
+ 
++#endif
++
++/*
++ * MC next gen API definitions
++ */
+ 
+ struct media_v2_entity {
+ 	__u32 id;
+-	char name[64];		/* FIXME: move to a property? (RFC says so) */
++	char name[64];
+ 	__u32 function;		/* Main function of the entity */
+ 	__u32 reserved[6];
+ } __attribute__ ((packed));
+@@ -406,12 +339,66 @@ struct media_v2_topology {
+ 	__u64 ptr_links;
+ } __attribute__ ((packed));
+ 
++
+ /* ioctls */
+ 
+-#define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+-#define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+-#define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+-#define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+-#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
++#define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
++#define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
++#define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
++#define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
++#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
++
++
++#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
++
++/*
++ * Legacy symbols used to avoid userspace compilation breakages.
++ * Do not use any of this in new applications!
++ *
++ * Those symbols map the entity function into types and should be
++ * used only on legacy programs for legacy hardware. Don't rely
++ * on those for MEDIA_IOC_G_TOPOLOGY.
++ */
++#define MEDIA_ENT_TYPE_SHIFT			16
++#define MEDIA_ENT_TYPE_MASK			0x00ff0000
++#define MEDIA_ENT_SUBTYPE_MASK			0x0000ffff
++
++#define MEDIA_ENT_T_DEVNODE_UNKNOWN		(MEDIA_ENT_F_OLD_BASE | \
++						 MEDIA_ENT_SUBTYPE_MASK)
++
++#define MEDIA_ENT_T_DEVNODE			MEDIA_ENT_F_OLD_BASE
++#define MEDIA_ENT_T_DEVNODE_V4L			MEDIA_ENT_F_IO_V4L
++#define MEDIA_ENT_T_DEVNODE_FB			(MEDIA_ENT_F_OLD_BASE + 2)
++#define MEDIA_ENT_T_DEVNODE_ALSA		(MEDIA_ENT_F_OLD_BASE + 3)
++#define MEDIA_ENT_T_DEVNODE_DVB			(MEDIA_ENT_F_OLD_BASE + 4)
++
++#define MEDIA_ENT_T_UNKNOWN			MEDIA_ENT_F_UNKNOWN
++#define MEDIA_ENT_T_V4L2_VIDEO			MEDIA_ENT_F_IO_V4L
++#define MEDIA_ENT_T_V4L2_SUBDEV			MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
++#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR		MEDIA_ENT_F_CAM_SENSOR
++#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH		MEDIA_ENT_F_FLASH
++#define MEDIA_ENT_T_V4L2_SUBDEV_LENS		MEDIA_ENT_F_LENS
++#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER		MEDIA_ENT_F_ATV_DECODER
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER		MEDIA_ENT_F_TUNER
++
++/*
++ * There is still no ALSA support in the media controller. These
++ * defines should not have been added and we leave them here only
++ * in case some application tries to use these defines.
++ */
++#define MEDIA_INTF_T_ALSA_BASE			0x00000300
++#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   	(MEDIA_INTF_T_ALSA_BASE)
++#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  	(MEDIA_INTF_T_ALSA_BASE + 1)
++#define MEDIA_INTF_T_ALSA_CONTROL       	(MEDIA_INTF_T_ALSA_BASE + 2)
++#define MEDIA_INTF_T_ALSA_COMPRESS      	(MEDIA_INTF_T_ALSA_BASE + 3)
++#define MEDIA_INTF_T_ALSA_RAWMIDI       	(MEDIA_INTF_T_ALSA_BASE + 4)
++#define MEDIA_INTF_T_ALSA_HWDEP         	(MEDIA_INTF_T_ALSA_BASE + 5)
++#define MEDIA_INTF_T_ALSA_SEQUENCER     	(MEDIA_INTF_T_ALSA_BASE + 6)
++#define MEDIA_INTF_T_ALSA_TIMER         	(MEDIA_INTF_T_ALSA_BASE + 7)
++
++/* Obsolete symbol for media_version, no longer used in the kernel */
++#define MEDIA_API_VERSION			KERNEL_VERSION(0, 1, 0)
++
++#endif
+ 
+ #endif /* __LINUX_MEDIA_H */
 -- 
-2.14.3
+2.16.1
