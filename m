@@ -1,124 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:52684 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967546AbeBNL7k (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47789 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751295AbeBUH3Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:59:40 -0500
+        Wed, 21 Feb 2018 02:29:25 -0500
+Subject: Re: [RFCv4 01/21] media: add request API core and UAPI
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <20180220044425.169493-1-acourbot@chromium.org>
+ <20180220044425.169493-2-acourbot@chromium.org>
+ <5fd863ad-a0fe-88d7-05bd-90c2b4096145@xs4all.nl>
+ <CAPBb6MUUuo+50zfs-XaRcVD6sV3uaownVeFKgX=A6NkTO1he1w@mail.gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.16 11/14] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-Date: Wed, 14 Feb 2018 12:59:35 +0100
-Message-Id: <20180214115938.28296-12-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
-References: <20180214115938.28296-1-hverkuil@xs4all.nl>
+Message-ID: <c016f8f1-06f3-cc3b-03d1-7a17c39dbec0@xs4all.nl>
+Date: Wed, 21 Feb 2018 08:29:20 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAPBb6MUUuo+50zfs-XaRcVD6sV3uaownVeFKgX=A6NkTO1he1w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/21/2018 07:01 AM, Alexandre Courbot wrote:
+> Hi Hans,
+> 
+> On Tue, Feb 20, 2018 at 7:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/20/18 05:44, Alexandre Courbot wrote:
 
-commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
+<snip>
 
-put_v4l2_window32() didn't copy back the clip list to userspace.
-Drivers can update the clip rectangles, so this should be done.
+>>> +#define MEDIA_REQUEST_IOC(__cmd, func)                                       \
+>>> +     [_IOC_NR(MEDIA_REQUEST_IOC_##__cmd) - 0x80] = {                 \
+>>> +             .cmd = MEDIA_REQUEST_IOC_##__cmd,                       \
+>>> +             .fn = func,                                             \
+>>> +     }
+>>> +
+>>> +struct media_request_ioctl_info {
+>>> +     unsigned int cmd;
+>>> +     long (*fn)(struct media_request *req);
+>>> +};
+>>> +
+>>> +static const struct media_request_ioctl_info ioctl_info[] = {
+>>> +     MEDIA_REQUEST_IOC(SUBMIT, media_request_ioctl_submit),
+>>> +     MEDIA_REQUEST_IOC(REINIT, media_request_ioctl_reinit),
+>>
+>> There are only two ioctls, so there is really no need for the
+>> MEDIA_REQUEST_IOC define. Just keep it simple.
+> 
+> The number of times it is used doesn't change the fact that it helps
+> with readability IMHO.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 59 ++++++++++++++++++---------
- 1 file changed, 40 insertions(+), 19 deletions(-)
+But this macro just boils down to:
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index de69afde9e86..e7ebd20b6c6a 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -50,6 +50,11 @@ struct v4l2_window32 {
- 
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip32 __user *uclips;
-+	struct v4l2_clip __user *kclips;
-+	compat_caddr_t p;
-+	u32 n;
-+
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
-@@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
--	if (kp->clipcount) {
--		struct v4l2_clip32 __user *uclips;
--		struct v4l2_clip __user *kclips;
--		int n = kp->clipcount;
--		compat_caddr_t p;
-+	if (!kp->clipcount) {
-+		kp->clips = NULL;
-+		return 0;
-+	}
- 
--		if (get_user(p, &up->clips))
-+	n = kp->clipcount;
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-+	kp->clips = kclips;
-+	while (n--) {
-+		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
- 			return -EFAULT;
--		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(*kclips));
--		kp->clips = kclips;
--		while (--n >= 0) {
--			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
--				return -EFAULT;
--			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
--				return -EFAULT;
--			uclips += 1;
--			kclips += 1;
--		}
--	} else
--		kp->clips = NULL;
-+		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
- static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip __user *kclips = kp->clips;
-+	struct v4l2_clip32 __user *uclips;
-+	u32 n = kp->clipcount;
-+	compat_caddr_t p;
-+
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
- 	    put_user(kp->clipcount, &up->clipcount) ||
- 	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
-+
-+	if (!kp->clipcount)
-+		return 0;
-+
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	while (n--) {
-+		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
--- 
-2.15.1
+static const struct media_request_ioctl_info ioctl_info[] = {
+	{ MEDIA_REQUEST_IOC_SUBMIT, media_request_ioctl_submit },
+	{ MEDIA_REQUEST_IOC_REINIT, media_request_ioctl_reinit },
+};
+
+It's absolutely identical! So it seems senseless to me.
+
+> 
+>>
+>>> +};
+>>> +
+>>> +static long media_request_ioctl(struct file *filp, unsigned int cmd,
+>>> +                             unsigned long __arg)
+>>> +{
+>>> +     struct media_request *req = filp->private_data;
+>>> +     const struct media_request_ioctl_info *info;
+>>> +
+>>> +     if ((_IOC_NR(cmd) < 0x80) ||
+>>
+>> Why start the ioctl number at 0x80? Why not just 0?
+>> It avoids all this hassle with the 0x80 offset.
+
+There is no clash with the MC ioctls, so I really don't believe the 0x80
+offset is needed.
+
+>>
+>>> +          _IOC_NR(cmd) >= 0x80 + ARRAY_SIZE(ioctl_info) ||
+>>> +          ioctl_info[_IOC_NR(cmd) - 0x80].cmd != cmd)
+>>> +             return -ENOIOCTLCMD;
+>>> +
+>>> +     info = &ioctl_info[_IOC_NR(cmd) - 0x80];
+>>> +
+>>> +     return info->fn(req);
+>>> +}
+
+<snip>
+
+>>> diff --git a/include/uapi/linux/media-request.h b/include/uapi/linux/media-request.h
+>>> new file mode 100644
+>>> index 000000000000..5d30f731a442
+>>> --- /dev/null
+>>> +++ b/include/uapi/linux/media-request.h
+>>> @@ -0,0 +1,37 @@
+>>> +/*
+>>> + * Media requests UAPI
+>>> + *
+>>> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + *
+>>> + * This program is distributed in the hope that it will be useful,
+>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>> + * GNU General Public License for more details.
+>>> + */
+>>> +
+>>> +#ifndef __LINUX_MEDIA_REQUEST_H
+>>> +#define __LINUX_MEDIA_REQUEST_H
+>>> +
+>>> +#ifndef __KERNEL__
+>>> +#include <stdint.h>
+>>> +#endif
+>>> +#include <linux/ioctl.h>
+>>> +#include <linux/types.h>
+>>> +#include <linux/version.h>
+>>> +
+>>> +/* Only check that requests can be used, do not allocate */
+>>> +#define MEDIA_REQUEST_FLAG_TEST                      0x00000001
+>>> +
+>>> +struct media_request_new {
+>>> +     __u32 flags;
+>>> +     __s32 fd;
+>>> +} __attribute__ ((packed));
+>>> +
+>>> +#define MEDIA_REQUEST_IOC_SUBMIT       _IO('|',  128)
+>>> +#define MEDIA_REQUEST_IOC_REINIT       _IO('|',  129)
+>>> +
+>>> +#endif
+>>>
+>>
+>> I need to think a bit more on this internal API, so I might come back
+>> to this patch for more comments.
+> 
+> I think I should probably elaborate on why I think it is advantageous
+> to have these ioctls handled here.
+
+Sorry for the confusion, I was not actually referring to these ioctls.
+In fact, I really like them. It was more a general comment about the
+request API core.
+
+I should have been more clear.
+
+Regards,
+
+	Hans
+
+> 
+> One of the reasons if that it does not force user-space to keep track
+> of who issued the request to operate on it. Semantically, the only
+> device a request could be submitted to is the device that produced it
+> anyway, so since that argument is constant we may as well get rid of
+> it (and we also don't need to pass the request FD as argument
+> anymore).
+> 
+> It also gives us more freedom when designing new request-related
+> ioctls: before, all request-related operations were multiplexed under
+> a single MEDIA_IOC_REQUEST_CMD ioctl, which cmd field indicated the
+> actual operation to perform. With this design, all the arguments must
+> fit within the media_request_cmd structure, which may cause confusion
+> as it will have to be variable-sized. I am thinking in particular
+> about a future atomic-like API to set topology, controls and buffers
+> related to a request all at the same time. Having it as a request
+> ioctl seems perfectly fitting to me.
+> 
