@@ -1,94 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:59330 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750941AbeBHIhA (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47319 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751929AbeBUM3G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 03:37:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 00/15] Media Controller compliance fixes
-Date: Thu,  8 Feb 2018 09:36:40 +0100
-Message-Id: <20180208083655.32248-1-hverkuil@xs4all.nl>
+        Wed, 21 Feb 2018 07:29:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 03/11] media: platform: Add Renesas CEU driver
+Date: Wed, 21 Feb 2018 14:29:47 +0200
+Message-ID: <2908261.btsdL5a7UQ@avalon>
+In-Reply-To: <024c232f-bd43-42a9-25e7-0fbe71edbcb0@xs4all.nl>
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org> <1519059584-30844-4-git-send-email-jacopo+renesas@jmondi.org> <024c232f-bd43-42a9-25e7-0fbe71edbcb0@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Hi all,
+On Wednesday, 21 February 2018 14:03:24 EET Hans Verkuil wrote:
+> On 02/19/18 17:59, Jacopo Mondi wrote:
+> > Add driver for Renesas Capture Engine Unit (CEU).
+> > 
+> > The CEU interface supports capturing 'data' (YUV422) and 'images'
+> > (NV[12|21|16|61]).
+> > 
+> > This driver aims to replace the soc_camera-based sh_mobile_ceu one.
+> > 
+> > Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+> > platform GR-Peach.
+> > 
+> > Tested with ov7725 camera sensor on SH4 platform Migo-R.
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/platform/Kconfig       |    9 +
+> >  drivers/media/platform/Makefile      |    1 +
+> >  drivers/media/platform/renesas-ceu.c | 1661 +++++++++++++++++++++++++++++
+> >  3 files changed, 1671 insertions(+)
+> >  create mode 100644 drivers/media/platform/renesas-ceu.c
+> 
+> <snip>
+> 
+> > +static int ceu_s_input(struct file *file, void *priv, unsigned int i)
+> > +{
+> > +	struct ceu_device *ceudev = video_drvdata(file);
+> > +	struct ceu_subdev *ceu_sd_old;
+> > +	int ret;
+> > +
+> > +	if (i >= ceudev->num_sd)
+> > +		return -EINVAL;
+> > +
+> > +	if (vb2_is_streaming(&ceudev->vb2_vq))
+> > +		return -EBUSY;
+> > +
+> > +	if (i == ceudev->sd_index)
+> > +		return 0;
+> > +
+> > +	ceu_sd_old = ceudev->sd;
+> > +	ceudev->sd = &ceudev->subdevs[i];
+> > +
+> > +	/* Make sure we can generate output image formats. */
+> > +	ret = ceu_init_formats(ceudev);
+> 
+> Why is this done for every s_input? I would expect that this is done only
+> once for each subdev.
+> 
+> I also expect to see a ceu_set_default_fmt() call here. Or that the v4l2_pix
+> is kept in ceu_subdev (i.e. per subdev) instead of a single fmt in cuedev.
+> I think I prefer that over configuring a new default format every time you
+> switch inputs.
 
-I've been posting random patches fixing various MC problems, but it is
-easier to see them all in a single patch series.
+What does userspace expect today ? I don't think we document anywhere that 
+formats are stored per-input in drivers. The VIDIOC_S_INPUT documentation is 
+very vague:
 
-All patches except 13 and 14 are identical to was I posted earlier.
-For 13 and 14 I decided to drop the requirement that the application
-clears the reserved field. Only the driver will clear it.
+"To select a video input applications store the number of the desired input in 
+an integer and call the VIDIOC_S_INPUT ioctl with a pointer to this integer. 
+Side effects are possible. For example inputs may support different video 
+standards, so the driver may implicitly switch the current standard. Because 
+of these possible side effects applications must select an input before 
+querying or negotiating any other parameters."
 
-The only ioctl for which this might be a problem is SETUP_LINK. I don't
-think it is worth it adding this requirement for userspace, and I also
-think it is too late to do so.
+I understand that as meaning "anything can happen when you switch inputs, so 
+be prepared to reconfigure everything explicitly without assuming any 
+particular parameter to have a sane value".
 
-A quick overview of the series:
+> This code will work for two subdevs with exactly the same
+> formats/properties. But switching between e.g. a sensor and a video
+> receiver will leave things in an inconsistent state as far as I can see.
+> 
+> E.g. if input 1 is the video receiver then switching to that input and
+> running 'v4l2-ctl -V' will show the sensor format, not the video receiver
+> format.
 
-Patch 1 and 2 fix two vimc bugs. Patch 3 fixes a v4l2-ioctl.c bug.
-Patches 4-6 fix v4l2-subdev.c bugs (arguably patch 6 is more of an
-enhancement than a bug fix). Patches 7-10 fix documentation bugs.
-Patches 11-14 fix various bugs. Please check 13 and 14 if you agree
-with how the reserved fields should be handled.
+I agree that the format should be consistent with the selected input, as 
+calling VIDIOC_S_INPUT immediately followed by a stream start sequence without 
+configuring formats should work (but produce a format that is not known to 
+userspace). My question is whether we should reset to a default format for the 
+newly select input, or switch back to the previously set format. I'd tend to 
+go for the former to keep as little state as possible, but I'm open to 
+counter-proposals.
 
-The final patch reorganizes media.h so it is actually understandable.
-See here for how it looks after the patch is applied:
-
-https://git.linuxtv.org/hverkuil/media_tree.git/plain/include/uapi/linux/media.h?h=media-fixes
-
-The patch itself is hard to read, so looking at the reorganized header
-is easier.
-
-The two core changes in media.h are:
-
-1) all functions are now grouped together
-2) all legacy defines are now all moved to the end of the header
-
-I would really like to see this merged soon. This fixes the most immediate
-problems that I found.
-
-Regards,
-
-	Hans
-
-Alexandre Courbot (1):
-  media: media-types.rst: fix typo
-
-Hans Verkuil (14):
-  vimc: fix control event handling
-  vimc: use correct subdev functions
-  v4l2-ioctl.c: fix VIDIOC_DV_TIMINGS_CAP: don't clear pad
-  v4l2-subdev: without controls return -ENOTTY
-  v4l2-subdev: clear reserved fields
-  v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO ioctl
-  subdev-formats.rst: fix incorrect types
-  media-ioc-g-topology.rst: fix interface-to-entity link description
-  media-types.rst: fix type, small improvements
-  media-device.c: zero reserved field
-  media.h: fix confusing typo in comment
-  media: document and zero reservedX fields in media_v2_topology
-  media-ioc-enum-entities/links.rst: document reserved fields
-  media.h: reorganize header to make it easier to understand
-
- .../uapi/mediactl/media-ioc-enum-entities.rst      |  19 +-
- .../media/uapi/mediactl/media-ioc-enum-links.rst   |  18 ++
- .../media/uapi/mediactl/media-ioc-g-topology.rst   |  54 +++-
- Documentation/media/uapi/mediactl/media-types.rst  |  12 +-
- Documentation/media/uapi/v4l/subdev-formats.rst    |   6 +-
- drivers/media/media-device.c                       |   6 +
- drivers/media/media-entity.c                       |  16 -
- drivers/media/platform/vimc/vimc-common.c          |   4 +-
- drivers/media/platform/vimc/vimc-debayer.c         |   2 +-
- drivers/media/platform/vimc/vimc-scaler.c          |   2 +-
- drivers/media/platform/vimc/vimc-sensor.c          |  10 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +-
- drivers/media/v4l2-core/v4l2-subdev.c              |  42 +++
- include/uapi/linux/media.h                         | 345 ++++++++++-----------
- 14 files changed, 314 insertions(+), 224 deletions(-)
+> > +	if (ret) {
+> > +		ceudev->sd = ceu_sd_old;
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	/* now that we're sure we can use the sensor, power off the old one. */
+> > +	v4l2_subdev_call(ceu_sd_old->v4l2_sd, core, s_power, 0);
+> > +	v4l2_subdev_call(ceudev->sd->v4l2_sd, core, s_power, 1);
+> > +
+> > +	ceudev->sd_index = i;
+> > +
+> > +	return 0;
+> > +}
+> 
+> The remainder of this driver looks good.
 
 -- 
-2.15.1
+Regards,
+
+Laurent Pinchart
