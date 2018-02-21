@@ -1,81 +1,330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:38666 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751697AbeBZI5M (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:38267 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750831AbeBUUms (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 03:57:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, dri-devel@lists.freedesktop.org,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/6] cec-pin: create cec_pin_start_timer() function
-Date: Mon, 26 Feb 2018 09:57:03 +0100
-Message-Id: <20180226085706.41526-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180226085706.41526-1-hverkuil@xs4all.nl>
-References: <20180226085706.41526-1-hverkuil@xs4all.nl>
+        Wed, 21 Feb 2018 15:42:48 -0500
+Received: by mail-wr0-f193.google.com with SMTP id n7so8190172wrn.5
+        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 12:42:47 -0800 (PST)
+Message-ID: <1519245765.11643.44.camel@googlemail.com>
+Subject: Re: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Reply-To: chf.fritz@googlemail.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Norbert Wesp <n.wesp@phytec.de>,
+        Dirk Bender <D.bender@phytec.de>
+Date: Wed, 21 Feb 2018 21:42:45 +0100
+In-Reply-To: <1971379.NnuTUWjF6a@avalon>
+References: <1519212389.11643.13.camel@googlemail.com>
+         <1971379.NnuTUWjF6a@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent
 
-This function will be needed for injecting a custom pulse.
+> Could you please send me the output of 'lsusb -d 199e:8302 -v' (if possible 
+> running as root) ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-pin-priv.h |  2 ++
- drivers/media/cec/cec-pin.c      | 21 +++++++++++++--------
- 2 files changed, 15 insertions(+), 8 deletions(-)
+please see bottom of this mail
 
-diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
-index cf41c4236efd..4571a0001a9d 100644
---- a/drivers/media/cec/cec-pin-priv.h
-+++ b/drivers/media/cec/cec-pin-priv.h
-@@ -118,4 +118,6 @@ struct cec_pin {
- 	u32				timer_sum_overrun;
- };
- 
-+void cec_pin_start_timer(struct cec_pin *pin);
-+
- #endif
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index 8e834b9f72c6..67d6ea9f56b6 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -680,6 +680,18 @@ static int cec_pin_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
- 	return 0;
- }
- 
-+void cec_pin_start_timer(struct cec_pin *pin)
-+{
-+	if (pin->state != CEC_ST_RX_IRQ)
-+		return;
-+
-+	atomic_set(&pin->work_irq_change, CEC_PIN_IRQ_UNCHANGED);
-+	pin->ops->disable_irq(pin->adap);
-+	cec_pin_high(pin);
-+	cec_pin_to_idle(pin);
-+	hrtimer_start(&pin->timer, ns_to_ktime(0), HRTIMER_MODE_REL);
-+}
-+
- static int cec_pin_adap_transmit(struct cec_adapter *adap, u8 attempts,
- 				      u32 signal_free_time, struct cec_msg *msg)
- {
-@@ -689,14 +701,7 @@ static int cec_pin_adap_transmit(struct cec_adapter *adap, u8 attempts,
- 	pin->tx_msg = *msg;
- 	pin->work_tx_status = 0;
- 	pin->tx_bit = 0;
--	if (pin->state == CEC_ST_RX_IRQ) {
--		atomic_set(&pin->work_irq_change, CEC_PIN_IRQ_UNCHANGED);
--		pin->ops->disable_irq(adap);
--		cec_pin_high(pin);
--		cec_pin_to_idle(pin);
--		hrtimer_start(&pin->timer, ns_to_ktime(0),
--			      HRTIMER_MODE_REL);
--	}
-+	cec_pin_start_timer(pin);
- 	return 0;
- }
- 
--- 
-2.15.1
+> > Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> > Tested-by: Norbert Wesp <n.wesp@phytec.de>
+> > ---
+> >  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+> >  drivers/media/usb/uvc/uvcvideo.h   |  1 +
+> >  2 files changed, 17 insertions(+)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index cde43b6..8bfa40b 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -406,6 +406,13 @@ static int uvc_parse_format(struct uvc_device *dev,
+> >  				width_multiplier = 2;
+> >  			}
+> >  		}
+> > +		if (dev->quirks & UVC_QUIRK_FORCE_GBRG) {
+> > +			if (format->fcc == V4L2_PIX_FMT_SGRBG8) {
+> > +				strlcpy(format->name, "GBRG Bayer (GBRG)",
+> > +					sizeof(format->name));
+> > +				format->fcc = V4L2_PIX_FMT_SGBRG8;
+> > +			}
+> > +		}
+> > 
+> >  		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+> >  			ftype = UVC_VS_FRAME_UNCOMPRESSED;
+> > @@ -2631,6 +2638,15 @@ static struct usb_device_id uvc_ids[] = {
+> >  	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0 },
+> > +	/* PHYTEC CAM 004H cameras */
+> > +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > +	  .idVendor		= 0x199e,
+> > +	  .idProduct		= 0x8302,
+> > +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> > +	  .bInterfaceSubClass	= 1,
+> > +	  .bInterfaceProtocol	= 0,
+> > +	  .driver_info		= UVC_QUIRK_FORCE_GBRG },
+> >  	/* Bodelin ProScopeHR */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_DEV_HI
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> > b/drivers/media/usb/uvc/uvcvideo.h index 7e4d3ee..ad51002 100644
+> > --- a/drivers/media/usb/uvc/uvcvideo.h
+> > +++ b/drivers/media/usb/uvc/uvcvideo.h
+> > @@ -164,6 +164,7 @@
+> >  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+> >  #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+> >  #define UVC_QUIRK_FORCE_Y8		0x00000800
+> > +#define UVC_QUIRK_FORCE_GBRG		0x00001000
+> 
+> I don't think we should add a quirk flag for every format that needs to be 
+> forced. Instead, now that we have a new way to store per-device parameters 
+> since commit 3bc85817d798 ("media: uvcvideo: Add extensible device 
+> information"), how about making use of it and adding a field to the 
+> uvc_device_info structure to store the forced format ?
+
+I'm currently stuck on kernel 4.9, but for mainline I'll use extensible
+device information and send a v2 in the next weeks.
+
+output of 'lsusb -d 199e:8302 -v':
+
+Bus 001 Device 010: ID 199e:8302 The Imaging Source Europe GmbH 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  idVendor           0x199e The Imaging Source Europe GmbH
+  idProduct          0x8302 
+  bcdDevice            8.13
+  iManufacturer           2 ?
+  iProduct                1 ?
+  iSerial                 3 ?
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          349
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Association:
+      bLength                 8
+      bDescriptorType        11
+      bFirstInterface         0
+      bInterfaceCount         2
+      bFunctionClass         14 Video
+      bFunctionSubClass       3 Video Interface Collection
+      bFunctionProtocol       0 
+      iFunction               0 
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      1 Video Control
+      bInterfaceProtocol      0 
+      iInterface              0 
+      VideoControl Interface Descriptor:
+        bLength                13
+        bDescriptorType        36
+        bDescriptorSubtype      1 (HEADER)
+        bcdUVC               1.00
+        wTotalLength           78
+        dwClockFrequency        6.000000MHz
+        bInCollection           1
+        baInterfaceNr( 0)       1
+      VideoControl Interface Descriptor:
+        bLength                18
+        bDescriptorType        36
+        bDescriptorSubtype      2 (INPUT_TERMINAL)
+        bTerminalID             1
+        wTerminalType      0x0201 Camera Sensor
+        bAssocTerminal          0
+        iTerminal               0 
+        wObjectiveFocalLengthMin      0
+        wObjectiveFocalLengthMax      0
+        wOcularFocalLength            0
+        bControlSize                  3
+        bmControls           0x0004001a
+          Auto-Exposure Mode
+          Exposure Time (Absolute)
+          Exposure Time (Relative)
+          Privacy
+      VideoControl Interface Descriptor:
+        bLength                12
+        bDescriptorType        36
+        bDescriptorSubtype      5 (PROCESSING_UNIT)
+      Warning: Descriptor too short
+        bUnitID                 3
+        bSourceID               1
+        wMaxMultiplier          0
+        bControlSize            3
+        bmControls     0x00000200
+          Gain
+        iProcessing             0 
+        bmVideoStandards     0x1a
+          NTSC - 525/60
+          SECAM - 625/50
+          NTSC - 625/50
+      VideoControl Interface Descriptor:
+        bLength                26
+        bDescriptorType        36
+        bDescriptorSubtype      6 (EXTENSION_UNIT)
+        bUnitID                 4
+        guidExtensionCode         {95d63e92-f256-e111-83f7-37704824019b}
+        bNumControl             0
+        bNrPins                 1
+        baSourceID( 0)          3
+        bControlSize            1
+        bmControls( 0)       0x0f
+        iExtension              0 
+      VideoControl Interface Descriptor:
+        bLength                 9
+        bDescriptorType        36
+        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
+        bTerminalID             2
+        wTerminalType      0x0101 USB Streaming
+        bAssocTerminal          0
+        bSourceID               4
+        iTerminal               0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               9
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0 
+      iInterface              0 
+      VideoStreaming Interface Descriptor:
+        bLength                            15
+        bDescriptorType                    36
+        bDescriptorSubtype                  1 (INPUT_HEADER)
+      Warning: Descriptor too short
+        bNumFormats                         3
+        wTotalLength                      169
+        bEndPointAddress                  130
+        bmInfo                              0
+        bTerminalLink                       2
+        bStillCaptureMethod                 2
+        bTriggerSupport                     1
+        bTriggerUsage                       0
+        bControlSize                        2
+        bmaControls( 0)                     5
+        bmaControls( 1)                     5
+        bmaControls( 2)                     5
+      VideoStreaming Interface Descriptor:
+        bLength                            28
+        bDescriptorType                    36
+        bDescriptorSubtype                 16 (FORMAT_FRAME_BASED)
+        bFormatIndex                        1
+        bNumFrameDescriptors                5
+        guidFormat                            {47524247-0000-1000-8000-00aa00389b71}
+        bBitsPerPixel                       8
+        bDefaultFrameIndex                  1
+        bAspectRatioX                      16
+        bAspectRatioY                       9
+        bmInterlaceFlags                 0x86
+          Interlaced stream or variable: No
+          Fields per frame: 1 fields
+          Field 1 first: Yes
+          Field pattern: Field 1 only
+          bCopyProtect                      0
+          bVariableSize                     0
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                 17 (FRAME_FRAME_BASED)
+        bFrameIndex                         1
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            744
+        wHeight                           480
+        dwMinBitRate                4294950144
+        dwMaxBitRate                4294964224
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwBytesPerLine                    744
+        dwFrameInterval( 0)            166667
+        dwFrameInterval( 1)            333333
+        dwFrameInterval( 2)            400000
+        dwFrameInterval( 3)            666667
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                 17 (FRAME_FRAME_BASED)
+        bFrameIndex                         4
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            640
+        wHeight                           480
+        dwMinBitRate                4294946816
+        dwMaxBitRate                4294942720
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwBytesPerLine                    640
+        dwFrameInterval( 0)            166667
+        dwFrameInterval( 1)            333333
+        dwFrameInterval( 2)            400000
+        dwFrameInterval( 3)            666667
+      VideoStreaming Interface Descriptor:
+        bLength                             6
+        bDescriptorType                    36
+        bDescriptorSubtype                 13 (COLORFORMAT)
+        bColorPrimaries                     0 (Unspecified)
+        bTransferCharacteristics            0 (Unspecified)
+        bMatrixCoefficients                 0 (Unspecified)
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+        ** UNRECOGNIZED:  02 23
+        ** UNRECOGNIZED:  20 ac 75 10 02 75 11 e8 02 1d 4b 12 20 5e 7d 40 7c 01 7f 04 12 28 33 7d f0 7c 00 7f 03 12 28 33
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
+
+Thanks
+ -- Christoph
