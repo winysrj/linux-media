@@ -1,670 +1,2330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:47984 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751756AbeBCJPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Feb 2018 04:15:34 -0500
-Date: Sat, 3 Feb 2018 17:14:34 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Colin King <colin.king@canonical.com>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: cx25821: prevent out-of-bounds read on array card
-Message-ID: <201802031733.EGNa533v%fengguang.wu@intel.com>
-References: <20180131173309.16377-1-colin.king@canonical.com>
+Received: from mail-cys01nam02on0068.outbound.protection.outlook.com ([104.47.37.68]:19572
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750790AbeBUXA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 18:00:56 -0500
+From: Rohit Athavale <rohit.athavale@xilinx.com>
+To: <devel@driverdev.osuosl.org>
+CC: <gregkh@linuxfoundation.org>, <linux-media@vger.kernel.org>,
+        <rohit.athavale@xilinx.com>
+Subject: [PATCH v2 1/3] staging: xm2mvscale: Driver support for Xilinx M2M Video Scaler
+Date: Wed, 21 Feb 2018 14:43:14 -0800
+Message-ID: <1519252996-787-2-git-send-email-rohit.athavale@xilinx.com>
+In-Reply-To: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
+References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nFreZHaLTZJo0R7j"
-Content-Disposition: inline
-In-Reply-To: <20180131173309.16377-1-colin.king@canonical.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This commit adds driver support for the pre-release Xilinx M2M Video
+Scaler IP. There are three parts to this driver :
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+ - The Hardware/IP layer that reads and writes register of the IP
+   contained in the scaler_hw_xm2m.c
+ - The set of ioctls that applications would need to know contained
+   in ioctl_xm2mvsc.h
+ - The char driver that consumes the IP layer in xm2m_vscale.c
 
-Hi Colin,
-
-Thank you for the patch! Perhaps something to improve:
-
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.15 next-20180202]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Colin-King/media-cx25821-prevent-out-of-bounds-read-on-array-card/20180203-130958
-base:   git://linuxtv.org/media_tree.git master
-config: i386-randconfig-sb0-02031534 (attached as .config)
-compiler: gcc-4.9 (Debian 4.9.4-2) 4.9.4
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
-
-All warnings (new ones prefixed by >>):
-
-   In file included from include/linux/kernel.h:15:0,
-                    from include/linux/list.h:9,
-                    from include/linux/kobject.h:20,
-                    from include/linux/device.h:17,
-                    from include/linux/i2c.h:30,
-                    from drivers/media/pci/cx25821/cx25821-core.c:22:
-   drivers/media/pci/cx25821/cx25821-core.c: In function 'cx25821_dev_setup':
->> include/linux/build_bug.h:30:45: warning: format '%ld' expects argument of type 'long int', but argument 3 has type 'unsigned int' [-Wformat=]
-    #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
-                                                ^
-   include/linux/compiler-gcc.h:65:28: note: in expansion of macro 'BUILD_BUG_ON_ZERO'
-    #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-                               ^
-   include/linux/kernel.h:71:59: note: in expansion of macro '__must_be_array'
-    #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
-                                                              ^
->> include/linux/printk.h:308:34: note: in expansion of macro 'ARRAY_SIZE'
-     printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-                                     ^
-   drivers/media/pci/cx25821/cx25821.h:380:2: note: in expansion of macro 'pr_info'
-     pr_info("(%d): " fmt, dev->board, ##args)
-     ^
-   drivers/media/pci/cx25821/cx25821-core.c:871:3: note: in expansion of macro 'CX25821_INFO'
-      CX25821_INFO("dev->nr >= %ld", ARRAY_SIZE(card));
-      ^
---
-   In file included from include/linux/kernel.h:15:0,
-                    from include/linux/list.h:9,
-                    from include/linux/kobject.h:20,
-                    from include/linux/device.h:17,
-                    from include/linux/i2c.h:30,
-                    from drivers/media//pci/cx25821/cx25821-core.c:22:
-   drivers/media//pci/cx25821/cx25821-core.c: In function 'cx25821_dev_setup':
->> include/linux/build_bug.h:30:45: warning: format '%ld' expects argument of type 'long int', but argument 3 has type 'unsigned int' [-Wformat=]
-    #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
-                                                ^
-   include/linux/compiler-gcc.h:65:28: note: in expansion of macro 'BUILD_BUG_ON_ZERO'
-    #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-                               ^
-   include/linux/kernel.h:71:59: note: in expansion of macro '__must_be_array'
-    #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
-                                                              ^
->> include/linux/printk.h:308:34: note: in expansion of macro 'ARRAY_SIZE'
-     printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-                                     ^
-   drivers/media//pci/cx25821/cx25821.h:380:2: note: in expansion of macro 'pr_info'
-     pr_info("(%d): " fmt, dev->board, ##args)
-     ^
-   drivers/media//pci/cx25821/cx25821-core.c:871:3: note: in expansion of macro 'CX25821_INFO'
-      CX25821_INFO("dev->nr >= %ld", ARRAY_SIZE(card));
-      ^
-
-vim +/ARRAY_SIZE +308 include/linux/printk.h
-
-968ab183 Linus Torvalds 2010-11-15  287  
-6e099f55 Dan Streetman  2014-06-04  288  /*
-6e099f55 Dan Streetman  2014-06-04  289   * These can be used to print at the various log levels.
-6e099f55 Dan Streetman  2014-06-04  290   * All of these will print unconditionally, although note that pr_debug()
-6e099f55 Dan Streetman  2014-06-04  291   * and other debug macros are compiled out unless either DEBUG is defined
-6e099f55 Dan Streetman  2014-06-04  292   * or CONFIG_DYNAMIC_DEBUG is set.
-6e099f55 Dan Streetman  2014-06-04  293   */
-a0cba217 Linus Torvalds 2016-08-09  294  #define pr_emerg(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09  295  	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-a0cba217 Linus Torvalds 2016-08-09  296  #define pr_alert(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09  297  	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-a0cba217 Linus Torvalds 2016-08-09  298  #define pr_crit(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09  299  	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-a0cba217 Linus Torvalds 2016-08-09  300  #define pr_err(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09  301  	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-a0cba217 Linus Torvalds 2016-08-09  302  #define pr_warning(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09  303  	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-a0cba217 Linus Torvalds 2016-08-09  304  #define pr_warn pr_warning
-a0cba217 Linus Torvalds 2016-08-09  305  #define pr_notice(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09  306  	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-a0cba217 Linus Torvalds 2016-08-09  307  #define pr_info(fmt, ...) \
-a0cba217 Linus Torvalds 2016-08-09 @308  	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-7b1460ec Steven Rostedt 2015-04-15  309  /*
-7b1460ec Steven Rostedt 2015-04-15  310   * Like KERN_CONT, pr_cont() should only be used when continuing
-7b1460ec Steven Rostedt 2015-04-15  311   * a line with no newline ('\n') enclosed. Otherwise it defaults
-7b1460ec Steven Rostedt 2015-04-15  312   * back to KERN_DEFAULT.
-7b1460ec Steven Rostedt 2015-04-15  313   */
-968ab183 Linus Torvalds 2010-11-15  314  #define pr_cont(fmt, ...) \
-968ab183 Linus Torvalds 2010-11-15  315  	printk(KERN_CONT fmt, ##__VA_ARGS__)
-968ab183 Linus Torvalds 2010-11-15  316  
-
-:::::: The code at line 308 was first introduced by commit
-:::::: a0cba2179ea4c1820fce2ee046b6ed90ecc56196 Revert "printk: create pr_<level> functions"
-
-:::::: TO: Linus Torvalds <torvalds@linux-foundation.org>
-:::::: CC: Linus Torvalds <torvalds@linux-foundation.org>
-
+Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/staging/Kconfig                       |   2 +
+ drivers/staging/Makefile                      |   1 +
+ drivers/staging/xm2mvscale/Kconfig            |  11 +
+ drivers/staging/xm2mvscale/Makefile           |   3 +
+ drivers/staging/xm2mvscale/ioctl_xm2mvsc.h    | 134 ++++
+ drivers/staging/xm2mvscale/scaler_hw_xm2m.c   | 945 ++++++++++++++++++++++++++
+ drivers/staging/xm2mvscale/scaler_hw_xm2m.h   | 152 +++++
+ drivers/staging/xm2mvscale/xm2m_vscale.c      | 768 +++++++++++++++++++++
+ drivers/staging/xm2mvscale/xvm2mvsc_hw_regs.h | 204 ++++++
+ 9 files changed, 2220 insertions(+)
+ create mode 100644 drivers/staging/xm2mvscale/Kconfig
+ create mode 100644 drivers/staging/xm2mvscale/Makefile
+ create mode 100644 drivers/staging/xm2mvscale/ioctl_xm2mvsc.h
+ create mode 100644 drivers/staging/xm2mvscale/scaler_hw_xm2m.c
+ create mode 100644 drivers/staging/xm2mvscale/scaler_hw_xm2m.h
+ create mode 100644 drivers/staging/xm2mvscale/xm2m_vscale.c
+ create mode 100644 drivers/staging/xm2mvscale/xvm2mvsc_hw_regs.h
 
---nFreZHaLTZJo0R7j
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-
---nFreZHaLTZJo0R7j--
+diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
+index e95ab68..3ee3a3e 100644
+--- a/drivers/staging/Kconfig
++++ b/drivers/staging/Kconfig
+@@ -122,4 +122,6 @@ source "drivers/staging/vboxvideo/Kconfig"
+ 
+ source "drivers/staging/pi433/Kconfig"
+ 
++source "drivers/staging/xm2mvscale/Kconfig"
++
+ endif # STAGING
+diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
+index af8cd6a..29ce417 100644
+--- a/drivers/staging/Makefile
++++ b/drivers/staging/Makefile
+@@ -52,3 +52,4 @@ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
+ obj-$(CONFIG_CRYPTO_DEV_CCREE)	+= ccree/
+ obj-$(CONFIG_DRM_VBOXVIDEO)	+= vboxvideo/
+ obj-$(CONFIG_PI433)		+= pi433/
++obj-$(CONFIG_XILINX_M2M_VSC)	+= xm2mvscale/
+diff --git a/drivers/staging/xm2mvscale/Kconfig b/drivers/staging/xm2mvscale/Kconfig
+new file mode 100644
+index 0000000..949a8e4
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/Kconfig
+@@ -0,0 +1,11 @@
++config XILINX_M2M_VSC
++	tristate "Xilinx M2M Video Scaler"
++	depends on ARCH_ZYNQMP && OF
++	---help---
++	  This driver is developed for Xilinx M2M Video Scaler IP,
++	  designed to allow passage of frame buffers from the source
++	  kernel sub-system, apply video scaling and forward to the
++	  sink kernel sub-system.
++
++	  To compile this driver as a module, choose M here.
++	  If unsure, choose N.
+diff --git a/drivers/staging/xm2mvscale/Makefile b/drivers/staging/xm2mvscale/Makefile
+new file mode 100644
+index 0000000..ec777e1
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/Makefile
+@@ -0,0 +1,3 @@
++xm2m_vscale_drv-y := scaler_hw_xm2m.o
++xm2m_vscale_drv-y += xm2m_vscale.o
++obj-$(CONFIG_XILINX_M2M_VSC) += xm2m_vscale_drv.o
+diff --git a/drivers/staging/xm2mvscale/ioctl_xm2mvsc.h b/drivers/staging/xm2mvscale/ioctl_xm2mvsc.h
+new file mode 100644
+index 0000000..03bd7ab
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/ioctl_xm2mvsc.h
+@@ -0,0 +1,134 @@
++/*
++ * Xilinx Memory-to-Memory Video Scaler IP
++ *
++ * Copyright (C) 2018 Xilinx, Inc. All rights reserved.
++ *
++ * SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
++ */
++#ifndef __IOCTL_XM2MVSC_H__
++#define __IOCTL_XM2MVSC_H__
++
++/* Xilinx Video Specific Color/Pixel Formats */
++enum xm2mvsc_pix_fmt {
++	XILINX_FRMBUF_FMT_RGBX8 = 10,
++	XILINX_FRMBUF_FMT_YUVX8,
++	XILINX_FRMBUF_FMT_YUYV8,
++	XILINX_FRMBUF_FMT_RGBA8,
++	XILINX_FRMBUF_FMT_YUVA8,
++	XILINX_FRMBUF_FMT_RGBX10,
++	XILINX_FRMBUF_FMT_YUVX10,
++	/* RGB565 takes the value of 17 */
++	XILINX_FRMBUF_FMT_Y_UV8 = 18,
++	XILINX_FRMBUF_FMT_Y_UV8_420,
++	XILINX_FRMBUF_FMT_RGB8,
++	XILINX_FRMBUF_FMT_YUV8,
++	XILINX_FRMBUF_FMT_Y_UV10,
++	XILINX_FRMBUF_FMT_Y_UV10_420,
++	XILINX_FRMBUF_FMT_Y8,
++	XILINX_FRMBUF_FMT_Y10,
++	XILINX_FRMBUF_FMT_BGRA8,
++	XILINX_FRMBUF_FMT_BGRX8,
++	XILINX_FRMBUF_FMT_UYVY8,
++	XILINX_FRMBUF_FMT_BGR8,
++};
++
++/* struct xm2mvsc_qdata - Struct to enqueue a descriptor
++ * @srcbuf_ht: Height of source buffer
++ * @srcbuf_wt: Width of source buffer
++ * @srcbuf_bpp: Bytes per pixel of source buffer
++ * @srcbuf_cft: Color/Pixel format of source buffer
++ * @srcbuf_size: Size of the source buffer requested
++ * @srcbuf_mmap: Identify if srcbuf is mmap'ed
++ * @srcbuf_stride: Stride of the source buffer
++ * @dstbuf_ht: Height of destination buffer
++ * @dstbuf_wt: Width of destination buffer
++ * @dstbuf_bpp: Bytes per pixel of destination buffer
++ * @dstbuf_cft: Color/Pixel format of source buffer
++ * @dstbuf_size: Size of the source buffer requested
++ * @dstbuf_mmap: Identify if srcbuf is mmap'ed
++ * @dstbuf_stride: Stride of the source buffer
++ * @dstbuf_cft: Color Format of destination buffer
++ * @desc_id: Keep a track of the descriptors
++ */
++struct xm2mvsc_qdata {
++	/* Source information */
++	u32 srcbuf_ht;
++	u32 srcbuf_wt;
++	u32 srcbuf_bpp;
++	enum xm2mvsc_pix_fmt srcbuf_cft;
++	size_t srcbuf_size;
++	/* srcbuf_mmap : For use by the library, do not touch */
++	bool srcbuf_mmap;
++	u16 srcbuf_stride;
++	/* Destination information */
++	u32 dstbuf_ht;
++	u32 dstbuf_wt;
++	u32 dstbuf_bpp;
++	enum xm2mvsc_pix_fmt dstbuf_cft;
++	size_t dstbuf_size;
++	/* dstbuf_mmap : For use by the library, do not touch */
++	bool dstbuf_mmap;
++	u16 dstbuf_stride;
++	u32 desc_id;
++};
++
++/**
++ * struct xm2mvsc_dqdata - Struct to dequeue a completed descriptor
++ * @desc_id: Descriptor ID that needs to be dequeued
++ */
++struct xm2mvsc_dqdata {
++	u32 desc_id;
++};
++
++/**
++ * struct xm2mvsc_batch - Struct to specify the batch size
++ * @batch_size: Number of channels the scaler should operate per scaling op
++ */
++struct xm2mvsc_batch {
++	u16 batch_size;
++};
++
++/* XM2MVSCALE IOCTL LIST */
++#define XM2MVSC_MAGIC		'X'
++
++/*
++ * DOC: XM2MVSC_ENQUEUE
++ * Enqueue  a descriptor that describes the scaling operation for a channel.
++ * Returns the descriptor ID
++ */
++#define XM2MVSC_ENQUEUE		_IOWR(XM2MVSC_MAGIC, 1, struct xm2mvsc_qdata *)
++
++/*
++ * DOC: XM2MVSC_START
++ * Start the M2M Scaler IP. Driver will operate on descriptors in the
++ * pending list.
++ */
++#define XM2MVSC_START		_IO(XM2MVSC_MAGIC, 2)
++
++/*
++ * DOC: XM2MVSC_DEQUEUE
++ * Dequeue a descriptor by providing the driver with information about the
++ * descriptor that needs to be dequeued.
++ */
++#define XM2MVSC_DEQUEUE		_IOW(XM2MVSC_MAGIC, 3, struct xm2mvsc_dqdata *)
++
++/*
++ * DOC: XM2MVSC_STOP
++ * Stop the M2M Scaler IP. Clear driver state and reset the IP.
++ */
++#define XM2MVSC_STOP		_IO(XM2MVSC_MAGIC, 4)
++
++/*
++ * DOC: XM2MVSC_FREE
++ * Free a descriptor after being dequeued via XM2MVSC_DEQUEUE ioctl.
++ */
++#define XM2MVSC_FREE		_IOW(XM2MVSC_MAGIC, 5, struct xm2mvsc_dqdata *)
++
++/*
++ * DOC: XM2MVSC_BATCH_SIZE
++ * Set the batch size that the M2M Scaler IP should use when programming the
++ * scaler. Driver may reject the incoming batch size.
++ */
++#define XM2MVSC_BATCH_SIZE	_IOW(XM2MVSC_MAGIC, 6, struct xm2mvsc_batch *)
++
++#endif /* __IOCTL_XM2MVSC_H__ */
+diff --git a/drivers/staging/xm2mvscale/scaler_hw_xm2m.c b/drivers/staging/xm2mvscale/scaler_hw_xm2m.c
+new file mode 100644
+index 0000000..a6e35ae
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/scaler_hw_xm2m.c
+@@ -0,0 +1,945 @@
++/*
++ * Xilinx Memory-to-Memory Video Scaler IP
++ *
++ * Copyright (C) 2018 Xilinx, Inc. All rights reserved.
++ *
++ * Description:
++ * This driver is developed for the Xilinx M2M Video Scaler IP. It allows
++ * userspace to access the IP registers and takes care of interrupt handling
++ * and framebuffer programming within the driver.
++ *
++ * SPDX-License-Identifier: GPL-2.0
++ */
++
++#include <linux/bitops.h>
++
++#include "xvm2mvsc_hw_regs.h"
++#include "scaler_hw_xm2m.h"
++
++/* H-scaler coefficients for 6, 8, 10 and 12 tap filters */
++static const u16
++xhsc_coeff_taps6[XSCALER_MAX_PHASES][XV_SCALER_TAPS_6] = {
++	{  -132,   236,  3824,   236,  -132,    64, },
++	{  -116,   184,  3816,   292,  -144,    64, },
++	{  -100,   132,  3812,   348,  -160,    64, },
++	{   -88,    84,  3808,   404,  -176,    64, },
++	{   -72,    36,  3796,   464,  -192,    64, },
++	{   -60,    -8,  3780,   524,  -208,    68, },
++	{   -48,   -52,  3768,   588,  -228,    68, },
++	{   -32,   -96,  3748,   652,  -244,    68, },
++	{   -20,  -136,  3724,   716,  -260,    72, },
++	{    -8,  -172,  3696,   784,  -276,    72, },
++	{     0,  -208,  3676,   848,  -292,    72, },
++	{    12,  -244,  3640,   920,  -308,    76, },
++	{    20,  -276,  3612,   988,  -324,    76, },
++	{    32,  -304,  3568,  1060,  -340,    80, },
++	{    40,  -332,  3532,  1132,  -356,    80, },
++	{    48,  -360,  3492,  1204,  -372,    84, },
++	{    56,  -384,  3448,  1276,  -388,    88, },
++	{    64,  -408,  3404,  1352,  -404,    88, },
++	{    72,  -428,  3348,  1428,  -416,    92, },
++	{    76,  -448,  3308,  1500,  -432,    92, },
++	{    84,  -464,  3248,  1576,  -444,    96, },
++	{    88,  -480,  3200,  1652,  -460,    96, },
++	{    92,  -492,  3140,  1728,  -472,   100, },
++	{    96,  -504,  3080,  1804,  -484,   104, },
++	{   100,  -516,  3020,  1880,  -492,   104, },
++	{   104,  -524,  2956,  1960,  -504,   104, },
++	{   104,  -532,  2892,  2036,  -512,   108, },
++	{   108,  -540,  2832,  2108,  -520,   108, },
++	{   108,  -544,  2764,  2184,  -528,   112, },
++	{   112,  -544,  2688,  2260,  -532,   112, },
++	{   112,  -548,  2624,  2336,  -540,   112, },
++	{   112,  -548,  2556,  2408,  -544,   112, },
++	{   112,  -544,  2480,  2480,  -544,   112, },
++	{   112,  -544,  2408,  2556,  -548,   112, },
++	{   112,  -540,  2336,  2624,  -548,   112, },
++	{   112,  -532,  2260,  2688,  -544,   112, },
++	{   112,  -528,  2184,  2764,  -544,   108, },
++	{   108,  -520,  2108,  2832,  -540,   108, },
++	{   108,  -512,  2036,  2892,  -532,   104, },
++	{   104,  -504,  1960,  2956,  -524,   104, },
++	{   104,  -492,  1880,  3020,  -516,   100, },
++	{   104,  -484,  1804,  3080,  -504,    96, },
++	{   100,  -472,  1728,  3140,  -492,    92, },
++	{    96,  -460,  1652,  3200,  -480,    88, },
++	{    96,  -444,  1576,  3248,  -464,    84, },
++	{    92,  -432,  1500,  3308,  -448,    76, },
++	{    92,  -416,  1428,  3348,  -428,    72, },
++	{    88,  -404,  1352,  3404,  -408,    64, },
++	{    88,  -388,  1276,  3448,  -384,    56, },
++	{    84,  -372,  1204,  3492,  -360,    48, },
++	{    80,  -356,  1132,  3532,  -332,    40, },
++	{    80,  -340,  1060,  3568,  -304,    32, },
++	{    76,  -324,   988,  3612,  -276,    20, },
++	{    76,  -308,   920,  3640,  -244,    12, },
++	{    72,  -292,   848,  3676,  -208,     0, },
++	{    72,  -276,   784,  3696,  -172,    -8, },
++	{    72,  -260,   716,  3724,  -136,   -20, },
++	{    68,  -244,   652,  3748,   -96,   -32, },
++	{    68,  -228,   588,  3768,   -52,   -48, },
++	{    68,  -208,   524,  3780,    -8,   -60, },
++	{    64,  -192,   464,  3796,    36,   -72, },
++	{    64,  -176,   404,  3808,    84,   -88, },
++	{    64,  -160,   348,  3812,   132,  -100, },
++	{    64,  -144,   292,  3816,   184,  -116, }
++};
++
++static const u16
++xhsc_coeff_taps8[XSCALER_MAX_PHASES][XV_SCALER_TAPS_8] = {
++	{-5, 309, 1023, 1445, 1034, 317, -3, -24, },
++	{-6, 300, 1011, 1445, 1045, 326, -1, -24, },
++	{-7, 291, 1000, 1444, 1056, 336, 0, -24, },
++	{-9, 282, 988, 1444, 1067, 345, 2, -24, },
++	{-10, 274, 977, 1443, 1078, 354, 4, -24, },
++	{-11, 266, 965, 1441, 1089, 364, 6, -24, },
++	{-12, 258, 953, 1440, 1100, 373, 8, -24, },
++	{-13, 250, 942, 1438, 1110, 383, 10, -24, },
++	{-14, 242, 930, 1437, 1121, 393, 12, -24, },
++	{-15, 234, 918, 1434, 1131, 403, 14, -24, },
++	{-16, 226, 906, 1432, 1142, 413, 17, -24, },
++	{-17, 219, 894, 1430, 1152, 423, 19, -24, },
++	{-17, 211, 882, 1427, 1162, 433, 22, -24, },
++	{-18, 204, 870, 1424, 1172, 443, 24, -24, },
++	{-19, 197, 858, 1420, 1182, 454, 27, -24, },
++	{-19, 190, 846, 1417, 1191, 464, 30, -24, },
++	{-20, 183, 834, 1413, 1201, 475, 33, -24, },
++	{-20, 176, 822, 1409, 1210, 486, 36, -24, },
++	{-21, 170, 810, 1405, 1220, 497, 39, -24, },
++	{-21, 163, 798, 1401, 1229, 507, 42, -24, },
++	{-22, 157, 786, 1396, 1238, 518, 46, -24, },
++	{-22, 151, 774, 1392, 1247, 529, 49, -24, },
++	{-22, 144, 762, 1387, 1255, 540, 53, -24, },
++	{-23, 139, 750, 1382, 1264, 552, 57, -24, },
++	{-23, 133, 738, 1376, 1272, 563, 60, -24, },
++	{-23, 127, 726, 1371, 1280, 574, 64, -24, },
++	{-23, 121, 714, 1365, 1288, 586, 69, -24, },
++	{-23, 116, 703, 1359, 1296, 597, 73, -24, },
++	{-24, 111, 691, 1353, 1304, 609, 77, -24, },
++	{-24, 105, 679, 1346, 1312, 620, 81, -24, },
++	{-24, 100, 667, 1340, 1319, 632, 86, -24, },
++	{-24, 96, 655, 1333, 1326, 644, 91, -24, },
++	{-24, 91, 644, 1326, 1333, 655, 96, -24, },
++	{-24, 86, 632, 1319, 1340, 667, 100, -24, },
++	{-24, 81, 620, 1312, 1346, 679, 105, -24, },
++	{-24, 77, 609, 1304, 1353, 691, 111, -24, },
++	{-24, 73, 597, 1296, 1359, 703, 116, -23, },
++	{-24, 69, 586, 1288, 1365, 714, 121, -23, },
++	{-24, 64, 574, 1280, 1371, 726, 127, -23, },
++	{-24, 60, 563, 1272, 1376, 738, 133, -23, },
++	{-24, 57, 552, 1264, 1382, 750, 139, -23, },
++	{-24, 53, 540, 1255, 1387, 762, 144, -22, },
++	{-24, 49, 529, 1247, 1392, 774, 151, -22, },
++	{-24, 46, 518, 1238, 1396, 786, 157, -22, },
++	{-24, 42, 507, 1229, 1401, 798, 163, -21, },
++	{-24, 39, 497, 1220, 1405, 810, 170, -21, },
++	{-24, 36, 486, 1210, 1409, 822, 176, -20, },
++	{-24, 33, 475, 1201, 1413, 834, 183, -20, },
++	{-24, 30, 464, 1191, 1417, 846, 190, -19, },
++	{-24, 27, 454, 1182, 1420, 858, 197, -19, },
++	{-24, 24, 443, 1172, 1424, 870, 204, -18, },
++	{-24, 22, 433, 1162, 1427, 882, 211, -17, },
++	{-24, 19, 423, 1152, 1430, 894, 219, -17, },
++	{-24, 17, 413, 1142, 1432, 906, 226, -16, },
++	{-24, 14, 403, 1131, 1434, 918, 234, -15, },
++	{-24, 12, 393, 1121, 1437, 930, 242, -14, },
++	{-24, 10, 383, 1110, 1438, 942, 250, -13, },
++	{-24, 8, 373, 1100, 1440, 953, 258, -12, },
++	{-24, 6, 364, 1089, 1441, 965, 266, -11, },
++	{-24, 4, 354, 1078, 1443, 977, 274, -10, },
++	{-24, 2, 345, 1067, 1444, 988, 282, -9, },
++	{-24, 0, 336, 1056, 1444, 1000, 291, -7, },
++	{-24, -1, 326, 1045, 1445, 1011, 300, -6, },
++	{-24, -3, 317, 1034, 1445, 1023, 309, -5, },
++};
++
++static const u16
++xhsc_coeff_taps10[XSCALER_MAX_PHASES][XV_SCALER_TAPS_10] = {
++	{59, 224, 507, 790, 911, 793, 512, 227, 61, 13, },
++	{58, 220, 502, 786, 911, 797, 516, 231, 62, 13, },
++	{56, 216, 497, 783, 911, 800, 521, 235, 64, 13, },
++	{55, 213, 492, 779, 910, 804, 526, 238, 65, 13, },
++	{54, 209, 487, 775, 910, 807, 531, 242, 67, 14, },
++	{52, 206, 482, 772, 910, 810, 536, 246, 69, 14, },
++	{51, 202, 477, 768, 909, 813, 541, 250, 70, 14, },
++	{50, 199, 473, 764, 909, 817, 545, 254, 72, 14, },
++	{48, 195, 468, 760, 908, 820, 550, 258, 74, 15, },
++	{47, 192, 463, 756, 908, 823, 555, 262, 76, 15, },
++	{46, 188, 458, 752, 907, 826, 560, 266, 78, 15, },
++	{45, 185, 453, 748, 906, 829, 565, 270, 79, 16, },
++	{44, 182, 448, 744, 906, 832, 569, 274, 81, 16, },
++	{42, 179, 444, 740, 905, 835, 574, 278, 83, 16, },
++	{41, 175, 439, 736, 904, 837, 579, 282, 85, 17, },
++	{40, 172, 434, 732, 903, 840, 584, 286, 87, 17, },
++	{39, 169, 429, 728, 902, 843, 589, 290, 89, 18, },
++	{38, 166, 425, 724, 901, 846, 593, 294, 91, 18, },
++	{37, 163, 420, 720, 900, 848, 598, 298, 93, 18, },
++	{36, 160, 415, 716, 899, 851, 603, 302, 95, 19, },
++	{35, 157, 410, 711, 897, 854, 608, 307, 98, 19, },
++	{34, 154, 406, 707, 896, 856, 612, 311, 100, 20, },
++	{33, 151, 401, 703, 895, 859, 617, 315, 102, 20, },
++	{33, 148, 396, 698, 893, 861, 622, 320, 104, 21, },
++	{32, 145, 392, 694, 892, 863, 626, 324, 107, 21, },
++	{31, 142, 387, 690, 890, 866, 631, 328, 109, 22, },
++	{30, 140, 382, 685, 889, 868, 636, 333, 111, 23, },
++	{29, 137, 378, 681, 887, 870, 640, 337, 114, 23, },
++	{28, 134, 373, 677, 886, 872, 645, 342, 116, 24, },
++	{28, 131, 369, 672, 884, 874, 649, 346, 119, 24, },
++	{27, 129, 364, 668, 882, 876, 654, 350, 121, 25, },
++	{26, 126, 359, 663, 880, 878, 659, 355, 124, 26, },
++	{26, 124, 355, 659, 878, 880, 663, 359, 126, 26, },
++	{25, 121, 350, 654, 876, 882, 668, 364, 129, 27, },
++	{24, 119, 346, 649, 874, 884, 672, 369, 131, 28, },
++	{24, 116, 342, 645, 872, 886, 677, 373, 134, 28, },
++	{23, 114, 337, 640, 870, 887, 681, 378, 137, 29, },
++	{23, 111, 333, 636, 868, 889, 685, 382, 140, 30, },
++	{22, 109, 328, 631, 866, 890, 690, 387, 142, 31, },
++	{21, 107, 324, 626, 863, 892, 694, 392, 145, 32, },
++	{21, 104, 320, 622, 861, 893, 698, 396, 148, 33, },
++	{20, 102, 315, 617, 859, 895, 703, 401, 151, 33, },
++	{20, 100, 311, 612, 856, 896, 707, 406, 154, 34, },
++	{19, 98, 307, 608, 854, 897, 711, 410, 157, 35, },
++	{19, 95, 302, 603, 851, 899, 716, 415, 160, 36, },
++	{18, 93, 298, 598, 848, 900, 720, 420, 163, 37, },
++	{18, 91, 294, 593, 846, 901, 724, 425, 166, 38, },
++	{18, 89, 290, 589, 843, 902, 728, 429, 169, 39, },
++	{17, 87, 286, 584, 840, 903, 732, 434, 172, 40, },
++	{17, 85, 282, 579, 837, 904, 736, 439, 175, 41, },
++	{16, 83, 278, 574, 835, 905, 740, 444, 179, 42, },
++	{16, 81, 274, 569, 832, 906, 744, 448, 182, 44, },
++	{16, 79, 270, 565, 829, 906, 748, 453, 185, 45, },
++	{15, 78, 266, 560, 826, 907, 752, 458, 188, 46, },
++	{15, 76, 262, 555, 823, 908, 756, 463, 192, 47, },
++	{15, 74, 258, 550, 820, 908, 760, 468, 195, 48, },
++	{14, 72, 254, 545, 817, 909, 764, 473, 199, 50, },
++	{14, 70, 250, 541, 813, 909, 768, 477, 202, 51, },
++	{14, 69, 246, 536, 810, 910, 772, 482, 206, 52, },
++	{14, 67, 242, 531, 807, 910, 775, 487, 209, 54, },
++	{13, 65, 238, 526, 804, 910, 779, 492, 213, 55, },
++	{13, 64, 235, 521, 800, 911, 783, 497, 216, 56, },
++	{13, 62, 231, 516, 797, 911, 786, 502, 220, 58, },
++	{13, 61, 227, 512, 793, 911, 790, 507, 224, 59, },
++};
++
++static const u16
++xhsc_coeff_taps12[XSCALER_MAX_PHASES][XV_SCALER_TAPS_12] = {
++	{48, 143, 307, 504, 667, 730, 669, 507, 310, 145, 49, 18, },
++	{47, 141, 304, 501, 665, 730, 670, 510, 313, 147, 50, 18, },
++	{46, 138, 301, 498, 663, 730, 672, 513, 316, 149, 51, 18, },
++	{45, 136, 298, 495, 661, 730, 674, 516, 319, 151, 52, 18, },
++	{44, 134, 295, 492, 659, 730, 676, 519, 322, 153, 53, 18, },
++	{44, 132, 292, 489, 657, 730, 677, 522, 325, 155, 54, 18, },
++	{43, 130, 289, 486, 655, 729, 679, 525, 328, 157, 55, 19, },
++	{42, 129, 287, 483, 653, 729, 681, 528, 331, 160, 56, 19, },
++	{41, 127, 284, 480, 651, 729, 683, 531, 334, 162, 57, 19, },
++	{40, 125, 281, 477, 648, 729, 684, 534, 337, 164, 58, 19, },
++	{40, 123, 278, 474, 646, 728, 686, 537, 340, 166, 59, 20, },
++	{39, 121, 275, 471, 644, 728, 687, 539, 343, 169, 60, 20, },
++	{38, 119, 272, 468, 642, 727, 689, 542, 346, 171, 61, 20, },
++	{37, 117, 269, 465, 640, 727, 690, 545, 349, 173, 62, 20, },
++	{37, 115, 266, 461, 638, 727, 692, 548, 353, 175, 63, 21, },
++	{36, 114, 264, 458, 635, 726, 693, 551, 356, 178, 65, 21, },
++	{35, 112, 261, 455, 633, 726, 695, 554, 359, 180, 66, 21, },
++	{35, 110, 258, 452, 631, 725, 696, 556, 362, 183, 67, 21, },
++	{34, 108, 255, 449, 628, 724, 698, 559, 365, 185, 68, 22, },
++	{33, 107, 252, 446, 626, 724, 699, 562, 368, 187, 69, 22, },
++	{33, 105, 250, 443, 624, 723, 700, 565, 371, 190, 71, 22, },
++	{32, 103, 247, 440, 621, 723, 702, 567, 374, 192, 72, 23, },
++	{32, 101, 244, 437, 619, 722, 703, 570, 377, 195, 73, 23, },
++	{31, 100, 241, 433, 617, 721, 704, 573, 380, 197, 75, 23, },
++	{31, 98, 239, 430, 614, 720, 705, 576, 383, 200, 76, 24, },
++	{30, 97, 236, 427, 612, 720, 707, 578, 387, 202, 77, 24, },
++	{29, 95, 233, 424, 609, 719, 708, 581, 390, 205, 79, 24, },
++	{29, 93, 231, 421, 607, 718, 709, 584, 393, 207, 80, 25, },
++	{28, 92, 228, 418, 604, 717, 710, 586, 396, 210, 81, 25, },
++	{28, 90, 225, 415, 602, 716, 711, 589, 399, 212, 83, 26, },
++	{27, 89, 223, 412, 599, 715, 712, 591, 402, 215, 84, 26, },
++	{27, 87, 220, 408, 597, 714, 713, 594, 405, 217, 86, 27, },
++	{27, 86, 217, 405, 594, 713, 714, 597, 408, 220, 87, 27, },
++	{26, 84, 215, 402, 591, 712, 715, 599, 412, 223, 89, 27, },
++	{26, 83, 212, 399, 589, 711, 716, 602, 415, 225, 90, 28, },
++	{25, 81, 210, 396, 586, 710, 717, 604, 418, 228, 92, 28, },
++	{25, 80, 207, 393, 584, 709, 718, 607, 421, 231, 93, 29, },
++	{24, 79, 205, 390, 581, 708, 719, 609, 424, 233, 95, 29, },
++	{24, 77, 202, 387, 578, 707, 720, 612, 427, 236, 97, 30, },
++	{24, 76, 200, 383, 576, 705, 720, 614, 430, 239, 98, 31, },
++	{23, 75, 197, 380, 573, 704, 721, 617, 433, 241, 100, 31, },
++	{23, 73, 195, 377, 570, 703, 722, 619, 437, 244, 101, 32, },
++	{23, 72, 192, 374, 567, 702, 723, 621, 440, 247, 103, 32, },
++	{22, 71, 190, 371, 565, 700, 723, 624, 443, 250, 105, 33, },
++	{22, 69, 187, 368, 562, 699, 724, 626, 446, 252, 107, 33, },
++	{22, 68, 185, 365, 559, 698, 724, 628, 449, 255, 108, 34, },
++	{21, 67, 183, 362, 556, 696, 725, 631, 452, 258, 110, 35, },
++	{21, 66, 180, 359, 554, 695, 726, 633, 455, 261, 112, 35, },
++	{21, 65, 178, 356, 551, 693, 726, 635, 458, 264, 114, 36, },
++	{21, 63, 175, 353, 548, 692, 727, 638, 461, 266, 115, 37, },
++	{20, 62, 173, 349, 545, 690, 727, 640, 465, 269, 117, 37, },
++	{20, 61, 171, 346, 542, 689, 727, 642, 468, 272, 119, 38, },
++	{20, 60, 169, 343, 539, 687, 728, 644, 471, 275, 121, 39, },
++	{20, 59, 166, 340, 537, 686, 728, 646, 474, 278, 123, 40, },
++	{19, 58, 164, 337, 534, 684, 729, 648, 477, 281, 125, 40, },
++	{19, 57, 162, 334, 531, 683, 729, 651, 480, 284, 127, 41, },
++	{19, 56, 160, 331, 528, 681, 729, 653, 483, 287, 129, 42, },
++	{19, 55, 157, 328, 525, 679, 729, 655, 486, 289, 130, 43, },
++	{18, 54, 155, 325, 522, 677, 730, 657, 489, 292, 132, 44, },
++	{18, 53, 153, 322, 519, 676, 730, 659, 492, 295, 134, 44, },
++	{18, 52, 151, 319, 516, 674, 730, 661, 495, 298, 136, 45, },
++	{18, 51, 149, 316, 513, 672, 730, 663, 498, 301, 138, 46, },
++	{18, 50, 147, 313, 510, 670, 730, 665, 501, 304, 141, 47, },
++	{18, 49, 145, 310, 507, 669, 730, 667, 504, 307, 143, 48, },
++};
++
++/* V-scaler coefficients for 6, 8, 10 and 12 tap filters */
++static const u16
++xvsc_coeff_taps6[XSCALER_MAX_PHASES][XV_SCALER_TAPS_6] = {
++	{-132, 236, 3824, 236, -132, 64, },
++	{-116, 184, 3816, 292, -144, 64, },
++	{-100, 132, 3812, 348, -160, 64, },
++	{-88, 84, 3808, 404, -176, 64, },
++	{-72, 36, 3796, 464, -192, 64, },
++	{-60, -8, 3780, 524, -208, 68, },
++	{-48, -52, 3768, 588, -228, 68, },
++	{-32, -96, 3748, 652, -244, 68, },
++	{-20, -136, 3724, 716, -260, 72, },
++	{-8,  -172, 3696, 784, -276, 72, },
++	{0, -208, 3676,  848, -292, 72, },
++	{12, -244, 3640, 920, -308, 76, },
++	{20, -276, 3612, 988, -324, 76, },
++	{32, -304, 3568, 1060, -340, 80, },
++	{40, -332, 3532, 1132, -356, 80, },
++	{48, -360, 3492, 1204, -372, 84, },
++	{56, -384, 3448, 1276, -388, 88, },
++	{64, -408, 3404, 1352, -404, 88, },
++	{72, -428, 3348, 1428, -416, 92, },
++	{76, -448, 3308, 1500, -432, 92, },
++	{84, -464, 3248, 1576, -444, 96, },
++	{88, -480, 3200, 1652, -460, 96, },
++	{92, -492, 3140, 1728, -472, 100, },
++	{96, -504, 3080, 1804, -484, 104, },
++	{100, -516, 3020, 1880, -492, 104, },
++	{104, -524, 2956, 1960, -504, 104, },
++	{104, -532, 2892, 2036, -512, 108, },
++	{108, -540, 2832, 2108, -520, 108, },
++	{108, -544, 2764, 2184, -528, 112, },
++	{112, -544, 2688, 2260, -532, 112, },
++	{112, -548, 2624, 2336, -540, 112, },
++	{112, -548, 2556, 2408, -544, 112, },
++	{112, -544, 2480, 2480, -544, 112, },
++	{112, -544, 2408, 2556, -548, 112, },
++	{112, -540, 2336, 2624, -548, 112, },
++	{112, -532, 2260, 2688, -544, 112, },
++	{112, -528, 2184, 2764, -544, 108, },
++	{108, -520, 2108, 2832, -540, 108, },
++	{108, -512, 2036, 2892, -532, 104, },
++	{104, -504, 1960, 2956, -524, 104, },
++	{104, -492, 1880, 3020, -516, 100, },
++	{104, -484, 1804, 3080, -504, 96, },
++	{100, -472, 1728, 3140, -492, 92, },
++	{ 96, -460, 1652, 3200, -480, 88, },
++	{ 96, -444, 1576, 3248, -464, 84, },
++	{ 92, -432, 1500, 3308, -448, 76, },
++	{ 92, -416, 1428, 3348, -428, 72, },
++	{ 88, -404, 1352, 3404, -408, 64, },
++	{ 88, -388, 1276, 3448, -384, 56, },
++	{ 84, -372, 1204, 3492, -360, 48, },
++	{ 80, -356, 1132, 3532, -332, 40, },
++	{ 80, -340, 1060, 3568, -304, 32, },
++	{ 76, -324, 988, 3612, -276, 20, },
++	{ 76, -308, 920, 3640, -244, 12, },
++	{ 72, -292, 848, 3676, -208, 0, },
++	{ 72, -276, 784, 3696, -172, -8, },
++	{ 72, -260, 716, 3724, -136, -20, },
++	{ 68, -244, 652, 3748, -96, -32, },
++	{ 68, -228, 588, 3768, -52, -48, },
++	{ 68, -208, 524, 3780, -8, -60, },
++	{ 64, -192, 464, 3796, 36, -72, },
++	{ 64, -176, 404, 3808, 84, -88, },
++	{ 64, -160, 348, 3812,  132, -100, },
++	{ 64, -144, 292, 3816,  184, -116, }
++};
++
++static const u16
++xvsc_coeff_taps8[XSCALER_MAX_PHASES][XV_SCALER_TAPS_8] = {
++	{-5, 309, 1023, 1445, 1034, 317, -3, -24, },
++	{-6, 300, 1011, 1445, 1045, 326, -1, -24, },
++	{-7, 291, 1000, 1444, 1056, 336, 0, -24, },
++	{-9, 282, 988, 1444, 1067, 345, 2, -24, },
++	{-10, 274, 977, 1443, 1078, 354, 4, -24, },
++	{-11, 266, 965, 1441, 1089, 364, 6, -24, },
++	{-12, 258, 953, 1440, 1100, 373, 8, -24, },
++	{-13, 250, 942, 1438, 1110, 383, 10, -24, },
++	{-14, 242, 930, 1437, 1121, 393, 12, -24, },
++	{-15, 234, 918, 1434, 1131, 403, 14, -24, },
++	{-16, 226, 906, 1432, 1142, 413, 17, -24, },
++	{-17, 219, 894, 1430, 1152, 423, 19, -24, },
++	{-17, 211, 882, 1427, 1162, 433, 22, -24, },
++	{-18, 204, 870, 1424, 1172, 443, 24, -24, },
++	{-19, 197, 858, 1420, 1182, 454, 27, -24, },
++	{-19, 190, 846, 1417, 1191, 464, 30, -24, },
++	{-20, 183, 834, 1413, 1201, 475, 33, -24, },
++	{-20, 176, 822, 1409, 1210, 486, 36, -24, },
++	{-21, 170, 810, 1405, 1220, 497, 39, -24, },
++	{-21, 163, 798, 1401, 1229, 507, 42, -24, },
++	{-22, 157, 786, 1396, 1238, 518, 46, -24, },
++	{-22, 151, 774, 1392, 1247, 529, 49, -24, },
++	{-22, 144, 762, 1387, 1255, 540, 53, -24, },
++	{-23, 139, 750, 1382, 1264, 552, 57, -24, },
++	{-23, 133, 738, 1376, 1272, 563, 60, -24, },
++	{-23, 127, 726, 1371, 1280, 574, 64, -24, },
++	{-23, 121, 714, 1365, 1288, 586, 69, -24, },
++	{-23, 116, 703, 1359, 1296, 597, 73, -24, },
++	{-24, 111, 691, 1353, 1304, 609, 77, -24, },
++	{-24, 105, 679, 1346, 1312, 620, 81, -24, },
++	{-24, 100, 667, 1340, 1319, 632, 86, -24, },
++	{-24, 96, 655, 1333, 1326, 644, 91, -24, },
++	{-24, 91, 644, 1326, 1333, 655, 96, -24, },
++	{-24, 86, 632, 1319, 1340, 667, 100, -24, },
++	{-24, 81, 620, 1312, 1346, 679, 105, -24, },
++	{-24, 77, 609, 1304, 1353, 691, 111, -24, },
++	{-24, 73, 597, 1296, 1359, 703, 116, -23, },
++	{-24, 69, 586, 1288, 1365, 714, 121, -23, },
++	{-24, 64, 574, 1280, 1371, 726, 127, -23, },
++	{-24, 60, 563, 1272, 1376, 738, 133, -23, },
++	{-24, 57, 552, 1264, 1382, 750, 139, -23, },
++	{-24, 53, 540, 1255, 1387, 762, 144, -22, },
++	{-24, 49, 529, 1247, 1392, 774, 151, -22, },
++	{-24, 46, 518, 1238, 1396, 786, 157, -22, },
++	{-24, 42, 507, 1229, 1401, 798, 163, -21, },
++	{-24, 39, 497, 1220, 1405, 810, 170, -21, },
++	{-24, 36, 486, 1210, 1409, 822, 176, -20, },
++	{-24, 33, 475, 1201, 1413, 834, 183, -20, },
++	{-24, 30, 464, 1191, 1417, 846, 190, -19, },
++	{-24, 27, 454, 1182, 1420, 858, 197, -19, },
++	{-24, 24, 443, 1172, 1424, 870, 204, -18, },
++	{-24, 22, 433, 1162, 1427, 882, 211, -17, },
++	{-24, 19, 423, 1152, 1430, 894, 219, -17, },
++	{-24, 17, 413, 1142, 1432, 906, 226, -16, },
++	{-24, 14, 403, 1131, 1434, 918, 234, -15, },
++	{-24, 12, 393, 1121, 1437, 930, 242, -14, },
++	{-24, 10, 383, 1110, 1438, 942, 250, -13, },
++	{-24, 8, 373, 1100, 1440, 953, 258, -12, },
++	{-24, 6, 364, 1089, 1441, 965, 266, -11, },
++	{-24, 4, 354, 1078, 1443, 977, 274, -10, },
++	{-24, 2, 345, 1067, 1444, 988, 282, -9, },
++	{-24, 0, 336, 1056, 1444, 1000, 291, -7, },
++	{-24, -1, 326, 1045, 1445, 1011, 300, -6, },
++	{-24, -3, 317, 1034, 1445, 1023, 309, -5, },
++};
++
++static const u16
++xvsc_coeff_taps10[XSCALER_MAX_PHASES][XV_SCALER_TAPS_10] = {
++	{59, 224, 507, 790, 911, 793, 512, 227, 61, 13, },
++	{58, 220, 502, 786, 911, 797, 516, 231, 62, 13, },
++	{56, 216, 497, 783, 911, 800, 521, 235, 64, 13, },
++	{55, 213, 492, 779, 910, 804, 526, 238, 65, 13, },
++	{54, 209, 487, 775, 910, 807, 531, 242, 67, 14, },
++	{52, 206, 482, 772, 910, 810, 536, 246, 69, 14, },
++	{51, 202, 477, 768, 909, 813, 541, 250, 70, 14, },
++	{50, 199, 473, 764, 909, 817, 545, 254, 72, 14, },
++	{48, 195, 468, 760, 908, 820, 550, 258, 74, 15, },
++	{47, 192, 463, 756, 908, 823, 555, 262, 76, 15, },
++	{46, 188, 458, 752, 907, 826, 560, 266, 78, 15, },
++	{45, 185, 453, 748, 906, 829, 565, 270, 79, 16, },
++	{44, 182, 448, 744, 906, 832, 569, 274, 81, 16, },
++	{42, 179, 444, 740, 905, 835, 574, 278, 83, 16, },
++	{41, 175, 439, 736, 904, 837, 579, 282, 85, 17, },
++	{40, 172, 434, 732, 903, 840, 584, 286, 87, 17, },
++	{39, 169, 429, 728, 902, 843, 589, 290, 89, 18, },
++	{38, 166, 425, 724, 901, 846, 593, 294, 91, 18, },
++	{37, 163, 420, 720, 900, 848, 598, 298, 93, 18, },
++	{36, 160, 415, 716, 899, 851, 603, 302, 95, 19, },
++	{35, 157, 410, 711, 897, 854, 608, 307, 98, 19, },
++	{34, 154, 406, 707, 896, 856, 612, 311, 100, 20, },
++	{33, 151, 401, 703, 895, 859, 617, 315, 102, 20, },
++	{33, 148, 396, 698, 893, 861, 622, 320, 104, 21, },
++	{32, 145, 392, 694, 892, 863, 626, 324, 107, 21, },
++	{31, 142, 387, 690, 890, 866, 631, 328, 109, 22, },
++	{30, 140, 382, 685, 889, 868, 636, 333, 111, 23, },
++	{29, 137, 378, 681, 887, 870, 640, 337, 114, 23, },
++	{28, 134, 373, 677, 886, 872, 645, 342, 116, 24, },
++	{28, 131, 369, 672, 884, 874, 649, 346, 119, 24, },
++	{27, 129, 364, 668, 882, 876, 654, 350, 121, 25, },
++	{26, 126, 359, 663, 880, 878, 659, 355, 124, 26, },
++	{26, 124, 355, 659, 878, 880, 663, 359, 126, 26, },
++	{25, 121, 350, 654, 876, 882, 668, 364, 129, 27, },
++	{24, 119, 346, 649, 874, 884, 672, 369, 131, 28, },
++	{24, 116, 342, 645, 872, 886, 677, 373, 134, 28, },
++	{23, 114, 337, 640, 870, 887, 681, 378, 137, 29, },
++	{23, 111, 333, 636, 868, 889, 685, 382, 140, 30, },
++	{22, 109, 328, 631, 866, 890, 690, 387, 142, 31, },
++	{21, 107, 324, 626, 863, 892, 694, 392, 145, 32, },
++	{21, 104, 320, 622, 861, 893, 698, 396, 148, 33, },
++	{20, 102, 315, 617, 859, 895, 703, 401, 151, 33, },
++	{20, 100, 311, 612, 856, 896, 707, 406, 154, 34, },
++	{19, 98, 307, 608, 854, 897, 711, 410, 157, 35, },
++	{19, 95, 302, 603, 851, 899, 716, 415, 160, 36, },
++	{18, 93, 298, 598, 848, 900, 720, 420, 163, 37, },
++	{18, 91, 294, 593, 846, 901, 724, 425, 166, 38, },
++	{18, 89, 290, 589, 843, 902, 728, 429, 169, 39, },
++	{17, 87, 286, 584, 840, 903, 732, 434, 172, 40, },
++	{17, 85, 282, 579, 837, 904, 736, 439, 175, 41, },
++	{16, 83, 278, 574, 835, 905, 740, 444, 179, 42, },
++	{16, 81, 274, 569, 832, 906, 744, 448, 182, 44, },
++	{16, 79, 270, 565, 829, 906, 748, 453, 185, 45, },
++	{15, 78, 266, 560, 826, 907, 752, 458, 188, 46, },
++	{15, 76, 262, 555, 823, 908, 756, 463, 192, 47, },
++	{15, 74, 258, 550, 820, 908, 760, 468, 195, 48, },
++	{14, 72, 254, 545, 817, 909, 764, 473, 199, 50, },
++	{14, 70, 250, 541, 813, 909, 768, 477, 202, 51, },
++	{14, 69, 246, 536, 810, 910, 772, 482, 206, 52, },
++	{14, 67, 242, 531, 807, 910, 775, 487, 209, 54, },
++	{13, 65, 238, 526, 804, 910, 779, 492, 213, 55, },
++	{13, 64, 235, 521, 800, 911, 783, 497, 216, 56, },
++	{13, 62, 231, 516, 797, 911, 786, 502, 220, 58, },
++	{13, 61, 227, 512, 793, 911, 790, 507, 224, 59, },
++};
++
++static const u16
++xvsc_coeff_taps12[XSCALER_MAX_PHASES][XV_SCALER_TAPS_12] = {
++	{48, 143, 307, 504, 667, 730, 669, 507, 310, 145, 49, 18, },
++	{47, 141, 304, 501, 665, 730, 670, 510, 313, 147, 50, 18, },
++	{46, 138, 301, 498, 663, 730, 672, 513, 316, 149, 51, 18, },
++	{45, 136, 298, 495, 661, 730, 674, 516, 319, 151, 52, 18, },
++	{44, 134, 295, 492, 659, 730, 676, 519, 322, 153, 53, 18, },
++	{44, 132, 292, 489, 657, 730, 677, 522, 325, 155, 54, 18, },
++	{43, 130, 289, 486, 655, 729, 679, 525, 328, 157, 55, 19, },
++	{42, 129, 287, 483, 653, 729, 681, 528, 331, 160, 56, 19, },
++	{41, 127, 284, 480, 651, 729, 683, 531, 334, 162, 57, 19, },
++	{40, 125, 281, 477, 648, 729, 684, 534, 337, 164, 58, 19, },
++	{40, 123, 278, 474, 646, 728, 686, 537, 340, 166, 59, 20, },
++	{39, 121, 275, 471, 644, 728, 687, 539, 343, 169, 60, 20, },
++	{38, 119, 272, 468, 642, 727, 689, 542, 346, 171, 61, 20, },
++	{37, 117, 269, 465, 640, 727, 690, 545, 349, 173, 62, 20, },
++	{37, 115, 266, 461, 638, 727, 692, 548, 353, 175, 63, 21, },
++	{36, 114, 264, 458, 635, 726, 693, 551, 356, 178, 65, 21, },
++	{35, 112, 261, 455, 633, 726, 695, 554, 359, 180, 66, 21, },
++	{35, 110, 258, 452, 631, 725, 696, 556, 362, 183, 67, 21, },
++	{34, 108, 255, 449, 628, 724, 698, 559, 365, 185, 68, 22, },
++	{33, 107, 252, 446, 626, 724, 699, 562, 368, 187, 69, 22, },
++	{33, 105, 250, 443, 624, 723, 700, 565, 371, 190, 71, 22, },
++	{32, 103, 247, 440, 621, 723, 702, 567, 374, 192, 72, 23, },
++	{32, 101, 244, 437, 619, 722, 703, 570, 377, 195, 73, 23, },
++	{31, 100, 241, 433, 617, 721, 704, 573, 380, 197, 75, 23, },
++	{31, 98, 239, 430, 614, 720, 705, 576, 383, 200, 76, 24, },
++	{30, 97, 236, 427, 612, 720, 707, 578, 387, 202, 77, 24, },
++	{29, 95, 233, 424, 609, 719, 708, 581, 390, 205, 79, 24, },
++	{29, 93, 231, 421, 607, 718, 709, 584, 393, 207, 80, 25, },
++	{28, 92, 228, 418, 604, 717, 710, 586, 396, 210, 81, 25, },
++	{28, 90, 225, 415, 602, 716, 711, 589, 399, 212, 83, 26, },
++	{27, 89, 223, 412, 599, 715, 712, 591, 402, 215, 84, 26, },
++	{27, 87, 220, 408, 597, 714, 713, 594, 405, 217, 86, 27, },
++	{27, 86, 217, 405, 594, 713, 714, 597, 408, 220, 87, 27, },
++	{26, 84, 215, 402, 591, 712, 715, 599, 412, 223, 89, 27, },
++	{26, 83, 212, 399, 589, 711, 716, 602, 415, 225, 90, 28, },
++	{25, 81, 210, 396, 586, 710, 717, 604, 418, 228, 92, 28, },
++	{25, 80, 207, 393, 584, 709, 718, 607, 421, 231, 93, 29, },
++	{24, 79, 205, 390, 581, 708, 719, 609, 424, 233, 95, 29, },
++	{24, 77, 202, 387, 578, 707, 720, 612, 427, 236, 97, 30, },
++	{24, 76, 200, 383, 576, 705, 720, 614, 430, 239, 98, 31, },
++	{23, 75, 197, 380, 573, 704, 721, 617, 433, 241, 100, 31, },
++	{23, 73, 195, 377, 570, 703, 722, 619, 437, 244, 101, 32, },
++	{23, 72, 192, 374, 567, 702, 723, 621, 440, 247, 103, 32, },
++	{22, 71, 190, 371, 565, 700, 723, 624, 443, 250, 105, 33, },
++	{22, 69, 187, 368, 562, 699, 724, 626, 446, 252, 107, 33, },
++	{22, 68, 185, 365, 559, 698, 724, 628, 449, 255, 108, 34, },
++	{21, 67, 183, 362, 556, 696, 725, 631, 452, 258, 110, 35, },
++	{21, 66, 180, 359, 554, 695, 726, 633, 455, 261, 112, 35, },
++	{21, 65, 178, 356, 551, 693, 726, 635, 458, 264, 114, 36, },
++	{21, 63, 175, 353, 548, 692, 727, 638, 461, 266, 115, 37, },
++	{20, 62, 173, 349, 545, 690, 727, 640, 465, 269, 117, 37, },
++	{20, 61, 171, 346, 542, 689, 727, 642, 468, 272, 119, 38, },
++	{20, 60, 169, 343, 539, 687, 728, 644, 471, 275, 121, 39, },
++	{20, 59, 166, 340, 537, 686, 728, 646, 474, 278, 123, 40, },
++	{19, 58, 164, 337, 534, 684, 729, 648, 477, 281, 125, 40, },
++	{19, 57, 162, 334, 531, 683, 729, 651, 480, 284, 127, 41, },
++	{19, 56, 160, 331, 528, 681, 729, 653, 483, 287, 129, 42, },
++	{19, 55, 157, 328, 525, 679, 729, 655, 486, 289, 130, 43, },
++	{18, 54, 155, 325, 522, 677, 730, 657, 489, 292, 132, 44, },
++	{18, 53, 153, 322, 519, 676, 730, 659, 492, 295, 134, 44, },
++	{18, 52, 151, 319, 516, 674, 730, 661, 495, 298, 136, 45, },
++	{18, 51, 149, 316, 513, 672, 730, 663, 498, 301, 138, 46, },
++	{18, 50, 147, 313, 510, 670, 730, 665, 501, 304, 141, 47, },
++	{18, 49, 145, 310, 507, 669, 730, 667, 504, 307, 143, 48, },
++};
++
++/* Mask definitions for Low and high 16 bits in a 32 bit number */
++#define XHSC_MASK_LOW_16BITS		GENMASK(15, 0)
++#define XHSC_MASK_HIGH_16BITS		GENMASK(31, 16)
++#define XHSC_MASK_LOW_32BITS		GENMASK(31, 0)
++
++static void
++xv_hscaler_load_ext_coeff(struct xm2m_scaler_hw *xscaler,
++			  const short *coeff, u32 ntaps)
++{
++	unsigned int i, j, pad, offset;
++	const u32 nphases = XSCALER_MAX_PHASES;
++
++	/* Determine if coefficient needs padding (effective vs. max taps) */
++	pad = XV_SCALER_MAX_TAPS - ntaps;
++	offset = pad >> 1;
++
++	memset(xscaler->hscaler_coeff, 0, sizeof(xscaler->hscaler_coeff));
++
++	/* Load coefficients into scaler coefficient table */
++	for (i = 0; i < nphases; i++) {
++		for (j = 0; j < ntaps; ++j)
++			xscaler->hscaler_coeff[i][j + offset] =
++						coeff[i * ntaps + j];
++	}
++}
++
++#define XSCALER_BITSHIFT_16		(16)
++static void xv_hscaler_set_coeff(struct xm2m_scaler_hw *xscaler,
++				 const u32 base_addr)
++{
++	int val, i, j, offset, rd_indx;
++	u32 ntaps = xscaler->num_taps;
++	const u32 nphases = XSCALER_MAX_PHASES;
++
++	offset = (XV_SCALER_MAX_TAPS - ntaps) / 2;
++	for (i = 0; i < nphases; i++) {
++		for (j = 0; j < ntaps / 2; j++) {
++			rd_indx = j * 2 + offset;
++			val = (xscaler->hscaler_coeff[i][rd_indx + 1] <<
++			       XSCALER_BITSHIFT_16) |
++			       (xscaler->hscaler_coeff[i][rd_indx] &
++			       XHSC_MASK_LOW_16BITS);
++			 xvip_write(xscaler, base_addr +
++				    ((i * ntaps / 2 + j) * 4), val);
++		}
++	}
++}
++
++static void
++xv_vscaler_load_ext_coeff(struct xm2m_scaler_hw *xscaler,
++			  const short *coeff, const u32 ntaps)
++{
++	int i, j, pad, offset;
++	const u32 nphases = XSCALER_MAX_PHASES;
++
++	/* Determine if coefficient needs padding (effective vs. max taps) */
++	pad = XV_SCALER_MAX_TAPS - ntaps;
++	offset = pad ? (pad >> 1) : 0;
++
++	/* Zero Entire Array */
++	memset(xscaler->vscaler_coeff, 0, sizeof(xscaler->vscaler_coeff));
++
++	/* Load User defined coefficients into scaler coefficient table */
++	for (i = 0; i < nphases; i++) {
++		for (j = 0; j < ntaps; ++j)
++			xscaler->vscaler_coeff[i][j + offset] =
++						coeff[i * ntaps + j];
++	}
++}
++
++#define XVSC_MASK_LOW_16BITS            GENMASK(15, 0)
++static void xv_vscaler_set_coeff(struct xm2m_scaler_hw *xscaler,
++				 const u32 base_addr)
++{
++	int val, i, j, offset, rd_indx;
++	u32 ntaps   = xscaler->num_taps;
++	const u32 nphases = XSCALER_MAX_PHASES;
++
++	offset = (XV_SCALER_MAX_TAPS - ntaps) / 2;
++
++	for (i = 0; i < nphases; i++) {
++		for (j = 0; j < ntaps / 2; j++) {
++			rd_indx = j * 2 + offset;
++			val = (xscaler->vscaler_coeff[i][rd_indx + 1] <<
++			       XSCALER_BITSHIFT_16) |
++			       (xscaler->vscaler_coeff[i][rd_indx] &
++			       XVSC_MASK_LOW_16BITS);
++			xvip_write(xscaler,
++				   base_addr + ((i * ntaps / 2 + j) * 4), val);
++		}
++	}
++}
++
++void xm2mvsc_initialize_coeff_banks(struct xm2m_scaler_hw *hw)
++{
++	/* Bank 0 is init as 6 tap filter for 6, 8, 10 & 12 tap filters */
++	 xv_hscaler_load_ext_coeff(hw, &xhsc_coeff_taps6[0][0],
++				   XV_SCALER_TAPS_6);
++	 xv_hscaler_set_coeff(hw, XM2MVSC_HFLTCOEFF(0));
++	 xv_vscaler_load_ext_coeff(hw, &xvsc_coeff_taps6[0][0],
++				   XV_SCALER_TAPS_6);
++	 xv_vscaler_set_coeff(hw, XM2MVSC_VFLTCOEFF(0));
++	 dev_dbg(hw->dev, "%s: Init Bank 0", __func__);
++	/* Bank 1 is init as 8 tap filter for 8, 10 & 12 tap filters */
++	if (hw->num_taps == XV_SCALER_TAPS_8 ||
++	    hw->num_taps == XV_SCALER_TAPS_10 ||
++	    hw->num_taps == XV_SCALER_TAPS_12) {
++		xv_hscaler_load_ext_coeff(hw, &xhsc_coeff_taps8[0][0],
++					  XV_SCALER_TAPS_8);
++		xv_hscaler_set_coeff(hw, XM2MVSC_HFLTCOEFF(1));
++		xv_vscaler_load_ext_coeff(hw, &xvsc_coeff_taps8[0][0],
++					  XV_SCALER_TAPS_8);
++		xv_vscaler_set_coeff(hw, XM2MVSC_VFLTCOEFF(1));
++		dev_dbg(hw->dev, "%s: Init Bank 1", __func__);
++	}
++	/* Bank 2 is init as 8 tap filter for 10 & 12 tap filters */
++	if (hw->num_taps == XV_SCALER_TAPS_10 ||
++	    hw->num_taps == XV_SCALER_TAPS_12) {
++		xv_hscaler_load_ext_coeff(hw, &xhsc_coeff_taps10[0][0],
++					  XV_SCALER_TAPS_10);
++		xv_hscaler_set_coeff(hw, XM2MVSC_HFLTCOEFF(2));
++		xv_vscaler_load_ext_coeff(hw, &xvsc_coeff_taps10[0][0],
++					  XV_SCALER_TAPS_10);
++		xv_vscaler_set_coeff(hw, XM2MVSC_VFLTCOEFF(2));
++		dev_dbg(hw->dev, "%s: Init Bank 2", __func__);
++	}
++	/* Bank 3 is init as 8 tap filter for 12 tap filters */
++	if (hw->num_taps == XV_SCALER_TAPS_12) {
++		xv_hscaler_load_ext_coeff(hw, &xhsc_coeff_taps12[0][0],
++					  XV_SCALER_TAPS_12);
++		xv_hscaler_set_coeff(hw, XM2MVSC_HFLTCOEFF(3));
++		xv_vscaler_load_ext_coeff(hw, &xvsc_coeff_taps12[0][0],
++					  XV_SCALER_TAPS_12);
++		xv_vscaler_set_coeff(hw, XM2MVSC_VFLTCOEFF(3));
++		dev_dbg(hw->dev, "%s: Init Bank 2", __func__);
++	}
++}
++
++/**
++ * xm2mvsc_select_coeff_bank - Selection of Scaler coefficients of operation
++ * @xscaler: Scaler device information
++ * @width_in: Width of input video
++ * @width_out: Width of desired output video
++ * @height_in : Height of the input video
++ * @height_out : Height of the output video
++ * @filter_bank : Filter bank to be set by the function
++ *
++ * There are instances when a N-tap filter might operate in an M-tap
++ * configuration where N > M.
++ *
++ * For example :
++ * Depending on the ratio of scaling (while downscaling), a 12-tap
++ * filter may operate with 10 tap coefficients and zero-pads the remaining
++ * coefficients.
++ *
++ * While upscaling the driver will program 6-tap filter coefficients
++ * in any N-tap configurations (for N >= 6).
++ *
++ * This selection is adopted by the as it gives optimal
++ * video output determined by repeated testing of the IP
++ *
++ * Return: Will return 0 if successful. Returns -EINVAL on an unsupported
++ * H-scaler number of taps.
++ */
++static void xm2mvsc_select_coeff_bank(struct xm2m_scaler_hw *xscaler,
++				      const u32 width_in,
++				      const u32 width_out,
++				      const u32 height_in,
++				      const u32 height_out,
++				      u8 *filter_bank)
++{
++	u16 hscale_ratio;
++	u16 vscale_ratio;
++	u16 selection_ratio;
++
++	hscale_ratio = (width_in * 10) / width_out;
++	vscale_ratio = (height_in * 10) / height_out;
++	selection_ratio = (hscale_ratio > vscale_ratio ?
++			   hscale_ratio : vscale_ratio);
++	/*
++	 * Scale Down Mode will use dynamic filter selection logic
++	 * Scale Up Mode (including 1:1) will always use 6 tap filter
++	 */
++	if (selection_ratio > 10) {
++		switch (xscaler->num_taps) {
++		case XV_SCALER_TAPS_6:
++			*filter_bank = FILTER_BANK_TAPS_6;
++			break;
++		case XV_SCALER_TAPS_8:
++			if (selection_ratio > 15)
++				*filter_bank = FILTER_BANK_TAPS_8;
++			else
++				*filter_bank = FILTER_BANK_TAPS_6;
++			break;
++		case XV_SCALER_TAPS_10:
++			if (selection_ratio > 25)
++				*filter_bank = FILTER_BANK_TAPS_10;
++			else if (selection_ratio > 15)
++				*filter_bank = FILTER_BANK_TAPS_8;
++			else
++				*filter_bank = FILTER_BANK_TAPS_6;
++			break;
++		case XV_SCALER_TAPS_12:
++			if (selection_ratio > 35)
++				*filter_bank = FILTER_BANK_TAPS_12;
++			else if (selection_ratio > 25)
++				*filter_bank = FILTER_BANK_TAPS_10;
++			else if (selection_ratio > 15)
++				*filter_bank = FILTER_BANK_TAPS_8;
++			else
++				*filter_bank = FILTER_BANK_TAPS_6;
++			break;
++		default:
++			/* Should never get here */
++			WARN(1, "Impossible scaler tap selection");
++			return;
++		}
++	} else {
++		*filter_bank = FILTER_BANK_TAPS_6;
++	}
++}
++
++static void xm2mvsc_set_color_format(struct xm2m_vscale_desc *desc)
++{
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_PIXELFMT_IN(desc->channel_offset),
++		   desc->data.srcbuf_cft);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_PIXELFMT_OUT(desc->channel_offset),
++		   desc->data.dstbuf_cft);
++}
++
++#define STEP_PRECISION	(65536)
++static void xm2mvsc_program_scaler(struct xm2m_vscale_desc *desc)
++{
++	desc->line_rate =
++	    (desc->data.srcbuf_ht * STEP_PRECISION) / desc->data.dstbuf_ht;
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_LINERATE(desc->channel_offset),
++		   desc->line_rate);
++	desc->pixel_rate =
++	    (desc->data.srcbuf_wt * STEP_PRECISION) / desc->data.dstbuf_wt;
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_PIXELRATE(desc->channel_offset),
++		   desc->pixel_rate);
++	xm2mvsc_select_coeff_bank(&desc->xm2mvsc_dev->hw,
++				  desc->data.srcbuf_wt, desc->data.dstbuf_wt,
++				  desc->data.srcbuf_ht, desc->data.dstbuf_ht,
++				  &desc->filter_bank);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_FILTER_BANK(desc->channel_offset),
++		   desc->filter_bank);
++	xm2mvsc_set_color_format(desc);
++}
++
++void xm2mvsc_write_desc(struct xm2m_vscale_desc *desc)
++{
++	WARN(!desc, "%s : desc is NULL", __func__);
++	if (!desc)
++		return;
++	WARN(!desc->xm2mvsc_dev,
++	     "%s: desc->xm2mvsc_dev is NULL for desc_id = %d",
++	     __func__, desc->data.desc_id);
++	if (!desc->xm2mvsc_dev)
++		return;
++	dev_dbg(desc->xm2mvsc_dev->dev,
++		"%s: Writing desc %d with chan offset = %d",
++		__func__, desc->data.desc_id, desc->channel_offset);
++	xm2mvsc_program_scaler(desc);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_HEIGHT_IN(desc->channel_offset),
++		   desc->data.srcbuf_ht);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_WIDTH_IN(desc->channel_offset),
++		   desc->data.srcbuf_wt);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_HEIGHT_OUT(desc->channel_offset),
++		   desc->data.dstbuf_ht);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_WIDTH_OUT(desc->channel_offset),
++		   desc->data.dstbuf_wt);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_SRC_BUF1(desc->channel_offset),
++		   desc->srcbuf_addr);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_DST_BUF1(desc->channel_offset),
++		   desc->dstbuf_addr);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_STRIDE_IN(desc->channel_offset),
++		   desc->data.srcbuf_stride);
++	xvip_write(&desc->xm2mvsc_dev->hw,
++		   XM2MVSC_STRIDE_OUT(desc->channel_offset),
++		   desc->data.dstbuf_stride);
++}
++
++#define XM2MVSC_GLOBAL_ENABLE_IRQ	BIT(0)
++#define XM2MVSC_IRQ_AP_DONE		BIT(0)
++#define XM2MVSC_IRQ_AP_READY		BIT(1)
++#define XM2MVSC_START_SCALING		BIT(0)
++void xm2mvsc_start_scaling(const struct xm2m_scaler_hw *hw, const u8 batch_size)
++{
++	WARN(!hw, "%s: hw is NULL", __func__);
++	if (!hw)
++		return;
++	/* Enable Interrupt on IER register */
++	xvip_write(hw, XM2MVSC_IER, XM2MVSC_IRQ_AP_DONE);
++	/* Enable Global IER */
++	xvip_write(hw, XM2MVSC_GIE, XM2MVSC_GLOBAL_ENABLE_IRQ);
++	/* Write Number of Outputs */
++	xvip_write(hw, XM2MVSC_NUM_OUTS, batch_size);
++	/* Start IP with Auto-Restart Disabled */
++	xvip_write(hw, XM2MVSC_AP_CTRL, XM2MVSC_START_SCALING);
++}
++
++void xm2mvsc_log_register(const struct xm2m_scaler_hw *hw, const u8 chan_off)
++{
++	dev_dbg(hw->dev, "-------- %s : XM2MVSC HW REG Channel %d --------",
++		__func__, chan_off);
++	dev_dbg(hw->dev, "CTRL = 0x%x", xvip_read(hw, XM2MVSC_AP_CTRL));
++	dev_dbg(hw->dev, "GIE  = 0x%x", xvip_read(hw, XM2MVSC_GIE));
++	dev_dbg(hw->dev, "IER  = 0x%x", xvip_read(hw, XM2MVSC_IER));
++	dev_dbg(hw->dev, "ISR  = 0x%x", xvip_read(hw, XM2MVSC_ISR));
++	dev_dbg(hw->dev, "Num Outs = %d", xvip_read(hw, XM2MVSC_NUM_OUTS));
++	dev_dbg(hw->dev, "SRC1 = 0x%x",
++		xvip_read(hw, XM2MVSC_SRC_BUF1(chan_off)));
++	dev_dbg(hw->dev, "SRC2 = 0x%x",
++		xvip_read(hw, XM2MVSC_SRC_BUF2(chan_off)));
++	dev_dbg(hw->dev, "HT_IN  = %d",
++		xvip_read(hw, XM2MVSC_HEIGHT_IN(chan_off)));
++	dev_dbg(hw->dev, "WT_IN  = %d",
++		xvip_read(hw, XM2MVSC_WIDTH_IN(chan_off)));
++	dev_dbg(hw->dev, "HT_OUT = %d",
++		xvip_read(hw, XM2MVSC_HEIGHT_OUT(chan_off)));
++	dev_dbg(hw->dev, "WT_OUT = %d",
++		xvip_read(hw, XM2MVSC_WIDTH_OUT(chan_off)));
++	dev_dbg(hw->dev, "Stride In = %d",
++		xvip_read(hw, XM2MVSC_STRIDE_IN(chan_off)));
++	dev_dbg(hw->dev, "Stride Out = %d",
++		xvip_read(hw, XM2MVSC_STRIDE_OUT(chan_off)));
++	dev_dbg(hw->dev, "Pixel Fmt In = %d",
++		xvip_read(hw, XM2MVSC_PIXELFMT_IN(chan_off)));
++	dev_dbg(hw->dev, "Pixel Fmt Out = %d",
++		xvip_read(hw, XM2MVSC_PIXELFMT_OUT(chan_off)));
++	dev_dbg(hw->dev, "PixRate  = 0x%x",
++		xvip_read(hw, XM2MVSC_PIXELRATE(chan_off)));
++	dev_dbg(hw->dev, "LineRate = 0x%x",
++		xvip_read(hw, XM2MVSC_LINERATE(chan_off)));
++	dev_dbg(hw->dev, "DST1 = 0x%x",
++		xvip_read(hw, XM2MVSC_DST_BUF1(chan_off)));
++	dev_dbg(hw->dev, "DST2 = 0x%x",
++		xvip_read(hw, XM2MVSC_DST_BUF2(chan_off)));
++	dev_dbg(hw->dev, "Filter Bank = %d",
++		xvip_read(hw, XM2MVSC_FILTER_BANK(chan_off)));
++}
++
++void xm2mvsc_stop_scaling(const struct xm2m_scaler_hw *hw)
++{
++	WARN(!hw, "%s: hw is NULL", __func__);
++	if (!hw)
++		return;
++	/* Disable Interrupt on IER Register */
++	xvip_write(hw, XM2MVSC_IER, 0);
++	/* Disable Global IER */
++	xvip_write(hw, XM2MVSC_GIE, 0);
++	/* Stop IP */
++	xvip_write(hw, XM2MVSC_AP_CTRL, 0);
++}
++
++u32 xm2mvsc_get_irq_status(const struct xm2m_scaler_hw *hw)
++{
++	u32 status;
++
++	WARN_ON(!hw || IS_ERR(hw));
++	status = xvip_read(hw, XM2MVSC_ISR);
++	status &=  (XM2MVSC_IRQ_AP_DONE);
++	if (status) {
++		xvip_write(hw, XM2MVSC_ISR, status);
++		return status;
++	}
++	return 0;
++}
+diff --git a/drivers/staging/xm2mvscale/scaler_hw_xm2m.h b/drivers/staging/xm2mvscale/scaler_hw_xm2m.h
+new file mode 100644
+index 0000000..1429791
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/scaler_hw_xm2m.h
+@@ -0,0 +1,152 @@
++/*
++ * Xilinx Memory-to-Memory Video Scaler IP
++ *
++ * Copyright (C) 2018 Xilinx, Inc. All rights reserved.
++ *
++ * SPDX-License-Identifier: GPL-2.0
++ */
++
++#ifndef __SCALER_HW_XM2M_H__
++#define __SCALER_HW_XM2M_H__
++
++#include <linux/cdev.h>
++#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/types.h>
++
++#include "ioctl_xm2mvsc.h"
++
++#define XSCALER_MAX_WIDTH               (3840)
++#define XSCALER_MAX_HEIGHT              (2160)
++#define XSCALER_MAX_PHASES              (64)
++
++#define XV_SCALER_MAX_TAPS		(12)
++
++#define XV_SCALER_TAPS_6		(6)
++#define XV_SCALER_TAPS_8		(8)
++#define XV_SCALER_TAPS_10		(10)
++#define XV_SCALER_TAPS_12		(12)
++
++/* Filter bank ID  for various filter tap configurations */
++enum xm2mvsc_filter_bank_id {
++	FILTER_BANK_TAPS_6 = 0,
++	FILTER_BANK_TAPS_8,
++	FILTER_BANK_TAPS_10,
++	FILTER_BANK_TAPS_12,
++};
++
++#define XSCALER_BATCH_SIZE_MAX		(8)
++#define XSCALER_BATCH_SIZE_MIN		(1)
++
++struct xm2m_vscale_dev;
++
++/**
++ * struct xm2m_scaler_hw - Scaler Hardware Info
++ * @regs: IO mapped base address of the HW/IP
++ * @dev: Pointer to struct device instance
++ * @num_taps: Polyhphase filter taps Scaler IP
++ * @max_chan: Maximum number of Scaling Channels
++ * @max_pixels: Maximum number of pixel supported in a line
++ * @max_lines: Maximum number of lines supported in a frame
++ * @hscaler_coeff: Array of filter coefficients for the Horizontal Scaler
++ * @vscaler_coeff: Array of filter coefficients for the Vertical Scaler
++ */
++struct xm2m_scaler_hw {
++	void __iomem *regs;
++	struct device *dev;
++	u32 num_taps;
++	u32 max_chan;
++	u32 max_pixels;
++	u32 max_lines;
++	short hscaler_coeff[XSCALER_MAX_PHASES][XV_SCALER_MAX_TAPS];
++	short vscaler_coeff[XSCALER_MAX_PHASES][XV_SCALER_MAX_TAPS];
++};
++
++/**
++ * struct xm2m_vscale_desc - Video Scale Frame Descriptor
++ * @data: Data enqueued by the application
++ * @line_rate: Line rate needed by a scaling channel
++ * @pixel_rate: Pixel rate needed by a scaling channel
++ * @filter_bank: Filter Bank ID needed to source filter coefficients
++ * @channel_offset: Channel offset of the descriptor mapping to HW register
++ * @srcbuf_addr: physical address of source buffer
++ * @dstbuf_addr: physical address of destination buffer
++ * @xm2mvsc_dev: Pointer to parent xm2mvsc driver structure
++ * @node: List node to control descriptors in lists
++ * @src_kaddr: Kernel VA for source buffer allocated by the driver
++ * @dst_kaddr: Kernel VA for destination buffer allocated by the driver
++ */
++struct xm2m_vscale_desc {
++	struct xm2mvsc_qdata data;
++	u32 line_rate;
++	u32 pixel_rate;
++	u8 filter_bank;
++	u8 channel_offset;
++	dma_addr_t srcbuf_addr;
++	dma_addr_t dstbuf_addr;
++	struct xm2m_vscale_dev *xm2mvsc_dev;
++	struct list_head node;
++	void *src_kaddr;
++	void *dst_kaddr;
++};
++
++/**
++ * struct xm2m_vscale_dev - Xilinx M2M Scaler Device
++ * @dev: Pointer to struct device instance used by the driver
++ * @hw: HW/IP specific structure describing the capabilities
++ * @lock: Spinlock to protect driver data structures
++ * @pending_list: List containing descriptors not yet processed
++ * @ongoing_list: List containing descriptors that are in-flight
++ * @done_list: List containing descriptors that are done processing
++ * @free_list: List containing descriptors that need to be freed
++ * @waitq: Wait queue used by the driver
++ * @irq: IRQ number
++ * @chdev: Char device handle
++ * @id: Device instance ID
++ * @rst_gpio: GPIO reset line to bring VPSS Scaler out of reset
++ * @desc_count: Desc Count issued by the driver
++ * @user_count: Count of users who have opened the device
++ * @batch_size: Number of channel actively used in a scaling operation
++ * @ongoing_count: Number of channels already used in the ongoing operation
++ */
++struct xm2m_vscale_dev {
++	struct device *dev;
++	struct xm2m_scaler_hw hw;
++	/* Synchronize access to lists */
++	spinlock_t lock;
++	struct list_head pending_list;
++	struct list_head ongoing_list;
++	struct list_head done_list;
++	struct list_head free_list;
++	wait_queue_head_t waitq;
++	int irq;
++	struct cdev chdev;
++	u32 id;
++	struct gpio_desc *rst_gpio;
++	atomic_t desc_count;
++	atomic_t user_count;
++	u16 batch_size;
++	atomic_t ongoing_count;
++};
++
++static inline u32 xvip_read(const struct xm2m_scaler_hw *hw, const u32 addr)
++{
++	return ioread32(hw->regs + addr);
++}
++
++static inline void xvip_write(const struct xm2m_scaler_hw *hw,
++			      const u32 addr, const u32 value)
++{
++	iowrite32(value, hw->regs + addr);
++}
++
++void xm2mvsc_write_desc(struct xm2m_vscale_desc *desc);
++void xm2mvsc_start_scaling(const struct xm2m_scaler_hw *hw,
++			   const u8 batch_size);
++void xm2mvsc_stop_scaling(const struct xm2m_scaler_hw *hw);
++u32 xm2mvsc_get_irq_status(const struct xm2m_scaler_hw *hw);
++void xm2mvsc_log_register(const struct xm2m_scaler_hw *hw, const u8 chan_off);
++void xm2mvsc_initialize_coeff_banks(struct xm2m_scaler_hw *hw);
++
++#endif /* __XM2M_SCALER_SETUP_H__ */
+diff --git a/drivers/staging/xm2mvscale/xm2m_vscale.c b/drivers/staging/xm2mvscale/xm2m_vscale.c
+new file mode 100644
+index 0000000..b294d31
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/xm2m_vscale.c
+@@ -0,0 +1,768 @@
++/*
++ * Xilinx Memory-to-Memory Video Scaler IP
++ *
++ * Copyright (C) 2018 Xilinx, Inc. All rights reserved.
++ *
++ * Description:
++ * This driver is developed for the Xilinx M2M Video Scaler IP. It allows
++ * userspace to operate upon the IP and takes care of interrupt handling
++ * and framebuffer programming within the driver.
++ *
++ * SPDX-License-Identifier: GPL-2.0
++ */
++
++#include <linux/cdev.h>
++#include <linux/dma-buf.h>
++#include <linux/fs.h>
++#include <linux/gpio/consumer.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_irq.h>
++#include <linux/platform_device.h>
++#include <linux/poll.h>
++#include <linux/slab.h>
++
++#include "scaler_hw_xm2m.h"
++#include "ioctl_xm2mvsc.h"
++
++/* Forward Declaration */
++static int xm2mvsc_ioctl_stop(struct xm2m_vscale_dev *xm2mvsc);
++
++/* Module Parameters */
++static struct class *xm2mvsc_class;
++static dev_t xm2mvsc_devt;
++static atomic_t xm2mvsc_ndevs = ATOMIC_INIT(0);
++
++#define DRIVER_NAME	"xilinx-m2m-scaler"
++#define DRIVER_VERSION	"0.4"
++#define DRIVER_MAX_DEV	(10)
++
++static int xm2mvsc_open(struct inode *iptr, struct file *fptr)
++{
++	struct xm2m_vscale_dev *xm2mvsc;
++
++	xm2mvsc = container_of(iptr->i_cdev, struct xm2m_vscale_dev, chdev);
++	if (!xm2mvsc) {
++		pr_err("%s: failed to get xm2mvsc driver handle", __func__);
++		return -EAGAIN;
++	}
++	fptr->private_data = xm2mvsc;
++	xm2mvsc->batch_size = XSCALER_BATCH_SIZE_MIN;
++	atomic_inc(&xm2mvsc->user_count);
++	return 0;
++}
++
++static int xm2mvsc_release(struct inode *iptr, struct file *fptr)
++{
++	struct xm2m_vscale_dev *xm2mvsc;
++
++	xm2mvsc = container_of(iptr->i_cdev, struct xm2m_vscale_dev, chdev);
++	if (!xm2mvsc) {
++		pr_err("%s: failed to get xm2mvsc driver handle", __func__);
++		return -EAGAIN;
++	}
++	if (atomic_dec_and_test(&xm2mvsc->user_count)) {
++		/* Reset IP and clear driver state */
++		dev_dbg(xm2mvsc->dev,
++			"%s: Stopping and clearing device", __func__);
++		(void)xm2mvsc_ioctl_stop(xm2mvsc);
++		atomic_set(&xm2mvsc->desc_count, 0);
++		atomic_set(&xm2mvsc->ongoing_count, 0);
++	}
++	dev_dbg(xm2mvsc->dev, "%s: user count = %d",
++		__func__, atomic_read(&xm2mvsc->user_count));
++	return 0;
++}
++
++#define XM2MVSC_MAX_WIDTH	(3840)
++#define XM2MVSC_MAX_HEIGHT	(2160)
++#define XM2MVSC_MIN_WIDTH	(32)
++#define XM2MVSC_MIN_HEIGHT	(32)
++static int xm2mvsc_verify_desc(struct xm2m_vscale_desc *desc)
++{
++	if (!desc)
++		return -EIO;
++	if (desc->data.srcbuf_ht > XM2MVSC_MAX_HEIGHT ||
++	    desc->data.srcbuf_ht < XM2MVSC_MIN_HEIGHT ||
++	    desc->data.dstbuf_ht > XM2MVSC_MAX_HEIGHT ||
++	    desc->data.dstbuf_ht < XM2MVSC_MIN_HEIGHT)
++		return -EINVAL;
++	if (desc->data.srcbuf_wt > XM2MVSC_MAX_WIDTH ||
++	    desc->data.srcbuf_wt < XM2MVSC_MIN_WIDTH ||
++	    desc->data.dstbuf_wt > XM2MVSC_MAX_WIDTH ||
++	    desc->data.dstbuf_wt < XM2MVSC_MIN_WIDTH)
++		return -EINVAL;
++	return 0;
++}
++
++static int xm2mvsc_ioctl_batch_size(struct xm2m_vscale_dev *xm2mvsc,
++				    void __user *arg)
++{
++	int ret;
++	struct xm2mvsc_batch *batch;
++
++	batch = kzalloc(sizeof(*batch), GFP_KERNEL);
++	if (!batch)
++		return -ENOMEM;
++	ret = copy_from_user(batch, arg, sizeof(*batch));
++	if (ret) {
++		dev_err(xm2mvsc->dev,
++			"%s: Failed to copy from user", __func__);
++		kfree(batch);
++		return -EFAULT;
++	}
++
++	if (!batch->batch_size || batch->batch_size > xm2mvsc->hw.max_chan) {
++		dev_err(xm2mvsc->dev,
++			"Invalid batch size passed %d", batch->batch_size);
++		kfree(batch);
++		return -EINVAL;
++	}
++	xm2mvsc->batch_size = batch->batch_size;
++	kfree(batch);
++	return 0;
++}
++
++static int xm2mvsc_ioctl_enqueue(struct xm2m_vscale_dev *xm2mvsc,
++				 void __user *arg)
++{
++	struct xm2m_vscale_desc *desc;
++	int ret;
++	unsigned long flags;
++
++	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return -ENOMEM;
++	ret = copy_from_user(&desc->data, arg, sizeof(desc->data));
++	if (ret)  {
++		dev_err(xm2mvsc->dev, "%s: Failed to copy from user", __func__);
++		return -EFAULT;
++	}
++	ret = xm2mvsc_verify_desc(desc);
++	if (ret < 0)
++		return ret;
++	/* Assign xm2m_vscale_dev handle */
++	desc->xm2mvsc_dev = xm2mvsc;
++	desc->data.desc_id = atomic_add_return(1, &xm2mvsc->desc_count);
++	desc->src_kaddr = dma_alloc_coherent(xm2mvsc->dev,
++					     desc->data.srcbuf_size,
++					     &desc->srcbuf_addr,
++					     GFP_KERNEL | GFP_DMA32);
++	if (!desc->src_kaddr)
++		return -ENOMEM;
++	desc->dst_kaddr = dma_alloc_coherent(xm2mvsc->dev,
++					     desc->data.dstbuf_size,
++					     &desc->dstbuf_addr,
++					     GFP_KERNEL | GFP_DMA32);
++	if (!desc->dst_kaddr)
++		return -ENOMEM;
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	list_add_tail(&desc->node, &xm2mvsc->pending_list);
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++	if (copy_to_user(arg, &desc->data, sizeof(desc->data))) {
++		dev_err(xm2mvsc->dev,
++			"%s : Failed to copy to user for desc_id = %d",
++			__func__, desc->data.desc_id);
++		return -EFAULT;
++	}
++	dev_dbg(xm2mvsc->dev, "%s: Desc_id = %d", __func__, desc->data.desc_id);
++	return 0;
++}
++
++static int xm2mvsc_complete(struct xm2m_vscale_dev *xm2mvsc)
++{
++	struct xm2m_vscale_desc *desc, *next;
++	unsigned long flags;
++
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	list_for_each_entry_safe(desc, next, &xm2mvsc->ongoing_list, node) {
++		list_del(&desc->node);
++		list_add_tail(&desc->node, &xm2mvsc->done_list);
++		atomic_dec(&xm2mvsc->ongoing_count);
++	}
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++	dev_dbg(xm2mvsc->dev, "%s: ongoing_count = %d",
++		__func__, atomic_read(&xm2mvsc->ongoing_count));
++	return 0;
++}
++
++static int xm2mvsc_ready(struct xm2m_vscale_dev *xm2mvsc)
++{
++	unsigned long flags;
++	struct xm2m_vscale_desc *desc, *next;
++
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	if (list_empty_careful(&xm2mvsc->pending_list)) {
++		spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++		return -EAGAIN;
++	}
++	if (atomic_read(&xm2mvsc->ongoing_count) < xm2mvsc->batch_size) {
++		list_for_each_entry_safe(desc, next,
++					 &xm2mvsc->pending_list, node) {
++			list_del(&desc->node);
++			desc->channel_offset =
++				atomic_read(&xm2mvsc->ongoing_count);
++			WARN(desc->channel_offset > xm2mvsc->hw.max_chan,
++			     "%s: Channel offset is beyond supported max",
++			     __func__);
++			list_add_tail(&desc->node, &xm2mvsc->ongoing_list);
++			atomic_inc(&xm2mvsc->ongoing_count);
++			dev_dbg(xm2mvsc->dev,
++				"%s: Desc_id=%d offset=%d ongoing count=%d",
++				__func__, desc->data.desc_id,
++				desc->channel_offset,
++				atomic_read(&xm2mvsc->ongoing_count));
++		}
++	}
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++
++	if (atomic_read(&xm2mvsc->ongoing_count) == xm2mvsc->batch_size) {
++		list_for_each_entry_safe(desc, next,
++					 &xm2mvsc->ongoing_list, node) {
++			xm2mvsc_write_desc(desc);
++		}
++		dev_dbg(xm2mvsc->dev, "%s: xm2mvsc_start_scaling", __func__);
++		/* Start the IP */
++		xm2mvsc_start_scaling(&xm2mvsc->hw, xm2mvsc->batch_size);
++	}
++	return 0;
++}
++
++/* Can be called from IRQ Handler, not allowed to sleep */
++static int xm2mvsc_start_running(struct xm2m_vscale_dev *xm2mvsc)
++{
++	/* Process and make ready */
++	return xm2mvsc_ready(xm2mvsc);
++}
++
++/*
++ * Implementation may need to change to coalesce
++ * completion of multiple buffers
++ */
++static int xm2mvsc_ioctl_dequeue(struct xm2m_vscale_dev *xm2mvsc,
++				 void __user *arg)
++{
++	struct xm2mvsc_dqdata *dqdata;
++	struct xm2m_vscale_desc *desc, *next;
++	unsigned long flags;
++
++	dqdata = kzalloc(sizeof(*dqdata), GFP_KERNEL);
++	if (!dqdata)
++		return -ENOMEM;
++
++	if (copy_from_user(dqdata, arg, sizeof(*dqdata))) {
++		dev_err(xm2mvsc->dev, "%s: Failed to copy from user", __func__);
++		return -EFAULT;
++	}
++
++	/* Underflow or ioctl called too early, try later */
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	if (list_empty_careful(&xm2mvsc->done_list)) {
++		spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++		dev_err(xm2mvsc->dev,
++			"%s: failed as done list empty", __func__);
++		return -EAGAIN;
++	}
++	/* Search through the done list, move to free list if found */
++	list_for_each_entry_safe(desc, next, &xm2mvsc->done_list, node) {
++		if (desc->data.desc_id == dqdata->desc_id) {
++			list_del(&desc->node);
++			list_add_tail(&desc->node, &xm2mvsc->free_list);
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++
++	/* Reached end of the list */
++	if (!desc || desc->data.desc_id != dqdata->desc_id) {
++		dev_err(xm2mvsc->dev,
++			"%s: Unable to find desc_id = %d in done list",
++			__func__, dqdata->desc_id);
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static int xm2mvsc_ioctl_start(struct xm2m_vscale_dev *xm2mvsc)
++{
++	return xm2mvsc_start_running(xm2mvsc);
++}
++
++static void xm2mvsc_free_desc_list(struct list_head *list)
++{
++	struct xm2m_vscale_desc *desc, *next;
++
++	list_for_each_entry_safe(desc, next, list, node) {
++		list_del(&desc->node);
++		kfree(desc);
++	}
++}
++
++/*  PS GPIO RESET MACROS */
++#define XM2MVSC_RESET_ASSERT	(0x1)
++#define XM2MVSC_RESET_DEASSERT	(0x0)
++
++static void xm2mvsc_reset(struct xm2m_vscale_dev *xm2mvsc)
++{
++	gpiod_set_value_cansleep(xm2mvsc->rst_gpio, XM2MVSC_RESET_ASSERT);
++	gpiod_set_value_cansleep(xm2mvsc->rst_gpio, XM2MVSC_RESET_DEASSERT);
++}
++
++static void xm2mvsc_clear_state(struct xm2m_vscale_dev *xm2mvsc)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	xm2mvsc_free_desc_list(&xm2mvsc->pending_list);
++	xm2mvsc_free_desc_list(&xm2mvsc->ongoing_list);
++	xm2mvsc_free_desc_list(&xm2mvsc->done_list);
++	xm2mvsc_free_desc_list(&xm2mvsc->free_list);
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	INIT_LIST_HEAD(&xm2mvsc->pending_list);
++	INIT_LIST_HEAD(&xm2mvsc->ongoing_list);
++	INIT_LIST_HEAD(&xm2mvsc->done_list);
++	INIT_LIST_HEAD(&xm2mvsc->free_list);
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++}
++
++static int xm2mvsc_ioctl_stop(struct xm2m_vscale_dev *xm2mvsc)
++{
++	xm2mvsc_clear_state(xm2mvsc);
++	/* Reset IP */
++	xm2mvsc_stop_scaling(&xm2mvsc->hw);
++	xm2mvsc_reset(xm2mvsc);
++	return 0;
++}
++
++static int xm2mvsc_ioctl_free(struct xm2m_vscale_dev *xm2mvsc,
++			      void __user *arg)
++{
++	struct xm2mvsc_dqdata *dqdata;
++	struct xm2m_vscale_desc *desc, *next;
++	int ret;
++
++	dqdata = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!dqdata)
++		return -ENOMEM;
++
++	ret = copy_from_user(dqdata, arg, sizeof(*dqdata));
++	if (ret < 0) {
++		dev_err(xm2mvsc->dev,
++			"%s: Failed to copy from user", __func__);
++		return -EFAULT;
++	}
++
++	list_for_each_entry_safe(desc, next, &xm2mvsc->free_list, node) {
++		if (desc->data.desc_id == dqdata->desc_id) {
++			list_del(&desc->node);
++			break;
++		}
++	}
++
++	if (!desc || desc->data.desc_id != dqdata->desc_id) {
++		dev_err(xm2mvsc->dev,
++			"%s: Desc_id = %d not found in free list",
++			__func__, dqdata->desc_id);
++		kfree(dqdata);
++		return -EBADF;
++	}
++
++	dma_free_coherent(xm2mvsc->dev, desc->data.srcbuf_size,
++			  desc->src_kaddr, desc->srcbuf_addr);
++	dma_free_coherent(xm2mvsc->dev, desc->data.dstbuf_size,
++			  desc->dst_kaddr, desc->dstbuf_addr);
++	kfree(dqdata);
++	kfree(desc);
++	return 0;
++}
++
++static long xm2mvsc_ioctl(struct file *fptr,
++			  unsigned int cmd, unsigned long data)
++{
++	struct xm2m_vscale_dev *xm2mvsc;
++	void __user *arg;
++	int ret;
++
++	xm2mvsc = fptr->private_data;
++	arg = (void __user *)data;
++
++	if (!xm2mvsc || !arg) {
++		pr_err("%s: file op error", __func__);
++		return -EIO;
++	}
++
++	switch (cmd) {
++	case XM2MVSC_ENQUEUE:
++		ret = xm2mvsc_ioctl_enqueue(xm2mvsc, arg);
++		if (ret < 0)
++			return ret;
++		return 0;
++	case XM2MVSC_DEQUEUE:
++		ret = xm2mvsc_ioctl_dequeue(xm2mvsc, arg);
++		if (ret < 0)
++			return ret;
++		return 0;
++	case XM2MVSC_START:
++		ret = xm2mvsc_ioctl_start(xm2mvsc);
++		if (ret < 0)
++			return ret;
++		return 0;
++	case XM2MVSC_STOP:
++		ret = xm2mvsc_ioctl_stop(xm2mvsc);
++		if (ret < 0)
++			return ret;
++		return 0;
++	case XM2MVSC_FREE:
++		ret = xm2mvsc_ioctl_free(xm2mvsc, arg);
++		if (ret < 0)
++			return ret;
++		return 0;
++	case XM2MVSC_BATCH_SIZE:
++		ret = xm2mvsc_ioctl_batch_size(xm2mvsc, arg);
++		if (ret < 0)
++			return ret;
++		return 0;
++	default:
++		dev_err(xm2mvsc->dev, "Unsupported ioctl cmd");
++		return -EINVAL;
++	}
++}
++
++/*
++ * First call  maps the source buffer,
++ * second call maps the destination buffer
++ */
++static int xm2mvsc_mmap(struct file *fptr, struct vm_area_struct *vma)
++{
++	struct xm2m_vscale_dev *xm2mvsc = fptr->private_data;
++	struct xm2m_vscale_desc *desc, *next;
++	int ret, desc_id;
++	unsigned long flags;
++
++	if (!xm2mvsc) {
++		pr_err("xm2mvsc file private data is NULL");
++		return -EIO;
++	}
++
++	desc_id = vma->vm_pgoff;
++
++	spin_lock_irqsave(&xm2mvsc->lock, flags);
++	list_for_each_entry_safe(desc, next, &xm2mvsc->pending_list, node) {
++		if (desc->data.desc_id == desc_id)
++			break;
++	}
++	spin_unlock_irqrestore(&xm2mvsc->lock, flags);
++	if (!desc || desc->data.desc_id != desc_id) {
++		dev_err(xm2mvsc->dev,
++			"Unable to find desc_id = %d in pending list",
++			desc_id);
++		return -EIO;
++	}
++	if (!desc->src_kaddr && !desc->dst_kaddr) {
++		dev_err(xm2mvsc->dev, "Enqueue before mmap for desc_id = %d",
++			desc->data.desc_id);
++	}
++	if (desc->data.srcbuf_mmap && desc->data.dstbuf_mmap) {
++		dev_err(xm2mvsc->dev,
++			"Src and Dest buffs already mmap'ed for desc_id = %d",
++			desc->data.desc_id);
++		return -EIO;
++	}
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++	if (!desc->data.srcbuf_mmap) {
++		ret = remap_pfn_range(vma, vma->vm_start,
++				      desc->srcbuf_addr >> PAGE_SHIFT,
++				      vma->vm_end - vma->vm_start,
++				      vma->vm_page_prot);
++		if (ret) {
++			dev_err(xm2mvsc->dev,
++				"mmap op failed for srcbuf of desc_id = %d",
++				desc->data.desc_id);
++			ret = -EAGAIN;
++			goto error_mmap;
++		}
++		desc->data.srcbuf_mmap = true;
++		goto success_mmap;
++	}
++	if (!desc->data.dstbuf_mmap) {
++		ret = remap_pfn_range(vma, vma->vm_start,
++				      desc->dstbuf_addr >> PAGE_SHIFT,
++				      vma->vm_end - vma->vm_start,
++				      vma->vm_page_prot);
++		if (ret) {
++			dev_err(xm2mvsc->dev,
++				"mmap op failed for dstbuf of desc_id = %d",
++				desc->data.desc_id);
++			ret = -EAGAIN;
++			goto error_mmap;
++		}
++		desc->data.dstbuf_mmap = true;
++		goto success_mmap;
++	}
++success_mmap:
++	vma->vm_private_data = xm2mvsc;
++	return 0;
++error_mmap:
++	dev_err(xm2mvsc->dev, "%s: failed %d", __func__, ret);
++	return ret;
++}
++
++static unsigned int xm2mvsc_poll(struct file *fptr, poll_table *wait)
++{
++	struct xm2m_vscale_dev *xm2mvsc = fptr->private_data;
++
++	if (!xm2mvsc)
++		return 0;
++
++	poll_wait(fptr, &xm2mvsc->waitq, wait);
++	if (!list_empty_careful(&xm2mvsc->done_list))
++		return POLLIN | POLLPRI;
++	return 0;
++}
++
++static const struct file_operations xm2mvsc_fops = {
++	.open = xm2mvsc_open,
++	.release = xm2mvsc_release,
++	.unlocked_ioctl = xm2mvsc_ioctl,
++	.poll = xm2mvsc_poll,
++	.mmap = xm2mvsc_mmap,
++};
++
++static irqreturn_t xm2mvsc_intr_handler(int irq, void *ctx)
++{
++	u32 status;
++	struct xm2m_vscale_dev *xm2mvsc = (struct xm2m_vscale_dev *)ctx;
++
++	WARN(!xm2mvsc, "%s: xm2mvsc is NULL", __func__);
++	WARN(xm2mvsc->irq != irq,
++	     "IRQ registered %d does not match IRQ received %d",
++	     xm2mvsc->irq, irq);
++
++	status = xm2mvsc_get_irq_status(&xm2mvsc->hw);
++	if (status) {
++		/* The ongoing descriptors list should be cleared */
++		(void)xm2mvsc_complete(xm2mvsc);
++		wake_up_interruptible(&xm2mvsc->waitq);
++		/* Program next operation if any*/
++		(void)xm2mvsc_start_running(xm2mvsc);
++		return IRQ_HANDLED;
++	}
++	return IRQ_NONE;
++}
++
++#define XM2MVSC_OF_TAPS		"xlnx,scaler-num-taps"
++#define XM2MVSC_OF_MAX_CHAN	"xlnx,scaler-max-chan"
++static int xm2m_vscale_parse_dt_prop(struct xm2m_vscale_dev *xm2mvsc)
++{
++	struct device_node *node;
++	int ret;
++
++	if (!xm2mvsc)
++		return -EIO;
++	node = xm2mvsc->dev->of_node;
++
++	ret = of_property_read_u32(node, XM2MVSC_OF_TAPS,
++				   &xm2mvsc->hw.num_taps);
++	if (ret < 0)
++		return ret;
++	switch (xm2mvsc->hw.num_taps) {
++	case XV_SCALER_TAPS_6:
++	case XV_SCALER_TAPS_8:
++	case XV_SCALER_TAPS_10:
++	case XV_SCALER_TAPS_12:
++		break;
++	default:
++		dev_err(xm2mvsc->dev,
++			"Unsupported M2M Scaler taps : %d",
++			xm2mvsc->hw.num_taps);
++		return -EINVAL;
++	}
++
++	ret = of_property_read_u32(node, XM2MVSC_OF_MAX_CHAN,
++				   &xm2mvsc->hw.max_chan);
++	if (ret < 0)
++		return ret;
++	if (xm2mvsc->hw.max_chan < XSCALER_BATCH_SIZE_MIN ||
++	    xm2mvsc->hw.max_chan > XSCALER_BATCH_SIZE_MAX) {
++		dev_err(xm2mvsc->dev,
++			"Invalid maximum scaler channels : %d",
++			xm2mvsc->hw.max_chan);
++		return -EINVAL;
++	}
++	/* Reset PS GPIO specifier is optional for now */
++	xm2mvsc->rst_gpio = devm_gpiod_get(xm2mvsc->dev,
++					   "reset", GPIOD_OUT_HIGH);
++	if (IS_ERR(xm2mvsc->rst_gpio)) {
++		if (PTR_ERR(xm2mvsc->rst_gpio) != -EPROBE_DEFER) {
++			dev_err(xm2mvsc->dev,
++				"Reset GPIO specifier not setup in DT");
++		}
++		return PTR_ERR(xm2mvsc->rst_gpio);
++	}
++
++	xm2mvsc->irq = irq_of_parse_and_map(node, 0);
++	if (xm2mvsc->irq < 0) {
++		dev_err(xm2mvsc->dev, "Unable to get IRQ");
++		return xm2mvsc->irq;
++	}
++
++	return 0;
++}
++
++static int xm2m_vscale_probe(struct platform_device *pdev)
++{
++	struct xm2m_vscale_dev *xm2mvsc;
++	struct device *dc;
++	struct resource *res;
++	int ret;
++
++	if (atomic_read(&xm2mvsc_ndevs) >= DRIVER_MAX_DEV) {
++		dev_err(&pdev->dev,
++			"Unable to create xm2mvsc devices beyond max %d",
++			DRIVER_MAX_DEV);
++		return -EIO;
++	}
++
++	xm2mvsc = devm_kzalloc(&pdev->dev, sizeof(*xm2mvsc), GFP_KERNEL);
++	if (!xm2mvsc)
++		return -ENOMEM;
++	xm2mvsc->dev = &pdev->dev;
++	xm2mvsc->hw.dev = &pdev->dev;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	xm2mvsc->hw.regs = devm_ioremap_resource(xm2mvsc->dev, res);
++	if (IS_ERR(xm2mvsc->hw.regs))
++		return PTR_ERR(xm2mvsc->hw.regs);
++	ret = xm2m_vscale_parse_dt_prop(xm2mvsc);
++	if (ret < 0)
++		return ret;
++	xm2mvsc_reset(xm2mvsc);
++
++	/* Initialize Scaler Properties */
++	xm2mvsc->hw.max_lines = XM2MVSC_MAX_HEIGHT;
++	xm2mvsc->hw.max_pixels = XM2MVSC_MAX_WIDTH;
++	xm2mvsc_initialize_coeff_banks(&xm2mvsc->hw);
++
++	init_waitqueue_head(&xm2mvsc->waitq);
++	spin_lock_init(&xm2mvsc->lock);
++	INIT_LIST_HEAD(&xm2mvsc->pending_list);
++	INIT_LIST_HEAD(&xm2mvsc->ongoing_list);
++	INIT_LIST_HEAD(&xm2mvsc->done_list);
++	INIT_LIST_HEAD(&xm2mvsc->free_list);
++	ret = devm_request_irq(xm2mvsc->dev, xm2mvsc->irq,
++			       xm2mvsc_intr_handler, IRQF_SHARED,
++			       DRIVER_NAME, xm2mvsc);
++	if (ret < 0) {
++		dev_err(xm2mvsc->dev, "Unable to register IRQ");
++		return ret;
++	}
++
++	cdev_init(&xm2mvsc->chdev, &xm2mvsc_fops);
++	xm2mvsc->chdev.owner = THIS_MODULE;
++	xm2mvsc->id = atomic_read(&xm2mvsc_ndevs);
++	ret = cdev_add(&xm2mvsc->chdev,
++		       MKDEV(MAJOR(xm2mvsc_devt), xm2mvsc->id), 1);
++	if (ret < 0) {
++		dev_err(xm2mvsc->dev, "cdev_add failed");
++		return ret;
++	}
++
++	if (!xm2mvsc_class) {
++		dev_err(xm2mvsc->dev, "xm2mvsc device class not created");
++		goto err_cdev;
++	}
++	dc = device_create(xm2mvsc_class, xm2mvsc->dev,
++			   MKDEV(MAJOR(xm2mvsc_devt), xm2mvsc->id),
++			   xm2mvsc, "xm2mvsc%d", xm2mvsc->id);
++	if (IS_ERR(dc)) {
++		ret = PTR_ERR(dc);
++		dev_err(xm2mvsc->dev, "Unable to create device");
++		goto err_cdev;
++	}
++	platform_set_drvdata(pdev, xm2mvsc);
++	dev_info(xm2mvsc->dev,
++		 "Xilinx M2M Video Scaler %d tap %d channel device probe complete",
++		 xm2mvsc->hw.num_taps, xm2mvsc->hw.max_chan);
++	atomic_inc(&xm2mvsc_ndevs);
++	return 0;
++err_cdev:
++	cdev_del(&xm2mvsc->chdev);
++	return ret;
++}
++
++static int xm2m_vscale_remove(struct platform_device *pdev)
++{
++	struct xm2m_vscale_dev *xm2mvsc;
++
++	xm2mvsc = platform_get_drvdata(pdev);
++	if (!xm2mvsc || !xm2mvsc_class)
++		return -EIO;
++	device_destroy(xm2mvsc_class,
++		       MKDEV(MAJOR(xm2mvsc_devt), xm2mvsc->id));
++	cdev_del(&xm2mvsc->chdev);
++	atomic_dec(&xm2mvsc_ndevs);
++	return 0;
++}
++
++static const struct of_device_id xm2mvsc_of_match[] = {
++	{ .compatible = "xlnx,v-m2m-scaler", },
++	{ /* end of table*/ }
++};
++MODULE_DEVICE_TABLE(of, xm2mvsc_of_match);
++
++static struct platform_driver xm2mvsc_driver = {
++	.driver = {
++		.name = DRIVER_NAME,
++		.of_match_table = xm2mvsc_of_match,
++	},
++	.probe = xm2m_vscale_probe,
++	.remove = xm2m_vscale_remove,
++};
++
++static int __init xm2mvsc_init_mod(void)
++{
++	int err;
++
++	xm2mvsc_class = class_create(THIS_MODULE, DRIVER_NAME);
++	if (IS_ERR(xm2mvsc_class)) {
++		pr_err("%s : Unable to create xm2mvsc class", __func__);
++		return PTR_ERR(xm2mvsc_class);
++	}
++	err = alloc_chrdev_region(&xm2mvsc_devt, 0,
++				  DRIVER_MAX_DEV, DRIVER_NAME);
++	if (err < 0) {
++		pr_err("%s: Unable to get major number for xm2mvsc", __func__);
++		goto err_class;
++	}
++	err = platform_driver_register(&xm2mvsc_driver);
++	if (err < 0) {
++		pr_err("%s: Unable to register %s driver",
++		       __func__, DRIVER_NAME);
++		goto err_pdrv;
++	}
++	return 0;
++err_pdrv:
++	unregister_chrdev_region(xm2mvsc_devt, DRIVER_MAX_DEV);
++err_class:
++	class_destroy(xm2mvsc_class);
++	return err;
++}
++
++static void __exit xm2mvsc_cleanup_mod(void)
++{
++	platform_driver_unregister(&xm2mvsc_driver);
++	unregister_chrdev_region(xm2mvsc_devt, DRIVER_MAX_DEV);
++	class_destroy(xm2mvsc_class);
++	xm2mvsc_class = NULL;
++}
++module_init(xm2mvsc_init_mod);
++module_exit(xm2mvsc_cleanup_mod);
++
++MODULE_AUTHOR("Xilinx Inc.");
++MODULE_DESCRIPTION("Xilinx M2M Video Scaler IP Driver");
++MODULE_LICENSE("GPL v2");
++MODULE_VERSION(DRIVER_VERSION);
+diff --git a/drivers/staging/xm2mvscale/xvm2mvsc_hw_regs.h b/drivers/staging/xm2mvscale/xvm2mvsc_hw_regs.h
+new file mode 100644
+index 0000000..966d3c8
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/xvm2mvsc_hw_regs.h
+@@ -0,0 +1,204 @@
++// ==============================================================
++// File generated by Vivado(TM) HLS - High-Level Synthesis from
++// C, C++ and SystemC
++// Version: 2018.1.0
++// Copyright (C) 1986-2018 Xilinx, Inc. All Rights Reserved.
++// SPDX-License-Identifier: GPL-2.0
++// ==============================================================
++
++// CTRL
++// 0x0000 : Control signals
++//          bit 0  - ap_start (Read/Write/COH)
++//          bit 1  - ap_done (Read/COR)
++//          bit 2  - ap_idle (Read)
++//          bit 3  - ap_ready (Read)
++//          bit 7  - auto_restart (Read/Write)
++//          others - reserved
++// 0x0004 : Global Interrupt Enable Register
++//          bit 0  - Global Interrupt Enable (Read/Write)
++//          others - reserved
++// 0x0008 : IP Interrupt Enable Register (Read/Write)
++//          bit 0  - Channel 0 (ap_done)
++//          bit 1  - Channel 1 (ap_ready)
++//          others - reserved
++// 0x000c : IP Interrupt Status Register (Read/TOW)
++//          bit 0  - Channel 0 (ap_done)
++//          bit 1  - Channel 1 (ap_ready)
++//          others - reserved
++// 0x0010 : Data signal of HwReg_num_outs
++//          bit 7~0 - HwReg_num_outs[7:0] (Read/Write)
++//          others  - reserved
++// 0x0014 : reserved
++// 0x0100 : Data signal of HwReg_WidthIn_0
++//          bit 15~0 - HwReg_WidthIn_0[15:0] (Read/Write)
++//          others   - reserved
++// 0x0104 : reserved
++// 0x0108 : Data signal of HwReg_WidthOut_0
++//          bit 15~0 - HwReg_WidthOut_0[15:0] (Read/Write)
++//          others   - reserved
++// 0x010c : reserved
++// 0x0110 : Data signal of HwReg_HeightIn_0
++//          bit 15~0 - HwReg_HeightIn_0[15:0] (Read/Write)
++//          others   - reserved
++// 0x0114 : reserved
++// 0x0118 : Data signal of HwReg_HeightOut_0
++//          bit 15~0 - HwReg_HeightOut_0[15:0] (Read/Write)
++//          others   - reserved
++// 0x011c : reserved
++// 0x0120 : Data signal of HwReg_LineRate_0
++//          bit 31~0 - HwReg_LineRate_0[31:0] (Read/Write)
++// 0x0124 : reserved
++// 0x0128 : Data signal of HwReg_PixelRate_0
++//          bit 31~0 - HwReg_PixelRate_0[31:0] (Read/Write)
++// 0x012c : reserved
++// 0x0130 : Data signal of HwReg_InPixelFmt_0
++//          bit 7~0 - HwReg_InPixelFmt_0[7:0] (Read/Write)
++//          others  - reserved
++// 0x0134 : reserved
++// 0x0138 : Data signal of HwReg_OutPixelFmt_0
++//          bit 7~0 - HwReg_OutPixelFmt_0[7:0] (Read/Write)
++//          others  - reserved
++// 0x013c : reserved
++// 0x0140 : Data signal of HwReg_FiltIdx_0
++//          bit 7~0 - HwReg_FiltIdx_0[7:0] (Read/Write)
++//          others  - reserved
++// 0x0144 : reserved
++// 0x0150 : Data signal of HwReg_InStride_0
++//          bit 15~0 - HwReg_InStride_0[15:0] (Read/Write)
++//          others   - reserved
++// 0x0154 : reserved
++// 0x0158 : Data signal of HwReg_OutStride_0
++//          bit 15~0 - HwReg_OutStride_0[15:0] (Read/Write)
++//          others   - reserved
++// 0x015c : reserved
++// 0x0160 : Data signal of HwReg_srcImgBuf0_0
++//          bit 31~0 - HwReg_srcImgBuf0_0[31:0] (Read/Write)
++// 0x0164 : reserved
++// 0x0170 : Data signal of HwReg_srcImgBuf1_0
++//          bit 31~0 - HwReg_srcImgBuf1_0[31:0] (Read/Write)
++// 0x0174 : reserved
++// 0x0190 : Data signal of HwReg_dstImgBuf0_0
++//          bit 31~0 - HwReg_dstImgBuf0_0[31:0] (Read/Write)
++// 0x0194 : reserved
++// 0x0200 : Data signal of HwReg_dstImgBuf1_0
++//          bit 31~0 - HwReg_dstImgBuf1_0[31:0] (Read/Write)
++// 0x0204 : reserved
++// 0x1500 : Data signal of HwReg_WidthIn_7
++//          bit 15~0 - HwReg_WidthIn_7[15:0] (Read/Write)
++//          others   - reserved
++// 0x1504 : reserved
++// 0x1508 : Data signal of HwReg_WidthOut_7
++//          bit 15~0 - HwReg_WidthOut_7[15:0] (Read/Write)
++//          others   - reserved
++// 0x150c : reserved
++// 0x1510 : Data signal of HwReg_HeightIn_7
++//          bit 15~0 - HwReg_HeightIn_7[15:0] (Read/Write)
++//          others   - reserved
++// 0x1514 : reserved
++// 0x1518 : Data signal of HwReg_HeightOut_7
++//          bit 15~0 - HwReg_HeightOut_7[15:0] (Read/Write)
++//          others   - reserved
++// 0x151c : reserved
++// 0x1520 : Data signal of HwReg_LineRate_7
++//          bit 31~0 - HwReg_LineRate_7[31:0] (Read/Write)
++// 0x1524 : reserved
++// 0x1528 : Data signal of HwReg_PixelRate_7
++//          bit 31~0 - HwReg_PixelRate_7[31:0] (Read/Write)
++// 0x152c : reserved
++// 0x1530 : Data signal of HwReg_InPixelFmt_7
++//          bit 7~0 - HwReg_InPixelFmt_7[7:0] (Read/Write)
++//          others  - reserved
++// 0x1534 : reserved
++// 0x1538 : Data signal of HwReg_OutPixelFmt_7
++//          bit 7~0 - HwReg_OutPixelFmt_7[7:0] (Read/Write)
++//          others  - reserved
++// 0x153c : reserved
++// 0x1540 : Data signal of HwReg_FiltIdx_7
++//          bit 7~0 - HwReg_FiltIdx_7[7:0] (Read/Write)
++//          others  - reserved
++// 0x1544 : reserved
++// 0x1550 : Data signal of HwReg_InStride_7
++//          bit 15~0 - HwReg_InStride_7[15:0] (Read/Write)
++//          others   - reserved
++// 0x1554 : reserved
++// 0x1558 : Data signal of HwReg_OutStride_7
++//          bit 15~0 - HwReg_OutStride_7[15:0] (Read/Write)
++//          others   - reserved
++// 0x155c : reserved
++// 0x1560 : Data signal of HwReg_srcImgBuf0_7
++//          bit 31~0 - HwReg_srcImgBuf0_7[31:0] (Read/Write)
++// 0x1564 : reserved
++// 0x1570 : Data signal of HwReg_srcImgBuf1_7
++//          bit 31~0 - HwReg_srcImgBuf1_7[31:0] (Read/Write)
++// 0x1574 : reserved
++// 0x1590 : Data signal of HwReg_dstImgBuf0_7
++//          bit 31~0 - HwReg_dstImgBuf0_7[31:0] (Read/Write)
++// 0x1594 : reserved
++// 0x1600 : Data signal of HwReg_dstImgBuf1_7
++//          bit 31~0 - HwReg_dstImgBuf1_7[31:0] (Read/Write)
++// 0x1604 : reserved
++// 0x2000 ~
++// 0x23ff : Memory 'HwReg_mm_vfltCoeff_L' (384 * 16b)
++//          Word n : bit [15: 0] - HwReg_mm_vfltCoeff_L[2n]
++//                   bit [31:16] - HwReg_mm_vfltCoeff_L[2n+1]
++// 0x2800 ~
++// 0x2bff : Memory 'HwReg_mm_vfltCoeff_H' (384 * 16b)
++//          Word n : bit [15: 0] - HwReg_mm_vfltCoeff_H[2n]
++//                   bit [31:16] - HwReg_mm_vfltCoeff_H[2n+1]
++// 0x4000 ~
++// 0x43ff : Memory 'HwReg_mm_hfltCoeff_L' (384 * 16b)
++//          Word n : bit [15: 0] - HwReg_mm_hfltCoeff_L[2n]
++//                   bit [31:16] - HwReg_mm_hfltCoeff_L[2n+1]
++// 0x4800 ~
++// 0x4bff : Memory 'HwReg_mm_hfltCoeff_H' (384 * 16b)
++//          Word n : bit [15: 0] - HwReg_mm_hfltCoeff_H[2n]
++//                   bit [31:16] - HwReg_mm_hfltCoeff_H[2n+1]
++// (SC = Self Clear, COR = Clear on Read, TOW = Toggle on Write,
++//  COH = Clear on Handshake)
++#ifndef __HW_REGS_XM2MVSC_H__
++#define __HW_REGS_XM2MVSC_H__
++
++#define XM2MVSC_AP_CTRL			0x0000
++#define XM2MVSC_GIE			0x0004
++#define XM2MVSC_IER			0x0008
++#define XM2MVSC_ISR			0x000c
++#define XM2MVSC_NUM_OUTS		0x0010
++
++#define XM2MVSC_WIDTHIN_0		0x0100
++#define XM2MVSC_WIDTHOUT_0		0x0108
++#define XM2MVSC_HEIGHTIN_0		0x0110
++#define XM2MVSC_HEIGHTOUT_0		0x0118
++#define XM2MVSC_LINERATE_0		0x0120
++#define XM2MVSC_PIXELRATE_0		0x0128
++#define XM2MVSC_INPIXELFMT_0		0x0130
++#define XM2MVSC_OUTPIXELFMT_0		0x0138
++#define XM2MVSC_FILTIDX_0		0x0140
++#define XM2MVSC_INSTRIDE_0		0x0150
++#define XM2MVSC_OUTSTRIDE_0		0x0158
++#define XM2MVSC_SRCIMGBUF0_0		0x0160
++#define XM2MVSC_SRCIMGBUF1_0		0x0170
++#define XM2MVSC_DSTIMGBUF0_0		0x0190
++#define XM2MVSC_DSTIMGBUF1_0		0x0200
++
++#define XM2MVSC_WIDTH_IN(x)	(XM2MVSC_WIDTHIN_0     + 0x200 * (x))
++#define XM2MVSC_WIDTH_OUT(x)	(XM2MVSC_WIDTHOUT_0    + 0x200 * (x))
++#define XM2MVSC_HEIGHT_IN(x)	(XM2MVSC_HEIGHTIN_0    + 0x200 * (x))
++#define XM2MVSC_HEIGHT_OUT(x)	(XM2MVSC_HEIGHTOUT_0   + 0x200 * (x))
++#define XM2MVSC_LINERATE(x)	(XM2MVSC_LINERATE_0    + 0x200 * (x))
++#define XM2MVSC_PIXELRATE(x)	(XM2MVSC_PIXELRATE_0   + 0x200 * (x))
++#define XM2MVSC_PIXELFMT_IN(x)	(XM2MVSC_INPIXELFMT_0  + 0x200 * (x))
++#define XM2MVSC_PIXELFMT_OUT(x)	(XM2MVSC_OUTPIXELFMT_0 + 0x200 * (x))
++#define XM2MVSC_FILTER_BANK(x)	(XM2MVSC_FILTIDX_0     + 0x200 * (x))
++#define XM2MVSC_STRIDE_IN(x)	(XM2MVSC_INSTRIDE_0    + 0x200 * (x))
++#define XM2MVSC_STRIDE_OUT(x)	(XM2MVSC_OUTSTRIDE_0   + 0x200 * (x))
++#define XM2MVSC_SRC_BUF1(x)	(XM2MVSC_SRCIMGBUF0_0  + 0x200 * (x))
++#define XM2MVSC_SRC_BUF2(x)	(XM2MVSC_SRCIMGBUF1_0  + 0x200 * (x))
++#define XM2MVSC_DST_BUF1(x)	(XM2MVSC_DSTIMGBUF0_0  + 0x200 * (x))
++#define XM2MVSC_DST_BUF2(x)	(XM2MVSC_DSTIMGBUF1_0  + 0x200 * (x))
++
++#define XM2MVSC_VFLTCOEFF_L		0x2000
++#define XM2MVSC_VFLTCOEFF(x)	(XM2MVSC_VFLTCOEFF_L + 0x800 * (x))
++#define XM2MVSC_HFLTCOEFF_L		0x4000
++#define XM2MVSC_HFLTCOEFF(x)	(XM2MVSC_HFLTCOEFF_L + 0x800 * (x))
++
++#endif /* __HW_REGS_XM2MVSC_H__ */
+-- 
+1.9.1
