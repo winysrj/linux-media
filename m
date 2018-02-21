@@ -1,91 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53091 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752375AbeBAQ46 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Feb 2018 11:56:58 -0500
-Date: Thu, 1 Feb 2018 17:56:44 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH] media: ov5640: fix virtual_channel parameter permissions
-Message-ID: <20180201165644.GA17660@w540>
-References: <1517491054-12048-1-git-send-email-hugues.fruchet@st.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38321 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933186AbeBUNDF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 08:03:05 -0500
+Subject: Re: [PATCH v9 03/11] media: platform: Add Renesas CEU driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1519059584-30844-4-git-send-email-jacopo+renesas@jmondi.org>
+ <024c232f-bd43-42a9-25e7-0fbe71edbcb0@xs4all.nl> <2908261.btsdL5a7UQ@avalon>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <19015eda-c830-f987-92fa-49a407033ada@xs4all.nl>
+Date: Wed, 21 Feb 2018 14:02:59 +0100
 MIME-Version: 1.0
+In-Reply-To: <2908261.btsdL5a7UQ@avalon>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1517491054-12048-1-git-send-email-hugues.fruchet@st.com>
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+On 02/21/18 13:29, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Wednesday, 21 February 2018 14:03:24 EET Hans Verkuil wrote:
+>> On 02/19/18 17:59, Jacopo Mondi wrote:
+>>> Add driver for Renesas Capture Engine Unit (CEU).
+>>>
+>>> The CEU interface supports capturing 'data' (YUV422) and 'images'
+>>> (NV[12|21|16|61]).
+>>>
+>>> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
+>>>
+>>> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+>>> platform GR-Peach.
+>>>
+>>> Tested with ov7725 camera sensor on SH4 platform Migo-R.
+>>>
+>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>  drivers/media/platform/Kconfig       |    9 +
+>>>  drivers/media/platform/Makefile      |    1 +
+>>>  drivers/media/platform/renesas-ceu.c | 1661 +++++++++++++++++++++++++++++
+>>>  3 files changed, 1671 insertions(+)
+>>>  create mode 100644 drivers/media/platform/renesas-ceu.c
+>>
+>> <snip>
+>>
+>>> +static int ceu_s_input(struct file *file, void *priv, unsigned int i)
+>>> +{
+>>> +	struct ceu_device *ceudev = video_drvdata(file);
+>>> +	struct ceu_subdev *ceu_sd_old;
+>>> +	int ret;
+>>> +
+>>> +	if (i >= ceudev->num_sd)
+>>> +		return -EINVAL;
+>>> +
+>>> +	if (vb2_is_streaming(&ceudev->vb2_vq))
+>>> +		return -EBUSY;
+>>> +
+>>> +	if (i == ceudev->sd_index)
+>>> +		return 0;
+>>> +
+>>> +	ceu_sd_old = ceudev->sd;
+>>> +	ceudev->sd = &ceudev->subdevs[i];
+>>> +
+>>> +	/* Make sure we can generate output image formats. */
+>>> +	ret = ceu_init_formats(ceudev);
+>>
+>> Why is this done for every s_input? I would expect that this is done only
+>> once for each subdev.
+>>
+>> I also expect to see a ceu_set_default_fmt() call here. Or that the v4l2_pix
+>> is kept in ceu_subdev (i.e. per subdev) instead of a single fmt in cuedev.
+>> I think I prefer that over configuring a new default format every time you
+>> switch inputs.
+> 
+> What does userspace expect today ? I don't think we document anywhere that 
+> formats are stored per-input in drivers. The VIDIOC_S_INPUT documentation is 
+> very vague:
+> 
+> "To select a video input applications store the number of the desired input in 
+> an integer and call the VIDIOC_S_INPUT ioctl with a pointer to this integer. 
+> Side effects are possible. For example inputs may support different video 
+> standards, so the driver may implicitly switch the current standard. Because 
+> of these possible side effects applications must select an input before 
+> querying or negotiating any other parameters."
+> 
+> I understand that as meaning "anything can happen when you switch inputs, so 
+> be prepared to reconfigure everything explicitly without assuming any 
+> particular parameter to have a sane value".
+> 
+>> This code will work for two subdevs with exactly the same
+>> formats/properties. But switching between e.g. a sensor and a video
+>> receiver will leave things in an inconsistent state as far as I can see.
+>>
+>> E.g. if input 1 is the video receiver then switching to that input and
+>> running 'v4l2-ctl -V' will show the sensor format, not the video receiver
+>> format.
+> 
+> I agree that the format should be consistent with the selected input, as 
+> calling VIDIOC_S_INPUT immediately followed by a stream start sequence without 
+> configuring formats should work (but produce a format that is not known to 
+> userspace). My question is whether we should reset to a default format for the 
+> newly select input, or switch back to the previously set format. I'd tend to 
+> go for the former to keep as little state as possible, but I'm open to 
+> counter-proposals.
 
-On Thu, Feb 01, 2018 at 02:17:34PM +0100, Hugues Fruchet wrote:
-> Fix module_param(virtual_channel) permissions.
-> This problem was detected by checkpatch:
-> $ scripts/checkpatch.pl -f drivers/media/i2c/ov5640.c
-> ERROR: Use 4 digit octal (0777) not decimal permissions
-> #131: FILE: drivers/media/i2c/ov5640.c:131:
-> +module_param(virtual_channel, int, 0);
->
-> Also explicitly set initial value to 0 for default value
-> and add an error trace in case of virtual_channel not in
-> the valid range of values.
->
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/i2c/ov5640.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 696a28b..906f202 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -127,8 +127,8 @@ struct ov5640_pixfmt {
->   * FIXME: remove this when a subdev API becomes available
->   * to set the MIPI CSI-2 virtual channel.
->   */
-> -static unsigned int virtual_channel;
-> -module_param(virtual_channel, int, 0);
-> +static unsigned int virtual_channel = 0;
-> +module_param(virtual_channel, int, 0444);
+What to do is up to the driver. My personal preference is to make it persistent
+per input, but that's just me. I won't block the other approach (resetting it
+to a default). Be aware that for video receivers the format depends on the current
+selected standard as well. I think the code does that correctly already, but it
+would be good to verify if possible.
 
-Parameter type is unsigned int, please use uint here.
-As also checkpatch reports, it is not necessary to initialize static
-variables to 0.
+BTW, I think it is right that the spec isn't specific about what changes when
+you switch inputs. It can be quite complex for drivers to handle this and it
+is not unreasonable in my view for userspace to just assume it needs to configure
+from scratch after switching inputs.
 
->  MODULE_PARM_DESC(virtual_channel,
->  		 "MIPI CSI-2 virtual channel (0..3), default 0");
->
-> @@ -1358,11 +1358,15 @@ static int ov5640_binning_on(struct ov5640_dev *sensor)
->
->  static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
->  {
-> +	struct i2c_client *client = sensor->i2c_client;
->  	u8 temp, channel = virtual_channel;
->  	int ret;
->
-> -	if (channel > 3)
-> +	if (channel > 3) {
-> +		dev_err(&client->dev, "%s: wrong virtual_channel parameter value, expected (0..3), got %d\n",
+Regards,
 
-I understand you don't want to break error messages to 80 columns to
-ease grep for errors, but you can break the line after "client->dev"
-to make this less painful for the eyes.
+	Hans
 
-Thanks
-   j
-
-> +			__func__, channel);
->  		return -EINVAL;
-> +	}
->
->  	ret = ov5640_read_reg(sensor, OV5640_REG_DEBUG_MODE, &temp);
->  	if (ret)
-> --
-> 1.9.1
->
+> 
+>>> +	if (ret) {
+>>> +		ceudev->sd = ceu_sd_old;
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	/* now that we're sure we can use the sensor, power off the old one. */
+>>> +	v4l2_subdev_call(ceu_sd_old->v4l2_sd, core, s_power, 0);
+>>> +	v4l2_subdev_call(ceudev->sd->v4l2_sd, core, s_power, 1);
+>>> +
+>>> +	ceudev->sd_index = i;
+>>> +
+>>> +	return 0;
+>>> +}
+>>
+>> The remainder of this driver looks good.
+> 
