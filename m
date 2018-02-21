@@ -1,76 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2130.oracle.com ([141.146.126.79]:36276 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933426AbeBMHXw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 02:23:52 -0500
-Date: Tue, 13 Feb 2018 10:23:02 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        David Airlie <airlied@linux.ie>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Inki Dae <inki.dae@samsung.com>
-Subject: Re: [PATCH v2 5/5] drm: adv7511: Add support for
- i2c_new_secondary_device
-Message-ID: <20180213072302.wlrqf5zgr7q26rsr@mwanda>
-References: <1518459117-16733-1-git-send-email-kbingham@kernel.org>
- <1518459117-16733-6-git-send-email-kbingham@kernel.org>
+Received: from mail-by2nam01on0084.outbound.protection.outlook.com ([104.47.34.84]:20416
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750790AbeBUXAn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 18:00:43 -0500
+From: Rohit Athavale <rohit.athavale@xilinx.com>
+To: <devel@driverdev.osuosl.org>
+CC: <gregkh@linuxfoundation.org>, <linux-media@vger.kernel.org>,
+        <rohit.athavale@xilinx.com>
+Subject: [PATCH v2 3/3] Documentation: devicetree: bindings: Add DT binding doc for xm2mvsc driver
+Date: Wed, 21 Feb 2018 14:43:16 -0800
+Message-ID: <1519252996-787-4-git-send-email-rohit.athavale@xilinx.com>
+In-Reply-To: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
+References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1518459117-16733-6-git-send-email-kbingham@kernel.org>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 12, 2018 at 06:11:57PM +0000, Kieran Bingham wrote:
-> +	adv7511->i2c_packet = i2c_new_secondary_device(i2c, "packet",
-> +					ADV7511_PACKET_I2C_ADDR_DEFAULT);
-> +	if (!adv7511->i2c_packet) {
-> +		ret = -EINVAL;
-> +		goto err_unregister_cec;
-> +	}
-> +
-> +	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
-> +		     adv7511->i2c_packet->addr << 1);
-> +
->  	INIT_WORK(&adv7511->hpd_work, adv7511_hpd_work);
->  
->  	if (i2c->irq) {
-> @@ -1181,7 +1190,7 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->  						IRQF_ONESHOT, dev_name(dev),
->  						adv7511);
->  		if (ret)
-> -			goto err_unregister_cec;
-> +			goto err_unregister_packet;
->  	}
->  
->  	adv7511_power_off(adv7511);
+This commit adds the binding doc for the DT that the driver expects.
+Driver has been tested against Zynq US+ board.
 
-There is another goto which needs to be updated if adv7511_cec_init()
-fails.
+Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
+---
+ .../devicetree/bindings/xm2mvscaler.txt            | 25 ++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+ create mode 100644 drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt
 
-> @@ -1203,6 +1212,8 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->  	adv7511_audio_init(dev, adv7511);
->  	return 0;
->  
-> +err_unregister_packet:
-> +	i2c_unregister_device(adv7511->i2c_packet);
->  err_unregister_cec:
->  	i2c_unregister_device(adv7511->i2c_cec);
->  	if (adv7511->cec_clk)
-
-
-regards,
-dan carpenter
+diff --git a/drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt b/drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt
+new file mode 100644
+index 0000000..1f3d805
+--- /dev/null
++++ b/drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt
+@@ -0,0 +1,25 @@
++Xilinx M2M Video Scaler
++-----------------------
++This document describes the DT bindings required by the
++Xilinx M2M Video Scaler driver.
++
++Required Properties:
++- compatible		: Must be "xlnx,v-m2m-scaler"
++- reg			: Memory map for module access
++- reset-gpios		: Should contain GPIO reset phandle
++- interrupt-parent	: Interrupt controller the interrupt is routed through
++- interrupts		: Should contain DMA channel interrupt
++- xlnx,scaler-num-taps	: The number of filter taps for scaling filter
++- xlnx,scaler-max-chan	: The maximum number of supported scaling channels
++
++Examples
++---------
++	v_multi_scaler: v_multi_scaler@a0000000 {
++		compatible = "xlnx,v-m2m-scaler";
++		reg = <0x0 0xa0000000 0x0 0x10000>;
++		reset-gpios = <&gpio 78 1>;
++		interrupt-parent = <&gic>;
++		interrupts = <0 89 4>;
++		xlnx,scaler-num-taps = <6>;
++		xlnx,scaler-max-chan = <4>;
++	};
+-- 
+1.9.1
