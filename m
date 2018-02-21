@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34982 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932799AbeB1P1p (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34696 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965060AbeBUPcZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 10:27:45 -0500
-Received: by mail-wr0-f196.google.com with SMTP id l43so2858726wrc.2
-        for <linux-media@vger.kernel.org>; Wed, 28 Feb 2018 07:27:44 -0800 (PST)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v2 0/2] media: Introduce Omnivision OV2680 driver
-Date: Wed, 28 Feb 2018 15:27:21 +0000
-Message-Id: <20180228152723.26392-1-rui.silva@linaro.org>
+        Wed, 21 Feb 2018 10:32:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 12/15] media: zero reservedX fields in media_v2_topology
+Date: Wed, 21 Feb 2018 16:32:15 +0100
+Message-Id: <20180221153218.15654-13-hverkuil@xs4all.nl>
+In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
+References: <20180221153218.15654-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add driver and bindings for the OV2680 2 megapixel CMOS 1/5" sensor, which has
-a single MIPI lane interface and output format of 10-bit Raw RGB.
+The MEDIA_IOC_G_TOPOLOGY implementation did not zero the reservedX fields.
+Fix this.
 
-Features supported are described in PATCH 2/2.
+Found with v4l2-compliance.
 
-v1->v2:
-Fabio Estevam:
-    - s/OV5640/OV2680 in PATCH 1/2 changelog
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Sakari Ailus:
-    - add description on endpoint properties in bindings
-    - add single endpoint in bindings
-    - drop OF dependency
-    - cleanup includes
-    - fix case in Color Bars
-    - remove frame rate selection
-    - 8/16/24 bit register access in the same transaction
-    - merge _reset and _soft_reset to _enable and rename it to power_on 
-    - _gain_set use only the gain value (drop & 0x7ff)
-    - _gain_get remove the (0x377)
-    - single write/read at _exposure_set/get use write_reg24/read_reg24
-    - move mode_set_direct to _mode_set
-    - _mode_set set auto exposure/gain based on ctrl value
-    - s_frame_interval equal to g_frame_interval
-    - use closest match from: v4l: common: Add a function to obtain best size from a list 
-    - check v4l2_ctrl_new_std return in _init
-
-    - fix gain manual value in auto_cluster
-
-Cheers,
-    Rui
-
-Rui Miguel Silva (2):
-  media: ov2680: dt: Add bindings for OV2680
-  media: ov2680: Add Omnivision OV2680 sensor driver
-
- .../devicetree/bindings/media/i2c/ov2680.txt       |   40 +
- drivers/media/i2c/Kconfig                          |   12 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov2680.c                         | 1094 ++++++++++++++++++++
- 4 files changed, 1147 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
- create mode 100644 drivers/media/i2c/ov2680.c
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 639fa703e91e..5b1dbb8540af 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -266,6 +266,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		uentity++;
+ 	}
+ 	topo->num_entities = i;
++	topo->reserved1 = 0;
+ 
+ 	/* Get interfaces and number of interfaces */
+ 	i = 0;
+@@ -301,6 +302,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		uintf++;
+ 	}
+ 	topo->num_interfaces = i;
++	topo->reserved2 = 0;
+ 
+ 	/* Get pads and number of pads */
+ 	i = 0;
+@@ -327,6 +329,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		upad++;
+ 	}
+ 	topo->num_pads = i;
++	topo->reserved3 = 0;
+ 
+ 	/* Get links and number of links */
+ 	i = 0;
+@@ -358,6 +361,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		ulink++;
+ 	}
+ 	topo->num_links = i;
++	topo->reserved4 = 0;
+ 
+ 	return ret;
+ }
 -- 
-2.16.2
+2.16.1
