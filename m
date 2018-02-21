@@ -1,97 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50190 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752260AbeBEMmw (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46560 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754388AbeBUOR2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 07:42:52 -0500
-Subject: Re: [RFC PATCH] media-device: add index field to media_v2_pad
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <f29798d5-6f90-e433-93d5-81ba3e420d34@xs4all.nl>
- <20180205103905.6ff43f9e@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3fc07ab4-f36c-ac87-ebcf-ceb530d73ff8@xs4all.nl>
-Date: Mon, 5 Feb 2018 13:42:48 +0100
+        Wed, 21 Feb 2018 09:17:28 -0500
+Date: Wed, 21 Feb 2018 16:17:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv3 10/15] media-device.c: zero reserved fields
+Message-ID: <20180221141726.vdbydu64p2vkdjuo@valkosipuli.retiisi.org.uk>
+References: <20180219103806.17032-1-hverkuil@xs4all.nl>
+ <20180219103806.17032-11-hverkuil@xs4all.nl>
+ <20180221124954.4tgygs34mpl3s2ze@valkosipuli.retiisi.org.uk>
+ <8c18e38e-11f4-3779-3767-f3001afec053@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180205103905.6ff43f9e@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8c18e38e-11f4-3779-3767-f3001afec053@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 01:39 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 4 Feb 2018 14:53:31 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Wed, Feb 21, 2018 at 02:17:37PM +0100, Hans Verkuil wrote:
+> On 02/21/18 13:49, Sakari Ailus wrote:
+> > On Mon, Feb 19, 2018 at 11:38:01AM +0100, Hans Verkuil wrote:
+> >> MEDIA_IOC_SETUP_LINK didn't zero the reserved field of the media_link_desc
+> >> struct. Do so in media_device_setup_link().
+> >>
+> >> MEDIA_IOC_ENUM_LINKS didn't zero the reserved field of the media_links_enum
+> >> struct. Do so in media_device_enum_links().
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > If you haven't sent a pull request including your patch "media-device: zero
+> > reserved media_links_enum field", could you add it to the next version of
+> > this set (or the same pull request)?
 > 
->> Userspace has no way of knowing the pad index for the entity that
->> owns the pad with the MEDIA_IOC_G_TOPOLOGY ioctl. However, various
->> v4l-subdev ioctls need to pass this as an argument.
+> It's folded into this patch. It made no sense to have that in a separate patch.
 > 
-> While I'm OK on adding a pad index, it still misses a way for Kernelspace
-> to inform the kind of signal it is expected for the cases where an entity
-> provides multiple PAD inputs or outputs with different meanings, e. g.
-> for cases like TV tuner, where different PAD outputs have different
-> signals and should be connected to different entities, based on the PAD
-> type.
-> 
-> In other words, we need also either a:
-> 	- pad name;
-> 	- pad type;
-> 	- pad signal.
 
-As mentioned, I agree but it is unrelated to this issue.
+Ah, indeed it is. Then please ignore my comment apart from the ack.
 
-> 
->>
->> Add this missing information.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->> RFC, so no documentation yet. This works fine, but how would applications
->> know that media_v2_pad has been extended with a new index field? Currently
->> this is 0, which is a valid index.
->>
->> If no one is using this API (or only for DVB devices) then we can do that.
->> The other alternative is to add a new pad flag MEDIA_PAD_FL_HAS_INDEX.
-
-Any comment on this?
-
-Regards,
-
-	Hans
-
->> ---
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index e79f72b8b858..16964d3dfb1e 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -318,6 +320,7 @@ static long media_device_get_topology(struct media_device *mdev,
->>  		kpad.id = pad->graph_obj.id;
->>  		kpad.entity_id = pad->entity->graph_obj.id;
->>  		kpad.flags = pad->flags;
->> +		kpad.index = pad->index;
->>
->>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
->>  			ret = -EFAULT;
->> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->> index b9b9446095e9..c3e7a668e122 100644
->> --- a/include/uapi/linux/media.h
->> +++ b/include/uapi/linux/media.h
->> @@ -375,7 +375,8 @@ struct media_v2_pad {
->>  	__u32 id;
->>  	__u32 entity_id;
->>  	__u32 flags;
->> -	__u32 reserved[5];
->> +	__u16 index;
->> +	__u16 reserved[9];
->>  } __attribute__ ((packed));
->>
->>  struct media_v2_link {
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
