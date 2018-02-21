@@ -1,207 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43802 "EHLO
-        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753347AbeBLU55 (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:39149 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751017AbeBUXNs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 15:57:57 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v3 2/2] cx231xx: Add support for Hauppauge HVR-975
-Date: Mon, 12 Feb 2018 14:57:30 -0600
-Message-Id: <1518469050-22878-1-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515515916-32108-3-git-send-email-brad@nextdimension.cc>
-References: <1515515916-32108-3-git-send-email-brad@nextdimension.cc>
+        Wed, 21 Feb 2018 18:13:48 -0500
+Received: by mail-qk0-f196.google.com with SMTP id z197so4240214qkb.6
+        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 15:13:47 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: p.zabel@pengutronix.de
+Cc: slongerbeam@gmail.com, ian.arkver.dev@gmail.com,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Subject: [PATCH v3 1/2] media: imx-media-internal-sd: Use empty initializer
+Date: Wed, 21 Feb 2018 20:13:50 -0300
+Message-Id: <1519254831-14452-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge HVR-975 is hybrid NTSC/PAL, QAM/ATSC, and DVB-C/T/T2 usb device.
+From: Fabio Estevam <fabio.estevam@nxp.com>
 
-Only ATSC/QAM front end is initially active. Second frontend support is
-work in progress.
+{0} explicitly assigns 0 to the first member of the structure.
 
-CX23102 + LG3306A/Si2168(WiP) + Si2157
-and
-composite/s-video + stereo audio capture via breakout cable
+The first element of the platform_device_info struct is a pointer and
+when writing 0 to a pointer the following sparse error is seen:
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+drivers/staging/media/imx/imx-media-internal-sd.c:274:49: warning: Using plain integer as NULL pointer
+
+Fix this problem by using an empty initializer, which also clears the
+struct members and avoids the sparse warning.
+
+Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
-Changes since v2:
-- use i2c adapter from demod
-- moved failure messages to proper block
-- add capture properties to message
+Changes sice v2:
+- Improve commit log
 
 Changes since v1:
-- removed double semicolon
+- Use empty initializer insted of memset() - Ian
 
- drivers/media/usb/cx231xx/cx231xx-cards.c | 42 ++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 74 +++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 3 files changed, 117 insertions(+)
+ drivers/staging/media/imx/imx-media-internal-sd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index c2efbff..8582568 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -961,6 +961,45 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_HAUPPAUGE_975] = {
-+		.name = "Hauppauge WinTV-HVR-975",
-+		.tuner_type = TUNER_ABSENT,
-+		.tuner_addr = 0x60,
-+		.tuner_gpio = RDE250_XCV_TUNER,
-+		.tuner_sif_gpio = 0x05,
-+		.tuner_scl_gpio = 0x1a,
-+		.tuner_sda_gpio = 0x1b,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.demod_xfer_mode = 0,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c,
-+		.gpio_pin_status_mask = 0x4001000,
-+		.tuner_i2c_master = I2C_1_MUX_3,
-+		.demod_i2c_master = I2C_1_MUX_3,
-+		.has_dvb = 1,
-+		.demod_addr = 0x59, /* 0xb2 >> 1 */
-+		.norm = V4L2_STD_ALL,
-+
-+		.input = {{
-+			.type = CX231XX_VMUX_TELEVISION,
-+			.vmux = CX231XX_VIN_3_1,
-+			.amux = CX231XX_AMUX_VIDEO,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_2_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_1_1 |
-+				(CX231XX_VIN_1_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
+index 70833fe..daf66c2 100644
+--- a/drivers/staging/media/imx/imx-media-internal-sd.c
++++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+@@ -271,7 +271,7 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
+ 			       int ipu_id)
+ {
+ 	struct imx_media_internal_sd_platformdata pdata;
+-	struct platform_device_info pdevinfo = {0};
++	struct platform_device_info pdevinfo = {};
+ 	struct platform_device *pdev;
  
-@@ -994,6 +1033,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
- 	{USB_DEVICE(0x2040, 0xb151),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
-+	{USB_DEVICE(0x2040, 0xb150),
-+	 .driver_info = CX231XX_BOARD_HAUPPAUGE_975},
- 	{USB_DEVICE(0x2040, 0xb130),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
- 	{USB_DEVICE(0x2040, 0xb131),
-@@ -1253,6 +1294,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
- 	case CX231XX_BOARD_HAUPPAUGE_955Q:
- 	case CX231XX_BOARD_HAUPPAUGE_935C:
-+	case CX231XX_BOARD_HAUPPAUGE_975:
- 		{
- 			struct eeprom {
- 				struct tveeprom tvee;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index fa2ff92..a3c5449 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -1143,6 +1143,80 @@ static int dvb_init(struct cx231xx *dev)
- 		dev->dvb->i2c_client_tuner = client;
- 		break;
- 	}
-+	case CX231XX_BOARD_HAUPPAUGE_975:
-+	{
-+		struct i2c_client *client;
-+		struct i2c_adapter *adapter;
-+		struct i2c_board_info info = {};
-+		struct si2157_config si2157_config = {};
-+		struct lgdt3306a_config lgdt3306a_config = {};
-+
-+		/* attach demodulator chip */
-+		lgdt3306a_config = hauppauge_955q_lgdt3306a_config;
-+		lgdt3306a_config.fe = &dev->dvb->frontend;
-+		lgdt3306a_config.i2c_adapter = &adapter;
-+
-+		strlcpy(info.type, "lgdt3306a", sizeof(info.type));
-+		info.addr = dev->board.demod_addr;
-+		info.platform_data = &lgdt3306a_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(demod_i2c, &info);
-+		if (client == NULL || client->dev.driver == NULL) {
-+			dev_err(dev->dev,
-+				"Failed to attach %s frontend.\n", info.type);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dvb->i2c_client_demod = client;
-+		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
-+
-+		/* define general-purpose callback pointer */
-+		dvb->frontend->callback = cx231xx_tuner_callback;
-+
-+		/* attach tuner */
-+		si2157_config.fe = dev->dvb->frontend;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		si2157_config.mdev = dev->media_dev;
-+#endif
-+		si2157_config.if_port = 1;
-+		si2157_config.inversion = true;
-+
-+		memset(&info, 0, sizeof(struct i2c_board_info));
-+		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+		info.addr = dev->board.tuner_addr;
-+		info.platform_data = &si2157_config;
-+		request_module("si2157");
-+
-+		client = i2c_new_device(adapter, &info);
-+		if (client == NULL || client->dev.driver == NULL) {
-+			dev_err(dev->dev,
-+				"Failed to obtain %s tuner.\n",	info.type);
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dev->cx231xx_reset_analog_tuner = NULL;
-+		dev->dvb->i2c_client_tuner = client;
-+		break;
-+	}
- 	default:
- 		dev_err(dev->dev,
- 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 1493192..fa993f7 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -82,6 +82,7 @@
- #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
- #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
- #define CX231XX_BOARD_HAUPPAUGE_935C 26
-+#define CX231XX_BOARD_HAUPPAUGE_975 27
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+ 	pdata.grp_id = isd->id->grp_id;
 -- 
 2.7.4
