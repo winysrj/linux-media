@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:46409 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750868AbeBDNxf (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:38541 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934958AbeBURsg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 08:53:35 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC PATCH] media-device: add index field to media_v2_pad
-Message-ID: <f29798d5-6f90-e433-93d5-81ba3e420d34@xs4all.nl>
-Date: Sun, 4 Feb 2018 14:53:31 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 21 Feb 2018 12:48:36 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v10 04/10] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+Date: Wed, 21 Feb 2018 18:47:58 +0100
+Message-Id: <1519235284-32286-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Userspace has no way of knowing the pad index for the entity that
-owns the pad with the MEDIA_IOC_G_TOPOLOGY ioctl. However, various
-v4l-subdev ioctls need to pass this as an argument.
+Add Capture Engine Unit (CEU) node to device tree.
 
-Add this missing information.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-RFC, so no documentation yet. This works fine, but how would applications
-know that media_v2_pad has been extended with a new index field? Currently
-this is 0, which is a valid index.
+ arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-If no one is using this API (or only for DVB devices) then we can do that.
-The other alternative is to add a new pad flag MEDIA_PAD_FL_HAS_INDEX.
----
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index e79f72b8b858..16964d3dfb1e 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -318,6 +320,7 @@ static long media_device_get_topology(struct media_device *mdev,
- 		kpad.id = pad->graph_obj.id;
- 		kpad.entity_id = pad->entity->graph_obj.id;
- 		kpad.flags = pad->flags;
-+		kpad.index = pad->index;
-
- 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
- 			ret = -EFAULT;
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index b9b9446095e9..c3e7a668e122 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -375,7 +375,8 @@ struct media_v2_pad {
- 	__u32 id;
- 	__u32 entity_id;
- 	__u32 flags;
--	__u32 reserved[5];
-+	__u16 index;
-+	__u16 reserved[9];
- } __attribute__ ((packed));
-
- struct media_v2_link {
+diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
+index ab9645a..23e05ce 100644
+--- a/arch/arm/boot/dts/r7s72100.dtsi
++++ b/arch/arm/boot/dts/r7s72100.dtsi
+@@ -135,9 +135,9 @@
+ 			#clock-cells = <1>;
+ 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
+ 			reg = <0xfcfe042c 4>;
+-			clocks = <&p0_clk>;
+-			clock-indices = <R7S72100_CLK_RTC>;
+-			clock-output-names = "rtc";
++			clocks = <&b_clk>, <&p0_clk>;
++			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
++			clock-output-names = "ceu", "rtc";
+ 		};
+ 
+ 		mstp7_clks: mstp7_clks@fcfe0430 {
+@@ -667,4 +667,13 @@
+ 		power-domains = <&cpg_clocks>;
+ 		status = "disabled";
+ 	};
++
++	ceu: camera@e8210000 {
++		reg = <0xe8210000 0x3000>;
++		compatible = "renesas,r7s72100-ceu";
++		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
++		power-domains = <&cpg_clocks>;
++		status = "disabled";
++	};
+ };
+-- 
+2.7.4
