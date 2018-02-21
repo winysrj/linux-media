@@ -1,120 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47346 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752251AbeBUMhF (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:34199 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751180AbeBUMDc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 07:37:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv2] media: add tuner standby op, use where needed
-Date: Wed, 21 Feb 2018 14:37:47 +0200
-Message-ID: <3222129.ciFPb3AyAM@avalon>
-In-Reply-To: <52db5ff1-c91c-f210-6a09-68522128d336@xs4all.nl>
-References: <06ad8080-255f-b770-40b7-e6bc98b6ce60@cisco.com> <1537413.80bhSTNWuA@avalon> <52db5ff1-c91c-f210-6a09-68522128d336@xs4all.nl>
+        Wed, 21 Feb 2018 07:03:32 -0500
+Subject: Re: [PATCH v9 03/11] media: platform: Add Renesas CEU driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1519059584-30844-4-git-send-email-jacopo+renesas@jmondi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <024c232f-bd43-42a9-25e7-0fbe71edbcb0@xs4all.nl>
+Date: Wed, 21 Feb 2018 13:03:24 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1519059584-30844-4-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wednesday, 21 February 2018 09:40:29 EET Hans Verkuil wrote:
-> On 02/21/2018 01:02 AM, Laurent Pinchart wrote:
-> > On Tuesday, 20 February 2018 11:44:20 EET Hans Verkuil wrote:
-> >> The v4l2_subdev core s_power op was used for two different things: power
-> >> on/off sensors or video decoders/encoders and to put a tuner in standby
-> >> (and only the tuner!). There is no 'tuner wakeup' op, that's done
-> >> automatically when the tuner is accessed.
-> >> 
-> >> The danger with calling (s_power, 0) to put a tuner into standby is that
-> >> it is usually broadcast for all subdevs. So a video receiver subdev that
-> >> supports s_power will also be powered off, and since there is no
-> >> corresponding (s_power, 1) they will never be powered on again.
-> >> 
-> >> In addition, this is specifically meant for tuners only since they draw
-> >> the most current.
-> >> 
-> >> This patch adds a new tuner op called 'standby' and replaces all calls to
-> >> (core, s_power, 0) by (tuner, standby). This prevents confusion between
-> >> the two uses of s_power. Note that there is no overlap: bridge drivers
-> >> either just want to put the tuner into standby, or they deal with
-> >> powering on/off sensors. Never both.
-> >> 
-> >> This also makes it easier to replace s_power for the remaining bridge
-> >> drivers with some PM code later.
-> >> 
-> >> Whether we want something cleaner for tuners in the future is a separate
-> >> topic. There is a lot of legacy code surrounding tuners, and I am very
-> >> hesitant about making changes there.
-> >> 
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> Changes since v1:
-> >> - move the standby op to the tuner_ops, which makes much more sense.
-> >> ---
-> > 
-> > [snip]
-> > 
-> >> diff --git a/drivers/media/v4l2-core/tuner-core.c
-> >> b/drivers/media/v4l2-core/tuner-core.c index 82852f23a3b6..cb126baf8771
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/tuner-core.c
-> >> +++ b/drivers/media/v4l2-core/tuner-core.c
-> >> @@ -1099,23 +1099,15 @@ static int tuner_s_radio(struct v4l2_subdev *sd)
-> >>   */
-> >>  
-> >>  /**
-> >> - * tuner_s_power - controls the power state of the tuner
-> >> + * tuner_standby - controls the power state of the tuner
-> > 
-> > I'd update the description too.
-> > 
-> >>   * @sd: pointer to struct v4l2_subdev
-> >>   * @on: a zero value puts the tuner to sleep, non-zero wakes it up
-> > 
-> > And this parameter doesn't exist anymore. You could have caught that by
-> > compiling the documentation.
+On 02/19/18 17:59, Jacopo Mondi wrote:
+> Add driver for Renesas Capture Engine Unit (CEU).
 > 
-> Oops! I'll make a v3. Thanks for catching this.
+> The CEU interface supports capturing 'data' (YUV422) and 'images'
+> (NV[12|21|16|61]).
 > 
-> >>   */
-> >> -static int tuner_s_power(struct v4l2_subdev *sd, int on)
-> >> +static int tuner_standby(struct v4l2_subdev *sd)
-> >>  {
-> >>  	struct tuner *t = to_tuner(sd);
-> >>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
-> >> 
-> >> -	if (on) {
-> >> -		if (t->standby && set_mode(t, t->mode) == 0) {
-> >> -			dprintk("Waking up tuner\n");
-> >> -			set_freq(t, 0);
-> >> -		}
-> >> -		return 0;
-> >> -	}
-> >> -
-> > 
-> > Interesting how this code was not used. I've had a look at tuner-core
-> > driver out of curiosity, it clearly shows its age :/ I2C address probing
-> > belongs to another century.
+> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
 > 
-> Not really. It's still needed for USB/PCI devices.
-
-Why is that ?
-
-> I was also surprised that it wasn't used. I expected to see some internal
-> calls to tuner_s_power(sd, 1) to turn things on, but that's not what
-> happened.
+> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+> platform GR-Peach.
 > 
-> >>  	dprintk("Putting tuner to sleep\n");
-> >>  	t->standby = true;
-> >>  	if (analog_ops->standby)
+> Tested with ov7725 camera sensor on SH4 platform Migo-R.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/Kconfig       |    9 +
+>  drivers/media/platform/Makefile      |    1 +
+>  drivers/media/platform/renesas-ceu.c | 1661 ++++++++++++++++++++++++++++++++++
+>  3 files changed, 1671 insertions(+)
+>  create mode 100644 drivers/media/platform/renesas-ceu.c
+> 
 
-[snip]
+<snip>
 
--- 
+> +static int ceu_s_input(struct file *file, void *priv, unsigned int i)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +	struct ceu_subdev *ceu_sd_old;
+> +	int ret;
+> +
+> +	if (i >= ceudev->num_sd)
+> +		return -EINVAL;
+> +
+> +	if (vb2_is_streaming(&ceudev->vb2_vq))
+> +		return -EBUSY;
+> +
+> +	if (i == ceudev->sd_index)
+> +		return 0;
+> +
+> +	ceu_sd_old = ceudev->sd;
+> +	ceudev->sd = &ceudev->subdevs[i];
+> +
+> +	/* Make sure we can generate output image formats. */
+> +	ret = ceu_init_formats(ceudev);
+
+Why is this done for every s_input? I would expect that this is done only once
+for each subdev.
+
+I also expect to see a ceu_set_default_fmt() call here. Or that the v4l2_pix is kept
+in ceu_subdev (i.e. per subdev) instead of a single fmt in cuedev. I think I prefer
+that over configuring a new default format every time you switch inputs.
+
+This code will work for two subdevs with exactly the same formats/properties. But
+switching between e.g. a sensor and a video receiver will leave things in an
+inconsistent state as far as I can see.
+
+E.g. if input 1 is the video receiver then switching to that input and running
+'v4l2-ctl -V' will show the sensor format, not the video receiver format.
+
+> +	if (ret) {
+> +		ceudev->sd = ceu_sd_old;
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* now that we're sure we can use the sensor, power off the old one. */
+> +	v4l2_subdev_call(ceu_sd_old->v4l2_sd, core, s_power, 0);
+> +	v4l2_subdev_call(ceudev->sd->v4l2_sd, core, s_power, 1);
+> +
+> +	ceudev->sd_index = i;
+> +
+> +	return 0;
+> +}
+
+The remainder of this driver looks good.
+
 Regards,
 
-Laurent Pinchart
+	Hans
