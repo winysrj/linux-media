@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47444 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967378AbeBNLog (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53732 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753863AbeBURs0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:44:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH for v4.14 00/13] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
-Date: Wed, 14 Feb 2018 12:44:21 +0100
-Message-Id: <20180214114434.26842-1-hverkuil@xs4all.nl>
+        Wed, 21 Feb 2018 12:48:26 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v10 02/10] include: media: Add Renesas CEU driver interface
+Date: Wed, 21 Feb 2018 18:47:56 +0100
+Message-Id: <1519235284-32286-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add renesas-ceu header file.
 
-This patch series fixes a number of bugs and culminates in the removal
-of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
+Do not remove the existing sh_mobile_ceu.h one as long as the original
+driver does not go away.
 
-This was tested with a VM running 4.14, the vivid driver (since that
-emulates almost all V4L2 ioctls that need to pass through v4l2-compat-ioctl32.c)
-and a 32-bit v4l2-compliance utility since that exercises almost all ioctls
-as well. Combined this gives good test coverage.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
 
-Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
-v4l2-compliance complained about. The purpose is to 1) make it easy to
-verify that the final patch didn't introduce errors by first eliminating
-errors caused by other bugs, and 2) keep the final patch at least somewhat
-readable.
-
-Rgards,
-
-	Hans
-
-Daniel Mentz (1):
-  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
-
-Hans Verkuil (12):
-  media: v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
-  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
-  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
-  media: v4l2-compat-ioctl32.c: fix the indentation
-  media: v4l2-compat-ioctl32.c: move 'helper' functions to
-    __get/put_v4l2_format32
-  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
-  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
-  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
-  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
-    errors
-  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1032 +++++++++++++++----------
- drivers/media/v4l2-core/v4l2-ioctl.c          |  145 ++--
- 2 files changed, 665 insertions(+), 512 deletions(-)
-
+diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
+new file mode 100644
+index 0000000..52841d1
+--- /dev/null
++++ b/include/media/drv-intf/renesas-ceu.h
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * renesas-ceu.h - Renesas CEU driver interface
++ *
++ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ */
++
++#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
++#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
++
++#define CEU_MAX_SUBDEVS		2
++
++struct ceu_async_subdev {
++	unsigned long flags;
++	unsigned char bus_width;
++	unsigned char bus_shift;
++	unsigned int i2c_adapter_id;
++	unsigned int i2c_address;
++};
++
++struct ceu_platform_data {
++	unsigned int num_subdevs;
++	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
++};
++
++#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
 -- 
-2.15.1
+2.7.4
