@@ -1,89 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:49629 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbeBIPRD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 10:17:03 -0500
-Date: Fri, 9 Feb 2018 16:16:53 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2] media: ov5640: fix virtual_channel parameter
- permissions
-Message-ID: <20180209151653.GA6869@w540>
-References: <1517923449-7596-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1517923449-7596-1-git-send-email-hugues.fruchet@st.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34696 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935044AbeBUPcX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 10:32:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 01/15] vimc: fix control event handling
+Date: Wed, 21 Feb 2018 16:32:04 +0100
+Message-Id: <20180221153218.15654-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
+References: <20180221153218.15654-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+The sensor subdev didn't handle control events. Add support for this.
+Found with v4l2-compliance.
 
-On Tue, Feb 06, 2018 at 02:24:09PM +0100, Hugues Fruchet wrote:
-> Fix module_param(virtual_channel) permissions.
-> This problem was detected by checkpatch:
-> $ scripts/checkpatch.pl -f drivers/media/i2c/ov5640.c
-> ERROR: Use 4 digit octal (0777) not decimal permissions
-> #131: FILE: drivers/media/i2c/ov5640.c:131:
-> +module_param(virtual_channel, int, 0);
->
-> Also add an error trace in case of virtual_channel not in
-> the valid range of values.
->
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/vimc/vimc-common.c | 4 +++-
+ drivers/media/platform/vimc/vimc-sensor.c | 8 ++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
-Thanks
-  j
-
-> ---
-> version 2:
->   - Fix code as per Jacopo Mondi suggestions:
->     - int to uint
->     - no need to set global to 0
->     - shorten error trace
->     See https://www.mail-archive.com/linux-media@vger.kernel.org/msg125474.html
->  drivers/media/i2c/ov5640.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 696a28b..3e7b43c 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -128,7 +128,7 @@ struct ov5640_pixfmt {
->   * to set the MIPI CSI-2 virtual channel.
->   */
->  static unsigned int virtual_channel;
-> -module_param(virtual_channel, int, 0);
-> +module_param(virtual_channel, uint, 0444);
->  MODULE_PARM_DESC(virtual_channel,
->  		 "MIPI CSI-2 virtual channel (0..3), default 0");
->
-> @@ -1358,11 +1358,16 @@ static int ov5640_binning_on(struct ov5640_dev *sensor)
->
->  static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
->  {
-> +	struct i2c_client *client = sensor->i2c_client;
->  	u8 temp, channel = virtual_channel;
->  	int ret;
->
-> -	if (channel > 3)
-> +	if (channel > 3) {
-> +		dev_err(&client->dev,
-> +			"%s: wrong virtual_channel parameter, expected (0..3), got %d\n",
-> +			__func__, channel);
->  		return -EINVAL;
-> +	}
->
->  	ret = ov5640_read_reg(sensor, OV5640_REG_DEBUG_MODE, &temp);
->  	if (ret)
-> --
-> 1.9.1
->
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index 9d63c84a9876..617415c224fe 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -434,7 +434,9 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ 	v4l2_set_subdevdata(sd, ved);
+ 
+ 	/* Expose this subdev to user space */
+-	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	if (sd->ctrl_handler)
++		sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
+ 
+ 	/* Initialize the media entity */
+ 	ret = media_entity_pads_init(&sd->entity, num_pads, ved->pads);
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 457e211514c6..54184cd9e0ff 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -23,6 +23,7 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/vmalloc.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/tpg/v4l2-tpg.h>
+ 
+@@ -284,11 +285,18 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
++static struct v4l2_subdev_core_ops vimc_sen_core_ops = {
++	.log_status = v4l2_ctrl_subdev_log_status,
++	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
++};
++
+ static const struct v4l2_subdev_video_ops vimc_sen_video_ops = {
+ 	.s_stream = vimc_sen_s_stream,
+ };
+ 
+ static const struct v4l2_subdev_ops vimc_sen_ops = {
++	.core = &vimc_sen_core_ops,
+ 	.pad = &vimc_sen_pad_ops,
+ 	.video = &vimc_sen_video_ops,
+ };
+-- 
+2.16.1
