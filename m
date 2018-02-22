@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:42794 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753286AbeBLSgH (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:46233 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753189AbeBVKYM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 13:36:07 -0500
-Received: by mail-wr0-f193.google.com with SMTP id k9so2432919wre.9
-        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 10:36:07 -0800 (PST)
-From: Antonio Cardace <anto.cardace@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, andriy.shevchenko@linux.intel.com,
-        Antonio Cardace <anto.cardace@gmail.com>
-Subject: [PATCH] gspca: dtcs033: use %*ph to print small buffer
-Date: Mon, 12 Feb 2018 18:35:25 +0000
-Message-Id: <20180212183525.26413-1-anto.cardace@gmail.com>
+        Thu, 22 Feb 2018 05:24:12 -0500
+From: Rui Miguel Silva <rmfrfs@gmail.com>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 0/2] media: Introduce Omnivision OV2680 driver
+Date: Thu, 22 Feb 2018 10:23:36 +0000
+Message-Id: <20180222102338.28896-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use %*ph format to print small buffer as hex string.
+Add driver and bindings for the OV2680 2 megapixel CMOS 1/5" sensor, which has
+a single MIPI lane interface and output format of 10-bit Raw RGB.
 
-Remove newline at the end of the format string as it would be duplicated
-by the one supplied as last argument.
+Features supported are described in PATCH 2/2.
 
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Antonio Cardace <anto.cardace@gmail.com>
----
- drivers/media/usb/gspca/dtcs033.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Cheers,
+    Rui
 
-diff --git a/drivers/media/usb/gspca/dtcs033.c b/drivers/media/usb/gspca/dtcs033.c
-index cdf27cf0112a..7654c8c08eda 100644
---- a/drivers/media/usb/gspca/dtcs033.c
-+++ b/drivers/media/usb/gspca/dtcs033.c
-@@ -76,12 +76,10 @@ static int reg_reqs(struct gspca_dev *gspca_dev,
- 		} else if (preq->bRequestType & USB_DIR_IN) {
- 
- 			gspca_dbg(gspca_dev, D_STREAM,
--				  "USB IN (%d) returned[%d] %02X %02X %02X %s\n",
-+				  "USB IN (%d) returned[%d] %3ph %s",
- 				  i,
- 				  preq->wLength,
--				  gspca_dev->usb_buf[0],
--				  gspca_dev->usb_buf[1],
--				  gspca_dev->usb_buf[2],
-+				  gspca_dev->usb_buf,
- 				  preq->wLength > 3 ? "...\n" : "\n");
- 		}
- 
+Rui Miguel Silva (2):
+  media: ov2680: dt: Add bindings for OV2680
+  media: ov2680: Add Omnivision OV2680 sensor driver
+
+ .../devicetree/bindings/media/i2c/ov2680.txt       |   34 +
+ drivers/media/i2c/Kconfig                          |   13 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov2680.c                         | 1189 ++++++++++++++++++++
+ 4 files changed, 1237 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
+ create mode 100644 drivers/media/i2c/ov2680.c
+
 -- 
-2.15.1.354.g95ec6b1b3
+2.16.2
