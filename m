@@ -1,156 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa2.microchip.iphmx.com ([68.232.149.84]:55858 "EHLO
-        esa2.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752374AbeB0QQD (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35273 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932942AbeBVQ2r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 11:16:03 -0500
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-To: Daniel Thompson <daniel.thompson@linaro.org>
-CC: Jani Nikula <jani.nikula@linux.intel.com>,
-        <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
-        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
-        <jdelvare@suse.com>, <linux@roeck-us.net>,
-        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
-        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
-        <sean@mess.org>, <lee.jones@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>,
-        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
- <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
- <20180222123308.mypx2r7n6o63mj5z@oak.lan> <87po4s2hve.fsf@intel.com>
- <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
- <20180227105444.lo4pee7vh4we3foq@oak.lan>
- <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
- <20180227153812.txt2vsdygfnobo33@oak.lan>
-From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Message-ID: <66059303-3a17-d534-3581-9c03cc05a909@microchip.com>
-Date: Tue, 27 Feb 2018 18:15:50 +0200
+        Thu, 22 Feb 2018 11:28:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3] vsp1: fix video output on R8A77970
+Date: Thu, 22 Feb 2018 18:29:31 +0200
+Message-ID: <1728090.GRuQRXDi5g@avalon>
+In-Reply-To: <11341738.DVmQoThvsb@avalon>
+References: <20180118140600.363149670@cogentembedded.com> <11341738.DVmQoThvsb@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20180227153812.txt2vsdygfnobo33@oak.lan>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sergei,
 
+On Thursday, 22 February 2018 18:26:20 EET Laurent Pinchart wrote:
+> On Thursday, 18 January 2018 16:05:51 EET Sergei Shtylyov wrote:
+> > Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
+> > and VSP2-D instances") added support for the VSP2-D found in the R-Car
+> > V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
+> > garbage-like line repeated every 8 screen rows. It turns out that R-Car
+> > V3M has the LIF0 buffer attribute register that you need to set to a non-
+> > default value in order to get rid of the output artifacts...
+> > 
+> > Based on the original (and large) patch by Daisuke Matsushita
+> > <daisuke.matsushita.ns@hitachi.com>.
+> > 
+> > Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
+> > VSP2-D instances") Signed-off-by: Sergei Shtylyov
+> > <sergei.shtylyov@cogentembedded.com>
+> > 
+> > ---
+> > This patch is against the 'media_tree.git' repo's 'fixes' branch.
+> > 
+> > Changes in version 3:
+> > - reworded the comment in lif_configure();
+> > - reworded the patch description.
+> > 
+> > Changes in version 2:
+> > - added a  comment before the V3M SoC check;
+> > - fixed indetation in that check;
+> > - reformatted  the patch description.
+> > 
+> >  drivers/media/platform/vsp1/vsp1_lif.c  |   15 +++++++++++++++
+> >  drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
+> >  2 files changed, 20 insertions(+)
+> > 
+> > Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+> > ===================================================================
+> > --- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
+> > +++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+> > @@ -155,6 +155,21 @@ static void lif_configure(struct vsp1_en
+> > 
+> >  			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
+> >  			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
+> >  			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
+> > 
+> > +
+> > +	/*
+> > +	 * On R-Car V3M the LIF0 buffer attribute register has to be set
+> > +	 * to a non-default value to guarantee proper operation (otherwise
+> > +	 * artifacts may appear on the output). The value required by
+> > +	 * the manual is not explained but is likely a buffer size or
+> > +	 * threshold...
+> 
+> One period is enough :-)
+> 
+> > +	 */
+> > +	if ((entity->vsp1->version &
+> > +	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
+> > +	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
+> > +		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
+> > +			       VI6_LIF_LBA_LBA0 |
+> > +			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
+> > +	}
+> 
+> There's no need for braces or inner parentheses.
 
-On 27.02.2018 17:38, Daniel Thompson wrote:
-> On Tue, Feb 27, 2018 at 01:40:58PM +0200, Claudiu Beznea wrote:
->> On 27.02.2018 12:54, Daniel Thompson wrote:
->>> On Mon, Feb 26, 2018 at 04:24:15PM +0200, Claudiu Beznea wrote:
->>>> On 26.02.2018 11:57, Jani Nikula wrote:
->>>>> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
->>>>>> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
->>>>>>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
->>>>>>> were adapted to this change.
->>>>>>>
->>>>>>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
->>>>>>> ---
->>>>>>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
->>>>>>>  drivers/bus/ts-nbus.c                |  2 +-
->>>>>>>  drivers/clk/clk-pwm.c                |  3 ++-
->>>>>>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
->>>>>>>  drivers/hwmon/pwm-fan.c              |  2 +-
->>>>>>>  drivers/input/misc/max77693-haptic.c |  2 +-
->>>>>>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
->>>>>>>  drivers/leds/leds-pwm.c              |  5 ++++-
->>>>>>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
->>>>>>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
->>>>>>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
->>>>>>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
->>>>>>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
->>>>>>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
->>>>>>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
->>>>>>>  include/linux/pwm.h                  |  6 ++++--
->>>>>>>  16 files changed, 70 insertions(+), 21 deletions(-)
->>>>>>>
->>>>>>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
->>>>>>> index 2030a6b77a09..696fa25dafd2 100644
->>>>>>> --- a/drivers/video/backlight/lm3630a_bl.c
->>>>>>> +++ b/drivers/video/backlight/lm3630a_bl.c
->>>>>>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
->>>>>>>  {
->>>>>>>  	unsigned int period = pchip->pdata->pwm_period;
->>>>>>>  	unsigned int duty = br * period / br_max;
->>>>>>> +	struct pwm_caps caps = { };
->>>>>>>  
->>>>>>> -	pwm_config(pchip->pwmd, duty, period);
->>>>>>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
->>>>>>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
->>>>>>
->>>>>> Well... I admit I've only really looked at the patches that impact 
->>>>>> backlight but dispersing this really odd looking bit twiddling 
->>>>>> throughout the kernel doesn't strike me a great API design.
->>>>>>
->>>>>> IMHO callers should not be required to find the first set bit in
->>>>>> some specially crafted set of capability bits simply to get sane 
->>>>>> default behaviour.
->>>>>
->>>>> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
->>>>> error prone.
->>>>
->>>> Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
->>>> from your side?
->>>>
->>>> Or, what about using a function like pwm_mode_first() to get the first supported
->>>> mode by PWM channel?
->>>>
->>>> Or, would you prefer to solve this inside pwm_config() function, let's say, in
->>>> case an invalid mode is passed as argument, to let pwm_config() to choose the
->>>> first available PWM mode for PWM channel passed as argument?
->>>
->>> What is it that actually needs solving?
->>>
->>> If a driver requests normal mode and the PWM driver cannot support it
->>> why not just return an error an move on.
->> Because, simply, I wasn't aware of what these PWM client drivers needs for.
-> 
-> I'm afraid you have confused me here.
-> 
-> Didn't you just *add* the whole concept of PWM caps with your patches?
-> How could any existing call site expect anything except normal mode.
-> Until now there has been no possiblity to request anything else.
-Agree. And agree I was confusing in previous email, sorry about that. And
-agree that there was nothing before and everything should work with PWM
-normal mode.
+There's of course a need for the inner parentheses, please ignore this 
+comment.
 
-When I choose to have BIT(ffs(caps.modes)) instead of PWM_MODE(NORMAL) I
-was thinking at having these pwm_config() calls working all the time having
-in mind that in future the PWM controllers that these drivers use, might
-change in terms of PWM supported modes.
+> To make this easier to read I propose defining a new macro
+> VI6_IP_VERSION_MASK that combines both the model and SoC. Otherwise this
+> looks good to me,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> I'll post a v4 with that change in reply to this e-mail, please let me know
+> if you're fine with it.
+> 
+> >  }
+> >  
+> >  static const struct vsp1_entity_operations lif_entity_ops = {
+> > 
+> > Index: media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+> > ===================================================================
+> > --- media_tree.orig/drivers/media/platform/vsp1/vsp1_regs.h
+> > +++ media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+> > @@ -693,6 +693,11 @@
+> >  #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
+> >  #define VI6_LIF_CSBTH_LBTH_SHIFT	0
+> > 
+> > +#define VI6_LIF_LBA			0x3b0c
+> > +#define VI6_LIF_LBA_LBA0		(1 << 31)
+> > +#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
+> > +#define VI6_LIF_LBA_LBA1_SHIFT		16
+> > +
+> >  /* ----------------------------------------------------------------------
+> >   * Security Control Registers
+> >   */
 
-Thank you,
-Claudiu Beznea
+-- 
+Regards,
 
-> 
-> 
->>> Put another way, what is the use case for secretly adopting a mode the
->>> caller didn't want? Under what circumstances is this a good thing?
->> No one... But I wasn't aware of what the PWM clients needs for from their PWM
->> controllers. At this moment having BIT(ffs(caps.modes)) instead of
->> PWM_MODE(NORMAL) is mostly the same since all the driver that has not explicitly
->> registered PWM caps will use PWM normal mode.
->>
->> I will use PWM_MODE(NORMAL) instead of this in all the cases if this is OK from
->> your side.
->>
->> Thank you,
->> Claudiu Beznea
->>>
->>>
->>> Daniel.
->>>
-> 
+Laurent Pinchart
