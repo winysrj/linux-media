@@ -1,70 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37779 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967538AbeBNLwm (ORCPT
+Received: from esa1.microchip.iphmx.com ([68.232.147.91]:4383 "EHLO
+        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932121AbeBVMC5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:52:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.4 10/14] media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
-Date: Wed, 14 Feb 2018 12:52:36 +0100
-Message-Id: <20180214115240.27650-11-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
-References: <20180214115240.27650-1-hverkuil@xs4all.nl>
+        Thu, 22 Feb 2018 07:02:57 -0500
+From: Claudiu Beznea <claudiu.beznea@microchip.com>
+To: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
+        <krzk@kernel.org>, <linux@armlinux.org.uk>,
+        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
+        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
+        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
+        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
+        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
+        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
+        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
+        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
+        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
+        <alexandre.belloni@free-electrons.com>
+CC: <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>
+Subject: [PATCH v3 02/10] pwm: clps711x: populate PWM mode in of_xlate function
+Date: Thu, 22 Feb 2018 14:01:13 +0200
+Message-ID: <1519300881-8136-3-git-send-email-claudiu.beznea@microchip.com>
+In-Reply-To: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Mentz <danielmentz@google.com>
+Populate PWM mode in of_xlate function to avoid pwm_apply_state() failure.
 
-commit 025a26fa14f8fd55d50ab284a30c016a5be953d0 upstream.
-
-Commit b2787845fb91 ("V4L/DVB (5289): Add support for video output
-overlays.") added the field global_alpha to struct v4l2_window but did
-not update the compat layer accordingly. This change adds global_alpha
-to struct v4l2_window32 and copies the value for global_alpha back and
-forth.
-
-Signed-off-by: Daniel Mentz <danielmentz@google.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/pwm/pwm-clps711x.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 0c3949a00570..e55231a12f00 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -45,6 +45,7 @@ struct v4l2_window32 {
- 	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
- 	__u32			clipcount;
- 	compat_caddr_t		bitmap;
-+	__u8                    global_alpha;
- };
+diff --git a/drivers/pwm/pwm-clps711x.c b/drivers/pwm/pwm-clps711x.c
+index 26ec24e457b1..2a4d31ab3af0 100644
+--- a/drivers/pwm/pwm-clps711x.c
++++ b/drivers/pwm/pwm-clps711x.c
+@@ -109,10 +109,20 @@ static const struct pwm_ops clps711x_pwm_ops = {
+ static struct pwm_device *clps711x_pwm_xlate(struct pwm_chip *chip,
+ 					     const struct of_phandle_args *args)
+ {
++	struct pwm_device *pwm;
++	struct pwm_caps caps;
++
+ 	if (args->args[0] >= chip->npwm)
+ 		return ERR_PTR(-EINVAL);
  
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
-@@ -53,7 +54,8 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
- 	    get_user(kp->chromakey, &up->chromakey) ||
--	    get_user(kp->clipcount, &up->clipcount))
-+	    get_user(kp->clipcount, &up->clipcount) ||
-+	    get_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
-@@ -86,7 +88,8 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
--	    put_user(kp->clipcount, &up->clipcount))
-+	    put_user(kp->clipcount, &up->clipcount) ||
-+	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
- 	return 0;
+-	return pwm_request_from_chip(chip, args->args[0], NULL);
++	pwm = pwm_request_from_chip(chip, args->args[0], NULL);
++	if (IS_ERR(pwm))
++		return pwm;
++
++	pwm_get_caps(chip, pwm, &caps);
++	pwm->args.mode = BIT(ffs(caps.modes) - 1);
++
++	return pwm;
  }
+ 
+ static int clps711x_pwm_probe(struct platform_device *pdev)
 -- 
-2.15.1
+2.7.4
