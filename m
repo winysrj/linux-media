@@ -1,55 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:32807 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750842AbeBUXNu (ORCPT
+Received: from esa1.microchip.iphmx.com ([68.232.147.91]:62262 "EHLO
+        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932103AbeBVMEE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 18:13:50 -0500
-Received: by mail-qk0-f193.google.com with SMTP id f25so4261386qkm.0
-        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 15:13:50 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: p.zabel@pengutronix.de
-Cc: slongerbeam@gmail.com, ian.arkver.dev@gmail.com,
-        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH v3 2/2] media: imx-ic-prpencvf: Use empty initializer
-Date: Wed, 21 Feb 2018 20:13:51 -0300
-Message-Id: <1519254831-14452-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1519254831-14452-1-git-send-email-festevam@gmail.com>
-References: <1519254831-14452-1-git-send-email-festevam@gmail.com>
+        Thu, 22 Feb 2018 07:04:04 -0500
+From: Claudiu Beznea <claudiu.beznea@microchip.com>
+To: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
+        <krzk@kernel.org>, <linux@armlinux.org.uk>,
+        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
+        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
+        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
+        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
+        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
+        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
+        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
+        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
+        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
+        <alexandre.belloni@free-electrons.com>
+CC: <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>
+Subject: [PATCH v3 09/10] pwm: add documentation for pwm push-pull mode
+Date: Thu, 22 Feb 2018 14:01:20 +0200
+Message-ID: <1519300881-8136-10-git-send-email-claudiu.beznea@microchip.com>
+In-Reply-To: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+Add documentation for PWM push-pull mode.
 
-{0} explicitly assigns 0 to the first member of the structure.
-
-Even though the first member of the v4l2_subdev_format structure is of
-_u32 type, make the initialization more robust by using the empty
-initializer.
-
-This way in case someday the struct is changed so that the first
-member becomes a pointer, we will not have sparse warnings.
-
-Reported-by: Steve Longerbeam <slongerbeam@gmail.com>
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
-Changes since v1:
-- Improve commit log
+ Documentation/devicetree/bindings/pwm/pwm.txt |  2 ++
+ Documentation/pwm.txt                         | 16 ++++++++++++++++
+ include/dt-bindings/pwm/pwm.h                 |  1 +
+ 3 files changed, 19 insertions(+)
 
- drivers/staging/media/imx/imx-ic-prpencvf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index 143038c..60f392a 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -923,7 +923,7 @@ static int prp_enum_frame_size(struct v4l2_subdev *sd,
- 			       struct v4l2_subdev_frame_size_enum *fse)
- {
- 	struct prp_priv *priv = sd_to_priv(sd);
--	struct v4l2_subdev_format format = {0};
-+	struct v4l2_subdev_format format = {};
- 	const struct imx_media_pixfmt *cc;
- 	int ret = 0;
+diff --git a/Documentation/devicetree/bindings/pwm/pwm.txt b/Documentation/devicetree/bindings/pwm/pwm.txt
+index c2b4b9ba0e3f..968dd786ad7c 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm.txt
+@@ -49,6 +49,8 @@ Optionally, the pwm-specifier can encode a number of flags (defined in
+ - PWM_DTMODE_COMPLEMENTARY: PWM complementary working mode (for PWM
+ channels two outputs); if not specified, the default for PWM channel will
+ be used
++- PWM_DTMODE_PUSH_PULL: PWM push-pull working modes (for PWM channels with
++two outputs); if not specified the default for PWM channel will be used
  
+ Example with optional PWM specifier for inverse polarity and complementary
+ mode:
+diff --git a/Documentation/pwm.txt b/Documentation/pwm.txt
+index 59592f8cc381..174c371583b6 100644
+--- a/Documentation/pwm.txt
++++ b/Documentation/pwm.txt
+@@ -128,6 +128,22 @@ channel that was exported. The following properties will then be available:
+     PWML1   |__|  |__|  |__|  |__|
+             <--T-->
+ 
++    Push-pull mode - for PWM channels with two outputs; output waveforms
++        for a PWM channel with 2 outputs, in push-pull mode, with normal
++        polarity looks like this:
++            __          __
++    PWMH __|  |________|  |________
++                  __          __
++    PWML ________|  |________|  |__
++           <--T-->
++
++    If polarity is inversed:
++         __    ________    ________
++    PWMH   |__|        |__|
++         ________    ________    __
++    PWML         |__|        |__|
++           <--T-->
++
+     Where T is the signal period.
+ 
+ Implementing a PWM driver
+diff --git a/include/dt-bindings/pwm/pwm.h b/include/dt-bindings/pwm/pwm.h
+index b4d61269aced..674dfdd59595 100644
+--- a/include/dt-bindings/pwm/pwm.h
++++ b/include/dt-bindings/pwm/pwm.h
+@@ -12,5 +12,6 @@
+ 
+ #define PWM_POLARITY_INVERTED			(1 << 0)
+ #define PWM_DTMODE_COMPLEMENTARY		(1 << 1)
++#define PWM_DTMODE_PUSH_PULL			(1 << 2)
+ 
+ #endif
 -- 
 2.7.4
