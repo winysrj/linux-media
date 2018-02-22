@@ -1,179 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:42146 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751732AbeBVBkR (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:53976 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753437AbeBVKmw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 20:40:17 -0500
-Received: by mail-pl0-f67.google.com with SMTP id 31so2012561ple.9
-        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 17:40:16 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thu, 22 Feb 2018 05:42:52 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180222094844.GB9891@saruman>
+References: <20180221233825.10024-1-jhogan@kernel.org> <20180222092654.GN25201@hirez.programming.kicks-ass.net>
+ <20180222094844.GB9891@saruman>
+From: Graham Whaley <graham.whaley@gmail.com>
+Date: Thu, 22 Feb 2018 10:42:50 +0000
+Message-ID: <CAF9eJuk=UNOQMZpTXCNpXVYUsYonvfUt_sB-kh8yLJDfinZPLA@mail.gmail.com>
+Subject: Re: [PATCH 00/13] Remove metag architecture
+To: James Hogan <jhogan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, linux-metag@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Marc Zyngier <marc.zyngier@arm.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 09/13] media: staging/imx: of: Remove recursive graph walk
-Date: Wed, 21 Feb 2018 17:39:45 -0800
-Message-Id: <1519263589-19647-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+        Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org,
+        linux-mm@kvack.org, linux-gpio@vger.kernel.org,
+        linux-watchdog@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-i2c@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After moving to subdev notifiers, it's no longer necessary to recursively
-walk the OF graph, because the subdev notifiers will discover and add
-devices from the graph for us.
+On 22 February 2018 at 09:48, James Hogan <jhogan@kernel.org> wrote:
+> On Thu, Feb 22, 2018 at 10:26:54AM +0100, Peter Zijlstra wrote:
+>> On Wed, Feb 21, 2018 at 11:38:12PM +0000, James Hogan wrote:
+>> > So lets call it a day and drop the Meta architecture port from the
+>> > kernel. RIP Meta.
+>>
+>> So long, and thanks for all the fish!
+>>
+>> Nice cleanup though, most welcome :-)
+>
+> I thought you might like it ;-)
+>
+>> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+>
+> Thanks
+> James
 
-So the recursive of_parse_subdev() function is gone, replaced with
-of_add_csi() which adds only the CSI port fwnodes to the imx-media
-root notifier.
+RIP indeed. As I sit here listening to my META powered radio.... for
+the series in general:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-of.c | 106 +++----------------------------
- 1 file changed, 8 insertions(+), 98 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index acde372..1c91754 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -20,74 +20,19 @@
- #include <video/imx-ipu-v3.h>
- #include "imx-media.h"
- 
--static int of_get_port_count(const struct device_node *np)
-+static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
- {
--	struct device_node *ports, *child;
--	int num = 0;
--
--	/* check if this node has a ports subnode */
--	ports = of_get_child_by_name(np, "ports");
--	if (ports)
--		np = ports;
--
--	for_each_child_of_node(np, child)
--		if (of_node_cmp(child->name, "port") == 0)
--			num++;
--
--	of_node_put(ports);
--	return num;
--}
--
--/*
-- * find the remote device node given local endpoint node
-- */
--static bool of_get_remote(struct device_node *epnode,
--			  struct device_node **remote_node)
--{
--	struct device_node *rp, *rpp;
--	struct device_node *remote;
--	bool is_csi_port;
--
--	rp = of_graph_get_remote_port(epnode);
--	rpp = of_graph_get_remote_port_parent(epnode);
--
--	if (of_device_is_compatible(rpp, "fsl,imx6q-ipu")) {
--		/* the remote is one of the CSI ports */
--		remote = rp;
--		of_node_put(rpp);
--		is_csi_port = true;
--	} else {
--		remote = rpp;
--		of_node_put(rp);
--		is_csi_port = false;
--	}
--
--	if (!of_device_is_available(remote)) {
--		of_node_put(remote);
--		*remote_node = NULL;
--	} else {
--		*remote_node = remote;
--	}
--
--	return is_csi_port;
--}
--
--static int
--of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
--		bool is_csi_port)
--{
--	int i, num_ports, ret;
-+	int ret;
- 
--	if (!of_device_is_available(sd_np)) {
-+	if (!of_device_is_available(csi_np)) {
- 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
--			sd_np->name);
-+			csi_np->name);
- 		/* unavailable is not an error */
- 		return 0;
- 	}
- 
--	/* register this subdev with async notifier */
--	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(sd_np),
--					 NULL);
-+	/* add CSI fwnode to async notifier */
-+	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np), NULL);
- 	if (ret) {
- 		if (ret == -EEXIST) {
- 			/* already added, everything is fine */
-@@ -98,42 +43,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 		return ret;
- 	}
- 
--	/*
--	 * the ipu-csi has one sink port. The source pads are not
--	 * represented in the device tree by port nodes, but are
--	 * described by the internal pads and links later.
--	 */
--	num_ports = is_csi_port ? 1 : of_get_port_count(sd_np);
--
--	for (i = 0; i < num_ports; i++) {
--		struct device_node *epnode = NULL, *port, *remote_np;
--
--		port = is_csi_port ? sd_np : of_graph_get_port_by_id(sd_np, i);
--		if (!port)
--			continue;
--
--		for_each_child_of_node(port, epnode) {
--			bool remote_is_csi;
--
--			remote_is_csi = of_get_remote(epnode, &remote_np);
--			if (!remote_np)
--				continue;
--
--			ret = of_parse_subdev(imxmd, remote_np, remote_is_csi);
--			of_node_put(remote_np);
--			if (ret)
--				break;
--		}
--
--		if (port != sd_np)
--			of_node_put(port);
--		if (ret) {
--			of_node_put(epnode);
--			break;
--		}
--	}
--
--	return ret;
-+	return 0;
- }
- 
- int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
-@@ -147,7 +57,7 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 		if (!csi_np)
- 			break;
- 
--		ret = of_parse_subdev(imxmd, csi_np, true);
-+		ret = of_add_csi(imxmd, csi_np);
- 		of_node_put(csi_np);
- 		if (ret)
- 			return ret;
--- 
-2.7.4
+Acked-by: Graham Whaley <graham.whaley@gmail.com>
