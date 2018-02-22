@@ -1,329 +1,330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53081 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967536AbeBNL7j (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:44911 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753101AbeBVJwR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:59:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.16 07/14] media: v4l2-compat-ioctl32.c: avoid sizeof(type)
-Date: Wed, 14 Feb 2018 12:59:31 +0100
-Message-Id: <20180214115938.28296-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
-References: <20180214115938.28296-1-hverkuil@xs4all.nl>
+        Thu, 22 Feb 2018 04:52:17 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH] media: stm32-dcmi: add JPEG support
+Date: Thu, 22 Feb 2018 10:51:50 +0100
+Message-ID: <1519293110-20059-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add DCMI JPEG support.
 
-commit 333b1e9f96ce05f7498b581509bb30cde03018bf upstream.
-
-Instead of doing sizeof(struct foo) use sizeof(*up). There even were
-cases where 4 * sizeof(__u32) was used instead of sizeof(kp->reserved),
-which is very dangerous when the size of the reserved array changes.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 73 +++++++++++++--------------
- 1 file changed, 35 insertions(+), 38 deletions(-)
+ drivers/media/platform/stm32/stm32-dcmi.c | 195 +++++++++++++++++++++++-------
+ 1 file changed, 148 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index f76ed4ee7df9..c9d9f23e660a 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -47,7 +47,7 @@ struct v4l2_window32 {
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 269e963..7eaaf7c 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -93,6 +93,11 @@ enum state {
+ #define MIN_HEIGHT	16U
+ #define MAX_HEIGHT	2048U
  
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_window32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
- 	    get_user(kp->chromakey, &up->chromakey) ||
-@@ -64,7 +64,7 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		if (get_user(p, &up->clips))
- 			return -EFAULT;
- 		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(struct v4l2_clip));
-+		kclips = compat_alloc_user_space(n * sizeof(*kclips));
- 		kp->clips = kclips;
- 		while (--n >= 0) {
- 			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
-@@ -152,14 +152,14 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
++#define MIN_JPEG_WIDTH	16U
++#define MAX_JPEG_WIDTH	2592U
++#define MIN_JPEG_HEIGHT	16U
++#define MAX_JPEG_HEIGHT	2592U
++
+ #define TIMEOUT_MS	1000
  
- static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
+ struct dcmi_graph_entity {
+@@ -191,14 +196,67 @@ static inline void reg_clear(void __iomem *base, u32 reg, u32 mask)
+ 
+ static int dcmi_start_capture(struct stm32_dcmi *dcmi);
+ 
++static void dcmi_buffer_done(struct stm32_dcmi *dcmi,
++			     struct dcmi_buf *buf,
++			     size_t bytesused,
++			     int err)
++{
++	struct vb2_v4l2_buffer *vbuf;
++
++	if (!buf)
++		return;
++
++	vbuf = &buf->vb;
++
++	vbuf->sequence = dcmi->sequence++;
++	vbuf->field = V4L2_FIELD_NONE;
++	vbuf->vb2_buf.timestamp = ktime_get_ns();
++	vb2_set_plane_payload(&vbuf->vb2_buf, 0, bytesused);
++	vb2_buffer_done(&vbuf->vb2_buf,
++			err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
++	dev_dbg(dcmi->dev, "buffer[%d] done seq=%d, bytesused=%zu\n",
++		vbuf->vb2_buf.index, vbuf->sequence, bytesused);
++
++	dcmi->buffers_count++;
++	dcmi->active = NULL;
++}
++
++static int dcmi_restart_capture(struct stm32_dcmi *dcmi)
++{
++	spin_lock_irq(&dcmi->irqlock);
++
++	if (dcmi->state != RUNNING) {
++		spin_unlock_irq(&dcmi->irqlock);
++		return -EINVAL;
++	}
++
++	/* Restart a new DMA transfer with next buffer */
++	if (list_empty(&dcmi->buffers)) {
++		dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer\n",
++			__func__);
++		dcmi->errors_count++;
++		dcmi->active = NULL;
++
++		spin_unlock_irq(&dcmi->irqlock);
++		return -EINVAL;
++	}
++
++	dcmi->active = list_entry(dcmi->buffers.next,
++				  struct dcmi_buf, list);
++	list_del_init(&dcmi->active->list);
++
++	spin_unlock_irq(&dcmi->irqlock);
++
++	return dcmi_start_capture(dcmi);
++}
++
+ static void dcmi_dma_callback(void *param)
  {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)))
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)))
- 		return -EFAULT;
- 	return __get_v4l2_format32(kp, up);
+ 	struct stm32_dcmi *dcmi = (struct stm32_dcmi *)param;
+ 	struct dma_chan *chan = dcmi->dma_chan;
+ 	struct dma_tx_state state;
+ 	enum dma_status status;
+-
+-	spin_lock_irq(&dcmi->irqlock);
++	struct dcmi_buf *buf = dcmi->active;
+ 
+ 	/* Check DMA status */
+ 	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
+@@ -216,53 +274,18 @@ static void dcmi_dma_callback(void *param)
+ 	case DMA_COMPLETE:
+ 		dev_dbg(dcmi->dev, "%s: Received DMA_COMPLETE\n", __func__);
+ 
+-		if (dcmi->active) {
+-			struct dcmi_buf *buf = dcmi->active;
+-			struct vb2_v4l2_buffer *vbuf = &dcmi->active->vb;
+-
+-			vbuf->sequence = dcmi->sequence++;
+-			vbuf->field = V4L2_FIELD_NONE;
+-			vbuf->vb2_buf.timestamp = ktime_get_ns();
+-			vb2_set_plane_payload(&vbuf->vb2_buf, 0, buf->size);
+-			vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
+-			dev_dbg(dcmi->dev, "buffer[%d] done seq=%d\n",
+-				vbuf->vb2_buf.index, vbuf->sequence);
+-
+-			dcmi->buffers_count++;
+-			dcmi->active = NULL;
+-		}
+-
+-		/* Restart a new DMA transfer with next buffer */
+-		if (dcmi->state == RUNNING) {
+-			if (list_empty(&dcmi->buffers)) {
+-				dev_err(dcmi->dev, "%s: No more buffer queued, cannot capture buffer\n",
+-					__func__);
+-				dcmi->errors_count++;
+-				dcmi->active = NULL;
+-
+-				spin_unlock_irq(&dcmi->irqlock);
+-				return;
+-			}
+-
+-			dcmi->active = list_entry(dcmi->buffers.next,
+-						  struct dcmi_buf, list);
+-
+-			list_del_init(&dcmi->active->list);
+-
+-			spin_unlock_irq(&dcmi->irqlock);
+-			if (dcmi_start_capture(dcmi))
+-				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
+-					__func__);
+-			return;
+-		}
++		/* Return buffer to V4L2 */
++		dcmi_buffer_done(dcmi, buf, buf->size, 0);
+ 
++		/* Restart capture */
++		if (dcmi_restart_capture(dcmi))
++			dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
++				__func__);
+ 		break;
+ 	default:
+ 		dev_err(dcmi->dev, "%s: Received unknown status\n", __func__);
+ 		break;
+ 	}
+-
+-	spin_unlock_irq(&dcmi->irqlock);
  }
  
- static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format)))
- 		return -EFAULT;
- 	return __get_v4l2_format32(&kp->format, &up->format);
-@@ -196,7 +196,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 
- static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->type, &up->type))
- 		return -EFAULT;
- 	return __put_v4l2_format32(kp, up);
-@@ -204,7 +204,7 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 
- static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format.fmt)))
- 		return -EFAULT;
- 	return __put_v4l2_format32(&kp->format, &up->format);
-@@ -222,7 +222,7 @@ struct v4l2_standard32 {
- static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
- {
- 	/* other fields are not set by the user, nor used by the driver */
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_standard32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->index, &up->index))
- 		return -EFAULT;
- 	return 0;
-@@ -230,13 +230,13 @@ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
- 
- static int put_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_standard32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->index, &up->index) ||
- 	    put_user(kp->id, &up->id) ||
--	    copy_to_user(up->name, kp->name, 24) ||
-+	    copy_to_user(up->name, kp->name, sizeof(up->name)) ||
- 	    copy_to_user(&up->frameperiod, &kp->frameperiod, sizeof(kp->frameperiod)) ||
- 	    put_user(kp->framelines, &up->framelines) ||
--	    copy_to_user(up->reserved, kp->reserved, 4 * sizeof(__u32)))
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return 0;
+ static int dcmi_start_dma(struct stm32_dcmi *dcmi,
+@@ -355,6 +378,52 @@ static void dcmi_set_crop(struct stm32_dcmi *dcmi)
+ 	reg_set(dcmi->regs, DCMI_CR, CR_CROP);
  }
-@@ -284,7 +284,7 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
  
- 	if (copy_in_user(up, up32, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up->data_offset, &up32->data_offset,
--			 sizeof(__u32)))
-+			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
- 	if (memory == V4L2_MEMORY_USERPTR) {
-@@ -294,11 +294,11 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
- 	} else if (memory == V4L2_MEMORY_DMABUF) {
--		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(int)))
-+		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
- 	} else {
- 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(__u32)))
-+				 sizeof(up32->m.mem_offset)))
- 			return -EFAULT;
++static void dcmi_process_jpeg(struct stm32_dcmi *dcmi)
++{
++	struct dma_tx_state state;
++	enum dma_status status;
++	struct dma_chan *chan = dcmi->dma_chan;
++	struct dcmi_buf *buf = dcmi->active;
++
++	if (!buf)
++		return;
++
++	/*
++	 * Because of variable JPEG buffer size sent by sensor,
++	 * DMA transfer never completes due to transfer size
++	 * never reached.
++	 * In order to ensure that all the JPEG data are transferred
++	 * in active buffer memory, DMA is drained.
++	 * Then DMA tx status gives the amount of data transferred
++	 * to memory, which is then returned to V4L2 through the active
++	 * buffer payload.
++	 */
++
++	/* Drain DMA */
++	dmaengine_synchronize(chan);
++
++	/* Get DMA residue to get JPEG size */
++	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
++	if (status != DMA_ERROR && state.residue < buf->size) {
++		/* Return JPEG buffer to V4L2 with received JPEG buffer size */
++		dcmi_buffer_done(dcmi, buf, buf->size - state.residue, 0);
++	} else {
++		dcmi->errors_count++;
++		dev_err(dcmi->dev, "%s: Cannot get JPEG size from DMA\n",
++			__func__);
++		/* Return JPEG buffer to V4L2 in ERROR state */
++		dcmi_buffer_done(dcmi, buf, 0, -EIO);
++	}
++
++	/* Abort DMA operation */
++	dmaengine_terminate_all(dcmi->dma_chan);
++
++	/* Restart capture */
++	if (dcmi_restart_capture(dcmi))
++		dev_err(dcmi->dev, "%s: Cannot restart capture on JPEG received\n",
++			__func__);
++}
++
+ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
+ {
+ 	struct stm32_dcmi *dcmi = arg;
+@@ -379,6 +448,14 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
+ 			dcmi->overrun_count++;
  	}
  
-@@ -310,19 +310,19 @@ static int put_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- {
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
--			 sizeof(__u32)))
-+			 sizeof(up->data_offset)))
- 		return -EFAULT;
++	if (dcmi->sd_format->fourcc == V4L2_PIX_FMT_JPEG &&
++	    dcmi->misr & IT_FRAME) {
++		/* JPEG received */
++		spin_unlock_irq(&dcmi->irqlock);
++		dcmi_process_jpeg(dcmi);
++		return IRQ_HANDLED;
++	}
++
+ 	spin_unlock_irq(&dcmi->irqlock);
+ 	return IRQ_HANDLED;
+ }
+@@ -552,6 +629,10 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (dcmi->do_crop)
+ 		dcmi_set_crop(dcmi);
  
- 	/* For MMAP, driver might've set up the offset, so copy it back.
- 	 * USERPTR stays the same (was userspace-provided), so no copying. */
- 	if (memory == V4L2_MEMORY_MMAP)
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
--				 sizeof(__u32)))
-+				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
- 	/* For DMABUF, driver might've set up the fd, so copy it back. */
- 	if (memory == V4L2_MEMORY_DMABUF)
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
--				 sizeof(int)))
-+				 sizeof(up->m.fd)))
- 			return -EFAULT;
++	/* Enable jpeg capture */
++	if (dcmi->sd_format->fourcc == V4L2_PIX_FMT_JPEG)
++		reg_set(dcmi->regs, DCMI_CR, CR_CM);/* Snapshot mode */
++
+ 	/* Enable dcmi */
+ 	reg_set(dcmi->regs, DCMI_CR, CR_ENABLE);
  
- 	return 0;
-@@ -336,7 +336,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	int num_planes;
+@@ -752,6 +833,7 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+ 	struct v4l2_subdev_format format = {
+ 		.which = V4L2_SUBDEV_FORMAT_TRY,
+ 	};
++	bool do_crop;
  	int ret;
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->index, &up->index) ||
- 	    get_user(kp->type, &up->type) ||
- 	    get_user(kp->flags, &up->flags) ||
-@@ -348,8 +348,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		if (get_user(kp->bytesused, &up->bytesused) ||
- 		    get_user(kp->field, &up->field) ||
- 		    get_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
--		    get_user(kp->timestamp.tv_usec,
--			     &up->timestamp.tv_usec))
-+		    get_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec))
- 			return -EFAULT;
+ 	sd_fmt = find_format_by_fourcc(dcmi, pix->pixelformat);
+@@ -761,10 +843,19 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+ 	}
  
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-@@ -366,13 +365,13 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	/* Limit to hardware capabilities */
+-	pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH);
+-	pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT);
++	if (pix->pixelformat == V4L2_PIX_FMT_JPEG) {
++		pix->width = clamp(pix->width, MIN_JPEG_WIDTH, MAX_JPEG_WIDTH);
++		pix->height =
++			clamp(pix->height, MIN_JPEG_HEIGHT, MAX_JPEG_HEIGHT);
++	} else {
++		pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH);
++		pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT);
++	}
++
++	/* No crop if JPEG is requested */
++	do_crop = dcmi->do_crop && (pix->pixelformat != V4L2_PIX_FMT_JPEG);
  
- 		uplane32 = compat_ptr(p);
- 		if (!access_ok(VERIFY_READ, uplane32,
--			       num_planes * sizeof(struct v4l2_plane32)))
-+			       num_planes * sizeof(*uplane32)))
- 			return -EFAULT;
+-	if (dcmi->do_crop && dcmi->num_of_sd_framesizes) {
++	if (do_crop && dcmi->num_of_sd_framesizes) {
+ 		struct dcmi_framesize outer_sd_fsize;
+ 		/*
+ 		 * If crop is requested and sensor have discrete frame sizes,
+@@ -788,7 +879,7 @@ static int dcmi_try_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f,
+ 	sd_fsize.width = pix->width;
+ 	sd_fsize.height = pix->height;
  
- 		/* We don't really care if userspace decides to kill itself
- 		 * by passing a very big num_planes value */
- 		uplane = compat_alloc_user_space(num_planes *
--						 sizeof(struct v4l2_plane));
-+						 sizeof(*uplane));
- 		kp->m.planes = uplane;
+-	if (dcmi->do_crop) {
++	if (do_crop) {
+ 		struct v4l2_rect c = dcmi->crop;
+ 		struct v4l2_rect max_rect;
  
- 		while (--num_planes >= 0) {
-@@ -420,7 +419,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	int num_planes;
- 	int ret;
+@@ -843,6 +934,10 @@ static int dcmi_set_fmt(struct stm32_dcmi *dcmi, struct v4l2_format *f)
+ 	if (ret)
+ 		return ret;
  
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_buffer32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->index, &up->index) ||
- 	    put_user(kp->type, &up->type) ||
- 	    put_user(kp->flags, &up->flags) ||
-@@ -431,7 +430,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
- 	    put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
--	    copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
-+	    copy_to_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
- 	    put_user(kp->sequence, &up->sequence) ||
- 	    put_user(kp->reserved2, &up->reserved2) ||
- 	    put_user(kp->reserved, &up->reserved) ||
-@@ -490,7 +489,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- {
- 	u32 tmp;
++	/* Disable crop if JPEG is requested */
++	if (pix->pixelformat == V4L2_PIX_FMT_JPEG)
++		dcmi->do_crop = false;
++
+ 	/* pix to mbus format */
+ 	v4l2_fill_mbus_format(mf, pix,
+ 			      sd_format->mbus_code);
+@@ -895,6 +990,8 @@ static int dcmi_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 		return -EINVAL;
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(tmp, &up->base) ||
- 	    get_user(kp->capability, &up->capability) ||
- 	    get_user(kp->flags, &up->flags) ||
-@@ -504,7 +503,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- {
- 	u32 tmp = (u32)((unsigned long)kp->base);
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(tmp, &up->base) ||
- 	    put_user(kp->capability, &up->capability) ||
- 	    put_user(kp->flags, &up->flags) ||
-@@ -528,14 +527,14 @@ struct v4l2_input32 {
-    Otherwise it is identical to the 32-bit version. */
- static inline int get_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
- {
--	if (copy_from_user(kp, up, sizeof(struct v4l2_input32)))
-+	if (copy_from_user(kp, up, sizeof(*up)))
- 		return -EFAULT;
+ 	f->pixelformat = dcmi->sd_formats[f->index]->fourcc;
++	if (f->pixelformat == V4L2_PIX_FMT_JPEG)
++		f->flags |= V4L2_FMT_FLAG_COMPRESSED;
  	return 0;
  }
  
- static inline int put_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
- {
--	if (copy_to_user(up, kp, sizeof(struct v4l2_input32)))
-+	if (copy_to_user(up, kp, sizeof(*up)))
- 		return -EFAULT;
- 	return 0;
- }
-@@ -583,7 +582,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	int n;
- 	compat_caddr_t p;
+@@ -1315,6 +1412,10 @@ static int dcmi_set_default_fmt(struct stm32_dcmi *dcmi)
+ 		.fourcc = V4L2_PIX_FMT_UYVY,
+ 		.mbus_code = MEDIA_BUS_FMT_UYVY8_2X8,
+ 		.bpp = 2,
++	}, {
++		.fourcc = V4L2_PIX_FMT_JPEG,
++		.mbus_code = MEDIA_BUS_FMT_JPEG_1X8,
++		.bpp = 1,
+ 	},
+ };
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_ext_controls32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->ctrl_class, &up->ctrl_class) ||
- 	    get_user(kp->count, &up->count) ||
- 	    get_user(kp->error_idx, &up->error_idx) ||
-@@ -597,10 +596,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	if (get_user(p, &up->controls))
- 		return -EFAULT;
- 	ucontrols = compat_ptr(p);
--	if (!access_ok(VERIFY_READ, ucontrols,
--		       n * sizeof(struct v4l2_ext_control32)))
-+	if (!access_ok(VERIFY_READ, ucontrols, n * sizeof(*ucontrols)))
- 		return -EFAULT;
--	kcontrols = compat_alloc_user_space(n * sizeof(struct v4l2_ext_control));
-+	kcontrols = compat_alloc_user_space(n * sizeof(*kcontrols));
- 	kp->controls = kcontrols;
- 	while (--n >= 0) {
- 		if (copy_in_user(kcontrols, ucontrols, sizeof(*ucontrols)))
-@@ -627,7 +625,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	int n = kp->count;
- 	compat_caddr_t p;
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_ext_controls32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->ctrl_class, &up->ctrl_class) ||
- 	    put_user(kp->count, &up->count) ||
- 	    put_user(kp->error_idx, &up->error_idx) ||
-@@ -639,8 +637,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	if (get_user(p, &up->controls))
- 		return -EFAULT;
- 	ucontrols = compat_ptr(p);
--	if (!access_ok(VERIFY_WRITE, ucontrols,
--		       n * sizeof(struct v4l2_ext_control32)))
-+	if (!access_ok(VERIFY_WRITE, ucontrols, n * sizeof(*ucontrols)))
- 		return -EFAULT;
- 
- 	while (--n >= 0) {
-@@ -674,7 +671,7 @@ struct v4l2_event32 {
- 
- static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_event32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->type, &up->type) ||
- 	    copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
- 	    put_user(kp->pending, &up->pending) ||
-@@ -682,7 +679,7 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
- 	    put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
- 	    put_user(kp->id, &up->id) ||
--	    copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return 0;
- }
-@@ -699,7 +696,7 @@ static int get_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- {
- 	u32 tmp;
- 
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_edid32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->pad, &up->pad) ||
- 	    get_user(kp->start_block, &up->start_block) ||
- 	    get_user(kp->blocks, &up->blocks) ||
-@@ -714,7 +711,7 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- {
- 	u32 tmp = (u32)((unsigned long)kp->edid);
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_edid32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->pad, &up->pad) ||
- 	    put_user(kp->start_block, &up->start_block) ||
- 	    put_user(kp->blocks, &up->blocks) ||
 -- 
-2.15.1
+1.9.1
