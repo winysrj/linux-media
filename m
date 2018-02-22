@@ -1,66 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0085.outbound.protection.outlook.com ([104.47.36.85]:41888
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752056AbeBIBVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 20:21:14 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v2 0/9] Add support for multi-planar formats and 10 bit formats 
-Date: Thu, 8 Feb 2018 17:21:01 -0800
-Message-ID: <1518139261-21540-1-git-send-email-satishna@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:40070 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751636AbeBVBkB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Feb 2018 20:40:01 -0500
+Received: by mail-pg0-f65.google.com with SMTP id g2so1406857pgn.7
+        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 17:40:00 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 00/13] media: imx: Switch to subdev notifiers
+Date: Wed, 21 Feb 2018 17:39:36 -0800
+Message-Id: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- The patches are for xilinx v4l. The patcheset enable support to handle mul=
-tiplanar
- formats and 10 bit formats. The implemenation has handling of single plane=
- formats
- too for backward compatibility of some existing applications.
+This patchset converts the imx-media driver and its dependent
+subdevs to use subdev notifiers.
 
- Some patches are included as dependencies and are intended to sync downstr=
-eam with
- upstream as well.
+There are a couple shortcomings in v4l2-core that prevented
+subdev notifiers from working correctly in imx-media:
 
-Hyun Kwon (1):
-  media: xilinx: vip: Add the pixel format for RGB24
+1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+   endpoint that is not connected to a remote device as an error.
+   But in the case of the video-mux subdev, this is not an error, it's
+   ok if some of the muxes inputs have no connection. So the first
+   patch is a small modification to allow the parse_endpoint callback
+   to decide whether an unconnected endpoint is an error.
 
-Jeffrey Mouroux (1):
-  uapi: media: New fourcc codes needed by Xilinx Video IP
+2. In the imx-media graph, multiple subdevs will encounter the same
+   upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+   v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+   multiple times. This is treated as an error by
+   v4l2_async_notifier_register() later.
 
-Radhey Shyam Pandey (1):
-  v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
+   To get around this problem, add an v4l2_async_notifier_add_subdev()
+   which first verifies the provided asd does not already exist in the
+   given notifier asd list or in other registered notifiers. If the asd
+   exists, the function returns -EEXIST and it's up to the caller to
+   decide if that is an error (in imx-media case it is never an error).
 
-Rohit Athavale (1):
-  media-bus: uapi: Add YCrCb 420 media bus format
+   Patches 2-4 deal with adding that support.
 
-Satish Kumar Nagireddy (4):
-  v4l: xilinx: dma: Update video format descriptor
-  v4l: xilinx: dma: Add multi-planar support
-  v4l: xilinx: dma: Add scaling and padding factor functions
-  v4l: xilinx: dma: Get scaling and padding factor to calculate DMA
-    params
+3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+   convenience function for parsing a subdev's fwnode port endpoints
+   for connected remote subdevs, registering a subdev notifier, and
+   then registering the sub-device itself.
 
- drivers/media/platform/xilinx/xilinx-dma.c  | 365 ++++++++++++++++++++++++=
-----
- drivers/media/platform/xilinx/xilinx-dma.h  |   2 +-
- drivers/media/platform/xilinx/xilinx-vip.c  |  61 ++++-
- drivers/media/platform/xilinx/xilinx-vip.h  |  13 +-
- drivers/media/platform/xilinx/xilinx-vipp.c |  22 +-
- include/uapi/linux/media-bus-format.h       |   3 +-
- include/uapi/linux/videodev2.h              |  11 +
- 7 files changed, 409 insertions(+), 68 deletions(-)
+The remaining patches update the subdev drivers to register a
+subdev notifier with endpoint parsing, and the changes to imx-media
+to support that.
 
---
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+
+Steve Longerbeam (13):
+  media: v4l2-fwnode: Let parse_endpoint callback decide if no remote is
+    error
+  media: v4l2: async: Allow searching for asd of any type
+  media: v4l2: async: Add v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Add a convenience function for registering subdevs
+    with notifiers
+  media: platform: video-mux: Register a subdev notifier
+  media: imx: csi: Register a subdev notifier
+  media: imx: mipi csi-2: Register a subdev notifier
+  media: staging/imx: of: Remove recursive graph walk
+  media: staging/imx: Loop through all registered subdevs for media
+    links
+  media: staging/imx: Rename root notifier
+  media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+  media: staging/imx: TODO: Remove one assumption about OF graph parsing
+
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  13 +-
+ drivers/media/platform/omap3isp/isp.c             |   3 +
+ drivers/media/platform/rcar-vin/rcar-core.c       |   3 +
+ drivers/media/platform/video-mux.c                |  35 ++-
+ drivers/media/v4l2-core/v4l2-async.c              | 275 ++++++++++++++++------
+ drivers/media/v4l2-core/v4l2-fwnode.c             | 230 ++++++++++--------
+ drivers/staging/media/imx/TODO                    |  29 +--
+ drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+ drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+ drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+ drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+ drivers/staging/media/imx/imx-media.h             |   6 +-
+ drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+ include/media/v4l2-async.h                        |  24 +-
+ include/media/v4l2-fwnode.h                       |  64 ++++-
+ 15 files changed, 546 insertions(+), 423 deletions(-)
+
+-- 
 2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
