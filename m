@@ -1,120 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:41476 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932328AbeBUQ2d (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:46423 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933210AbeBVR2F (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 11:28:33 -0500
-Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
-To: jacopo mondi <jacopo@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
- <1519059584-30844-12-git-send-email-jacopo+renesas@jmondi.org>
- <1963190.TI9O1pFqZp@avalon> <20180220085857.GC7203@w540>
- <20180221154712.GJ7203@w540>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <287b38a5-d952-7600-2180-df08ab002b03@xs4all.nl>
-Date: Wed, 21 Feb 2018 17:28:27 +0100
+        Thu, 22 Feb 2018 12:28:05 -0500
 MIME-Version: 1.0
-In-Reply-To: <20180221154712.GJ7203@w540>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1519300881-8136-7-git-send-email-claudiu.beznea@microchip.com>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com> <1519300881-8136-7-git-send-email-claudiu.beznea@microchip.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Thu, 22 Feb 2018 19:28:03 +0200
+Message-ID: <CAHp75Ver6GuKSDooAr2DW+eqt=B3p8O+X6+rOSWNgfhHxgVqNQ@mail.gmail.com>
+Subject: Re: [PATCH v3 06/10] pwm: add PWM modes
+To: Claudiu Beznea <claudiu.beznea@microchip.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+        Alexander Shiyan <shc_work@mail.ru>, kgene@kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        David Airlie <airlied@linux.ie>, kamil@wypas.org,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Jean Delvare <jdelvare@suse.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Lee Jones <lee.jones@linaro.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Jingoo Han <jingoohan1@gmail.com>, milo.kim@ti.com,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        linux-pwm@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
+        linux-samsung-soc@vger.kernel.org, linux-clk@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-hwmon@vger.kernel.org,
+        linux-input <linux-input@vger.kernel.org>,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org,
+        devicetree <devicetree@vger.kernel.org>,
+        Linux Documentation List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/21/2018 04:47 PM, jacopo mondi wrote:
-> Hello again,
-> 
-> On Tue, Feb 20, 2018 at 09:58:57AM +0100, jacopo mondi wrote:
->> Hi Laurent,
->>
->> On Mon, Feb 19, 2018 at 09:19:32PM +0200, Laurent Pinchart wrote:
->>> Hi Jacopo,
->>>
->>> Thank you for the patch.
->>>
->>> On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
->>>> The sensor driver sets mbus format colorspace information and sizes,
->>>> but not ycbcr encoding, quantization and xfer function. When supplied
->>>> with an badly initialized mbus frame format structure, those fields
->>>> need to be set explicitly not to leave them uninitialized. This is
->>>> tested by v4l2-compliance, which supplies a mbus format description
->>>> structure and checks for all fields to be properly set.
->>>>
->>>> Without this commit, v4l2-compliance fails when testing formats with:
->>>> fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
->>>>
->>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->>>> ---
->>>>  drivers/media/i2c/ov7670.c | 4 ++++
->>>>  1 file changed, 4 insertions(+)
->>>>
->>>> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
->>>> index 25b26d4..61c472e 100644
->>>> --- a/drivers/media/i2c/ov7670.c
->>>> +++ b/drivers/media/i2c/ov7670.c
->>>> @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev
->>>> *sd, fmt->height = wsize->height;
->>>>  	fmt->colorspace = ov7670_formats[index].colorspace;
->>>
->>> On a side note, if I'm not mistaken the colorspace field is set to SRGB for
->>> all entries. Shouldn't you hardcode it here and remove the field ?
->>>
->>>> +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
->>>> +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
->>>> +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
->>>
->>> How about setting the values explicitly instead of relying on defaults ? That
->>> would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and
->>> V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see if the
->>> sensor outputs limited or full range ?
->>>
->>
->> This actually makes me wonder if those informations (ycbcb_enc,
->> quantization and xfer_func) shouldn't actually be part of the
->> supported format list... I blindly added those default fields in the
->> try_fmt function, but I doubt they applies to all supported formats.
->>
->> Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
->> RGB 565) and 1 raw format (BGGR). I now have a question here:
->>
->> 1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
->> applies to RGB and raw formats? I don't think so, and what value is
->> the correct one for the ycbcr_enc field in this case? I assume
->> xfer_func and quantization applies to all formats instead..
->>
-> 
-> What if I repropose this as separate patch not part of the CEU series
-> in order not to hold back v10 (which I hope will be the last CEU
-> iteration)?
+On Thu, Feb 22, 2018 at 2:01 PM, Claudiu Beznea
+<claudiu.beznea@microchip.com> wrote:
+> Add PWM normal and complementary modes.
 
-I would definitely be fine with that. We first need to define what
-exactly should be done by drivers. See also this thread:
+> +- PWM_DTMODE_COMPLEMENTARY: PWM complementary working mode (for PWM
+> +channels two outputs); if not specified, the default for PWM channel will
+> +be used
 
-https://www.spinics.net/lists/linux-renesas-soc/msg23888.html
+What DT stands for?
 
-I'll work on that going forward as part of the compliance tests.
-
-Regards,
-
-	Hans
-
-> 
->> Thanks
->>    j
->>
->>>>  	info->format = *fmt;
->>>>
->>>>  	return 0;
->>>
->>> --
->>> Regards,
->>>
->>> Laurent Pinchart
->>>
+-- 
+With Best Regards,
+Andy Shevchenko
