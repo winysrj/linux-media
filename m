@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:33750 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751787AbeBCNYt (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:39312 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752857AbeBVJSF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Feb 2018 08:24:49 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO ioctl
-Message-ID: <86057176-1174-6dd7-d086-9594ad72f277@xs4all.nl>
-Date: Sat, 3 Feb 2018 14:24:44 +0100
+        Thu, 22 Feb 2018 04:18:05 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180221232108.10139-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180221232108.10139-1-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 22 Feb 2018 10:18:03 +0100
+Message-ID: <CAMuHMdUny0_mFgNOUd-Gw2G_UxUvpsjm0qOEc3gJ53s04LfuFA@mail.gmail.com>
+Subject: Re: [PATCH] i2c: adv748x: afe: fix sparse warning
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VIDIOC_DBG_G/S_REGISTER ioctls imply that VIDIOC_DBG_G_CHIP_INFO is also
-present, since without that you cannot use v4l2-dbg.
+Hi Niklas,
 
-Just like the implementation in v4l2-ioctl.c this can be implemented in the
-core and no drivers need to be modified.
+On Thu, Feb 22, 2018 at 12:21 AM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> This fixes the following sparse warning:
+>
+> drivers/media/i2c/adv748x/adv748x-afe.c:294:34:    expected unsigned int =
+[usertype] *signal
+> drivers/media/i2c/adv748x/adv748x-afe.c:294:34:    got int *<noident>
+> drivers/media/i2c/adv748x/adv748x-afe.c:294:34: warning: incorrect type i=
+n argument 2 (different signedness)
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+> ---
+>  drivers/media/i2c/adv748x/adv748x-afe.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/=
+adv748x/adv748x-afe.c
+> index 5188178588c9067d..39a9996d0db08c31 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+> @@ -275,7 +275,8 @@ static int adv748x_afe_s_stream(struct v4l2_subdev *s=
+d, int enable)
+>  {
+>         struct adv748x_afe *afe =3D adv748x_sd_to_afe(sd);
+>         struct adv748x_state *state =3D adv748x_afe_to_state(afe);
+> -       int ret, signal =3D V4L2_IN_ST_NO_SIGNAL;
+> +       unsigned int signal =3D V4L2_IN_ST_NO_SIGNAL;
 
-It also makes it possible for v4l2-compliance to properly test the
-VIDIOC_DBG_G/S_REGISTER ioctls.
+u32, as adv748x_afe_status() takes an u32 signal pointer?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 43fefa73e0a3..77210a20e90e 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -239,6 +255,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 			return -EPERM;
- 		return v4l2_subdev_call(sd, core, s_register, p);
- 	}
-+	case VIDIOC_DBG_G_CHIP_INFO:
-+	{
-+		struct v4l2_dbg_chip_info *p = arg;
-+
-+		if (p->match.type != V4L2_CHIP_MATCH_SUBDEV || p->match.addr)
-+			return -EINVAL;
-+		if (sd->ops->core && sd->ops->core->s_register)
-+			p->flags |= V4L2_CHIP_FL_WRITABLE;
-+		if (sd->ops->core && sd->ops->core->g_register)
-+			p->flags |= V4L2_CHIP_FL_READABLE;
-+		strlcpy(p->name, sd->name, sizeof(p->name));
-+		return 0;
-+	}
- #endif
+Gr{oetje,eeting}s,
 
- 	case VIDIOC_LOG_STATUS: {
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
