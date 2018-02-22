@@ -1,91 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58148 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753580AbeBGJCb (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:42925 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752961AbeBVJi0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 04:02:31 -0500
-Subject: Re: [PATCH 5/5] add module parameters for default values
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
- <1517950905-5015-6-git-send-email-floe@butterbrot.org>
- <c64ae317-d393-1784-1184-4a24a2907112@xs4all.nl>
- <039aaa61-4150-ebde-5f9e-a0ffc8888cfb@butterbrot.org>
+        Thu, 22 Feb 2018 04:38:26 -0500
+Subject: Re: [RFCv4 01/21] media: add request API core and UAPI
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <20180220044425.169493-1-acourbot@chromium.org>
+ <20180220044425.169493-2-acourbot@chromium.org>
+ <5fd863ad-a0fe-88d7-05bd-90c2b4096145@xs4all.nl>
+ <CAPBb6MUUuo+50zfs-XaRcVD6sV3uaownVeFKgX=A6NkTO1he1w@mail.gmail.com>
+ <c016f8f1-06f3-cc3b-03d1-7a17c39dbec0@xs4all.nl>
+ <CAPBb6MXmALFZp+EB8BjKnYO7FYV3eU9LisJwR4Qp265GRhA3eg@mail.gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c3f7b904-fb23-5925-0826-da5ad7ed84ad@xs4all.nl>
-Date: Wed, 7 Feb 2018 10:02:24 +0100
+Message-ID: <591e7b83-9322-bf73-c762-6709c811d9de@xs4all.nl>
+Date: Thu, 22 Feb 2018 10:38:17 +0100
 MIME-Version: 1.0
-In-Reply-To: <039aaa61-4150-ebde-5f9e-a0ffc8888cfb@butterbrot.org>
+In-Reply-To: <CAPBb6MXmALFZp+EB8BjKnYO7FYV3eU9LisJwR4Qp265GRhA3eg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/07/18 09:33, Florian Echtler wrote:
-> On 06.02.2018 22:31, Hans Verkuil wrote:
->> On 02/06/2018 10:01 PM, Florian Echtler wrote:
->>> To allow setting custom parameters for the sensor directly at startup, the
->>> three primary controls are exposed as module parameters in this patch.
+On 02/22/18 10:30, Alexandre Courbot wrote:
+> On Wed, Feb 21, 2018 at 4:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/21/2018 07:01 AM, Alexandre Courbot wrote:
+>>> Hi Hans,
 >>>
->>> +/* module parameters */
->>> +static uint brightness = SUR40_BRIGHTNESS_DEF;
->>> +module_param(brightness, uint, 0644);
->>> +MODULE_PARM_DESC(brightness, "set default brightness");
->>> +static uint contrast = SUR40_CONTRAST_DEF;
->>> +module_param(contrast, uint, 0644);
->>> +MODULE_PARM_DESC(contrast, "set default contrast");
->>> +static uint gain = SUR40_GAIN_DEF;
->>> +module_param(gain, uint, 0644);
->>> +MODULE_PARM_DESC(contrast, "set default gain");
+>>> On Tue, Feb 20, 2018 at 7:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 02/20/18 05:44, Alexandre Courbot wrote:
 >>
->> contrast -> gain
+>> <snip>
+>>
+>>>>> +#define MEDIA_REQUEST_IOC(__cmd, func)                                       \
+>>>>> +     [_IOC_NR(MEDIA_REQUEST_IOC_##__cmd) - 0x80] = {                 \
+>>>>> +             .cmd = MEDIA_REQUEST_IOC_##__cmd,                       \
+>>>>> +             .fn = func,                                             \
+>>>>> +     }
+>>>>> +
+>>>>> +struct media_request_ioctl_info {
+>>>>> +     unsigned int cmd;
+>>>>> +     long (*fn)(struct media_request *req);
+>>>>> +};
+>>>>> +
+>>>>> +static const struct media_request_ioctl_info ioctl_info[] = {
+>>>>> +     MEDIA_REQUEST_IOC(SUBMIT, media_request_ioctl_submit),
+>>>>> +     MEDIA_REQUEST_IOC(REINIT, media_request_ioctl_reinit),
+>>>>
+>>>> There are only two ioctls, so there is really no need for the
+>>>> MEDIA_REQUEST_IOC define. Just keep it simple.
+>>>
+>>> The number of times it is used doesn't change the fact that it helps
+>>> with readability IMHO.
+>>
+>> But this macro just boils down to:
+>>
+>> static const struct media_request_ioctl_info ioctl_info[] = {
+>>         { MEDIA_REQUEST_IOC_SUBMIT, media_request_ioctl_submit },
+>>         { MEDIA_REQUEST_IOC_REINIT, media_request_ioctl_reinit },
+>> };
+>>
+>> It's absolutely identical! So it seems senseless to me.
 > 
-> Ah, typo. Thanks, will fix that.
+> This expands to more than that - the index needs to be offset by 0x80,
+> something we probably don't want to repeat every line.
 > 
->> Isn't 'initial gain' better than 'default gain'?
+>>
+>>>
+>>>>
+>>>>> +};
+>>>>> +
+>>>>> +static long media_request_ioctl(struct file *filp, unsigned int cmd,
+>>>>> +                             unsigned long __arg)
+>>>>> +{
+>>>>> +     struct media_request *req = filp->private_data;
+>>>>> +     const struct media_request_ioctl_info *info;
+>>>>> +
+>>>>> +     if ((_IOC_NR(cmd) < 0x80) ||
+>>>>
+>>>> Why start the ioctl number at 0x80? Why not just 0?
+>>>> It avoids all this hassle with the 0x80 offset.
+>>
+>> There is no clash with the MC ioctls, so I really don't believe the 0x80
+>> offset is needed.
 > 
-> Probably correct, yes.
-> 
->> If I load this module with gain=X, will the gain control also
->> start off at X? I didn't see any code for that.
-> 
-> This reminds me: how can I get/set the control from inside the driver?
-> Should I use something like the following:
-> 
-> struct v4l2_ctrl *ctrl = v4l2_ctrl_find(&sur40->ctrls, V4L2_CID_BRIGHTNESS);
-> int val = v4l2_ctrl_g_ctrl(ctrl);
-> // modify val...
-> v4l2_ctrl_s_ctrl(ctrl, val);
+> I suppose your comment in patch 16 supersedes this one. :)
 
-Yes, that's correct. Usually drivers store the ctrl in their state struct
-when they create the control. That way you don't have to find it.
+Yes, it does. I realized later why this was done like this.
 
-> 
->> It might be useful to add the allowed range in the description.
->> E.g.: "set initial gain, range=0-255". Perhaps mention even the
->> default value, but I'm not sure if that's really needed.
-> 
-> Good point, though - right now the code directly sets the registers without any
-> clamping, I guess it would be better to call the control framework as mentioned
-> above?
+That said, I don't like the magic value. Something like this might be
+cleaner:
 
-Easiest is just to use this value for the default when you create the
-control. Just clamp it first.
+	const unsigned int first_ioc_nr = _IOC_NR(MEDIA_REQUEST_IOC_SUBMIT);
 
-E.g.:
-
-static uint gain = SUR40_GAIN_DEF;
-module_param(gain, uint, 0644);
-
-...
-
-gain = clamp(gain, SUR40_GAIN_MIN, SUR40_GAIN_MAX);
-v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_GAIN,
-	  SUR40_GAIN_MIN, SUR40_GAIN_MAX, 1, gain);
-
-You need to clamp gain first, otherwise v4l2_ctrl_new_std would fail
-if the given default value is out of range.
+Then use first_ioc_nr (or nr_offset or whatever) instead of 0x80.
 
 Regards,
 
