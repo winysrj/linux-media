@@ -1,41 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57721 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752263AbeB0JNO (ORCPT
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:46909 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751165AbeBVSmc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 04:13:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH 02/15] v4l: vsp1: Remove outdated comment
-Date: Tue, 27 Feb 2018 11:14:02 +0200
-Message-ID: <1818947.grirGFg99K@avalon>
-In-Reply-To: <81dab538-1697-7cd5-7df2-d5e4c6fae217@cogentembedded.com>
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com> <20180226214516.11559-3-laurent.pinchart+renesas@ideasonboard.com> <81dab538-1697-7cd5-7df2-d5e4c6fae217@cogentembedded.com>
+        Thu, 22 Feb 2018 13:42:32 -0500
+Received: by mail-lf0-f52.google.com with SMTP id r80so8804436lfe.13
+        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 10:42:31 -0800 (PST)
+Subject: Re: [PATCH v3] vsp1: fix video output on R8A77970
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180118140600.363149670@cogentembedded.com>
+ <11341738.DVmQoThvsb@avalon>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <9b378576-7547-105e-51dd-062c9eac5c05@cogentembedded.com>
+Date: Thu, 22 Feb 2018 21:42:29 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <11341738.DVmQoThvsb@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-MW
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
-
-On Tuesday, 27 February 2018 10:22:25 EET Sergei Shtylyov wrote:
-> On 2/27/2018 12:45 AM, Laurent Pinchart wrote:
-> > The entities in the pipeline are all started when the LIF is setup.
-> > Remove the outdated comment that state otherwise.
+On 02/22/2018 07:26 PM, Laurent Pinchart wrote:
+> Hi Sergei,
 > 
-> States?
+> Thank you for the patch.
+> 
+> On Thursday, 18 January 2018 16:05:51 EET Sergei Shtylyov wrote:
+>> Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
+>> and VSP2-D instances") added support for the VSP2-D found in the R-Car
+>> V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
+>> garbage-like line repeated every 8 screen rows. It turns out that R-Car
+>> V3M has the LIF0 buffer attribute register that you need to set to a non-
+>> default value in order to get rid of the output artifacts...
+>>
+>> Based on the original (and large) patch by Daisuke Matsushita
+>> <daisuke.matsushita.ns@hitachi.com>.
+>>
+>> Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
+>> VSP2-D instances") Signed-off-by: Sergei Shtylyov
+>> <sergei.shtylyov@cogentembedded.com>
+>>
+>> ---
+>> This patch is against the 'media_tree.git' repo's 'fixes' branch.
+>>
+>> Changes in version 3:
+>> - reworded the comment in lif_configure();
+>> - reworded the patch description.
+>>
+>> Changes in version 2:
+>> - added a  comment before the V3M SoC check;
+>> - fixed indetation in that check;
+>> - reformatted  the patch description.
+>>
+>>  drivers/media/platform/vsp1/vsp1_lif.c  |   15 +++++++++++++++
+>>  drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
+>>  2 files changed, 20 insertions(+)
+>>
+>> Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+>> ===================================================================
+>> --- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
+>> +++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+>> @@ -155,6 +155,21 @@ static void lif_configure(struct vsp1_en
+>>  			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
+>>  			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
+>>  			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
+>> +
+>> +	/*
+>> +	 * On R-Car V3M the LIF0 buffer attribute register has to be set
+>> +	 * to a non-default value to guarantee proper operation (otherwise
+>> +	 * artifacts may appear on the output). The value required by
+>> +	 * the manual is not explained but is likely a buffer size or
+>> +	 * threshold...
+> 
+> One period is enough :-)
 
-You're right, will fix in v2.
+   Naw, I just like ellipsis! :-)
 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
+>> +	 */
+>> +	if ((entity->vsp1->version &
+>> +	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
+>> +	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
+>> +		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
+>> +			       VI6_LIF_LBA_LBA0 |
+>> +			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
+>> +	}
+> 
+> There's no need for braces
 
--- 
-Regards,
+   Well, multi-line statement was asking for them...
 
-Laurent Pinchart
+> or inner parentheses.
+
+   I thought so too. :-)
+
+> To make this easier to read I 
+> propose defining a new macro VI6_IP_VERSION_MASK that combines both the model 
+> and SoC. Otherwise this looks good to me,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> I'll post a v4 with that change in reply to this e-mail, please let me know if 
+> you're fine with it.
+
+   Generally fine, yes...
+
+[...]
+
+MBR, Sergei
