@@ -1,88 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:57093 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753088AbeBVKFH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 05:05:07 -0500
-Subject: Re: [PATCH v10 03/10] media: platform: Add Renesas CEU driver
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
- <1519235284-32286-4-git-send-email-jacopo+renesas@jmondi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bb33d217-76a8-71a6-e7fd-6d449d662784@xs4all.nl>
-Date: Thu, 22 Feb 2018 11:05:01 +0100
+Received: from mail.kernel.org ([198.145.29.99]:39642 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750995AbeBVGNr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Feb 2018 01:13:47 -0500
+Date: Thu, 22 Feb 2018 14:13:38 +0800
+From: Shawn Guo <shawnguo@kernel.org>
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v13 7/8] ARM: dts: imx: Add TDA19971 HDMI Receiver to
+ GW54xx
+Message-ID: <20180222061336.GI3217@dragon>
+References: <1518717336-6271-1-git-send-email-tharvey@gateworks.com>
+ <1518717336-6271-8-git-send-email-tharvey@gateworks.com>
+ <7732637c-93bf-fac2-5553-695782890254@xs4all.nl>
+ <CAJ+vNU3G9bJ16npp22O=7k72Pf3xSuQxW-CA2p5cbDq-nSZ4ew@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1519235284-32286-4-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJ+vNU3G9bJ16npp22O=7k72Pf3xSuQxW-CA2p5cbDq-nSZ4ew@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/21/18 18:47, Jacopo Mondi wrote:
-> Add driver for Renesas Capture Engine Unit (CEU).
+On Thu, Feb 15, 2018 at 01:19:17PM -0800, Tim Harvey wrote:
+> On Thu, Feb 15, 2018 at 10:36 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On 15/02/18 18:55, Tim Harvey wrote:
+> >> The GW54xx has a front-panel microHDMI connector routed to a TDA19971
+> >> which is connected the the IPU CSI when using IMX6Q.
+> >
+> > I assume that this and the next patch go through another subsystem for arm
+> > and/or imx?
+> >
+> > Regards,
+> >
+> >         Hans
+> >
 > 
-> The CEU interface supports capturing 'data' (YUV422) and 'images'
-> (NV[12|21|16|61]).
+> Hans,
 > 
-> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
+> Yes - Shawn should pick up the two dts patches:
+> 0007-ARM-dts-imx-Add-TDA19971-HDMI-Receiver-to-GW54xx.patch
+> 0008-ARM-dts-imx-Add-TDA19971-HDMI-Receiver-to-GW551x.patch
 > 
-> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
-> platform GR-Peach.
-> 
-> Tested with ov7725 camera sensor on SH4 platform Migo-R.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Shawn you've seen these before but haven't ack'd them - are they good
+> to merge to your imx tree?
 
-I get these warnings when I try to compile this driver:
+Yes.  I will pick up the dts patches after Hans merges driver part.
 
-
-  CC [M]  drivers/media/platform/renesas-ceu.o
-drivers/media/platform/renesas-ceu.c: In function ‘ceu_start_streaming’:
-drivers/media/platform/renesas-ceu.c:290:2: warning: ‘cdwdr’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  iowrite32(data, priv->base + reg_offs);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-drivers/media/platform/renesas-ceu.c:338:27: note: ‘cdwdr’ was declared here
-  u32 camcr, cdocr, cfzsr, cdwdr, capwr;
-                           ^~~~~
-drivers/media/platform/renesas-ceu.c:290:2: warning: ‘cfzsr’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  iowrite32(data, priv->base + reg_offs);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-drivers/media/platform/renesas-ceu.c:338:20: note: ‘cfzsr’ was declared here
-  u32 camcr, cdocr, cfzsr, cdwdr, capwr;
-                    ^~~~~
-drivers/media/platform/renesas-ceu.c:418:8: warning: ‘camcr’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  camcr |= mbus_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
-  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-drivers/media/platform/renesas-ceu.c:338:6: note: ‘camcr’ was declared here
-  u32 camcr, cdocr, cfzsr, cdwdr, capwr;
-      ^~~~~
-drivers/media/platform/renesas-ceu.c: In function ‘ceu_probe’:
-drivers/media/platform/renesas-ceu.c:1632:9: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  return ret;
-         ^~~
-cc1: some warnings being treated as errors
-
-The last warning is indeed correct.
-
-The others are only right if pixelformat is illegal, which can't happen.
-I'd add a:
-
-	default:
-		return -EINVAL;
-
-to the switch, this shuts up the warnings.
-
-So I need a v11 (just for this patch) after all.
-
-Regards,
-
-	Hans
+Shawn
