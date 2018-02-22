@@ -1,76 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:54898 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751544AbeBBMar (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Feb 2018 07:30:47 -0500
-Subject: Re: Adjustments for a lot of function implementations
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>, Jan Kara <jack@suse.cz>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Muralidharan Karicheri <mkaricheri@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>
-References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
- <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
- <14619198-bebe-d215-5324-a14fbc2103fb@users.sourceforge.net>
- <alpine.DEB.2.20.1710301745530.2160@hadrien>
- <ebf37d57-38c6-b3de-5a66-dbb1c13fd63a@xs4all.nl>
- <049aa1b4-6291-ec24-1ffb-77ae8d1cdb63@users.sourceforge.net>
- <804550a6-1096-12f1-a0ec-1ccd6bcc191e@xs4all.nl>
- <f082b1ae-1be4-440a-6a81-68446c67243e@users.sourceforge.net>
- <ca67319a-622b-e35e-dfb5-045dd04b4deb@xs4all.nl>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <4772aced-f43a-f4f4-c593-b42c7b862a37@users.sourceforge.net>
-Date: Fri, 2 Feb 2018 13:30:30 +0100
-MIME-Version: 1.0
-In-Reply-To: <ca67319a-622b-e35e-dfb5-045dd04b4deb@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54193 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753279AbeBVKhw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Feb 2018 05:37:52 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v11 02/10] include: media: Add Renesas CEU driver interface
+Date: Thu, 22 Feb 2018 11:37:18 +0100
+Message-Id: <1519295846-11612-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> One last time: either post per-driver patches with all the cleanups for a driver
-> in a single patch,
+Add renesas-ceu header file.
 
-I preferred to offer source code adjustments according to specific transformation
-patterns mostly for each software module separately (also in small patch series).
+Do not remove the existing sh_mobile_ceu.h one as long as the original
+driver does not go away.
 
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
 
-> or a per-directory patch (drivers/media/pci, usb, etc) doing the same cleanup
-> for all drivers in that directory.
-
-I am curious if bigger patch packages would be easier to get accepted.
-
-Or would you get frightened still by any other change combination?
-
-
-
-> I prefer the first approach,
-
-We have got different preferences for a safe patch granularity.
-
-
-> but it's up to you.
-
-I imagine that there are more development factors involved.
-
-
-> We don't have the time to wade through dozens of one-liner cleanup patches.
-
-It is usual that integration of update suggestions will take some time.
-How would the situation change if I would dare to regroup possible update steps?
-
-
-> I don't understand what is so difficult about this.
-
-There are communication difficulties to consider since your terse information
-from your conference meeting.
-
-If you would insist on patch squashing, would you dare to use a development tool
-like “quilt fold” also on your own once more?
-
-Regards,
-Markus
+diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
+new file mode 100644
+index 0000000..52841d1
+--- /dev/null
++++ b/include/media/drv-intf/renesas-ceu.h
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * renesas-ceu.h - Renesas CEU driver interface
++ *
++ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ */
++
++#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
++#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
++
++#define CEU_MAX_SUBDEVS		2
++
++struct ceu_async_subdev {
++	unsigned long flags;
++	unsigned char bus_width;
++	unsigned char bus_shift;
++	unsigned int i2c_adapter_id;
++	unsigned int i2c_address;
++};
++
++struct ceu_platform_data {
++	unsigned int num_subdevs;
++	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
++};
++
++#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
+-- 
+2.7.4
