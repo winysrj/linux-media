@@ -1,89 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45438 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750910AbeBWKKq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 05:10:46 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH] media: fix build issues with vb2-trace
-Date: Fri, 23 Feb 2018 05:10:38 -0500
-Message-Id: <ad9dda912622864ead2349eb66a94bb7df18615f.1519380628.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44761 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751119AbeBVSxw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Feb 2018 13:53:52 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.17] Media Controller compliance fixes
+Message-ID: <ac28888c-b445-fdd5-40ff-edee983d9466@xs4all.nl>
+Date: Thu, 22 Feb 2018 19:53:47 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was a trouble with vb2-trace: instead of being part of
-VB2 core, it was stored at V4L2 videodev. That was wrong,
-as it doesn't actually belong to V4L2 core.
+This fixes various MC/subdev related compliance failures and various documentation
+issues.
 
-Now that vb2 is not part of v4l2-core, its trace functions
-should be moved altogether. So, move it to its rightful
-place: at videobuf2-core.
+See the cover letter for details:
 
-That fixes those errors:
-	drivers/media/common/videobuf2/videobuf2-core.o: In function `__read_once_size':
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_buf_queue'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_buf_queue'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_buf_done'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_buf_done'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_qbuf'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_qbuf'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_dqbuf'
-	./include/linux/compiler.h:183: undefined reference to `__tracepoint_vb2_dqbuf'
-	drivers/media/common/videobuf2/videobuf2-core.o:(__jump_table+0x10): undefined reference to `__tracepoint_vb2_buf_queue'
-	drivers/media/common/videobuf2/videobuf2-core.o:(__jump_table+0x28): undefined reference to `__tracepoint_vb2_buf_done'
-	drivers/media/common/videobuf2/videobuf2-core.o:(__jump_table+0x40): undefined reference to `__tracepoint_vb2_qbuf'
-	drivers/media/common/videobuf2/videobuf2-core.o:(__jump_table+0x58): undefined reference to `__tracepoint_vb2_dqbuf'
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg126559.html
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/common/videobuf2/Makefile                   | 3 +++
- drivers/media/{v4l2-core => common/videobuf2}/vb2-trace.c | 0
- drivers/media/v4l2-core/Makefile                          | 3 +--
- 3 files changed, 4 insertions(+), 2 deletions(-)
- rename drivers/media/{v4l2-core => common/videobuf2}/vb2-trace.c (100%)
+Regards,
 
-diff --git a/drivers/media/common/videobuf2/Makefile b/drivers/media/common/videobuf2/Makefile
-index 7e27bdd44dcc..067badb1aaa7 100644
---- a/drivers/media/common/videobuf2/Makefile
-+++ b/drivers/media/common/videobuf2/Makefile
-@@ -6,3 +6,6 @@ obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
- obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
- obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
- obj-$(CONFIG_VIDEOBUF2_DVB) += videobuf2-dvb.o
-+ifeq ($(CONFIG_TRACEPOINTS),y)
-+  obj-$(CONFIG_VIDEOBUF2_CORE) += vb2-trace.o
-+endif
-diff --git a/drivers/media/v4l2-core/vb2-trace.c b/drivers/media/common/videobuf2/vb2-trace.c
-similarity index 100%
-rename from drivers/media/v4l2-core/vb2-trace.c
-rename to drivers/media/common/videobuf2/vb2-trace.c
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index 80de2cb9c476..7df54582e956 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -13,7 +13,7 @@ ifeq ($(CONFIG_COMPAT),y)
- endif
- obj-$(CONFIG_V4L2_FWNODE) += v4l2-fwnode.o
- ifeq ($(CONFIG_TRACEPOINTS),y)
--  videodev-objs += vb2-trace.o v4l2-trace.o
-+  videodev-objs += v4l2-trace.o
- endif
- videodev-$(CONFIG_MEDIA_CONTROLLER) += v4l2-mc.o
- 
-@@ -35,4 +35,3 @@ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
- 
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
- ccflags-y += -I$(srctree)/drivers/media/tuners
--
--- 
-2.14.3
+	Hans
+
+The following changes since commit 4395fb475a27ddcb33c27380e132ef5354ff67c6:
+
+  tda1997x: get rid of an unused var (2018-02-22 12:54:28 -0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git media-fixes
+
+for you to fetch changes up to 9c38c7f31cef8fd48ee0f4e2928a1e6a126b6fa2:
+
+  media.h: reorganize header to make it easier to understand (2018-02-22 19:50:37 +0100)
+
+----------------------------------------------------------------
+Alexandre Courbot (1):
+      media: media-types.rst: fix typo
+
+Hans Verkuil (13):
+      vimc: fix control event handling
+      vimc: use correct subdev functions
+      v4l2-subdev: without controls return -ENOTTY
+      v4l2-subdev: implement VIDIOC_DBG_G_CHIP_INFO ioctl
+      subdev-formats.rst: fix incorrect types
+      media-ioc-g-topology.rst: fix interface-to-entity link description
+      media-types.rst: fix type, small improvements
+      media-device.c: zero reserved fields
+      media.h: fix confusing typo in comment
+      media: zero reservedX fields in media_v2_topology
+      media: document the reservedX fields in media_v2_topology
+      media-ioc-enum-entities/links.rst: document reserved fields
+      media.h: reorganize header to make it easier to understand
+
+ Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst |  19 +++-
+ Documentation/media/uapi/mediactl/media-ioc-enum-links.rst    |  18 +++
+ Documentation/media/uapi/mediactl/media-ioc-g-topology.rst    |  54 +++++++--
+ Documentation/media/uapi/mediactl/media-types.rst             |  12 +-
+ Documentation/media/uapi/v4l/subdev-formats.rst               |   6 +-
+ drivers/media/media-device.c                                  |   7 ++
+ drivers/media/media-entity.c                                  |  16 ---
+ drivers/media/platform/vimc/vimc-common.c                     |   4 +-
+ drivers/media/platform/vimc/vimc-debayer.c                    |   2 +-
+ drivers/media/platform/vimc/vimc-scaler.c                     |   2 +-
+ drivers/media/platform/vimc/vimc-sensor.c                     |  10 +-
+ drivers/media/v4l2-core/v4l2-subdev.c                         |  37 ++++++
+ include/uapi/linux/media.h                                    | 349 +++++++++++++++++++++++++++------------------------------
+ 13 files changed, 309 insertions(+), 227 deletions(-)
