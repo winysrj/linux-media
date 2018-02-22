@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:55883 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752447AbeBSKiM (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:33061 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751759AbeBVBkS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 05:38:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 02/15] vimc: use correct subdev functions
-Date: Mon, 19 Feb 2018 11:37:53 +0100
-Message-Id: <20180219103806.17032-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180219103806.17032-1-hverkuil@xs4all.nl>
-References: <20180219103806.17032-1-hverkuil@xs4all.nl>
+        Wed, 21 Feb 2018 20:40:18 -0500
+Received: by mail-pl0-f66.google.com with SMTP id x18so2023032pln.0
+        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 17:40:18 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 10/13] media: staging/imx: Loop through all registered subdevs for media links
+Date: Wed, 21 Feb 2018 17:39:46 -0800
+Message-Id: <1519263589-19647-11-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of calling everything a MEDIA_ENT_F_ATV_DECODER, pick the
-correct functions for these blocks.
+The root imx-media notifier no longer sees all bound subdevices because
+some of them will be bound to subdev notifiers. So imx_media_create_links()
+now needs to loop through all subdevices registered with the v4l2-device,
+not just the ones in the root notifier's done list. This should be safe
+because imx_media_create_of_links() checks if a fwnode link already
+exists before creating.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/vimc/vimc-debayer.c | 2 +-
- drivers/media/platform/vimc/vimc-scaler.c  | 2 +-
- drivers/media/platform/vimc/vimc-sensor.c  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/media/imx/imx-media-dev.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-index 4d663e89d33f..6e10b63ba9ec 100644
---- a/drivers/media/platform/vimc/vimc-debayer.c
-+++ b/drivers/media/platform/vimc/vimc-debayer.c
-@@ -533,7 +533,7 @@ static int vimc_deb_comp_bind(struct device *comp, struct device *master,
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vdeb->ved, &vdeb->sd, v4l2_dev,
- 				   pdata->entity_name,
--				   MEDIA_ENT_F_ATV_DECODER, 2,
-+				   MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV, 2,
- 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
- 				   MEDIA_PAD_FL_SOURCE},
- 				   &vimc_deb_ops);
-diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-index e1602e0bc230..e583ec7a91da 100644
---- a/drivers/media/platform/vimc/vimc-scaler.c
-+++ b/drivers/media/platform/vimc/vimc-scaler.c
-@@ -395,7 +395,7 @@ static int vimc_sca_comp_bind(struct device *comp, struct device *master,
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vsca->ved, &vsca->sd, v4l2_dev,
- 				   pdata->entity_name,
--				   MEDIA_ENT_F_ATV_DECODER, 2,
-+				   MEDIA_ENT_F_PROC_VIDEO_SCALER, 2,
- 				   (const unsigned long[2]) {MEDIA_PAD_FL_SINK,
- 				   MEDIA_PAD_FL_SOURCE},
- 				   &vimc_sca_ops);
-diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-index 54184cd9e0ff..605e2a2d5dd5 100644
---- a/drivers/media/platform/vimc/vimc-sensor.c
-+++ b/drivers/media/platform/vimc/vimc-sensor.c
-@@ -386,7 +386,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
- 	/* Initialize ved and sd */
- 	ret = vimc_ent_sd_register(&vsen->ved, &vsen->sd, v4l2_dev,
- 				   pdata->entity_name,
--				   MEDIA_ENT_F_ATV_DECODER, 1,
-+				   MEDIA_ENT_F_CAM_SENSOR, 1,
- 				   (const unsigned long[1]) {MEDIA_PAD_FL_SOURCE},
- 				   &vimc_sen_ops);
- 	if (ret)
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 289d775..4d00ed3 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -175,7 +175,7 @@ static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
+ }
+ 
+ /*
+- * create the media links for all subdevs that registered async.
++ * Create the media links for all subdevs that registered.
+  * Called after all async subdevs have bound.
+  */
+ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+@@ -184,14 +184,7 @@ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+ 	struct v4l2_subdev *sd;
+ 	int ret;
+ 
+-	/*
+-	 * Only links are created between subdevices that are known
+-	 * to the async notifier. If there are other non-async subdevices,
+-	 * they were created internally by some subdevice (smiapp is one
+-	 * example). In those cases it is expected the subdevice is
+-	 * responsible for creating those internal links.
+-	 */
+-	list_for_each_entry(sd, &notifier->done, async_list) {
++	list_for_each_entry(sd, &imxmd->v4l2_dev.subdevs, list) {
+ 		switch (sd->grp_id) {
+ 		case IMX_MEDIA_GRP_ID_VDIC:
+ 		case IMX_MEDIA_GRP_ID_IC_PRP:
+@@ -211,7 +204,10 @@ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+ 				imx_media_create_csi_of_links(imxmd, sd);
+ 			break;
+ 		default:
+-			/* this is an external fwnode subdev */
++			/*
++			 * if this subdev has fwnode links, create media
++			 * links for them.
++			 */
+ 			imx_media_create_of_links(imxmd, sd);
+ 			break;
+ 		}
 -- 
-2.16.1
+2.7.4
