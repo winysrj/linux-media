@@ -1,89 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36689 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751086AbeBQPDd (ORCPT
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:46359 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751732AbeBVBkP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Feb 2018 10:03:33 -0500
-Received: by mail-wm0-f67.google.com with SMTP id f3so7881402wmc.1
-        for <linux-media@vger.kernel.org>; Sat, 17 Feb 2018 07:03:32 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at
-Subject: [PATCH v2 0/7] cxd2099: convert to regmap API and move out of staging
-Date: Sat, 17 Feb 2018 16:03:21 +0100
-Message-Id: <20180217150328.686-1-d.scheller.oss@gmail.com>
+        Wed, 21 Feb 2018 20:40:15 -0500
+Received: by mail-pl0-f68.google.com with SMTP id x19so2010990plr.13
+        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 17:40:15 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 08/13] media: imx: mipi csi-2: Register a subdev notifier
+Date: Wed, 21 Feb 2018 17:39:44 -0800
+Message-Id: <1519263589-19647-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Parse neighbor remote devices on the MIPI CSI-2 input port, add
+them to a subdev notifier, and register the subdev notifier for the
+MIPI CSI-2 receiver, by calling v4l2_async_register_fwnode_subdev().
 
-Patch series done by Jasmin and me.
+csi2_parse_endpoints() is modified to be the parse_endpoint callback.
 
-This patch series, besides one little cosmetic fix in ddbridge, converts
-the cxd2099 CI controller driver to the regmap API and thus makes it a
-proper I2C client driver. This not only moves it away from the legacy/
-"proprietary" DVB attach way of using I2C drivers, but also adds a
-cleanup function through the I2C remove callback (such functionality is
-seemingly currently missing from the DVB EN50221 API). Both ddbridge and
-ngene (as users of the driver) are updated separately. No regressions
-were spotted when used in conjuntion with VDR's and TVHeadend's CI
-support. Testing with an ngene card revealed that I2C_FUNC_I2C needs
-to be reported in .functionality, else things will fail starting at
-the CAM detection.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx6-mipi-csi2.c | 31 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-In addition, this series moves the cxd2099 driver out of staging right
-into dvb-frontends/ as it serves as a DVB (EN50221) frontend driver.
-What's written in the TODO file in the staging dir simply doesn't apply
-to the driver (see the commit message of that specific patch for details)
-and it got quite polished up lately, so it's just inappropriate to keep
-it in staging.
-
-Lastly, Jasmin opted to take over maintainership of the driver, so the
-last patch adds her into the MAINTAINERS file for the cxd2099 driver.
-
-Please pick this series up in this merge window so it'll be part of the
-4.17 kernel release.
-
-Changes since v1:
-- ngene's I2C interface also reports I2C_FUNC_I2C in .functionality
-
-Daniel Scheller (6):
-  [media] ddbridge/ci: further deduplicate code/logic in ddb_ci_attach()
-  [media] staging/cxd2099: convert to regmap API
-  [media] ddbridge: adapt cxd2099 attach to new i2c_client way
-  [media] ngene: adapt cxd2099 attach to the new i2c_client way
-  [media] staging/cxd2099: remove remainders from old attach way
-  [media] cxd2099: move driver out of staging into dvb-frontends
-
-Jasmin Jessich (1):
-  [media] MAINTAINERS: add entry for cxd2099
-
- MAINTAINERS                                        |   8 +
- drivers/media/dvb-frontends/Kconfig                |  12 ++
- drivers/media/dvb-frontends/Makefile               |   1 +
- .../cxd2099 => media/dvb-frontends}/cxd2099.c      | 209 ++++++++++-----------
- .../cxd2099 => media/dvb-frontends}/cxd2099.h      |  19 +-
- drivers/media/pci/ddbridge/Kconfig                 |   1 +
- drivers/media/pci/ddbridge/Makefile                |   3 -
- drivers/media/pci/ddbridge/ddbridge-ci.c           |  72 +++++--
- drivers/media/pci/ddbridge/ddbridge.h              |   1 +
- drivers/media/pci/ngene/Kconfig                    |   1 +
- drivers/media/pci/ngene/Makefile                   |   3 -
- drivers/media/pci/ngene/ngene-core.c               |  41 +++-
- drivers/media/pci/ngene/ngene-i2c.c                |   2 +-
- drivers/media/pci/ngene/ngene.h                    |   1 +
- drivers/staging/media/Kconfig                      |   2 -
- drivers/staging/media/Makefile                     |   1 -
- drivers/staging/media/cxd2099/Kconfig              |  12 --
- drivers/staging/media/cxd2099/Makefile             |   4 -
- drivers/staging/media/cxd2099/TODO                 |  12 --
- 19 files changed, 230 insertions(+), 175 deletions(-)
- rename drivers/{staging/media/cxd2099 => media/dvb-frontends}/cxd2099.c (78%)
- rename drivers/{staging/media/cxd2099 => media/dvb-frontends}/cxd2099.h (62%)
- delete mode 100644 drivers/staging/media/cxd2099/Kconfig
- delete mode 100644 drivers/staging/media/cxd2099/Makefile
- delete mode 100644 drivers/staging/media/cxd2099/TODO
-
+diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+index 477d191..9a0c569 100644
+--- a/drivers/staging/media/imx/imx6-mipi-csi2.c
++++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+@@ -544,35 +544,34 @@ static const struct v4l2_subdev_internal_ops csi2_internal_ops = {
+ 	.registered = csi2_registered,
+ };
+ 
+-static int csi2_parse_endpoints(struct csi2_dev *csi2)
++static int csi2_parse_endpoint(struct device *dev,
++			       struct v4l2_fwnode_endpoint *vep,
++			       struct v4l2_async_subdev *asd)
+ {
+-	struct device_node *node = csi2->dev->of_node;
+-	struct device_node *epnode;
+-	struct v4l2_fwnode_endpoint ep;
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
++	struct csi2_dev *csi2 = sd_to_dev(sd);
+ 
+-	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
+-	if (!epnode) {
+-		v4l2_err(&csi2->sd, "failed to get sink endpoint node\n");
++	if (!fwnode_device_is_available(asd->match.fwnode)) {
++		v4l2_err(&csi2->sd, "remote is not available\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	v4l2_fwnode_endpoint_parse(of_fwnode_handle(epnode), &ep);
+-	of_node_put(epnode);
+-
+-	if (ep.bus_type != V4L2_MBUS_CSI2) {
++	if (vep->bus_type != V4L2_MBUS_CSI2) {
+ 		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	csi2->bus = ep.bus.mipi_csi2;
++	csi2->bus = vep->bus.mipi_csi2;
+ 
+ 	dev_dbg(csi2->dev, "data lanes: %d\n", csi2->bus.num_data_lanes);
+ 	dev_dbg(csi2->dev, "flags: 0x%08x\n", csi2->bus.flags);
++
+ 	return 0;
+ }
+ 
+ static int csi2_probe(struct platform_device *pdev)
+ {
++	unsigned int sink_port = 0;
+ 	struct csi2_dev *csi2;
+ 	struct resource *res;
+ 	int ret;
+@@ -594,10 +593,6 @@ static int csi2_probe(struct platform_device *pdev)
+ 	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
+ 	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
+ 
+-	ret = csi2_parse_endpoints(csi2);
+-	if (ret)
+-		return ret;
+-
+ 	csi2->pllref_clk = devm_clk_get(&pdev->dev, "ref");
+ 	if (IS_ERR(csi2->pllref_clk)) {
+ 		v4l2_err(&csi2->sd, "failed to get pll reference clock\n");
+@@ -647,7 +642,9 @@ static int csi2_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, &csi2->sd);
+ 
+-	ret = v4l2_async_register_subdev(&csi2->sd);
++	ret = v4l2_async_register_fwnode_subdev(
++		&csi2->sd, sizeof(struct v4l2_async_subdev),
++		&sink_port, 1, csi2_parse_endpoint);
+ 	if (ret)
+ 		goto dphy_off;
+ 
 -- 
-2.13.6
+2.7.4
