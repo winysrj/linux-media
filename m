@@ -1,66 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:47787 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967493AbeBNLwl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:52:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.4 02/14] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-Date: Wed, 14 Feb 2018 12:52:28 +0100
-Message-Id: <20180214115240.27650-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115240.27650-1-hverkuil@xs4all.nl>
-References: <20180214115240.27650-1-hverkuil@xs4all.nl>
+Received: from mga09.intel.com ([134.134.136.24]:17929 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752938AbeBVJEY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Feb 2018 04:04:24 -0500
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+To: Kelly Huang <kinghuangdk17@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: Some questions about the UVC gadget
+In-Reply-To: <CAEjubf29Ne0XkJoZTqYfbt5xjw2iDw9hsHRuYzCvz9nYJtLpcQ@mail.gmail.com>
+References: <CAEjubf29Ne0XkJoZTqYfbt5xjw2iDw9hsHRuYzCvz9nYJtLpcQ@mail.gmail.com>
+Date: Thu, 22 Feb 2018 11:03:42 +0200
+Message-ID: <878tbl75w1.fsf@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-commit 3171cc2b4eb9831ab4df1d80d0410a945b8bc84e upstream.
 
-According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
+Hi,
 
-V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
-VIDIOC_DQBUF it is always cleared ...
+Kelly Huang <kinghuangdk17@gmail.com> writes:
+>  Dear Mr.Balbi,
+>
+> I am a college student from China. Recently, I am doing some research on
+> the UVC gadget. After reading the source code, I found that the uvc gadget
+> framework only supports two types of video streaming format, the
+> UNCOMPRESSED and the MJPEG.
+>
+> Now, I am trying to add H.264 support. I wonder if the Linux kernel has
+> already support it or not. It will be appreciated if you can give me some
+> advice.
+>
+> Thank you for your time.
 
-Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
-can be tested with vivid and dev_debug:
+It's a good idea to add mailing lists and other relevant people to the
+loop.
 
-[257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
-type=vid-cap, flags=0x00002004, field=none, sequence=163,
-memory=userptr, bytesused=460800, offset/userptr=0x344b000,
-length=460800
+=2D-=20
+balbi
 
-This patch forces FLAG_DONE to 0 after calling DQBUF.
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+-----BEGIN PGP SIGNATURE-----
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 6c441be8f893..bf23234d957e 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -593,6 +593,12 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 			b->flags & V4L2_BUF_FLAG_LAST)
- 		q->last_buffer_dequeued = true;
- 
-+	/*
-+	 *  After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
-+	 *  cleared.
-+	 */
-+	b->flags &= ~V4L2_BUF_FLAG_DONE;
-+
- 	return ret;
- }
- 
--- 
-2.15.1
+iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlqOh24ACgkQzL64meEa
+mQYq1g/+KOvErz4yYtdzDky7sk612hHPtN86GIoIL8sehbCOlh9OHVE8UDLjnTEk
+pAMRZ5RHoYINsHGrfNtHJoVntzJZmWiK/MfTMYIlnV41BlxUqEsoomeekKdWrshJ
+K17ulG1YZE27fFIli3UvDaijqsTN1U02glqAZ5hCYMci7Ka6WLFTjVKpX0P6QOw+
+KfrLMaHpmP2UM/TOWxb1VZIXAaNj6ky5aQGfoYX4X1LEapzek2ybDHbcqLtoEFJo
+h9QgKhrQLskGyW7pcnZquklle3E+BeR7qbTLK5Q5buiuFvVu1EW7ksHQP/EAEnqb
+akB+OEZk5SJ3oSnBSBD94nP2kUoB1sZu+VX4XA/xOqtKanFBgbtTc+GM+g8/3v2N
+hofMZKR7G/X0tEGutRYMMO/gOXIIUpK7KG1mdyzboxmrt5qb4n88qRulVK/y7KOH
+euHpD+pryn0EcIWec5DbKcFfi/wUwhF9Y7tVVQY2tzsEX8BHnkwdfrKCyxPk+axp
+JP1vugdJQIcVU88zPAoU6krKPUfJ7lv6AQevKjTaikXjsPmampofuNA/wgc/0UmM
+TC0ebwXZwqL7AjTlHd+W7RiEaTSRi+YeACYyqrh8OedMJq2CaWedDOMo4j3DF4fQ
+NruJ/nkhzroX0KoUXkt69W04amyUZE6YYXqgiMWZPcoZWKw78lA=
+=TnsG
+-----END PGP SIGNATURE-----
+--=-=-=--
