@@ -1,109 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:57635 "EHLO
-        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751453AbeB1Clo (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:60136 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751978AbeBVEn5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 21:41:44 -0500
-Message-ID: <1519785692.2617.355.camel@decadent.org.uk>
-Subject: Re: [PATCH for v3.2 00/12] v4l2-compat-ioctl32.c: remove
- set_fs(KERNEL_DS)
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>, stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Date: Wed, 28 Feb 2018 02:41:32 +0000
-In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
-References: <20180214120323.28778-1-hverkuil@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-        protocol="application/pgp-signature"; boundary="=-3NkgZ32zMfAFyvHUcN6c"
-Mime-Version: 1.0
+        Wed, 21 Feb 2018 23:43:57 -0500
+Message-ID: <5688a918bd3e57d8b14b94c5d98c98c1@smtp-cloud7.xs4all.net>
+Date: Thu, 22 Feb 2018 05:43:50 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ABI WARNING
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---=-3NkgZ32zMfAFyvHUcN6c
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-On Wed, 2018-02-14 at 13:03 +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> This patch series fixes a number of bugs and culminates in the removal
-> of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
->=20
-> This was tested with a VM running 3.2, the vivi driver (a poor substitute=
- for
-> the much improved vivid driver that's available in later kernels, but it'=
-s the
-> best I had) since that emulates the more common V4L2 ioctls that need to =
-pass
-> through v4l2-compat-ioctl32.c) and the 32-bit v4l2-compliance + 32-bit v4=
-l2-ctl
-> utilities that together exercised the most common ioctls.
->=20
-> Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
-> v4l2-compliance complained about. The purpose is to 1) make it easy to
-> verify that the final patch didn't introduce errors by first eliminating
-> errors caused by other known bugs, and 2) keep the final patch at least
-> somewhat readable.
+date:			Thu Feb 22 05:00:16 CET 2018
+media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
+media_build git hash:	d144cfe4b3c37ece55ae27778c99765d4943c4fa
+v4l-utils git hash:	df81877f81b130d0c2bdc952367e29f55f1352f1
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-Thanks, I've queued up all of these.  Again, I rebased these on top
-of some earlier fixes to v4l2-compat-ioctl32.c which you incorporated
-into your backports.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: WARNINGS
+linux-3.2.98-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for blackfin-bf561
+sparse: WARNINGS
+smatch: OK
 
-Ben.
+Detailed results are available here:
 
-> Regards,
->=20
-> 	Hans
->=20
-> Daniel Mentz (2):
->   media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
->   media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
->=20
-> Hans Verkuil (10):
->   media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
->   media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
->   media: v4l2-compat-ioctl32.c: fix the indentation
->   media: v4l2-compat-ioctl32.c: move 'helper' functions to
->     __get/put_v4l2_format32
->   media: v4l2-compat-ioctl32.c: avoid sizeof(type)
->   media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
->   media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
->   media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
->   media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
->   media: v4l2-compat-ioctl32.c: don't copy back the result for certain
->     errors
->=20
->  drivers/media/video/Makefile              |   7 +-
->  drivers/media/video/v4l2-compat-ioctl32.c | 966 ++++++++++++++++++------=
-------
->  drivers/media/video/v4l2-ioctl.c          |   6 +-
->  3 files changed, 597 insertions(+), 382 deletions(-)
->=20
---=20
-Ben Hutchings
-If the facts do not conform to your theory, they must be disposed of.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
+Full logs are available here:
 
---=-3NkgZ32zMfAFyvHUcN6c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
------BEGIN PGP SIGNATURE-----
+The Media Infrastructure API from this daily build is here:
 
-iQIzBAABCgAdFiEErCspvTSmr92z9o8157/I7JWGEQkFAlqWFt0ACgkQ57/I7JWG
-EQnJyRAAqSeQ9lP/1c0sNuKq7a1liFLy+xFJzrvCndmHxXkt9ellGjvvqx5BsJtw
-QyurrUzj+XkJo0EBq0olONaSj/UJ9fKVQnl1rEUmX+MpiANNu13JtSI35RHIfEGc
-f754WqJaZomrsUA2YRfwEDq2G0MYTy7Tre6udyn1VI1Cf8P+63MYEkstE2ASKGnx
-2av1SY9dsaN6JDAVQ1459H9NSy+cRAZG+TnvhqDGH9HmV+RlcruwouxHDGz2m4ur
-IGhgYM2+09nZ7q7JkU3jxSWk3m6FY9QZGzSHg6eZs4dVxCQjVyD7AWcM6+eJhYTp
-w5SNeQny61KoFrrq24WGN9m6xxe6I+OYSWq13FQ7xPWyQIDTlKlORW8RpnRjkOwf
-w+r2nyFHQeFzDNq/EnQ7UPAXOU6BNqWPzjMH3Ao8+dDlqLvCIYAAWP1pbkGyf2Sl
-/UwNo0tLU48wyXWuwbOA72fewzYqIMoerwsShi3U/xYWxGscJqyMz9PpznzAK69K
-TPQteJxo0P/3AA8cf2hd+VHWydtidu3WCHxVh6/CfgasdNzLjIKVCWqpYcvN2idT
-24VlrBrpT4XPJaRVE9rjbe8thLR0vUX48EQMpc+CQ5A2WVwfSZeN7P8SRjRTOVOK
-t9BKJN0KpqaRxGtIs8Efp9q6owM9BqJYTZqHRcOD3zq+5Z3yy/0=
-=cPD0
------END PGP SIGNATURE-----
-
---=-3NkgZ32zMfAFyvHUcN6c--
+http://www.xs4all.nl/~hverkuil/spec/index.html
