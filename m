@@ -1,53 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:35744 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162725AbeBOVTT (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:55309 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932692AbeBVO0z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 16:19:19 -0500
-Received: by mail-wm0-f43.google.com with SMTP id x21so3414576wmh.0
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 13:19:19 -0800 (PST)
+        Thu, 22 Feb 2018 09:26:55 -0500
+Date: Thu, 22 Feb 2018 15:26:35 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
+Message-ID: <20180222142635.GN7203@w540>
+References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+ <2864762.IPlziE6Y0S@avalon>
+ <20180222123600.GM7203@w540>
+ <4525290.Vz7vJ24K7t@avalon>
 MIME-Version: 1.0
-In-Reply-To: <7732637c-93bf-fac2-5553-695782890254@xs4all.nl>
-References: <1518717336-6271-1-git-send-email-tharvey@gateworks.com>
- <1518717336-6271-8-git-send-email-tharvey@gateworks.com> <7732637c-93bf-fac2-5553-695782890254@xs4all.nl>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Thu, 15 Feb 2018 13:19:17 -0800
-Message-ID: <CAJ+vNU3G9bJ16npp22O=7k72Pf3xSuQxW-CA2p5cbDq-nSZ4ew@mail.gmail.com>
-Subject: Re: [PATCH v13 7/8] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
-To: Hans Verkuil <hverkuil@xs4all.nl>, Shawn Guo <shawnguo@kernel.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <4525290.Vz7vJ24K7t@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 15, 2018 at 10:36 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 15/02/18 18:55, Tim Harvey wrote:
->> The GW54xx has a front-panel microHDMI connector routed to a TDA19971
->> which is connected the the IPU CSI when using IMX6Q.
+Hi Laurent,
+
+On Thu, Feb 22, 2018 at 02:47:06PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
 >
-> I assume that this and the next patch go through another subsystem for arm
-> and/or imx?
+> On Thursday, 22 February 2018 14:36:00 EET jacopo mondi wrote:
+> > On Thu, Feb 22, 2018 at 02:14:53PM +0200, Laurent Pinchart wrote:
+> > > On Thursday, 22 February 2018 14:04:12 EET jacopo mondi wrote:
+> > >> On Wed, Feb 21, 2018 at 10:28:06PM +0200, Laurent Pinchart wrote:
+> > >>> On Tuesday, 20 February 2018 10:58:57 EET jacopo mondi wrote:
 >
-> Regards,
+> [snip]
 >
->         Hans
+> > >>>> This actually makes me wonder if those informations (ycbcb_enc,
+> > >>>> quantization and xfer_func) shouldn't actually be part of the
+> > >>>> supported format list... I blindly added those default fields in the
+> > >>>> try_fmt function, but I doubt they applies to all supported formats.
+> > >>>>
+> > >>>> Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
+> > >>>> RGB 565) and 1 raw format (BGGR). I now have a question here:
+> > >>>>
+> > >>>> 1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
+> > >>>> applies to RGB and raw formats? I don't think so, and what value is
+> > >>>> the correct one for the ycbcr_enc field in this case? I assume
+> > >>>> xfer_func and quantization applies to all formats instead..
+> > >>>
+> > >>> There's no encoding for RGB formats if I understand things correctly,
+> > >>> so I'd set ycbcr_enc to V4L2_YCBCR_ENC_DEFAULT. The transfer function
+> > >>> and the quantization apply to all formats, but I'd be surprised to find
+> > >>> a sensor outputting limited range for RGB.
+> > >>
+> > >> Ack, we got the same understanding for RGB formats. I wonder if for
+> > >> those formats we wouldn't need a V4L2_YCBCR_ENC_NONE or similar...
+> > >
+> > > That, or explicitly documenting that when the format is not YUV the field
+> > > should be set by both drivers and applications to V4L2_YCBCR_ENC_DEFAULT
+> > > when written and ignored when read.
+> >
+> > Well, if no encoding is performed because the color encoding scheme is
+> > RGB, the colorspace does anyway define an encoding method, so it seems
+> > to me the latter is more appropriate (use DEFAULT and ignore when read).
+> >
+> > That's anyway just my opinion, but I could send a patch for
+> > documentation and see what feedback it gets.
+> >
+> > >>> Have you been able to check whether the sensor outputs limited range
+> > >>> of full range YUV ? If it outputs full range you can hardcode
+> > >>> quantization to V4L2_QUANTIZATION_FULL_RANGE for all formats.
+> > >>
+> > >> In YUYV mode, I see values > 0xf0 ( > 240, which is the max value for
+> > >> CbCr samples in limited quantization range), so I assume quantization
+> > >> is full range.
+> > >
+> > > It should be, yes. What's the minimum and maximum values you get ?
+> >
+> > From a white surface:
+> > min = 0x39
+> > max = 0xfc
+> >
+> > From a black surface:
+> > min = 0x00 (with 62 occurrences)
+> > max = 0x8b
+> >
+> > I guess that's indeed full range quantization
+>
+> Could you check Y and UV separately ?
+>
+> #!/usr/bin/python
+>
+> import sys
+>
+> def main(argv):
+>     if len(argv) != 2:
+>         print('Usage: %s <file>' % argv[0])
+>         return 1
+>
+>     data = open(argv[1], 'rb').read()
+>
+>     y_min = 255
+>     y_max = 0
+>     uv_min = 255
+>     uv_max = 0
+>
+>     for i in range(len(data) // 2):
+>         y = data[2*i]
+>         uv = data[2*i]
+
+uv = data[2*i+1]
+
+>
+>         y_min = min(y_min, y)
+>         y_max = max(y_max, y)
+>         uv_min = min(uv_min, uv)
+>         uv_max = max(uv_max, uv)
+>
+>     print('Y [%u, %u] UV [%u, %u]' % (y_min, y_max, uv_min, uv_max))
+>     return 0
+>
+> if __name__ == '__main__':
+>     sys.exit(main(sys.argv))
 >
 
-Hans,
 
-Yes - Shawn should pick up the two dts patches:
-0007-ARM-dts-imx-Add-TDA19971-HDMI-Receiver-to-GW54xx.patch
-0008-ARM-dts-imx-Add-TDA19971-HDMI-Receiver-to-GW551x.patch
+White image:
+Y [57, 252] UV [105, 145]
 
-Shawn you've seen these before but haven't ack'd them - are they good
-to merge to your imx tree?
-
-Regards,
-
-Tim
+Black image:
+Y [0, 32] UV [116, 139]
