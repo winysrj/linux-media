@@ -1,149 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33029 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751775AbeBYMbw (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:48823 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751454AbeBVHcv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Feb 2018 07:31:52 -0500
-Received: by mail-wm0-f65.google.com with SMTP id s206so13202675wme.0
-        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 04:31:52 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 08/12] [media] ngene: deduplicate I2C adapter evaluation
-Date: Sun, 25 Feb 2018 13:31:36 +0100
-Message-Id: <20180225123140.19486-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20180225123140.19486-1-d.scheller.oss@gmail.com>
-References: <20180225123140.19486-1-d.scheller.oss@gmail.com>
+        Thu, 22 Feb 2018 02:32:51 -0500
+Subject: Re: [PATCHv2] media: add tuner standby op, use where needed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <06ad8080-255f-b770-40b7-e6bc98b6ce60@cisco.com>
+ <3222129.ciFPb3AyAM@avalon> <1346de8d-cc81-2831-051d-200da9edd52d@xs4all.nl>
+ <2582806.RppHNjFo7I@avalon>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2efd099c-634f-9f49-d4bf-cdc55429321f@xs4all.nl>
+Date: Thu, 22 Feb 2018 08:32:46 +0100
+MIME-Version: 1.0
+In-Reply-To: <2582806.RppHNjFo7I@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 02/21/2018 08:21 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Wednesday, 21 February 2018 15:11:36 EET Hans Verkuil wrote:
+>> On 02/21/18 13:37, Laurent Pinchart wrote:
+>>> On Wednesday, 21 February 2018 09:40:29 EET Hans Verkuil wrote:
+>>>> On 02/21/2018 01:02 AM, Laurent Pinchart wrote:
+>>>>> On Tuesday, 20 February 2018 11:44:20 EET Hans Verkuil wrote:
+>>>>>> The v4l2_subdev core s_power op was used for two different things:
+>>>>>> power on/off sensors or video decoders/encoders and to put a tuner in
+>>>>>> standby (and only the tuner!). There is no 'tuner wakeup' op, that's
+>>>>>> done automatically when the tuner is accessed.
+>>>>>>
+>>>>>> The danger with calling (s_power, 0) to put a tuner into standby is
+>>>>>> that it is usually broadcast for all subdevs. So a video receiver
+>>>>>> subdev that supports s_power will also be powered off, and since there
+>>>>>> is no corresponding (s_power, 1) they will never be powered on again.
+>>>>>>
+>>>>>> In addition, this is specifically meant for tuners only since they draw
+>>>>>> the most current.
+>>>>>>
+>>>>>> This patch adds a new tuner op called 'standby' and replaces all calls
+>>>>>> to (core, s_power, 0) by (tuner, standby). This prevents confusion
+>>>>>> between the two uses of s_power. Note that there is no overlap: bridge
+>>>>>> drivers either just want to put the tuner into standby, or they deal
+>>>>>> with powering on/off sensors. Never both.
+>>>>>>
+>>>>>> This also makes it easier to replace s_power for the remaining bridge
+>>>>>> drivers with some PM code later.
+>>>>>>
+>>>>>> Whether we want something cleaner for tuners in the future is a
+>>>>>> separate topic. There is a lot of legacy code surrounding tuners, and I
+>>>>>> am very hesitant about making changes there.
+>>>>>>
+>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>> ---
+>>>>>> Changes since v1:
+>>>>>> - move the standby op to the tuner_ops, which makes much more sense.
+>>>>>> ---
+>>>>>
+>>>>> [snip]
+>>>>>
+>>>>>> diff --git a/drivers/media/v4l2-core/tuner-core.c
+>>>>>> b/drivers/media/v4l2-core/tuner-core.c index 82852f23a3b6..cb126baf8771
+>>>>>> 100644
+>>>>>> --- a/drivers/media/v4l2-core/tuner-core.c
+>>>>>> +++ b/drivers/media/v4l2-core/tuner-core.c
+>>>>>> @@ -1099,23 +1099,15 @@ static int tuner_s_radio(struct v4l2_subdev
+>>>>>> *sd)
+>>>>>>   */
+>>>>>>  
+>>>>>>  /**
+>>>>>> - * tuner_s_power - controls the power state of the tuner
+>>>>>> + * tuner_standby - controls the power state of the tuner
+>>>>>
+>>>>> I'd update the description too.
+>>>>>
+>>>>>>   * @sd: pointer to struct v4l2_subdev
+>>>>>>   * @on: a zero value puts the tuner to sleep, non-zero wakes it up
+>>>>>
+>>>>> And this parameter doesn't exist anymore. You could have caught that by
+>>>>> compiling the documentation.
+>>>>
+>>>> Oops! I'll make a v3. Thanks for catching this.
+>>>>
+>>>>>>   */
+>>>>>>
+>>>>>> -static int tuner_s_power(struct v4l2_subdev *sd, int on)
+>>>>>> +static int tuner_standby(struct v4l2_subdev *sd)
+>>>>>>  {
+>>>>>>  	struct tuner *t = to_tuner(sd);
+>>>>>>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>>>>>>
+>>>>>> -	if (on) {
+>>>>>> -		if (t->standby && set_mode(t, t->mode) == 0) {
+>>>>>> -			dprintk("Waking up tuner\n");
+>>>>>> -			set_freq(t, 0);
+>>>>>> -		}
+>>>>>> -		return 0;
+>>>>>> -	}
+>>>>>> -
+>>>>>
+>>>>> Interesting how this code was not used. I've had a look at tuner-core
+>>>>> driver out of curiosity, it clearly shows its age :/ I2C address probing
+>>>>> belongs to another century.
+>>>>
+>>>> Not really. It's still needed for USB/PCI devices.
+>>>
+>>> Why is that ?
+>>
+>> 1) Historical: in the past we never kept track of e.g. i2c addresses but
+>>    always relied on probing. We're stuck with that.
+> 
+> Are we ? Couldn't we move away from it provided someone was interested in 
+> doing the work (for devices that do not fall in the category of your second 
+> point below) ?
 
-The I2C adapter evaluation (based on chan->number) is duplicated at
-several places (tuner_attach_() functions, demod_attach_stv0900() and
-cineS2_probe()). Clean this up by wrapping that construct in a separate
-function which all users of that can pass the ngene_channel pointer and
-get the correct I2C adapter from.
+There are over 160 different bttv cards. And over a 100 em28xx devices. And we
+didn't keep track of things like i2c addresses. And that's just two drivers.
+So yes, we're stuck. But frankly, it's been working fine for over 15 years, so
+why change it? Sure, we'd do it differently today, but there is really no need
+to start messing around with it.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ngene/ngene-cards.c | 41 +++++++++++++----------------------
- 1 file changed, 15 insertions(+), 26 deletions(-)
+Regards,
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 00b100660784..dff55c7c9f86 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -118,17 +118,25 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
- /* Demod/tuner attachment ***************************************************/
- /****************************************************************************/
- 
-+static struct i2c_adapter *i2c_adapter_from_chan(struct ngene_channel *chan)
-+{
-+	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-+	if (chan->number < 2)
-+		return &chan->dev->channel[0].i2c_adapter;
-+
-+	return &chan->dev->channel[1].i2c_adapter;
-+}
-+
- static int tuner_attach_stv6110(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct stv090x_config *feconf = (struct stv090x_config *)
- 		chan->dev->card_info->fe_config[chan->number];
- 	struct stv6110x_config *tunerconf = (struct stv6110x_config *)
- 		chan->dev->card_info->tuner_config[chan->number];
- 	const struct stv6110x_devctl *ctl;
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
- 	if (chan->number < 2)
- 		i2c = &chan->dev->channel[0].i2c_adapter;
- 	else
-@@ -158,16 +166,10 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
- static int tuner_attach_stv6111(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct dvb_frontend *fe;
- 	u8 adr = 4 + ((chan->number & 1) ? 0x63 : 0x60);
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr);
- 	if (!fe) {
- 		fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr & ~4);
-@@ -197,10 +199,9 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
- static int tuner_attach_tda18271(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct dvb_frontend *fe;
- 
--	i2c = &chan->dev->channel[0].i2c_adapter;
- 	if (chan->fe->ops.i2c_gate_ctrl)
- 		chan->fe->ops.i2c_gate_ctrl(chan->fe, 1);
- 	fe = dvb_attach(tda18271c2dd_attach, chan->fe, i2c, 0x60);
-@@ -240,7 +241,7 @@ static int tuner_tda18212_ping(struct ngene_channel *chan,
- static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct i2c_client *client;
- 	struct tda18212_config config = {
- 		.fe = chan->fe,
-@@ -262,12 +263,6 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
- 	else
- 		board_info.addr = 0x60;
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	/*
- 	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
- 	 * combo, the tda18212 must be probed by reading it's id _twice_ when
-@@ -320,7 +315,7 @@ static int tuner_attach_probe(struct ngene_channel *chan)
- static int demod_attach_stv0900(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct stv090x_config *feconf = (struct stv090x_config *)
- 		chan->dev->card_info->fe_config[chan->number];
- 
-@@ -620,7 +615,7 @@ static int port_has_xo2(struct i2c_adapter *i2c, u8 *type, u8 *id)
- static int cineS2_probe(struct ngene_channel *chan)
- {
- 	struct device *pdev = &chan->dev->pci_dev->dev;
--	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
- 	struct stv090x_config *fe_conf;
- 	u8 buf[3];
- 	u8 xo2_type, xo2_id, xo2_demodtype;
-@@ -628,12 +623,6 @@ static int cineS2_probe(struct ngene_channel *chan)
- 	struct i2c_msg i2c_msg = { .flags = 0, .buf = buf };
- 	int rc;
- 
--	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
--	if (chan->number < 2)
--		i2c = &chan->dev->channel[0].i2c_adapter;
--	else
--		i2c = &chan->dev->channel[1].i2c_adapter;
--
- 	if (port_has_xo2(i2c, &xo2_type, &xo2_id)) {
- 		xo2_id >>= 2;
- 		dev_dbg(pdev, "XO2 on channel %d (type %d, id %d)\n",
--- 
-2.16.1
+	Hans
+
+> 
+>> 2) You can have different devices with the same IDs. And no way of knowing
+>>    what's on there except by probing. Quite often they swap the tuner for
+>>    another tuner with a different i2c address without changing the IDs.
+>>    Most tuner devices use the same Philips-based registers so they can be
+>>    handled by the same driver (tuner-simple), but the i2c addresses are
+>>    all over the place.
+>>
+>>    But also other devices can be changed, or two vendors used the same
+>>    reference design, each made changes but never updated the IDs from the
+>>    original design.
+> 
+> That's what I thought was the real issue, coupled with the fact that, with 
+> probing in place, driver have relied on it even when the I2C address and tuner 
+> model don't vary across devices with the same ID.
+> 
+> If this were to be designed again I'd want a helper function to probe an 
+> explicitly given set of tuners at an explicitly given list of addresses, and 
+> then create the right I2C client for that. The tuner-core driver should not be 
+> an I2C driver. Of course nobody will convert it, but that doesn't stop the 
+> current implementation from really showing its age.
+> 
+>> Basically it's much less structured than a proper device tree for a board.
+>>
+>>>> I was also surprised that it wasn't used. I expected to see some internal
+>>>> calls to tuner_s_power(sd, 1) to turn things on, but that's not what
+>>>> happened.
+>>>>
+>>>>>>  	dprintk("Putting tuner to sleep\n");
+>>>>>>  	t->standby = true;
+>>>>>>  	if (analog_ops->standby)
+>>>
+>>> [snip]
+> 
