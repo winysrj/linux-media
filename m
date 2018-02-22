@@ -1,119 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:49148 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753761AbeBGRw1 (ORCPT
+Received: from esa4.microchip.iphmx.com ([68.232.154.123]:23161 "EHLO
+        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933427AbeBVRmm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 12:52:27 -0500
-Subject: Re: [PATCH] media: stm32-dcmi: add g/s_parm framerate support
-To: Hugues Fruchet <hugues.fruchet@st.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>
-References: <1518025389-3677-1-git-send-email-hugues.fruchet@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <727ee222-20f1-23d3-fdff-4b985e24593d@xs4all.nl>
-Date: Wed, 7 Feb 2018 18:52:20 +0100
+        Thu, 22 Feb 2018 12:42:42 -0500
+Subject: Re: [PATCH v3 06/10] pwm: add PWM modes
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+CC: Thierry Reding <thierry.reding@gmail.com>,
+        Alexander Shiyan <shc_work@mail.ru>, <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        David Airlie <airlied@linux.ie>, <kamil@wypas.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Jean Delvare <jdelvare@suse.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>, Lee Jones <lee.jones@linaro.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Jingoo Han <jingoohan1@gmail.com>, <milo.kim@ti.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        <linux-pwm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        linux-input <linux-input@vger.kernel.org>,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        <linux-fbdev@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        Linux Documentation List <linux-doc@vger.kernel.org>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+ <1519300881-8136-7-git-send-email-claudiu.beznea@microchip.com>
+ <CAHp75Ver6GuKSDooAr2DW+eqt=B3p8O+X6+rOSWNgfhHxgVqNQ@mail.gmail.com>
+From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Message-ID: <e5090740-520a-34c0-6b52-09cc8ada11b1@microchip.com>
+Date: Thu, 22 Feb 2018 19:42:29 +0200
 MIME-Version: 1.0
-In-Reply-To: <1518025389-3677-1-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <CAHp75Ver6GuKSDooAr2DW+eqt=B3p8O+X6+rOSWNgfhHxgVqNQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/07/2018 06:43 PM, Hugues Fruchet wrote:
-> Add g/s_parm framerate support by calling subdev
-> g/s_frame_interval ops.
-> This allows user to control sensor framerate by
-> calling ioctl G/S_PARM.
+
+
+On 22.02.2018 19:28, Andy Shevchenko wrote:
+> On Thu, Feb 22, 2018 at 2:01 PM, Claudiu Beznea
+> <claudiu.beznea@microchip.com> wrote:
+>> Add PWM normal and complementary modes.
 > 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/platform/stm32/stm32-dcmi.c | 49 +++++++++++++++++++++++++++++++
->  1 file changed, 49 insertions(+)
+>> +- PWM_DTMODE_COMPLEMENTARY: PWM complementary working mode (for PWM
+>> +channels two outputs); if not specified, the default for PWM channel will
+>> +be used
 > 
-> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-> index ab555d4..8197554 100644
-> --- a/drivers/media/platform/stm32/stm32-dcmi.c
-> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
-> @@ -1151,6 +1151,52 @@ static int dcmi_enum_framesizes(struct file *file, void *fh,
->  	return 0;
->  }
->  
-> +static int dcmi_g_parm(struct file *file, void *priv,
-> +		       struct v4l2_streamparm *p)
-> +{
-> +	struct stm32_dcmi *dcmi = video_drvdata(file);
-> +	struct v4l2_subdev_frame_interval ival = { 0 };
-> +	int ret;
-> +
-> +	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-> +	ret = v4l2_subdev_call(dcmi->entity.subdev, video,
-> +			       g_frame_interval, &ival);
-> +	if (ret)
-> +		return ret;
-> +
-> +	p->parm.capture.timeperframe = ival.interval;
-> +
-> +	return ret;
-> +}
+> What DT stands for?
+It stands for Device Tree. It remained this way from the previous version. In
+the previous version I had modes described in an enum, to be used by PWM core,
+as follows:
+enum pwm_mode {
+	PWM_MODE_NORMAL,
+	PWM_MODE_COMPLEMENTARY,
+};
 
-This function and the next can be simplified by using the help functions
-introduced here:
+and, to avoid conflict b/w these defines and the one from
+include/dt-bindings/pwm/pwm.h I introduced this DT in the define names from
+dt-bindings. But now the DT might be removed since I've changed the way the PWM
+mode is identified in PWM core. I will remove the DT in the next version, if not
+requested otherwise.
 
-https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=parm
-
-I'll make a pull request for this later this week, so it's probably a good
-idea to base your code on this as well.
-
-Regards,
-
-	Hans
-
-> +
-> +static int dcmi_s_parm(struct file *file, void *priv,
-> +		       struct v4l2_streamparm *p)
-> +{
-> +	struct stm32_dcmi *dcmi = video_drvdata(file);
-> +	struct v4l2_subdev_frame_interval ival = {
-> +		0,
-> +		p->parm.capture.timeperframe
-> +	};
-> +	int ret;
-> +
-> +	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	memset(&p->parm, 0, sizeof(p->parm));
-> +	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-> +	ret = v4l2_subdev_call(dcmi->entity.subdev, video,
-> +			       s_frame_interval, &ival);
-> +	if (ret)
-> +		return ret;
-> +
-> +	p->parm.capture.timeperframe = ival.interval;
-> +
-> +	return ret;
-> +}
-> +
->  static int dcmi_enum_frameintervals(struct file *file, void *fh,
->  				    struct v4l2_frmivalenum *fival)
->  {
-> @@ -1253,6 +1299,9 @@ static int dcmi_release(struct file *file)
->  	.vidioc_g_input			= dcmi_g_input,
->  	.vidioc_s_input			= dcmi_s_input,
->  
-> +	.vidioc_g_parm			= dcmi_g_parm,
-> +	.vidioc_s_parm			= dcmi_s_parm,
-> +
->  	.vidioc_enum_framesizes		= dcmi_enum_framesizes,
->  	.vidioc_enum_frameintervals	= dcmi_enum_frameintervals,
->  
-> 
+Thank you,
+Claudiu Benea
