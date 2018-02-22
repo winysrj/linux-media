@@ -1,254 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:44933 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753425AbeBFU2U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 15:28:20 -0500
-Received: by mail-pl0-f68.google.com with SMTP id f8so1979682plk.11
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 12:28:20 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v8 6/7] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
-Date: Tue,  6 Feb 2018 12:27:53 -0800
-Message-Id: <1517948874-21681-7-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33985 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753824AbeBVMmw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Feb 2018 07:42:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2] videodev2.h: add helper to validate colorspace
+Date: Thu, 22 Feb 2018 14:43:35 +0200
+Message-ID: <3243006.srM2NAaUy0@avalon>
+In-Reply-To: <e09a145d-bf1b-6f8e-79aa-80445ce91e25@xs4all.nl>
+References: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se> <2556801.UsItpXbr2P@avalon> <e09a145d-bf1b-6f8e-79aa-80445ce91e25@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The GW54xx has a front-panel microHDMI connector routed to a TDA19971
-which is connected the the IPU CSI when using IMX6Q.
+Hi Hans,
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
-v5:
- - remove leading 0 from unit address
- - add newline between property list and child node
+On Thursday, 22 February 2018 09:38:46 EET Hans Verkuil wrote:
+> On 02/21/2018 09:16 PM, Laurent Pinchart wrote:
+> > On Tuesday, 20 February 2018 10:37:22 EET Hans Verkuil wrote:
+> >> On 02/19/2018 11:28 PM, Niklas S=F6derlund wrote:
+> >>> Hi Hans,
+> >>>=20
+> >>> Thanks for your feedback.
+> >>>=20
+> >>> [snip]
+> >>>=20
+> >>>>>>>> Can you then fix v4l2-compliance to stop testing colorspace
+> >>>>>>>> against 0xff
+> >>>>>>>> ?
+> >>>>>>>=20
+> >>>>>>> For now I can simply relax this test for subdevs with sources and
+> >>>>>>> sinks.
+> >>>>>>=20
+> >>>>>> You also need to relax it for video nodes with MC drivers, as the =
+DMA
+> >>>>>> engines don't care about colorspaces.
+> >>>>>=20
+> >>>>> Yes, they do. Many DMA engines can at least do RGB <-> YUV
+> >>>>> conversions, so they should get the colorspace info from their sour=
+ce
+> >>>>> and pass it on to userspace (after correcting for any conversions d=
+one
+> >>>>> by the DMA engine).
+> >>>>=20
+> >>>> Not in the MC case. Video nodes there only model the DMA engine, and
+> >>>> are thus not aware of colorspaces. What MC drivers do is check at
+> >>>> stream on time when validating the pipeline that the colorspace set =
+by
+> >>>> userspace on the video node corresponds to the colorspace on the sou=
+rce
+> >>>> pad of the connected subdev, but that's only to ensure that userspace
+> >>>> gets a coherent view of colorspace across the pipeline, not to progr=
+am
+> >>>> the hardware. There could be exceptions, but in the general case, the
+> >>>> video node implementation of an MC driver will accept any colorspace
+> >>>> and only validate it at stream on time, similarly to how it does for
+> >>>> the frame size format instance (and in the frame size case it will
+> >>>> usually enforce min/max limits when the DMA engine limits the frame
+> >>>> size).
+> >>>=20
+> >>> I'm afraid the issue described above by Laurent is what sparked me to
+> >>> write this commit to begin with. In my never ending VIN Gen3 patch-se=
+t I
+> >>> currency need to carry a patch [1] to implement a hack to make sure
+> >>> v4l2-compliance do not fail for the VIN Gen3 MC-centric use-case. This
+> >>> patch was an attempt to be able to validate the colorspace using the
+> >>> magic value 0xff.
+> >>=20
+> >> This is NOT a magic value. The test that's done here is to memset the
+> >> format structure with 0xff, then call the ioctl. Afterwards it checks
+> >> if there are any remaining 0xff bytes left in the struct since it expe=
+cts
+> >> the driver to have overwritten it by something else. That's where the
+> >> 0xff comes from.
+> >=20
+> > It's no less or more magic than using 0xdeadbeef or any fixed value :-)=
+ I
+> > think we all agree that it isn't a value that is meant to be handled
+> > specifically by drivers, so it's not magic in that sense.
+> >=20
+> >>> I don't feel strongly for this patch in particular and I'm happy to d=
+rop
+> >>> it.  But I would like to receive some guidance on how to then properly
+> >>> be able to handle this problem for the MC-centric VIN driver use-case.
+> >>> One option is as you suggested to relax the test in v4l-compliance to
+> >>> not check colorspace, but commit [2] is not enough to resolve the iss=
+ue
+> >>> for my MC use-case.
+> >>>=20
+> >>> As Laurent stated above, the use-case is that the video device shall
+> >>> accept any colorspace set from user-space. This colorspace is then on=
+ly
+> >>> used as stream on time to validate the MC pipeline. The VIN driver do
+> >>> not care about colorspace, but I care about not breaking v4l2-complia=
+nce
+> >>> as I find it's a very useful tool :-)
+> >>=20
+> >> I think part of my confusion here is that there are two places where y=
+ou
+> >> deal with colorspaces in a DMA engine: first there is a input pad of t=
+he
+> >> DMA engine entity, secondly there is the v4l2_pix_format for the memory
+> >> description.
+> >>=20
+> >> The second is set by the driver based on what userspace specified for =
+the
+> >> input pad, together with any changes due to additional conversions such
+> >> as quantization range and RGB <-> YUV by the DMA engine.
+> >=20
+> > No, I'm sorry, for MC-based drivers this isn't correct. The media entity
+> > that symbolizes the DMA engine indeed has a sink pad, but it's a video
+> > node, not a subdev. It thus has no media bus format configured for its
+> > sink pad. The closest pad in the pipeline that has a media bus format is
+> > the source pad of the subdev connected to the video node.
+> >=20
+> > There's no communication within the kernel at G/S_FMT time between the
+> > video node and its connected subdev. The only time we look at the
+> > pipeline as a whole is when starting the stream to validate that the
+> > pipeline is correctly configured. We thus have to implement G/S_FMT on
+> > the video node without any knowledge about the connected subdev, and th=
+us
+> > accept any colorspace.
+> >=20
+> >> So any colorspace validation is done for the input pad. The question is
+> >> what that validation should be. It's never been defined.
+> >=20
+> > No format is set on the video node's entity sink pad for the reason abo=
+ve,
+> > so no validation occurs when setting the colorspace on the sink pad as
+> > that never happens.
+>=20
+> Is this documented anywhere? Certainly VIDIOC_G/S/TRY_FMT doesn't mention
+> it.
+>=20
+> It is certainly a surprise to me.
 
-v4: no changes
-v3: no changes
+We don't document as such that no format is set on the video node's entity=
+=20
+sink pad, no. I've always considered that as implicit given that we don't=20
+expose an API to configure a format there :-)
 
-v2:
- - add HDMI audio input support
----
- arch/arm/boot/dts/imx6q-gw54xx.dts    | 105 ++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl-gw54xx.dtsi |  29 +++++++++-
- 2 files changed, 131 insertions(+), 3 deletions(-)
+=2D-=20
+Regards,
 
-diff --git a/arch/arm/boot/dts/imx6q-gw54xx.dts b/arch/arm/boot/dts/imx6q-gw54xx.dts
-index 56e5b50..0477120 100644
---- a/arch/arm/boot/dts/imx6q-gw54xx.dts
-+++ b/arch/arm/boot/dts/imx6q-gw54xx.dts
-@@ -12,10 +12,30 @@
- /dts-v1/;
- #include "imx6q.dtsi"
- #include "imx6qdl-gw54xx.dtsi"
-+#include <dt-bindings/media/tda1997x.h>
- 
- / {
- 	model = "Gateworks Ventana i.MX6 Dual/Quad GW54XX";
- 	compatible = "gw,imx6q-gw54xx", "gw,ventana", "fsl,imx6q";
-+
-+	sound-digital {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "tda1997x-audio";
-+
-+		simple-audio-card,dai-link@0 {
-+			format = "i2s";
-+
-+			cpu {
-+				sound-dai = <&ssi2>;
-+			};
-+
-+			codec {
-+				bitclock-master;
-+				frame-master;
-+				sound-dai = <&tda1997x>;
-+			};
-+		};
-+	};
- };
- 
- &i2c3 {
-@@ -35,6 +55,61 @@
- 			};
- 		};
- 	};
-+
-+	tda1997x: codec@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&sw4_reg>;
-+		DVDD-supply = <&sw4_reg>;
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same cycle
-+		 * which we map to VP[15:08]<->CSI_DATA[19:12]
-+		 */
-+		nxp,vidout-portcfg =
-+			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <16>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
-+	bus-width = <16>;
-+};
-+
-+&ipu1_csi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_ipu1_csi0>;
- };
- 
- &ipu2_csi1_from_ipu2_csi1_mux {
-@@ -63,6 +138,30 @@
- 		>;
- 	};
- 
-+	pinctrl_ipu1_csi0: ipu1_csi0grp {
-+		fsl,pins = <
-+			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
-+			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
-+			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
-+			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
-+		>;
-+	};
-+
- 	pinctrl_ipu2_csi1: ipu2_csi1grp {
- 		fsl,pins = <
- 			MX6QDL_PAD_EIM_EB2__IPU2_CSI1_DATA19    0x1b0b0
-@@ -78,4 +177,10 @@
- 			MX6QDL_PAD_EIM_A16__IPU2_CSI1_PIXCLK    0x1b0b0
- 		>;
- 	};
-+
-+	pinctrl_tda1997x: tda1997xgrp {
-+		fsl,pins = <
-+			MX6QDL_PAD_GPIO_7__GPIO1_IO07	0x1b0b0
-+		>;
-+	};
- };
-diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-index eab75f3..f9e1fb9 100644
---- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-@@ -10,6 +10,7 @@
-  */
- 
- #include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/sound/fsl-imx-audmux.h>
- 
- / {
- 	/* these are used by bootloader for disabling nodes */
-@@ -114,12 +115,12 @@
- 		};
- 	};
- 
--	sound {
-+	sound-analog {
- 		compatible = "fsl,imx6q-ventana-sgtl5000",
- 			     "fsl,imx-audio-sgtl5000";
- 		model = "sgtl5000-audio";
- 		ssi-controller = <&ssi1>;
--		audio-codec = <&codec>;
-+		audio-codec = <&sgtl5000>;
- 		audio-routing =
- 			"MIC_IN", "Mic Jack",
- 			"Mic Jack", "Mic Bias",
-@@ -133,6 +134,25 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_audmux>; /* AUD4<->sgtl5000 */
- 	status = "okay";
-+
-+	ssi2 {
-+		fsl,audmux-port = <1>;
-+		fsl,port-config = <
-+			(IMX_AUDMUX_V2_PTCR_TFSDIR |
-+			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
-+			IMX_AUDMUX_V2_PTCR_TCLKDIR |
-+			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
-+			IMX_AUDMUX_V2_PTCR_SYN)
-+			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
-+		>;
-+	};
-+
-+	aud5 {
-+		fsl,audmux-port = <4>;
-+		fsl,port-config = <
-+			IMX_AUDMUX_V2_PTCR_SYN
-+			IMX_AUDMUX_V2_PDCR_RXDSEL(1)>;
-+	};
- };
- 
- &can1 {
-@@ -331,7 +351,7 @@
- 	pinctrl-0 = <&pinctrl_i2c3>;
- 	status = "okay";
- 
--	codec: sgtl5000@a {
-+	sgtl5000: codec@a {
- 		compatible = "fsl,sgtl5000";
- 		reg = <0x0a>;
- 		clocks = <&clks IMX6QDL_CLK_CKO>;
-@@ -475,6 +495,9 @@
- 			MX6QDL_PAD_SD2_DAT2__AUD4_TXD		0x110b0
- 			MX6QDL_PAD_SD2_DAT1__AUD4_TXFS		0x130b0
- 			MX6QDL_PAD_GPIO_0__CCM_CLKO1		0x130b0 /* AUD4_MCK */
-+			MX6QDL_PAD_EIM_D25__AUD5_RXC            0x130b0
-+			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD        0x130b0
-+			MX6QDL_PAD_EIM_D24__AUD5_RXFS           0x130b0
- 		>;
- 	};
- 
--- 
-2.7.4
+Laurent Pinchart
