@@ -1,212 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:7089 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753390AbeBGRj2 (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43393 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753279AbeBVKhm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 12:39:28 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH] media: stm32-dcmi: fix lock scheme
-Date: Wed, 7 Feb 2018 18:39:07 +0100
-Message-ID: <1518025147-3058-1-git-send-email-hugues.fruchet@st.com>
+        Thu, 22 Feb 2018 05:37:42 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v11 00/10] Renesas Capture Engine Unit (CEU) V4L2 driver
+Date: Thu, 22 Feb 2018 11:37:16 +0100
+Message-Id: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix lock scheme leading to spurious freeze.
+Hello,
+   Hans reported he sees a few warnings when compiling CEU driver with gcc7.3.0
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/stm32/stm32-dcmi.c | 57 ++++++++++++++-----------------
- 1 file changed, 25 insertions(+), 32 deletions(-)
+I have silenced them, and the one reported in "probe" was actually a bug.
+That's the diff from v10:
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 2fd8bed..4a75756 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -197,7 +197,7 @@ static void dcmi_dma_callback(void *param)
- 	struct dma_tx_state state;
- 	enum dma_status status;
- 
--	spin_lock(&dcmi->irqlock);
-+	spin_lock_irq(&dcmi->irqlock);
- 
- 	/* Check DMA status */
- 	status = dmaengine_tx_status(chan, dcmi->dma_cookie, &state);
-@@ -239,7 +239,7 @@ static void dcmi_dma_callback(void *param)
- 				dcmi->errors_count++;
- 				dcmi->active = NULL;
- 
--				spin_unlock(&dcmi->irqlock);
-+				spin_unlock_irq(&dcmi->irqlock);
- 				return;
- 			}
- 
-@@ -248,13 +248,11 @@ static void dcmi_dma_callback(void *param)
- 
- 			list_del_init(&dcmi->active->list);
- 
--			if (dcmi_start_capture(dcmi)) {
-+			spin_unlock_irq(&dcmi->irqlock);
-+			if (dcmi_start_capture(dcmi))
- 				dev_err(dcmi->dev, "%s: Cannot restart capture on DMA complete\n",
- 					__func__);
--
--				spin_unlock(&dcmi->irqlock);
--				return;
--			}
-+			return;
- 		}
- 
- 		break;
-@@ -263,7 +261,7 @@ static void dcmi_dma_callback(void *param)
- 		break;
- 	}
- 
--	spin_unlock(&dcmi->irqlock);
-+	spin_unlock_irq(&dcmi->irqlock);
- }
- 
- static int dcmi_start_dma(struct stm32_dcmi *dcmi,
-@@ -360,7 +358,7 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- {
- 	struct stm32_dcmi *dcmi = arg;
- 
--	spin_lock(&dcmi->irqlock);
-+	spin_lock_irq(&dcmi->irqlock);
- 
- 	/* Stop capture is required */
- 	if (dcmi->state == STOPPING) {
-@@ -370,7 +368,7 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- 
- 		complete(&dcmi->complete);
- 
--		spin_unlock(&dcmi->irqlock);
-+		spin_unlock_irq(&dcmi->irqlock);
- 		return IRQ_HANDLED;
- 	}
- 
-@@ -383,35 +381,34 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
- 			 __func__);
- 
- 		dcmi->errors_count++;
--		dmaengine_terminate_all(dcmi->dma_chan);
--
- 		dev_dbg(dcmi->dev, "Restarting capture after DCMI error\n");
- 
--		if (dcmi_start_capture(dcmi)) {
-+		spin_unlock_irq(&dcmi->irqlock);
-+		dmaengine_terminate_all(dcmi->dma_chan);
+diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
+index 6624fba..cfabe1a 100644
+--- a/drivers/media/platform/renesas-ceu.c
++++ b/drivers/media/platform/renesas-ceu.c
+@@ -412,6 +412,9 @@ static int ceu_hw_config(struct ceu_device *ceudev)
+                cfzsr   = (pix->height << 16) | pix->width;
+                cdwdr   = pix->width;
+                break;
 +
-+		if (dcmi_start_capture(dcmi))
- 			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
- 				__func__);
--
--			spin_unlock(&dcmi->irqlock);
--			return IRQ_HANDLED;
--		}
-+		return IRQ_HANDLED;
- 	}
- 
--	spin_unlock(&dcmi->irqlock);
-+	spin_unlock_irq(&dcmi->irqlock);
- 	return IRQ_HANDLED;
- }
- 
- static irqreturn_t dcmi_irq_callback(int irq, void *arg)
- {
- 	struct stm32_dcmi *dcmi = arg;
-+	unsigned long flags;
- 
--	spin_lock(&dcmi->irqlock);
-+	spin_lock_irqsave(&dcmi->irqlock, flags);
- 
- 	dcmi->misr = reg_read(dcmi->regs, DCMI_MIS);
- 
- 	/* Clear interrupt */
- 	reg_set(dcmi->regs, DCMI_ICR, IT_FRAME | IT_OVR | IT_ERR);
- 
--	spin_unlock(&dcmi->irqlock);
-+	spin_unlock_irqrestore(&dcmi->irqlock, flags);
- 
- 	return IRQ_WAKE_THREAD;
- }
-@@ -490,9 +487,8 @@ static void dcmi_buf_queue(struct vb2_buffer *vb)
- 	struct stm32_dcmi *dcmi =  vb2_get_drv_priv(vb->vb2_queue);
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct dcmi_buf *buf = container_of(vbuf, struct dcmi_buf, vb);
--	unsigned long flags = 0;
- 
--	spin_lock_irqsave(&dcmi->irqlock, flags);
-+	spin_lock_irq(&dcmi->irqlock);
- 
- 	if ((dcmi->state == RUNNING) && (!dcmi->active)) {
- 		dcmi->active = buf;
-@@ -500,19 +496,17 @@ static void dcmi_buf_queue(struct vb2_buffer *vb)
- 		dev_dbg(dcmi->dev, "Starting capture on buffer[%d] queued\n",
- 			buf->vb.vb2_buf.index);
- 
--		if (dcmi_start_capture(dcmi)) {
-+		spin_unlock_irq(&dcmi->irqlock);
-+		if (dcmi_start_capture(dcmi))
- 			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
- 				__func__);
--
--			spin_unlock_irqrestore(&dcmi->irqlock, flags);
--			return;
--		}
-+		return;
- 	} else {
- 		/* Enqueue to video buffers list */
- 		list_add_tail(&buf->list, &dcmi->buffers);
- 	}
- 
--	spin_unlock_irqrestore(&dcmi->irqlock, flags);
-+	spin_unlock_irq(&dcmi->irqlock);
- }
- 
- static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
-@@ -598,20 +592,17 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	dev_dbg(dcmi->dev, "Start streaming, starting capture\n");
- 
-+	spin_unlock_irq(&dcmi->irqlock);
- 	ret = dcmi_start_capture(dcmi);
- 	if (ret) {
- 		dev_err(dcmi->dev, "%s: Start streaming failed, cannot start capture\n",
- 			__func__);
--
--		spin_unlock_irq(&dcmi->irqlock);
- 		goto err_subdev_streamoff;
- 	}
- 
- 	/* Enable interruptions */
- 	reg_set(dcmi->regs, DCMI_IER, IT_FRAME | IT_OVR | IT_ERR);
- 
--	spin_unlock_irq(&dcmi->irqlock);
--
- 	return 0;
- 
- err_subdev_streamoff:
-@@ -654,7 +645,9 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 		dev_err(dcmi->dev, "%s: Failed to stop streaming, subdev streamoff error (%d)\n",
- 			__func__, ret);
- 
-+	spin_lock_irq(&dcmi->irqlock);
- 	dcmi->state = STOPPING;
-+	spin_unlock_irq(&dcmi->irqlock);
- 
- 	timeout = wait_for_completion_interruptible_timeout(&dcmi->complete,
- 							    time_ms);
--- 
-1.9.1
++       default:
++               return -EINVAL;
+        }
+
+        camcr |= mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
+@@ -1568,8 +1571,10 @@ static int ceu_probe(struct platform_device *pdev)
+
+        res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+        ceudev->base = devm_ioremap_resource(dev, res);
+-       if (IS_ERR(ceudev->base))
++       if (IS_ERR(ceudev->base)) {
++               ret = PTR_ERR(ceudev->base);
+                goto error_free_ceudev;
++       }
+
+        ret = platform_get_irq(pdev, 0);
+        if (ret < 0) {
+
+
+Now that I've switch to a new compiler I see two more warnings, which are to be
+ignored imo, as this behaviour is expected:
+
+../drivers/media/platform/renesas-ceu.c: In function ‘ceu_hw_config’:
+../drivers/media/platform/renesas-ceu.c:392:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
+   cdocr |= CEU_CDOCR_NO_DOWSAMPLE;
+../drivers/media/platform/renesas-ceu.c:393:2: note: here
+  case V4L2_PIX_FMT_NV12:
+  ^~~~
+../drivers/media/platform/renesas-ceu.c:405:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
+   cdocr |= CEU_CDOCR_NO_DOWSAMPLE;
+../drivers/media/platform/renesas-ceu.c:406:2: note: here
+  case V4L2_PIX_FMT_NV21:
+  ^~~~
+
+MAINTAINERS file update has been sent as separate series, and I guess Hans you
+can now send a pull request for this driver!
+
+Cheers!
+   j
+
+v10->v11:
+- Silence two compiler warnings reported by Hans on CEU driver v10
+
+v9->v10:
+- Close 0-days warning on ov772x frame interval
+- Set default format on CEU after input change
+- Drop ov7670 mbus frame format set not to block this series while topic
+  gets clarified
+
+v8->v9:
+- Address Laurent's review of ov772x frame rate
+- Address Sergei comment on ceu node name
+
+v7->v8:
+- Calculate PLL divider/multiplier and do not use static tables
+- Change RZ/A1-H to RZ/A1H (same for L) in bindings documentation
+- Use rounded clock rate in Migo-R board code as SH clk_set_clk()
+  implementation does not perform rounding
+- Set ycbcr_enc and other fields of v4l2_mbus_format for ov772x as patch
+  [11/11] does for ov7670
+
+v6->v7:
+- Add patch to handle ycbr_enc and other fields of v4l2_mbus_format for ov7670
+- Add patch to handle frame interval for ov772x
+- Rebased on Hans' media-tree/parm branch with v4l2_g/s_parm_cap
+- Drop const modifier in CEU releated fields of Migo-R setup.c board file
+  to silence complier warnings.
+
+v5->v6:
+- Add Hans' Acked-by to most patches
+- Fix a bad change in ov772x get_selection
+- Add .buf_prepare callack to CEU and verify plane sizes there
+- Remove VB2_USERPTR from supported io_modes in CEU driver
+- Remove read() fops in CEU driver
+
+v4->v5:
+- Added Rob's and Laurent's Reviewed-by tag to DT bindings
+- Change CEU driver module license to "GPL v2" to match SPDX identifier as
+  suggested by Philippe Ombredanne
+- Make struct ceu_data static as suggested by Laurent and add his
+  Reviewed-by to CEU driver.
+
+v3->v4:
+- Drop generic fallback compatible string "renesas,ceu"
+- Addressed Laurent's comments on [3/9]
+  - Fix error messages on irq get/request
+  - Do not leak ceudev if irq_get fails
+  - Make irq_mask a const field
+
+v2->v3:
+- Improved DT bindings removing standard properties (pinctrl- ones and
+  remote-endpoint) not specific to this driver and improved description of
+  compatible strings
+- Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
+- Made 'xclk' clock private to ov772x driver in Migo-R board file
+- Change 'rstb' GPIO active output level and changed ov772x and tw9910 drivers
+  accordingly as suggested by Fabio
+- Minor changes in CEU driver to address Laurent's comments
+- Moved Migo-R setup patch to the end of the series to silence 0-day bot
+- Renamed tw9910 clock to 'xti' as per video decoder manual
+- Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
+
+v1->v2:
+ - DT
+ -- Addressed Geert's comments and added clocks for CEU to mstp6 clock source
+ -- Specified supported generic video iterfaces properties in dt-bindings and
+    simplified example
+
+ - CEU driver
+ -- Re-worked interrupt handler, interrupt management, reset(*) and capture
+    start operation
+ -- Re-worked querycap/enum_input/enum_frameintervals to fix some
+    v4l2_compliance failures
+ -- Removed soc_camera legacy operations g/s_mbus_format
+ -- Update to new notifier implementation
+ -- Fixed several comments from Hans, Laurent and Sakari
+
+ - Migo-R
+ -- Register clocks and gpios for sensor drivers in Migo-R setup
+ -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
+    remarks from Hans and Laurent:
+ --- Removed platform callbacks and handle clocks and gpios from sensor drivers
+ --- Remove g/s_mbus_config operations
+
+
+
+Jacopo Mondi (10):
+  dt-bindings: media: Add Renesas CEU bindings
+  include: media: Add Renesas CEU driver interface
+  media: platform: Add Renesas CEU driver
+  ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+  media: i2c: Copy ov772x soc_camera sensor driver
+  media: i2c: ov772x: Remove soc_camera dependencies
+  media: i2c: ov772x: Support frame interval handling
+  media: i2c: Copy tw9910 soc_camera sensor driver
+  media: i2c: tw9910: Remove soc_camera dependencies
+  arch: sh: migor: Use new renesas-ceu camera driver
+
+ .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
+ arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
+ arch/sh/boards/mach-migor/setup.c                  |  225 ++-
+ arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
+ drivers/media/i2c/Kconfig                          |   20 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/ov772x.c                         | 1365 ++++++++++++++++
+ drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
+ drivers/media/platform/Kconfig                     |    9 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/renesas-ceu.c               | 1675 ++++++++++++++++++++
+ include/media/drv-intf/renesas-ceu.h               |   26 +
+ include/media/i2c/ov772x.h                         |    6 +-
+ include/media/i2c/tw9910.h                         |    9 +
+ 14 files changed, 4344 insertions(+), 131 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+ create mode 100644 drivers/media/i2c/ov772x.c
+ create mode 100644 drivers/media/i2c/tw9910.c
+ create mode 100644 drivers/media/platform/renesas-ceu.c
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
+
+--
+2.7.4
