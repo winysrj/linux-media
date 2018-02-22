@@ -1,61 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:59792 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754049AbeBFVB6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 16:01:58 -0500
-From: Florian Echtler <floe@butterbrot.org>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at,
-        Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 5/5] add module parameters for default values
-Date: Tue,  6 Feb 2018 22:01:45 +0100
-Message-Id: <1517950905-5015-6-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
-References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42245 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750842AbeBVUvq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Feb 2018 15:51:46 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2] v4l: vsp1: Print the correct blending unit name in debug messages
+Date: Thu, 22 Feb 2018 22:52:26 +0200
+Message-Id: <20180222205226.3099-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To allow setting custom parameters for the sensor directly at startup, the
-three primary controls are exposed as module parameters in this patch.
+The DRM pipelines can use either the BRU or the BRS for blending. Make
+sure the right name is used in debugging messages to avoid confusion.
 
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/input/touchscreen/sur40.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Changes since v1:
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 66ef7e6..d1fcb95 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -167,6 +167,17 @@ struct sur40_image_header {
- #define SUR40_BACKLIGHT_MIN 0x00
- #define SUR40_BACKLIGHT_DEF 0x01
+- Create a macro to get the right entity name instead of duplicating the
+  same code all over the driver
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index ac85942162c1..b8fee1834253 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -27,6 +27,7 @@
+ #include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
  
-+/* module parameters */
-+static uint brightness = SUR40_BRIGHTNESS_DEF;
-+module_param(brightness, uint, 0644);
-+MODULE_PARM_DESC(brightness, "set default brightness");
-+static uint contrast = SUR40_CONTRAST_DEF;
-+module_param(contrast, uint, 0644);
-+MODULE_PARM_DESC(contrast, "set default contrast");
-+static uint gain = SUR40_GAIN_DEF;
-+module_param(gain, uint, 0644);
-+MODULE_PARM_DESC(contrast, "set default gain");
-+
- static const struct v4l2_pix_format sur40_pix_format[] = {
- 	{
- 		.pixelformat = V4L2_TCH_FMT_TU08,
-@@ -374,6 +385,11 @@ static void sur40_open(struct input_polled_dev *polldev)
++#define BRU_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
  
- 	dev_dbg(sur40->dev, "open\n");
- 	sur40_init(sur40);
-+
-+	/* set default values */
-+	sur40_set_irlevel(sur40, brightness & 0xFF);
-+	sur40_set_vsvideo(sur40, ((contrast & 0x0F) << 4) | (gain & 0x0F));
-+	sur40_set_preprocessor(sur40, SUR40_BACKLIGHT_DEF);
+ /* -----------------------------------------------------------------------------
+  * Interrupt Handling
+@@ -88,7 +89,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_entity *next;
+ 	struct vsp1_dl_list *dl;
+ 	struct v4l2_subdev_format format;
+-	const char *bru_name;
+ 	unsigned long flags;
+ 	unsigned int i;
+ 	int ret;
+@@ -99,7 +99,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	drm_pipe = &vsp1->drm->pipe[pipe_index];
+ 	pipe = &drm_pipe->pipe;
+ 	bru = to_bru(&pipe->bru->subdev);
+-	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
+ 
+ 	if (!cfg) {
+ 		/*
+@@ -165,7 +164,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 
+ 		dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+ 			__func__, format.format.width, format.format.height,
+-			format.format.code, bru_name, i);
++			format.format.code, BRU_NAME(pipe->bru), i);
+ 	}
+ 
+ 	format.pad = pipe->bru->source_pad;
+@@ -181,7 +180,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 
+ 	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+ 		__func__, format.format.width, format.format.height,
+-		format.format.code, bru_name, i);
++		format.format.code, BRU_NAME(pipe->bru), i);
+ 
+ 	format.pad = RWPF_PAD_SINK;
+ 	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
+@@ -473,9 +472,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+ 		__func__, format.format.width, format.format.height,
+-		format.format.code, format.pad);
++		format.format.code, BRU_NAME(pipe->bru), format.pad);
+ 
+ 	sel.pad = bru_input;
+ 	sel.target = V4L2_SEL_TGT_COMPOSE;
+@@ -486,10 +485,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	dev_dbg(vsp1->dev,
+-		"%s: set selection (%u,%u)/%ux%u on BRU pad %u\n",
++	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
+ 		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+-		sel.pad);
++		BRU_NAME(pipe->bru), sel.pad);
+ 
+ 	return 0;
  }
+@@ -514,12 +512,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 	struct vsp1_entity *entity;
+ 	struct vsp1_entity *next;
+ 	struct vsp1_dl_list *dl;
+-	const char *bru_name;
+ 	unsigned int i;
+ 	int ret;
  
- /* Disable device, polling has stopped. */
+-	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
+-
+ 	/* Prepare the display list. */
+ 	dl = vsp1_dl_list_get(pipe->output->dlm);
+ 
+@@ -570,7 +565,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 		rpf->entity.sink_pad = i;
+ 
+ 		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
+-			__func__, rpf->entity.index, bru_name, i);
++			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
+ 
+ 		ret = vsp1_du_setup_rpf_pipe(vsp1, pipe, rpf, i);
+ 		if (ret < 0)
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
