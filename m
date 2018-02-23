@@ -1,189 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49330 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751982AbeBDWQe (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:34100 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751158AbeBWBGS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 17:16:34 -0500
-Date: Mon, 5 Feb 2018 00:16:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 02/17] videodev2.h: Add request_fd field to v4l2_buffer
-Message-ID: <20180204221631.uatcva7b3xlyujl4@valkosipuli.retiisi.org.uk>
-References: <20180131102427.207721-1-acourbot@chromium.org>
- <20180131102427.207721-3-acourbot@chromium.org>
+        Thu, 22 Feb 2018 20:06:18 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180131102427.207721-3-acourbot@chromium.org>
+In-Reply-To: <45c87e6b-9e01-eb5c-3c47-5aa6dcabb004@users.sourceforge.net>
+References: <45c87e6b-9e01-eb5c-3c47-5aa6dcabb004@users.sourceforge.net>
+From: Alexey Klimov <klimov.linux@gmail.com>
+Date: Fri, 23 Feb 2018 01:06:16 +0000
+Message-ID: <CALW4P+J4tf377puAGJRQK1rXgWzxRBLjLkBb4RuBTq6Z4hwAyw@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] Delete unnecessary variable initialisations in
+ seven functions
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Johan Hovold <johan@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Oleh Kravchenko <oleg@kaa.org.ua>,
+        Peter Rosin <peda@axentia.se>,
+        Romain Reignier <r.reignier@robopec.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Sean Young <sean@mess.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
-
-On Wed, Jan 31, 2018 at 07:24:20PM +0900, Alexandre Courbot wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> When queuing buffers allow for passing the request that should
-> be associated with this buffer.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> [acourbot@chromium.org: make request ID 32-bit]
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+On Thu, Feb 22, 2018 at 9:22 PM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 22 Feb 2018 21:45:47 +0100
+>
+> Some local variables will be set to an appropriate value before usage.
+> Thus omit explicit initialisations at the beginning of these functions.
+>
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
->  drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 ++++---
->  drivers/media/v4l2-core/v4l2-ioctl.c          | 4 ++--
->  drivers/media/v4l2-core/videobuf2-v4l2.c      | 3 ++-
->  include/media/videobuf2-v4l2.h                | 2 ++
->  include/uapi/linux/videodev2.h                | 3 ++-
->  6 files changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-> index 3dedd83f0b19..7acb6807b306 100644
-> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-> @@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  	buf->sequence = cam->buffers[buf->index].seq;
->  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
->  	buf->length = cam->frame_size;
-> -	buf->reserved2 = 0;
-> +	buf->request_fd = 0;
->  	buf->reserved = 0;
->  	memset(&buf->timecode, 0, sizeof(buf->timecode));
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 821f2aa299ae..7e4440950c76 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__u32			request_fd;
+>
+> v2:
+> Hans Verkuil insisted on patch squashing. Thus some changes
+> were recombined based on source files from Linux next-20180216.
+>
+>  drivers/media/radio/radio-mr800.c             | 2 +-
 
-Please use __s32 for file descriptors.
+For radio-mr800:
 
->  	__u32			reserved;
->  };
->  
-> @@ -438,7 +438,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		get_user(kp->type, &up->type) ||
->  		get_user(kp->flags, &up->flags) ||
->  		get_user(kp->memory, &up->memory) ||
-> -		get_user(kp->length, &up->length))
-> +		get_user(kp->length, &up->length) ||
-> +		get_user(kp->request_fd, &up->request_fd))
->  			return -EFAULT;
->  
->  	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-> @@ -533,7 +534,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
->  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->  		put_user(kp->sequence, &up->sequence) ||
-> -		put_user(kp->reserved2, &up->reserved2) ||
-> +		put_user(kp->request_fd, &up->request_fd) ||
->  		put_user(kp->reserved, &up->reserved) ||
->  		put_user(kp->length, &up->length))
->  			return -EFAULT;
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index ec4ecd5aa8bf..fdd2f784c264 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
->  	const struct v4l2_plane *plane;
->  	int i;
->  
-> -	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
-> +	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%u, flags=0x%08x, field=%s, sequence=%d, memory=%s",
->  			p->timestamp.tv_sec / 3600,
->  			(int)(p->timestamp.tv_sec / 60) % 60,
->  			(int)(p->timestamp.tv_sec % 60),
->  			(long)p->timestamp.tv_usec,
->  			p->index,
-> -			prt_names(p->type, v4l2_type_names),
-> +			prt_names(p->type, v4l2_type_names), p->request_fd,
->  			p->flags, prt_names(p->field, v4l2_field_names),
->  			p->sequence, prt_names(p->memory, v4l2_memory_names));
->  
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 0c0669976bdc..0f8edbdebe30 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->reserved2 = 0;
-> +	b->request_fd = vbuf->request_fd;
->  	b->reserved = 0;
->  
->  	if (q->is_multiplanar) {
-> @@ -320,6 +320,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  	}
->  	vb->timestamp = 0;
->  	vbuf->sequence = 0;
-> +	vbuf->request_fd = b->request_fd;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->  		if (b->memory == VB2_MEMORY_USERPTR) {
-> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-> index 036127c54bbf..d7cf4c66db38 100644
-> --- a/include/media/videobuf2-v4l2.h
-> +++ b/include/media/videobuf2-v4l2.h
-> @@ -31,6 +31,7 @@
->   * @field:	enum v4l2_field; field order of the image in the buffer
->   * @timecode:	frame timecode
->   * @sequence:	sequence count of this frame
-> + * @request_fd:	fd of the request used by the buffer
->   *
->   * Should contain enough information to be able to cover all the fields
->   * of struct v4l2_buffer at videodev2.h
-> @@ -42,6 +43,7 @@ struct vb2_v4l2_buffer {
->  	__u32			field;
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
-> +	__u32			request_fd;
+Acked-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Ditto.
+>  drivers/media/radio/radio-wl1273.c            | 2 +-
+>  drivers/media/radio/si470x/radio-si470x-usb.c | 2 +-
+>  drivers/media/usb/cx231xx/cx231xx-cards.c     | 2 +-
+>  drivers/media/usb/cx231xx/cx231xx-dvb.c       | 2 +-
+>  drivers/media/usb/go7007/snd-go7007.c         | 2 +-
+>  drivers/media/usb/tm6000/tm6000-cards.c       | 2 +-
+>  7 files changed, 7 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+> index dc6c4f985911..0f292c6ba338 100644
+> --- a/drivers/media/radio/radio-mr800.c
+> +++ b/drivers/media/radio/radio-mr800.c
+> @@ -511,5 +511,5 @@ static int usb_amradio_probe(struct usb_interface *intf,
+>                                 const struct usb_device_id *id)
+>  {
+>         struct amradio_device *radio;
+> -       int retval = 0;
+> +       int retval;
+>
+> diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
 
->  };
->  
->  /*
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 1c095b5a99c5..89bd716c66a6 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -902,6 +902,7 @@ struct v4l2_plane {
->   * @length:	size in bytes of the buffer (NOT its payload) for single-plane
->   *		buffers (when type != *_MPLANE); number of elements in the
->   *		planes array for multi-plane buffers
-> + * @request_fd: fd of the request that this buffer should use
->   *
->   * Contains data exchanged by application and driver using one of the Streaming
->   * I/O methods.
-> @@ -925,7 +926,7 @@ struct v4l2_buffer {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__s32			request_fd;
->  	__u32			reserved;
->  };
->  
+[..]
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thanks!
+Alexey
