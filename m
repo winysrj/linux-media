@@ -1,105 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42244 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965057AbeBMRtE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:49:04 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 1/5] dt-bindings: media: adv7604: Extend bindings to allow specifying slave map addresses
-Date: Tue, 13 Feb 2018 17:48:53 +0000
-Message-Id: <1518544137-2742-2-git-send-email-kbingham@kernel.org>
-In-Reply-To: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
-References: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
+        id S1750798AbeBWLCQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Feb 2018 06:02:16 -0500
+Date: Fri, 23 Feb 2018 11:02:08 +0000
+From: James Hogan <jhogan@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-metag@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Marc Zyngier <marc.zyngier@arm.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
+        linux-watchdog@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-i2c@vger.kernel.org
+Subject: Re: [PATCH 00/13] Remove metag architecture
+Message-ID: <20180223110207.GA14446@saruman>
+References: <20180221233825.10024-1-jhogan@kernel.org>
+ <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 
-The ADV7604 has thirteen 256-byte maps that can be accessed via the main
-I2C ports. Each map has it own I2C address and acts as a standard slave
-device on the I2C bus.
+--tThc/1wpZn/ma/RB
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Extend the device tree node bindings to be able to override the default
-addresses so that address conflicts with other devices on the same bus
-may be resolved at the board description level.
+On Fri, Feb 23, 2018 at 11:26:58AM +0100, Arnd Bergmann wrote:
+> On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
+> > So lets call it a day and drop the Meta architecture port from the
+> > kernel. RIP Meta.
+>=20
+> Since I brought up the architecture removal independently, I could
+> pick this up into a git tree that also has the removal of some of the
+> other architectures.
+>=20
+> I see your tree is part of linux-next, so you could also just put it
+> in there and send a pull request at the merge window if you prefer.
+>=20
+> The only real reason I see for a shared git tree would be to avoid
+> conflicts when we touch the same Kconfig files or #ifdefs in driver,
+> but Meta only appears in
+>=20
+> config FRAME_POINTER
+>         bool "Compile the kernel with frame pointers"
+>         depends on DEBUG_KERNEL && \
+>                 (CRIS || M68K || FRV || UML || \
+>                  SUPERH || BLACKFIN || MN10300 || METAG) || \
+>                 ARCH_WANT_FRAME_POINTERS
+>=20
+> and
+>=20
+> include/trace/events/mmflags.h:#elif defined(CONFIG_PARISC) ||
+> defined(CONFIG_METAG) || defined(CONFIG_IA64)
+>=20
+> so there is little risk.
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-[Kieran: Re-adapted for mainline]
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I'm happy to put v2 in linux-next now (only patch 4 has changed, I just
+sent an updated version), and send you a pull request early next week so
+you can take it from there. The patches can't be directly applied with
+git-am anyway thanks to the -D option to make them more concise.
 
----
-Based upon the original posting :
-  https://lkml.org/lkml/2014/10/22/469
+Sound okay?
 
-v2:
- - DT Binding update separated from code change
- - Minor reword to commit message to account for DT only change.
- - Collected Rob's RB tag.
+Thanks
+James
 
-v3:
- - Split map register addresses into individual declarations.
+--tThc/1wpZn/ma/RB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-v4:
- - Collect Laurents RB tag
- - Adapt commit title
- - Normalise I2C usage (I²C is harder to grep for)
+-----BEGIN PGP SIGNATURE-----
 
- .../devicetree/bindings/media/i2c/adv7604.txt          | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+iQIzBAEBCAAdFiEEd80NauSabkiESfLYbAtpk944dnoFAlqP9K8ACgkQbAtpk944
+dnqGqg//RwJWuqjtS6xKfuWgErALcEI5BIrgC7QevCr8kr37+YnzqVJM+Wmz/ROv
+xW5kdhL8v/ocuxe+YBECennMjzbbPPvHWq1WieTxXOgOB8nxGduvsNFQiUg8I99O
+ltjgj7sjnGp0R0GW4HflETXKGWjLn7NirFoCLjyTQT3Gwjpn8shDLx1trMPb8ujH
+N6DvyyrojnBJ0kACtzEyGBPphrtk/a0t+zySdIuRLXReU9Q2/5yW2Vof4irxL9Ov
+JQljE0/dTi4JgTvrieojAItgUsS3/D+XVe2HDTJw2PcwAX0AmExTtaT1ADh9Ujyr
+TOg0uFwmed74V/wUwBxW6KMOyu0d0ITmTghXnWl4jbJvpR0pNXjJG1JCtpjyYgmd
+3Lx7fzwDckUB+4ma2X2C7OAU4JaBU2tEKPo5a/b/pO0d7HqRGJIA0HApTaF8YQ4Z
+tREK4jme67OuLs3POFHgbPLVrORrk4dhiBZHarPERXIEXYYD/0kVA5S7npvSmzD0
+AmFh1T6b0VcQWak6aU9PoTmdIpPwmyhvOBsMAzOwounp2kmwObdgdgDB8yQkC5VK
+EQCcmCWImEf7hz1RyTc6bawPRFkCip1k4ucmOO7KLYhuFL6uYj/Mg5JaDZLNQRyn
+izvAzQ5AK0+VzznxZHkbKgISt54p1SuEMQuCvxYzpujBNY0Ti98=
+=BIkF
+-----END PGP SIGNATURE-----
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 9cbd92eb5d05..dcf57e7c60eb 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -13,7 +13,11 @@ Required Properties:
-     - "adi,adv7611" for the ADV7611
-     - "adi,adv7612" for the ADV7612
- 
--  - reg: I2C slave address
-+  - reg: I2C slave addresses
-+    The ADV76xx has up to thirteen 256-byte maps that can be accessed via the
-+    main I2C ports. Each map has it own I2C address and acts as a standard
-+    slave device on the I2C bus. The main address is mandatory, others are
-+    optional and revert to defaults if not specified.
- 
-   - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
-     detection pins, one per HDMI input. The active flag indicates the GPIO
-@@ -35,6 +39,11 @@ Optional Properties:
- 
-   - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-   - default-input: Select which input is selected after reset.
-+  - reg-names : Names of maps with programmable addresses.
-+		It can contain any map needing a non-default address.
-+		Possible maps names are :
-+		  "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe",
-+		  "rep", "edid", "hdmi", "test", "cp", "vdp"
- 
- Optional Endpoint Properties:
- 
-@@ -52,7 +61,12 @@ Example:
- 
- 	hdmi_receiver@4c {
- 		compatible = "adi,adv7611";
--		reg = <0x4c>;
-+		/*
-+		 * The edid page will be accessible @ 0x66 on the I2C bus. All
-+		 * other maps will retain their default addresses.
-+		 */
-+		reg = <0x4c>, <0x66>;
-+		reg-names "main", "edid";
- 
- 		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
- 		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
--- 
-2.7.4
+--tThc/1wpZn/ma/RB--
