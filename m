@@ -1,104 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:64642 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753390AbeBGRna (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:52142 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750861AbeBWJQN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 12:43:30 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH] media: stm32-dcmi: add g/s_parm framerate support
-Date: Wed, 7 Feb 2018 18:43:09 +0100
-Message-ID: <1518025389-3677-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 23 Feb 2018 04:16:13 -0500
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        linux-kernel@vger.kernel.org, Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH] media: imx274: fix typo in error message
+Date: Fri, 23 Feb 2018 09:57:15 +0100
+Message-Id: <1519376235-25101-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add g/s_parm framerate support by calling subdev
-g/s_frame_interval ops.
-This allows user to control sensor framerate by
-calling ioctl G/S_PARM.
-
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
- drivers/media/platform/stm32/stm32-dcmi.c | 49 +++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ drivers/media/i2c/imx274.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index ab555d4..8197554 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -1151,6 +1151,52 @@ static int dcmi_enum_framesizes(struct file *file, void *fh,
- 	return 0;
- }
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 664e8acdf2a0..daec33f4196a 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -1426,7 +1426,7 @@ static int imx274_set_vflip(struct stimx274 *priv, int val)
  
-+static int dcmi_g_parm(struct file *file, void *priv,
-+		       struct v4l2_streamparm *p)
-+{
-+	struct stm32_dcmi *dcmi = video_drvdata(file);
-+	struct v4l2_subdev_frame_interval ival = { 0 };
-+	int ret;
-+
-+	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	ret = v4l2_subdev_call(dcmi->entity.subdev, video,
-+			       g_frame_interval, &ival);
-+	if (ret)
-+		return ret;
-+
-+	p->parm.capture.timeperframe = ival.interval;
-+
-+	return ret;
-+}
-+
-+static int dcmi_s_parm(struct file *file, void *priv,
-+		       struct v4l2_streamparm *p)
-+{
-+	struct stm32_dcmi *dcmi = video_drvdata(file);
-+	struct v4l2_subdev_frame_interval ival = {
-+		0,
-+		p->parm.capture.timeperframe
-+	};
-+	int ret;
-+
-+	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	memset(&p->parm, 0, sizeof(p->parm));
-+	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	ret = v4l2_subdev_call(dcmi->entity.subdev, video,
-+			       s_frame_interval, &ival);
-+	if (ret)
-+		return ret;
-+
-+	p->parm.capture.timeperframe = ival.interval;
-+
-+	return ret;
-+}
-+
- static int dcmi_enum_frameintervals(struct file *file, void *fh,
- 				    struct v4l2_frmivalenum *fival)
- {
-@@ -1253,6 +1299,9 @@ static int dcmi_release(struct file *file)
- 	.vidioc_g_input			= dcmi_g_input,
- 	.vidioc_s_input			= dcmi_s_input,
- 
-+	.vidioc_g_parm			= dcmi_g_parm,
-+	.vidioc_s_parm			= dcmi_s_parm,
-+
- 	.vidioc_enum_framesizes		= dcmi_enum_framesizes,
- 	.vidioc_enum_frameintervals	= dcmi_enum_frameintervals,
+ 	err = imx274_write_reg(priv, IMX274_VFLIP_REG, val);
+ 	if (err) {
+-		dev_err(&priv->client->dev, "VFILP control error\n");
++		dev_err(&priv->client->dev, "VFLIP control error\n");
+ 		return err;
+ 	}
  
 -- 
-1.9.1
+2.7.4
