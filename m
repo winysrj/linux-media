@@ -1,119 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:60075 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751094AbeBHMoh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 07:44:37 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: yong.zhi@intel.com, Yang@nauris.fi.intel.com,
-        Hyungwoo <hyungwoo.yang@intel.com>, Rapolu@nauris.fi.intel.com,
-        Chiranjeevi <chiranjeevi.rapolu@intel.com>, andy.yeh@intel.com
-Subject: [PATCH 1/5] v4l: common: Add a function to obtain best size from a list
-Date: Thu,  8 Feb 2018 14:44:24 +0200
-Message-Id: <1518093868-3444-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1518093868-3444-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1518093868-3444-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:45141 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751542AbeBWIZ7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Feb 2018 03:25:59 -0500
+Received: by mail-lf0-f68.google.com with SMTP id x196so11195263lfd.12
+        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 00:25:59 -0800 (PST)
+Date: Fri, 23 Feb 2018 09:25:56 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v2] v4l: vsp1: Print the correct blending unit name in
+ debug messages
+Message-ID: <20180223082556.GE6373@bigcity.dyn.berto.se>
+References: <20180222205226.3099-1-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180222205226.3099-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function (as well as a helper macro) to obtain the best size in a
-list of device specific sizes. This helps writing drivers as well as
-aligns interface behaviour across drivers.
+Hi Laurent,
 
-The struct in which this information is contained in is typically specific
-to the driver, therefore the existing function v4l2_find_nearest_format()
-does not address the need.
+Thanks for your patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-common.c | 30 ++++++++++++++++++++++++++++++
- include/media/v4l2-common.h           | 33 +++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
+On 2018-02-22 22:52:26 +0200, Laurent Pinchart wrote:
+> The DRM pipelines can use either the BRU or the BRS for blending. Make
+> sure the right name is used in debugging messages to avoid confusion.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 8650ad9..c7a48f2 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -383,6 +383,36 @@ v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
- }
- EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
- 
-+const void *
-+__v4l2_find_nearest_size(const void *arr, size_t num_entries, size_t entry_size,
-+			 size_t width_offset, size_t height_offset,
-+			 s32 width, s32 height)
-+{
-+	u32 error, min_error = U32_MAX;
-+	const void *best = NULL;
-+	unsigned int i;
-+
-+	if (!arr)
-+		return NULL;
-+
-+	for (i = 0; i < num_entries; i++, arr += entry_size) {
-+		const u32 *entry_width = arr + width_offset;
-+		const u32 *entry_height = arr + height_offset;
-+
-+		error = abs(*entry_width - width) + abs(*entry_height - height);
-+		if (error > min_error)
-+			continue;
-+
-+		min_error = error;
-+		best = arr;
-+		if (!error)
-+			break;
-+	}
-+
-+	return best;
-+}
-+EXPORT_SYMBOL_GPL(__v4l2_find_nearest_size);
-+
- void v4l2_get_timestamp(struct timeval *tv)
- {
- 	struct timespec ts;
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index e0d95a7..520463e 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -333,6 +333,39 @@ v4l2_find_nearest_format(const struct v4l2_frmsize_discrete *sizes,
- 			  s32 width, s32 height);
- 
- /**
-+ * v4l2_find_nearest_size - Find the nearest size among a discrete
-+ *	set of resolutions contained in an array of a driver specific struct.
-+ *
-+ * @sizes: a driver specific array of image sizes
-+ * @width_field: the name of the width field in the driver specific struct
-+ * @height_field: the name of the height field in the driver specific struct
-+ * @width: desired width.
-+ * @height: desired height.
-+ *
-+ * Finds the closest resolution to minimize the width and height differences
-+ * between what requested and the supported resolutions. The size of the width
-+ * and height fields in the driver specific must equal to that of u32, i.e. four
-+ * bytes.
-+ *
-+ * Returns the best match or NULL if the length of the array is zero.
-+ */
-+#define v4l2_find_nearest_size(array, array_size, width_field, height_field, \
-+			       width, height)				\
-+	({								\
-+		BUILD_BUG_ON(sizeof((array)->width_field) != sizeof(u32) || \
-+			     sizeof((array)->height_field) != sizeof(u32)); \
-+		(typeof(&(*(array))))__v4l2_find_nearest_size(		\
-+			(array), array_size, sizeof(*(array)),		\
-+			offsetof(typeof(*(array)), width_field),	\
-+			offsetof(typeof(*(array)), height_field),	\
-+			width, height);					\
-+	})
-+const void *
-+__v4l2_find_nearest_size(const void *arr, size_t entry_size,
-+			 size_t width_offset, size_t height_offset,
-+			 size_t num_entries, s32 width, s32 height);
-+
-+/**
-  * v4l2_get_timestamp - helper routine to get a timestamp to be used when
-  *	filling streaming metadata. Internally, it uses ktime_get_ts(),
-  *	which is the recommended way to get it.
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+> Changes since v1:
+> 
+> - Create a macro to get the right entity name instead of duplicating the
+>   same code all over the driver
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 21 ++++++++-------------
+>  1 file changed, 8 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index ac85942162c1..b8fee1834253 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -27,6 +27,7 @@
+>  #include "vsp1_pipe.h"
+>  #include "vsp1_rwpf.h"
+>  
+> +#define BRU_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
+>  
+>  /* -----------------------------------------------------------------------------
+>   * Interrupt Handling
+> @@ -88,7 +89,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	struct vsp1_entity *next;
+>  	struct vsp1_dl_list *dl;
+>  	struct v4l2_subdev_format format;
+> -	const char *bru_name;
+>  	unsigned long flags;
+>  	unsigned int i;
+>  	int ret;
+> @@ -99,7 +99,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	drm_pipe = &vsp1->drm->pipe[pipe_index];
+>  	pipe = &drm_pipe->pipe;
+>  	bru = to_bru(&pipe->bru->subdev);
+> -	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
+>  
+>  	if (!cfg) {
+>  		/*
+> @@ -165,7 +164,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  
+>  		dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+>  			__func__, format.format.width, format.format.height,
+> -			format.format.code, bru_name, i);
+> +			format.format.code, BRU_NAME(pipe->bru), i);
+>  	}
+>  
+>  	format.pad = pipe->bru->source_pad;
+> @@ -181,7 +180,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  
+>  	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+>  		__func__, format.format.width, format.format.height,
+> -		format.format.code, bru_name, i);
+> +		format.format.code, BRU_NAME(pipe->bru), i);
+>  
+>  	format.pad = RWPF_PAD_SINK;
+>  	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
+> @@ -473,9 +472,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
+> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+>  		__func__, format.format.width, format.format.height,
+> -		format.format.code, format.pad);
+> +		format.format.code, BRU_NAME(pipe->bru), format.pad);
+>  
+>  	sel.pad = bru_input;
+>  	sel.target = V4L2_SEL_TGT_COMPOSE;
+> @@ -486,10 +485,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	dev_dbg(vsp1->dev,
+> -		"%s: set selection (%u,%u)/%ux%u on BRU pad %u\n",
+> +	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
+>  		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+> -		sel.pad);
+> +		BRU_NAME(pipe->bru), sel.pad);
+>  
+>  	return 0;
+>  }
+> @@ -514,12 +512,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  	struct vsp1_entity *entity;
+>  	struct vsp1_entity *next;
+>  	struct vsp1_dl_list *dl;
+> -	const char *bru_name;
+>  	unsigned int i;
+>  	int ret;
+>  
+> -	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
+> -
+>  	/* Prepare the display list. */
+>  	dl = vsp1_dl_list_get(pipe->output->dlm);
+>  
+> @@ -570,7 +565,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  		rpf->entity.sink_pad = i;
+>  
+>  		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
+> -			__func__, rpf->entity.index, bru_name, i);
+> +			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
+>  
+>  		ret = vsp1_du_setup_rpf_pipe(vsp1, pipe, rpf, i);
+>  		if (ret < 0)
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
 -- 
-2.7.4
+Regards,
+Niklas Söderlund
