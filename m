@@ -1,71 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:9767 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751575AbeBFN0t (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:34308 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751651AbeBWK1A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 08:26:49 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: jacopo mondi <jacopo@jmondi.org>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH] media: ov5640: fix virtual_channel parameter permissions
-Date: Tue, 6 Feb 2018 13:26:39 +0000
-Message-ID: <79420551-6219-2214-4e81-71fec5e83c77@st.com>
-References: <1517491054-12048-1-git-send-email-hugues.fruchet@st.com>
- <20180201165644.GA17660@w540>
-In-Reply-To: <20180201165644.GA17660@w540>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <69C1DAB14734FE45AC40657BDC8F564B@st.com>
-Content-Transfer-Encoding: base64
+        Fri, 23 Feb 2018 05:27:00 -0500
 MIME-Version: 1.0
+In-Reply-To: <20180221233825.10024-1-jhogan@kernel.org>
+References: <20180221233825.10024-1-jhogan@kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 23 Feb 2018 11:26:58 +0100
+Message-ID: <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
+Subject: Re: [PATCH 00/13] Remove metag architecture
+To: James Hogan <jhogan@kernel.org>
+Cc: linux-metag@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Marc Zyngier <marc.zyngier@arm.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
+        linux-watchdog@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-i2c@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSmFjb3BvLA0KDQpUaGFua3MgZm9yIHJldmlldywgdjIgc2VudCAhDQoNCkJSLA0KSHVndWVz
-Lg0KT24gMDIvMDEvMjAxOCAwNTo1NiBQTSwgamFjb3BvIG1vbmRpIHdyb3RlOg0KPiBIaSBIdWd1
-ZXMsDQo+IA0KPiBPbiBUaHUsIEZlYiAwMSwgMjAxOCBhdCAwMjoxNzozNFBNICswMTAwLCBIdWd1
-ZXMgRnJ1Y2hldCB3cm90ZToNCj4+IEZpeCBtb2R1bGVfcGFyYW0odmlydHVhbF9jaGFubmVsKSBw
-ZXJtaXNzaW9ucy4NCj4+IFRoaXMgcHJvYmxlbSB3YXMgZGV0ZWN0ZWQgYnkgY2hlY2twYXRjaDoN
-Cj4+ICQgc2NyaXB0cy9jaGVja3BhdGNoLnBsIC1mIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5j
-DQo+PiBFUlJPUjogVXNlIDQgZGlnaXQgb2N0YWwgKDA3NzcpIG5vdCBkZWNpbWFsIHBlcm1pc3Np
-b25zDQo+PiAjMTMxOiBGSUxFOiBkcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYzoxMzE6DQo+PiAr
-bW9kdWxlX3BhcmFtKHZpcnR1YWxfY2hhbm5lbCwgaW50LCAwKTsNCj4+DQo+PiBBbHNvIGV4cGxp
-Y2l0bHkgc2V0IGluaXRpYWwgdmFsdWUgdG8gMCBmb3IgZGVmYXVsdCB2YWx1ZQ0KPj4gYW5kIGFk
-ZCBhbiBlcnJvciB0cmFjZSBpbiBjYXNlIG9mIHZpcnR1YWxfY2hhbm5lbCBub3QgaW4NCj4+IHRo
-ZSB2YWxpZCByYW5nZSBvZiB2YWx1ZXMuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogSHVndWVzIEZy
-dWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4+IC0tLQ0KPj4gICBkcml2ZXJzL21lZGlh
-L2kyYy9vdjU2NDAuYyB8IDEwICsrKysrKystLS0NCj4+ICAgMSBmaWxlIGNoYW5nZWQsIDcgaW5z
-ZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-ZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gaW5kZXgg
-Njk2YTI4Yi4uOTA2ZjIwMiAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0
-MC5jDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gQEAgLTEyNyw4ICsx
-MjcsOCBAQCBzdHJ1Y3Qgb3Y1NjQwX3BpeGZtdCB7DQo+PiAgICAqIEZJWE1FOiByZW1vdmUgdGhp
-cyB3aGVuIGEgc3ViZGV2IEFQSSBiZWNvbWVzIGF2YWlsYWJsZQ0KPj4gICAgKiB0byBzZXQgdGhl
-IE1JUEkgQ1NJLTIgdmlydHVhbCBjaGFubmVsLg0KPj4gICAgKi8NCj4+IC1zdGF0aWMgdW5zaWdu
-ZWQgaW50IHZpcnR1YWxfY2hhbm5lbDsNCj4+IC1tb2R1bGVfcGFyYW0odmlydHVhbF9jaGFubmVs
-LCBpbnQsIDApOw0KPj4gK3N0YXRpYyB1bnNpZ25lZCBpbnQgdmlydHVhbF9jaGFubmVsID0gMDsN
-Cj4+ICttb2R1bGVfcGFyYW0odmlydHVhbF9jaGFubmVsLCBpbnQsIDA0NDQpOw0KPiANCj4gUGFy
-YW1ldGVyIHR5cGUgaXMgdW5zaWduZWQgaW50LCBwbGVhc2UgdXNlIHVpbnQgaGVyZS4NCj4gQXMg
-YWxzbyBjaGVja3BhdGNoIHJlcG9ydHMsIGl0IGlzIG5vdCBuZWNlc3NhcnkgdG8gaW5pdGlhbGl6
-ZSBzdGF0aWMNCj4gdmFyaWFibGVzIHRvIDAuDQo+IA0KPj4gICBNT0RVTEVfUEFSTV9ERVNDKHZp
-cnR1YWxfY2hhbm5lbCwNCj4+ICAgCQkgIk1JUEkgQ1NJLTIgdmlydHVhbCBjaGFubmVsICgwLi4z
-KSwgZGVmYXVsdCAwIik7DQo+Pg0KPj4gQEAgLTEzNTgsMTEgKzEzNTgsMTUgQEAgc3RhdGljIGlu
-dCBvdjU2NDBfYmlubmluZ19vbihzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yKQ0KPj4NCj4+ICAg
-c3RhdGljIGludCBvdjU2NDBfc2V0X3ZpcnR1YWxfY2hhbm5lbChzdHJ1Y3Qgb3Y1NjQwX2RldiAq
-c2Vuc29yKQ0KPj4gICB7DQo+PiArCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSBzZW5zb3It
-PmkyY19jbGllbnQ7DQo+PiAgIAl1OCB0ZW1wLCBjaGFubmVsID0gdmlydHVhbF9jaGFubmVsOw0K
-Pj4gICAJaW50IHJldDsNCj4+DQo+PiAtCWlmIChjaGFubmVsID4gMykNCj4+ICsJaWYgKGNoYW5u
-ZWwgPiAzKSB7DQo+PiArCQlkZXZfZXJyKCZjbGllbnQtPmRldiwgIiVzOiB3cm9uZyB2aXJ0dWFs
-X2NoYW5uZWwgcGFyYW1ldGVyIHZhbHVlLCBleHBlY3RlZCAoMC4uMyksIGdvdCAlZFxuIiwNCj4g
-DQo+IEkgdW5kZXJzdGFuZCB5b3UgZG9uJ3Qgd2FudCB0byBicmVhayBlcnJvciBtZXNzYWdlcyB0
-byA4MCBjb2x1bW5zIHRvDQo+IGVhc2UgZ3JlcCBmb3IgZXJyb3JzLCBidXQgeW91IGNhbiBicmVh
-ayB0aGUgbGluZSBhZnRlciAiY2xpZW50LT5kZXYiDQo+IHRvIG1ha2UgdGhpcyBsZXNzIHBhaW5m
-dWwgZm9yIHRoZSBleWVzLg0KPiANCj4gVGhhbmtzDQo+ICAgICBqDQo+IA0KPj4gKwkJCV9fZnVu
-Y19fLCBjaGFubmVsKTsNCj4+ICAgCQlyZXR1cm4gLUVJTlZBTDsNCj4+ICsJfQ0KPj4NCj4+ICAg
-CXJldCA9IG92NTY0MF9yZWFkX3JlZyhzZW5zb3IsIE9WNTY0MF9SRUdfREVCVUdfTU9ERSwgJnRl
-bXApOw0KPj4gICAJaWYgKHJldCkNCj4+IC0tDQo+PiAxLjkuMQ0KPj4=
+On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
+> These patches remove the metag architecture and tightly dependent
+> drivers from the kernel. With the 4.16 kernel the ancient gcc 4.2.4
+> based metag toolchain we have been using is hitting compiler bugs, so
+> now seems a good time to drop it altogether.
+>
+> Quoting from patch 1:
+>
+> The earliest Meta architecture port of Linux I have a record of was an
+> import of a Meta port of Linux v2.4.1 in February 2004, which was worked
+> on significantly over the next few years by Graham Whaley, Will Newton,
+> Matt Fleming, myself and others.
+>
+> Eventually the port was merged into mainline in v3.9 in March 2013, not
+> long after Imagination Technologies bought MIPS Technologies and shifted
+> its CPU focus over to the MIPS architecture.
+>
+> As a result, though the port was maintained for a while, kept on life
+> support for a while longer, and useful for testing a few specific
+> drivers for which I don't have ready access to the equivalent MIPS
+> hardware, it is now essentially dead with no users.
+>
+> It is also stuck using an out-of-tree toolchain based on GCC 4.2.4 which
+> is no longer maintained, now struggles to build modern kernels due to
+> toolchain bugs, and doesn't itself build with a modern GCC. The latest
+> buildroot port is still using an old uClibc snapshot which is no longer
+> served, and the latest uClibc doesn't build with GCC 4.2.4.
+>
+> So lets call it a day and drop the Meta architecture port from the
+> kernel. RIP Meta.
+
+Since I brought up the architecture removal independently, I could
+pick this up into a git tree that also has the removal of some of the
+other architectures.
+
+I see your tree is part of linux-next, so you could also just put it
+in there and send a pull request at the merge window if you prefer.
+
+The only real reason I see for a shared git tree would be to avoid
+conflicts when we touch the same Kconfig files or #ifdefs in driver,
+but Meta only appears in
+
+config FRAME_POINTER
+        bool "Compile the kernel with frame pointers"
+        depends on DEBUG_KERNEL && \
+                (CRIS || M68K || FRV || UML || \
+                 SUPERH || BLACKFIN || MN10300 || METAG) || \
+                ARCH_WANT_FRAME_POINTERS
+
+and
+
+include/trace/events/mmflags.h:#elif defined(CONFIG_PARISC) ||
+defined(CONFIG_METAG) || defined(CONFIG_IA64)
+
+so there is little risk.
+
+      Arnd
