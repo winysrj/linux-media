@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0074.outbound.protection.outlook.com ([104.47.42.74]:55456
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752056AbeBIBVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 20:21:24 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
-        Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v2 1/9] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
-Date: Thu, 8 Feb 2018 17:21:12 -0800
-Message-ID: <1518139272-21588-1-git-send-email-satishna@xilinx.com>
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:44775 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754222AbeBWThG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Feb 2018 14:37:06 -0500
+Received: by mail-qk0-f171.google.com with SMTP id v124so12091098qkh.11
+        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 11:37:06 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAGUPqz7AX0t6M0U6ZKNtqjyW3_5Aj7PsOHVTERTGX1tApVCWbQ@mail.gmail.com>
+References: <CAGUPqz7AX0t6M0U6ZKNtqjyW3_5Aj7PsOHVTERTGX1tApVCWbQ@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Fri, 23 Feb 2018 14:37:05 -0500
+Message-ID: <CAGoCfiwYLHuhTqt0KiXE2A_2oJPgf8ACRqmwGXOrA2mMpRCbjQ@mail.gmail.com>
+Subject: Re: pinnacle 300i driver crashed after first device access
+To: Federico Allegretti <allegfede@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+On Fri, Feb 23, 2018 at 2:30 PM, Federico Allegretti
+<allegfede@gmail.com> wrote:
+> i noticed that my pinnacle 300i could accept full resolution settings:
+> v4l2-ctl --set-fmt-video=width=720,height=576
+>
+> only the first time the command is fired.
+>
+> after that, evey time i try to set that resolution with the same
+> command, i get instead only the half vertical resolution:
+> v4l2-ctl --get-fmt-video
+> Format Video Capture:
+>     Width/Height      : 720/288
+>     Pixel Format      : 'YU12'
+>     Field             : Bottom
+>     Bytes per Line    : 720
+>     Size Image        : 311040
+>     Colorspace        : SMPTE 170M
+>     Transfer Function : Default
+>     YCbCr/HSV Encoding: Default
+>     Quantization      : Default
+>     Flags             :
 
-In current implementation driver only checks the colorspace
-between the last subdev in the pipeline and the connected video node,
-the pipeline could be configured with wrong colorspace information
-until the very end. It thus makes little sense to check the
-colorspace only at the video node. So check can be dropped until
-we find a better solution to carry colorspace information
-through pipelines and to userspace.
+Did you set the video standard?  All sorts of bad things could happen
+if you set the format to 720x576 but the standard is still set to
+NTSC.
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+To get the standards supported, you can run:
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/pla=
-tform/xilinx/xilinx-dma.c
-index 522cdfd..cb20ada 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
+v4l2-ctl --list-standards
 
-        if (dma->fmtinfo->code !=3D fmt.format.code ||
-            dma->format.height !=3D fmt.format.height ||
--           dma->format.width !=3D fmt.format.width ||
--           dma->format.colorspace !=3D fmt.format.colorspace)
-+           dma->format.width !=3D fmt.format.width)
-                return -EINVAL;
+And then set the standard with "v4l2-ctl -s".  Do this before setting
+the format.
 
-        return 0;
---
-2.7.4
+Devin
 
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
