@@ -1,51 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:37221 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754703AbeBNMDY (ORCPT
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:34734 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752228AbeBWTas (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 07:03:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.2 01/12] media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
-Date: Wed, 14 Feb 2018 13:03:12 +0100
-Message-Id: <20180214120323.28778-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
-References: <20180214120323.28778-1-hverkuil@xs4all.nl>
+        Fri, 23 Feb 2018 14:30:48 -0500
+Received: by mail-lf0-f41.google.com with SMTP id l191so13891856lfe.1
+        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 11:30:47 -0800 (PST)
+MIME-Version: 1.0
+From: Federico Allegretti <allegfede@gmail.com>
+Date: Fri, 23 Feb 2018 20:30:25 +0100
+Message-ID: <CAGUPqz7AX0t6M0U6ZKNtqjyW3_5Aj7PsOHVTERTGX1tApVCWbQ@mail.gmail.com>
+Subject: pinnacle 300i driver crashed after first device access
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+i noticed that my pinnacle 300i could accept full resolution settings:
+v4l2-ctl --set-fmt-video=width=720,height=576
 
-commit 181a4a2d5a0a7b43cab08a70710d727e7764ccdd upstream.
+only the first time the command is fired.
 
-If the ioctl returned -ENOTTY, then don't bother copying
-back the result as there is no point.
+after that, evey time i try to set that resolution with the same
+command, i get instead only the half vertical resolution:
+v4l2-ctl --get-fmt-video
+Format Video Capture:
+    Width/Height      : 720/288
+    Pixel Format      : 'YU12'
+    Field             : Bottom
+    Bytes per Line    : 720
+    Size Image        : 311040
+    Colorspace        : SMPTE 170M
+    Transfer Function : Default
+    YCbCr/HSV Encoding: Default
+    Quantization      : Default
+    Flags             :
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/video/v4l2-ioctl.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I noticed that behaviour when streaming with ffmpeg:
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 639abeee3392..bae5dd776d82 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -2308,8 +2308,10 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 
- 	/* Handles IOCTL */
- 	err = func(file, cmd, parg);
--	if (err == -ENOIOCTLCMD)
--		err = -EINVAL;
-+	if (err == -ENOTTY || err == -ENOIOCTLCMD) {
-+		err = -ENOTTY;
-+		goto out;
-+	}
- 
- 	if (has_array_args) {
- 		*kernel_ptr = user_ptr;
+ffmpeg -re -f video4linux2 -i /dev/video0 -f pulse -ar 44100  -strict
+experimental -acodec aac -ab 56k -vcodec libx264 -vb 452k -profile:v
+high -level 40 -g 100 -f flv
+"rtmp://vps222134.ovh.net:8081/publish/first?passsegretapervideostreaming"
+
+first time i get audio and video full frame and no problems.
+second time instead ffmpeg drops a lot of frames and fires warnings:
+
+" ... Thread message queue blocking; consider raising the
+thread_queue_size option (current value: 8) ..."
 -- 
-2.15.1
+Open TV Architecture project: http://sourceforge.net/projects/otva/
+
+Messagenet VOIP: 5338759
+
+YouTube Channel: v1p3r's lab
+
+VIMEO HD videos: http://www.vimeo.com/user1912745/videos
