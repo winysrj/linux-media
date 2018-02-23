@@ -1,155 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:46217 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932077AbeBVMgI (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51759 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751853AbeBWR7a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:36:08 -0500
-Date: Thu, 22 Feb 2018 13:36:00 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
-Message-ID: <20180222123600.GM7203@w540>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
- <56271779.hLAmkO6BAC@avalon>
- <20180222120412.GL7203@w540>
- <2864762.IPlziE6Y0S@avalon>
+        Fri, 23 Feb 2018 12:59:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] media: ttpci/ttusb: add extra parameter to filter callbacks
+Date: Fri, 23 Feb 2018 19:52:48 +0200
+Message-ID: <2237441.eTbS4787IK@avalon>
+In-Reply-To: <06bf50688ac75f5ee7af2cd2a9ae0d292f3002b9.1519404222.git.mchehab@s-opensource.com>
+References: <06bf50688ac75f5ee7af2cd2a9ae0d292f3002b9.1519404222.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <2864762.IPlziE6Y0S@avalon>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Mauro,
 
-On Thu, Feb 22, 2018 at 02:14:53PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> On Thursday, 22 February 2018 14:04:12 EET jacopo mondi wrote:
-> > On Wed, Feb 21, 2018 at 10:28:06PM +0200, Laurent Pinchart wrote:
-> > > On Tuesday, 20 February 2018 10:58:57 EET jacopo mondi wrote:
-> > > > On Mon, Feb 19, 2018 at 09:19:32PM +0200, Laurent Pinchart wrote:
-> > > > > On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
-> > > > >> The sensor driver sets mbus format colorspace information and sizes,
-> > > > >> but not ycbcr encoding, quantization and xfer function. When supplied
-> > > > >> with an badly initialized mbus frame format structure, those fields
-> > > > >> need to be set explicitly not to leave them uninitialized. This is
-> > > > >> tested by v4l2-compliance, which supplies a mbus format description
-> > > > >> structure and checks for all fields to be properly set.
-> > > > >>
-> > > > >> Without this commit, v4l2-compliance fails when testing formats with:
-> > > > >> fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
-> > > > >>
-> > > > >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > > > >> ---
-> > > > >>
-> > > > >>  drivers/media/i2c/ov7670.c | 4 ++++
-> > > > >>  1 file changed, 4 insertions(+)
-> > > > >>
-> > > > >> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> > > > >> index 25b26d4..61c472e 100644
-> > > > >> --- a/drivers/media/i2c/ov7670.c
-> > > > >> +++ b/drivers/media/i2c/ov7670.c
-> > > > >> @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct
-> > > > >> v4l2_subdev
-> > > > >> *sd, fmt->height = wsize->height;
-> > > > >>
-> > > > >>  	fmt->colorspace = ov7670_formats[index].colorspace;
-> > > > >
-> > > > > On a side note, if I'm not mistaken the colorspace field is set to
-> > > > > SRGB
-> > > > > for all entries. Shouldn't you hardcode it here and remove the field ?
-> > > > >
-> > > > >> +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-> > > > >> +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-> > > > >> +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-> > > > >
-> > > > > How about setting the values explicitly instead of relying on defaults
-> > > > > ?
-> > > > > That would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and
-> > > > > V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see
-> > > > > if
-> > > > > the sensor outputs limited or full range ?
-> > > >
-> > > > This actually makes me wonder if those informations (ycbcb_enc,
-> > > > quantization and xfer_func) shouldn't actually be part of the
-> > > > supported format list... I blindly added those default fields in the
-> > > > try_fmt function, but I doubt they applies to all supported formats.
-> > > >
-> > > > Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
-> > > > RGB 565) and 1 raw format (BGGR). I now have a question here:
-> > > >
-> > > > 1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
-> > > > applies to RGB and raw formats? I don't think so, and what value is
-> > > > the correct one for the ycbcr_enc field in this case? I assume
-> > > > xfer_func and quantization applies to all formats instead..
-> > >
-> > > There's no encoding for RGB formats if I understand things correctly, so
-> > > I'd set ycbcr_enc to V4L2_YCBCR_ENC_DEFAULT. The transfer function and
-> > > the quantization apply to all formats, but I'd be surprised to find a
-> > > sensor outputting limited range for RGB.
-> >
-> > Ack, we got the same understanding for RGB formats. I wonder if for
-> > those formats we wouldn't need a V4L2_YCBCR_ENC_NONE or similar...
->
-> That, or explicitly documenting that when the format is not YUV the field
-> should be set by both drivers and applications to V4L2_YCBCR_ENC_DEFAULT when
-> written and ignored when read.
->
+Thank you for the patch.
 
-Well, if no encoding is performed because the color encoding scheme is
-RGB, the colorspace does anyway define an encoding method, so it seems
-to me the latter is more appropriate (use DEFAULT and ignore when read).
+On Friday, 23 February 2018 18:43:48 EET Mauro Carvalho Chehab wrote:
+> The filter callbaks now have an optional extra argument,
+> meant to allow reporting statistics to userspace via mmap.
+> 
+> Set those to NULL, in order to avoid those build errors:
+>   + drivers/media/pci/ttpci/av7110.c: error: too few arguments to function
+> 'dvbdmxfilter->feed->cb.sec':  => 325:10 +
+> drivers/media/pci/ttpci/av7110.c: error: too few arguments to function
+> 'dvbdmxfilter->feed->cb.ts':  => 332:11 +
+> drivers/media/pci/ttpci/av7110_av.c: error: too few arguments to function
+> 'feed->cb.ts':  => 817:3
+> 
 
-That's anyway just my opinion, but I could send a patch for
-documentation and see what feedback it gets.
+I think this misses a Fixes: line. Apart from that it looks good to me.
 
-> > > Have you been able to check whether the sensor outputs limited range of
-> > > full range YUV ? If it outputs full range you can hardcode quantization
-> > > to V4L2_QUANTIZATION_FULL_RANGE for all formats.
-> >
-> > In YUYV mode, I see values > 0xf0 ( > 240, which is the max value for
-> > CbCr samples in limited quantization range), so I assume quantization
-> > is full range.
->
-> It should be, yes. What's the minimum and maximum values you get ?
+With the Fixes: line,
 
->From a white surface:
-min = 0x39
-max = 0xfc
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
->From a black surface:
-min = 0x00 (with 62 occurrences)
-max = 0x8b
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/pci/ttpci/av7110.c        |  5 +++--
+>  drivers/media/pci/ttpci/av7110_av.c     |  6 +++---
+>  drivers/media/usb/ttusb-dec/ttusb_dec.c | 10 +++++-----
+>  3 files changed, 11 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/pci/ttpci/av7110.c
+> b/drivers/media/pci/ttpci/av7110.c index dc8e577b2f74..d6816effb878 100644
+> --- a/drivers/media/pci/ttpci/av7110.c
+> +++ b/drivers/media/pci/ttpci/av7110.c
+> @@ -324,14 +324,15 @@ static int DvbDmxFilterCallback(u8 *buffer1, size_t
+> buffer1_len, }
+>  		return dvbdmxfilter->feed->cb.sec(buffer1, buffer1_len,
+>  						  buffer2, buffer2_len,
+> -						  &dvbdmxfilter->filter);
+> +						  &dvbdmxfilter->filter, NULL);
+>  	case DMX_TYPE_TS:
+>  		if (!(dvbdmxfilter->feed->ts_type & TS_PACKET))
+>  			return 0;
+>  		if (dvbdmxfilter->feed->ts_type & TS_PAYLOAD_ONLY)
+>  			return dvbdmxfilter->feed->cb.ts(buffer1, buffer1_len,
+>  							 buffer2, buffer2_len,
+> -							 &dvbdmxfilter->feed->feed.ts);
+> +							 &dvbdmxfilter->feed->feed.ts,
+> +							 NULL);
+>  		else
+>  			av7110_p2t_write(buffer1, buffer1_len,
+>  					 dvbdmxfilter->feed->pid,
+> diff --git a/drivers/media/pci/ttpci/av7110_av.c
+> b/drivers/media/pci/ttpci/av7110_av.c index 4daba76ec240..ef1bc17cdc4d
+> 100644
+> --- a/drivers/media/pci/ttpci/av7110_av.c
+> +++ b/drivers/media/pci/ttpci/av7110_av.c
+> @@ -99,7 +99,7 @@ int av7110_record_cb(struct dvb_filter_pes2ts *p2t, u8
+> *buf, size_t len) buf[4] = buf[5] = 0;
+>  	if (dvbdmxfeed->ts_type & TS_PAYLOAD_ONLY)
+>  		return dvbdmxfeed->cb.ts(buf, len, NULL, 0,
+> -					 &dvbdmxfeed->feed.ts);
+> +					 &dvbdmxfeed->feed.ts, NULL);
+>  	else
+>  		return dvb_filter_pes2ts(p2t, buf, len, 1);
+>  }
+> @@ -109,7 +109,7 @@ static int dvb_filter_pes2ts_cb(void *priv, unsigned
+> char *data) struct dvb_demux_feed *dvbdmxfeed = (struct dvb_demux_feed *)
+> priv;
+> 
+>  	dvbdmxfeed->cb.ts(data, 188, NULL, 0,
+> -			  &dvbdmxfeed->feed.ts);
+> +			  &dvbdmxfeed->feed.ts, NULL);
+>  	return 0;
+>  }
+> 
+> @@ -814,7 +814,7 @@ static void p_to_t(u8 const *buf, long int length, u16
+> pid, u8 *counter, memcpy(obuf + l, buf + c, TS_SIZE - l);
+>  			c = length;
+>  		}
+> -		feed->cb.ts(obuf, 188, NULL, 0, &feed->feed.ts);
+> +		feed->cb.ts(obuf, 188, NULL, 0, &feed->feed.ts, NULL);
+>  		pes_start = 0;
+>  	}
+>  }
+> diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c
+> b/drivers/media/usb/ttusb-dec/ttusb_dec.c index a8900f5571f7..44ca66cb9b8f
+> 100644
+> --- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
+> +++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+> @@ -428,7 +428,7 @@ static int ttusb_dec_audio_pes2ts_cb(void *priv,
+> unsigned char *data) struct ttusb_dec *dec = priv;
+> 
+>  	dec->audio_filter->feed->cb.ts(data, 188, NULL, 0,
+> -				       &dec->audio_filter->feed->feed.ts);
+> +				       &dec->audio_filter->feed->feed.ts, NULL);
+> 
+>  	return 0;
+>  }
+> @@ -438,7 +438,7 @@ static int ttusb_dec_video_pes2ts_cb(void *priv,
+> unsigned char *data) struct ttusb_dec *dec = priv;
+> 
+>  	dec->video_filter->feed->cb.ts(data, 188, NULL, 0,
+> -				       &dec->video_filter->feed->feed.ts);
+> +				       &dec->video_filter->feed->feed.ts, NULL);
+> 
+>  	return 0;
+>  }
+> @@ -490,7 +490,7 @@ static void ttusb_dec_process_pva(struct ttusb_dec *dec,
+> u8 *pva, int length)
+> 
+>  		if (output_pva) {
+>  			dec->video_filter->feed->cb.ts(pva, length, NULL, 0,
+> -				&dec->video_filter->feed->feed.ts);
+> +				&dec->video_filter->feed->feed.ts, NULL);
+>  			return;
+>  		}
+> 
+> @@ -551,7 +551,7 @@ static void ttusb_dec_process_pva(struct ttusb_dec *dec,
+> u8 *pva, int length) case 0x02:		/* MainAudioStream */
+>  		if (output_pva) {
+>  			dec->audio_filter->feed->cb.ts(pva, length, NULL, 0,
+> -				&dec->audio_filter->feed->feed.ts);
+> +				&dec->audio_filter->feed->feed.ts, NULL);
+>  			return;
+>  		}
+> 
+> @@ -589,7 +589,7 @@ static void ttusb_dec_process_filter(struct ttusb_dec
+> *dec, u8 *packet,
+> 
+>  	if (filter)
+>  		filter->feed->cb.sec(&packet[2], length - 2, NULL, 0,
+> -				     &filter->filter);
+> +				     &filter->filter, NULL);
+>  }
+> 
+>  static void ttusb_dec_process_packet(struct ttusb_dec *dec)
 
-I guess that's indeed full range quantization
 
->
-> > Actually the hardest part here was having a white enough surface to
-> > point the sensor to :)
->
-> Pointing a flashlight to the sensor usually does the trick.
+-- 
+Regards,
 
-I had a yellowish light that didn't work that well, I ended up putting
-a white paper sheet in front of it and then took the picture.
-
-Thanks
-  j
-
->
-> > >>>>  	info->format = *fmt;
-> > >>>>
-> > >>>>  	return 0;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Laurent Pinchart
