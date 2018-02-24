@@ -1,81 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35955 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753175AbeBUL0d (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:35908 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751449AbeBXWk3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 06:26:33 -0500
-Received: by mail-wr0-f195.google.com with SMTP id u15so3468714wrg.3
-        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 03:26:32 -0800 (PST)
-Message-ID: <1519212389.11643.13.camel@googlemail.com>
-Subject: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Reply-To: chf.fritz@googlemail.com
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Norbert Wesp <n.wesp@phytec.de>
-Date: Wed, 21 Feb 2018 12:26:29 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Sat, 24 Feb 2018 17:40:29 -0500
+Received: by mail-qk0-f194.google.com with SMTP id d206so15037122qkb.3
+        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 14:40:28 -0800 (PST)
+Date: Sat, 24 Feb 2018 17:40:12 -0500
+From: Douglas Fischer <fischerdouglasc@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: radio: Critical interrupt bugfix for si470x over
+ i2c
+Message-ID: <20180224174012.3cc5d599@Constantine>
+In-Reply-To: <31a2f2ec-56ce-ed78-cee8-c92a7beed1f6@xs4all.nl>
+References: <20180126184210.1830c59f@Constantine>
+ <31a2f2ec-56ce-ed78-cee8-c92a7beed1f6@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a quirk to force Phytec CAM 004H to format GBRG because
-it is announcing its format wrong.
+Hans,
 
-Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
-Tested-by: Norbert Wesp <n.wesp@phytec.de>
----
- drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   |  1 +
- 2 files changed, 17 insertions(+)
+Sorry for the delay and thanks for getting back to me. Please see
+below. Sorry for the mangles, I'll fix my email setup before I submit a
+v2 for all three patches, this is the only one I have questions for you
+on.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index cde43b6..8bfa40b 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -406,6 +406,13 @@ static int uvc_parse_format(struct uvc_device *dev,
- 				width_multiplier = 2;
- 			}
- 		}
-+		if (dev->quirks & UVC_QUIRK_FORCE_GBRG) {
-+			if (format->fcc == V4L2_PIX_FMT_SGRBG8) {
-+				strlcpy(format->name, "GBRG Bayer (GBRG)",
-+					sizeof(format->name));
-+				format->fcc = V4L2_PIX_FMT_SGBRG8;
-+			}
-+		}
- 
- 		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
- 			ftype = UVC_VS_FRAME_UNCOMPRESSED;
-@@ -2631,6 +2638,15 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0 },
-+	/* PHYTEC CAM 004H cameras */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x199e,
-+	  .idProduct		= 0x8302,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_FORCE_GBRG },
- 	/* Bodelin ProScopeHR */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_DEV_HI
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 7e4d3ee..ad51002 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -164,6 +164,7 @@
- #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
- #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
- #define UVC_QUIRK_FORCE_Y8		0x00000800
-+#define UVC_QUIRK_FORCE_GBRG		0x00001000
- 
- /* Format flags */
- #define UVC_FMT_FLAG_COMPRESSED		0x00000001
--- 
-2.1.4
+On Thu, 15 Feb 2018 15:38:55 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
+
+> On 27/01/18 00:42, Douglas Fischer wrote:
+> > Fixed si470x_start() disabling the interrupt signal, causing tune
+> > operations to never complete. This does not affect USB radios
+> > because they poll the registers instead of using the IRQ line.
+> > 
+> > Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
+> > ---
+> > 
+> > diff -uprN
+> > linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+> > linux/drivers/media/radio/si470x/radio-si470x-common.c ---
+> > linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+> > 2018-01-15 21:58:10.675620432 -0500 +++
+> > linux/drivers/media/radio/si470x/radio-si470x-common.c 2018-01-16
+> > 16:54:23.699770645 -0500 @@ -377,8 +377,13 @@ int
+> > si470x_start(struct si470x_device *r goto done; /* sysconfig 1 */
+> > -	radio->registers[SYSCONFIG1] =
+> > -		(de << 11) & SYSCONFIG1_DE;		/* DE*/
+> > +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN;
+> > +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_STCIEN;
+> > +	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDS;  
+> 
+> Just do:
+> 
+> 	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN |
+> SYSCONFIG1_STCIEN | SYSCONFIG1_RDS;
+> 
+> > +	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;  
+> 
+> Why is this cleared?
+> 
+> > +	radio->registers[SYSCONFIG1] |= 0x1 << 2;  
+> 
+> What's this? It doesn't use a define, so either add one or add a
+> comment.
+	I need to set SYSCONFIG1_GPIO2 to 0x01, so clear both bits and
+	then set just bit 2. Is there a more elegant way to do that?
+	Should I just add "/* GPIO2 */" at the end of the line?
+> 
+> > +	if (de)
+> > +		radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
+> >  	retval = si470x_set_register(radio, SYSCONFIG1);
+> >  	if (retval < 0)
+> >  		goto done;
+> >   
+> 
+> Also, this is now set in si470x_start, so the same code can now be
+> removed in si470x_fops_open for i2c.
+> 
+> In general I would feel happier if you just add a 'bool is_i2c'
+> argument to si470x_start and only change SYSCONFIG1 for the i2c case.
+> 
+	I can redo it that way if you would like, but to me it seems
+	better to write code that just works for both instead of
+	maintaining two different start sequences? The only difference
+	is that the i2c version needs GPIO2 set as an interrupt while
+	the USB version doesn't use GPIO2 at all. So it doesn't affect
+	the USB version to enable the interrupt on GPIO2.
+> Regards,
+> 
+> 	Hans
+
+Thanks,
+Doug
