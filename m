@@ -1,249 +1,628 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:61632 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932199AbeBVNVc (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33531 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750844AbeBXLGC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 08:21:32 -0500
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-To: Daniel Thompson <daniel.thompson@linaro.org>
-CC: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
-        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
-        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
-        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
-        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
-        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
-        <jingoohan1@gmail.com>, <milo.kim@ti.com>, <robh+dt@kernel.org>,
-        <mark.rutland@arm.com>, <corbet@lwn.net>,
-        <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>,
-        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
- <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
- <20180222123308.mypx2r7n6o63mj5z@oak.lan>
-From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Message-ID: <27bab524-3c94-1149-e3de-880cd7dde352@microchip.com>
-Date: Thu, 22 Feb 2018 15:21:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180222123308.mypx2r7n6o63mj5z@oak.lan>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sat, 24 Feb 2018 06:06:02 -0500
+Received: by mail-pf0-f196.google.com with SMTP id q13so4599494pff.0
+        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 03:06:01 -0800 (PST)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
+        Luca Barbato <lu_zero@gentoo.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3] media: video-i2c: add video-i2c driver
+Date: Sat, 24 Feb 2018 03:05:55 -0800
+Message-Id: <20180224110555.16930-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There are several thermal sensors that only have a low-speed bus
+interface but output valid video data. This patchset enables support
+for the AMG88xx "Grid-Eye" sensor family.
 
+Cc: Luca Barbato <lu_zero@gentoo.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+---
+Changes from v1:
+* Switch to SPDX tags versus GPLv2 license text
+* Remove unneeded zeroing of data structures
+* Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
 
-On 22.02.2018 14:33, Daniel Thompson wrote:
-> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
->> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
->> were adapted to this change.
->>
->> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
->> ---
->>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
->>  drivers/bus/ts-nbus.c                |  2 +-
->>  drivers/clk/clk-pwm.c                |  3 ++-
->>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
->>  drivers/hwmon/pwm-fan.c              |  2 +-
->>  drivers/input/misc/max77693-haptic.c |  2 +-
->>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
->>  drivers/leds/leds-pwm.c              |  5 ++++-
->>  drivers/media/rc/ir-rx51.c           |  5 ++++-
->>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
->>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
->>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
->>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
->>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
->>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
->>  include/linux/pwm.h                  |  6 ++++--
->>  16 files changed, 70 insertions(+), 21 deletions(-)
->>
->> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
->> index 2030a6b77a09..696fa25dafd2 100644
->> --- a/drivers/video/backlight/lm3630a_bl.c
->> +++ b/drivers/video/backlight/lm3630a_bl.c
->> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
->>  {
->>  	unsigned int period = pchip->pdata->pwm_period;
->>  	unsigned int duty = br * period / br_max;
->> +	struct pwm_caps caps = { };
->>  
->> -	pwm_config(pchip->pwmd, duty, period);
->> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
->> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
-> 
-> Well... I admit I've only really looked at the patches that impact 
-> backlight but dispersing this really odd looking bit twiddling 
-> throughout the kernel doesn't strike me a great API design.>
-> IMHO callers should not be required to find the first set bit in
-> some specially crafted set of capability bits simply to get sane 
-> default behaviour.
-Thank you for your inputs. I will try to have a fix for this in next version.
+Changes from v2:
+* Add missing linux/kthread.h include that broke x86_64 build
 
-The idea with this was to locate first available PWM mode of PWM channel. If the
-driver hasn't registered any PWM capabilities related ops the default
-capabilities will include only PWM normal mode. In case the PWM channel will
-register different capabilities taking the first available mode from caps.modes
-and passing it as argument to pwm_config() will ensure the pwm_apply_state()
-will not fail.
+drivers/media/i2c/Kconfig     |   9 +
+ drivers/media/i2c/Makefile    |   1 +
+ drivers/media/i2c/video-i2c.c | 547 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 557 insertions(+)
+ create mode 100644 drivers/media/i2c/video-i2c.c
 
-Thank you,
-Claudiu Beznea
-
-> 
-> 
-> Daniel.
-> 
-> 
-> 
-> 
->>  	if (duty)
->>  		pwm_enable(pchip->pwmd);
->>  	else
->> diff --git a/drivers/video/backlight/lp855x_bl.c b/drivers/video/backlight/lp855x_bl.c
->> index 939f057836e1..3d274c604862 100644
->> --- a/drivers/video/backlight/lp855x_bl.c
->> +++ b/drivers/video/backlight/lp855x_bl.c
->> @@ -240,6 +240,7 @@ static void lp855x_pwm_ctrl(struct lp855x *lp, int br, int max_br)
->>  	unsigned int period = lp->pdata->period_ns;
->>  	unsigned int duty = br * period / max_br;
->>  	struct pwm_device *pwm;
->> +	struct pwm_caps caps = { };
->>  
->>  	/* request pwm device with the consumer name */
->>  	if (!lp->pwm) {
->> @@ -256,7 +257,8 @@ static void lp855x_pwm_ctrl(struct lp855x *lp, int br, int max_br)
->>  		pwm_apply_args(pwm);
->>  	}
->>  
->> -	pwm_config(lp->pwm, duty, period);
->> +	pwm_get_caps(lp->pwm->chip, lp->pwm, &caps);
->> +	pwm_config(lp->pwm, duty, period, BIT(ffs(caps.modes) - 1));
->>  	if (duty)
->>  		pwm_enable(lp->pwm);
->>  	else
->> diff --git a/drivers/video/backlight/lp8788_bl.c b/drivers/video/backlight/lp8788_bl.c
->> index cf869ec90cce..06de3163650d 100644
->> --- a/drivers/video/backlight/lp8788_bl.c
->> +++ b/drivers/video/backlight/lp8788_bl.c
->> @@ -128,6 +128,7 @@ static void lp8788_pwm_ctrl(struct lp8788_bl *bl, int br, int max_br)
->>  	unsigned int duty;
->>  	struct device *dev;
->>  	struct pwm_device *pwm;
->> +	struct pwm_caps caps = { };
->>  
->>  	if (!bl->pdata)
->>  		return;
->> @@ -153,7 +154,9 @@ static void lp8788_pwm_ctrl(struct lp8788_bl *bl, int br, int max_br)
->>  		pwm_apply_args(pwm);
->>  	}
->>  
->> -	pwm_config(bl->pwm, duty, period);
->> +	pwm_get_caps(bl->pwm->chip, bl->pwm, &caps);
->> +
->> +	pwm_config(bl->pwm, duty, period, BIT(ffs(caps.modes) - 1));
->>  	if (duty)
->>  		pwm_enable(bl->pwm);
->>  	else
->> diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
->> index 1c2289ddd555..706a9ab053a7 100644
->> --- a/drivers/video/backlight/pwm_bl.c
->> +++ b/drivers/video/backlight/pwm_bl.c
->> @@ -63,10 +63,14 @@ static void pwm_backlight_power_on(struct pwm_bl_data *pb, int brightness)
->>  
->>  static void pwm_backlight_power_off(struct pwm_bl_data *pb)
->>  {
->> +	struct pwm_caps caps = { };
->> +
->>  	if (!pb->enabled)
->>  		return;
->>  
->> -	pwm_config(pb->pwm, 0, pb->period);
->> +	pwm_get_caps(pb->pwm->chip, pb->pwm, &caps);
->> +
->> +	pwm_config(pb->pwm, 0, pb->period, BIT(ffs(caps.modes) - 1));
->>  	pwm_disable(pb->pwm);
->>  
->>  	if (pb->enable_gpio)
->> @@ -96,6 +100,7 @@ static int pwm_backlight_update_status(struct backlight_device *bl)
->>  {
->>  	struct pwm_bl_data *pb = bl_get_data(bl);
->>  	int brightness = bl->props.brightness;
->> +	struct pwm_caps caps = { };
->>  	int duty_cycle;
->>  
->>  	if (bl->props.power != FB_BLANK_UNBLANK ||
->> @@ -108,7 +113,9 @@ static int pwm_backlight_update_status(struct backlight_device *bl)
->>  
->>  	if (brightness > 0) {
->>  		duty_cycle = compute_duty_cycle(pb, brightness);
->> -		pwm_config(pb->pwm, duty_cycle, pb->period);
->> +		pwm_get_caps(pb->pwm->chip, pb->pwm, &caps);
->> +		pwm_config(pb->pwm, duty_cycle, pb->period,
->> +			   BIT(ffs(caps.modes) - 1));
->>  		pwm_backlight_power_on(pb, brightness);
->>  	} else
->>  		pwm_backlight_power_off(pb);
->> diff --git a/drivers/video/fbdev/ssd1307fb.c b/drivers/video/fbdev/ssd1307fb.c
->> index f599520374dd..4b57dcb5799a 100644
->> --- a/drivers/video/fbdev/ssd1307fb.c
->> +++ b/drivers/video/fbdev/ssd1307fb.c
->> @@ -308,7 +308,8 @@ static int ssd1307fb_init(struct ssd1307fb_par *par)
->>  
->>  		par->pwm_period = pargs.period;
->>  		/* Enable the PWM */
->> -		pwm_config(par->pwm, par->pwm_period / 2, par->pwm_period);
->> +		pwm_config(par->pwm, par->pwm_period / 2, par->pwm_period,
->> +			   pargs.mode);
->>  		pwm_enable(par->pwm);
->>  
->>  		dev_dbg(&par->client->dev, "Using PWM%d with a %dns period.\n",
->> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
->> index e62349f48129..0ba416ab2772 100644
->> --- a/include/linux/pwm.h
->> +++ b/include/linux/pwm.h
->> @@ -357,11 +357,12 @@ int pwm_adjust_config(struct pwm_device *pwm);
->>   * @pwm: PWM device
->>   * @duty_ns: "on" time (in nanoseconds)
->>   * @period_ns: duration (in nanoseconds) of one cycle
->> + * @mode: PWM mode
->>   *
->>   * Returns: 0 on success or a negative error code on failure.
->>   */
->>  static inline int pwm_config(struct pwm_device *pwm, int duty_ns,
->> -			     int period_ns)
->> +			     int period_ns, unsigned long mode)
->>  {
->>  	struct pwm_state state;
->>  
->> @@ -377,6 +378,7 @@ static inline int pwm_config(struct pwm_device *pwm, int duty_ns,
->>  
->>  	state.duty_cycle = duty_ns;
->>  	state.period = period_ns;
->> +	state.mode = mode;
->>  	return pwm_apply_state(pwm, &state);
->>  }
->>  
->> @@ -537,7 +539,7 @@ static inline int pwm_adjust_config(struct pwm_device *pwm)
->>  }
->>  
->>  static inline int pwm_config(struct pwm_device *pwm, int duty_ns,
->> -			     int period_ns)
->> +			     int period_ns, unsigned long mode)
->>  {
->>  	return -EINVAL;
->>  }
->> -- 
->> 2.7.4
->>
-> 
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 8fdd673d449f..53aede720e0f 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -917,6 +917,15 @@ config VIDEO_M52790
+ 
+ 	 To compile this driver as a module, choose M here: the
+ 	 module will be called m52790.
++
++config VIDEO_I2C
++	tristate "I2C transport video support"
++	depends on VIDEO_V4L2 && I2C
++	select VIDEOBUF2_VMALLOC
++	---help---
++	  Enable the I2C transport video support which supports the
++	  following:
++	   * Panasonic AMG88xx Grid-Eye Sensors
+ endmenu
+ 
+ menu "Sensors used on soc_camera driver"
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 26b19a2e9d04..5d4c06cb3f6f 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -91,6 +91,7 @@ obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
++obj-$(CONFIG_VIDEO_I2C)		+= video-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
+diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+new file mode 100644
+index 000000000000..ea8ab2fcd580
+--- /dev/null
++++ b/drivers/media/i2c/video-i2c.c
+@@ -0,0 +1,547 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * video-i2c.c - Support for I2C transport video devices
++ *
++ * Copyright (C) 2018 Matt Ranostay <matt.ranostay@konsulko.com>
++ *
++ * Supported:
++ * - Panasonic AMG88xx Grid-Eye Sensors
++ */
++
++#include <linux/delay.h>
++#include <linux/freezer.h>
++#include <linux/kthread.h>
++#include <linux/i2c.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-v4l2.h>
++#include <media/videobuf2-vmalloc.h>
++
++#define VIDEO_I2C_DRIVER	"video-i2c"
++#define MAX_BUFFER_SIZE		128
++
++struct video_i2c_chip;
++
++struct video_i2c_buffer {
++	struct vb2_v4l2_buffer vb;
++	struct list_head list;
++};
++
++struct video_i2c_data {
++	struct i2c_client *client;
++	const struct video_i2c_chip *chip;
++	struct mutex lock;
++	spinlock_t slock;
++	struct mutex queue_lock;
++
++	struct v4l2_device v4l2_dev;
++	struct video_device vdev;
++	struct vb2_queue vb_vidq;
++
++	struct task_struct *kthread_vid_cap;
++	struct list_head vid_cap_active;
++};
++
++static struct v4l2_fmtdesc amg88xx_format = {
++	.pixelformat = V4L2_PIX_FMT_Y12,
++};
++
++static struct v4l2_frmsize_discrete amg88xx_size = {
++	.width = 8,
++	.height = 8,
++};
++
++struct video_i2c_chip {
++	/* video dimensions */
++	const struct v4l2_fmtdesc *format;
++	const struct v4l2_frmsize_discrete *size;
++
++	/* max frames per second */
++	unsigned int max_fps;
++
++	/* pixel buffer size */
++	unsigned int buffer_size;
++
++	/* pixel size in bits */
++	unsigned int bpp;
++
++	/* xfer function */
++	int (*xfer)(struct video_i2c_data *data, char *buf);
++};
++
++static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
++{
++	struct i2c_client *client = data->client;
++	struct i2c_msg msg[2];
++	u8 reg = 0x80;
++	int ret;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 1;
++	msg[0].buf  = (char *) &reg;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = data->chip->buffer_size;
++	msg[1].buf = (char *) buf;
++
++	ret = i2c_transfer(client->adapter, msg, 2);
++
++	return (ret == 2) ? 0 : -EIO;
++}
++
++static const struct video_i2c_chip video_i2c_chip = {
++	.size		= &amg88xx_size,
++	.format		= &amg88xx_format,
++	.max_fps	= 10,
++	.buffer_size	= 128,
++	.bpp		= 16,
++	.xfer		= &amg88xx_xfer,
++};
++
++static const struct v4l2_file_operations video_i2c_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.read		= vb2_fop_read,
++	.mmap		= vb2_fop_mmap,
++	.unlocked_ioctl = video_ioctl2,
++};
++
++static int queue_setup(struct vb2_queue *vq,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], struct device *alloc_devs[])
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vq);
++	unsigned int size = data->chip->buffer_size;
++
++	if (vq->num_buffers + *nbuffers < 2)
++		*nbuffers = 2;
++
++	if (*nplanes)
++		return sizes[0] < size ? -EINVAL : 0;
++
++	*nplanes = 1;
++	sizes[0] = size;
++
++	return 0;
++}
++
++static int buffer_prepare(struct vb2_buffer *vb)
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned int size = data->chip->buffer_size;
++
++	if (vb2_plane_size(vb, 0) < size)
++		return -EINVAL;
++
++	vb2_set_plane_payload(vb, 0, size);
++
++	return 0;
++}
++
++static void buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	struct video_i2c_buffer *buf =
++			container_of(vbuf, struct video_i2c_buffer, vb);
++
++	spin_lock(&data->slock);
++	list_add_tail(&buf->list, &data->vid_cap_active);
++	spin_unlock(&data->slock);
++}
++
++static int video_i2c_thread_vid_cap(void *priv)
++{
++	struct video_i2c_data *data = priv;
++
++	set_freezable();
++
++	do {
++		unsigned long start_jiffies = jiffies;
++		unsigned int delay = msecs_to_jiffies(1000 / data->chip->max_fps);
++		struct video_i2c_buffer *vid_cap_buf = NULL;
++		int schedule_delay;
++
++		try_to_freeze();
++
++		spin_lock(&data->slock);
++
++		if (!list_empty(&data->vid_cap_active)) {
++			vid_cap_buf = list_entry(data->vid_cap_active.next,
++						 struct video_i2c_buffer, list);
++			list_del(&vid_cap_buf->list);
++		}
++
++		spin_unlock(&data->slock);
++
++		if (vid_cap_buf) {
++			struct vb2_buffer *vb2_buf = &vid_cap_buf->vb.vb2_buf;
++			void *vbuf = vb2_plane_vaddr(vb2_buf, 0);
++			int ret = data->chip->xfer(data, vbuf);
++
++			vb2_buf->timestamp = ktime_get_ns();
++			vb2_buffer_done(vb2_buf, ret ?
++					VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
++		}
++
++		schedule_delay = delay - (jiffies - start_jiffies);
++
++		if (time_after(jiffies, start_jiffies + delay))
++			schedule_delay = delay;
++
++		schedule_timeout_interruptible(schedule_delay);
++	} while (!kthread_should_stop());
++
++	return 0;
++}
++
++static int start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vq);
++	struct video_i2c_buffer *buf, *tmp;
++
++	if (data->kthread_vid_cap)
++		return 0;
++
++	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
++					    "%s-vid-cap", data->v4l2_dev.name);
++	if (!IS_ERR(data->kthread_vid_cap))
++		return 0;
++
++	spin_lock(&data->slock);
++
++	list_for_each_entry_safe(buf, tmp, &data->vid_cap_active, list) {
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf,
++				VB2_BUF_STATE_QUEUED);
++	}
++
++	spin_unlock(&data->slock);
++
++	return PTR_ERR(data->kthread_vid_cap);
++}
++
++static void stop_streaming(struct vb2_queue *vq)
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vq);
++
++	if (data->kthread_vid_cap == NULL)
++		return;
++
++	kthread_stop(data->kthread_vid_cap);
++
++	spin_lock(&data->slock);
++
++	while (!list_empty(&data->vid_cap_active)) {
++		struct video_i2c_buffer *buf;
++
++		buf = list_entry(data->vid_cap_active.next,
++				 struct video_i2c_buffer, list);
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++	}
++	spin_unlock(&data->slock);
++
++	data->kthread_vid_cap = NULL;
++}
++
++static struct vb2_ops video_i2c_video_qops = {
++	.queue_setup		= queue_setup,
++	.buf_prepare		= buffer_prepare,
++	.buf_queue		= buffer_queue,
++	.start_streaming	= start_streaming,
++	.stop_streaming		= stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static int video_i2c_querycap(struct file *file, void  *priv,
++				struct v4l2_capability *vcap)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	struct i2c_client *client = data->client;
++
++	strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
++	sprintf(vcap->card, "I2C %d-%d Transport Video",
++					     client->adapter->nr, client->addr);
++
++	sprintf(vcap->bus_info, "I2C:%d-%d", client->adapter->nr, client->addr);
++	return 0;
++}
++
++static int video_i2c_g_input(struct file *file, void *fh, unsigned int *inp)
++{
++	*inp = 0;
++
++	return 0;
++}
++
++static int video_i2c_s_input(struct file *file, void *fh, unsigned int inp)
++{
++	return (inp > 0) ? -EINVAL : 0;
++}
++
++static int video_i2c_enum_input(struct file *file, void *fh,
++				  struct v4l2_input *vin)
++{
++	if (vin->index > 0)
++		return -EINVAL;
++
++	strlcpy(vin->name, "Camera", sizeof(vin->name));
++
++	vin->type = V4L2_INPUT_TYPE_CAMERA;
++
++	return 0;
++}
++
++static int video_i2c_enum_fmt_vid_cap(struct file *file, void *fh,
++					struct v4l2_fmtdesc *fmt)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	enum v4l2_buf_type type = fmt->type;
++
++	if (fmt->index > 0)
++		return -EINVAL;
++
++	*fmt = *data->chip->format;
++	fmt->type = type;
++
++	return 0;
++}
++
++static int video_i2c_enum_framesizes(struct file *file, void *fh,
++				       struct v4l2_frmsizeenum *fsize)
++{
++	const struct video_i2c_data *data = video_drvdata(file);
++	const struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	/* currently only one frame size is allowed */
++	if (fsize->index > 0)
++		return -EINVAL;
++
++	if (fsize->pixel_format != data->chip->format->pixelformat)
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = size->width;
++	fsize->discrete.height = size->height;
++
++	return 0;
++}
++
++static int video_i2c_enum_frameintervals(struct file *file, void *priv,
++					   struct v4l2_frmivalenum *fe)
++{
++	const struct video_i2c_data *data = video_drvdata(file);
++	const struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	if (fe->index > 0)
++		return -EINVAL;
++
++	if (fe->width != size->width || fe->height != size->height)
++		return -EINVAL;
++
++	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	fe->discrete.numerator = 1;
++	fe->discrete.denominator = data->chip->max_fps;
++
++	return 0;
++}
++
++static int video_i2c_try_fmt_vid_cap(struct file *file, void *fh,
++				       struct v4l2_format *fmt)
++{
++	const struct video_i2c_data *data = video_drvdata(file);
++	const struct v4l2_frmsize_discrete *size = data->chip->size;
++	struct v4l2_pix_format *pix = &fmt->fmt.pix;
++	unsigned int bpp = data->chip->bpp / 8;
++
++	pix->width = size->width;
++	pix->height = size->height;
++	pix->pixelformat = data->chip->format->pixelformat;
++	pix->field = V4L2_FIELD_NONE;
++	pix->bytesperline = pix->width * bpp;
++	pix->sizeimage = pix->width * pix->height * bpp;
++	pix->colorspace = V4L2_COLORSPACE_RAW;
++
++	return 0;
++}
++
++static int video_i2c_s_fmt_vid_cap(struct file *file, void *fh,
++				     struct v4l2_format *fmt)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++
++	if (vb2_is_busy(&data->vb_vidq))
++		return -EBUSY;
++
++	return video_i2c_try_fmt_vid_cap(file, fh, fmt);
++}
++
++static int video_i2c_g_parm(struct file *filp, void *priv,
++			      struct v4l2_streamparm *parm)
++{
++	struct video_i2c_data *data = video_drvdata(filp);
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	parm->parm.capture.readbuffers = 1;
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	parm->parm.capture.timeperframe.numerator = 1;
++	parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
++	.vidioc_querycap		= video_i2c_querycap,
++	.vidioc_g_input			= video_i2c_g_input,
++	.vidioc_s_input			= video_i2c_s_input,
++	.vidioc_enum_input		= video_i2c_enum_input,
++	.vidioc_enum_fmt_vid_cap	= video_i2c_enum_fmt_vid_cap,
++	.vidioc_enum_framesizes		= video_i2c_enum_framesizes,
++	.vidioc_enum_frameintervals	= video_i2c_enum_frameintervals,
++	.vidioc_g_fmt_vid_cap		= video_i2c_try_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= video_i2c_s_fmt_vid_cap,
++	.vidioc_g_parm			= video_i2c_g_parm,
++	.vidioc_s_parm			= video_i2c_g_parm,
++	.vidioc_try_fmt_vid_cap		= video_i2c_try_fmt_vid_cap,
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++static void video_i2c_release(struct video_device *vdev)
++{
++	kfree(video_get_drvdata(vdev));
++}
++
++static int video_i2c_probe(struct i2c_client *client,
++			     const struct i2c_device_id *id)
++{
++	struct video_i2c_data *data;
++	struct v4l2_device *v4l2_dev;
++	struct vb2_queue *queue;
++	int ret;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->chip = &video_i2c_chip;
++	data->client = client;
++	v4l2_dev = &data->v4l2_dev;
++	strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
++
++	ret = v4l2_device_register(&client->dev, v4l2_dev);
++	if (ret < 0)
++		goto error_free_device;
++
++	mutex_init(&data->lock);
++	mutex_init(&data->queue_lock);
++
++	queue = &data->vb_vidq;
++	queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	queue->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	queue->drv_priv = data;
++	queue->buf_struct_size = sizeof(struct video_i2c_buffer);
++	queue->min_buffers_needed = 1;
++	queue->ops = &video_i2c_video_qops;
++	queue->mem_ops = &vb2_vmalloc_memops;
++
++	ret = vb2_queue_init(queue);
++	if (ret < 0)
++		goto error_unregister_device;
++
++	data->vdev.queue = queue;
++	data->vdev.queue->lock = &data->queue_lock;
++
++	sprintf(data->vdev.name, "I2C %d-%d Transport Video",
++				 client->adapter->nr, client->addr);
++
++	data->vdev.v4l2_dev = v4l2_dev;
++	data->vdev.fops = &video_i2c_fops;
++	data->vdev.lock = &data->lock;
++	data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
++	data->vdev.release = video_i2c_release;
++	data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
++				 V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++
++	spin_lock_init(&data->slock);
++	INIT_LIST_HEAD(&data->vid_cap_active);
++
++	video_set_drvdata(&data->vdev, data);
++	i2c_set_clientdata(client, data);
++
++	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		goto error_unregister_device;
++
++	return 0;
++
++error_unregister_device:
++	v4l2_device_unregister(v4l2_dev);
++
++error_free_device:
++	kfree(data);
++
++	return ret;
++}
++
++static int video_i2c_remove(struct i2c_client *client)
++{
++	struct video_i2c_data *data = i2c_get_clientdata(client);
++
++	video_unregister_device(&data->vdev);
++	v4l2_device_unregister(&data->v4l2_dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id video_i2c_id_table[] = {
++	{ "amg88xx", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, video_i2c_id_table);
++
++static const struct of_device_id video_i2c_of_match[] = {
++	{ .compatible = "panasonic,amg88xx" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, video_i2c_of_match);
++
++static struct i2c_driver video_i2c_driver = {
++	.driver = {
++		.name	= VIDEO_I2C_DRIVER,
++		.of_match_table = of_match_ptr(video_i2c_of_match),
++	},
++	.probe		= video_i2c_probe,
++	.remove		= video_i2c_remove,
++	.id_table	= video_i2c_id_table,
++};
++
++module_i2c_driver(video_i2c_driver);
++
++MODULE_AUTHOR("Matt Ranostay <matt.ranostay@konsulko.com>");
++MODULE_DESCRIPTION("I2C transport video support");
++MODULE_LICENSE("GPL");
+-- 
+2.14.1
