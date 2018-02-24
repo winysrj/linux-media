@@ -1,44 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:42202 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1427401AbeBORhK (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:35661 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751378AbeBXSzi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 12:37:10 -0500
-Received: by mail-pg0-f67.google.com with SMTP id y8so295494pgr.9
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 09:37:10 -0800 (PST)
-Subject: Re: [PATCH] imx/Kconfig: add depends on HAS_DMA
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-References: <ec6cb539-4571-f006-513d-9ac5e955e236@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <f3cee891-ee06-6362-50a2-ec1f1f9d1fc8@gmail.com>
-Date: Thu, 15 Feb 2018 09:37:05 -0800
-MIME-Version: 1.0
-In-Reply-To: <ec6cb539-4571-f006-513d-9ac5e955e236@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Sat, 24 Feb 2018 13:55:38 -0500
+Received: by mail-wm0-f46.google.com with SMTP id x7so7984615wmc.0
+        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:37 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 00/12] ngene-updates: Hardware support, TS buffer shift fix
+Date: Sat, 24 Feb 2018 19:55:22 +0100
+Message-Id: <20180224185534.13792-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
+Some love for the ngene driver, which runs the older Micronas nGene
+based cards from Digital Devices like the cineS2 v5.5.
 
-On 02/15/2018 07:54 AM, Hans Verkuil wrote:
-> Add missing dependency.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-> index 59b380cc6d22..bfc17de56b17 100644
-> --- a/drivers/staging/media/imx/Kconfig
-> +++ b/drivers/staging/media/imx/Kconfig
-> @@ -3,6 +3,7 @@ config VIDEO_IMX_MEDIA
->   	depends on ARCH_MXC || COMPILE_TEST
->   	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && IMX_IPUV3_CORE
->   	depends on VIDEO_V4L2_SUBDEV_API
-> +	depends on HAS_DMA
->   	select VIDEOBUF2_DMA_CONTIG
->   	select V4L2_FWNODE
->   	---help---
+This series changes:
+
+- Two more PCI IDs for more supported PCIe bridge hardware
+- Conversion of all printk() to more proper dev_*() based logging (the
+  module_init rather uses pr_*() logging since there's no *dev available
+  yet).
+- Support for all available DuoFlex addon modules from that vendor. All
+  addon modules are electrically compatible and use the same interface,
+  and the addons work very well on the aging ngene hardware.
+- Check for CXD2099AR addon modules before blindly trying to attach them,
+  removing unnecessary and maybe irritating error logging if such module
+  isn't present.
+- Workaround a hardware quirk in conjunction with the CXD2099AR module,
+  CA modules and CAM control communication, causing the TS input buffer
+  to shift albeit different communication paths are ought to be in use.
+
+This series is based on the CXD2099 regmap conversion series, see [1].
+Especially [2] is required for the STV0367 enablement patch (and the
+following ones) since the use of the TDA18212 I2C tuner client relies
+on the i2c_client variable to be present, which is added in the
+forementioned CXD2099 series.
+
+Please pick this up and merge.
+
+[1] https://www.spinics.net/lists/linux-media/msg129183.html
+[2] https://www.spinics.net/lists/linux-media/msg129187.html
+
+Daniel Scheller (12):
+  [media] ngene: add two additional PCI IDs
+  [media] ngene: convert kernellog printing from printk() to dev_*()
+    macros
+  [media] ngene: use defines to identify the demod_type
+  [media] ngene: support STV0367 DVB-C/T DuoFlex addons
+  [media] ngene: add XO2 module support
+  [media] ngene: add support for Sony CXD28xx-based DuoFlex modules
+  [media] ngene: add support for DuoFlex S2 V4 addon modules
+  [media] ngene: deduplicate I2C adapter evaluation
+  [media] ngene: check for CXD2099AR presence before attaching
+  [media] ngene: don't treat non-existing demods as error
+  [media] ngene: move the tsin_exchange() stripcopy block into a
+    function
+  [media] ngene: compensate for TS buffer offset shifts
+
+ drivers/media/pci/ngene/Kconfig       |   6 +
+ drivers/media/pci/ngene/ngene-cards.c | 590 ++++++++++++++++++++++++++++++----
+ drivers/media/pci/ngene/ngene-core.c  | 101 +++---
+ drivers/media/pci/ngene/ngene-dvb.c   | 122 +++++--
+ drivers/media/pci/ngene/ngene.h       |  23 ++
+ 5 files changed, 721 insertions(+), 121 deletions(-)
+
+-- 
+2.16.1
