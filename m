@@ -1,231 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35163 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426187AbeBOQjs (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55173 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751480AbeBXSzr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 11:39:48 -0500
-Received: by mail-pg0-f67.google.com with SMTP id l131so177789pga.2
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 08:39:48 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v12 1/8] v4l2-dv-timings: add v4l2_hdmi_colorimetry()
-Date: Thu, 15 Feb 2018 08:39:20 -0800
-Message-Id: <1518712767-21928-2-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518712767-21928-1-git-send-email-tharvey@gateworks.com>
-References: <1518712767-21928-1-git-send-email-tharvey@gateworks.com>
+        Sat, 24 Feb 2018 13:55:47 -0500
+Received: by mail-wm0-f67.google.com with SMTP id z81so10441417wmb.4
+        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:46 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 09/12] [media] ngene: check for CXD2099AR presence before attaching
+Date: Sat, 24 Feb 2018 19:55:31 +0100
+Message-Id: <20180224185534.13792-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20180224185534.13792-1-d.scheller.oss@gmail.com>
+References: <20180224185534.13792-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Add the v4l2_hdmi_colorimetry() function so we have a single function
-that determines the colorspace, YCbCr encoding, quantization range and
-transfer function from the InfoFrame data.
+Currently, if there's no CXD2099AR attached to any expansion connector of
+the ngene hardware, it will complain with this on every module load:
 
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+    cxd2099 1-0040: No CXD2099AR detected at 0x40
+    cxd2099: probe of 1-0040 failed with error -5
+    ngene 0000:02:00.0: CXD2099AR attach failed
+
+This happens due to the logic assuming such hardware is always there and
+blindly tries to attach the cxd2099 I2C driver. Rather add a probe
+function (in ngene-cards.c with a prototype in ngene.h) to check for
+the existence of such hardware before probing, and don't try further if
+no CXD2099 was found.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
-v9:
- - fix kernel-doc format (Randy)
+ drivers/media/pci/ngene/ngene-cards.c | 19 +++++++++++++++++++
+ drivers/media/pci/ngene/ngene-core.c  | 14 ++++++++++++++
+ drivers/media/pci/ngene/ngene.h       |  3 +++
+ 3 files changed, 36 insertions(+)
 
- drivers/media/v4l2-core/v4l2-dv-timings.c | 141 ++++++++++++++++++++++++++++++
- include/media/v4l2-dv-timings.h           |  21 +++++
- 2 files changed, 162 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 930f9c5..5663d86 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -27,6 +27,7 @@
- #include <linux/v4l2-dv-timings.h>
- #include <media/v4l2-dv-timings.h>
- #include <linux/math64.h>
-+#include <linux/hdmi.h>
- 
- MODULE_AUTHOR("Hans Verkuil");
- MODULE_DESCRIPTION("V4L2 DV Timings Helper Functions");
-@@ -814,3 +815,143 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
- 	return aspect;
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index dff55c7c9f86..d603d0af703e 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -505,6 +505,25 @@ static int port_has_stv0367(struct i2c_adapter *i2c)
+ 	return 1;
  }
- EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
-+
-+/** v4l2_hdmi_rx_colorimetry - determine HDMI colorimetry information
-+ *	based on various InfoFrames.
-+ * @avi: the AVI InfoFrame
-+ * @hdmi: the HDMI Vendor InfoFrame, may be NULL
-+ * @height: the frame height
-+ *
-+ * Determines the HDMI colorimetry information, i.e. how the HDMI
-+ * pixel color data should be interpreted.
-+ *
-+ * Note that some of the newer features (DCI-P3, HDR) are not yet
-+ * implemented: the hdmi.h header needs to be updated to the HDMI 2.0
-+ * and CTA-861-G standards.
-+ */
-+struct v4l2_hdmi_colorimetry
-+v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
-+			 const struct hdmi_vendor_infoframe *hdmi,
-+			 unsigned int height)
+ 
++int ngene_port_has_cxd2099(struct i2c_adapter *i2c, u8 *type)
 +{
-+	struct v4l2_hdmi_colorimetry c = {
-+		V4L2_COLORSPACE_SRGB,
-+		V4L2_YCBCR_ENC_DEFAULT,
-+		V4L2_QUANTIZATION_FULL_RANGE,
-+		V4L2_XFER_FUNC_SRGB
-+	};
-+	bool is_ce = avi->video_code || (hdmi && hdmi->vic);
-+	bool is_sdtv = height <= 576;
-+	bool default_is_lim_range_rgb = avi->video_code > 1;
++	u8 val;
++	u8 probe[4] = { 0xe0, 0x00, 0x00, 0x00 }, data[4];
++	struct i2c_msg msgs[2] = {{ .addr = 0x40,  .flags = 0,
++				    .buf  = probe, .len   = 4 },
++				  { .addr = 0x40,  .flags = I2C_M_RD,
++				    .buf  = data,  .len   = 4 } };
++	val = i2c_transfer(i2c, msgs, 2);
++	if (val != 2)
++		return 0;
 +
-+	switch (avi->colorspace) {
-+	case HDMI_COLORSPACE_RGB:
-+		/* RGB pixel encoding */
-+		switch (avi->colorimetry) {
-+		case HDMI_COLORIMETRY_EXTENDED:
-+			switch (avi->extended_colorimetry) {
-+			case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
-+				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
-+				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_BT2020:
-+				c.colorspace = V4L2_COLORSPACE_BT2020;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			default:
-+				break;
-+			}
-+			break;
-+		default:
-+			break;
-+		}
-+		switch (avi->quantization_range) {
-+		case HDMI_QUANTIZATION_RANGE_LIMITED:
-+			c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+			break;
-+		case HDMI_QUANTIZATION_RANGE_FULL:
-+			break;
-+		default:
-+			if (default_is_lim_range_rgb)
-+				c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+			break;
-+		}
-+		break;
-+
-+	default:
-+		/* YCbCr pixel encoding */
-+		c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-+		switch (avi->colorimetry) {
-+		case HDMI_COLORIMETRY_NONE:
-+			if (!is_ce)
-+				break;
-+			if (is_sdtv) {
-+				c.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+			} else {
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
-+			}
-+			c.xfer_func = V4L2_XFER_FUNC_709;
-+			break;
-+		case HDMI_COLORIMETRY_ITU_601:
-+			c.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+			c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+			c.xfer_func = V4L2_XFER_FUNC_709;
-+			break;
-+		case HDMI_COLORIMETRY_ITU_709:
-+			c.colorspace = V4L2_COLORSPACE_REC709;
-+			c.ycbcr_enc = V4L2_YCBCR_ENC_709;
-+			c.xfer_func = V4L2_XFER_FUNC_709;
-+			break;
-+		case HDMI_COLORIMETRY_EXTENDED:
-+			switch (avi->extended_colorimetry) {
-+			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_601:
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_709:
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_S_YCC_601:
-+				c.colorspace = V4L2_COLORSPACE_SRGB;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+				c.xfer_func = V4L2_XFER_FUNC_SRGB;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
-+				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
-+				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_BT2020:
-+				c.colorspace = V4L2_COLORSPACE_BT2020;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			case HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM:
-+				c.colorspace = V4L2_COLORSPACE_BT2020;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020_CONST_LUM;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			default: /* fall back to ITU_709 */
-+				c.colorspace = V4L2_COLORSPACE_REC709;
-+				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
-+				c.xfer_func = V4L2_XFER_FUNC_709;
-+				break;
-+			}
-+			break;
-+		default:
-+			break;
-+		}
-+		/*
-+		 * YCC Quantization Range signaling is more-or-less broken,
-+		 * let's just ignore this.
-+		 */
-+		break;
-+	}
-+	return c;
++	if (data[0] == 0x02 && data[1] == 0x2b && data[3] == 0x43)
++		*type = 2;
++	else
++		*type = 1;
++	return 1;
 +}
-+EXPORT_SYMBOL_GPL(v4l2_hdmi_rx_colorimetry);
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 61a1889..835aef7 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -223,5 +223,26 @@ static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
- 	return false;
- }
- 
-+/**
-+ * struct v4l2_hdmi_rx_colorimetry - describes the HDMI colorimetry information
-+ * @colorspace:		enum v4l2_colorspace, the colorspace
-+ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-+ * @quantization:	enum v4l2_quantization, colorspace quantization
-+ * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
-+ */
-+struct v4l2_hdmi_colorimetry {
-+	enum v4l2_colorspace colorspace;
-+	enum v4l2_ycbcr_encoding ycbcr_enc;
-+	enum v4l2_quantization quantization;
-+	enum v4l2_xfer_func xfer_func;
-+};
 +
-+struct hdmi_avi_infoframe;
-+struct hdmi_vendor_infoframe;
+ static int demod_attach_drxk(struct ngene_channel *chan,
+ 			     struct i2c_adapter *i2c)
+ {
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 526d0adfa427..f69a8fc1ec2a 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1589,6 +1589,20 @@ static void cxd_attach(struct ngene *dev)
+ 		.addr = 0x40,
+ 		.platform_data = &cxd_cfg,
+ 	};
++	int ret;
++	u8 type;
 +
-+struct v4l2_hdmi_colorimetry
-+v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
-+			 const struct hdmi_vendor_infoframe *hdmi,
-+			 unsigned int height);
++	/* check for CXD2099AR presence before attaching */
++	ret = ngene_port_has_cxd2099(&dev->channel[0].i2c_adapter, &type);
++	if (!ret) {
++		dev_dbg(pdev, "No CXD2099AR found\n");
++		return;
++	}
++
++	if (type != 1) {
++		dev_warn(pdev, "CXD2099AR is uninitialized!\n");
++		return;
++	}
  
- #endif
+ 	cxd_cfg.en = &ci->en;
+ 
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index 72195f6552b3..66d8eaa28549 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -909,6 +909,9 @@ int ngene_command_gpio_set(struct ngene *dev, u8 select, u8 level);
+ void set_transfer(struct ngene_channel *chan, int state);
+ void FillTSBuffer(void *Buffer, int Length, u32 Flags);
+ 
++/* Provided by ngene-cards.c */
++int ngene_port_has_cxd2099(struct i2c_adapter *i2c, u8 *type);
++
+ /* Provided by ngene-i2c.c */
+ int ngene_i2c_init(struct ngene *dev, int dev_nr);
+ 
 -- 
-2.7.4
+2.16.1
