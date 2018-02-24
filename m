@@ -1,889 +1,614 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:35514 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751796AbeBZI5O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 03:57:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, dri-devel@lists.freedesktop.org,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/6] cec-pin: add error injection support
-Date: Mon, 26 Feb 2018 09:57:05 +0100
-Message-Id: <20180226085706.41526-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180226085706.41526-1-hverkuil@xs4all.nl>
-References: <20180226085706.41526-1-hverkuil@xs4all.nl>
+Received: from mga09.intel.com ([134.134.136.24]:44668 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750826AbeBXPKQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Feb 2018 10:10:16 -0500
+Date: Sat, 24 Feb 2018 23:10:04 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [linuxtv-media:fixes 3/11] ERROR: "vb2_core_streamoff"
+ [drivers/media/dvb-core/dvb-core.ko] undefined!
+Message-ID: <201802242301.M4tE3xLm%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="liOOAslEiF7prFVr"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Implement all the error injection commands.
+--liOOAslEiF7prFVr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The state machine gets new states for the various error situations,
-helper functions are added to detect whether an error injection is
-active and the actual error injections are implemented.
+tree:   git://linuxtv.org/media_tree.git fixes
+head:   3dd6b560dc5d59e7cb6dbda6e85dc9af7925fcf8
+commit: ec5b100462543aee1f3e139e168699fd3b05cdc6 [3/11] media: dvb: fix DVB_MMAP symbol name
+config: i386-randconfig-c0-02241943 (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
+reproduce:
+        git checkout ec5b100462543aee1f3e139e168699fd3b05cdc6
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Note: the linuxtv-media/fixes HEAD 3dd6b560dc5d59e7cb6dbda6e85dc9af7925fcf8 builds fine.
+      It only hurts bisectibility.
+
+All errors (new ones prefixed by >>):
+
+>> ERROR: "vb2_core_streamoff" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_dqbuf" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_mmap" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_qbuf" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_querybuf" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_streamon" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_poll" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_vmalloc_memops" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_plane_vaddr" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_buffer_done" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_queue_release" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_expbuf" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_reqbufs" [drivers/media/dvb-core/dvb-core.ko] undefined!
+>> ERROR: "vb2_core_queue_init" [drivers/media/dvb-core/dvb-core.ko] undefined!
+
 ---
- drivers/media/cec/cec-pin-priv.h |  38 ++-
- drivers/media/cec/cec-pin.c      | 502 ++++++++++++++++++++++++++++++++++-----
- 2 files changed, 481 insertions(+), 59 deletions(-)
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
-index a33e7ef6cdf5..09ac2da35c20 100644
---- a/drivers/media/cec/cec-pin-priv.h
-+++ b/drivers/media/cec/cec-pin-priv.h
-@@ -28,14 +28,30 @@ enum cec_pin_state {
- 	CEC_ST_TX_START_BIT_LOW,
- 	/* Drive CEC high for the start bit */
- 	CEC_ST_TX_START_BIT_HIGH,
-+	/* Generate a start bit period that is too short */
-+	CEC_ST_TX_START_BIT_HIGH_SHORT,
-+	/* Generate a start bit period that is too long */
-+	CEC_ST_TX_START_BIT_HIGH_LONG,
-+	/* Drive CEC low for the start bit using the custom timing */
-+	CEC_ST_TX_START_BIT_LOW_CUSTOM,
-+	/* Drive CEC high for the start bit using the custom timing */
-+	CEC_ST_TX_START_BIT_HIGH_CUSTOM,
- 	/* Drive CEC low for the 0 bit */
- 	CEC_ST_TX_DATA_BIT_0_LOW,
- 	/* Drive CEC high for the 0 bit */
- 	CEC_ST_TX_DATA_BIT_0_HIGH,
-+	/* Generate a bit period that is too short */
-+	CEC_ST_TX_DATA_BIT_0_HIGH_SHORT,
-+	/* Generate a bit period that is too long */
-+	CEC_ST_TX_DATA_BIT_0_HIGH_LONG,
- 	/* Drive CEC low for the 1 bit */
- 	CEC_ST_TX_DATA_BIT_1_LOW,
- 	/* Drive CEC high for the 1 bit */
- 	CEC_ST_TX_DATA_BIT_1_HIGH,
-+	/* Generate a bit period that is too short */
-+	CEC_ST_TX_DATA_BIT_1_HIGH_SHORT,
-+	/* Generate a bit period that is too long */
-+	CEC_ST_TX_DATA_BIT_1_HIGH_LONG,
- 	/*
- 	 * Wait for start of sample time to check for Ack bit or first
- 	 * four initiator bits to check for Arbitration Lost.
-@@ -43,6 +59,20 @@ enum cec_pin_state {
- 	CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE,
- 	/* Wait for end of bit period after sampling */
- 	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE,
-+	/* Generate a bit period that is too short */
-+	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT,
-+	/* Generate a bit period that is too long */
-+	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG,
-+	/* Drive CEC low for a data bit using the custom timing */
-+	CEC_ST_TX_DATA_BIT_LOW_CUSTOM,
-+	/* Drive CEC high for a data bit using the custom timing */
-+	CEC_ST_TX_DATA_BIT_HIGH_CUSTOM,
-+	/* Drive CEC low for a standalone pulse using the custom timing */
-+	CEC_ST_TX_PULSE_LOW_CUSTOM,
-+	/* Drive CEC high for a standalone pulse using the custom timing */
-+	CEC_ST_TX_PULSE_HIGH_CUSTOM,
-+	/* Start low drive */
-+	CEC_ST_TX_LOW_DRIVE,
- 
- 	/* Rx states */
- 
-@@ -54,8 +84,8 @@ enum cec_pin_state {
- 	CEC_ST_RX_DATA_SAMPLE,
- 	/* Wait for earliest end of bit period after sampling */
- 	CEC_ST_RX_DATA_POST_SAMPLE,
--	/* Wait for CEC to go high (i.e. end of bit period */
--	CEC_ST_RX_DATA_HIGH,
-+	/* Wait for CEC to go low (i.e. end of bit period) */
-+	CEC_ST_RX_DATA_WAIT_FOR_LOW,
- 	/* Drive CEC low to send 0 Ack bit */
- 	CEC_ST_RX_ACK_LOW,
- 	/* End of 0 Ack time, wait for earliest end of bit period */
-@@ -64,9 +94,9 @@ enum cec_pin_state {
- 	CEC_ST_RX_ACK_HIGH_POST,
- 	/* Wait for earliest end of bit period and end of message */
- 	CEC_ST_RX_ACK_FINISH,
--
- 	/* Start low drive */
--	CEC_ST_LOW_DRIVE,
-+	CEC_ST_RX_LOW_DRIVE,
-+
- 	/* Monitor pin using interrupts */
- 	CEC_ST_RX_IRQ,
- 
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index 7920ea1c940b..5a553083d71a 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -39,11 +39,29 @@
- #define CEC_TIM_IDLE_SAMPLE		1000
- /* when processing the start bit, sample twice per millisecond */
- #define CEC_TIM_START_BIT_SAMPLE	500
--/* when polling for a state change, sample once every 50 micoseconds */
-+/* when polling for a state change, sample once every 50 microseconds */
- #define CEC_TIM_SAMPLE			50
- 
- #define CEC_TIM_LOW_DRIVE_ERROR		(1.5 * CEC_TIM_DATA_BIT_TOTAL)
- 
-+/*
-+ * Total data bit time that is too short/long for a valid bit,
-+ * used for error injection.
-+ */
-+#define CEC_TIM_DATA_BIT_TOTAL_SHORT	1800
-+#define CEC_TIM_DATA_BIT_TOTAL_LONG	2900
-+
-+/*
-+ * Total start bit time that is too short/long for a valid bit,
-+ * used for error injection.
-+ */
-+#define CEC_TIM_START_BIT_TOTAL_SHORT	4100
-+#define CEC_TIM_START_BIT_TOTAL_LONG	5000
-+
-+/* Data bits are 0-7, EOM is bit 8 and ACK is bit 9 */
-+#define EOM_BIT				8
-+#define ACK_BIT				9
-+
- struct cec_state {
- 	const char * const name;
- 	unsigned int usecs;
-@@ -56,17 +74,32 @@ static const struct cec_state states[CEC_PIN_STATES] = {
- 	{ "Tx Wait for High",	   CEC_TIM_IDLE_SAMPLE },
- 	{ "Tx Start Bit Low",	   CEC_TIM_START_BIT_LOW },
- 	{ "Tx Start Bit High",	   CEC_TIM_START_BIT_TOTAL - CEC_TIM_START_BIT_LOW },
-+	{ "Tx Start Bit High Short", CEC_TIM_START_BIT_TOTAL_SHORT - CEC_TIM_START_BIT_LOW },
-+	{ "Tx Start Bit High Long", CEC_TIM_START_BIT_TOTAL_LONG - CEC_TIM_START_BIT_LOW },
-+	{ "Tx Start Bit Low Custom", 0 },
-+	{ "Tx Start Bit High Custom", 0 },
- 	{ "Tx Data 0 Low",	   CEC_TIM_DATA_BIT_0_LOW },
- 	{ "Tx Data 0 High",	   CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_0_LOW },
-+	{ "Tx Data 0 High Short",  CEC_TIM_DATA_BIT_TOTAL_SHORT - CEC_TIM_DATA_BIT_0_LOW },
-+	{ "Tx Data 0 High Long",   CEC_TIM_DATA_BIT_TOTAL_LONG - CEC_TIM_DATA_BIT_0_LOW },
- 	{ "Tx Data 1 Low",	   CEC_TIM_DATA_BIT_1_LOW },
- 	{ "Tx Data 1 High",	   CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_1_LOW },
--	{ "Tx Data 1 Pre Sample",  CEC_TIM_DATA_BIT_SAMPLE - CEC_TIM_DATA_BIT_1_LOW },
--	{ "Tx Data 1 Post Sample", CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_SAMPLE },
-+	{ "Tx Data 1 High Short",  CEC_TIM_DATA_BIT_TOTAL_SHORT - CEC_TIM_DATA_BIT_1_LOW },
-+	{ "Tx Data 1 High Long",   CEC_TIM_DATA_BIT_TOTAL_LONG - CEC_TIM_DATA_BIT_1_LOW },
-+	{ "Tx Data 1 High Pre Sample", CEC_TIM_DATA_BIT_SAMPLE - CEC_TIM_DATA_BIT_1_LOW },
-+	{ "Tx Data 1 High Post Sample", CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_SAMPLE },
-+	{ "Tx Data 1 High Post Sample Short", CEC_TIM_DATA_BIT_TOTAL_SHORT - CEC_TIM_DATA_BIT_SAMPLE },
-+	{ "Tx Data 1 High Post Sample Long", CEC_TIM_DATA_BIT_TOTAL_LONG - CEC_TIM_DATA_BIT_SAMPLE },
-+	{ "Tx Data Bit Low Custom", 0 },
-+	{ "Tx Data Bit High Custom", 0 },
-+	{ "Tx Pulse Low Custom",   0 },
-+	{ "Tx Pulse High Custom",  0 },
-+	{ "Tx Low Drive",	   CEC_TIM_LOW_DRIVE_ERROR },
- 	{ "Rx Start Bit Low",	   CEC_TIM_SAMPLE },
- 	{ "Rx Start Bit High",	   CEC_TIM_SAMPLE },
- 	{ "Rx Data Sample",	   CEC_TIM_DATA_BIT_SAMPLE },
- 	{ "Rx Data Post Sample",   CEC_TIM_DATA_BIT_HIGH - CEC_TIM_DATA_BIT_SAMPLE },
--	{ "Rx Data High",	   CEC_TIM_SAMPLE },
-+	{ "Rx Data Wait for Low",  CEC_TIM_SAMPLE },
- 	{ "Rx Ack Low",		   CEC_TIM_DATA_BIT_0_LOW },
- 	{ "Rx Ack Low Post",	   CEC_TIM_DATA_BIT_HIGH - CEC_TIM_DATA_BIT_0_LOW },
- 	{ "Rx Ack High Post",	   CEC_TIM_DATA_BIT_HIGH },
-@@ -111,6 +144,126 @@ static bool cec_pin_high(struct cec_pin *pin)
- 	return cec_pin_read(pin);
- }
- 
-+static bool rx_nack(struct cec_pin *pin)
-+{
-+	return cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_NACK;
-+}
-+
-+static bool rx_low_drive(struct cec_pin *pin)
-+{
-+	u32 error = cec_pin_rx_error_inj(pin);
-+	unsigned int pos =
-+		(error >> CEC_ERROR_INJ_RX_LOW_DRIVE_POS_OFFSET) & 0xff;
-+
-+	return (error & CEC_ERROR_INJ_RX_LOW_DRIVE) ?
-+		(pin->rx_bit == pos) : false;
-+}
-+
-+static u32 rx_add_byte(struct cec_pin *pin)
-+{
-+	return cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_ADD_BYTE;
-+}
-+
-+static u32 rx_remove_byte(struct cec_pin *pin)
-+{
-+	return cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_REMOVE_BYTE;
-+}
-+
-+static bool rx_arb_lost(struct cec_pin *pin)
-+{
-+	return pin->tx_msg.len == 0 &&
-+		cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_ARB_LOST;
-+}
-+
-+static u32 tx_no_eom(struct cec_pin *pin)
-+{
-+	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_NO_EOM;
-+}
-+
-+static u32 tx_early_eom(struct cec_pin *pin)
-+{
-+	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_EARLY_EOM;
-+}
-+
-+static bool tx_short_bit(struct cec_pin *pin)
-+{
-+	u64 error = cec_pin_tx_error_inj(pin);
-+	unsigned int pos =
-+		(error >> CEC_ERROR_INJ_TX_INVALID_BIT_POS_OFFSET) & 0xff;
-+
-+	return (error & CEC_ERROR_INJ_TX_SHORT_BIT) ?
-+		(pin->tx_bit == pos) : false;
-+}
-+
-+static bool tx_long_bit(struct cec_pin *pin)
-+{
-+	u64 error = cec_pin_tx_error_inj(pin);
-+	unsigned int pos =
-+		(error >> CEC_ERROR_INJ_TX_INVALID_BIT_POS_OFFSET) & 0xff;
-+
-+	return (error & CEC_ERROR_INJ_TX_LONG_BIT) ?
-+		(pin->tx_bit == pos) : false;
-+}
-+
-+static bool tx_custom_bit(struct cec_pin *pin)
-+{
-+	u64 error = cec_pin_tx_error_inj(pin);
-+	unsigned int pos =
-+		(error >> CEC_ERROR_INJ_TX_INVALID_BIT_POS_OFFSET) & 0xff;
-+
-+	return (error & CEC_ERROR_INJ_TX_CUSTOM_BIT) ?
-+		(pin->tx_bit == pos) : false;
-+}
-+
-+static u32 tx_short_start(struct cec_pin *pin)
-+{
-+	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_SHORT_START;
-+}
-+
-+static u32 tx_long_start(struct cec_pin *pin)
-+{
-+	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_LONG_START;
-+}
-+
-+static u32 tx_custom_start(struct cec_pin *pin)
-+{
-+	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_CUSTOM_START;
-+}
-+
-+static bool tx_last_bit(struct cec_pin *pin)
-+{
-+	u64 error = cec_pin_tx_error_inj(pin);
-+	unsigned int pos =
-+		(error >> CEC_ERROR_INJ_TX_LAST_BIT_POS_OFFSET) & 0xff;
-+
-+	return (error & CEC_ERROR_INJ_TX_LAST_BIT) ?
-+		(pin->tx_bit == pos) : false;
-+}
-+
-+static u8 tx_add_bytes(struct cec_pin *pin)
-+{
-+	u64 error = cec_pin_tx_error_inj(pin);
-+
-+	if (error & CEC_ERROR_INJ_TX_ADD_BYTES)
-+		return (error >> CEC_ERROR_INJ_TX_ADD_BYTES_NUM_OFFSET) & 0xff;
-+	return 0;
-+}
-+
-+static u32 tx_remove_byte(struct cec_pin *pin)
-+{
-+	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_REMOVE_BYTE;
-+}
-+
-+static bool tx_low_drive(struct cec_pin *pin)
-+{
-+	u64 error = cec_pin_tx_error_inj(pin);
-+	unsigned int pos =
-+		(error >> CEC_ERROR_INJ_TX_LOW_DRIVE_POS_OFFSET) & 0xff;
-+
-+	return (error & CEC_ERROR_INJ_TX_LOW_DRIVE) ?
-+		(pin->tx_bit == pos) : false;
-+}
-+
- static void cec_pin_to_idle(struct cec_pin *pin)
- {
- 	/*
-@@ -120,8 +273,16 @@ static void cec_pin_to_idle(struct cec_pin *pin)
- 	pin->rx_bit = pin->tx_bit = 0;
- 	pin->rx_msg.len = 0;
- 	memset(pin->rx_msg.msg, 0, sizeof(pin->rx_msg.msg));
--	pin->state = CEC_ST_IDLE;
- 	pin->ts = ns_to_ktime(0);
-+	if (pin->state >= CEC_ST_TX_WAIT &&
-+	    pin->state <= CEC_ST_TX_LOW_DRIVE)
-+		cec_pin_tx_next_clear(pin);
-+	if (pin->state >= CEC_ST_RX_START_BIT_LOW &&
-+	    pin->state <= CEC_ST_RX_LOW_DRIVE)
-+		cec_pin_rx_next_clear(pin);
-+	pin->tx_generated_poll = false;
-+	pin->tx_post_eom = false;
-+	pin->state = CEC_ST_IDLE;
- }
- 
- /*
-@@ -162,42 +323,107 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 		break;
- 
- 	case CEC_ST_TX_START_BIT_LOW:
--		pin->state = CEC_ST_TX_START_BIT_HIGH;
-+		if (tx_short_start(pin)) {
-+			/*
-+			 * Error Injection: send an invalid (too short)
-+			 * start pulse.
-+			 */
-+			pin->state = CEC_ST_TX_START_BIT_HIGH_SHORT;
-+		} else if (tx_long_start(pin)) {
-+			/*
-+			 * Error Injection: send an invalid (too long)
-+			 * start pulse.
-+			 */
-+			pin->state = CEC_ST_TX_START_BIT_HIGH_LONG;
-+		} else {
-+			pin->state = CEC_ST_TX_START_BIT_HIGH;
-+		}
-+		/* Generate start bit */
-+		cec_pin_high(pin);
-+		break;
-+
-+	case CEC_ST_TX_START_BIT_LOW_CUSTOM:
-+		pin->state = CEC_ST_TX_START_BIT_HIGH_CUSTOM;
- 		/* Generate start bit */
- 		cec_pin_high(pin);
- 		break;
- 
- 	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
--		/* If the read value is 1, then all is OK */
--		if (!cec_pin_read(pin)) {
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG:
-+		if (pin->tx_nacked) {
-+			cec_pin_to_idle(pin);
-+			pin->tx_msg.len = 0;
-+			if (pin->tx_generated_poll)
-+				break;
-+			pin->work_tx_ts = ts;
-+			pin->work_tx_status = CEC_TX_STATUS_NACK;
-+			wake_up_interruptible(&pin->kthread_waitq);
-+			break;
-+		}
-+		/* fall through */
-+	case CEC_ST_TX_DATA_BIT_0_HIGH:
-+	case CEC_ST_TX_DATA_BIT_0_HIGH_SHORT:
-+	case CEC_ST_TX_DATA_BIT_0_HIGH_LONG:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_SHORT:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_LONG:
-+		/*
-+		 * If the read value is 1, then all is OK, otherwise we have a
-+		 * low drive condition.
-+		 *
-+		 * Special case: when we generate a poll message due to an
-+		 * Arbitration Lost error injection, then ignore this since
-+		 * the pin can actually be low in that case.
-+		 */
-+		if (!cec_pin_read(pin) && !pin->tx_generated_poll) {
- 			/*
- 			 * It's 0, so someone detected an error and pulled the
- 			 * line low for 1.5 times the nominal bit period.
- 			 */
- 			pin->tx_msg.len = 0;
-+			pin->state = CEC_ST_TX_WAIT_FOR_HIGH;
- 			pin->work_tx_ts = ts;
- 			pin->work_tx_status = CEC_TX_STATUS_LOW_DRIVE;
--			pin->state = CEC_ST_TX_WAIT_FOR_HIGH;
- 			wake_up_interruptible(&pin->kthread_waitq);
- 			break;
- 		}
--		if (pin->tx_nacked) {
-+		/* fall through */
-+	case CEC_ST_TX_DATA_BIT_HIGH_CUSTOM:
-+		if (tx_last_bit(pin)) {
-+			/* Error Injection: just stop sending after this bit */
- 			cec_pin_to_idle(pin);
- 			pin->tx_msg.len = 0;
-+			if (pin->tx_generated_poll)
-+				break;
- 			pin->work_tx_ts = ts;
--			pin->work_tx_status = CEC_TX_STATUS_NACK;
-+			pin->work_tx_status = CEC_TX_STATUS_OK;
- 			wake_up_interruptible(&pin->kthread_waitq);
- 			break;
- 		}
--		/* fall through */
--	case CEC_ST_TX_DATA_BIT_0_HIGH:
--	case CEC_ST_TX_DATA_BIT_1_HIGH:
- 		pin->tx_bit++;
- 		/* fall through */
- 	case CEC_ST_TX_START_BIT_HIGH:
--		if (pin->tx_bit / 10 >= pin->tx_msg.len) {
-+	case CEC_ST_TX_START_BIT_HIGH_SHORT:
-+	case CEC_ST_TX_START_BIT_HIGH_LONG:
-+	case CEC_ST_TX_START_BIT_HIGH_CUSTOM:
-+		if (tx_low_drive(pin)) {
-+			/* Error injection: go to low drive */
-+			cec_pin_low(pin);
-+			pin->state = CEC_ST_TX_LOW_DRIVE;
-+			pin->tx_msg.len = 0;
-+			if (pin->tx_generated_poll)
-+				break;
-+			pin->work_tx_ts = ts;
-+			pin->work_tx_status = CEC_TX_STATUS_LOW_DRIVE;
-+			wake_up_interruptible(&pin->kthread_waitq);
-+			break;
-+		}
-+		if (pin->tx_bit / 10 >= pin->tx_msg.len + pin->tx_extra_bytes) {
- 			cec_pin_to_idle(pin);
- 			pin->tx_msg.len = 0;
-+			if (pin->tx_generated_poll)
-+				break;
- 			pin->work_tx_ts = ts;
- 			pin->work_tx_status = CEC_TX_STATUS_OK;
- 			wake_up_interruptible(&pin->kthread_waitq);
-@@ -205,39 +431,79 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 		}
- 
- 		switch (pin->tx_bit % 10) {
--		default:
--			v = pin->tx_msg.msg[pin->tx_bit / 10] &
--				(1 << (7 - (pin->tx_bit % 10)));
-+		default: {
-+			/*
-+			 * In the CEC_ERROR_INJ_TX_ADD_BYTES case we transmit
-+			 * extra bytes, so pin->tx_bit / 10 can become >= 16.
-+			 * Generate bit values for those extra bytes instead
-+			 * of reading them from the transmit buffer.
-+			 */
-+			unsigned int idx = (pin->tx_bit / 10);
-+			u8 val = idx;
-+
-+			if (idx < pin->tx_msg.len)
-+				val = pin->tx_msg.msg[idx];
-+			v = val & (1 << (7 - (pin->tx_bit % 10)));
-+
- 			pin->state = v ? CEC_ST_TX_DATA_BIT_1_LOW :
--				CEC_ST_TX_DATA_BIT_0_LOW;
-+					 CEC_ST_TX_DATA_BIT_0_LOW;
- 			break;
--		case 8:
--			v = pin->tx_bit / 10 == pin->tx_msg.len - 1;
-+		}
-+		case EOM_BIT:
-+			v = pin->tx_bit / 10 ==
-+				pin->tx_msg.len + pin->tx_extra_bytes - 1;
-+			if (pin->tx_msg.len > 1 && tx_early_eom(pin)) {
-+				/* Error injection: set EOM one byte early */
-+				v = pin->tx_bit / 10 ==
-+					pin->tx_msg.len + pin->tx_extra_bytes - 2;
-+				pin->tx_post_eom = true;
-+			}
-+			if (tx_no_eom(pin)) {
-+				/* Error injection: no EOM */
-+				v = false;
-+			}
- 			pin->state = v ? CEC_ST_TX_DATA_BIT_1_LOW :
--				CEC_ST_TX_DATA_BIT_0_LOW;
-+					 CEC_ST_TX_DATA_BIT_0_LOW;
- 			break;
--		case 9:
-+		case ACK_BIT:
- 			pin->state = CEC_ST_TX_DATA_BIT_1_LOW;
- 			break;
- 		}
-+		if (tx_custom_bit(pin))
-+			pin->state = CEC_ST_TX_DATA_BIT_LOW_CUSTOM;
- 		cec_pin_low(pin);
- 		break;
- 
- 	case CEC_ST_TX_DATA_BIT_0_LOW:
- 	case CEC_ST_TX_DATA_BIT_1_LOW:
- 		v = pin->state == CEC_ST_TX_DATA_BIT_1_LOW;
--		pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH :
--			CEC_ST_TX_DATA_BIT_0_HIGH;
--		is_ack_bit = pin->tx_bit % 10 == 9;
--		if (v && (pin->tx_bit < 4 || is_ack_bit))
-+		is_ack_bit = pin->tx_bit % 10 == ACK_BIT;
-+		if (v && (pin->tx_bit < 4 || is_ack_bit)) {
- 			pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE;
-+		} else if (!is_ack_bit && tx_short_bit(pin)) {
-+			/* Error Injection: send an invalid (too short) bit */
-+			pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH_SHORT :
-+					 CEC_ST_TX_DATA_BIT_0_HIGH_SHORT;
-+		} else if (!is_ack_bit && tx_long_bit(pin)) {
-+			/* Error Injection: send an invalid (too long) bit */
-+			pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH_LONG :
-+					 CEC_ST_TX_DATA_BIT_0_HIGH_LONG;
-+		} else {
-+			pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH :
-+					 CEC_ST_TX_DATA_BIT_0_HIGH;
-+		}
-+		cec_pin_high(pin);
-+		break;
-+
-+	case CEC_ST_TX_DATA_BIT_LOW_CUSTOM:
-+		pin->state = CEC_ST_TX_DATA_BIT_HIGH_CUSTOM;
- 		cec_pin_high(pin);
- 		break;
- 
- 	case CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE:
- 		/* Read the CEC value at the sample time */
- 		v = cec_pin_read(pin);
--		is_ack_bit = pin->tx_bit % 10 == 9;
-+		is_ack_bit = pin->tx_bit % 10 == ACK_BIT;
- 		/*
- 		 * If v == 0 and we're within the first 4 bits
- 		 * of the initiator, then someone else started
-@@ -246,7 +512,7 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 		 * transmitter has more leading 0 bits in the
- 		 * initiator).
- 		 */
--		if (!v && !is_ack_bit) {
-+		if (!v && !is_ack_bit && !pin->tx_generated_poll) {
- 			pin->tx_msg.len = 0;
- 			pin->work_tx_ts = ts;
- 			pin->work_tx_status = CEC_TX_STATUS_ARB_LOST;
-@@ -255,18 +521,28 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 			pin->tx_bit = 0;
- 			memset(pin->rx_msg.msg, 0, sizeof(pin->rx_msg.msg));
- 			pin->rx_msg.msg[0] = pin->tx_msg.msg[0];
--			pin->rx_msg.msg[0] &= ~(1 << (7 - pin->rx_bit));
-+			pin->rx_msg.msg[0] &= (0xff << (8 - pin->rx_bit));
- 			pin->rx_msg.len = 0;
-+			pin->ts = ktime_sub_us(ts, CEC_TIM_DATA_BIT_SAMPLE);
- 			pin->state = CEC_ST_RX_DATA_POST_SAMPLE;
-+			cec_pin_tx_next_clear(pin);
- 			pin->rx_bit++;
- 			break;
- 		}
- 		pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE;
-+		if (!is_ack_bit && tx_short_bit(pin)) {
-+			/* Error Injection: send an invalid (too short) bit */
-+			pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT;
-+		} else if (!is_ack_bit && tx_long_bit(pin)) {
-+			/* Error Injection: send an invalid (too long) bit */
-+			pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG;
-+		}
- 		if (!is_ack_bit)
- 			break;
- 		/* Was the message ACKed? */
- 		ack = cec_msg_is_broadcast(&pin->tx_msg) ? v : !v;
--		if (!ack) {
-+		if (!ack && !pin->tx_ignore_nack_until_eom &&
-+		    pin->tx_bit / 10 < pin->tx_msg.len && !pin->tx_post_eom) {
- 			/*
- 			 * Note: the CEC spec is ambiguous regarding
- 			 * what action to take when a NACK appears
-@@ -283,6 +559,15 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 		}
- 		break;
- 
-+	case CEC_ST_TX_PULSE_LOW_CUSTOM:
-+		cec_pin_high(pin);
-+		pin->state = CEC_ST_TX_PULSE_HIGH_CUSTOM;
-+		break;
-+
-+	case CEC_ST_TX_PULSE_HIGH_CUSTOM:
-+		cec_pin_to_idle(pin);
-+		break;
-+
- 	default:
- 		break;
- 	}
-@@ -319,24 +604,48 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 			break;
- 		pin->state = CEC_ST_RX_START_BIT_HIGH;
- 		delta = ktime_us_delta(ts, pin->ts);
--		pin->ts = ts;
- 		/* Start bit low is too short, go back to idle */
--		if (delta < CEC_TIM_START_BIT_LOW_MIN -
--			    CEC_TIM_IDLE_SAMPLE) {
-+		if (delta < CEC_TIM_START_BIT_LOW_MIN - CEC_TIM_IDLE_SAMPLE) {
- 			cec_pin_to_idle(pin);
-+			break;
-+		}
-+		if (rx_arb_lost(pin)) {
-+			u32 error = cec_pin_rx_error_inj(pin);
-+			u8 poll = (error >> CEC_ERROR_INJ_RX_ARB_LOST_POLL_OFFSET) & 0xff;
-+
-+			cec_pin_rx_next_clear(pin);
-+			cec_msg_init(&pin->tx_msg, poll >> 4, poll & 0xf);
-+			pin->tx_generated_poll = true;
-+			pin->tx_extra_bytes = 0;
-+			pin->state = CEC_ST_TX_START_BIT_HIGH;
-+			pin->ts = ts;
- 		}
- 		break;
- 
- 	case CEC_ST_RX_START_BIT_HIGH:
- 		v = cec_pin_read(pin);
- 		delta = ktime_us_delta(ts, pin->ts);
--		if (v && delta > CEC_TIM_START_BIT_TOTAL_MAX -
--				 CEC_TIM_START_BIT_LOW_MIN) {
-+		/*
-+		 * Unfortunately the spec does not specify when to give up
-+		 * and go to idle. We just pick TOTAL_LONG.
-+		 */
-+		if (v && delta > CEC_TIM_START_BIT_TOTAL_LONG) {
- 			cec_pin_to_idle(pin);
- 			break;
- 		}
- 		if (v)
- 			break;
-+		/* Start bit is too short, go back to idle */
-+		if (delta < CEC_TIM_START_BIT_TOTAL_MIN - CEC_TIM_IDLE_SAMPLE) {
-+			cec_pin_to_idle(pin);
-+			break;
-+		}
-+		if (rx_low_drive(pin)) {
-+			/* Error injection: go to low drive */
-+			cec_pin_low(pin);
-+			pin->state = CEC_ST_RX_LOW_DRIVE;
-+			break;
-+		}
- 		pin->state = CEC_ST_RX_DATA_SAMPLE;
- 		pin->ts = ts;
- 		pin->rx_eom = false;
-@@ -351,36 +660,48 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 				pin->rx_msg.msg[pin->rx_bit / 10] |=
- 					v << (7 - (pin->rx_bit % 10));
- 			break;
--		case 8:
-+		case EOM_BIT:
- 			pin->rx_eom = v;
- 			pin->rx_msg.len = pin->rx_bit / 10 + 1;
- 			break;
--		case 9:
-+		case ACK_BIT:
- 			break;
- 		}
- 		pin->rx_bit++;
- 		break;
- 
- 	case CEC_ST_RX_DATA_POST_SAMPLE:
--		pin->state = CEC_ST_RX_DATA_HIGH;
-+		pin->state = CEC_ST_RX_DATA_WAIT_FOR_LOW;
- 		break;
- 
--	case CEC_ST_RX_DATA_HIGH:
-+	case CEC_ST_RX_DATA_WAIT_FOR_LOW:
- 		v = cec_pin_read(pin);
- 		delta = ktime_us_delta(ts, pin->ts);
--		if (v && delta > CEC_TIM_DATA_BIT_TOTAL_MAX) {
-+		/*
-+		 * Unfortunately the spec does not specify when to give up
-+		 * and go to idle. We just pick TOTAL_LONG.
-+		 */
-+		if (v && delta > CEC_TIM_DATA_BIT_TOTAL_LONG) {
- 			cec_pin_to_idle(pin);
- 			break;
- 		}
- 		if (v)
- 			break;
-+
-+		if (rx_low_drive(pin)) {
-+			/* Error injection: go to low drive */
-+			cec_pin_low(pin);
-+			pin->state = CEC_ST_RX_LOW_DRIVE;
-+			break;
-+		}
-+
- 		/*
- 		 * Go to low drive state when the total bit time is
- 		 * too short.
- 		 */
- 		if (delta < CEC_TIM_DATA_BIT_TOTAL_MIN) {
- 			cec_pin_low(pin);
--			pin->state = CEC_ST_LOW_DRIVE;
-+			pin->state = CEC_ST_RX_LOW_DRIVE;
- 			break;
- 		}
- 		pin->ts = ts;
-@@ -396,6 +717,11 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 		/* ACK bit value */
- 		ack = bcast ? 1 : !for_us;
- 
-+		if (for_us && rx_nack(pin)) {
-+			/* Error injection: toggle the ACK bit */
-+			ack = !ack;
-+		}
-+
- 		if (ack) {
- 			/* No need to write to the bus, just wait */
- 			pin->state = CEC_ST_RX_ACK_HIGH_POST;
-@@ -422,7 +748,7 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 			break;
- 		}
- 		pin->rx_bit++;
--		pin->state = CEC_ST_RX_DATA_HIGH;
-+		pin->state = CEC_ST_RX_DATA_WAIT_FOR_LOW;
- 		break;
- 
- 	case CEC_ST_RX_ACK_FINISH:
-@@ -444,6 +770,7 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
- 	struct cec_adapter *adap = pin->adap;
- 	ktime_t ts;
- 	s32 delta;
-+	u32 usecs;
- 
- 	ts = ktime_get();
- 	if (ktime_to_ns(pin->timer_ts)) {
-@@ -491,13 +818,27 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
- 	/* Transmit states */
- 	case CEC_ST_TX_WAIT_FOR_HIGH:
- 	case CEC_ST_TX_START_BIT_LOW:
--	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
--	case CEC_ST_TX_DATA_BIT_0_HIGH:
--	case CEC_ST_TX_DATA_BIT_1_HIGH:
- 	case CEC_ST_TX_START_BIT_HIGH:
-+	case CEC_ST_TX_START_BIT_HIGH_SHORT:
-+	case CEC_ST_TX_START_BIT_HIGH_LONG:
-+	case CEC_ST_TX_START_BIT_LOW_CUSTOM:
-+	case CEC_ST_TX_START_BIT_HIGH_CUSTOM:
- 	case CEC_ST_TX_DATA_BIT_0_LOW:
-+	case CEC_ST_TX_DATA_BIT_0_HIGH:
-+	case CEC_ST_TX_DATA_BIT_0_HIGH_SHORT:
-+	case CEC_ST_TX_DATA_BIT_0_HIGH_LONG:
- 	case CEC_ST_TX_DATA_BIT_1_LOW:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_SHORT:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_LONG:
- 	case CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT:
-+	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG:
-+	case CEC_ST_TX_DATA_BIT_LOW_CUSTOM:
-+	case CEC_ST_TX_DATA_BIT_HIGH_CUSTOM:
-+	case CEC_ST_TX_PULSE_LOW_CUSTOM:
-+	case CEC_ST_TX_PULSE_HIGH_CUSTOM:
- 		cec_pin_tx_states(pin, ts);
- 		break;
- 
-@@ -506,7 +847,7 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
- 	case CEC_ST_RX_START_BIT_HIGH:
- 	case CEC_ST_RX_DATA_SAMPLE:
- 	case CEC_ST_RX_DATA_POST_SAMPLE:
--	case CEC_ST_RX_DATA_HIGH:
-+	case CEC_ST_RX_DATA_WAIT_FOR_LOW:
- 	case CEC_ST_RX_ACK_LOW:
- 	case CEC_ST_RX_ACK_LOW_POST:
- 	case CEC_ST_RX_ACK_HIGH_POST:
-@@ -533,7 +874,10 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
- 			if (delta / CEC_TIM_DATA_BIT_TOTAL >
- 			    pin->tx_signal_free_time) {
- 				pin->tx_nacked = false;
--				pin->state = CEC_ST_TX_START_BIT_LOW;
-+				if (tx_custom_start(pin))
-+					pin->state = CEC_ST_TX_START_BIT_LOW_CUSTOM;
-+				else
-+					pin->state = CEC_ST_TX_START_BIT_LOW;
- 				/* Generate start bit */
- 				cec_pin_low(pin);
- 				break;
-@@ -543,6 +887,13 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
- 				pin->state = CEC_ST_TX_WAIT;
- 			break;
- 		}
-+		if (pin->tx_custom_pulse && pin->state == CEC_ST_IDLE) {
-+			pin->tx_custom_pulse = false;
-+			/* Generate custom pulse */
-+			cec_pin_low(pin);
-+			pin->state = CEC_ST_TX_PULSE_LOW_CUSTOM;
-+			break;
-+		}
- 		if (pin->state != CEC_ST_IDLE || pin->ops->enable_irq == NULL ||
- 		    pin->enable_irq_failed || adap->is_configuring ||
- 		    adap->is_configured || adap->monitor_all_cnt)
-@@ -553,21 +904,40 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
- 		wake_up_interruptible(&pin->kthread_waitq);
- 		return HRTIMER_NORESTART;
- 
--	case CEC_ST_LOW_DRIVE:
-+	case CEC_ST_TX_LOW_DRIVE:
-+	case CEC_ST_RX_LOW_DRIVE:
-+		cec_pin_high(pin);
- 		cec_pin_to_idle(pin);
- 		break;
- 
- 	default:
- 		break;
- 	}
--	if (!adap->monitor_pin_cnt || states[pin->state].usecs <= 150) {
-+
-+	switch (pin->state) {
-+	case CEC_ST_TX_START_BIT_LOW_CUSTOM:
-+	case CEC_ST_TX_DATA_BIT_LOW_CUSTOM:
-+	case CEC_ST_TX_PULSE_LOW_CUSTOM:
-+		usecs = pin->tx_custom_low_usecs;
-+		break;
-+	case CEC_ST_TX_START_BIT_HIGH_CUSTOM:
-+	case CEC_ST_TX_DATA_BIT_HIGH_CUSTOM:
-+	case CEC_ST_TX_PULSE_HIGH_CUSTOM:
-+		usecs = pin->tx_custom_high_usecs;
-+		break;
-+	default:
-+		usecs = states[pin->state].usecs;
-+		break;
-+	}
-+
-+	if (!adap->monitor_pin_cnt || usecs <= 150) {
- 		pin->wait_usecs = 0;
--		pin->timer_ts = ktime_add_us(ts, states[pin->state].usecs);
-+		pin->timer_ts = ktime_add_us(ts, usecs);
- 		hrtimer_forward_now(timer,
--				ns_to_ktime(states[pin->state].usecs * 1000));
-+				ns_to_ktime(usecs * 1000));
- 		return HRTIMER_RESTART;
- 	}
--	pin->wait_usecs = states[pin->state].usecs - 100;
-+	pin->wait_usecs = usecs - 100;
- 	pin->timer_ts = ktime_add_us(ts, 100);
- 	hrtimer_forward_now(timer, ns_to_ktime(100000));
- 	return HRTIMER_RESTART;
-@@ -587,9 +957,22 @@ static int cec_pin_thread_func(void *_adap)
- 			atomic_read(&pin->work_pin_events));
- 
- 		if (pin->work_rx_msg.len) {
--			cec_received_msg_ts(adap, &pin->work_rx_msg,
-+			struct cec_msg *msg = &pin->work_rx_msg;
-+
-+			if (msg->len > 1 && msg->len < CEC_MAX_MSG_SIZE &&
-+			    rx_add_byte(pin)) {
-+				/* Error injection: add byte to the message */
-+				msg->msg[msg->len++] = 0x55;
-+			}
-+			if (msg->len > 2 && rx_remove_byte(pin)) {
-+				/* Error injection: remove byte from message */
-+				msg->len--;
-+			}
-+			if (msg->len > CEC_MAX_MSG_SIZE)
-+				msg->len = CEC_MAX_MSG_SIZE;
-+			cec_received_msg_ts(adap, msg,
- 				ns_to_ktime(pin->work_rx_msg.rx_ts));
--			pin->work_rx_msg.len = 0;
-+			msg->len = 0;
- 		}
- 		if (pin->work_tx_status) {
- 			unsigned int tx_status = pin->work_tx_status;
-@@ -698,7 +1081,16 @@ static int cec_pin_adap_transmit(struct cec_adapter *adap, u8 attempts,
- 	struct cec_pin *pin = adap->pin;
- 
- 	pin->tx_signal_free_time = signal_free_time;
-+	pin->tx_extra_bytes = 0;
- 	pin->tx_msg = *msg;
-+	if (msg->len > 1) {
-+		/* Error injection: add byte to the message */
-+		pin->tx_extra_bytes = tx_add_bytes(pin);
-+	}
-+	if (msg->len > 2 && tx_remove_byte(pin)) {
-+		/* Error injection: remove byte from the message */
-+		pin->tx_msg.len--;
-+	}
- 	pin->work_tx_status = 0;
- 	pin->tx_bit = 0;
- 	cec_pin_start_timer(pin);
--- 
-2.15.1
+--liOOAslEiF7prFVr
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--liOOAslEiF7prFVr--
