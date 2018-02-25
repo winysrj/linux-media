@@ -1,72 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:38770 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032466AbeBOBQq (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:51701 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751728AbeBYMbr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 20:16:46 -0500
-Received: by mail-pg0-f66.google.com with SMTP id l24so3004677pgc.5
-        for <linux-media@vger.kernel.org>; Wed, 14 Feb 2018 17:16:46 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v11 3/8] media: add digital video decoder video interface entity functions
-Date: Wed, 14 Feb 2018 17:16:16 -0800
-Message-Id: <1518657381-29519-4-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1518657381-29519-1-git-send-email-tharvey@gateworks.com>
-References: <1518657381-29519-1-git-send-email-tharvey@gateworks.com>
+        Sun, 25 Feb 2018 07:31:47 -0500
+Received: by mail-wm0-f65.google.com with SMTP id h21so12543535wmd.1
+        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 04:31:47 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 03/12] [media] ngene: use defines to identify the demod_type
+Date: Sun, 25 Feb 2018 13:31:31 +0100
+Message-Id: <20180225123140.19486-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20180225123140.19486-1-d.scheller.oss@gmail.com>
+References: <20180225123140.19486-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new media entity function definition for digital TV decoders:
-MEDIA_ENT_F_DTV_DECODER
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Make it more clear which demod_type is used for which hardware by having
+defines for the possible demod_type values. With that, change the
+demod_type evaluation in tuner_attach_probe() to a switch-case instead
+of an if() for each possible value.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- Documentation/media/uapi/mediactl/media-types.rst | 11 +++++++++++
- include/uapi/linux/media.h                        |  5 +++++
- 2 files changed, 16 insertions(+)
+ drivers/media/pci/ngene/ngene-cards.c | 11 +++++++----
+ drivers/media/pci/ngene/ngene.h       |  3 +++
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 8d64b0c..195400e 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -321,6 +321,17 @@ Types and flags used to represent the media graph elements
-          MIPI CSI-2, ...), and outputs them on its source pad to an output
-          video bus of another type (eDP, MIPI CSI-2, parallel, ...).
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 16666de8cbee..065b83ee569b 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -123,10 +123,13 @@ static int tuner_attach_tda18271(struct ngene_channel *chan)
  
-+    -  ..  row 31
+ static int tuner_attach_probe(struct ngene_channel *chan)
+ {
+-	if (chan->demod_type == 0)
++	switch (chan->demod_type) {
++	case DEMOD_TYPE_STV090X:
+ 		return tuner_attach_stv6110(chan);
+-	if (chan->demod_type == 1)
++	case DEMOD_TYPE_DRXK:
+ 		return tuner_attach_tda18271(chan);
++	}
 +
-+       ..  _MEDIA-ENT-F-DTV-DECODER:
-+
-+       -  ``MEDIA_ENT_F_DTV_DECODER``
-+
-+       -  Digital video decoder. The basic function of the video decoder is
-+	  to accept digital video from a wide variety of sources
-+	  and output it in some digital video standard, with appropriate
-+	  timing signals.
-+
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+ 	return -EINVAL;
+ }
  
- .. _media-entity-flag:
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index b9b9446..2f12328 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -110,6 +110,11 @@ struct media_device_info {
- #define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+@@ -251,7 +254,7 @@ static int cineS2_probe(struct ngene_channel *chan)
+ 		i2c = &chan->dev->channel[1].i2c_adapter;
  
- /*
-+ * Digital video decoder entities
-+ */
-+#define MEDIA_ENT_F_DTV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
+ 	if (port_has_stv0900(i2c, chan->number)) {
+-		chan->demod_type = 0;
++		chan->demod_type = DEMOD_TYPE_STV090X;
+ 		fe_conf = chan->dev->card_info->fe_config[chan->number];
+ 		/* demod found, attach it */
+ 		rc = demod_attach_stv0900(chan);
+@@ -280,7 +283,7 @@ static int cineS2_probe(struct ngene_channel *chan)
+ 			return -EIO;
+ 		}
+ 	} else if (port_has_drxk(i2c, chan->number^2)) {
+-		chan->demod_type = 1;
++		chan->demod_type = DEMOD_TYPE_DRXK;
+ 		demod_attach_drxk(chan, i2c);
+ 	} else {
+ 		dev_err(pdev, "No demod found on chan %d\n", chan->number);
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index caf8602c7459..9724701a3274 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -51,6 +51,9 @@
+ #define VIDEO_CAP_MPEG4 512
+ #endif
+ 
++#define DEMOD_TYPE_STV090X	0
++#define DEMOD_TYPE_DRXK		1
 +
-+/*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
+ enum STREAM {
+ 	STREAM_VIDEOIN1 = 0,        /* ITU656 or TS Input */
+ 	STREAM_VIDEOIN2,
 -- 
-2.7.4
+2.16.1
