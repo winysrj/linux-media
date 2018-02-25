@@ -1,134 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41453 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751744AbeB1I7F (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33029 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751775AbeBYMbw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 03:59:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andrey Utkin <andrey_utkin@fastmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Brian Johnson <brijohn@gmail.com>,
-        Christoph =?ISO-8859-1?Q?B=F6hmwalder?=
-        <christoph@boehmwalder.at>,
-        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
-        Colin Ian King <colin.king@canonical.com>,
-        Daniele Nicolodi <daniele@grinta.net>,
-        David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-        Devendra Sharma <devendra.sharma9091@gmail.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
-        Kees Cook <keescook@chromium.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Mike Isely <isely@pobox.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Sean Young <sean@mess.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Shyam Saini <mayhs11saini@gmail.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [v2] [media] Use common error handling code in 20 functions
-Date: Wed, 28 Feb 2018 10:59:52 +0200
-Message-ID: <3444809.dyh5Vmx7Dp@avalon>
-In-Reply-To: <783e7eff-2028-72be-b83c-77fc4340484e@users.sourceforge.net>
-References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net> <3895609.4O6dNuP5Wm@avalon> <783e7eff-2028-72be-b83c-77fc4340484e@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Sun, 25 Feb 2018 07:31:52 -0500
+Received: by mail-wm0-f65.google.com with SMTP id s206so13202675wme.0
+        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 04:31:52 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 08/12] [media] ngene: deduplicate I2C adapter evaluation
+Date: Sun, 25 Feb 2018 13:31:36 +0100
+Message-Id: <20180225123140.19486-9-d.scheller.oss@gmail.com>
+In-Reply-To: <20180225123140.19486-1-d.scheller.oss@gmail.com>
+References: <20180225123140.19486-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Wednesday, 28 February 2018 10:45:21 EET SF Markus Elfring wrote:
-> >> +put_isp:
-> >> +	omap3isp_put(video->isp);
-> >> +delete_fh:
-> >> +	v4l2_fh_del(&handle->vfh);
-> >> +	v4l2_fh_exit(&handle->vfh);
-> >> +	kfree(handle);
-> > 
-> > Please prefix the error labels with error_.
-> 
-> How often do you really need such an extra prefix?
-> 
-> >> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> >> @@ -994,10 +994,8 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
-> >> void *fh, struct v4l2_queryctrl qc = { .id = ctrl->id };
-> >> 
-> >>  			ret = uvc_query_v4l2_ctrl(chain, &qc);
-> >> 
-> >> -			if (ret < 0) {
-> >> -				ctrls->error_idx = i;
-> >> -				return ret;
-> >> -			}
-> >> +			if (ret < 0)
-> >> +				goto set_index;
-> >> 
-> >>  			ctrl->value = qc.default_value;
-> >>  		
-> >>  		}
-> >> 
-> >> @@ -1013,14 +1011,17 @@ static int uvc_ioctl_g_ext_ctrls(struct file
-> >> *file,
-> >> void *fh, ret = uvc_ctrl_get(chain, ctrl);
-> >> 
-> >>  		if (ret < 0) {
-> >>  		
-> >>  			uvc_ctrl_rollback(handle);
-> >> 
-> >> -			ctrls->error_idx = i;
-> >> -			return ret;
-> >> +			goto set_index;
-> >> 
-> >>  		}
-> >>  	
-> >>  	}
-> >>  	
-> >>  	ctrls->error_idx = 0;
-> >>  	
-> >>  	return uvc_ctrl_rollback(handle);
-> >> 
-> >> +
-> >> +set_index:
-> >> +	ctrls->error_idx = i;
-> >> +	return ret;
-> >> 
-> >>  }
-> > 
-> > For uvcvideo I find this to hinder readability
-> 
-> I got an other development view.
-> 
-> > without adding much added value.
-> 
-> There can be a small effect for such a function implementation.
-> 
-> > Please drop the uvcvideo change from this patch.
-> 
-> Would it be nice if this source code adjustment could be integrated also?
+The I2C adapter evaluation (based on chan->number) is duplicated at
+several places (tuner_attach_() functions, demod_attach_stv0900() and
+cineS2_probe()). Clean this up by wrapping that construct in a separate
+function which all users of that can pass the ngene_channel pointer and
+get the correct I2C adapter from.
 
-Just for the record, and to avoid merging this patch by mistake,
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ngene/ngene-cards.c | 41 +++++++++++++----------------------
+ 1 file changed, 15 insertions(+), 26 deletions(-)
 
-Nacked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-at least until the requested changes are implemented.
-
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 00b100660784..dff55c7c9f86 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -118,17 +118,25 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
+ /* Demod/tuner attachment ***************************************************/
+ /****************************************************************************/
+ 
++static struct i2c_adapter *i2c_adapter_from_chan(struct ngene_channel *chan)
++{
++	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
++	if (chan->number < 2)
++		return &chan->dev->channel[0].i2c_adapter;
++
++	return &chan->dev->channel[1].i2c_adapter;
++}
++
+ static int tuner_attach_stv6110(struct ngene_channel *chan)
+ {
+ 	struct device *pdev = &chan->dev->pci_dev->dev;
+-	struct i2c_adapter *i2c;
++	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+ 	struct stv090x_config *feconf = (struct stv090x_config *)
+ 		chan->dev->card_info->fe_config[chan->number];
+ 	struct stv6110x_config *tunerconf = (struct stv6110x_config *)
+ 		chan->dev->card_info->tuner_config[chan->number];
+ 	const struct stv6110x_devctl *ctl;
+ 
+-	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+ 	if (chan->number < 2)
+ 		i2c = &chan->dev->channel[0].i2c_adapter;
+ 	else
+@@ -158,16 +166,10 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
+ static int tuner_attach_stv6111(struct ngene_channel *chan)
+ {
+ 	struct device *pdev = &chan->dev->pci_dev->dev;
+-	struct i2c_adapter *i2c;
++	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+ 	struct dvb_frontend *fe;
+ 	u8 adr = 4 + ((chan->number & 1) ? 0x63 : 0x60);
+ 
+-	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+-	if (chan->number < 2)
+-		i2c = &chan->dev->channel[0].i2c_adapter;
+-	else
+-		i2c = &chan->dev->channel[1].i2c_adapter;
+-
+ 	fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr);
+ 	if (!fe) {
+ 		fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr & ~4);
+@@ -197,10 +199,9 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ static int tuner_attach_tda18271(struct ngene_channel *chan)
+ {
+ 	struct device *pdev = &chan->dev->pci_dev->dev;
+-	struct i2c_adapter *i2c;
++	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+ 	struct dvb_frontend *fe;
+ 
+-	i2c = &chan->dev->channel[0].i2c_adapter;
+ 	if (chan->fe->ops.i2c_gate_ctrl)
+ 		chan->fe->ops.i2c_gate_ctrl(chan->fe, 1);
+ 	fe = dvb_attach(tda18271c2dd_attach, chan->fe, i2c, 0x60);
+@@ -240,7 +241,7 @@ static int tuner_tda18212_ping(struct ngene_channel *chan,
+ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
+ {
+ 	struct device *pdev = &chan->dev->pci_dev->dev;
+-	struct i2c_adapter *i2c;
++	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+ 	struct i2c_client *client;
+ 	struct tda18212_config config = {
+ 		.fe = chan->fe,
+@@ -262,12 +263,6 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
+ 	else
+ 		board_info.addr = 0x60;
+ 
+-	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+-	if (chan->number < 2)
+-		i2c = &chan->dev->channel[0].i2c_adapter;
+-	else
+-		i2c = &chan->dev->channel[1].i2c_adapter;
+-
+ 	/*
+ 	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
+ 	 * combo, the tda18212 must be probed by reading it's id _twice_ when
+@@ -320,7 +315,7 @@ static int tuner_attach_probe(struct ngene_channel *chan)
+ static int demod_attach_stv0900(struct ngene_channel *chan)
+ {
+ 	struct device *pdev = &chan->dev->pci_dev->dev;
+-	struct i2c_adapter *i2c;
++	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+ 	struct stv090x_config *feconf = (struct stv090x_config *)
+ 		chan->dev->card_info->fe_config[chan->number];
+ 
+@@ -620,7 +615,7 @@ static int port_has_xo2(struct i2c_adapter *i2c, u8 *type, u8 *id)
+ static int cineS2_probe(struct ngene_channel *chan)
+ {
+ 	struct device *pdev = &chan->dev->pci_dev->dev;
+-	struct i2c_adapter *i2c;
++	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+ 	struct stv090x_config *fe_conf;
+ 	u8 buf[3];
+ 	u8 xo2_type, xo2_id, xo2_demodtype;
+@@ -628,12 +623,6 @@ static int cineS2_probe(struct ngene_channel *chan)
+ 	struct i2c_msg i2c_msg = { .flags = 0, .buf = buf };
+ 	int rc;
+ 
+-	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+-	if (chan->number < 2)
+-		i2c = &chan->dev->channel[0].i2c_adapter;
+-	else
+-		i2c = &chan->dev->channel[1].i2c_adapter;
+-
+ 	if (port_has_xo2(i2c, &xo2_type, &xo2_id)) {
+ 		xo2_id >>= 2;
+ 		dev_dbg(pdev, "XO2 on channel %d (type %d, id %d)\n",
 -- 
-Regards,
-
-Laurent Pinchart
+2.16.1
