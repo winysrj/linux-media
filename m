@@ -1,89 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:40171 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754189AbeBGBWw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:22:52 -0500
-Subject: Re: [PATCH v8 1/7] v4l2-dv-timings: add v4l2_hdmi_colorimetry()
-To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
- <1517948874-21681-2-git-send-email-tharvey@gateworks.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <c1dc5de9-e81d-b9bd-b587-1a94de96f97c@infradead.org>
-Date: Tue, 6 Feb 2018 17:22:40 -0800
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:39711 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751095AbeBYITy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Feb 2018 03:19:54 -0500
+Received: by mail-lf0-f43.google.com with SMTP id f75so12959944lfg.6
+        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 00:19:53 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1517948874-21681-2-git-send-email-tharvey@gateworks.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <46032915.v1itnVjfQo@avalon>
+References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com>
+ <dd70c226-e7db-e55e-e467-a6b0d1e7849d@ideasonboard.com> <CAKTMqxuF1BNy+xoEnArvc+S_NgucBKna6iOExKj8CxjF0qC2Jw@mail.gmail.com>
+ <46032915.v1itnVjfQo@avalon>
+From: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+        <axdoomer@gmail.com>
+Date: Sun, 25 Feb 2018 03:19:51 -0500
+Message-ID: <CAKTMqxvSWQSa=w_6z_XHjMh6s6N+hdj_yi-yW+CEp2NVx0t4Zg@mail.gmail.com>
+Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/2018 12:27 PM, Tim Harvey wrote:
-> From: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> Add the v4l2_hdmi_colorimetry() function so we have a single function
-> that determines the colorspace, YCbCr encoding, quantization range and
-> transfer function from the InfoFrame data.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dv-timings.c | 141 ++++++++++++++++++++++++++++++
->  include/media/v4l2-dv-timings.h           |  21 +++++
->  2 files changed, 162 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> index 930f9c5..0182d3d 100644
-> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> @@ -27,6 +27,7 @@
->  #include <linux/v4l2-dv-timings.h>
->  #include <media/v4l2-dv-timings.h>
->  #include <linux/math64.h>
-> +#include <linux/hdmi.h>
->  
->  MODULE_AUTHOR("Hans Verkuil");
->  MODULE_DESCRIPTION("V4L2 DV Timings Helper Functions");
-> @@ -814,3 +815,143 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
->  	return aspect;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
-> +
-> +/** v4l2_hdmi_rx_colorimetry - determine HDMI colorimetry information
-> + *	based on various InfoFrames.
-> + * @avi - the AVI InfoFrame
-> + * @hdmi - the HDMI Vendor InfoFrame, may be NULL
-> + * @height - the frame height
+Hi Laurent,
 
-kernel-doc format for function parameters is like:
+Sorry for the late reply.
 
- * @avi: the AVI InfoFrame
+I've been trying to reproduce the issue again. I cloned the entire
+media repository later during the week and I haven't been able to
+reproduce the issue after I installed the modules. A metadata node is
+no longer created for my webcam. The four commits that you've
+mentioned are still in the commit log, so it seems that they didn't
+break anything.
 
-etc.
+I'm not sure what could have changed that would have caused it to work
+fine this time. I believe that I'm in the correct branch.
 
-> + *
-> + * Determines the HDMI colorimetry information, i.e. how the HDMI
-> + * pixel color data should be interpreted.
-> + *
-> + * Note that some of the newer features (DCI-P3, HDR) are not yet
-> + * implemented: the hdmi.h header needs to be updated to the HDMI 2.0
-> + * and CTA-861-G standards.
-> + */
-> +struct v4l2_hdmi_colorimetry
-> +v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
-> +			 const struct hdmi_vendor_infoframe *hdmi,
-> +			 unsigned int height)
-> +{
+$ git status
+On branch media_tree/master
+Your branch is up-to-date with 'r_media_tree/master'.
 
+I probably did `./build` instead of `./build --main-git` the first time.
 
-thanks,
--- 
-~Randy
+Thank you,
+Alexandre-Xavier
+
+On Mon, Feb 19, 2018 at 2:10 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Alexandre-Xavier,
+>
+> On Monday, 19 February 2018 19:29:24 EET Alexandre-Xavier Labont=C3=A9-La=
+moureux
+> wrote:
+>> Hi Kieran,
+>>
+>> This is how I built the drivers:
+>>
+>> $ git clone --depth=3D1 git://linuxtv.org/media_build.git
+>> $ cd media_build
+>> $ ./build --main-git
+>>
+>> I then installed the newly built kernel modules:
+>>
+>> $ sudo make install
+>>
+>> Once the modules were updated, I restarted my computer to make sure
+>> every module got reloaded. I didn't make any changes to the code and I
+>> found the issues after trying each of those programs individually
+>> after I restarted my computer.
+>>
+>> This was the latest commit when I cloned the repo:
+>>
+>> commit d144cfe4b3c37ece55ae27778c99765d4943c4fa
+>> Author: Jasmin Jessich <jasmin@anw.at>
+>> Date:   Fri Feb 16 22:40:49 2018 +0100
+>>     Re-generated v3.12_kfifo_in.patch
+>>
+>> My version of VLC is 2.2.6. Here's a copy of the relevant data of
+>> VLC's log file in case it can help: https://paste.debian.net/1011025/
+>> In this case, I tried to open /dev/video0 first and /dev/video1 second.
+>>
+>> I can also try with ffplay:
+>> $ ffplay /dev/video0
+>>
+>> I get this: [video4linux2,v4l2 @ 0x7f2160000920]
+>> ioctl(VIDIOC_STREAMON): Message too long
+>> /dev/video0: Message too long
+>>
+>> A new message appears in dmesg: uvcvideo: Failed to submit URB 0 (-90).
+>
+> That's interesting, and possibly unrelated to the patch series that added
+> metadata capture support. Would you be able to revert that patch series a=
+nd
+> see if the problem still occurs ? The four commits to be reverted are
+>
+> 088ead25524583e2200aa99111bea2f66a86545a
+> 3bc85817d7982ed53fbc9b150b0205beff68ca5c
+> 94c53e26dc74744cc4f9a8ddc593b7aef96ba764
+> 31a96f4c872e8fb953c853630f69d5de6ec961c9
+>
+> And if you could bisect the issue it would be even better :-)
+>
+> Could you also send me the output of lsusb -v for your camera (you can
+> restrict it to the camera with -d VID:PID), running as root if possible ?
+>
+>> $ ffplay /dev/video1
+>>
+>> I get this:
+>> [video4linux2,v4l2 @ 0x7f00ec000920] ioctl(VIDIOC_G_INPUT):
+>> Inappropriate ioctl for device
+>> /dev/video1: Inappropriate ioctl for device
+>>
+>> Like Guennadi said, /dev/video1 is a metadata node, so I don't expect
+>> it to work. In the case of /dev/video0, I can't tell what could be
+>> wrong from the error message.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
