@@ -1,74 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.microchip.iphmx.com ([68.232.147.91]:4383 "EHLO
-        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932121AbeBVMC5 (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:33031 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751611AbeBYMbo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 07:02:57 -0500
-From: Claudiu Beznea <claudiu.beznea@microchip.com>
-To: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
-        <krzk@kernel.org>, <linux@armlinux.org.uk>,
-        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
-        <jani.nikula@linux.intel.com>, <joonas.lahtinen@linux.intel.com>,
-        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
-        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
-        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
-        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
-        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
-        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>
-CC: <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: [PATCH v3 02/10] pwm: clps711x: populate PWM mode in of_xlate function
-Date: Thu, 22 Feb 2018 14:01:13 +0200
-Message-ID: <1519300881-8136-3-git-send-email-claudiu.beznea@microchip.com>
-In-Reply-To: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Sun, 25 Feb 2018 07:31:44 -0500
+Received: by mail-wm0-f47.google.com with SMTP id s206so13202414wme.0
+        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 04:31:43 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 00/12] ngene-updates: Hardware support, TS buffer shift fix
+Date: Sun, 25 Feb 2018 13:31:28 +0100
+Message-Id: <20180225123140.19486-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Populate PWM mode in of_xlate function to avoid pwm_apply_state() failure.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
----
- drivers/pwm/pwm-clps711x.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Sorry for this quick V2 of this series and thus sorry for the traffic,
+spam and noise. V1 missed a 188-byte clamping in tsin_find_offset() and
+a recheck for the remaining size of the TS buffer to copy after offset
+correction.
 
-diff --git a/drivers/pwm/pwm-clps711x.c b/drivers/pwm/pwm-clps711x.c
-index 26ec24e457b1..2a4d31ab3af0 100644
---- a/drivers/pwm/pwm-clps711x.c
-+++ b/drivers/pwm/pwm-clps711x.c
-@@ -109,10 +109,20 @@ static const struct pwm_ops clps711x_pwm_ops = {
- static struct pwm_device *clps711x_pwm_xlate(struct pwm_chip *chip,
- 					     const struct of_phandle_args *args)
- {
-+	struct pwm_device *pwm;
-+	struct pwm_caps caps;
-+
- 	if (args->args[0] >= chip->npwm)
- 		return ERR_PTR(-EINVAL);
- 
--	return pwm_request_from_chip(chip, args->args[0], NULL);
-+	pwm = pwm_request_from_chip(chip, args->args[0], NULL);
-+	if (IS_ERR(pwm))
-+		return pwm;
-+
-+	pwm_get_caps(chip, pwm, &caps);
-+	pwm->args.mode = BIT(ffs(caps.modes) - 1);
-+
-+	return pwm;
- }
- 
- static int clps711x_pwm_probe(struct platform_device *pdev)
+Some love for the ngene driver, which runs the older Micronas nGene
+based cards from Digital Devices like the cineS2 v5.5.
+
+This series changes:
+
+- Two more PCI IDs for more supported PCIe bridge hardware
+- Conversion of all printk() to more proper dev_*() based logging (the
+  module_init rather uses pr_*() logging since there's no *dev available
+  yet).
+- Support for all available DuoFlex addon modules from that vendor. All
+  addon modules are electrically compatible and use the same interface,
+  and the addons work very well on the aging ngene hardware.
+- Check for CXD2099AR addon modules before blindly trying to attach them,
+  removing unnecessary and maybe irritating error logging if such module
+  isn't present.
+- Workaround a hardware quirk in conjunction with the CXD2099AR module,
+  CA modules and CAM control communication, causing the TS input buffer
+  to shift albeit different communication paths are ought to be in use.
+
+This series is based on the CXD2099 regmap conversion series, see [1].
+Especially [2] is required for the STV0367 enablement patch (and the
+following ones) since the use of the TDA18212 I2C tuner client relies
+on the i2c_client variable to be present, which is added in the
+forementioned CXD2099 series.
+
+Please pick this up and merge.
+
+[1] https://www.spinics.net/lists/linux-media/msg129183.html
+[2] https://www.spinics.net/lists/linux-media/msg129187.html
+
+Changes since v1:
+- TS buffer offset correction missed a check for the remaining buffer
+  length before copying the next full 188-byte block, which might could
+  have caused out-of-bound-reads from void *buf. Also, tsin_find_offset
+  returns it's offset clamped to 188 byte boundaries to not accidentally
+  skip over valid TS data. Few typos in the commit message were fixed
+  and a note for the modparam was added, too.
+
+Daniel Scheller (12):
+  [media] ngene: add two additional PCI IDs
+  [media] ngene: convert kernellog printing from printk() to dev_*()
+    macros
+  [media] ngene: use defines to identify the demod_type
+  [media] ngene: support STV0367 DVB-C/T DuoFlex addons
+  [media] ngene: add XO2 module support
+  [media] ngene: add support for Sony CXD28xx-based DuoFlex modules
+  [media] ngene: add support for DuoFlex S2 V4 addon modules
+  [media] ngene: deduplicate I2C adapter evaluation
+  [media] ngene: check for CXD2099AR presence before attaching
+  [media] ngene: don't treat non-existing demods as error
+  [media] ngene: move the tsin_exchange() stripcopy block into a
+    function
+  [media] ngene: compensate for TS buffer offset shifts
+
+ drivers/media/pci/ngene/Kconfig       |   6 +
+ drivers/media/pci/ngene/ngene-cards.c | 590 ++++++++++++++++++++++++++++++----
+ drivers/media/pci/ngene/ngene-core.c  | 101 +++---
+ drivers/media/pci/ngene/ngene-dvb.c   | 133 ++++++--
+ drivers/media/pci/ngene/ngene.h       |  23 ++
+ 5 files changed, 732 insertions(+), 121 deletions(-)
+
 -- 
-2.7.4
+2.16.1
