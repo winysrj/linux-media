@@ -1,243 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56756 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754150AbeBGOjq (ORCPT
+Received: from marvin.klingler.net ([212.254.248.170]:20001 "EHLO
+        marvin.klingler.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751710AbeBYNfz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 09:39:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Sun, 25 Feb 2018 08:35:55 -0500
+Received: from [10.0.20.9] (178-82-90-159.dynamic.hispeed.ch [178.82.90.159])
+        (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by marvin.klingler.net (Postfix) with ESMTPSA id 878E2B5630B
+        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 14:26:03 +0100 (CET)
+Date: Sun, 25 Feb 2018 14:25:47 +0100
+From: Richard Klingler <richard@klingler.net>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/7] cec: add SPDX license info
-Date: Wed,  7 Feb 2018 15:39:37 +0100
-Message-Id: <20180207143939.29491-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180207143939.29491-1-hverkuil@xs4all.nl>
-References: <20180207143939.29491-1-hverkuil@xs4all.nl>
+Message-ID: <20180225142547928722.711e5c0e@klingler.net>
+Subject: Startup delay playing radio channel from DVB-C
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Hello
 
-Replace the old license information with the corresponding SPDX
-license.
+I just recently acquired two pctv 292e triplestick USB DVB-C dongles for testing
+audio/video streaming on a Raspberry Pi 3.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c     | 14 +-------------
- drivers/media/cec/cec-api.c      | 14 +-------------
- drivers/media/cec/cec-core.c     | 14 +-------------
- drivers/media/cec/cec-edid.c     | 14 +-------------
- drivers/media/cec/cec-notifier.c | 14 +-------------
- drivers/media/cec/cec-pin-priv.h | 14 +-------------
- drivers/media/cec/cec-pin.c      | 14 +-------------
- drivers/media/cec/cec-priv.h     | 14 +-------------
- 8 files changed, 8 insertions(+), 104 deletions(-)
+For a simple test I wanted to play back a radio station with mpg123 like:
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 2b1e540587d6..768f7d70b55c 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1,20 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * cec-adap.c - HDMI Consumer Electronics Control framework - CEC adapter
-  *
-  * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #include <linux/errno.h>
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 37e468074dc1..af1b562ad2ea 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -1,20 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * cec-api.c - HDMI Consumer Electronics Control framework - API
-  *
-  * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #include <linux/errno.h>
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index a9f9525db9ae..e47ea22b3c23 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -1,20 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * cec-core.c - HDMI Consumer Electronics Control framework - Core
-  *
-  * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #include <linux/errno.h>
-diff --git a/drivers/media/cec/cec-edid.c b/drivers/media/cec/cec-edid.c
-index 38e3fec6152b..ec72ac1c0b91 100644
---- a/drivers/media/cec/cec-edid.c
-+++ b/drivers/media/cec/cec-edid.c
-@@ -1,20 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * cec-edid - HDMI Consumer Electronics Control EDID & CEC helper functions
-  *
-  * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #include <linux/module.h>
-diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
-index 08b619d0ea1e..16dffa06c913 100644
---- a/drivers/media/cec/cec-notifier.c
-+++ b/drivers/media/cec/cec-notifier.c
-@@ -1,21 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * cec-notifier.c - notify CEC drivers of physical address changes
-  *
-  * Copyright 2016 Russell King <rmk+kernel@arm.linux.org.uk>
-  * Copyright 2016-2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #include <linux/export.h>
-diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
-index 7d0def199762..cf41c4236efd 100644
---- a/drivers/media/cec/cec-pin-priv.h
-+++ b/drivers/media/cec/cec-pin-priv.h
-@@ -1,20 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * cec-pin-priv.h - internal cec-pin header
-  *
-  * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #ifndef LINUX_CEC_PIN_PRIV_H
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index b48dfe844118..8e834b9f72c6 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -1,18 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * Copyright 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #include <linux/delay.h>
-diff --git a/drivers/media/cec/cec-priv.h b/drivers/media/cec/cec-priv.h
-index daf597643af8..804e38f849c7 100644
---- a/drivers/media/cec/cec-priv.h
-+++ b/drivers/media/cec/cec-priv.h
-@@ -1,20 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * cec-priv.h - HDMI Consumer Electronics Control internal header
-  *
-  * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-- *
-- * This program is free software; you may redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; version 2 of the License.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-  */
- 
- #ifndef _CEC_PRIV_H
--- 
-2.15.1
+dvbv5-zap -c dvb_channel.conf "Sky Radio NL" -o - | ffmpeg -i - -c:a copy -f mp2 - | mpg123 -a hw:1,0 -
+
+
+But until audio is hearable it takes around 3 - 4 minutes...
+The same happens when I record the mp2 audio stream with ffmpeg in the pipe...
+
+
+I hardly assume ffmpeg causes this delay as it maybe wants to find out
+the duration of the stream as a similar delay is noticable when using mplayer instead of ffmpeg.
+
+
+Is there a better/faster way that audio is played immediately?
+
+
+
+thanks in advance
+richard
