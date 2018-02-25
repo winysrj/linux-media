@@ -1,191 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:52433 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751472AbeBAPyt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Feb 2018 10:54:49 -0500
-Date: Thu, 1 Feb 2018 16:54:32 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Liviu Dudau <liviu@dudau.co.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Yong <yong.deng@magewell.com>,
-        kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        DTML <devicetree@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>, megous@megous.com
-Subject: Re: [linux-sunxi] Re: [PATCH v6 2/2] media: V3s: Add support for
- Allwinner CSI.
-Message-ID: <20180201155432.odv6p6rals3sujhx@flea.lan>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <201801260759.RyNhDZz4%fengguang.wu@intel.com>
- <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
- <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
- <20180131030807.GA19945@bart.dudau.co.uk>
- <20180131074212.7hvb3nqkt22h2chg@flea.lan>
- <20180131144753.GB19945@bart.dudau.co.uk>
- <20180201083222.q6rqql4nngn2bhiy@flea.lan>
- <CAK8P3a01DqmVJKt6J2i_okVoeELJCUW0voW0r52EzBY7iF74xQ@mail.gmail.com>
- <20180201113442.GC19945@bart.dudau.co.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44045 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751682AbeBYLkQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Feb 2018 06:40:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alexandre-Xavier =?ISO-8859-1?Q?Labont=E9=2DLamoureux?=
+        <axdoomer@gmail.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
+Date: Sun, 25 Feb 2018 13:41:03 +0200
+Message-ID: <10340581.MW54jSnN5l@avalon>
+In-Reply-To: <CAKTMqxvSWQSa=w_6z_XHjMh6s6N+hdj_yi-yW+CEp2NVx0t4Zg@mail.gmail.com>
+References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com> <46032915.v1itnVjfQo@avalon> <CAKTMqxvSWQSa=w_6z_XHjMh6s6N+hdj_yi-yW+CEp2NVx0t4Zg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="52oyo5npgo7v2l5n"
-Content-Disposition: inline
-In-Reply-To: <20180201113442.GC19945@bart.dudau.co.uk>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Alexandre-Xavier,
 
---52oyo5npgo7v2l5n
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Feb 01, 2018 at 11:34:43AM +0000, Liviu Dudau wrote:
-> On Thu, Feb 01, 2018 at 10:20:28AM +0100, Arnd Bergmann wrote:
-> > On Thu, Feb 1, 2018 at 9:32 AM, Maxime Ripard
-> > <maxime.ripard@free-electrons.com> wrote:
-> > > On Wed, Jan 31, 2018 at 02:47:53PM +0000, Liviu Dudau wrote:
-> > >> On Wed, Jan 31, 2018 at 08:42:12AM +0100, Maxime Ripard wrote:
-> > >> > On Wed, Jan 31, 2018 at 03:08:08AM +0000, Liviu Dudau wrote:
-> > >> > > On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
-> > >>
-> > >> Yeah, sorry, my threading of the discussion was broken and I've seen
-> > >> the rest of the thread after I have replied. My bad!
-> > >>
-> > >> >
-> > >> > In our case, the bus where the device is attached will not do the
-> > >> > address translations, and shouldn't.
-> > >>
-> > >> In my view, the bus is already doing address translation at physical
-> > >> level, AFAIU it remaps the memory to zero.
-> > >
-> > > Not really. It uses a separate bus with a different mapping for the
-> > > DMA accesses (and only the DMA accesses). The AXI (or AHB, I'm not
-> > > sure, but, well, the "registers" bus) doesn't remap anything in
-> > > itself, and we only describe this one usually in our DTs.
+On Sunday, 25 February 2018 10:19:51 EET Alexandre-Xavier Labont=E9-Lamoure=
+ux=20
+wrote:
+> Hi Laurent,
 >=20
-> I was actually thinking about the DMA bus (AXI bus, most likely), not the
-> "registers" bus (yes, usually APB or AHB). The DMA bus is the one that do=
-es
-> the implicit remapping for the addresses it uses, if I understood you cor=
-rectly.
+> Sorry for the late reply.
 >=20
-> > Exactly, the DT model fundamentally assumes that each a device is
-> > connected to exactly one bus, so we make up a device *tree* rather
-> > than a non-directed mesh topology that you might see in modern
-> > SoCs.
+> I've been trying to reproduce the issue again. I cloned the entire
+> media repository later during the week and I haven't been able to
+> reproduce the issue after I installed the modules. A metadata node is
+> no longer created for my webcam. The four commits that you've
+> mentioned are still in the commit log, so it seems that they didn't
+> break anything.
+
+Now that's weird. I would expect a metadata video node to be created if the=
+=20
+patches I mentioned are applied. Are you sure you have loaded the modules=20
+corresponding to the compiled sources ?
+
+> I'm not sure what could have changed that would have caused it to work
+> fine this time. I believe that I'm in the correct branch.
 >=20
-> I think you are right, but we also have the registers property for a devi=
-ce node
-> and that can be used for describing the "registers" bus. Now, it is possi=
-ble
-> that some driver code gets confused between accessing the device registers
-> (which in Arm world happens through an APB or AHB bus) and the device doi=
-ng system
-> read/writes which usually happends through an AXI (or for very old system=
-s, AHB) bus.
+> $ git status
+> On branch media_tree/master
+> Your branch is up-to-date with 'r_media_tree/master'.
 >=20
-> For the sake of making sure we are talking about the same thing and in ho=
-pe
-> that Maxime or Yong can give a more detailed picture of this device
-
-Keep in mind that this part is heavily under-documented to us, and
-this is mostly information collected through testing and reading
-through the various vendor trees.
-
-As far as I know, a few devices (Display Engine, hardware codec, the
-CSI driver that spawned this discussion) are connected to the memory
-through a proprietary bus that does the remapping. The registers part
-is connected to an AHB bus.
-
-> I'll re-iterate what a lot of devices in the Arm world look like
-> nowadays:
+> I probably did `./build` instead of `./build --main-git` the first time.
 >=20
-> - they have a bus for accessing the "registers" of the device, for contro=
-lling
->   the behaviour of that device. Inside the SoC, that happens through the
->   APB bus and it has a separate clock. The CPU has a view of those regist=
-ers
->   through some mapping in the address space that has been backed by the h=
-ardware
->   engineers at design time and in DT we express that through the "registe=
-rs" property,
->   plus the "apb_clk" for most of the bindings. In DT world we express the=
- mapping
->   vis-a-vis the parent bus by using the "ranges" property.
+> On Mon, Feb 19, 2018 at 2:10 PM, Laurent Pinchart wrote:
+> > On Monday, 19 February 2018 19:29:24 EET Alexandre-Xavier
+> > Labont=E9-Lamoureux wrote:
+> >> Hi Kieran,
+> >>=20
+> >> This is how I built the drivers:
+> >>=20
+> >> $ git clone --depth=3D1 git://linuxtv.org/media_build.git
+> >> $ cd media_build
+> >> $ ./build --main-git
+> >>=20
+> >> I then installed the newly built kernel modules:
+> >>=20
+> >> $ sudo make install
+> >>=20
+> >> Once the modules were updated, I restarted my computer to make sure
+> >> every module got reloaded. I didn't make any changes to the code and I
+> >> found the issues after trying each of those programs individually
+> >> after I restarted my computer.
+> >>=20
+> >> This was the latest commit when I cloned the repo:
+> >>=20
+> >> commit d144cfe4b3c37ece55ae27778c99765d4943c4fa
+> >> Author: Jasmin Jessich <jasmin@anw.at>
+> >> Date:   Fri Feb 16 22:40:49 2018 +0100
+> >>=20
+> >>     Re-generated v3.12_kfifo_in.patch
+> >>=20
+> >> My version of VLC is 2.2.6. Here's a copy of the relevant data of
+> >> VLC's log file in case it can help: https://paste.debian.net/1011025/
+> >> In this case, I tried to open /dev/video0 first and /dev/video1 second.
+> >>=20
+> >> I can also try with ffplay:
+> >> $ ffplay /dev/video0
+> >>=20
+> >> I get this: [video4linux2,v4l2 @ 0x7f2160000920]
+> >> ioctl(VIDIOC_STREAMON): Message too long
+> >> /dev/video0: Message too long
+> >>=20
+> >> A new message appears in dmesg: uvcvideo: Failed to submit URB 0 (-90).
+> >=20
+> > That's interesting, and possibly unrelated to the patch series that add=
+ed
+> > metadata capture support. Would you be able to revert that patch series
+> > and see if the problem still occurs ? The four commits to be reverted a=
+re
+> >=20
+> > 088ead25524583e2200aa99111bea2f66a86545a
+> > 3bc85817d7982ed53fbc9b150b0205beff68ca5c
+> > 94c53e26dc74744cc4f9a8ddc593b7aef96ba764
+> > 31a96f4c872e8fb953c853630f69d5de6ec961c9
+> >=20
+> > And if you could bisect the issue it would be even better :-)
+> >=20
+> > Could you also send me the output of lsusb -v for your camera (you can
+> > restrict it to the camera with -d VID:PID), running as root if possible=
+ ?
+> >=20
+> >> $ ffplay /dev/video1
+> >>=20
+> >> I get this:
+> >> [video4linux2,v4l2 @ 0x7f00ec000920] ioctl(VIDIOC_G_INPUT):
+> >> Inappropriate ioctl for device
+> >> /dev/video1: Inappropriate ioctl for device
+> >>=20
+> >> Like Guennadi said, /dev/video1 is a metadata node, so I don't expect
+> >> it to work. In the case of /dev/video0, I can't tell what could be
+> >> wrong from the error message.
 
-We do have that.
+=2D-=20
+Regards,
 
-> - they have a high speed bus for doing data transfers. Inside the SoC that
->   happens through an AXI or more modern CCI interconnect bus. The CPU doe=
-s not
->   have a direct view on those transfers, but by using IOMMUs, SMMUs or si=
-mple
->   bus mastering capabilities it can gain knowledge of the state of the tr=
-ansfers
->   and/or influence the target memory.
-
-Part of that bus controller allows to probe the bus bandwidth and / or
-set limits for the various controllers connected to it, so it seems to
-match that description.
-
->   In the DT world, we use the "dma-ranges" property like you say to
->   express the translations that happen on that bus.
-
-Right, except that the way dma-ranges is parsed at the moment is that
-it will look on the parent node for dma-ranges. In this case, the
-parent in the DT will be our AHB bus, and not all the devices
-connected on that AHB bus that do DMA go through that DMA bus with the
-different mapping. So setting it there isn't an option.
-
-> Maxime/Yong: does your device have more than one AXI bus for doing
-> transfers?
-
-Not as far as I know.
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---52oyo5npgo7v2l5n
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpzODcACgkQ0rTAlCFN
-r3Ry4A//ftqxc40x32HJ8OqXs6ZO8AGW8747Y1D9u6gLO4wrL8I5F4ttRWT5gqug
-Dn+o8lidRtNhsiHgqUc7mqqBZMwqUF1R7A7Tly1kaSMO0B7x6QHbH7Uj2EH8H0Gs
-pSI6VFG+lhdKk4WJ5+3tGvuDfLWKlXC1CvoOSSRU5WK/FyfL3jnjDbj29Y0fr3EC
-jpP5O+2TUwM9yNGSX//rLSbwgwldSbzRdCgo6zLHlrwgJ+2Xj/Wsml2fwS42j8p5
-sqGhwCj/Hy7tKVtUbi8wtT3019y+Y6XpYEjktHwPBeliDWSZKrE0Y8iubpSfvA//
-LXR1mFCGBQlDyXNtnxWqETMEmypHuV6U0ZyfldP/rVNybskCEqL3gnNvGKAwyuD+
-48rJGD3hy5+R3HTYEFmZHihSPaNez0zIlgDoHqwcdOGAetBgmhq+Dcu+tB9nzK/B
-Kvk3tVWtKHJpZu3WLISpkKzFjh85ZSf3JVXI+YnisT/sv6hgznq8lUyuPjlYvJzm
-yR9aPY2LygdMrIgIraZ9f5spfeR7ot+eJXD0Vr7b0WeqC+QGp7UEV2uYt+g8lXeL
-4IoF1HbngY054Y9cBLXxJNSrjv2syTdpJNU6LSKHb4gb/yb2KsbD1uHo85efJG4L
-EJmTwMmFFR2g1Qr+2DQ68G0Uuj9LiVznzhfWfBIbZtrXRkliKG4=
-=YY2K
------END PGP SIGNATURE-----
-
---52oyo5npgo7v2l5n--
+Laurent Pinchart
