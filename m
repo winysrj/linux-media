@@ -1,166 +1,889 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:43221 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751513AbeBTEp1 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:35514 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751796AbeBZI5O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 23:45:27 -0500
-Received: by mail-pg0-f68.google.com with SMTP id f6so6695613pgs.10
-        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:45:27 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv4 16/21] v4l2: video_device: support for creating requests
-Date: Tue, 20 Feb 2018 13:44:20 +0900
-Message-Id: <20180220044425.169493-17-acourbot@chromium.org>
-In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
-References: <20180220044425.169493-1-acourbot@chromium.org>
+        Mon, 26 Feb 2018 03:57:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, dri-devel@lists.freedesktop.org,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/6] cec-pin: add error injection support
+Date: Mon, 26 Feb 2018 09:57:05 +0100
+Message-Id: <20180226085706.41526-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180226085706.41526-1-hverkuil@xs4all.nl>
+References: <20180226085706.41526-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new VIDIOC_NEW_REQUEST ioctl, which allows to instanciate requests
-on devices that support the request API. Requests created that way can
-only control the device they originate from, making them suitable for
-simple devices, but not complex pipelines.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Implement all the error injection commands.
+
+The state machine gets new states for the various error situations,
+helper functions are added to detect whether an error injection is
+active and the actual error injections are implemented.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/ioctl/ioctl-number.txt |  1 +
- drivers/media/v4l2-core/v4l2-dev.c   |  2 ++
- drivers/media/v4l2-core/v4l2-ioctl.c | 25 +++++++++++++++++++++++++
- include/media/v4l2-dev.h             |  2 ++
- include/uapi/linux/videodev2.h       |  3 +++
- 5 files changed, 33 insertions(+)
+ drivers/media/cec/cec-pin-priv.h |  38 ++-
+ drivers/media/cec/cec-pin.c      | 502 ++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 481 insertions(+), 59 deletions(-)
 
-diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
-index 6501389d55b9..afdc9ed255b0 100644
---- a/Documentation/ioctl/ioctl-number.txt
-+++ b/Documentation/ioctl/ioctl-number.txt
-@@ -286,6 +286,7 @@ Code  Seq#(hex)	Include File		Comments
- 					<mailto:oe@port.de>
- 'z'	10-4F	drivers/s390/crypto/zcrypt_api.h	conflict!
- '|'	00-7F	linux/media.h
-+'|'	80-9F	linux/media-request.h
- 0x80	00-1F	linux/fb.h
- 0x89	00-06	arch/x86/include/asm/sockios.h
- 0x89	0B-DF	linux/sockios.h
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 0301fe426a43..062ebee5bffc 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -559,6 +559,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 		set_bit(_IOC_NR(VIDIOC_TRY_EXT_CTRLS), valid_ioctls);
- 	if (vdev->ctrl_handler || ops->vidioc_querymenu)
- 		set_bit(_IOC_NR(VIDIOC_QUERYMENU), valid_ioctls);
-+	if (vdev->req_mgr)
-+		set_bit(_IOC_NR(VIDIOC_NEW_REQUEST), valid_ioctls);
- 	SET_VALID_IOCTL(ops, VIDIOC_G_FREQUENCY, vidioc_g_frequency);
- 	SET_VALID_IOCTL(ops, VIDIOC_S_FREQUENCY, vidioc_s_frequency);
- 	SET_VALID_IOCTL(ops, VIDIOC_LOG_STATUS, vidioc_log_status);
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ab4968ea443f..a45fe078f8ae 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -21,6 +21,7 @@
+diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
+index a33e7ef6cdf5..09ac2da35c20 100644
+--- a/drivers/media/cec/cec-pin-priv.h
++++ b/drivers/media/cec/cec-pin-priv.h
+@@ -28,14 +28,30 @@ enum cec_pin_state {
+ 	CEC_ST_TX_START_BIT_LOW,
+ 	/* Drive CEC high for the start bit */
+ 	CEC_ST_TX_START_BIT_HIGH,
++	/* Generate a start bit period that is too short */
++	CEC_ST_TX_START_BIT_HIGH_SHORT,
++	/* Generate a start bit period that is too long */
++	CEC_ST_TX_START_BIT_HIGH_LONG,
++	/* Drive CEC low for the start bit using the custom timing */
++	CEC_ST_TX_START_BIT_LOW_CUSTOM,
++	/* Drive CEC high for the start bit using the custom timing */
++	CEC_ST_TX_START_BIT_HIGH_CUSTOM,
+ 	/* Drive CEC low for the 0 bit */
+ 	CEC_ST_TX_DATA_BIT_0_LOW,
+ 	/* Drive CEC high for the 0 bit */
+ 	CEC_ST_TX_DATA_BIT_0_HIGH,
++	/* Generate a bit period that is too short */
++	CEC_ST_TX_DATA_BIT_0_HIGH_SHORT,
++	/* Generate a bit period that is too long */
++	CEC_ST_TX_DATA_BIT_0_HIGH_LONG,
+ 	/* Drive CEC low for the 1 bit */
+ 	CEC_ST_TX_DATA_BIT_1_LOW,
+ 	/* Drive CEC high for the 1 bit */
+ 	CEC_ST_TX_DATA_BIT_1_HIGH,
++	/* Generate a bit period that is too short */
++	CEC_ST_TX_DATA_BIT_1_HIGH_SHORT,
++	/* Generate a bit period that is too long */
++	CEC_ST_TX_DATA_BIT_1_HIGH_LONG,
+ 	/*
+ 	 * Wait for start of sample time to check for Ack bit or first
+ 	 * four initiator bits to check for Arbitration Lost.
+@@ -43,6 +59,20 @@ enum cec_pin_state {
+ 	CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE,
+ 	/* Wait for end of bit period after sampling */
+ 	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE,
++	/* Generate a bit period that is too short */
++	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT,
++	/* Generate a bit period that is too long */
++	CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG,
++	/* Drive CEC low for a data bit using the custom timing */
++	CEC_ST_TX_DATA_BIT_LOW_CUSTOM,
++	/* Drive CEC high for a data bit using the custom timing */
++	CEC_ST_TX_DATA_BIT_HIGH_CUSTOM,
++	/* Drive CEC low for a standalone pulse using the custom timing */
++	CEC_ST_TX_PULSE_LOW_CUSTOM,
++	/* Drive CEC high for a standalone pulse using the custom timing */
++	CEC_ST_TX_PULSE_HIGH_CUSTOM,
++	/* Start low drive */
++	CEC_ST_TX_LOW_DRIVE,
  
- #include <linux/videodev2.h>
+ 	/* Rx states */
  
-+#include <media/media-request.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
-@@ -842,6 +843,13 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
- 			p->rangehigh, p->modulation);
+@@ -54,8 +84,8 @@ enum cec_pin_state {
+ 	CEC_ST_RX_DATA_SAMPLE,
+ 	/* Wait for earliest end of bit period after sampling */
+ 	CEC_ST_RX_DATA_POST_SAMPLE,
+-	/* Wait for CEC to go high (i.e. end of bit period */
+-	CEC_ST_RX_DATA_HIGH,
++	/* Wait for CEC to go low (i.e. end of bit period) */
++	CEC_ST_RX_DATA_WAIT_FOR_LOW,
+ 	/* Drive CEC low to send 0 Ack bit */
+ 	CEC_ST_RX_ACK_LOW,
+ 	/* End of 0 Ack time, wait for earliest end of bit period */
+@@ -64,9 +94,9 @@ enum cec_pin_state {
+ 	CEC_ST_RX_ACK_HIGH_POST,
+ 	/* Wait for earliest end of bit period and end of message */
+ 	CEC_ST_RX_ACK_FINISH,
+-
+ 	/* Start low drive */
+-	CEC_ST_LOW_DRIVE,
++	CEC_ST_RX_LOW_DRIVE,
++
+ 	/* Monitor pin using interrupts */
+ 	CEC_ST_RX_IRQ,
+ 
+diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
+index 7920ea1c940b..5a553083d71a 100644
+--- a/drivers/media/cec/cec-pin.c
++++ b/drivers/media/cec/cec-pin.c
+@@ -39,11 +39,29 @@
+ #define CEC_TIM_IDLE_SAMPLE		1000
+ /* when processing the start bit, sample twice per millisecond */
+ #define CEC_TIM_START_BIT_SAMPLE	500
+-/* when polling for a state change, sample once every 50 micoseconds */
++/* when polling for a state change, sample once every 50 microseconds */
+ #define CEC_TIM_SAMPLE			50
+ 
+ #define CEC_TIM_LOW_DRIVE_ERROR		(1.5 * CEC_TIM_DATA_BIT_TOTAL)
+ 
++/*
++ * Total data bit time that is too short/long for a valid bit,
++ * used for error injection.
++ */
++#define CEC_TIM_DATA_BIT_TOTAL_SHORT	1800
++#define CEC_TIM_DATA_BIT_TOTAL_LONG	2900
++
++/*
++ * Total start bit time that is too short/long for a valid bit,
++ * used for error injection.
++ */
++#define CEC_TIM_START_BIT_TOTAL_SHORT	4100
++#define CEC_TIM_START_BIT_TOTAL_LONG	5000
++
++/* Data bits are 0-7, EOM is bit 8 and ACK is bit 9 */
++#define EOM_BIT				8
++#define ACK_BIT				9
++
+ struct cec_state {
+ 	const char * const name;
+ 	unsigned int usecs;
+@@ -56,17 +74,32 @@ static const struct cec_state states[CEC_PIN_STATES] = {
+ 	{ "Tx Wait for High",	   CEC_TIM_IDLE_SAMPLE },
+ 	{ "Tx Start Bit Low",	   CEC_TIM_START_BIT_LOW },
+ 	{ "Tx Start Bit High",	   CEC_TIM_START_BIT_TOTAL - CEC_TIM_START_BIT_LOW },
++	{ "Tx Start Bit High Short", CEC_TIM_START_BIT_TOTAL_SHORT - CEC_TIM_START_BIT_LOW },
++	{ "Tx Start Bit High Long", CEC_TIM_START_BIT_TOTAL_LONG - CEC_TIM_START_BIT_LOW },
++	{ "Tx Start Bit Low Custom", 0 },
++	{ "Tx Start Bit High Custom", 0 },
+ 	{ "Tx Data 0 Low",	   CEC_TIM_DATA_BIT_0_LOW },
+ 	{ "Tx Data 0 High",	   CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_0_LOW },
++	{ "Tx Data 0 High Short",  CEC_TIM_DATA_BIT_TOTAL_SHORT - CEC_TIM_DATA_BIT_0_LOW },
++	{ "Tx Data 0 High Long",   CEC_TIM_DATA_BIT_TOTAL_LONG - CEC_TIM_DATA_BIT_0_LOW },
+ 	{ "Tx Data 1 Low",	   CEC_TIM_DATA_BIT_1_LOW },
+ 	{ "Tx Data 1 High",	   CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_1_LOW },
+-	{ "Tx Data 1 Pre Sample",  CEC_TIM_DATA_BIT_SAMPLE - CEC_TIM_DATA_BIT_1_LOW },
+-	{ "Tx Data 1 Post Sample", CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_SAMPLE },
++	{ "Tx Data 1 High Short",  CEC_TIM_DATA_BIT_TOTAL_SHORT - CEC_TIM_DATA_BIT_1_LOW },
++	{ "Tx Data 1 High Long",   CEC_TIM_DATA_BIT_TOTAL_LONG - CEC_TIM_DATA_BIT_1_LOW },
++	{ "Tx Data 1 High Pre Sample", CEC_TIM_DATA_BIT_SAMPLE - CEC_TIM_DATA_BIT_1_LOW },
++	{ "Tx Data 1 High Post Sample", CEC_TIM_DATA_BIT_TOTAL - CEC_TIM_DATA_BIT_SAMPLE },
++	{ "Tx Data 1 High Post Sample Short", CEC_TIM_DATA_BIT_TOTAL_SHORT - CEC_TIM_DATA_BIT_SAMPLE },
++	{ "Tx Data 1 High Post Sample Long", CEC_TIM_DATA_BIT_TOTAL_LONG - CEC_TIM_DATA_BIT_SAMPLE },
++	{ "Tx Data Bit Low Custom", 0 },
++	{ "Tx Data Bit High Custom", 0 },
++	{ "Tx Pulse Low Custom",   0 },
++	{ "Tx Pulse High Custom",  0 },
++	{ "Tx Low Drive",	   CEC_TIM_LOW_DRIVE_ERROR },
+ 	{ "Rx Start Bit Low",	   CEC_TIM_SAMPLE },
+ 	{ "Rx Start Bit High",	   CEC_TIM_SAMPLE },
+ 	{ "Rx Data Sample",	   CEC_TIM_DATA_BIT_SAMPLE },
+ 	{ "Rx Data Post Sample",   CEC_TIM_DATA_BIT_HIGH - CEC_TIM_DATA_BIT_SAMPLE },
+-	{ "Rx Data High",	   CEC_TIM_SAMPLE },
++	{ "Rx Data Wait for Low",  CEC_TIM_SAMPLE },
+ 	{ "Rx Ack Low",		   CEC_TIM_DATA_BIT_0_LOW },
+ 	{ "Rx Ack Low Post",	   CEC_TIM_DATA_BIT_HIGH - CEC_TIM_DATA_BIT_0_LOW },
+ 	{ "Rx Ack High Post",	   CEC_TIM_DATA_BIT_HIGH },
+@@ -111,6 +144,126 @@ static bool cec_pin_high(struct cec_pin *pin)
+ 	return cec_pin_read(pin);
  }
  
-+static void vidioc_print_new_request(const void *arg, bool write_only)
++static bool rx_nack(struct cec_pin *pin)
 +{
-+	const struct media_request_new *new = arg;
-+
-+	pr_cont("fd=0x%x\n", new->fd);
++	return cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_NACK;
 +}
 +
- static void v4l_print_edid(const void *arg, bool write_only)
++static bool rx_low_drive(struct cec_pin *pin)
++{
++	u32 error = cec_pin_rx_error_inj(pin);
++	unsigned int pos =
++		(error >> CEC_ERROR_INJ_RX_LOW_DRIVE_POS_OFFSET) & 0xff;
++
++	return (error & CEC_ERROR_INJ_RX_LOW_DRIVE) ?
++		(pin->rx_bit == pos) : false;
++}
++
++static u32 rx_add_byte(struct cec_pin *pin)
++{
++	return cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_ADD_BYTE;
++}
++
++static u32 rx_remove_byte(struct cec_pin *pin)
++{
++	return cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_REMOVE_BYTE;
++}
++
++static bool rx_arb_lost(struct cec_pin *pin)
++{
++	return pin->tx_msg.len == 0 &&
++		cec_pin_rx_error_inj(pin) & CEC_ERROR_INJ_RX_ARB_LOST;
++}
++
++static u32 tx_no_eom(struct cec_pin *pin)
++{
++	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_NO_EOM;
++}
++
++static u32 tx_early_eom(struct cec_pin *pin)
++{
++	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_EARLY_EOM;
++}
++
++static bool tx_short_bit(struct cec_pin *pin)
++{
++	u64 error = cec_pin_tx_error_inj(pin);
++	unsigned int pos =
++		(error >> CEC_ERROR_INJ_TX_INVALID_BIT_POS_OFFSET) & 0xff;
++
++	return (error & CEC_ERROR_INJ_TX_SHORT_BIT) ?
++		(pin->tx_bit == pos) : false;
++}
++
++static bool tx_long_bit(struct cec_pin *pin)
++{
++	u64 error = cec_pin_tx_error_inj(pin);
++	unsigned int pos =
++		(error >> CEC_ERROR_INJ_TX_INVALID_BIT_POS_OFFSET) & 0xff;
++
++	return (error & CEC_ERROR_INJ_TX_LONG_BIT) ?
++		(pin->tx_bit == pos) : false;
++}
++
++static bool tx_custom_bit(struct cec_pin *pin)
++{
++	u64 error = cec_pin_tx_error_inj(pin);
++	unsigned int pos =
++		(error >> CEC_ERROR_INJ_TX_INVALID_BIT_POS_OFFSET) & 0xff;
++
++	return (error & CEC_ERROR_INJ_TX_CUSTOM_BIT) ?
++		(pin->tx_bit == pos) : false;
++}
++
++static u32 tx_short_start(struct cec_pin *pin)
++{
++	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_SHORT_START;
++}
++
++static u32 tx_long_start(struct cec_pin *pin)
++{
++	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_LONG_START;
++}
++
++static u32 tx_custom_start(struct cec_pin *pin)
++{
++	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_CUSTOM_START;
++}
++
++static bool tx_last_bit(struct cec_pin *pin)
++{
++	u64 error = cec_pin_tx_error_inj(pin);
++	unsigned int pos =
++		(error >> CEC_ERROR_INJ_TX_LAST_BIT_POS_OFFSET) & 0xff;
++
++	return (error & CEC_ERROR_INJ_TX_LAST_BIT) ?
++		(pin->tx_bit == pos) : false;
++}
++
++static u8 tx_add_bytes(struct cec_pin *pin)
++{
++	u64 error = cec_pin_tx_error_inj(pin);
++
++	if (error & CEC_ERROR_INJ_TX_ADD_BYTES)
++		return (error >> CEC_ERROR_INJ_TX_ADD_BYTES_NUM_OFFSET) & 0xff;
++	return 0;
++}
++
++static u32 tx_remove_byte(struct cec_pin *pin)
++{
++	return cec_pin_tx_error_inj(pin) & CEC_ERROR_INJ_TX_REMOVE_BYTE;
++}
++
++static bool tx_low_drive(struct cec_pin *pin)
++{
++	u64 error = cec_pin_tx_error_inj(pin);
++	unsigned int pos =
++		(error >> CEC_ERROR_INJ_TX_LOW_DRIVE_POS_OFFSET) & 0xff;
++
++	return (error & CEC_ERROR_INJ_TX_LOW_DRIVE) ?
++		(pin->tx_bit == pos) : false;
++}
++
+ static void cec_pin_to_idle(struct cec_pin *pin)
  {
- 	const struct v4l2_edid *p = arg;
-@@ -2486,6 +2494,22 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 	return -ENOTTY;
+ 	/*
+@@ -120,8 +273,16 @@ static void cec_pin_to_idle(struct cec_pin *pin)
+ 	pin->rx_bit = pin->tx_bit = 0;
+ 	pin->rx_msg.len = 0;
+ 	memset(pin->rx_msg.msg, 0, sizeof(pin->rx_msg.msg));
+-	pin->state = CEC_ST_IDLE;
+ 	pin->ts = ns_to_ktime(0);
++	if (pin->state >= CEC_ST_TX_WAIT &&
++	    pin->state <= CEC_ST_TX_LOW_DRIVE)
++		cec_pin_tx_next_clear(pin);
++	if (pin->state >= CEC_ST_RX_START_BIT_LOW &&
++	    pin->state <= CEC_ST_RX_LOW_DRIVE)
++		cec_pin_rx_next_clear(pin);
++	pin->tx_generated_poll = false;
++	pin->tx_post_eom = false;
++	pin->state = CEC_ST_IDLE;
  }
  
-+static int vidioc_new_request(const struct v4l2_ioctl_ops *ops,
-+			      struct file *file, void *fh, void *arg)
-+{
-+#if IS_ENABLED(CONFIG_MEDIA_REQUEST_API)
-+	struct media_request_new *new = arg;
-+	struct video_device *vfd = video_devdata(file);
+ /*
+@@ -162,42 +323,107 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
+ 		break;
+ 
+ 	case CEC_ST_TX_START_BIT_LOW:
+-		pin->state = CEC_ST_TX_START_BIT_HIGH;
++		if (tx_short_start(pin)) {
++			/*
++			 * Error Injection: send an invalid (too short)
++			 * start pulse.
++			 */
++			pin->state = CEC_ST_TX_START_BIT_HIGH_SHORT;
++		} else if (tx_long_start(pin)) {
++			/*
++			 * Error Injection: send an invalid (too long)
++			 * start pulse.
++			 */
++			pin->state = CEC_ST_TX_START_BIT_HIGH_LONG;
++		} else {
++			pin->state = CEC_ST_TX_START_BIT_HIGH;
++		}
++		/* Generate start bit */
++		cec_pin_high(pin);
++		break;
 +
-+	if (!vfd->req_mgr)
-+		return -ENOTTY;
++	case CEC_ST_TX_START_BIT_LOW_CUSTOM:
++		pin->state = CEC_ST_TX_START_BIT_HIGH_CUSTOM;
+ 		/* Generate start bit */
+ 		cec_pin_high(pin);
+ 		break;
+ 
+ 	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
+-		/* If the read value is 1, then all is OK */
+-		if (!cec_pin_read(pin)) {
++	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG:
++		if (pin->tx_nacked) {
++			cec_pin_to_idle(pin);
++			pin->tx_msg.len = 0;
++			if (pin->tx_generated_poll)
++				break;
++			pin->work_tx_ts = ts;
++			pin->work_tx_status = CEC_TX_STATUS_NACK;
++			wake_up_interruptible(&pin->kthread_waitq);
++			break;
++		}
++		/* fall through */
++	case CEC_ST_TX_DATA_BIT_0_HIGH:
++	case CEC_ST_TX_DATA_BIT_0_HIGH_SHORT:
++	case CEC_ST_TX_DATA_BIT_0_HIGH_LONG:
++	case CEC_ST_TX_DATA_BIT_1_HIGH:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_SHORT:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_LONG:
++		/*
++		 * If the read value is 1, then all is OK, otherwise we have a
++		 * low drive condition.
++		 *
++		 * Special case: when we generate a poll message due to an
++		 * Arbitration Lost error injection, then ignore this since
++		 * the pin can actually be low in that case.
++		 */
++		if (!cec_pin_read(pin) && !pin->tx_generated_poll) {
+ 			/*
+ 			 * It's 0, so someone detected an error and pulled the
+ 			 * line low for 1.5 times the nominal bit period.
+ 			 */
+ 			pin->tx_msg.len = 0;
++			pin->state = CEC_ST_TX_WAIT_FOR_HIGH;
+ 			pin->work_tx_ts = ts;
+ 			pin->work_tx_status = CEC_TX_STATUS_LOW_DRIVE;
+-			pin->state = CEC_ST_TX_WAIT_FOR_HIGH;
+ 			wake_up_interruptible(&pin->kthread_waitq);
+ 			break;
+ 		}
+-		if (pin->tx_nacked) {
++		/* fall through */
++	case CEC_ST_TX_DATA_BIT_HIGH_CUSTOM:
++		if (tx_last_bit(pin)) {
++			/* Error Injection: just stop sending after this bit */
+ 			cec_pin_to_idle(pin);
+ 			pin->tx_msg.len = 0;
++			if (pin->tx_generated_poll)
++				break;
+ 			pin->work_tx_ts = ts;
+-			pin->work_tx_status = CEC_TX_STATUS_NACK;
++			pin->work_tx_status = CEC_TX_STATUS_OK;
+ 			wake_up_interruptible(&pin->kthread_waitq);
+ 			break;
+ 		}
+-		/* fall through */
+-	case CEC_ST_TX_DATA_BIT_0_HIGH:
+-	case CEC_ST_TX_DATA_BIT_1_HIGH:
+ 		pin->tx_bit++;
+ 		/* fall through */
+ 	case CEC_ST_TX_START_BIT_HIGH:
+-		if (pin->tx_bit / 10 >= pin->tx_msg.len) {
++	case CEC_ST_TX_START_BIT_HIGH_SHORT:
++	case CEC_ST_TX_START_BIT_HIGH_LONG:
++	case CEC_ST_TX_START_BIT_HIGH_CUSTOM:
++		if (tx_low_drive(pin)) {
++			/* Error injection: go to low drive */
++			cec_pin_low(pin);
++			pin->state = CEC_ST_TX_LOW_DRIVE;
++			pin->tx_msg.len = 0;
++			if (pin->tx_generated_poll)
++				break;
++			pin->work_tx_ts = ts;
++			pin->work_tx_status = CEC_TX_STATUS_LOW_DRIVE;
++			wake_up_interruptible(&pin->kthread_waitq);
++			break;
++		}
++		if (pin->tx_bit / 10 >= pin->tx_msg.len + pin->tx_extra_bytes) {
+ 			cec_pin_to_idle(pin);
+ 			pin->tx_msg.len = 0;
++			if (pin->tx_generated_poll)
++				break;
+ 			pin->work_tx_ts = ts;
+ 			pin->work_tx_status = CEC_TX_STATUS_OK;
+ 			wake_up_interruptible(&pin->kthread_waitq);
+@@ -205,39 +431,79 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
+ 		}
+ 
+ 		switch (pin->tx_bit % 10) {
+-		default:
+-			v = pin->tx_msg.msg[pin->tx_bit / 10] &
+-				(1 << (7 - (pin->tx_bit % 10)));
++		default: {
++			/*
++			 * In the CEC_ERROR_INJ_TX_ADD_BYTES case we transmit
++			 * extra bytes, so pin->tx_bit / 10 can become >= 16.
++			 * Generate bit values for those extra bytes instead
++			 * of reading them from the transmit buffer.
++			 */
++			unsigned int idx = (pin->tx_bit / 10);
++			u8 val = idx;
 +
-+	return media_request_ioctl_new(vfd->req_mgr, new);
-+#else
-+	return -ENOTTY;
-+#endif
-+}
++			if (idx < pin->tx_msg.len)
++				val = pin->tx_msg.msg[idx];
++			v = val & (1 << (7 - (pin->tx_bit % 10)));
 +
- struct v4l2_ioctl_info {
- 	unsigned int ioctl;
- 	u32 flags;
-@@ -2617,6 +2641,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
- 	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
-+	IOCTL_INFO_FNC(VIDIOC_NEW_REQUEST, vidioc_new_request, vidioc_print_new_request, 0),
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 			pin->state = v ? CEC_ST_TX_DATA_BIT_1_LOW :
+-				CEC_ST_TX_DATA_BIT_0_LOW;
++					 CEC_ST_TX_DATA_BIT_0_LOW;
+ 			break;
+-		case 8:
+-			v = pin->tx_bit / 10 == pin->tx_msg.len - 1;
++		}
++		case EOM_BIT:
++			v = pin->tx_bit / 10 ==
++				pin->tx_msg.len + pin->tx_extra_bytes - 1;
++			if (pin->tx_msg.len > 1 && tx_early_eom(pin)) {
++				/* Error injection: set EOM one byte early */
++				v = pin->tx_bit / 10 ==
++					pin->tx_msg.len + pin->tx_extra_bytes - 2;
++				pin->tx_post_eom = true;
++			}
++			if (tx_no_eom(pin)) {
++				/* Error injection: no EOM */
++				v = false;
++			}
+ 			pin->state = v ? CEC_ST_TX_DATA_BIT_1_LOW :
+-				CEC_ST_TX_DATA_BIT_0_LOW;
++					 CEC_ST_TX_DATA_BIT_0_LOW;
+ 			break;
+-		case 9:
++		case ACK_BIT:
+ 			pin->state = CEC_ST_TX_DATA_BIT_1_LOW;
+ 			break;
+ 		}
++		if (tx_custom_bit(pin))
++			pin->state = CEC_ST_TX_DATA_BIT_LOW_CUSTOM;
+ 		cec_pin_low(pin);
+ 		break;
  
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 53f32022fabe..e6c4e10889bc 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -209,6 +209,7 @@ struct v4l2_file_operations {
-  * @entity: &struct media_entity
-  * @intf_devnode: pointer to &struct media_intf_devnode
-  * @pipe: &struct media_pipeline
-+ * @req_mgr: request manager to use if this device supports creating requests
-  * @fops: pointer to &struct v4l2_file_operations for the video device
-  * @device_caps: device capabilities as used in v4l2_capabilities
-  * @dev: &struct device for the video device
-@@ -251,6 +252,7 @@ struct video_device
- 	struct media_intf_devnode *intf_devnode;
- 	struct media_pipeline pipe;
- #endif
-+	struct media_request_mgr *req_mgr;
- 	const struct v4l2_file_operations *fops;
- 
- 	u32 device_caps;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 91cfe0cbd5c5..35706204e81d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -63,6 +63,7 @@
- #include <linux/compiler.h>
- #include <linux/ioctl.h>
- #include <linux/types.h>
-+#include <linux/media-request.h>
- #include <linux/v4l2-common.h>
- #include <linux/v4l2-controls.h>
- 
-@@ -2407,6 +2408,8 @@ struct v4l2_create_buffers {
- 
- #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
- 
-+#define VIDIOC_NEW_REQUEST	_IOWR('V', 104, struct media_request_new)
+ 	case CEC_ST_TX_DATA_BIT_0_LOW:
+ 	case CEC_ST_TX_DATA_BIT_1_LOW:
+ 		v = pin->state == CEC_ST_TX_DATA_BIT_1_LOW;
+-		pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH :
+-			CEC_ST_TX_DATA_BIT_0_HIGH;
+-		is_ack_bit = pin->tx_bit % 10 == 9;
+-		if (v && (pin->tx_bit < 4 || is_ack_bit))
++		is_ack_bit = pin->tx_bit % 10 == ACK_BIT;
++		if (v && (pin->tx_bit < 4 || is_ack_bit)) {
+ 			pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE;
++		} else if (!is_ack_bit && tx_short_bit(pin)) {
++			/* Error Injection: send an invalid (too short) bit */
++			pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH_SHORT :
++					 CEC_ST_TX_DATA_BIT_0_HIGH_SHORT;
++		} else if (!is_ack_bit && tx_long_bit(pin)) {
++			/* Error Injection: send an invalid (too long) bit */
++			pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH_LONG :
++					 CEC_ST_TX_DATA_BIT_0_HIGH_LONG;
++		} else {
++			pin->state = v ? CEC_ST_TX_DATA_BIT_1_HIGH :
++					 CEC_ST_TX_DATA_BIT_0_HIGH;
++		}
++		cec_pin_high(pin);
++		break;
 +
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
++	case CEC_ST_TX_DATA_BIT_LOW_CUSTOM:
++		pin->state = CEC_ST_TX_DATA_BIT_HIGH_CUSTOM;
+ 		cec_pin_high(pin);
+ 		break;
  
+ 	case CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE:
+ 		/* Read the CEC value at the sample time */
+ 		v = cec_pin_read(pin);
+-		is_ack_bit = pin->tx_bit % 10 == 9;
++		is_ack_bit = pin->tx_bit % 10 == ACK_BIT;
+ 		/*
+ 		 * If v == 0 and we're within the first 4 bits
+ 		 * of the initiator, then someone else started
+@@ -246,7 +512,7 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
+ 		 * transmitter has more leading 0 bits in the
+ 		 * initiator).
+ 		 */
+-		if (!v && !is_ack_bit) {
++		if (!v && !is_ack_bit && !pin->tx_generated_poll) {
+ 			pin->tx_msg.len = 0;
+ 			pin->work_tx_ts = ts;
+ 			pin->work_tx_status = CEC_TX_STATUS_ARB_LOST;
+@@ -255,18 +521,28 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
+ 			pin->tx_bit = 0;
+ 			memset(pin->rx_msg.msg, 0, sizeof(pin->rx_msg.msg));
+ 			pin->rx_msg.msg[0] = pin->tx_msg.msg[0];
+-			pin->rx_msg.msg[0] &= ~(1 << (7 - pin->rx_bit));
++			pin->rx_msg.msg[0] &= (0xff << (8 - pin->rx_bit));
+ 			pin->rx_msg.len = 0;
++			pin->ts = ktime_sub_us(ts, CEC_TIM_DATA_BIT_SAMPLE);
+ 			pin->state = CEC_ST_RX_DATA_POST_SAMPLE;
++			cec_pin_tx_next_clear(pin);
+ 			pin->rx_bit++;
+ 			break;
+ 		}
+ 		pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE;
++		if (!is_ack_bit && tx_short_bit(pin)) {
++			/* Error Injection: send an invalid (too short) bit */
++			pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT;
++		} else if (!is_ack_bit && tx_long_bit(pin)) {
++			/* Error Injection: send an invalid (too long) bit */
++			pin->state = CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG;
++		}
+ 		if (!is_ack_bit)
+ 			break;
+ 		/* Was the message ACKed? */
+ 		ack = cec_msg_is_broadcast(&pin->tx_msg) ? v : !v;
+-		if (!ack) {
++		if (!ack && !pin->tx_ignore_nack_until_eom &&
++		    pin->tx_bit / 10 < pin->tx_msg.len && !pin->tx_post_eom) {
+ 			/*
+ 			 * Note: the CEC spec is ambiguous regarding
+ 			 * what action to take when a NACK appears
+@@ -283,6 +559,15 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
+ 		}
+ 		break;
+ 
++	case CEC_ST_TX_PULSE_LOW_CUSTOM:
++		cec_pin_high(pin);
++		pin->state = CEC_ST_TX_PULSE_HIGH_CUSTOM;
++		break;
++
++	case CEC_ST_TX_PULSE_HIGH_CUSTOM:
++		cec_pin_to_idle(pin);
++		break;
++
+ 	default:
+ 		break;
+ 	}
+@@ -319,24 +604,48 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
+ 			break;
+ 		pin->state = CEC_ST_RX_START_BIT_HIGH;
+ 		delta = ktime_us_delta(ts, pin->ts);
+-		pin->ts = ts;
+ 		/* Start bit low is too short, go back to idle */
+-		if (delta < CEC_TIM_START_BIT_LOW_MIN -
+-			    CEC_TIM_IDLE_SAMPLE) {
++		if (delta < CEC_TIM_START_BIT_LOW_MIN - CEC_TIM_IDLE_SAMPLE) {
+ 			cec_pin_to_idle(pin);
++			break;
++		}
++		if (rx_arb_lost(pin)) {
++			u32 error = cec_pin_rx_error_inj(pin);
++			u8 poll = (error >> CEC_ERROR_INJ_RX_ARB_LOST_POLL_OFFSET) & 0xff;
++
++			cec_pin_rx_next_clear(pin);
++			cec_msg_init(&pin->tx_msg, poll >> 4, poll & 0xf);
++			pin->tx_generated_poll = true;
++			pin->tx_extra_bytes = 0;
++			pin->state = CEC_ST_TX_START_BIT_HIGH;
++			pin->ts = ts;
+ 		}
+ 		break;
+ 
+ 	case CEC_ST_RX_START_BIT_HIGH:
+ 		v = cec_pin_read(pin);
+ 		delta = ktime_us_delta(ts, pin->ts);
+-		if (v && delta > CEC_TIM_START_BIT_TOTAL_MAX -
+-				 CEC_TIM_START_BIT_LOW_MIN) {
++		/*
++		 * Unfortunately the spec does not specify when to give up
++		 * and go to idle. We just pick TOTAL_LONG.
++		 */
++		if (v && delta > CEC_TIM_START_BIT_TOTAL_LONG) {
+ 			cec_pin_to_idle(pin);
+ 			break;
+ 		}
+ 		if (v)
+ 			break;
++		/* Start bit is too short, go back to idle */
++		if (delta < CEC_TIM_START_BIT_TOTAL_MIN - CEC_TIM_IDLE_SAMPLE) {
++			cec_pin_to_idle(pin);
++			break;
++		}
++		if (rx_low_drive(pin)) {
++			/* Error injection: go to low drive */
++			cec_pin_low(pin);
++			pin->state = CEC_ST_RX_LOW_DRIVE;
++			break;
++		}
+ 		pin->state = CEC_ST_RX_DATA_SAMPLE;
+ 		pin->ts = ts;
+ 		pin->rx_eom = false;
+@@ -351,36 +660,48 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
+ 				pin->rx_msg.msg[pin->rx_bit / 10] |=
+ 					v << (7 - (pin->rx_bit % 10));
+ 			break;
+-		case 8:
++		case EOM_BIT:
+ 			pin->rx_eom = v;
+ 			pin->rx_msg.len = pin->rx_bit / 10 + 1;
+ 			break;
+-		case 9:
++		case ACK_BIT:
+ 			break;
+ 		}
+ 		pin->rx_bit++;
+ 		break;
+ 
+ 	case CEC_ST_RX_DATA_POST_SAMPLE:
+-		pin->state = CEC_ST_RX_DATA_HIGH;
++		pin->state = CEC_ST_RX_DATA_WAIT_FOR_LOW;
+ 		break;
+ 
+-	case CEC_ST_RX_DATA_HIGH:
++	case CEC_ST_RX_DATA_WAIT_FOR_LOW:
+ 		v = cec_pin_read(pin);
+ 		delta = ktime_us_delta(ts, pin->ts);
+-		if (v && delta > CEC_TIM_DATA_BIT_TOTAL_MAX) {
++		/*
++		 * Unfortunately the spec does not specify when to give up
++		 * and go to idle. We just pick TOTAL_LONG.
++		 */
++		if (v && delta > CEC_TIM_DATA_BIT_TOTAL_LONG) {
+ 			cec_pin_to_idle(pin);
+ 			break;
+ 		}
+ 		if (v)
+ 			break;
++
++		if (rx_low_drive(pin)) {
++			/* Error injection: go to low drive */
++			cec_pin_low(pin);
++			pin->state = CEC_ST_RX_LOW_DRIVE;
++			break;
++		}
++
+ 		/*
+ 		 * Go to low drive state when the total bit time is
+ 		 * too short.
+ 		 */
+ 		if (delta < CEC_TIM_DATA_BIT_TOTAL_MIN) {
+ 			cec_pin_low(pin);
+-			pin->state = CEC_ST_LOW_DRIVE;
++			pin->state = CEC_ST_RX_LOW_DRIVE;
+ 			break;
+ 		}
+ 		pin->ts = ts;
+@@ -396,6 +717,11 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
+ 		/* ACK bit value */
+ 		ack = bcast ? 1 : !for_us;
+ 
++		if (for_us && rx_nack(pin)) {
++			/* Error injection: toggle the ACK bit */
++			ack = !ack;
++		}
++
+ 		if (ack) {
+ 			/* No need to write to the bus, just wait */
+ 			pin->state = CEC_ST_RX_ACK_HIGH_POST;
+@@ -422,7 +748,7 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
+ 			break;
+ 		}
+ 		pin->rx_bit++;
+-		pin->state = CEC_ST_RX_DATA_HIGH;
++		pin->state = CEC_ST_RX_DATA_WAIT_FOR_LOW;
+ 		break;
+ 
+ 	case CEC_ST_RX_ACK_FINISH:
+@@ -444,6 +770,7 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 	struct cec_adapter *adap = pin->adap;
+ 	ktime_t ts;
+ 	s32 delta;
++	u32 usecs;
+ 
+ 	ts = ktime_get();
+ 	if (ktime_to_ns(pin->timer_ts)) {
+@@ -491,13 +818,27 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 	/* Transmit states */
+ 	case CEC_ST_TX_WAIT_FOR_HIGH:
+ 	case CEC_ST_TX_START_BIT_LOW:
+-	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
+-	case CEC_ST_TX_DATA_BIT_0_HIGH:
+-	case CEC_ST_TX_DATA_BIT_1_HIGH:
+ 	case CEC_ST_TX_START_BIT_HIGH:
++	case CEC_ST_TX_START_BIT_HIGH_SHORT:
++	case CEC_ST_TX_START_BIT_HIGH_LONG:
++	case CEC_ST_TX_START_BIT_LOW_CUSTOM:
++	case CEC_ST_TX_START_BIT_HIGH_CUSTOM:
+ 	case CEC_ST_TX_DATA_BIT_0_LOW:
++	case CEC_ST_TX_DATA_BIT_0_HIGH:
++	case CEC_ST_TX_DATA_BIT_0_HIGH_SHORT:
++	case CEC_ST_TX_DATA_BIT_0_HIGH_LONG:
+ 	case CEC_ST_TX_DATA_BIT_1_LOW:
++	case CEC_ST_TX_DATA_BIT_1_HIGH:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_SHORT:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_LONG:
+ 	case CEC_ST_TX_DATA_BIT_1_HIGH_PRE_SAMPLE:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_SHORT:
++	case CEC_ST_TX_DATA_BIT_1_HIGH_POST_SAMPLE_LONG:
++	case CEC_ST_TX_DATA_BIT_LOW_CUSTOM:
++	case CEC_ST_TX_DATA_BIT_HIGH_CUSTOM:
++	case CEC_ST_TX_PULSE_LOW_CUSTOM:
++	case CEC_ST_TX_PULSE_HIGH_CUSTOM:
+ 		cec_pin_tx_states(pin, ts);
+ 		break;
+ 
+@@ -506,7 +847,7 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 	case CEC_ST_RX_START_BIT_HIGH:
+ 	case CEC_ST_RX_DATA_SAMPLE:
+ 	case CEC_ST_RX_DATA_POST_SAMPLE:
+-	case CEC_ST_RX_DATA_HIGH:
++	case CEC_ST_RX_DATA_WAIT_FOR_LOW:
+ 	case CEC_ST_RX_ACK_LOW:
+ 	case CEC_ST_RX_ACK_LOW_POST:
+ 	case CEC_ST_RX_ACK_HIGH_POST:
+@@ -533,7 +874,10 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 			if (delta / CEC_TIM_DATA_BIT_TOTAL >
+ 			    pin->tx_signal_free_time) {
+ 				pin->tx_nacked = false;
+-				pin->state = CEC_ST_TX_START_BIT_LOW;
++				if (tx_custom_start(pin))
++					pin->state = CEC_ST_TX_START_BIT_LOW_CUSTOM;
++				else
++					pin->state = CEC_ST_TX_START_BIT_LOW;
+ 				/* Generate start bit */
+ 				cec_pin_low(pin);
+ 				break;
+@@ -543,6 +887,13 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 				pin->state = CEC_ST_TX_WAIT;
+ 			break;
+ 		}
++		if (pin->tx_custom_pulse && pin->state == CEC_ST_IDLE) {
++			pin->tx_custom_pulse = false;
++			/* Generate custom pulse */
++			cec_pin_low(pin);
++			pin->state = CEC_ST_TX_PULSE_LOW_CUSTOM;
++			break;
++		}
+ 		if (pin->state != CEC_ST_IDLE || pin->ops->enable_irq == NULL ||
+ 		    pin->enable_irq_failed || adap->is_configuring ||
+ 		    adap->is_configured || adap->monitor_all_cnt)
+@@ -553,21 +904,40 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 		wake_up_interruptible(&pin->kthread_waitq);
+ 		return HRTIMER_NORESTART;
+ 
+-	case CEC_ST_LOW_DRIVE:
++	case CEC_ST_TX_LOW_DRIVE:
++	case CEC_ST_RX_LOW_DRIVE:
++		cec_pin_high(pin);
+ 		cec_pin_to_idle(pin);
+ 		break;
+ 
+ 	default:
+ 		break;
+ 	}
+-	if (!adap->monitor_pin_cnt || states[pin->state].usecs <= 150) {
++
++	switch (pin->state) {
++	case CEC_ST_TX_START_BIT_LOW_CUSTOM:
++	case CEC_ST_TX_DATA_BIT_LOW_CUSTOM:
++	case CEC_ST_TX_PULSE_LOW_CUSTOM:
++		usecs = pin->tx_custom_low_usecs;
++		break;
++	case CEC_ST_TX_START_BIT_HIGH_CUSTOM:
++	case CEC_ST_TX_DATA_BIT_HIGH_CUSTOM:
++	case CEC_ST_TX_PULSE_HIGH_CUSTOM:
++		usecs = pin->tx_custom_high_usecs;
++		break;
++	default:
++		usecs = states[pin->state].usecs;
++		break;
++	}
++
++	if (!adap->monitor_pin_cnt || usecs <= 150) {
+ 		pin->wait_usecs = 0;
+-		pin->timer_ts = ktime_add_us(ts, states[pin->state].usecs);
++		pin->timer_ts = ktime_add_us(ts, usecs);
+ 		hrtimer_forward_now(timer,
+-				ns_to_ktime(states[pin->state].usecs * 1000));
++				ns_to_ktime(usecs * 1000));
+ 		return HRTIMER_RESTART;
+ 	}
+-	pin->wait_usecs = states[pin->state].usecs - 100;
++	pin->wait_usecs = usecs - 100;
+ 	pin->timer_ts = ktime_add_us(ts, 100);
+ 	hrtimer_forward_now(timer, ns_to_ktime(100000));
+ 	return HRTIMER_RESTART;
+@@ -587,9 +957,22 @@ static int cec_pin_thread_func(void *_adap)
+ 			atomic_read(&pin->work_pin_events));
+ 
+ 		if (pin->work_rx_msg.len) {
+-			cec_received_msg_ts(adap, &pin->work_rx_msg,
++			struct cec_msg *msg = &pin->work_rx_msg;
++
++			if (msg->len > 1 && msg->len < CEC_MAX_MSG_SIZE &&
++			    rx_add_byte(pin)) {
++				/* Error injection: add byte to the message */
++				msg->msg[msg->len++] = 0x55;
++			}
++			if (msg->len > 2 && rx_remove_byte(pin)) {
++				/* Error injection: remove byte from message */
++				msg->len--;
++			}
++			if (msg->len > CEC_MAX_MSG_SIZE)
++				msg->len = CEC_MAX_MSG_SIZE;
++			cec_received_msg_ts(adap, msg,
+ 				ns_to_ktime(pin->work_rx_msg.rx_ts));
+-			pin->work_rx_msg.len = 0;
++			msg->len = 0;
+ 		}
+ 		if (pin->work_tx_status) {
+ 			unsigned int tx_status = pin->work_tx_status;
+@@ -698,7 +1081,16 @@ static int cec_pin_adap_transmit(struct cec_adapter *adap, u8 attempts,
+ 	struct cec_pin *pin = adap->pin;
+ 
+ 	pin->tx_signal_free_time = signal_free_time;
++	pin->tx_extra_bytes = 0;
+ 	pin->tx_msg = *msg;
++	if (msg->len > 1) {
++		/* Error injection: add byte to the message */
++		pin->tx_extra_bytes = tx_add_bytes(pin);
++	}
++	if (msg->len > 2 && tx_remove_byte(pin)) {
++		/* Error injection: remove byte from the message */
++		pin->tx_msg.len--;
++	}
+ 	pin->work_tx_status = 0;
+ 	pin->tx_bit = 0;
+ 	cec_pin_start_timer(pin);
 -- 
-2.16.1.291.g4437f3f132-goog
+2.15.1
