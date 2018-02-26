@@ -1,191 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:36442 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932252AbeBLXB5 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56192 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752033AbeBZEnr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 18:01:57 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v13 0/2] rcar-csi2: add Renesas R-Car MIPI CSI-2
-Date: Tue, 13 Feb 2018 00:01:30 +0100
-Message-Id: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sun, 25 Feb 2018 23:43:47 -0500
+Message-ID: <421814c1d856b704c99ab772b1519318@smtp-cloud7.xs4all.net>
+Date: Mon, 26 Feb 2018 05:43:36 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's
-based on top of the media-tree and are tested on Renesas Salvator-X
-together with adv7482 and the out-of-tree patches for rcar-vin and to 
-add support for Gen3 VIN.
+Results of the daily build of media_tree:
 
-I hope this is the last incarnation of this patch-set, I do think it is
-ready for upstream consumption :-)
+date:			Mon Feb 26 05:00:12 CET 2018
+media-tree git hash:	a7bc5773cd166032e35e343dfb6067a93d8402d1
+media_build git hash:	a9ea3d056e5ce50d37dd6129126f776c3a8ec2d7
+v4l-utils git hash:	ef45319c1686088a46325db4dbfaffcdbcacf862
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-* Changes since v12
-- Fixed spelling mistakes in commit messages and documentation patch, 
-  thanks Laurent.
-- Mark endpoints in port 1 as optional as it is allowed to not connect a 
-  VIN to the CSI-2 and instead have it only use its parallel input 
-  source (for those VIN that have one).
-- Added Ack from Sakari, thanks!
-- Media bus codes are u32 not unsigned int.
-- Ignore error check for v4l2_subdev_call(sd, video, s_stream, 0)
-- Do not set subdev host data as it's not used, 
-  v4l2_set_subdev_hostdata().
-- Fixed spelling errors in commit message.
-- Add SPDX header
-- Rename badly named variable tmp to vcdt_part.
-- Cache subdevice in bound callback instead of looking it up in the 
-  media graph. By doing this rcar_csi2_sd_info() can be removed.
-- Print unsigned using %u not %d.
-- Call pm_runtime_enable() before calling v4l2_async_register_subdev().
-- Dropped of_match_ptr() as OF is required.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: WARNINGS
+linux-3.2.98-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-* Changes since v11
-- Added missing call to v4l2_async_notifier_unregister().
-- Fixed missing reg popery in bindings documentation.
-- Add Rob's ack to 01/02.
-- Dropped 'media:' prefix from patch subjects as it seems they are added
-  first when a patch is picked up by the maintainer.
-- Fixed typo in comment enpoint -> endpoint, thanks Hans.
-- Added Hans Reviewed-by to driver.
+Detailed results are available here:
 
-* Changes since v10
-- Renamed Documentation/devicetree/bindings/media/rcar-csi2.txt to
-  Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-- Add extra newline in rcar_csi2_code_to_fmt()
-- Use locally stored format information instead of reading it from the
-  remote subdevice, Sakari pointed out that the pipeline is validated
-  before .s_stream() is called so this is safe.
-- Do not check return from media_entity_to_v4l2_subdev() in
-  rcar_csi2_start(), Sakari pointed out it can't fail. Also move logic
-  to find the remote subdevice is moved to the only user of it,
-  rcar_csi2_calc_phypll().
-- Move pm_runtime_get_sync() and pm_runtime_put() to
-  rcar_csi2_s_stream() and remove rcar_csi2_s_power().
-- Add validation of pixel code to rcar_csi2_set_pad_format().
-- Remove static rcar_csi2_notify_unbind() as it only printed a debug
-  message.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-* Changes since v9
-- Add reset property to device tree example
-- Use BIT(x) instead of (1 << x)
-- Use u16 in struct phypll_hsfreqrange to pack struct better.
-- Use unsigned int type for loop variable in rcar_csi2_code_to_fmt
-- Move fields inside struct struct rcar_csi2_info and struct rcar_csi2
-  to pack struct's tighter.
-- Use %u instead of %d when printing __u32.
-- Don't check return of platform_get_resource(), let
-  devm_ioremap_resource() handle it.
-- Store quirk workaround for r8a7795 ES1.0 in the data field of struct
-  soc_device_attribute.
+Full logs are available here:
 
-Changes since v8:
-- Updated bindings documentation, thanks Rob!
-- Make use of the now in media-tree sub-notifier V4L2 API
-- Add delay when resetting the IP to allow for a proper reset
-- Fix bug in s_stream error path where the usage count was off if an
-  error was hit.
-- Add support for H3 ES2.0
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Changes since v7:
-- Rebase on top of the latest incremental async patches.
-- Fix comments on DT documentation.
-- Use v4l2_ctrl_g_ctrl_int64() instead of v4l2_g_ext_ctrls().
-- Handle try formats in .set_fmt() and .get_fmt().
-- Don't call v4l2_device_register_subdev_nodes() as this is not needed
-  with the complete() callbacks synchronized.
-- Fix line over 80 chars.
-- Fix varies spelling mistakes.
+The Media Infrastructure API from this daily build is here:
 
-Changes since v6:
-- Rebased on top of Sakaris fwnode patches.
-- Changed of RCAR_CSI2_PAD_MAX to NR_OF_RCAR_CSI2_PAD.
-- Remove assumption about unknown media bus type, thanks Sakari for
-  pointing this out.
-- Created table for supported format information instead of scattering
-  this information around the driver, thanks Sakari!
-- Small newline fixes and reduce some indentation levels
-
-Changes since v5:
-- Make use of the incremental async subnotifer and helper to map DT
-  endpoint to media pad number. This moves functionality which
-  previously in the Gen3 patches for R-Car VIN driver to this R-Car
-  CSI-2 driver. This is done in preparation to support the ADV7482
-  driver in development by Kieran which will register more then one
-  subdevice and the CSI-2 driver needs to cope wit this. Further more it
-  prepares the driver for another use-case where more then one subdevice
-  is present upstream for the CSI-2.
-- Small cleanups.
-- Add explicit include for linux/io.h, thanks Kieran.
-
-Changes since v4:
-- Match SoC part numbers and drop trailing space in documentation,
-  thanks Geert for pointing this out.
-- Clarify that the driver is a CSI-2 receiver by supervised
-  s/interface/receiver/, thanks Laurent.
-- Add entries in Kconfig and Makefile alphabetically instead of append.
-- Rename struct rcar_csi2 member swap to lane_swap.
-- Remove macros to wrap calls to dev_{dbg,info,warn,err}.
-- Add wrappers for ioread32 and iowrite32.
-- Remove unused interrupt handler, but keep checking in probe that there
-  are a interrupt define in DT.
-- Rework how to wait for LP-11 state, thanks Laurent for the great idea!
-- Remove unneeded delay in rcar_csi2_reset()
-- Remove check for duplicated lane id:s from DT parsing. Broken out to a
-  separate patch adding this check directly to v4l2_of_parse_endpoint().
-- Fixed rcar_csi2_start() to ask it's source subdevice for information
-  about pixel rate and frame format. With this change having
-  {set,get}_fmt operations became redundant, it was only used for
-  figuring out this out so dropped them.
-- Tabulated frequency settings map.
-- Dropped V4L2_SUBDEV_FL_HAS_DEVNODE it should never have been set.
-- Switched from MEDIA_ENT_F_ATV_DECODER to
-  MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER as entity function. I can't
-  find a more suitable function, and what the hardware do is to fetch
-  video from an external chip and passes it on to a another SoC internal
-  IP it's sort of a formatter.
-- Break out DT documentation and code in two patches.
-
-Changes since v3:
-- Update DT binding documentation with input from Geert Uytterhoeven,
-  thanks
-
-Changes since v2:
-- Added media control pads as this is needed by the new rcar-vin driver.
-- Update DT bindings after review comments and to add r8a7796 support.
-- Add get_fmt handler.
-- Fix media bus format error s/YUYV8/UYVY8/
-
-Changes since v1:
-- Drop dependency on a pad aware s_stream operation.
-- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
-  for pointing this out.
-
-Niklas Söderlund (2):
-  rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-  rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-
- .../bindings/media/renesas,rcar-csi2.txt           |  99 +++
- MAINTAINERS                                        |   1 +
- drivers/media/platform/rcar-vin/Kconfig            |  12 +
- drivers/media/platform/rcar-vin/Makefile           |   1 +
- drivers/media/platform/rcar-vin/rcar-csi2.c        | 884 +++++++++++++++++++++
- 5 files changed, 997 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
- create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
-
--- 
-2.16.1
+http://www.xs4all.nl/~hverkuil/spec/index.html
