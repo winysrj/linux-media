@@ -1,64 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53972 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755557AbeBOTqU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 14:46:20 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id B4CF0200BF
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 20:44:45 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.17] uvcvideo changes
-Date: Thu, 15 Feb 2018 21:46:54 +0200
-Message-ID: <5514459.NidxLMrFhA@avalon>
+Received: from osg.samsung.com ([64.30.133.232]:47864 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753546AbeBZOot (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Feb 2018 09:44:49 -0500
+Date: Mon, 26 Feb 2018 11:44:40 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv4 06/15] subdev-formats.rst: fix incorrect types
+Message-ID: <20180226114440.2a80d260@vento.lan>
+In-Reply-To: <20180221153218.15654-7-hverkuil@xs4all.nl>
+References: <20180221153218.15654-1-hverkuil@xs4all.nl>
+        <20180221153218.15654-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
+Em Wed, 21 Feb 2018 16:32:09 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 
--0500)
+> The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-are available in the git repository at:
+Thanks for your patch. I have one comment about it, though. See below.
 
-  git://linuxtv.org/pinchartl/media.git uvc/next
+> ---
+>  Documentation/media/uapi/v4l/subdev-formats.rst | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+> index b1eea44550e1..4f0c0b282f98 100644
+> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+> @@ -33,17 +33,17 @@ Media Bus Formats
+>        - Image colorspace, from enum
+>  	:c:type:`v4l2_colorspace`. See
+>  	:ref:`colorspaces` for details.
+> -    * - enum :c:type:`v4l2_ycbcr_encoding`
+> +    * - __u16
+>        - ``ycbcr_enc``
+>        - This information supplements the ``colorspace`` and must be set by
+>  	the driver for capture streams and by the application for output
+>  	streams, see :ref:`colorspaces`.
 
-for you to fetch changes up to df0d402a05dfe57cc6069d189ae9844f5bb4e852:
+While this patch makes sense, it excludes an important information:
+what are the valid values for this field.
 
-  uvcvideo: Fixed ktime_t to ns conversion (2018-02-15 10:16:34 +0200)
+I was expecting something like what's written for the code field:
 
-----------------------------------------------------------------
-Edgar Thier (1):
-      uvcvideo: Apply flags from device to actual properties
+     * - __u32
+       - ``code``
+       - Format code, from enum
+        :ref:`v4l2_mbus_pixelcode <v4l2-mbus-pixelcode>`.
 
-Jasmin Jessich (1):
-      uvcvideo: Fixed ktime_t to ns conversion
+Something like:
 
-Laurent Pinchart (4):
-      uvcvideo: Drop extern keyword in function declarations
-      uvcvideo: Use kernel integer types
-      uvcvideo: Use internal kernel integer types
-      uvcvideo: Use parentheses around sizeof operand
+    * - enum :c:type:`v4l2_ycbcr_encoding`
+     * - __u16
+       - This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams from enum :ref:`v4l2_mbus_pixelcode <v4l2-mbus-pixelcode>`.
+	See :ref:`colorspaces`.
 
-Philipp Zabel (1):
-      uvcvideo: Support multiple frame descriptors with the same dimensions
+The same applies to the other changes below.
 
- drivers/media/usb/uvc/uvc_ctrl.c   | 114 +++++++++-------
- drivers/media/usb/uvc/uvc_driver.c |  97 +++++++-------
- drivers/media/usb/uvc/uvc_isight.c |   6 +-
- drivers/media/usb/uvc/uvc_status.c |   4 +-
- drivers/media/usb/uvc/uvc_v4l2.c   | 139 +++++++++++++-------
- drivers/media/usb/uvc/uvc_video.c  |  47 +++----
- drivers/media/usb/uvc/uvcvideo.h   | 320 +++++++++++++++++-----------------
- 7 files changed, 395 insertions(+), 332 deletions(-)
+As this patch is independent from the others at your pull request,
+I'm skipping it.
 
--- 
 Regards,
+Mauro
 
-Laurent Pinchart
+> -    * - enum :c:type:`v4l2_quantization`
+> +    * - __u16
+>        - ``quantization``
+>        - This information supplements the ``colorspace`` and must be set by
+>  	the driver for capture streams and by the application for output
+>  	streams, see :ref:`colorspaces`.
+> -    * - enum :c:type:`v4l2_xfer_func`
+> +    * - __u16
+>        - ``xfer_func``
+>        - This information supplements the ``colorspace`` and must be set by
+>  	the driver for capture streams and by the application for output
+
+
+
+Thanks,
+Mauro
