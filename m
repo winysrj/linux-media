@@ -1,196 +1,399 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:63489 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750990AbeBFNlQ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54328 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751518AbeBZVoz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 08:41:16 -0500
-Date: Tue, 6 Feb 2018 14:40:35 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
- with a mask
-In-Reply-To: <20180206132335.luut6em3kut7f7ej@mwanda>
-Message-ID: <alpine.DEB.2.20.1802061439110.3306@hadrien>
-References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com> <20180206131044.oso33fvv553trrd7@mwanda> <alpine.DEB.2.20.1802061414340.3306@hadrien> <20180206132335.luut6em3kut7f7ej@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 26 Feb 2018 16:44:55 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH 13/15] v4l: vsp1: Assign BRU and BRS to pipelines dynamically
+Date: Mon, 26 Feb 2018 23:45:14 +0200
+Message-Id: <20180226214516.11559-14-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The VSPDL variant drives two DU channels through two LIF and two
+blenders, BRU and BRS. The DU channels thus share the five available
+VSPDL inputs and expose them as five KMS planes.
 
+The current implementation assigns the BRS to the second LIF and thus
+artificially limits the number of planes for the second display channel
+to two at most.
 
-On Tue, 6 Feb 2018, Dan Carpenter wrote:
+Lift this artificial limitation by assigning the BRU and BRS to the
+display pipelines on demand based on the number of planes used by each
+pipeline. When a display pipeline needs more than two inputs and the BRU
+is already in use by the other pipeline, this requires reconfiguring the
+other pipeline to free the BRU before processing, which can result in
+frame drop on both pipelines.
 
-> On Tue, Feb 06, 2018 at 02:15:51PM +0100, Julia Lawall wrote:
-> >
-> >
-> > On Tue, 6 Feb 2018, Dan Carpenter wrote:
-> >
-> > > On Mon, Feb 05, 2018 at 09:09:57PM +0100, Wolfram Sang wrote:
-> > > > In one Renesas driver, I found a typo which turned an intended bit shift ('<<')
-> > > > into a comparison ('<'). Because this is a subtle issue, I looked tree wide for
-> > > > similar patterns. This small patch series is the outcome.
-> > > >
-> > > > Buildbot and checkpatch are happy. Only compile-tested. To be applied
-> > > > individually per sub-system, I think. I'd think only the net: amd: patch needs
-> > > > to be conisdered for stable, but I leave this to people who actually know this
-> > > > driver.
-> > > >
-> > > > CCing Dan. Maybe he has an idea how to add a test to smatch? In my setup, only
-> > > > cppcheck reported a 'coding style' issue with a low prio.
-> > > >
-> > >
-> > > Most of these are inside macros so it makes it complicated for Smatch
-> > > to warn about them.  It might be easier in Coccinelle.  Julia the bugs
-> > > look like this:
-> > >
-> > > -			reissue_mask |= 0xffff < 4;
-> > > +			reissue_mask |= 0xffff << 4;
-> >
-> > Thanks.  I'll take a look.  Do you have an example of the macro issue
-> > handy?
-> >
->
-> It's the same:
->
-> #define EXYNOS_CIIMGEFF_PAT_CBCR_MASK          ((0xff < 13) | (0xff < 0))
->
-> Smatch only sees the outside of the macro (where it is used in the code)
-> and the pre-processed code.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 160 +++++++++++++++++++++++++++------
+ drivers/media/platform/vsp1/vsp1_drm.h |   9 ++
+ 2 files changed, 144 insertions(+), 25 deletions(-)
 
-I wrote the following rule:
-
-@@
-constant int x,y;
-identifier i;
-type T;
-@@
-
-(
-i < x
-|
-x < i
-|
- (T)i < x
-|
-x < (T)i
-|
-* x < y
-)
-
-and got the results below.  I can make a version for the kernel shortly.
-
-julia
-
-diff -u -p /run/shm/linux-next/drivers/gpu/drm/exynos/regs-fimc.h /tmp/nothing/drivers/gpu/drm/exynos/regs-fimc.h
---- /run/shm/linux-next/drivers/gpu/drm/exynos/regs-fimc.h
-+++ /tmp/nothing/drivers/gpu/drm/exynos/regs-fimc.h
-@@ -569,7 +569,6 @@
- #define EXYNOS_CIIMGEFF_FIN_EMBOSSING		(4 << 26)
- #define EXYNOS_CIIMGEFF_FIN_SILHOUETTE		(5 << 26)
- #define EXYNOS_CIIMGEFF_FIN_MASK			(7 << 26)
--#define EXYNOS_CIIMGEFF_PAT_CBCR_MASK		((0xff < 13) | (0xff < 0))
-
- /* Real input DMA size register */
- #define EXYNOS_CIREAL_ISIZE_AUTOLOAD_ENABLE	(1 << 31)
-diff -u -p /run/shm/linux-next/drivers/net/ethernet/amd/xgbe/xgbe-drv.c /tmp/nothing/drivers/net/ethernet/amd/xgbe/xgbe-drv.c
---- /run/shm/linux-next/drivers/net/ethernet/amd/xgbe/xgbe-drv.c
-+++ /tmp/nothing/drivers/net/ethernet/amd/xgbe/xgbe-drv.c
-@@ -595,7 +595,6 @@ isr_done:
-
- 		reissue_mask = 1 << 0;
- 		if (!pdata->per_channel_irq)
--			reissue_mask |= 0xffff < 4;
-
- 		XP_IOWRITE(pdata, XP_INT_REISSUE_EN, reissue_mask);
- 	}
-diff -u -p /run/shm/linux-next/drivers/video/fbdev/mxsfb.c /tmp/nothing/drivers/video/fbdev/mxsfb.c
---- /run/shm/linux-next/drivers/video/fbdev/mxsfb.c
-+++ /tmp/nothing/drivers/video/fbdev/mxsfb.c
-@@ -133,8 +133,6 @@
- #define VDCTRL4_SYNC_SIGNALS_ON		(1 << 18)
- #define SET_DOTCLK_H_VALID_DATA_CNT(x)	((x) & 0x3ffff)
-
--#define DEBUG0_HSYNC			(1 < 26)
--#define DEBUG0_VSYNC			(1 < 25)
-
- #define MIN_XRES			120
- #define MIN_YRES			120
-diff -u -p /run/shm/linux-next/include/drm/drm_scdc_helper.h /tmp/nothing/include/drm/drm_scdc_helper.h
---- /run/shm/linux-next/include/drm/drm_scdc_helper.h
-+++ /tmp/nothing/include/drm/drm_scdc_helper.h
-@@ -50,9 +50,6 @@
- #define  SCDC_READ_REQUEST_ENABLE (1 << 0)
-
- #define SCDC_STATUS_FLAGS_0 0x40
--#define  SCDC_CH2_LOCK (1 < 3)
--#define  SCDC_CH1_LOCK (1 < 2)
--#define  SCDC_CH0_LOCK (1 < 1)
- #define  SCDC_CH_LOCK_MASK (SCDC_CH2_LOCK | SCDC_CH1_LOCK | SCDC_CH0_LOCK)
- #define  SCDC_CLOCK_DETECT (1 << 0)
-
-diff -u -p /run/shm/linux-next/arch/um/drivers/vector_user.h /tmp/nothing/arch/um/drivers/vector_user.h
---- /run/shm/linux-next/arch/um/drivers/vector_user.h
-+++ /tmp/nothing/arch/um/drivers/vector_user.h
-@@ -61,8 +61,6 @@ struct vector_fds {
- };
-
- #define VECTOR_READ	1
--#define VECTOR_WRITE	(1 < 1)
--#define VECTOR_HEADERS	(1 < 2)
-
- extern struct arglist *uml_parse_vector_ifspec(char *arg);
-
-diff -u -p /run/shm/linux-next/drivers/gpu/drm/mxsfb/mxsfb_regs.h /tmp/nothing/drivers/gpu/drm/mxsfb/mxsfb_regs.h
---- /run/shm/linux-next/drivers/gpu/drm/mxsfb/mxsfb_regs.h
-+++ /tmp/nothing/drivers/gpu/drm/mxsfb/mxsfb_regs.h
-@@ -91,8 +91,6 @@
- #define VDCTRL4_SYNC_SIGNALS_ON		(1 << 18)
- #define SET_DOTCLK_H_VALID_DATA_CNT(x)	((x) & 0x3ffff)
-
--#define DEBUG0_HSYNC			(1 < 26)
--#define DEBUG0_VSYNC			(1 < 25)
-
- #define MXSFB_MIN_XRES			120
- #define MXSFB_MIN_YRES			120
-diff -u -p /run/shm/linux-next/drivers/media/platform/vsp1/vsp1_regs.h /tmp/nothing/drivers/media/platform/vsp1/vsp1_regs.h
---- /run/shm/linux-next/drivers/media/platform/vsp1/vsp1_regs.h
-+++ /tmp/nothing/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -225,7 +225,6 @@
- #define VI6_RPF_MULT_ALPHA_P_MMD_RATIO	(1 << 8)
- #define VI6_RPF_MULT_ALPHA_P_MMD_IMAGE	(2 << 8)
- #define VI6_RPF_MULT_ALPHA_P_MMD_BOTH	(3 << 8)
--#define VI6_RPF_MULT_ALPHA_RATIO_MASK	(0xff < 0)
- #define VI6_RPF_MULT_ALPHA_RATIO_SHIFT	0
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 6c60b72b6f50..87e31ba0ddf5 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -39,7 +39,13 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+ 	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+ 
+ 	if (drm_pipe->du_complete)
+-		drm_pipe->du_complete(drm_pipe->du_private, completed);
++		drm_pipe->du_complete(drm_pipe->du_private,
++				      completed && !notify);
++
++	if (notify) {
++		drm_pipe->force_bru_release = false;
++		wake_up(&drm_pipe->wait_queue);
++	}
+ }
+ 
  /* -----------------------------------------------------------------------------
-diff -u -p /run/shm/linux-next/drivers/media/dvb-frontends/stb0899_reg.h /tmp/nothing/drivers/media/dvb-frontends/stb0899_reg.h
---- /run/shm/linux-next/drivers/media/dvb-frontends/stb0899_reg.h
-+++ /tmp/nothing/drivers/media/dvb-frontends/stb0899_reg.h
-@@ -374,22 +374,18 @@
+@@ -149,6 +155,10 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+ }
+ 
+ /* Setup the BRU source pad. */
++static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
++					struct vsp1_pipeline *pipe);
++static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe);
++
+ static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
+ 				      struct vsp1_pipeline *pipe)
+ {
+@@ -156,8 +166,93 @@ static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
+ 	struct v4l2_subdev_format format = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
++	struct vsp1_entity *bru;
+ 	int ret;
+ 
++	/*
++	 * Pick a BRU:
++	 * - If we need more than two inputs, use the main BRU.
++	 * - Otherwise, if we are not forced to release our BRU, keep it.
++	 * - Else, use any free BRU (randomly starting with the main BRU).
++	 */
++	if (pipe->num_inputs > 2)
++		bru = &vsp1->bru->entity;
++	else if (pipe->bru && !drm_pipe->force_bru_release)
++		bru = pipe->bru;
++	else if (!vsp1->bru->entity.pipe)
++		bru = &vsp1->bru->entity;
++	else
++		bru = &vsp1->brs->entity;
++
++	/* Switch BRU if needed. */
++	if (bru != pipe->bru) {
++		struct vsp1_entity *released_bru = NULL;
++
++		/* Release our BRU if we have one. */
++		if (pipe->bru) {
++			/*
++			 * The BRU might be acquired by the other pipeline in
++			 * the next step. We must thus remove it from the list
++			 * of entities for this pipeline. The other pipeline's
++			 * hardware configuration will reconfigure the BRU
++			 * routing.
++			 *
++			 * However, if the other pipeline doesn't acquire our
++			 * BRU, we need to keep it in the list, otherwise the
++			 * hardware configuration step won't disconnect it from
++			 * the pipeline. To solve this, store the released BRU
++			 * pointer to add it back to the list of entities later
++			 * if it isn't acquired by the other pipeline.
++			 */
++			released_bru = pipe->bru;
++
++			list_del(&pipe->bru->list_pipe);
++			pipe->bru->sink = NULL;
++			pipe->bru->pipe = NULL;
++			pipe->bru = NULL;
++		}
++
++		/*
++		 * If the BRU we need is in use, force the owner pipeline to
++		 * switch to the other BRU and wait until the switch completes.
++		 */
++		if (bru->pipe) {
++			struct vsp1_drm_pipeline *owner_pipe;
++
++			owner_pipe = to_vsp1_drm_pipeline(bru->pipe);
++			owner_pipe->force_bru_release = true;
++
++			vsp1_du_pipeline_setup_input(vsp1, &owner_pipe->pipe);
++			vsp1_du_pipeline_configure(&owner_pipe->pipe);
++
++			ret = wait_event_timeout(owner_pipe->wait_queue,
++						 !owner_pipe->force_bru_release,
++						 msecs_to_jiffies(500));
++			if (ret == 0)
++				dev_warn(vsp1->dev,
++					 "DRM pipeline %u reconfiguration timeout\n",
++					 owner_pipe->pipe.lif->index);
++		}
++
++		/*
++		 * If the BRU we have released previously hasn't been acquired
++		 * by the other pipeline, add it back to the entities list (with
++		 * the pipe pointer NULL) to let vsp1_du_pipeline_configure()
++		 * disconnect it from the hardware pipeline.
++		 */
++		if (released_bru && !released_bru->pipe)
++			list_add_tail(&released_bru->list_pipe,
++				      &pipe->entities);
++
++		/* Add the BRU to the pipeline. */
++		pipe->bru = bru;
++		pipe->bru->pipe = pipe;
++		pipe->bru->sink = &pipe->output->entity;
++		pipe->bru->sink_pad = 0;
++
++		list_add_tail(&pipe->bru->list_pipe, &pipe->entities);
++	}
++
+ 	/*
+ 	 * Configure the format on the BRU source and verify that it matches the
+ 	 * requested format. We don't set the media bus code as it is configured
+@@ -197,7 +292,7 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+ 					struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+-	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
++	struct vsp1_bru *bru;
+ 	unsigned int i;
+ 	int ret;
+ 
+@@ -208,15 +303,6 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+ 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+ 		unsigned int j;
+ 
+-		/*
+-		 * Make sure we don't accept more inputs than the hardware can
+-		 * handle. This is a temporary fix to avoid display stall, we
+-		 * need to instead allocate the BRU or BRS to display pipelines
+-		 * dynamically based on the number of planes they each use.
+-		 */
+-		if (pipe->num_inputs >= pipe->bru->source_pad)
+-			pipe->inputs[i] = NULL;
+-
+ 		if (!pipe->inputs[i])
+ 			continue;
+ 
+@@ -242,6 +328,8 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+ 		return ret;
+ 	}
+ 
++	bru = to_bru(&pipe->bru->subdev);
++
+ 	/* Setup the RPF input pipeline for every enabled input. */
+ 	for (i = 0; i < pipe->bru->source_pad; ++i) {
+ 		struct vsp1_rwpf *rpf = inputs[i];
+@@ -339,6 +427,7 @@ static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
+ /* Configure all entities in the pipeline. */
+ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+ {
++	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+ 	struct vsp1_entity *entity;
+ 	struct vsp1_entity *next;
+ 	struct vsp1_dl_list *dl;
+@@ -369,7 +458,7 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+ 		}
+ 	}
+ 
+-	vsp1_dl_list_commit(dl, false);
++	vsp1_dl_list_commit(dl, drm_pipe->force_bru_release);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -414,7 +503,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	struct vsp1_drm_pipeline *drm_pipe;
+ 	struct vsp1_pipeline *pipe;
+-	struct vsp1_bru *bru;
+ 	unsigned long flags;
+ 	unsigned int i;
+ 	int ret;
+@@ -424,9 +512,14 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 
+ 	drm_pipe = &vsp1->drm->pipe[pipe_index];
+ 	pipe = &drm_pipe->pipe;
+-	bru = to_bru(&pipe->bru->subdev);
+ 
+ 	if (!cfg) {
++		struct vsp1_bru *bru;
++
++		mutex_lock(&vsp1->drm->lock);
++
++		bru = to_bru(&pipe->bru->subdev);
++
+ 		/*
+ 		 * NULL configuration means the CRTC is being disabled, stop
+ 		 * the pipeline and turn the light off.
+@@ -456,6 +549,12 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 		drm_pipe->du_complete = NULL;
+ 		pipe->num_inputs = 0;
+ 
++		list_del(&pipe->bru->list_pipe);
++		pipe->bru->pipe = NULL;
++		pipe->bru = NULL;
++
++		mutex_unlock(&vsp1->drm->lock);
++
+ 		vsp1_dlm_reset(pipe->output->dlm);
+ 		vsp1_device_put(vsp1);
+ 
+@@ -470,19 +569,21 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	dev_dbg(vsp1->dev, "%s: configuring LIF%u with format %ux%u\n",
+ 		__func__, pipe_index, cfg->width, cfg->height);
+ 
++	mutex_lock(&vsp1->drm->lock);
++
+ 	/* Setup formats through the pipeline. */
+ 	ret = vsp1_du_pipeline_setup_input(vsp1, pipe);
+ 	if (ret < 0)
+-		return ret;
++		goto unlock;
+ 
+ 	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
+ 	if (ret < 0)
+-		return ret;
++		goto unlock;
+ 
+ 	/* Enable the VSP1. */
+ 	ret = vsp1_device_get(vsp1);
+ 	if (ret < 0)
+-		return ret;
++		goto unlock;
+ 
+ 	/*
+ 	 * Register a callback to allow us to notify the DRM driver of frame
+@@ -498,6 +599,12 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	/* Configure all entities in the pipeline. */
+ 	vsp1_du_pipeline_configure(pipe);
+ 
++unlock:
++	mutex_unlock(&vsp1->drm->lock);
++
++	if (ret < 0)
++		return ret;
++
+ 	/* Start the pipeline. */
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 	vsp1_pipeline_run(pipe);
+@@ -516,6 +623,9 @@ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
+  */
+ void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index)
+ {
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++
++	mutex_lock(&vsp1->drm->lock);
+ }
+ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
+ 
+@@ -629,6 +739,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 
+ 	vsp1_du_pipeline_setup_input(vsp1, pipe);
+ 	vsp1_du_pipeline_configure(pipe);
++	mutex_unlock(&vsp1->drm->lock);
+ }
+ EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+ 
+@@ -667,28 +778,26 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ 	if (!vsp1->drm)
+ 		return -ENOMEM;
+ 
++	mutex_init(&vsp1->drm->lock);
++
+ 	/* Create one DRM pipeline per LIF. */
+ 	for (i = 0; i < vsp1->info->lif_count; ++i) {
+ 		struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[i];
+ 		struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+ 
++		init_waitqueue_head(&drm_pipe->wait_queue);
++
+ 		vsp1_pipeline_init(pipe);
+ 
+ 		pipe->frame_end = vsp1_du_pipeline_frame_end;
+ 
+ 		/*
+-		 * The DRM pipeline is static, add entities manually. The first
+-		 * pipeline uses the BRU and the second pipeline the BRS.
++		 * The output side of the DRM pipeline is static, add the
++		 * corresponding entities manually.
+ 		 */
+-		pipe->bru = i == 0 ? &vsp1->bru->entity : &vsp1->brs->entity;
+ 		pipe->output = vsp1->wpf[i];
+ 		pipe->lif = &vsp1->lif[i]->entity;
+ 
+-		pipe->bru->pipe = pipe;
+-		pipe->bru->sink = &pipe->output->entity;
+-		pipe->bru->sink_pad = 0;
+-		list_add_tail(&pipe->bru->list_pipe, &pipe->entities);
+-
+ 		pipe->output->entity.pipe = pipe;
+ 		pipe->output->entity.sink = pipe->lif;
+ 		pipe->output->entity.sink_pad = 0;
+@@ -710,4 +819,5 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ 
+ void vsp1_drm_cleanup(struct vsp1_device *vsp1)
+ {
++	mutex_destroy(&vsp1->drm->lock);
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index c8dd75ba01f6..c84bc1c456c0 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -13,7 +13,9 @@
+ #ifndef __VSP1_DRM_H__
+ #define __VSP1_DRM_H__
+ 
++#include <linux/mutex.h>
+ #include <linux/videodev2.h>
++#include <linux/wait.h>
+ 
+ #include "vsp1_pipe.h"
+ 
+@@ -22,6 +24,8 @@
+  * @pipe: the VSP1 pipeline used for display
+  * @width: output display width
+  * @height: output display height
++ * @force_bru_release: when set, release the BRU during the next reconfiguration
++ * @wait_queue: wait queue to wait for BRU release completion
+  * @du_complete: frame completion callback for the DU driver (optional)
+  * @du_private: data to be passed to the du_complete callback
+  */
+@@ -31,6 +35,9 @@ struct vsp1_drm_pipeline {
+ 	unsigned int width;
+ 	unsigned int height;
+ 
++	bool force_bru_release;
++	wait_queue_head_t wait_queue;
++
+ 	/* Frame synchronisation */
+ 	void (*du_complete)(void *, bool);
+ 	void *du_private;
+@@ -39,11 +46,13 @@ struct vsp1_drm_pipeline {
+ /**
+  * vsp1_drm - State for the API exposed to the DRM driver
+  * @pipe: the VSP1 DRM pipeline used for display
++ * @lock: protects the BRU and BRS allocation
+  * @inputs: source crop rectangle, destination compose rectangle and z-order
+  *	position for every input (indexed by RPF index)
+  */
+ struct vsp1_drm {
+ 	struct vsp1_drm_pipeline pipe[VSP1_MAX_LIF];
++	struct mutex lock;
+ 
+ 	struct {
+ 		struct v4l2_rect crop;
+-- 
+Regards,
 
- #define STB0899_OFF0_IF_AGC_GAIN		0xf30c
- #define STB0899_BASE_IF_AGC_GAIN		0x00000000
--#define STB0899_IF_AGC_GAIN			(0x3fff < 0)
- #define STB0899_OFFST_IF_AGC_GAIN		0
- #define STB0899_WIDTH_IF_AGC_GAIN		14
-
- #define STB0899_OFF0_BB_AGC_GAIN		0xf310
- #define STB0899_BASE_BB_AGC_GAIN		0x00000000
--#define STB0899_BB_AGC_GAIN			(0x3fff < 0)
- #define STB0899_OFFST_BB_AGC_GAIN		0
- #define STB0899_WIDTH_BB_AGC_GAIN		14
-
- #define STB0899_OFF0_DC_OFFSET			0xf314
- #define STB0899_BASE_DC_OFFSET			0x00000000
--#define STB0899_I				(0xff < 8)
- #define STB0899_OFFST_I				8
- #define STB0899_WIDTH_I				8
--#define STB0899_Q				(0xff < 0)
- #define STB0899_OFFST_Q				8
- #define STB0899_WIDTH_Q				8
+Laurent Pinchart
