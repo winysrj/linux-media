@@ -1,129 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:46555 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750962AbeBWGfS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 01:35:18 -0500
-Received: by mail-vk0-f65.google.com with SMTP id x125so4685291vkc.13
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 22:35:17 -0800 (PST)
-Received: from mail-ua0-f181.google.com (mail-ua0-f181.google.com. [209.85.217.181])
-        by smtp.gmail.com with ESMTPSA id j7sm408362uak.50.2018.02.22.22.35.14
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 22 Feb 2018 22:35:15 -0800 (PST)
-Received: by mail-ua0-f181.google.com with SMTP id i15so5009502uak.3
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 22:35:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <86ad101f-f400-c7fd-2aa5-4dc618973f3d@xs4all.nl>
-References: <20180220044425.169493-1-acourbot@chromium.org>
- <20180220044425.169493-14-acourbot@chromium.org> <86ad101f-f400-c7fd-2aa5-4dc618973f3d@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 23 Feb 2018 15:34:53 +0900
-Message-ID: <CAAFQd5AOoknDxxqGKjDD0LDt4kYY=UdrLOKLtqs1foFdCviFNw@mail.gmail.com>
-Subject: Re: [RFCv4 13/21] media: videobuf2-v4l2: support for requests
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
+Received: from osg.samsung.com ([64.30.133.232]:44286 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753298AbeBZO2N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Feb 2018 09:28:13 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 2/2] media: tw9910: solve coding style issues
+Date: Mon, 26 Feb 2018 09:28:08 -0500
+Message-Id: <876e32e5dd6e08320288862440e3e8a9542b5d9b.1519655282.git.mchehab@s-opensource.com>
+In-Reply-To: <054d8830ac07d865c2973971af29b7caad593914.1519655282.git.mchehab@s-opensource.com>
+References: <054d8830ac07d865c2973971af29b7caad593914.1519655282.git.mchehab@s-opensource.com>
+In-Reply-To: <054d8830ac07d865c2973971af29b7caad593914.1519655282.git.mchehab@s-opensource.com>
+References: <054d8830ac07d865c2973971af29b7caad593914.1519655282.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 21, 2018 at 1:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/20/2018 05:44 AM, Alexandre Courbot wrote:
->> Add a new vb2_qbuf_request() (a request-aware version of vb2_qbuf())
->> that request-aware drivers can call to queue a buffer into a request
->> instead of directly into the vb2 queue if relevent.
->>
->> This function expects that drivers invoking it are using instances of
->> v4l2_request_entity and v4l2_request_entity_data to describe their
->> entity and entity data respectively.
->>
->> Also add the vb2_request_submit() helper function which drivers can
->> invoke in order to queue all the buffers previously queued into a
->> request into the regular vb2 queue.
->>
->> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->> ---
->>  .../media/common/videobuf2/videobuf2-v4l2.c   | 129 +++++++++++++++++-
->>  include/media/videobuf2-v4l2.h                |  59 ++++++++
->>  2 files changed, 187 insertions(+), 1 deletion(-)
->>
->
-> <snip>
->
->> @@ -776,10 +899,14 @@ EXPORT_SYMBOL_GPL(vb2_ioctl_querybuf);
->>  int vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
->>  {
->>       struct video_device *vdev = video_devdata(file);
->> +     struct v4l2_fh *fh = NULL;
->> +
->> +     if (test_bit(V4L2_FL_USES_V4L2_FH, &vdev->flags))
->> +             fh = file->private_data;
->
-> No need for this. All drivers using vb2 will also use v4l2_fh.
->
->>
->>       if (vb2_queue_is_busy(vdev, file))
->>               return -EBUSY;
->> -     return vb2_qbuf(vdev->queue, p);
->> +     return vb2_qbuf_request(vdev->queue, p, fh ? fh->entity : NULL);
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_ioctl_qbuf);
->>
->> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
->> index 3d5e2d739f05..d4dfa266a0da 100644
->> --- a/include/media/videobuf2-v4l2.h
->> +++ b/include/media/videobuf2-v4l2.h
->> @@ -23,6 +23,12 @@
->>  #error VB2_MAX_PLANES != VIDEO_MAX_PLANES
->>  #endif
->>
->> +struct media_entity;
->> +struct v4l2_fh;
->> +struct media_request;
->> +struct media_request_entity;
->> +struct v4l2_request_entity_data;
->> +
->>  /**
->>   * struct vb2_v4l2_buffer - video buffer information for v4l2.
->>   *
->> @@ -116,6 +122,59 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
->>   */
->>  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
->>
->> +#if IS_ENABLED(CONFIG_MEDIA_REQUEST_API)
->> +
->> +/**
->> + * vb2_qbuf_request() - Queue a buffer, with request support
->> + * @q:               pointer to &struct vb2_queue with videobuf2 queue.
->> + * @b:               buffer structure passed from userspace to
->> + *           &v4l2_ioctl_ops->vidioc_qbuf handler in driver
->> + * @entity:  request entity to queue for if requests are used.
->> + *
->> + * Should be called from &v4l2_ioctl_ops->vidioc_qbuf handler of a driver.
->> + *
->> + * If requests are not in use, calling this is equivalent to calling vb2_qbuf().
->> + *
->> + * If the request_fd member of b is set, then the buffer represented by b is
->> + * queued in the request instead of the vb2 queue. The buffer will be passed
->> + * to the vb2 queue when the request is submitted.
->
-> I would definitely also prepare the buffer at this time. That way you'll see any
-> errors relating to the prepare early on.
+As we're adding this as a new driver, make checkpatch happier by
+solving several style issues, using --fix-inplace at strict mode.
 
-Would the prepare operation be completely independent of other state?
-I can see a case when how the buffer is to be prepared may depend on
-values of some controls. If so, it would be only possible at request
-submission time. Alternatively, the application would have to be
-mandated to include any controls that may affect buffer preparing in
-the request and before the QBUF is called.
+Some issues required manual work.
 
-Best regards,
-Tomasz
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/i2c/tw9910.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 96792df45fb0..cc5d383fc6b8 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -339,6 +339,7 @@ static int tw9910_mask_set(struct i2c_client *client, u8 command,
+ 			   u8 mask, u8 set)
+ {
+ 	s32 val = i2c_smbus_read_byte_data(client, command);
++
+ 	if (val < 0)
+ 		return val;
+ 
+@@ -389,7 +390,7 @@ static int tw9910_set_hsync(struct i2c_client *client)
+ 
+ 	/* So far only revisions 0 and 1 have been seen */
+ 	/* bit 2 - 0 */
+-	if (1 == priv->revision)
++	if (priv->revision == 1)
+ 		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
+ 				      (HSYNC_START & 0x0007) << 4 |
+ 				      (HSYNC_END   & 0x0007));
+@@ -511,10 +512,10 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	const unsigned hact = 720;
+-	const unsigned hdelay = 15;
+-	unsigned vact;
+-	unsigned vdelay;
++	const unsigned int hact = 720;
++	const unsigned int hdelay = 15;
++	unsigned int vact;
++	unsigned int vdelay;
+ 	int ret;
+ 
+ 	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+@@ -532,16 +533,16 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+ 	}
+ 	if (!ret)
+ 		ret = i2c_smbus_write_byte_data(client, CROP_HI,
+-			((vdelay >> 2) & 0xc0) |
++						((vdelay >> 2) & 0xc0) |
+ 			((vact >> 4) & 0x30) |
+ 			((hdelay >> 6) & 0x0c) |
+ 			((hact >> 8) & 0x03));
+ 	if (!ret)
+ 		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
+-			vdelay & 0xff);
++						vdelay & 0xff);
+ 	if (!ret)
+ 		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
+-			vact & 0xff);
++						vact & 0xff);
+ 
+ 	return ret;
+ }
+@@ -731,7 +732,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ }
+ 
+ static int tw9910_get_selection(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_selection *sel)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -756,7 +757,7 @@ static int tw9910_get_selection(struct v4l2_subdev *sd,
+ }
+ 
+ static int tw9910_get_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_format *format)
+ {
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+@@ -807,7 +808,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
+ }
+ 
+ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_format *format)
+ {
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+@@ -818,9 +819,9 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ 	if (format->pad)
+ 		return -EINVAL;
+ 
+-	if (V4L2_FIELD_ANY == mf->field) {
++	if (mf->field == V4L2_FIELD_ANY) {
+ 		mf->field = V4L2_FIELD_INTERLACED_BT;
+-	} else if (V4L2_FIELD_INTERLACED_BT != mf->field) {
++	} else if (mf->field != V4L2_FIELD_INTERLACED_BT) {
+ 		dev_err(&client->dev, "Field type %d invalid.\n", mf->field);
+ 		return -EINVAL;
+ 	}
+@@ -870,8 +871,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 	priv->revision = GET_REV(id);
+ 	id = GET_ID(id);
+ 
+-	if (0x0B != id ||
+-	    0x01 < priv->revision) {
++	if (id != 0x0b || priv->revision > 0x01) {
+ 		dev_err(&client->dev,
+ 			"Product ID error %x:%x\n",
+ 			id, priv->revision);
+@@ -899,7 +899,7 @@ static const struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+ };
+ 
+ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_mbus_code_enum *code)
+ {
+ 	if (code->pad || code->index)
+-- 
+2.14.3
