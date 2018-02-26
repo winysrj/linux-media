@@ -1,112 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:54371 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751587AbeBROwI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Feb 2018 09:52:08 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] media: rc: fix race condition in ir_raw_event_store_edge() handling
-Date: Sun, 18 Feb 2018 14:52:06 +0000
-Message-Id: <20180218145206.20800-2-sean@mess.org>
-In-Reply-To: <20180218145206.20800-1-sean@mess.org>
-References: <20180218145206.20800-1-sean@mess.org>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:36823 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751094AbeBZXkG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Feb 2018 18:40:06 -0500
+Received: by mail-qk0-f193.google.com with SMTP id d206so21336313qkb.3
+        for <linux-media@vger.kernel.org>; Mon, 26 Feb 2018 15:40:06 -0800 (PST)
+Date: Mon, 26 Feb 2018 18:39:47 -0500
+From: Douglas Fischer <fischerdouglasc@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] media: radio: Critical interrupt bugfix for si470x
+ over i2c
+Message-ID: <20180226183947.29fa2f4d@Constantine>
+In-Reply-To: <cff191f8-6957-e49c-a51a-db1afb781a69@xs4all.nl>
+References: <20180225212713.3d78dead@Constantine>
+        <cff191f8-6957-e49c-a51a-db1afb781a69@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a possible race condition between the IR timeout being generated
-from the timer, and new IR arriving. This could result in the timeout
-being added to the kfifo after new IR arrives. On top of that, there is
-concurrent write access to the kfifo from ir_raw_event_store_edge() and
-the timer.
+Hans,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-core-priv.h |  5 +++--
- drivers/media/rc/rc-ir-raw.c    | 24 +++++++++++++++++++++---
- 2 files changed, 24 insertions(+), 5 deletions(-)
+See comments below. Thank you for the quick response on this and all
+your patience and help in general with these patches.
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index d09a06e1c17f..5e80b4273e2d 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -50,8 +50,9 @@ struct ir_raw_event_ctrl {
- 	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
- 	ktime_t				last_event;	/* when last event occurred */
- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
--	/* edge driver */
--	struct timer_list edge_handle;
-+	/* handle delayed ir_raw_event_store_edge processing */
-+	spinlock_t			edge_spinlock;
-+	struct timer_list		edge_handle;
- 
- 	/* raw decoder state follows */
- 	struct ir_raw_event prev_ev;
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 2790a0d268fd..984bb82851f9 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -101,6 +101,7 @@ int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
- 	ev.duration = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
- 	ev.pulse = !pulse;
- 
-+	spin_lock(&dev->raw->edge_spinlock);
- 	rc = ir_raw_event_store(dev, &ev);
- 
- 	dev->raw->last_event = now;
-@@ -112,6 +113,7 @@ int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
- 		mod_timer(&dev->raw->edge_handle,
- 			  jiffies + msecs_to_jiffies(15));
- 	}
-+	spin_unlock(&dev->raw->edge_spinlock);
- 
- 	return rc;
- }
-@@ -462,12 +464,26 @@ int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
- }
- EXPORT_SYMBOL(ir_raw_encode_scancode);
- 
--static void edge_handle(struct timer_list *t)
-+/**
-+ * ir_raw_edge_handle() - Handle ir_raw_event_store_edge() processing
-+ *
-+ * @t:		timer_list
-+ *
-+ * This callback is armed by ir_raw_event_store_edge(). It does two things:
-+ * first of all, rather than calling ir_raw_event_handle() for each
-+ * edge and waking up the rc thread, 15 ms after the first edge
-+ * ir_raw_event_handle() is called. Secondly, generate a timeout event
-+ * no more IR is received after the rc_dev timeout.
-+ */
-+static void ir_raw_edge_handle(struct timer_list *t)
- {
- 	struct ir_raw_event_ctrl *raw = from_timer(raw, t, edge_handle);
- 	struct rc_dev *dev = raw->dev;
--	ktime_t interval = ktime_sub(ktime_get(), dev->raw->last_event);
-+	unsigned long flags;
-+	ktime_t interval;
- 
-+	spin_lock_irqsave(&dev->raw->edge_spinlock, flags);
-+	interval = ktime_sub(ktime_get(), dev->raw->last_event);
- 	if (ktime_to_ns(interval) >= dev->timeout) {
- 		DEFINE_IR_RAW_EVENT(ev);
- 
-@@ -480,6 +496,7 @@ static void edge_handle(struct timer_list *t)
- 			  jiffies + nsecs_to_jiffies(dev->timeout -
- 						     ktime_to_ns(interval)));
- 	}
-+	spin_unlock_irqrestore(&dev->raw->edge_spinlock, flags);
- 
- 	ir_raw_event_handle(dev);
- }
-@@ -528,7 +545,8 @@ int ir_raw_event_prepare(struct rc_dev *dev)
- 
- 	dev->raw->dev = dev;
- 	dev->change_protocol = change_protocol;
--	timer_setup(&dev->raw->edge_handle, edge_handle, 0);
-+	spin_lock_init(&dev->raw->edge_spinlock);
-+	timer_setup(&dev->raw->edge_handle, ir_raw_edge_handle, 0);
- 	INIT_KFIFO(dev->raw->kfifo);
- 
- 	return 0;
--- 
-2.14.3
+On Mon, 26 Feb 2018 12:57:26 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
+
+> On 02/26/2018 03:27 AM, Douglas Fischer wrote:
+> > Fixed si470x_start() disabling the interrupt signal, causing tune
+> > operations to never complete. This does not affect USB radios
+> > because they poll the registers instead of using the IRQ line.
+> > 
+> > Stylistic and comment changes from v2.
+> > 
+> > Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
+> > ---
+> > 
+> > diff -uprN
+> > linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+> > linux/drivers/media/radio/si470x/radio-si470x-common.c ---
+> > linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+> > 2018-01-15 21:58:10.675620432 -0500 +++
+> > linux/drivers/media/radio/si470x/radio-si470x-common.c
+> > 2018-02-25 19:16:31.785934211 -0500 @@ -377,8 +377,11 @@ int
+> > si470x_start(struct si470x_device *r goto done; /* sysconfig 1 */
+> > -	radio->registers[SYSCONFIG1] =
+> > -		(de << 11) & SYSCONFIG1_DE;		/* DE*/
+> > +	radio->registers[SYSCONFIG1] |=
+> > SYSCONFIG1_RDSIEN|SYSCONFIG1_STCIEN|SYSCONFIG1_RDS;
+> > +	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
+> > +	radio->registers[SYSCONFIG1] |= (0x01 << 2); /* GPIO2 */  
+> 
+> Yes, but what does this do? Enable GPIO2? The header defines two bits
+> for GPIO1/2/3, but it doesn't say what those bits mean. So the
+> question here is what it means to set bit 2 to 1 and bit 3 to 0? The
+> header doesn't give any information about that, nor does this comment.
+> 
+SYSCONFIG1_GPIO2 is bits 2 and 3, I need to clear bit 3 and set bit 2 without changing the other bits. This configures GPIO2 as "STC/RDS interrupt. A logic high will be output unless an interrupt occurs". Should I change the comment to read "/* GPIO2 STC/RDS interrupt output */"?
+> Regards,
+> 
+> 	Hans
+> 
+> > +	if (de)
+> > +		radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
+> >  	retval = si470x_set_register(radio, SYSCONFIG1);
+> >  	if (retval < 0)
+> >  		goto done;
+> >   
+> 
+Thank you,
+	Doug
