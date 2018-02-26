@@ -1,118 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43136 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750798AbeBWKO3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 05:14:29 -0500
-Date: Fri, 23 Feb 2018 12:14:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 01/13] media: v4l2-fwnode: Let parse_endpoint callback
- decide if no remote is error
-Message-ID: <20180223101424.qw67pd7xvv5oy4sw@valkosipuli.retiisi.org.uk>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
- <3283028.CgXzGkPyKt@avalon>
- <1519379812.7712.1.camel@pengutronix.de>
- <2571855.0gglA1aPyk@avalon>
+Received: from mga02.intel.com ([134.134.136.20]:47308 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751677AbeBZRum (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Feb 2018 12:50:42 -0500
+Date: Tue, 27 Feb 2018 01:49:45 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree] BUILD SUCCESS
+ 52e17089d1850774d2ef583cdef2b060b84fca8c
+Message-ID: <5a9448b9.92++OzGi0o+hxfKH%fengguang.wu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2571855.0gglA1aPyk@avalon>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi guys,
+tree/branch: git://git.ragnatech.se/linux  media-tree
+branch HEAD: 52e17089d1850774d2ef583cdef2b060b84fca8c  media: imx: Don't initialize vars that won't be used
 
-On Fri, Feb 23, 2018 at 12:05:38PM +0200, Laurent Pinchart wrote:
-> Hi Philipp,
-> 
-> On Friday, 23 February 2018 11:56:52 EET Philipp Zabel wrote:
-> > On Fri, 2018-02-23 at 11:29 +0200, Laurent Pinchart wrote:
-> > > On Thursday, 22 February 2018 03:39:37 EET Steve Longerbeam wrote:
-> > >> For some subdevices, a fwnode endpoint that has no connection to a
-> > >> remote endpoint may not be an error. Let the parse_endpoint callback
-> > > make that decision in v4l2_async_notifier_fwnode_parse_endpoint(). If
-> > >> the callback indicates that is not an error, skip adding the asd to the
-> > >> notifier and return 0.
-> > >> 
-> > >> For the current users of v4l2_async_notifier_parse_fwnode_endpoints()
-> > >> (omap3isp, rcar-vin, intel-ipu3), return -EINVAL in the callback for
-> > >> unavailable remote fwnodes to maintain the previous behavior.
-> > > 
-> > > I'm not sure this should be a per-driver decision.
-> > > 
-> > > Generally speaking, if an endpoint node has no remote-endpoint property,
-> > > the endpoint node is not needed. I've always considered such an endpoint
-> > > node as invalid. The OF graphs DT bindings are however not clear on this
-> > > subject.
-> > 
-> > Documentation/devicetree/bindings/graph.txt says:
-> > 
-> >   Each endpoint should contain a 'remote-endpoint' phandle property
-> >   that points to the corresponding endpoint in the port of the remote
-> >   device.
-> > 
-> > ("should", not "must").
-> 
-> The DT bindings documentation has historically used "should" to mean "must" in 
-> many places :-( That was a big mistake.
+elapsed time: 203m
 
-"Shall", not "must".
+configs tested: 133
 
-Indeed, there's hardly use for an endpoint without the remote-endpoint
-property. My understanding is that such nodes might be best ignored, that's
-been at least the practice in a lot of DT parsing code. There are arguments
-both ways I guess.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-What comes to this patch is that I'd rather not burden individual drivers
-with such checks.
+parisc                        c3000_defconfig
+parisc                         b180_defconfig
+parisc                              defconfig
+alpha                               defconfig
+parisc                            allnoconfig
+cris                 etrax-100lx_v2_defconfig
+sh                                allnoconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                            titan_defconfig
+powerpc                      arches_defconfig
+powerpc                       ep405_defconfig
+powerpc                    sam440ep_defconfig
+i386                               tinyconfig
+x86_64                                    lkp
+x86_64                                   rhel
+x86_64                               rhel-7.2
+powerpc                           allnoconfig
+powerpc                             defconfig
+powerpc                       ppc64_defconfig
+s390                        default_defconfig
+i386                     randconfig-i0-201808
+i386                     randconfig-i1-201808
+x86_64                             acpi-redef
+x86_64                           allyesdebian
+x86_64                                nfsroot
+x86_64                                  kexec
+x86_64                              federa-25
+i386                             allmodconfig
+x86_64                 randconfig-x017-201808
+x86_64                 randconfig-x013-201808
+x86_64                 randconfig-x016-201808
+x86_64                 randconfig-x018-201808
+x86_64                 randconfig-x015-201808
+x86_64                 randconfig-x012-201808
+x86_64                 randconfig-x014-201808
+x86_64                 randconfig-x011-201808
+x86_64                 randconfig-x010-201808
+x86_64                 randconfig-x019-201808
+ia64                             alldefconfig
+ia64                              allnoconfig
+ia64                                defconfig
+i386                     randconfig-a1-201808
+i386                     randconfig-a0-201808
+x86_64                 randconfig-s0-02270100
+x86_64                 randconfig-s1-02270100
+x86_64                 randconfig-s2-02270100
+frv                                 defconfig
+mn10300                     asb2364_defconfig
+openrisc                    or1ksim_defconfig
+tile                         tilegx_defconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+c6x                        evmc6678_defconfig
+h8300                    h8300h-sim_defconfig
+m32r                       m32104ut_defconfig
+m32r                     mappi3.smp_defconfig
+m32r                         opsput_defconfig
+m32r                           usrv_defconfig
+nios2                         10m50_defconfig
+score                      spct6600_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+blackfin                BF526-EZBRD_defconfig
+blackfin                BF533-EZKIT_defconfig
+blackfin            BF561-EZKIT-SMP_defconfig
+blackfin                  TCM-BF537_defconfig
+m68k                           sun3_defconfig
+m68k                          multi_defconfig
+m68k                       m5475evb_defconfig
+i386                     randconfig-s0-201808
+i386                     randconfig-s1-201808
+x86_64                 randconfig-s3-02270045
+x86_64                 randconfig-s4-02270045
+x86_64                 randconfig-s5-02270045
+x86_64                   randconfig-i0-201808
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+i386                   randconfig-x015-201808
+i386                   randconfig-x019-201808
+i386                   randconfig-x010-201808
+i386                   randconfig-x014-201808
+i386                   randconfig-x016-201808
+i386                   randconfig-x012-201808
+i386                   randconfig-x011-201808
+i386                   randconfig-x017-201808
+i386                   randconfig-x013-201808
+i386                   randconfig-x018-201808
+mn10300                          alldefconfig
+powerpc                      obs600_defconfig
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+arm                         at91_dt_defconfig
+arm                               allnoconfig
+arm                           efm32_defconfig
+arm64                               defconfig
+arm                        multi_v5_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm                          exynos_defconfig
+arm                        shmobile_defconfig
+arm                        multi_v7_defconfig
+i386                              allnoconfig
+i386                                defconfig
+i386                             alldefconfig
+x86_64                 randconfig-x000-201808
+x86_64                 randconfig-x005-201808
+x86_64                 randconfig-x008-201808
+x86_64                 randconfig-x006-201808
+x86_64                 randconfig-x001-201808
+x86_64                 randconfig-x007-201808
+x86_64                 randconfig-x009-201808
+x86_64                 randconfig-x002-201808
+x86_64                 randconfig-x003-201808
+x86_64                 randconfig-x004-201808
+i386                   randconfig-x004-201808
+i386                   randconfig-x002-201808
+i386                   randconfig-x007-201808
+i386                   randconfig-x009-201808
+i386                   randconfig-x003-201808
+i386                   randconfig-x001-201808
+i386                   randconfig-x008-201808
+i386                   randconfig-x005-201808
+i386                   randconfig-x006-201808
+i386                   randconfig-x000-201808
+mips                           32r2_defconfig
+mips                         64r6el_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+mips                                   jz4740
+mips                      malta_kvm_defconfig
+mips                                     txx9
 
-> 
-> > Later, the remote-node property explicitly lists the remote-endpoint
-> > property as optional.
-> 
-> I've seen that too, and that's why I mentioned that the documentation isn't 
-> clear on the subject.
-> 
-> > > I have either failed to notice when they got merged, or they slowly
-> > > evolved over time to contain contradictory information. In any case, I
-> > > think we should decide on whether such a situation is valid or not from
-> > > an OF graph point of view, and then always reject or always accept and
-> > > ignore those endpoints.
-> > 
-> > We are currently using this on i.MX6 to provide empty labeled endpoints
-> > in the dtsi files for board DT writers to link to, both for the display
-> > output and video capture ports.
-> > See for example the endpoints with the labels ipu1_di0_disp0 and
-> > ipu1_csi0_mux_from_parallel_sensor in arch/arm/boot/dts/imx6q.dtsi.
-> 
-> This could also be achieved by adding the endpoints in the board DT files. See 
-> for instance the hdmi@fead0000 node in arch/arm64/boot/dts/renesas/
-> r8a7795.dtsi and how it gets extended in arch/arm64/boot/dts/renesas/r8a7795-
-> salvator-x.dts. On the other hand, I also have empty endpoints in the 
-> display@feb00000 node of arch/arm64/boot/dts/renesas/r8a7795.dtsi.
-> 
-> I think we should first decide what we want to do going forward (allowing for 
-> empty endpoints or not), clarify the documentation, and then update the code. 
-> In any case I don't think it should be a per-device decision.
-
-I don't think they should be allowed in the documentation. The
-implementation could still simply ignore them.
-
-Cc the devicetree list.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thanks,
+Fengguang
