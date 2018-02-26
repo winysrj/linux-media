@@ -1,256 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52411 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161026AbeBNRaw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 12:30:52 -0500
-Date: Wed, 14 Feb 2018 15:30:41 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 2/9] media: convert g/s_parm to g/s_frame_interval in
- subdevs
-Message-ID: <20180214153041.6bd2d86a@vento.lan>
-In-Reply-To: <d164e24c-ca5d-90ee-c396-12d373c78cd6@xs4all.nl>
-References: <20180122123125.24709-1-hverkuil@xs4all.nl>
-        <20180122123125.24709-3-hverkuil@xs4all.nl>
-        <20180214140257.1bfd266f@vento.lan>
-        <959ca281-d231-0202-a0dc-89605a8270bb@xs4all.nl>
-        <20180214150210.1011f331@vento.lan>
-        <d164e24c-ca5d-90ee-c396-12d373c78cd6@xs4all.nl>
+Received: from esa4.microchip.iphmx.com ([68.232.154.123]:26276 "EHLO
+        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753325AbeBZOY1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Feb 2018 09:24:27 -0500
+Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
+To: Jani Nikula <jani.nikula@linux.intel.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>
+CC: <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
+        <krzk@kernel.org>, <linux@armlinux.org.uk>,
+        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
+        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
+        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
+        <jdelvare@suse.com>, <linux@roeck-us.net>,
+        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
+        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
+        <sean@mess.org>, <lee.jones@linaro.org>, <jingoohan1@gmail.com>,
+        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
+        <alexandre.belloni@free-electrons.com>,
+        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+ <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
+ <20180222123308.mypx2r7n6o63mj5z@oak.lan> <87po4s2hve.fsf@intel.com>
+From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Message-ID: <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
+Date: Mon, 26 Feb 2018 16:24:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <87po4s2hve.fsf@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Feb 2018 18:16:55 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 14/02/18 18:02, Mauro Carvalho Chehab wrote:
-> > Em Wed, 14 Feb 2018 17:34:17 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 14/02/18 17:03, Mauro Carvalho Chehab wrote:  
-> >>> Em Mon, 22 Jan 2018 13:31:18 +0100
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>     
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>
-> >>>> Convert all g/s_parm calls to g/s_frame_interval. This allows us
-> >>>> to remove the g/s_parm ops since those are a duplicate of
-> >>>> g/s_frame_interval.
-> >>>>
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> ---
-> >>>>  drivers/media/i2c/mt9v011.c                     | 31 +++++++-------------
-> >>>>  drivers/media/i2c/ov6650.c                      | 35 +++++++++-------------
-> >>>>  drivers/media/i2c/ov7670.c                      | 24 +++++++--------
-> >>>>  drivers/media/i2c/ov7740.c                      | 31 +++++++-------------
-> >>>>  drivers/media/i2c/tvp514x.c                     | 39 +++++++++----------------
-> >>>>  drivers/media/i2c/vs6624.c                      | 29 +++++++-----------
-> >>>>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
-> >>>>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
-> >>>>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++------
-> >>>>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
-> >>>>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
-> >>>>  drivers/media/platform/via-camera.c             |  4 +--
-> >>>>  drivers/media/usb/em28xx/em28xx-video.c         | 36 +++++++++++++++++++----
-> >>>>  13 files changed, 122 insertions(+), 165 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
-> >>>> index 5e29064fae91..3e23c5b0de1f 100644
-> >>>> --- a/drivers/media/i2c/mt9v011.c
-> >>>> +++ b/drivers/media/i2c/mt9v011.c
-> >>>> @@ -364,33 +364,24 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
-> >>>>  	return 0;
-> >>>>  }
-> >>>>  
-> >>>> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-> >>>> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
-> >>>> +				    struct v4l2_subdev_frame_interval *ival)
-> >>>>  {
-> >>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
-> >>>> -
-> >>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >>>> -		return -EINVAL;
-> >>>> -
-> >>>> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
-> >>>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
-> >>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));    
-> >>>
-> >>> Hmm.. why to repeat memset everywhere? If the hole idea is to stop abusing,
-> >>> the best would be to do, instead:    
-> >>
-> >> g_frame_interval is called by bridge drivers through the subdev ops. So that
-> >> path doesn't go through subdev_do_ioctl(). So it doesn't help putting it in
-> >> v4l2-subdev.c.  
-> > 
-> > True, but you could also do the same for v4l2 ioctl() handling logic.
-> > 
-> > That would mean just two places with memset() instead of repeating the same
-> > pattern everywhere.
-> >   
-> >> That doesn't mean it shouldn't be there as well. I believe my MC patch series
-> >> actually adds the memset in subdev_do_ioctl.  
-> 
-> What could be done is that this patch https://patchwork.linuxtv.org/patch/46955/
-> is applied first. After that these memsets can be removed since internally we
-> don't need to touch them.
 
-Works for me.
+On 26.02.2018 11:57, Jani Nikula wrote:
+> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
+>> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
+>>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
+>>> were adapted to this change.
+>>>
+>>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+>>> ---
+>>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
+>>>  drivers/bus/ts-nbus.c                |  2 +-
+>>>  drivers/clk/clk-pwm.c                |  3 ++-
+>>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
+>>>  drivers/hwmon/pwm-fan.c              |  2 +-
+>>>  drivers/input/misc/max77693-haptic.c |  2 +-
+>>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
+>>>  drivers/leds/leds-pwm.c              |  5 ++++-
+>>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
+>>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
+>>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
+>>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
+>>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
+>>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
+>>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
+>>>  include/linux/pwm.h                  |  6 ++++--
+>>>  16 files changed, 70 insertions(+), 21 deletions(-)
+>>>
+>>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
+>>> index 2030a6b77a09..696fa25dafd2 100644
+>>> --- a/drivers/video/backlight/lm3630a_bl.c
+>>> +++ b/drivers/video/backlight/lm3630a_bl.c
+>>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
+>>>  {
+>>>  	unsigned int period = pchip->pdata->pwm_period;
+>>>  	unsigned int duty = br * period / br_max;
+>>> +	struct pwm_caps caps = { };
+>>>  
+>>> -	pwm_config(pchip->pwmd, duty, period);
+>>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
+>>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
+>>
+>> Well... I admit I've only really looked at the patches that impact 
+>> backlight but dispersing this really odd looking bit twiddling 
+>> throughout the kernel doesn't strike me a great API design.
+>>
+>> IMHO callers should not be required to find the first set bit in
+>> some specially crafted set of capability bits simply to get sane 
+>> default behaviour.
+> 
+> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
+> error prone.
 
-> >>  
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> >>> index c5639817db34..b18b418c080f 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >>> @@ -350,6 +350,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-> >>>  		if (fi->pad >= sd->entity.num_pads)
-> >>>  			return -EINVAL;
-> >>>  
-> >>> +		memset(fi->reserved, 0, sizeof(ival->reserved));
-> >>>  		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
-> >>>  	}
-> >>>  
-> >>> (same applies to s_frame_interval).
-> >>>
-> >>>     
-> >>>>  	calc_fps(sd,
-> >>>> -		 &cp->timeperframe.numerator,
-> >>>> -		 &cp->timeperframe.denominator);
-> >>>> +		 &ival->interval.numerator,
-> >>>> +		 &ival->interval.denominator);
-> >>>>  
-> >>>>  	return 0;
-> >>>>  }
-> >>>>  
-> >>>> -static int mt9v011_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-> >>>> +static int mt9v011_s_frame_interval(struct v4l2_subdev *sd,
-> >>>> +				    struct v4l2_subdev_frame_interval *ival)
-> >>>>  {
-> >>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
-> >>>> -	struct v4l2_fract *tpf = &cp->timeperframe;
-> >>>> +	struct v4l2_fract *tpf = &ival->interval;
-> >>>>  	u16 speed;
-> >>>>  
-> >>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >>>> -		return -EINVAL;
-> >>>> -	if (cp->extendedmode != 0)
-> >>>> -		return -EINVAL;
-> >>>> -    
-> >>>
-> >>> Hmm... why are you removing those sanity checks everywhere?
-> >>> The core doesn't do it.
-> >>>
-> >>> All the above comments also apply to the other files modified by
-> >>> this patch.    
-> >>
-> >> struct v4l2_subdev_frame_interval has neither type nor extendedmode.
-> >>
-> >> The check for type is done in the v4l2_g/s_parm_cap helpers instead.  
-> > 
-> > Well, the subdev handler at v4l2-subdev.c doesn't seem to be checking it.  
-> 
-> ????
-> 
-> Are you confusing struct v4l2_streamparm with struct v4l2_subdev_frame_interval?
-> 
-> v4l2_subdev.c deals with the latter, and struct v4l2_subdev_frame_interval has
-> no type field. There is nothing to check.
-> 
-> 'type' makes no sense in subdev drivers anyway since it refers to a buffer type
-> and subdevs do not deal with buffers.
+Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
+from your side?
 
-Yeah, you're right: those checks can be removed.
+Or, what about using a function like pwm_mode_first() to get the first supported
+mode by PWM channel?
 
-> >> And extendedmode is always set to 0.
-> >>  
-> >>>     
-> >>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
-> >>>>  	speed = calc_speed(sd, tpf->numerator, tpf->denominator);
-> >>>>  
-> >>>>  	mt9v011_write(sd, R0A_MT9V011_CLK_SPEED, speed);
-> >>>> @@ -469,8 +460,8 @@ static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
-> >>>>  };
-> >>>>  
-> >>>>  static const struct v4l2_subdev_video_ops mt9v011_video_ops = {
-> >>>> -	.g_parm = mt9v011_g_parm,
-> >>>> -	.s_parm = mt9v011_s_parm,
-> >>>> +	.g_frame_interval = mt9v011_g_frame_interval,
-> >>>> +	.s_frame_interval = mt9v011_s_frame_interval,
-> >>>>  };
-> >>>>  
-> >>>>  static const struct v4l2_subdev_pad_ops mt9v011_pad_ops = {
-> >>>> diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
-> >>>> index 8975d16b2b24..3f962dae7534 100644
-> >>>> --- a/drivers/media/i2c/ov6650.c
-> >>>> +++ b/drivers/media/i2c/ov6650.c
-> >>>> @@ -201,7 +201,7 @@ struct ov6650 {
-> >>>>  	struct v4l2_rect	rect;		/* sensor cropping window */
-> >>>>  	unsigned long		pclk_limit;	/* from host */
-> >>>>  	unsigned long		pclk_max;	/* from resolution and format */
-> >>>> -	struct v4l2_fract	tpf;		/* as requested with s_parm */
-> >>>> +	struct v4l2_fract	tpf;		/* as requested with s_frame_interval */
-> >>>>  	u32 code;
-> >>>>  	enum v4l2_colorspace	colorspace;
-> >>>>  };
-> >>>> @@ -723,42 +723,33 @@ static int ov6650_enum_mbus_code(struct v4l2_subdev *sd,
-> >>>>  	return 0;
-> >>>>  }
-> >>>>  
-> >>>> -static int ov6650_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-> >>>> +static int ov6650_g_frame_interval(struct v4l2_subdev *sd,
-> >>>> +				   struct v4l2_subdev_frame_interval *ival)
-> >>>>  {
-> >>>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >>>>  	struct ov6650 *priv = to_ov6650(client);
-> >>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
-> >>>>  
-> >>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >>>> -		return -EINVAL;
-> >>>> -
-> >>>> -	memset(cp, 0, sizeof(*cp));
-> >>>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
-> >>>> -	cp->timeperframe.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
-> >>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
-> >>>> +	ival->interval.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
-> >>>>  			priv->pclk_limit, priv->pclk_max));
-> >>>> -	cp->timeperframe.denominator = FRAME_RATE_MAX;
-> >>>> +	ival->interval.denominator = FRAME_RATE_MAX;
-> >>>>  
-> >>>>  	dev_dbg(&client->dev, "Frame interval: %u/%u s\n",
-> >>>> -		cp->timeperframe.numerator, cp->timeperframe.denominator);
-> >>>> +		ival->interval.numerator, ival->interval.denominator);    
-> >>>
-> >>> Hmm... not sure if a debug is needed here. Yet, if this is needed, 
-> >>> IMHO, it would make mroe sense to move it to the core.    
-> >>
-> >> The core doesn't see this if this subdev op is called from a bridge driver.  
-> > 
-> > True, but, when calling via a bridge driver, there's already a way to
-> > enable such kind debug.  
-> 
-> It can debug VIDIOC_G/S_PARM, not the g_frame_interval op. Also, when called
-> via a v4l-subdev device node there is currently NO core logging.
-> 
-> For the record, I don't really care about this debug statement myself one
-> way or another, but changing this one way or another doesn't belong in this
-> patch series.
+Or, would you prefer to solve this inside pwm_config() function, let's say, in
+case an invalid mode is passed as argument, to let pwm_config() to choose the
+first available PWM mode for PWM channel passed as argument?
 
-Ok. Yet, IMHO, it is probably safe to just remove the debug statements
-on the above driver, as I fail to see that just ov6650 driver would
-need this.
+Thank you,
+Claudiu Beznea
 
 > 
-> Regards,
+> BR,
+> Jani.
 > 
-> 	Hans
-
-
-
-Thanks,
-Mauro
+> 
