@@ -1,58 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:60318 "EHLO
-        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751730AbeBAWEn (ORCPT
+Received: from mail-it0-f68.google.com ([209.85.214.68]:55095 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751623AbeBZKRm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Feb 2018 17:04:43 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v2 2/9] em28xx: Bulk transfer implementation fix
-Date: Thu,  1 Feb 2018 16:04:37 -0600
-Message-Id: <1517522677-21211-1-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515110659-20145-3-git-send-email-brad@nextdimension.cc>
-References: <1515110659-20145-3-git-send-email-brad@nextdimension.cc>
+        Mon, 26 Feb 2018 05:17:42 -0500
+Received: by mail-it0-f68.google.com with SMTP id c11so892560ith.4
+        for <linux-media@vger.kernel.org>; Mon, 26 Feb 2018 02:17:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1519633504-64357-1-git-send-email-leo.wen@rock-chips.com>
+References: <1519633504-64357-1-git-send-email-leo.wen@rock-chips.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Mon, 26 Feb 2018 11:17:41 +0100
+Message-ID: <CACRpkdaD+kFcOKP+V642r86hqwOO7h1UyA4wWBqGWdm3mjuhLA@mail.gmail.com>
+Subject: Re: [PATCH V2 2/2] dt-bindings: Document the Rockchip RK1608 bindings
+To: Wen Nuan <leo.wen@rock-chips.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        jacob2.chen@rock-chips.com,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Eddie Cai <eddie.cai@rock-chips.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set appropriate bulk/ISOC transfer multiplier on capture start.
-This sets ISOC transfer to USB endpoint configuration
-This sets bulk transfer to 48128 bytes (188 * 256)
+On Mon, Feb 26, 2018 at 9:25 AM, Wen Nuan <leo.wen@rock-chips.com> wrote:
 
-The bulk multiplier is maximum allowed according to Empia.
+> From: Leo Wen <leo.wen@rock-chips.com>
+>
+> Add DT bindings documentation for Rockchip RK1608.
+>
+> Changes V2:
+> - Delete spi-min-frequency property.
+> - Add the external sensor's control pin and clock properties.
+> - Delete the '&pinctrl' node.
+>
+> Signed-off-by: Leo Wen <leo.wen@rock-chips.com>
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
-Changes since v1
-- use ISOC endpoint configuration instead of constant
-- removed TS2 from comment
+(...)
+> +- reset-gpio           : GPIO connected to reset pin;
+> +- irq-gpio             : GPIO connected to irq pin;
+> +- sleepst-gpio         : GPIO connected to sleepst pin;
+> +- wakeup-gpio          : GPIO connected to wakeup pin;
+> +- powerdown-gpio       : GPIO connected to powerdown pin;
 
-  drivers/media/usb/em28xx/em28xx-core.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+All these should be named something like:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index ef38e56..6727d14 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -638,6 +638,19 @@ int em28xx_capture_start(struct em28xx *dev, int start)
- 	    dev->chip_id == CHIP_ID_EM28174 ||
- 	    dev->chip_id == CHIP_ID_EM28178) {
- 		/* The Transport Stream Enable Register moved in em2874 */
-+		if (dev->dvb_xfer_bulk) {
-+			/* Max Tx Size = 188 * 256 = 48128 - LCM(188,512) * 2 */
-+			em28xx_write_reg(dev, (dev->ts == PRIMARY_TS) ?
-+					EM2874_R5D_TS1_PKT_SIZE :
-+					EM2874_R5E_TS2_PKT_SIZE,
-+					0xFF);
-+		} else {
-+			/* ISOC Maximum Transfer Size = 188 * 5 */
-+			em28xx_write_reg(dev, (dev->ts == PRIMARY_TS) ?
-+					EM2874_R5D_TS1_PKT_SIZE :
-+					EM2874_R5E_TS2_PKT_SIZE,
-+					dev->dvb_max_pkt_size_isoc / 188);
-+		}
- 		if (dev->ts == PRIMARY_TS)
- 			rc = em28xx_write_reg_bits(dev,
- 				EM2874_R5F_TS_ENABLE,
--- 
-2.7.4
+reset-gpios = <>;
+irq-gpios = <>;
+etc
+
+See
+Documentation/devicetree/bindings/gpio/gpio.txt
+
+So all in pluralis even if it is just one line, that is the standard.
+
+> +- rockchip,powerdown0  : GPIO connected to the sensor0's powerdown pin;
+> +- rockchip,reset0      : GPIO connected to the sensor0's reset pin;
+> +- rockchip,powerdown1  : GPIO connected to the sensor1's powerdown pin;
+> +- rockchip,reset1      : GPIO connected to the sensor1's reset pin;
+
+Also get rid of the custom names here, either no lines should
+have a "rockchip", prefix or all of them. Use the name of the
+pin on the component, I suspect just
+
+powerdown0-gpios
+reset0-gpios
+etc
+
+By using the standard "*-gpios" suffix the kernel consumer API
+will be much happier as well when you use gpiod_get() & friends.
+
+Yours,
+Linus Walleij
