@@ -1,63 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:43336 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752343AbeBTSSR (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54324 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751814AbeBZVow (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 13:18:17 -0500
-Received: by mail-qk0-f177.google.com with SMTP id i184so17596964qkf.10
-        for <linux-media@vger.kernel.org>; Tue, 20 Feb 2018 10:18:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <3383770.t3Sncl0gtc@avalon>
-References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com>
- <dd70c226-e7db-e55e-e467-a6b0d1e7849d@ideasonboard.com> <alpine.DEB.2.20.1802191456110.8694@axis700.grange>
- <3383770.t3Sncl0gtc@avalon>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Tue, 20 Feb 2018 13:18:16 -0500
-Message-ID: <CAGoCfiy296wh1u+LE-RoSVVzc8kNKngDvne-R2cDdOBM9LtVfg@mail.gmail.com>
-Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
-        <axdoomer@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 26 Feb 2018 16:44:52 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH 08/15] v4l: vsp1: Setup BRU at atomic commit time
+Date: Mon, 26 Feb 2018 23:45:09 +0200
+Message-Id: <20180226214516.11559-9-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+To implement fully dynamic plane assignment to pipelines, we need to
+reassign the BRU and BRS to the DRM pipelines in the atomic commit
+handler. In preparation for this setup factor out the BRU source pad
+code and call it both at LIF setup and atomic commit time.
 
-On Mon, Feb 19, 2018 at 11:19 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> I've tested VLC (2.2.8) and haven't noticed any issue. If a program is
-> directed to the metadata video node and tries to capture video from it it will
-> obviously fail. That being said, software that work today should continue
-> working, otherwise it's a regression, and we'll have to handle that.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 56 +++++++++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_drm.h |  5 +++
+ 2 files changed, 60 insertions(+), 1 deletion(-)
 
-Perhaps it shouldn't be a video node then (as we do with VBI devices).
-Would something like /dev/videometadataX would be more appropriate?
-
-People have for years operated under the expectation that /dev/videoX
-nodes are video nodes.  If we're going to be creating things with that
-name which aren't video nodes then that is going to cause considerable
-confusion as well as messing up all sorts of existing applications
-which operate under that expectation.
-
-I know that some of the older PCI boards have always exposed a bunch
-of video nodes for various things (i.e. raw video vs. mpeg, etc), but
-because USB devices have traditionally been simpler they generally
-expose only one node of each type (i.e. one /dev/videoX, /dev/vbiX
-/dev/radioX).  I've already gotten an email from a customer who has a
-ton of scripts which depend on this behavior, so please seriously
-consider the implications of this design decision.
-
-It's easy to brush this off as "all the existing applications will
-eventually be updated", but you're talking about changing the basic
-behavior of how these device nodes have been presented for over a
-decade.
-
-Devin
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 7bf697ba7969..6ad8aa6c8138 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -148,12 +148,51 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+ 	return 0;
+ }
+ 
++/* Setup the BRU source pad. */
++static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
++				      struct vsp1_pipeline *pipe)
++{
++	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
++	struct v4l2_subdev_format format = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	int ret;
++
++	/*
++	 * Configure the format on the BRU source and verify that it matches the
++	 * requested format. We don't set the media bus code as it is configured
++	 * on the BRU sink pad 0 and propagated inside the entity, not on the
++	 * source pad.
++	 */
++	format.pad = pipe->bru->source_pad;
++	format.format.width = drm_pipe->width;
++	format.format.height = drm_pipe->height;
++	format.format.field = V4L2_FIELD_NONE;
++
++	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, BRU_NAME(pipe->bru), pipe->bru->source_pad);
++
++	if (format.format.width != drm_pipe->width ||
++	    format.format.height != drm_pipe->height) {
++		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
++		return -EPIPE;
++	}
++
++	return 0;
++}
++
+ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+ {
+ 	return vsp1->drm->inputs[rpf->entity.index].zpos;
+ }
+ 
+-/* Setup the input side of the pipeline (RPFs and BRU sink pads). */
++/* Setup the input side of the pipeline (RPFs and BRU). */
+ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+ 					struct vsp1_pipeline *pipe)
+ {
+@@ -191,6 +230,18 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+ 		inputs[j] = rpf;
+ 	}
+ 
++	/*
++	 * Setup the BRU. This must be done before setting up the RPF input
++	 * pipelines as the BRU sink compose rectangles depend on the BRU source
++	 * format.
++	 */
++	ret = vsp1_du_pipeline_setup_bru(vsp1, pipe);
++	if (ret < 0) {
++		dev_err(vsp1->dev, "%s: failed to setup %s source\n", __func__,
++			BRU_NAME(pipe->bru));
++		return ret;
++	}
++
+ 	/* Setup the RPF input pipeline for every enabled input. */
+ 	for (i = 0; i < pipe->bru->source_pad; ++i) {
+ 		struct vsp1_rwpf *rpf = inputs[i];
+@@ -355,6 +406,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 		return 0;
+ 	}
+ 
++	drm_pipe->width = cfg->width;
++	drm_pipe->height = cfg->height;
++
+ 	dev_dbg(vsp1->dev, "%s: configuring LIF%u with format %ux%u\n",
+ 		__func__, pipe_index, cfg->width, cfg->height);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index 9aa19325cbe9..c8dd75ba01f6 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -20,12 +20,17 @@
+ /**
+  * vsp1_drm_pipeline - State for the API exposed to the DRM driver
+  * @pipe: the VSP1 pipeline used for display
++ * @width: output display width
++ * @height: output display height
+  * @du_complete: frame completion callback for the DU driver (optional)
+  * @du_private: data to be passed to the du_complete callback
+  */
+ struct vsp1_drm_pipeline {
+ 	struct vsp1_pipeline pipe;
+ 
++	unsigned int width;
++	unsigned int height;
++
+ 	/* Frame synchronisation */
+ 	void (*du_complete)(void *, bool);
+ 	void *du_private;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
