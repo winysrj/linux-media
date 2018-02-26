@@ -1,145 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52086 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967537AbeBNL7j (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39086 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751022AbeBZI5M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:59:39 -0500
+        Mon, 26 Feb 2018 03:57:12 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.16 08/14] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-Date: Wed, 14 Feb 2018 12:59:32 +0100
-Message-Id: <20180214115938.28296-9-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
-References: <20180214115938.28296-1-hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, dri-devel@lists.freedesktop.org,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/6] cec: add core error injection support
+Date: Mon, 26 Feb 2018 09:57:01 +0100
+Message-Id: <20180226085706.41526-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180226085706.41526-1-hverkuil@xs4all.nl>
+References: <20180226085706.41526-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
-
-The struct v4l2_plane32 should set m.userptr as well. The same
-happens in v4l2_buffer32 and v4l2-compliance tests for this.
+Add two new ops (error_inj_show and error_inj_parse_line) to support
+error injection functionality for CEC adapters. If both are present,
+then the core will add a new error-inj debugfs file that can be used
+to see the current error injection commands and to set error injection
+commands.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ drivers/media/cec/cec-core.c | 58 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec.h          |  5 ++++
+ 2 files changed, 63 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index c9d9f23e660a..3a72a735a940 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -287,19 +287,24 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index e47ea22b3c23..ea3eccfdba15 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -195,6 +195,55 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+ EXPORT_SYMBOL_GPL(cec_register_cec_notifier);
+ #endif
  
--	if (memory == V4L2_MEMORY_USERPTR) {
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
-+		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
-+				 sizeof(up32->m.mem_offset)))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_USERPTR:
- 		if (get_user(p, &up32->m.userptr))
- 			return -EFAULT;
- 		up_pln = compat_ptr(p);
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
--	} else if (memory == V4L2_MEMORY_DMABUF) {
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
--	} else {
--		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(up32->m.mem_offset)))
--			return -EFAULT;
-+		break;
- 	}
- 
- 	return 0;
-@@ -308,22 +313,32 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- static int put_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- 			    enum v4l2_memory memory)
- {
-+	unsigned long p;
++#ifdef CONFIG_DEBUG_FS
++static ssize_t cec_error_inj_write(struct file *file,
++	const char __user *ubuf, size_t count, loff_t *ppos)
++{
++	struct seq_file *sf = file->private_data;
++	struct cec_adapter *adap = sf->private;
++	char *buf;
++	char *line;
++	char *p;
 +
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
--	/* For MMAP, driver might've set up the offset, so copy it back.
--	 * USERPTR stays the same (was userspace-provided), so no copying. */
--	if (memory == V4L2_MEMORY_MMAP)
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
- 				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
--	/* For DMABUF, driver might've set up the fd, so copy it back. */
--	if (memory == V4L2_MEMORY_DMABUF)
-+		break;
-+	case V4L2_MEMORY_USERPTR:
-+		if (get_user(p, &up->m.userptr) ||
-+		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
-+			     &up32->m.userptr))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
- 				 sizeof(up->m.fd)))
- 			return -EFAULT;
-+		break;
++	buf = memdup_user_nul(ubuf, min_t(size_t, PAGE_SIZE, count));
++	if (IS_ERR(buf))
++		return PTR_ERR(buf);
++	p = buf;
++	while (p && *p && count >= 0) {
++		p = skip_spaces(p);
++		line = strsep(&p, "\n");
++		if (!*line || *line == '#')
++			continue;
++		if (!adap->ops->error_inj_parse_line(adap, line)) {
++			count = -EINVAL;
++			break;
++		}
 +	}
- 
++	kfree(buf);
++	return count;
++}
++
++static int cec_error_inj_show(struct seq_file *sf, void *unused)
++{
++	struct cec_adapter *adap = sf->private;
++
++	return adap->ops->error_inj_show(adap, sf);
++}
++
++static int cec_error_inj_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, cec_error_inj_show, inode->i_private);
++}
++
++static const struct file_operations cec_error_inj_fops = {
++	.open = cec_error_inj_open,
++	.write = cec_error_inj_write,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++#endif
++
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 					 void *priv, const char *name, u32 caps,
+ 					 u8 available_las)
+@@ -334,7 +383,16 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 		pr_warn("cec-%s: Failed to create status file\n", adap->name);
+ 		debugfs_remove_recursive(adap->cec_dir);
+ 		adap->cec_dir = NULL;
++		return 0;
+ 	}
++	if (!adap->ops->error_inj_show || !adap->ops->error_inj_parse_line)
++		return 0;
++	adap->error_inj_file = debugfs_create_file("error-inj", 0644,
++						   adap->cec_dir, adap,
++						   &cec_error_inj_fops);
++	if (IS_ERR_OR_NULL(adap->error_inj_file))
++		pr_warn("cec-%s: Failed to create error-inj file\n",
++			adap->name);
+ #endif
  	return 0;
  }
-@@ -384,6 +399,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -397,10 +413,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
- 			}
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (get_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (get_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
-@@ -457,6 +469,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -464,10 +477,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			if (put_user(kp->m.userptr, &up->m.userptr))
- 				return -EFAULT;
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (put_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (put_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 9afba9b558df..41df048efc55 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -117,6 +117,10 @@ struct cec_adap_ops {
+ 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
+ 	void (*adap_free)(struct cec_adapter *adap);
+ 
++	/* Error injection callbacks */
++	int (*error_inj_show)(struct cec_adapter *adap, struct seq_file *sf);
++	bool (*error_inj_parse_line)(struct cec_adapter *adap, char *line);
++
+ 	/* High-level CEC message callback */
+ 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+ };
+@@ -189,6 +193,7 @@ struct cec_adapter {
+ 
+ 	struct dentry *cec_dir;
+ 	struct dentry *status_file;
++	struct dentry *error_inj_file;
+ 
+ 	u16 phys_addrs[15];
+ 	u32 sequence;
 -- 
 2.15.1
