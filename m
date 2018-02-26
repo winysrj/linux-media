@@ -1,97 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:56486 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751135AbeBTI7I (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54324 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751797AbeBZVou (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 03:59:08 -0500
-Date: Tue, 20 Feb 2018 09:58:57 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
-Message-ID: <20180220085857.GC7203@w540>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
- <1519059584-30844-12-git-send-email-jacopo+renesas@jmondi.org>
- <1963190.TI9O1pFqZp@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1963190.TI9O1pFqZp@avalon>
+        Mon, 26 Feb 2018 16:44:50 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH 06/15] v4l: vsp1: Share duplicated DRM pipeline configuration code
+Date: Mon, 26 Feb 2018 23:45:07 +0200
+Message-Id: <20180226214516.11559-7-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Move the duplicated DRM pipeline configuration code to a function and
+call it from vsp1_du_setup_lif() and vsp1_du_atomic_flush().
 
-On Mon, Feb 19, 2018 at 09:19:32PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Monday, 19 February 2018 18:59:44 EET Jacopo Mondi wrote:
-> > The sensor driver sets mbus format colorspace information and sizes,
-> > but not ycbcr encoding, quantization and xfer function. When supplied
-> > with an badly initialized mbus frame format structure, those fields
-> > need to be set explicitly not to leave them uninitialized. This is
-> > tested by v4l2-compliance, which supplies a mbus format description
-> > structure and checks for all fields to be properly set.
-> >
-> > Without this commit, v4l2-compliance fails when testing formats with:
-> > fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/i2c/ov7670.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> >
-> > diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> > index 25b26d4..61c472e 100644
-> > --- a/drivers/media/i2c/ov7670.c
-> > +++ b/drivers/media/i2c/ov7670.c
-> > @@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev
-> > *sd, fmt->height = wsize->height;
-> >  	fmt->colorspace = ov7670_formats[index].colorspace;
->
-> On a side note, if I'm not mistaken the colorspace field is set to SRGB for
-> all entries. Shouldn't you hardcode it here and remove the field ?
->
-> > +	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-> > +	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-> > +	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
->
-> How about setting the values explicitly instead of relying on defaults ? That
-> would be V4L2_YCBCR_ENC_601, V4L2_QUANTIZATION_LIM_RANGE and
-> V4L2_XFER_FUNC_SRGB. And could you then check a captured frame to see if the
-> sensor outputs limited or full range ?
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 95 +++++++++++++++-------------------
+ 1 file changed, 43 insertions(+), 52 deletions(-)
 
-This actually makes me wonder if those informations (ycbcb_enc,
-quantization and xfer_func) shouldn't actually be part of the
-supported format list... I blindly added those default fields in the
-try_fmt function, but I doubt they applies to all supported formats.
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index e210917fdc3f..9a043a915c0b 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -42,6 +42,47 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+ 		drm_pipe->du_complete(drm_pipe->du_private, completed);
+ }
+ 
++/* -----------------------------------------------------------------------------
++ * Pipeline Configuration
++ */
++
++/* Configure all entities in the pipeline. */
++static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_entity *entity;
++	struct vsp1_entity *next;
++	struct vsp1_dl_list *dl;
++
++	dl = vsp1_dl_list_get(pipe->output->dlm);
++
++	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
++		/* Disconnect unused RPFs from the pipeline. */
++		if (entity->type == VSP1_ENTITY_RPF &&
++		    !pipe->inputs[entity->index]) {
++			vsp1_dl_list_write(dl, entity->route->reg,
++					   VI6_DPR_NODE_UNUSED);
++
++			entity->pipe = NULL;
++			list_del(&entity->list_pipe);
++
++			continue;
++		}
++
++		vsp1_entity_route_setup(entity, pipe, dl);
++
++		if (entity->ops->configure) {
++			entity->ops->configure(entity, pipe, dl,
++					       VSP1_ENTITY_PARAMS_INIT);
++			entity->ops->configure(entity, pipe, dl,
++					       VSP1_ENTITY_PARAMS_RUNTIME);
++			entity->ops->configure(entity, pipe, dl,
++					       VSP1_ENTITY_PARAMS_PARTITION);
++		}
++	}
++
++	vsp1_dl_list_commit(dl);
++}
++
+ /* -----------------------------------------------------------------------------
+  * DU Driver API
+  */
+@@ -85,9 +126,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_drm_pipeline *drm_pipe;
+ 	struct vsp1_pipeline *pipe;
+ 	struct vsp1_bru *bru;
+-	struct vsp1_entity *entity;
+-	struct vsp1_entity *next;
+-	struct vsp1_dl_list *dl;
+ 	struct v4l2_subdev_format format;
+ 	unsigned long flags;
+ 	unsigned int i;
+@@ -239,22 +277,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+ 
+ 	/* Configure all entities in the pipeline. */
+-	dl = vsp1_dl_list_get(pipe->output->dlm);
+-
+-	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+-		vsp1_entity_route_setup(entity, pipe, dl);
+-
+-		if (entity->ops->configure) {
+-			entity->ops->configure(entity, pipe, dl,
+-					       VSP1_ENTITY_PARAMS_INIT);
+-			entity->ops->configure(entity, pipe, dl,
+-					       VSP1_ENTITY_PARAMS_RUNTIME);
+-			entity->ops->configure(entity, pipe, dl,
+-					       VSP1_ENTITY_PARAMS_PARTITION);
+-		}
+-	}
+-
+-	vsp1_dl_list_commit(dl);
++	vsp1_du_pipeline_configure(pipe);
+ 
+ 	/* Start the pipeline. */
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+@@ -490,15 +513,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+ 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+ 	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+-	struct vsp1_entity *entity;
+-	struct vsp1_entity *next;
+-	struct vsp1_dl_list *dl;
+ 	unsigned int i;
+ 	int ret;
+ 
+-	/* Prepare the display list. */
+-	dl = vsp1_dl_list_get(pipe->output->dlm);
+-
+ 	/* Count the number of enabled inputs and sort them by Z-order. */
+ 	pipe->num_inputs = 0;
+ 
+@@ -557,33 +574,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 				__func__, rpf->entity.index);
+ 	}
+ 
+-	/* Configure all entities in the pipeline. */
+-	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+-		/* Disconnect unused RPFs from the pipeline. */
+-		if (entity->type == VSP1_ENTITY_RPF &&
+-		    !pipe->inputs[entity->index]) {
+-			vsp1_dl_list_write(dl, entity->route->reg,
+-					   VI6_DPR_NODE_UNUSED);
+-
+-			entity->pipe = NULL;
+-			list_del(&entity->list_pipe);
+-
+-			continue;
+-		}
+-
+-		vsp1_entity_route_setup(entity, pipe, dl);
+-
+-		if (entity->ops->configure) {
+-			entity->ops->configure(entity, pipe, dl,
+-					       VSP1_ENTITY_PARAMS_INIT);
+-			entity->ops->configure(entity, pipe, dl,
+-					       VSP1_ENTITY_PARAMS_RUNTIME);
+-			entity->ops->configure(entity, pipe, dl,
+-					       VSP1_ENTITY_PARAMS_PARTITION);
+-		}
+-	}
+-
+-	vsp1_dl_list_commit(dl);
++	vsp1_du_pipeline_configure(pipe);
+ }
+ EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+ 
+-- 
+Regards,
 
-Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
-RGB 565) and 1 raw format (BGGR). I now have a question here:
-
-1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
-applies to RGB and raw formats? I don't think so, and what value is
-the correct one for the ycbcr_enc field in this case? I assume
-xfer_func and quantization applies to all formats instead..
-
-Thanks
-   j
-
-> >  	info->format = *fmt;
-> >
-> >  	return 0;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Laurent Pinchart
