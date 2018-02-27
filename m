@@ -1,56 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45162 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750945AbeBINSb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 08:18:31 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        "Stable v4.14+" <stable@vger.kernel.org>
-Subject: [PATCH] v4l: vsp1: Fix continuous mode for dual pipelines
-Date: Fri,  9 Feb 2018 13:18:25 +0000
-Message-Id: <1518182305-17988-1-git-send-email-kbingham@kernel.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:54810 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751907AbeB0InJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 03:43:09 -0500
+Date: Tue, 27 Feb 2018 09:42:50 +0100
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: platform: Drop OF dependency of VIDEO_RENESAS_VSP1
+Message-ID: <20180227084249.ogc7x5bdoc63gmt7@verge.net.au>
+References: <1519668550-26082-1-git-send-email-geert+renesas@glider.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1519668550-26082-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Mon, Feb 26, 2018 at 07:09:10PM +0100, Geert Uytterhoeven wrote:
+> VIDEO_RENESAS_VSP1 depends on ARCH_RENESAS && OF.
+> As ARCH_RENESAS implies OF, the latter can be dropped.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-To allow dual pipelines utilising two WPF entities when available, the
-VSP was updated to support header-mode display list in continuous
-pipelines.
+My reasoning is that ARCH_RENESAS depends on ARCH_MULTI_V7,
+which in turn depends on ARCH_MULTIPLATFORM which selects OF via USE_OF
 
-A small bug in the status check of the command register causes the
-second pipeline to be directly afflicted by the running of the first;
-appearing as a perceived performance issue with stuttering display.
-
-Fix the vsp1_dl_list_hw_update_pending() call to ensure that the read
-comparison corresponds to the correct pipeline.
-
-Fixes: eaf4bfad6ad8 ("v4l: vsp1: Add support for header display
-lists in continuous mode")
-Cc: "Stable v4.14+" <stable@vger.kernel.org>
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 8cd03ee45f79..34b5ed2592f8 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -509,7 +509,8 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
- 		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
- 			  & VI6_DL_BODY_SIZE_UPD);
- 	else
--		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index) & VI6_CMD_UPDHDR));
-+		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
-+			  & VI6_CMD_UPDHDR);
- }
- 
- static bool vsp1_dl_hw_active(struct vsp1_dl_manager *dlm)
--- 
-2.7.4
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
