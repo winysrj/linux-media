@@ -1,62 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0084.outbound.protection.outlook.com ([104.47.34.84]:20416
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750790AbeBUXAn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 18:00:43 -0500
-From: Rohit Athavale <rohit.athavale@xilinx.com>
-To: <devel@driverdev.osuosl.org>
-CC: <gregkh@linuxfoundation.org>, <linux-media@vger.kernel.org>,
-        <rohit.athavale@xilinx.com>
-Subject: [PATCH v2 3/3] Documentation: devicetree: bindings: Add DT binding doc for xm2mvsc driver
-Date: Wed, 21 Feb 2018 14:43:16 -0800
-Message-ID: <1519252996-787-4-git-send-email-rohit.athavale@xilinx.com>
-In-Reply-To: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
-References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:47067 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753616AbeB0PlD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 10:41:03 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 10/13] media: ov772x: Re-organize in-code comments
+Date: Tue, 27 Feb 2018 16:40:27 +0100
+Message-Id: <1519746030-15407-11-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit adds the binding doc for the DT that the driver expects.
-Driver has been tested against Zynq US+ board.
+A lot of comments that would fit a single line were spread on two or
+more lines. Also fix capitalization and punctuation where appropriate.
 
-Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- .../devicetree/bindings/xm2mvscaler.txt            | 25 ++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
- create mode 100644 drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt
+ drivers/media/i2c/ov772x.c | 32 ++++++++++----------------------
+ 1 file changed, 10 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt b/drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt
-new file mode 100644
-index 0000000..1f3d805
---- /dev/null
-+++ b/drivers/staging/xm2mvscale/Documentation/devicetree/bindings/xm2mvscaler.txt
-@@ -0,0 +1,25 @@
-+Xilinx M2M Video Scaler
-+-----------------------
-+This document describes the DT bindings required by the
-+Xilinx M2M Video Scaler driver.
-+
-+Required Properties:
-+- compatible		: Must be "xlnx,v-m2m-scaler"
-+- reg			: Memory map for module access
-+- reset-gpios		: Should contain GPIO reset phandle
-+- interrupt-parent	: Interrupt controller the interrupt is routed through
-+- interrupts		: Should contain DMA channel interrupt
-+- xlnx,scaler-num-taps	: The number of filter taps for scaling filter
-+- xlnx,scaler-max-chan	: The maximum number of supported scaling channels
-+
-+Examples
-+---------
-+	v_multi_scaler: v_multi_scaler@a0000000 {
-+		compatible = "xlnx,v-m2m-scaler";
-+		reg = <0x0 0xa0000000 0x0 0x10000>;
-+		reset-gpios = <&gpio 78 1>;
-+		interrupt-parent = <&gic>;
-+		interrupts = <0 89 4>;
-+		xlnx,scaler-num-taps = <6>;
-+		xlnx,scaler-max-chan = <4>;
-+	};
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index a418455..8849da1 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -910,17 +910,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 	int ret;
+ 	u8  val;
+ 
+-	/*
+-	 * reset hardware
+-	 */
++	/* Reset hardware. */
+ 	ov772x_reset(client);
+ 
+-	/*
+-	 * Edge Ctrl
+-	 */
++	/* Edge Ctrl. */
+ 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+ 		/*
+-		 * Manual Edge Control Mode
++		 * Manual Edge Control Mode.
+ 		 *
+ 		 * Edge auto strength bit is set by default.
+ 		 * Remove it when manual mode.
+@@ -944,9 +940,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+ 		/*
+-		 * Auto Edge Control Mode
++		 * Auto Edge Control Mode.
+ 		 *
+-		 * set upper and lower limit
++		 * Set upper and lower limit.
+ 		 */
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+@@ -961,7 +957,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 			goto ov772x_set_fmt_error;
+ 	}
+ 
+-	/* Format and window size */
++	/* Format and window size. */
+ 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+ 	if (ret < 0)
+ 		goto ov772x_set_fmt_error;
+@@ -993,9 +989,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 	if (ret < 0)
+ 		goto ov772x_set_fmt_error;
+ 
+-	/*
+-	 * set DSP_CTRL3
+-	 */
++	/* Set DSP_CTRL3. */
+ 	val = cfmt->dsp3;
+ 	if (val) {
+ 		ret = ov772x_mask_set(client,
+@@ -1011,9 +1005,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 			goto ov772x_set_fmt_error;
+ 	}
+ 
+-	/*
+-	 * set COM3
+-	 */
++	/* Set COM3. */
+ 	val = cfmt->com3;
+ 	if (priv->info->flags & OV772X_FLAG_VFLIP)
+ 		val |= VFLIP_IMG;
+@@ -1041,9 +1033,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 	if (ret < 0)
+ 		goto ov772x_set_fmt_error;
+ 
+-	/*
+-	 * set COM8
+-	 */
++	/* Set COM8. */
+ 	if (priv->band_filter) {
+ 		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
+ 		if (!ret)
+@@ -1153,9 +1143,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/*
+-	 * check and show product ID and manufacturer ID
+-	 */
++	/* Check and show product ID and manufacturer ID. */
+ 	pid = ov772x_read(client, PID);
+ 	ver = ov772x_read(client, VER);
+ 
 -- 
-1.9.1
+2.7.4
