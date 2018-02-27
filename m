@@ -1,47 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:32519 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751151AbeBIN1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 08:27:19 -0500
-Date: Fri, 9 Feb 2018 15:27:16 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media-device: zero reserved media_links_enum field
-Message-ID: <20180209132716.4hrxqfqclbnss4hu@paasikivi.fi.intel.com>
-References: <1ad7443b-db60-c140-3ab8-f1a865f26db8@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1ad7443b-db60-c140-3ab8-f1a865f26db8@xs4all.nl>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:45647 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753163AbeB0Pkr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 10:40:47 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 03/13] media: tw9910: Align function parameters
+Date: Tue, 27 Feb 2018 16:40:20 +0100
+Message-Id: <1519746030-15407-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 09, 2018 at 02:25:44PM +0100, Hans Verkuil wrote:
-> Zero the reserved field of struct media_links_enum.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Align all function parameters to first open brace when declaring
+functions.
 
-Thanks!
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/tw9910.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> ---
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index afbf23a19e16..7af6fadd206d 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -155,6 +155,8 @@ static long media_device_enum_links(struct media_device *mdev,
->  	if (entity == NULL)
->  		return -EINVAL;
-> 
-> +	memset(links->reserved, 0, sizeof(links->reserved));
-> +
->  	if (links->pads) {
->  		unsigned int p;
-> 
-
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 3e4b530..45afdb9 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -733,7 +733,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ 
+ static int tw9910_get_selection(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_selection *sel)
++				struct v4l2_subdev_selection *sel)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct tw9910_priv *priv = to_tw9910(client);
+@@ -759,7 +759,7 @@ static int tw9910_get_selection(struct v4l2_subdev *sd,
+ 
+ static int tw9910_get_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
++			  struct v4l2_subdev_format *format)
+ {
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -811,7 +811,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
+ 
+ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
++			  struct v4l2_subdev_format *format)
+ {
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -904,7 +904,7 @@ static const struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+ 
+ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
+ 				 struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_mbus_code_enum *code)
++				 struct v4l2_subdev_mbus_code_enum *code)
+ {
+ 	if (code->pad || code->index)
+ 		return -EINVAL;
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
