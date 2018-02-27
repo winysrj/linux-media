@@ -1,179 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56862 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751124AbeBIICp (ORCPT
+Received: from out20-13.mail.aliyun.com ([115.124.20.13]:54529 "EHLO
+        out20-13.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751396AbeB0CGT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 03:02:45 -0500
-Subject: Re: [PATCH v9 6/8] media: i2c: Add TDA1997x HDMI receiver driver
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
+        Mon, 26 Feb 2018 21:06:19 -0500
+From: Yong Deng <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1518043367-11531-1-git-send-email-tharvey@gateworks.com>
- <1518043367-11531-7-git-send-email-tharvey@gateworks.com>
- <f19fd00d-66fb-a4a2-295b-d4bfae3b4e51@xs4all.nl>
- <CAJ+vNU1CTUQ9EFiV09XeihSHeAMw3C=0JYFL+NPM=DOTTrAP4w@mail.gmail.com>
- <d31d879e-d55a-c300-4c6d-f0d75c575f83@xs4all.nl>
- <CAJ+vNU3TRhpBUto_bL6o_RfNX9vKFN2ThU7+8pucv9M64+Fhag@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cdfaf99c-09a0-e965-dc6f-f6b94168e706@xs4all.nl>
-Date: Fri, 9 Feb 2018 09:02:40 +0100
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
+Subject: [PATCH v8 0/2] Initial Allwinner V3s CSI Support
+Date: Tue, 27 Feb 2018 10:05:13 +0800
+Message-Id: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU3TRhpBUto_bL6o_RfNX9vKFN2ThU7+8pucv9M64+Fhag@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/2018 09:00 AM, Tim Harvey wrote:
-> On Thu, Feb 8, 2018 at 11:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 02/09/2018 07:01 AM, Tim Harvey wrote:
->>>
->>> I don't see v4l2-subdev.c (or anything) ever calling g_input_status.
->>> How do I test this?
->>
->> Huh, that's a very good question! It is meant to be called by bridge
->> drivers implementing VIDIOC_ENUMINPUT. But that doesn't apply to the imx
->> driver since it is expecting userspace to talk directly to the subdev.
->>
->> Now for the DV_TIMINGS API this doesn't matter all that much since
->> QUERY_DV_TIMINGS can do the same job through the returned error code, but
->> for analog TV there is no such option (QUERYSTD doesn't support such
->> detailed feedback).
->>
->> I see that you have an adv7180 in your system. Can you run
->> 'v4l2-compliance -uX' for the adv7180 subdev and post the output here?
->>
-> 
-> 
-> # v4l2-compliance -u0
-> v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
-> 
-> Compliance test for device /d[ 2526.153591] adv7180 2-0020: =================  S
-> TART STATUS  =================
-> ev/v4l-subdev0:
-> 
-> Media Driver I[ 2526.162531] adv7180 2-0020: ==================  END STATUS  ===
-> ===============
-> nfo:
->         Driver name      : imx-media
->         Model            : imx-media
->         Serial           :
->         Bus info         :
->         Media version    : 4.15.0
->         Hardware revision: 0x00000000 (0)
->         Driver version   : 4.15.0
-> Interface Info:
->         ID               : 0x0300008d
->         Type             : V4L Sub-Device
-> Entity Info:
->         ID               : 0x00000001 (1)
->         Name             : adv7180 2-0020
->         Function         : FAIL: Unknown V4L2 Sub-Device
->         Pad 0x01000002   : Source
->           Link 0x0200007f: to remote pad 0x1000067 of entity 'ipu2_csi1_mux': Da
-> ta
-> 
-> Required ioctls:
->         test MC information (see 'Media Driver Info' above): FAIL
-> 
-> Allow for multiple opens:
->         test second /dev/v4l-subdev0 open: OK
->         test for unlimited opens: OK
-> 
-> Debug ioctls:
->         test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+This patchset add initial support for Allwinner V3s CSI.
 
-Not Supported!
+Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+interface and CSI1 is used for parallel interface. This is not
+documented in datasheet but by test and guess.
 
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
-> Sub-Device ioctls (Source Pad 0):
->         test Try VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
->                 fail: v4l2-test-subdevs.cpp(301): fmt.width == 0 ||
-> fmt.width == ~0U
->                 fail: v4l2-test-subdevs.cpp(342):
-> checkMBusFrameFmt(node, fmt.format)
->         test Try VIDIOC_SUBDEV_G/S_FMT: FAIL
->         test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
->         test Active VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
->                 fail: v4l2-test-subdevs.cpp(307): fmt.ycbcr_enc == 0xffff
->                 fail: v4l2-test-subdevs.cpp(342):
-> checkMBusFrameFmt(node, fmt.format)
->         test Active VIDIOC_SUBDEV_G/S_FMT: FAIL
->         test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
->         test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
-> 
-> Control ioctls:
->         test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
->         test VIDIOC_QUERYCTRL: OK
->         test VIDIOC_G/S_CTRL: OK
->         test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->         test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->         Standard Controls: 5 Private Controls: 1
-> 
-> Format ioctls:
->         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
->         test VIDIOC_G/S_PARM: OK (Not Supported)
->         test VIDIOC_G_FBUF: OK (Not Supported)
->         test VIDIOC_G_FMT: OK (Not Supported)
->         test VIDIOC_TRY_FMT: OK (Not Supported)
->         test VIDIOC_S_FMT: OK (Not Supported)
->         test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->         test Cropping: OK (Not Supported)
->         test Composing: OK (Not Supported)
->         test Scaling: OK (Not Supported)
-> 
-> Codec ioctls:
->         test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->         test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->         test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> Buffer ioctls:
->         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
->         test VIDIOC_EXPBUF: OK (Not Supported)
-> 
-> Total: 47, Succeeded: 44, Failed: 3, Warnings: 0
-> 
->> Analog TV receivers are rare in MC bridge drivers, and I see that the subdev
->> API doesn't even support the G/S/QUERY/ENUM_STD ioctls! I think the adv7180 is
->> basically unusable in your system. And we need a subdev replacement for
->> VIDIOC_ENUMINPUT.
->>
->> Was the adv7180 ever tested? Are you able to test it?
-> 
-> Yes, it works - I've tested and used it.
+This patchset implement a v4l2 framework driver and add a binding 
+documentation for it. 
 
-How? Without STD support how can you even see what standards are supported
-and switch between standards? Did you try to switch between PAL and NTSC?
+Currently, the driver only support the parallel interface. And has been
+tested with a BT1120 signal which generating from FPGA. The following
+fetures are not support with this patchset:
+  - ISP 
+  - MIPI-CSI2
+  - Master clock for camera sensor
+  - Power regulator for the front end IC
 
-Regards,
+Changes in v8:
+  * Revert to v6 and add 'hack' for PHYS_OFFSET.
 
-	Hans
+Changes in v7:
+  * Add 'depends on ARM' in Kconfig to avoid built with non-ARM arch.
+
+Changes in v6:
+  * Add Rob Herring's review tag.
+  * Fix a NULL pointer dereference by picking Maxime Ripard's patch.
+  * Add Maxime Ripard's test tag.
+
+Changes in v5:
+  * Using the new SPDX tags.
+  * Fix MODULE_LICENSE.
+  * Add many default cases and warning messages.
+  * Detail the parallel bus properties
+  * Fix some spelling and syntax mistakes.
+
+Changes in v4:
+  * Deal with the CSI 'INNER QUEUE'.
+    CSI will lookup the next dma buffer for next frame before the
+    the current frame done IRQ triggered. This is not documented
+    but reported by Ondřej Jirman.
+    The BSP code has workaround for this too. It skip to mark the
+    first buffer as frame done for VB2 and pass the second buffer
+    to CSI in the first frame done ISR call. Then in second frame
+    done ISR call, it mark the first buffer as frame done for VB2
+    and pass the third buffer to CSI. And so on. The bad thing is
+    that the first buffer will be written twice and the first frame
+    is dropped even the queued buffer is sufficient.
+    So, I make some improvement here. Pass the next buffer to CSI
+    just follow starting the CSI. In this case, the first frame
+    will be stored in first buffer, second frame in second buffer.
+    This mothed is used to avoid dropping the first frame, it
+    would also drop frame when lacking of queued buffer.
+  * Fix: using a wrong mbus_code when getting the supported formats
+  * Change all fourcc to pixformat
+  * Change some function names
+
+Changes in v3:
+  * Get rid of struct sun6i_csi_ops
+  * Move sun6i-csi to new directory drivers/media/platform/sunxi
+  * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
+  * Use generic fwnode endpoints parser
+  * Only support a single subdev to make things simple
+  * Many complaintion fix
+
+Changes in v2: 
+  * Change sunxi-csi to sun6i-csi
+  * Rebase to media_tree master branch 
+
+Following is the 'v4l2-compliance -s -f' output, I have test this
+with both interlaced and progressive signal:
+
+# ./v4l2-compliance -s -f
+v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
+
+Driver Info:
+        Driver name   : sun6i-video
+        Card type     : sun6i-csi
+        Bus info      : platform:csi
+        Driver version: 4.15.0
+        Capabilities  : 0x84200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK (Not Supported)
+        test MMAP: OK                                     
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+Stream using all formats:
+        test MMAP for Format HM12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV21, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format YU12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format YV12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV16, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+        test MMAP for Format NV61, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+        test MMAP for Format 422P, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+
+Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
+
+Yong Deng (2):
+  dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+  media: V3s: Add support for Allwinner CSI.
+
+ .../devicetree/bindings/media/sun6i-csi.txt        |  59 ++
+ MAINTAINERS                                        |   8 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
+ drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 911 +++++++++++++++++++++
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 143 ++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 753 +++++++++++++++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  53 ++
+ 11 files changed, 2138 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
+
+-- 
+1.8.3.1
