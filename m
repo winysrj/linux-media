@@ -1,195 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [31.36.214.240] ([31.36.214.240]:44426 "EHLO
-        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1751863AbeB0WgN (ORCPT
+Received: from out20-110.mail.aliyun.com ([115.124.20.110]:44410 "EHLO
+        out20-110.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751679AbeB0BTM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 17:36:13 -0500
-Subject: Re: [PATCH 1/2] usbtv: Use same decoder sequence as Windows driver
+        Mon, 26 Feb 2018 20:19:12 -0500
+Date: Tue, 27 Feb 2018 09:18:47 +0800
+From: Yong <yong.deng@magewell.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
- <20180224182419.15670-2-bonstra@bonstra.fr.eu.org>
- <de1f0031-be47-1c7b-265e-da32825f66b9@xs4all.nl>
-From: "Hugo \"Bonstra\" Grostabussiat" <bonstra@bonstra.fr.eu.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Message-ID: <7969d9ad-9ff7-3221-cca0-8b2f59274bbf@bonstra.fr.eu.org>
-Date: Tue, 27 Feb 2018 23:35:21 +0100
-MIME-Version: 1.0
-In-Reply-To: <de1f0031-be47-1c7b-265e-da32825f66b9@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v7 2/2] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20180227091847.e67a1aeffff94eb37c7fff1e@magewell.com>
+In-Reply-To: <ce3a30b9-f017-61b6-1fe6-f5dcc8bd3ec3@xs4all.nl>
+References: <1517217696-17816-1-git-send-email-yong.deng@magewell.com>
+        <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
+        <20180130104833.a06e44c558c7ddc6b38e20b3@magewell.com>
+        <ce3a30b9-f017-61b6-1fe6-f5dcc8bd3ec3@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 26/02/2018 à 15:12, Hans Verkuil a écrit :
-> Thanks for this patch, but I am a bit hesitant to apply it. Did you test
-> that PAL and NTSC still work after this change?
+Hi,
 
-I did test with both a PAL and a NTSC source before submitting the
-patch. It seemed to work fine.
+On Mon, 26 Feb 2018 12:06:37 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-However, after reading your reply, I needed to be certain, so I
-double-checked using the Windows driver USB dumps I collected.
-
-When it sets the TV standard, the Windows driver:
-
-  1. plays the decoder configuration sequence, in the exact same order
-     as the one specified in the .INF file.
-     -> My patch 1 does that, the unpatched driver doesn't
-
-  2. sets registers 0xc24e and 0xc24f to value 0x02.
-     -> The unpatched driver does this, my patch 1 doesn't, which is
-        a regression
-
-  3. sets register 0xc16f to a different value for PAL, NTSC and
-     SECAM.
-     -> No write is ever done to that register by the patched
-        or the unpatched drivers
-
-About step 3, I added it to the usbtv driver, and quickly understood
-what register 0xc16f is for. It actually sets the standard for color
-encoding!
-It would seem that by default, the decoder auto-detects the standard
-used to encode the color signal, and that writing a value to that
-register forces selection of a specific standard.
-
-So, with the current unpatched driver, capturing a PAL source while
-setting the V4L2 norm to NTSC will still get the colors right (mostly),
-but the image will be clipped at the bottom because of the lower
-vertical resolution used for NTSC.
-
-With the Windows driver or the usbtv driver patched to set the
-norm in register 0xc16f, capturing a PAL source with the adapter
-configured for NTSC would give the result you would expect from
-misconfigured hardware: incorrect resolution and messed-up colors.
-
-Here are some screenshots to illustrate the matter:
-
-* Unpatched driver, PAL source, adapter configured for PAL.
-  Picture is fully displayed, and colors are ok. Used as reference:
-
-https://www.bonstra.fr.eu.org/pub/img/usbtv_unpatched-PAL_source-PAL_setting.png
-
-* Unpatched driver, PAL source, adapter configured for NTSC.
-  A part of the picture is cut at the bottom, colors are ok:
-
-https://www.bonstra.fr.eu.org/pub/img/usbtv_unpatched-PAL_source-NTSC_setting.png
-
-* Patched driver, PAL source, adapter configured for NTSC:
-  Picture bottom is clipped, vertical stripes with the wrong colors
-  are present over the colored areas:
-
-https://www.bonstra.fr.eu.org/pub/img/usbtv_patched-PAL_source-NTSC_setting.png
-
-Now about part 1; the sequence of register writes before actually
-setting the color system register is there to set the image correction
-parameters, such as color correction or image sharpness, appropriate
-for the selected standard.
-
-> Unless you've tested it then I'm inclined to just apply the second patch that
-> adds the SECAM sequence.
-
-Applying only patch 2 would get some values of the image correction
-registers overwritten with PAL/NTSC values which were put in common
-since they were identical (registers 0xc100, 0xc115, 0xc220, 0xc225 and
-0xc24e).
-
-I think I should make a v2 of this patch series which:
-  1. fixes the mistakes I made in patch 1
-  2. add SECAM image correction settings sequence
-  3. writes the standard setting to register 0xc16f so that we get as
-     closes as possible to the Windows driver behavior
-  4. handles the PAL_60 case (NTSC resolution with PAL-like color
-     subcarrier) which was working "by accident" until now
-
-What do you think of all this?
-
-Regards
---
-Hugo
-
-> On 02/24/2018 07:24 PM, Hugo Grostabussiat wrote:
->> Re-format the register {address, value} pairs so they follow the same
->> order as the decoder configuration sequences in the Windows driver's .INF
->> file.
->>
->> For instance, for PAL, the "AVPAL" sequence in the .INF file is:
->> 0x04,0x68,0xD3,0x72,0xA2,0xB0,0x15,0x01,0x2C,0x10,0x20,0x2e,0x08,0x02,
->> 0x02,0x59,0x16,0x35,0x17,0x16,0x36
->>
->> Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
->> ---
->>  drivers/media/usb/usbtv/usbtv-video.c | 26 +++++++++++++++++---------
->>  1 file changed, 17 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
->> index 3668a04359e8..52d06b30fabb 100644
->> --- a/drivers/media/usb/usbtv/usbtv-video.c
->> +++ b/drivers/media/usb/usbtv/usbtv-video.c
->> @@ -124,15 +124,26 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
->>  static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
->>  {
->>  	int ret;
->> +	/* These are the series of register values used to configure the
->> +	 * decoder for a specific standard.
->> +	 * They are copied from the Settings\DecoderDefaults registry keys
->> +	 * present in the Windows driver .INF file for each norm.
->> +	 */
->>  	static const u16 pal[][2] = {
->> +		{ USBTV_BASE + 0x0003, 0x0004 },
->>  		{ USBTV_BASE + 0x001a, 0x0068 },
->> +		{ USBTV_BASE + 0x0100, 0x00d3 },
->>  		{ USBTV_BASE + 0x010e, 0x0072 },
->>  		{ USBTV_BASE + 0x010f, 0x00a2 },
->>  		{ USBTV_BASE + 0x0112, 0x00b0 },
->> +		{ USBTV_BASE + 0x0115, 0x0015 },
->>  		{ USBTV_BASE + 0x0117, 0x0001 },
->>  		{ USBTV_BASE + 0x0118, 0x002c },
->>  		{ USBTV_BASE + 0x012d, 0x0010 },
->>  		{ USBTV_BASE + 0x012f, 0x0020 },
->> +		{ USBTV_BASE + 0x0220, 0x002e },
->> +		{ USBTV_BASE + 0x0225, 0x0008 },
->> +		{ USBTV_BASE + 0x024e, 0x0002 },
->>  		{ USBTV_BASE + 0x024f, 0x0002 },
->>  		{ USBTV_BASE + 0x0254, 0x0059 },
->>  		{ USBTV_BASE + 0x025a, 0x0016 },
->> @@ -143,14 +154,20 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
->>  	};
->>  
->>  	static const u16 ntsc[][2] = {
->> +		{ USBTV_BASE + 0x0003, 0x0004 },
->>  		{ USBTV_BASE + 0x001a, 0x0079 },
->> +		{ USBTV_BASE + 0x0100, 0x00d3 },
->>  		{ USBTV_BASE + 0x010e, 0x0068 },
->>  		{ USBTV_BASE + 0x010f, 0x009c },
->>  		{ USBTV_BASE + 0x0112, 0x00f0 },
->> +		{ USBTV_BASE + 0x0115, 0x0015 },
->>  		{ USBTV_BASE + 0x0117, 0x0000 },
->>  		{ USBTV_BASE + 0x0118, 0x00fc },
->>  		{ USBTV_BASE + 0x012d, 0x0004 },
->>  		{ USBTV_BASE + 0x012f, 0x0008 },
->> +		{ USBTV_BASE + 0x0220, 0x002e },
->> +		{ USBTV_BASE + 0x0225, 0x0008 },
->> +		{ USBTV_BASE + 0x024e, 0x0002 },
->>  		{ USBTV_BASE + 0x024f, 0x0001 },
->>  		{ USBTV_BASE + 0x0254, 0x005f },
->>  		{ USBTV_BASE + 0x025a, 0x0012 },
->> @@ -236,15 +253,6 @@ static int usbtv_setup_capture(struct usbtv *usbtv)
->>  		{ USBTV_BASE + 0x0158, 0x001f },
->>  		{ USBTV_BASE + 0x0159, 0x0006 },
->>  		{ USBTV_BASE + 0x015d, 0x0000 },
->> -
->> -		{ USBTV_BASE + 0x0003, 0x0004 },
->> -		{ USBTV_BASE + 0x0100, 0x00d3 },
->> -		{ USBTV_BASE + 0x0115, 0x0015 },
->> -		{ USBTV_BASE + 0x0220, 0x002e },
->> -		{ USBTV_BASE + 0x0225, 0x0008 },
->> -		{ USBTV_BASE + 0x024e, 0x0002 },
->> -		{ USBTV_BASE + 0x024e, 0x0002 },
->> -		{ USBTV_BASE + 0x024f, 0x0002 },
->>  	};
->>  
->>  	ret = usbtv_set_regs(usbtv, setup, ARRAY_SIZE(setup));
->>
+> Hi all,
 > 
+> On 01/30/2018 03:48 AM, Yong wrote:
+> > Hi,
+> > 
+> > On Mon, 29 Jan 2018 13:49:14 -0800
+> > Randy Dunlap <rdunlap@infradead.org> wrote:
+> > 
+> >> On 01/29/2018 01:21 AM, Yong Deng wrote:
+> >>> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> >>> interface and CSI1 is used for parallel interface. This is not
+> >>> documented in datasheet but by test and guess.
+> >>>
+> >>> This patch implement a v4l2 framework driver for it.
+> >>>
+> >>> Currently, the driver only support the parallel interface. MIPI-CSI2,
+> >>> ISP's support are not included in this patch.
+> >>>
+> >>> Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> >>> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> >>> ---
+> >>
+> >>
+> >> A previous version (I think v6) had a build error with the use of
+> >> PHYS_OFFSET, so Kconfig was modified to depend on ARM and ARCH_SUNXI
+> >> (one of which seems to be overkill).  As is here, the COMPILE_TEST piece is
+> >> meaningless for all arches except ARM.  If you care enough for COMPILE_TEST
+> >> (and I would), then you could make COMPILE_TEST useful on any arch by
+> >> removing the "depends on ARM" (the ARCH_SUNXI takes care of that) and by
+> >> having an alternate value for PHYS_OFFSET, like so:
+> >>
+> >> +#if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
+> >> +#define PHYS_OFFSET	0
+> >> +#endif
+> >>
+> >> With those 2 changes, the driver builds for me on x86_64.
+> > 
+> > I have considered this method.
+> > But it's so sick to put these code in dirver (for my own). I mean 
+> > this is meaningless for the driver itself and make people confused.
+> > 
+> > I grepped the driver/ code and I found many drivers writing Kconfig
+> > like this. For example:
+> > ARM && COMPILE_TEST
+> > MIPS && COMPILE_TEST
+> > PPC64 && COMPILE_TEST
+> > 
+> > BTW, for my own, I do not care about COMPILE_TEST.
+> 
+> There was a discussion about this in the v6 patch, but it petered out.
+> 
+> I want to merge this driver, but I would very much prefer that this
+> compiles with COMPILE_TEST. So unless someone has a better solution, then
+> adding 'hack' that defines PHYS_OFFSET to 0 for COMPILE_TEST would be required.
+
+If so, I will take the advice of Randy.
+
+> 
+> Otherwise this driver looks good, so it is just this issue blocking it.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>
+> >>> diff --git a/drivers/media/platform/sunxi/sun6i-csi/Kconfig b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
+> >>> new file mode 100644
+> >>> index 0000000..f80c965
+> >>> --- /dev/null
+> >>> +++ b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
+> >>> @@ -0,0 +1,10 @@
+> >>> +config VIDEO_SUN6I_CSI
+> >>> +	tristate "Allwinner V3s Camera Sensor Interface driver"
+> >>> +	depends on ARM
+> >>> +	depends on VIDEO_V4L2 && COMMON_CLK && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+> >>> +	depends on ARCH_SUNXI || COMPILE_TEST
+> >>> +	select VIDEOBUF2_DMA_CONTIG
+> >>> +	select REGMAP_MMIO
+> >>> +	select V4L2_FWNODE
+> >>> +	---help---
+> >>> +	   Support for the Allwinner Camera Sensor Interface Controller on V3s.
+> >>
+> >> thanks,
+> >> -- 
+> >> ~Randy
+> > 
+> > 
+> > Thanks,
+> > Yong
+> > 
+
+
+Thanks,
+Yong
