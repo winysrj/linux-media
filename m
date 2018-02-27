@@ -1,140 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60481 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966002AbeBUPcZ (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54463 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753163AbeB0Pkp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 10:32:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 13/15] media: document the reservedX fields in media_v2_topology
-Date: Wed, 21 Feb 2018 16:32:16 +0100
-Message-Id: <20180221153218.15654-14-hverkuil@xs4all.nl>
-In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
-References: <20180221153218.15654-1-hverkuil@xs4all.nl>
+        Tue, 27 Feb 2018 10:40:45 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 02/13] media: tw9910: Empty line before end-of-function return
+Date: Tue, 27 Feb 2018 16:40:19 +0100
+Message-Id: <1519746030-15407-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MEDIA_IOC_G_TOPOLOGY documentation didn't document the reservedX
-fields. Related to that was that the documented type of the num_* fields
-was also wrong.
+Add an empty line before return at the end of functions.
 
-Fix both.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- .../media/uapi/mediactl/media-ioc-g-topology.rst   | 52 +++++++++++++++++-----
- 1 file changed, 42 insertions(+), 10 deletions(-)
+ drivers/media/i2c/tw9910.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index 870a6c0d1f7a..c8f9ea37db2d 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -68,7 +68,7 @@ desired arrays with the media graph elements.
- 
-     -  .. row 2
- 
--       -  __u64
-+       -  __u32
- 
-        -  ``num_entities``
- 
-@@ -76,6 +76,14 @@ desired arrays with the media graph elements.
- 
-     -  .. row 3
- 
-+       -  __u32
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 70e0ae2..3e4b530 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -753,6 +753,7 @@ static int tw9910_get_selection(struct v4l2_subdev *sd,
+ 		sel->r.width	= 768;
+ 		sel->r.height	= 576;
+ 	}
 +
-+       -  ``reserved1``
+ 	return 0;
+ }
+ 
+@@ -804,6 +805,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
+ 		mf->width	= width;
+ 		mf->height	= height;
+ 	}
 +
-+       -  Applications and drivers shall set this to 0.
+ 	return ret;
+ }
+ 
+@@ -842,6 +844,7 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return tw9910_s_fmt(sd, mf);
+ 	cfg->try_fmt = *mf;
 +
-+    -  .. row 4
+ 	return 0;
+ }
+ 
+@@ -887,6 +890,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 
+ done:
+ 	tw9910_s_power(&priv->subdev, 0);
 +
-        -  __u64
+ 	return ret;
+ }
  
-        -  ``ptr_entities``
-@@ -85,15 +93,23 @@ desired arrays with the media graph elements.
- 	  the ioctl won't store the entities. It will just update
- 	  ``num_entities``
+@@ -906,12 +910,14 @@ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
+ 		return -EINVAL;
  
--    -  .. row 4
-+    -  .. row 5
- 
--       -  __u64
-+       -  __u32
- 
-        -  ``num_interfaces``
- 
-        -  Number of interfaces in the graph
- 
--    -  .. row 5
-+    -  .. row 6
+ 	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
 +
-+       -  __u32
+ 	return 0;
+ }
+ 
+ static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
+ {
+ 	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
 +
-+       -  ``reserved2``
-+
-+       -  Applications and drivers shall set this to 0.
-+
-+    -  .. row 7
- 
-        -  __u64
- 
-@@ -104,15 +120,23 @@ desired arrays with the media graph elements.
- 	  the ioctl won't store the interfaces. It will just update
- 	  ``num_interfaces``
- 
--    -  .. row 6
-+    -  .. row 8
- 
--       -  __u64
-+       -  __u32
- 
-        -  ``num_pads``
- 
-        -  Total number of pads in the graph
- 
--    -  .. row 7
-+    -  .. row 9
-+
-+       -  __u32
-+
-+       -  ``reserved3``
-+
-+       -  Applications and drivers shall set this to 0.
-+
-+    -  .. row 10
- 
-        -  __u64
- 
-@@ -122,15 +146,23 @@ desired arrays with the media graph elements.
- 	  converted to a 64-bits integer. It can be zero. if zero, the ioctl
- 	  won't store the pads. It will just update ``num_pads``
- 
--    -  .. row 8
-+    -  .. row 11
- 
--       -  __u64
-+       -  __u32
- 
-        -  ``num_links``
- 
-        -  Total number of data and interface links in the graph
- 
--    -  .. row 9
-+    -  .. row 12
-+
-+       -  __u32
-+
-+       -  ``reserved4``
-+
-+       -  Applications and drivers shall set this to 0.
-+
-+    -  .. row 13
- 
-        -  __u64
+ 	return 0;
+ }
  
 -- 
-2.16.1
+2.7.4
