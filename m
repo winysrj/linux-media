@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:37549 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938336AbeBUPcY (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:44019 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752130AbeB0IrB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 10:32:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 06/15] subdev-formats.rst: fix incorrect types
-Date: Wed, 21 Feb 2018 16:32:09 +0100
-Message-Id: <20180221153218.15654-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180221153218.15654-1-hverkuil@xs4all.nl>
-References: <20180221153218.15654-1-hverkuil@xs4all.nl>
+        Tue, 27 Feb 2018 03:47:01 -0500
+Message-ID: <1519721219.3402.8.camel@pengutronix.de>
+Subject: Re: [PATCH 3/3] media: imx: Don't initialize vars that won't be used
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Date: Tue, 27 Feb 2018 09:46:59 +0100
+In-Reply-To: <52e17089d1850774d2ef583cdef2b060b84fca8c.1519652405.git.mchehab@s-opensource.com>
+References: <00d9da502565e97fcca3805eec98db6df3594ec0.1519652405.git.mchehab@s-opensource.com>
+         <52e17089d1850774d2ef583cdef2b060b84fca8c.1519652405.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
+On Mon, 2018-02-26 at 08:40 -0500, Mauro Carvalho Chehab wrote:
+> As reported by gcc:
+> 
+>   + drivers/staging/media/imx/imx-media-csi.c: warning: variable 'input_fi' set but not used [-Wunused-but-set-variable]:  => 671:33
+>   + drivers/staging/media/imx/imx-media-csi.c: warning: variable 'pinctrl' set but not used [-Wunused-but-set-variable]:  => 1742:18
+> 
+> input_fi is not used, so just remove it.
+> 
+> However, pinctrl should be used, as it devm_pinctrl_get_select_default()
+> is declared with attribute warn_unused_result. What's missing there
+> is an error handling code, in case it fails. Add it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index b1eea44550e1..4f0c0b282f98 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -33,17 +33,17 @@ Media Bus Formats
-       - Image colorspace, from enum
- 	:c:type:`v4l2_colorspace`. See
- 	:ref:`colorspaces` for details.
--    * - enum :c:type:`v4l2_ycbcr_encoding`
-+    * - __u16
-       - ``ycbcr_enc``
-       - This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
--    * - enum :c:type:`v4l2_quantization`
-+    * - __u16
-       - ``quantization``
-       - This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
--    * - enum :c:type:`v4l2_xfer_func`
-+    * - __u16
-       - ``xfer_func``
-       - This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
--- 
-2.16.1
+regards
+Philipp
