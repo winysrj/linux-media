@@ -1,119 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:33352 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752897AbeBSQ31 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 11:29:27 -0500
-Subject: Re: [PATCH 1/8] clk: Add clk_bulk_alloc functions
-To: Maciej Purski <m.purski@samsung.com>, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Cc: David Airlie <airlied@linux.ie>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:55573 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752090AbeB0JNR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 04:13:17 -0500
+Message-ID: <1519722784.3402.12.camel@pengutronix.de>
+Subject: Re: [PATCH 01/13] media: v4l2-fwnode: Let parse_endpoint callback
+ decide if no remote is error
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Yong Zhi <yong.zhi@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
- <CGME20180219154456eucas1p15f4073beaf61312238f142f217a8bb3c@eucas1p1.samsung.com>
- <1519055046-2399-2-git-send-email-m.purski@samsung.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Message-ID: <b67b5043-f5e5-826a-f0b8-f7cf722c61e6@arm.com>
-Date: Mon, 19 Feb 2018 16:29:12 +0000
-MIME-Version: 1.0
-In-Reply-To: <1519055046-2399-2-git-send-email-m.purski@samsung.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        devicetree@vger.kernel.org
+Date: Tue, 27 Feb 2018 10:13:04 +0100
+In-Reply-To: <20180223124741.d4l4vjahe6beqe65@paasikivi.fi.intel.com>
+References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+         <3283028.CgXzGkPyKt@avalon> <1519379812.7712.1.camel@pengutronix.de>
+         <2571855.0gglA1aPyk@avalon> <1519384577.7712.4.camel@pengutronix.de>
+         <20180223124741.d4l4vjahe6beqe65@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maciej,
+Hi Sakari,
 
-On 19/02/18 15:43, Maciej Purski wrote:
-> When a driver is going to use clk_bulk_get() function, it has to
-> initialize an array of clk_bulk_data, by filling its id fields.
+On Fri, 2018-02-23 at 14:47 +0200, Sakari Ailus wrote:
+> Hi Philipp,
 > 
-> Add a new function to the core, which dynamically allocates
-> clk_bulk_data array and fills its id fields. Add clk_bulk_free()
-> function, which frees the array allocated by clk_bulk_alloc() function.
-> Add a managed version of clk_bulk_alloc().
-
-Seeing how every subsequent patch ends up with the roughly this same stanza:
-
-	x = devm_clk_bulk_alloc(dev, num, names);
-	if (IS_ERR(x)
-		return PTR_ERR(x);
-	ret = devm_clk_bulk_get(dev, x, num);
-
-I wonder if it might be better to simply implement:
-
-	int devm_clk_bulk_alloc_get(dev, &x, num, names)
-
-that does the whole lot in one go, and let drivers that want to do more 
-fiddly things continue to open-code the allocation.
-
-But perhaps that's an abstraction too far... I'm not all that familiar 
-with the lie of the land here.
-
-> Signed-off-by: Maciej Purski <m.purski@samsung.com>
-> ---
->   drivers/clk/clk-bulk.c   | 16 ++++++++++++
->   drivers/clk/clk-devres.c | 37 +++++++++++++++++++++++++---
->   include/linux/clk.h      | 64 ++++++++++++++++++++++++++++++++++++++++++++++++
->   3 files changed, 113 insertions(+), 4 deletions(-)
+> On Fri, Feb 23, 2018 at 12:16:17PM +0100, Philipp Zabel wrote:
+> > Hi Laurent,
+> > 
+> > On Fri, 2018-02-23 at 12:05 +0200, Laurent Pinchart wrote:
+> > > Hi Philipp,
+> > > 
+> > > On Friday, 23 February 2018 11:56:52 EET Philipp Zabel wrote:
+> > > > On Fri, 2018-02-23 at 11:29 +0200, Laurent Pinchart wrote:
+> > > > > On Thursday, 22 February 2018 03:39:37 EET Steve Longerbeam wrote:
+> > > > > > For some subdevices, a fwnode endpoint that has no connection to a
+> > > > > > remote endpoint may not be an error. Let the parse_endpoint callback
+> > > > > 
+> > > > > make that decision in v4l2_async_notifier_fwnode_parse_endpoint(). If
+> > > > > > the callback indicates that is not an error, skip adding the asd to the
+> > > > > > notifier and return 0.
+> > > > > > 
+> > > > > > For the current users of v4l2_async_notifier_parse_fwnode_endpoints()
+> > > > > > (omap3isp, rcar-vin, intel-ipu3), return -EINVAL in the callback for
+> > > > > > unavailable remote fwnodes to maintain the previous behavior.
+> > > > > 
+> > > > > I'm not sure this should be a per-driver decision.
+> > > > > 
+> > > > > Generally speaking, if an endpoint node has no remote-endpoint property,
+> > > > > the endpoint node is not needed. I've always considered such an endpoint
+> > > > > node as invalid. The OF graphs DT bindings are however not clear on this
+> > > > > subject.
+> > > > 
+> > > > Documentation/devicetree/bindings/graph.txt says:
+> > > > 
+> > > >   Each endpoint should contain a 'remote-endpoint' phandle property
+> > > >   that points to the corresponding endpoint in the port of the remote
+> > > >   device.
+> > > > 
+> > > > ("should", not "must").
+> > > 
+> > > The DT bindings documentation has historically used "should" to mean "must" in 
+> > > many places :-( That was a big mistake.
+> > 
+> > Maybe I could have worded that better? The intention was to let "should"
+> > be read as a strong suggestion, like "it is recommended", but not as a
+> > requirement.
 > 
+> Is there a reason for have an endpoint without a remote-endpoint property?
 
-[...]
-> @@ -598,6 +645,23 @@ struct clk *clk_get_sys(const char *dev_id, const char *con_id);
->   
->   #else /* !CONFIG_HAVE_CLK */
->   
-> +static inline struct clk_bulk_data *clk_bulk_alloc(int num_clks,
-> +						   const char **clk_ids)
-> +{
-> +	return NULL;
+It allows to slightly reduce boilerplate in board device trees at the
+cost of empty endpoint nodes included from the dtsi in board DTs that
+don't use them.
 
-Either way, is it intentional not returning an ERR_PTR() value in this 
-case? Since NULL will pass an IS_ERR() check, it seems a bit fragile for 
-an allocation call to apparently succeed when the whole API is 
-configured out (and I believe introducing new uses of IS_ERR_OR_NULL() 
-is in general strongly discouraged.)
+> The problem with should (in general when it is used when the intention is
+> "shall") is that it lets the developer to write broken DT source that is
+> still conforming to the spec.
+>
+> I don't have a strong preference to change should to shall in this
+> particular case now but I would have used "shall" to begin with.
 
-Robin.
+I used "should" on purpose, but I'd be fine with giving up on it when
+all current users of this loophole are transitioned away from it:
 
-> +}
-> +
-> +static inline struct clk_bulk_data *devm_clk_bulk_alloc(struct device *dev,
-> +							int num_clks,
-> +							const char **clk_ids)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline void clk_bulk_free(struct clk_bulk_data *clks)
-> +{
-> +}
-> +
->   static inline struct clk *clk_get(struct device *dev, const char *id)
->   {
->   	return NULL;
+  git grep -A1 "endpoint {" arch/ | grep -B1 "};"
+
+I'm very much against enforcing a required remote-endpoint property in
+core DT parsing code, though.
+
+> > > > Later, the remote-node property explicitly lists the remote-endpoint
+> > > > property as optional.
+> > > 
+> > > I've seen that too, and that's why I mentioned that the documentation isn't 
+> > > clear on the subject.
+> > 
+> > Do you have a suggestion how to improve the documentation? I thought
+> > listing the remote-endpoint property under a header called "Optional
+> > endpoint properties" was pretty clear.
+> > 
+> > > This could also be achieved by adding the endpoints in the board DT files. See 
+> > > for instance the hdmi@fead0000 node in arch/arm64/boot/dts/renesas/
+> > > r8a7795.dtsi and how it gets extended in arch/arm64/boot/dts/renesas/r8a7795-
+> > > salvator-x.dts. On the other hand, I also have empty endpoints in the 
+> > > display@feb00000 node of arch/arm64/boot/dts/renesas/r8a7795.dtsi.
+> > 
+> > Right, that would be possible.
+> > 
+> > > I think we should first decide what we want to do going forward (allowing for 
+> > > empty endpoints or not), clarify the documentation, and then update the code. 
+> > > In any case I don't think it should be a per-device decision.
+> > 
+> > There are device trees in the wild that have those empty endpoints, so I
+> > don't think retroactively declaring the remote-endpoint property
+> > required is a good idea.
 > 
+> You could IMO, but the kernel (and existing drivers) would still need to
+> work with DT binaries without those bits. And leave comments in the code
+> why it's there.
+>
+> > 
+> > Is there any driver that currently benefits from throwing an error on
+> > empty endpoints in any way? I'd prefer to just let the core ignore empty
+> > endpoints for all drivers.
+> 
+> Not necessarily, but it's overhead in parsing the DT as well as in the
+> DT source and in the DT binary.
+
+True. I suppose whether or not that is enough reason to change the
+wording in the existing of-graph bindings is something to be decided on
+the devicetree list (in Cc).
+
+regards
+Philipp
