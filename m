@@ -1,112 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-1.mail.aliyun.com ([115.124.20.1]:36668 "EHLO
-        out20-1.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751411AbeB0CI4 (ORCPT
+Received: from esa2.microchip.iphmx.com ([68.232.149.84]:55858 "EHLO
+        esa2.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752374AbeB0QQD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 21:08:56 -0500
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v8 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Tue, 27 Feb 2018 10:07:36 +0800
-Message-Id: <1519697256-32472-1-git-send-email-yong.deng@magewell.com>
+        Tue, 27 Feb 2018 11:16:03 -0500
+Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
+To: Daniel Thompson <daniel.thompson@linaro.org>
+CC: Jani Nikula <jani.nikula@linux.intel.com>,
+        <thierry.reding@gmail.com>, <shc_work@mail.ru>, <kgene@kernel.org>,
+        <krzk@kernel.org>, <linux@armlinux.org.uk>,
+        <mturquette@baylibre.com>, <sboyd@codeaurora.org>,
+        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
+        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
+        <jdelvare@suse.com>, <linux@roeck-us.net>,
+        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
+        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
+        <sean@mess.org>, <lee.jones@linaro.org>, <jingoohan1@gmail.com>,
+        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
+        <alexandre.belloni@free-electrons.com>,
+        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+ <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
+ <20180222123308.mypx2r7n6o63mj5z@oak.lan> <87po4s2hve.fsf@intel.com>
+ <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
+ <20180227105444.lo4pee7vh4we3foq@oak.lan>
+ <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
+ <20180227153812.txt2vsdygfnobo33@oak.lan>
+From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Message-ID: <66059303-3a17-d534-3581-9c03cc05a909@microchip.com>
+Date: Tue, 27 Feb 2018 18:15:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180227153812.txt2vsdygfnobo33@oak.lan>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Allwinner V3s CSI.
 
-Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Yong Deng <yong.deng@magewell.com>
----
- .../devicetree/bindings/media/sun6i-csi.txt        | 59 ++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
 
-diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-new file mode 100644
-index 000000000000..2ff47a9507a6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-@@ -0,0 +1,59 @@
-+Allwinner V3s Camera Sensor Interface
-+-------------------------------------
-+
-+Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-+interface and CSI1 is used for parallel interface.
-+
-+Required properties:
-+  - compatible: value must be "allwinner,sun8i-v3s-csi"
-+  - reg: base address and size of the memory-mapped region.
-+  - interrupts: interrupt associated to this IP
-+  - clocks: phandles to the clocks feeding the CSI
-+    * bus: the CSI interface clock
-+    * mod: the CSI module clock
-+    * ram: the CSI DRAM clock
-+  - clock-names: the clock names mentioned above
-+  - resets: phandles to the reset line driving the CSI
-+
-+Each CSI node should contain one 'port' child node with one child 'endpoint'
-+node, according to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt. As mentioned
-+above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel or
-+Bt656 for CSI1.
-+
-+Endpoint node properties for CSI1
-+---------------------------------
-+
-+- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
-+			   node
-+- bus-width:		: (required) must be 8, 10, 12 or 16
-+- pclk-sample		: (optional) (default: sample on falling edge)
-+- hsync-active		: (only required for parallel)
-+- vsync-active		: (only required for parallel)
-+
-+Example:
-+
-+csi1: csi@1cb4000 {
-+	compatible = "allwinner,sun8i-v3s-csi";
-+	reg = <0x01cb4000 0x1000>;
-+	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-+	clocks = <&ccu CLK_BUS_CSI>,
-+		 <&ccu CLK_CSI1_SCLK>,
-+		 <&ccu CLK_DRAM_CSI>;
-+	clock-names = "bus", "mod", "ram";
-+	resets = <&ccu RST_BUS_CSI>;
-+
-+	port {
-+		/* Parallel bus endpoint */
-+		csi1_ep: endpoint {
-+			remote-endpoint = <&adv7611_ep>;
-+			bus-width = <16>;
-+
-+			/* If hsync-active/vsync-active are missing,
-+			   embedded BT.656 sync is used */
-+			hsync-active = <0>; /* Active low */
-+			vsync-active = <0>; /* Active low */
-+			pclk-sample = <1>;  /* Rising */
-+		};
-+	};
-+};
--- 
-1.8.3.1
+On 27.02.2018 17:38, Daniel Thompson wrote:
+> On Tue, Feb 27, 2018 at 01:40:58PM +0200, Claudiu Beznea wrote:
+>> On 27.02.2018 12:54, Daniel Thompson wrote:
+>>> On Mon, Feb 26, 2018 at 04:24:15PM +0200, Claudiu Beznea wrote:
+>>>> On 26.02.2018 11:57, Jani Nikula wrote:
+>>>>> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
+>>>>>> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
+>>>>>>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
+>>>>>>> were adapted to this change.
+>>>>>>>
+>>>>>>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+>>>>>>> ---
+>>>>>>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
+>>>>>>>  drivers/bus/ts-nbus.c                |  2 +-
+>>>>>>>  drivers/clk/clk-pwm.c                |  3 ++-
+>>>>>>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
+>>>>>>>  drivers/hwmon/pwm-fan.c              |  2 +-
+>>>>>>>  drivers/input/misc/max77693-haptic.c |  2 +-
+>>>>>>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
+>>>>>>>  drivers/leds/leds-pwm.c              |  5 ++++-
+>>>>>>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
+>>>>>>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
+>>>>>>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
+>>>>>>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
+>>>>>>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
+>>>>>>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
+>>>>>>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
+>>>>>>>  include/linux/pwm.h                  |  6 ++++--
+>>>>>>>  16 files changed, 70 insertions(+), 21 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
+>>>>>>> index 2030a6b77a09..696fa25dafd2 100644
+>>>>>>> --- a/drivers/video/backlight/lm3630a_bl.c
+>>>>>>> +++ b/drivers/video/backlight/lm3630a_bl.c
+>>>>>>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
+>>>>>>>  {
+>>>>>>>  	unsigned int period = pchip->pdata->pwm_period;
+>>>>>>>  	unsigned int duty = br * period / br_max;
+>>>>>>> +	struct pwm_caps caps = { };
+>>>>>>>  
+>>>>>>> -	pwm_config(pchip->pwmd, duty, period);
+>>>>>>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
+>>>>>>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
+>>>>>>
+>>>>>> Well... I admit I've only really looked at the patches that impact 
+>>>>>> backlight but dispersing this really odd looking bit twiddling 
+>>>>>> throughout the kernel doesn't strike me a great API design.
+>>>>>>
+>>>>>> IMHO callers should not be required to find the first set bit in
+>>>>>> some specially crafted set of capability bits simply to get sane 
+>>>>>> default behaviour.
+>>>>>
+>>>>> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
+>>>>> error prone.
+>>>>
+>>>> Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
+>>>> from your side?
+>>>>
+>>>> Or, what about using a function like pwm_mode_first() to get the first supported
+>>>> mode by PWM channel?
+>>>>
+>>>> Or, would you prefer to solve this inside pwm_config() function, let's say, in
+>>>> case an invalid mode is passed as argument, to let pwm_config() to choose the
+>>>> first available PWM mode for PWM channel passed as argument?
+>>>
+>>> What is it that actually needs solving?
+>>>
+>>> If a driver requests normal mode and the PWM driver cannot support it
+>>> why not just return an error an move on.
+>> Because, simply, I wasn't aware of what these PWM client drivers needs for.
+> 
+> I'm afraid you have confused me here.
+> 
+> Didn't you just *add* the whole concept of PWM caps with your patches?
+> How could any existing call site expect anything except normal mode.
+> Until now there has been no possiblity to request anything else.
+Agree. And agree I was confusing in previous email, sorry about that. And
+agree that there was nothing before and everything should work with PWM
+normal mode.
+
+When I choose to have BIT(ffs(caps.modes)) instead of PWM_MODE(NORMAL) I
+was thinking at having these pwm_config() calls working all the time having
+in mind that in future the PWM controllers that these drivers use, might
+change in terms of PWM supported modes.
+
+Thank you,
+Claudiu Beznea
+
+> 
+> 
+>>> Put another way, what is the use case for secretly adopting a mode the
+>>> caller didn't want? Under what circumstances is this a good thing?
+>> No one... But I wasn't aware of what the PWM clients needs for from their PWM
+>> controllers. At this moment having BIT(ffs(caps.modes)) instead of
+>> PWM_MODE(NORMAL) is mostly the same since all the driver that has not explicitly
+>> registered PWM caps will use PWM normal mode.
+>>
+>> I will use PWM_MODE(NORMAL) instead of this in all the cases if this is OK from
+>> your side.
+>>
+>> Thank you,
+>> Claudiu Beznea
+>>>
+>>>
+>>> Daniel.
+>>>
+> 
