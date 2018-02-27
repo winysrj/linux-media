@@ -1,86 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42296 "EHLO mail.kernel.org"
+Received: from gloria.sntech.de ([95.129.55.99]:38658 "EHLO gloria.sntech.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965057AbeBMRtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:49:08 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 3/5] [RFT] ARM: dts: wheat: Fix ADV7513 address usage
-Date: Tue, 13 Feb 2018 17:48:55 +0000
-Message-Id: <1518544137-2742-4-git-send-email-kbingham@kernel.org>
-In-Reply-To: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
-References: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
+        id S1752573AbeB0PMZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 10:12:25 -0500
+From: Heiko Stuebner <heiko@sntech.de>
+To: =?utf-8?B?5rip5pqW?= <leo.wen@rock-chips.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+        David Wu <david.wu@rock-chips.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        "jacob2.chen@rock-chips.com" <jacob2.chen@rock-chips.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Eddie Cai <eddie.cai@rock-chips.com>
+Subject: Re: [PATCH V2 1/2] [media] Add Rockchip RK1608 driver
+Date: Tue, 27 Feb 2018 16:12:04 +0100
+Message-ID: <14366388.KYv6Y7EbEA@phil>
+In-Reply-To: <06296C1C-0ACB-4BB2-86DF-EBDBE3265DA4@rock-chips.com>
+References: <1519632964-64257-1-git-send-email-leo.wen@rock-chips.com> <CACRpkdZDWvqrpop9FaJUidJjR8jB=Db-WztePrqKSg5Yp5gvCA@mail.gmail.com> <06296C1C-0ACB-4BB2-86DF-EBDBE3265DA4@rock-chips.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi Leo,
 
-The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
-bus, however in low power mode the ADV7513 will reset it's slave maps to
-use the hardware defined default addresses.
+Am Dienstag, 27. Februar 2018, 04:15:46 CET schrieb 温暖:
+> Thank you for your advice! I will revise it according to your suggestion.
 
-The ADV7511 driver was adapted to allow the two devices to be registered
-correctly - but it did not take into account the fault whereby the
-devices reset the addresses.
+please also keep an eye on my reply to Linus' mail pointing out some
+other issues where the driver should not tie into soc-specific areas
+like the clock controller etc.
 
-This results in an address conflict between the device using the default
-addresses, and the other device if it is in low-power-mode.
 
-Repair this issue by moving both devices away from the default address
-definitions.
+Thanks
+Heiko
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-v2:
- - Addition to series
+Am Dienstag, 27. Februar 2018, 04:15:46 CET schrieb 温暖:
+> On 2/26/2018 18:12，Linus Walleij<linus.walleij@linaro.org>  wrote：
+> On Mon, Feb 26, 2018 at 9:16 AM, Wen Nuan <leo.wen@rock-chips.com> wrote:
+> +               pdata->grf_gpio2b_iomux = ioremap((resource_size_t)
+>  +                                                 (GRF_BASE_ADDR +
+>  +                                                  GRF_GPIO2B_IOMUX), 4);
+>  +               grf_val = __raw_readl(pdata->grf_gpio2b_iomux);
+>  +               __raw_writel(((grf_val) | (1 << 6) | (1 << (6 + 16))),
+>  +                            pdata->grf_gpio2b_iomux);
+>  +
+>  +               pdata->grf_io_vsel = ioremap((resource_size_t)
+>  +                                             (GRF_BASE_ADDR + GRF_IO_VSEL), 4);
+>  +               grf_val = __raw_readl(pdata->grf_io_vsel);
+>  +               __raw_writel(((grf_val) | (1 << 1) | (1 << (1 + 16))),
+>  +                            pdata->grf_io_vsel);
+> 
+> You are doing pin control on the side of the pin control subsystem
+> it looks like?
+> 
+> I think David Wu and Heiko Stubner needs to have a look at what you
+> are doing here to suggest other solutions.
+> 
+> Apart from that, why use __raw_writel instead of just writel()?
+> 
+> This pin is iomux, default GPIO, need to be changed to CLK. 
+> This CLK is provided to external sensor for use.
+> I'll use writel().
 
-v3:
- - Split map register addresses into individual declarations.
+As stated, please don't directly access soc blocks like the clock
+controller or iomuxes, there are standard APIs like the general
+clock API and also assigned-clock* devicetree properties.
 
-v4:
- - Normalise I2C usage
+Similarly for pinctrl access.
 
- arch/arm/boot/dts/r8a7792-wheat.dts | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+So there should not be any writel (or ioremap) at all in this spi driver
+I'd think.
 
-diff --git a/arch/arm/boot/dts/r8a7792-wheat.dts b/arch/arm/boot/dts/r8a7792-wheat.dts
-index b9471b67b728..42fff8837eab 100644
---- a/arch/arm/boot/dts/r8a7792-wheat.dts
-+++ b/arch/arm/boot/dts/r8a7792-wheat.dts
-@@ -240,9 +240,16 @@
- 	status = "okay";
- 	clock-frequency = <400000>;
- 
-+	/*
-+	 * The adv75xx resets its addresses to defaults during low power power
-+	 * mode. Because we have two ADV7513 devices on the same bus, we must
-+	 * change both of them away from the defaults so that they do not
-+	 * conflict.
-+	 */
- 	hdmi@3d {
- 		compatible = "adi,adv7513";
--		reg = <0x3d>;
-+		reg = <0x3d>, <0x2d>, <0x4d>, <0x5d>;
-+		reg-names = "main", "cec", "edid", "packet";
- 
- 		adi,input-depth = <8>;
- 		adi,input-colorspace = "rgb";
-@@ -272,7 +279,8 @@
- 
- 	hdmi@39 {
- 		compatible = "adi,adv7513";
--		reg = <0x39>;
-+		reg = <0x39>, <0x29>, <0x49>, <0x59>;
-+		reg-names = "main", "cec", "edid", "packet";
- 
- 		adi,input-depth = <8>;
- 		adi,input-colorspace = "rgb";
--- 
-2.7.4
+
+Thanks
+Heiko
