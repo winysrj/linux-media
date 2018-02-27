@@ -1,124 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36372 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754715AbeBNMDY (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:50359 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753163AbeB0Pku (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 07:03:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.2 09/12] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-Date: Wed, 14 Feb 2018 13:03:20 +0100
-Message-Id: <20180214120323.28778-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180214120323.28778-1-hverkuil@xs4all.nl>
-References: <20180214120323.28778-1-hverkuil@xs4all.nl>
+        Tue, 27 Feb 2018 10:40:50 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 04/13] media: tw9910: Re-order variables declaration
+Date: Tue, 27 Feb 2018 16:40:21 +0100
+Message-Id: <1519746030-15407-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Re-order variables declaration to respect 'reverse christmas tree'
+ordering whenever possible.
 
-commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
-
-put_v4l2_window32() didn't copy back the clip list to userspace.
-Drivers can update the clip rectangles, so this should be done.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/video/v4l2-compat-ioctl32.c | 59 +++++++++++++++++++++----------
- 1 file changed, 40 insertions(+), 19 deletions(-)
+ drivers/media/i2c/tw9910.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index a7b71a256d56..6c3e15f7703e 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -51,6 +51,11 @@ struct v4l2_window32 {
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 45afdb9..f88cc93 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
  
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ static int tw9910_power(struct i2c_client *client, int enable)
  {
-+	struct v4l2_clip32 __user *uclips;
-+	struct v4l2_clip __user *kclips;
-+	compat_caddr_t p;
-+	u32 n;
-+
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
-@@ -60,38 +65,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
--	if (kp->clipcount) {
--		struct v4l2_clip32 __user *uclips;
--		struct v4l2_clip __user *kclips;
--		int n = kp->clipcount;
--		compat_caddr_t p;
-+	if (!kp->clipcount) {
-+		kp->clips = NULL;
-+		return 0;
-+	}
+-	int ret;
+ 	u8 acntl1;
+ 	u8 acntl2;
++	int ret;
  
--		if (get_user(p, &up->clips))
-+	n = kp->clipcount;
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-+	kp->clips = kclips;
-+	while (n--) {
-+		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
- 			return -EFAULT;
--		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(*kclips));
--		kp->clips = kclips;
--		while (--n >= 0) {
--			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
--				return -EFAULT;
--			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
--				return -EFAULT;
--			uclips += 1;
--			kclips += 1;
--		}
--	} else
--		kp->clips = NULL;
-+		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
- static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ 	if (enable) {
+ 		acntl1 = 0;
+@@ -428,8 +428,8 @@ static int tw9910_power(struct i2c_client *client, int enable)
+ static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
+ 							  u32 width, u32 height)
  {
-+	struct v4l2_clip __user *kclips = kp->clips;
-+	struct v4l2_clip32 __user *uclips;
-+	u32 n = kp->clipcount;
-+	compat_caddr_t p;
-+
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
- 	    put_user(kp->clipcount, &up->clipcount) ||
- 	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
-+
-+	if (!kp->clipcount)
-+		return 0;
-+
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	while (n--) {
-+		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
+-	const struct tw9910_scale_ctrl *scale;
+ 	const struct tw9910_scale_ctrl *ret = NULL;
++	const struct tw9910_scale_ctrl *scale;
+ 	__u32 diff = 0xffffffff, tmp;
+ 	int size, i;
  
+@@ -462,8 +462,8 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	u8 val;
+ 	int ret;
++	u8 val;
+ 
+ 	if (!enable) {
+ 		switch (priv->revision) {
+@@ -512,10 +512,10 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	const unsigned int hact = 720;
+ 	const unsigned int hdelay = 15;
+-	unsigned int vact;
++	const unsigned int hact = 720;
+ 	unsigned int vdelay;
++	unsigned int vact;
+ 	int ret;
+ 
+ 	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+@@ -761,8 +761,8 @@ static int tw9910_get_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *format)
+ {
+-	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct tw9910_priv *priv = to_tw9910(client);
+ 
+ 	if (format->pad)
+@@ -813,8 +813,8 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *format)
+ {
+-	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct tw9910_priv *priv = to_tw9910(client);
+ 	const struct tw9910_scale_ctrl *scale;
+ 
+@@ -851,8 +851,8 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ static int tw9910_video_probe(struct i2c_client *client)
+ {
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	s32 id;
+ 	int ret;
++	s32 id;
+ 
+ 	/*
+ 	 * tw9910 only use 8 or 16 bit bus width
+@@ -949,10 +949,9 @@ static int tw9910_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ 
+ {
+-	struct tw9910_priv		*priv;
+-	struct tw9910_video_info	*info;
+-	struct i2c_adapter		*adapter =
+-		to_i2c_adapter(client->dev.parent);
++	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
++	struct tw9910_video_info *info;
++	struct tw9910_priv *priv;
+ 	int ret;
+ 
+ 	if (!client->dev.platform_data) {
 -- 
-2.15.1
+2.7.4
