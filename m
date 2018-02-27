@@ -1,176 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36962 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752843AbeBEOyd (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47639 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752180AbeB0Hcg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 09:54:33 -0500
-Subject: Re: [PATCH 4/5] add V4L2 control functions
-To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at
-References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
- <1517840981-12280-5-git-send-email-floe@butterbrot.org>
+        Tue, 27 Feb 2018 02:32:36 -0500
+Subject: Re: [PATCH v2] Staging: bcm2048: Fix function argument alignment in
+ radio-bcm2048.c.
+To: Quytelda Kahja <quytelda@tamalin.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+References: <20180219072550.hz4vpomsaz2ajrnm@mwanda>
+ <20180220065304.8943-1-quytelda@tamalin.org>
+ <cb62e915-eb9c-9252-1f0a-cc85c8ea3530@xs4all.nl>
+ <CAFLvi2357U3HAt3mXDdNdZs4QA9mqWntTny4XyvtSfV2hu1dmA@mail.gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4835be2b-238c-bb27-e9e5-98642ae76733@xs4all.nl>
-Date: Mon, 5 Feb 2018 15:54:27 +0100
+Message-ID: <7c9787b2-bad3-21d9-f726-e171d9af940d@xs4all.nl>
+Date: Tue, 27 Feb 2018 08:32:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <1517840981-12280-5-git-send-email-floe@butterbrot.org>
+In-Reply-To: <CAFLvi2357U3HAt3mXDdNdZs4QA9mqWntTny4XyvtSfV2hu1dmA@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 03:29 PM, Florian Echtler wrote:
-> Signed-off-by: Florian Echtler <floe@butterbrot.org>
-> ---
->  drivers/input/touchscreen/sur40.c | 114 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 114 insertions(+)
+On 02/27/2018 02:53 AM, Quytelda Kahja wrote:
+> Hans,
 > 
-> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-> index 63c7264b..c4b7cf1 100644
-> --- a/drivers/input/touchscreen/sur40.c
-> +++ b/drivers/input/touchscreen/sur40.c
-> @@ -953,6 +953,119 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> +
-> +static int sur40_vidioc_queryctrl(struct file *file, void *fh,
-> +			       struct v4l2_queryctrl *qc)
-> +{
-> +
-> +	switch (qc->id) {
-> +	case V4L2_CID_BRIGHTNESS:
-> +		qc->flags = 0;
-> +		sprintf(qc->name, "Brightness");
-> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
-> +		qc->minimum = SUR40_BRIGHTNESS_MIN;
-> +		qc->default_value = SUR40_BRIGHTNESS_DEF;
-> +		qc->maximum = SUR40_BRIGHTNESS_MAX;
-> +		qc->step = 8;
-> +		return 0;
-> +	case V4L2_CID_CONTRAST:
-> +		qc->flags = 0;
-> +		sprintf(qc->name, "Contrast");
-> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
-> +		qc->minimum = SUR40_CONTRAST_MIN;
-> +		qc->default_value = SUR40_CONTRAST_DEF;
-> +		qc->maximum = SUR40_CONTRAST_MAX;
-> +		qc->step = 1;
-> +		return 0;
-> +	case V4L2_CID_GAIN:
-> +		qc->flags = 0;
-> +		sprintf(qc->name, "Gain");
-> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
-> +		qc->minimum = SUR40_GAIN_MIN;
-> +		qc->default_value = SUR40_GAIN_DEF;
-> +		qc->maximum = SUR40_GAIN_MAX;
-> +		qc->step = 1;
-> +		return 0;
-> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
-> +		qc->flags = 0;
-> +		sprintf(qc->name, "Preprocessor");
-> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
-> +		qc->minimum = SUR40_BACKLIGHT_MIN;
-> +		qc->default_value = SUR40_BACKLIGHT_DEF;
-> +		qc->maximum = SUR40_BACKLIGHT_MAX;
-> +		qc->step = 1;
-> +		return 0;
-> +	default:
-> +		qc->flags = V4L2_CTRL_FLAG_DISABLED;
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static int sur40_vidioc_g_ctrl(struct file *file, void *fh,
-> +			    struct v4l2_control *ctrl)
-> +{
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_BRIGHTNESS:
-> +		ctrl->value = sur40_v4l2_brightness;
-> +		return 0;
-> +	case V4L2_CID_CONTRAST:
-> +		ctrl->value = sur40_v4l2_contrast;
-> +		return 0;
-> +	case V4L2_CID_GAIN:
-> +		ctrl->value = sur40_v4l2_gain;
-> +		return 0;
-> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
-> +		ctrl->value = sur40_v4l2_backlight;
-> +		return 0;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static int sur40_vidioc_s_ctrl(struct file *file, void *fh,
-> +			    struct v4l2_control *ctrl)
-> +{
-> +	u8 value = 0;
-> +	struct sur40_state *sur40 = video_drvdata(file);
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_BRIGHTNESS:
-> +		sur40_v4l2_brightness = ctrl->value;
-> +		if (sur40_v4l2_brightness < SUR40_BRIGHTNESS_MIN)
-> +			sur40_v4l2_brightness = SUR40_BRIGHTNESS_MIN;
-> +		else if (sur40_v4l2_brightness > SUR40_BRIGHTNESS_MAX)
-> +			sur40_v4l2_brightness = SUR40_BRIGHTNESS_MAX;
-> +		sur40_set_irlevel(sur40, sur40_v4l2_brightness);
-> +		return 0;
-> +	case V4L2_CID_CONTRAST:
-> +		sur40_v4l2_contrast = ctrl->value;
-> +		if (sur40_v4l2_contrast < SUR40_CONTRAST_MIN)
-> +			sur40_v4l2_contrast = SUR40_CONTRAST_MIN;
-> +		else if (sur40_v4l2_contrast > SUR40_CONTRAST_MAX)
-> +			sur40_v4l2_contrast = SUR40_CONTRAST_MAX;
-> +		value = (sur40_v4l2_contrast << 4) + sur40_v4l2_gain;
-> +		sur40_set_vsvideo(sur40, value);
-> +		return 0;
-> +	case V4L2_CID_GAIN:
-> +		sur40_v4l2_gain = ctrl->value;
-> +		if (sur40_v4l2_gain < SUR40_GAIN_MIN)
-> +			sur40_v4l2_gain = SUR40_GAIN_MIN;
-> +		else if (sur40_v4l2_gain > SUR40_GAIN_MAX)
-> +			sur40_v4l2_gain = SUR40_GAIN_MAX;
-> +		value = (sur40_v4l2_contrast << 4) + sur40_v4l2_gain;
-> +		sur40_set_vsvideo(sur40, value);
-> +		return 0;
-> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
-> +		sur40_v4l2_backlight = ctrl->value;
-> +		sur40_set_preprocessor(sur40, sur40_v4l2_backlight);
-> +		return 0;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +
->  static int sur40_ioctl_parm(struct file *file, void *priv,
->  			    struct v4l2_streamparm *p)
->  {
-> @@ -1071,6 +1181,10 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
->  	.vidioc_g_input		= sur40_vidioc_g_input,
->  	.vidioc_s_input		= sur40_vidioc_s_input,
->  
-> +	.vidioc_queryctrl	= sur40_vidioc_queryctrl,
-> +	.vidioc_g_ctrl		= sur40_vidioc_g_ctrl,
-> +	.vidioc_s_ctrl		= sur40_vidioc_s_ctrl,
-> +
->  	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
->  	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
->  	.vidioc_querybuf	= vb2_ioctl_querybuf,
+> Thank you very much for your input on the patch; however this patch
+> has already been applied to the staging tree.  Additionally:
+
+I have no record of this being applied through linux-media. Did someone
+else pick this up? Greg perhaps?
+
+>> What coding style problem? You should give a short description of
+>> what you are fixing.
+> The subject of the patch (which becomes the subject of the email when
+> using `git format-patch`) describes the change more fully: "Staging:
+> bcm2048: Fix function argument alignment in radio-bcm2048.c".  It's a
+> really trivial patch, so there's not too much to say.  That extra
+> comment is just redundant, I suppose.
+
+Usually you just show the warnings that gcc or sparse or whatever
+produced.
+
 > 
+>> Just drop this change: it will replace one warning (non-aligned) with
+>> another (> 80 cols).
+> Breaking the 80 character line limit is arguably excusable for this
+> code because of the 36 character function name and 30 character
+> constant name; additionally, it has been said that the 80 character
+> line limit will probably be increased in the future since we run
+> modern machines that aren't limited to 80 character terminals anymore,
+> so this warning may soon be irrelevant anyway.
 
-Sorry, but this is very wrong. Use the control framework instead. See
-https://hverkuil.home.xs4all.nl/spec/kapi/v4l2-controls.html and pretty much all
-media drivers (with the exception of uvc). See for example this driver:
-drivers/media/pci/tw68/tw68-video.c (randomly chosen).
+I know people who would be very annoyed if the 80 char limit is lifted.
 
-It actually makes life a lot easier for you as you don't have to perform any
-range checks and all control ioctls are automatically supported for you.
+Anyway, in the end you look at whether a patch is worth it or not,
+and this part isn't.
+
+But if it is already applied by someone then this is all moot.
 
 Regards,
 
 	Hans
+
+> 
+> Thank you,
+> Quytelda Kahja
+> 
+> On Mon, Feb 26, 2018 at 5:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/20/2018 07:53 AM, Quytelda Kahja wrote:
+>>> Fix a coding style problem.
+>>
+>> What coding style problem? You should give a short description of
+>> what you are fixing.
+>>
+>>>
+>>> Signed-off-by: Quytelda Kahja <quytelda@tamalin.org>
+>>> ---
+>>> This is the patch without the unnecessary fixes for line length.
+>>>
+>>>  drivers/staging/media/bcm2048/radio-bcm2048.c | 22 +++++++++++-----------
+>>>  1 file changed, 11 insertions(+), 11 deletions(-)
+>>>
+>>> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+>>> index 06d1920150da..f38a4f2acdde 100644
+>>> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+>>> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+>>> @@ -1864,7 +1864,7 @@ static int bcm2048_probe(struct bcm2048_device *bdev)
+>>>               goto unlock;
+>>>
+>>>       err = bcm2048_set_fm_search_rssi_threshold(bdev,
+>>> -                                     BCM2048_DEFAULT_RSSI_THRESHOLD);
+>>> +                                                BCM2048_DEFAULT_RSSI_THRESHOLD);
+>>>       if (err < 0)
+>>>               goto unlock;
+>>>
+>>
+>> Just drop this change: it will replace one warning (non-aligned) with
+>> another (> 80 cols).
+>>
+>> This code is fine as it is.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>> @@ -1942,9 +1942,9 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
+>>>   */
+>>>  #define property_write(prop, type, mask, check)                              \
+>>>  static ssize_t bcm2048_##prop##_write(struct device *dev,            \
+>>> -                                     struct device_attribute *attr,  \
+>>> -                                     const char *buf,                \
+>>> -                                     size_t count)                   \
+>>> +                                   struct device_attribute *attr,    \
+>>> +                                   const char *buf,                  \
+>>> +                                   size_t count)                     \
+>>>  {                                                                    \
+>>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
+>>>       type value;                                                     \
+>>> @@ -1966,8 +1966,8 @@ static ssize_t bcm2048_##prop##_write(struct device *dev,               \
+>>>
+>>>  #define property_read(prop, mask)                                    \
+>>>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
+>>> -                                     struct device_attribute *attr,  \
+>>> -                                     char *buf)                      \
+>>> +                                  struct device_attribute *attr,     \
+>>> +                                  char *buf)                         \
+>>>  {                                                                    \
+>>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
+>>>       int value;                                                      \
+>>> @@ -1985,8 +1985,8 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,                \
+>>>
+>>>  #define property_signed_read(prop, size, mask)                               \
+>>>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
+>>> -                                     struct device_attribute *attr,  \
+>>> -                                     char *buf)                      \
+>>> +                                  struct device_attribute *attr,     \
+>>> +                                  char *buf)                         \
+>>>  {                                                                    \
+>>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
+>>>       size value;                                                     \
+>>> @@ -2005,8 +2005,8 @@ property_read(prop, mask)                                               \
+>>>
+>>>  #define property_str_read(prop, size)                                        \
+>>>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
+>>> -                                     struct device_attribute *attr,  \
+>>> -                                     char *buf)                      \
+>>> +                                  struct device_attribute *attr,     \
+>>> +                                  char *buf)                         \
+>>>  {                                                                    \
+>>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
+>>>       int count;                                                      \
+>>> @@ -2175,7 +2175,7 @@ static int bcm2048_fops_release(struct file *file)
+>>>  }
+>>>
+>>>  static __poll_t bcm2048_fops_poll(struct file *file,
+>>> -                                   struct poll_table_struct *pts)
+>>> +                               struct poll_table_struct *pts)
+>>>  {
+>>>       struct bcm2048_device *bdev = video_drvdata(file);
+>>>       __poll_t retval = 0;
+>>>
+>>
