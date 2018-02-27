@@ -1,97 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:33661 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751094AbeBHT1u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Feb 2018 14:27:50 -0500
-Received: by mail-pl0-f67.google.com with SMTP id t4so342856plo.0
-        for <linux-media@vger.kernel.org>; Thu, 08 Feb 2018 11:27:49 -0800 (PST)
-Subject: Re: [PATCH] media: imx: csi: fix enum_mbus_code for unknown mbus
- format codes
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180208144749.10558-1-p.zabel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <79024ebb-bb01-876a-9da9-4c65d3298112@gmail.com>
-Date: Thu, 8 Feb 2018 11:27:46 -0800
-MIME-Version: 1.0
-In-Reply-To: <20180208144749.10558-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:41076 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753692AbeB0PlI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 10:41:08 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 12/13] media: ov772x: Re-order variables declaration
+Date: Tue, 27 Feb 2018 16:40:29 +0100
+Message-Id: <1519746030-15407-13-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Re-order variables declaration to respect 'reverse christmas tree'
+ordering whenever possible.
 
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/ov772x.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-On 02/08/2018 06:47 AM, Philipp Zabel wrote:
-> If no imx_media_pixfmt is found for a given mbus format code,
-> we shouldn't crash. Return -EINVAL for any index.
-
-Hi Philipp,
-
-If imx_media_find_mbus_format() returns NULL at that location, it means
-the current format has an invalid pixel code. It's not possible for an 
-ACTIVE
-format to have an invalid code, so it must be a TRY format with an 
-uninitialized
-(zero) code. Which makes sense if enum_mbus_code(TRY) pad op is called 
-before
-set_fmt(TRY), at the sink pad, was *ever* called. Am I right?
-
-It looks there is another location where this could possibly happen, in 
-csi_try_fmt().
-In that case it would happen if set_fmt(TRY) is called on a source pad, 
-before
-set_fmt(TRY) was ever called at the sink pad. That's a weird corner case 
-because
-it's not clear what a set_fmt(TRY) at the source pads should choose for 
-pixel
-code if there was never a set_fmt(TRY) at the sink pad.
-
-But perhaps the following should be added to this patch as well. It 
-makes the
-assumption that the TRY code at the sink pad is the same as the default
-active code set from csi_registered().
-
-Or maybe I should ask the question, what should drivers do in set_fmt(TRY)
-at their source pads, if there was no prior set_fmt(TRY) at their sink pads?
-
-Steve
-
-
-@@ -1281,6 +1281,11 @@ static void csi_try_fmt(struct csi_priv *priv,
-         case CSI_SRC_PAD_IDMAC:
-                 incc = imx_media_find_mbus_format(infmt->code,
-                                                   CS_SEL_ANY, true);
-+               if (!incc) {
-+                       imx_media_enum_mbus_format(&code, 0, CS_SEL_YUV, 
-false);
-+                       incc = imx_media_find_mbus_format(code,
-+ CS_SEL_YUV, false);
-+               }
-
-                 sdformat->format.width = compose->width;
-                 sdformat->format.height = compose->height;
-
-
-
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->   drivers/staging/media/imx/imx-media-csi.c | 4 ++++
->   1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index eb7be5093a9d..89903f267d60 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1138,6 +1138,10 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
->   
->   	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, code->which);
->   	incc = imx_media_find_mbus_format(infmt->code, CS_SEL_ANY, true);
-> +	if (!incc) {
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
->   
->   	switch (code->pad) {
->   	case CSI_SINK_PAD:
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 4f464ac..1fd6d4b 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1098,8 +1098,8 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *format)
+ {
+-	struct ov772x_priv *priv = to_ov772x(sd);
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
++	struct ov772x_priv *priv = to_ov772x(sd);
+ 	const struct ov772x_color_format *cfmt;
+ 	const struct ov772x_win_size *win;
+ 	int ret;
+@@ -1135,10 +1135,11 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 
+ static int ov772x_video_probe(struct ov772x_priv *priv)
+ {
+-	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
+-	u8                  pid, ver;
+-	const char         *devname;
+-	int		    ret;
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	const char *devname;
++	int ret;
++	u8 pid;
++	u8 ver;
+ 
+ 	ret = ov772x_s_power(&priv->subdev, 1);
+ 	if (ret < 0)
+@@ -1246,9 +1247,9 @@ static const struct v4l2_subdev_ops ov772x_subdev_ops = {
+ static int ov772x_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ {
+-	struct ov772x_priv	*priv;
+-	struct i2c_adapter	*adapter = client->adapter;
+-	int			ret;
++	struct i2c_adapter *adapter = client->adapter;
++	struct ov772x_priv *priv;
++	int ret;
+ 
+ 	if (!client->dev.platform_data) {
+ 		dev_err(&client->dev, "Missing ov772x platform data\n");
+-- 
+2.7.4
