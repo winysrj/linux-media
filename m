@@ -1,127 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55567 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1032974AbeBOO3i (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33171 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753901AbeB0PiS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 09:29:38 -0500
-Subject: Re: [PATCH] media: radio: Tuning bugfix for si470x over i2c
-To: Douglas Fischer <fischerdouglasc@gmail.com>,
-        linux-media@vger.kernel.org
-References: <20180120141914.233d6d00@Constantine>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8eb3118e-ed8f-ec2a-06f2-c60b35ebfa31@xs4all.nl>
-Date: Thu, 15 Feb 2018 15:29:37 +0100
+        Tue, 27 Feb 2018 10:38:18 -0500
+Received: by mail-wr0-f195.google.com with SMTP id s5so25344123wra.0
+        for <linux-media@vger.kernel.org>; Tue, 27 Feb 2018 07:38:17 -0800 (PST)
+Date: Tue, 27 Feb 2018 15:38:12 +0000
+From: Daniel Thompson <daniel.thompson@linaro.org>
+To: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>,
+        thierry.reding@gmail.com, shc_work@mail.ru, kgene@kernel.org,
+        krzk@kernel.org, linux@armlinux.org.uk, mturquette@baylibre.com,
+        sboyd@codeaurora.org, joonas.lahtinen@linux.intel.com,
+        rodrigo.vivi@intel.com, airlied@linux.ie, kamil@wypas.org,
+        b.zolnierkie@samsung.com, jdelvare@suse.com, linux@roeck-us.net,
+        dmitry.torokhov@gmail.com, rpurdie@rpsys.net,
+        jacek.anaszewski@gmail.com, pavel@ucw.cz, mchehab@kernel.org,
+        sean@mess.org, lee.jones@linaro.org, jingoohan1@gmail.com,
+        milo.kim@ti.com, robh+dt@kernel.org, mark.rutland@arm.com,
+        corbet@lwn.net, nicolas.ferre@microchip.com,
+        alexandre.belloni@free-electrons.com, linux-pwm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-clk@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-hwmon@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-doc@vger.kernel.org
+Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
+Message-ID: <20180227153812.txt2vsdygfnobo33@oak.lan>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+ <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
+ <20180222123308.mypx2r7n6o63mj5z@oak.lan>
+ <87po4s2hve.fsf@intel.com>
+ <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
+ <20180227105444.lo4pee7vh4we3foq@oak.lan>
+ <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <20180120141914.233d6d00@Constantine>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Douglas,
+On Tue, Feb 27, 2018 at 01:40:58PM +0200, Claudiu Beznea wrote:
+> On 27.02.2018 12:54, Daniel Thompson wrote:
+> > On Mon, Feb 26, 2018 at 04:24:15PM +0200, Claudiu Beznea wrote:
+> >> On 26.02.2018 11:57, Jani Nikula wrote:
+> >>> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
+> >>>> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
+> >>>>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
+> >>>>> were adapted to this change.
+> >>>>>
+> >>>>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+> >>>>> ---
+> >>>>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
+> >>>>>  drivers/bus/ts-nbus.c                |  2 +-
+> >>>>>  drivers/clk/clk-pwm.c                |  3 ++-
+> >>>>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
+> >>>>>  drivers/hwmon/pwm-fan.c              |  2 +-
+> >>>>>  drivers/input/misc/max77693-haptic.c |  2 +-
+> >>>>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
+> >>>>>  drivers/leds/leds-pwm.c              |  5 ++++-
+> >>>>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
+> >>>>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
+> >>>>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
+> >>>>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
+> >>>>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
+> >>>>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
+> >>>>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
+> >>>>>  include/linux/pwm.h                  |  6 ++++--
+> >>>>>  16 files changed, 70 insertions(+), 21 deletions(-)
+> >>>>>
+> >>>>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
+> >>>>> index 2030a6b77a09..696fa25dafd2 100644
+> >>>>> --- a/drivers/video/backlight/lm3630a_bl.c
+> >>>>> +++ b/drivers/video/backlight/lm3630a_bl.c
+> >>>>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
+> >>>>>  {
+> >>>>>  	unsigned int period = pchip->pdata->pwm_period;
+> >>>>>  	unsigned int duty = br * period / br_max;
+> >>>>> +	struct pwm_caps caps = { };
+> >>>>>  
+> >>>>> -	pwm_config(pchip->pwmd, duty, period);
+> >>>>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
+> >>>>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
+> >>>>
+> >>>> Well... I admit I've only really looked at the patches that impact 
+> >>>> backlight but dispersing this really odd looking bit twiddling 
+> >>>> throughout the kernel doesn't strike me a great API design.
+> >>>>
+> >>>> IMHO callers should not be required to find the first set bit in
+> >>>> some specially crafted set of capability bits simply to get sane 
+> >>>> default behaviour.
+> >>>
+> >>> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
+> >>> error prone.
+> >>
+> >> Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
+> >> from your side?
+> >>
+> >> Or, what about using a function like pwm_mode_first() to get the first supported
+> >> mode by PWM channel?
+> >>
+> >> Or, would you prefer to solve this inside pwm_config() function, let's say, in
+> >> case an invalid mode is passed as argument, to let pwm_config() to choose the
+> >> first available PWM mode for PWM channel passed as argument?
+> > 
+> > What is it that actually needs solving?
+> > 
+> > If a driver requests normal mode and the PWM driver cannot support it
+> > why not just return an error an move on.
+> Because, simply, I wasn't aware of what these PWM client drivers needs for.
 
-My apologies for the delay, but I have finally time to look at this.
+I'm afraid you have confused me here.
 
-First of all: all your patches are mangles. Your mailer probably is trying
-to wrap around long lines and the end result is not usable. Please check this
-next time.
+Didn't you just *add* the whole concept of PWM caps with your patches?
+How could any existing call site expect anything except normal mode.
+Until now there has been no possiblity to request anything else.
 
-Also, when you post newer versions of patches it is good practice to add a
-version number: e.g. '[PATCHv3] media: radio: Tuning bugfix for si470x over i2c'.
 
-That helps us keeping track of different versions.
-
-On 20/01/18 20:19, Douglas Fischer wrote:
-> Fixed si470x_set_channel() trying to tune before chip is turned
-> on, which causes warnings in dmesg and when probing, makes driver
-> wait for 3s for tuning timeout. This issue did not affect USB
-> devices because they have a different probing sequence.
+> > Put another way, what is the use case for secretly adopting a mode the
+> > caller didn't want? Under what circumstances is this a good thing?
+> No one... But I wasn't aware of what the PWM clients needs for from their PWM
+> controllers. At this moment having BIT(ffs(caps.modes)) instead of
+> PWM_MODE(NORMAL) is mostly the same since all the driver that has not explicitly
+> registered PWM caps will use PWM normal mode.
 > 
-> Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
-> ---
+> I will use PWM_MODE(NORMAL) instead of this in all the cases if this is OK from
+> your side.
 > 
-> diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
-> linux/drivers/media/radio/si470x/radio-si470x-common.c ---
-> linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
-> 2018-01-15 21:58:10.675620432 -0500 +++
-> linux/drivers/media/radio/si470x/radio-si470x-common.c
-> 2018-01-16 17:04:59.706409128 -0500 @@ -207,29 +207,37 @@ static int
-> si470x_set_chan(struct si470x unsigned long time_left; bool timed_out =
-> false; 
-> -	/* start tuning */
-> -	radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
-> -	radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
-> -	retval = si470x_set_register(radio, CHANNEL);
-> -	if (retval < 0)
-> -		goto done;
-> +	retval = si470x_get_register(radio, POWERCFG);
-> +	if (retval)
-> +		return retval;
->  
-> -	/* wait till tune operation has completed */
-> -	reinit_completion(&radio->completion);
-> -	time_left = wait_for_completion_timeout(&radio->completion,
-> -
-> msecs_to_jiffies(tune_timeout));
-> -	if (time_left == 0)
-> -		timed_out = true;
-> +	if ( (radio->registers[POWERCFG] & POWERCFG_ENABLE) && 
-> +		(radio->registers[POWERCFG] & POWERCFG_DMUTE) ) { 
->  
-
-Just do:
-
-	if (radio->registers[POWERCFG] & POWERCFG_ENABLE) & (POWERCFG_ENABLE | POWERCFG_DMUTE) !=
-	    POWERCFG_ENABLE | POWERCFG_DMUTE)
-		return 0;
-
-And the remainder of the code can be indented one tab to the left. It's easier to read
-and the diff is also smaller.
-
-Regards,
-
-	Hans
-
-> -	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
-> -		dev_warn(&radio->videodev.dev, "tune does not
-> complete\n");
-> -	if (timed_out)
-> -		dev_warn(&radio->videodev.dev,
-> -			"tune timed out after %u ms\n", tune_timeout);
-> +		/* start tuning */
-> +		radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
-> +		radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
-> +		retval = si470x_set_register(radio, CHANNEL);
-> +		if (retval < 0)
-> +			goto done;
->  
-> -	/* stop tuning */
-> -	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
-> -	retval = si470x_set_register(radio, CHANNEL);
-> +		/* wait till tune operation has completed */
-> +		reinit_completion(&radio->completion);
-> +		time_left =
-> wait_for_completion_timeout(&radio->completion,
-> +
-> msecs_to_jiffies(tune_timeout));
-> +		if (time_left == 0)
-> +			timed_out = true;
-> +	
-> +		if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) ==
-> 0)
-> +			dev_warn(&radio->videodev.dev, "tune does not
-> complete\n");
-> +		if (timed_out)
-> +			dev_warn(&radio->videodev.dev,
-> +				"tune timed out after %u ms\n",
-> tune_timeout);
-> +	
-> +		/* stop tuning */
-> +		radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
-> +		retval = si470x_set_register(radio, CHANNEL);
-> +	}
->  
->  done:
->  	return retval;
-> 
+> Thank you,
+> Claudiu Beznea
+> > 
+> > 
+> > Daniel.
+> > 
