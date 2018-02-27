@@ -1,34 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56886 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750868AbeBDNqY (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:56937 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752293AbeB0IVT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 08:46:24 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: MEDIA_IOC_G_TOPOLOGY and entity flags
-Message-ID: <7fa6b2e0-93d9-1495-f088-d1a05d343092@xs4all.nl>
-Date: Sun, 4 Feb 2018 14:46:20 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Tue, 27 Feb 2018 03:21:19 -0500
+Message-ID: <1519719639.3402.2.camel@pengutronix.de>
+Subject: Re: [PATCH v8 1/2] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Yong Deng <yong.deng@magewell.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Date: Tue, 27 Feb 2018 09:20:39 +0100
+In-Reply-To: <1519697256-32472-1-git-send-email-yong.deng@magewell.com>
+References: <1519697256-32472-1-git-send-email-yong.deng@magewell.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Another thing that is missing in the G_TOPOLOGY ioctl are the entity flags
-MEDIA_ENT_FL_DEFAULT and MEDIA_ENT_FL_CONNECTOR.
+On Tue, 2018-02-27 at 10:07 +0800, Yong Deng wrote:
+> Add binding documentation for Allwinner V3s CSI.
+> 
+> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> ---
+>  .../devicetree/bindings/media/sun6i-csi.txt        | 59 ++++++++++++++++++++++
+>  1 file changed, 59 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> new file mode 100644
+> index 000000000000..2ff47a9507a6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> @@ -0,0 +1,59 @@
+> +Allwinner V3s Camera Sensor Interface
+> +-------------------------------------
+> +
+> +Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> +interface and CSI1 is used for parallel interface.
+> +
+> +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * bus: the CSI interface clock
+> +    * mod: the CSI module clock
+> +    * ram: the CSI DRAM clock
+> +  - clock-names: the clock names mentioned above
+> +  - resets: phandles to the reset line driving the CSI
+> +
+> +Each CSI node should contain one 'port' child node with one child 'endpoint'
+> +node, according to the bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt. As mentioned
+> +above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel or
+> +Bt656 for CSI1.
+> +
+> +Endpoint node properties for CSI1
+> +---------------------------------
+> +
+> +- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
+> +			   node
+> +- bus-width:		: (required) must be 8, 10, 12 or 16
+> +- pclk-sample		: (optional) (default: sample on falling edge)
 
-The DEFAULT flag should be part of the interface flags (it describes which
-interface is the default). The CONNECTOR flag should be a new field in the
-media_v2_entity struct. In theory it is possible to deduce this from the
-entity ID, but I think that's a bad idea.
+It would be helpful to state that 1 is rising edge and 0 is falling
+edge, see for example ov5640.txt
 
-I'm not sure if the DEFAULT flag would also make sense for an entity as
-opposed to an interface. I don't think so.
-
-Regards,
-
-	Hans
+regards
+Philipp
