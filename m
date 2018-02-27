@@ -1,164 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47308 "EHLO mga02.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:44472 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751677AbeBZRum (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 12:50:42 -0500
-Date: Tue, 27 Feb 2018 01:49:45 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 52e17089d1850774d2ef583cdef2b060b84fca8c
-Message-ID: <5a9448b9.92++OzGi0o+hxfKH%fengguang.wu@intel.com>
+        id S1752175AbeB0HZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Feb 2018 02:25:27 -0500
+Date: Tue, 27 Feb 2018 08:25:24 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v8 2/2] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20180227072524.5pjoxoo4yowfw43v@flea>
+References: <1519697566-32600-1-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="fkl5txttwye7c5om"
+Content-Disposition: inline
+In-Reply-To: <1519697566-32600-1-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 52e17089d1850774d2ef583cdef2b060b84fca8c  media: imx: Don't initialize vars that won't be used
 
-elapsed time: 203m
+--fkl5txttwye7c5om
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-configs tested: 133
+On Tue, Feb 27, 2018 at 10:12:46AM +0800, Yong Deng wrote:
+> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> interface and CSI1 is used for parallel interface. This is not
+> documented in datasheet but by test and guess.
+>=20
+> This patch implement a v4l2 framework driver for it.
+>=20
+> Currently, the driver only support the parallel interface. MIPI-CSI2,
+> ISP's support are not included in this patch.
+>=20
+> Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Reviewed-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
-parisc                        c3000_defconfig
-parisc                         b180_defconfig
-parisc                              defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-cris                 etrax-100lx_v2_defconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-powerpc                      arches_defconfig
-powerpc                       ep405_defconfig
-powerpc                    sam440ep_defconfig
-i386                               tinyconfig
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                               rhel-7.2
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-s390                        default_defconfig
-i386                     randconfig-i0-201808
-i386                     randconfig-i1-201808
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-x86_64                                  kexec
-x86_64                              federa-25
-i386                             allmodconfig
-x86_64                 randconfig-x017-201808
-x86_64                 randconfig-x013-201808
-x86_64                 randconfig-x016-201808
-x86_64                 randconfig-x018-201808
-x86_64                 randconfig-x015-201808
-x86_64                 randconfig-x012-201808
-x86_64                 randconfig-x014-201808
-x86_64                 randconfig-x011-201808
-x86_64                 randconfig-x010-201808
-x86_64                 randconfig-x019-201808
-ia64                             alldefconfig
-ia64                              allnoconfig
-ia64                                defconfig
-i386                     randconfig-a1-201808
-i386                     randconfig-a0-201808
-x86_64                 randconfig-s0-02270100
-x86_64                 randconfig-s1-02270100
-x86_64                 randconfig-s2-02270100
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-c6x                        evmc6678_defconfig
-h8300                    h8300h-sim_defconfig
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-nios2                         10m50_defconfig
-score                      spct6600_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-blackfin                BF526-EZBRD_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                  TCM-BF537_defconfig
-m68k                           sun3_defconfig
-m68k                          multi_defconfig
-m68k                       m5475evb_defconfig
-i386                     randconfig-s0-201808
-i386                     randconfig-s1-201808
-x86_64                 randconfig-s3-02270045
-x86_64                 randconfig-s4-02270045
-x86_64                 randconfig-s5-02270045
-x86_64                   randconfig-i0-201808
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-i386                   randconfig-x015-201808
-i386                   randconfig-x019-201808
-i386                   randconfig-x010-201808
-i386                   randconfig-x014-201808
-i386                   randconfig-x016-201808
-i386                   randconfig-x012-201808
-i386                   randconfig-x011-201808
-i386                   randconfig-x017-201808
-i386                   randconfig-x013-201808
-i386                   randconfig-x018-201808
-mn10300                          alldefconfig
-powerpc                      obs600_defconfig
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-arm                         at91_dt_defconfig
-arm                               allnoconfig
-arm                           efm32_defconfig
-arm64                               defconfig
-arm                        multi_v5_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm                          exynos_defconfig
-arm                        shmobile_defconfig
-arm                        multi_v7_defconfig
-i386                              allnoconfig
-i386                                defconfig
-i386                             alldefconfig
-x86_64                 randconfig-x000-201808
-x86_64                 randconfig-x005-201808
-x86_64                 randconfig-x008-201808
-x86_64                 randconfig-x006-201808
-x86_64                 randconfig-x001-201808
-x86_64                 randconfig-x007-201808
-x86_64                 randconfig-x009-201808
-x86_64                 randconfig-x002-201808
-x86_64                 randconfig-x003-201808
-x86_64                 randconfig-x004-201808
-i386                   randconfig-x004-201808
-i386                   randconfig-x002-201808
-i386                   randconfig-x007-201808
-i386                   randconfig-x009-201808
-i386                   randconfig-x003-201808
-i386                   randconfig-x001-201808
-i386                   randconfig-x008-201808
-i386                   randconfig-x005-201808
-i386                   randconfig-x006-201808
-i386                   randconfig-x000-201808
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                                     txx9
+Maxime
 
-Thanks,
-Fengguang
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--fkl5txttwye7c5om
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqVB+MACgkQ0rTAlCFN
+r3SN/g//bxWocMt6hu3dxRXkZ1oj77FTZkLTsoNzIlcd1zh+buI3HHSoWYilOeVU
+zLJj0nokWoF9FRuryNqiDXFjhOiRqLb3mgvu6HRRWVuQ7xwr1X3IN1ntG8aSy+5m
+zy5xCT89S24QkcZNalZ0YKCM/qs2i12AXw6LMLFdoABeNz9WygFI3tch1qIX/CwT
+IFQVh8ATY0RlYp275+A2OjzB5GSqbIeyMKjaPjWkIVP8iV3KkcuXvIjfMmnqm5Ok
+HvMDJopDYu+95krEEeue82nhFzMSa4npAdu7Vxq2cNS88txV6zj/3dURt7CWk/v6
+B/X2kKU3jH4HZ40BeNeuulSQdmSIlIPZEpYruiqimvurxqNKAQqBOnsiRGU+WWBh
+9HRhhB7/8rSkZj5Dq/Xbrm/4zP1+lAYDL7nHgQeuFBIdosvvQYbzwhnnrbBIN/oU
+qcwIrsjnz9wxzh5QbIMlEIXKLJBpFgmotgbc+A/QqUWzidoYp26JJScFeXcI68H7
+oNW3O3XMdP8q3Q3O8YyWklhHMvEFvo8UBiqf4Fo6J1cYwMxPnL8N/yFQwzNuxyLJ
+1j1tSxAepyrSHj6nvCq+HYMjmbODLCzxlS9Rk86PTM5vNAxNo6bQKxT+HVauwHfd
+JprB6jgC6mCJaqCugHCB+H14H8KdOdSOsL9f3UpfRoEkf5bgYJ8=
+=Kft4
+-----END PGP SIGNATURE-----
+
+--fkl5txttwye7c5om--
