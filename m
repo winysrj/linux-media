@@ -1,328 +1,597 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41691 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967547AbeBNLyU (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44484 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934745AbeB1Uw5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:54:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.1 06/14] media: v4l2-compat-ioctl32.c: avoid sizeof(type)
-Date: Wed, 14 Feb 2018 12:54:11 +0100
-Message-Id: <20180214115419.28156-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115419.28156-1-hverkuil@xs4all.nl>
-References: <20180214115419.28156-1-hverkuil@xs4all.nl>
+        Wed, 28 Feb 2018 15:52:57 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v6 4/9] v4l: vsp1: Convert display lists to use new body pool
+Date: Wed, 28 Feb 2018 20:52:38 +0000
+Message-Id: <d566330019eef298eaa1532285e6ed62de6b4e3a.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Adapt the dl->body0 object to use an object from the body pool. This
+greatly reduces the pressure on the TLB for IPMMU use cases, as all of
+the lists use a single allocation for the main body.
 
-commit 333b1e9f96ce05f7498b581509bb30cde03018bf upstream.
+The CLU and LUT objects pre-allocate a pool containing three bodies,
+allowing a userspace update before the hardware has committed a previous
+set of tables.
 
-Instead of doing sizeof(struct foo) use sizeof(*up). There even were
-cases where 4 * sizeof(__u32) was used instead of sizeof(kp->reserved),
-which is very dangerous when the size of the reserved array changes.
+Bodies are no longer 'freed' in interrupt context, but instead released
+back to their respective pools. This allows us to remove the garbage
+collector in the DLM.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 74 +++++++++++++--------------
- 1 file changed, 35 insertions(+), 39 deletions(-)
+v3:
+ - 's/fragment/body', 's/fragments/bodies/'
+ - CLU/LUT now allocate 3 bodies
+ - vsp1_dl_list_fragments_free -> vsp1_dl_list_bodies_put
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 2a116d671f92..03d1d92a2a8e 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -47,7 +47,7 @@ struct v4l2_window32 {
+v2:
+ - Use dl->body0->max_entries to determine header offset, instead of the
+   global constant VSP1_DL_NUM_ENTRIES which is incorrect.
+ - squash updates for LUT, CLU, and fragment cleanup into single patch.
+   (Not fully bisectable when separated)
+
+ drivers/media/platform/vsp1/vsp1_clu.c |  27 ++-
+ drivers/media/platform/vsp1/vsp1_clu.h |   1 +-
+ drivers/media/platform/vsp1/vsp1_dl.c  | 223 ++++++--------------------
+ drivers/media/platform/vsp1/vsp1_dl.h  |   3 +-
+ drivers/media/platform/vsp1/vsp1_lut.c |  27 ++-
+ drivers/media/platform/vsp1/vsp1_lut.h |   1 +-
+ 6 files changed, 101 insertions(+), 181 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index 9621afa3658c..2018144470c5 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -23,6 +23,8 @@
+ #define CLU_MIN_SIZE				4U
+ #define CLU_MAX_SIZE				8190U
  
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_window32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
- 	    get_user(kp->chromakey, &up->chromakey) ||
-@@ -64,7 +64,7 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		if (get_user(p, &up->clips))
- 			return -EFAULT;
- 		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(struct v4l2_clip));
-+		kclips = compat_alloc_user_space(n * sizeof(*kclips));
- 		kp->clips = kclips;
- 		while (--n >= 0) {
- 			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
-@@ -152,14 +152,14 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
++#define CLU_SIZE				(17 * 17 * 17)
++
+ /* -----------------------------------------------------------------------------
+  * Device Access
+  */
+@@ -47,19 +49,19 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
+ 	struct vsp1_dl_body *dlb;
+ 	unsigned int i;
  
- static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)))
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)))
- 		return -EFAULT;
- 	return __get_v4l2_format32(kp, up);
- }
+-	dlb = vsp1_dl_body_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
++	dlb = vsp1_dl_body_get(clu->pool);
+ 	if (!dlb)
+ 		return -ENOMEM;
  
- static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format)))
- 		return -EFAULT;
- 	return __get_v4l2_format32(&kp->format, &up->format);
-@@ -199,14 +199,14 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	vsp1_dl_body_write(dlb, VI6_CLU_ADDR, 0);
+-	for (i = 0; i < 17 * 17 * 17; ++i)
++	for (i = 0; i < CLU_SIZE; ++i)
+ 		vsp1_dl_body_write(dlb, VI6_CLU_DATA, ctrl->p_new.p_u32[i]);
  
- static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)))
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)))
- 		return -EFAULT;
- 	return __put_v4l2_format32(kp, up);
- }
+ 	spin_lock_irq(&clu->lock);
+ 	swap(clu->clu, dlb);
+ 	spin_unlock_irq(&clu->lock);
  
- static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)) ||
- 	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
-@@ -225,7 +225,7 @@ struct v4l2_standard32 {
- static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
- {
- 	/* other fields are not set by the user, nor used by the driver */
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_standard32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->index, &up->index))
- 		return -EFAULT;
- 	return 0;
-@@ -233,13 +233,13 @@ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
- 
- static int put_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_standard32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->index, &up->index) ||
- 	    copy_to_user(up->id, &kp->id, sizeof(__u64)) ||
--	    copy_to_user(up->name, kp->name, 24) ||
-+	    copy_to_user(up->name, kp->name, sizeof(up->name)) ||
- 	    copy_to_user(&up->frameperiod, &kp->frameperiod, sizeof(kp->frameperiod)) ||
- 	    put_user(kp->framelines, &up->framelines) ||
--	    copy_to_user(up->reserved, kp->reserved, 4 * sizeof(__u32)))
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
+-	vsp1_dl_body_free(dlb);
++	vsp1_dl_body_put(dlb);
  	return 0;
  }
-@@ -287,7 +287,7 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
  
- 	if (copy_in_user(up, up32, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up->data_offset, &up32->data_offset,
--			 sizeof(__u32)))
-+			 sizeof(up->data_offset)))
- 		return -EFAULT;
+@@ -261,8 +263,16 @@ static void clu_configure(struct vsp1_entity *entity,
+ 	}
+ }
  
- 	if (memory == V4L2_MEMORY_USERPTR) {
-@@ -297,11 +297,11 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
- 	} else if (memory == V4L2_MEMORY_DMABUF) {
--		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(int)))
-+		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
- 	} else {
- 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(__u32)))
-+				 sizeof(up32->m.mem_offset)))
- 			return -EFAULT;
++static void clu_destroy(struct vsp1_entity *entity)
++{
++	struct vsp1_clu *clu = to_clu(&entity->subdev);
++
++	vsp1_dl_body_pool_destroy(clu->pool);
++}
++
+ static const struct vsp1_entity_operations clu_entity_ops = {
+ 	.configure = clu_configure,
++	.destroy = clu_destroy,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -288,6 +298,17 @@ struct vsp1_clu *vsp1_clu_create(struct vsp1_device *vsp1)
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
++	/*
++	 * Pre-allocate a body pool, with 3 bodies allowing a userspace update
++	 * before the hardware has committed a previous set of tables, handling
++	 * both the queued and pending dl entries. One extra entry is added to
++	 * the CLU_SIZE to allow for the VI6_CLU_ADDR header.
++	 */
++	clu->pool = vsp1_dl_body_pool_create(clu->entity.vsp1, 3, CLU_SIZE + 1,
++					     0);
++	if (!clu->pool)
++		return ERR_PTR(-ENOMEM);
++
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&clu->ctrls, 2);
+ 	v4l2_ctrl_new_custom(&clu->ctrls, &clu_table_control, NULL);
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.h b/drivers/media/platform/vsp1/vsp1_clu.h
+index 036e0a2f1a42..fa3fe856725b 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.h
++++ b/drivers/media/platform/vsp1/vsp1_clu.h
+@@ -36,6 +36,7 @@ struct vsp1_clu {
+ 	spinlock_t lock;
+ 	unsigned int mode;
+ 	struct vsp1_dl_body *clu;
++	struct vsp1_dl_body_pool *pool;
+ };
+ 
+ static inline struct vsp1_clu *to_clu(struct v4l2_subdev *subdev)
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 87bc4acf8c9e..a069c8456666 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -111,7 +111,7 @@ struct vsp1_dl_list {
+ 	struct vsp1_dl_header *header;
+ 	dma_addr_t dma;
+ 
+-	struct vsp1_dl_body body0;
++	struct vsp1_dl_body *body0;
+ 	struct list_head bodies;
+ 
+ 	bool has_chain;
+@@ -135,8 +135,6 @@ enum vsp1_dl_mode {
+  * @queued: list queued to the hardware (written to the DL registers)
+  * @pending: list waiting to be queued to the hardware
+  * @pool: body pool for the display list bodies
+- * @gc_work: bodies garbage collector work struct
+- * @gc_bodies: array of display list bodies waiting to be freed
+  */
+ struct vsp1_dl_manager {
+ 	unsigned int index;
+@@ -151,9 +149,6 @@ struct vsp1_dl_manager {
+ 	struct vsp1_dl_list *pending;
+ 
+ 	struct vsp1_dl_body_pool *pool;
+-
+-	struct work_struct gc_work;
+-	struct list_head gc_bodies;
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -291,89 +286,6 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
+ 	spin_unlock_irqrestore(&dlb->pool->lock, flags);
+ }
+ 
+-/*
+- * Initialize a display list body object and allocate DMA memory for the body
+- * data. The display list body object is expected to have been initialized to
+- * 0 when allocated.
+- */
+-static int vsp1_dl_body_init(struct vsp1_device *vsp1,
+-			     struct vsp1_dl_body *dlb, unsigned int num_entries,
+-			     size_t extra_size)
+-{
+-	size_t size = num_entries * sizeof(*dlb->entries) + extra_size;
+-
+-	dlb->vsp1 = vsp1;
+-	dlb->size = size;
+-	dlb->max_entries = num_entries;
+-
+-	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
+-				    GFP_KERNEL);
+-	if (!dlb->entries)
+-		return -ENOMEM;
+-
+-	return 0;
+-}
+-
+-/*
+- * Cleanup a display list body and free allocated DMA memory allocated.
+- */
+-static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
+-{
+-	dma_free_wc(dlb->vsp1->bus_master, dlb->size, dlb->entries, dlb->dma);
+-}
+-
+-/**
+- * vsp1_dl_body_alloc - Allocate a display list body
+- * @vsp1: The VSP1 device
+- * @num_entries: The maximum number of entries that the body can contain
+- *
+- * Allocate a display list body with enough memory to contain the requested
+- * number of entries.
+- *
+- * Return a pointer to a body on success or NULL if memory can't be allocated.
+- */
+-struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
+-					    unsigned int num_entries)
+-{
+-	struct vsp1_dl_body *dlb;
+-	int ret;
+-
+-	dlb = kzalloc(sizeof(*dlb), GFP_KERNEL);
+-	if (!dlb)
+-		return NULL;
+-
+-	ret = vsp1_dl_body_init(vsp1, dlb, num_entries, 0);
+-	if (ret < 0) {
+-		kfree(dlb);
+-		return NULL;
+-	}
+-
+-	return dlb;
+-}
+-
+-/**
+- * vsp1_dl_body_free - Free a display list body
+- * @dlb: The body
+- *
+- * Free the given display list body and the associated DMA memory.
+- *
+- * Bodies must only be freed explicitly if they are not added to a display
+- * list, as the display list will take ownership of them and free them
+- * otherwise. Manual free typically happens at cleanup time for bodies that
+- * have been allocated but not used.
+- *
+- * Passing a NULL pointer to this function is safe, in that case no operation
+- * will be performed.
+- */
+-void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
+-{
+-	if (!dlb)
+-		return;
+-
+-	vsp1_dl_body_cleanup(dlb);
+-	kfree(dlb);
+-}
+-
+ /**
+  * vsp1_dl_body_write - Write a register to a display list body
+  * @dlb: The body
+@@ -399,11 +311,10 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+  * Display List Transaction Management
+  */
+ 
+-static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
++static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm,
++					       struct vsp1_dl_body_pool *pool)
+ {
+ 	struct vsp1_dl_list *dl;
+-	size_t header_size;
+-	int ret;
+ 
+ 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
+ 	if (!dl)
+@@ -412,41 +323,39 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
+ 	INIT_LIST_HEAD(&dl->bodies);
+ 	dl->dlm = dlm;
+ 
+-	/*
+-	 * Initialize the display list body and allocate DMA memory for the body
+-	 * and the optional header. Both are allocated together to avoid memory
+-	 * fragmentation, with the header located right after the body in
+-	 * memory.
+-	 */
+-	header_size = dlm->mode == VSP1_DL_MODE_HEADER
+-		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
+-		    : 0;
+-
+-	ret = vsp1_dl_body_init(dlm->vsp1, &dl->body0, VSP1_DL_NUM_ENTRIES,
+-				header_size);
+-	if (ret < 0) {
+-		kfree(dl);
++	/* Retrieve a body from our DLM body pool */
++	dl->body0 = vsp1_dl_body_get(pool);
++	if (!dl->body0)
+ 		return NULL;
+-	}
+-
+ 	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+-		size_t header_offset = VSP1_DL_NUM_ENTRIES
+-				     * sizeof(*dl->body0.entries);
++		size_t header_offset = dl->body0->max_entries
++				     * sizeof(*dl->body0->entries);
+ 
+-		dl->header = ((void *)dl->body0.entries) + header_offset;
+-		dl->dma = dl->body0.dma + header_offset;
++		dl->header = ((void *)dl->body0->entries) + header_offset;
++		dl->dma = dl->body0->dma + header_offset;
+ 
+ 		memset(dl->header, 0, sizeof(*dl->header));
+-		dl->header->lists[0].addr = dl->body0.dma;
++		dl->header->lists[0].addr = dl->body0->dma;
  	}
  
-@@ -313,19 +313,19 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 	return dl;
+ }
+ 
++static void vsp1_dl_list_bodies_put(struct vsp1_dl_list *dl)
++{
++	struct vsp1_dl_body *dlb, *tmp;
++
++	list_for_each_entry_safe(dlb, tmp, &dl->bodies, list) {
++		list_del(&dlb->list);
++		vsp1_dl_body_put(dlb);
++	}
++}
++
+ static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
  {
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
--			 sizeof(__u32)))
-+			 sizeof(up->data_offset)))
- 		return -EFAULT;
+-	vsp1_dl_body_cleanup(&dl->body0);
+-	list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
++	vsp1_dl_body_put(dl->body0);
++	vsp1_dl_list_bodies_put(dl);
++
+ 	kfree(dl);
+ }
  
- 	/* For MMAP, driver might've set up the offset, so copy it back.
- 	 * USERPTR stays the same (was userspace-provided), so no copying. */
- 	if (memory == V4L2_MEMORY_MMAP)
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
--				 sizeof(__u32)))
-+				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
- 	/* For DMABUF, driver might've set up the fd, so copy it back. */
- 	if (memory == V4L2_MEMORY_DMABUF)
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
--				 sizeof(int)))
-+				 sizeof(up->m.fd)))
- 			return -EFAULT;
+@@ -500,18 +409,13 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
  
- 	return 0;
-@@ -339,7 +339,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	int num_planes;
- 	int ret;
+ 	dl->has_chain = false;
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->index, &up->index) ||
- 	    get_user(kp->type, &up->type) ||
- 	    get_user(kp->flags, &up->flags) ||
-@@ -351,8 +351,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		if (get_user(kp->bytesused, &up->bytesused) ||
- 		    get_user(kp->field, &up->field) ||
- 		    get_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
--		    get_user(kp->timestamp.tv_usec,
--			     &up->timestamp.tv_usec))
-+		    get_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec))
- 			return -EFAULT;
++	vsp1_dl_list_bodies_put(dl);
++
+ 	/*
+-	 * We can't free bodies here as DMA memory can only be freed in
+-	 * interruptible context. Move all bodies to the display list manager's
+-	 * list of bodies to be freed, they will be garbage-collected by the
+-	 * work queue.
++	 * body0 is reused as as an optimisation as presently every display list
++	 * has at least one body, thus we reinitialise the entries list
+ 	 */
+-	if (!list_empty(&dl->bodies)) {
+-		list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
+-		schedule_work(&dl->dlm->gc_work);
+-	}
+-
+-	dl->body0.num_entries = 0;
++	dl->body0->num_entries = 0;
  
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-@@ -369,13 +368,12 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 
- 		uplane32 = compat_ptr(p);
- 		if (!access_ok(VERIFY_READ, uplane32,
--			       num_planes * sizeof(struct v4l2_plane32)))
-+			       num_planes * sizeof(*uplane32)))
- 			return -EFAULT;
- 
- 		/* We don't really care if userspace decides to kill itself
- 		 * by passing a very big num_planes value */
--		uplane = compat_alloc_user_space(num_planes *
--						 sizeof(struct v4l2_plane));
-+		uplane = compat_alloc_user_space(num_planes * sizeof(*uplane));
- 		kp->m.planes = (__force struct v4l2_plane *)uplane;
- 
- 		while (--num_planes >= 0) {
-@@ -423,7 +421,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	int num_planes;
- 	int ret;
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_buffer32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->index, &up->index) ||
- 	    put_user(kp->type, &up->type) ||
- 	    put_user(kp->flags, &up->flags) ||
-@@ -434,7 +432,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
- 	    put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
--	    copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
-+	    copy_to_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
- 	    put_user(kp->sequence, &up->sequence) ||
- 	    put_user(kp->reserved2, &up->reserved2) ||
- 	    put_user(kp->reserved, &up->reserved) ||
-@@ -502,7 +500,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ 	list_add_tail(&dl->list, &dl->dlm->free);
+ }
+@@ -548,7 +452,7 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
+  */
+ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
  {
- 	u32 tmp;
+-	vsp1_dl_body_write(&dl->body0, reg, data);
++	vsp1_dl_body_write(dl->body0, reg, data);
+ }
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(tmp, &up->base) ||
- 	    get_user(kp->capability, &up->capability) ||
- 	    get_user(kp->flags, &up->flags) ||
-@@ -516,7 +514,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- {
- 	u32 tmp = (u32)((unsigned long)kp->base);
+ /**
+@@ -561,8 +465,7 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+  * in the order in which bodies are added.
+  *
+  * Adding a body to a display list passes ownership of the body to the list. The
+- * caller must not touch the body after this call, and must not free it
+- * explicitly with vsp1_dl_body_free().
++ * caller must not touch the body after this call.
+  *
+  * Additional bodies are only usable for display lists in header mode.
+  * Attempting to add a body to a header-less display list will return an error.
+@@ -620,7 +523,7 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
+ 	 * list was allocated.
+ 	 */
  
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(tmp, &up->base) ||
- 	    put_user(kp->capability, &up->capability) ||
- 	    put_user(kp->flags, &up->flags) ||
-@@ -540,14 +538,14 @@ struct v4l2_input32 {
-    Otherwise it is identical to the 32-bit version. */
- static inline int get_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
+-	hdr->num_bytes = dl->body0.num_entries
++	hdr->num_bytes = dl->body0->num_entries
+ 		       * sizeof(*dl->header->lists);
+ 
+ 	list_for_each_entry(dlb, &dl->bodies, list) {
+@@ -694,9 +597,9 @@ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
+ 		 * bit will be cleared by the hardware when the display list
+ 		 * processing starts.
+ 		 */
+-		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
++		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0->dma);
+ 		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
+-			   (dl->body0.num_entries * sizeof(*dl->header->lists)));
++			   (dl->body0->num_entries * sizeof(*dl->header->lists)));
+ 	} else {
+ 		/*
+ 		 * In header mode, program the display list header address. If
+@@ -879,45 +782,12 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
+ 	dlm->pending = NULL;
+ }
+ 
+-/*
+- * Free all bodies awaiting to be garbage-collected.
+- *
+- * This function must be called without the display list manager lock held.
+- */
+-static void vsp1_dlm_bodies_free(struct vsp1_dl_manager *dlm)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dlm->lock, flags);
+-
+-	while (!list_empty(&dlm->gc_bodies)) {
+-		struct vsp1_dl_body *dlb;
+-
+-		dlb = list_first_entry(&dlm->gc_bodies, struct vsp1_dl_body,
+-				       list);
+-		list_del(&dlb->list);
+-
+-		spin_unlock_irqrestore(&dlm->lock, flags);
+-		vsp1_dl_body_free(dlb);
+-		spin_lock_irqsave(&dlm->lock, flags);
+-	}
+-
+-	spin_unlock_irqrestore(&dlm->lock, flags);
+-}
+-
+-static void vsp1_dlm_garbage_collect(struct work_struct *work)
+-{
+-	struct vsp1_dl_manager *dlm =
+-		container_of(work, struct vsp1_dl_manager, gc_work);
+-
+-	vsp1_dlm_bodies_free(dlm);
+-}
+-
+ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 					unsigned int index,
+ 					unsigned int prealloc)
  {
--	if (copy_from_user(kp, up, sizeof(struct v4l2_input32)))
-+	if (copy_from_user(kp, up, sizeof(*up)))
- 		return -EFAULT;
+ 	struct vsp1_dl_manager *dlm;
++	size_t header_size;
+ 	unsigned int i;
+ 
+ 	dlm = devm_kzalloc(vsp1->dev, sizeof(*dlm), GFP_KERNEL);
+@@ -932,13 +802,26 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 
+ 	spin_lock_init(&dlm->lock);
+ 	INIT_LIST_HEAD(&dlm->free);
+-	INIT_LIST_HEAD(&dlm->gc_bodies);
+-	INIT_WORK(&dlm->gc_work, vsp1_dlm_garbage_collect);
++
++	/*
++	 * Initialize the display list body and allocate DMA memory for the body
++	 * and the optional header. Both are allocated together to avoid memory
++	 * fragmentation, with the header located right after the body in
++	 * memory.
++	 */
++	header_size = dlm->mode == VSP1_DL_MODE_HEADER
++		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
++		    : 0;
++
++	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
++					     VSP1_DL_NUM_ENTRIES, header_size);
++	if (!dlm->pool)
++		return NULL;
+ 
+ 	for (i = 0; i < prealloc; ++i) {
+ 		struct vsp1_dl_list *dl;
+ 
+-		dl = vsp1_dl_list_alloc(dlm);
++		dl = vsp1_dl_list_alloc(dlm, dlm->pool);
+ 		if (!dl)
+ 			return NULL;
+ 
+@@ -955,12 +838,10 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
+ 	if (!dlm)
+ 		return;
+ 
+-	cancel_work_sync(&dlm->gc_work);
+-
+ 	list_for_each_entry_safe(dl, next, &dlm->free, list) {
+ 		list_del(&dl->list);
+ 		vsp1_dl_list_free(dl);
+ 	}
+ 
+-	vsp1_dlm_bodies_free(dlm);
++	vsp1_dl_body_pool_destroy(dlm->pool);
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 785b88472375..f71a76332477 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -42,9 +42,6 @@ void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
+ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
+ void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
+ 
+-struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
+-					unsigned int num_entries);
+-void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
+ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
+ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
+ 			  struct vsp1_dl_body *dlb);
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index aa2b40327529..262cb72139d6 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -23,6 +23,8 @@
+ #define LUT_MIN_SIZE				4U
+ #define LUT_MAX_SIZE				8190U
+ 
++#define LUT_SIZE				256
++
+ /* -----------------------------------------------------------------------------
+  * Device Access
+  */
+@@ -44,11 +46,11 @@ static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
+ 	struct vsp1_dl_body *dlb;
+ 	unsigned int i;
+ 
+-	dlb = vsp1_dl_body_alloc(lut->entity.vsp1, 256);
++	dlb = vsp1_dl_body_get(lut->pool);
+ 	if (!dlb)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < 256; ++i)
++	for (i = 0; i < LUT_SIZE; ++i)
+ 		vsp1_dl_body_write(dlb, VI6_LUT_TABLE + 4 * i,
+ 				       ctrl->p_new.p_u32[i]);
+ 
+@@ -56,7 +58,7 @@ static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
+ 	swap(lut->lut, dlb);
+ 	spin_unlock_irq(&lut->lock);
+ 
+-	vsp1_dl_body_free(dlb);
++	vsp1_dl_body_put(dlb);
  	return 0;
  }
  
- static inline int put_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
- {
--	if (copy_to_user(up, kp, sizeof(struct v4l2_input32)))
-+	if (copy_to_user(up, kp, sizeof(*up)))
- 		return -EFAULT;
- 	return 0;
+@@ -87,7 +89,7 @@ static const struct v4l2_ctrl_config lut_table_control = {
+ 	.max = 0x00ffffff,
+ 	.step = 1,
+ 	.def = 0,
+-	.dims = { 256},
++	.dims = { LUT_SIZE },
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -217,8 +219,16 @@ static void lut_configure(struct vsp1_entity *entity,
+ 	}
  }
-@@ -595,7 +593,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	int n;
- 	compat_caddr_t p;
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_ext_controls32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->ctrl_class, &up->ctrl_class) ||
- 	    get_user(kp->count, &up->count) ||
- 	    get_user(kp->error_idx, &up->error_idx) ||
-@@ -609,10 +607,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	if (get_user(p, &up->controls))
- 		return -EFAULT;
- 	ucontrols = compat_ptr(p);
--	if (!access_ok(VERIFY_READ, ucontrols,
--		       n * sizeof(struct v4l2_ext_control32)))
-+	if (!access_ok(VERIFY_READ, ucontrols, n * sizeof(*ucontrols)))
- 		return -EFAULT;
--	kcontrols = compat_alloc_user_space(n * sizeof(struct v4l2_ext_control));
-+	kcontrols = compat_alloc_user_space(n * sizeof(*kcontrols));
- 	kp->controls = (__force struct v4l2_ext_control *)kcontrols;
- 	while (--n >= 0) {
- 		u32 id;
-@@ -644,7 +641,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	int n = kp->count;
- 	compat_caddr_t p;
++static void lut_destroy(struct vsp1_entity *entity)
++{
++	struct vsp1_lut *lut = to_lut(&entity->subdev);
++
++	vsp1_dl_body_pool_destroy(lut->pool);
++}
++
+ static const struct vsp1_entity_operations lut_entity_ops = {
+ 	.configure = lut_configure,
++	.destroy = lut_destroy,
+ };
  
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_ext_controls32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->ctrl_class, &up->ctrl_class) ||
- 	    put_user(kp->count, &up->count) ||
- 	    put_user(kp->error_idx, &up->error_idx) ||
-@@ -656,8 +653,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	if (get_user(p, &up->controls))
- 		return -EFAULT;
- 	ucontrols = compat_ptr(p);
--	if (!access_ok(VERIFY_WRITE, ucontrols,
--		       n * sizeof(struct v4l2_ext_control32)))
-+	if (!access_ok(VERIFY_WRITE, ucontrols, n * sizeof(*ucontrols)))
- 		return -EFAULT;
+ /* -----------------------------------------------------------------------------
+@@ -244,6 +254,15 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
  
- 	while (--n >= 0) {
-@@ -693,7 +689,7 @@ struct v4l2_event32 {
++	/*
++	 * Pre-allocate a body pool, with 3 bodies allowing a userspace update
++	 * before the hardware has committed a previous set of tables, handling
++	 * both the queued and pending dl entries.
++	 */
++	lut->pool = vsp1_dl_body_pool_create(vsp1, 3, LUT_SIZE, 0);
++	if (!lut->pool)
++		return ERR_PTR(-ENOMEM);
++
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&lut->ctrls, 1);
+ 	v4l2_ctrl_new_custom(&lut->ctrls, &lut_table_control, NULL);
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.h b/drivers/media/platform/vsp1/vsp1_lut.h
+index f8c4e8f0a79d..499ed0070bd2 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.h
++++ b/drivers/media/platform/vsp1/vsp1_lut.h
+@@ -33,6 +33,7 @@ struct vsp1_lut {
  
- static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_event32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->type, &up->type) ||
- 	    copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
- 	    put_user(kp->pending, &up->pending) ||
-@@ -701,7 +697,7 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
- 	    put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
- 	    put_user(kp->id, &up->id) ||
--	    copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return 0;
- }
-@@ -718,7 +714,7 @@ static int get_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- {
- 	u32 tmp;
+ 	spinlock_t lock;
+ 	struct vsp1_dl_body *lut;
++	struct vsp1_dl_body_pool *pool;
+ };
  
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_edid32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->pad, &up->pad) ||
- 	    get_user(kp->start_block, &up->start_block) ||
- 	    get_user(kp->blocks, &up->blocks) ||
-@@ -733,7 +729,7 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- {
- 	u32 tmp = (u32)((unsigned long)kp->edid);
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_edid32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->pad, &up->pad) ||
- 	    put_user(kp->start_block, &up->start_block) ||
- 	    put_user(kp->blocks, &up->blocks) ||
+ static inline struct vsp1_lut *to_lut(struct v4l2_subdev *subdev)
 -- 
-2.15.1
+git-series 0.9.1
