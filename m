@@ -1,139 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33171 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753901AbeB0PiS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44486 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934787AbeB1Uw5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 10:38:18 -0500
-Received: by mail-wr0-f195.google.com with SMTP id s5so25344123wra.0
-        for <linux-media@vger.kernel.org>; Tue, 27 Feb 2018 07:38:17 -0800 (PST)
-Date: Tue, 27 Feb 2018 15:38:12 +0000
-From: Daniel Thompson <daniel.thompson@linaro.org>
-To: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>,
-        thierry.reding@gmail.com, shc_work@mail.ru, kgene@kernel.org,
-        krzk@kernel.org, linux@armlinux.org.uk, mturquette@baylibre.com,
-        sboyd@codeaurora.org, joonas.lahtinen@linux.intel.com,
-        rodrigo.vivi@intel.com, airlied@linux.ie, kamil@wypas.org,
-        b.zolnierkie@samsung.com, jdelvare@suse.com, linux@roeck-us.net,
-        dmitry.torokhov@gmail.com, rpurdie@rpsys.net,
-        jacek.anaszewski@gmail.com, pavel@ucw.cz, mchehab@kernel.org,
-        sean@mess.org, lee.jones@linaro.org, jingoohan1@gmail.com,
-        milo.kim@ti.com, robh+dt@kernel.org, mark.rutland@arm.com,
-        corbet@lwn.net, nicolas.ferre@microchip.com,
-        alexandre.belloni@free-electrons.com, linux-pwm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-clk@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-hwmon@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-Message-ID: <20180227153812.txt2vsdygfnobo33@oak.lan>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
- <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
- <20180222123308.mypx2r7n6o63mj5z@oak.lan>
- <87po4s2hve.fsf@intel.com>
- <3a70b89c-b470-3723-760c-5294d0a75230@microchip.com>
- <20180227105444.lo4pee7vh4we3foq@oak.lan>
- <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8e1d3b30-3543-56fd-7be6-7fe6edcb40d9@microchip.com>
+        Wed, 28 Feb 2018 15:52:57 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v6 5/9] v4l: vsp1: Use reference counting for bodies
+Date: Wed, 28 Feb 2018 20:52:39 +0000
+Message-Id: <8b3cf639ae2df9d1dba4a72e20618f463cf118cb.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 27, 2018 at 01:40:58PM +0200, Claudiu Beznea wrote:
-> On 27.02.2018 12:54, Daniel Thompson wrote:
-> > On Mon, Feb 26, 2018 at 04:24:15PM +0200, Claudiu Beznea wrote:
-> >> On 26.02.2018 11:57, Jani Nikula wrote:
-> >>> On Thu, 22 Feb 2018, Daniel Thompson <daniel.thompson@linaro.org> wrote:
-> >>>> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
-> >>>>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
-> >>>>> were adapted to this change.
-> >>>>>
-> >>>>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
-> >>>>> ---
-> >>>>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
-> >>>>>  drivers/bus/ts-nbus.c                |  2 +-
-> >>>>>  drivers/clk/clk-pwm.c                |  3 ++-
-> >>>>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
-> >>>>>  drivers/hwmon/pwm-fan.c              |  2 +-
-> >>>>>  drivers/input/misc/max77693-haptic.c |  2 +-
-> >>>>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
-> >>>>>  drivers/leds/leds-pwm.c              |  5 ++++-
-> >>>>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
-> >>>>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
-> >>>>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
-> >>>>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
-> >>>>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
-> >>>>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
-> >>>>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
-> >>>>>  include/linux/pwm.h                  |  6 ++++--
-> >>>>>  16 files changed, 70 insertions(+), 21 deletions(-)
-> >>>>>
-> >>>>> diff --git a/drivers/video/backlight/lm3630a_bl.c b/drivers/video/backlight/lm3630a_bl.c
-> >>>>> index 2030a6b77a09..696fa25dafd2 100644
-> >>>>> --- a/drivers/video/backlight/lm3630a_bl.c
-> >>>>> +++ b/drivers/video/backlight/lm3630a_bl.c
-> >>>>> @@ -165,8 +165,10 @@ static void lm3630a_pwm_ctrl(struct lm3630a_chip *pchip, int br, int br_max)
-> >>>>>  {
-> >>>>>  	unsigned int period = pchip->pdata->pwm_period;
-> >>>>>  	unsigned int duty = br * period / br_max;
-> >>>>> +	struct pwm_caps caps = { };
-> >>>>>  
-> >>>>> -	pwm_config(pchip->pwmd, duty, period);
-> >>>>> +	pwm_get_caps(pchip->pwmd->chip, pchip->pwmd, &caps);
-> >>>>> +	pwm_config(pchip->pwmd, duty, period, BIT(ffs(caps.modes) - 1));
-> >>>>
-> >>>> Well... I admit I've only really looked at the patches that impact 
-> >>>> backlight but dispersing this really odd looking bit twiddling 
-> >>>> throughout the kernel doesn't strike me a great API design.
-> >>>>
-> >>>> IMHO callers should not be required to find the first set bit in
-> >>>> some specially crafted set of capability bits simply to get sane 
-> >>>> default behaviour.
-> >>>
-> >>> Agreed. IMHO the regular use case becomes rather tedious, ugly, and
-> >>> error prone.
-> >>
-> >> Using simply PWM_MODE(NORMAL) instead of BIT(ffs(caps.modes) - 1) would be OK
-> >> from your side?
-> >>
-> >> Or, what about using a function like pwm_mode_first() to get the first supported
-> >> mode by PWM channel?
-> >>
-> >> Or, would you prefer to solve this inside pwm_config() function, let's say, in
-> >> case an invalid mode is passed as argument, to let pwm_config() to choose the
-> >> first available PWM mode for PWM channel passed as argument?
-> > 
-> > What is it that actually needs solving?
-> > 
-> > If a driver requests normal mode and the PWM driver cannot support it
-> > why not just return an error an move on.
-> Because, simply, I wasn't aware of what these PWM client drivers needs for.
+Extend the display list body with a reference count, allowing bodies to
+be kept as long as a reference is maintained. This provides the ability
+to keep a cached copy of bodies which will not change, so that they can
+be re-applied to multiple display lists.
 
-I'm afraid you have confused me here.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Didn't you just *add* the whole concept of PWM caps with your patches?
-How could any existing call site expect anything except normal mode.
-Until now there has been no possiblity to request anything else.
+---
+This could be squashed into the body update code, but it's not a
+straightforward squash as the refcounts will affect both:
+  v4l: vsp1: Provide a body pool
+and
+  v4l: vsp1: Convert display lists to use new body pool
+therefore, I have kept this separate to prevent breaking bisectability
+of the vsp-tests.
 
+v3:
+ - 's/fragment/body/'
 
-> > Put another way, what is the use case for secretly adopting a mode the
-> > caller didn't want? Under what circumstances is this a good thing?
-> No one... But I wasn't aware of what the PWM clients needs for from their PWM
-> controllers. At this moment having BIT(ffs(caps.modes)) instead of
-> PWM_MODE(NORMAL) is mostly the same since all the driver that has not explicitly
-> registered PWM caps will use PWM normal mode.
-> 
-> I will use PWM_MODE(NORMAL) instead of this in all the cases if this is OK from
-> your side.
-> 
-> Thank you,
-> Claudiu Beznea
-> > 
-> > 
-> > Daniel.
-> > 
+v4:
+ - Fix up reference handling comments.
+
+ drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
+ drivers/media/platform/vsp1/vsp1_dl.c  | 15 ++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
+ 3 files changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index 2018144470c5..b2a39a6ef7e4 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -257,8 +257,13 @@ static void clu_configure(struct vsp1_entity *entity,
+ 		clu->clu = NULL;
+ 		spin_unlock_irqrestore(&clu->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_body(dl, dlb);
++
++			/* release our local reference */
++			vsp1_dl_body_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index a069c8456666..0f87e0bb21c1 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -14,6 +14,7 @@
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/gfp.h>
++#include <linux/refcount.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ 
+@@ -58,6 +59,8 @@ struct vsp1_dl_body {
+ 	struct list_head list;
+ 	struct list_head free;
+ 
++	refcount_t refcnt;
++
+ 	struct vsp1_dl_body_pool *pool;
+ 	struct vsp1_device *vsp1;
+ 
+@@ -259,6 +262,7 @@ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
+ 	if (!list_empty(&pool->free)) {
+ 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
+ 		list_del(&dlb->free);
++		refcount_set(&dlb->refcnt, 1);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&pool->lock, flags);
+@@ -279,6 +283,9 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
+ 	if (!dlb)
+ 		return;
+ 
++	if (!refcount_dec_and_test(&dlb->refcnt))
++		return;
++
+ 	dlb->num_entries = 0;
+ 
+ 	spin_lock_irqsave(&dlb->pool->lock, flags);
+@@ -465,7 +472,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+  * in the order in which bodies are added.
+  *
+  * Adding a body to a display list passes ownership of the body to the list. The
+- * caller must not touch the body after this call.
++ * caller retains its reference to the fragment when adding it to the display
++ * list, but is not allowed to add new entries to the body.
++ *
++ * The reference must be explicitly released by a call to vsp1_dl_body_put()
++ * when the body isn't needed anymore.
+  *
+  * Additional bodies are only usable for display lists in header mode.
+  * Attempting to add a body to a header-less display list will return an error.
+@@ -477,6 +488,8 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
+ 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+ 		return -EINVAL;
+ 
++	refcount_inc(&dlb->refcnt);
++
+ 	list_add_tail(&dlb->list, &dl->bodies);
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 262cb72139d6..77cf7137a0f2 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -213,8 +213,13 @@ static void lut_configure(struct vsp1_entity *entity,
+ 		lut->lut = NULL;
+ 		spin_unlock_irqrestore(&lut->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_body(dl, dlb);
++
++			/* release our local reference */
++			vsp1_dl_body_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
+-- 
+git-series 0.9.1
