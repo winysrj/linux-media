@@ -1,145 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46548 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967448AbeBNLog (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44476 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934698AbeB1Uwx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:44:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.14 07/13] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-Date: Wed, 14 Feb 2018 12:44:28 +0100
-Message-Id: <20180214114434.26842-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180214114434.26842-1-hverkuil@xs4all.nl>
-References: <20180214114434.26842-1-hverkuil@xs4all.nl>
+        Wed, 28 Feb 2018 15:52:53 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v6 0/9] vsp1: TLB optimisation and DL caching
+Date: Wed, 28 Feb 2018 20:52:34 +0000
+Message-Id: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Each display list currently allocates an area of DMA memory to store register
+settings for the VSP1 to process. Each of these allocations adds pressure to
+the IPMMU TLB entries.
 
-commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
+We can reduce the pressure by pre-allocating larger areas and dividing the area
+across multiple bodies represented as a pool.
 
-The struct v4l2_plane32 should set m.userptr as well. The same
-happens in v4l2_buffer32 and v4l2-compliance tests for this.
+With this reconfiguration of bodies, we can adapt the configuration code to
+separate out constant hardware configuration and cache it for re-use.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+The patches provided in this series can be found at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git  tags/vsp1/tlb-optimise/v6
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index d156b8975f1e..62d44fab5671 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -310,19 +310,24 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
--	if (memory == V4L2_MEMORY_USERPTR) {
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
-+		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
-+				 sizeof(up32->m.mem_offset)))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_USERPTR:
- 		if (get_user(p, &up32->m.userptr))
- 			return -EFAULT;
- 		up_pln = compat_ptr(p);
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
--	} else if (memory == V4L2_MEMORY_DMABUF) {
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
--	} else {
--		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(up32->m.mem_offset)))
--			return -EFAULT;
-+		break;
- 	}
- 
- 	return 0;
-@@ -331,22 +336,32 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
- 			    enum v4l2_memory memory)
- {
-+	unsigned long p;
-+
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
--	/* For MMAP, driver might've set up the offset, so copy it back.
--	 * USERPTR stays the same (was userspace-provided), so no copying. */
--	if (memory == V4L2_MEMORY_MMAP)
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
- 				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
--	/* For DMABUF, driver might've set up the fd, so copy it back. */
--	if (memory == V4L2_MEMORY_DMABUF)
-+		break;
-+	case V4L2_MEMORY_USERPTR:
-+		if (get_user(p, &up->m.userptr) ||
-+		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
-+			     &up32->m.userptr))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
- 				 sizeof(up->m.fd)))
- 			return -EFAULT;
-+		break;
-+	}
- 
- 	return 0;
- }
-@@ -408,6 +423,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -421,10 +437,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
- 			}
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (get_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (get_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
-@@ -481,6 +493,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -488,10 +501,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			if (put_user(kp->m.userptr, &up->m.userptr))
- 				return -EFAULT;
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (put_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (put_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
+Changelog:
+----------
+
+v6:
+ - Rebased on to linux-media/master (v4.16-rc1)
+ - Removed DRM/UIF (DISCOM/ColorKey) updates
+
+v5:
+ - Rebased on to renesas-drivers-2018-01-09-v4.15-rc7 to fix conflicts
+   with DRM and UIF updates on VSP1 driver
+
+v4:
+ - Rebased to v4.14
+ * v4l: vsp1: Use reference counting for bodies
+   - Fix up reference handling comments
+
+ * v4l: vsp1: Provide a body pool
+   - Provide comment explaining extra allocation on body pool
+     highlighting area for optimisation later.
+
+ * v4l: vsp1: Refactor display list configure operations
+   - Fix up comment to describe yuv_mode caching rather than format
+
+ * vsp1: Adapt entities to configure into a body
+   - Rename vsp1_dl_list_get_body() to vsp1_dl_list_get_body0()
+
+ * v4l: vsp1: Move video configuration to a cached dlb
+   - Adjust pipe configured flag to be reset on resume rather than suspend
+   - rename dl_child, dl_next
+
+Testing:
+--------
+The VSP unit tests have been run on this patch set with the following results:
+
+--- Test loop 1 ---
+- vsp-unit-test-0000.sh
+Test Conditions:
+  Platform          Renesas Salvator-X 2nd version board based on r8a7795 ES2.0+
+  Kernel release    4.16.0-rc1-arm64-renesas-00166-ge0ad4e839fff
+  convert           /usr/bin/convert
+  compare           /usr/bin/compare
+  killall           /usr/bin/killall
+  raw2rgbpnm        /usr/bin/raw2rgbpnm
+  stress            /usr/bin/stress
+  yavta             /usr/bin/yavta
+- vsp-unit-test-0001.sh
+Testing WPF packing in RGB332: pass
+Testing WPF packing in ARGB555: pass
+Testing WPF packing in XRGB555: pass
+Testing WPF packing in RGB565: pass
+Testing WPF packing in BGR24: pass
+Testing WPF packing in RGB24: pass
+Testing WPF packing in ABGR32: pass
+Testing WPF packing in ARGB32: pass
+Testing WPF packing in XBGR32: pass
+Testing WPF packing in XRGB32: pass
+- vsp-unit-test-0002.sh
+Testing WPF packing in NV12M: pass
+Testing WPF packing in NV16M: pass
+Testing WPF packing in NV21M: pass
+Testing WPF packing in NV61M: pass
+Testing WPF packing in UYVY: pass
+Testing WPF packing in VYUY: skip
+Testing WPF packing in YUV420M: pass
+Testing WPF packing in YUV422M: pass
+Testing WPF packing in YUV444M: pass
+Testing WPF packing in YVU420M: pass
+Testing WPF packing in YVU422M: pass
+Testing WPF packing in YVU444M: pass
+Testing WPF packing in YUYV: pass
+Testing WPF packing in YVYU: pass
+- vsp-unit-test-0003.sh
+Testing scaling from 640x640 to 640x480 in RGB24: pass
+Testing scaling from 1024x768 to 640x480 in RGB24: pass
+Testing scaling from 640x480 to 1024x768 in RGB24: pass
+Testing scaling from 640x640 to 640x480 in YUV444M: pass
+Testing scaling from 1024x768 to 640x480 in YUV444M: pass
+Testing scaling from 640x480 to 1024x768 in YUV444M: pass
+- vsp-unit-test-0004.sh
+Testing histogram in RGB24: pass
+Testing histogram in YUV444M: pass
+- vsp-unit-test-0005.sh
+Testing RPF.0: pass
+Testing RPF.1: pass
+Testing RPF.2: pass
+Testing RPF.3: pass
+Testing RPF.4: pass
+- vsp-unit-test-0006.sh
+Testing invalid pipeline with no RPF: pass
+Testing invalid pipeline with no WPF: pass
+- vsp-unit-test-0007.sh
+Testing BRU in RGB24 with 1 inputs: pass
+Testing BRU in RGB24 with 2 inputs: pass
+Testing BRU in RGB24 with 3 inputs: pass
+Testing BRU in RGB24 with 4 inputs: pass
+Testing BRU in RGB24 with 5 inputs: pass
+Testing BRU in YUV444M with 1 inputs: pass
+Testing BRU in YUV444M with 2 inputs: pass
+Testing BRU in YUV444M with 3 inputs: pass
+Testing BRU in YUV444M with 4 inputs: pass
+Testing BRU in YUV444M with 5 inputs: pass
+- vsp-unit-test-0008.sh
+Test requires unavailable feature set `bru rpf.0 uds wpf.0': skipped
+- vsp-unit-test-0009.sh
+Test requires unavailable feature set `rpf.0 wpf.0 wpf.1': skipped
+- vsp-unit-test-0010.sh
+Testing CLU in RGB24 with zero configuration: pass
+Testing CLU in RGB24 with identity configuration: pass
+Testing CLU in RGB24 with wave configuration: pass
+Testing CLU in YUV444M with zero configuration: pass
+Testing CLU in YUV444M with identity configuration: pass
+Testing CLU in YUV444M with wave configuration: pass
+Testing LUT in RGB24 with zero configuration: pass
+Testing LUT in RGB24 with identity configuration: pass
+Testing LUT in RGB24 with gamma configuration: pass
+Testing LUT in YUV444M with zero configuration: pass
+Testing LUT in YUV444M with identity configuration: pass
+Testing LUT in YUV444M with gamma configuration: pass
+- vsp-unit-test-0011.sh
+Testing  hflip=0 vflip=0 rotate=0: pass
+Testing  hflip=1 vflip=0 rotate=0: pass
+Testing  hflip=0 vflip=1 rotate=0: pass
+Testing  hflip=1 vflip=1 rotate=0: pass
+Testing  hflip=0 vflip=0 rotate=90: pass
+Testing  hflip=1 vflip=0 rotate=90: pass
+Testing  hflip=0 vflip=1 rotate=90: pass
+Testing  hflip=1 vflip=1 rotate=90: pass
+- vsp-unit-test-0012.sh
+Testing hflip: pass
+Testing vflip: pass
+- vsp-unit-test-0013.sh
+Testing RPF unpacking in RGB332: pass
+Testing RPF unpacking in ARGB555: pass
+Testing RPF unpacking in XRGB555: pass
+Testing RPF unpacking in RGB565: pass
+Testing RPF unpacking in BGR24: pass
+Testing RPF unpacking in RGB24: pass
+Testing RPF unpacking in ABGR32: pass
+Testing RPF unpacking in ARGB32: pass
+Testing RPF unpacking in XBGR32: pass
+Testing RPF unpacking in XRGB32: pass
+- vsp-unit-test-0014.sh
+Testing RPF unpacking in NV12M: pass
+Testing RPF unpacking in NV16M: pass
+Testing RPF unpacking in NV21M: pass
+Testing RPF unpacking in NV61M: pass
+Testing RPF unpacking in UYVY: pass
+Testing RPF unpacking in VYUY: skip
+Testing RPF unpacking in YUV420M: pass
+Testing RPF unpacking in YUV422M: pass
+Testing RPF unpacking in YUV444M: pass
+Testing RPF unpacking in YVU420M: pass
+Testing RPF unpacking in YVU422M: pass
+Testing RPF unpacking in YVU444M: pass
+Testing RPF unpacking in YUYV: pass
+Testing RPF unpacking in YVYU: pass
+- vsp-unit-test-0015.sh
+Testing SRU scaling from 1024x768 to 1024x768 in RGB24: pass
+Testing SRU scaling from 1024x768 to 2048x1536 in RGB24: pass
+Testing SRU scaling from 1024x768 to 1024x768 in YUV444M: pass
+Testing SRU scaling from 1024x768 to 2048x1536 in YUV444M: pass
+- vsp-unit-test-0016.sh
+Testing  hflip=0 vflip=0 rotate=0 640x480 -> 640x480: pass
+Testing  hflip=0 vflip=0 rotate=0 640x480 -> 1024x768: pass
+Testing  hflip=0 vflip=0 rotate=0 1024x768 -> 640x480: pass
+Testing  hflip=1 vflip=0 rotate=0 640x480 -> 640x480: pass
+Testing  hflip=1 vflip=0 rotate=0 640x480 -> 1024x768: pass
+Testing  hflip=1 vflip=0 rotate=0 1024x768 -> 640x480: pass
+Testing  hflip=0 vflip=1 rotate=0 640x480 -> 640x480: pass
+Testing  hflip=0 vflip=1 rotate=0 640x480 -> 1024x768: pass
+Testing  hflip=0 vflip=1 rotate=0 1024x768 -> 640x480: pass
+Testing  hflip=1 vflip=1 rotate=0 640x480 -> 640x480: pass
+Testing  hflip=1 vflip=1 rotate=0 640x480 -> 1024x768: pass
+Testing  hflip=1 vflip=1 rotate=0 1024x768 -> 640x480: pass
+Testing  hflip=0 vflip=0 rotate=90 640x480 -> 640x480: pass
+Testing  hflip=0 vflip=0 rotate=90 640x480 -> 1024x768: pass
+Testing  hflip=0 vflip=0 rotate=90 1024x768 -> 640x480: pass
+Testing  hflip=1 vflip=0 rotate=90 640x480 -> 640x480: pass
+Testing  hflip=1 vflip=0 rotate=90 640x480 -> 1024x768: pass
+Testing  hflip=1 vflip=0 rotate=90 1024x768 -> 640x480: pass
+Testing  hflip=0 vflip=1 rotate=90 640x480 -> 640x480: pass
+Testing  hflip=0 vflip=1 rotate=90 640x480 -> 1024x768: pass
+Testing  hflip=0 vflip=1 rotate=90 1024x768 -> 640x480: pass
+Testing  hflip=1 vflip=1 rotate=90 640x480 -> 640x480: pass
+Testing  hflip=1 vflip=1 rotate=90 640x480 -> 1024x768: pass
+Testing  hflip=1 vflip=1 rotate=90 1024x768 -> 640x480: pass
+- vsp-unit-test-0017.sh
+- vsp-unit-test-0018.sh
+Testing RPF crop from (0,0)/512x384: pass
+Testing RPF crop from (32,32)/512x384: pass
+Testing RPF crop from (32,64)/512x384: pass
+Testing RPF crop from (64,32)/512x384: pass
+- vsp-unit-test-0019.sh
+- vsp-unit-test-0020.sh
+- vsp-unit-test-0021.sh
+Testing WPF packing in RGB332 during stress testing: pass
+Testing WPF packing in ARGB555 during stress testing: pass
+Testing WPF packing in XRGB555 during stress testing: pass
+Testing WPF packing in RGB565 during stress testing: pass
+Testing WPF packing in BGR24 during stress testing: pass
+Testing WPF packing in RGB24 during stress testing: pass
+Testing WPF packing in ABGR32 during stress testing: pass
+Testing WPF packing in ARGB32 during stress testing: pass
+Testing WPF packing in XBGR32 during stress testing: pass
+Testing WPF packing in XRGB32 during stress testing: pass
+./vsp-unit-test-0021.sh: line 34: 13658 Killed                  stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M
+- vsp-unit-test-0022.sh
+Testing long duration pipelines under stress: pass
+./vsp-unit-test-0022.sh: line 38: 15624 Killed                  stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M
+- vsp-unit-test-0023.sh
+Testing histogram HGT with hue areas 0,255,255,255,255,255,255,255,255,255,255,255: pass
+Testing histogram HGT with hue areas 0,40,40,80,80,120,120,160,160,200,200,255: pass
+Testing histogram HGT with hue areas 220,40,40,80,80,120,120,160,160,200,200,220: pass
+Testing histogram HGT with hue areas 0,10,50,60,100,110,150,160,200,210,250,255: pass
+Testing histogram HGT with hue areas 10,20,50,60,100,110,150,160,200,210,230,240: pass
+Testing histogram HGT with hue areas 240,20,60,80,100,120,140,160,180,200,210,220: pass
+- vsp-unit-test-0024.sh
+Test requires unavailable feature set `rpf.0 rpf.1 brs wpf.0': skipped
+158 tests: 142 passed, 0 failed, 3 skipped
+
+Kieran Bingham (9):
+  v4l: vsp1: Reword uses of 'fragment' as 'body'
+  v4l: vsp1: Protect bodies against overflow
+  v4l: vsp1: Provide a body pool
+  v4l: vsp1: Convert display lists to use new body pool
+  v4l: vsp1: Use reference counting for bodies
+  v4l: vsp1: Refactor display list configure operations
+  v4l: vsp1: Adapt entities to configure into a body
+  v4l: vsp1: Move video configuration to a cached dlb
+  v4l: vsp1: Reduce display list body size
+
+ drivers/media/platform/vsp1/vsp1_bru.c    |  32 +--
+ drivers/media/platform/vsp1/vsp1_clu.c    |  94 +++---
+ drivers/media/platform/vsp1/vsp1_clu.h    |   1 +-
+ drivers/media/platform/vsp1/vsp1_dl.c     | 393 +++++++++++++----------
+ drivers/media/platform/vsp1/vsp1_dl.h     |  20 +-
+ drivers/media/platform/vsp1/vsp1_drm.c    |  37 +--
+ drivers/media/platform/vsp1/vsp1_entity.c |  23 +-
+ drivers/media/platform/vsp1/vsp1_entity.h |  31 +--
+ drivers/media/platform/vsp1/vsp1_hgo.c    |  26 +--
+ drivers/media/platform/vsp1/vsp1_hgt.c    |  28 +--
+ drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
+ drivers/media/platform/vsp1/vsp1_lif.c    |  25 +-
+ drivers/media/platform/vsp1/vsp1_lut.c    |  71 ++--
+ drivers/media/platform/vsp1/vsp1_lut.h    |   1 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  11 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h   |   7 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c    | 179 +++++-----
+ drivers/media/platform/vsp1/vsp1_sru.c    |  24 +-
+ drivers/media/platform/vsp1/vsp1_uds.c    |  73 ++--
+ drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
+ drivers/media/platform/vsp1/vsp1_video.c  |  82 ++---
+ drivers/media/platform/vsp1/vsp1_video.h  |   2 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c    | 325 +++++++++----------
+ 23 files changed, 826 insertions(+), 681 deletions(-)
+
+base-commit: e3e389f931a14ddf43089c7db92fc5d74edf93a4
 -- 
-2.15.1
+git-series 0.9.1
