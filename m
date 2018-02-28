@@ -1,160 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:43542 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751370AbeBTOTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 09:19:39 -0500
-Subject: Re: [PATCH 1/8] clk: Add clk_bulk_alloc functions
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Maciej Purski <m.purski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Cc: David Airlie <airlied@linux.ie>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-References: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
- <CGME20180219154456eucas1p15f4073beaf61312238f142f217a8bb3c@eucas1p1.samsung.com>
- <1519055046-2399-2-git-send-email-m.purski@samsung.com>
- <b67b5043-f5e5-826a-f0b8-f7cf722c61e6@arm.com>
- <f13fb12b-54e6-104b-4ec0-192d1bb72cc8@samsung.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Message-ID: <a8bb8965-12af-c3e8-3d67-6af37059b33e@arm.com>
-Date: Tue, 20 Feb 2018 14:19:32 +0000
+Received: from mx2.suse.de ([195.135.220.15]:34103 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753057AbeB1R1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Feb 2018 12:27:19 -0500
+From: Stanislav Brabec <sbrabec@suse.cz>
+Subject: dvb: New unsupported version of Astrometa DVB-T2
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Peter Rosin <peda@axentia.se>
+Message-ID: <c2ae2312-be3f-5069-ec1f-aef5b81aef78@suse.cz>
+Date: Wed, 28 Feb 2018 18:27:15 +0100
 MIME-Version: 1.0
-In-Reply-To: <f13fb12b-54e6-104b-4ec0-192d1bb72cc8@samsung.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
+Content-Type: text/plain; charset=iso-8859-2
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+Hi.
 
-On 20/02/18 09:36, Marek Szyprowski wrote:
-> Hi Robin,
-> 
-> On 2018-02-19 17:29, Robin Murphy wrote:
->> Hi Maciej,
->>
->> On 19/02/18 15:43, Maciej Purski wrote:
->>> When a driver is going to use clk_bulk_get() function, it has to
->>> initialize an array of clk_bulk_data, by filling its id fields.
->>>
->>> Add a new function to the core, which dynamically allocates
->>> clk_bulk_data array and fills its id fields. Add clk_bulk_free()
->>> function, which frees the array allocated by clk_bulk_alloc() function.
->>> Add a managed version of clk_bulk_alloc().
->>
->> Seeing how every subsequent patch ends up with the roughly this same 
->> stanza:
->>
->>     x = devm_clk_bulk_alloc(dev, num, names);
->>     if (IS_ERR(x)
->>         return PTR_ERR(x);
->>     ret = devm_clk_bulk_get(dev, x, num);
->>
->> I wonder if it might be better to simply implement:
->>
->>     int devm_clk_bulk_alloc_get(dev, &x, num, names)
->>
->> that does the whole lot in one go, and let drivers that want to do 
->> more fiddly things continue to open-code the allocation.
->>
->> But perhaps that's an abstraction too far... I'm not all that familiar 
->> with the lie of the land here.
-> 
-> Hmmm. This patchset clearly shows, that it would be much simpler if we
-> get rid of clk_bulk_data structure at all and let clk_bulk_* functions
-> to operate on struct clk *array[]. Typically the list of clock names
-> is already in some kind of array (taken from driver data or statically
-> embedded into driver), so there is little benefit from duplicating it
-> in clk_bulk_data. Sadly, I missed clk_bulk_* api discussion and maybe
-> there are other benefits from this approach.
-> 
-> If not, I suggest simplifying clk_bulk_* api by dropping clk_bulk_data
-> structure and switching to clock ptr array:
-> 
-> int clk_bulk_get(struct device *dev, int num_clock, struct clk *clocks[],
->                   const char *clk_names[]);
-> int clk_bulk_prepare(int num_clks, struct clk *clks[]);
-> int clk_bulk_enable(int num_clks, struct clk *clks[]);
-> ...
+I just purchased a new DVB-T2 USB dongle on Ebay[1].
 
-Yes, that's certainly a possibility; if on the other hand there are 
-desirable reasons for the encapsulation (personally, I do think it's 
-quite neat), then maybe num_clocks should get pushed down into 
-clk_bulk_data as well - then with dedicated alloc/free functions as 
-proposed here it could become a simple opaque cookie as far as callers 
-are concerned.
+This dongle reports itself as Astrometa DVB-T2, but it does not work
+with the current v4l-dvb kernel (tested with 2942273).
 
-I also haven't looked into the origins of the bulk API design, though; 
-I've just been familiarising myself from the perspective of reviewing 
-general clk API usage in drivers.
+After a teardown[2], I realized, that it has a different (and unknown,
+as the manufacturer removed the label) tuner chip, MN88473 and RTL8232P.
 
-Robin.
+w-scan is able to find some multiplexes, but it is not able to tune and
+decode, so the tuner seems to be at least partially supported ("Info: no
+data from PAT after 2 seconds", see the log in [3]).
 
->>> Signed-off-by: Maciej Purski <m.purski@samsung.com>
->>> ---
->>>   drivers/clk/clk-bulk.c   | 16 ++++++++++++
->>>   drivers/clk/clk-devres.c | 37 +++++++++++++++++++++++++---
->>>   include/linux/clk.h      | 64 
->>> ++++++++++++++++++++++++++++++++++++++++++++++++
->>>   3 files changed, 113 insertions(+), 4 deletions(-)
->>>
->>
->> [...]
->>> @@ -598,6 +645,23 @@ struct clk *clk_get_sys(const char *dev_id, 
->>> const char *con_id);
->>>     #else /* !CONFIG_HAVE_CLK */
->>>   +static inline struct clk_bulk_data *clk_bulk_alloc(int num_clks,
->>> +                           const char **clk_ids)
->>> +{
->>> +    return NULL;
->>
->> Either way, is it intentional not returning an ERR_PTR() value in this 
->> case? Since NULL will pass an IS_ERR() check, it seems a bit fragile 
->> for an allocation call to apparently succeed when the whole API is 
->> configured out (and I believe introducing new uses of IS_ERR_OR_NULL() 
->> is in general strongly discouraged.)
->>
->> Robin.
->>
->>> +}
->>> +
->>> +static inline struct clk_bulk_data *devm_clk_bulk_alloc(struct 
->>> device *dev,
->>> +                            int num_clks,
->>> +                            const char **clk_ids)
->>> +{
->>> +    return NULL;
->>> +}
->>> +
->>> +static inline void clk_bulk_free(struct clk_bulk_data *clks)
->>> +{
->>> +}
->>> +
->>>   static inline struct clk *clk_get(struct device *dev, const char *id)
->>>   {
->>>       return NULL;
->>
-> Best regards
+MN88473 is not detected, and firmware is not loaded (even if the
+previous supported version contains the same chip).
+
+The bundled CD contains Windows drivers.[3]
+
+Could anybody provide me a hint, how to debug it or make it working?
+
+References:
+[1] item to purchase: https://www.ebay.com/itm/152240047586 (Wish)
+[2] teardown photos: https://photos.app.goo.gl/kWze7I03ksZWNL2C3
+[3] files: https://drive.google.com/drive/folders/1N1H8KjpZHz3ruLOc37lSLpMU4fpPRnla?usp=sharing
+
+[   66.521783] usb 1-1.3: new high-speed USB device number 4 using ehci-pci
+[   66.642755] usb 1-1.3: New USB device found, idVendor=15f4, idProduct=0131
+[   66.642758] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[   66.642760] usb 1-1.3: Product: dvbt2
+[   66.642761] usb 1-1.3: Manufacturer: astrometadvbt2
+[   66.642763] usb 1-1.3: SerialNumber: 0
+[   66.669636] rc_core: IR Remote Control driver registered, major 243
+[   66.676299] usb 1-1.3: dvb_usb_v2: found a 'Astrometa DVB-T2' in warm state
+[   66.736331] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+[   66.736337] dvbdev: DVB: registering new adapter (Astrometa DVB-T2)
+[   66.738086] i2c i2c-10: Added multiplexed i2c bus 11
+[   66.738088] rtl2832 10-0010: Realtek RTL2832 successfully attached
+[   66.738102] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
+[   66.739090] r820t 11-001a: creating new instance
+[   66.746288] r820t 11-001a: Rafael Micro r820t successfully identified
+[   66.751321] Linux video capture interface: v2.00
+[   66.754254] rtl2832_sdr rtl2832_sdr.1.auto: Registered as swradio0
+[   66.754256] rtl2832_sdr rtl2832_sdr.1.auto: Realtek RTL2832 SDR attached
+[   66.754257] rtl2832_sdr rtl2832_sdr.1.auto: SDR API is still slightly experimental and functionality changes may follow
+[   66.765294] Registered IR keymap rc-empty
+[   66.765315] rc rc0: Astrometa DVB-T2 as /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
+[   66.765338] input: Astrometa DVB-T2 as /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input10
+[   66.765387] rc rc0: lirc_dev: driver dvb_usb_rtl28xxu registered at minor = 0
+[   66.765411] usb 1-1.3: dvb_usb_v2: schedule remote query interval to 200 msecs
+[   66.774571] usb 1-1.3: dvb_usb_v2: 'Astrometa DVB-T2' successfully initialized and connected
+[   66.774622] usbcore: registered new interface driver dvb_usb_rtl28xxu
+
+-- 
+Best Regards / S pozdravem,
+
+Stanislav Brabec
+software developer
+---------------------------------------------------------------------
+SUSE LINUX, s. r. o.                         e-mail: sbrabec@suse.com
+K�i��kova 148/34 (Corso IIa)                  tel: +49 911 7405384547
+186 00 Praha 8-Karl�n                          fax:  +420 284 084 001
+Czech Republic                                    http://www.suse.cz/
+PGP: 830B 40D5 9E05 35D8 5E27 6FA3 717C 209F A04F CD76
