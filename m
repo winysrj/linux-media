@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:52178 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967616AbeBNLyU (ORCPT
+Received: from mail-qt0-f169.google.com ([209.85.216.169]:42673 "EHLO
+        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752488AbeB1OtN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:54:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.1 10/14] media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
-Date: Wed, 14 Feb 2018 12:54:15 +0100
-Message-Id: <20180214115419.28156-11-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115419.28156-1-hverkuil@xs4all.nl>
-References: <20180214115419.28156-1-hverkuil@xs4all.nl>
+        Wed, 28 Feb 2018 09:49:13 -0500
+Received: by mail-qt0-f169.google.com with SMTP id t6so3231704qtn.9
+        for <linux-media@vger.kernel.org>; Wed, 28 Feb 2018 06:49:13 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <df78951777f4edb8f627b043a12c710f0ba2497d.1519753238.git.mchehab@s-opensource.com>
+References: <df78951777f4edb8f627b043a12c710f0ba2497d.1519753238.git.mchehab@s-opensource.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 28 Feb 2018 09:49:12 -0500
+Message-ID: <CAGoCfixqh-p6YWV3Fb9hGpX5Wv=qiWHFseuFRva66XsYtGkgFQ@mail.gmail.com>
+Subject: Re: [PATCH RFC] media: em28xx: don't use coherent buffer for DMA transfers
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Mentz <danielmentz@google.com>
+On Tue, Feb 27, 2018 at 12:42 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> While coherent memory is cheap on x86, it has problems on
+> arm. So, stop using it.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>
+> I wrote this patch in order to check if this would make things better
+> for ISOCH transfers on Raspberry Pi3. It didn't. Yet, keep using
+> coherent memory at USB drivers seem an overkill.
+>
+> So, I'm actually not sure if we should either go ahead and merge it
+> or not.
+>
+> Comments? Tests?
 
-commit 025a26fa14f8fd55d50ab284a30c016a5be953d0 upstream.
+For what it's worth, while I haven't tested this patch you're
+proposing, I've been running what is essentially the same change in a
+private tree for several years in order for the device to work better
+with several TI Davinci SOC platforms.
 
-Commit b2787845fb91 ("V4L/DVB (5289): Add support for video output
-overlays.") added the field global_alpha to struct v4l2_window but did
-not update the compat layer accordingly. This change adds global_alpha
-to struct v4l2_window32 and copies the value for global_alpha back and
-forth.
+Devin
 
-Signed-off-by: Daniel Mentz <danielmentz@google.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 626a3b345075..88e4f5716387 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -45,6 +45,7 @@ struct v4l2_window32 {
- 	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
- 	__u32			clipcount;
- 	compat_caddr_t		bitmap;
-+	__u8                    global_alpha;
- };
- 
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
-@@ -53,7 +54,8 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
- 	    get_user(kp->chromakey, &up->chromakey) ||
--	    get_user(kp->clipcount, &up->clipcount))
-+	    get_user(kp->clipcount, &up->clipcount) ||
-+	    get_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
-@@ -86,7 +88,8 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
--	    put_user(kp->clipcount, &up->clipcount))
-+	    put_user(kp->clipcount, &up->clipcount) ||
-+	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
- 	return 0;
- }
 -- 
-2.15.1
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
