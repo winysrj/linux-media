@@ -1,126 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44045 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751682AbeBYLkQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Feb 2018 06:40:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alexandre-Xavier =?ISO-8859-1?Q?Labont=E9=2DLamoureux?=
-        <axdoomer@gmail.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
-Date: Sun, 25 Feb 2018 13:41:03 +0200
-Message-ID: <10340581.MW54jSnN5l@avalon>
-In-Reply-To: <CAKTMqxvSWQSa=w_6z_XHjMh6s6N+hdj_yi-yW+CEp2NVx0t4Zg@mail.gmail.com>
-References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com> <46032915.v1itnVjfQo@avalon> <CAKTMqxvSWQSa=w_6z_XHjMh6s6N+hdj_yi-yW+CEp2NVx0t4Zg@mail.gmail.com>
+Received: from mout.web.de ([212.227.17.12]:59205 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751777AbeB1Iqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Feb 2018 03:46:54 -0500
+Subject: Re: [v2] [media] Use common error handling code in 20 functions
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Brian Johnson <brijohn@gmail.com>,
+        =?UTF-8?Q?Christoph_B=c3=b6hmwalder?= <christoph@boehmwalder.at>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        Daniele Nicolodi <daniele@grinta.net>,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Devendra Sharma <devendra.sharma9091@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
+        Kees Cook <keescook@chromium.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Mike Isely <isely@pobox.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Sean Young <sean@mess.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Shyam Saini <mayhs11saini@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net>
+ <3895609.4O6dNuP5Wm@avalon>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <783e7eff-2028-72be-b83c-77fc4340484e@users.sourceforge.net>
+Date: Wed, 28 Feb 2018 09:45:21 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <3895609.4O6dNuP5Wm@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre-Xavier,
+>> +put_isp:
+>> +	omap3isp_put(video->isp);
+>> +delete_fh:
+>> +	v4l2_fh_del(&handle->vfh);
+>> +	v4l2_fh_exit(&handle->vfh);
+>> +	kfree(handle);
+> 
+> Please prefix the error labels with error_.
 
-On Sunday, 25 February 2018 10:19:51 EET Alexandre-Xavier Labont=E9-Lamoure=
-ux=20
-wrote:
-> Hi Laurent,
->=20
-> Sorry for the late reply.
->=20
-> I've been trying to reproduce the issue again. I cloned the entire
-> media repository later during the week and I haven't been able to
-> reproduce the issue after I installed the modules. A metadata node is
-> no longer created for my webcam. The four commits that you've
-> mentioned are still in the commit log, so it seems that they didn't
-> break anything.
+How often do you really need such an extra prefix?
 
-Now that's weird. I would expect a metadata video node to be created if the=
-=20
-patches I mentioned are applied. Are you sure you have loaded the modules=20
-corresponding to the compiled sources ?
 
-> I'm not sure what could have changed that would have caused it to work
-> fine this time. I believe that I'm in the correct branch.
->=20
-> $ git status
-> On branch media_tree/master
-> Your branch is up-to-date with 'r_media_tree/master'.
->=20
-> I probably did `./build` instead of `./build --main-git` the first time.
->=20
-> On Mon, Feb 19, 2018 at 2:10 PM, Laurent Pinchart wrote:
-> > On Monday, 19 February 2018 19:29:24 EET Alexandre-Xavier
-> > Labont=E9-Lamoureux wrote:
-> >> Hi Kieran,
-> >>=20
-> >> This is how I built the drivers:
-> >>=20
-> >> $ git clone --depth=3D1 git://linuxtv.org/media_build.git
-> >> $ cd media_build
-> >> $ ./build --main-git
-> >>=20
-> >> I then installed the newly built kernel modules:
-> >>=20
-> >> $ sudo make install
-> >>=20
-> >> Once the modules were updated, I restarted my computer to make sure
-> >> every module got reloaded. I didn't make any changes to the code and I
-> >> found the issues after trying each of those programs individually
-> >> after I restarted my computer.
-> >>=20
-> >> This was the latest commit when I cloned the repo:
-> >>=20
-> >> commit d144cfe4b3c37ece55ae27778c99765d4943c4fa
-> >> Author: Jasmin Jessich <jasmin@anw.at>
-> >> Date:   Fri Feb 16 22:40:49 2018 +0100
-> >>=20
-> >>     Re-generated v3.12_kfifo_in.patch
-> >>=20
-> >> My version of VLC is 2.2.6. Here's a copy of the relevant data of
-> >> VLC's log file in case it can help: https://paste.debian.net/1011025/
-> >> In this case, I tried to open /dev/video0 first and /dev/video1 second.
-> >>=20
-> >> I can also try with ffplay:
-> >> $ ffplay /dev/video0
-> >>=20
-> >> I get this: [video4linux2,v4l2 @ 0x7f2160000920]
-> >> ioctl(VIDIOC_STREAMON): Message too long
-> >> /dev/video0: Message too long
-> >>=20
-> >> A new message appears in dmesg: uvcvideo: Failed to submit URB 0 (-90).
-> >=20
-> > That's interesting, and possibly unrelated to the patch series that add=
-ed
-> > metadata capture support. Would you be able to revert that patch series
-> > and see if the problem still occurs ? The four commits to be reverted a=
-re
-> >=20
-> > 088ead25524583e2200aa99111bea2f66a86545a
-> > 3bc85817d7982ed53fbc9b150b0205beff68ca5c
-> > 94c53e26dc74744cc4f9a8ddc593b7aef96ba764
-> > 31a96f4c872e8fb953c853630f69d5de6ec961c9
-> >=20
-> > And if you could bisect the issue it would be even better :-)
-> >=20
-> > Could you also send me the output of lsusb -v for your camera (you can
-> > restrict it to the camera with -d VID:PID), running as root if possible=
- ?
-> >=20
-> >> $ ffplay /dev/video1
-> >>=20
-> >> I get this:
-> >> [video4linux2,v4l2 @ 0x7f00ec000920] ioctl(VIDIOC_G_INPUT):
-> >> Inappropriate ioctl for device
-> >> /dev/video1: Inappropriate ioctl for device
-> >>=20
-> >> Like Guennadi said, /dev/video1 is a metadata node, so I don't expect
-> >> it to work. In the case of /dev/video0, I can't tell what could be
-> >> wrong from the error message.
+>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> @@ -994,10 +994,8 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
+>> void *fh, struct v4l2_queryctrl qc = { .id = ctrl->id };
+>>
+>>  			ret = uvc_query_v4l2_ctrl(chain, &qc);
+>> -			if (ret < 0) {
+>> -				ctrls->error_idx = i;
+>> -				return ret;
+>> -			}
+>> +			if (ret < 0)
+>> +				goto set_index;
+>>
+>>  			ctrl->value = qc.default_value;
+>>  		}
+>> @@ -1013,14 +1011,17 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
+>> void *fh, ret = uvc_ctrl_get(chain, ctrl);
+>>  		if (ret < 0) {
+>>  			uvc_ctrl_rollback(handle);
+>> -			ctrls->error_idx = i;
+>> -			return ret;
+>> +			goto set_index;
+>>  		}
+>>  	}
+>>
+>>  	ctrls->error_idx = 0;
+>>
+>>  	return uvc_ctrl_rollback(handle);
+>> +
+>> +set_index:
+>> +	ctrls->error_idx = i;
+>> +	return ret;
+>>  }
+> 
+> For uvcvideo I find this to hinder readability
 
-=2D-=20
+I got an other development view.
+
+
+> without adding much added value.
+
+There can be a small effect for such a function implementation.
+
+
+> Please drop the uvcvideo change from this patch.
+
+Would it be nice if this source code adjustment could be integrated also?
+
 Regards,
-
-Laurent Pinchart
+Markus
