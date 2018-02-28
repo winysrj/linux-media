@@ -1,81 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43664 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751709AbeBBNF2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Feb 2018 08:05:28 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Helen Koike <helen.koike@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-subdev: without controls return -ENOTTY
-Message-ID: <6fce05be-3e9e-5c0e-eb55-efc73c978ab7@xs4all.nl>
-Date: Fri, 2 Feb 2018 14:05:23 +0100
+Received: from mga01.intel.com ([192.55.52.88]:23888 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752427AbeB1Nb3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Feb 2018 08:31:29 -0500
+Date: Wed, 28 Feb 2018 15:31:26 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Andy Yeh <andy.yeh@intel.com>, linux-media@vger.kernel.org,
+        Tomasz Figa <tfiga@google.com>, devicetree@vger.kernel.org,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [v5 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807
+ voice coil
+Message-ID: <20180228133126.cusxnid64xd5uawu@paasikivi.fi.intel.com>
+References: <1519402422-9595-1-git-send-email-andy.yeh@intel.com>
+ <1519402422-9595-3-git-send-email-andy.yeh@intel.com>
+ <CAL_JsqKd8dxF1eSkST1GyKCS_bkzALv2aGHC9TXHWfnrxx33SQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqKd8dxF1eSkST1GyKCS_bkzALv2aGHC9TXHWfnrxx33SQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the subdev did not define any controls, then return -ENOTTY if
-userspace attempts to call these ioctls.
+Hi Rob,
 
-The control framework functions will return -EINVAL, not -ENOTTY if
-vfh->ctrl_handler is NULL.
+Thanks for the review.
 
-Several of these framework functions are also called directly from
-drivers, so I don't want to change the error code there.
+On Tue, Feb 27, 2018 at 04:10:31PM -0600, Rob Herring wrote:
+> On Fri, Feb 23, 2018 at 10:13 AM, Andy Yeh <andy.yeh@intel.com> wrote:
+> > From: Alan Chiang <alanx.chiang@intel.com>
+> >
+> > Dongwoon DW9807 is a voice coil lens driver.
+> >
+> > Also add a vendor prefix for Dongwoon for one did not exist previously.
+> 
+> Where's that?
 
-Found with vimc and v4l2-compliance.
+Added by aece98a912d92444ea9da03b04269407d1308f1f . So that line isn't
+relevant indeed and should be removed.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 43fefa73e0a3..be7a19272614 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -187,27 +187,43 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+> 
+> >
+> > Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> > ---
+> >  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
+> 
+> DACs generally go in bindings/iio/dac/
 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
+We have quite a few lens voice coil drivers under bindings/media/i2c now. I
+don't really object to putting this one to bindings/iio/dac but then the
+rest should be moved as well.
 
- 	case VIDIOC_QUERY_EXT_CTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
+The camera LED flash drivers are under bindings/leds so this would actually
+be analoguous to that. The lens voice coil drivers are perhaps still a bit
+more bound to the domain (camera) than the LED flash drivers.
 
- 	case VIDIOC_QUERYMENU:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_querymenu(vfh->ctrl_handler, arg);
+I can send a patch if you think the existing bindings should be moved; let
+me know.
 
- 	case VIDIOC_G_CTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
+-- 
+Kind regards,
 
- 	case VIDIOC_S_CTRL:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
-
- 	case VIDIOC_G_EXT_CTRLS:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
-
- 	case VIDIOC_S_EXT_CTRLS:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
-
- 	case VIDIOC_TRY_EXT_CTRLS:
-+		if (!vfh->ctrl_handler)
-+			return -ENOTTY;
- 		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
-
- 	case VIDIOC_DQEVENT:
+Sakari Ailus
+sakari.ailus@linux.intel.com
