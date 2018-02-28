@@ -1,265 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35186 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753785AbeBFX3L (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 18:29:11 -0500
-Received: by mail-wr0-f194.google.com with SMTP id w50so3753220wrc.2
-        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 15:29:11 -0800 (PST)
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:17455 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752858AbeB1RFQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Feb 2018 12:05:16 -0500
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre TORGUE <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>
+Subject: Re: [PATCH v2] media: stm32-dcmi: fix lock scheme
+Date: Wed, 28 Feb 2018 17:04:52 +0000
+Message-ID: <61dbbdac-08ea-4f9b-ba01-f2e243c88df2@st.com>
+References: <1519292954-19733-1-git-send-email-hugues.fruchet@st.com>
+ <8cc69501-40a4-c6ba-e526-9abd2d938acb@xs4all.nl>
+In-Reply-To: <8cc69501-40a4-c6ba-e526-9abd2d938acb@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <9727E60C26D92D47A528B35F1DE45F6D@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <c7771c44-a9ff-0207-38f6-28bcc06ccdee@xs4all.nl>
-References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com> <c7771c44-a9ff-0207-38f6-28bcc06ccdee@xs4all.nl>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Tue, 6 Feb 2018 15:29:09 -0800
-Message-ID: <CAJ+vNU1oiM0Y0rO-DHi57nVOqnw60A7pn_1=h5b46-BrY7_p2Q@mail.gmail.com>
-Subject: Re: [PATCH v8 0/7] TDA1997x HDMI video reciver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 6, 2018 at 1:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/06/2018 09:27 PM, Tim Harvey wrote:
->
-> <snip>
->
->> v4l2-compliance test results:
->>  - with the following kernel patches:
->>    v4l2-subdev: clear reserved fields
->>  . v4l2-subdev: without controls return -ENOTTY
->>
->> v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
->> Media Driver Info:
->>       Driver name      : imx-media
->>       Model            : imx-media
->>       Serial           :
->>       Bus info         :
->>       Media version    : 4.15.0
->>       Hardware revision: 0x00000000 (0)
->>       Driver version   : 4.15.0
->> Interface Info:
->>       ID               : 0x0300008f
->>       Type             : V4L Sub-Device
->> Entity Info:
->>       ID               : 0x00000003 (3)
->>       Name             : tda19971 2-0048
->>       Function         : Unknown
->
-> This is missing. It should be one of these:
->
-> https://hverkuil.home.xs4all.nl/spec/uapi/mediactl/media-types.html#media-entity-type
->
-> However, we don't have a proper function defined.
->
-> I would suggest adding a new MEDIA_ENT_F_DTV_DECODER analogous to MEDIA_ENT_F_ATV_DECODER.
->
-> It would be a new patch adding this + documentation.
-
-Hows this look for adding to my next series:
-
-Author: Tim Harvey <tharvey@gateworks.com>
-Date:   Tue Feb 6 14:12:52 2018 -0800
-
-    [media] add digital video decoder video interface entity functions
-
-    Add a new media entity function definition for digital TV decoders:
-    MEDIA_ENT_F_DTV_DECODER
-
-    Signed-off-by: Tim Harvey <tharvey@gateworks.com>
-
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -321,6 +321,17 @@ Types and flags used to represent the media graph elements
-          MIPI CSI-2, ...), and outputs them on its source pad to an output
-          video bus of another type (eDP, MIPI CSI-2, parallel, ...).
-
-+    -  ..  row 31
-+
-+       ..  _MEDIA-ENT-F-DTV-DECODER:
-+
-+       -  ``MEDIA_ENT_F_DTV_DECODER``
-+
-+       -  Digital video decoder. The basic function of the video decoder is
-+         to accept digital video from a wide variety of sources
-+         and output it in some digital video standard, with appropriate
-+         timing signals.
-+
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
-
- .. _media-entity-flag:
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index b9b9446..6653e88 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -152,6 +152,7 @@ struct media_device_info {
-  * MEDIA_ENT_F_IF_VID_DECODER and/or MEDIA_ENT_F_IF_AUD_DECODER.
-  */
- #define MEDIA_ENT_F_TUNER              (MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
-+#define MEDIA_ENT_F_DTV_DECODER
-(MEDIA_ENT_F_OLD_SUBDEV_BASE + 6)
-
- #define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN        MEDIA_ENT_F_OLD_SUBDEV_BASE
-
-
-Assigning this now shows a function but does not resolve the media
-compliance results:
-
---- a/drivers/media/i2c/tda1997x.c
-+++ b/drivers/media/i2c/tda1997x.c
-@@ -2586,6 +2586,7 @@ static int tda1997x_probe(struct i2c_client *client,
-                 id->name, i2c_adapter_id(client->adapter),
-                 client->addr);
-        sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+       sd->entity.function = MEDIA_ENT_F_DTV_DECODER;
-        sd->entity.ops = &tda1997x_media_ops;
-
-        /* set allowed mbus modes based on chip, bus-type, and bus-width */
-
-
-root@ventana:~# v4l2-compliance -u1
-v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
-Media Driver Info:
-        Driver name      : imx-media
-        Model            : imx-media
-        Serial           :
-        Bus info         :
-        Media version    : 4.15.0
-        Hardware revision: 0x00000000 (0)
-        Driver version   : 4.15.0
-Interface Info:
-        ID               : 0x0300008f
-        Type             : V4L Sub-Device
-Entity Info:
-        ID               : 0x00000003 (3)
-        Name             : tda19971 2-0048
-        Function         : Unknown (00020006)
-        Pad 0x01000004   : Source
-          Link 0x0200006f: to remote pad 0x1000063 of entity
-'ipu1_csi0_mux': Data
-
-...
-
-root@ventana:~# v4l2-compliance -m0 -M
-v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
-Media Driver Info:
-        Driver name      : imx-media
-        Model            : imx-media
-        Serial           :
-        Bus info         :
-        Media version    : 4.15.0
-        Hardware revision: 0x00000000 (0)
-        Driver version   : 4.15.0
-
-Compliance test for device /dev/media0:
-
-Required ioctls:
-        test MEDIA_IOC_DEVICE_INFO: OK
-
-Allow for multiple opens:
-        test second /dev/media0 open: OK
-        test MEDIA_IOC_DEVICE_INFO: OK
-        test for unlimited opens: OK
-
-Media Controller ioctls:
-                fail: v4l2-test-media.cpp(141): ent.function ==
-MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
-        test MEDIA_IOC_G_TOPOLOGY: FAIL
-                fail: v4l2-test-media.cpp(256):
-v2_entities_set.find(ent.id) == v2_entities_set.end()
-        test MEDIA_IOC_ENUM_ENTITIES/LINKS: FAIL
-        test MEDIA_IOC_SETUP_LINK: OK
-
-Total: 7, Succeeded: 5, Failed: 2, Warnings: 0
-
->
-<snip>
->>
->> Sub-Device ioctls (Source Pad 0):
->>       test Try VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
->>       test Try VIDIOC_SUBDEV_G/S_FMT: OK
->>       test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
->>       test Active VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
->>       test Active VIDIOC_SUBDEV_G/S_FMT: OK
->>       test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
->>       test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
->>
->> Control ioctls:
->>       test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
->>       test VIDIOC_QUERYCTRL: OK (Not Supported)
->>       test VIDIOC_G/S_CTRL: OK (Not Supported)
->>       test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
->>       test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
->>       test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->>       Standard Controls: 0 Private Controls: 0
->
-> Why doesn't this show anything? You have at least one control, so this should
-> reflect that. Does 'v4l2-ctl -d /dev/v4l-subdev1 -l' show any controls?
->
-> I think sd->ctrl_handler is never set to the v4l2_ctrl_handler pointer.
->
-> Have you ever tested the controls?
->
-> Looking closer I also notice that the control handler is never freed. Or
-> checked for errors when it is created in the probe function. Hmm, I should
-> have caught that earlier.
->
-
-Yes thanks - I missed this also:
-
---- a/drivers/media/i2c/tda1997x.c
-+++ b/drivers/media/i2c/tda1997x.c
-@@ -2726,6 +2726,12 @@ static int tda1997x_probe(struct i2c_client *client,
-                        &tda1997x_ctrl_ops,
-                        V4L2_CID_DV_RX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL, 0,
-                        V4L2_DV_RGB_RANGE_AUTO);
-+       state->sd.ctrl_handler = hdl;
-+       if (hdl->error) {
-+               ret = hdl->error;
-+               goto err_free_handler;
-+       }
-+       v4l2_ctrl_handler_setup(hdl);
-
-        /* initialize source pads */
-        state->pads[TDA1997X_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
-@@ -2774,6 +2780,8 @@ static int tda1997x_probe(struct i2c_client *client,
-
- err_free_media:
-        media_entity_cleanup(&sd->entity);
-+err_free_handler:
-+       v4l2_ctrl_handler_free(&state->hdl);
- err_free_mutex:
-        cancel_delayed_work(&state->delayed_work_enable_hpd);
-        mutex_destroy(&state->page_lock);
-@@ -2801,6 +2809,7 @@ static int tda1997x_remove(struct i2c_client *client)
-
-        v4l2_async_unregister_subdev(sd);
-        media_entity_cleanup(&sd->entity);
-+       v4l2_ctrl_handler_free(&state->hdl);
-        regulator_bulk_disable(TDA1997X_NUM_SUPPLIES, state->supplies);
-        i2c_unregister_device(state->client_cec);
-        cancel_delayed_work(&state->delayed_work_enable_hpd);
-
-root@ventana:~# v4l2-ctl -d /dev/v4l-subdev1 --list-ctrls
-
-Digital Video Controls
-
-                  power_present 0x00a00964 (bitmask): max=0x00000001
-default=0x00000000 value=0x00000000 flags=read-only
-      rx_rgb_quantization_range 0x00a00965 (menu)   : min=0 max=2
-default=0 value=2
-             rx_it_content_type 0x00a00966 (menu)   : min=0 max=4
-default=4 value=0 flags=read-only, volatile
-
-And various sets/gets appear to work as designed (found that I wasn't
-updating the csc when quantiation range was changed via ctrl and fixed
-it).
-
-Regards,
-
-Tim
+SGkgSGFucywNCg0KUHJvYmxlbSB3YXMgdGhhdCBsb2NrIHdhcyBoZWxkIHdoaWxlIGNhbGxpbmcg
+ZG1hZW5naW5lIEFQSXMsIHdoaWNoIA0KY2F1c2VzIGRvdWJsZSBsb2NrIGlzc3VlIHdoZW4gZG1h
+IGNhbGxiYWNrIHdhcyBjYWxsZWQgdW5kZXIgY29udGV4dCBvZiANCmRtYV9hc3luY19pc3N1ZV9w
+ZW5kaW5nKCkgKHNlZSBkY21pX3N0YXJ0X2RtYSgpICYgYmVsb3cgY29tbWVudHMpLg0KUmVzdCBv
+ZiBjaGFuZ2VzIGFyZSBhcm91bmQgc3Bpbl9sb2NrKCkgY2hhbmdlZCB0byBzcGluX2xvY2tfaXJx
+KCkgZm9yIA0Kc2FmZXIgbG9jayBtYW5hZ2VtZW50Lg0KDQpPbiAwMi8yNi8yMDE4IDAyOjU2IFBN
+LCBIYW5zIFZlcmt1aWwgd3JvdGU6DQo+IE9uIDAyLzIyLzIwMTggMTA6NDkgQU0sIEh1Z3VlcyBG
+cnVjaGV0IHdyb3RlOg0KPj4gRml4IGxvY2sgc2NoZW1lIGxlYWRpbmcgdG8gc3B1cmlvdXMgZnJl
+ZXplLg0KPiANCj4gQ2FuIHlvdSBlbGFib3JhdGUgYSBiaXQgbW9yZT8gSXQncyBoYXJkIHRvIHJl
+dmlldyBzaW5jZSB5b3UgZG9uJ3QNCj4gZGVzY3JpYmUgd2hhdCB3YXMgd3JvbmcgYW5kIHdoeSB0
+aGlzIGZpeGVzIHRoZSBwcm9ibGVtLg0KPiANCj4gUmVnYXJkcywNCj4gDQo+IAlIYW5zDQo+IA0K
+Pj4NCj4+IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5j
+b20+DQo+PiAtLS0NCj4+IHZlcnNpb24gMjoNCj4+ICAgIC0gZGNtaV9idWZfcXVldWUoKSByZWZh
+Y3RvciB0byBhdm9pZCB0byBoYXZlICJlbHNlIiBhZnRlciAicmV0dXJuIg0KPj4gICAgICAod2Fy
+bmluZyBkZXRlY3RlZCBieSBjaGVja3BhdGNoLnBsIC0tc3RyaWN0IC1mIHN0bTMyLWRjbWkuYykN
+Cj4+DQo+PiAgIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RtMzIvc3RtMzItZGNtaS5jIHwgNTcg
+KysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gICAxIGZpbGUgY2hhbmdlZCwgMjQg
+aW5zZXJ0aW9ucygrKSwgMzMgZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvbWVkaWEvcGxhdGZvcm0vc3RtMzIvc3RtMzItZGNtaS5jIGIvZHJpdmVycy9tZWRpYS9wbGF0
+Zm9ybS9zdG0zMi9zdG0zMi1kY21pLmMNCj4+IGluZGV4IDJmZDhiZWQuLjVkZTE4YWQgMTAwNjQ0
+DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0bTMyL3N0bTMyLWRjbWkuYw0KPj4g
+KysrIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdG0zMi9zdG0zMi1kY21pLmMNCj4+IEBAIC0x
+OTcsNyArMTk3LDcgQEAgc3RhdGljIHZvaWQgZGNtaV9kbWFfY2FsbGJhY2sodm9pZCAqcGFyYW0p
+DQo+PiAgIAlzdHJ1Y3QgZG1hX3R4X3N0YXRlIHN0YXRlOw0KPj4gICAJZW51bSBkbWFfc3RhdHVz
+IHN0YXR1czsNCj4+ICAgDQo+PiAtCXNwaW5fbG9jaygmZGNtaS0+aXJxbG9jayk7DQo+PiArCXNw
+aW5fbG9ja19pcnEoJmRjbWktPmlycWxvY2spOw0KPj4gICANCj4+ICAgCS8qIENoZWNrIERNQSBz
+dGF0dXMgKi8NCj4+ICAgCXN0YXR1cyA9IGRtYWVuZ2luZV90eF9zdGF0dXMoY2hhbiwgZGNtaS0+
+ZG1hX2Nvb2tpZSwgJnN0YXRlKTsNCj4+IEBAIC0yMzksNyArMjM5LDcgQEAgc3RhdGljIHZvaWQg
+ZGNtaV9kbWFfY2FsbGJhY2sodm9pZCAqcGFyYW0pDQo+PiAgIAkJCQlkY21pLT5lcnJvcnNfY291
+bnQrKzsNCj4+ICAgCQkJCWRjbWktPmFjdGl2ZSA9IE5VTEw7DQo+PiAgIA0KPj4gLQkJCQlzcGlu
+X3VubG9jaygmZGNtaS0+aXJxbG9jayk7DQo+PiArCQkJCXNwaW5fdW5sb2NrX2lycSgmZGNtaS0+
+aXJxbG9jayk7DQo+PiAgIAkJCQlyZXR1cm47DQo+PiAgIAkJCX0NCj4+ICAgDQo+PiBAQCAtMjQ4
+LDEzICsyNDgsMTEgQEAgc3RhdGljIHZvaWQgZGNtaV9kbWFfY2FsbGJhY2sodm9pZCAqcGFyYW0p
+DQo+PiAgIA0KPj4gICAJCQlsaXN0X2RlbF9pbml0KCZkY21pLT5hY3RpdmUtPmxpc3QpOw0KPj4g
+ICANCj4+IC0JCQlpZiAoZGNtaV9zdGFydF9jYXB0dXJlKGRjbWkpKSB7DQo+PiArCQkJc3Bpbl91
+bmxvY2tfaXJxKCZkY21pLT5pcnFsb2NrKTsNCg0KTG9jayBpcyByZWxlYXNlZCBoZXJlIGJlZm9y
+ZSBjYWxsaW5nIGRjbWlfc3RhcnRfY2FwdHVyZSgpIHdoaWNoIGNhbGxzIA0KZG1hX2FzeW5jX2lz
+c3VlX3BlbmRpbmcoKQ0KDQo+PiArCQkJaWYgKGRjbWlfc3RhcnRfY2FwdHVyZShkY21pKSkNCj4+
+ICAgCQkJCWRldl9lcnIoZGNtaS0+ZGV2LCAiJXM6IENhbm5vdCByZXN0YXJ0IGNhcHR1cmUgb24g
+RE1BIGNvbXBsZXRlXG4iLA0KPj4gICAJCQkJCV9fZnVuY19fKTsNCj4+IC0NCj4+IC0JCQkJc3Bp
+bl91bmxvY2soJmRjbWktPmlycWxvY2spOw0KPj4gLQkJCQlyZXR1cm47DQo+PiAtCQkJfQ0KPj4g
+KwkJCXJldHVybjsNCj4+ICAgCQl9DQo+PiAgIA0KPj4gICAJCWJyZWFrOw0KPj4gQEAgLTI2Myw3
+ICsyNjEsNyBAQCBzdGF0aWMgdm9pZCBkY21pX2RtYV9jYWxsYmFjayh2b2lkICpwYXJhbSkNCj4+
+ICAgCQlicmVhazsNCj4+ICAgCX0NCj4+ICAgDQo+PiAtCXNwaW5fdW5sb2NrKCZkY21pLT5pcnFs
+b2NrKTsNCj4+ICsJc3Bpbl91bmxvY2tfaXJxKCZkY21pLT5pcnFsb2NrKTsNCj4+ICAgfQ0KPj4g
+ICANCj4+ICAgc3RhdGljIGludCBkY21pX3N0YXJ0X2RtYShzdHJ1Y3Qgc3RtMzJfZGNtaSAqZGNt
+aSwNCj4+IEBAIC0zNjAsNyArMzU4LDcgQEAgc3RhdGljIGlycXJldHVybl90IGRjbWlfaXJxX3Ro
+cmVhZChpbnQgaXJxLCB2b2lkICphcmcpDQo+PiAgIHsNCj4+ICAgCXN0cnVjdCBzdG0zMl9kY21p
+ICpkY21pID0gYXJnOw0KPj4gICANCj4+IC0Jc3Bpbl9sb2NrKCZkY21pLT5pcnFsb2NrKTsNCj4+
+ICsJc3Bpbl9sb2NrX2lycSgmZGNtaS0+aXJxbG9jayk7DQo+PiAgIA0KPj4gICAJLyogU3RvcCBj
+YXB0dXJlIGlzIHJlcXVpcmVkICovDQo+PiAgIAlpZiAoZGNtaS0+c3RhdGUgPT0gU1RPUFBJTkcp
+IHsNCj4+IEBAIC0zNzAsNyArMzY4LDcgQEAgc3RhdGljIGlycXJldHVybl90IGRjbWlfaXJxX3Ro
+cmVhZChpbnQgaXJxLCB2b2lkICphcmcpDQo+PiAgIA0KPj4gICAJCWNvbXBsZXRlKCZkY21pLT5j
+b21wbGV0ZSk7DQo+PiAgIA0KPj4gLQkJc3Bpbl91bmxvY2soJmRjbWktPmlycWxvY2spOw0KPj4g
+KwkJc3Bpbl91bmxvY2tfaXJxKCZkY21pLT5pcnFsb2NrKTsNCj4+ICAgCQlyZXR1cm4gSVJRX0hB
+TkRMRUQ7DQo+PiAgIAl9DQo+PiAgIA0KPj4gQEAgLTM4MywzNSArMzgxLDM0IEBAIHN0YXRpYyBp
+cnFyZXR1cm5fdCBkY21pX2lycV90aHJlYWQoaW50IGlycSwgdm9pZCAqYXJnKQ0KPj4gICAJCQkg
+X19mdW5jX18pOw0KPj4gICANCj4+ICAgCQlkY21pLT5lcnJvcnNfY291bnQrKzsNCj4+IC0JCWRt
+YWVuZ2luZV90ZXJtaW5hdGVfYWxsKGRjbWktPmRtYV9jaGFuKTsNCj4+IC0NCj4+ICAgCQlkZXZf
+ZGJnKGRjbWktPmRldiwgIlJlc3RhcnRpbmcgY2FwdHVyZSBhZnRlciBEQ01JIGVycm9yXG4iKTsN
+Cj4+ICAgDQo+PiAtCQlpZiAoZGNtaV9zdGFydF9jYXB0dXJlKGRjbWkpKSB7DQo+PiArCQlzcGlu
+X3VubG9ja19pcnEoJmRjbWktPmlycWxvY2spOw0KTG9jayBpcyByZWxlYXNlZCBoZXJlIGJlZm9y
+ZSBjYWxsaW5nIGRtYSBBUElzICh0ZXJtaW5hdGUgdGhlbiANCmFzeW5jX2lzc3VlX3BlbmRpbmcp
+DQoNCj4+ICsJCWRtYWVuZ2luZV90ZXJtaW5hdGVfYWxsKGRjbWktPmRtYV9jaGFuKTsNCj4+ICsN
+Cj4+ICsJCWlmIChkY21pX3N0YXJ0X2NhcHR1cmUoZGNtaSkpDQo+PiAgIAkJCWRldl9lcnIoZGNt
+aS0+ZGV2LCAiJXM6IENhbm5vdCByZXN0YXJ0IGNhcHR1cmUgb24gb3ZlcmZsb3cgb3IgZXJyb3Jc
+biIsDQo+PiAgIAkJCQlfX2Z1bmNfXyk7DQo+PiAtDQo+PiAtCQkJc3Bpbl91bmxvY2soJmRjbWkt
+PmlycWxvY2spOw0KPj4gLQkJCXJldHVybiBJUlFfSEFORExFRDsNCj4+IC0JCX0NCj4+ICsJCXJl
+dHVybiBJUlFfSEFORExFRDsNCj4+ICAgCX0NCj4+ICAgDQo+PiAtCXNwaW5fdW5sb2NrKCZkY21p
+LT5pcnFsb2NrKTsNCj4+ICsJc3Bpbl91bmxvY2tfaXJxKCZkY21pLT5pcnFsb2NrKTsNCj4+ICAg
+CXJldHVybiBJUlFfSEFORExFRDsNCj4+ICAgfQ0KPj4gICANCj4+ICAgc3RhdGljIGlycXJldHVy
+bl90IGRjbWlfaXJxX2NhbGxiYWNrKGludCBpcnEsIHZvaWQgKmFyZykNCj4+ICAgew0KPj4gICAJ
+c3RydWN0IHN0bTMyX2RjbWkgKmRjbWkgPSBhcmc7DQo+PiArCXVuc2lnbmVkIGxvbmcgZmxhZ3M7
+DQo+PiAgIA0KPj4gLQlzcGluX2xvY2soJmRjbWktPmlycWxvY2spOw0KPj4gKwlzcGluX2xvY2tf
+aXJxc2F2ZSgmZGNtaS0+aXJxbG9jaywgZmxhZ3MpOw0KPj4gICANCj4+ICAgCWRjbWktPm1pc3Ig
+PSByZWdfcmVhZChkY21pLT5yZWdzLCBEQ01JX01JUyk7DQo+PiAgIA0KPj4gICAJLyogQ2xlYXIg
+aW50ZXJydXB0ICovDQo+PiAgIAlyZWdfc2V0KGRjbWktPnJlZ3MsIERDTUlfSUNSLCBJVF9GUkFN
+RSB8IElUX09WUiB8IElUX0VSUik7DQo+PiAgIA0KPj4gLQlzcGluX3VubG9jaygmZGNtaS0+aXJx
+bG9jayk7DQo+PiArCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmRjbWktPmlycWxvY2ssIGZsYWdz
+KTsNCj4+ICAgDQo+PiAgIAlyZXR1cm4gSVJRX1dBS0VfVEhSRUFEOw0KPj4gICB9DQo+PiBAQCAt
+NDkwLDkgKzQ4Nyw4IEBAIHN0YXRpYyB2b2lkIGRjbWlfYnVmX3F1ZXVlKHN0cnVjdCB2YjJfYnVm
+ZmVyICp2YikNCj4+ICAgCXN0cnVjdCBzdG0zMl9kY21pICpkY21pID0gIHZiMl9nZXRfZHJ2X3By
+aXYodmItPnZiMl9xdWV1ZSk7DQo+PiAgIAlzdHJ1Y3QgdmIyX3Y0bDJfYnVmZmVyICp2YnVmID0g
+dG9fdmIyX3Y0bDJfYnVmZmVyKHZiKTsNCj4+ICAgCXN0cnVjdCBkY21pX2J1ZiAqYnVmID0gY29u
+dGFpbmVyX29mKHZidWYsIHN0cnVjdCBkY21pX2J1ZiwgdmIpOw0KPj4gLQl1bnNpZ25lZCBsb25n
+IGZsYWdzID0gMDsNCj4+ICAgDQo+PiAtCXNwaW5fbG9ja19pcnFzYXZlKCZkY21pLT5pcnFsb2Nr
+LCBmbGFncyk7DQo+PiArCXNwaW5fbG9ja19pcnEoJmRjbWktPmlycWxvY2spOw0KPj4gICANCj4+
+ICAgCWlmICgoZGNtaS0+c3RhdGUgPT0gUlVOTklORykgJiYgKCFkY21pLT5hY3RpdmUpKSB7DQo+
+PiAgIAkJZGNtaS0+YWN0aXZlID0gYnVmOw0KPj4gQEAgLTUwMCwxOSArNDk2LDE1IEBAIHN0YXRp
+YyB2b2lkIGRjbWlfYnVmX3F1ZXVlKHN0cnVjdCB2YjJfYnVmZmVyICp2YikNCj4+ICAgCQlkZXZf
+ZGJnKGRjbWktPmRldiwgIlN0YXJ0aW5nIGNhcHR1cmUgb24gYnVmZmVyWyVkXSBxdWV1ZWRcbiIs
+DQo+PiAgIAkJCWJ1Zi0+dmIudmIyX2J1Zi5pbmRleCk7DQo+PiAgIA0KPj4gLQkJaWYgKGRjbWlf
+c3RhcnRfY2FwdHVyZShkY21pKSkgew0KPj4gKwkJc3Bpbl91bmxvY2tfaXJxKCZkY21pLT5pcnFs
+b2NrKTsNCkxvY2sgaXMgcmVsZWFzZWQgaGVyZSBiZWZvcmUgY2FsbGluZyBkbWEgQVBJcyAodGVy
+bWluYXRlIHRoZW4gDQphc3luY19pc3N1ZV9wZW5kaW5nKQ0KDQo+PiArCQlpZiAoZGNtaV9zdGFy
+dF9jYXB0dXJlKGRjbWkpKQ0KPj4gICAJCQlkZXZfZXJyKGRjbWktPmRldiwgIiVzOiBDYW5ub3Qg
+cmVzdGFydCBjYXB0dXJlIG9uIG92ZXJmbG93IG9yIGVycm9yXG4iLA0KPj4gICAJCQkJX19mdW5j
+X18pOw0KPj4gLQ0KPj4gLQkJCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmRjbWktPmlycWxvY2ss
+IGZsYWdzKTsNCj4+IC0JCQlyZXR1cm47DQo+PiAtCQl9DQo+PiAgIAl9IGVsc2Ugew0KPj4gICAJ
+CS8qIEVucXVldWUgdG8gdmlkZW8gYnVmZmVycyBsaXN0ICovDQo+PiAgIAkJbGlzdF9hZGRfdGFp
+bCgmYnVmLT5saXN0LCAmZGNtaS0+YnVmZmVycyk7DQo+PiArCQlzcGluX3VubG9ja19pcnEoJmRj
+bWktPmlycWxvY2spOw0KPj4gICAJfQ0KPj4gLQ0KPj4gLQlzcGluX3VubG9ja19pcnFyZXN0b3Jl
+KCZkY21pLT5pcnFsb2NrLCBmbGFncyk7DQo+PiAgIH0NCj4+ICAgDQo+PiAgIHN0YXRpYyBpbnQg
+ZGNtaV9zdGFydF9zdHJlYW1pbmcoc3RydWN0IHZiMl9xdWV1ZSAqdnEsIHVuc2lnbmVkIGludCBj
+b3VudCkNCj4+IEBAIC01OTgsMjAgKzU5MCwxNyBAQCBzdGF0aWMgaW50IGRjbWlfc3RhcnRfc3Ry
+ZWFtaW5nKHN0cnVjdCB2YjJfcXVldWUgKnZxLCB1bnNpZ25lZCBpbnQgY291bnQpDQo+PiAgIA0K
+Pj4gICAJZGV2X2RiZyhkY21pLT5kZXYsICJTdGFydCBzdHJlYW1pbmcsIHN0YXJ0aW5nIGNhcHR1
+cmVcbiIpOw0KPj4gICANCj4+ICsJc3Bpbl91bmxvY2tfaXJxKCZkY21pLT5pcnFsb2NrKTsNCj4+
+ICAgCXJldCA9IGRjbWlfc3RhcnRfY2FwdHVyZShkY21pKTsNCj4+ICAgCWlmIChyZXQpIHsNCj4+
+ICAgCQlkZXZfZXJyKGRjbWktPmRldiwgIiVzOiBTdGFydCBzdHJlYW1pbmcgZmFpbGVkLCBjYW5u
+b3Qgc3RhcnQgY2FwdHVyZVxuIiwNCj4+ICAgCQkJX19mdW5jX18pOw0KPj4gLQ0KPj4gLQkJc3Bp
+bl91bmxvY2tfaXJxKCZkY21pLT5pcnFsb2NrKTsNCj4+ICAgCQlnb3RvIGVycl9zdWJkZXZfc3Ry
+ZWFtb2ZmOw0KPj4gICAJfQ0KPj4gICANCj4+ICAgCS8qIEVuYWJsZSBpbnRlcnJ1cHRpb25zICov
+DQo+PiAgIAlyZWdfc2V0KGRjbWktPnJlZ3MsIERDTUlfSUVSLCBJVF9GUkFNRSB8IElUX09WUiB8
+IElUX0VSUik7DQo+PiAgIA0KPj4gLQlzcGluX3VubG9ja19pcnEoJmRjbWktPmlycWxvY2spOw0K
+Pj4gLQ0KPj4gICAJcmV0dXJuIDA7DQo+PiAgIA0KPj4gICBlcnJfc3ViZGV2X3N0cmVhbW9mZjoN
+Cj4+IEBAIC02NTQsNyArNjQzLDkgQEAgc3RhdGljIHZvaWQgZGNtaV9zdG9wX3N0cmVhbWluZyhz
+dHJ1Y3QgdmIyX3F1ZXVlICp2cSkNCj4+ICAgCQlkZXZfZXJyKGRjbWktPmRldiwgIiVzOiBGYWls
+ZWQgdG8gc3RvcCBzdHJlYW1pbmcsIHN1YmRldiBzdHJlYW1vZmYgZXJyb3IgKCVkKVxuIiwNCj4+
+ICAgCQkJX19mdW5jX18sIHJldCk7DQo+PiAgIA0KPj4gKwlzcGluX2xvY2tfaXJxKCZkY21pLT5p
+cnFsb2NrKTsNCj4+ICAgCWRjbWktPnN0YXRlID0gU1RPUFBJTkc7DQo+PiArCXNwaW5fdW5sb2Nr
+X2lycSgmZGNtaS0+aXJxbG9jayk7DQo+PiAgIA0KPj4gICAJdGltZW91dCA9IHdhaXRfZm9yX2Nv
+bXBsZXRpb25faW50ZXJydXB0aWJsZV90aW1lb3V0KCZkY21pLT5jb21wbGV0ZSwNCj4+ICAgCQkJ
+CQkJCSAgICB0aW1lX21zKTsNCj4+DQo+IA0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMu
