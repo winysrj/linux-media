@@ -1,95 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39916 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751190AbeAaUoS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41453 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751744AbeB1I7F (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 15:44:18 -0500
-Date: Wed, 31 Jan 2018 22:44:15 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org
-Subject: Re: [PATCH v2 3/4] media: ov2685: add support for OV2685 sensor
-Message-ID: <20180131204415.62n7wvye5fqp6ml6@valkosipuli.retiisi.org.uk>
-References: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
- <1514534905-21393-3-git-send-email-zhengsq@rock-chips.com>
- <20180103114324.za6bmg2rxuygawi4@valkosipuli.retiisi.org.uk>
- <8f60a7f8-8471-85e8-70d3-520701edc092@rock-chips.com>
+        Wed, 28 Feb 2018 03:59:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Utkin <andrey_utkin@fastmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Brian Johnson <brijohn@gmail.com>,
+        Christoph =?ISO-8859-1?Q?B=F6hmwalder?=
+        <christoph@boehmwalder.at>,
+        Christophe Jaillet <christophe.jaillet@wanadoo.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        Daniele Nicolodi <daniele@grinta.net>,
+        David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+        Devendra Sharma <devendra.sharma9091@gmail.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Inki Dae <inki.dae@samsung.com>, Joe Perches <joe@perches.com>,
+        Kees Cook <keescook@chromium.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Mike Isely <isely@pobox.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Sean Young <sean@mess.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Shyam Saini <mayhs11saini@gmail.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [v2] [media] Use common error handling code in 20 functions
+Date: Wed, 28 Feb 2018 10:59:52 +0200
+Message-ID: <3444809.dyh5Vmx7Dp@avalon>
+In-Reply-To: <783e7eff-2028-72be-b83c-77fc4340484e@users.sourceforge.net>
+References: <227d2d7c-5aee-1190-1624-26596a048d9c@users.sourceforge.net> <3895609.4O6dNuP5Wm@avalon> <783e7eff-2028-72be-b83c-77fc4340484e@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8f60a7f8-8471-85e8-70d3-520701edc092@rock-chips.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shunqian,
+Hello,
 
-On Fri, Jan 12, 2018 at 10:30:57AM +0800, Shunqian Zheng wrote:
-> Hi Sakari,
+On Wednesday, 28 February 2018 10:45:21 EET SF Markus Elfring wrote:
+> >> +put_isp:
+> >> +	omap3isp_put(video->isp);
+> >> +delete_fh:
+> >> +	v4l2_fh_del(&handle->vfh);
+> >> +	v4l2_fh_exit(&handle->vfh);
+> >> +	kfree(handle);
+> > 
+> > Please prefix the error labels with error_.
 > 
+> How often do you really need such an extra prefix?
 > 
-> On 2018年01月03日 19:43, Sakari Ailus wrote:
-> > > +static int ov2685_s_stream(struct v4l2_subdev *sd, int on)
-> > > +{
-> > > +	struct ov2685 *ov2685 = to_ov2685(sd);
-> > > +	struct i2c_client *client = ov2685->client;
-> > > +	int ret = 0;
-> > > +
-> > > +	mutex_lock(&ov2685->mutex);
-> > > +
-> > > +	on = !!on;
-> > > +	if (on == ov2685->streaming)
-> > > +		goto unlock_and_return;
-> > > +
-> > > +	if (on) {
-> > > +		/* In case these controls are set before streaming */
-> > > +		ov2685_set_exposure(ov2685, ov2685->exposure->val);
-> > > +		ov2685_set_gain(ov2685, ov2685->anal_gain->val);
-> > > +		ov2685_set_vts(ov2685, ov2685->vblank->val);
-> > > +		ov2685_enable_test_pattern(ov2685, ov2685->test_pattern->val);
-> > You should use __v4l2_ctrl_handler_setup() here. Or put that to the
-> > driver's runtime_resume function. That actually might be better.
-> The v3 put __v4l2_ctrl_handler_setup() to the runtime_resume callback. But
-> ov2685_s_stream()
->    -> pm_runtime_get_sync()
->        -> ov2685_runtime_resume()
->             -> __v4l2_ctrl_handler_setup()
->                 -> pm_runtime_get_if_in_use(), always <= 0 because
-> dev->power.runtime_status != RPM_ACTIVE.
+> >> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> >> @@ -994,10 +994,8 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
+> >> void *fh, struct v4l2_queryctrl qc = { .id = ctrl->id };
+> >> 
+> >>  			ret = uvc_query_v4l2_ctrl(chain, &qc);
+> >> 
+> >> -			if (ret < 0) {
+> >> -				ctrls->error_idx = i;
+> >> -				return ret;
+> >> -			}
+> >> +			if (ret < 0)
+> >> +				goto set_index;
+> >> 
+> >>  			ctrl->value = qc.default_value;
+> >>  		
+> >>  		}
+> >> 
+> >> @@ -1013,14 +1011,17 @@ static int uvc_ioctl_g_ext_ctrls(struct file
+> >> *file,
+> >> void *fh, ret = uvc_ctrl_get(chain, ctrl);
+> >> 
+> >>  		if (ret < 0) {
+> >>  		
+> >>  			uvc_ctrl_rollback(handle);
+> >> 
+> >> -			ctrls->error_idx = i;
+> >> -			return ret;
+> >> +			goto set_index;
+> >> 
+> >>  		}
+> >>  	
+> >>  	}
+> >>  	
+> >>  	ctrls->error_idx = 0;
+> >>  	
+> >>  	return uvc_ctrl_rollback(handle);
+> >> 
+> >> +
+> >> +set_index:
+> >> +	ctrls->error_idx = i;
+> >> +	return ret;
+> >> 
+> >>  }
+> > 
+> > For uvcvideo I find this to hinder readability
 > 
-> Seems like  __v4l2_ctrl_handler_setup() has to be in ov2685_s_stream().
+> I got an other development view.
+> 
+> > without adding much added value.
+> 
+> There can be a small effect for such a function implementation.
+> 
+> > Please drop the uvcvideo change from this patch.
+> 
+> Would it be nice if this source code adjustment could be integrated also?
 
-Right, indeed. Well spotted.
+Just for the record, and to avoid merging this patch by mistake,
 
-The smiapp driver uses a device specific variable for the purpose, thus I
-missed this. Other drivers apply the controls while streaming on.
+Nacked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> 
-> Thanks
-> > > +
-> > > +		ret = ov2685_write_reg(client, REG_SC_CTRL_MODE,
-> > > +				OV2685_REG_VALUE_08BIT, SC_CTRL_MODE_STREAMING);
-> > > +		if (ret)
-> > > +			goto unlock_and_return;
-> > > +	} else {
-> > > +		ret = ov2685_write_reg(client, REG_SC_CTRL_MODE,
-> > > +				OV2685_REG_VALUE_08BIT, SC_CTRL_MODE_STANDBY);
-> > > +		if (ret)
-> > > +			goto unlock_and_return;
-> > > +	}
-> > > +
-> > > +	ov2685->streaming = on;
-> > > +
-> > > +unlock_and_return:
-> > > +	mutex_unlock(&ov2685->mutex);
-> > > +	return ret;
-> > > +}
-> 
+at least until the requested changes are implemented.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Laurent Pinchart
