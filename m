@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38297 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752925AbeBEQ1R (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:60146 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752484AbeB1KrN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 11:27:17 -0500
-Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
- <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
+        Wed, 28 Feb 2018 05:47:13 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Thierry Reding <treding@nvidia.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ea5892a3-9fe3-953f-c16c-55329d5d2f76@xs4all.nl>
-Date: Mon, 5 Feb 2018 17:27:11 +0100
+Subject: [PATCH for v4.16] tegra-cec: reset rx_buf_cnt when start bit detected
+Message-ID: <305c2a00-ada2-7e47-201c-0c9ce892e859@xs4all.nl>
+Date: Wed, 28 Feb 2018 11:47:07 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 05:21 PM, Tim Harvey wrote:
+If a start bit is detected, then reset the receive buffer counter to 0.
 
-<snip>
+This ensures that no stale data is in the buffer if a message is
+broken off midstream due to e.g. a Low Drive condition and then
+retransmitted.
 
-> 
-> I ran a 'make distclean; ./bootstrap.sh && ./configure && make'
-> 
-> last version I built successfully was '1bb8c70 v4l2-ctl: mention that
-> --set-subdev-fps is for testing only'
+The only Rx interrupts we need to listen to are RX_REGISTER_FULL (i.e.
+a valid byte was received) and RX_START_BIT_DETECTED (i.e. a new
+message starts and we need to reset the counter).
 
-That's a lot of revisions ago. I've been busy last weekend :-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: <stable@vger.kernel.org>      # for v4.15 and up
+---
+ drivers/media/platform/tegra-cec/tegra_cec.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-Do a new git pull and try again. I remember hitting something similar during
-the weekend where I was missing a C++ include.
+diff --git a/drivers/media/platform/tegra-cec/tegra_cec.c b/drivers/media/platform/tegra-cec/tegra_cec.c
+index 92f93a880015..aba488cd0e64 100644
+--- a/drivers/media/platform/tegra-cec/tegra_cec.c
++++ b/drivers/media/platform/tegra-cec/tegra_cec.c
+@@ -172,16 +172,13 @@ static irqreturn_t tegra_cec_irq_handler(int irq, void *data)
+ 		}
+ 	}
 
-> 
-> I haven't dug into the failure at all. Are you using something new
-> with c++ requiring a new lib or specific version of something that
-> needs to be added to configure?
+-	if (status & (TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN |
+-		      TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED |
+-		      TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED |
+-		      TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED)) {
++	if (status & TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED) {
+ 		cec_write(cec, TEGRA_CEC_INT_STAT,
+-			  (TEGRA_CEC_INT_STAT_RX_REGISTER_OVERRUN |
+-			   TEGRA_CEC_INT_STAT_RX_BUS_ANOMALY_DETECTED |
+-			   TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED |
+-			   TEGRA_CEC_INT_STAT_RX_BUS_ERROR_DETECTED));
+-	} else if (status & TEGRA_CEC_INT_STAT_RX_REGISTER_FULL) {
++			  TEGRA_CEC_INT_STAT_RX_START_BIT_DETECTED);
++		cec->rx_done = false;
++		cec->rx_buf_cnt = 0;
++	}
++	if (status & TEGRA_CEC_INT_STAT_RX_REGISTER_FULL) {
+ 		u32 v;
 
-Nope, bog standard C++. Real C++ pros are probably appalled by the code.
+ 		cec_write(cec, TEGRA_CEC_INT_STAT,
+@@ -255,7 +252,7 @@ static int tegra_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ 		  TEGRA_CEC_INT_MASK_TX_BUS_ANOMALY_DETECTED |
+ 		  TEGRA_CEC_INT_MASK_TX_FRAME_TRANSMITTED |
+ 		  TEGRA_CEC_INT_MASK_RX_REGISTER_FULL |
+-		  TEGRA_CEC_INT_MASK_RX_REGISTER_OVERRUN);
++		  TEGRA_CEC_INT_MASK_RX_START_BIT_DETECTED);
 
-Regards,
-
-	Hans
+ 	cec_write(cec, TEGRA_CEC_HW_CONTROL, TEGRA_CEC_HWCTRL_TX_RX_MODE);
+ 	return 0;
+-- 
+2.14.1
