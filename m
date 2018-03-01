@@ -1,77 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:38601 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755420AbeCSM6Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 08:58:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 5/5] media.h: remove __NEED_MEDIA_LEGACY_API
-Date: Mon, 19 Mar 2018 13:58:20 +0100
-Message-Id: <20180319125820.31254-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180319125820.31254-1-hverkuil@xs4all.nl>
-References: <20180319125820.31254-1-hverkuil@xs4all.nl>
+Received: from aserp2120.oracle.com ([141.146.126.78]:36268 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967178AbeCAKHc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 05:07:32 -0500
+Date: Thu, 1 Mar 2018 13:07:14 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH] media: ov5695: Off by one in ov5695_enum_frame_sizes()
+Message-ID: <20180301100714.GA14140@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+The ">" should be ">=" so that we don't read one element beyond the end
+of the array.
 
-The __NEED_MEDIA_LEGACY_API define is 1) ugly and 2) dangerous
-since it is all too easy for drivers to define it to get hold of
-legacy defines. Instead just define what we need in media-device.c
-which is the only place where we need the legacy define
-(MEDIA_ENT_T_DEVNODE_UNKNOWN).
+Fixes: 8a77009be4be ("media: ov5695: add support for OV5695 sensor")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/media-device.c | 13 ++++++++++---
- include/uapi/linux/media.h   |  2 +-
- 2 files changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 35e81f7c0d2f..7c3ab37c258a 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -16,9 +16,6 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/drivers/media/i2c/ov5695.c b/drivers/media/i2c/ov5695.c
+index a4985a4715f5..9be38a0a2046 100644
+--- a/drivers/media/i2c/ov5695.c
++++ b/drivers/media/i2c/ov5695.c
+@@ -884,7 +884,7 @@ static int ov5695_enum_frame_sizes(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_pad_config *cfg,
+ 				   struct v4l2_subdev_frame_size_enum *fse)
+ {
+-	if (fse->index > ARRAY_SIZE(supported_modes))
++	if (fse->index >= ARRAY_SIZE(supported_modes))
+ 		return -EINVAL;
  
--/* We need to access legacy defines from linux/media.h */
--#define __NEED_MEDIA_LEGACY_API
--
- #include <linux/compat.h>
- #include <linux/export.h>
- #include <linux/idr.h>
-@@ -35,6 +32,16 @@
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
-+/*
-+ * Legacy defines from linux/media.h. This is the only place we need this
-+ * so we just define it here. The media.h header doesn't expose it to the
-+ * kernel to prevent it from being used by drivers, but here (and only here!)
-+ * we need it to handle the legacy behavior.
-+ */
-+#define MEDIA_ENT_SUBTYPE_MASK			0x0000ffff
-+#define MEDIA_ENT_T_DEVNODE_UNKNOWN		(MEDIA_ENT_F_OLD_BASE | \
-+						 MEDIA_ENT_SUBTYPE_MASK)
-+
- /* -----------------------------------------------------------------------------
-  * Userspace API
-  */
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index c7e9a5cba24e..86c7dcc9cba3 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -348,7 +348,7 @@ struct media_v2_topology {
- #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
- #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
- 
--#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
-+#ifndef __KERNEL__
- 
- /*
-  * Legacy symbols used to avoid userspace compilation breakages.
--- 
-2.15.1
+ 	if (fse->code != MEDIA_BUS_FMT_SBGGR10_1X10)
