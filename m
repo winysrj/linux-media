@@ -1,444 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40845 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750707AbeC2HIf (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34089 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965949AbeCAE4H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 03:08:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 07/15] v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
-Date: Thu, 29 Mar 2018 10:08:35 +0300
-Message-ID: <2427732.6RX94pHpa3@avalon>
-In-Reply-To: <80250bdd-dda3-5a2f-02e8-1121197949f5@ideasonboard.com>
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com> <20180226214516.11559-8-laurent.pinchart+renesas@ideasonboard.com> <80250bdd-dda3-5a2f-02e8-1121197949f5@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 28 Feb 2018 23:56:07 -0500
+Message-ID: <310e215c6312c2c6b8ea1075622bf286@smtp-cloud8.xs4all.net>
+Date: Thu, 01 Mar 2018 05:55:54 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wednesday, 28 March 2018 17:43:13 EEST Kieran Bingham wrote:
-> On 26/02/18 21:45, Laurent Pinchart wrote:
-> > The DRM pipeline setup code used at atomic commit time is similar to the
-> > setup code used when enabling the pipeline. Move it to a separate
-> > function in order to share it.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> Assuming no hidden secret code addition in this code move that I haven't
-> seen..
-> 
-> Only a minor nit below asking if the function should be pluralised (_inputs,
-> rather than _input)
+Results of the daily build of media_tree:
 
-I'll fix that in v2, thanks.
+date:			Thu Mar  1 05:00:11 CET 2018
+media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
+media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
+v4l-utils git hash:	200338d272a908be4d98c0127765a8e1611be639
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> > ---
-> > 
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 347
-> >  +++++++++++++++++---------------- 1 file changed, 180 insertions(+), 167
-> >  deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > b/drivers/media/platform/vsp1/vsp1_drm.c index 9a043a915c0b..7bf697ba7969
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -46,6 +46,185 @@ static void vsp1_du_pipeline_frame_end(struct
-> > vsp1_pipeline *pipe,> 
-> >   * Pipeline Configuration
-> >   */
-> > 
-> > +/* Setup one RPF and the connected BRU sink pad. */
-> > +static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
-> > +				      struct vsp1_pipeline *pipe,
-> > +				      struct vsp1_rwpf *rpf,
-> > +				      unsigned int bru_input)
-> > +{
-> > +	struct v4l2_subdev_selection sel;
-> > +	struct v4l2_subdev_format format;
-> > +	const struct v4l2_rect *crop;
-> > +	int ret;
-> > +
-> > +	/*
-> > +	 * Configure the format on the RPF sink pad and propagate it up to the
-> > +	 * BRU sink pad.
-> > +	 */
-> > +	crop = &vsp1->drm->inputs[rpf->entity.index].crop;
-> > +
-> > +	memset(&format, 0, sizeof(format));
-> > +	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > +	format.pad = RWPF_PAD_SINK;
-> > +	format.format.width = crop->width + crop->left;
-> > +	format.format.height = crop->height + crop->top;
-> > +	format.format.code = rpf->fmtinfo->mbus;
-> > +	format.format.field = V4L2_FIELD_NONE;
-> > +
-> > +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev,
-> > +		"%s: set format %ux%u (%x) on RPF%u sink\n",
-> > +		__func__, format.format.width, format.format.height,
-> > +		format.format.code, rpf->entity.index);
-> > +
-> > +	memset(&sel, 0, sizeof(sel));
-> > +	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > +	sel.pad = RWPF_PAD_SINK;
-> > +	sel.target = V4L2_SEL_TGT_CROP;
-> > +	sel.r = *crop;
-> > +
-> > +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
-> > +			       &sel);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev,
-> > +		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
-> > +		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-> > +		rpf->entity.index);
-> > +
-> > +	/*
-> > +	 * RPF source, hardcode the format to ARGB8888 to turn on format
-> > +	 * conversion if needed.
-> > +	 */
-> > +	format.pad = RWPF_PAD_SOURCE;
-> > +
-> > +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev,
-> > +		"%s: got format %ux%u (%x) on RPF%u source\n",
-> > +		__func__, format.format.width, format.format.height,
-> > +		format.format.code, rpf->entity.index);
-> > +
-> > +	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> > +
-> > +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/* BRU sink, propagate the format from the RPF source. */
-> > +	format.pad = bru_input;
-> > +
-> > +	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
-> > +		__func__, format.format.width, format.format.height,
-> > +		format.format.code, BRU_NAME(pipe->bru), format.pad);
-> > +
-> > +	sel.pad = bru_input;
-> > +	sel.target = V4L2_SEL_TGT_COMPOSE;
-> > +	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
-> > +
-> > +	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_selection, NULL,
-> > +			       &sel);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
-> > +		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-> > +		BRU_NAME(pipe->bru), sel.pad);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf
-> > *rpf) +{
-> > +	return vsp1->drm->inputs[rpf->entity.index].zpos;
-> > +}
-> > +
-> > +/* Setup the input side of the pipeline (RPFs and BRU sink pads). */
-> > +static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
-> 
-> Minor nit - shouldn't this be _setup_inputs(..)
-> as we could have multiple inputs, and it configures them all.
-> 
-> > +					struct vsp1_pipeline *pipe)
-> > +{
-> > +	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
-> > +	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-> > +	unsigned int i;
-> > +	int ret;
-> > +
-> > +	/* Count the number of enabled inputs and sort them by Z-order. */
-> > +	pipe->num_inputs = 0;
-> > +
-> > +	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-> > +		struct vsp1_rwpf *rpf = vsp1->rpf[i];
-> > +		unsigned int j;
-> > +
-> > +		/*
-> > +		 * Make sure we don't accept more inputs than the hardware can
-> > +		 * handle. This is a temporary fix to avoid display stall, we
-> > +		 * need to instead allocate the BRU or BRS to display pipelines
-> > +		 * dynamically based on the number of planes they each use.
-> > +		 */
-> > +		if (pipe->num_inputs >= pipe->bru->source_pad)
-> > +			pipe->inputs[i] = NULL;
-> > +
-> > +		if (!pipe->inputs[i])
-> > +			continue;
-> > +
-> > +		/* Insert the RPF in the sorted RPFs array. */
-> > +		for (j = pipe->num_inputs++; j > 0; --j) {
-> > +			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
-> > +				break;
-> > +			inputs[j] = inputs[j-1];
-> > +		}
-> > +
-> > +		inputs[j] = rpf;
-> > +	}
-> > +
-> > +	/* Setup the RPF input pipeline for every enabled input. */
-> > +	for (i = 0; i < pipe->bru->source_pad; ++i) {
-> > +		struct vsp1_rwpf *rpf = inputs[i];
-> > +
-> > +		if (!rpf) {
-> > +			bru->inputs[i].rpf = NULL;
-> > +			continue;
-> > +		}
-> > +
-> > +		if (!rpf->entity.pipe) {
-> > +			rpf->entity.pipe = pipe;
-> > +			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
-> > +		}
-> > +
-> > +		bru->inputs[i].rpf = rpf;
-> > +		rpf->bru_input = i;
-> > +		rpf->entity.sink = pipe->bru;
-> > +		rpf->entity.sink_pad = i;
-> > +
-> > +		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
-> > +			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
-> > +
-> > +		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
-> > +		if (ret < 0) {
-> > +			dev_err(vsp1->dev,
-> > +				"%s: failed to setup RPF.%u\n",
-> > +				__func__, rpf->entity.index);
-> > +			return ret;
-> > +		}
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > 
-> >  /* Configure all entities in the pipeline. */
-> >  static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
-> >  {
-> > 
-> > @@ -396,111 +575,6 @@ int vsp1_du_atomic_update(struct device *dev,
-> > unsigned int pipe_index,> 
-> >  }
-> >  EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
-> > 
-> > -static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
-> > -				  struct vsp1_pipeline *pipe,
-> > -				  struct vsp1_rwpf *rpf, unsigned int bru_input)
-> > -{
-> > -	struct v4l2_subdev_selection sel;
-> > -	struct v4l2_subdev_format format;
-> > -	const struct v4l2_rect *crop;
-> > -	int ret;
-> > -
-> > -	/*
-> > -	 * Configure the format on the RPF sink pad and propagate it up to the
-> > -	 * BRU sink pad.
-> > -	 */
-> > -	crop = &vsp1->drm->inputs[rpf->entity.index].crop;
-> > -
-> > -	memset(&format, 0, sizeof(format));
-> > -	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > -	format.pad = RWPF_PAD_SINK;
-> > -	format.format.width = crop->width + crop->left;
-> > -	format.format.height = crop->height + crop->top;
-> > -	format.format.code = rpf->fmtinfo->mbus;
-> > -	format.format.field = V4L2_FIELD_NONE;
-> > -
-> > -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-> > -			       &format);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev,
-> > -		"%s: set format %ux%u (%x) on RPF%u sink\n",
-> > -		__func__, format.format.width, format.format.height,
-> > -		format.format.code, rpf->entity.index);
-> > -
-> > -	memset(&sel, 0, sizeof(sel));
-> > -	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > -	sel.pad = RWPF_PAD_SINK;
-> > -	sel.target = V4L2_SEL_TGT_CROP;
-> > -	sel.r = *crop;
-> > -
-> > -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
-> > -			       &sel);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev,
-> > -		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
-> > -		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-> > -		rpf->entity.index);
-> > -
-> > -	/*
-> > -	 * RPF source, hardcode the format to ARGB8888 to turn on format
-> > -	 * conversion if needed.
-> > -	 */
-> > -	format.pad = RWPF_PAD_SOURCE;
-> > -
-> > -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
-> > -			       &format);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev,
-> > -		"%s: got format %ux%u (%x) on RPF%u source\n",
-> > -		__func__, format.format.width, format.format.height,
-> > -		format.format.code, rpf->entity.index);
-> > -
-> > -	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> > -
-> > -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-> > -			       &format);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	/* BRU sink, propagate the format from the RPF source. */
-> > -	format.pad = bru_input;
-> > -
-> > -	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
-> > -			       &format);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
-> > -		__func__, format.format.width, format.format.height,
-> > -		format.format.code, BRU_NAME(pipe->bru), format.pad);
-> > -
-> > -	sel.pad = bru_input;
-> > -	sel.target = V4L2_SEL_TGT_COMPOSE;
-> > -	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
-> > -
-> > -	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_selection, NULL,
-> > -			       &sel);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
-> > -		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-> > -		BRU_NAME(pipe->bru), sel.pad);
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf
-> > *rpf) -{
-> > -	return vsp1->drm->inputs[rpf->entity.index].zpos;
-> > -}
-> > -
-> > 
-> >  /**
-> >  
-> >   * vsp1_du_atomic_flush - Commit an atomic update
-> >   * @dev: the VSP device
-> > 
-> > @@ -511,69 +585,8 @@ void vsp1_du_atomic_flush(struct device *dev,
-> > unsigned int pipe_index)> 
-> >  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-> >  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
-> >  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
-> > 
-> > -	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
-> > -	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-> > -	unsigned int i;
-> > -	int ret;
-> > -
-> > -	/* Count the number of enabled inputs and sort them by Z-order. */
-> > -	pipe->num_inputs = 0;
-> > -
-> > -	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-> > -		struct vsp1_rwpf *rpf = vsp1->rpf[i];
-> > -		unsigned int j;
-> > -
-> > -		/*
-> > -		 * Make sure we don't accept more inputs than the hardware can
-> > -		 * handle. This is a temporary fix to avoid display stall, we
-> > -		 * need to instead allocate the BRU or BRS to display pipelines
-> > -		 * dynamically based on the number of planes they each use.
-> > -		 */
-> > -		if (pipe->num_inputs >= pipe->bru->source_pad)
-> > -			pipe->inputs[i] = NULL;
-> > -
-> > -		if (!pipe->inputs[i])
-> > -			continue;
-> > -
-> > -		/* Insert the RPF in the sorted RPFs array. */
-> > -		for (j = pipe->num_inputs++; j > 0; --j) {
-> > -			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
-> > -				break;
-> > -			inputs[j] = inputs[j-1];
-> > -		}
-> > -
-> > -		inputs[j] = rpf;
-> > -	}
-> > -
-> > -	/* Setup the RPF input pipeline for every enabled input. */
-> > -	for (i = 0; i < pipe->bru->source_pad; ++i) {
-> > -		struct vsp1_rwpf *rpf = inputs[i];
-> > -
-> > -		if (!rpf) {
-> > -			bru->inputs[i].rpf = NULL;
-> > -			continue;
-> > -		}
-> > -
-> > -		if (!rpf->entity.pipe) {
-> > -			rpf->entity.pipe = pipe;
-> > -			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
-> > -		}
-> > -
-> > -		bru->inputs[i].rpf = rpf;
-> > -		rpf->bru_input = i;
-> > -		rpf->entity.sink = pipe->bru;
-> > -		rpf->entity.sink_pad = i;
-> > -
-> > -		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
-> > -			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
-> > -
-> > -		ret = vsp1_du_setup_rpf_pipe(vsp1, pipe, rpf, i);
-> > -		if (ret < 0)
-> > -			dev_err(vsp1->dev,
-> > -				"%s: failed to setup RPF.%u\n",
-> > -				__func__, rpf->entity.index);
-> > -	}
-> > 
-> > +	vsp1_du_pipeline_setup_input(vsp1, pipe);
-> > 
-> >  	vsp1_du_pipeline_configure(pipe);
-> >  
-> >  }
-> >  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-i686: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
+Detailed results are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Laurent Pinchart
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
