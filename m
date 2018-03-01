@@ -1,58 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:48911 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751030AbeC0LDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 07:03:06 -0400
-Message-ID: <1522148575.21176.22.camel@linux.intel.com>
-Subject: Re: [PATCH 07/18] media: staging: atomisp: fix endianess issues
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Luis Oliveira <Luis.Oliveira@synopsys.com>,
-        Aishwarya Pant <aishpant@gmail.com>,
-        Riccardo Schirone <sirmy15@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, devel@driverdev.osuosl.org
-Date: Tue, 27 Mar 2018 14:02:55 +0300
-In-Reply-To: <cc521a255756c0241572816f96e3b97126ac16de.1522098456.git.mchehab@s-opensource.com>
-References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
-         <cc521a255756c0241572816f96e3b97126ac16de.1522098456.git.mchehab@s-opensource.com>
+Received: from mail-ua0-f176.google.com ([209.85.217.176]:41385 "EHLO
+        mail-ua0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966535AbeCAIxw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 03:53:52 -0500
+Received: by mail-ua0-f176.google.com with SMTP id u99so3393426uau.8
+        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2018 00:53:52 -0800 (PST)
+Received: from mail-ua0-f178.google.com (mail-ua0-f178.google.com. [209.85.217.178])
+        by smtp.gmail.com with ESMTPSA id 3sm601764uag.29.2018.03.01.00.53.50
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 01 Mar 2018 00:53:50 -0800 (PST)
+Received: by mail-ua0-f178.google.com with SMTP id f5so3395156uam.5
+        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2018 00:53:50 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1519893856-4738-1-git-send-email-zhengsq@rock-chips.com>
+References: <1519893856-4738-1-git-send-email-zhengsq@rock-chips.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 1 Mar 2018 17:53:29 +0900
+Message-ID: <CAAFQd5AteVDQgHaov2Jqjbx5bAjmJJiXv-7R0HG+AcE3GH-JTw@mail.gmail.com>
+Subject: Re: [PATCH] media: ov2685: Not delay latch for gain
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-03-26 at 17:10 -0400, Mauro Carvalho Chehab wrote:
-> There are lots of be-related warnings there, as it doesn't properly
-> mark what data uses bigendian.
+Hi Shunqian,
 
-> @@ -107,7 +107,7 @@ mt9m114_write_reg(struct i2c_client *client, u16
-> data_length, u16 reg, u32 val)
->  	int num_msg;
->  	struct i2c_msg msg;
->  	unsigned char data[6] = {0};
-> -	u16 *wreg;
-> +	__be16 *wreg;
-> 
+On Thu, Mar 1, 2018 at 5:44 PM, Shunqian Zheng <zhengsq@rock-chips.com> wrote:
+> Update the register 0x3503 to use 'no delay latch' for gain.
+> This makes sensor to output the first frame as normal rather
+> than a very dark one.
 
-> +		u16 *wdata = (void *)&data[2];
-> +
-> +		*wdata = be16_to_cpu(*(__be16 *)&data[2]);
+I'm not 100% sure on how this setting works, but wouldn't it mean that
+setting the gain mid-frame would result in half of the frame having
+old gain and another half new? Depending how this works, perhaps we
+should set this during initial register settings, but reset after
+streaming starts?
 
-> +		u32 *wdata = (void *)&data[2];
-> +
-> +		*wdata = be32_to_cpu(*(__be32 *)&data[2]);
-
-For x86 it is okay, though in general it should use get_unaligned().
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Best regards,
+Tomasz
