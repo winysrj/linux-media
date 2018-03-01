@@ -1,99 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:41605 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1425035AbeCBOKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 09:10:06 -0500
-Date: Fri, 2 Mar 2018 14:10:01 +0000
-From: Sean Young <sean@mess.org>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [RESEND PATCH v5 0/6] IR support for A83T
-Message-ID: <20180302141001.2eqbpahdl7sddtzk@gofer.mess.org>
-References: <20180213122952.8420-1-embed3d@gmail.com>
- <85ddc129-d0f8-6299-dca0-81f79f3d04a9@gmail.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40312 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030657AbeCANCe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 08:02:34 -0500
+Subject: Re: [PATCH] vimc: fix control event handling
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <5fa05ebf-0bb4-3fac-ed5e-a5283889c67c@xs4all.nl>
+From: Helen Koike <helen.koike@collabora.com>
+Message-ID: <29522655-b969-f204-9f0c-3caf8d35dd07@collabora.com>
+Date: Thu, 1 Mar 2018 10:02:27 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <85ddc129-d0f8-6299-dca0-81f79f3d04a9@gmail.com>
+In-Reply-To: <5fa05ebf-0bb4-3fac-ed5e-a5283889c67c@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 02, 2018 at 01:11:34PM +0100, Philipp Rossak wrote:
-> On 13.02.2018 13:29, Philipp Rossak wrote:
-> > This patch series adds support for the sunxi A83T ir module and enhances
-> > the sunxi-ir driver. Right now the base clock frequency for the ir driver
-> > is a hard coded define and is set to 8 MHz.
-> > This works for the most common ir receivers. On the Sinovoip Bananapi M3
-> > the ir receiver needs, a 3 MHz base clock frequency to work without
-> > problems with this driver.
-> > 
-> > This patch series adds support for an optinal property that makes it able
-> > to override the default base clock frequency and enables the ir interface
-> > on the a83t and the Bananapi M3.
-> > 
-> > changes since v4:
-> > * rename cir pin from cir_pins to r_cir_pin
-> > * drop unit-adress from r_cir_pin
-> > * add a83t compatible to the cir node
-> > * move muxing options to dtsi
-> > * rename cir label and reorder it in the bananpim3.dts file
-> > 
-> > changes since v3:
-> > * collecting all acks & reviewd by
-> > * fixed typos
-> > 
-> > changes since v2:
-> > * reorder cir pin (alphabetical)
-> > * fix typo in documentation
-> > 
-> > changes since v1:
-> > * fix typos, reword Documentation
-> > * initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
-> > * change dev_info() to dev_dbg()
-> > * change naming to cir* in dts/dtsi
-> > * Added acked Ackedi-by to related patch
-> > * use whole memory block instead of registers needed + fix for h3/h5
-> > 
-> > changes since rfc:
-> > * The property is now optinal. If the property is not available in
-> >    the dtb the driver uses the default base clock frequency.
-> > * the driver prints out the the selected base clock frequency.
-> > * changed devicetree property from base-clk-frequency to clock-frequency
-> > 
-> > Regards,
-> > Philipp
-> > 
-> > Philipp Rossak (6):
-> >    media: rc: update sunxi-ir driver to get base clock frequency from
-> >      devicetree
-> >    media: dt: bindings: Update binding documentation for sunxi IR
-> >      controller
-> >    arm: dts: sun8i: a83t: Add the cir pin for the A83T
-> >    arm: dts: sun8i: a83t: Add support for the cir interface
-> >    arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
-> >    arm: dts: sun8i: h3-h5: ir register size should be the whole memory
-> >      block
-> > 
-> >   Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
-> >   arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  5 +++++
-> >   arch/arm/boot/dts/sun8i-a83t.dtsi                    | 18 ++++++++++++++++++
-> >   arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
-> >   drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
-> >   5 files changed, 38 insertions(+), 9 deletions(-)
-> > 
-> 
-> I talked yesterday with Maxime about this patch series. And he told me if
-> the first to patches got merged, he will apply the dts patches to the sunxi
-> tree.
-> 
-> Sean, can you merge the first two patches through the rc-core?
+Hi Hans,
 
-Sure, no problem.
+Thanks for the patch
 
-Thanks
-Sean
+On 02/02/2018 11:00 AM, Hans Verkuil wrote:
+> The sensor subdev didn't handle control events. Add support for this.
+> Found with v4l2-compliance.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Helen Koike <helen.koike@collabora.com>
+
+> ---
+> diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+> index 9d63c84a9876..617415c224fe 100644
+> --- a/drivers/media/platform/vimc/vimc-common.c
+> +++ b/drivers/media/platform/vimc/vimc-common.c
+> @@ -434,7 +434,9 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+>   	v4l2_set_subdevdata(sd, ved);
+> 
+>   	/* Expose this subdev to user space */
+> -	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	if (sd->ctrl_handler)
+> +		sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
+> 
+>   	/* Initialize the media entity */
+>   	ret = media_entity_pads_init(&sd->entity, num_pads, ved->pads);
+> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+> index 457e211514c6..54184cd9e0ff 100644
+> --- a/drivers/media/platform/vimc/vimc-sensor.c
+> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+> @@ -23,6 +23,7 @@
+>   #include <linux/v4l2-mediabus.h>
+>   #include <linux/vmalloc.h>
+>   #include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-event.h>
+>   #include <media/v4l2-subdev.h>
+>   #include <media/tpg/v4l2-tpg.h>
+> 
+> @@ -284,11 +285,18 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+>   	return 0;
+>   }
+> 
+> +static struct v4l2_subdev_core_ops vimc_sen_core_ops = {
+> +	.log_status = v4l2_ctrl_subdev_log_status,
+> +	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
+> +	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+> +};
+> +
+>   static const struct v4l2_subdev_video_ops vimc_sen_video_ops = {
+>   	.s_stream = vimc_sen_s_stream,
+>   };
+> 
+>   static const struct v4l2_subdev_ops vimc_sen_ops = {
+> +	.core = &vimc_sen_core_ops,
+>   	.pad = &vimc_sen_pad_ops,
+>   	.video = &vimc_sen_video_ops,
+>   };
+> 
