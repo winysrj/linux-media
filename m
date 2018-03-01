@@ -1,255 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39422 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932767AbeCIWEU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 17:04:20 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH 07/11] media: vsp1: Use header display lists for all WPF outputs linked to the DU
-Date: Fri,  9 Mar 2018 22:04:05 +0000
-Message-Id: <0d0411f234175bc60b2e27ce3e4c38e937184b09.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail.bootlin.com ([62.4.15.54]:40735 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1030239AbeCALbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Mar 2018 06:31:06 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v5 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+Date: Thu,  1 Mar 2018 12:30:48 +0100
+Message-Id: <20180301113049.16470-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180301113049.16470-1-maxime.ripard@bootlin.com>
+References: <20180301113049.16470-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Header mode display lists are now supported on all WPF outputs. To
-support extended headers and auto-fld capabilities for interlaced mode
-handling only header mode display lists can be used.
+The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+video streams and can output on up to 4 CSI-2 lanes, depending on the
+hardware implementation.
 
-Disable the headerless display list configuration, and remove the dead
-code.
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c | 107 ++++++---------------------
- 1 file changed, 27 insertions(+), 80 deletions(-)
+ .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 6271bea5e831..dc273e3b4753 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -98,7 +98,7 @@ struct vsp1_dl_body_pool {
-  * struct vsp1_dl_list - Display list
-  * @list: entry in the display list manager lists
-  * @dlm: the display list manager
-- * @header: display list header, NULL for headerless lists
-+ * @header: display list header
-  * @dma: DMA address for the header
-  * @body0: first display list body
-  * @bodies: list of extra display list bodies
-@@ -119,15 +119,9 @@ struct vsp1_dl_list {
- 	struct list_head chain;
- };
- 
--enum vsp1_dl_mode {
--	VSP1_DL_MODE_HEADER,
--	VSP1_DL_MODE_HEADERLESS,
--};
--
- /**
-  * struct vsp1_dl_manager - Display List manager
-  * @index: index of the related WPF
-- * @mode: display list operation mode (header or headerless)
-  * @singleshot: execute the display list in single-shot mode
-  * @vsp1: the VSP1 device
-  * @lock: protects the free, active, queued, pending and gc_bodies lists
-@@ -139,7 +133,6 @@ enum vsp1_dl_mode {
-  */
- struct vsp1_dl_manager {
- 	unsigned int index;
--	enum vsp1_dl_mode mode;
- 	bool singleshot;
- 	struct vsp1_device *vsp1;
- 
-@@ -320,6 +313,7 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm,
- 					       struct vsp1_dl_body_pool *pool)
- {
- 	struct vsp1_dl_list *dl;
-+	size_t header_offset;
- 
- 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
- 	if (!dl)
-@@ -332,16 +326,15 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm,
- 	dl->body0 = vsp1_dl_body_get(pool);
- 	if (!dl->body0)
- 		return NULL;
--	if (dlm->mode == VSP1_DL_MODE_HEADER) {
--		size_t header_offset = dl->body0->max_entries
--				     * sizeof(*dl->body0->entries);
- 
--		dl->header = ((void *)dl->body0->entries) + header_offset;
--		dl->dma = dl->body0->dma + header_offset;
-+	header_offset = dl->body0->max_entries
-+			     * sizeof(*dl->body0->entries);
- 
--		memset(dl->header, 0, sizeof(*dl->header));
--		dl->header->lists[0].addr = dl->body0->dma;
--	}
-+	dl->header = ((void *)dl->body0->entries) + header_offset;
-+	dl->dma = dl->body0->dma + header_offset;
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+new file mode 100644
+index 000000000000..459c6e332f52
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+@@ -0,0 +1,98 @@
++Cadence MIPI-CSI2 TX controller
++===============================
 +
-+	memset(dl->header, 0, sizeof(*dl->header));
-+	dl->header->lists[0].addr = dl->body0->dma;
- 
- 	return dl;
- }
-@@ -473,16 +466,9 @@ struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
-  *
-  * The reference must be explicitly released by a call to vsp1_dl_body_put()
-  * when the body isn't needed anymore.
-- *
-- * Additional bodies are only usable for display lists in header mode.
-- * Attempting to add a body to a header-less display list will return an error.
-  */
- int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
- {
--	/* Multi-body lists are only available in header mode. */
--	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
--		return -EINVAL;
--
- 	refcount_inc(&dlb->refcnt);
- 
- 	list_add_tail(&dlb->list, &dl->bodies);
-@@ -503,17 +489,10 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
-  * Adding a display list to a chain passes ownership of the display list to
-  * the head display list item. The chain is released when the head dl item is
-  * put back with __vsp1_dl_list_put().
-- *
-- * Chained display lists are only usable in header mode. Attempts to add a
-- * display list to a chain in header-less mode will return an error.
-  */
- int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
- 			   struct vsp1_dl_list *dl)
- {
--	/* Chained lists are only available in header mode. */
--	if (head->dlm->mode != VSP1_DL_MODE_HEADER)
--		return -EINVAL;
--
- 	head->has_chain = true;
- 	list_add_tail(&dl->chain, &head->chain);
- 	return 0;
-@@ -581,17 +560,10 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
- 		return false;
- 
- 	/*
--	 * Check whether the VSP1 has taken the update. In headerless mode the
--	 * hardware indicates this by clearing the UPD bit in the DL_BODY_SIZE
--	 * register, and in header mode by clearing the UPDHDR bit in the CMD
--	 * register.
-+	 * Check whether the VSP1 has taken the update. In header mode by
-+	 * clearing the UPDHDR bit in the CMD register.
- 	 */
--	if (dlm->mode == VSP1_DL_MODE_HEADERLESS)
--		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
--			  & VI6_DL_BODY_SIZE_UPD);
--	else
--		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
--			  & VI6_CMD_UPDHDR);
-+	return !!(vsp1_read(vsp1, VI6_CMD(dlm->index)) & VI6_CMD_UPDHDR);
- }
- 
- static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
-@@ -599,26 +571,14 @@ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
- 	struct vsp1_dl_manager *dlm = dl->dlm;
- 	struct vsp1_device *vsp1 = dlm->vsp1;
- 
--	if (dlm->mode == VSP1_DL_MODE_HEADERLESS) {
--		/*
--		 * In headerless mode, program the hardware directly with the
--		 * display list body address and size and set the UPD bit. The
--		 * bit will be cleared by the hardware when the display list
--		 * processing starts.
--		 */
--		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0->dma);
--		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
--			(dl->body0->num_entries * sizeof(*dl->header->lists)));
--	} else {
--		/*
--		 * In header mode, program the display list header address. If
--		 * the hardware is idle (single-shot mode or first frame in
--		 * continuous mode) it will then be started independently. If
--		 * the hardware is operating, the VI6_DL_HDR_REF_ADDR register
--		 * will be updated with the display list address.
--		 */
--		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
--	}
-+	/*
-+	 * In header mode, program the display list header address. If
-+	 * the hardware is idle (single-shot mode or first frame in
-+	 * continuous mode) it will then be started independently. If
-+	 * the hardware is operating, the VI6_DL_HDR_REF_ADDR register
-+	 * will be updated with the display list address.
-+	 */
-+	vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
- }
- 
- static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
-@@ -668,15 +628,13 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
- 	struct vsp1_dl_list *dl_next;
- 	unsigned long flags;
- 
--	if (dlm->mode == VSP1_DL_MODE_HEADER) {
--		/* Fill the header for the head and chained display lists. */
--		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
-+	/* Fill the header for the head and chained display lists. */
-+	vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
- 
--		list_for_each_entry(dl_next, &dl->chain, chain) {
--			bool last = list_is_last(&dl_next->chain, &dl->chain);
-+	list_for_each_entry(dl_next, &dl->chain, chain) {
-+		bool last = list_is_last(&dl_next->chain, &dl->chain);
- 
--			vsp1_dl_list_fill_header(dl_next, last);
--		}
-+		vsp1_dl_list_fill_header(dl_next, last);
- 	}
- 
- 	spin_lock_irqsave(&dlm->lock, flags);
-@@ -763,13 +721,6 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
- 		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
- 		 | VI6_DL_CTRL_DLE;
- 
--	/*
--	 * The DRM pipeline operates with display lists in Continuous Frame
--	 * Mode, all other pipelines use manual start.
--	 */
--	if (vsp1->drm)
--		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
--
- 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
- 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
- }
-@@ -804,8 +755,6 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 		return NULL;
- 
- 	dlm->index = index;
--	dlm->mode = index == 0 && !vsp1->info->uapi
--		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
- 	dlm->singleshot = vsp1->info->uapi;
- 	dlm->vsp1 = vsp1;
- 
-@@ -814,13 +763,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 
- 	/*
- 	 * Initialize the display list body and allocate DMA memory for the body
--	 * and the optional header. Both are allocated together to avoid memory
-+	 * and the header. Both are allocated together to avoid memory
- 	 * fragmentation, with the header located right after the body in
- 	 * memory.
- 	 */
--	header_size = dlm->mode == VSP1_DL_MODE_HEADER
--		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
--		    : 0;
-+	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
- 
- 	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
- 					     VSP1_DL_NUM_ENTRIES, header_size);
++The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
++4 CSI lanes in output, and up to 4 different pixel streams in input.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2tx"
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * esc_clk: escape mode clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties
++  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
++  - phy-names: must contain "dphy"
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 output
++           1    Stream 0 input
++           2    Stream 1 input
++           3    Stream 2 input
++           4    Stream 3 input
++
++           The stream input port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design. Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++Example:
++
++csi2tx: csi-bridge@0d0e1000 {
++	compatible = "cdns,csi2tx";
++	reg = <0x0d0e1000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>,
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "p_clk", "esc_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2tx_out: endpoint {
++				remote-endpoint = <&remote_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2tx_in_stream0: endpoint {
++				remote-endpoint = <&stream0_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2tx_in_stream1: endpoint {
++				remote-endpoint = <&stream1_out>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2tx_in_stream2: endpoint {
++				remote-endpoint = <&stream2_out>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2tx_in_stream3: endpoint {
++				remote-endpoint = <&stream3_out>;
++			};
++		};
++	};
++};
 -- 
-git-series 0.9.1
+2.14.3
