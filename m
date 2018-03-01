@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24075 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163203AbeCBB6x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:58:53 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: [PATCH v11 01/32] dt-bindings: media: rcar_vin: Reverse SoC part number list
-Date: Fri,  2 Mar 2018 02:57:20 +0100
-Message-Id: <20180302015751.25596-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from kirsty.vergenet.net ([202.4.237.240]:56549 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967148AbeCAJ7O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 04:59:14 -0500
+Date: Thu, 1 Mar 2018 10:59:09 +0100
+From: Simon Horman <horms@verge.net.au>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jacopo Mondi <jacopo@jmondi.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: renesas-ceu: mark PM functions as __maybe_unused
+Message-ID: <20180301095909.of6irggy4bke6dmx@verge.net.au>
+References: <20180228231951.460060-1-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180228231951.460060-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+On Thu, Mar 01, 2018 at 12:19:37AM +0100, Arnd Bergmann wrote:
+> The PM runtime operations are unused when CONFIG_PM is disabled,
+> leading to a harmless warning:
+> 
+> drivers/media/platform/renesas-ceu.c:1003:12: error: 'ceu_runtime_suspend' defined but not used [-Werror=unused-function]
+>  static int ceu_runtime_suspend(struct device *dev)
+>             ^~~~~~~~~~~~~~~~~~~
+> drivers/media/platform/renesas-ceu.c:987:12: error: 'ceu_runtime_resume' defined but not used [-Werror=unused-function]
+>  static int ceu_runtime_resume(struct device *dev)
+>             ^~~~~~~~~~~~~~~~~~
+> 
+> This adds a __maybe_unused annotation to shut up the warning.
+> 
+> Fixes: 32e5a70dc8f4 ("media: platform: Add Renesas CEU driver")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Change the sorting of the part numbers from descending to ascending to
-match with other documentation.
-
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
 Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- Documentation/devicetree/bindings/media/rcar_vin.txt | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 19357d0bbe6539b3..0ac715a5c331bc26 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,14 +6,14 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
- 
-  - compatible: Must be one or more of the following
--   - "renesas,vin-r8a7795" for the R8A7795 device
--   - "renesas,vin-r8a7794" for the R8A7794 device
--   - "renesas,vin-r8a7793" for the R8A7793 device
--   - "renesas,vin-r8a7792" for the R8A7792 device
--   - "renesas,vin-r8a7791" for the R8A7791 device
--   - "renesas,vin-r8a7790" for the R8A7790 device
--   - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-+   - "renesas,vin-r8a7779" for the R8A7779 device
-+   - "renesas,vin-r8a7790" for the R8A7790 device
-+   - "renesas,vin-r8a7791" for the R8A7791 device
-+   - "renesas,vin-r8a7792" for the R8A7792 device
-+   - "renesas,vin-r8a7793" for the R8A7793 device
-+   - "renesas,vin-r8a7794" for the R8A7794 device
-+   - "renesas,vin-r8a7795" for the R8A7795 device
-    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
- 
--- 
-2.16.2
