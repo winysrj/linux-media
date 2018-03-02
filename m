@@ -1,198 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:39193 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750731AbeCOJUV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 05:20:21 -0400
-Received: by mail-wm0-f49.google.com with SMTP id u10so8855382wmu.4
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 02:20:20 -0700 (PDT)
-Date: Thu, 15 Mar 2018 10:20:13 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>, linaro-mm-sig@lists.linaro.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] dma-buf: add optional invalidate_mappings callback
-Message-ID: <20180315092013.GC25297@phenom.ffwll.local>
-References: <20180309191144.1817-1-christian.koenig@amd.com>
- <20180309191144.1817-2-christian.koenig@amd.com>
- <20180312170710.GL8589@phenom.ffwll.local>
- <f3986703-75de-4ce3-a828-1687291bb618@gmail.com>
- <20180313151721.GH4788@phenom.ffwll.local>
- <2866813a-f2ab-0589-ee40-30935e59d3d7@gmail.com>
- <20180313160052.GK4788@phenom.ffwll.local>
- <052a6595-9fc3-48a6-9366-67ca2f2da17e@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <052a6595-9fc3-48a6-9366-67ca2f2da17e@gmail.com>
+Received: from mail.bootlin.com ([62.4.15.54]:34064 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1425889AbeCBOfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Mar 2018 09:35:25 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH 09/12] media: ov5640: Compute the clock rate at runtime
+Date: Fri,  2 Mar 2018 15:34:57 +0100
+Message-Id: <20180302143500.32650-10-maxime.ripard@bootlin.com>
+In-Reply-To: <20180302143500.32650-1-maxime.ripard@bootlin.com>
+References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 13, 2018 at 06:20:07PM +0100, Christian König wrote:
-> Am 13.03.2018 um 17:00 schrieb Daniel Vetter:
-> > On Tue, Mar 13, 2018 at 04:52:02PM +0100, Christian König wrote:
-> > > Am 13.03.2018 um 16:17 schrieb Daniel Vetter:
-> > > [SNIP]
-> > Ok, so plan is to support fully pipeline moves and everything, with the
-> > old sg tables lazily cleaned up. I was thinking more about evicting stuff
-> > and throwing it out, where there's not going to be any new sg list but the
-> > object is going to be swapped out.
-> 
-> Yes, exactly. Well my example was the unlikely case when the object is
-> swapped out and immediately swapped in again because somebody needs it.
-> 
-> > 
-> > I think some state flow charts (we can do SVG or DOT) in the kerneldoc
-> > would be sweet.Yeah, probably a good idea.
-> 
-> Sounds good and I find it great that you're volunteering for that :D
-> 
-> Ok seriously, my drawing capabilities are a bit underdeveloped. So I would
-> prefer if somebody could at least help with that.
+The clock rate, while hardcoded until now, is actually a function of the
+resolution, framerate and bytes per pixel. Now that we have an algorithm to
+adjust our clock rate, we can select it dynamically when we change the
+mode.
 
-Take a look at the DOT graphs for atomic I've done a while ago. I think we
-could make a formidable competition for who's doing the worst diagrams :-)
+This changes a bit the clock rate being used, with the following effect:
 
-> > > > Re GPU might cause a deadlock: Isn't that already a problem if you hold
-> > > > reservations of buffers used on other gpus, which want those reservations
-> > > > to complete the gpu reset, but that gpu reset blocks some fence that the
-> > > > reservation holder is waiting for?
-> > > Correct, that's why amdgpu and TTM tries quite hard to never wait for a
-> > > fence while a reservation object is locked.
-> > We might have a fairly huge mismatch of expectations here :-/
-> 
-> What do you mean with that?
++------+------+------+------+-----+-----------------+----------------+-----------+
+| Hact | Vact | Htot | Vtot | FPS | Hardcoded clock | Computed clock | Deviation |
++------+------+------+------+-----+-----------------+----------------+-----------+
+|  640 |  480 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+|  640 |  480 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+| 1024 |  768 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+| 1024 |  768 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+|  320 |  240 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  320 |  240 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  176 |  144 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  176 |  144 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  720 |  480 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  720 |  480 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  720 |  576 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  720 |  576 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+| 1280 |  720 | 1892 |  740 |  15 |        42000000 |       42002400 | 0.01 %    |
+| 1280 |  720 | 1892 |  740 |  30 |        84000000 |       84004800 | 0.01 %    |
+| 1920 | 1080 | 2500 | 1120 |  15 |        84000000 |       84000000 | 0.00 %    |
+| 1920 | 1080 | 2500 | 1120 |  30 |       168000000 |      168000000 | 0.00 %    |
+| 2592 | 1944 | 2844 | 1944 |  15 |        84000000 |      165862080 | 49.36 %   |
++------+------+------+------+-----+-----------------+----------------+-----------+
 
-i915 expects that other drivers don't have this requirement. Our gpu reset
-can proceed even if it's all locked down.
+Only the 640x480, 1024x768 and 2592x1944 modes are significantly affected
+by the new formula.
 
-> > > The only use case I haven't fixed so far is reaping deleted object during
-> > > eviction, but that is only a matter of my free time to fix it.
-> > Yeah, this is the hard one.
-> 
-> Actually it isn't so hard, it's just that I didn't had time so far to clean
-> it up and we never hit that issue so far during our reset testing.
-> 
-> The main point missing just a bit of functionality in the reservation object
-> and Chris and I already had a good idea how to implement that.
-> 
-> > In general the assumption is that dma_fence will get signalled no matter
-> > what you're doing, assuming the only thing you need is to not block
-> > interrupts. The i915 gpu reset logic to make that work is a bit a work of
-> > art ...
-> 
-> Correct, but I don't understand why that is so hard on i915? Our GPU
-> scheduler makes all of that rather trivial, e.g. fences either signal
-> correctly or are aborted and set as erroneous after a timeout.
+In this case, 640x480 and 1024x768 are actually fixed by this driver.
+Indeed, the sensor was sending data at, for example, 27.33fps instead of
+30fps. This is -9%, which is roughly what we're seeing in the array.
+Testing these modes with the new clock setup actually fix that error, and
+data are now sent at around 30fps.
 
-Yes, i915 does the same. It's the locking requirement we disagree on, i915
-can reset while holding locks. I think right now we don't reset while
-holding reservation locks, but only while holding our own locks. I think
-cross-release would help model us this and uncover all the funny
-dependency loops we have.
+2592x1944, on the other hand, is probably due to the fact that this mode
+can only be used using MIPI-CSI2, in a two lane mode. This would have to be
+tested though.
 
-The issue I'm seeing:
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 41 +++++++++++++++++------------------------
+ 1 file changed, 17 insertions(+), 24 deletions(-)
 
-amdgpu: Expects that you never hold any of the heavywheight locks while
-waiting for a fence (since gpu resets will need them).
-
-i915: Happily blocks on fences while holding all kinds of locks, expects
-gpu reset to be able to recover even in this case.
-
-Both drivers either complete the fence (with or without setting the error
-status to EIO or something like that), that's not the difference. The work
-of art I referenced is how we managed to complete gpu reset (including
-resubmitting) while holding plenty of locks.
-
-> > If we expect amdgpu and i915 to cooperate with shared buffers I guess one
-> > has to give in. No idea how to do that best.
-> 
-> Again at least from amdgpu side I don't see much of an issue with that. So
-> what exactly do you have in mind here?
-> 
-> > > > We have tons of fun with deadlocks against GPU resets, and loooooots of
-> > > > testcases, and I kinda get the impression amdgpu is throwing a lot of
-> > > > issues under the rug through trylock tricks that shut up lockdep, but
-> > > > don't fix much really.
-> > > Hui? Why do you think that? The only trylock I'm aware of is during eviction
-> > > and there it isn't a problem.
-> > mmap fault handler had one too last time I looked, and it smelled fishy.
-> 
-> Good point, never wrapped my head fully around that one either.
-> 
-> > > > btw adding cross-release lockdep annotations for fences will probably turn
-> > > > up _lots_ more bugs in this area.
-> > > At least for amdgpu that should be handled by now.
-> > You're sure? :-)
-> 
-> Yes, except for fallback paths and bootup self tests we simply never wait
-> for fences while holding locks.
-
-That's not what I meant with "are you sure". Did you enable the
-cross-release stuff (after patching the bunch of leftover core kernel
-issues still present), annotate dma_fence with the cross-release stuff,
-run a bunch of multi-driver (amdgpu vs i915) dma-buf sharing tests and
-weep?
-
-I didn't do the full thing yet, but just within i915 we've found tons of
-small little deadlocks we never really considered thanks to cross release,
-and that wasn't even including the dma_fence annotation. Luckily nothing
-that needed a full-on driver redesign.
-
-I guess I need to ping core kernel maintainers about cross-release again.
-I'd much prefer if we could validate ->invalidate_mapping and the
-locking/fence dependency issues using that, instead of me having to read
-and understand all the drivers.
-
-> > Trouble is that cross-release wasn't even ever enabled, much less anyone
-> > typed the dma_fence annotations. And just cross-release alone turned up
-> > _lost_ of deadlocks in i915 between fences, async workers (userptr, gpu
-> > reset) and core mm stuff.
-> 
-> Yeah, we had lots of fun with the mm locks as well but as far as I know
-> Felix and I already fixed all of them.
-
-Are you sure you mean cross-release fun, and not just normal lockdep fun?
-The cross-release is orders of magnitude more nasty imo. And we had a few
-discussions with core folks where they told us "no way we're going to
-break this depency on our side", involving a chain of cpu hotplug
-(suspend/resume does that to shut down non-boot cpus), worker threads,
-userptr, gem locking and core mm. All components required to actually
-close the loop.
-
-I fear that with the ->invalidate_mapping callback (which inverts the
-control flow between importer and exporter) and tying dma_fences into all
-this it will be a _lot_ worse. And I'm definitely too stupid to understand
-all the dependency chains without the aid of lockdep and a full test suite
-(we have a bunch of amdgpu/i915 dma-buf tests in igt btw).
--Daniel
-
-> 
-> Christian.
-> 
-> > I'd be seriously surprised if it wouldn't find an entire rats nest of
-> > issues around dma_fence once we enable it.
-> > -Daniel
-> > 
-> > > > > > > +	 *
-> > > > > > > +	 * New mappings can be created immediately, but can't be used before the
-> > > > > > > +	 * exclusive fence in the dma_bufs reservation object is signaled.
-> > > > > > > +	 */
-> > > > > > > +	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
-> > > > > > Bunch of questions about exact semantics, but I very much like this. And I
-> > > > > > think besides those technical details, the overall approach seems sound.
-> > > > > Yeah this initial implementation was buggy like hell. Just wanted to confirm
-> > > > > that the idea is going in the right direction.
-> > > > I wanted this 7 years ago, idea very much acked :-)
-> > > > 
-> > > Ok, thanks. Good to know.
-> > > 
-> > > Christian.
-> 
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 323cde27dd8b..bdf378d80e07 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -126,6 +126,12 @@ static const struct ov5640_pixfmt ov5640_formats[] = {
+ 	{ MEDIA_BUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB, },
+ };
+ 
++/*
++ * FIXME: If we ever have something else, we'll obviously need to have
++ * something smarter.
++ */
++#define OV5640_FORMATS_BPP	2
++
+ /*
+  * FIXME: remove this when a subdev API becomes available
+  * to set the MIPI CSI-2 virtual channel.
+@@ -172,7 +178,6 @@ struct ov5640_mode_info {
+ 	u32 htot;
+ 	u32 vact;
+ 	u32 vtot;
+-	u32 clock;
+ 	const struct reg_value *reg_data;
+ 	u32 reg_data_size;
+ };
+@@ -696,7 +701,6 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ /* power-on sensor init reg table */
+ static const struct ov5640_mode_info ov5640_mode_init_data = {
+ 	0, SUBSAMPLING, 640, 1896, 480, 984,
+-	112000000,
+ 	ov5640_init_setting_30fps_VGA,
+ 	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
+ };
+@@ -706,91 +710,74 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+ 	{
+ 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
+ 		 176, 1896, 144, 984,
+-		 56000000,
+ 		 ov5640_setting_15fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
+ 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
+ 		 320, 1896, 240, 984,
+-		 56000000,
+ 		 ov5640_setting_15fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
+ 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
+ 		 640, 1896, 480, 1080,
+-		 56000000,
+ 		 ov5640_setting_15fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
+ 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
+ 		 720, 1896, 480, 984,
+-		 56000000,
+ 		 ov5640_setting_15fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
+ 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
+ 		 720, 1896, 576, 984,
+-		 56000000,
+ 		 ov5640_setting_15fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
+ 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
+ 		 1024, 1896, 768, 1080,
+-		 56000000,
+ 		 ov5640_setting_15fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
+ 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
+ 		 1280, 1892, 720, 740,
+-		 42000000,
+ 		 ov5640_setting_15fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
+ 		{OV5640_MODE_1080P_1920_1080, SCALING,
+ 		 1920, 2500, 1080, 1120,
+-		 84000000,
+ 		 ov5640_setting_15fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
+ 		{OV5640_MODE_QSXGA_2592_1944, SCALING,
+ 		 2592, 2844, 1944, 1968,
+-		 168000000,
+ 		 ov5640_setting_15fps_QSXGA_2592_1944,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
+ 	}, {
+ 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
+ 		 176, 1896, 144, 984,
+-		 112000000,
+ 		 ov5640_setting_30fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
+ 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
+ 		 320, 1896, 240, 984,
+-		 112000000,
+ 		 ov5640_setting_30fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
+ 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
+ 		 640, 1896, 480, 1080,
+-		 112000000,
+ 		 ov5640_setting_30fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
+ 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
+ 		 720, 1896, 480, 984,
+-		 112000000,
+ 		 ov5640_setting_30fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
+ 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
+ 		 720, 1896, 576, 984,
+-		 112000000,
+ 		 ov5640_setting_30fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
+ 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
+ 		 1024, 1896, 768, 1080,
+-		 112000000,
+ 		 ov5640_setting_30fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
+ 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
+ 		 1280, 1892, 720, 740,
+-		 84000000,
+ 		 ov5640_setting_30fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
+ 		{OV5640_MODE_1080P_1920_1080, SCALING,
+ 		 1920, 2500, 1080, 1120,
+-		 168000000,
+ 		 ov5640_setting_30fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
+-		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, 0, NULL, 0},
++		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, NULL, 0},
+ 	},
+ };
+ 
+@@ -1854,6 +1841,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ {
+ 	const struct ov5640_mode_info *mode = sensor->current_mode;
+ 	enum ov5640_downsize_mode dn_mode, orig_dn_mode;
++	unsigned long rate;
+ 	int ret;
+ 
+ 	dn_mode = mode->dn_mode;
+@@ -1868,10 +1856,15 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 	if (ret)
+ 		return ret;
+ 
+-	if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
+-		ret = ov5640_set_mipi_pclk(sensor, mode->clock);
+-	else
+-		ret = ov5640_set_dvp_pclk(sensor, mode->clock);
++	rate = mode->vtot * mode->htot * OV5640_FORMATS_BPP;
++	rate *= ov5640_framerates[sensor->current_fr];
++
++	if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
++		rate = rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
++		ret = ov5640_set_mipi_pclk(sensor, rate);
++	} else {
++		ret = ov5640_set_dvp_pclk(sensor, rate);
++	}
+ 
+ 	if (ret < 0)
+ 		return 0;
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.14.3
