@@ -1,105 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-00272701.pphosted.com ([67.231.145.144]:52580 "EHLO
-        mx0a-00272701.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966464AbeCHFXO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 00:23:14 -0500
-From: "French, Nicholas A." <naf@ou.edu>
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        Andy Lutomirski <luto@kernel.org>
-CC: "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ivtv: use arch_phys_wc_add() and require PAT disabled
-Date: Thu, 8 Mar 2018 05:23:09 +0000
-Message-ID: <DM5PR03MB3035CCBF9718D7E42B35357FD3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
-References: <DM5PR03MB3035EE1AFCEE298AFB15AC46D3C60@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180301171936.GU14069@wotan.suse.de>
- <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180307190205.GA14069@wotan.suse.de>
- <DM5PR03MB30352350D588A81D2D02BE93D3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180308040601.GQ14069@wotan.suse.de>,<20180308041411.GR14069@wotan.suse.de>
-In-Reply-To: <20180308041411.GR14069@wotan.suse.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+Received: from osg.samsung.com ([64.30.133.232]:37397 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752689AbeCBTfD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Mar 2018 14:35:03 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/8] media: em28xx: improve the logic with sets Xclk and I2C speed
+Date: Fri,  2 Mar 2018 16:34:43 -0300
+Message-Id: <19bdfad37599b5f12c824f37a08f635cf6126018.1520018558.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1520018558.git.mchehab@s-opensource.com>
+References: <cover.1520018558.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1520018558.git.mchehab@s-opensource.com>
+References: <cover.1520018558.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 08, 2018 at 04:14:11AM +0000, Luis R. Rodriguez wrote:
-> On Thu, Mar 08, 2018 at 04:06:01AM +0000, Luis R. Rodriguez wrote:
->  > On Thu, Mar 08, 2018 at 03:16:29AM +0000, French, Nicholas A. wrote:
-> > >=20
->  > > Ah, I see. So my proposed ioremap_wc call was only "working" by alia=
-sing the
->  > > ioremap_nocache()'d mem area and not actually using write combining =
-at all.
->  >=20
->  > There are some debugging PAT toys out there I think but I haven't play=
-ed with
->  > them yet or I forgot how to to confirm or deny this sort of effort, bu=
-t
->  > likeley.
->=20
->  In fact come to think of it I believe some neurons are telling me that i=
-f
->  two type does not match we'd get an error?
+The logic there should be called on two places. Also,
+ideally, it should not be modifying the device struct.
 
-I based my guess on some text i read in "PATting Linux" [1]:
-"ioremap interfaces will succeed if there is an existing,
-more lenient mapping. Example: If there is an existing
-uncached mapping to a physical range, any request for
-write-back or write-combine mapping will succeed, but
-will eventually map the memory as uncached"
+So, change the logic accordingly.
 
-But I will try to get some debugpat going to confirm.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 45 +++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
-[1] =3D https://www.kernel.org/doc/ols/2008/ols2008v2-pages-135-144.pdf
-
-> > So unless there is a io-re-remap to change the caching status of a subs=
-et of
-> > the decoder's memory once we find out what the framebuffer offset is in=
-side
-> > the original iremap_nocache'd area, then its a no go for write combinin=
-g to
-> > the framebuffer with PAT.
->=20
-> No what if the framebuffer driver is just requested as a secondary step
-> after firmware loading?
-
-Its a possibility. The decoder firmware gets loaded at the beginning of the=
- decoder
-memory range and we know its length, so its possible to ioremap_nocache eno=
-ugh=20
-room for the firmware only on init and then ioremap the remaining non-firmw=
-are
-decoder memory areas appropriately after the firmware load succeeds...
-=20
-> > > On the other hand, it works fine for me with a nocache'd framebuffer.=
- It's
-> > > certainly better for me personally to have a nocache framebuffer with
-> > > PAT-enabled than the framebuffer completely disabled with PAT-enabled=
-, but I
-> > > don't think I would even propose to rollback the x86 nopat requiremen=
-t in
-> > > general. Apparently the throngs of people using this super-popular dr=
-iver
-> > > feature haven't complained in the last couple years, so maybe its OK =
-for me
-> > > to just patch the pat-enabled guard out and deal with a nocache'd
-> > > framebuffer.
-> >=20
-> > Nope, best you add a feature to just let you disable wc stuff, to enabl=
-e
-> > life with PAT.
-
-I'm not sure I understand what you mean.
-
-Perhaps the easy answer is to change the fatal is-pat-enabled check to just=
- a
-warning like "you have PAT enabled, so wc is disabled for the framebuffer.=
-=20
-if you want wc, use the nopat parameter"?
-
-- Nick=
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 34e16f6ab4ac..cbd7a43bd559 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2669,20 +2669,35 @@ int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
+ }
+ EXPORT_SYMBOL_GPL(em28xx_tuner_callback);
+ 
+-static inline void em28xx_set_model(struct em28xx *dev)
++static inline void em28xx_set_xclk_i2c_speed(struct em28xx *dev)
+ {
+-	dev->board = em28xx_boards[dev->model];
++	struct em28xx_board *board = &em28xx_boards[dev->model];
++	u8 xclk = board->xclk, i2c_speed = board->i2c_speed;
+ 
+ 	/* Those are the default values for the majority of boards
+ 	   Use those values if not specified otherwise at boards entry
+ 	 */
+-	if (!dev->board.xclk)
+-		dev->board.xclk = EM28XX_XCLK_IR_RC5_MODE |
++	if (!xclk)
++		xclk = EM28XX_XCLK_IR_RC5_MODE |
+ 				  EM28XX_XCLK_FREQUENCY_12MHZ;
+ 
+-	if (!dev->board.i2c_speed)
+-		dev->board.i2c_speed = EM28XX_I2C_CLK_WAIT_ENABLE |
+-				       EM28XX_I2C_FREQ_100_KHZ;
++	em28xx_write_reg(dev, EM28XX_R0F_XCLK, xclk);
++
++
++	if (!i2c_speed)
++		i2c_speed = EM28XX_I2C_CLK_WAIT_ENABLE |
++			    EM28XX_I2C_FREQ_100_KHZ;
++
++	if (!dev->board.is_em2800)
++		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, i2c_speed);
++	msleep(50);
++}
++
++static inline void em28xx_set_model(struct em28xx *dev)
++{
++	dev->board = em28xx_boards[dev->model];
++
++	em28xx_set_xclk_i2c_speed(dev);
+ 
+ 	/* Should be initialized early, for I2C to work */
+ 	dev->def_i2c_bus = dev->board.def_i2c_bus;
+@@ -2725,10 +2740,7 @@ static void em28xx_pre_card_setup(struct em28xx *dev)
+ {
+ 	/* Set the initial XCLK and I2C clock values based on the board
+ 	   definition */
+-	em28xx_write_reg(dev, EM28XX_R0F_XCLK, dev->board.xclk & 0x7f);
+-	if (!dev->board.is_em2800)
+-		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
+-	msleep(50);
++	em28xx_set_xclk_i2c_speed(dev);
+ 
+ 	/* request some modules */
+ 	switch (dev->model) {
+@@ -3382,17 +3394,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 
+ 	em28xx_pre_card_setup(dev);
+ 
+-	if (!dev->board.is_em2800) {
+-		/* Resets I2C speed */
+-		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
+-		if (retval < 0) {
+-			dev_err(&dev->intf->dev,
+-			       "%s: em28xx_write_reg failed! retval [%d]\n",
+-			       __func__, retval);
+-			return retval;
+-		}
+-	}
+-
+ 	rt_mutex_init(&dev->i2c_bus_lock);
+ 
+ 	/* register i2c bus 0 */
+-- 
+2.14.3
