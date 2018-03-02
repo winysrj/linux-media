@@ -1,278 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:18429 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751134AbeCZUA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 16:00:28 -0400
-Date: Mon, 26 Mar 2018 23:00:17 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: acourbot@chromium.org, linux-media@vger.kernel.org,
-        tfiga@google.com, hverkuil@xs4all.nl
-Subject: Re: [RFC v2.1 1/1] media: Support variable size IOCTL arguments
-Message-ID: <20180326200017.eipe7wze4fon7h7i@kekkonen.localdomain>
-References: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
- <1522070604-3213-1-git-send-email-sakari.ailus@linux.intel.com>
- <20180326142834.264cf1d9@vento.lan>
+Received: from esa4.microchip.iphmx.com ([68.232.154.123]:59064 "EHLO
+        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425206AbeCBJ2V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 04:28:21 -0500
+Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
+To: Jani Nikula <jani.nikula@linux.intel.com>,
+        Thierry Reding <thierry.reding@gmail.com>
+CC: <shc_work@mail.ru>, <kgene@kernel.org>, <krzk@kernel.org>,
+        <linux@armlinux.org.uk>, <mturquette@baylibre.com>,
+        <sboyd@codeaurora.org>, <joonas.lahtinen@linux.intel.com>,
+        <rodrigo.vivi@intel.com>, <airlied@linux.ie>, <kamil@wypas.org>,
+        <b.zolnierkie@samsung.com>, <jdelvare@suse.com>,
+        <linux@roeck-us.net>, <dmitry.torokhov@gmail.com>,
+        <rpurdie@rpsys.net>, <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>,
+        <mchehab@kernel.org>, <sean@mess.org>, <lee.jones@linaro.org>,
+        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
+        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
+        <alexandre.belloni@free-electrons.com>,
+        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+ <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
+ <20180228194429.GD22932@mithrandir> <87r2p4hod7.fsf@intel.com>
+From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Message-ID: <585cc4ae-3674-c119-295b-e59f4242e619@microchip.com>
+Date: Fri, 2 Mar 2018 11:28:09 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180326142834.264cf1d9@vento.lan>
+In-Reply-To: <87r2p4hod7.fsf@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-On Mon, Mar 26, 2018 at 02:28:34PM -0300, Mauro Carvalho Chehab wrote:
-> Em Mon, 26 Mar 2018 16:23:24 +0300
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> 
-> > Maintain a list of supported IOCTL argument sizes and allow only those in
-> > the list.
-> > 
-> > As an additional bonus, IOCTL handlers will be able to check whether the
-> > caller actually set (using the argument size) the field vs. assigning it
-> > to zero. Separate macro can be provided for that.
-> > 
-> > This will be easier for applications as well since there is no longer the
-> > problem of setting the reserved fields zero, or at least it is a lesser
-> > problem.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> > Hi folks,
-> > 
-> > I've essentially addressed Mauro's comments on v2.
-> > 
-> > The code is only compile tested so far but the changes from the last
-> > tested version are not that big. There's still some uncertainty though.
-> 
-> You should test it... I guess there is a bug on this version :-)
-> (see below)
-> 
-> > 
-> > since v2:
-> > 
-> > - Rework is_valid_ioctl based on the comments
-> > 
-> > 	- Improved comments,
-> > 	
-> > 	- Rename cmd as user_cmd, as this comes from the user
-> > 	
-> > 	- Check whether there are alternative argument sizes before any
-> > 	  checks on IOCTL command if there is no exact match
-> > 	  
-> > 	- Use IOCSIZE_MASK macro instead of creating our own
-> > 
-> > - Add documentation for macros declaring IOCTLs
-> > 
-> > 
-> >  drivers/media/media-device.c | 98 +++++++++++++++++++++++++++++++++++++++++---
-> >  1 file changed, 92 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 35e81f7..279d740 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -387,22 +387,65 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
-> >  /* Do acquire the graph mutex */
-> >  #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
-> >  
-> > -#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> > +/**
-> > + * MEDIA_IOC_SZ_ARG - Declare a Media device IOCTL with alternative size and
-> > + *		      to_user/from_user callbacks
-> > + *
-> > + * @__cmd:	The IOCTL command suffix (without "MEDIA_IOC_")
-> > + * @func:	The handler function
-> > + * @fl:		Flags from @enum media_ioc_flags
-> > + * @alt_sz:	A 0-terminated list of alternative argument struct sizes.
-> > + * @from_user:	Function to copy argument struct from the user to the kernel
-> > + * @to_user:	Function to copy argument struct to the user from the kernel
-> > + */
-> > +#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
-> >  	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
-> >  		.cmd = MEDIA_IOC_##__cmd,				\
-> >  		.fn = (long (*)(struct media_device *, void *))func,	\
-> >  		.flags = fl,						\
-> > +		.alt_arg_sizes = alt_sz,				\
-> >  		.arg_from_user = from_user,				\
-> >  		.arg_to_user = to_user,					\
-> >  	}
-> >  
-> > -#define MEDIA_IOC(__cmd, func, fl)					\
-> > -	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
-> > +/**
-> > + * MEDIA_IOC_ARG - Declare a Media device IOCTL with to_user/from_user callbacks
-> > + *
-> > + * Just as MEDIA_IOC_SZ_ARG but without the alternative size list.
-> > + */
-> 
-> Nitpick: either use:
-> 	/*
-> 	 *...
-> 	 */
-> 
-> or add the arguments to the macro there, as /** ... */ expects
-> the arguments. Same for other comments below.
 
-I think a regular comment would do. It's only used below.
+On 28.02.2018 22:04, Jani Nikula wrote:
+> On Wed, 28 Feb 2018, Thierry Reding <thierry.reding@gmail.com> wrote:
+>> Anyone that needs something other than normal mode should use the new
+>> atomic PWM API.
+> 
+> At the risk of revealing my true ignorance, what is the new atomic PWM
+> API? Where? Examples of how one would convert old code over to the new
+> API?
+As far as I know, the old PWM core code uses config(), set_polarity(),
+enable(), disable() methods of driver, registered as pwm_ops:
+struct pwm_ops {
+
+        int (*request)(struct pwm_chip *chip, struct pwm_device *pwm);
+
+        void (*free)(struct pwm_chip *chip, struct pwm_device *pwm);
+
+        int (*config)(struct pwm_chip *chip, struct pwm_device *pwm,
+
+                      int duty_ns, int period_ns);
+
+        int (*set_polarity)(struct pwm_chip *chip, struct pwm_device *pwm,
+
+                            enum pwm_polarity polarity);
+
+        int (*capture)(struct pwm_chip *chip, struct pwm_device *pwm,
+
+                       struct pwm_capture *result, unsigned long timeout);
+
+        int (*enable)(struct pwm_chip *chip, struct pwm_device *pwm);
+
+        void (*disable)(struct pwm_chip *chip, struct pwm_device *pwm);
+
+        int (*apply)(struct pwm_chip *chip, struct pwm_device *pwm,
+
+                     struct pwm_state *state);
+
+        void (*get_state)(struct pwm_chip *chip, struct pwm_device *pwm,
+
+                          struct pwm_state *state);
+
+#ifdef CONFIG_DEBUG_FS
+
+        void (*dbg_show)(struct pwm_chip *chip, struct seq_file *s);
+
+#endif
+
+        struct module *owner;
+
+};
+
+
+to do settings on hardware. In order to so settings on a PWM the users
+should have been follow the below steps:
+->config()
+->set_polarity()
+->enable()
+Moreover, if the PWM was previously enabled it should have been first
+disable and then to follow the above steps in order to apply a new settings
+on hardware.
+The driver should have been provide, at probe, all the above function:
+->config(), ->set_polarity(), ->disable(), ->enable(), function that were
+used by PWM core.
+
+Now, having atomic PWM, the driver should provide one function to PWM core,
+which is ->apply() function. Every PWM has a state associated, which keeps
+the period, duty cycle, polarity and enable/disable status. The driver's
+->apply() function takes as argument the state that should be applied and
+it takes care of applying this new state directly without asking user to
+call ->disable(), then ->config()/->set_polarity(), then ->enable() to
+apply new hardware settings.
+
+The PWM consumer could set a new state for PWM it uses, using
+pwm_apply_state(pwm, new_state);
+
+Regarding the models to switch on atomic PWM, on the controller side you
+can check for drivers that registers apply function at probe time.
+Regarding the PWM users, you can look for pwm_apply_state()
+(drivers/hwmon/pwm-fan.c or drivers/input/misc/pwm-beeper.c are some examples).
+
+Thierry, please correct me if I'm wrong.
+
+Thank you,
+Claudiu Beznea
 
 > 
-> > +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> > +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
-> > +
-> > +/**
-> > + * MEDIA_IOC_ARG - Declare a Media device IOCTL with alternative argument struct
-> > + *		   sizes
-> > + *
-> > + * Just as MEDIA_IOC_SZ_ARG but without the callbacks to copy the data from the
-> > + * user space and back to user space.
-> > + */
-> > +#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
-> > +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
-> > +			 copy_arg_from_user, copy_arg_to_user)
-> > +
-> > +/**
-> > + * MEDIA_IOC_ARG - Declare a Media device IOCTL
-> > + *
-> > + * Just as MEDIA_IOC_SZ_ARG but without the alternative size list or the
-> > + * callbacks to copy the data from the user space and back to user space.
-> > + */
-> > +#define MEDIA_IOC(__cmd, func, fl)				\
-> > +	MEDIA_IOC_ARG(__cmd, func, fl,				\
-> > +		      copy_arg_from_user, copy_arg_to_user)
-> >  
-> >  /* the table is indexed by _IOC_NR(cmd) */
-> >  struct media_ioctl_info {
-> >  	unsigned int cmd;
-> >  	unsigned short flags;
-> > +	/*
-> > +	 * Sizes of the alternative arguments. If there are none, this
-> > +	 * pointer is NULL.
-> > +	 */
-> > +	const unsigned short *alt_arg_sizes;
-> >  	long (*fn)(struct media_device *dev, void *arg);
-> >  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
-> >  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
-> > @@ -416,6 +459,46 @@ static const struct media_ioctl_info ioctl_info[] = {
-> >  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
-> >  };
-> >  
-> > +static inline long is_valid_ioctl(unsigned int user_cmd)
-> > +{
-> > +	const struct media_ioctl_info *info = ioctl_info;
-> > +	const unsigned short *alt_arg_sizes;
-> > +
-> > +	if (_IOC_NR(user_cmd) >= ARRAY_SIZE(ioctl_info))
-> > +		return -ENOIOCTLCMD;
-> > +
-> > +	info += _IOC_NR(user_cmd);
-> > +
-> > +	if (user_cmd == info->cmd)
-> > +		return 0;
-> > +
-> > +	/*
-> > +	 * There was no exact match between the user-passed IOCTL command and
-> > +	 * the definition. Are there earlier revisions of the argument struct
-> > +	 * available?
-> > +	 */
-> > +	if (!info->alt_arg_sizes)
-> > +		return -ENOIOCTLCMD;
-> > +
-> > +	/*
-> > +	 * Variable size IOCTL argument support allows using either the latest
-> > +	 * revision of the IOCTL argument struct or an earlier version. Check
-> > +	 * that the size-independent portions of the IOCTL command match and
-> > +	 * that the size matches with one of the alternative sizes that
-> > +	 * represent earlier revisions of the argument struct.
-> > +	 */
-> > +	if ((user_cmd & ~IOCSIZE_MASK) != (info->cmd & ~IOCSIZE_MASK)
-> > +	    || _IOC_SIZE(user_cmd) < _IOC_SIZE(info->cmd))
-> > +		return -ENOIOCTLCMD;
+> BR,
+> Jani.
 > 
-> I guess it should be, instead:
-> 
-> 	    || _IOC_SIZE(user_cmd) > _IOC_SIZE(info->cmd))
-> 
-> The hole idea is that the struct sizes used by ioctls can monotonically
-> increase as newer fields become needed, but never decrease.
-
-Oops, indeed. I'll send a new version...
-
-> 
-> Assuming that, _IOC_SIZE(MEDIA_IOC_foo) will give the size of the
-> latest version of an ioctl supported by a given Kernel version,
-> while alt_arg_sizes will list smaller sizes from previous
-> Kernel versions that will also be accepted, in order to make it
-> backward-compatible with apps compiled against older Kernel headers.
-> 
-> However, if an application is compiled with a kernel newer than
-> the current one, it should fail, as an older Kernel doesn't know
-> how to handle the newer fields. So, it should be up to the userspace
-> app to add backward-compatible code if it needs to support older
-> Kernels.
-> 
-> (perhaps it should be worth adding a comment like the above
-> somewhere).
-
-Good point. I wonder if it'd be better to just handle this in the kernel
-and allow larges arguments as well. This would effectively be the same as
-we have right now, with a very large number of reserved fields.
-
-We could not assume an application knowingly set a field that is present in
-a struct of which an older revision exists: all it takes is to compile the
-application in an environment which has the new definitions. Unless... we
-put the version to the struct name. But I don't like that, it makes IOCTL
-calls (and the documentation) quite ugly.
-
-That'd also suggest the list of alternative sizes isn't very useful: even
-when we have reserved fields, we don't have any way of knowing whether an
-application intentionally set a field to zero or just left out initialising
-that particular field.
-
-I wonder what Hans thinks...
-
-> 
-> > +
-> > +	for (alt_arg_sizes = info->alt_arg_sizes; *alt_arg_sizes;
-> > +	     alt_arg_sizes++)
-> > +		if (_IOC_SIZE(user_cmd) == *alt_arg_sizes)
-> > +			return 0;
-> > +
-> > +	return -ENOIOCTLCMD;
-> > +}
-> > +
-> >  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> >  			       unsigned long __arg)
-> >  {
-> > @@ -426,9 +509,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> >  	char __karg[256], *karg = __karg;
-> >  	long ret;
-> >  
-> > -	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
-> > -	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
-> > -		return -ENOIOCTLCMD;
-> > +	ret = is_valid_ioctl(cmd);
-> > +	if (ret)
-> > +		return ret;
-> >  
-> >  	info = &ioctl_info[_IOC_NR(cmd)];
-> >  
-> > @@ -444,6 +527,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> >  			goto out_free;
-> >  	}
-> >  
-> > +	/* Set the rest of the argument struct to zero */
-> > +	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
-> > +
-> >  	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
-> >  		mutex_lock(&dev->graph_mutex);
-> >  
-> 
-> Regards,
-> Mauro
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
