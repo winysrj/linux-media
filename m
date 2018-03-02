@@ -1,620 +1,550 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:43112 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932617AbeCIRuK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:50:10 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v8 09/13] [media] vb2: add in-fence support to QBUF
-Date: Fri,  9 Mar 2018 14:49:16 -0300
-Message-Id: <20180309174920.22373-10-gustavo@padovan.org>
-In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
-References: <20180309174920.22373-1-gustavo@padovan.org>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:46107 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936696AbeCBQgb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 11:36:31 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        sakari.ailus@iki.fi, mchehab@kernel.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/5] arch: sh: ecovec: Use new renesas-ceu camera driver
+Date: Fri,  2 Mar 2018 17:35:40 +0100
+Message-Id: <1520008541-3961-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+SH4 7724 Ecovec platform uses sh_mobile_ceu camera driver, which is now
+being replaced by a proper V4L2 camera driver named 'renesas-ceu'.
 
-Receive in-fence from userspace and add support for waiting on them
-before queueing the buffer to the driver. Buffers can't be queued to the
-driver before its fences signal. And a buffer can't be queue to the driver
-out of the order they were queued from userspace. That means that even if
-it fence signal it must wait all other buffers, ahead of it in the queue,
-to signal first.
+Get rid of soc_camera defined components used to register sensor drivers
+and of platform specific enable/disable routines.
 
-If the fence for some buffer fails we do not queue it to the driver,
-instead we mark it as error and wait until the previous buffer is done
-to notify userspace of the error. We wait here to deliver the buffers back
-to userspace in order.
+Register GPIOs for sensor drivers and declare memory reserved with
+memblock APIs as dma capable to be used for CEU buffers.
 
-v9:	- rename fence to in_fence in many places
-	- handle fences signalling with error better (Hans Verkuil)
+While at there re-order include directives to respect alphabetical
+ordering.
 
-v8:	- improve comments and docs (Hans Verkuil)
-	- fix unlocking of vb->fence_cb_lock on vb2_core_qbuf (Hans Verkuil)
-	- move in-fences code that was in the out-fences patch here (Alex)
-
-v8:	- improve comments about fences with errors
-
-v7:
-	- get rid of the fence array stuff for ordering and just use
-	get_num_buffers_ready() (Hans)
-	- fix issue of queuing the buffer twice (Hans)
-	- avoid the dma_fence_wait() in core_qbuf() (Alex)
-	- merge preparation commit in
-
-v6:
-	- With fences always keep the order userspace queues the buffers.
-	- Protect in_fence manipulation with a lock (Brian Starkey)
-	- check if fences have the same context before adding a fence array
-	- Fix last_fence ref unbalance in __set_in_fence() (Brian Starkey)
-	- Clean up fence if __set_in_fence() fails (Brian Starkey)
-	- treat -EINVAL from dma_fence_add_callback() (Brian Starkey)
-
-v5:	- use fence_array to keep buffers ordered in vb2 core when
-	needed (Brian Starkey)
-	- keep backward compat on the reserved2 field (Brian Starkey)
-	- protect fence callback removal with lock (Brian Starkey)
-
-v4:
-	- Add a comment about dma_fence_add_callback() not returning a
-	error (Hans)
-	- Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
-	- select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
-	- Move dma_fence_is_signaled() check to __enqueue_in_driver() (Hans)
-	- Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
-	-  Remove if (vb->state != VB2_BUF_STATE_QUEUED) from
-	vb2_start_streaming() (Hans)
-	- set IN_FENCE flags on __fill_v4l2_buffer (Hans)
-	- Queue buffers to the driver as soon as they are ready (Hans)
-	- call fill_user_buffer() after queuing the buffer (Hans)
-	- add err: label to clean up fence
-	- add dma_fence_wait() before calling vb2_start_streaming()
-
-v3:	- document fence parameter
-	- remove ternary if at vb2_qbuf() return (Mauro)
-	- do not change if conditions behaviour (Mauro)
-
-v2:
-	- fix vb2_queue_or_prepare_buf() ret check
-	- remove check for VB2_MEMORY_DMABUF only (Javier)
-	- check num of ready buffers to start streaming
-	- when queueing, start from the first ready buffer
-	- handle queue cancel
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/common/videobuf2/videobuf2-core.c | 197 ++++++++++++++++++++----
- drivers/media/common/videobuf2/videobuf2-v4l2.c |  34 +++-
- drivers/media/v4l2-core/Kconfig                 |  33 ++++
- include/media/videobuf2-core.h                  |  14 +-
- 4 files changed, 248 insertions(+), 30 deletions(-)
+ arch/sh/boards/mach-ecovec24/setup.c   | 338 ++++++++++++++++-----------------
+ arch/sh/kernel/cpu/sh4a/clock-sh7724.c |   4 +-
+ 2 files changed, 171 insertions(+), 171 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index d3f7bb33a54d..5de5e35cfc40 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -352,6 +352,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 		vb->index = q->num_buffers + buffer;
- 		vb->type = q->type;
- 		vb->memory = memory;
-+		spin_lock_init(&vb->fence_cb_lock);
- 		for (plane = 0; plane < num_planes; ++plane) {
- 			vb->planes[plane].length = plane_sizes[plane];
- 			vb->planes[plane].min_length = plane_sizes[plane];
-@@ -891,20 +892,12 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
- }
- EXPORT_SYMBOL_GPL(vb2_plane_cookie);
- 
--void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
-+static void vb2_process_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
- 	unsigned int plane;
- 
--	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
--		return;
--
--	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
--		    state != VB2_BUF_STATE_ERROR &&
--		    state != VB2_BUF_STATE_QUEUED &&
--		    state != VB2_BUF_STATE_REQUEUEING))
--		state = VB2_BUF_STATE_ERROR;
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
-@@ -921,6 +914,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
- 
- 	spin_lock_irqsave(&q->done_lock, flags);
-+	if (vb->state == VB2_BUF_STATE_ACTIVE)
-+		atomic_dec(&q->owned_by_drv_count);
-+
- 	if (state == VB2_BUF_STATE_QUEUED ||
- 	    state == VB2_BUF_STATE_REQUEUEING) {
- 		vb->state = VB2_BUF_STATE_QUEUED;
-@@ -929,7 +925,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 		list_add_tail(&vb->done_entry, &q->done_list);
- 		vb->state = state;
- 	}
--	atomic_dec(&q->owned_by_drv_count);
-+
- 	spin_unlock_irqrestore(&q->done_lock, flags);
- 
- 	trace_vb2_buf_done(q, vb);
-@@ -946,6 +942,36 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 		wake_up(&q->done_wq);
- 		break;
- 	}
-+
-+}
-+
-+void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
-+{
-+	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
-+		return;
-+
-+	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
-+		    state != VB2_BUF_STATE_ERROR &&
-+		    state != VB2_BUF_STATE_QUEUED &&
-+		    state != VB2_BUF_STATE_REQUEUEING))
-+		state = VB2_BUF_STATE_ERROR;
-+
-+	vb2_process_buffer_done(vb, state);
-+
-+	/*
-+	 * Check if there is any buffer with error in the next position of the queue,
-+	 * buffers whose in-fence signaled with error are not queued to the driver
-+	 * and kept on the queue until the buffer before them is done, so to not
-+	 * delivery buffers back to userspace in the wrong order. Here we process
-+	 * any existing buffers with errors and wake up userspace.
-+	 */
-+	for (;;) {
-+		vb = list_next_entry(vb, queued_entry);
-+		if (!vb || vb->state != VB2_BUF_STATE_ERROR)
-+			break;
-+
-+		vb2_process_buffer_done(vb, VB2_BUF_STATE_ERROR);
-+        }
- }
- EXPORT_SYMBOL_GPL(vb2_buffer_done);
- 
-@@ -1230,6 +1256,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 
-+	if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
-+		return;
-+
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->owned_by_drv_count);
- 
-@@ -1281,6 +1310,24 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 	return 0;
- }
- 
-+static int __get_num_ready_buffers(struct vb2_queue *q)
-+{
-+	struct vb2_buffer *vb;
-+	int ready_count = 0;
-+	unsigned long flags;
-+
-+	/* count num of buffers ready in front of the queued_list */
-+	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-+		spin_lock_irqsave(&vb->fence_cb_lock, flags);
-+		if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
-+			break;
-+		ready_count++;
-+		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+	}
-+
-+	return ready_count;
-+}
-+
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- {
- 	struct vb2_buffer *vb;
-@@ -1369,9 +1416,43 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	return ret;
- }
- 
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
-+{
-+	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
-+	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vb->fence_cb_lock, flags);
-+	/*
-+	 * If the fence signals with an error we mark the buffer as such
-+	 * and avoid using it by setting it to VB2_BUF_STATE_ERROR and
-+	 * not queueing it to the driver. However we can't notify the error
-+	 * to userspace right now because, at the time this callback run, QBUF
-+	 * returned already.
-+	 * So we delay that to DQBUF time. See comments in vb2_buffer_done()
-+	 * as well.
-+	 */
-+	if (vb->in_fence->error)
-+		vb->state = VB2_BUF_STATE_ERROR;
-+
-+	dma_fence_put(vb->in_fence);
-+	vb->in_fence = NULL;
-+
-+	if (vb->state == VB2_BUF_STATE_ERROR) {
-+		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+		return;
-+	}
-+
-+	if (q->start_streaming_called)
-+		__enqueue_in_driver(vb);
-+	spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+}
-+
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct dma_fence *in_fence)
- {
- 	struct vb2_buffer *vb;
-+	unsigned long flags;
- 	int ret;
- 
- 	vb = q->bufs[index];
-@@ -1380,16 +1461,18 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	case VB2_BUF_STATE_DEQUEUED:
- 		ret = __buf_prepare(vb, pb);
- 		if (ret)
--			return ret;
-+			goto err;
- 		break;
- 	case VB2_BUF_STATE_PREPARED:
- 		break;
- 	case VB2_BUF_STATE_PREPARING:
- 		dprintk(1, "buffer still being prepared\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	default:
- 		dprintk(1, "invalid buffer state %d\n", vb->state);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	/*
-@@ -1400,6 +1483,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	q->queued_count++;
- 	q->waiting_for_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
-+	vb->in_fence = in_fence;
- 
- 	if (pb)
- 		call_void_bufop(q, copy_timestamp, vb, pb);
-@@ -1407,15 +1491,40 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	trace_vb2_qbuf(q, vb);
- 
- 	/*
--	 * If already streaming, give the buffer to driver for processing.
--	 * If not, the buffer will be given to driver on next streamon.
-+	 * For explicit synchronization: If the fence didn't signal
-+	 * yet we setup a callback to queue the buffer once the fence
-+	 * signals, and then, return successfully. But if the fence
-+	 * already signaled we lose the reference we held and queue the
-+	 * buffer to the driver.
- 	 */
--	if (q->start_streaming_called)
--		__enqueue_in_driver(vb);
-+	spin_lock_irqsave(&vb->fence_cb_lock, flags);
-+	if (vb->in_fence) {
-+		ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
-+					     vb2_qbuf_fence_cb);
-+		/* is the fence signaled? */
-+		if (ret == -ENOENT) {
-+			dma_fence_put(vb->in_fence);
-+			vb->in_fence = NULL;
-+		} else if (ret) {
-+			goto unlock;
-+		}
-+	}
- 
--	/* Fill buffer information for the userspace */
--	if (pb)
--		call_void_bufop(q, fill_user_buffer, vb, pb);
-+	/*
-+	 * If already streaming and there is no fence to wait on
-+	 * give the buffer to driver for processing.
-+	 */
-+	if (q->start_streaming_called) {
-+		struct vb2_buffer *b;
-+
-+		list_for_each_entry(b, &q->queued_list, queued_entry) {
-+			if (b->state != VB2_BUF_STATE_QUEUED)
-+				continue;
-+			if (b->in_fence)
-+				break;
-+			__enqueue_in_driver(b);
-+		}
-+	}
- 
- 	/*
- 	 * If streamon has been called, and we haven't yet called
-@@ -1424,14 +1533,36 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	 * then we can finally call start_streaming().
- 	 */
- 	if (q->streaming && !q->start_streaming_called &&
--	    q->queued_count >= q->min_buffers_needed) {
-+	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {
- 		ret = vb2_start_streaming(q);
- 		if (ret)
--			return ret;
-+			goto unlock;
- 	}
- 
-+	spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+
-+	/* Fill buffer information for the userspace */
-+	if (pb)
-+		call_void_bufop(q, fill_user_buffer, vb, pb);
-+
- 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
- 	return 0;
-+
-+unlock:
-+	spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+
-+err:
-+	/* Fill buffer information for the userspace */
-+	if (pb)
-+		call_void_bufop(q, fill_user_buffer, vb, pb);
-+
-+	if (vb->in_fence) {
-+		dma_fence_put(vb->in_fence);
-+		vb->in_fence = NULL;
-+	}
-+
-+	return ret;
-+
- }
- EXPORT_SYMBOL_GPL(vb2_core_qbuf);
- 
-@@ -1642,6 +1773,8 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
- static void __vb2_queue_cancel(struct vb2_queue *q)
- {
- 	unsigned int i;
-+	struct vb2_buffer *vb;
-+	unsigned long flags;
- 
- 	/*
- 	 * Tell driver to stop all transactions and release all queued
-@@ -1672,6 +1805,16 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	q->queued_count = 0;
- 	q->error = 0;
- 
-+	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-+		spin_lock_irqsave(&vb->fence_cb_lock, flags);
-+		if (vb->in_fence) {
-+			dma_fence_remove_callback(vb->in_fence, &vb->fence_cb);
-+			dma_fence_put(vb->in_fence);
-+			vb->in_fence = NULL;
-+		}
-+		spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-+	}
-+
- 	/*
- 	 * Remove all buffers from videobuf's list...
- 	 */
-@@ -1742,7 +1885,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
- 	 * Tell driver to start streaming provided sufficient buffers
- 	 * are available.
- 	 */
--	if (q->queued_count >= q->min_buffers_needed) {
-+	if (__get_num_ready_buffers(q) >= q->min_buffers_needed) {
- 		ret = v4l_vb2q_enable_media_source(q);
- 		if (ret)
- 			return ret;
-@@ -2264,7 +2407,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, NULL);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2443,7 +2586,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, NULL);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2546,7 +2689,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index ad1e032c3bf5..1df5dd01c0cd 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -23,6 +23,7 @@
- #include <linux/sched.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/sync_file.h>
- 
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
-@@ -178,6 +179,17 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
-+	if ((b->fence_fd != 0 && b->fence_fd != -1) &&
-+	    !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-+		dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
-+		return -EINVAL;
-+	}
-+
-+	if (b->fence_fd < 0 && (b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-+		dprintk(1, "%s: IN_FENCE flag set but no fence_fd\n", opname);
-+		return -EINVAL;
-+	}
-+
- 	return __verify_planes_array(q->bufs[b->index], b);
- }
- 
-@@ -203,9 +215,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->fence_fd = 0;
- 	b->reserved = 0;
- 
-+	b->fence_fd = 0;
-+	if (vb->in_fence)
-+		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
-+	else
-+		b->flags &= ~V4L2_BUF_FLAG_IN_FENCE;
-+
- 	if (q->is_multiplanar) {
- 		/*
- 		 * Fill in plane-related data if userspace provided an array
-@@ -562,6 +579,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
-+	struct dma_fence *in_fence = NULL;
- 	int ret;
- 
- 	if (vb2_fileio_is_active(q)) {
-@@ -570,7 +588,19 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+	if (ret)
-+		return ret;
-+
-+	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-+		in_fence = sync_file_get_fence(b->fence_fd);
-+		if (!in_fence) {
-+			dprintk(1, "failed to get in-fence from fd %d\n",
-+				b->fence_fd);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return vb2_core_qbuf(q, b->index, b, in_fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 8e37e7c5e0f7..79dfb5dfd1fc 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -80,3 +80,36 @@ config VIDEOBUF_DMA_CONTIG
- config VIDEOBUF_DVB
- 	tristate
- 	select VIDEOBUF_GEN
-+
-+# Used by drivers that need Videobuf2 modules
-+config VIDEOBUF2_CORE
-+	select DMA_SHARED_BUFFER
-+	select SYNC_FILE
-+	tristate
-+
-+config VIDEOBUF2_MEMOPS
-+	tristate
-+	select FRAME_VECTOR
-+
-+config VIDEOBUF2_DMA_CONTIG
-+	tristate
-+	depends on HAS_DMA
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	select DMA_SHARED_BUFFER
-+
-+config VIDEOBUF2_VMALLOC
-+	tristate
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	select DMA_SHARED_BUFFER
-+
-+config VIDEOBUF2_DMA_SG
-+	tristate
-+	depends on HAS_DMA
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+
-+config VIDEOBUF2_DVB
-+	tristate
-+	select VIDEOBUF2_CORE
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 46a9e674f7e1..59cd9a6ac168 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -17,6 +17,7 @@
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
- #include <linux/bitops.h>
-+#include <linux/dma-fence.h>
- 
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -255,12 +256,21 @@ struct vb2_buffer {
- 	 * done_entry:		entry on the list that stores all buffers ready
- 	 *			to be dequeued to userspace
- 	 * vb2_plane:		per-plane information; do not change
-+	 * in_fence:		fence received from vb2 client to wait on before
-+	 *			using the buffer (queueing to the driver)
-+	 * fence_cb:		fence callback information
-+	 * fence_cb_lock:	protect callback signal/remove
- 	 */
- 	enum vb2_buffer_state	state;
- 
- 	struct vb2_plane	planes[VB2_MAX_PLANES];
- 	struct list_head	queued_entry;
- 	struct list_head	done_entry;
-+
-+	struct dma_fence	*in_fence;
-+	struct dma_fence_cb	fence_cb;
-+	spinlock_t              fence_cb_lock;
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these buffer-related ops are
-@@ -751,6 +761,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to
-  *		v4l2_ioctl_ops->vidioc_qbuf handler in driver
-+ * @in_fence:	in-fence to wait on before queueing the buffer
-  *
-  * Videobuf2 core helper to implement VIDIOC_QBUF() operation. It is called
-  * internally by VB2 by an API-specific handler, like ``videobuf2-v4l2.h``.
-@@ -765,7 +776,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  *
-  * Return: returns zero on success; an error code otherwise.
+diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
+index 6f929ab..adc61d1 100644
+--- a/arch/sh/boards/mach-ecovec24/setup.c
++++ b/arch/sh/boards/mach-ecovec24/setup.c
+@@ -7,44 +7,47 @@
+  * License.  See the file "COPYING" in the main directory of this archive
+  * for more details.
   */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct dma_fence *in_fence);
+-
+-#include <linux/init.h>
++#include <asm/clock.h>
++#include <asm/heartbeat.h>
++#include <asm/suspend.h>
++#include <cpu/sh7724.h>
++#include <linux/delay.h>
+ #include <linux/device.h>
+-#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/io.h>
++#include <linux/init.h>
++#include <linux/input.h>
++#include <linux/input/sh_keysc.h>
++#include <linux/interrupt.h>
++#include <linux/memblock.h>
++#include <linux/mfd/tmio.h>
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/sh_mmcif.h>
+ #include <linux/mtd/physmap.h>
+-#include <linux/mfd/tmio.h>
+ #include <linux/gpio.h>
+-#include <linux/interrupt.h>
+-#include <linux/io.h>
+-#include <linux/delay.h>
++#include <linux/gpio/machine.h>
++#include <linux/platform_data/gpio_backlight.h>
++#include <linux/platform_data/tsc2007.h>
++#include <linux/platform_device.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/regulator/machine.h>
+-#include <linux/usb/r8a66597.h>
+-#include <linux/usb/renesas_usbhs.h>
+-#include <linux/i2c.h>
+-#include <linux/platform_data/tsc2007.h>
+-#include <linux/spi/spi.h>
+-#include <linux/spi/sh_msiof.h>
+-#include <linux/spi/mmc_spi.h>
+-#include <linux/input.h>
+-#include <linux/input/sh_keysc.h>
+-#include <linux/platform_data/gpio_backlight.h>
+ #include <linux/sh_eth.h>
+ #include <linux/sh_intc.h>
++#include <linux/spi/mmc_spi.h>
++#include <linux/spi/sh_msiof.h>
++#include <linux/spi/spi.h>
++#include <linux/usb/r8a66597.h>
++#include <linux/usb/renesas_usbhs.h>
+ #include <linux/videodev2.h>
+-#include <video/sh_mobile_lcdc.h>
++
++#include <media/drv-intf/renesas-ceu.h>
++#include <media/i2c/mt9t112.h>
++#include <media/i2c/tw9910.h>
++
+ #include <sound/sh_fsi.h>
+ #include <sound/simple_card.h>
+-#include <media/drv-intf/sh_mobile_ceu.h>
+-#include <media/soc_camera.h>
+-#include <media/i2c/tw9910.h>
+-#include <media/i2c/mt9t112.h>
+-#include <asm/heartbeat.h>
+-#include <asm/clock.h>
+-#include <asm/suspend.h>
+-#include <cpu/sh7724.h>
++
++#include <video/sh_mobile_lcdc.h>
  
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+ /*
+  *  Address      Interface        BusWidth
+@@ -81,6 +84,10 @@
+  * amixer set 'Out Mixer Right DAC Right' on
+  */
+ 
++#define CEU_BUFFER_MEMORY_SIZE		(4 << 20)
++static phys_addr_t ceu0_dma_membase;
++static phys_addr_t ceu1_dma_membase;
++
+ /* Heartbeat */
+ static unsigned char led_pos[] = { 0, 1, 2, 3 };
+ 
+@@ -382,8 +389,24 @@ static struct platform_device gpio_backlight_device = {
+ };
+ 
+ /* CEU0 */
+-static struct sh_mobile_ceu_info sh_mobile_ceu0_info = {
+-	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
++static struct ceu_platform_data ceu0_pdata = {
++	.num_subdevs			= 2,
++	.subdevs = {
++		{ /* [0] = mt9t112  */
++			.flags		= 0,
++			.bus_width	= 8,
++			.bus_shift	= 0,
++			.i2c_adapter_id	= 0,
++			.i2c_address	= 0x3c,
++		},
++		{ /* [1] = tw9910  */
++			.flags		= 0,
++			.bus_width	= 8,
++			.bus_shift	= 0,
++			.i2c_adapter_id	= 0,
++			.i2c_address	= 0x45,
++		},
++	},
+ };
+ 
+ static struct resource ceu0_resources[] = {
+@@ -397,24 +420,30 @@ static struct resource ceu0_resources[] = {
+ 		.start  = evt2irq(0x880),
+ 		.flags  = IORESOURCE_IRQ,
+ 	},
+-	[2] = {
+-		/* place holder for contiguous memory */
+-	},
+ };
+ 
+ static struct platform_device ceu0_device = {
+-	.name		= "sh_mobile_ceu",
+-	.id             = 0, /* "ceu0" clock */
++	.name		= "renesas-ceu",
++	.id             = 0, /* ceu.0 */
+ 	.num_resources	= ARRAY_SIZE(ceu0_resources),
+ 	.resource	= ceu0_resources,
+ 	.dev	= {
+-		.platform_data	= &sh_mobile_ceu0_info,
++		.platform_data	= &ceu0_pdata,
+ 	},
+ };
+ 
+ /* CEU1 */
+-static struct sh_mobile_ceu_info sh_mobile_ceu1_info = {
+-	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
++static struct ceu_platform_data ceu1_pdata = {
++	.num_subdevs			= 1,
++	.subdevs = {
++		{ /* [0] = mt9t112  */
++			.flags		= 0,
++			.bus_width	= 8,
++			.bus_shift	= 0,
++			.i2c_adapter_id	= 1,
++			.i2c_address	= 0x3c,
++		},
++	},
+ };
+ 
+ static struct resource ceu1_resources[] = {
+@@ -428,26 +457,71 @@ static struct resource ceu1_resources[] = {
+ 		.start  = evt2irq(0x9e0),
+ 		.flags  = IORESOURCE_IRQ,
+ 	},
+-	[2] = {
+-		/* place holder for contiguous memory */
+-	},
+ };
+ 
+ static struct platform_device ceu1_device = {
+-	.name		= "sh_mobile_ceu",
+-	.id             = 1, /* "ceu1" clock */
++	.name		= "renesas-ceu",
++	.id             = 1, /* ceu.1 */
+ 	.num_resources	= ARRAY_SIZE(ceu1_resources),
+ 	.resource	= ceu1_resources,
+ 	.dev	= {
+-		.platform_data	= &sh_mobile_ceu1_info,
++		.platform_data	= &ceu1_pdata,
++	},
++};
++
++/* Power up/down GPIOs for camera devices and video decoder */
++static struct gpiod_lookup_table tw9910_gpios = {
++	.dev_id		= "0-0045",
++	.table		= {
++		GPIO_LOOKUP("sh7724_pfc", GPIO_PTU2, "pdn", GPIO_ACTIVE_HIGH),
++	},
++};
++
++static struct gpiod_lookup_table mt9t112_0_gpios = {
++	.dev_id		= "0-003c",
++	.table		= {
++		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA3, "standby",
++			    GPIO_ACTIVE_HIGH),
++	},
++};
++
++static struct gpiod_lookup_table mt9t112_1_gpios = {
++	.dev_id		= "1-003c",
++	.table		= {
++		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA4, "standby",
++			    GPIO_ACTIVE_HIGH),
+ 	},
+ };
+ 
+ /* I2C device */
++static struct tw9910_video_info tw9910_info = {
++	.buswidth	= 8,
++	.mpout		= TW9910_MPO_FIELD,
++};
++
++static struct mt9t112_platform_data mt9t112_0_pdata = {
++	.flags = MT9T112_FLAG_PCLK_RISING_EDGE,
++	.divider = { 0x49, 0x6, 0, 6, 0, 9, 9, 6, 0 }, /* for 24MHz */
++};
++
++static struct mt9t112_platform_data mt9t112_1_pdata = {
++	.flags = MT9T112_FLAG_PCLK_RISING_EDGE,
++	.divider = { 0x49, 0x6, 0, 6, 0, 9, 9, 6, 0 }, /* for 24MHz */
++};
++
+ static struct i2c_board_info i2c0_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("da7210", 0x1a),
+ 	},
++	{
++		I2C_BOARD_INFO("tw9910", 0x45),
++		.platform_data = &tw9910_info,
++	},
++	{
++		/* 1st camera */
++		I2C_BOARD_INFO("mt9t112", 0x3c),
++		.platform_data = &mt9t112_0_pdata,
++	},
+ };
+ 
+ static struct i2c_board_info i2c1_devices[] = {
+@@ -457,7 +531,12 @@ static struct i2c_board_info i2c1_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("lis3lv02d", 0x1c),
+ 		.irq = evt2irq(0x620),
+-	}
++	},
++	{
++		/* 2nd camera */
++		I2C_BOARD_INFO("mt9t112", 0x3c),
++		.platform_data = &mt9t112_1_pdata,
++	},
+ };
+ 
+ /* KEYSC */
+@@ -724,115 +803,6 @@ static struct platform_device msiof0_device = {
+ 
+ #endif
+ 
+-/* I2C Video/Camera */
+-static struct i2c_board_info i2c_camera[] = {
+-	{
+-		I2C_BOARD_INFO("tw9910", 0x45),
+-	},
+-	{
+-		/* 1st camera */
+-		I2C_BOARD_INFO("mt9t112", 0x3c),
+-	},
+-	{
+-		/* 2nd camera */
+-		I2C_BOARD_INFO("mt9t112", 0x3c),
+-	},
+-};
+-
+-/* tw9910 */
+-static int tw9910_power(struct device *dev, int mode)
+-{
+-	int val = mode ? 0 : 1;
+-
+-	gpio_set_value(GPIO_PTU2, val);
+-	if (mode)
+-		mdelay(100);
+-
+-	return 0;
+-}
+-
+-static struct tw9910_video_info tw9910_info = {
+-	.buswidth	= SOCAM_DATAWIDTH_8,
+-	.mpout		= TW9910_MPO_FIELD,
+-};
+-
+-static struct soc_camera_link tw9910_link = {
+-	.i2c_adapter_id	= 0,
+-	.bus_id		= 1,
+-	.power		= tw9910_power,
+-	.board_info	= &i2c_camera[0],
+-	.priv		= &tw9910_info,
+-};
+-
+-/* mt9t112 */
+-static int mt9t112_power1(struct device *dev, int mode)
+-{
+-	gpio_set_value(GPIO_PTA3, mode);
+-	if (mode)
+-		mdelay(100);
+-
+-	return 0;
+-}
+-
+-static struct mt9t112_camera_info mt9t112_info1 = {
+-	.flags = MT9T112_FLAG_PCLK_RISING_EDGE | MT9T112_FLAG_DATAWIDTH_8,
+-	.divider = { 0x49, 0x6, 0, 6, 0, 9, 9, 6, 0 }, /* for 24MHz */
+-};
+-
+-static struct soc_camera_link mt9t112_link1 = {
+-	.i2c_adapter_id	= 0,
+-	.power		= mt9t112_power1,
+-	.bus_id		= 0,
+-	.board_info	= &i2c_camera[1],
+-	.priv		= &mt9t112_info1,
+-};
+-
+-static int mt9t112_power2(struct device *dev, int mode)
+-{
+-	gpio_set_value(GPIO_PTA4, mode);
+-	if (mode)
+-		mdelay(100);
+-
+-	return 0;
+-}
+-
+-static struct mt9t112_camera_info mt9t112_info2 = {
+-	.flags = MT9T112_FLAG_PCLK_RISING_EDGE | MT9T112_FLAG_DATAWIDTH_8,
+-	.divider = { 0x49, 0x6, 0, 6, 0, 9, 9, 6, 0 }, /* for 24MHz */
+-};
+-
+-static struct soc_camera_link mt9t112_link2 = {
+-	.i2c_adapter_id	= 1,
+-	.power		= mt9t112_power2,
+-	.bus_id		= 1,
+-	.board_info	= &i2c_camera[2],
+-	.priv		= &mt9t112_info2,
+-};
+-
+-static struct platform_device camera_devices[] = {
+-	{
+-		.name	= "soc-camera-pdrv",
+-		.id	= 0,
+-		.dev	= {
+-			.platform_data = &tw9910_link,
+-		},
+-	},
+-	{
+-		.name	= "soc-camera-pdrv",
+-		.id	= 1,
+-		.dev	= {
+-			.platform_data = &mt9t112_link1,
+-		},
+-	},
+-	{
+-		.name	= "soc-camera-pdrv",
+-		.id	= 2,
+-		.dev	= {
+-			.platform_data = &mt9t112_link2,
+-		},
+-	},
+-};
+-
+ /* FSI */
+ static struct resource fsi_resources[] = {
+ 	[0] = {
+@@ -979,6 +949,11 @@ static struct platform_device sh_mmcif_device = {
+ };
+ #endif
+ 
++static struct platform_device *ecovec_ceu_devices[] __initdata = {
++	&ceu0_device,
++	&ceu1_device,
++};
++
+ static struct platform_device *ecovec_devices[] __initdata = {
+ 	&heartbeat_device,
+ 	&nor_flash_device,
+@@ -988,8 +963,6 @@ static struct platform_device *ecovec_devices[] __initdata = {
+ 	&usbhs_device,
+ 	&lcdc_device,
+ 	&gpio_backlight_device,
+-	&ceu0_device,
+-	&ceu1_device,
+ 	&keysc_device,
+ 	&cn12_power,
+ #if defined(CONFIG_MMC_SDHI) || defined(CONFIG_MMC_SDHI_MODULE)
+@@ -1001,9 +974,6 @@ static struct platform_device *ecovec_devices[] __initdata = {
+ #else
+ 	&msiof0_device,
+ #endif
+-	&camera_devices[0],
+-	&camera_devices[1],
+-	&camera_devices[2],
+ 	&fsi_device,
+ 	&fsi_da7210_device,
+ 	&irda_device,
+@@ -1240,7 +1210,6 @@ static int __init arch_setup(void)
+ 	gpio_request(GPIO_FN_VIO0_CLK, NULL);
+ 	gpio_request(GPIO_FN_VIO0_FLD, NULL);
+ 	gpio_request(GPIO_FN_VIO0_HD,  NULL);
+-	platform_resource_setup_memory(&ceu0_device, "ceu0", 4 << 20);
+ 
+ 	/* enable CEU1 */
+ 	gpio_request(GPIO_FN_VIO1_D7,  NULL);
+@@ -1255,7 +1224,6 @@ static int __init arch_setup(void)
+ 	gpio_request(GPIO_FN_VIO1_HD,  NULL);
+ 	gpio_request(GPIO_FN_VIO1_VD,  NULL);
+ 	gpio_request(GPIO_FN_VIO1_CLK, NULL);
+-	platform_resource_setup_memory(&ceu1_device, "ceu1", 4 << 20);
+ 
+ 	/* enable KEYSC */
+ 	gpio_request(GPIO_FN_KEYOUT5_IN5, NULL);
+@@ -1332,16 +1300,6 @@ static int __init arch_setup(void)
+ 		__raw_writew((__raw_readw(IODRIVEA) & ~0x3000) | 0x2000,
+ 			     IODRIVEA);
+ 
+-	/* enable Video */
+-	gpio_request(GPIO_PTU2, NULL);
+-	gpio_direction_output(GPIO_PTU2, 1);
+-
+-	/* enable Camera */
+-	gpio_request(GPIO_PTA3, NULL);
+-	gpio_request(GPIO_PTA4, NULL);
+-	gpio_direction_output(GPIO_PTA3, 0);
+-	gpio_direction_output(GPIO_PTA4, 0);
+-
+ 	/* enable FSI */
+ 	gpio_request(GPIO_FN_FSIMCKB,    NULL);
+ 	gpio_request(GPIO_FN_FSIIBSD,    NULL);
+@@ -1390,6 +1348,11 @@ static int __init arch_setup(void)
+ 	gpio_request(GPIO_PTU5, NULL);
+ 	gpio_direction_output(GPIO_PTU5, 0);
+ 
++	/* Register gpio lookup tables for cameras and video decoder */
++	gpiod_add_lookup_table(&tw9910_gpios);
++	gpiod_add_lookup_table(&mt9t112_0_gpios);
++	gpiod_add_lookup_table(&mt9t112_1_gpios);
++
+ 	/* enable I2C device */
+ 	i2c_register_board_info(0, i2c0_devices,
+ 				ARRAY_SIZE(i2c0_devices));
+@@ -1431,6 +1394,25 @@ static int __init arch_setup(void)
+ 	gpio_set_value(GPIO_PTG4, 1);
+ #endif
+ 
++	/* Initialize CEU platform devices separately to map memory first */
++	device_initialize(&ecovec_ceu_devices[0]->dev);
++	arch_setup_pdev_archdata(ecovec_ceu_devices[0]);
++	dma_declare_coherent_memory(&ecovec_ceu_devices[0]->dev,
++				    ceu0_dma_membase, ceu0_dma_membase,
++				    ceu0_dma_membase +
++				    CEU_BUFFER_MEMORY_SIZE - 1,
++				    DMA_MEMORY_EXCLUSIVE);
++	platform_device_add(ecovec_ceu_devices[0]);
++
++	device_initialize(&ecovec_ceu_devices[1]->dev);
++	arch_setup_pdev_archdata(ecovec_ceu_devices[1]);
++	dma_declare_coherent_memory(&ecovec_ceu_devices[1]->dev,
++				    ceu1_dma_membase, ceu1_dma_membase,
++				    ceu1_dma_membase +
++				    CEU_BUFFER_MEMORY_SIZE - 1,
++				    DMA_MEMORY_EXCLUSIVE);
++	platform_device_add(ecovec_ceu_devices[1]);
++
+ 	return platform_add_devices(ecovec_devices,
+ 				    ARRAY_SIZE(ecovec_devices));
+ }
+@@ -1443,6 +1425,24 @@ static int __init devices_setup(void)
+ }
+ device_initcall(devices_setup);
+ 
++/* Reserve a portion of memory for CEU 0 and CEU 1 buffers */
++static void __init ecovec_mv_mem_reserve(void)
++{
++	phys_addr_t phys;
++	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
++
++	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	memblock_free(phys, size);
++	memblock_remove(phys, size);
++	ceu0_dma_membase = phys;
++
++	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	memblock_free(phys, size);
++	memblock_remove(phys, size);
++	ceu1_dma_membase = phys;
++}
++
+ static struct sh_machine_vector mv_ecovec __initmv = {
+ 	.mv_name	= "R0P7724 (EcoVec)",
++	.mv_mem_reserve	= ecovec_mv_mem_reserve,
+ };
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c b/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
+index f27c618..3194336 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
+@@ -338,14 +338,14 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_DEV_ID("sh_mobile_sdhi.0", &mstp_clks[HWBLK_SDHI0]),
+ 	CLKDEV_DEV_ID("sh_mobile_sdhi.1", &mstp_clks[HWBLK_SDHI1]),
+ 	CLKDEV_CON_ID("veu1", &mstp_clks[HWBLK_VEU1]),
+-	CLKDEV_DEV_ID("sh_mobile_ceu.1", &mstp_clks[HWBLK_CEU1]),
++	CLKDEV_DEV_ID("renesas-ceu.1", &mstp_clks[HWBLK_CEU1]),
+ 	CLKDEV_CON_ID("beu1", &mstp_clks[HWBLK_BEU1]),
+ 	CLKDEV_CON_ID("2ddmac0", &mstp_clks[HWBLK_2DDMAC]),
+ 	CLKDEV_DEV_ID("sh_fsi.0", &mstp_clks[HWBLK_SPU]),
+ 	CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
+ 	CLKDEV_DEV_ID("sh-vou", &mstp_clks[HWBLK_VOU]),
+ 	CLKDEV_CON_ID("beu0", &mstp_clks[HWBLK_BEU0]),
+-	CLKDEV_DEV_ID("sh_mobile_ceu.0", &mstp_clks[HWBLK_CEU0]),
++	CLKDEV_DEV_ID("renesas-ceu.0", &mstp_clks[HWBLK_CEU0]),
+ 	CLKDEV_CON_ID("veu0", &mstp_clks[HWBLK_VEU0]),
+ 	CLKDEV_CON_ID("vpu0", &mstp_clks[HWBLK_VPU]),
+ 	CLKDEV_DEV_ID("sh_mobile_lcdc_fb.0", &mstp_clks[HWBLK_LCDC]),
 -- 
-2.14.3
+2.7.4
