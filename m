@@ -1,46 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:34449 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753464AbeCQP2j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Mar 2018 11:28:39 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v1 5/5] media: staging: tegra-vde: Correct included header
-Date: Sat, 17 Mar 2018 18:28:15 +0300
-Message-Id: <7654606b88a5b6d74762ad9a4fe96266009dedac.1521300358.git.digetx@gmail.com>
-In-Reply-To: <cover.1521300358.git.digetx@gmail.com>
-References: <cover.1521300358.git.digetx@gmail.com>
-In-Reply-To: <cover.1521300358.git.digetx@gmail.com>
-References: <cover.1521300358.git.digetx@gmail.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:49042 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1428676AbeCBOrT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:19 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
+        joe@perches.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 09/11] media: ov772x: Re-order variables declaration
+Date: Fri,  2 Mar 2018 15:46:41 +0100
+Message-Id: <1520002003-10200-10-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is Open Firmware driver, hence 'of_device.h' should be included
-instead of 'platform_device.h'. Right now OF headers happen to be included
-indirectly and this may break in the future, so let's correct the header.
+Re-order variables declaration to respect 'reverse christmas tree'
+ordering whenever possible.
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/staging/media/tegra-vde/tegra-vde.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/ov772x.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-index 9e542c6288f1..90177a59b97c 100644
---- a/drivers/staging/media/tegra-vde/tegra-vde.c
-+++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-@@ -16,7 +16,7 @@
- #include <linux/iopoll.h>
- #include <linux/miscdevice.h>
- #include <linux/module.h>
--#include <linux/platform_device.h>
-+#include <linux/of_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/reset.h>
- #include <linux/slab.h>
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 4f464ac..1fd6d4b 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1098,8 +1098,8 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *format)
+ {
+-	struct ov772x_priv *priv = to_ov772x(sd);
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
++	struct ov772x_priv *priv = to_ov772x(sd);
+ 	const struct ov772x_color_format *cfmt;
+ 	const struct ov772x_win_size *win;
+ 	int ret;
+@@ -1135,10 +1135,11 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 
+ static int ov772x_video_probe(struct ov772x_priv *priv)
+ {
+-	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
+-	u8                  pid, ver;
+-	const char         *devname;
+-	int		    ret;
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	const char *devname;
++	int ret;
++	u8 pid;
++	u8 ver;
+ 
+ 	ret = ov772x_s_power(&priv->subdev, 1);
+ 	if (ret < 0)
+@@ -1246,9 +1247,9 @@ static const struct v4l2_subdev_ops ov772x_subdev_ops = {
+ static int ov772x_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ {
+-	struct ov772x_priv	*priv;
+-	struct i2c_adapter	*adapter = client->adapter;
+-	int			ret;
++	struct i2c_adapter *adapter = client->adapter;
++	struct ov772x_priv *priv;
++	int ret;
+ 
+ 	if (!client->dev.platform_data) {
+ 		dev_err(&client->dev, "Missing ov772x platform data\n");
 -- 
-2.16.1
+2.7.4
