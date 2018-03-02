@@ -1,600 +1,352 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-75.mail.aliyun.com ([115.124.20.75]:53922 "EHLO
-        out20-75.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750885AbeCICat (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 21:30:49 -0500
-Date: Fri, 9 Mar 2018 10:30:29 +0800
-From: Yong <yong.deng@magewell.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v9 2/2] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20180309103029.cc7047d4edaf1728b225054c@magewell.com>
-In-Reply-To: <20180306151418.5hts7jwgndi7qzsx@paasikivi.fi.intel.com>
-References: <1520302562-1577-1-git-send-email-yong.deng@magewell.com>
-        <20180306151418.5hts7jwgndi7qzsx@paasikivi.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:23238 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163969AbeCBB7M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Mar 2018 20:59:12 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 16/32] rcar-vin: read subdevice format for crop only when needed
+Date: Fri,  2 Mar 2018 02:57:35 +0100
+Message-Id: <20180302015751.25596-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Instead of caching the subdevice format each time the video device
+format is set read it directly when it's needed. As it turns out the
+format is only needed when figuring out the max rectangle for cropping.
 
-On Tue, 6 Mar 2018 17:14:18 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
+This simplifies the code and makes it clearer what the source format is
+used for.
 
-> Hi Yong,
-> 
-> Thanks for the patchset; please see my comments below.
-> 
-> On Tue, Mar 06, 2018 at 10:16:02AM +0800, Yong Deng wrote:
-> > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> > interface and CSI1 is used for parallel interface. This is not
-> > documented in datasheet but by test and guess.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 158 ++++++++++++++--------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  12 ---
+ 2 files changed, 80 insertions(+), 90 deletions(-)
 
-...
-
-> > +
-> > +static const u32 supported_pixformats[] = {
-> > +	V4L2_PIX_FMT_SBGGR8,
-> > +	V4L2_PIX_FMT_SGBRG8,
-> > +	V4L2_PIX_FMT_SGRBG8,
-> > +	V4L2_PIX_FMT_SRGGB8,
-> > +	V4L2_PIX_FMT_SBGGR10,
-> > +	V4L2_PIX_FMT_SGBRG10,
-> > +	V4L2_PIX_FMT_SGRBG10,
-> > +	V4L2_PIX_FMT_SRGGB10,
-> > +	V4L2_PIX_FMT_SBGGR12,
-> > +	V4L2_PIX_FMT_SGBRG12,
-> > +	V4L2_PIX_FMT_SGRBG12,
-> > +	V4L2_PIX_FMT_SRGGB12,
-> > +	V4L2_PIX_FMT_YUYV,
-> > +	V4L2_PIX_FMT_YVYU,
-> > +	V4L2_PIX_FMT_UYVY,
-> > +	V4L2_PIX_FMT_VYUY,
-> > +	V4L2_PIX_FMT_HM12,
-> > +	V4L2_PIX_FMT_NV12,
-> > +	V4L2_PIX_FMT_NV21,
-> > +	V4L2_PIX_FMT_YUV420,
-> > +	V4L2_PIX_FMT_YVU420,
-> > +	V4L2_PIX_FMT_NV16,
-> > +	V4L2_PIX_FMT_NV61,
-> > +	V4L2_PIX_FMT_YUV422P,
-> > +};
-> 
-> How about moving this where it's actually used? You'd also get rid of the
-> function to obtain this list.
-
-I think which formats are supported is determined by hardware (CSI).
-And different SoCs may support different formats. The distinction will
-be made in sun6i-csi.c.
-
-> 
-> > +
-> > +static inline struct sun6i_csi_dev *sun6i_csi_to_dev(struct sun6i_csi *csi)
-> > +{
-> > +	return container_of(csi, struct sun6i_csi_dev, csi);
-> > +}
-> > +
-> > +int sun6i_csi_get_supported_pixformats(struct sun6i_csi *csi,
-> > +				       const u32 **pixformats)
-> > +{
-> > +	if (pixformats != NULL)
-> > +		*pixformats = supported_pixformats;
-> > +
-> > +	return ARRAY_SIZE(supported_pixformats);
-> > +}
-> > +
-> > +/* TODO add 10&12 bit YUV, RGB support */
-> > +bool sun6i_csi_is_format_support(struct sun6i_csi *csi,
-> 
-> s/support/supported/
-
-OK.
-
-> 
-> > +				 u32 pixformat, u32 mbus_code)
-> > +{
-> > +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> > +
-> > +	/*
-> > +	 * Some video receivers have the ability to be compatible with
-> > +	 * 8bit and 16bit bus width.
-> > +	 * Identify the media bus format from device tree.
-> > +	 */
-> > +	if ((sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_PARALLEL
-> > +	      || sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_BT656)
-> > +	     && sdev->csi.v4l2_ep.bus.parallel.bus_width == 16) {
-> > +		switch (pixformat) {
-> > +		case V4L2_PIX_FMT_HM12:
-> > +		case V4L2_PIX_FMT_NV12:
-> > +		case V4L2_PIX_FMT_NV21:
-> > +		case V4L2_PIX_FMT_NV16:
-> > +		case V4L2_PIX_FMT_NV61:
-> > +		case V4L2_PIX_FMT_YUV420:
-> > +		case V4L2_PIX_FMT_YVU420:
-> > +		case V4L2_PIX_FMT_YUV422P:
-> > +			switch (mbus_code) {
-> > +			case MEDIA_BUS_FMT_UYVY8_1X16:
-> > +			case MEDIA_BUS_FMT_VYUY8_1X16:
-> > +			case MEDIA_BUS_FMT_YUYV8_1X16:
-> > +			case MEDIA_BUS_FMT_YVYU8_1X16:
-> > +				return true;
-> > +			default:
-> > +				dev_dbg(sdev->dev, "Unsupported mbus code: 0x%x\n",
-> > +					mbus_code);
-> > +				break;
-> > +			}
-> > +			break;
-> > +		default:
-> > +			dev_dbg(sdev->dev, "Unsupported pixformat: 0x%x\n",
-> > +				pixformat);
-> > +			break;
-> > +		}
-> > +		return false;
-> > +	}
-> > +
-> > +	switch (pixformat) {
-> > +	case V4L2_PIX_FMT_SBGGR8:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SBGGR8_1X8);
-> > +	case V4L2_PIX_FMT_SGBRG8:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SGBRG8_1X8);
-> > +	case V4L2_PIX_FMT_SGRBG8:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SGRBG8_1X8);
-> > +	case V4L2_PIX_FMT_SRGGB8:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SRGGB8_1X8);
-> > +	case V4L2_PIX_FMT_SBGGR10:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SBGGR10_1X10);
-> > +	case V4L2_PIX_FMT_SGBRG10:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SGBRG10_1X10);
-> > +	case V4L2_PIX_FMT_SGRBG10:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SGRBG10_1X10);
-> > +	case V4L2_PIX_FMT_SRGGB10:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SRGGB10_1X10);
-> > +	case V4L2_PIX_FMT_SBGGR12:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SBGGR12_1X12);
-> > +	case V4L2_PIX_FMT_SGBRG12:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SGBRG12_1X12);
-> > +	case V4L2_PIX_FMT_SGRBG12:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SGRBG12_1X12);
-> > +	case V4L2_PIX_FMT_SRGGB12:
-> > +		return (mbus_code == MEDIA_BUS_FMT_SRGGB12_1X12);
-> > +
-> > +	case V4L2_PIX_FMT_YUYV:
-> > +		return (mbus_code == MEDIA_BUS_FMT_YUYV8_2X8);
-> > +	case V4L2_PIX_FMT_YVYU:
-> > +		return (mbus_code == MEDIA_BUS_FMT_YVYU8_2X8);
-> > +	case V4L2_PIX_FMT_UYVY:
-> > +		return (mbus_code == MEDIA_BUS_FMT_UYVY8_2X8);
-> > +	case V4L2_PIX_FMT_VYUY:
-> > +		return (mbus_code == MEDIA_BUS_FMT_VYUY8_2X8);
-> > +
-> > +	case V4L2_PIX_FMT_HM12:
-> > +	case V4L2_PIX_FMT_NV12:
-> > +	case V4L2_PIX_FMT_NV21:
-> > +	case V4L2_PIX_FMT_NV16:
-> > +	case V4L2_PIX_FMT_NV61:
-> > +	case V4L2_PIX_FMT_YUV420:
-> > +	case V4L2_PIX_FMT_YVU420:
-> > +	case V4L2_PIX_FMT_YUV422P:
-> > +		switch (mbus_code) {
-> > +		case MEDIA_BUS_FMT_UYVY8_2X8:
-> > +		case MEDIA_BUS_FMT_VYUY8_2X8:
-> > +		case MEDIA_BUS_FMT_YUYV8_2X8:
-> > +		case MEDIA_BUS_FMT_YVYU8_2X8:
-> > +			return true;
-> > +		default:
-> > +			dev_dbg(sdev->dev, "Unsupported mbus code: 0x%x\n",
-> > +				mbus_code);
-> > +			break;
-> > +		}
-> > +		break;
-> > +	default:
-> > +		dev_dbg(sdev->dev, "Unsupported pixformat: 0x%x\n", pixformat);
-> > +		break;
-> > +	}
-> > +
-> > +	return false;
-> > +}
-> > +
-> > +int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable)
-> 
-> How about switching to runtime PM? I do admit there have been reasons why
-> subdevs used the s_power callback but CSI-2 receivers should have hardly
-> done that for a long, long time.
-
-I don't understand you very much. But this works well and have been tested.
-And I am not familiar with runtime PM.
-
-> 
-> > +{
-> > +	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> > +	struct regmap *regmap = sdev->regmap;
-> > +	int ret;
-> > +
-> > +	if (!enable) {
-> > +		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
-> > +
-> > +		clk_disable_unprepare(sdev->clk_ram);
-> > +		clk_disable_unprepare(sdev->clk_mod);
-> > +		reset_control_assert(sdev->rstc_bus);
-> > +		return 0;
-> > +	}
-> > +
-> > +	ret = clk_prepare_enable(sdev->clk_mod);
-> > +	if (ret) {
-> > +		dev_err(sdev->dev, "Enable csi clk err %d\n", ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	ret = clk_prepare_enable(sdev->clk_ram);
-> > +	if (ret) {
-> > +		dev_err(sdev->dev, "Enable clk_dram_csi clk err %d\n", ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	ret = reset_control_deassert(sdev->rstc_bus);
-> > +	if (ret) {
-> > +		dev_err(sdev->dev, "reset err %d\n", ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, CSI_EN_CSI_EN);
-> > +
-> > +	return 0;
-> > +}
-> > +
-
-...
-
-> > +
-> > +/* -----------------------------------------------------------------------------
-> > + * Media Controller and V4L2
-> > + */
-> > +static int sun6i_csi_link_entity(struct sun6i_csi *csi,
-> > +				 struct media_entity *entity)
-> > +{
-> > +	struct media_entity *sink;
-> > +	struct media_pad *sink_pad;
-> > +	int ret;
-> > +	int i;
-> > +
-> > +	if (!entity->num_pads) {
-> > +		dev_err(csi->dev, "%s: invalid entity\n", entity->name);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	for (i = 0; i < entity->num_pads; i++) {
-> > +		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-> > +			break;
-> 
-> I think you're looking for a pad corresponding to an fwnode. Could you use
-> media_entity_get_fwnode_pad()?
-
-OK.
-
-> 
-> > +	}
-> > +
-> > +	if (i == entity->num_pads) {
-> > +		dev_err(csi->dev, "%s: no source pad in external entity %s\n",
-> > +			__func__, entity->name);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	sink = &csi->video.vdev.entity;
-> > +	sink_pad = &csi->video.pad;
-> > +
-> > +	dev_dbg(csi->dev, "creating %s:%u -> %s:%u link\n",
-> > +		entity->name, i, sink->name, sink_pad->index);
-> > +	ret = media_create_pad_link(entity, i, sink, sink_pad->index,
-> > +				    MEDIA_LNK_FL_ENABLED);
-> > +	if (ret < 0) {
-> > +		dev_err(csi->dev, "failed to create %s:%u -> %s:%u link\n",
-> > +			entity->name, i, sink->name, sink_pad->index);
-> > +		return ret;
-> > +	}
-> > +
-> > +	return media_entity_call(sink, link_setup, sink_pad, &entity->pads[i],
-> > +				 MEDIA_LNK_FL_ENABLED);
-> 
-> In general there's no need to call the link setup function this way outside
-> the MC framework. Is there a reason for doing so here?
-
-Do you mean use media_entity_setup_link instead? 
-
-> 
-> > +}
-> > +
-> > +static int sun6i_subdev_notify_complete(struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct sun6i_csi *csi = container_of(notifier, struct sun6i_csi,
-> > +					     notifier);
-> > +	struct v4l2_device *v4l2_dev = &csi->v4l2_dev;
-> > +	struct v4l2_subdev *sd;
-> > +	int ret;
-> > +
-> > +	dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
-> > +
-> > +	if (notifier->num_subdevs != 1)
-> > +		return -EINVAL;
-> > +
-> > +	sd = list_first_entry(&v4l2_dev->subdevs, struct v4l2_subdev, list);
-> > +	if (sd == NULL)
-> > +		return -EINVAL;
-> > +
-> > +	ret = sun6i_csi_link_entity(csi, &sd->entity);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = v4l2_device_register_subdev_nodes(&csi->v4l2_dev);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	return media_device_register(&csi->media_dev);
-> > +}
-> > +
-> > +static const struct v4l2_async_notifier_operations sun6i_csi_async_ops = {
-> > +	.complete = sun6i_subdev_notify_complete,
-> > +};
-> > +
-
-...
-
-> > +
-> > +static struct vb2_ops sun6i_csi_vb2_ops = {
-> 
-> const
-
-OK.
-
-> 
-> > +	.queue_setup		= sun6i_video_queue_setup,
-> > +	.wait_prepare		= vb2_ops_wait_prepare,
-> > +	.wait_finish		= vb2_ops_wait_finish,
-> > +	.buf_prepare		= sun6i_video_buffer_prepare,
-> > +	.start_streaming	= sun6i_video_start_streaming,
-> > +	.stop_streaming		= sun6i_video_stop_streaming,
-> > +	.buf_queue		= sun6i_video_buffer_queue,
-> > +};
-> > +
-> > +static int vidioc_querycap(struct file *file, void *priv,
-> > +				struct v4l2_capability *cap)
-> > +{
-> > +	struct sun6i_video *video = video_drvdata(file);
-> > +
-> > +	strlcpy(cap->driver, "sun6i-video", sizeof(cap->driver));
-> > +	strlcpy(cap->card, video->vdev.name, sizeof(cap->card));
-> > +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> > +		 video->csi->dev->of_node->name);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-> > +				   struct v4l2_fmtdesc *f)
-> > +{
-> > +	struct sun6i_video *video = video_drvdata(file);
-> > +	u32 index = f->index;
-> > +
-> > +	if (index >= video->num_formats)
-> > +		return -EINVAL;
-> > +
-> > +	f->pixelformat = video->formats[index].pixformat;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> > +				struct v4l2_format *fmt)
-> > +{
-> > +	struct sun6i_video *video = video_drvdata(file);
-> > +
-> > +	*fmt = video->fmt;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +
-> > +static int sun6i_video_try_fmt_source(struct sun6i_video *video,
-> > +				      u32 which,
-> > +				      struct v4l2_pix_format *pixfmt,
-> > +				      struct sun6i_csi_format *csi_fmt)
-> > +{
-> > +	struct v4l2_subdev *subdev;
-> > +	struct v4l2_subdev_pad_config *pad_cfg;
-> > +	struct v4l2_subdev_format format = {
-> > +		.which = which,
-> > +	};
-> > +	u32 pad;
-> > +	int ret;
-> > +
-> > +	subdev = sun6i_video_remote_subdev(video, &pad);
-> > +	if (subdev == NULL)
-> > +		return -ENXIO;
-> > +
-> > +	v4l2_fill_mbus_format(&format.format, pixfmt, csi_fmt->mbus_code);
-> > +
-> > +	pad_cfg = v4l2_subdev_alloc_pad_config(subdev);
-> > +	if (pad_cfg == NULL)
-> > +		return -ENOMEM;
-> > +
-> > +	format.pad = pad;
-> > +	ret = v4l2_subdev_call(subdev, pad, set_fmt, pad_cfg, &format);
-> > +	if (ret)
-> > +		goto done;
-> > +
-> > +	v4l2_fill_pix_format(pixfmt, &format.format);
-> > +
-> > +done:
-> > +	v4l2_subdev_free_pad_config(pad_cfg);
-> > +	return ret;
-> > +}
-> > +
-> > +static int sun6i_video_try_fmt(struct sun6i_video *video, u32 which,
-> > +			       struct v4l2_format *f,
-> > +			       struct sun6i_csi_format **current_fmt)
-> > +{
-> > +	struct sun6i_csi_format *csi_fmt;
-> > +	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
-> > +	int ret;
-> > +
-> > +	csi_fmt = find_format_by_pixformat(video, pixfmt->pixelformat);
-> > +	if (csi_fmt == NULL) {
-> > +		if (video->num_formats > 0) {
-> > +			csi_fmt = &video->formats[0];
-> > +			pixfmt->pixelformat = csi_fmt->pixformat;
-> > +		} else
-> > +			return -EINVAL;
-> > +	}
-> > +
-> > +	ret = sun6i_video_try_fmt_source(video, which, pixfmt, csi_fmt);
-> > +	if (ret)
-> > +		return ret;
-> 
-> As the rest of the driver supports the media controller, I'd refrain from
-> checking the format on the external sub-device here. That format may change
-> later on without the knowledge of the sun6i-csi driver. It may, for
-> instance, be changed by the user.
-> 
-> Instead, you should have a link_validate op in the media_entity_operations
-> struct set for your sub-device and the video node. That guarantees that the
-> links are properly validated before streaming starts.
-> 
-> Typically MC-centric drivers only query format information and sometimes
-> controls from the external devices.
-
-If so, the user will can't get a hint when setting a unsupported format 
-but get error only when starting the stream. This will make it impossible
-for users to find out where the problem is.
-
-I think if the user want to change the format of sub-device through 
-sub-device node, he should do it before setting the format of v4l2 device.
-
-> 
-> > +
-> > +	pixfmt->bytesperline = (pixfmt->width * csi_fmt->bpp) >> 3;
-> 
-> Is there line alignment or something for the device?
-
-I am not sure. This is not documented.
-
-> 
-> > +	pixfmt->sizeimage = (pixfmt->width * csi_fmt->bpp * pixfmt->height) / 8;
-> 
-> pixfmt->bytesperline * pixfmt->height
-
-OK.
-
-> 
-> 
-> > +
-> > +	if (current_fmt)
-> > +		*current_fmt = csi_fmt;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int sun6i_video_set_fmt(struct sun6i_video *video, struct v4l2_format *f)
-> > +{
-> > +	struct sun6i_csi_format *current_fmt;
-> > +	int ret;
-> > +
-> > +	ret = sun6i_video_try_fmt(video, V4L2_SUBDEV_FORMAT_ACTIVE, f,
-> > +				  &current_fmt);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	video->fmt = *f;
-> > +	video->current_fmt = current_fmt;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> > +				struct v4l2_format *f)
-> > +{
-> > +	struct sun6i_video *video = video_drvdata(file);
-> > +
-> > +	if (vb2_is_busy(&video->vb2_vidq))
-> > +		return -EBUSY;
-> > +
-> > +	return sun6i_video_set_fmt(video, f);
-> > +}
-> > +
-> > +static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> > +				  struct v4l2_format *f)
-> > +{
-> > +	struct sun6i_video *video = video_drvdata(file);
-> > +
-> > +	return sun6i_video_try_fmt(video, V4L2_SUBDEV_FORMAT_TRY, f, NULL);
-> > +}
-> > +
-> > +static int vidioc_enum_input(struct file *file, void *fh,
-> > +			 struct v4l2_input *inp)
-> > +{
-> > +	struct sun6i_video *video = video_drvdata(file);
-> > +	struct v4l2_subdev *subdev;
-> > +	u32 pad;
-> > +	int ret;
-> > +
-> > +	if (inp->index != 0)
-> > +		return -EINVAL;
-> > +
-> > +	subdev = sun6i_video_remote_subdev(video, &pad);
-> > +	if (subdev == NULL)
-> > +		return -ENXIO;
-> > +
-> > +	ret = v4l2_subdev_call(subdev, video, g_input_status, &inp->status);
-> > +	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> > +		return ret;
-> > +
-> > +	inp->type = V4L2_INPUT_TYPE_CAMERA;
-> 
-> What does the input status mean for a camera? How about removing it?
-
-Set it to zero?
-
-> 
-> > +
-> > +	inp->capabilities = 0;
-> > +	inp->std = 0;
-> > +	if (v4l2_subdev_has_op(subdev, pad, dv_timings_cap))
-> > +		inp->capabilities = V4L2_IN_CAP_DV_TIMINGS;
-> > +
-> > +	strlcpy(inp->name, subdev->name, sizeof(inp->name));
-> > +
-> > +	return 0;
-> > +}
-
-...
-
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
-
-
-Thanks,
-Yong
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 3290e603b44cdf3a..55640c6b2a1200ca 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -144,67 +144,62 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
+  * V4L2
+  */
+ 
+-static void rvin_reset_crop_compose(struct rvin_dev *vin)
++static int rvin_get_vin_format_from_source(struct rvin_dev *vin,
++					   struct v4l2_pix_format *pix)
+ {
++	struct v4l2_subdev_format fmt = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++		.pad = vin->digital->source_pad,
++	};
++	int ret;
++
++	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
++	if (ret)
++		return ret;
++
++	v4l2_fill_pix_format(pix, &fmt.format);
++
++	return rvin_format_align(vin, pix);
++}
++
++static int rvin_reset_format(struct rvin_dev *vin)
++{
++	int ret;
++
++	ret = rvin_get_vin_format_from_source(vin, &vin->format);
++	if (ret)
++		return ret;
++
+ 	vin->crop.top = vin->crop.left = 0;
+-	vin->crop.width = vin->source.width;
+-	vin->crop.height = vin->source.height;
++	vin->crop.width = vin->format.width;
++	vin->crop.height = vin->format.height;
+ 
+ 	vin->compose.top = vin->compose.left = 0;
+ 	vin->compose.width = vin->format.width;
+ 	vin->compose.height = vin->format.height;
+-}
+-
+-static int rvin_reset_format(struct rvin_dev *vin)
+-{
+-	struct v4l2_subdev_format fmt = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-	struct v4l2_mbus_framefmt *mf = &fmt.format;
+-	int ret;
+-
+-	fmt.pad = vin->digital->source_pad;
+-
+-	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
+-	if (ret)
+-		return ret;
+-
+-	vin->format.width	= mf->width;
+-	vin->format.height	= mf->height;
+-	vin->format.colorspace	= mf->colorspace;
+-	vin->format.field	= mf->field;
+-
+-	rvin_reset_crop_compose(vin);
+-
+-	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+-	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
+ 
+ 	return 0;
+ }
+ 
+-static int __rvin_try_format_source(struct rvin_dev *vin,
+-				    u32 which,
+-				    struct v4l2_pix_format *pix,
+-				    struct rvin_source_fmt *source)
++static int rvin_try_format(struct rvin_dev *vin, u32 which,
++			   struct v4l2_pix_format *pix,
++			   struct v4l2_rect *crop, struct v4l2_rect *compose)
+ {
+-	struct v4l2_subdev *sd;
++	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	struct v4l2_subdev_pad_config *pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = which,
++		.pad = vin->digital->source_pad,
+ 	};
+ 	enum v4l2_field field;
+ 	u32 width, height;
+ 	int ret;
+ 
+-	sd = vin_to_source(vin);
+-
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+-
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+ 		return -ENOMEM;
+ 
+-	format.pad = vin->digital->source_pad;
++	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+ 
+ 	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
+@@ -217,34 +212,34 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	v4l2_fill_pix_format(pix, &format.format);
+ 
+-	source->width = pix->width;
+-	source->height = pix->height;
++	crop->top = crop->left = 0;
++	crop->width = pix->width;
++	crop->height = pix->height;
++
++	/*
++	 * If source is ALTERNATE the driver will use the VIN hardware
++	 * to INTERLACE it. The crop height then needs to be doubled.
++	 */
++	if (pix->field == V4L2_FIELD_ALTERNATE)
++		crop->height *= 2;
++
++	if (field != V4L2_FIELD_ANY)
++		pix->field = field;
+ 
+-	pix->field = field;
+ 	pix->width = width;
+ 	pix->height = height;
+ 
+-	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+-		source->height);
++	ret = rvin_format_align(vin, pix);
++	if (ret)
++		return ret;
+ 
++	compose->top = compose->left = 0;
++	compose->width = pix->width;
++	compose->height = pix->height;
+ done:
+ 	v4l2_subdev_free_pad_config(pad_cfg);
+-	return ret;
+-}
+ 
+-static int __rvin_try_format(struct rvin_dev *vin,
+-			     u32 which,
+-			     struct v4l2_pix_format *pix,
+-			     struct rvin_source_fmt *source)
+-{
+-	int ret;
+-
+-	/* Limit to source capabilities */
+-	ret = __rvin_try_format_source(vin, which, pix, source);
+-	if (ret)
+-		return ret;
+-
+-	return rvin_format_align(vin, pix);
++	return 0;
+ }
+ 
+ static int rvin_querycap(struct file *file, void *priv,
+@@ -263,33 +258,30 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct rvin_source_fmt source;
++	struct v4l2_rect crop, compose;
+ 
+-	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix,
+-				 &source);
++	return rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix, &crop,
++			       &compose);
+ }
+ 
+ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 			      struct v4l2_format *f)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct rvin_source_fmt source;
++	struct v4l2_rect crop, compose;
+ 	int ret;
+ 
+ 	if (vb2_is_busy(&vin->queue))
+ 		return -EBUSY;
+ 
+-	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
+-				&source);
++	ret = rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
++			      &crop, &compose);
+ 	if (ret)
+ 		return ret;
+ 
+-	vin->source.width = source.width;
+-	vin->source.height = source.height;
+-
+ 	vin->format = f->fmt.pix;
+-
+-	rvin_reset_crop_compose(vin);
++	vin->crop = crop;
++	vin->compose = compose;
+ 
+ 	return 0;
+ }
+@@ -319,6 +311,8 @@ static int rvin_g_selection(struct file *file, void *fh,
+ 			    struct v4l2_selection *s)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_pix_format pix;
++	int ret;
+ 
+ 	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -326,9 +320,12 @@ static int rvin_g_selection(struct file *file, void *fh,
+ 	switch (s->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 	case V4L2_SEL_TGT_CROP_DEFAULT:
++		ret = rvin_get_vin_format_from_source(vin, &pix);
++		if (ret)
++			return ret;
+ 		s->r.left = s->r.top = 0;
+-		s->r.width = vin->source.width;
+-		s->r.height = vin->source.height;
++		s->r.width = pix.width;
++		s->r.height = pix.height;
+ 		break;
+ 	case V4L2_SEL_TGT_CROP:
+ 		s->r = vin->crop;
+@@ -353,6 +350,7 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 			    struct v4l2_selection *s)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_pix_format pix;
+ 	const struct rvin_video_format *fmt;
+ 	struct v4l2_rect r = s->r;
+ 	struct v4l2_rect max_rect;
+@@ -360,6 +358,7 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 		.width = 6,
+ 		.height = 2,
+ 	};
++	int ret;
+ 
+ 	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -369,22 +368,25 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 	switch (s->target) {
+ 	case V4L2_SEL_TGT_CROP:
+ 		/* Can't crop outside of source input */
++		ret = rvin_get_vin_format_from_source(vin, &pix);
++		if (ret)
++			return ret;
+ 		max_rect.top = max_rect.left = 0;
+-		max_rect.width = vin->source.width;
+-		max_rect.height = vin->source.height;
++		max_rect.width = pix.width;
++		max_rect.height = pix.height;
+ 		v4l2_rect_map_inside(&r, &max_rect);
+ 
+-		v4l_bound_align_image(&r.width, 2, vin->source.width, 1,
+-				      &r.height, 4, vin->source.height, 2, 0);
++		v4l_bound_align_image(&r.width, 2, pix.width, 1,
++				      &r.height, 4, pix.height, 2, 0);
+ 
+-		r.top  = clamp_t(s32, r.top, 0, vin->source.height - r.height);
+-		r.left = clamp_t(s32, r.left, 0, vin->source.width - r.width);
++		r.top  = clamp_t(s32, r.top, 0, pix.height - r.height);
++		r.left = clamp_t(s32, r.left, 0, pix.width - r.width);
+ 
+ 		vin->crop = s->r = r;
+ 
+ 		vin_dbg(vin, "Cropped %dx%d@%d:%d of %dx%d\n",
+ 			r.width, r.height, r.left, r.top,
+-			vin->source.width, vin->source.height);
++			pix.width, pix.height);
+ 		break;
+ 	case V4L2_SEL_TGT_COMPOSE:
+ 		/* Make sure compose rect fits inside output format */
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 8daba9db0e927a49..39051da31650bd79 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -48,16 +48,6 @@ enum rvin_dma_state {
+ 	STOPPING,
+ };
+ 
+-/**
+- * struct rvin_source_fmt - Source information
+- * @width:	Width from source
+- * @height:	Height from source
+- */
+-struct rvin_source_fmt {
+-	u32 width;
+-	u32 height;
+-};
+-
+ /**
+  * struct rvin_video_format - Data format stored in memory
+  * @fourcc:	Pixelformat
+@@ -124,7 +114,6 @@ struct rvin_info {
+  * @sequence:		V4L2 buffers sequence number
+  * @state:		keeps track of operation state
+  *
+- * @source:		active format from the video source
+  * @format:		active V4L2 pixel format
+  *
+  * @crop:		active cropping
+@@ -151,7 +140,6 @@ struct rvin_dev {
+ 	unsigned int sequence;
+ 	enum rvin_dma_state state;
+ 
+-	struct rvin_source_fmt source;
+ 	struct v4l2_pix_format format;
+ 
+ 	struct v4l2_rect crop;
+-- 
+2.16.2
