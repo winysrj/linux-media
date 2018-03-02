@@ -1,108 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24636 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1164146AbeCBB7P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:15 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 19/32] rcar-vin: add function to manipulate Gen3 chsel value
-Date: Fri,  2 Mar 2018 02:57:38 +0100
-Message-Id: <20180302015751.25596-20-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60963 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936660AbeCBQgQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 11:36:16 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        sakari.ailus@iki.fi, mchehab@kernel.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/5] Renesas CEU: SH7724 ECOVEC + Aptina mt9t112
+Date: Fri,  2 Mar 2018 17:35:36 +0100
+Message-Id: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-feature of this register is that it's only present in the VIN0 and VIN4
-instances. The register in VIN0 controls the routing for VIN0-3 and the
-register in VIN4 controls routing for VIN4-7.
+Hello,
+   now that CEU has been picked up for inclusion in v4.17, we can start moving
+users of old sh_mobile_ceu_camera driver to use the newly introduced one.
 
-To be able to control routing from a media device this function is need
-to control runtime PM for the subgroup master (VIN0 and VIN4). The
-subgroup master must be switched on before the register is manipulated,
-once the operation is complete it's safe to switch the master off and
-the new routing will still be in effect.
+Migo-R has been first, now it's SH7724 ECOVEC board turn.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 38 ++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
- 2 files changed, 40 insertions(+)
+ECOVEC has a camera board with two MT9T112 image sensor and one TW9910 video
+decoder input. This series moves the mt9t112 driver away from soc_camera
+framework and remove dependencies on it in mach-ecovec board code.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 57bb288b3ca67a60..3fb9c325285c5a5a 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -16,6 +16,7 @@
- 
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
- 
- #include <media/videobuf2-dma-contig.h>
- 
-@@ -1228,3 +1229,40 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
- 
- 	return ret;
- }
-+
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CHSEL manipulation
-+ */
-+
-+/*
-+ * There is no need to have locking around changing the routing
-+ * as it's only possible to do so when no VIN in the group is
-+ * streaming so nothing can race with the VNMC register.
-+ */
-+int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
-+{
-+	u32 ifmd, vnmc;
-+	int ret;
-+
-+	ret = pm_runtime_get_sync(vin->dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Make register writes take effect immediately. */
-+	vnmc = rvin_read(vin, VNMC_REG);
-+	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
-+
-+	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-+		VNCSI_IFMD_CSI_CHSEL(chsel);
-+
-+	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-+
-+	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-+
-+	/* Restore VNMC. */
-+	rvin_write(vin, vnmc, VNMC_REG);
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return ret;
-+}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index b3802651eaa78ea9..666308946eb4994d 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -165,4 +165,6 @@ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- /* Cropping, composing and scaling */
- void rvin_crop_scale_comp(struct rvin_dev *vin);
- 
-+int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
-+
- #endif
--- 
-2.16.2
+As per Migo-R, memory for CEU is reserved using memblocks APIs and declared
+as DMA-capable in board code, power up/down routines have been removed from
+board code, and GPIOs lookup table registered for sensor drivers.
+
+As in the previous series, still no code has been removed or changed in
+drivers/media/i2c/soc_camera/ until we do not remove all dependencies on it
+in all board files.
+
+Hans, since you asked me to add frame rate interval support for ov772x I expect
+to receive the same request for mt9t112. Unfortunately I do not have access to
+register level documentation, nor can perform any testing as I don't have the
+camera modules. For the same reason I cannot run any v4l2-compliance test on
+that driver, but just make sure the ECOVEC boots cleanly with the new board
+file. I'm in favour of moving the driver to staging if you think that's the case.
+
+Series based on media-tree master, and as per Migo-R I would ask SH arch/
+changes to go through media tree as SH maintainers are un-responsive.
+
+Thanks
+  j
+
+Jacopo Mondi (5):
+  media: i2c: Copy mt9t112 soc_camera sensor driver
+  media: i2c: mt9t112: Remove soc_camera dependencies
+  media: i2c: mt9t112: Fix code style issues
+  arch: sh: ecovec: Use new renesas-ceu camera driver
+  media: MAINTAINERS: Add entry for Aptina MT9T112
+
+ MAINTAINERS                            |    7 +
+ arch/sh/boards/mach-ecovec24/setup.c   |  338 +++++-----
+ arch/sh/kernel/cpu/sh4a/clock-sh7724.c |    4 +-
+ drivers/media/i2c/Kconfig              |   11 +
+ drivers/media/i2c/Makefile             |    1 +
+ drivers/media/i2c/mt9t112.c            | 1136 ++++++++++++++++++++++++++++++++
+ include/media/i2c/mt9t112.h            |   17 +-
+ 7 files changed, 1333 insertions(+), 181 deletions(-)
+ create mode 100644 drivers/media/i2c/mt9t112.c
+
+--
+2.7.4
