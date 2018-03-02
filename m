@@ -1,203 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59362 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932937AbeCNDdM (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:44571 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1164152AbeCBB7c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 23:33:12 -0400
-Subject: Re: [PATCH v8 13/13] [media] v4l: Document explicit synchronization
- behavior
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180309174920.22373-1-gustavo@padovan.org>
- <20180309174920.22373-14-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ae50fe46-4d0a-fcf4-7c95-17b5b9a0d8a7@xs4all.nl>
-Date: Tue, 13 Mar 2018 20:33:03 -0700
+        Thu, 1 Mar 2018 20:59:32 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 30/32] rcar-vin: enable support for r8a7795
+Date: Fri,  2 Mar 2018 02:57:49 +0100
+Message-Id: <20180302015751.25596-31-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20180309174920.22373-14-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/09/2018 09:49 AM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Add section to VIDIOC_QBUF and VIDIOC_QUERY_BUF about it
-> 
-> v6:	- Close some gaps in the docs (Hans)
-> 
-> v5:
-> 	- Remove V4L2_CAP_ORDERED
-> 	- Add doc about V4L2_FMT_FLAG_UNORDERED
-> 
-> v4:
-> 	- Document ordering behavior for in-fences
-> 	- Document V4L2_CAP_ORDERED capability
-> 	- Remove doc about OUT_FENCE event
-> 	- Document immediate return of out-fence in QBUF
-> 
-> v3:
-> 	- make the out_fence refer to the current buffer (Hans)
-> 	- Note what happens when the IN_FENCE is not set (Hans)
-> 
-> v2:
-> 	- mention that fences are files (Hans)
-> 	- rework for the new API
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  Documentation/media/uapi/v4l/vidioc-qbuf.rst     | 55 +++++++++++++++++++++++-
->  Documentation/media/uapi/v4l/vidioc-querybuf.rst | 12 ++++--
->  2 files changed, 63 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> index 9e448a4aa3aa..371d84966e34 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> @@ -54,7 +54,7 @@ When the buffer is intended for output (``type`` is
->  or ``V4L2_BUF_TYPE_VBI_OUTPUT``) applications must also initialize the
->  ``bytesused``, ``field`` and ``timestamp`` fields, see :ref:`buffer`
->  for details. Applications must also set ``flags`` to 0. The
-> -``reserved2`` and ``reserved`` fields must be set to 0. When using the
-> +``reserved`` field must be set to 0. When using the
->  :ref:`multi-planar API <planar-apis>`, the ``m.planes`` field must
->  contain a userspace pointer to a filled-in array of struct
->  :c:type:`v4l2_plane` and the ``length`` field must be set
-> @@ -118,6 +118,59 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
->  The struct :c:type:`v4l2_buffer` structure is specified in
->  :ref:`buffer`.
->  
-> +Explicit Synchronization
-> +------------------------
-> +
-> +Explicit Synchronization allows us to control the synchronization of
-> +shared buffers from userspace by passing fences to the kernel and/or
-> +receiving them from it. Fences passed to the kernel are named in-fences and
-> +the kernel should wait on them to signal before using the buffer. On the other
-> +side, the kernel can create out-fences for the buffers it queues to the
-> +drivers. Out-fences signal when the driver is finished with buffer, i.e., the
-> +buffer is ready. The fences are represented as a file and passed as a file
-> +descriptor to userspace.
-> +
-> +The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
-> +using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer flag and the `fence_fd` field. If
-> +an in-fence needs to be passed to the kernel, `fence_fd` should be set to the
-> +fence file descriptor number and the ``V4L2_BUF_FLAG_IN_FENCE`` should be set
-> +as well. Setting one but not the other will cause ``VIDIOC_QBUF`` to return
-> +with an error.
+Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
 
-This sentence is confusing since it is not clear what 'one' and 'the other' refer
-to. Be specific here. I think it should be 'Setting V4L2_BUF_FLAG_IN_FENCE but not
-fence_fd'.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c | 120 ++++++++++++++++++++++++++++
+ 2 files changed, 121 insertions(+), 1 deletion(-)
 
- The fence_fd field will be ignored if the
-> +``V4L2_BUF_FLAG_IN_FENCE`` is not set.
-> +
-> +The videobuf2-core will guarantee that all buffers queued with an in-fence will
-> +be queued to the drivers in the same order. Fences may signal out of order, so
-> +this guarantee at videobuf2 is necessary to not change ordering. So when
-> +waiting on a fence to signal all buffers queued after will be also block until
-
-after -> afterwards
-will be also block -> will also be blocked
-
-> +that fence signal.
-
-signal -> signals
-
-> +
-> +If the in-fence signals with an error the buffer will be marked with
-> +``V4L2_BUF_FLAG_ERROR`` when returned to userspace at ``VIDIOC_DQBUF``.
-> +Even with the error the order of dequeueing the buffers are preserved.
-
-are -> is
-
-> +
-> +To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-> +be set to ask for a fence to be attached to the buffer. The out-fence fd is
-> +sent to userspace as a ``VIDIOC_QBUF`` return argument on the `fence_fd` field.
-
-on -> in
-
-> +
-> +Note the the same `fence_fd` field is used for both sending the in-fence as
-> +input argument to receive the out-fence as a return argument. A buffer can
-
-input argument -> an input argument and
-
-> +have both in-fence ond out-fence.
-
-have both an in-fence and an out-fence.
-
-> +
-> +At streamoff the out-fences will either signal normally if the driver waits
-> +for the operations on the buffers to finish or signal with an error if the
-> +driver cancels the pending operations. Buffers with in-fences won't be queued
-> +to the driver if their fences signal. They will be cleaned up.
-> +
-> +The ``V4L2_FMT_FLAG_UNORDERED`` flag in ``VIDIOC_ENUM_FMT`` tells userspace
-> +that the  when using this format the order in which buffers are dequeued can
-
-remove 'the'
-
-> +be different from the order in which they were queued.
-> +
-> +Ordering is important to fences because it can optimize the pipeline with
-> +other drivers like a DRM/KMS display driver. For example, if a capture from the
-> +camera is happening in an orderly manner one can send the capture buffer
-> +out-fence to the DRM/KMS driver and rest sure that the buffers will be shown on
-
-rest sure -> rest assured
-
-But I'd rephrase it as: be certain
-
-> +the screen at the correct order. If an ordered queue can not be set then such
-> +arrangements with other drivers may not be possible.
->  
->  Return Value
->  ============
-> diff --git a/Documentation/media/uapi/v4l/vidioc-querybuf.rst b/Documentation/media/uapi/v4l/vidioc-querybuf.rst
-> index dd54747fabc9..9aa3358bee0b 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-querybuf.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-querybuf.rst
-> @@ -44,7 +44,7 @@ and the ``index`` field. Valid index numbers range from zero to the
->  number of buffers allocated with
->  :ref:`VIDIOC_REQBUFS` (struct
->  :c:type:`v4l2_requestbuffers` ``count``) minus
-> -one. The ``reserved`` and ``reserved2`` fields must be set to 0. When
-> +one. The ``reserved`` field must be set to 0. When
->  using the :ref:`multi-planar API <planar-apis>`, the ``m.planes``
->  field must contain a userspace pointer to an array of struct
->  :c:type:`v4l2_plane` and the ``length`` field has to be set
-> @@ -64,8 +64,14 @@ elements will be used instead and the ``length`` field of struct
->  array elements. The driver may or may not set the remaining fields and
->  flags, they are meaningless in this context.
->  
-> -The struct :c:type:`v4l2_buffer` structure is specified in
-> -:ref:`buffer`.
-> +When using in-fences, the ``V4L2_BUF_FLAG_IN_FENCE`` will be set if the
-> +in-fence didn't signal at the time of the
-> +:ref:`VIDIOC_QUERYBUF`. The ``V4L2_BUF_FLAG_OUT_FENCE`` will be set if
-> +the user asked for an out-fence for the buffer and the ``fence_fd``
-> +field will be set to the out-fence fd. In case ``V4L2_BUF_FLAG_OUT_FENCE`` is
-> +not set ``fence_fd`` will be set to 0 for backward compatibility.
-> +
-> +The struct :c:type:`v4l2_buffer` structure is specified in :ref:`buffer`.
->  
->  
->  Return Value
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  Support for Renesas R-Car Video Input (VIN) driver.
+-	  Supports R-Car Gen2 SoCs.
++	  Supports R-Car Gen2 and Gen3 SoCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rcar-vin.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index c015f3c284439285..8017d386fc9bc545 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
++#include <linux/sys_soc.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+@@ -832,6 +833,104 @@ static const struct rvin_info rcar_info_gen2 = {
+ 	.max_height = 2048,
+ };
+ 
++static const struct rvin_group_route rcar_info_r8a7795_routes[] = {
++	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
++	{ .vin = 0, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
++	{ .vin = 0, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(2) },
++	{ .vin = 1, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
++	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(1) | BIT(3) },
++	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
++	{ .vin = 1, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
++	{ .vin = 2, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(0) },
++	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
++	{ .vin = 2, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
++	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
++	{ .vin = 2, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
++	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
++	{ .vin = 3, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) | BIT(2) },
++	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
++	{ .vin = 3, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
++	{ .vin = 4, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(0) | BIT(3) },
++	{ .vin = 4, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
++	{ .vin = 4, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(2) },
++	{ .vin = 5, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
++	{ .vin = 5, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(1) | BIT(3) },
++	{ .vin = 5, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(2) },
++	{ .vin = 5, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
++	{ .vin = 6, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(0) },
++	{ .vin = 6, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(1) },
++	{ .vin = 6, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
++	{ .vin = 6, .csi = RVIN_CSI41, .chan = 2, .mask = BIT(3) },
++	{ .vin = 6, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
++	{ .vin = 7, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(0) },
++	{ .vin = 7, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) | BIT(2) },
++	{ .vin = 7, .csi = RVIN_CSI41, .chan = 3, .mask = BIT(3) },
++	{ .vin = 7, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a7795 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a7795_routes,
++};
++
++static const struct rvin_group_route rcar_info_r8a7795es1_routes[] = {
++	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
++	{ .vin = 0, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
++	{ .vin = 0, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(2) | BIT(5) },
++	{ .vin = 1, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
++	{ .vin = 1, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(1) },
++	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
++	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(3) },
++	{ .vin = 1, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
++	{ .vin = 1, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(5) },
++	{ .vin = 2, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(0) },
++	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
++	{ .vin = 2, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
++	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
++	{ .vin = 2, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
++	{ .vin = 2, .csi = RVIN_CSI21, .chan = 2, .mask = BIT(5) },
++	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
++	{ .vin = 3, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) },
++	{ .vin = 3, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(2) },
++	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
++	{ .vin = 3, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
++	{ .vin = 3, .csi = RVIN_CSI21, .chan = 3, .mask = BIT(5) },
++	{ .vin = 4, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(0) | BIT(3) },
++	{ .vin = 4, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
++	{ .vin = 4, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(2) | BIT(5) },
++	{ .vin = 5, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
++	{ .vin = 5, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(1) },
++	{ .vin = 5, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(2) },
++	{ .vin = 5, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(3) },
++	{ .vin = 5, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
++	{ .vin = 5, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(5) },
++	{ .vin = 6, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(0) },
++	{ .vin = 6, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(1) },
++	{ .vin = 6, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
++	{ .vin = 6, .csi = RVIN_CSI41, .chan = 2, .mask = BIT(3) },
++	{ .vin = 6, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
++	{ .vin = 6, .csi = RVIN_CSI21, .chan = 2, .mask = BIT(5) },
++	{ .vin = 7, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(0) },
++	{ .vin = 7, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) },
++	{ .vin = 7, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(2) },
++	{ .vin = 7, .csi = RVIN_CSI41, .chan = 3, .mask = BIT(3) },
++	{ .vin = 7, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
++	{ .vin = 7, .csi = RVIN_CSI21, .chan = 3, .mask = BIT(5) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a7795es1 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a7795es1_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -861,12 +960,25 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,rcar-gen2-vin",
+ 		.data = &rcar_info_gen2,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a7795",
++		.data = &rcar_info_r8a7795,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
++static const struct soc_device_attribute r8a7795es1[] = {
++	{
++		.soc_id = "r8a7795", .revision = "ES1.*",
++		.data = &rcar_info_r8a7795es1,
++	},
++	{ /* Sentinel */ }
++};
++
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
++	const struct soc_device_attribute *attr;
+ 	struct rvin_dev *vin;
+ 	struct resource *mem;
+ 	int irq, ret;
+@@ -878,6 +990,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	vin->dev = &pdev->dev;
+ 	vin->info = of_device_get_match_data(&pdev->dev);
+ 
++	/*
++	 * Special care is needed on r8a7795 ES1.x since it
++	 * uses different routing than r8a7795 ES2.0.
++	 */
++	attr = soc_device_match(r8a7795es1);
++	if (attr)
++		vin->info = attr->data;
++
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+ 		return -EINVAL;
+-- 
+2.16.2
