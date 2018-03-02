@@ -1,351 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:44394 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbeCTVBq (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:7352 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1164154AbeCBB7T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 17:01:46 -0400
-Received: by mail-wr0-f194.google.com with SMTP id u46so3122504wrc.11
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 14:01:45 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: gregkh@linuxfoundation.org, mvoelkel@DigitalDevices.de,
-        rjkm@metzlerbros.de, jasmin@anw.at
-Subject: [PATCH 4/5] [media] ddbridge: add SPDX license headers
-Date: Tue, 20 Mar 2018 22:01:31 +0100
-Message-Id: <20180320210132.7873-5-d.scheller.oss@gmail.com>
-In-Reply-To: <20180320210132.7873-1-d.scheller.oss@gmail.com>
-References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
+        Thu, 1 Mar 2018 20:59:19 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 21/32] rcar-vin: use different v4l2 operations in media controller mode
+Date: Fri,  2 Mar 2018 02:57:40 +0100
+Message-Id: <20180302015751.25596-22-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+When the driver runs in media controller mode it should not directly
+control the subdevice instead userspace will be responsible for
+configuring the pipeline. To be able to run in this mode a different set
+of v4l2 operations needs to be used.
 
-Add SPDX license headers in all ddbridge driver files and fix
-MODULE_LICENSE accordingly. Also, apply some cosmetics to the file
-headers.
+Add a new set of v4l2 operations to support operation without directly
+interacting with the source subdevice.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ddbridge/Makefile        | 2 +-
- drivers/media/pci/ddbridge/ddbridge-ci.c   | 6 ++----
- drivers/media/pci/ddbridge/ddbridge-ci.h   | 6 ++----
- drivers/media/pci/ddbridge/ddbridge-core.c | 8 ++------
- drivers/media/pci/ddbridge/ddbridge-hw.c   | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-hw.h   | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-i2c.c  | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-i2c.h  | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-io.h   | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-main.c | 8 ++++----
- drivers/media/pci/ddbridge/ddbridge-max.c  | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-max.h  | 4 ++--
- drivers/media/pci/ddbridge/ddbridge-regs.h | 7 ++-----
- drivers/media/pci/ddbridge/ddbridge.h      | 7 ++-----
- 14 files changed, 29 insertions(+), 43 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 161 +++++++++++++++++++++++++++-
+ 2 files changed, 160 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
-index 745b37d07558..c79bbc6d6276 100644
---- a/drivers/media/pci/ddbridge/Makefile
-+++ b/drivers/media/pci/ddbridge/Makefile
-@@ -1,4 +1,4 @@
--# SPDX-License-Identifier: GPL-2.0
-+# SPDX-License-Identifier: GPL-2.0-only
- #
- # Makefile for the ddbridge device driver
- #
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index cfe23d02e561..99a2d36e93b3 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * ddbridge-ci.c: Digital Devices bridge CI (DuoFlex, CI Bridge) support
-  *
-@@ -11,11 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-- * To obtain the license, point your browser to
-- * http://www.gnu.org/copyleft/gpl.html
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 3fb9c325285c5a5a..27d0c098f1da40f9 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++		if (!vin->info->use_mc &&
++		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+ 			if (std & V4L2_STD_525_60)
+ 				vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		}
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 20be21cb1cf521e5..8d92710efffa7276 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -18,12 +18,16 @@
+ 
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
+ #include <media/v4l2-rect.h>
+ 
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_WIDTH	800
++#define RVIN_DEFAULT_HEIGHT	600
+ #define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
++#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -667,6 +671,74 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * V4L2 Media Controller
++ */
++
++static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++
++	return rvin_format_align(vin, &f->fmt.pix);
++}
++
++static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
++				 struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	if (vb2_is_busy(&vin->queue))
++		return -EBUSY;
++
++	ret = rvin_format_align(vin, &f->fmt.pix);
++	if (ret)
++		return ret;
++
++	vin->format = f->fmt.pix;
++
++	return 0;
++}
++
++static int rvin_mc_enum_input(struct file *file, void *priv,
++			      struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
++	.vidioc_querycap		= rvin_querycap,
++	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= rvin_mc_enum_input,
++	.vidioc_g_input			= rvin_g_input,
++	.vidioc_s_input			= rvin_s_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= rvin_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
+ /* -----------------------------------------------------------------------------
+  * File Operations
   */
+@@ -810,6 +882,74 @@ static const struct v4l2_file_operations rvin_fops = {
+ 	.read		= vb2_fop_read,
+ };
  
- #include "ddbridge.h"
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.h b/drivers/media/pci/ddbridge/ddbridge-ci.h
-index 35a39182dd83..1458b38d82e7 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge-ci.h: Digital Devices bridge CI (DuoFlex, CI Bridge) support
-  *
-@@ -11,11 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-- * To obtain the license, point your browser to
-- * http://www.gnu.org/copyleft/gpl.html
-  */
++/* -----------------------------------------------------------------------------
++ * Media controller file operations
++ */
++
++static int rvin_mc_open(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	ret = mutex_lock_interruptible(&vin->lock);
++	if (ret)
++		return ret;
++
++	ret = pm_runtime_get_sync(vin->dev);
++	if (ret < 0)
++		goto err_pm;
++
++	ret = v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
++	if (ret < 0)
++		goto err_v4l2pm;
++
++	file->private_data = vin;
++
++	ret = v4l2_fh_open(file);
++	if (ret)
++		goto err_open;
++
++	mutex_unlock(&vin->lock);
++
++	return 0;
++err_open:
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++err_v4l2pm:
++	pm_runtime_put(vin->dev);
++err_pm:
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static int rvin_mc_release(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	/* the release helper will cleanup any on-going streaming. */
++	ret = _vb2_fop_release(file, NULL);
++
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++	pm_runtime_put(vin->dev);
++
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations rvin_mc_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= rvin_mc_open,
++	.release	= rvin_mc_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++	.read		= vb2_fop_read,
++};
++
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
+ 	if (!video_is_registered(&vin->vdev))
+@@ -845,18 +985,33 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vin->v4l2_dev.notify = rvin_notify;
  
- #ifndef __DDBRIDGE_CI_H__
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 90687eff5909..2ec84ca516f1 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * ddbridge-core.c: Digital Devices bridge core functions
-  *
-@@ -5,19 +6,14 @@
-  *                         Marcus Metzler <mocm@metzlerbros.de>
-  *                         Ralph Metzler <rjkm@metzlerbros.de>
-  *
-- *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-  * version 2 only, as published by the Free Software Foundation.
-  *
-- *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-- * To obtain the license, point your browser to
-- * http://www.gnu.org/copyleft/gpl.html
-  */
+ 	/* video node */
+-	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+ 	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
+ 	vdev->release = video_device_release_empty;
+-	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
  
- #include <linux/module.h>
-diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.c b/drivers/media/pci/ddbridge/ddbridge-hw.c
-index c6d14925e2fc..be3eaf682455 100644
---- a/drivers/media/pci/ddbridge/ddbridge-hw.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-hw.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * ddbridge-hw.c: Digital Devices bridge hardware maps
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
++	/* Set a default format */
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+-	rvin_reset_format(vin);
++	vin->format.width = RVIN_DEFAULT_WIDTH;
++	vin->format.height = RVIN_DEFAULT_HEIGHT;
++	vin->format.field = RVIN_DEFAULT_FIELD;
++	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
++
++	if (vin->info->use_mc) {
++		vdev->fops = &rvin_mc_fops;
++		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
++	} else {
++		vdev->fops = &rvin_fops;
++		vdev->ioctl_ops = &rvin_ioctl_ops;
++		rvin_reset_format(vin);
++	}
++
++	ret = rvin_format_align(vin, &vin->format);
++	if (ret)
++		return ret;
  
- #include "ddbridge.h"
-diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.h b/drivers/media/pci/ddbridge/ddbridge-hw.h
-index 7c142419419c..79e76bf293a3 100644
---- a/drivers/media/pci/ddbridge/ddbridge-hw.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-hw.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge-hw.h: Digital Devices bridge hardware maps
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #ifndef _DDBRIDGE_HW_H_
-diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-index 82a9a0e806fc..e87ae4a1849f 100644
---- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * ddbridge-i2c.c: Digital Devices bridge i2c driver
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #include <linux/module.h>
-diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.h b/drivers/media/pci/ddbridge/ddbridge-i2c.h
-index 7ed220506c05..8d0d1674cf81 100644
---- a/drivers/media/pci/ddbridge/ddbridge-i2c.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-i2c.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge-i2c.c: Digital Devices bridge i2c driver
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #ifndef __DDBRIDGE_I2C_H__
-diff --git a/drivers/media/pci/ddbridge/ddbridge-io.h b/drivers/media/pci/ddbridge/ddbridge-io.h
-index b3646c04f1a7..eaf08fc3b48d 100644
---- a/drivers/media/pci/ddbridge/ddbridge-io.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-io.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge-io.h: Digital Devices bridge I/O inline functions
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #ifndef __DDBRIDGE_IO_H__
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 26497d6b1395..39e14a9306ad 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -1,5 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-- * ddbridge.c: Digital Devices PCIe bridge driver
-+ * ddbridge-main.c: Digital Devices PCIe bridge driver
-  *
-  * Copyright (C) 2010-2017 Digital Devices GmbH
-  *                         Ralph Metzler <rjkm@metzlerbros.de>
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -343,5 +343,5 @@ module_exit(module_exit_ddbridge);
- 
- MODULE_DESCRIPTION("Digital Devices PCIe Bridge");
- MODULE_AUTHOR("Ralph and Marcus Metzler, Metzler Brothers Systementwicklung GbR");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_VERSION(DDBRIDGE_VERSION);
-diff --git a/drivers/media/pci/ddbridge/ddbridge-max.c b/drivers/media/pci/ddbridge/ddbridge-max.c
-index dc6b81488746..e68155e8ddbb 100644
---- a/drivers/media/pci/ddbridge/ddbridge-max.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-max.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0-only
- /*
-  * ddbridge-max.c: Digital Devices bridge MAX card support
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #include <linux/module.h>
-diff --git a/drivers/media/pci/ddbridge/ddbridge-max.h b/drivers/media/pci/ddbridge/ddbridge-max.h
-index bf8bf38739f6..429ad662c3fe 100644
---- a/drivers/media/pci/ddbridge/ddbridge-max.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-max.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge-max.h: Digital Devices bridge MAX card support
-  *
-@@ -11,9 +12,8 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-  */
- 
- #ifndef _DDBRIDGE_MAX_H_
-diff --git a/drivers/media/pci/ddbridge/ddbridge-regs.h b/drivers/media/pci/ddbridge/ddbridge-regs.h
-index b978b5991940..abf7a944eea4 100644
---- a/drivers/media/pci/ddbridge/ddbridge-regs.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-regs.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge-regs.h: Digital Devices PCIe bridge driver
-  *
-@@ -7,14 +8,10 @@
-  * modify it under the terms of the GNU General Public License
-  * version 2 only, as published by the Free Software Foundation.
-  *
-- *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-- * To obtain the license, point your browser to
-- * http://www.gnu.org/copyleft/gpl.html
-  */
- 
- #ifndef __DDBRIDGE_REGS_H__
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index f223dc6c9963..0e0ddacd0e80 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
- /*
-  * ddbridge.h: Digital Devices PCIe bridge driver
-  *
-@@ -8,14 +9,10 @@
-  * modify it under the terms of the GNU General Public License
-  * version 2 only, as published by the Free Software Foundation.
-  *
-- *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-- *
-- * To obtain the license, point your browser to
-- * http://www.gnu.org/copyleft/gpl.html
-  */
- 
- #ifndef _DDBRIDGE_H_
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
 -- 
-2.16.1
+2.16.2
