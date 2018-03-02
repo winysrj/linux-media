@@ -1,47 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:42595 "EHLO mout.gmx.net"
+Received: from gofer.mess.org ([88.97.38.141]:41605 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751819AbeCDImG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Mar 2018 03:42:06 -0500
-Received: from localhost.localdomain ([92.75.40.49]) by mail.gmx.com (mrgmx003
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0LwrPM-1ectZU1qXo-016Piy for
- <linux-media@vger.kernel.org>; Sun, 04 Mar 2018 09:42:04 +0100
-From: Peter Seiderer <ps.report@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v1] libdvbv5: add optional copy of TEMP_FAILURE_RETRY macro (fix musl compile)
-Date: Sun,  4 Mar 2018 09:42:04 +0100
-Message-Id: <20180304084204.15820-1-ps.report@gmx.net>
+        id S1425035AbeCBOKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Mar 2018 09:10:06 -0500
+Date: Fri, 2 Mar 2018 14:10:01 +0000
+From: Sean Young <sean@mess.org>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        wens@csie.org, linux@armlinux.org.uk, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: Re: [RESEND PATCH v5 0/6] IR support for A83T
+Message-ID: <20180302141001.2eqbpahdl7sddtzk@gofer.mess.org>
+References: <20180213122952.8420-1-embed3d@gmail.com>
+ <85ddc129-d0f8-6299-dca0-81f79f3d04a9@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <85ddc129-d0f8-6299-dca0-81f79f3d04a9@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes:
+On Fri, Mar 02, 2018 at 01:11:34PM +0100, Philipp Rossak wrote:
+> On 13.02.2018 13:29, Philipp Rossak wrote:
+> > This patch series adds support for the sunxi A83T ir module and enhances
+> > the sunxi-ir driver. Right now the base clock frequency for the ir driver
+> > is a hard coded define and is set to 8 MHz.
+> > This works for the most common ir receivers. On the Sinovoip Bananapi M3
+> > the ir receiver needs, a 3 MHz base clock frequency to work without
+> > problems with this driver.
+> > 
+> > This patch series adds support for an optinal property that makes it able
+> > to override the default base clock frequency and enables the ir interface
+> > on the a83t and the Bananapi M3.
+> > 
+> > changes since v4:
+> > * rename cir pin from cir_pins to r_cir_pin
+> > * drop unit-adress from r_cir_pin
+> > * add a83t compatible to the cir node
+> > * move muxing options to dtsi
+> > * rename cir label and reorder it in the bananpim3.dts file
+> > 
+> > changes since v3:
+> > * collecting all acks & reviewd by
+> > * fixed typos
+> > 
+> > changes since v2:
+> > * reorder cir pin (alphabetical)
+> > * fix typo in documentation
+> > 
+> > changes since v1:
+> > * fix typos, reword Documentation
+> > * initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
+> > * change dev_info() to dev_dbg()
+> > * change naming to cir* in dts/dtsi
+> > * Added acked Ackedi-by to related patch
+> > * use whole memory block instead of registers needed + fix for h3/h5
+> > 
+> > changes since rfc:
+> > * The property is now optinal. If the property is not available in
+> >    the dtb the driver uses the default base clock frequency.
+> > * the driver prints out the the selected base clock frequency.
+> > * changed devicetree property from base-clk-frequency to clock-frequency
+> > 
+> > Regards,
+> > Philipp
+> > 
+> > Philipp Rossak (6):
+> >    media: rc: update sunxi-ir driver to get base clock frequency from
+> >      devicetree
+> >    media: dt: bindings: Update binding documentation for sunxi IR
+> >      controller
+> >    arm: dts: sun8i: a83t: Add the cir pin for the A83T
+> >    arm: dts: sun8i: a83t: Add support for the cir interface
+> >    arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+> >    arm: dts: sun8i: h3-h5: ir register size should be the whole memory
+> >      block
+> > 
+> >   Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
+> >   arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  5 +++++
+> >   arch/arm/boot/dts/sun8i-a83t.dtsi                    | 18 ++++++++++++++++++
+> >   arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
+> >   drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
+> >   5 files changed, 38 insertions(+), 9 deletions(-)
+> > 
+> 
+> I talked yesterday with Maxime about this patch series. And he told me if
+> the first to patches got merged, he will apply the dts patches to the sunxi
+> tree.
+> 
+> Sean, can you merge the first two patches through the rc-core?
 
-  ../../lib/libdvbv5/.libs/libdvbv5.so: undefined reference to `TEMP_FAILURE_RETRY'
+Sure, no problem.
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
----
- lib/libdvbv5/dvb-dev-local.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
-index 8bc99d1..7a76d65 100644
---- a/lib/libdvbv5/dvb-dev-local.c
-+++ b/lib/libdvbv5/dvb-dev-local.c
-@@ -44,6 +44,15 @@
- # define _(string) string
- #endif
- 
-+/* taken from glibc unistd.h */
-+#ifndef TEMP_FAILURE_RETRY
-+#define TEMP_FAILURE_RETRY(expression) \
-+    ({ long int __result;                                                     \
-+       do __result = (long int) (expression);                                 \
-+       while (__result == -1L && errno == EINTR);                             \
-+       __result; })
-+#endif
-+
- struct dvb_dev_local_priv {
- 	dvb_dev_change_t notify_dev_change;
- 
--- 
-2.16.2
+Thanks
+Sean
