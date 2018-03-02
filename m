@@ -1,69 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35369 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933538AbeCMQiv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 12:38:51 -0400
-Date: Tue, 13 Mar 2018 17:38:44 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Binoy Jayan <binoy.jayan@linaro.org>,
-        Jasmin Jessich <jasmin@anw.at>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: ngene: avoid unused variable warning
-Message-ID: <20180313173844.0644a716@perian.wuest.de>
-In-Reply-To: <20180313130620.4040088-1-arnd@arndb.de>
-References: <20180313130620.4040088-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:37170 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1423640AbeCBTO2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 14:14:28 -0500
+Received: by mail-qk0-f193.google.com with SMTP id y137so13270048qka.4
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2018 11:14:28 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@kernel.org
+Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de,
+        gustavo@embeddedor.com, linux-media@vger.kernel.org,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Subject: [PATCH 2/2] media: imx-media-csi: Do not propagate the error when pinctrl is not found
+Date: Fri,  2 Mar 2018 16:14:09 -0300
+Message-Id: <1520018049-5216-2-git-send-email-festevam@gmail.com>
+In-Reply-To: <1520018049-5216-1-git-send-email-festevam@gmail.com>
+References: <1520018049-5216-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Tue, 13 Mar 2018 14:06:03 +0100
-schrieb Arnd Bergmann <arnd@arndb.de>:
+From: Fabio Estevam <fabio.estevam@nxp.com>
 
-> The newly added pdev variable is only used in an #ifdef, causing a
-> build warning without CONFIG_PCI_MSI, unless we move the declaration
-> inside the same #ifdef:
-> 
-> drivers/media/pci/ngene/ngene-core.c: In function 'ngene_start':
-> drivers/media/pci/ngene/ngene-core.c:1328:17: error: unused variable 'pdev' [-Werror=unused-variable]
-> 
-> Fixes: 6795bf626482 ("media: ngene: convert kernellog printing from printk() to dev_*() macros")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Since commit 52e17089d185 ("media: imx: Don't initialize vars that
+won't be used") imx_csi_probe() fails to probe after propagating the
+devm_pinctrl_get_select_default() error.
 
-Acked-by: Daniel Scheller <d.scheller@gmx.net>
+devm_pinctrl_get_select_default() may return -ENODEV when the CSI pinctrl
+entry is not found, so better not to propagate the error in the -ENODEV
+case to avoid a regression.
 
-Thanks!
+Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-> ---
->  drivers/media/pci/ngene/ngene-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-> index 3b9a1bfaf6c0..25f16833a475 100644
-> --- a/drivers/media/pci/ngene/ngene-core.c
-> +++ b/drivers/media/pci/ngene/ngene-core.c
-> @@ -1325,7 +1325,6 @@ static int ngene_buffer_config(struct ngene *dev)
->  
->  static int ngene_start(struct ngene *dev)
->  {
-> -	struct device *pdev = &dev->pci_dev->dev;
->  	int stat;
->  	int i;
->  
-> @@ -1359,6 +1358,7 @@ static int ngene_start(struct ngene *dev)
->  #ifdef CONFIG_PCI_MSI
->  	/* enable MSI if kernel and card support it */
->  	if (pci_msi_enabled() && dev->card_info->msi_supported) {
-> +		struct device *pdev = &dev->pci_dev->dev;
->  		unsigned long flags;
->  
->  		ngwritel(0, NGENE_INT_ENABLE);
-
-Best regards,
-Daniel Scheller
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 4f290a0..5af66f6 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1799,7 +1799,10 @@ static int imx_csi_probe(struct platform_device *pdev)
+ 	pinctrl = devm_pinctrl_get_select_default(priv->dev);
+ 	if (IS_ERR(pinctrl)) {
+ 		ret = PTR_ERR(pinctrl);
+-		goto free;
++		dev_dbg(priv->dev,
++			"devm_pinctrl_get_select_default() failed: %d", ret);
++		if (ret != -ENODEV)
++			goto free;
+ 	}
+ 
+ 	ret = v4l2_async_register_subdev(&priv->sd);
 -- 
-https://github.com/herrnst
+2.7.4
