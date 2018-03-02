@@ -1,64 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60860 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932144AbeCKUPS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Mar 2018 16:15:18 -0400
-Date: Sun, 11 Mar 2018 22:15:14 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/5] media: MAINTAINERS: Add entry for Aptina MT9T112
-Message-ID: <20180311201514.7ljwikv4twj6hxpk@valkosipuli.retiisi.org.uk>
-References: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
- <1520008541-3961-6-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1520008541-3961-6-git-send-email-jacopo+renesas@jmondi.org>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39102 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1426315AbeCBOrF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:05 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
+        joe@perches.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 04/11] media: tw9910: Sort includes alphabetically
+Date: Fri,  2 Mar 2018 15:46:36 +0100
+Message-Id: <1520002003-10200-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Sort include directives alphabetically to ease maintenance.
 
-On Fri, Mar 02, 2018 at 05:35:41PM +0100, Jacopo Mondi wrote:
-> Add entry for Aptina/Micron MT9T112 camera sensor. The driver is
-> currently orphaned.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  MAINTAINERS | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 91ed6ad..1d8be25 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9385,6 +9385,13 @@ S:	Maintained
->  F:	drivers/media/i2c/mt9t001.c
->  F:	include/media/i2c/mt9t001.h
->  
-> +MT9T112 APTINA CAMERA SENSOR
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Orphan
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/tw9910.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I don't like adding a driver which is in orphaned state to begin with.
-
-Would you like to maintain it? :-)
-
-> +F:	drivers/media/i2c/mt9t112.c
-> +F:	include/media/i2c/mt9t112.h
-> +
->  MT9V032 APTINA CAMERA SENSOR
->  M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->  L:	linux-media@vger.kernel.org
-
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 0232017..9c12bda 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -16,13 +16,13 @@
+  */
+ 
+ #include <linux/clk.h>
++#include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include <linux/kernel.h>
+-#include <linux/delay.h>
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
+ 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
