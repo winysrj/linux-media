@@ -1,82 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:46485 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751480AbeCULyX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 07:54:23 -0400
-Received: by mail-wr0-f194.google.com with SMTP id s10so4879815wra.13
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2018 04:54:22 -0700 (PDT)
-Reply-To: christian.koenig@amd.com
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-To: Daniel Vetter <daniel@ffwll.ch>, christian.koenig@amd.com
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-References: <20180316132049.1748-1-christian.koenig@amd.com>
- <20180316132049.1748-2-christian.koenig@amd.com>
- <152120831102.25315.4326885184264378830@mail.alporthouse.com>
- <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
- <152147480241.18954.4556582215766884582@mail.alporthouse.com>
- <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
- <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
- <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
- <20180320140810.GU14155@phenom.ffwll.local>
- <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
- <20180321082839.GA14155@phenom.ffwll.local>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Message-ID: <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
-Date: Wed, 21 Mar 2018 12:54:20 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52754 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1427120AbeCBL0J (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 06:26:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v11 17/32] rcar-vin: move media bus configuration to struct rvin_info
+Date: Fri, 02 Mar 2018 13:26:58 +0200
+Message-ID: <10009478.ZEXKPO1ePN@avalon>
+In-Reply-To: <20180302015751.25596-18-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se> <20180302015751.25596-18-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20180321082839.GA14155@phenom.ffwll.local>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 21.03.2018 um 09:28 schrieb Daniel Vetter:
-> On Tue, Mar 20, 2018 at 06:47:57PM +0100, Christian König wrote:
->> Am 20.03.2018 um 15:08 schrieb Daniel Vetter:
->>> [SNIP]
->>> For the in-driver reservation path (CS) having a slow-path that grabs a
->>> temporary reference, drops the vram lock and then locks the reservation
->>> normally (using the acquire context used already for the entire CS) is a
->>> bit tricky, but totally feasible. Ttm doesn't do that though.
->> That is exactly what we do in amdgpu as well, it's just not very efficient
->> nor reliable to retry getting the right pages for a submission over and over
->> again.
-> Out of curiosity, where's that code? I did read the ttm eviction code way
-> back, and that one definitely didn't do that. Would be interesting to
-> update my understanding.
+Hi Niklas,
 
-That is in amdgpu_cs.c. amdgpu_cs_parser_bos() does a horrible dance 
-with grabbing, releasing and regrabbing locks in a loop.
+Thank you for the patch.
 
-Then in amdgpu_cs_submit() we grab an lock preventing page table updates 
-and check if all pages are still the one we want to have:
->         amdgpu_mn_lock(p->mn);
->         if (p->bo_list) {
->                 for (i = p->bo_list->first_userptr;
->                      i < p->bo_list->num_entries; ++i) {
->                         struct amdgpu_bo *bo = p->bo_list->array[i].robj;
->
->                         if 
-> (amdgpu_ttm_tt_userptr_needs_pages(bo->tbo.ttm)) {
->                                 amdgpu_mn_unlock(p->mn);
->                                 return -ERESTARTSYS;
->                         }
->                 }
->         }
+On Friday, 2 March 2018 03:57:36 EET Niklas S=F6derlund wrote:
+> Bus configuration will once the driver is extended to support Gen3
+> contain information not specific to only the directly connected parallel
+> subdevice. Move it to struct rvin_dev to show it's not always coupled
+> to the parallel subdevice.
 
-If anything changed on the page tables we restart the whole IOCTL using 
--ERESTARTSYS and try again.
+The subject line still mentions rvin_info. Are you so emotionally attached =
+to=20
+it that you have trouble fixing that ? ;-)
 
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
+>  drivers/media/platform/rcar-vin/rcar-dma.c  | 11 ++++++-----
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
+>  4 files changed, 20 insertions(+), 20 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> b/drivers/media/platform/rcar-vin/rcar-core.c index
+> cc863e4ec9a4d4b3..449175c3133e42c6 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_=
+dev
+> *vin, vin->digital->sink_pad =3D ret < 0 ? 0 : ret;
+>=20
+>  	/* Find compatible subdevices mbus format */
+> -	vin->digital->code =3D 0;
+> +	vin->mbus_code =3D 0;
+>  	code.index =3D 0;
+>  	code.pad =3D vin->digital->source_pad;
+> -	while (!vin->digital->code &&
+> +	while (!vin->mbus_code &&
+>  	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
+>  		code.index++;
+>  		switch (code.code) {
+> @@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_=
+dev
+> *vin, case MEDIA_BUS_FMT_UYVY8_2X8:
+>  		case MEDIA_BUS_FMT_UYVY10_2X10:
+>  		case MEDIA_BUS_FMT_RGB888_1X24:
+> -			vin->digital->code =3D code.code;
+> +			vin->mbus_code =3D code.code;
+>  			vin_dbg(vin, "Found media bus format for %s: %d\n",
+> -				subdev->name, vin->digital->code);
+> +				subdev->name, vin->mbus_code);
+>  			break;
+>  		default:
+>  			break;
+>  		}
+>  	}
+>=20
+> -	if (!vin->digital->code) {
+> +	if (!vin->mbus_code) {
+>  		vin_err(vin, "Unsupported media bus format for %s\n",
+>  			subdev->name);
+>  		return -EINVAL;
+> @@ -190,16 +190,16 @@ static int rvin_digital_parse_v4l2(struct device *d=
+ev,
+> if (vep->base.port || vep->base.id)
+>  		return -ENOTCONN;
+>=20
+> -	rvge->mbus_cfg.type =3D vep->bus_type;
+> +	vin->mbus_cfg.type =3D vep->bus_type;
+>=20
+> -	switch (rvge->mbus_cfg.type) {
+> +	switch (vin->mbus_cfg.type) {
+>  	case V4L2_MBUS_PARALLEL:
+>  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> -		rvge->mbus_cfg.flags =3D vep->bus.parallel.flags;
+> +		vin->mbus_cfg.flags =3D vep->bus.parallel.flags;
+>  		break;
+>  	case V4L2_MBUS_BT656:
+>  		vin_dbg(vin, "Found BT656 media bus\n");
+> -		rvge->mbus_cfg.flags =3D 0;
+> +		vin->mbus_cfg.flags =3D 0;
+>  		break;
+>  	default:
+>  		vin_err(vin, "Unknown media bus type\n");
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> c8831e189d362c8b..4ebf76c30a3e9117 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -633,7 +633,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	/*
+>  	 * Input interface
+>  	 */
+> -	switch (vin->digital->code) {
+> +	switch (vin->mbus_code) {
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  		/* BT.601/BT.1358 16bit YCbCr422 */
+>  		vnmc |=3D VNMC_INF_YUV16;
+> @@ -641,7 +641,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+> -		vnmc |=3D vin->digital->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+> +		vnmc |=3D vin->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+>  		input_is_yuv =3D true;
+>  		break;
+> @@ -650,7 +650,7 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	case MEDIA_BUS_FMT_UYVY10_2X10:
+>  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> -		vnmc |=3D vin->digital->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+> +		vnmc |=3D vin->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+>  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+>  		input_is_yuv =3D true;
+>  		break;
+> @@ -662,11 +662,11 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	dmr2 =3D VNDMR2_FTEV | VNDMR2_VLV(1);
+>=20
+>  	/* Hsync Signal Polarity Select */
+> -	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> +	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+>  		dmr2 |=3D VNDMR2_HPS;
+>=20
+>  	/* Vsync Signal Polarity Select */
+> -	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> +	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+>  		dmr2 |=3D VNDMR2_VPS;
+>=20
+>  	/*
+> @@ -875,6 +875,7 @@ static void rvin_capture_stop(struct rvin_dev *vin)
+>  	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+>  }
+>=20
+> +
+
+This is not needed.
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  /* ---------------------------------------------------------------------=
+=2D--
+>   * DMA Functions
+>   */
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> 55640c6b2a1200ca..20be21cb1cf521e5 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -199,7 +199,7 @@ static int rvin_try_format(struct rvin_dev *vin, u32
+> which, if (pad_cfg =3D=3D NULL)
+>  		return -ENOMEM;
+>=20
+> -	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+> +	v4l2_fill_mbus_format(&format.format, pix, vin->mbus_code);
+>=20
+>  	/* Allow the video device to override field and to scale */
+>  	field =3D pix->field;
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> b/drivers/media/platform/rcar-vin/rcar-vin.h index
+> 39051da31650bd79..491f3187b932f81e 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -62,8 +62,6 @@ struct rvin_video_format {
+>   * struct rvin_graph_entity - Video endpoint from async framework
+>   * @asd:	sub-device descriptor for async framework
+>   * @subdev:	subdevice matched using async framework
+> - * @code:	Media bus format from source
+> - * @mbus_cfg:	Media bus format from DT
+>   * @source_pad:	source pad of remote subdevice
+>   * @sink_pad:	sink pad of remote subdevice
+>   */
+> @@ -71,9 +69,6 @@ struct rvin_graph_entity {
+>  	struct v4l2_async_subdev asd;
+>  	struct v4l2_subdev *subdev;
+>=20
+> -	u32 code;
+> -	struct v4l2_mbus_config mbus_cfg;
+> -
+>  	unsigned int source_pad;
+>  	unsigned int sink_pad;
+>  };
+> @@ -114,6 +109,8 @@ struct rvin_info {
+>   * @sequence:		V4L2 buffers sequence number
+>   * @state:		keeps track of operation state
+>   *
+> + * @mbus_cfg:		media bus configuration from DT
+> + * @mbus_code:		media bus format code
+>   * @format:		active V4L2 pixel format
+>   *
+>   * @crop:		active cropping
+> @@ -140,6 +137,8 @@ struct rvin_dev {
+>  	unsigned int sequence;
+>  	enum rvin_dma_state state;
+>=20
+> +	struct v4l2_mbus_config mbus_cfg;
+> +	u32 mbus_code;
+>  	struct v4l2_pix_format format;
+>=20
+>  	struct v4l2_rect crop;
+
+=2D-=20
 Regards,
-Christian.
 
-> -Daniel
+Laurent Pinchart
