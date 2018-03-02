@@ -1,122 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36019 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753258AbeC1Nuk (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24075 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163203AbeCBB6x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 09:50:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv9 PATCH 07/29] media-request: add media_request_object_find
-Date: Wed, 28 Mar 2018 15:50:08 +0200
-Message-Id: <20180328135030.7116-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+        Thu, 1 Mar 2018 20:58:53 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Subject: [PATCH v11 01/32] dt-bindings: media: rcar_vin: Reverse SoC part number list
+Date: Fri,  2 Mar 2018 02:57:20 +0100
+Message-Id: <20180302015751.25596-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 
-Add media_request_object_find to find a request object inside a
-request based on ops and/or priv values.
+Change the sorting of the part numbers from descending to ascending to
+match with other documentation.
 
-Objects of the same type (vb2 buffer, control handler) will have
-the same ops value. And objects that refer to the same 'parent'
-object (e.g. the v4l2_ctrl_handler that has the current driver
-state) will have the same priv value.
-
-The caller has to call media_request_object_put() for the returned
-object since this function increments the refcount.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
- include/media/media-request.h | 25 +++++++++++++++++++++++++
- 2 files changed, 51 insertions(+)
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index d54fd353d8a6..10a05dd7b571 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -309,6 +309,32 @@ static void media_request_object_release(struct kref *kref)
- 	obj->ops->release(obj);
- }
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 19357d0bbe6539b3..0ac715a5c331bc26 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,14 +6,14 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
  
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	struct media_request_object *obj;
-+	struct media_request_object *found = NULL;
-+	unsigned long flags;
-+
-+	if (!ops && !priv)
-+		return NULL;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if ((!ops || obj->ops == ops) &&
-+		    (!priv || obj->priv == priv)) {
-+			media_request_object_get(obj);
-+			found = obj;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return found;
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_find);
-+
- void media_request_object_put(struct media_request_object *obj)
- {
- 	kref_put(&obj->kref, media_request_object_release);
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index c01b05570a31..570f3a205776 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -122,6 +122,23 @@ static inline void media_request_object_get(struct media_request_object *obj)
-  */
- void media_request_object_put(struct media_request_object *obj);
+  - compatible: Must be one or more of the following
+-   - "renesas,vin-r8a7795" for the R8A7795 device
+-   - "renesas,vin-r8a7794" for the R8A7794 device
+-   - "renesas,vin-r8a7793" for the R8A7793 device
+-   - "renesas,vin-r8a7792" for the R8A7792 device
+-   - "renesas,vin-r8a7791" for the R8A7791 device
+-   - "renesas,vin-r8a7790" for the R8A7790 device
+-   - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
++   - "renesas,vin-r8a7779" for the R8A7779 device
++   - "renesas,vin-r8a7790" for the R8A7790 device
++   - "renesas,vin-r8a7791" for the R8A7791 device
++   - "renesas,vin-r8a7792" for the R8A7792 device
++   - "renesas,vin-r8a7793" for the R8A7793 device
++   - "renesas,vin-r8a7794" for the R8A7794 device
++   - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
  
-+/**
-+ * media_request_object_find - Find an object in a request
-+ *
-+ * @ops: Find an object with this ops value, may be NULL.
-+ * @priv: Find an object with this priv value, may be NULL.
-+ *
-+ * At least one of @ops and @priv must be non-NULL. If one of
-+ * these is NULL, then skip checking for that field.
-+ *
-+ * Returns NULL if not found or the object (the refcount is increased
-+ * in that case).
-+ */
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv);
-+
- /**
-  * media_request_object_init - Initialise a media request object
-  *
-@@ -154,6 +171,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
- {
- }
- 
-+static inline struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	return NULL;
-+}
-+
- static inline void media_request_object_init(struct media_request_object *obj)
- {
- 	obj->ops = NULL;
 -- 
-2.16.1
+2.16.2
