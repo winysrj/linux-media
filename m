@@ -1,107 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53317 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755839AbeCSPn3 (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:27247 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1164156AbeCBB7U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 11:43:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/8] media-ioc-enum-entities.rst: document new 'function' field
-Date: Mon, 19 Mar 2018 16:43:19 +0100
-Message-Id: <20180319154324.37799-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
-References: <20180319154324.37799-1-hverkuil@xs4all.nl>
+        Thu, 1 Mar 2018 20:59:20 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 22/32] rcar-vin: force default colorspace for media centric mode
+Date: Fri,  2 Mar 2018 02:57:41 +0100
+Message-Id: <20180302015751.25596-23-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+When the VIN driver is running in media centric mode (on Gen3) the
+colorspace is not retrieved from the video source instead the user is
+expected to set it as part of the format. There is no way for the VIN
+driver to validated the colorspace requested by user-space, this creates
+a problem where validation tools fail. Until the user requested
+colorspace can be validated lets force it to the driver default.
 
-Document the new struct media_entity_desc 'function' field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- .../uapi/mediactl/media-ioc-enum-entities.rst      | 31 +++++++++++++++++-----
- 1 file changed, 25 insertions(+), 6 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst b/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
-index 45e76e5bc1ea..98d9b171a96c 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
-@@ -90,6 +90,12 @@ id's until they get an error.
-        -
-        -
-        -  Entity type, see :ref:`media-entity-type` for details.
-+          Deprecated. If possible, use the ``function`` field instead.
-+	  For backwards compatibility this ``type`` field will only
-+	  expose functions ``MEDIA_ENT_F_IO_V4L``, ``MEDIA_ENT_F_CAM_SENSOR``,
-+	  ``MEDIA_ENT_F_FLASH``, ``MEDIA_ENT_F_LENS``, ``MEDIA_ENT_F_ATV_DECODER``
-+	  and ``MEDIA_ENT_F_TUNER``. Other functions will be mapped to
-+	  ``MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN`` or ``MEDIA_ENT_T_DEVNODE_UNKNOWN``.
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 8d92710efffa7276..02f3100ed30db63c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -675,12 +675,24 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+  * V4L2 Media Controller
+  */
  
-     -  .. row 4
- 
-@@ -146,18 +152,31 @@ id's until they get an error.
- 
-        -  __u32
- 
--       -  ``reserved[4]``
-+       -  ``function``
++static int rvin_mc_try_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	/*
++	 * There is no way to validate the colorspace provided by the
++	 * user. Until it can be validated force colorspace to the
++	 * driver default.
++	 */
++	pix->colorspace = RVIN_DEFAULT_COLORSPACE;
 +
-+       -
-+       -
-+       -  Entity main function, see :ref:`media-entity-type` for details.
-+          Only valid if ``MEDIA_ENTITY_DESC_HAS_FUNCTION(media_version)``
-+          returns true. The ``media_version`` is defined in struct
-+          :c:type:`media_device_info`.
++	return rvin_format_align(vin, pix);
++}
 +
-+    -  .. row 10
-+
-+       -  __u32
-+
-+       -  ``reserved[3]``
+ static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
+ 				   struct v4l2_format *f)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
  
-        -
-        -
-        -  Reserved for future extensions. Drivers and applications must set
-           the array to zero.
+-	return rvin_format_align(vin, &f->fmt.pix);
++	return rvin_mc_try_format(vin, &f->fmt.pix);
+ }
  
--    -  .. row 10
-+    -  .. row 11
+ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+@@ -692,7 +704,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	if (vb2_is_busy(&vin->queue))
+ 		return -EBUSY;
  
-        -  union
+-	ret = rvin_format_align(vin, &f->fmt.pix);
++	ret = rvin_mc_try_format(vin, &f->fmt.pix);
+ 	if (ret)
+ 		return ret;
  
--    -  .. row 11
-+    -  .. row 12
- 
-        -
-        -  struct
-@@ -167,7 +186,7 @@ id's until they get an error.
-        -
-        -  Valid for (sub-)devices that create a single device node.
- 
--    -  .. row 12
-+    -  .. row 13
- 
-        -
-        -
-@@ -177,7 +196,7 @@ id's until they get an error.
- 
-        -  Device node major number.
- 
--    -  .. row 13
-+    -  .. row 14
- 
-        -
-        -
-@@ -187,7 +206,7 @@ id's until they get an error.
- 
-        -  Device node minor number.
- 
--    -  .. row 14
-+    -  .. row 15
- 
-        -
-        -  __u8
 -- 
-2.15.1
+2.16.2
