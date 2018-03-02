@@ -1,122 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53229 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752720AbeCPNUz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 09:20:55 -0400
-Received: by mail-wm0-f68.google.com with SMTP id t3so2995630wmc.2
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 06:20:54 -0700 (PDT)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Subject: [PATCH 2/5] drm/ttm: keep a reference to transfer pipelined BOs
-Date: Fri, 16 Mar 2018 14:20:46 +0100
-Message-Id: <20180316132049.1748-3-christian.koenig@amd.com>
-In-Reply-To: <20180316132049.1748-1-christian.koenig@amd.com>
-References: <20180316132049.1748-1-christian.koenig@amd.com>
+Received: from esa6.microchip.iphmx.com ([216.71.154.253]:28747 "EHLO
+        esa6.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425539AbeCBJTz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 04:19:55 -0500
+Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
+To: Thierry Reding <thierry.reding@gmail.com>
+CC: <shc_work@mail.ru>, <kgene@kernel.org>, <krzk@kernel.org>,
+        <linux@armlinux.org.uk>, <mturquette@baylibre.com>,
+        <sboyd@codeaurora.org>, <jani.nikula@linux.intel.com>,
+        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
+        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
+        <jdelvare@suse.com>, <linux@roeck-us.net>,
+        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
+        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
+        <sean@mess.org>, <lee.jones@linaro.org>,
+        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
+        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
+        <alexandre.belloni@free-electrons.com>,
+        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
+        <intel-gfx@lists.freedesktop.org>,
+        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
+References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
+ <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
+ <20180228194429.GD22932@mithrandir>
+From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Message-ID: <0c3fc3ba-8640-0b2c-a9ec-ab848227c92d@microchip.com>
+Date: Fri, 2 Mar 2018 11:19:43 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180228194429.GD22932@mithrandir>
+Content-Type: text/plain; charset="windows-1252"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure the transfered BO is never destroy before the transfer BO.
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
----
- drivers/gpu/drm/ttm/ttm_bo_util.c | 50 +++++++++++++++++++++++----------------
- 1 file changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/gpu/drm/ttm/ttm_bo_util.c b/drivers/gpu/drm/ttm/ttm_bo_util.c
-index 1f730b3f18e5..1ee20558ee31 100644
---- a/drivers/gpu/drm/ttm/ttm_bo_util.c
-+++ b/drivers/gpu/drm/ttm/ttm_bo_util.c
-@@ -39,6 +39,11 @@
- #include <linux/module.h>
- #include <linux/reservation.h>
- 
-+struct ttm_transfer_obj {
-+	struct ttm_buffer_object base;
-+	struct ttm_buffer_object *bo;
-+};
-+
- void ttm_bo_free_old_node(struct ttm_buffer_object *bo)
- {
- 	ttm_bo_mem_put(bo, &bo->mem);
-@@ -435,7 +440,11 @@ EXPORT_SYMBOL(ttm_bo_move_memcpy);
- 
- static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
- {
--	kfree(bo);
-+	struct ttm_transfer_obj *fbo;
-+
-+	fbo = container_of(bo, struct ttm_transfer_obj, base);
-+	ttm_bo_unref(&fbo->bo);
-+	kfree(fbo);
- }
- 
- /**
-@@ -456,14 +465,15 @@ static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
- static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
- 				      struct ttm_buffer_object **new_obj)
- {
--	struct ttm_buffer_object *fbo;
-+	struct ttm_transfer_obj *fbo;
- 	int ret;
- 
- 	fbo = kmalloc(sizeof(*fbo), GFP_KERNEL);
- 	if (!fbo)
- 		return -ENOMEM;
- 
--	*fbo = *bo;
-+	fbo->base = *bo;
-+	fbo->bo = ttm_bo_reference(bo);
- 
- 	/**
- 	 * Fix up members that we shouldn't copy directly:
-@@ -471,25 +481,25 @@ static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
- 	 */
- 
- 	atomic_inc(&bo->bdev->glob->bo_count);
--	INIT_LIST_HEAD(&fbo->ddestroy);
--	INIT_LIST_HEAD(&fbo->lru);
--	INIT_LIST_HEAD(&fbo->swap);
--	INIT_LIST_HEAD(&fbo->io_reserve_lru);
--	mutex_init(&fbo->wu_mutex);
--	fbo->moving = NULL;
--	drm_vma_node_reset(&fbo->vma_node);
--	atomic_set(&fbo->cpu_writers, 0);
--
--	kref_init(&fbo->list_kref);
--	kref_init(&fbo->kref);
--	fbo->destroy = &ttm_transfered_destroy;
--	fbo->acc_size = 0;
--	fbo->resv = &fbo->ttm_resv;
--	reservation_object_init(fbo->resv);
--	ret = reservation_object_trylock(fbo->resv);
-+	INIT_LIST_HEAD(&fbo->base.ddestroy);
-+	INIT_LIST_HEAD(&fbo->base.lru);
-+	INIT_LIST_HEAD(&fbo->base.swap);
-+	INIT_LIST_HEAD(&fbo->base.io_reserve_lru);
-+	mutex_init(&fbo->base.wu_mutex);
-+	fbo->base.moving = NULL;
-+	drm_vma_node_reset(&fbo->base.vma_node);
-+	atomic_set(&fbo->base.cpu_writers, 0);
-+
-+	kref_init(&fbo->base.list_kref);
-+	kref_init(&fbo->base.kref);
-+	fbo->base.destroy = &ttm_transfered_destroy;
-+	fbo->base.acc_size = 0;
-+	fbo->base.resv = &fbo->base.ttm_resv;
-+	reservation_object_init(fbo->base.resv);
-+	ret = reservation_object_trylock(fbo->base.resv);
- 	WARN_ON(!ret);
- 
--	*new_obj = fbo;
-+	*new_obj = &fbo->base;
- 	return 0;
- }
- 
--- 
-2.14.1
+On 28.02.2018 21:44, Thierry Reding wrote:
+> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
+>> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
+>> were adapted to this change.
+>>
+>> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
+>> ---
+>>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
+>>  drivers/bus/ts-nbus.c                |  2 +-
+>>  drivers/clk/clk-pwm.c                |  3 ++-
+>>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
+>>  drivers/hwmon/pwm-fan.c              |  2 +-
+>>  drivers/input/misc/max77693-haptic.c |  2 +-
+>>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
+>>  drivers/leds/leds-pwm.c              |  5 ++++-
+>>  drivers/media/rc/ir-rx51.c           |  5 ++++-
+>>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
+>>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
+>>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
+>>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
+>>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
+>>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
+>>  include/linux/pwm.h                  |  6 ++++--
+>>  16 files changed, 70 insertions(+), 21 deletions(-)
+> 
+> I don't think it makes sense to leak mode support into the legacy API.
+> The pwm_config() function is considered legacy
+I missed this aspect.
+
+ and should eventually go
+> away. As such it doesn't make sense to integrate a new feature such as
+> PWM modes into it. 
+Agree.
+
+All users of pwm_config() assume normal mode, and
+> that's what pwm_config() should provide.
+Agree.
+
+> 
+> Anyone that needs something other than normal mode should use the new
+> atomic PWM API.
+Agree.
+
+> 
+> Thierry
+> 
