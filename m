@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:55251 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753561AbeC1SNN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 14:13:13 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [PATCH for v3.18 17/18] media: v4l2-compat-ioctl32: use compat_u64 for video standard
-Date: Wed, 28 Mar 2018 15:12:36 -0300
-Message-Id: <2ba9505436180b463d47d6da4ce5e059b383938e.1522260310.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
-References: <cover.1522260310.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
-References: <cover.1522260310.git.mchehab@s-opensource.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:42589 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1426315AbeCBOrD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:03 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
+        joe@perches.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 03/11] media: tw9910: Mixed style fixes
+Date: Fri,  2 Mar 2018 15:46:35 +0100
+Message-Id: <1520002003-10200-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using the "v4l2_std_id" typedef, use compat_u64,
-as otherwise it fails to properly handle some ioctls.
+Two minor style fixes, align function parameter and remove un-necessary
+spaces.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/tw9910.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index e03aa0961360..c76438dd3ead 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -686,7 +686,7 @@ struct v4l2_input32 {
- 	__u32	     type;		/*  Type of input */
- 	__u32	     audioset;		/*  Associated audios (bitfield) */
- 	__u32        tuner;             /*  Associated tuner */
--	v4l2_std_id  std;
-+	compat_u64   std;
- 	__u32	     status;
- 	__u32	     capabilities;
- 	__u32	     reserved[3];
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 1c3c8f0..0232017 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -533,9 +533,9 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+ 	}
+ 	if (!ret)
+ 		ret = i2c_smbus_write_byte_data(client, CROP_HI,
+-						((vdelay >> 2) & 0xc0) |
+-						((vact >> 4) & 0x30) |
+-						((hdelay >> 6) & 0x0c) |
++						((vdelay >> 2) & 0xc0)	|
++						((vact >> 4) & 0x30)	|
++						((hdelay >> 6) & 0x0c)	|
+ 						((hact >> 8) & 0x03));
+ 	if (!ret)
+ 		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
+@@ -953,7 +953,7 @@ static int tw9910_probe(struct i2c_client *client,
+ 	if (!priv)
+ 		return -ENOMEM;
+ 
+-	priv->info   = info;
++	priv->info = info;
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+ 
 -- 
-2.14.3
+2.7.4
