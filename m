@@ -1,159 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:55586 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751859AbeCHSro (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 13:47:44 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH 2/2] media: dvbsky: fix driver unregister logic
-Date: Thu,  8 Mar 2018 15:47:39 -0300
-Message-Id: <23ed911b729d811d35ffe041dbd96fb697b43767.1520534830.git.mchehab@s-opensource.com>
-In-Reply-To: <5f7aebbd7725c5021831df4fcb77fa7b8b4df01b.1520534830.git.mchehab@s-opensource.com>
-References: <5f7aebbd7725c5021831df4fcb77fa7b8b4df01b.1520534830.git.mchehab@s-opensource.com>
-In-Reply-To: <5f7aebbd7725c5021831df4fcb77fa7b8b4df01b.1520534830.git.mchehab@s-opensource.com>
-References: <5f7aebbd7725c5021831df4fcb77fa7b8b4df01b.1520534830.git.mchehab@s-opensource.com>
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24134 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163217AbeCBB6y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Mar 2018 20:58:54 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 03/32] rcar-vin: add Gen3 devicetree bindings documentation
+Date: Fri,  2 Mar 2018 02:57:22 +0100
+Message-Id: <20180302015751.25596-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's an user-after-free there, if the frontend is attached
-via the new I2C way:
+Document the devicetree bindings for the CSI-2 inputs available on Gen3.
 
-[  112.539806] usbcore: deregistering interface driver dvb_usb_dvbsky
-[  112.568489] ==================================================================
-[  112.568600] BUG: KASAN: use-after-free in dvb_unregister_frontend+0x18/0xb0 [dvb_core]
-[  112.568610] Read of size 8 at addr ffff8803a6f61530 by task rmmod/2246
+There is a need to add a custom property 'renesas,id' and to define
+which CSI-2 input is described in which endpoint under the port@1 node.
+This information is needed since there are a set of predefined routes
+between each VIN and CSI-2 block. This routing table will be kept
+inside the driver but in order for it to act on it it must know which
+VIN and CSI-2 is which.
 
-[  112.568622] CPU: 0 PID: 2246 Comm: rmmod Not tainted 4.16.0-rc4+ #103
-[  112.568624] Hardware name:  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
-[  112.568625] Call Trace:
-[  112.568631]  dump_stack+0x5c/0x7c
-[  112.568636]  print_address_description+0x6a/0x270
-[  112.568640]  kasan_report+0x258/0x380
-[  112.568657]  ? dvb_unregister_frontend+0x18/0xb0 [dvb_core]
-[  112.568673]  dvb_unregister_frontend+0x18/0xb0 [dvb_core]
-[  112.568681]  dvb_usbv2_exit+0x156/0x4a0 [dvb_usb_v2]
-[  112.568689]  dvb_usbv2_disconnect+0xa0/0x140 [dvb_usb_v2]
-[  112.568694]  usb_unbind_interface+0xd8/0x3f0
-[  112.568700]  device_release_driver_internal+0x1ce/0x2f0
-[  112.568705]  driver_detach+0x66/0xc0
-[  112.568709]  bus_remove_driver+0x86/0x150
-[  112.568713]  usb_deregister+0x90/0x180
-[  112.568718]  SyS_delete_module+0x293/0x330
-[  112.568721]  ? free_module+0x330/0x330
-[  112.568725]  ? _cond_resched+0x16/0x50
-[  112.568729]  ? task_work_run+0x7d/0xd0
-[  112.568732]  ? mem_cgroup_handle_over_high+0x1c/0xc0
-[  112.568736]  ? free_module+0x330/0x330
-[  112.568740]  do_syscall_64+0xe7/0x250
-[  112.568744]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-[  112.568747] RIP: 0033:0x7facafa272a7
-[  112.568749] RSP: 002b:00007fffdea14cc8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-[  112.568753] RAX: ffffffffffffffda RBX: 00007fffdea14d28 RCX: 00007facafa272a7
-[  112.568755] RDX: 000000000000000a RSI: 0000000000000800 RDI: 00005599557337c8
-[  112.568756] RBP: 0000559955733760 R08: 000000000000000a R09: 0000000000000000
-[  112.568758] R10: 00007facafaa0280 R11: 0000000000000206 R12: 00007fffdea14ef0
-[  112.568761] R13: 00007fffdea16eac R14: 0000559955733260 R15: 0000559955733760
-
-[  112.568808] Allocated by task 638:
-[  112.568816]  kasan_kmalloc+0xa0/0xd0
-[  112.568820]  kmem_cache_alloc_trace+0x114/0x230
-[  112.568826]  m88ds3103_probe+0x9a/0x643 [m88ds3103]
-[  112.568830]  i2c_device_probe+0x2e9/0x3c0
-[  112.568833]  driver_probe_device+0x46e/0x6a0
-[  112.568836]  bus_for_each_drv+0xd6/0x130
-[  112.568838]  __device_attach+0x166/0x1f0
-[  112.568841]  bus_probe_device+0xea/0x110
-[  112.568844]  device_add+0x6a3/0x9f0
-[  112.568847]  i2c_new_device+0x28f/0x5c0
-[  112.568861]  dvb_module_probe+0x91/0x110 [dvb_core]
-[  112.568867]  dvbsky_s960c_attach+0x1c4/0x460 [dvb_usb_dvbsky]
-[  112.568873]  dvb_usbv2_probe+0x1191/0x1950 [dvb_usb_v2]
-[  112.568877]  usb_probe_interface+0x1b3/0x430
-[  112.568880]  driver_probe_device+0x46e/0x6a0
-[  112.568882]  __driver_attach+0xeb/0x110
-[  112.568885]  bus_for_each_dev+0xe4/0x140
-[  112.568888]  bus_add_driver+0x249/0x380
-[  112.568891]  driver_register+0xc6/0x170
-[  112.568893]  usb_register_driver+0xec/0x200
-[  112.568896]  do_one_initcall+0x8f/0x1ee
-[  112.568900]  do_init_module+0xde/0x320
-[  112.568902]  load_module+0x3ed0/0x4850
-[  112.568905]  SYSC_finit_module+0x192/0x1c0
-[  112.568908]  do_syscall_64+0xe7/0x250
-[  112.568911]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-
-[  112.568916] Freed by task 2246:
-[  112.568923]  __kasan_slab_free+0x136/0x180
-[  112.568925]  kfree+0xa5/0x1e0
-[  112.568931]  m88ds3103_remove+0x42/0x60 [m88ds3103]
-[  112.568934]  i2c_device_remove+0x72/0xd0
-[  112.568937]  device_release_driver_internal+0x1ce/0x2f0
-[  112.568940]  bus_remove_device+0x197/0x270
-[  112.568942]  device_del+0x239/0x550
-[  112.568945]  device_unregister+0x16/0x70
-[  112.568949]  dvbsky_exit+0x4c/0x70 [dvb_usb_dvbsky]
-[  112.568955]  dvb_usbv2_disconnect+0x98/0x140 [dvb_usb_v2]
-[  112.568958]  usb_unbind_interface+0xd8/0x3f0
-[  112.568961]  device_release_driver_internal+0x1ce/0x2f0
-[  112.568964]  driver_detach+0x66/0xc0
-[  112.568967]  bus_remove_driver+0x86/0x150
-[  112.568970]  usb_deregister+0x90/0x180
-[  112.568973]  SyS_delete_module+0x293/0x330
-[  112.568976]  do_syscall_64+0xe7/0x250
-[  112.568979]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-
-[  112.568985] The buggy address belongs to the object at ffff8803a6f61100
-                which belongs to the cache kmalloc-2048 of size 2048
-[  112.568998] The buggy address is located 1072 bytes inside of
-                2048-byte region [ffff8803a6f61100, ffff8803a6f61900)
-[  112.569008] The buggy address belongs to the page:
-[  112.569015] page:ffffea000e9bd800 count:1 mapcount:0 mapping:0000000000000000 index:0x0 compound_mapcount: 0
-[  112.569025] flags: 0x17ffe000008100(slab|head)
-[  112.569034] raw: 0017ffe000008100 0000000000000000 0000000000000000 00000001000f000f
-[  112.569044] raw: ffffea000ee2d000 0000000500000005 ffff880407002a80 0000000000000000
-[  112.569053] page dumped because: kasan: bad access detected
-
-[  112.569062] Memory state around the buggy address:
-[  112.569070]  ffff8803a6f61400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[  112.569079]  ffff8803a6f61480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[  112.569088] >ffff8803a6f61500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[  112.569095]                                      ^
-[  112.569103]  ffff8803a6f61580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[  112.569112]  ffff8803a6f61600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[  112.569119] ==================================================================
-[  112.569127] Disabling lock debugging due to kernel taint
-[  112.571161] dvb_usb_v2: 'DVBSky S960CI:2-2' successfully deinitialized and disconnected
-
-Fix it by letting the dvb-usb-v2 core to know that the frontend
-was already removed.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 +++
- 1 file changed, 3 insertions(+)
+ .../devicetree/bindings/media/rcar_vin.txt         | 118 ++++++++++++++++++---
+ 1 file changed, 106 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index 416231bf381f..e28bd8836751 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -618,10 +618,13 @@ static int dvbsky_init(struct dvb_usb_device *d)
- static void dvbsky_exit(struct dvb_usb_device *d)
- {
- 	struct dvbsky_state *state = d_to_priv(d);
-+	struct dvb_usb_adapter *adap = &d->adapter[0];
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index c60e6b0a89b67a8c..90d92836284b7f68 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
+ -------------------------------------------
  
- 	dvb_module_release(state->i2c_client_tuner);
- 	dvb_module_release(state->i2c_client_demod);
- 	dvb_module_release(state->i2c_client_ci);
+ The rcar_vin device provides video input capabilities for the Renesas R-Car
+-family of devices. The current blocks are always slaves and suppot one input
+-channel which can be either RGB, YUYV or BT656.
++family of devices.
 +
-+	adap->fe[0] = NULL;
- }
++Each VIN instance has a single parallel input that supports RGB and YUV video,
++with both external synchronization and BT.656 synchronization for the latter.
++Depending on the instance the VIN input is connected to external SoC pins, or
++on Gen3 platforms to a CSI-2 receiver.
  
- /* DVB USB Driver stuff */
+  - compatible: Must be one or more of the following
+    - "renesas,vin-r8a7743" for the R8A7743 device
+@@ -16,6 +20,8 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
++   - "renesas,vin-r8a7796" for the R8A7796 device
++   - "renesas,vin-r8a77970" for the R8A77970 device
+    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+      device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+@@ -31,21 +37,38 @@ channel which can be either RGB, YUYV or BT656.
+ Additionally, an alias named vinX will need to be created to specify
+ which video input device this is.
+ 
+-The per-board settings:
++The per-board settings Gen2 platforms:
+  - port sub-node describing a single endpoint connected to the vin
+    as described in video-interfaces.txt[1]. Only the first one will
+    be considered as each vin interface has one input port.
+ 
+-   These settings are used to work out video input format and widths
+-   into the system.
++The per-board settings Gen3 platforms:
+ 
++Gen3 platforms can support both a single connected parallel input source
++from external SoC pins (port0) and/or multiple parallel input sources
++from local SoC CSI-2 receivers (port1) depending on SoC.
+ 
+-Device node example
+--------------------
++- renesas,id - ID number of the VIN, VINx in the documentation.
++- ports
++    - port 0 - sub-node describing a single endpoint connected to the VIN
++      from external SoC pins described in video-interfaces.txt[1].
++      Describing more then one endpoint in port 0 is invalid. Only VIN
++      instances that are connected to external pins should have port 0.
++    - port 1 - sub-nodes describing one or more endpoints connected to
++      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
++      use the following schema.
+ 
+-	aliases {
+-	       vin0 = &vin0;
+-	};
++        - Endpoint 0 - sub-node describing the endpoint connected to CSI20
++        - Endpoint 1 - sub-node describing the endpoint connected to CSI21
++        - Endpoint 2 - sub-node describing the endpoint connected to CSI40
++        - Endpoint 3 - sub-node describing the endpoint connected to CSI41
++
++Device node example for Gen2 platforms
++--------------------------------------
++
++        aliases {
++                vin0 = &vin0;
++        };
+ 
+         vin0: vin@e6ef0000 {
+                 compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
+@@ -55,8 +78,8 @@ Device node example
+                 status = "disabled";
+         };
+ 
+-Board setup example (vin1 composite video input)
+-------------------------------------------------
++Board setup example for Gen2 platforms (vin1 composite video input)
++-------------------------------------------------------------------
+ 
+ &i2c2   {
+         status = "ok";
+@@ -95,6 +118,77 @@ Board setup example (vin1 composite video input)
+         };
+ };
+ 
++Device node example for Gen3 platforms
++--------------------------------------
+ 
++        vin0: video@e6ef0000 {
++                compatible = "renesas,vin-r8a7795";
++                reg = <0 0xe6ef0000 0 0x1000>;
++                interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 811>;
++                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++                resets = <&cpg 811>;
++                renesas,id = <0>;
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                vin0csi20: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint= <&csi20vin0>;
++                                };
++                                vin0csi21: endpoint@1 {
++                                        reg = <1>;
++                                        remote-endpoint= <&csi21vin0>;
++                                };
++                                vin0csi40: endpoint@2 {
++                                        reg = <2>;
++                                        remote-endpoint= <&csi40vin0>;
++                                };
++                        };
++                };
++        };
++
++        csi20: csi2@fea80000 {
++                compatible = "renesas,r8a7795-csi2";
++                reg = <0 0xfea80000 0 0x10000>;
++                interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 714>;
++                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++                resets = <&cpg 714>;
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@0 {
++                                reg = <0>;
++                                csi20_in: endpoint {
++                                        clock-lanes = <0>;
++                                        data-lanes = <1>;
++                                        remote-endpoint = <&adv7482_txb>;
++                                };
++                        };
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                csi20vin0: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint = <&vin0csi20>;
++                                };
++                        };
++                };
++        };
+ 
+ [1] video-interfaces.txt common video media interface
 -- 
-2.14.3
+2.16.2
