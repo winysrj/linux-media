@@ -1,52 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:40072 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752829AbeC1RPP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 13:15:15 -0400
-Received: by mail-pg0-f67.google.com with SMTP id g8so1173817pgv.7
-        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:15:15 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v2 0/5] dvb/pci/pt1: decompose earth-pt1 into sub drivers
-Date: Thu, 29 Mar 2018 02:14:58 +0900
-Message-Id: <20180328171503.30541-1-tskd08@gmail.com>
+Received: from skyboo.net ([94.40.87.198]:32830 "EHLO skyboo.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1164860AbeCBIUg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Mar 2018 03:20:36 -0500
+From: Mariusz Bialonczyk <manio@skyboo.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mariusz Bialonczyk <manio@skyboo.net>
+Date: Fri,  2 Mar 2018 08:55:24 +0100
+Message-Id: <20180302075524.27868-1-manio@skyboo.net>
+Subject: [PATCH] w1: fix w1_ds2438 documentation
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
+---
+ Documentation/w1/slaves/w1_ds2438 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Changes since v1:
-- use new style of specifying pll_desc of the terrestrial tuner
-
-Akihiro Tsukada (5):
-  dvb-frontends/dvb-pll: add tda6651 ISDB-T pll_desc
-  tuners: add new i2c driver for  Sharp qm1d1b0004 ISDB-S tuner
-  dvb: earth-pt1: decompose pt1 driver into sub drivers
-  dvb: earth-pt1: add support for suspend/resume
-  dvb: earth-pt1:  replace schedule_timeout with usleep_range
-
- drivers/media/dvb-frontends/dvb-pll.c |  24 ++
- drivers/media/dvb-frontends/dvb-pll.h |   2 +
- drivers/media/pci/pt1/Kconfig         |   3 +
- drivers/media/pci/pt1/Makefile        |   3 +-
- drivers/media/pci/pt1/pt1.c           | 470 ++++++++++++++++------
- drivers/media/pci/pt1/va1j5jf8007s.c  | 732 ----------------------------------
- drivers/media/pci/pt1/va1j5jf8007s.h  |  42 --
- drivers/media/pci/pt1/va1j5jf8007t.c  | 532 ------------------------
- drivers/media/pci/pt1/va1j5jf8007t.h  |  42 --
- drivers/media/tuners/Kconfig          |   7 +
- drivers/media/tuners/Makefile         |   1 +
- drivers/media/tuners/qm1d1b0004.c     | 264 ++++++++++++
- drivers/media/tuners/qm1d1b0004.h     |  24 ++
- 13 files changed, 677 insertions(+), 1469 deletions(-)
- delete mode 100644 drivers/media/pci/pt1/va1j5jf8007s.c
- delete mode 100644 drivers/media/pci/pt1/va1j5jf8007s.h
- delete mode 100644 drivers/media/pci/pt1/va1j5jf8007t.c
- delete mode 100644 drivers/media/pci/pt1/va1j5jf8007t.h
- create mode 100644 drivers/media/tuners/qm1d1b0004.c
- create mode 100644 drivers/media/tuners/qm1d1b0004.h
-
+diff --git a/Documentation/w1/slaves/w1_ds2438 b/Documentation/w1/slaves/w1_ds2438
+index b99f3674c5b4..e64f65a09387 100644
+--- a/Documentation/w1/slaves/w1_ds2438
++++ b/Documentation/w1/slaves/w1_ds2438
+@@ -60,4 +60,4 @@ vad: general purpose A/D input (VAD)
+ vdd: battery input (VDD)
+ 
+ After the voltage conversion the value is returned as decimal ASCII.
+-Note: The value is in mV, so to get a volts the value has to be divided by 10.
++Note: To get a volts the value has to be divided by 100.
 -- 
-2.16.3
+2.16.2
