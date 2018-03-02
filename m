@@ -1,245 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44727 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752165AbeCZR2k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 13:28:40 -0400
-Date: Mon, 26 Mar 2018 14:28:34 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, acourbot@chromium.org
-Cc: linux-media@vger.kernel.org, tfiga@google.com, hverkuil@xs4all.nl
-Subject: Re: [RFC v2.1 1/1] media: Support variable size IOCTL arguments
-Message-ID: <20180326142834.264cf1d9@vento.lan>
-In-Reply-To: <1522070604-3213-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
-        <1522070604-3213-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:22517 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163973AbeCBB7N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Mar 2018 20:59:13 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 17/32] rcar-vin: move media bus configuration to struct rvin_info
+Date: Fri,  2 Mar 2018 02:57:36 +0100
+Message-Id: <20180302015751.25596-18-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 26 Mar 2018 16:23:24 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Bus configuration will once the driver is extended to support Gen3
+contain information not specific to only the directly connected parallel
+subdevice. Move it to struct rvin_dev to show it's not always coupled
+to the parallel subdevice.
 
-> Maintain a list of supported IOCTL argument sizes and allow only those in
-> the list.
-> 
-> As an additional bonus, IOCTL handlers will be able to check whether the
-> caller actually set (using the argument size) the field vs. assigning it
-> to zero. Separate macro can be provided for that.
-> 
-> This will be easier for applications as well since there is no longer the
-> problem of setting the reserved fields zero, or at least it is a lesser
-> problem.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Hi folks,
-> 
-> I've essentially addressed Mauro's comments on v2.
-> 
-> The code is only compile tested so far but the changes from the last
-> tested version are not that big. There's still some uncertainty though.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 11 ++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
+ 4 files changed, 20 insertions(+), 20 deletions(-)
 
-You should test it... I guess there is a bug on this version :-)
-(see below)
-
-> 
-> since v2:
-> 
-> - Rework is_valid_ioctl based on the comments
-> 
-> 	- Improved comments,
-> 	
-> 	- Rename cmd as user_cmd, as this comes from the user
-> 	
-> 	- Check whether there are alternative argument sizes before any
-> 	  checks on IOCTL command if there is no exact match
-> 	  
-> 	- Use IOCSIZE_MASK macro instead of creating our own
-> 
-> - Add documentation for macros declaring IOCTLs
-> 
-> 
->  drivers/media/media-device.c | 98 +++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 92 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 35e81f7..279d740 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -387,22 +387,65 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
->  /* Do acquire the graph mutex */
->  #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
->  
-> -#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> +/**
-> + * MEDIA_IOC_SZ_ARG - Declare a Media device IOCTL with alternative size and
-> + *		      to_user/from_user callbacks
-> + *
-> + * @__cmd:	The IOCTL command suffix (without "MEDIA_IOC_")
-> + * @func:	The handler function
-> + * @fl:		Flags from @enum media_ioc_flags
-> + * @alt_sz:	A 0-terminated list of alternative argument struct sizes.
-> + * @from_user:	Function to copy argument struct from the user to the kernel
-> + * @to_user:	Function to copy argument struct to the user from the kernel
-> + */
-> +#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
->  	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
->  		.cmd = MEDIA_IOC_##__cmd,				\
->  		.fn = (long (*)(struct media_device *, void *))func,	\
->  		.flags = fl,						\
-> +		.alt_arg_sizes = alt_sz,				\
->  		.arg_from_user = from_user,				\
->  		.arg_to_user = to_user,					\
->  	}
->  
-> -#define MEDIA_IOC(__cmd, func, fl)					\
-> -	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
-> +/**
-> + * MEDIA_IOC_ARG - Declare a Media device IOCTL with to_user/from_user callbacks
-> + *
-> + * Just as MEDIA_IOC_SZ_ARG but without the alternative size list.
-> + */
-
-Nitpick: either use:
-	/*
-	 *...
-	 */
-
-or add the arguments to the macro there, as /** ... */ expects
-the arguments. Same for other comments below.
-
-> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
-> +
-> +/**
-> + * MEDIA_IOC_ARG - Declare a Media device IOCTL with alternative argument struct
-> + *		   sizes
-> + *
-> + * Just as MEDIA_IOC_SZ_ARG but without the callbacks to copy the data from the
-> + * user space and back to user space.
-> + */
-> +#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
-> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
-> +			 copy_arg_from_user, copy_arg_to_user)
-> +
-> +/**
-> + * MEDIA_IOC_ARG - Declare a Media device IOCTL
-> + *
-> + * Just as MEDIA_IOC_SZ_ARG but without the alternative size list or the
-> + * callbacks to copy the data from the user space and back to user space.
-> + */
-> +#define MEDIA_IOC(__cmd, func, fl)				\
-> +	MEDIA_IOC_ARG(__cmd, func, fl,				\
-> +		      copy_arg_from_user, copy_arg_to_user)
->  
->  /* the table is indexed by _IOC_NR(cmd) */
->  struct media_ioctl_info {
->  	unsigned int cmd;
->  	unsigned short flags;
-> +	/*
-> +	 * Sizes of the alternative arguments. If there are none, this
-> +	 * pointer is NULL.
-> +	 */
-> +	const unsigned short *alt_arg_sizes;
->  	long (*fn)(struct media_device *dev, void *arg);
->  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
->  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
-> @@ -416,6 +459,46 @@ static const struct media_ioctl_info ioctl_info[] = {
->  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
->  };
->  
-> +static inline long is_valid_ioctl(unsigned int user_cmd)
-> +{
-> +	const struct media_ioctl_info *info = ioctl_info;
-> +	const unsigned short *alt_arg_sizes;
-> +
-> +	if (_IOC_NR(user_cmd) >= ARRAY_SIZE(ioctl_info))
-> +		return -ENOIOCTLCMD;
-> +
-> +	info += _IOC_NR(user_cmd);
-> +
-> +	if (user_cmd == info->cmd)
-> +		return 0;
-> +
-> +	/*
-> +	 * There was no exact match between the user-passed IOCTL command and
-> +	 * the definition. Are there earlier revisions of the argument struct
-> +	 * available?
-> +	 */
-> +	if (!info->alt_arg_sizes)
-> +		return -ENOIOCTLCMD;
-> +
-> +	/*
-> +	 * Variable size IOCTL argument support allows using either the latest
-> +	 * revision of the IOCTL argument struct or an earlier version. Check
-> +	 * that the size-independent portions of the IOCTL command match and
-> +	 * that the size matches with one of the alternative sizes that
-> +	 * represent earlier revisions of the argument struct.
-> +	 */
-> +	if ((user_cmd & ~IOCSIZE_MASK) != (info->cmd & ~IOCSIZE_MASK)
-> +	    || _IOC_SIZE(user_cmd) < _IOC_SIZE(info->cmd))
-> +		return -ENOIOCTLCMD;
-
-I guess it should be, instead:
-
-	    || _IOC_SIZE(user_cmd) > _IOC_SIZE(info->cmd))
-
-The hole idea is that the struct sizes used by ioctls can monotonically
-increase as newer fields become needed, but never decrease.
-
-Assuming that, _IOC_SIZE(MEDIA_IOC_foo) will give the size of the
-latest version of an ioctl supported by a given Kernel version,
-while alt_arg_sizes will list smaller sizes from previous
-Kernel versions that will also be accepted, in order to make it
-backward-compatible with apps compiled against older Kernel headers.
-
-However, if an application is compiled with a kernel newer than
-the current one, it should fail, as an older Kernel doesn't know
-how to handle the newer fields. So, it should be up to the userspace
-app to add backward-compatible code if it needs to support older
-Kernels.
-
-(perhaps it should be worth adding a comment like the above
-somewhere).
-
-> +
-> +	for (alt_arg_sizes = info->alt_arg_sizes; *alt_arg_sizes;
-> +	     alt_arg_sizes++)
-> +		if (_IOC_SIZE(user_cmd) == *alt_arg_sizes)
-> +			return 0;
-> +
-> +	return -ENOIOCTLCMD;
-> +}
-> +
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  			       unsigned long __arg)
->  {
-> @@ -426,9 +509,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  	char __karg[256], *karg = __karg;
->  	long ret;
->  
-> -	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
-> -	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
-> -		return -ENOIOCTLCMD;
-> +	ret = is_valid_ioctl(cmd);
-> +	if (ret)
-> +		return ret;
->  
->  	info = &ioctl_info[_IOC_NR(cmd)];
->  
-> @@ -444,6 +527,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  			goto out_free;
->  	}
->  
-> +	/* Set the rest of the argument struct to zero */
-> +	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
-> +
->  	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
->  		mutex_lock(&dev->graph_mutex);
->  
-
-Regards,
-Mauro
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index cc863e4ec9a4d4b3..449175c3133e42c6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+ 
+ 	/* Find compatible subdevices mbus format */
+-	vin->digital->code = 0;
++	vin->mbus_code = 0;
+ 	code.index = 0;
+ 	code.pad = vin->digital->source_pad;
+-	while (!vin->digital->code &&
++	while (!vin->mbus_code &&
+ 	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
+ 		code.index++;
+ 		switch (code.code) {
+@@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 		case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+-			vin->digital->code = code.code;
++			vin->mbus_code = code.code;
+ 			vin_dbg(vin, "Found media bus format for %s: %d\n",
+-				subdev->name, vin->digital->code);
++				subdev->name, vin->mbus_code);
+ 			break;
+ 		default:
+ 			break;
+ 		}
+ 	}
+ 
+-	if (!vin->digital->code) {
++	if (!vin->mbus_code) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+ 			subdev->name);
+ 		return -EINVAL;
+@@ -190,16 +190,16 @@ static int rvin_digital_parse_v4l2(struct device *dev,
+ 	if (vep->base.port || vep->base.id)
+ 		return -ENOTCONN;
+ 
+-	rvge->mbus_cfg.type = vep->bus_type;
++	vin->mbus_cfg.type = vep->bus_type;
+ 
+-	switch (rvge->mbus_cfg.type) {
++	switch (vin->mbus_cfg.type) {
+ 	case V4L2_MBUS_PARALLEL:
+ 		vin_dbg(vin, "Found PARALLEL media bus\n");
+-		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
++		vin->mbus_cfg.flags = vep->bus.parallel.flags;
+ 		break;
+ 	case V4L2_MBUS_BT656:
+ 		vin_dbg(vin, "Found BT656 media bus\n");
+-		rvge->mbus_cfg.flags = 0;
++		vin->mbus_cfg.flags = 0;
+ 		break;
+ 	default:
+ 		vin_err(vin, "Unknown media bus type\n");
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index c8831e189d362c8b..4ebf76c30a3e9117 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -633,7 +633,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital->code) {
++	switch (vin->mbus_code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -641,7 +641,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -650,7 +650,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -662,11 +662,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+@@ -875,6 +875,7 @@ static void rvin_capture_stop(struct rvin_dev *vin)
+ 	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+ }
+ 
++
+ /* -----------------------------------------------------------------------------
+  * DMA Functions
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 55640c6b2a1200ca..20be21cb1cf521e5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -199,7 +199,7 @@ static int rvin_try_format(struct rvin_dev *vin, u32 which,
+ 	if (pad_cfg == NULL)
+ 		return -ENOMEM;
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->mbus_code);
+ 
+ 	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 39051da31650bd79..491f3187b932f81e 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -62,8 +62,6 @@ struct rvin_video_format {
+  * struct rvin_graph_entity - Video endpoint from async framework
+  * @asd:	sub-device descriptor for async framework
+  * @subdev:	subdevice matched using async framework
+- * @code:	Media bus format from source
+- * @mbus_cfg:	Media bus format from DT
+  * @source_pad:	source pad of remote subdevice
+  * @sink_pad:	sink pad of remote subdevice
+  */
+@@ -71,9 +69,6 @@ struct rvin_graph_entity {
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *subdev;
+ 
+-	u32 code;
+-	struct v4l2_mbus_config mbus_cfg;
+-
+ 	unsigned int source_pad;
+ 	unsigned int sink_pad;
+ };
+@@ -114,6 +109,8 @@ struct rvin_info {
+  * @sequence:		V4L2 buffers sequence number
+  * @state:		keeps track of operation state
+  *
++ * @mbus_cfg:		media bus configuration from DT
++ * @mbus_code:		media bus format code
+  * @format:		active V4L2 pixel format
+  *
+  * @crop:		active cropping
+@@ -140,6 +137,8 @@ struct rvin_dev {
+ 	unsigned int sequence;
+ 	enum rvin_dma_state state;
+ 
++	struct v4l2_mbus_config mbus_cfg;
++	u32 mbus_code;
+ 	struct v4l2_pix_format format;
+ 
+ 	struct v4l2_rect crop;
+-- 
+2.16.2
