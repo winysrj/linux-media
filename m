@@ -1,83 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51511 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751550AbeCURIb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 13:08:31 -0400
-Date: Wed, 21 Mar 2018 18:08:27 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 11/12] media: ov5640: Add 60 fps support
-Message-ID: <20180321170827.dcd72sx5fqv2vezk@flea>
-References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
- <20180302143500.32650-12-maxime.ripard@bootlin.com>
- <ff080b97-3f7a-36fa-0e1c-16e83106d6a1@st.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="nq7cxgmwm662uupn"
-Content-Disposition: inline
-In-Reply-To: <ff080b97-3f7a-36fa-0e1c-16e83106d6a1@st.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:57245 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966813AbeCBQge (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 11:36:34 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        sakari.ailus@iki.fi, mchehab@kernel.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 5/5] media: MAINTAINERS: Add entry for Aptina MT9T112
+Date: Fri,  2 Mar 2018 17:35:41 +0100
+Message-Id: <1520008541-3961-6-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add entry for Aptina/Micron MT9T112 camera sensor. The driver is
+currently orphaned.
 
---nq7cxgmwm662uupn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Hi Hugues,
-
-Thanks for all your feedback, I'll merge your suggested changes in the
-next iteration.
-
-On Tue, Mar 13, 2018 at 02:32:14PM +0000, Hugues FRUCHET wrote:
-> >   	if (fi->numerator =3D=3D 0) {
-> >   		fi->denominator =3D maxfps;
-> >   		fi->numerator =3D 1;
-> > -		return OV5640_30_FPS;
-> > +		return OV5640_60_FPS;
->
-> [...]
->
-> About 60 fps by default if (fi->numerator =3D=3D 0): shouldn't we stick t=
-o a=20
-> default value supported by all modes such as 30fps ?
-
-30 fps is not supported by all modes either, so I guess 15 fps would
-be a better pick?
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---nq7cxgmwm662uupn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqykYsACgkQ0rTAlCFN
-r3TT1w//cUGuuIvgStcofckuEf+LigjswDw3SiQBNHzTzWspkRW31VDCnznY6KiY
-Eg6Z3VdpOkyKvJdUmxTs03fDDIYMuN9i8AyUuaKCxlMzOpKmGerWiSzTOzLwQOuJ
-Ucx+hDqOVbqh1S1+bbzgbTQzOTtGZcQutLxWt84qBoNSWODn+B9NG1t9fZu4Y02f
-9UxB/A/gmw36DW4vAI2TfOYQAakuMiSe4XrvS6bItE9YHH6O6pPqx9nuiRnqpB1B
-U9alTQdzJw/ZLSugs66EvwhY8owEWTc7JXeyRww9k8JaxxlOqqAN+Yh5zuTJSxwI
-ARFRv7el/sgZk8TnrGatmR3gx9EQ6jOLAY2IBd2bYMpmBw6usV+qnc1ltjQNCstk
-XSOZyGzViJm5Ly3yfjAaTKQAJ29szQUFE+ONh8pnrbBRARc/A7l21/SIDzvjYDay
-25WNpn500mrC6ABRYxYCmqOzfruaA0S2NsZvjQSdGMRgkin5r0LH01jfLQ/3iOTG
-8AsMxo/KA8kBXR+vk0GnD4JQ6/ObIUysCem+Sx9jquIAvphvP5LOsi3gWWzbeb97
-/yZRRUGnN9ZtaIlscmt5lSwRDOUhb55V4YUPL/L5JzgSsWPu5WQyhd/Iv+gG2CAM
-70CLnG/AqHJSSHVXVezVyEZKb+IHJarI6vP2ran9CqpSdFqwwMc=
-=Sga+
------END PGP SIGNATURE-----
-
---nq7cxgmwm662uupn--
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 91ed6ad..1d8be25 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9385,6 +9385,13 @@ S:	Maintained
+ F:	drivers/media/i2c/mt9t001.c
+ F:	include/media/i2c/mt9t001.h
+ 
++MT9T112 APTINA CAMERA SENSOR
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Orphan
++F:	drivers/media/i2c/mt9t112.c
++F:	include/media/i2c/mt9t112.h
++
+ MT9V032 APTINA CAMERA SENSOR
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
+-- 
+2.7.4
