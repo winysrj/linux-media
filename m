@@ -1,45 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44128 "EHLO
-        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753807AbeCFTPG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 14:15:06 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 0/8] FIXME: Assorted of missed bits from merge
-Date: Tue,  6 Mar 2018 13:14:54 -0600
-Message-Id: <1520363702-25536-1-git-send-email-brad@nextdimension.cc>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52260 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425094AbeCBJ2U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 04:28:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v11 11/32] rcar-vin: set a default field to fallback on
+Date: Fri, 02 Mar 2018 11:29:09 +0200
+Message-ID: <1558965.WHi4tbhD4W@avalon>
+In-Reply-To: <20180302015751.25596-12-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se> <20180302015751.25596-12-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hi Niklas,
 
-Here are the assorted bits and bobs that wound up missing
-due to the patchwork snafu.
+Thank you for the patch.
 
-One new patch is:
-- cx231xx: Set mfe_shared if second frontend found
+On Friday, 2 March 2018 03:57:30 EET Niklas S=F6derlund wrote:
+> If the field is not supported by the driver it should not try to keep
+> the current field. Instead it should set it to a default fallback. Since
+> trying a format should always result in the same state regardless of the
+> current state of the device.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 
-Due to your suggestion in regards to the shared tuner logic.
-I put the check in what seems like a sensical spot.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Brad Love (8):
-  lgdt3306a: remove symbol count mismatch fix
-  em28xx: Change hex to lower case
-  cx231xx: Use frontend i2c adapter with tuner
-  cx23885: Add tuner type and analog inputs to 1265
-  cx231xx: Set mfe_shared if second frontend found
-  cx231xx: Use constant instead of hard code for max
-  cx231xx: Add second i2c demod to Hauppauge 975
-  cx23885: Fix gpio on Hauppauge QuadHD PCIe cards
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> c2265324c7c96308..ebcd78b1bb6e8cb6 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -23,6 +23,7 @@
+>  #include "rcar-vin.h"
+>=20
+>  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
+> +#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
+>=20
+>  /*
+> -------------------------------------------------------------------------=
+=2D-
+> -- * Format Conversions
+> @@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+>  	case V4L2_FIELD_INTERLACED:
+>  		break;
+>  	default:
+> -		vin->format.field =3D V4L2_FIELD_NONE;
+> +		vin->format.field =3D RVIN_DEFAULT_FIELD;
+>  		break;
+>  	}
+>=20
+> @@ -213,10 +214,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	u32 walign;
+>  	int ret;
+>=20
+> -	/* Keep current field if no specific one is asked for */
+> -	if (pix->field =3D=3D V4L2_FIELD_ANY)
+> -		pix->field =3D vin->format.field;
+> -
+>  	/* If requested format is not supported fallback to the default */
+>  	if (!rvin_format_from_pixel(pix->pixelformat)) {
+>  		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+> @@ -246,7 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	case V4L2_FIELD_INTERLACED:
+>  		break;
+>  	default:
+> -		pix->field =3D V4L2_FIELD_NONE;
+> +		pix->field =3D RVIN_DEFAULT_FIELD;
+>  		break;
+>  	}
 
- drivers/media/dvb-frontends/lgdt3306a.c   | 10 ++----
- drivers/media/pci/cx23885/cx23885-cards.c | 20 +++++++++--
- drivers/media/usb/cx231xx/cx231xx-cards.c |  1 +
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 60 ++++++++++++++++++++++++++++---
- drivers/media/usb/em28xx/em28xx-core.c    |  2 +-
- 5 files changed, 77 insertions(+), 16 deletions(-)
 
--- 
-2.7.4
+=2D-=20
+Regards,
+
+Laurent Pinchart
