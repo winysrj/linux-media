@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:51383 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752148AbeCMNGj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 09:06:39 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Daniel Scheller <d.scheller@gmx.net>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Binoy Jayan <binoy.jayan@linaro.org>,
-        Jasmin Jessich <jasmin@anw.at>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: ngene: avoid unused variable warning
-Date: Tue, 13 Mar 2018 14:06:03 +0100
-Message-Id: <20180313130620.4040088-1-arnd@arndb.de>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:40595 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1428700AbeCBOrV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:21 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
+        joe@perches.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 10/11] media: ov772x: Replace msleep(1) with usleep_range
+Date: Fri,  2 Mar 2018 15:46:42 +0100
+Message-Id: <1520002003-10200-11-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The newly added pdev variable is only used in an #ifdef, causing a
-build warning without CONFIG_PCI_MSI, unless we move the declaration
-inside the same #ifdef:
+msleep() can sleep up to 20ms.
 
-drivers/media/pci/ngene/ngene-core.c: In function 'ngene_start':
-drivers/media/pci/ngene/ngene-core.c:1328:17: error: unused variable 'pdev' [-Werror=unused-variable]
+As suggested by Documentation/timers/timers_howto.txt replace it with
+usleep_range() with up to 5ms delay.
 
-Fixes: 6795bf626482 ("media: ngene: convert kernellog printing from printk() to dev_*() macros")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/pci/ngene/ngene-core.c | 2 +-
+ drivers/media/i2c/ov772x.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 3b9a1bfaf6c0..25f16833a475 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1325,7 +1325,6 @@ static int ngene_buffer_config(struct ngene *dev)
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 1fd6d4b..2d5281a 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -574,7 +574,7 @@ static int ov772x_reset(struct i2c_client *client)
+ 	if (ret < 0)
+ 		return ret;
  
- static int ngene_start(struct ngene *dev)
- {
--	struct device *pdev = &dev->pci_dev->dev;
- 	int stat;
- 	int i;
+-	msleep(1);
++	usleep_range(1000, 5000);
  
-@@ -1359,6 +1358,7 @@ static int ngene_start(struct ngene *dev)
- #ifdef CONFIG_PCI_MSI
- 	/* enable MSI if kernel and card support it */
- 	if (pci_msi_enabled() && dev->card_info->msi_supported) {
-+		struct device *pdev = &dev->pci_dev->dev;
- 		unsigned long flags;
- 
- 		ngwritel(0, NGENE_INT_ENABLE);
+ 	return ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
+ }
 -- 
-2.9.0
+2.7.4
