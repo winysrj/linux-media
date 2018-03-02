@@ -1,152 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52791 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751170AbeCIPas (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:30:48 -0500
-Subject: Re: [PATCH v12 15/33] rcar-vin: break out format alignment and
- checking
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:58196 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1426315AbeCBOrA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:00 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
+        joe@perches.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-16-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <44631e32-d28f-f31b-5bb8-7d37bbb56831@xs4all.nl>
-Date: Fri, 9 Mar 2018 16:30:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180307220511.9826-16-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v2 02/11] media: tw9910: Re-organize in-code comments
+Date: Fri,  2 Mar 2018 15:46:34 +0100
+Message-Id: <1520002003-10200-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/18 23:04, Niklas Söderlund wrote:
-> Part of the format alignment and checking can be shared with the Gen3
-> format handling. Break that part out to a separate function.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+A lot of comments that would fit a single line were spread on two or
+more lines. Also fix capitalization and punctuation where appropriate.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/tw9910.c | 44 +++++++++++++-------------------------------
+ 1 file changed, 13 insertions(+), 31 deletions(-)
 
-	Hans
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 85 ++++++++++++++++-------------
->  1 file changed, 48 insertions(+), 37 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 01f2a14169a74ff3..680b25f610d1d8bb 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -87,6 +87,53 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
->  	return pix->bytesperline * pix->height;
->  }
->  
-> +static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-> +{
-> +	u32 walign;
-> +
-> +	if (!rvin_format_from_pixel(pix->pixelformat) ||
-> +	    (vin->info->model == RCAR_M1 &&
-> +	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
-> +		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-> +
-> +	switch (pix->field) {
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +		break;
-> +	case V4L2_FIELD_ALTERNATE:
-> +		/*
-> +		 * Driver dose not (yet) support outputting ALTERNATE to a
-> +		 * userspace. It does support outputting INTERLACED so use
-> +		 * the VIN hardware to combine the two fields.
-> +		 */
-> +		pix->field = V4L2_FIELD_INTERLACED;
-> +		pix->height *= 2;
-> +		break;
-> +	default:
-> +		pix->field = RVIN_DEFAULT_FIELD;
-> +		break;
-> +	}
-> +
-> +	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-> +	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-> +
-> +	/* Limit to VIN capabilities */
-> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> +			      &pix->height, 4, vin->info->max_height, 2, 0);
-> +
-> +	pix->bytesperline = rvin_format_bytesperline(pix);
-> +	pix->sizeimage = rvin_format_sizeimage(pix);
-> +
-> +	vin_dbg(vin, "Format %ux%u bpl: %u size: %u\n",
-> +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-> +
-> +	return 0;
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * V4L2
->   */
-> @@ -184,7 +231,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  			     struct v4l2_pix_format *pix,
->  			     struct rvin_source_fmt *source)
->  {
-> -	u32 walign;
->  	int ret;
->  
->  	if (!rvin_format_from_pixel(pix->pixelformat) ||
-> @@ -197,42 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	if (ret)
->  		return ret;
->  
-> -	switch (pix->field) {
-> -	case V4L2_FIELD_TOP:
-> -	case V4L2_FIELD_BOTTOM:
-> -	case V4L2_FIELD_NONE:
-> -	case V4L2_FIELD_INTERLACED_TB:
-> -	case V4L2_FIELD_INTERLACED_BT:
-> -	case V4L2_FIELD_INTERLACED:
-> -		break;
-> -	case V4L2_FIELD_ALTERNATE:
-> -		/*
-> -		 * Driver dose not (yet) support outputting ALTERNATE to a
-> -		 * userspace. It does support outputting INTERLACED so use
-> -		 * the VIN hardware to combine the two fields.
-> -		 */
-> -		pix->field = V4L2_FIELD_INTERLACED;
-> -		pix->height *= 2;
-> -		break;
-> -	default:
-> -		pix->field = RVIN_DEFAULT_FIELD;
-> -		break;
-> -	}
-> -
-> -	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-> -	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-> -
-> -	/* Limit to VIN capabilities */
-> -	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> -			      &pix->height, 4, vin->info->max_height, 2, 0);
-> -
-> -	pix->bytesperline = rvin_format_bytesperline(pix);
-> -	pix->sizeimage = rvin_format_sizeimage(pix);
-> -
-> -	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-> -		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-> -
-> -	return 0;
-> +	return rvin_format_align(vin, pix);
->  }
->  
->  static int rvin_querycap(struct file *file, void *priv,
-> 
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index 3a5e307..1c3c8f0 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -388,7 +388,7 @@ static int tw9910_set_hsync(struct i2c_client *client)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* So far only revisions 0 and 1 have been seen */
++	/* So far only revisions 0 and 1 have been seen. */
+ 	/* bit 2 - 0 */
+ 	if (priv->revision == 1)
+ 		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
+@@ -652,21 +652,15 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ 	int ret = -EINVAL;
+ 	u8 val;
+ 
+-	/*
+-	 * select suitable norm
+-	 */
++	/* Select suitable norm. */
+ 	priv->scale = tw9910_select_norm(priv->norm, *width, *height);
+ 	if (!priv->scale)
+ 		goto tw9910_set_fmt_error;
+ 
+-	/*
+-	 * reset hardware
+-	 */
++	/* Reset hardware. */
+ 	tw9910_reset(client);
+ 
+-	/*
+-	 * set bus width
+-	 */
++	/* Set bus width. */
+ 	val = 0x00;
+ 	if (priv->info->buswidth == 16)
+ 		val = LEN;
+@@ -675,9 +669,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ 	if (ret < 0)
+ 		goto tw9910_set_fmt_error;
+ 
+-	/*
+-	 * select MPOUT behavior
+-	 */
++	/* Select MPOUT behavior. */
+ 	switch (priv->info->mpout) {
+ 	case TW9910_MPO_VLOSS:
+ 		val = RTSEL_VLOSS; break;
+@@ -703,16 +695,12 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ 	if (ret < 0)
+ 		goto tw9910_set_fmt_error;
+ 
+-	/*
+-	 * set scale
+-	 */
++	/* Set scale. */
+ 	ret = tw9910_set_scale(client, priv->scale);
+ 	if (ret < 0)
+ 		goto tw9910_set_fmt_error;
+ 
+-	/*
+-	 * set hsync
+-	 */
++	/* Set hsync. */
+ 	ret = tw9910_set_hsync(client);
+ 	if (ret < 0)
+ 		goto tw9910_set_fmt_error;
+@@ -739,7 +727,7 @@ static int tw9910_get_selection(struct v4l2_subdev *sd,
+ 
+ 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return -EINVAL;
+-	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
++	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported. */
+ 	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
+ 		return -EINVAL;
+ 
+@@ -791,9 +779,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
+ 	WARN_ON(mf->field != V4L2_FIELD_ANY &&
+ 		mf->field != V4L2_FIELD_INTERLACED_BT);
+ 
+-	/*
+-	 * check color format
+-	 */
++	/* Check color format. */
+ 	if (mf->code != MEDIA_BUS_FMT_UYVY8_2X8)
+ 		return -EINVAL;
+ 
+@@ -831,9 +817,7 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ 	mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+ 	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+-	/*
+-	 * select suitable norm
+-	 */
++	/* Select suitable norm. */
+ 	scale = tw9910_select_norm(priv->norm, mf->width, mf->height);
+ 	if (!scale)
+ 		return -EINVAL;
+@@ -855,9 +839,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 	int ret;
+ 	s32 id;
+ 
+-	/*
+-	 * tw9910 only use 8 or 16 bit bus width
+-	 */
++	/* TW9910 only use 8 or 16 bit bus width. */
+ 	if (priv->info->buswidth != 16 && priv->info->buswidth != 8) {
+ 		dev_err(&client->dev, "bus width error\n");
+ 		return -ENODEV;
+@@ -868,8 +850,8 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 		return ret;
+ 
+ 	/*
+-	 * check and show Product ID
+-	 * So far only revisions 0 and 1 have been seen
++	 * Check and show Product ID.
++	 * So far only revisions 0 and 1 have been seen.
+ 	 */
+ 	id = i2c_smbus_read_byte_data(client, ID);
+ 	priv->revision = GET_REV(id);
+-- 
+2.7.4
