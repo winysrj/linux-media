@@ -1,240 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33182 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751096AbeCIPqk (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:11418 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163924AbeCBB7O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:46:40 -0500
-Subject: Re: [PATCH v12 29/33] rcar-vin: add link notify for Gen3
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
+        Thu, 1 Mar 2018 20:59:14 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-30-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3305b400-6a8d-6805-08a5-5c1553f676eb@xs4all.nl>
-Date: Fri, 9 Mar 2018 16:46:38 +0100
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 18/32] rcar-vin: enable Gen3 hardware configuration
+Date: Fri,  2 Mar 2018 02:57:37 +0100
+Message-Id: <20180302015751.25596-19-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20180307220511.9826-30-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/18 23:05, Niklas Söderlund wrote:
-> Add the ability to process media device link change requests. Link
-> enabling is a bit complicated on Gen3, whether or not it's possible to
-> enable a link depends on what other links already are enabled. On Gen3
-> the 8 VINs are split into two subgroup's (VIN0-3 and VIN4-7) and from a
-> routing perspective these two groups are independent of each other.
-> Each subgroup's routing is controlled by the subgroup VIN master
-> instance (VIN0 and VIN4).
-> 
-> There are a limited number of possible route setups available for each
-> subgroup and the configuration of each setup is dictated by the
-> hardware. On H3 for example there are 6 possible route setups for each
-> subgroup to choose from.
-> 
-> This leads to the media device link notification code being rather large
-> since it will find the best routing configuration to try and accommodate
-> as many links as possible. When it's not possible to enable a new link
-> due to hardware constrains the link_notifier callback will return
-> -EMLINK.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Add the register needed to work with Gen3 hardware. This patch adds
+the logic for how to work with the Gen3 hardware. More work is required
+to enable the subdevice structure needed to configure capturing.
 
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 94 ++++++++++++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
+ 2 files changed, 64 insertions(+), 31 deletions(-)
 
-Regards,
-
-	Hans
-
-> 
-> ---
-> 
-> * Changes since v11
-> - Fixed spelling
-> - Updated comment to clarify the intent that no link can be enabled if
-> any video node is open.
-> - Use container_of() instead of a loop to find struct vin_dev from the
-> video device.
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 147 ++++++++++++++++++++++++++++
->  1 file changed, 147 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 52fad495533bc427..a1c441c1a314feb7 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -24,6 +24,7 @@
->  
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-mc.h>
->  
->  #include "rcar-vin.h"
->  
-> @@ -44,6 +45,151 @@
->   */
->  #define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
->  
-> +/* -----------------------------------------------------------------------------
-> + * Media Controller link notification
-> + */
-> +
-> +/* group lock should be held when calling this function. */
-> +static int rvin_group_entity_to_csi_id(struct rvin_group *group,
-> +				       struct media_entity *entity)
-> +{
-> +	struct v4l2_subdev *sd;
-> +	unsigned int i;
-> +
-> +	sd = media_entity_to_v4l2_subdev(entity);
-> +
-> +	for (i = 0; i < RVIN_CSI_MAX; i++)
-> +		if (group->csi[i].subdev == sd)
-> +			return i;
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static unsigned int rvin_group_get_mask(struct rvin_dev *vin,
-> +					enum rvin_csi_id csi_id,
-> +					unsigned char channel)
-> +{
-> +	const struct rvin_group_route *route;
-> +	unsigned int mask = 0;
-> +
-> +	for (route = vin->info->routes; route->mask; route++) {
-> +		if (route->vin == vin->id &&
-> +		    route->csi == csi_id &&
-> +		    route->channel == channel) {
-> +			vin_dbg(vin,
-> +				"Adding route: vin: %d csi: %d channel: %d\n",
-> +				route->vin, route->csi, route->channel);
-> +			mask |= route->mask;
-> +		}
-> +	}
-> +
-> +	return mask;
-> +}
-> +
-> +/*
-> + * Link setup for the links between a VIN and a CSI-2 receiver is a bit
-> + * complex. The reason for this is that the register controlling routing
-> + * is not present in each VIN instance. There are special VINs which
-> + * control routing for themselves and other VINs. There are not many
-> + * different possible links combinations that can be enabled at the same
-> + * time, therefor all already enabled links which are controlled by a
-> + * master VIN need to be taken into account when making the decision
-> + * if a new link can be enabled or not.
-> + *
-> + * 1. Find out which VIN the link the user tries to enable is connected to.
-> + * 2. Lookup which master VIN controls the links for this VIN.
-> + * 3. Start with a bitmask with all bits set.
-> + * 4. For each previously enabled link from the master VIN bitwise AND its
-> + *    route mask (see documentation for mask in struct rvin_group_route)
-> + *    with the bitmask.
-> + * 5. Bitwise AND the mask for the link the user tries to enable to the bitmask.
-> + * 6. If the bitmask is not empty at this point the new link can be enabled
-> + *    while keeping all previous links enabled. Update the CHSEL value of the
-> + *    master VIN and inform the user that the link could be enabled.
-> + *
-> + * Please note that no link can be enabled if any VIN in the group is
-> + * currently open.
-> + */
-> +static int rvin_group_link_notify(struct media_link *link, u32 flags,
-> +				  unsigned int notification)
-> +{
-> +	struct rvin_group *group = container_of(link->graph_obj.mdev,
-> +						struct rvin_group, mdev);
-> +	unsigned int master_id, channel, mask_new, i;
-> +	unsigned int mask = ~0;
-> +	struct media_entity *entity;
-> +	struct video_device *vdev;
-> +	struct media_pad *csi_pad;
-> +	struct rvin_dev *vin = NULL;
-> +	int csi_id, ret;
-> +
-> +	ret = v4l2_pipeline_link_notify(link, flags, notification);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Only care about link enablement for VIN nodes. */
-> +	if (!(flags & MEDIA_LNK_FL_ENABLED) ||
-> +	    !is_media_entity_v4l2_video_device(link->sink->entity))
-> +		return 0;
-> +
-> +	/* If any entity is in use don't allow link changes. */
-> +	media_device_for_each_entity(entity, &group->mdev)
-> +		if (entity->use_count)
-> +			return -EBUSY;
-> +
-> +	mutex_lock(&group->lock);
-> +
-> +	/* Find the master VIN that controls the routes. */
-> +	vdev = media_entity_to_video_device(link->sink->entity);
-> +	vin = container_of(vdev, struct rvin_dev, vdev);
-> +	master_id = rvin_group_id_to_master(vin->id);
-> +
-> +	if (WARN_ON(!group->vin[master_id])) {
-> +		ret = -ENODEV;
-> +		goto out;
-> +	}
-> +
-> +	/* Build a mask for already enabled links. */
-> +	for (i = master_id; i < master_id + 4; i++) {
-> +		if (!group->vin[i])
-> +			continue;
-> +
-> +		/* Get remote CSI-2, if any. */
-> +		csi_pad = media_entity_remote_pad(
-> +				&group->vin[i]->vdev.entity.pads[0]);
-> +		if (!csi_pad)
-> +			continue;
-> +
-> +		csi_id = rvin_group_entity_to_csi_id(group, csi_pad->entity);
-> +		channel = rvin_group_csi_pad_to_channel(csi_pad->index);
-> +
-> +		mask &= rvin_group_get_mask(group->vin[i], csi_id, channel);
-> +	}
-> +
-> +	/* Add the new link to the existing mask and check if it works. */
-> +	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
-> +	channel = rvin_group_csi_pad_to_channel(link->source->index);
-> +	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
-> +
-> +	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
-> +
-> +	if (!mask_new) {
-> +		ret = -EMLINK;
-> +		goto out;
-> +	}
-> +
-> +	/* New valid CHSEL found, set the new value. */
-> +	ret = rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
-> +out:
-> +	mutex_unlock(&group->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct media_device_ops rvin_media_ops = {
-> +	.link_notify = rvin_group_link_notify,
-> +};
-> +
->  /* -----------------------------------------------------------------------------
->   * Gen3 CSI2 Group Allocator
->   */
-> @@ -85,6 +231,7 @@ static int rvin_group_init(struct rvin_group *group, struct rvin_dev *vin)
->  	vin_dbg(vin, "found %u enabled VIN's in DT", group->count);
->  
->  	mdev->dev = vin->dev;
-> +	mdev->ops = &rvin_media_ops;
->  
->  	match = of_match_node(vin->dev->driver->of_match_table,
->  			      vin->dev->of_node);
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 4ebf76c30a3e9117..57bb288b3ca67a60 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -33,21 +33,23 @@
+ #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
+ #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
+ #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
+-#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
+-#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
+-#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
+-#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
+ #define VNIS_REG	0x2C	/* Video n Image Stride Register */
+ #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
+ #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
+ #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
+ #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
+ #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
+-#define VNYS_REG	0x50	/* Video n Y Scale Register */
+-#define VNXS_REG	0x54	/* Video n X Scale Register */
+ #define VNDMR_REG	0x58	/* Video n Data Mode Register */
+ #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
+ #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
++
++/* Register offsets specific for Gen2 */
++#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
++#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
++#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
++#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
++#define VNYS_REG	0x50	/* Video n Y Scale Register */
++#define VNXS_REG	0x54	/* Video n X Scale Register */
+ #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
+ #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
+ #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
+@@ -73,9 +75,13 @@
+ #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
+ #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
+ 
++/* Register offsets specific for Gen3 */
++#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
+ 
+ /* Register bit fields for R-Car VIN */
+ /* Video n Main Control Register bits */
++#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
++#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
+ #define VNMC_FOC		(1 << 21)
+ #define VNMC_YCAL		(1 << 19)
+ #define VNMC_INF_YUV8_BT656	(0 << 16)
+@@ -119,6 +125,13 @@
+ #define VNDMR2_FTEV		(1 << 17)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+ 
++/* Video n CSI2 Interface Mode Register (Gen3) */
++#define VNCSI_IFMD_DES2		(1 << 27)
++#define VNCSI_IFMD_DES1		(1 << 26)
++#define VNCSI_IFMD_DES0		(1 << 25)
++#define VNCSI_IFMD_CSI_CHSEL(n) (((n) & 0xf) << 0)
++#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
++
+ struct rvin_buffer {
+ 	struct vb2_v4l2_buffer vb;
+ 	struct list_head list;
+@@ -514,28 +527,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+ 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+ }
+ 
+-void rvin_crop_scale_comp(struct rvin_dev *vin)
++static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
+ {
+ 	u32 xs, ys;
+ 
+-	/* Set Start/End Pixel/Line Pre-Clip */
+-	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+-	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_INTERLACED:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+-		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+-			   VNELPRC_REG);
+-		break;
+-	default:
+-		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+-		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+-			   VNELPRC_REG);
+-		break;
+-	}
+-
+ 	/* Set scaling coefficient */
+ 	ys = 0;
+ 	if (vin->crop.height != vin->compose.height)
+@@ -573,11 +568,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
+-		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+-	else
+-		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
+-
+ 	vin_dbg(vin,
+ 		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
+ 		vin->crop.width, vin->crop.height, vin->crop.left,
+@@ -585,6 +575,37 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
+ }
+ 
++void rvin_crop_scale_comp(struct rvin_dev *vin)
++{
++	/* Set Start/End Pixel/Line Pre-Clip */
++	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
++	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
++
++	switch (vin->format.field) {
++	case V4L2_FIELD_INTERLACED:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
++		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
++			   VNELPRC_REG);
++		break;
++	default:
++		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
++		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
++			   VNELPRC_REG);
++		break;
++	}
++
++	/* TODO: Add support for the UDS scaler. */
++	if (vin->info->model != RCAR_GEN3)
++		rvin_crop_scale_comp_gen2(vin);
++
++	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
++		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
++	else
++		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
+  */
+@@ -659,7 +680,10 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	}
+ 
+ 	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+-	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
++	if (vin->info->model == RCAR_GEN3)
++		dmr2 = VNDMR2_FTEV;
++	else
++		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+ 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+@@ -711,6 +735,14 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	if (input_is_yuv == output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
++	if (vin->info->model == RCAR_GEN3) {
++		/* Select between CSI-2 and Digital input */
++		if (vin->mbus_cfg.type == V4L2_MBUS_CSI2)
++			vnmc &= ~VNMC_DPINE;
++		else
++			vnmc |= VNMC_DPINE;
++	}
++
+ 	/* Progressive or interlaced mode */
+ 	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 491f3187b932f81e..b3802651eaa78ea9 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -33,6 +33,7 @@ enum model_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+ 	RCAR_GEN2,
++	RCAR_GEN3,
+ };
+ 
+ /**
+-- 
+2.16.2
