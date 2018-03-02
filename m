@@ -1,72 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50402 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933048AbeCEJqP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 04:46:15 -0500
-Date: Mon, 5 Mar 2018 10:46:04 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>
-Subject: Re: [PATCH 8/8] media: sun6i: Add g_parm/s_parm ioctl support
-Message-ID: <20180305094604.ggbj6qhw73mkwn75@flea.lan>
-References: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
- <20180305093535.11801-1-maxime.ripard@bootlin.com>
- <20180305093535.11801-9-maxime.ripard@bootlin.com>
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24378 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163929AbeCBB7F (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Mar 2018 20:59:05 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 12/32] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
+Date: Fri,  2 Mar 2018 02:57:31 +0100
+Message-Id: <20180302015751.25596-13-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="cmdx6xcdgkykjmm7"
-Content-Disposition: inline
-In-Reply-To: <20180305093535.11801-9-maxime.ripard@bootlin.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There was never proper support in the VIN driver to deliver ALTERNATING
+field format to user-space, remove this field option. The problem is
+that ALTERNATING filed order requires the sequence numbers of buffers
+returned to userspace to reflect if fields where dropped or not,
+something which is not possible with the VIN drivers capture logic.
 
---cmdx6xcdgkykjmm7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The VIN driver can still capture from a video source which delivers
+frames in ALTERNATING field order, but needs to combine them using the
+VIN hardware into INTERLACED field order. Before this change if a source
+was delivering fields using ALTERNATE the driver would default to
+combining them using this hardware feature. Only if the user explicitly
+requested ALTERNATE filed order would incorrect frames be delivered.
 
-On Mon, Mar 05, 2018 at 10:35:35AM +0100, Maxime Ripard wrote:
-> Add a g_parm and s_parm callback in order to be able to control the sensor
-> framerate of the sensor.
->=20
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+The height should not be cut in half for the format for TOP or BOTTOM
+fields settings. This was a mistake and it was made visible by the
+scaling refactoring. Correct behavior is that the user should request a
+frame size that fits the half height frame reflected in the field
+setting. If not the VIN will do its best to scale the top or bottom to
+the requested format and cropping and scaling do not work as expected.
 
-Hmmm, that patch shouldn't have been there. This is an outdated
-version based on Hans g_parm/s_parm rework that will not need this
-anymore.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +----------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 40 +++++++----------------------
+ 2 files changed, 10 insertions(+), 45 deletions(-)
 
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---cmdx6xcdgkykjmm7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqdEdsACgkQ0rTAlCFN
-r3TuhA/+Pjr8NZpHMLm4u87KaugQ1YnLIDCn9vOKoQtLgAnTHUe5rnJodMgZfu3j
-1wQS6w5I8uFsPl3ILqAnWIQXj5Fmu4+S8jZGK+qOvVjQyFr11HgP8+9bK37wv8sz
-YYuSuz2DFfTdd/AVIv6sYLtnnQel8Fdut6ejTemhMwQvJvzjpHMB+DS/A8NkzXKz
-RyURcULUHTj3QKxICvmB9fnGzTRxfR4Su2xuURtKIT22UA/WYw87iFtsdMkrNixg
-vw5HkrFVy6gbOD1B2OFZUEoLvJwJdR/eRhGw+RLaRS3Tp7sEP00m2gGGZy/aVIQs
-mW9rZ1Z+jfATeMCaxtLOFKfp5x6/w7i7wLPGRx8WqUuAvUP3KWisG2MlRFpygd1m
-tk8XCXulaiOEYJmBKy4MbfmguOWz2ncFUI9C3U1jg4j4FtvJka+0fQPO020ftfWl
-s0a2nrjKHAUtZhedH1+hSubwoXUngDQ9p/yBQwQ0kqd8jaf3IXm+IWM3mdqQeSa3
-Ws+Dxm0J5bgXJH1XJGstCq4ipz3OBY790KTF8EVl5sSwwWArzB1/krbGiQ8SIyqk
-iAedMQuEOaKo2eLs9g8/fT4lzcC8aOWaqOYncUrhyAXTjnEZuiwe6QflpR/K8nnO
-UlCynqswi75pbKNA2VLlGNTAIOEBNMvlKPZOegdLEmioJbAo9AA=
-=dQaQ
------END PGP SIGNATURE-----
-
---cmdx6xcdgkykjmm7--
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index fd14be20a6604d7a..c8831e189d362c8b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 		vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		break;
+-	case V4L2_FIELD_ALTERNATE:
+ 	case V4L2_FIELD_NONE:
+ 		if (vin->continuous) {
+ 			vnmc = VNMC_IM_ODD_EVEN;
+@@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+ 	return 0;
+ }
+ 
+-static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+-{
+-	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+-		/* If FS is set it's a Even field */
+-		if (vnms & VNMS_FS)
+-			return V4L2_FIELD_BOTTOM;
+-		return V4L2_FIELD_TOP;
+-	}
+-
+-	return vin->format.field;
+-}
+-
+ static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+ {
+ 	const struct rvin_video_format *fmt;
+@@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+ 		goto done;
+ 
+ 	/* Capture frame */
+-	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
++	vin->queue_buf[slot]->field = vin->format.field;
+ 	vin->queue_buf[slot]->sequence = sequence;
+ 	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+ 	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index ebcd78b1bb6e8cb6..cef9070884d93ba6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -121,33 +121,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	vin->format.colorspace	= mf->colorspace;
+ 	vin->format.field	= mf->field;
+ 
+-	/*
+-	 * If the subdevice uses ALTERNATE field mode and G_STD is
+-	 * implemented use the VIN HW to combine the two fields to
+-	 * one INTERLACED frame. The ALTERNATE field mode can still
+-	 * be requested in S_FMT and be respected, this is just the
+-	 * default which is applied at probing or when S_STD is called.
+-	 */
+-	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
+-	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
+-		vin->format.field = V4L2_FIELD_INTERLACED;
+-
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_ALTERNATE:
+-		vin->format.height /= 2;
+-		break;
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	default:
+-		vin->format.field = RVIN_DEFAULT_FIELD;
+-		break;
+-	}
+-
+ 	rvin_reset_crop_compose(vin);
+ 
+ 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+@@ -233,15 +206,20 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	switch (pix->field) {
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_ALTERNATE:
+-		pix->height /= 2;
+-		source->height /= 2;
+-		break;
+ 	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
++	case V4L2_FIELD_ALTERNATE:
++		/*
++		 * Driver do not (yet) support outputting ALTERNATE to a
++		 * userspace. It does support outputting INTERLACED so use
++		 * the VIN hardware to combine the two fields.
++		 */
++		pix->field = V4L2_FIELD_INTERLACED;
++		pix->height *= 2;
++		break;
+ 	default:
+ 		pix->field = RVIN_DEFAULT_FIELD;
+ 		break;
+-- 
+2.16.2
