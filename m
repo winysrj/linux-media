@@ -1,200 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:36357 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932656AbeCITLw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 14:11:52 -0500
-Received: by mail-wr0-f196.google.com with SMTP id v111so10007474wrb.3
-        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 11:11:51 -0800 (PST)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Cc: sumit.semwal@linaro.org
-Subject: [PATCH 4/4] drm/amdgpu: add independent DMA-buf import
-Date: Fri,  9 Mar 2018 20:11:44 +0100
-Message-Id: <20180309191144.1817-5-christian.koenig@amd.com>
-In-Reply-To: <20180309191144.1817-1-christian.koenig@amd.com>
-References: <20180309191144.1817-1-christian.koenig@amd.com>
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:45421 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1424163AbeCBP0K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 10:26:10 -0500
+Received: by mail-qt0-f172.google.com with SMTP id v90so12245203qte.12
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2018 07:26:09 -0800 (PST)
+Date: Fri, 2 Mar 2018 10:25:43 -0500
+From: Douglas Fischer <fischerdouglasc@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: [PATCH v4] media: radio: Critical interrupt bugfix for si470x over
+ i2c
+Message-ID: <20180302102543.076b1c95@Constantine>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of relying on the DRM functions just implement our own import
-functions. This adds support for taking care of unpinned DMA-buf.
+Fixed si470x_start() disabling the interrupt signal, causing tune
+operations to never complete. This does not affect USB radios
+because they poll the registers instead of using the IRQ line.
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
+Stylistic and comment changes from v3.
+
+Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c | 64 +++++++++++++++++++++++++------
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c   | 32 +++++++++++++---
- 2 files changed, 80 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-index f575fb46d7a8..7963ce329519 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-@@ -298,22 +298,64 @@ struct dma_buf *amdgpu_gem_prime_export(struct drm_device *dev,
- 	return buf;
- }
+diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c linux/drivers/media/radio/si470x/radio-si470x-common.c
+--- linux.orig/drivers/media/radio/si470x/radio-si470x-common.c	2018-01-15 21:58:10.675620432 -0500
++++ linux/drivers/media/radio/si470x/radio-si470x-common.c	2018-03-02 10:22:05.490059995 -0500
+@@ -377,8 +377,11 @@ int si470x_start(struct si470x_device *r
+ 		goto done;
  
-+static void
-+amdgpu_gem_prime_invalidate_mappings(struct dma_buf_attachment *attach)
-+{
-+	struct ttm_operation_ctx ctx = { false, false };
-+	struct drm_gem_object *obj = attach->priv;
-+	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-+	int r;
-+
-+	amdgpu_ttm_placement_from_domain(bo, AMDGPU_GEM_DOMAIN_CPU);
-+	r = ttm_bo_validate(&bo->tbo, &bo->placement, &ctx);
-+	if (r)
-+		DRM_ERROR("Failed to unmap DMA-buf import (%d))\n", r);
-+}
-+
- struct drm_gem_object *amdgpu_gem_prime_import(struct drm_device *dev,
- 					    struct dma_buf *dma_buf)
- {
-+	struct dma_buf_attachment *attach;
- 	struct drm_gem_object *obj;
-+	int ret;
+ 	/* sysconfig 1 */
+-	radio->registers[SYSCONFIG1] =
+-		(de << 11) & SYSCONFIG1_DE;		/* DE*/
++	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN|SYSCONFIG1_STCIEN|SYSCONFIG1_RDS;
++	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
++	radio->registers[SYSCONFIG1] |= SYSCONFIG1_GPIO2_INT;
++	if (de)
++		radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
+ 	retval = si470x_set_register(radio, SYSCONFIG1);
+ 	if (retval < 0)
+ 		goto done;
+diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x.h linux/drivers/media/radio/si470x/radio-si470x.h
+--- linux.orig/drivers/media/radio/si470x/radio-si470x.h	2018-01-15 21:58:10.675620432 -0500
++++ linux/drivers/media/radio/si470x/radio-si470x.h	2018-03-02 10:22:05.497059995 -0500
+@@ -79,6 +79,8 @@
+ #define SYSCONFIG1_BLNDADJ	0x00c0	/* bits 07..06: Stereo/Mono Blend Level Adjustment */
+ #define SYSCONFIG1_GPIO3	0x0030	/* bits 05..04: General Purpose I/O 3 */
+ #define SYSCONFIG1_GPIO2	0x000c	/* bits 03..02: General Purpose I/O 2 */
++#define SYSCONFIG1_GPIO2_DIS	0x0000	/* Disable GPIO 2 interrupt */
++#define SYSCONFIG1_GPIO2_INT	0x0004	/* Enable STC/RDS interrupt */
+ #define SYSCONFIG1_GPIO1	0x0003	/* bits 01..00: General Purpose I/O 1 */
  
--	if (dma_buf->ops == &amdgpu_dmabuf_ops) {
--		obj = dma_buf->priv;
--		if (obj->dev == dev) {
--			/*
--			 * Importing dmabuf exported from out own gem increases
--			 * refcount on gem itself instead of f_count of dmabuf.
--			 */
--			drm_gem_object_get(obj);
--			return obj;
--		}
-+	if (dma_buf->ops != &amdgpu_dmabuf_ops)
-+		return drm_gem_prime_import(dev, dma_buf);
-+
-+	obj = dma_buf->priv;
-+	if (obj->dev == dev) {
-+		/*
-+		 * Importing dmabuf exported from out own gem increases
-+		 * refcount on gem itself instead of f_count of dmabuf.
-+		 */
-+		drm_gem_object_get(obj);
-+		return obj;
-+	}
-+
-+	/*
-+	 * Attach, but don't map other amdgpu BOs
-+	 */
-+	attach = dma_buf_attach(dma_buf, dev->dev);
-+	if (IS_ERR(attach))
-+		return ERR_CAST(attach);
-+
-+	get_dma_buf(dma_buf);
-+
-+	obj = amdgpu_gem_prime_import_sg_table(dev, attach, NULL);
-+	if (IS_ERR(obj)) {
-+		ret = PTR_ERR(obj);
-+		goto fail_detach;
- 	}
- 
--	return drm_gem_prime_import(dev, dma_buf);
-+	obj->import_attach = attach;
-+	attach->invalidate_mappings = amdgpu_gem_prime_invalidate_mappings;
-+	attach->priv = obj;
-+
-+	return obj;
-+
-+fail_detach:
-+	dma_buf_detach(dma_buf, attach);
-+	dma_buf_put(dma_buf);
-+
-+	return ERR_PTR(ret);
- }
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-index 291dd3d600cd..aeead0281e92 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -43,6 +43,7 @@
- #include <linux/pagemap.h>
- #include <linux/debugfs.h>
- #include <linux/iommu.h>
-+#include <linux/dma-buf.h>
- #include "amdgpu.h"
- #include "amdgpu_object.h"
- #include "amdgpu_trace.h"
-@@ -685,6 +686,7 @@ struct amdgpu_ttm_gup_task_list {
- 
- struct amdgpu_ttm_tt {
- 	struct ttm_dma_tt	ttm;
-+	struct amdgpu_bo	*bo;
- 	u64			offset;
- 	uint64_t		userptr;
- 	struct mm_struct	*usermm;
-@@ -993,6 +995,7 @@ static struct ttm_tt *amdgpu_ttm_tt_create(struct ttm_buffer_object *bo,
- 		return NULL;
- 	}
- 	gtt->ttm.ttm.func = &amdgpu_backend_func;
-+	gtt->bo = ttm_to_amdgpu_bo(bo);
- 	if (ttm_sg_tt_init(&gtt->ttm, bo, page_flags)) {
- 		kfree(gtt);
- 		return NULL;
-@@ -1005,7 +1008,6 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
- {
- 	struct amdgpu_device *adev = amdgpu_ttm_adev(ttm->bdev);
- 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
--	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
- 
- 	if (gtt && gtt->userptr) {
- 		ttm->sg = kzalloc(sizeof(struct sg_table), GFP_KERNEL);
-@@ -1017,7 +1019,19 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
- 		return 0;
- 	}
- 
--	if (slave && ttm->sg) {
-+	if (ttm->page_flags & TTM_PAGE_FLAG_SG) {
-+		if (!ttm->sg) {
-+			struct dma_buf_attachment *attach;
-+			struct sg_table *sgt;
-+
-+			attach = gtt->bo->gem_base.import_attach;
-+			sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-+			if (IS_ERR(sgt))
-+				return PTR_ERR(sgt);
-+
-+			ttm->sg = sgt;
-+		}
-+
- 		drm_prime_sg_to_page_addr_arrays(ttm->sg, ttm->pages,
- 						 gtt->ttm.dma_address,
- 						 ttm->num_pages);
-@@ -1036,9 +1050,8 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
- 
- static void amdgpu_ttm_tt_unpopulate(struct ttm_tt *ttm)
- {
--	struct amdgpu_device *adev;
- 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
--	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
-+	struct amdgpu_device *adev;
- 
- 	if (gtt && gtt->userptr) {
- 		amdgpu_ttm_tt_set_user_pages(ttm, NULL);
-@@ -1047,7 +1060,16 @@ static void amdgpu_ttm_tt_unpopulate(struct ttm_tt *ttm)
- 		return;
- 	}
- 
--	if (slave)
-+	if (ttm->sg && !gtt->bo->tbo.sg) {
-+		struct dma_buf_attachment *attach;
-+
-+		attach = gtt->bo->gem_base.import_attach;
-+		dma_buf_unmap_attachment(attach, ttm->sg, DMA_BIDIRECTIONAL);
-+		ttm->sg = NULL;
-+		return;
-+	}
-+
-+	if (ttm->page_flags & TTM_PAGE_FLAG_SG)
- 		return;
- 
- 	adev = amdgpu_ttm_adev(ttm->bdev);
--- 
-2.14.1
+ #define SYSCONFIG2		5	/* System Configuration 2 */
