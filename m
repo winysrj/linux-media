@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:41366 "EHLO vps-vb.mhejs.net"
+Received: from mail.bootlin.com ([62.4.15.54]:51714 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752290AbeCYV12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Mar 2018 17:27:28 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v6 2/6] cx25840: add kernel-doc description of struct
- cx25840_state
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <cover.1522012430.git.mail@maciej.szmigiero.name>
-Message-ID: <b16c3e58-f083-e5ce-0c41-44485609aab8@maciej.szmigiero.name>
-Date: Sun, 25 Mar 2018 23:27:26 +0200
+        id S1425957AbeCBJt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Mar 2018 04:49:58 -0500
+Date: Fri, 2 Mar 2018 10:49:46 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v5 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+Message-ID: <20180302094946.kds3zjheo5gcntdd@flea.lan>
+References: <20180301113049.16470-1-maxime.ripard@bootlin.com>
+ <20180301113049.16470-3-maxime.ripard@bootlin.com>
+ <20180301203515.GM6807@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <cover.1522012430.git.mail@maciej.szmigiero.name>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="iuixmato4gwn7gto"
+Content-Disposition: inline
+In-Reply-To: <20180301203515.GM6807@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit describes a device instance private data of the driver
-(struct cx25840_state) in a kernel-doc style comment.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
----
- drivers/media/i2c/cx25840/cx25840-core.h | 33 ++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+--iuixmato4gwn7gto
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
-index fb13a624d2e3..c323b1af1f83 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.h
-+++ b/drivers/media/i2c/cx25840/cx25840-core.h
-@@ -45,6 +45,35 @@ enum cx25840_media_pads {
- 	CX25840_NUM_PADS
- };
- 
-+/**
-+ * struct cx25840_state - a device instance private data
-+ * @c:			i2c_client struct representing this device
-+ * @sd:		our V4L2 sub-device
-+ * @hdl:		our V4L2 control handler
-+ * @volume:		audio volume V4L2 control (non-cx2583x devices only)
-+ * @mute:		audio mute V4L2 control (non-cx2583x devices only)
-+ * @pvr150_workaround:	whether we enable workaround for Hauppauge PVR150
-+ *			hardware bug (audio dropping out)
-+ * @radio:		set if we are currently in the radio mode, otherwise
-+ *			the current mode is non-radio (that is, video)
-+ * @std:		currently set video standard
-+ * @vid_input:		currently set video input
-+ * @aud_input:		currently set audio input
-+ * @audclk_freq:	currently set audio sample rate
-+ * @audmode:		currently set audio mode (when in non-radio mode)
-+ * @vbi_line_offset:	vbi line number offset
-+ * @id:		exact device model
-+ * @rev:		raw device id read from the chip
-+ * @is_initialized:	whether we have already loaded firmware into the chip
-+ *			and initialized it
-+ * @vbi_regs_offset:	offset of vbi regs
-+ * @fw_wait:		wait queue to wake an initalization function up when
-+ *			firmware loading (on a separate workqueue) finishes
-+ * @fw_work:		a work that actually loads the firmware on a separate
-+ *			workqueue
-+ * @ir_state:		a pointer to chip IR controller private data
-+ * @pads:		array of supported chip pads (currently only a stub)
-+ */
- struct cx25840_state {
- 	struct i2c_client *c;
- 	struct v4l2_subdev sd;
-@@ -66,8 +95,8 @@ struct cx25840_state {
- 	u32 rev;
- 	int is_initialized;
- 	unsigned vbi_regs_offset;
--	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
--	struct work_struct fw_work;   /* work entry for fw load */
-+	wait_queue_head_t fw_wait;
-+	struct work_struct fw_work;
- 	struct cx25840_ir_state *ir_state;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_pad	pads[CX25840_NUM_PADS];
+Hi Benoit,
+
+On Thu, Mar 01, 2018 at 02:35:16PM -0600, Benoit Parrot wrote:
+> > +	writel(CSI2TX_DPHY_CLK_WAKEUP_ULPS_CYCLES(32),
+> > +	       csi2tx->base + CSI2TX_DPHY_CLK_WAKEUP_REG);
+>=20
+> I am sorry if I missed this previously but do all these
+> CSI2TX_DPHY* reg access assume that "has_internal_dphy" is true?
+
+It seems like it's needed even for the case without an internal
+DPHY. I'll check, and add a comment if it's really the case.
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--iuixmato4gwn7gto
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqZHjkACgkQ0rTAlCFN
+r3Rk9w//eQBLUB2sIB7wRCEoL5Byuod9B0oBORSiCI1aks7DKF7FHosChtiROl0l
+VPdM5Hzgsfkx9gyVyBTlClJCVbf2JG5pgneTBvKbl/LFMUr36/GBByipXjEjqEqM
+8jHpWPQXazty3rsvSX1+JqIBbmgHlGZUy1aNDXFt7aAJZfkYh5PbCZFpT3lzxCZv
+b0zTmZlPkcclYTmJB4e0CnLWmClBFR+KF9fVoqy9JQDjksQfuhH0NT3fsiHq4rD8
+WC6JpNdZRK31sLGgb9Pf3YPl3AtxLjmkKgF0zE8ESHEgcFST8iPk3VhX7GvUM3r1
+1+PjC/Oy81CxMrkbq8aDnBr6rawfujRp0PW15coLya9otC6P1C/rzkzmwXsRKz8X
+x+qqLcfxrLQ7kIf+iISIyUgqrzC0d330lnwuoBoHg60f66OiLkG84v6TjzF3NMQb
+PhoGnDjYqV+jS2h3vquJat0PhviZSirRqCJ/XCXsW9lSVdrANW8D75rxvu/eSEDt
+ImqBTa8GBnEfSNmnvX1RSc4zFvyZP0gL0SmcGdejnzSLIXD/oPI0w10zzUAGbTXb
+RczdatcvTYcfZ8jAUaLG2xN4rEZU267dSn5ePN+RcTVd+BiUj10uQ0sGLIBzoHfO
+4hvNnuII9p7IfM3vAySQG2iNneMJoqezaCFQuGv7IiS/MJqv+Xg=
+=BDnr
+-----END PGP SIGNATURE-----
+
+--iuixmato4gwn7gto--
