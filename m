@@ -1,141 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:57811 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752361AbeCWOHs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 10:07:48 -0400
-Date: Fri, 23 Mar 2018 11:07:42 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] v4l: Bring back array_size parameter to
- v4l2_find_nearest_size
-Message-ID: <20180323110742.4d055035@vento.lan>
-In-Reply-To: <20180323134841.21408-1-sakari.ailus@linux.intel.com>
-References: <20180323134841.21408-1-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52247 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425094AbeCBJ06 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 04:26:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Subject: Re: [PATCH v11 02/32] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+Date: Fri, 02 Mar 2018 11:27:46 +0200
+Message-ID: <1719311.F07ah6zKn5@avalon>
+In-Reply-To: <20180302015751.25596-3-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se> <20180302015751.25596-3-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 23 Mar 2018 15:48:41 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Hi Niklas,
 
-> An older version of the driver patches were merged accidentally which
-> resulted in missing the array_size parameter that tells the length of the
-> array that contains the different supported sizes.
-> 
-> Bring it back to v4l2_find_nearest size and make the corresponding change
-> for the drivers using it as well.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Thank you for the patch.
+
+On Friday, 2 March 2018 03:57:21 EET Niklas S=F6derlund wrote:
+> From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+>=20
+> Add compatible strings for r8a7743 and r8a7745. No driver change
+> is needed as "renesas,rcar-gen2-vin" will activate the right code.
+> However, it is good practice to document compatible strings for the
+> specific SoC as this allows SoC specific changes to the driver if
+> needed, in addition to document SoC support and therefore allow
+> checkpatch.pl to validate compatible string values.
+>=20
+> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+> Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+> Acked-by: Rob Herring <robh@kernel.org>
+> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> Acked-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 > ---
-> Hi Mauro,
-> 
-> Here's the patch I mentioned. It restores the intended state of the
-> v4l2_find_nearest_size() API as it was reviewed and acked (by Hans).
-> 
-> This time the exact patch is tested for vivid.
-> 
->  drivers/media/i2c/ov13858.c                  | 5 +++--
->  drivers/media/i2c/ov5670.c                   | 5 +++--
->  drivers/media/platform/vivid/vivid-vid-cap.c | 5 +++--
->  include/media/v4l2-common.h                  | 5 +++--
->  4 files changed, 12 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-> index 30ee9f71bf0d..420af1e32d4e 100644
-> --- a/drivers/media/i2c/ov13858.c
-> +++ b/drivers/media/i2c/ov13858.c
-> @@ -1375,8 +1375,9 @@ ov13858_set_pad_format(struct v4l2_subdev *sd,
->  	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
->  		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
->  
-> -	mode = v4l2_find_nearest_size(supported_modes, width, height,
-> -				      fmt->format.width, fmt->format.height);
-> +	mode = v4l2_find_nearest_size(
-> +		supported_modes, ARRAY_SIZE(supported_modes), width, height,
-> +		fmt->format.width, fmt->format.height);
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> b/Documentation/devicetree/bindings/media/rcar_vin.txt index
+> 0ac715a5c331bc26..c60e6b0a89b67a8c 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves a=
+nd
+> suppot one input channel which can be either RGB, YUYV or BT656.
+>=20
+>   - compatible: Must be one or more of the following
+> +   - "renesas,vin-r8a7743" for the R8A7743 device
+> +   - "renesas,vin-r8a7745" for the R8A7745 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+> @@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+> -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+> +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+> +     device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+>=20
+>     When compatible with the generic version nodes must list the
 
+=2D-=20
+Regards,
 
-Nitpick... I find ugly and arder to mentally parse things like the above,
-where all arguments are on the next line. Also, it doesn't follow the
-coding style, as the parameters should be aligned with the parenthesis.
-
-It would be better coded as:
-
-	mode = v4l2_find_nearest_size(supported_modes, 
-				      ARRAY_SIZE(supported_modes),
-				      width, height,
-				      fmt->format.width, fmt->format.height);
-
-Same applies to the other occurrences of it.
-
->  	ov13858_update_pad_format(mode, fmt);
->  	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
->  		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-> index 556a95c30781..028abc860387 100644
-> --- a/drivers/media/i2c/ov5670.c
-> +++ b/drivers/media/i2c/ov5670.c
-> @@ -2229,8 +2229,9 @@ static int ov5670_set_pad_format(struct v4l2_subdev *sd,
->  
->  	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
->  
-> -	mode = v4l2_find_nearest_size(supported_modes, width, height,
-> -				      fmt->format.width, fmt->format.height);
-> +	mode = v4l2_find_nearest_size(
-> +		supported_modes, ARRAY_SIZE(supported_modes), width, height,
-> +		fmt->format.width, fmt->format.height);
->  	ov5670_update_pad_format(mode, fmt);
->  	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
->  		*v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
-> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-> index 01c703683657..1599159f2574 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-> @@ -561,8 +561,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
->  	mp->field = vivid_field_cap(dev, mp->field);
->  	if (vivid_is_webcam(dev)) {
->  		const struct v4l2_frmsize_discrete *sz =
-> -			v4l2_find_nearest_size(webcam_sizes, width, height,
-> -					       mp->width, mp->height);
-> +			v4l2_find_nearest_size(webcam_sizes,
-> +					       VIVID_WEBCAM_SIZES, width,
-> +					       height, mp->width, mp->height);
->  
->  		w = sz->width;
->  		h = sz->height;
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 54b689247937..160bca96d524 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -320,6 +320,7 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
->   *	set of resolutions contained in an array of a driver specific struct.
->   *
->   * @array: a driver specific array of image sizes
-> + * @array_size: the length of the driver specific array of image sizes
->   * @width_field: the name of the width field in the driver specific struct
->   * @height_field: the name of the height field in the driver specific struct
->   * @width: desired width.
-> @@ -332,13 +333,13 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
->   *
->   * Returns the best match or NULL if the length of the array is zero.
->   */
-> -#define v4l2_find_nearest_size(array, width_field, height_field, \
-> +#define v4l2_find_nearest_size(array, array_size, width_field, height_field, \
->  			       width, height)				\
->  	({								\
->  		BUILD_BUG_ON(sizeof((array)->width_field) != sizeof(u32) || \
->  			     sizeof((array)->height_field) != sizeof(u32)); \
->  		(typeof(&(*(array))))__v4l2_find_nearest_size(		\
-> -			(array), ARRAY_SIZE(array), sizeof(*(array)),	\
-> +			(array), array_size, sizeof(*(array)),		\
->  			offsetof(typeof(*(array)), width_field),	\
->  			offsetof(typeof(*(array)), height_field),	\
->  			width, height);					\
-
-
-
-Thanks,
-Mauro
+Laurent Pinchart
