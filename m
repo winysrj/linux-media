@@ -1,165 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f45.google.com ([74.125.83.45]:40517 "EHLO
-        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752858AbeCaPay (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24353 "EHLO
+        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1163926AbeCBB7E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 31 Mar 2018 11:30:54 -0400
-Received: by mail-pg0-f45.google.com with SMTP id h3so2709099pgq.7
-        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2018 08:30:54 -0700 (PDT)
-Subject: Re: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and
- merge with gl861
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com
-References: <20180327174730.1887-1-tskd08@gmail.com>
- <f1ce1268-e918-a12f-959e-98644cafb2fe@iki.fi>
- <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
- <db8f370c-20f5-e9fe-9d2e-d12c1475dc33@iki.fi>
- <30d0270b-852a-39df-14e5-4c12d59aeac7@gmail.com>
- <25d4e91f-454f-bac7-125b-dd1ae5c77d9e@iki.fi>
-From: Akihiro TSUKADA <tskd08@gmail.com>
-Message-ID: <f047a680-436b-bf40-ae0a-68279366b668@gmail.com>
-Date: Sun, 1 Apr 2018 00:30:49 +0900
+        Thu, 1 Mar 2018 20:59:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v11 11/32] rcar-vin: set a default field to fallback on
+Date: Fri,  2 Mar 2018 02:57:30 +0100
+Message-Id: <20180302015751.25596-12-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <25d4e91f-454f-bac7-125b-dd1ae5c77d9e@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en_US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I don't understand those control message parts and it is bit too hard to
-> read i2c adapter implementation to get understanding. Could you offer
-> simple 2 sniff examples, register write to demod and register write to
-> tuner.
+If the field is not supported by the driver it should not try to keep
+the current field. Instead it should set it to a default fallback. Since
+trying a format should always result in the same state regardless of the
+current state of the device.
 
-Here is the part of a packet log.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-1. write to demod (addr:0x18)
-
-reg:0x76 val:0c
-===============
-[46264 ms]  >>>  URB 146 going down  >>> 
--- URB_FUNCTION_VENDOR_DEVICE:
-  TransferFlags          = 00000000 (USBD_TRANSFER_DIRECTION_OUT, ~USBD_SHORT_TR
-ANSFER_OK)
-  TransferBufferLength = 00000000
-  TransferBuffer       = 8609d21e
-  TransferBufferMDL    = 00000000
-  UrbLink                 = 00000000
-  RequestTypeReservedBits = 00000000
-  Request                 = 00000001
-  Value                   = 0000300c
-  Index                   = 00000076
-[46266 ms] UsbSnoop - MyInternalIOCTLCompletion(f79b7db0) : fido=00000000, Irp=8
-58f2938, Context=858c4ed8, IRQL=2
-[46266 ms]  <<<  URB 146 coming back  <<< 
--- URB_FUNCTION_CONTROL_TRANSFER:
-  PipeHandle           = 86239260
-  TransferFlags        = 0000000a (USBD_TRANSFER_DIRECTION_OUT, USBD_SHORT_TRANS
-FER_OK)
-  TransferBufferLength = 00000000
-  TransferBuffer       = 8609d21e
-  TransferBufferMDL    = 00000000
-  UrbLink              = 00000000
-  SetupPacket          =
-    00000000: 40 01 0c 30 76 00 00 00
-===============
-
-
-2. write to tuner (addr:0x60)
-
-write [0f 7b b2 08] to addr 0x60
-===============
-[47267 ms]  >>>  URB 147 going down  >>> 
--- URB_FUNCTION_VENDOR_DEVICE:
-  TransferFlags          = 00000000 (USBD_TRANSFER_DIRECTION_OUT, ~USBD_SHORT_TR
-ANSFER_OK)
-  TransferBufferLength = 00000005
-  TransferBuffer       = 8581c7d6
-  TransferBufferMDL    = 00000000
-    00000000: c0 0f 7b b2 08
-  UrbLink                 = 00000000
-  RequestTypeReservedBits = 00000000
-  Request                 = 00000003
-  Value                   = 00003000
-  Index                   = 000000fe
-[47270 ms] UsbSnoop - MyInternalIOCTLCompletion(f79b7db0) : fido=00000000, Irp=8
-58f2008, Context=86275258, IRQL=2
-[47270 ms]  <<<  URB 147 coming back  <<< 
--- URB_FUNCTION_CONTROL_TRANSFER:
-  PipeHandle           = 86239260
-  TransferFlags        = 0000000a (USBD_TRANSFER_DIRECTION_OUT, USBD_SHORT_TRANS
-FER_OK)
-  TransferBufferLength = 00000005
-  TransferBuffer       = 8581c7d6
-  TransferBufferMDL    = 855f7760
-  UrbLink              = 00000000
-  SetupPacket          =
-    00000000: 40 03 00 30 fe 00 05 00
-===============
-
-3. read from tuner
-
-read one byte from addr 0x60
-(2 USB packets)
-===============
-[46036 ms]  >>>  URB 26 going down  >>> 
--- URB_FUNCTION_VENDOR_DEVICE:
-  TransferFlags          = 00000000 (USBD_TRANSFER_DIRECTION_OUT, ~USBD_SHORT_TR
-ANSFER_OK)
-  TransferBufferLength = 00000001
-  TransferBuffer       = 8609d21e
-  TransferBufferMDL    = 00000000
-    00000000: c1
-  UrbLink                 = 00000000
-  RequestTypeReservedBits = 00000000
-  Request                 = 00000003
-  Value                   = 00003000
-  Index                   = 000000fe
-[46038 ms] UsbSnoop - MyInternalIOCTLCompletion(f79b7db0) : fido=00000000, Irp=8
-58f2938, Context=858ccea0, IRQL=2
-[46038 ms]  <<<  URB 26 coming back  <<< 
--- URB_FUNCTION_CONTROL_TRANSFER:
-  PipeHandle           = 86239260
-  TransferFlags        = 0000000a (USBD_TRANSFER_DIRECTION_OUT, USBD_SHORT_TRANS
-FER_OK)
-  TransferBufferLength = 00000001
-  TransferBuffer       = 8609d21e
-  TransferBufferMDL    = 855f7760
-  UrbLink              = 00000000
-  SetupPacket          =
-    00000000: 40 03 00 30 fe 00 01 00
-
-
-[46038 ms]  >>>  URB 27 going down  >>> 
--- URB_FUNCTION_VENDOR_DEVICE:
-  TransferFlags          = 00000001 (USBD_TRANSFER_DIRECTION_IN, ~USBD_SHORT_TRA
-NSFER_OK)
-  TransferBufferLength = 00000001
-  TransferBuffer       = 8609d21e
-  TransferBufferMDL    = 00000000
-  UrbLink                 = 00000000
-  RequestTypeReservedBits = 00000000
-  Request                 = 00000002
-  Value                   = 00003000
-  Index                   = 00000100
-[46040 ms] UsbSnoop - MyInternalIOCTLCompletion(f79b7db0) : fido=00000000, Irp=8
-58f2938, Context=86366778, IRQL=2
-[46040 ms]  <<<  URB 27 coming back  <<< 
--- URB_FUNCTION_CONTROL_TRANSFER:
-  PipeHandle           = 86239260
-  TransferFlags        = 0000000b (USBD_TRANSFER_DIRECTION_IN, USBD_SHORT_TRANSF
-ER_OK)
-  TransferBufferLength = 00000001
-  TransferBuffer       = 8609d21e
-  TransferBufferMDL    = 855f7760
-    00000000: 7c
-  UrbLink              = 00000000
-  SetupPacket          =
-    00000000: c0 02 00 30 00 01 01 00
-============
-
-Note: In log 2 & 3, "Request" parameter value is different from log 1. 
-
-regards,
-Akihiro
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index c2265324c7c96308..ebcd78b1bb6e8cb6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -23,6 +23,7 @@
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
+ 	default:
+-		vin->format.field = V4L2_FIELD_NONE;
++		vin->format.field = RVIN_DEFAULT_FIELD;
+ 		break;
+ 	}
+ 
+@@ -213,10 +214,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	u32 walign;
+ 	int ret;
+ 
+-	/* Keep current field if no specific one is asked for */
+-	if (pix->field == V4L2_FIELD_ANY)
+-		pix->field = vin->format.field;
+-
+ 	/* If requested format is not supported fallback to the default */
+ 	if (!rvin_format_from_pixel(pix->pixelformat)) {
+ 		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+@@ -246,7 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
+ 	default:
+-		pix->field = V4L2_FIELD_NONE;
++		pix->field = RVIN_DEFAULT_FIELD;
+ 		break;
+ 	}
+ 
+-- 
+2.16.2
