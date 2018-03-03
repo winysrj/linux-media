@@ -1,132 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58943 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751524AbeCTHu4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 03:50:56 -0400
-Date: Tue, 20 Mar 2018 08:50:54 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180320075054.GA30239@amd>
-References: <20170516124519.GA25650@amd>
- <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
- <20180316205512.GA6069@amd>
- <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
- <20180319102354.GA12557@amd>
- <20180319074715.5b700405@vento.lan>
- <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
- <20180319120043.GA20451@amd>
- <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
- <20180319095544.7e235a3e@vento.lan>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:37615 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751994AbeCCN5U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2018 08:57:20 -0500
+Received: by mail-lf0-f66.google.com with SMTP id y19so17168292lfd.4
+        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2018 05:57:19 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Sat, 3 Mar 2018 14:57:17 +0100
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v11 17/32] rcar-vin: move media bus configuration to
+ struct rvin_info
+Message-ID: <20180303135717.GF12470@bigcity.dyn.berto.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180302015751.25596-18-niklas.soderlund+renesas@ragnatech.se>
+ <10009478.ZEXKPO1ePN@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20180319095544.7e235a3e@vento.lan>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <10009478.ZEXKPO1ePN@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---6TrnltStXW4iwmi0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for your feedback.
 
-Hi!
+On 2018-03-02 13:26:58 +0200, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 2 March 2018 03:57:36 EET Niklas Söderlund wrote:
+> > Bus configuration will once the driver is extended to support Gen3
+> > contain information not specific to only the directly connected parallel
+> > subdevice. Move it to struct rvin_dev to show it's not always coupled
+> > to the parallel subdevice.
+> 
+> The subject line still mentions rvin_info. Are you so emotionally attached to 
+> it that you have trouble fixing that ? ;-)
 
-> > > 2) support for running libv4l2 on mc-based devices. I'd like to do
-> > > that.
-> > >=20
-> > > Description file would look like. (# comments would not be not part o=
-f file).
-> > >=20
-> > > V4L2MEDIADESC
-> > > 3 # number of files to open
-> > > /dev/video2
-> > > /dev/video6
-> > > /dev/video3 =20
->=20
-> "Easy" file formats usually means maintenance troubles as new
-> things are needed, and makes worse for users to write it.=20
-> You should take a look at lib/libdvbv5/dvb-file.c, mainly at=20
-> fill_entry() and dvb_read_file().
+I had fixed this, but when I reviewed the patches before I sent them out 
+I miss read the diff and it looked like I had forgotten to fix this and 
+I broke it again. So in short it seems my subconscious are still 
+emotionally attached to rvin_info :-)
 
-Well, file formats just need to be maintained.
+> 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
+> >  drivers/media/platform/rcar-vin/rcar-dma.c  | 11 ++++++-----
+> >  drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+> >  drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
+> >  4 files changed, 20 insertions(+), 20 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> > b/drivers/media/platform/rcar-vin/rcar-core.c index
+> > cc863e4ec9a4d4b3..449175c3133e42c6 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> > @@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_dev
+> > *vin, vin->digital->sink_pad = ret < 0 ? 0 : ret;
+> > 
+> >  	/* Find compatible subdevices mbus format */
+> > -	vin->digital->code = 0;
+> > +	vin->mbus_code = 0;
+> >  	code.index = 0;
+> >  	code.pad = vin->digital->source_pad;
+> > -	while (!vin->digital->code &&
+> > +	while (!vin->mbus_code &&
+> >  	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
+> >  		code.index++;
+> >  		switch (code.code) {
+> > @@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_dev
+> > *vin, case MEDIA_BUS_FMT_UYVY8_2X8:
+> >  		case MEDIA_BUS_FMT_UYVY10_2X10:
+> >  		case MEDIA_BUS_FMT_RGB888_1X24:
+> > -			vin->digital->code = code.code;
+> > +			vin->mbus_code = code.code;
+> >  			vin_dbg(vin, "Found media bus format for %s: %d\n",
+> > -				subdev->name, vin->digital->code);
+> > +				subdev->name, vin->mbus_code);
+> >  			break;
+> >  		default:
+> >  			break;
+> >  		}
+> >  	}
+> > 
+> > -	if (!vin->digital->code) {
+> > +	if (!vin->mbus_code) {
+> >  		vin_err(vin, "Unsupported media bus format for %s\n",
+> >  			subdev->name);
+> >  		return -EINVAL;
+> > @@ -190,16 +190,16 @@ static int rvin_digital_parse_v4l2(struct device *dev,
+> > if (vep->base.port || vep->base.id)
+> >  		return -ENOTCONN;
+> > 
+> > -	rvge->mbus_cfg.type = vep->bus_type;
+> > +	vin->mbus_cfg.type = vep->bus_type;
+> > 
+> > -	switch (rvge->mbus_cfg.type) {
+> > +	switch (vin->mbus_cfg.type) {
+> >  	case V4L2_MBUS_PARALLEL:
+> >  		vin_dbg(vin, "Found PARALLEL media bus\n");
+> > -		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
+> > +		vin->mbus_cfg.flags = vep->bus.parallel.flags;
+> >  		break;
+> >  	case V4L2_MBUS_BT656:
+> >  		vin_dbg(vin, "Found BT656 media bus\n");
+> > -		rvge->mbus_cfg.flags = 0;
+> > +		vin->mbus_cfg.flags = 0;
+> >  		break;
+> >  	default:
+> >  		vin_err(vin, "Unknown media bus type\n");
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> > c8831e189d362c8b..4ebf76c30a3e9117 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > @@ -633,7 +633,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >  	/*
+> >  	 * Input interface
+> >  	 */
+> > -	switch (vin->digital->code) {
+> > +	switch (vin->mbus_code) {
+> >  	case MEDIA_BUS_FMT_YUYV8_1X16:
+> >  		/* BT.601/BT.1358 16bit YCbCr422 */
+> >  		vnmc |= VNMC_INF_YUV16;
+> > @@ -641,7 +641,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >  		break;
+> >  	case MEDIA_BUS_FMT_UYVY8_2X8:
+> >  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+> > -		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+> > +		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+> >  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> >  		input_is_yuv = true;
+> >  		break;
+> > @@ -650,7 +650,7 @@ static int rvin_setup(struct rvin_dev *vin)
+> >  		break;
+> >  	case MEDIA_BUS_FMT_UYVY10_2X10:
+> >  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> > -		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+> > +		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+> >  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+> >  		input_is_yuv = true;
+> >  		break;
+> > @@ -662,11 +662,11 @@ static int rvin_setup(struct rvin_dev *vin)
+> >  	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+> > 
+> >  	/* Hsync Signal Polarity Select */
+> > -	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> > +	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> >  		dmr2 |= VNDMR2_HPS;
+> > 
+> >  	/* Vsync Signal Polarity Select */
+> > -	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> > +	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> >  		dmr2 |= VNDMR2_VPS;
+> > 
+> >  	/*
+> > @@ -875,6 +875,7 @@ static void rvin_capture_stop(struct rvin_dev *vin)
+> >  	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+> >  }
+> > 
+> > +
+> 
+> This is not needed.
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> > Instead these should be entity names from the media controller.
->=20
-> Agreed that it should use MC. Yet, IMHO, the best would be to use
-> the entity function instead, as entity names might eventually
-> change on newer versions of the Kernel.
+Thank you.
 
-Kernel interfaces are not supposed to be changing.
+> 
+> >  /* ------------------------------------------------------------------------
+> >   * DMA Functions
+> >   */
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> > 55640c6b2a1200ca..20be21cb1cf521e5 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > @@ -199,7 +199,7 @@ static int rvin_try_format(struct rvin_dev *vin, u32
+> > which, if (pad_cfg == NULL)
+> >  		return -ENOMEM;
+> > 
+> > -	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
+> > +	v4l2_fill_mbus_format(&format.format, pix, vin->mbus_code);
+> > 
+> >  	/* Allow the video device to override field and to scale */
+> >  	field = pix->field;
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> > b/drivers/media/platform/rcar-vin/rcar-vin.h index
+> > 39051da31650bd79..491f3187b932f81e 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> > +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> > @@ -62,8 +62,6 @@ struct rvin_video_format {
+> >   * struct rvin_graph_entity - Video endpoint from async framework
+> >   * @asd:	sub-device descriptor for async framework
+> >   * @subdev:	subdevice matched using async framework
+> > - * @code:	Media bus format from source
+> > - * @mbus_cfg:	Media bus format from DT
+> >   * @source_pad:	source pad of remote subdevice
+> >   * @sink_pad:	sink pad of remote subdevice
+> >   */
+> > @@ -71,9 +69,6 @@ struct rvin_graph_entity {
+> >  	struct v4l2_async_subdev asd;
+> >  	struct v4l2_subdev *subdev;
+> > 
+> > -	u32 code;
+> > -	struct v4l2_mbus_config mbus_cfg;
+> > -
+> >  	unsigned int source_pad;
+> >  	unsigned int sink_pad;
+> >  };
+> > @@ -114,6 +109,8 @@ struct rvin_info {
+> >   * @sequence:		V4L2 buffers sequence number
+> >   * @state:		keeps track of operation state
+> >   *
+> > + * @mbus_cfg:		media bus configuration from DT
+> > + * @mbus_code:		media bus format code
+> >   * @format:		active V4L2 pixel format
+> >   *
+> >   * @crop:		active cropping
+> > @@ -140,6 +137,8 @@ struct rvin_dev {
+> >  	unsigned int sequence;
+> >  	enum rvin_dma_state state;
+> > 
+> > +	struct v4l2_mbus_config mbus_cfg;
+> > +	u32 mbus_code;
+> >  	struct v4l2_pix_format format;
+> > 
+> >  	struct v4l2_rect crop;
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-> (again, user may specify just name, just function or both)
->=20
-> > > 3 # number of controls to map. Controls not mentioned here go to
-> > >   # device 0 automatically. Sorted by control id.
-> > >   # Device 0=20
-> > > 00980913 1
-> > > 009a0003 1
-> > > 009a000a 2 =20
->=20
-> I would, instead, encode it as:
->=20
-> 	[control white balance]
-> 		control_id =3D 0x00980913
-> 		entity =3D foo_entity_name
-
-Ok, that's really overly complex. If futrue extensibility is concern
-we can do
-
-0x00980913=3Dwhatever.
-
-> Allowing both hexadecimal values and control macro names (can easily pars=
-ed=20
-> from the header file, as we already do for other things with "make
-> sync").
-
-"Easily" as in "more complex then rest of proposed code combined" :-(.
-
-> It should probably be easy to add a generic pipeline descriptor
-> with a format like:
->=20
-> 	[pipeline pipe1]
-> 		link0 =3D SGRBG10 640x480: entity1:0 -> entity2:0[1]
-> 		link1 =3D SGRBG10 640x480: entity2:2-> entity3:0[1]
-> 		link2 =3D UYVY 640x480: entity3:1-> entity4:0[1]
-> 		link3 =3D UYVY 640x480: entity4:1-> entity5:0[1]
->=20
-> 		sink0 =3D UYVY 320x200: entity5:0[1]
-> 		sink1 =3D UYVY 640x480: entity3:0[1]
-
-Well, first, this looks like very unsuitable for key=3Dvalue file. Plus,
-it will not be easy to parse. .... and control map needs to be
-per-pipeline-configuration. Again, proposed Windows-style format can
-not easily do that.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---6TrnltStXW4iwmi0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqwvV0ACgkQMOfwapXb+vI6FQCfZnn9sxW/IYLl8JSYS93jxQHa
-+X8An1ERZqtfpLmG5TDCO6uCg/HDWOoz
-=Q6UJ
------END PGP SIGNATURE-----
-
---6TrnltStXW4iwmi0--
+-- 
+Regards,
+Niklas Söderlund
