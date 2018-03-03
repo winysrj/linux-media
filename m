@@ -1,121 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0185.hostedemail.com ([216.40.44.185]:40621 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S967863AbeCAMB2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 07:01:28 -0500
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: tw9910: Miscellaneous neatening
-Date: Thu,  1 Mar 2018 04:01:22 -0800
-Message-Id: <45c4aeef9d2f00b95ba762ad80b4afc2fc60e846.1519905664.git.joe@perches.com>
+Received: from osg.samsung.com ([64.30.133.232]:65036 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752317AbeCCUvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Mar 2018 15:51:18 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 05/11] media: em28xx-camera: fix coding style issues
+Date: Sat,  3 Mar 2018 17:51:06 -0300
+Message-Id: <359607716b49f88206e5c71065ac66aacbeff1a4.1520110127.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
+References: <cover.1520110127.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
+References: <cover.1520110127.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yet more whitespace and style neatening
+There are some coding style issues at em28xx-camera.
 
-o Add blank lines before returns
-o Reverse a logic test and return early on error
-o Move formats to same line as dev_<level> calls
-o Remove an unnecessary period from a logging message
+Fix them, by using checkpatch in strict mode to point for it.
+Automatic fixes with --fix-inplace were complemented by manual
+work.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/tw9910.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ drivers/media/usb/em28xx/em28xx-camera.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index ab32cd81ebd0..cc648deb8123 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -752,6 +752,7 @@ static int tw9910_get_selection(struct v4l2_subdev *sd,
- 		sel->r.width	= 768;
- 		sel->r.height	= 576;
- 	}
-+
- 	return 0;
- }
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index f0c52da17372..3c2694a16ed1 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -45,7 +45,7 @@ static int em28xx_initialize_mt9m111(struct em28xx *dev)
+ 		{ 0x0d, 0x00, 0x01, },  /* reset and use defaults */
+ 		{ 0x0d, 0x00, 0x00, },
+ 		{ 0x0a, 0x00, 0x21, },
+-		{ 0x21, 0x04, 0x00, },  /* full readout speed, no row/col skipping */
++		{ 0x21, 0x04, 0x00, },  /* full readout spd, no row/col skip */
+ 	};
  
-@@ -799,11 +800,13 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
- 	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	for (i = 0; i < ARRAY_SIZE(regs); i++)
+@@ -153,7 +153,8 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ 			break;
+ 		default:
+ 			dev_info(&dev->intf->dev,
+-				 "unknown Micron sensor detected: 0x%04x\n", id);
++				 "unknown Micron sensor detected: 0x%04x\n",
++				 id);
+ 			return 0;
+ 		}
  
- 	ret = tw9910_set_frame(sd, &width, &height);
--	if (!ret) {
--		mf->width	= width;
--		mf->height	= height;
--	}
--	return ret;
-+	if (ret)
-+		return ret;
-+
-+	mf->width	= width;
-+	mf->height	= height;
-+
-+	return 0;
- }
+@@ -182,8 +183,10 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+ 	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
  
- static int tw9910_set_fmt(struct v4l2_subdev *sd,
-@@ -821,7 +824,7 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- 	if (mf->field == V4L2_FIELD_ANY) {
- 		mf->field = V4L2_FIELD_INTERLACED_BT;
- 	} else if (mf->field != V4L2_FIELD_INTERLACED_BT) {
--		dev_err(&client->dev, "Field type %d invalid.\n", mf->field);
-+		dev_err(&client->dev, "Field type %d invalid\n", mf->field);
- 		return -EINVAL;
- 	}
+ 	dev->em28xx_sensor = EM28XX_NOSENSOR;
+-	/* NOTE: these devices have the register auto incrementation disabled
+-	 * by default, so we have to use single byte reads !              */
++	/*
++	 * NOTE: these devices have the register auto incrementation disabled
++	 * by default, so we have to use single byte reads !
++	 */
+ 	for (i = 0; omnivision_sensor_addrs[i] != I2C_CLIENT_END; i++) {
+ 		client->addr = omnivision_sensor_addrs[i];
+ 		/* Read manufacturer ID from registers 0x1c-0x1d (BE) */
+@@ -393,7 +396,7 @@ int em28xx_init_camera(struct em28xx *dev)
+ 		subdev =
+ 		     v4l2_i2c_new_subdev_board(&v4l2->v4l2_dev, adap,
+ 					       &ov2640_info, NULL);
+-		if (subdev == NULL)
++		if (!subdev)
+ 			return -ENODEV;
  
-@@ -840,7 +843,9 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- 
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
- 		return tw9910_s_fmt(sd, mf);
-+
- 	cfg->try_fmt = *mf;
-+
- 	return 0;
- }
- 
-@@ -871,21 +876,21 @@ static int tw9910_video_probe(struct i2c_client *client)
- 	id = GET_ID(id);
- 
- 	if (id != 0x0b || priv->revision > 0x01) {
--		dev_err(&client->dev,
--			"Product ID error %x:%x\n",
-+		dev_err(&client->dev, "Product ID error %x:%x\n",
- 			id, priv->revision);
- 		ret = -ENODEV;
- 		goto done;
- 	}
- 
--	dev_info(&client->dev,
--		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
-+	dev_info(&client->dev, "tw9910 Product ID %0x:%0x\n",
-+		 id, priv->revision);
- 
- 	priv->norm = V4L2_STD_NTSC;
- 	priv->scale = &tw9910_ntsc_scales[0];
- 
- done:
- 	tw9910_s_power(&priv->subdev, 0);
-+
- 	return ret;
- }
- 
-@@ -905,12 +910,14 @@ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+
- 	return 0;
- }
- 
- static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
- {
- 	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
-+
- 	return 0;
- }
- 
+ 		format.format.code = MEDIA_BUS_FMT_YUYV8_2X8;
 -- 
-2.15.0
+2.14.3
