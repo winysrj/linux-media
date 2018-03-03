@@ -1,200 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43298 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751715AbeCWXGi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 19:06:38 -0400
-Date: Sat, 24 Mar 2018 01:06:35 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Pawel Osciak <pawel@osciak.com>
-Subject: Re: [RFCv2] Request API
-Message-ID: <20180323230635.exi2tbmezlhj2sc5@valkosipuli.retiisi.org.uk>
-References: <7fd4debd-5537-a261-06f0-c2ab1ca3b33d@xs4all.nl>
+Received: from mail-by2nam03on0118.outbound.protection.outlook.com ([104.47.42.118]:7707
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S934519AbeCCWgK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Mar 2018 17:36:10 -0500
+From: Sasha Levin <Alexander.Levin@microsoft.com>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "stable@vger.kernel.org" <stable@vger.kernel.org>
+CC: =?utf-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+        Shashank Sharma <shashank.sharma@intel.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Sasha Levin <Alexander.Levin@microsoft.com>
+Subject: [PATCH AUTOSEL for 4.9 172/219] video/hdmi: Allow "empty" HDMI
+ infoframes
+Date: Sat, 3 Mar 2018 22:29:37 +0000
+Message-ID: <20180303222716.26640-172-alexander.levin@microsoft.com>
+References: <20180303222716.26640-1-alexander.levin@microsoft.com>
+In-Reply-To: <20180303222716.26640-1-alexander.levin@microsoft.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <7DF9B0A737BB7B46B154DBC232C85550@namprd21.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7fd4debd-5537-a261-06f0-c2ab1ca3b33d@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thanks for writing this. I generally agree with the RFC to the level of
-detail available here; a few comments below.
-
-On Fri, Mar 23, 2018 at 09:46:00AM +0100, Hans Verkuil wrote:
-> RFC Request API, version 2
-> --------------------------
-> 
-> This document proposes the public API for handling requests.
-> 
-> There has been some confusion about how to do this, so this summarizes the
-> current approach based on conversations with the various stakeholders today
-> (Sakari, Alexandre Courbot, Thomasz Figa and myself).
-> 
-> 1) Additions to the media API
-> 
->    Allocate an empty request object:
-> 
->    #define MEDIA_IOC_REQUEST_ALLOC _IOW('|', 0x05, __s32 *)
-> 
->    This will return a file descriptor representing the request or an error
->    if it can't allocate the request.
-> 
->    If the pointer argument is NULL, then this will just return 0 (if this ioctl
->    is implemented) or -ENOTTY otherwise. This can be used to test whether this
->    ioctl is supported or not without actually having to allocate a request.
-> 
-> 2) Operations on the request fd
-> 
->    You can queue or reinit a request by calling these ioctls on the request fd:
-> 
->    #define MEDIA_REQUEST_IOC_QUEUE   _IO('|',  128)
->    #define MEDIA_REQUEST_IOC_REINIT  _IO('|',  129)
-> 
->    With REINIT you reset the state of the request as if you had just allocated
->    it.
-> 
->    You can poll the request fd to wait for it to complete.
-
-I'm not sure I like having to release a reference (fd) to a request to know
-whether or not it succeeded. I put this as an open question on my RFC
-patchset.
-
-> 
->    To free a request you close the request fd. Note that it may still be in
->    use internally, so the internal datastructures have to be refcounted.
-> 
->    For this initial implementation only buffers and controls are contained
->    in a request. This is needed to implement stateless codecs. Supporting
->    complex camera pipelines will require more work.
-> 
->    Requests only contain the changes to the state at request queue time
->    relative to the previously queued request(s) or the current hardware state
->    if no other requests were queued.
-> 
->    Once a request is completed it will retain the state at completion
->    time.
-> 
-> 3) To associate a v4l2 buffer with a request the 'reserved' field in struct
->    v4l2_buffer is used to store the request fd. Buffers won't be 'prepared'
->    until the request is queued since the request may contain information that
->    is needed to prepare the buffer.
-> 
->    To indicate that request_fd should be used this flag should be set by
->    userspace at QBUF time:
-> 
-> #define V4L2_BUF_FLAG_REQUEST			0x00800000
-> 
->    This flag will also be returned by the driver to indicate that the buffer
->    is associated with a request.
-> 
->    TBD: what should vb2 return as request_fd value if this flag is set?
->    This should act the same as the fence patch series and this is still
->    being tweaked so let's wait for that to be merged first, then we can
->    finalize this.
-> 
-> 4) To associate v4l2 controls with a request we take the first of the
->    'reserved[2]' array elements in struct v4l2_ext_controls and use it to store
->    the request fd.
-> 
->    We also add a new WHICH value:
-> 
-> #define V4L2_CTRL_WHICH_REQUEST   0x0f010000
-> 
->    This tells the control framework to get/set controls from the given
->    request fd.
-> 
->    When querying a control value from a request it will return the newest
->    value in the list of pending requests, or the current hardware value if
->    is not set in any of the pending requests.
-> 
->    When a request is completed the controls will no longer change. A copy
->    will be made of volatile controls at the time of completion (actually
->    it will be up to the driver to decide when to do that).
-> 
->    Volatile controls and requests:
-> 
->    - If you set a volatile control in a request, then that will be ignored,
->      unless the V4L2_CTRL_FLAG_EXECUTE_ON_WRITE flag is set as well.
-> 
->    - If you get a volatile control from a request then:
->      1) If the request is completed it will return the value of the volatile
->         control at completion time.
->      2) Otherwise: if the V4L2_CTRL_FLAG_EXECUTE_ON_WRITE is set and it was
->         set in a request, then that value is returned.
->      3) Otherwise: return the current value from the hardware (i.e. normal
->         behavior).
-> 
->    Read-only controls and requests:
-> 
->    - If you get a read-only control from a request then:
->      1) If the request is completed it will return the value of the read-only
->         control at completion time.
->      2) Otherwise it will get the current value from the driver (i.e. normal
->         behavior).
-> 
->    Open issue: should we receive control events if a control in a request is
->    added/changed? Currently there are no plans to support control events for
->    requests. I don't see a clear use-case and neither do I see an easy way
->    of implementing this (which fd would receive those events?).
-> 
-> Notes:
-> 
-> - Earlier versions of this API had a TRY command as well to validate the
->   request. I'm not sure that is useful so I dropped it, but it can easily
-
-I'd think this would be mostly useful on complex pipelines where you'll
-have interdependencies in configuration across entities. One such case is
-the available V4L2 formats given a choice of a media bus format towards the
-DMA engine: you can't use the current APIs to try that (dirty one-off fix
-could be to provide the mbus code on the same IOCTL) but there are more
-complex cases, too.
-
-Currently this is a niche use case, but moving all IOCTLs to the media
-device, depending a bit on how that would be done, is what I'd expect to
-change this completely.
-
-Because this is not very relevant right now, I left it out.
-
->   be added if there is a good use-case for it. Traditionally within V4L the
->   TRY ioctl will also update wrong values to something that works, but that
->   is not the intention here as far as I understand it. So the validation
->   step can also be done when the request is queued and, if it fails, it will
->   just return an error.
-> 
-> - If due to performance reasons we will have to allocate/queue/reinit multiple
->   requests with a single ioctl, then we will have to add new ioctls to the
->   media device. At this moment in time it is not clear that this is really
->   needed and it certainly isn't needed for the stateless codec support that
->   we are looking at now.
-
-I think the time for this is later indeed, likely much later.
-
-> 
-> - The behavior of VIDIOC_G_EXT_CTRLS with which == V4L2_CTRL_WHICH_CUR_VAL
->   and VIDIOC_G_CTRL remains the same (i.e. it returns the current driver/HW
->   values). However, when combined with requests the documentation should make
->   clear that this returns a snapshot only and is racy w.r.t. applying values
->   from a request.
-> 
-> - There is a discussion whether there should be a VIDIOC_REQUEST_ALLOC ioctl
->   for V4L2 in addition to the media ioctl. The reason is that stateless codecs
->   do not need the media controller except for allocating requests. So a V4L2
->   ioctl would avoid applications from having to deal with a media device.
->   This would also add additional hassle w.r.t. SELinux as I understand it.
-> 
->   Support for this can be added for now as a final patch in the Request API
->   patch series and we'll postpone the decision on this.
-
-Works for me.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+RnJvbTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxpbnV4LmludGVsLmNvbT4NCg0K
+WyBVcHN0cmVhbSBjb21taXQgNTkzZjRiMTlhMDk0YzQ0MjZiZDFlMWUzY2JhYjg3YTQ4YmQxM2M3
+MSBdDQoNCkhETUkgMi4wIEFwcGVuZGl4IEYgc3VnZ2VzdCB0aGF0IHdlIHNob3VsZCBrZWVwIHNl
+bmRpbmcgdGhlIGluZm9mcmFtZQ0Kd2hlbiBzd2l0Y2hpbmcgZnJvbSAzRCB0byAyRCBtb2RlLCBl
+dmVuIGlmIHRoZSBpbmZvZnJhbWUgaXNuJ3Qgc3RyaWN0bHkNCm5lY2Vzc2FyeSAoaWUuIG5vdCBu
+ZWVkZWQgdG8gdHJhbnNtaXQgdGhlIFZJQyBvciBzdGVyZW8gaW5mb3JtYXRpb24pLg0KVGhpcyBp
+cyBhIHdvcmthcm91bmQgYWdhaW5zdCBzb21lIHNpbmtzIHRoYXQgZmFpbCB0byByZWFsaXplIHRo
+YXQgdGhleQ0Kc2hvdWxkIHN3aXRjaCBmcm9tIDNEIHRvIDJEIG1vZGUgd2hlbiB0aGUgc291cmNl
+IHN0b3AgdHJhbnNtaXR0aW5nDQp0aGUgaW5mb2ZyYW1lLg0KDQp2MjogSGFuZGxlIHVucGFjaygp
+IGFzIHdlbGwNCiAgICBQdWxsIHRoZSBsZW5ndGggY2FsY3VsYXRpb24gaW50byBhIGhlbHBlcg0K
+DQpDYzogU2hhc2hhbmsgU2hhcm1hIDxzaGFzaGFuay5zaGFybWFAaW50ZWwuY29tPg0KQ2M6IEFu
+ZHJ6ZWogSGFqZGEgPGEuaGFqZGFAc2Ftc3VuZy5jb20+DQpDYzogVGhpZXJyeSBSZWRpbmcgPHRo
+aWVycnkucmVkaW5nQGdtYWlsLmNvbT4NCkNjOiBIYW5zIFZlcmt1aWwgPGhhbnMudmVya3VpbEBj
+aXNjby5jb20+DQpDYzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQpSZXZpZXdlZC1ieTog
+QW5kcnplaiBIYWpkYSA8YS5oYWpkYUBzYW1zdW5nLmNvbT4gI3YxDQpTaWduZWQtb2ZmLWJ5OiBW
+aWxsZSBTeXJqw6Rsw6QgPHZpbGxlLnN5cmphbGFAbGludXguaW50ZWwuY29tPg0KTGluazogaHR0
+cHM6Ly9wYXRjaHdvcmsuZnJlZWRlc2t0b3Aub3JnL3BhdGNoL21zZ2lkLzIwMTcxMTEzMTcwNDI3
+LjQxNTAtMi12aWxsZS5zeXJqYWxhQGxpbnV4LmludGVsLmNvbQ0KUmV2aWV3ZWQtYnk6IFNoYXNo
+YW5rIFNoYXJtYSA8c2hhc2hhbmsuc2hhcm1hQGludGVsLmNvbT4NClNpZ25lZC1vZmYtYnk6IFNh
+c2hhIExldmluIDxhbGV4YW5kZXIubGV2aW5AbWljcm9zb2Z0LmNvbT4NCi0tLQ0KIGRyaXZlcnMv
+dmlkZW8vaGRtaS5jIHwgNTEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0t
+LS0tLS0tLS0tLS0tDQogMSBmaWxlIGNoYW5nZWQsIDMxIGluc2VydGlvbnMoKyksIDIwIGRlbGV0
+aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9oZG1pLmMgYi9kcml2ZXJzL3Zp
+ZGVvL2hkbWkuYw0KaW5kZXggMTYyNjg5MjI3YTIzLi5iNzM1MjBhYWY2OTcgMTAwNjQ0DQotLS0g
+YS9kcml2ZXJzL3ZpZGVvL2hkbWkuYw0KKysrIGIvZHJpdmVycy92aWRlby9oZG1pLmMNCkBAIC0z
+MjEsNiArMzIxLDE3IEBAIGludCBoZG1pX3ZlbmRvcl9pbmZvZnJhbWVfaW5pdChzdHJ1Y3QgaGRt
+aV92ZW5kb3JfaW5mb2ZyYW1lICpmcmFtZSkNCiB9DQogRVhQT1JUX1NZTUJPTChoZG1pX3ZlbmRv
+cl9pbmZvZnJhbWVfaW5pdCk7DQogDQorc3RhdGljIGludCBoZG1pX3ZlbmRvcl9pbmZvZnJhbWVf
+bGVuZ3RoKGNvbnN0IHN0cnVjdCBoZG1pX3ZlbmRvcl9pbmZvZnJhbWUgKmZyYW1lKQ0KK3sNCisJ
+LyogZm9yIHNpZGUgYnkgc2lkZSAoaGFsZikgd2UgYWxzbyBuZWVkIHRvIHByb3ZpZGUgM0RfRXh0
+X0RhdGEgKi8NCisJaWYgKGZyYW1lLT5zM2Rfc3RydWN0ID49IEhETUlfM0RfU1RSVUNUVVJFX1NJ
+REVfQllfU0lERV9IQUxGKQ0KKwkJcmV0dXJuIDY7DQorCWVsc2UgaWYgKGZyYW1lLT52aWMgIT0g
+MCB8fCBmcmFtZS0+czNkX3N0cnVjdCAhPSBIRE1JXzNEX1NUUlVDVFVSRV9JTlZBTElEKQ0KKwkJ
+cmV0dXJuIDU7DQorCWVsc2UNCisJCXJldHVybiA0Ow0KK30NCisNCiAvKioNCiAgKiBoZG1pX3Zl
+bmRvcl9pbmZvZnJhbWVfcGFjaygpIC0gd3JpdGUgYSBIRE1JIHZlbmRvciBpbmZvZnJhbWUgdG8g
+YmluYXJ5IGJ1ZmZlcg0KICAqIEBmcmFtZTogSERNSSBpbmZvZnJhbWUNCkBAIC0zNDEsMTkgKzM1
+MiwxMSBAQCBzc2l6ZV90IGhkbWlfdmVuZG9yX2luZm9mcmFtZV9wYWNrKHN0cnVjdCBoZG1pX3Zl
+bmRvcl9pbmZvZnJhbWUgKmZyYW1lLA0KIAl1OCAqcHRyID0gYnVmZmVyOw0KIAlzaXplX3QgbGVu
+Z3RoOw0KIA0KLQkvKiBlbXB0eSBpbmZvIGZyYW1lICovDQotCWlmIChmcmFtZS0+dmljID09IDAg
+JiYgZnJhbWUtPnMzZF9zdHJ1Y3QgPT0gSERNSV8zRF9TVFJVQ1RVUkVfSU5WQUxJRCkNCi0JCXJl
+dHVybiAtRUlOVkFMOw0KLQ0KIAkvKiBvbmx5IG9uZSBvZiB0aG9zZSBjYW4gYmUgc3VwcGxpZWQg
+Ki8NCiAJaWYgKGZyYW1lLT52aWMgIT0gMCAmJiBmcmFtZS0+czNkX3N0cnVjdCAhPSBIRE1JXzNE
+X1NUUlVDVFVSRV9JTlZBTElEKQ0KIAkJcmV0dXJuIC1FSU5WQUw7DQogDQotCS8qIGZvciBzaWRl
+IGJ5IHNpZGUgKGhhbGYpIHdlIGFsc28gbmVlZCB0byBwcm92aWRlIDNEX0V4dF9EYXRhICovDQot
+CWlmIChmcmFtZS0+czNkX3N0cnVjdCA+PSBIRE1JXzNEX1NUUlVDVFVSRV9TSURFX0JZX1NJREVf
+SEFMRikNCi0JCWZyYW1lLT5sZW5ndGggPSA2Ow0KLQllbHNlDQotCQlmcmFtZS0+bGVuZ3RoID0g
+NTsNCisJZnJhbWUtPmxlbmd0aCA9IGhkbWlfdmVuZG9yX2luZm9mcmFtZV9sZW5ndGgoZnJhbWUp
+Ow0KIA0KIAlsZW5ndGggPSBIRE1JX0lORk9GUkFNRV9IRUFERVJfU0laRSArIGZyYW1lLT5sZW5n
+dGg7DQogDQpAQCAtMzcyLDE0ICszNzUsMTYgQEAgc3NpemVfdCBoZG1pX3ZlbmRvcl9pbmZvZnJh
+bWVfcGFjayhzdHJ1Y3QgaGRtaV92ZW5kb3JfaW5mb2ZyYW1lICpmcmFtZSwNCiAJcHRyWzVdID0g
+MHgwYzsNCiAJcHRyWzZdID0gMHgwMDsNCiANCi0JaWYgKGZyYW1lLT52aWMpIHsNCi0JCXB0cls3
+XSA9IDB4MSA8PCA1OwkvKiB2aWRlbyBmb3JtYXQgKi8NCi0JCXB0cls4XSA9IGZyYW1lLT52aWM7
+DQotCX0gZWxzZSB7DQorCWlmIChmcmFtZS0+czNkX3N0cnVjdCAhPSBIRE1JXzNEX1NUUlVDVFVS
+RV9JTlZBTElEKSB7DQogCQlwdHJbN10gPSAweDIgPDwgNTsJLyogdmlkZW8gZm9ybWF0ICovDQog
+CQlwdHJbOF0gPSAoZnJhbWUtPnMzZF9zdHJ1Y3QgJiAweGYpIDw8IDQ7DQogCQlpZiAoZnJhbWUt
+PnMzZF9zdHJ1Y3QgPj0gSERNSV8zRF9TVFJVQ1RVUkVfU0lERV9CWV9TSURFX0hBTEYpDQogCQkJ
+cHRyWzldID0gKGZyYW1lLT5zM2RfZXh0X2RhdGEgJiAweGYpIDw8IDQ7DQorCX0gZWxzZSBpZiAo
+ZnJhbWUtPnZpYykgew0KKwkJcHRyWzddID0gMHgxIDw8IDU7CS8qIHZpZGVvIGZvcm1hdCAqLw0K
+KwkJcHRyWzhdID0gZnJhbWUtPnZpYzsNCisJfSBlbHNlIHsNCisJCXB0cls3XSA9IDB4MCA8PCA1
+OwkvKiB2aWRlbyBmb3JtYXQgKi8NCiAJfQ0KIA0KIAloZG1pX2luZm9mcmFtZV9zZXRfY2hlY2tz
+dW0oYnVmZmVyLCBsZW5ndGgpOw0KQEAgLTExNjEsNyArMTE2Niw3IEBAIGhkbWlfdmVuZG9yX2Fu
+eV9pbmZvZnJhbWVfdW5wYWNrKHVuaW9uIGhkbWlfdmVuZG9yX2FueV9pbmZvZnJhbWUgKmZyYW1l
+LA0KIA0KIAlpZiAocHRyWzBdICE9IEhETUlfSU5GT0ZSQU1FX1RZUEVfVkVORE9SIHx8DQogCSAg
+ICBwdHJbMV0gIT0gMSB8fA0KLQkgICAgKHB0clsyXSAhPSA1ICYmIHB0clsyXSAhPSA2KSkNCisJ
+ICAgIChwdHJbMl0gIT0gNCAmJiBwdHJbMl0gIT0gNSAmJiBwdHJbMl0gIT0gNikpDQogCQlyZXR1
+cm4gLUVJTlZBTDsNCiANCiAJbGVuZ3RoID0gcHRyWzJdOw0KQEAgLTExODksMTYgKzExOTQsMjIg
+QEAgaGRtaV92ZW5kb3JfYW55X2luZm9mcmFtZV91bnBhY2sodW5pb24gaGRtaV92ZW5kb3JfYW55
+X2luZm9mcmFtZSAqZnJhbWUsDQogDQogCWh2Zi0+bGVuZ3RoID0gbGVuZ3RoOw0KIA0KLQlpZiAo
+aGRtaV92aWRlb19mb3JtYXQgPT0gMHgxKSB7DQotCQlodmYtPnZpYyA9IHB0cls0XTsNCi0JfSBl
+bHNlIGlmIChoZG1pX3ZpZGVvX2Zvcm1hdCA9PSAweDIpIHsNCisJaWYgKGhkbWlfdmlkZW9fZm9y
+bWF0ID09IDB4Mikgew0KKwkJaWYgKGxlbmd0aCAhPSA1ICYmIGxlbmd0aCAhPSA2KQ0KKwkJCXJl
+dHVybiAtRUlOVkFMOw0KIAkJaHZmLT5zM2Rfc3RydWN0ID0gcHRyWzRdID4+IDQ7DQogCQlpZiAo
+aHZmLT5zM2Rfc3RydWN0ID49IEhETUlfM0RfU1RSVUNUVVJFX1NJREVfQllfU0lERV9IQUxGKSB7
+DQotCQkJaWYgKGxlbmd0aCA9PSA2KQ0KLQkJCQlodmYtPnMzZF9leHRfZGF0YSA9IHB0cls1XSA+
+PiA0Ow0KLQkJCWVsc2UNCisJCQlpZiAobGVuZ3RoICE9IDYpDQogCQkJCXJldHVybiAtRUlOVkFM
+Ow0KKwkJCWh2Zi0+czNkX2V4dF9kYXRhID0gcHRyWzVdID4+IDQ7DQogCQl9DQorCX0gZWxzZSBp
+ZiAoaGRtaV92aWRlb19mb3JtYXQgPT0gMHgxKSB7DQorCQlpZiAobGVuZ3RoICE9IDUpDQorCQkJ
+cmV0dXJuIC1FSU5WQUw7DQorCQlodmYtPnZpYyA9IHB0cls0XTsNCisJfSBlbHNlIHsNCisJCWlm
+IChsZW5ndGggIT0gNCkNCisJCQlyZXR1cm4gLUVJTlZBTDsNCiAJfQ0KIA0KIAlyZXR1cm4gMDsN
+Ci0tIA0KMi4xNC4xDQo=
