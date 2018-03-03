@@ -1,140 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34089 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965949AbeCAE4H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 23:56:07 -0500
-Message-ID: <310e215c6312c2c6b8ea1075622bf286@smtp-cloud8.xs4all.net>
-Date: Thu, 01 Mar 2018 05:55:54 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:40620 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751721AbeCCMU5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2018 07:20:57 -0500
+From: tomoki.sekiyama@gmail.com
+To: mchehab@s-opensource.com
+Cc: elfring@users.sourceforge.net, tomoki.sekiyama@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] media: siano: Fix coherent memory allocation failure on arm64
+Date: Sat,  3 Mar 2018 21:20:17 +0900
+Message-Id: <20180303122017.32669-1-tomoki.sekiyama@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
 
-Results of the daily build of media_tree:
+On some architectures such as arm64, siano chip based TV-tuner
+USB devices are not recognized correctly due to coherent memory
+allocation failure with the following error:
 
-date:			Thu Mar  1 05:00:11 CET 2018
-media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
-media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
-v4l-utils git hash:	200338d272a908be4d98c0127765a8e1611be639
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+[  663.556135] usbcore: deregistering interface driver smsusb
+[  683.624809] smsusb:smsusb_probe: board id=18, interface number 0
+[  683.633530] smsusb:smsusb_init_device: smscore_register_device(...) failed, rc -12
+[  683.641501] smsusb:smsusb_probe: Device initialized with return code -12
+[  683.652978] smsusb: probe of 1-1:1.0 failed with error -12
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.53-i686: ERRORS
-linux-3.16.53-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.93-i686: ERRORS
-linux-3.18.93-x86_64: ERRORS
-linux-3.19-i686: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.49-i686: ERRORS
-linux-4.1.49-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+This is caused by dma_alloc_coherent(NULL, ...) returning NULL in
+smscoreapi.c.
 
-Detailed results are available here:
+To fix this error, usb_alloc_coherent() must be used for DMA
+memory allocation for USB devices in such architectures.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+v2: non-usb `device' is also be passed to dma_alloc_coherent()
 
-Full logs are available here:
+Signed-off-by: Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+---
+ drivers/media/common/siano/smscoreapi.c | 36 ++++++++++++++++++++++++---------
+ drivers/media/common/siano/smscoreapi.h |  2 ++
+ drivers/media/usb/siano/smsusb.c        |  1 +
+ 3 files changed, 29 insertions(+), 10 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index c5c827e11b64..34622b562963 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -690,17 +690,24 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 
+ 	/* alloc common buffer */
+ 	dev->common_buffer_size = params->buffer_size * params->num_buffers;
+-	dev->common_buffer = dma_alloc_coherent(NULL, dev->common_buffer_size,
+-						&dev->common_buffer_phys,
+-						GFP_KERNEL | GFP_DMA);
+-	if (!dev->common_buffer) {
++	if (params->usb_device)
++		buffer = usb_alloc_coherent(params->usb_device,
++					    dev->common_buffer_size,
++					    GFP_KERNEL | GFP_DMA,
++					    &dev->common_buffer_phys);
++	else
++		buffer = dma_alloc_coherent(params->device,
++					    dev->common_buffer_size,
++					    &dev->common_buffer_phys,
++					    GFP_KERNEL | GFP_DMA);
++	if (!buffer) {
+ 		smscore_unregister_device(dev);
+ 		return -ENOMEM;
+ 	}
++	dev->common_buffer = buffer;
+ 
+ 	/* prepare dma buffers */
+-	for (buffer = dev->common_buffer;
+-	     dev->num_buffers < params->num_buffers;
++	for (; dev->num_buffers < params->num_buffers;
+ 	     dev->num_buffers++, buffer += params->buffer_size) {
+ 		struct smscore_buffer_t *cb;
+ 
+@@ -720,6 +727,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 	dev->board_id = SMS_BOARD_UNKNOWN;
+ 	dev->context = params->context;
+ 	dev->device = params->device;
++	dev->usb_device = params->usb_device;
+ 	dev->setmode_handler = params->setmode_handler;
+ 	dev->detectmode_handler = params->detectmode_handler;
+ 	dev->sendrequest_handler = params->sendrequest_handler;
+@@ -1231,10 +1239,18 @@ void smscore_unregister_device(struct smscore_device_t *coredev)
+ 
+ 	pr_debug("freed %d buffers\n", num_buffers);
+ 
+-	if (coredev->common_buffer)
+-		dma_free_coherent(NULL, coredev->common_buffer_size,
+-			coredev->common_buffer, coredev->common_buffer_phys);
+-
++	if (coredev->common_buffer) {
++		if (coredev->usb_device)
++			usb_free_coherent(coredev->usb_device,
++					  coredev->common_buffer_size,
++					  coredev->common_buffer,
++					  coredev->common_buffer_phys);
++		else
++			dma_free_coherent(coredev->device,
++					  coredev->common_buffer_size,
++					  coredev->common_buffer,
++					  coredev->common_buffer_phys);
++	}
+ 	kfree(coredev->fw_buf);
+ 
+ 	list_del(&coredev->entry);
+diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+index 4cc39e4a8318..134c69f7ea7b 100644
+--- a/drivers/media/common/siano/smscoreapi.h
++++ b/drivers/media/common/siano/smscoreapi.h
+@@ -134,6 +134,7 @@ struct smscore_buffer_t {
+ 
+ struct smsdevice_params_t {
+ 	struct device	*device;
++	struct usb_device	*usb_device;
+ 
+ 	int				buffer_size;
+ 	int				num_buffers;
+@@ -176,6 +177,7 @@ struct smscore_device_t {
+ 
+ 	void *context;
+ 	struct device *device;
++	struct usb_device *usb_device;
+ 
+ 	char devpath[32];
+ 	unsigned long device_flags;
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index f13e4b01b5a5..3c605a573ce4 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -446,6 +446,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 		dev->in_ep, dev->out_ep);
+ 
+ 	params.device = &dev->udev->dev;
++	params.usb_device = dev->udev;
+ 	params.buffer_size = dev->buffer_size;
+ 	params.num_buffers = MAX_BUFFERS;
+ 	params.sendrequest_handler = smsusb_sendrequest;
+-- 
+2.14.3
