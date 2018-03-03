@@ -1,58 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33646 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753632AbeC1SNU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 14:13:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sasha Levin <alexander.levin@microsoft.com>
-Subject: [PATCH for v3.18 01/18] media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
-Date: Wed, 28 Mar 2018 15:12:20 -0300
-Message-Id: <81169feb046d1b88c0b3a2ee83de5921d11f8102.1522260310.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
-References: <cover.1522260310.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
-References: <cover.1522260310.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:47305 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750775AbeCCElX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Mar 2018 23:41:23 -0500
+Message-ID: <c571aaa9f904d9a4c0138ca837b02bf7@smtp-cloud8.xs4all.net>
+Date: Sat, 03 Mar 2018 05:41:08 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-commit 181a4a2d5a0a7b43cab08a70710d727e7764ccdd upstream.
+Results of the daily build of media_tree:
 
-If the ioctl returned -ENOTTY, then don't bother copying
-back the result as there is no point.
+date:			Sat Mar  3 05:00:11 CET 2018
+media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
+media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
+v4l-utils git hash:	5090c6cb0265c6847ff4b0e89b37c172eb0c1c62
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-i686: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 9ccb19a435ef..bb2387fcbfee 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2539,8 +2539,11 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 
- 	/* Handles IOCTL */
- 	err = func(file, cmd, parg);
--	if (err == -ENOIOCTLCMD)
-+	if (err == -ENOTTY || err == -ENOIOCTLCMD) {
- 		err = -ENOTTY;
-+		goto out;
-+	}
-+
- 	if (err == 0) {
- 		if (cmd == VIDIOC_DQBUF)
- 			trace_v4l2_dqbuf(video_devdata(file)->minor, parg);
--- 
-2.14.3
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
