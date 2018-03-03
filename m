@@ -1,161 +1,644 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56921 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932300AbeCSMs5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 08:48:57 -0400
-Date: Mon, 19 Mar 2018 13:48:55 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:45302 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752448AbeCCUve (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Mar 2018 15:51:34 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180319124855.GA18886@amd>
-References: <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
- <20170516124519.GA25650@amd>
- <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
- <20180316205512.GA6069@amd>
- <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
- <20180319102354.GA12557@amd>
- <20180319074715.5b700405@vento.lan>
- <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
- <20180319120043.GA20451@amd>
- <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 01/11] em28xx: Add SPDX license tags where needed
+Date: Sat,  3 Mar 2018 17:51:02 -0300
+Message-Id: <3911a4d6ca238fd4eafef7db069ea3b27cbd578d.1520110127.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
+References: <cover.1520110127.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
-Content-Disposition: inline
-In-Reply-To: <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
+References: <cover.1520110127.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Most of the files there are missing a SPDX license tag. Add.
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+While here fix some DRIVER_LICENSE macro in order to reflect
+the source file license, as some of the headers are GPL v2
+only.
 
-Hi!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c  | 46 ++++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx-camera.c | 36 ++++++++++------------
+ drivers/media/usb/em28xx/em28xx-cards.c  | 44 ++++++++++++---------------
+ drivers/media/usb/em28xx/em28xx-core.c   | 44 ++++++++++++---------------
+ drivers/media/usb/em28xx/em28xx-dvb.c    | 46 ++++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx-i2c.c    | 41 ++++++++++++-------------
+ drivers/media/usb/em28xx/em28xx-input.c  | 42 ++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx-reg.h    |  5 +++
+ drivers/media/usb/em28xx/em28xx-v4l.h    | 27 +++++++++--------
+ drivers/media/usb/em28xx/em28xx-vbi.c    | 39 +++++++++++-------------
+ drivers/media/usb/em28xx/em28xx-video.c  | 52 +++++++++++++++-----------------
+ drivers/media/usb/em28xx/em28xx.h        | 41 ++++++++++++-------------
+ 12 files changed, 219 insertions(+), 244 deletions(-)
 
-> >> I really want to work with you on this, but I am not looking for parti=
-al
-> >> solutions.
-> >=20
-> > Well, expecting design to be done for opensource development is a bit
-> > unusual :-).
->=20
-> Why? We have done that quite often in the past. Media is complex and you =
-need
-> to decide on a design up front.
-
-
-
-> > I really see two separate tasks
-> >=20
-> > 1) support for configuring pipeline. I believe this is best done out
-> > of libv4l2. It outputs description file, format below. Currently I
-> > have implemented this is in Python. File format is below.
->=20
-> You do need this, but why outside of libv4l2? I'm not saying I disagree
-> with you, but you need to give reasons for that.
-
-I'd prefer to do this in Python. There's a lot to configure there, and
-I'm not sure if libv4l2 is is right place for it. Anyway, design of 2)
-does not depend on this.
-
-> > 2) support for running libv4l2 on mc-based devices. I'd like to do
-> > that.
-> >=20
-> > Description file would look like. (# comments would not be not part of =
-file).
-> >=20
-> > V4L2MEDIADESC
-> > 3 # number of files to open
-> > /dev/video2
-> > /dev/video6
-> > /dev/video3
->=20
-> This won't work. The video nodes numbers (or even names) can change.
-> Instead these should be entity names from the media controller.
-
-Yes, it will work. 1) will configure the pipeline, and prepare
-V4L2MEDIADESC file. The device names/numbers are stable after the
-system is booted.
-
-If these were entity names, v4l2_open() would have to go to /sys and
-search for corresponding files... which would be rather complex and
-slow.
-
-> > 3 # number of controls to map. Controls not mentioned here go to
-> >   # device 0 automatically. Sorted by control id.
-> >   # Device 0=20
-> > 00980913 1
-> > 009a0003 1
-> > 009a000a 2
->=20
-> You really don't need to specify the files to open. All you need is to
-> specify the entity ID and the list of controls that you need.
->=20
-> Then libv4l can just figure out which device node(s) to open for
-> that.
-
-Yes, but that would slow down v4l2_open() needlessly. I'd prefer to
-avoid that.
-
-> > We can parse that easily without requiring external libraries. Sorted
-> > data allow us to do binary search.
->=20
-> But none of this addresses setting up the initial video pipeline or
-> changing formats. We probably want to support that as well.
-
-Well, maybe one day. But I don't believe we should attempt to support
-that today.
-
-Currently, there's no way to test that camera works on N900 with
-mainline v4l2... which is rather sad. Advanced use cases can come later.
-
-> For that matter: what is it exactly that we want to support? I.e. where do
-> we draw the line?
-
-I'd start with fixed format first. Python prepares pipeline, and
-provides V4L2MEDIADESC file libv4l2 can use. You can have that this
-week.
-
-I guess it would make sense to support "application says preffered
-resolution, libv4l2 attempts to set up some kind of pipeline to get
-that resolution", but yes, interface there will likely be quite
-complex.
-
-Media control is more than 5 years old now. libv4l2 is still
-completely uses on media control-based devices, and people are asking
-for controls propagation in the kernel to fix that. My proposol
-implements simple controls propagation in the userland. I believe we
-should do that.
-
-> A good test platform for this (outside the N900) is the i.MX6 platform.
-
-Do you have one?
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqvsbcACgkQMOfwapXb+vIblgCfUfvwLVoFYmAO9WRxWdiu4e14
-NdIAn3Q99K8qoXINLtf6pieSOGHQNc3r
-=xxrj
------END PGP SIGNATURE-----
-
---UlVJffcvxoiEqYs2--
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 4628d73f46f2..f8854b570f0d 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -1,25 +1,25 @@
+-/*
+- *  Empiatech em28x1 audio extension
+- *
+- *  Copyright (C) 2006 Markus Rechberger <mrechberger@gmail.com>
+- *
+- *  Copyright (C) 2007-2016 Mauro Carvalho Chehab
+- *	- Port to work with the in-kernel driver
+- *	- Cleanups, fixes, alsa-controls, etc.
+- *
+- *  This driver is based on my previous au600 usb pstn audio driver
+- *  and inherits all the copyrights
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or
+- *  (at your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0+
++//
++// Empiatech em28x1 audio extension
++//
++// Copyright (C) 2006 Markus Rechberger <mrechberger@gmail.com>
++//
++// Copyright (C) 2007-2016 Mauro Carvalho Chehab
++//	- Port to work with the in-kernel driver
++//	- Cleanups, fixes, alsa-controls, etc.
++//
++// This driver is based on my previous au600 usb pstn audio driver
++// and inherits all the copyrights
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+@@ -1050,7 +1050,7 @@ static void __exit em28xx_alsa_unregister(void)
+ 	em28xx_unregister_extension(&audio_ops);
+ }
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Markus Rechberger <mrechberger@gmail.com>");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_DESCRIPTION(DRIVER_DESC " - audio interface");
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index ae87dd3e671f..f0c52da17372 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -1,23 +1,19 @@
+-/*
+-   em28xx-camera.c - driver for Empia EM25xx/27xx/28xx USB video capture devices
+-
+-   Copyright (C) 2009 Mauro Carvalho Chehab <mchehab@infradead.org>
+-   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
++// SPDX-License-Identifier: GPL-2.0+
++//
++// em28xx-camera.c - driver for Empia EM25xx/27xx/28xx USB video capture devices
++//
++// Copyright (C) 2009 Mauro Carvalho Chehab <mchehab@infradead.org>
++// Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 4f08e35eddee..474e3effdb88 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -1,27 +1,23 @@
+-/*
+-   em28xx-cards.c - driver for Empia EM2800/EM2820/2840 USB
+-		    video capture devices
+-
+-   Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
+-		      Markus Rechberger <mrechberger@gmail.com>
+-		      Mauro Carvalho Chehab <mchehab@infradead.org>
+-		      Sascha Sommer <saschasommer@freenet.de>
+-   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
++// SPDX-License-Identifier: GPL-2.0+
++//
++// em28xx-cards.c - driver for Empia EM2800/EM2820/2840 USB
++//		    video capture devices
++//
++// Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
++//		      Markus Rechberger <mrechberger@gmail.com>
++//		      Mauro Carvalho Chehab <mchehab@infradead.org>
++//		      Sascha Sommer <saschasommer@freenet.de>
++// Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index ee8ef066d1ac..2b1e7e35de20 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1,26 +1,22 @@
+-/*
+-   em28xx-core.c - driver for Empia EM2800/EM2820/2840 USB video capture devices
+-
+-   Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
+-		      Markus Rechberger <mrechberger@gmail.com>
+-		      Mauro Carvalho Chehab <mchehab@infradead.org>
+-		      Sascha Sommer <saschasommer@freenet.de>
+-   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
++// SPDX-License-Identifier: GPL-2.0+
++//
++// em28xx-core.c - driver for Empia EM2800/EM2820/2840 USB video capture devices
++//
++// Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
++//		      Markus Rechberger <mrechberger@gmail.com>
++//		      Mauro Carvalho Chehab <mchehab@infradead.org>
++//		      Sascha Sommer <saschasommer@freenet.de>
++// Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+@@ -41,7 +37,7 @@
+ 
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_VERSION(EM28XX_VERSION);
+ 
+ /* #define ENABLE_DEBUG_ISOC_FRAMES */
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 9e692f265118..d9d7da9e9787 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1,25 +1,25 @@
+-/*
+- DVB device driver for em28xx
+-
+- (c) 2008-2011 Mauro Carvalho Chehab <mchehab@infradead.org>
+-
+- (c) 2008 Devin Heitmueller <devin.heitmueller@gmail.com>
+-	- Fixes for the driver to properly work with HVR-950
+-	- Fixes for the driver to properly work with Pinnacle PCTV HD Pro Stick
+-	- Fixes for the driver to properly work with AMD ATI TV Wonder HD 600
+-
+- (c) 2008 Aidan Thornton <makosoft@googlemail.com>
+-
+- (c) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+- Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
+-	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
+-	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+-
+- This program is free software; you can redistribute it and/or modify
+- it under the terms of the GNU General Public License as published by
+- the Free Software Foundation; either version 2 of the License.
+- */
++// SPDX-License-Identifier: GPL-2.0
++//
++// DVB device driver for em28xx
++//
++// (c) 2008-2011 Mauro Carvalho Chehab <mchehab@infradead.org>
++//
++// (c) 2008 Devin Heitmueller <devin.heitmueller@gmail.com>
++//	- Fixes for the driver to properly work with HVR-950
++//	- Fixes for the driver to properly work with Pinnacle PCTV HD Pro Stick
++//	- Fixes for the driver to properly work with AMD ATI TV Wonder HD 600
++//
++// (c) 2008 Aidan Thornton <makosoft@googlemail.com>
++//
++// (c) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
++//
++// Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
++//	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
++//	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation version 2 of the License.
+ 
+ #include "em28xx.h"
+ 
+@@ -64,7 +64,7 @@
+ #include "qm1d1c0042.h"
+ 
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_DESCRIPTION(DRIVER_DESC " - digital TV interface");
+ MODULE_VERSION(EM28XX_VERSION);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index e9892a98eb6e..677f08b3b51d 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -1,26 +1,23 @@
+-/*
+-   em28xx-i2c.c - driver for Empia EM2800/EM2820/2840 USB video capture devices
++// SPDX-License-Identifier: GPL-2.0+
++//
++// em28xx-i2c.c - driver for Empia EM2800/EM2820/2840 USB video capture devices
++//
++// Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
++//		      Markus Rechberger <mrechberger@gmail.com>
++//		      Mauro Carvalho Chehab <mchehab@infradead.org>
++//		      Sascha Sommer <saschasommer@freenet.de>
++// Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+-   Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
+-		      Markus Rechberger <mrechberger@gmail.com>
+-		      Mauro Carvalho Chehab <mchehab@infradead.org>
+-		      Sascha Sommer <saschasommer@freenet.de>
+-   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
+ 
+ #include "em28xx.h"
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 270cd68df4a2..c7afcf67ccc5 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -1,25 +1,21 @@
+-/*
+-  handle em28xx IR remotes via linux kernel input layer.
+-
+-   Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
+-		      Markus Rechberger <mrechberger@gmail.com>
+-		      Mauro Carvalho Chehab <mchehab@infradead.org>
+-		      Sascha Sommer <saschasommer@freenet.de>
+-
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 2 of the License, or
+-  (at your option) any later version.
+-
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY; without even the implied warranty of
+-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-  GNU General Public License for more details.
+-
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+- */
++// SPDX-License-Identifier: GPL-2.0+
++//
++// handle em28xx IR remotes via linux kernel input layer.
++//
++// Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
++//		      Markus Rechberger <mrechberger@gmail.com>
++//		      Mauro Carvalho Chehab <mchehab@infradead.org>
++//		      Sascha Sommer <saschasommer@freenet.de>
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+@@ -926,7 +922,7 @@ static void __exit em28xx_rc_unregister(void)
+ 	em28xx_unregister_extension(&rc_ops);
+ }
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_DESCRIPTION(DRIVER_DESC " - input interface");
+ MODULE_VERSION(EM28XX_VERSION);
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index 9e5cdfb25a73..26a06b1b1077 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -1,4 +1,9 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++
++/*
++ * em28xx-reg.h - Register definitions for em28xx driver
++ */
++
+ #define EM_GPIO_0  (1 << 0)
+ #define EM_GPIO_1  (1 << 1)
+ #define EM_GPIO_2  (1 << 2)
+diff --git a/drivers/media/usb/em28xx/em28xx-v4l.h b/drivers/media/usb/em28xx/em28xx-v4l.h
+index 9c411aac3878..1788dbf9024a 100644
+--- a/drivers/media/usb/em28xx/em28xx-v4l.h
++++ b/drivers/media/usb/em28xx/em28xx-v4l.h
+@@ -1,17 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+-   em28xx-video.c - driver for Empia EM2800/EM2820/2840 USB
+-		    video capture devices
+-
+-   Copyright (C) 2013-2014 Mauro Carvalho Chehab <m.chehab@samsung.com>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation version 2 of the License.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
++ * em28xx-video.c - driver for Empia EM2800/EM2820/2840 USB
++ *		    video capture devices
++ *
++ * Copyright (C) 2013-2014 Mauro Carvalho Chehab <m.chehab@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
+  */
+ 
+ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
+diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
+index f5123651ef30..63c48361d3f2 100644
+--- a/drivers/media/usb/em28xx/em28xx-vbi.c
++++ b/drivers/media/usb/em28xx/em28xx-vbi.c
+@@ -1,25 +1,20 @@
+-/*
+-   em28xx-vbi.c - VBI driver for em28xx
+-
+-   Copyright (C) 2009 Devin Heitmueller <dheitmueller@kernellabs.com>
+-
+-   This work was sponsored by EyeMagnet Limited.
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+-   02110-1301, USA.
+- */
++// SPDX-License-Identifier: GPL-2.0+
++//
++// em28xx-vbi.c - VBI driver for em28xx
++//
++// Copyright (C) 2009 Devin Heitmueller <dheitmueller@kernellabs.com>
++//
++// This work was sponsored by EyeMagnet Limited.
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 407850d9cae0..540c62c87f3f 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1,30 +1,26 @@
+-/*
+-   em28xx-video.c - driver for Empia EM2800/EM2820/2840 USB
+-		    video capture devices
+-
+-   Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
+-		      Markus Rechberger <mrechberger@gmail.com>
+-		      Mauro Carvalho Chehab <mchehab@infradead.org>
+-		      Sascha Sommer <saschasommer@freenet.de>
+-   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+-	Some parts based on SN9C10x PC Camera Controllers GPL driver made
+-		by Luca Risolia <luca.risolia@studio.unibo.it>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
++// SPDX-License-Identifier: GPL-2.0+
++//
++// em28xx-video.c - driver for Empia EM2800/EM2820/2840 USB
++//		    video capture devices
++//
++// Copyright (C) 2005 Ludovico Cavedon <cavedon@sssup.it>
++//		      Markus Rechberger <mrechberger@gmail.com>
++//		      Mauro Carvalho Chehab <mchehab@infradead.org>
++//		      Sascha Sommer <saschasommer@freenet.de>
++// Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
++//
++//	Some parts based on SN9C10x PC Camera Controllers GPL driver made
++//		by Luca Risolia <luca.risolia@studio.unibo.it>
++//
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 2 of the License, or
++// (at your option) any later version.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
+ 
+ #include "em28xx.h"
+ 
+@@ -77,7 +73,7 @@ MODULE_PARM_DESC(alt, "alternate setting to use for video endpoint");
+ 
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC " - v4l2 interface");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_VERSION(EM28XX_VERSION);
+ 
+ #define EM25XX_FRMDATAHDR_BYTE1			0x02
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 220e7a7a6124..46ecf17758e8 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -1,26 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
+ /*
+-   em28xx.h - driver for Empia EM2800/EM2820/2840 USB video capture devices
+-
+-   Copyright (C) 2005 Markus Rechberger <mrechberger@gmail.com>
+-		      Ludovico Cavedon <cavedon@sssup.it>
+-		      Mauro Carvalho Chehab <mchehab@infradead.org>
+-   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+-
+-   Based on the em2800 driver from Sascha Sommer <saschasommer@freenet.de>
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ * em28xx.h - driver for Empia EM2800/EM2820/2840 USB video capture devices
++ *
++ * Copyright (C) 2005 Markus Rechberger <mrechberger@gmail.com>
++ *		      Ludovico Cavedon <cavedon@sssup.it>
++ *		      Mauro Carvalho Chehab <mchehab@infradead.org>
++ * Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
++ *
++ * Based on the em2800 driver from Sascha Sommer <saschasommer@freenet.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
+  */
+ 
+ #ifndef _EM28XX_H
+-- 
+2.14.3
