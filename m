@@ -1,173 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:48532 "EHLO
-        andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753804AbeCPOxJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 10:53:09 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v2 03/21] crypto: Remove depends on HAS_DMA in case of platform dependency
-Date: Fri, 16 Mar 2018 14:51:36 +0100
-Message-Id: <1521208314-4783-4-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
-References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+Received: from osg.samsung.com ([64.30.133.232]:63605 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751566AbeCCKsn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Mar 2018 05:48:43 -0500
+Date: Sat, 3 Mar 2018 07:48:36 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.16-rc4] media fixes
+Message-ID: <20180303074836.3af9d4bd@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
+Hi Linus,
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.16-3
 
-This simplifies the dependencies, and allows to improve compile-testing.
+For:
+  - some build fixes with randconfigs;
+  - a fix at m88ds3103 to prevent an OOPS if the chip doesn't provide
+    a right version during probe (with can happen if the hardware hangs);
+  - a potential risk at tvp5150 to go out of an array;
+  - Some fixed and improvements at the DVB memory mapped API (added for Kernel 4.16).
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
----
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/crypto/Kconfig | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+Thanks!
+Mauro
 
-diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
-index 4b741b83e23ff4de..3d27da7a430c0bc2 100644
---- a/drivers/crypto/Kconfig
-+++ b/drivers/crypto/Kconfig
-@@ -419,7 +419,7 @@ config CRYPTO_DEV_EXYNOS_RNG
- config CRYPTO_DEV_S5P
- 	tristate "Support for Samsung S5PV210/Exynos crypto accelerator"
- 	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
--	depends on HAS_IOMEM && HAS_DMA
-+	depends on HAS_IOMEM
- 	select CRYPTO_AES
- 	select CRYPTO_BLKCIPHER
- 	help
-@@ -473,7 +473,6 @@ config CRYPTO_DEV_BFIN_CRC
- 
- config CRYPTO_DEV_ATMEL_AUTHENC
- 	tristate "Support for Atmel IPSEC/SSL hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_AUTHENC
- 	select CRYPTO_DEV_ATMEL_AES
-@@ -486,7 +485,6 @@ config CRYPTO_DEV_ATMEL_AUTHENC
- 
- config CRYPTO_DEV_ATMEL_AES
- 	tristate "Support for Atmel AES hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_AES
- 	select CRYPTO_AEAD
-@@ -501,7 +499,6 @@ config CRYPTO_DEV_ATMEL_AES
- 
- config CRYPTO_DEV_ATMEL_TDES
- 	tristate "Support for Atmel DES/TDES hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_DES
- 	select CRYPTO_BLKCIPHER
-@@ -515,7 +512,6 @@ config CRYPTO_DEV_ATMEL_TDES
- 
- config CRYPTO_DEV_ATMEL_SHA
- 	tristate "Support for Atmel SHA hw accelerator"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select CRYPTO_HASH
- 	help
-@@ -581,7 +577,8 @@ config CRYPTO_DEV_CAVIUM_ZIP
- 
- config CRYPTO_DEV_QCE
- 	tristate "Qualcomm crypto engine accelerator"
--	depends on (ARCH_QCOM || COMPILE_TEST) && HAS_DMA && HAS_IOMEM
-+	depends on ARCH_QCOM || COMPILE_TEST
-+	depends on HAS_IOMEM
- 	select CRYPTO_AES
- 	select CRYPTO_DES
- 	select CRYPTO_ECB
-@@ -605,7 +602,6 @@ source "drivers/crypto/vmx/Kconfig"
- config CRYPTO_DEV_IMGTEC_HASH
- 	tristate "Imagination Technologies hardware hash accelerator"
- 	depends on MIPS || COMPILE_TEST
--	depends on HAS_DMA
- 	select CRYPTO_MD5
- 	select CRYPTO_SHA1
- 	select CRYPTO_SHA256
-@@ -657,7 +653,6 @@ config CRYPTO_DEV_ROCKCHIP
- 
- config CRYPTO_DEV_MEDIATEK
- 	tristate "MediaTek's EIP97 Cryptographic Engine driver"
--	depends on HAS_DMA
- 	depends on (ARM && ARCH_MEDIATEK) || COMPILE_TEST
- 	select CRYPTO_AES
- 	select CRYPTO_AEAD
-@@ -695,7 +690,7 @@ source "drivers/crypto/stm32/Kconfig"
- 
- config CRYPTO_DEV_SAFEXCEL
- 	tristate "Inside Secure's SafeXcel cryptographic engine driver"
--	depends on HAS_DMA && OF
-+	depends on OF
- 	depends on (ARM64 && ARCH_MVEBU) || (COMPILE_TEST && 64BIT)
- 	select CRYPTO_AES
- 	select CRYPTO_BLKCIPHER
-@@ -713,7 +708,6 @@ config CRYPTO_DEV_SAFEXCEL
- config CRYPTO_DEV_ARTPEC6
- 	tristate "Support for Axis ARTPEC-6/7 hardware crypto acceleration."
- 	depends on ARM && (ARCH_ARTPEC || COMPILE_TEST)
--	depends on HAS_DMA
- 	depends on OF
- 	select CRYPTO_AEAD
- 	select CRYPTO_AES
--- 
-2.7.4
+
+The following changes since commit 91ab883eb21325ad80f3473633f794c78ac87f51:
+
+  Linux 4.16-rc2 (2018-02-18 17:29:42 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.16-3
+
+for you to fetch changes up to 7dbdd16a79a9d27d7dca0a49029fc8966dcfecc5:
+
+  media: vb2: Makefile: place vb2-trace together with vb2-core (2018-02-26 11:39:04 -0500)
+
+----------------------------------------------------------------
+media fixes for v4.16-rc4
+
+----------------------------------------------------------------
+Arnd Bergmann (3):
+      media: dvb: fix DVB_MMAP symbol name
+      media: dvb: fix DVB_MMAP dependency
+      media: au0828: add VIDEO_V4L2 dependency
+
+Mauro Carvalho Chehab (8):
+      media: videobuf2: fix build issues with vb2-trace
+      media: m88ds3103: don't call a non-initalized function
+      media: dmxdev: fix error code for invalid ioctls
+      media: dmxdev: Fix the logic that enables DMA mmap support
+      media: dvb: add continuity error indicators for memory mapped buffers
+      media: dvb: update buffer mmaped flags and frame counter
+      media: Don't let tvp5150_get_vbi() go out of vbi_ram_default array
+      media: vb2: Makefile: place vb2-trace together with vb2-core
+
+Sakari Ailus (1):
+      media: videobuf2: Add VIDEOBUF2_V4L2 Kconfig option for VB2 V4L2 part
+
+ Documentation/media/dmx.h.rst.exceptions           |  14 ++-
+ Documentation/media/uapi/dvb/dmx-qbuf.rst          |   7 +-
+ drivers/media/Kconfig                              |   2 +
+ drivers/media/common/videobuf2/Kconfig             |   3 +
+ drivers/media/common/videobuf2/Makefile            |   9 +-
+ .../{v4l2-core => common/videobuf2}/vb2-trace.c    |   0
+ drivers/media/dvb-core/Makefile                    |   2 +-
+ drivers/media/dvb-core/dmxdev.c                    | 115 ++++++++++++---------
+ drivers/media/dvb-core/dvb_demux.c                 | 112 +++++++++++++-------
+ drivers/media/dvb-core/dvb_net.c                   |   5 +-
+ drivers/media/dvb-core/dvb_vb2.c                   |  31 ++++--
+ drivers/media/dvb-frontends/m88ds3103.c            |   7 +-
+ drivers/media/i2c/tvp5150.c                        |  88 ++++++++--------
+ drivers/media/pci/ttpci/av7110.c                   |   5 +-
+ drivers/media/pci/ttpci/av7110_av.c                |   6 +-
+ drivers/media/usb/au0828/Kconfig                   |   2 +-
+ drivers/media/usb/ttusb-dec/ttusb_dec.c            |  10 +-
+ drivers/media/v4l2-core/Kconfig                    |   1 +
+ drivers/media/v4l2-core/Makefile                   |   3 +-
+ include/media/demux.h                              |  21 +++-
+ include/media/dmxdev.h                             |   2 +
+ include/media/dvb_demux.h                          |   4 +
+ include/media/dvb_vb2.h                            |  20 +++-
+ include/uapi/linux/dvb/dmx.h                       |  35 +++++++
+ 24 files changed, 329 insertions(+), 175 deletions(-)
+ rename drivers/media/{v4l2-core => common/videobuf2}/vb2-trace.c (100%)
