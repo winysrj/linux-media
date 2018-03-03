@@ -1,87 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:45734 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751913AbeCZW32 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 18:29:28 -0400
-Date: Tue, 27 Mar 2018 02:59:21 +0430
-From: Nasser <afshin.nasser@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability on
- some hardware
-Message-ID: <20180326222921.GA5373@smart-ThinkPad-T410>
-References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
- <20180326064353.187f752c@vento.lan>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:38130 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751885AbeCCPT2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2018 10:19:28 -0500
+Received: by mail-lf0-f68.google.com with SMTP id i80so17361549lfg.5
+        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2018 07:19:28 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Sat, 3 Mar 2018 16:19:25 +0100
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v11 22/32] rcar-vin: force default colorspace for media
+ centric mode
+Message-ID: <20180303151924.GH12470@bigcity.dyn.berto.se>
+References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180302015751.25596-23-niklas.soderlund+renesas@ragnatech.se>
+ <17480633.KWnsIYxeaE@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20180326064353.187f752c@vento.lan>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <17480633.KWnsIYxeaE@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 26, 2018 at 06:43:53AM -0300, Mauro Carvalho Chehab wrote:
-> Hi Nasser,
+Hi Laurent,
+
+Thanks for your feedback.
+
+On 2018-03-02 11:59:14 +0200, Laurent Pinchart wrote:
+> Hi Niklas,
 > 
-> Em Mon, 26 Mar 2018 03:26:33 +0430
-> Nasser Afshin <afshin.nasser@gmail.com> escreveu:
+> Thank you for the patch.
 > 
-> > According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
-> > resistor if it's been disabled. On hardware that does not have such
-> > resistor, we should use the default output enable value.
-> > This prevents the color burst lock instability problem.
->
+> On Friday, 2 March 2018 03:57:41 EET Niklas Söderlund wrote:
+> > When the VIN driver is running in media centric mode (on Gen3) the
+> > colorspace is not retrieved from the video source instead the user is
+> > expected to set it as part of the format. There is no way for the VIN
+> > driver to validated the colorspace requested by user-space, this creates
+> > a problem where validation tools fail. Until the user requested
+> > colorspace can be validated lets force it to the driver default.
+> 
+> The problem here is that the V4L2 specification clearly documents the 
+> colorspace fields as being set by drivers for capture devices. Using the 
+> values supplied by userspace thus wouldn't comply with the API. The API has to 
+> be updated to allow us to implement this feature, but until then Hans wants 
+> the userspace to be set by the driver to a fixed value. Could you update the 
+> commit message accordingly, as well as the comment below ?
 
-Color burst lock instability is just a side effect of not using the
-recommended value for this bit. If we use the recommended setting, we
-will support more hardware while not breaking anything.
+Yes, your description of the issue is better I will rephrase my commit 
+message and comment.
 
-> If this is hardware-dependent, you should instead store it at
-> OF (for SoC) or pass via platform_data (for PCI/USB devices).
->
-
-We have used the recommended value for this bit (as the datasheet
-suggests) while we are in tvp5150_init_enable but in tvp5150_s_stream
-we are using the wrong value.
-
-Also we have this comment at line 319:
-    /* Default values as sugested at TVP5150AM1 datasheet */
-But as you see, TVP5150_MISC_CTL is not set to its suggested default
-value.
- 
-> > 
-> > Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+> 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > > ---
-> >  drivers/media/i2c/tvp5150.c | 5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
+> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++--
+> >  1 file changed, 14 insertions(+), 2 deletions(-)
 > > 
-> > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > index 2476d812f669..0e9713814816 100644
-> > --- a/drivers/media/i2c/tvp5150.c
-> > +++ b/drivers/media/i2c/tvp5150.c
-> > @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
-> >  		TVP5150_OP_MODE_CTL,0x00
-> >  	},
-> >  	{ /* 0x03 */
-> > -		TVP5150_MISC_CTL,0x01
-> > +		TVP5150_MISC_CTL,0x21
-> >  	},
-> >  	{ /* 0x06 */
-> >  		TVP5150_COLOR_KIL_THSH_CTL,0x10
-> > @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
-> >  		 * Enable the YCbCr and clock outputs. In discrete sync mode
-> >  		 * (non-BT.656) additionally enable the the sync outputs.
-> >  		 */
-> > -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
-> > +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
-> > +			TVP5150_MISC_CTL_INTREQ_OE;
-> >  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-> >  			val |= TVP5150_MISC_CTL_SYNC_OE;
-> >  	}
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> > 8d92710efffa7276..02f3100ed30db63c 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > @@ -675,12 +675,24 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+> >   * V4L2 Media Controller
+> >   */
+> > 
+> > +static int rvin_mc_try_format(struct rvin_dev *vin, struct v4l2_pix_format
+> > *pix) +{
+> > +	/*
+> > +	 * There is no way to validate the colorspace provided by the
+> > +	 * user. Until it can be validated force colorspace to the
+> > +	 * driver default.
+> > +	 */
+> > +	pix->colorspace = RVIN_DEFAULT_COLORSPACE;
+> 
+> Should you also set the xfer_func, quantization and ycbcr_enc ?
+
+You are correct, I will set these fields as well.
+
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thank you. As I have rewritten the commit message and set more fields 
+then just the colorspace I have not picked up this tag for the next 
+version.
+
+> 
+> > +
+> > +	return rvin_format_align(vin, pix);
+> > +}
+> > +
+> >  static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
+> >  				   struct v4l2_format *f)
+> >  {
+> >  	struct rvin_dev *vin = video_drvdata(file);
+> > 
+> > -	return rvin_format_align(vin, &f->fmt.pix);
+> > +	return rvin_mc_try_format(vin, &f->fmt.pix);
+> >  }
+> > 
+> >  static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+> > @@ -692,7 +704,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, void
+> > *priv, if (vb2_is_busy(&vin->queue))
+> >  		return -EBUSY;
+> > 
+> > -	ret = rvin_format_align(vin, &f->fmt.pix);
+> > +	ret = rvin_mc_try_format(vin, &f->fmt.pix);
+> >  	if (ret)
+> >  		return ret;
 > 
 > 
+> -- 
+> Regards,
 > 
-> Thanks,
-> Mauro
+> Laurent Pinchart
+> 
+
+-- 
+Regards,
+Niklas Söderlund
