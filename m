@@ -1,67 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:54704 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbeCHM0w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 07:26:52 -0500
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 1/3] media: vb2-core: vb2_buffer_done: consolidate docs
-Date: Thu,  8 Mar 2018 13:26:20 +0100
-Message-Id: <1520511982-985-1-git-send-email-luca@lucaceresoli.net>
+Received: from osg.samsung.com ([64.30.133.232]:47392 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751896AbeCCPQT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Mar 2018 10:16:19 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 1/2] media: s5h1409: fix a typo on one of its enum values
+Date: Sat,  3 Mar 2018 12:16:11 -0300
+Message-Id: <0728180f1e956d290122b3c430632fc352293adb.1520090161.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation about what start_streaming() should do on failure are
-scattered in two places and mostly duplicated, so consolidate them in
-one of the two places.
+There is a typo there: continous wer spelled incorrectly.
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Fix it with this script:
 
+for i in $(git grep -l S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK); do
+	sed s,S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,g -i $i
+done
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Changes v1 -> v2: none.
----
- include/media/videobuf2-core.h | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/media/dvb-frontends/s5h1409.c   |  2 +-
+ drivers/media/dvb-frontends/s5h1409.h   |  2 +-
+ drivers/media/pci/cx18/cx18-dvb.c       |  2 +-
+ drivers/media/pci/cx23885/cx23885-dvb.c | 12 ++++++------
+ drivers/media/pci/cx88/cx88-dvb.c       |  4 ++--
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  2 +-
+ 6 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 5b6c541e4e1b..f1a479060f9e 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -602,9 +602,7 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
-  *		Either %VB2_BUF_STATE_DONE if the operation finished
-  *		successfully, %VB2_BUF_STATE_ERROR if the operation finished
-  *		with an error or %VB2_BUF_STATE_QUEUED if the driver wants to
-- *		requeue buffers. If start_streaming fails then it should return
-- *		buffers with state %VB2_BUF_STATE_QUEUED to put them back into
-- *		the queue.
-+ *		requeue buffers.
-  *
-  * This function should be called by the driver after a hardware operation on
-  * a buffer is finished and the buffer may be returned to userspace. The driver
-@@ -613,9 +611,9 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
-  * to the driver by &vb2_ops->buf_queue can be passed to this function.
-  *
-  * While streaming a buffer can only be returned in state DONE or ERROR.
-- * The start_streaming op can also return them in case the DMA engine cannot
-- * be started for some reason. In that case the buffers should be returned with
-- * state QUEUED.
-+ * The &vb2_ops->start_streaming op can also return them in case the DMA engine
-+ * cannot be started for some reason. In that case the buffers should be
-+ * returned with state QUEUED to put them back into the queue.
-  */
- void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
+diff --git a/drivers/media/dvb-frontends/s5h1409.c b/drivers/media/dvb-frontends/s5h1409.c
+index aced6a956ec5..a06d5ba4519a 100644
+--- a/drivers/media/dvb-frontends/s5h1409.c
++++ b/drivers/media/dvb-frontends/s5h1409.c
+@@ -685,7 +685,7 @@ static int s5h1409_set_mpeg_timing(struct dvb_frontend *fe, int mode)
+ 	case S5H1409_MPEGTIMING_CONTINOUS_INVERTING_CLOCK:
+ 		val |= 0x0000;
+ 		break;
+-	case S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK:
++	case S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK:
+ 		dprintk("%s(%d) Mode1 or Defaulting\n", __func__, mode);
+ 		val |= 0x1000;
+ 		break;
+diff --git a/drivers/media/dvb-frontends/s5h1409.h b/drivers/media/dvb-frontends/s5h1409.h
+index b38557c451b9..14632f970f52 100644
+--- a/drivers/media/dvb-frontends/s5h1409.h
++++ b/drivers/media/dvb-frontends/s5h1409.h
+@@ -53,7 +53,7 @@ struct s5h1409_config {
  
+ 	/* MPEG signal timing */
+ #define S5H1409_MPEGTIMING_CONTINOUS_INVERTING_CLOCK       0
+-#define S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK    1
++#define S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK    1
+ #define S5H1409_MPEGTIMING_NONCONTINOUS_INVERTING_CLOCK    2
+ #define S5H1409_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK 3
+ 	u16 mpeg_timing;
+diff --git a/drivers/media/pci/cx18/cx18-dvb.c b/drivers/media/pci/cx18/cx18-dvb.c
+index 53f4d6bf81fb..c9a13795c51b 100644
+--- a/drivers/media/pci/cx18/cx18-dvb.c
++++ b/drivers/media/pci/cx18/cx18-dvb.c
+@@ -72,7 +72,7 @@ static struct s5h1409_config hauppauge_hvr1600_config = {
+ 	.qam_if        = 44000,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ 	.hvr1600_opt   = S5H1409_HVR1600_OPTIMIZE
+ };
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 700422b538c0..47917fb714db 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -193,7 +193,7 @@ static struct s5h1409_config hauppauge_generic_config = {
+ 	.qam_if        = 44000,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static struct tda10048_config hauppauge_hvr1200_config = {
+@@ -225,7 +225,7 @@ static struct s5h1409_config hauppauge_ezqam_config = {
+ 	.qam_if        = 4000,
+ 	.inversion     = S5H1409_INVERSION_ON,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static struct s5h1409_config hauppauge_hvr1800lp_config = {
+@@ -235,7 +235,7 @@ static struct s5h1409_config hauppauge_hvr1800lp_config = {
+ 	.qam_if        = 44000,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static struct s5h1409_config hauppauge_hvr1500_config = {
+@@ -244,7 +244,7 @@ static struct s5h1409_config hauppauge_hvr1500_config = {
+ 	.gpio          = S5H1409_GPIO_OFF,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static struct mt2131_config hauppauge_generic_tunerconfig = {
+@@ -264,7 +264,7 @@ static struct s5h1409_config hauppauge_hvr1500q_config = {
+ 	.qam_if        = 44000,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static struct s5h1409_config dvico_s5h1409_config = {
+@@ -274,7 +274,7 @@ static struct s5h1409_config dvico_s5h1409_config = {
+ 	.qam_if        = 44000,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static struct s5h1411_config dvico_s5h1411_config = {
+diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
+index 49a335f4603e..20a3d3e31ab7 100644
+--- a/drivers/media/pci/cx88/cx88-dvb.c
++++ b/drivers/media/pci/cx88/cx88-dvb.c
+@@ -567,7 +567,7 @@ static const struct s5h1409_config dvico_hdtv5_pci_nano_config = {
+ 	.gpio          = S5H1409_GPIO_OFF,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static const struct s5h1409_config kworld_atsc_120_config = {
+@@ -576,7 +576,7 @@ static const struct s5h1409_config kworld_atsc_120_config = {
+ 	.gpio	       = S5H1409_GPIO_OFF,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK,
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK,
+ };
+ 
+ static const struct xc5000_config pinnacle_pctv_hd_800i_tuner_config = {
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 435c2dc31e90..f188b5ff31b7 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -358,7 +358,7 @@ static struct s5h1409_config em28xx_s5h1409_with_xc3028 = {
+ 	.gpio          = S5H1409_GPIO_OFF,
+ 	.inversion     = S5H1409_INVERSION_OFF,
+ 	.status_mode   = S5H1409_DEMODLOCKING,
+-	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK
++	.mpeg_timing   = S5H1409_MPEGTIMING_CONTINUOUS_NONINVERTING_CLOCK
+ };
+ 
+ static struct tda18271_std_map kworld_a340_std_map = {
 -- 
-2.7.4
+2.14.3
