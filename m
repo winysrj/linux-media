@@ -1,74 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36522 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751886AbeCIIis (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 03:38:48 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id D1B6C600C1
-        for <linux-media@vger.kernel.org>; Fri,  9 Mar 2018 10:38:46 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1euDY6-0004WY-Be
-        for linux-media@vger.kernel.org; Fri, 09 Mar 2018 10:38:46 +0200
-Date: Fri, 9 Mar 2018 10:38:46 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mout.gmx.net ([212.227.15.15]:42595 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751819AbeCDImG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 4 Mar 2018 03:42:06 -0500
+Received: from localhost.localdomain ([92.75.40.49]) by mail.gmx.com (mrgmx003
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0LwrPM-1ectZU1qXo-016Piy for
+ <linux-media@vger.kernel.org>; Sun, 04 Mar 2018 09:42:04 +0100
+From: Peter Seiderer <ps.report@gmx.net>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 for 4.17] Add V4L2 framework function for selecting the
- most suitable size
-Message-ID: <20180309083845.27mnjcparld6lvln@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: [PATCH v1] libdvbv5: add optional copy of TEMP_FAILURE_RETRY macro (fix musl compile)
+Date: Sun,  4 Mar 2018 09:42:04 +0100
+Message-Id: <20180304084204.15820-1-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Fixes:
 
-In drivers for hardware that have a discrete set of supported sizes, the
-size selection is a commonly needed functionality. This set implements it
-in a way that is usable in drivers and converts a few existing drivers to
-use it.
+  ../../lib/libdvbv5/.libs/libdvbv5.so: undefined reference to `TEMP_FAILURE_RETRY'
 
-since v1:
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ lib/libdvbv5/dvb-dev-local.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-- Fix KernelDoc documentation
-
-- Align argument order in __v4l2_find_nearest_size() function and its
-  prototype. Align argument names across the function and the macro.
-
-Please pull.
-
-
-The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
-
-  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git v4l2-common-size
-
-for you to fetch changes up to 3839a37f69da4dc567d3b00dc5e985f8e8425811:
-
-  ov5670: Use v4l2_find_nearest_size (2018-02-22 15:44:57 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (5):
-      v4l: common: Add a function to obtain best size from a list
-      vivid: Use v4l2_find_nearest_size
-      v4l: common: Remove v4l2_find_nearest_format
-      ov13858: Use v4l2_find_nearest_size
-      ov5670: Use v4l2_find_nearest_size
-
- drivers/media/i2c/ov13858.c                  | 37 +++-------------------------
- drivers/media/i2c/ov5670.c                   | 34 +++----------------------
- drivers/media/platform/vivid/vivid-vid-cap.c |  6 ++---
- drivers/media/v4l2-core/v4l2-common.c        | 34 ++++++++++++++-----------
- include/media/v4l2-common.h                  | 34 ++++++++++++++++++-------
- 5 files changed, 53 insertions(+), 92 deletions(-)
-
+diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
+index 8bc99d1..7a76d65 100644
+--- a/lib/libdvbv5/dvb-dev-local.c
++++ b/lib/libdvbv5/dvb-dev-local.c
+@@ -44,6 +44,15 @@
+ # define _(string) string
+ #endif
+ 
++/* taken from glibc unistd.h */
++#ifndef TEMP_FAILURE_RETRY
++#define TEMP_FAILURE_RETRY(expression) \
++    ({ long int __result;                                                     \
++       do __result = (long int) (expression);                                 \
++       while (__result == -1L && errno == EINTR);                             \
++       __result; })
++#endif
++
+ struct dvb_dev_local_priv {
+ 	dvb_dev_change_t notify_dev_change;
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.16.2
