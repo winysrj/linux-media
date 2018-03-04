@@ -1,52 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44189 "EHLO
-        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753976AbeCFTPl (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:36644 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751831AbeCDElh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 14:15:41 -0500
-From: Brad Love <brad@nextdimension.cc>
+        Sat, 3 Mar 2018 23:41:37 -0500
+Message-ID: <61c63f6935a4188d68a3d2f9af8ce670@smtp-cloud8.xs4all.net>
+Date: Sun, 04 Mar 2018 05:41:22 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 4/4] cx23885: Override 888 ImpactVCBe crystal frequency
-Date: Tue,  6 Mar 2018 13:15:37 -0600
-Message-Id: <1520363737-25724-5-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
-References: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge produced a revision of ImpactVCBe using an 888,
-with a 25MHz crystal, instead of using the default third
-overtone 50Mhz crystal. This overrides that frequency so
-that the cx25840 is properly configured. Without the proper
-crystal setup the cx25840 cannot load the firmware or
-decode video.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/pci/cx23885/cx23885-core.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index 2c76a02..ff369e9 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -881,6 +881,16 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 	if (cx23885_boards[dev->board].clk_freq > 0)
- 		dev->clk_freq = cx23885_boards[dev->board].clk_freq;
- 
-+	if (dev->board == CX23885_BOARD_HAUPPAUGE_IMPACTVCBE &&
-+		dev->pci->subsystem_device == 0x7137) {
-+		/* Hauppauge ImpactVCBe device ID 0x7137 is populated
-+		 * with an 888, and a 25Mhz crystal, instead of the
-+		 * usual third overtone 50Mhz. The default clock rate must
-+		 * be overridden so the cx25840 is properly configured
-+		 */
-+		dev->clk_freq = 25000000;
-+	}
-+
- 	dev->pci_bus  = dev->pci->bus->number;
- 	dev->pci_slot = PCI_SLOT(dev->pci->devfn);
- 	cx23885_irq_add(dev, 0x001f00);
--- 
-2.7.4
+date:			Sun Mar  4 05:00:11 CET 2018
+media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
+media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
+v4l-utils git hash:	5090c6cb0265c6847ff4b0e89b37c172eb0c1c62
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-i686: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
