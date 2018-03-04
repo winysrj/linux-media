@@ -1,33 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:51310 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751840AbeC1Mib (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 08:38:31 -0400
-Date: Wed, 28 Mar 2018 05:38:30 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Christian =?iso-8859-1?Q?K=F6nig?=
-        <ckoenig.leichtzumerken@gmail.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
-Message-ID: <20180328123830.GB25060@infradead.org>
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180325110000.2238-2-christian.koenig@amd.com>
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:37754 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752908AbeCDPt3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2018 10:49:29 -0500
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+To: alan@linux.intel.com
+Cc: sakari.ailus@linux.intel.com, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com,
+        Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH 3/3] staging: media: Replace "dont" with "don't"
+Date: Sun,  4 Mar 2018 21:18:27 +0530
+Message-Id: <1520178507-25141-4-git-send-email-arushisinghal19971997@gmail.com>
+In-Reply-To: <1520178507-25141-1-git-send-email-arushisinghal19971997@gmail.com>
+References: <1520178507-25141-1-git-send-email-arushisinghal19971997@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 25, 2018 at 12:59:54PM +0200, Christian König wrote:
-> From: "wdavis@nvidia.com" <wdavis@nvidia.com>
-> 
-> Add an interface to find the first device which is upstream of both
-> devices.
+Replace "dont" with "don't".
+"Dont" is not same as "Do not" or "Don't".
 
-Please work with Logan and base this on top of the outstanding peer
-to peer patchset.
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c b/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
+index e36c2a3..f21075c 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
+@@ -450,7 +450,7 @@ static void mmu_l1_unmap(struct isp_mmu *mmu, phys_addr_t l1_pt,
+ 			ptr = end;
+ 		}
+ 		/*
+-		 * use the same L2 page next time, so we dont
++		 * use the same L2 page next time, so we don't
+ 		 * need to invalidate and free this PT.
+ 		 */
+ 		/*      atomisp_set_pte(l1_pt, idx, NULL_PTE); */
+-- 
+2.7.4
