@@ -1,50 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-00272701.pphosted.com ([67.231.145.144]:40158 "EHLO
-        mx0a-00272701.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932334AbeCKWId (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36127 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932518AbeCEEnq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Mar 2018 18:08:33 -0400
-Date: Sun, 11 Mar 2018 17:08:24 -0500
-From: Nick French <naf@ou.edu>
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ivtv: use arch_phys_wc_add() and require PAT disabled
-Message-ID: <20180311220823.GA4074@tivo.lan>
-References: <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180307190205.GA14069@wotan.suse.de>
- <DM5PR03MB30352350D588A81D2D02BE93D3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180308040601.GQ14069@wotan.suse.de>
- <20180308041411.GR14069@wotan.suse.de>
- <DM5PR03MB3035CCBF9718D7E42B35357FD3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
- <MWHPR03MB30402C0F8B8F457F5F760412D3DD0@MWHPR03MB3040.namprd03.prod.outlook.com>
- <67E7293F-6045-4EA1-8AEF-E4B92E046581@amacapital.net>
- <20180311195116.GB4645@tivo.lan>
- <38CB7D59-7F11-4BC3-B73C-C2F0BF16EFF8@amacapital.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <38CB7D59-7F11-4BC3-B73C-C2F0BF16EFF8@amacapital.net>
+        Sun, 4 Mar 2018 23:43:46 -0500
+Message-ID: <2ec31b697d40d6d682817cfb68e4198f@smtp-cloud9.xs4all.net>
+Date: Mon, 05 Mar 2018 05:43:44 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 11, 2018 at 01:19:03PM -0700, Andy Lutomirski wrote:
-> From memory, I see two potentially reasonable real fixes. One is to find a way to punch a hole in an ioremap.
-> So you’d find the framebuffer, remove it from theproblematic mapping, and then make a new mapping. 
-> The second is to change the mapping type in place. 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-For the changing-in-place method, is there already an exported API that exposes change_page_attr_set without first
-calling reserve_memtype? I can't seem to find one.
+Results of the daily build of media_tree:
 
-> Or maybe you could just iounmap the whole thing after firmware is loaded and the framebuffer is found and then
-> redo the mapping right. 
+date:			Mon Mar  5 05:00:12 CET 2018
+media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
+media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
+v4l-utils git hash:	5090c6cb0265c6847ff4b0e89b37c172eb0c1c62
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-I guess this would require a lock so that the ivtv-driver proper wasn't accessing the decoder's mapped memory 
-during ivtvfb's iounmap-ioremap window. And a way to notify ivtv-driver proper if things go wrong? I think this method
-would be very awkward because its not even memory owned by ivtvfb itself.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-i686: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: OK
+linux-4.15.2-x86_64: OK
+linux-4.16-rc1-i686: OK
+linux-4.16-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-- Nick
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
