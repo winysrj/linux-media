@@ -1,93 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49540 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933621AbeCEJft (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 04:35:49 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>,
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55238 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933502AbeCENvn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Mar 2018 08:51:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>,
         Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>
-Subject: [PATCH 1/7] media: sun6i: Fill dma_pfn_offset to accomodate for the RAM offset
-Date: Mon,  5 Mar 2018 10:35:28 +0100
-Message-Id: <20180305093535.11801-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180305093535.11801-1-maxime.ripard@bootlin.com>
-References: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
- <20180305093535.11801-1-maxime.ripard@bootlin.com>
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/7] cec: add core error injection support
+Date: Mon,  5 Mar 2018 14:51:33 +0100
+Message-Id: <20180305135139.95652-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180305135139.95652-1-hverkuil@xs4all.nl>
+References: <20180305135139.95652-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CSI controller does its DMA accesses through a DMA bus that has the RAM
-mapped at the address 0.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The current code removes from the dma_addr_t PHYS_OFFSET, and while it
-works, this is an abuse of the DMA API.
+Add two new ops (error_inj_show and error_inj_parse_line) to support
+error injection functionality for CEC adapters. If both are present,
+then the core will add a new error-inj debugfs file that can be used
+to see the current error injection commands and to set error injection
+commands.
 
-Instead, fill the dma_pfn_offset field in the struct device that should be
-used to express such an offset, and the use the dma_addr_t directly as we
-should.
-
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/media/cec/cec-core.c | 58 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec.h          |  5 ++++
+ 2 files changed, 63 insertions(+)
 
-diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-index 1aaaae238d57..2ec33fb04632 100644
---- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-+++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-@@ -563,20 +563,15 @@ int sun6i_csi_update_config(struct sun6i_csi *csi,
- void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
- {
- 	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
--	/* transform physical address to bus address */
--#if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
--#define PHYS_OFFSET 0
--#endif
--	dma_addr_t bus_addr = addr - PHYS_OFFSET;
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index e47ea22b3c23..ea3eccfdba15 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -195,6 +195,55 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
+ EXPORT_SYMBOL_GPL(cec_register_cec_notifier);
+ #endif
  
- 	regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
--		     (bus_addr + sdev->planar_offset[0]) >> 2);
-+		     (addr + sdev->planar_offset[0]) >> 2);
- 	if (sdev->planar_offset[1] != -1)
- 		regmap_write(sdev->regmap, CSI_CH_F1_BUFA_REG,
--			     (bus_addr + sdev->planar_offset[1]) >> 2);
-+			     (addr + sdev->planar_offset[1]) >> 2);
- 	if (sdev->planar_offset[2] != -1)
- 		regmap_write(sdev->regmap, CSI_CH_F2_BUFA_REG,
--			     (bus_addr + sdev->planar_offset[2]) >> 2);
-+			     (addr + sdev->planar_offset[2]) >> 2);
- }
- 
- void sun6i_csi_set_stream(struct sun6i_csi *csi, bool enable)
-@@ -856,6 +851,14 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
- 	return 0;
- }
- 
-+/*
-+ * PHYS_OFFSET isn't available on all architectures. In order to
-+ * accomodate for COMPILE_TEST, let's define it to something dumb.
-+ */
-+#ifndef PHYS_OFFSET
-+#define PHYS_OFFSET 0
++#ifdef CONFIG_DEBUG_FS
++static ssize_t cec_error_inj_write(struct file *file,
++	const char __user *ubuf, size_t count, loff_t *ppos)
++{
++	struct seq_file *sf = file->private_data;
++	struct cec_adapter *adap = sf->private;
++	char *buf;
++	char *line;
++	char *p;
++
++	buf = memdup_user_nul(ubuf, min_t(size_t, PAGE_SIZE, count));
++	if (IS_ERR(buf))
++		return PTR_ERR(buf);
++	p = buf;
++	while (p && *p && count >= 0) {
++		p = skip_spaces(p);
++		line = strsep(&p, "\n");
++		if (!*line || *line == '#')
++			continue;
++		if (!adap->ops->error_inj_parse_line(adap, line)) {
++			count = -EINVAL;
++			break;
++		}
++	}
++	kfree(buf);
++	return count;
++}
++
++static int cec_error_inj_show(struct seq_file *sf, void *unused)
++{
++	struct cec_adapter *adap = sf->private;
++
++	return adap->ops->error_inj_show(adap, sf);
++}
++
++static int cec_error_inj_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, cec_error_inj_show, inode->i_private);
++}
++
++static const struct file_operations cec_error_inj_fops = {
++	.open = cec_error_inj_open,
++	.write = cec_error_inj_write,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
 +#endif
 +
- static int sun6i_csi_probe(struct platform_device *pdev)
- {
- 	struct sun6i_csi_dev *sdev;
-@@ -866,6 +869,8 @@ static int sun6i_csi_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 					 void *priv, const char *name, u32 caps,
+ 					 u8 available_las)
+@@ -334,7 +383,16 @@ int cec_register_adapter(struct cec_adapter *adap,
+ 		pr_warn("cec-%s: Failed to create status file\n", adap->name);
+ 		debugfs_remove_recursive(adap->cec_dir);
+ 		adap->cec_dir = NULL;
++		return 0;
+ 	}
++	if (!adap->ops->error_inj_show || !adap->ops->error_inj_parse_line)
++		return 0;
++	adap->error_inj_file = debugfs_create_file("error-inj", 0644,
++						   adap->cec_dir, adap,
++						   &cec_error_inj_fops);
++	if (IS_ERR_OR_NULL(adap->error_inj_file))
++		pr_warn("cec-%s: Failed to create error-inj file\n",
++			adap->name);
+ #endif
+ 	return 0;
+ }
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 9afba9b558df..41df048efc55 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -117,6 +117,10 @@ struct cec_adap_ops {
+ 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
+ 	void (*adap_free)(struct cec_adapter *adap);
  
- 	sdev->dev = &pdev->dev;
-+	/* The DMA bus has the memory mapped at 0 */
-+	sdev->dev->dma_pfn_offset = PHYS_OFFSET >> PAGE_SHIFT;
++	/* Error injection callbacks */
++	int (*error_inj_show)(struct cec_adapter *adap, struct seq_file *sf);
++	bool (*error_inj_parse_line)(struct cec_adapter *adap, char *line);
++
+ 	/* High-level CEC message callback */
+ 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+ };
+@@ -189,6 +193,7 @@ struct cec_adapter {
  
- 	ret = sun6i_csi_resource_request(sdev, pdev);
- 	if (ret)
+ 	struct dentry *cec_dir;
+ 	struct dentry *status_file;
++	struct dentry *error_inj_file;
+ 
+ 	u16 phys_addrs[15];
+ 	u32 sequence;
 -- 
-2.14.3
+2.16.1
