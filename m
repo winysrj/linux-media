@@ -1,63 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:46055 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932342AbeCIRtp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:49:45 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v8 02/13] [media] hackrf: group device capabilities
-Date: Fri,  9 Mar 2018 14:49:09 -0300
-Message-Id: <20180309174920.22373-3-gustavo@padovan.org>
-In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
-References: <20180309174920.22373-1-gustavo@padovan.org>
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:49325 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932923AbeCEIvy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2018 03:51:54 -0500
+Date: Mon, 5 Mar 2018 09:51:48 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: jacopo+renesas@jmondi.org, linux-media@vger.kernel.org
+Subject: Re: [bug report] media: i2c: Copy tw9910 soc_camera sensor driver
+Message-ID: <20180305085148.GH4023@w540>
+References: <20180301095954.GA12656@mwanda>
+ <20180302142016.GG4023@w540>
+ <20180305072109.xl446yralwhapdap@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20180305072109.xl446yralwhapdap@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Dan,
 
-Instead of putting V4L2_CAP_STREAMING and V4L2_CAP_READWRITE
-everywhere, set device_caps earlier with these values.
+On Mon, Mar 05, 2018 at 10:21:09AM +0300, Dan Carpenter wrote:
+> On Fri, Mar 02, 2018 at 03:20:16PM +0100, jacopo mondi wrote:
+> > Hi Dan,
+> >
+> > On Thu, Mar 01, 2018 at 12:59:54PM +0300, Dan Carpenter wrote:
+> > > [ I know you're just copying files, but you might have a fix for these
+> > >   since you're looking at the code.  - dan ]
+> >
+> > According to the static analyzer I should simply substitute all those
+> > expressions with 0s.
+>
+> I really try not to print warnings for stuff which is just white space
+> complaints like that.  For example, Smatch ignores inconsistent NULL
+> checking if every caller passes non-NULL parameters or Smatch ignores
+> comparing unsigned with zero if it's just clamping to between zero and
+> max.
+>
+> > I would instead keep them for sake of readability
+> > and accordance with register description in the video decoder manual.
+> >
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/usb/hackrf/hackrf.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+Sorry, I did not make myself clear, see below!
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index 7eb53517a82f..6d692fb3e8dd 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -909,18 +909,15 @@ static int hackrf_querycap(struct file *file, void *fh,
- 
- 	dev_dbg(&intf->dev, "\n");
- 
-+	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
- 	if (vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
--				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
--
-+		cap->device_caps |= V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
- 	else
--		cap->device_caps = V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR |
--				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-+		cap->device_caps |= V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR;
- 
- 	cap->capabilities = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
- 			    V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR |
--			    V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
--			    V4L2_CAP_DEVICE_CAPS;
-+			    V4L2_CAP_DEVICE_CAPS | cap->device_caps;
- 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
- 	strlcpy(cap->card, dev->rx_vdev.name, sizeof(cap->card));
- 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
--- 
-2.14.3
+> > Thanks
+> >    j
+> >
+>
+> [ snip ]
+>
+> > >    511  static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+> > >    512  {
+> > >    513          struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >    514          struct tw9910_priv *priv = to_tw9910(client);
+> > >    515          const unsigned int hact = 720;
+> > >    516          const unsigned int hdelay = 15;
+> > >                                    ^^^^^^^^^^^
+> > >    517          unsigned int vact;
+> > >    518          unsigned int vdelay;
+> > >    519          int ret;
+> > >    520
+> > >    521          if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+> > >    522                  return -EINVAL;
+> > >    523
+> > >    524          priv->norm = norm;
+> > >    525          if (norm & V4L2_STD_525_60) {
+> > >    526                  vact = 240;
+> > >    527                  vdelay = 18;
+> > >    528                  ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
+> > >    529          } else {
+> > >    530                  vact = 288;
+> > >    531                  vdelay = 24;
+> > >    532                  ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
+> > >    533          }
+> > >    534          if (!ret)
+> > >    535                  ret = i2c_smbus_write_byte_data(client, CROP_HI,
+> > >    536                                                  ((vdelay >> 2) & 0xc0) |
+> > >    537                          ((vact >> 4) & 0x30) |
+> > >    538                          ((hdelay >> 6) & 0x0c) |
+> > >                                   ^^^^^^^^^^^
+> > > 15 >> 6 is zero.
+> > >
+> > >    539                          ((hact >> 8) & 0x03));
+>
+> I looked at the spec and it seems to me that we should doing something
+> like:
+>
+> 	(((vdelay >> 8) & 0x3) << 6) |
+> 	(((vact >> 8) & 0x3) << 4) |
+> 	(((hedelay >> 8) & 0x3) << 2) |
+> 	((hact >> 8) & 0x03);
+>
+>
+> But this is the first time I've looked and it and I can't even be sure
+> I'm looking in the right place.
+
+That's correct. I admit I haven't looked at the register composition in
+detail, I just didn't want to substitute the whole expressions with
+0s as it hides what values the register is composed of and that was
+the "accordance with register description" I mentioned...
+
+In your suggested fix:
+
+> 	(((vdelay >> 8) & 0x3) << 6) |
+> 	(((vact >> 8) & 0x3) << 4) |
+> 	(((hedelay >> 8) & 0x3) << 2) |
+> 	((hact >> 8) & 0x03);
+>
+
+Won't your analyzer in that case point out that
+"15 >> 8 is zero" again? I may have been underestimating it though
+
+Thanks for noticing this!
+    j
+
+
+>
+> regards,
+> dan carpenter
+>
