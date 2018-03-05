@@ -1,659 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:20935 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163606AbeCBB7B (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:01 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 09/32] rcar-vin: move functions regarding scaling
-Date: Fri,  2 Mar 2018 02:57:28 +0100
-Message-Id: <20180302015751.25596-10-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35199 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752025AbeCECze (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2018 21:55:34 -0500
+Received: by mail-lf0-f67.google.com with SMTP id 70so20936014lfw.2
+        for <linux-media@vger.kernel.org>; Sun, 04 Mar 2018 18:55:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <10340581.MW54jSnN5l@avalon>
+References: <CAKTMqxtRQvZqZGQ0oWSf79b3ZGs6Stpctx9yqi8X1Myq-CY2JA@mail.gmail.com>
+ <46032915.v1itnVjfQo@avalon> <CAKTMqxvSWQSa=w_6z_XHjMh6s6N+hdj_yi-yW+CEp2NVx0t4Zg@mail.gmail.com>
+ <10340581.MW54jSnN5l@avalon>
+From: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+        <axdoomer@gmail.com>
+Date: Sun, 4 Mar 2018 21:55:32 -0500
+Message-ID: <CAKTMqxukcgwwC6ThFgkfUv1+V49xbUB8hbvEH57ykNvgBL8aGA@mail.gmail.com>
+Subject: Re: Bug: Two device nodes created in /dev for a single UVC webcam
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation of refactoring the scaling code move the code regarding
-scaling to to the top of the file to avoid the need to add forward
-declarations. No code is changed in this commit only whole functions
-moved inside the same file.
+Hi Laurent,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 602 +++++++++++++++--------------
- 1 file changed, 303 insertions(+), 299 deletions(-)
+I see why. `make install` installed my newly built modules into
+`/lib/modules/4.9.0-5-amd64`, but I was running version 4.9.0-6 of the
+kernel. Each kernel version has its own folder with its own modules.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index d701b52d198243b5..a7cda3922cb74baa 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -138,305 +138,6 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
- 	return ioread32(vin->base + offset);
- }
- 
--static int rvin_setup(struct rvin_dev *vin)
--{
--	u32 vnmc, dmr, dmr2, interrupts;
--	v4l2_std_id std;
--	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
--
--	switch (vin->format.field) {
--	case V4L2_FIELD_TOP:
--		vnmc = VNMC_IM_ODD;
--		break;
--	case V4L2_FIELD_BOTTOM:
--		vnmc = VNMC_IM_EVEN;
--		break;
--	case V4L2_FIELD_INTERLACED:
--		/* Default to TB */
--		vnmc = VNMC_IM_FULL;
--		/* Use BT if video standard can be read and is 60 Hz format */
--		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
--			if (std & V4L2_STD_525_60)
--				vnmc = VNMC_IM_FULL | VNMC_FOC;
--		}
--		break;
--	case V4L2_FIELD_INTERLACED_TB:
--		vnmc = VNMC_IM_FULL;
--		break;
--	case V4L2_FIELD_INTERLACED_BT:
--		vnmc = VNMC_IM_FULL | VNMC_FOC;
--		break;
--	case V4L2_FIELD_ALTERNATE:
--	case V4L2_FIELD_NONE:
--		if (vin->continuous) {
--			vnmc = VNMC_IM_ODD_EVEN;
--			progressive = true;
--		} else {
--			vnmc = VNMC_IM_ODD;
--		}
--		break;
--	default:
--		vnmc = VNMC_IM_ODD;
--		break;
--	}
--
--	/*
--	 * Input interface
--	 */
--	switch (vin->digital->code) {
--	case MEDIA_BUS_FMT_YUYV8_1X16:
--		/* BT.601/BT.1358 16bit YCbCr422 */
--		vnmc |= VNMC_INF_YUV16;
--		input_is_yuv = true;
--		break;
--	case MEDIA_BUS_FMT_UYVY8_2X8:
--		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
--			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
--		input_is_yuv = true;
--		break;
--	case MEDIA_BUS_FMT_RGB888_1X24:
--		vnmc |= VNMC_INF_RGB888;
--		break;
--	case MEDIA_BUS_FMT_UYVY10_2X10:
--		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
--			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
--		input_is_yuv = true;
--		break;
--	default:
--		break;
--	}
--
--	/* Enable VSYNC Field Toogle mode after one VSYNC input */
--	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
--
--	/* Hsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
--		dmr2 |= VNDMR2_HPS;
--
--	/* Vsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
--		dmr2 |= VNDMR2_VPS;
--
--	/*
--	 * Output format
--	 */
--	switch (vin->format.pixelformat) {
--	case V4L2_PIX_FMT_NV16:
--		rvin_write(vin,
--			   ALIGN(vin->format.width * vin->format.height, 0x80),
--			   VNUVAOF_REG);
--		dmr = VNDMR_DTMD_YCSEP;
--		output_is_yuv = true;
--		break;
--	case V4L2_PIX_FMT_YUYV:
--		dmr = VNDMR_BPSM;
--		output_is_yuv = true;
--		break;
--	case V4L2_PIX_FMT_UYVY:
--		dmr = 0;
--		output_is_yuv = true;
--		break;
--	case V4L2_PIX_FMT_XRGB555:
--		dmr = VNDMR_DTMD_ARGB1555;
--		break;
--	case V4L2_PIX_FMT_RGB565:
--		dmr = 0;
--		break;
--	case V4L2_PIX_FMT_XBGR32:
--		/* Note: not supported on M1 */
--		dmr = VNDMR_EXRGB;
--		break;
--	default:
--		vin_err(vin, "Invalid pixelformat (0x%x)\n",
--			vin->format.pixelformat);
--		return -EINVAL;
--	}
--
--	/* Always update on field change */
--	vnmc |= VNMC_VUP;
--
--	/* If input and output use the same colorspace, use bypass mode */
--	if (input_is_yuv == output_is_yuv)
--		vnmc |= VNMC_BPS;
--
--	/* Progressive or interlaced mode */
--	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
--
--	/* Ack interrupts */
--	rvin_write(vin, interrupts, VNINTS_REG);
--	/* Enable interrupts */
--	rvin_write(vin, interrupts, VNIE_REG);
--	/* Start capturing */
--	rvin_write(vin, dmr, VNDMR_REG);
--	rvin_write(vin, dmr2, VNDMR2_REG);
--
--	/* Enable module */
--	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
--
--	return 0;
--}
--
--static void rvin_disable_interrupts(struct rvin_dev *vin)
--{
--	rvin_write(vin, 0, VNIE_REG);
--}
--
--static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
--{
--	return rvin_read(vin, VNINTS_REG);
--}
--
--static void rvin_ack_interrupt(struct rvin_dev *vin)
--{
--	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
--}
--
--static bool rvin_capture_active(struct rvin_dev *vin)
--{
--	return rvin_read(vin, VNMS_REG) & VNMS_CA;
--}
--
--static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->continuous)
--		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
--
--	return 0;
--}
--
--static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
--{
--	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
--		/* If FS is set it's a Even field */
--		if (vnms & VNMS_FS)
--			return V4L2_FIELD_BOTTOM;
--		return V4L2_FIELD_TOP;
--	}
--
--	return vin->format.field;
--}
--
--static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
--{
--	const struct rvin_video_format *fmt;
--	int offsetx, offsety;
--	dma_addr_t offset;
--
--	fmt = rvin_format_from_pixel(vin->format.pixelformat);
--
--	/*
--	 * There is no HW support for composition do the beast we can
--	 * by modifying the buffer offset
--	 */
--	offsetx = vin->compose.left * fmt->bpp;
--	offsety = vin->compose.top * vin->format.bytesperline;
--	offset = addr + offsetx + offsety;
--
--	/*
--	 * The address needs to be 128 bytes aligned. Driver should never accept
--	 * settings that do not satisfy this in the first place...
--	 */
--	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
--		return;
--
--	rvin_write(vin, offset, VNMB_REG(slot));
--}
--
--/* Moves a buffer from the queue to the HW slots */
--static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
--{
--	struct rvin_buffer *buf;
--	struct vb2_v4l2_buffer *vbuf;
--	dma_addr_t phys_addr_top;
--
--	if (vin->queue_buf[slot] != NULL)
--		return true;
--
--	if (list_empty(&vin->buf_list))
--		return false;
--
--	vin_dbg(vin, "Filling HW slot: %d\n", slot);
--
--	/* Keep track of buffer we give to HW */
--	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
--	vbuf = &buf->vb;
--	list_del_init(to_buf_list(vbuf));
--	vin->queue_buf[slot] = vbuf;
--
--	/* Setup DMA */
--	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
--	rvin_set_slot_addr(vin, slot, phys_addr_top);
--
--	return true;
--}
--
--static bool rvin_fill_hw(struct rvin_dev *vin)
--{
--	int slot, limit;
--
--	limit = vin->continuous ? HW_BUFFER_NUM : 1;
--
--	for (slot = 0; slot < limit; slot++)
--		if (!rvin_fill_hw_slot(vin, slot))
--			return false;
--	return true;
--}
--
--static void rvin_capture_on(struct rvin_dev *vin)
--{
--	vin_dbg(vin, "Capture on in %s mode\n",
--		vin->continuous ? "continuous" : "single");
--
--	if (vin->continuous)
--		/* Continuous Frame Capture Mode */
--		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
--	else
--		/* Single Frame Capture Mode */
--		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
--}
--
--static int rvin_capture_start(struct rvin_dev *vin)
--{
--	struct rvin_buffer *buf, *node;
--	int bufs, ret;
--
--	/* Count number of free buffers */
--	bufs = 0;
--	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
--		bufs++;
--
--	/* Continuous capture requires more buffers then there are HW slots */
--	vin->continuous = bufs > HW_BUFFER_NUM;
--
--	if (!rvin_fill_hw(vin)) {
--		vin_err(vin, "HW not ready to start, not enough buffers available\n");
--		return -EINVAL;
--	}
--
--	rvin_crop_scale_comp(vin);
--
--	ret = rvin_setup(vin);
--	if (ret)
--		return ret;
--
--	rvin_capture_on(vin);
--
--	vin->state = RUNNING;
--
--	return 0;
--}
--
--static void rvin_capture_stop(struct rvin_dev *vin)
--{
--	/* Set continuous & single transfer off */
--	rvin_write(vin, 0, VNFC_REG);
--
--	/* Disable module */
--	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
--}
--
- /* -----------------------------------------------------------------------------
-  * Crop and Scaling Gen2
-  */
-@@ -892,6 +593,309 @@ void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
- 	pix->height = height;
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Hardware setup
-+ */
-+
-+static int rvin_setup(struct rvin_dev *vin)
-+{
-+	u32 vnmc, dmr, dmr2, interrupts;
-+	v4l2_std_id std;
-+	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
-+
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_TOP:
-+		vnmc = VNMC_IM_ODD;
-+		break;
-+	case V4L2_FIELD_BOTTOM:
-+		vnmc = VNMC_IM_EVEN;
-+		break;
-+	case V4L2_FIELD_INTERLACED:
-+		/* Default to TB */
-+		vnmc = VNMC_IM_FULL;
-+		/* Use BT if video standard can be read and is 60 Hz format */
-+		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-+			if (std & V4L2_STD_525_60)
-+				vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		}
-+		break;
-+	case V4L2_FIELD_INTERLACED_TB:
-+		vnmc = VNMC_IM_FULL;
-+		break;
-+	case V4L2_FIELD_INTERLACED_BT:
-+		vnmc = VNMC_IM_FULL | VNMC_FOC;
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+	case V4L2_FIELD_NONE:
-+		if (vin->continuous) {
-+			vnmc = VNMC_IM_ODD_EVEN;
-+			progressive = true;
-+		} else {
-+			vnmc = VNMC_IM_ODD;
-+		}
-+		break;
-+	default:
-+		vnmc = VNMC_IM_ODD;
-+		break;
-+	}
-+
-+	/*
-+	 * Input interface
-+	 */
-+	switch (vin->digital->code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+		/* BT.601/BT.1358 16bit YCbCr422 */
-+		vnmc |= VNMC_INF_YUV16;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
-+		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vnmc |= VNMC_INF_RGB888;
-+		break;
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-+		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-+		input_is_yuv = true;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	/* Enable VSYNC Field Toogle mode after one VSYNC input */
-+	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-+
-+	/* Hsync Signal Polarity Select */
-+	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+		dmr2 |= VNDMR2_HPS;
-+
-+	/* Vsync Signal Polarity Select */
-+	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+		dmr2 |= VNDMR2_VPS;
-+
-+	/*
-+	 * Output format
-+	 */
-+	switch (vin->format.pixelformat) {
-+	case V4L2_PIX_FMT_NV16:
-+		rvin_write(vin,
-+			   ALIGN(vin->format.width * vin->format.height, 0x80),
-+			   VNUVAOF_REG);
-+		dmr = VNDMR_DTMD_YCSEP;
-+		output_is_yuv = true;
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		dmr = VNDMR_BPSM;
-+		output_is_yuv = true;
-+		break;
-+	case V4L2_PIX_FMT_UYVY:
-+		dmr = 0;
-+		output_is_yuv = true;
-+		break;
-+	case V4L2_PIX_FMT_XRGB555:
-+		dmr = VNDMR_DTMD_ARGB1555;
-+		break;
-+	case V4L2_PIX_FMT_RGB565:
-+		dmr = 0;
-+		break;
-+	case V4L2_PIX_FMT_XBGR32:
-+		/* Note: not supported on M1 */
-+		dmr = VNDMR_EXRGB;
-+		break;
-+	default:
-+		vin_err(vin, "Invalid pixelformat (0x%x)\n",
-+			vin->format.pixelformat);
-+		return -EINVAL;
-+	}
-+
-+	/* Always update on field change */
-+	vnmc |= VNMC_VUP;
-+
-+	/* If input and output use the same colorspace, use bypass mode */
-+	if (input_is_yuv == output_is_yuv)
-+		vnmc |= VNMC_BPS;
-+
-+	/* Progressive or interlaced mode */
-+	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
-+
-+	/* Ack interrupts */
-+	rvin_write(vin, interrupts, VNINTS_REG);
-+	/* Enable interrupts */
-+	rvin_write(vin, interrupts, VNIE_REG);
-+	/* Start capturing */
-+	rvin_write(vin, dmr, VNDMR_REG);
-+	rvin_write(vin, dmr2, VNDMR2_REG);
-+
-+	/* Enable module */
-+	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
-+
-+	return 0;
-+}
-+
-+static void rvin_disable_interrupts(struct rvin_dev *vin)
-+{
-+	rvin_write(vin, 0, VNIE_REG);
-+}
-+
-+static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
-+{
-+	return rvin_read(vin, VNINTS_REG);
-+}
-+
-+static void rvin_ack_interrupt(struct rvin_dev *vin)
-+{
-+	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
-+}
-+
-+static bool rvin_capture_active(struct rvin_dev *vin)
-+{
-+	return rvin_read(vin, VNMS_REG) & VNMS_CA;
-+}
-+
-+static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
-+{
-+	if (vin->continuous)
-+		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
-+
-+	return 0;
-+}
-+
-+static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
-+{
-+	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
-+		/* If FS is set it's a Even field */
-+		if (vnms & VNMS_FS)
-+			return V4L2_FIELD_BOTTOM;
-+		return V4L2_FIELD_TOP;
-+	}
-+
-+	return vin->format.field;
-+}
-+
-+static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
-+{
-+	const struct rvin_video_format *fmt;
-+	int offsetx, offsety;
-+	dma_addr_t offset;
-+
-+	fmt = rvin_format_from_pixel(vin->format.pixelformat);
-+
-+	/*
-+	 * There is no HW support for composition do the beast we can
-+	 * by modifying the buffer offset
-+	 */
-+	offsetx = vin->compose.left * fmt->bpp;
-+	offsety = vin->compose.top * vin->format.bytesperline;
-+	offset = addr + offsetx + offsety;
-+
-+	/*
-+	 * The address needs to be 128 bytes aligned. Driver should never accept
-+	 * settings that do not satisfy this in the first place...
-+	 */
-+	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
-+		return;
-+
-+	rvin_write(vin, offset, VNMB_REG(slot));
-+}
-+
-+/* Moves a buffer from the queue to the HW slots */
-+static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
-+{
-+	struct rvin_buffer *buf;
-+	struct vb2_v4l2_buffer *vbuf;
-+	dma_addr_t phys_addr_top;
-+
-+	if (vin->queue_buf[slot] != NULL)
-+		return true;
-+
-+	if (list_empty(&vin->buf_list))
-+		return false;
-+
-+	vin_dbg(vin, "Filling HW slot: %d\n", slot);
-+
-+	/* Keep track of buffer we give to HW */
-+	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
-+	vbuf = &buf->vb;
-+	list_del_init(to_buf_list(vbuf));
-+	vin->queue_buf[slot] = vbuf;
-+
-+	/* Setup DMA */
-+	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
-+	rvin_set_slot_addr(vin, slot, phys_addr_top);
-+
-+	return true;
-+}
-+
-+static bool rvin_fill_hw(struct rvin_dev *vin)
-+{
-+	int slot, limit;
-+
-+	limit = vin->continuous ? HW_BUFFER_NUM : 1;
-+
-+	for (slot = 0; slot < limit; slot++)
-+		if (!rvin_fill_hw_slot(vin, slot))
-+			return false;
-+	return true;
-+}
-+
-+static void rvin_capture_on(struct rvin_dev *vin)
-+{
-+	vin_dbg(vin, "Capture on in %s mode\n",
-+		vin->continuous ? "continuous" : "single");
-+
-+	if (vin->continuous)
-+		/* Continuous Frame Capture Mode */
-+		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
-+	else
-+		/* Single Frame Capture Mode */
-+		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
-+}
-+
-+static int rvin_capture_start(struct rvin_dev *vin)
-+{
-+	struct rvin_buffer *buf, *node;
-+	int bufs, ret;
-+
-+	/* Count number of free buffers */
-+	bufs = 0;
-+	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
-+		bufs++;
-+
-+	/* Continuous capture requires more buffers then there are HW slots */
-+	vin->continuous = bufs > HW_BUFFER_NUM;
-+
-+	if (!rvin_fill_hw(vin)) {
-+		vin_err(vin, "HW not ready to start, not enough buffers available\n");
-+		return -EINVAL;
-+	}
-+
-+	rvin_crop_scale_comp(vin);
-+
-+	ret = rvin_setup(vin);
-+	if (ret)
-+		return ret;
-+
-+	rvin_capture_on(vin);
-+
-+	vin->state = RUNNING;
-+
-+	return 0;
-+}
-+
-+static void rvin_capture_stop(struct rvin_dev *vin)
-+{
-+	/* Set continuous & single transfer off */
-+	rvin_write(vin, 0, VNFC_REG);
-+
-+	/* Disable module */
-+	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * DMA Functions
-  */
--- 
-2.16.2
+I tried to revert the four commits, but they created conflicts. I
+wasn't able to resolve them easily and, to be honest, I don't have a
+lot of time to spend on this.
+
+Regards,
+Alexandre-Xavier
+
+On Sun, Feb 25, 2018 at 6:41 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Alexandre-Xavier,
+>
+> On Sunday, 25 February 2018 10:19:51 EET Alexandre-Xavier Labont=C3=A9-La=
+moureux
+> wrote:
+>> Hi Laurent,
+>>
+>> Sorry for the late reply.
+>>
+>> I've been trying to reproduce the issue again. I cloned the entire
+>> media repository later during the week and I haven't been able to
+>> reproduce the issue after I installed the modules. A metadata node is
+>> no longer created for my webcam. The four commits that you've
+>> mentioned are still in the commit log, so it seems that they didn't
+>> break anything.
+>
+> Now that's weird. I would expect a metadata video node to be created if t=
+he
+> patches I mentioned are applied. Are you sure you have loaded the modules
+> corresponding to the compiled sources ?
+>
+>> I'm not sure what could have changed that would have caused it to work
+>> fine this time. I believe that I'm in the correct branch.
+>>
+>> $ git status
+>> On branch media_tree/master
+>> Your branch is up-to-date with 'r_media_tree/master'.
+>>
+>> I probably did `./build` instead of `./build --main-git` the first time.
+>>
+>> On Mon, Feb 19, 2018 at 2:10 PM, Laurent Pinchart wrote:
+>> > On Monday, 19 February 2018 19:29:24 EET Alexandre-Xavier
+>> > Labont=C3=A9-Lamoureux wrote:
+>> >> Hi Kieran,
+>> >>
+>> >> This is how I built the drivers:
+>> >>
+>> >> $ git clone --depth=3D1 git://linuxtv.org/media_build.git
+>> >> $ cd media_build
+>> >> $ ./build --main-git
+>> >>
+>> >> I then installed the newly built kernel modules:
+>> >>
+>> >> $ sudo make install
+>> >>
+>> >> Once the modules were updated, I restarted my computer to make sure
+>> >> every module got reloaded. I didn't make any changes to the code and =
+I
+>> >> found the issues after trying each of those programs individually
+>> >> after I restarted my computer.
+>> >>
+>> >> This was the latest commit when I cloned the repo:
+>> >>
+>> >> commit d144cfe4b3c37ece55ae27778c99765d4943c4fa
+>> >> Author: Jasmin Jessich <jasmin@anw.at>
+>> >> Date:   Fri Feb 16 22:40:49 2018 +0100
+>> >>
+>> >>     Re-generated v3.12_kfifo_in.patch
+>> >>
+>> >> My version of VLC is 2.2.6. Here's a copy of the relevant data of
+>> >> VLC's log file in case it can help: https://paste.debian.net/1011025/
+>> >> In this case, I tried to open /dev/video0 first and /dev/video1 secon=
+d.
+>> >>
+>> >> I can also try with ffplay:
+>> >> $ ffplay /dev/video0
+>> >>
+>> >> I get this: [video4linux2,v4l2 @ 0x7f2160000920]
+>> >> ioctl(VIDIOC_STREAMON): Message too long
+>> >> /dev/video0: Message too long
+>> >>
+>> >> A new message appears in dmesg: uvcvideo: Failed to submit URB 0 (-90=
+).
+>> >
+>> > That's interesting, and possibly unrelated to the patch series that ad=
+ded
+>> > metadata capture support. Would you be able to revert that patch serie=
+s
+>> > and see if the problem still occurs ? The four commits to be reverted =
+are
+>> >
+>> > 088ead25524583e2200aa99111bea2f66a86545a
+>> > 3bc85817d7982ed53fbc9b150b0205beff68ca5c
+>> > 94c53e26dc74744cc4f9a8ddc593b7aef96ba764
+>> > 31a96f4c872e8fb953c853630f69d5de6ec961c9
+>> >
+>> > And if you could bisect the issue it would be even better :-)
+>> >
+>> > Could you also send me the output of lsusb -v for your camera (you can
+>> > restrict it to the camera with -d VID:PID), running as root if possibl=
+e ?
+>> >
+>> >> $ ffplay /dev/video1
+>> >>
+>> >> I get this:
+>> >> [video4linux2,v4l2 @ 0x7f00ec000920] ioctl(VIDIOC_G_INPUT):
+>> >> Inappropriate ioctl for device
+>> >> /dev/video1: Inappropriate ioctl for device
+>> >>
+>> >> Like Guennadi said, /dev/video1 is a metadata node, so I don't expect
+>> >> it to work. In the case of /dev/video0, I can't tell what could be
+>> >> wrong from the error message.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
