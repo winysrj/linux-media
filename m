@@ -1,156 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48699 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750955AbeCZJRl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 05:17:41 -0400
-Date: Mon, 26 Mar 2018 12:17:38 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, acourbot@chromium.org
-Subject: Re: [RFC v2 00/10] Preparing the request API
-Message-ID: <20180326091738.ydpoufrk3ynuidpc@paasikivi.fi.intel.com>
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
- <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
- <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
- <20180326075842.fj4z6fkmuk3rppwo@paasikivi.fi.intel.com>
- <d151708e-9fac-f714-15f9-5178c5121798@xs4all.nl>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:40147 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933280AbeCEHur (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2018 02:50:47 -0500
+Received: by mail-it0-f66.google.com with SMTP id e64so8868683ita.5
+        for <linux-media@vger.kernel.org>; Sun, 04 Mar 2018 23:50:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d151708e-9fac-f714-15f9-5178c5121798@xs4all.nl>
+In-Reply-To: <201803011248.FdUWicPr%fengguang.wu@intel.com>
+References: <20180227061136.5532-3-matt.ranostay@konsulko.com> <201803011248.FdUWicPr%fengguang.wu@intel.com>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Sun, 4 Mar 2018 23:50:46 -0800
+Message-ID: <CAJCx=gmFgNZNhOYyf_Hcp_W6Mvgh_1qdAcn_=pugJtgxGNeqgg@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] media: video-i2c: add video-i2c driver
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Luca Barbato <lu_zero@gentoo.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 26, 2018 at 10:31:50AM +0200, Hans Verkuil wrote:
-> On 03/26/2018 09:58 AM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Sun, Mar 25, 2018 at 06:17:30PM +0200, Hans Verkuil wrote:
-> >> On 03/25/2018 05:12 PM, Hans Verkuil wrote:
-> >>> Hi all,
-> >>>
-> >>> On 03/23/2018 10:17 PM, Sakari Ailus wrote:
-> >>>> Hi folks,
-> >>>>
-> >>>> This preliminary RFC patchset prepares for the request API. What's new
-> >>>> here is support for binding arbitrary configuration or resources to
-> >>>> requests.
-> >>>>
-> >>>> There are a few new concepts here:
-> >>>>
-> >>>> Class --- a type of configuration or resource a driver (or e.g. the V4L2
-> >>>> framework) can attach to a resource. E.g. a video buffer queue would be a
-> >>>> class.
-> >>>>
-> >>>> Object --- an instance of the class. This may be either configuration (in
-> >>>> which case the setting will stay until changed, e.g. V4L2 format on a
-> >>>> video node) or a resource (such as a video buffer).
-> >>>>
-> >>>> Reference --- a reference to an object. If a configuration is not changed
-> >>>> in a request, instead of allocating a new object, a reference to an
-> >>>> existing object is used. This saves time and memory.
-> >>>>
-> >>>> I expect Laurent to comment on aligning the concept names between the
-> >>>> request API and DRM. As far as I understand, the respective DRM names for
-> >>>> "class" and "object" used in this set would be "object" and "state".
-> >>>>
-> >>>> The drivers will need to interact with the requests in three ways:
-> >>>>
-> >>>> - Allocate new configurations or resources. Drivers are free to store
-> >>>>   their own data into request objects as well. These callbacks are
-> >>>>   specific to classes.
-> >>>>
-> >>>> - Validate and queue callbacks. These callbacks are used to try requests
-> >>>>   (validate only) as well as queue them (validate and queue). These
-> >>>>   callbacks are media device wide, at least for now.
-> >>>>
-> >>>> The lifetime of the objects related to requests is based on refcounting
-> >>>> both requests and request objects. This fits well for existing use cases
-> >>>> whether or not based on refcounting; what still needs most of the
-> >>>> attention is likely that the number of gets and puts matches once the
-> >>>> object is no longer needed.
-> >>>>
-> >>>> Configuration can be bound to the request the usual way (V4L2 IOCTLs with
-> >>>> the request_fd field set to the request). Once queued, request completion
-> >>>> is signalled through polling the request file handle (POLLPRI).
-> >>>>
-> >>>> I'm posting this as an RFC because it's not complete yet. The code
-> >>>> compiles but no testing has been done yet.
-> >>>
-> >>> Thank you for this patch series. There are some good ideas here, but it is
-> >>> quite far from being useful with Alexandre's RFCv4 series.
-> >>>
-> >>> So this weekend I worked on a merger of this work and the RFCv4 Request API
-> >>> patch series, taking what I think are the best bits of both.
-> >>>
-> >>> It is available here:
-> >>>
-> >>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv6
-> >>
-> >> I reorganized/cleaned up the patch series. So look here instead:
-> >>
-> >> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv7
-> > 
-> > I looked at the set an I mostly agree with the changes. There are a few
-> > comments I'd like to make --- and I didn't do a thorough review.
-> > 
-> > - The purpose of completeable objects is to help the driver to manage
-> >   completing requests. Sometimes this is not self-evident. A request is
-> >   complete when all of its results are available, including buffers and
-> >   controls. The driver does not need to care about this. (I.e. this is not
-> >   the same thing as refcounting.)
-> 
-> I must be missing something. Is there something in my series that conflicts
-> with this?
+On Wed, Feb 28, 2018 at 8:22 PM, kbuild test robot <lkp@intel.com> wrote:
+> Hi Matt,
+>
+> I love your patch! Perhaps something to improve:
+>
+> [auto build test WARNING on linuxtv-media/master]
+> [also build test WARNING on v4.16-rc3 next-20180228]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Matt-Ranostay/media-video-i2c-add-video-i2c-driver-support/20180301-111038
+> base:   git://linuxtv.org/media_tree.git master
+> config: ia64-allmodconfig (attached as .config)
+> compiler: ia64-linux-gcc (GCC) 7.2.0
+> reproduce:
+>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=ia64
+>
+> All warnings (new ones prefixed by >>):
+>
+>    drivers/media//i2c/video-i2c.c: In function 'video_i2c_probe':
+>>> drivers/media//i2c/video-i2c.c:456:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+>       chip_id = (int) of_device_get_match_data(&client->dev);
 
-Sort of. media_request_object_release() will complete objects but as the
-request holds a reference to every object in it, this will lead to e.g.
-video buffers to be returned to the user's control only when the request
-file handle is closed. The driver needs to unbind them; that's what the
-unbind callback was for. I wouldn't want to make the driver responsible for
-which buffers related to a request were still queued and to return them to
-the user.
+Suspect this is some Itanium weirdness nobody cares about.
 
-> 
-> > - I didn't immediately find object references in the latest set. The
-> >   purpose of the references is to avoid copying objects if they don't
-> >   change from requests to another. It's less time-consuming to allocate a
-> >   new reference (a few pointers) instead of allocating memory for struct
-> >   v4l2_format and copying the data. This starts to really matter when the
-> >   number of objects increase.
-> 
-> At this point in time it is not relevant for vb2 buffers and control
-> handlers. This might change for control handlers, but probably not since
-> they can use v4l2_ctrl_ref references internally (I don't do that yet, but
-> that will change).
-> 
-> > 
-> >   Then again, I wasn't very happy with videobufs having to refer
-> >   themselves; perhaps we could limit referring to configuration objects
-> >   (vs. resource objects; this is what my last patchset referred to as
-> >   sticky; perhaps not a lasting name nor necessarily intended as such)
-> >   while putting resource objects to the request itself.
-> > 
-> >   Controls would be a prime candidate for this if the control framework can
-> >   be made to fit this model. I'm fine adding this later on, or another
-> >   solution that avoids copying all unchanged configuration around for every
-> >   request. But I want the need to be recognised so it won't come as a
-> >   surprise to anyone later on.
-> > 
-> 
-> I removed it because as far as I can see this is not needed for the initial
-> codec support. Whether or not it is needed for camera pipelines is something
-> that can be discussed when support for that is added. I have to see it in
-> context first.
-> 
-> Adding features without having drivers that use it is never a good idea...
-
-It's not really related to camera pipelines but everything which does not
-have a resource (such as video buffers) related to it. When applying a
-request it's also very helpful to know if a configuration changed from what
-it was previously. But I agree on the schedule, this could be done later
-on.
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+>                 ^
+>
+> vim +456 drivers/media//i2c/video-i2c.c
+>
+>    442
+>    443  static int video_i2c_probe(struct i2c_client *client,
+>    444                               const struct i2c_device_id *id)
+>    445  {
+>    446          struct video_i2c_data *data;
+>    447          struct v4l2_device *v4l2_dev;
+>    448          struct vb2_queue *queue;
+>    449          int chip_id, ret;
+>    450
+>    451          data = kzalloc(sizeof(*data), GFP_KERNEL);
+>    452          if (!data)
+>    453                  return -ENOMEM;
+>    454
+>    455          if (client->dev.of_node)
+>  > 456                  chip_id = (int) of_device_get_match_data(&client->dev);
+>    457          else
+>    458                  chip_id = id->driver_data;
+>    459
+>    460          data->chip = &video_i2c_chip[chip_id];
+>    461          data->client = client;
+>    462          v4l2_dev = &data->v4l2_dev;
+>    463          strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
+>    464
+>    465          ret = v4l2_device_register(&client->dev, v4l2_dev);
+>    466          if (ret < 0)
+>    467                  goto error_free_device;
+>    468
+>    469          mutex_init(&data->lock);
+>    470          mutex_init(&data->queue_lock);
+>    471
+>    472          queue = &data->vb_vidq;
+>    473          queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>    474          queue->io_modes = VB2_DMABUF | VB2_MMAP | VB2_USERPTR | VB2_READ;
+>    475          queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>    476          queue->drv_priv = data;
+>    477          queue->buf_struct_size = sizeof(struct video_i2c_buffer);
+>    478          queue->min_buffers_needed = 1;
+>    479          queue->ops = &video_i2c_video_qops;
+>    480          queue->mem_ops = &vb2_vmalloc_memops;
+>    481
+>    482          ret = vb2_queue_init(queue);
+>    483          if (ret < 0)
+>    484                  goto error_unregister_device;
+>    485
+>    486          data->vdev.queue = queue;
+>    487          data->vdev.queue->lock = &data->queue_lock;
+>    488
+>    489          snprintf(data->vdev.name, sizeof(data->vdev.name),
+>    490                                   "I2C %d-%d Transport Video",
+>    491                                   client->adapter->nr, client->addr);
+>    492
+>    493          data->vdev.v4l2_dev = v4l2_dev;
+>    494          data->vdev.fops = &video_i2c_fops;
+>    495          data->vdev.lock = &data->lock;
+>    496          data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
+>    497          data->vdev.release = video_i2c_release;
+>    498          data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+>    499                                   V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+>    500
+>    501          spin_lock_init(&data->slock);
+>    502          INIT_LIST_HEAD(&data->vid_cap_active);
+>    503
+>    504          video_set_drvdata(&data->vdev, data);
+>    505          i2c_set_clientdata(client, data);
+>    506
+>    507          ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
+>    508          if (ret < 0)
+>    509                  goto error_unregister_device;
+>    510
+>    511          return 0;
+>    512
+>    513  error_unregister_device:
+>    514          v4l2_device_unregister(v4l2_dev);
+>    515
+>    516  error_free_device:
+>    517          kfree(data);
+>    518
+>    519          return ret;
+>    520  }
+>    521
+>
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
