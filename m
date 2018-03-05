@@ -1,93 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:16841 "EHLO mga14.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:50948 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751471AbeCWVS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 17:18:26 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, acourbot@chromium.org
-Subject: [RFC v2 04/10] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Fri, 23 Mar 2018 23:17:38 +0200
-Message-Id: <1521839864-10146-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751504AbeCEKEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Mar 2018 05:04:45 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Yong Deng <yong.deng@magewell.com>
+Cc: Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-arm-kernel@lists.infradead.org, Chen-Yu Tsai <wens@csie.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH 0/4] media: sun6i: Add support for the H3 CSI controller
+Date: Mon,  5 Mar 2018 11:04:28 +0100
+Message-Id: <20180305100432.15009-1-maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+Hi,
 
-Allow to specify a request to be used with the S_EXT_CTRLS and
-G_EXT_CTRLS operations.
+The H3 and H5 have a CSI controller based on the one previously found
+in the A31, that is currently supported by the sun6i-csi driver.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-[Sakari Ailus: reserved no longer an array, add compat32 code]
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 9 ++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c          | 2 +-
- include/uapi/linux/videodev2.h                | 3 ++-
- 3 files changed, 9 insertions(+), 5 deletions(-)
+Add the compatibles to the device tree bindings and to the driver to
+make it work properly.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 61a8bd4..9adb367 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -733,7 +733,8 @@ struct v4l2_ext_controls32 {
- 	__u32 which;
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved;
- 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
- };
- 
-@@ -808,7 +809,8 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &up->count) ||
- 	    put_user(count, &kp->count) ||
- 	    assign_in_user(&kp->error_idx, &up->error_idx) ||
--	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
-+	    assign_in_user(&kp->request_fd, &up->request_fd) ||
-+	    assign_in_user(&kp->reserved, &up->reserved))
- 		return -EFAULT;
- 
- 	if (count == 0)
-@@ -866,7 +868,8 @@ static int put_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &kp->count) ||
- 	    put_user(count, &up->count) ||
- 	    assign_in_user(&up->error_idx, &kp->error_idx) ||
--	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)) ||
-+	    assign_in_user(&up->request_fd, &kp->request_fd) ||
-+	    assign_in_user(&up->reserved, &kp->reserved) ||
- 	    get_user(kcontrols, &kp->controls))
- 		return -EFAULT;
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index c2671de..85c4bb9 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
- 
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index d39932d..e6e68a5 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1593,7 +1593,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved;
- 	struct v4l2_ext_control *controls;
- };
- 
+This obviously depends on the serie "Initial Allwinner V3s CSI
+Support" by Yong Deng.
+
+Let me know what you think,
+Maxime
+
+Maxime Ripard (2):
+  dt-bindings: media: sun6i: Add A31 and H3 compatibles
+  media: sun6i: Add A31 compatible
+
+Mylène Josserand (2):
+  ARM: dts: sun8i: Add the H3/H5 CSI controller
+  [DO NOT MERGE] ARM: dts: sun8i: Add CAM500B camera module to the Nano
+    Pi M1+
+
+ .../devicetree/bindings/media/sun6i-csi.txt        |  5 +-
+ arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts      | 85 ++++++++++++++++++++++
+ arch/arm/boot/dts/sunxi-h3-h5.dtsi                 | 22 ++++++
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c |  1 +
+ 4 files changed, 112 insertions(+), 1 deletion(-)
+
 -- 
-2.7.4
+2.14.3
