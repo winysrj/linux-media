@@ -1,76 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43063 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750955AbeCZNjz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 09:39:55 -0400
-Subject: Re: [PATCH] media: vsp1: Fix BRx conditional path in WPF
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        stable@vger.kernel.org, open list <linux-kernel@vger.kernel.org>
-References: <1522070958-24295-1-git-send-email-kieran.bingham@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <da2ab7ff-c236-60da-f502-f15292add028@ideasonboard.com>
-Date: Mon, 26 Mar 2018 14:39:51 +0100
+Received: from mail.bootlin.com ([62.4.15.54]:50402 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933048AbeCEJqP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Mar 2018 04:46:15 -0500
+Date: Mon, 5 Mar 2018 10:46:04 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>
+Subject: Re: [PATCH 8/8] media: sun6i: Add g_parm/s_parm ioctl support
+Message-ID: <20180305094604.ggbj6qhw73mkwn75@flea.lan>
+References: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
+ <20180305093535.11801-1-maxime.ripard@bootlin.com>
+ <20180305093535.11801-9-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <1522070958-24295-1-git-send-email-kieran.bingham@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="cmdx6xcdgkykjmm7"
+Content-Disposition: inline
+In-Reply-To: <20180305093535.11801-9-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry,
 
-This should have been from my +renesas to support Renesas' statistics and
-filtering of course.
+--cmdx6xcdgkykjmm7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 26/03/18 14:29, Kieran Bingham wrote:
-> When a BRx is provided by a pipeline, the WPF must determine the master
-> layer. Currently the condition to check this identifies pipe->bru ||
-> pipe->num_inputs > 1.
-> 
-> The code then moves on to dereference pipe->bru, thus the check fails
-> static analysers on the possibility that pipe->num_inputs could be
-> greater than 1 without pipe->bru being set.
-> 
-> The reality is that the pipeline must have a BRx to support more than
-> one input, thus this could never cause a fault - however it also
-> identifies that the num_inputs > 1 check is redundant.
-> 
-> Remove the redundant check - and always configure the master layer
-> appropriately when we have a BRx configured in our pipeline.
-> 
-> Fixes: 6134148f6098 ("v4l: vsp1: Add support for the BRS entity")
-> Cc: stable@vger.kernel.org
-> 
-> Suggested-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+On Mon, Mar 05, 2018 at 10:35:35AM +0100, Maxime Ripard wrote:
+> Add a g_parm and s_parm callback in order to be able to control the sensor
+> framerate of the sensor.
+>=20
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
-And thus:
+Hmmm, that patch shouldn't have been there. This is an outdated
+version based on Hans g_parm/s_parm rework that will not need this
+anymore.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Maxime
 
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-> ---
->  drivers/media/platform/vsp1/vsp1_wpf.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-> index f7f3b4b2c2de..8bd6b2f1af15 100644
-> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-> @@ -452,7 +452,7 @@ static void wpf_configure(struct vsp1_entity *entity,
->  			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
->  	}
->  
-> -	if (pipe->bru || pipe->num_inputs > 1)
-> +	if (pipe->bru)
->  		srcrpf |= pipe->bru->type == VSP1_ENTITY_BRU
->  			? VI6_WPF_SRCRPF_VIRACT_MST
->  			: VI6_WPF_SRCRPF_VIRACT2_MST;
-> 
+--cmdx6xcdgkykjmm7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqdEdsACgkQ0rTAlCFN
+r3TuhA/+Pjr8NZpHMLm4u87KaugQ1YnLIDCn9vOKoQtLgAnTHUe5rnJodMgZfu3j
+1wQS6w5I8uFsPl3ILqAnWIQXj5Fmu4+S8jZGK+qOvVjQyFr11HgP8+9bK37wv8sz
+YYuSuz2DFfTdd/AVIv6sYLtnnQel8Fdut6ejTemhMwQvJvzjpHMB+DS/A8NkzXKz
+RyURcULUHTj3QKxICvmB9fnGzTRxfR4Su2xuURtKIT22UA/WYw87iFtsdMkrNixg
+vw5HkrFVy6gbOD1B2OFZUEoLvJwJdR/eRhGw+RLaRS3Tp7sEP00m2gGGZy/aVIQs
+mW9rZ1Z+jfATeMCaxtLOFKfp5x6/w7i7wLPGRx8WqUuAvUP3KWisG2MlRFpygd1m
+tk8XCXulaiOEYJmBKy4MbfmguOWz2ncFUI9C3U1jg4j4FtvJka+0fQPO020ftfWl
+s0a2nrjKHAUtZhedH1+hSubwoXUngDQ9p/yBQwQ0kqd8jaf3IXm+IWM3mdqQeSa3
+Ws+Dxm0J5bgXJH1XJGstCq4ipz3OBY790KTF8EVl5sSwwWArzB1/krbGiQ8SIyqk
+iAedMQuEOaKo2eLs9g8/fT4lzcC8aOWaqOYncUrhyAXTjnEZuiwe6QflpR/K8nnO
+UlCynqswi75pbKNA2VLlGNTAIOEBNMvlKPZOegdLEmioJbAo9AA=
+=dQaQ
+-----END PGP SIGNATURE-----
+
+--cmdx6xcdgkykjmm7--
