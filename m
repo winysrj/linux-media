@@ -1,47 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41416 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752258AbeCPHzy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 03:55:54 -0400
-Date: Fri, 16 Mar 2018 08:55:53 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: dri-devel@lists.freedesktop.org, qemu-devel@nongnu.org,
-        David Airlie <airlied@linux.ie>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>
-Subject: Re: [PATCH v2] Add udmabuf misc device
-Message-ID: <20180316075553.GA11982@kroah.com>
-References: <20180316074650.5415-1-kraxel@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180316074650.5415-1-kraxel@redhat.com>
+Received: from mail.bootlin.com ([62.4.15.54]:49568 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933618AbeCEJfv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Mar 2018 04:35:51 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>
+Subject: [PATCH 6/7] media: sun6i: Invert the polarities
+Date: Mon,  5 Mar 2018 10:35:33 +0100
+Message-Id: <20180305093535.11801-7-maxime.ripard@bootlin.com>
+In-Reply-To: <20180305093535.11801-1-maxime.ripard@bootlin.com>
+References: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
+ <20180305093535.11801-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 16, 2018 at 08:46:49AM +0100, Gerd Hoffmann wrote:
-> --- /dev/null
-> +++ b/drivers/dma-buf/udmabuf.c
-> @@ -0,0 +1,261 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
+A good look at an oscilloscope and test with a camera have shown that the
+polarity of all signals are actually reversed compared to the polarity
+documented in the datasheet for the clock, HSYNC and VSYNC signals.
 
-No SPDX line or copyright here?  You put it in the .h file :(
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-thanks,
-
-greg k-h
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+index e0b39ea641aa..a93bc25ff372 100644
+--- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+@@ -398,12 +398,12 @@ static void sun6i_csi_setup_bus(struct sun6i_csi_dev *sdev)
+ 		if (flags & V4L2_MBUS_FIELD_EVEN_LOW)
+ 			cfg |= CSI_IF_CFG_FIELD_POSITIVE;
+ 
+-		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++		if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+ 			cfg |= CSI_IF_CFG_VREF_POL_POSITIVE;
+-		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++		if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+ 			cfg |= CSI_IF_CFG_HREF_POL_POSITIVE;
+ 
+-		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++		if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 			cfg |= CSI_IF_CFG_CLK_POL_FALLING_EDGE;
+ 		break;
+ 	case V4L2_MBUS_BT656:
+-- 
+2.14.3
