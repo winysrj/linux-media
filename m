@@ -1,221 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:34204 "EHLO osg.samsung.com"
+Received: from gofer.mess.org ([88.97.38.141]:50425 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750973AbeCZKrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 06:47:49 -0400
-Date: Mon, 26 Mar 2018 07:47:42 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        acourbot@chromium.org
-Subject: Re: [RFC v2 01/10] media: Support variable size IOCTL arguments
-Message-ID: <20180326074742.433ab8f1@vento.lan>
-In-Reply-To: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        id S1751400AbeCEPeD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Mar 2018 10:34:03 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/3] media: rc: add keymap for iMON RSC remote
+Date: Mon,  5 Mar 2018 15:34:01 +0000
+Message-Id: <20180305153402.24141-2-sean@mess.org>
+In-Reply-To: <20180305153402.24141-1-sean@mess.org>
+References: <20180305153402.24141-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 23 Mar 2018 23:17:35 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Note that the stick on the remote is not supported yet.
 
-> Maintain a list of supported IOCTL argument sizes and allow only those in
-> the list.
-> 
-> As an additional bonus, IOCTL handlers will be able to check whether the
-> caller actually set (using the argument size) the field vs. assigning it
-> to zero. Separate macro can be provided for that.
-> 
-> This will be easier for applications as well since there is no longer the
-> problem of setting the reserved fields zero, or at least it is a lesser
-> problem.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/keymaps/Makefile      |  1 +
+ drivers/media/rc/keymaps/rc-imon-rsc.c | 81 ++++++++++++++++++++++++++++++++++
+ include/media/rc-map.h                 |  1 +
+ 3 files changed, 83 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-imon-rsc.c
 
-Patch makes sense to me, but I have a few comments on it.
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/media-device.c | 65 ++++++++++++++++++++++++++++++++++++++++----
->  1 file changed, 59 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 35e81f7..da63da1 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -387,22 +387,36 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
->  /* Do acquire the graph mutex */
->  #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
->  
-> -#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> +#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
->  	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
->  		.cmd = MEDIA_IOC_##__cmd,				\
->  		.fn = (long (*)(struct media_device *, void *))func,	\
->  		.flags = fl,						\
-> +		.alt_arg_sizes = alt_sz,				\
->  		.arg_from_user = from_user,				\
->  		.arg_to_user = to_user,					\
->  	}
->  
-> -#define MEDIA_IOC(__cmd, func, fl)					\
-> -	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
-> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
-> +
-> +#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
-> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
-> +			 copy_arg_from_user, copy_arg_to_user)
-> +
-> +#define MEDIA_IOC(__cmd, func, fl)				\
-> +	MEDIA_IOC_ARG(__cmd, func, fl,				\
-> +		      copy_arg_from_user, copy_arg_to_user)
-
-Please add some comments to those macros (specially the first one,
-as the names of the values are too short to help identifying what
-they are.
-
->  
->  /* the table is indexed by _IOC_NR(cmd) */
->  struct media_ioctl_info {
->  	unsigned int cmd;
->  	unsigned short flags;
-> +	/*
-> +	 * Sizes of the alternative arguments. If there are none, this
-> +	 * pointer is NULL.
-> +	 */
-> +	const unsigned short *alt_arg_sizes;
->  	long (*fn)(struct media_device *dev, void *arg);
->  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
->  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
-> @@ -416,6 +430,42 @@ static const struct media_ioctl_info ioctl_info[] = {
->  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
->  };
->  
-> +#define MASK_IOC_SIZE(cmd) \
-> +	((cmd) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
-
-This should be, instead at:
-	include/uapi/asm-generic/ioctl.h
-
-The patch series adding it there should also touch the other usecases
-for _IOC_SIZEMASK (evdev.c, phantom.c, v4l2-ioctl.c).
-
-> +
-> +static inline long is_valid_ioctl(unsigned int cmd)
-
-Please rename from "cmd" to "user_cmd", in order to make it
-clearer that it contains the value passed by userspace.
-
-> +{
-> +	const struct media_ioctl_info *info = ioctl_info;
-> +	const unsigned short *alt_arg_sizes;
-> +
-> +	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info))
-> +		return -ENOIOCTLCMD;
-> +
-> +	info += _IOC_NR(cmd);
-> +
-> +	if (info->cmd == cmd)
-> +		return 0;
-
-Please revert it:
-	if (user_cmd == info->cmd)
-		return 0
-
-As we're validating if the userspace ioctl code makes sense,
-and not the reverse.
-
-Please add the check if alt_arg_sizes is defined here:
-
-	alt_arg_sizes = info->alt_arg_sizes;
-	if (!alt_arg_sizes)
-		return -ENOIOCTLCMD;
-
-As the remaining code is not needed if user_cmd != info_cmd.
-
-> +
-> +	/*
-> +	 * Verify that the size-dependent patch of the IOCTL command
-> +	 * matches and that the size does not exceed the principal
-> +	 * argument size.
-> +	 */
-
-what do you mean by "principal argument size"? I guess what you're
-meaning here is the "argument size of the latest version" with is
-always bigger than the previous version. If so, make it clear.
-
-I would write it as something like:
-
-	/*
-	 * As the ioctl passed by userspace doesn't match the current
-	 * one, and there are alternate sizes for thsi ioctl, 
-	 * we need to check if the ioctl code is correct.
-	 *
-	 * Validate that the ioctl code passed by userspace matches the
-	 * Kernel definition with regards to its number, type and dir.
-	 * Also checks if the size is not bigger than the one defined
-	 * by the latest version of the ioctl.
-	 */
-
-> +	if (MASK_IOC_SIZE(info->cmd) != MASK_IOC_SIZE(cmd)
-> +	    || _IOC_SIZE(info->cmd) < _IOC_SIZE(cmd))
-> +		return -ENOIOCTLCMD;
-
-I would invert the check: what we want do to is to check if whatever
-userspace passes is valid. So, better to place user_cmd as the first
-arguments at the check, e. g.: 
-
-	if (MASK_IOC_SIZE(user_cmd) != MASK_IOC_SIZE(info->cmd)
-	    ||  _IOC_SIZE(user_cmd) > _IOC_SIZE(info->cmd))
-		return -ENOIOCTLCMD;
-
-> +
-> +	alt_arg_sizes = info->alt_arg_sizes;
-> +	if (!alt_arg_sizes)
-> +		return -ENOIOCTLCMD;
-
-As said before, this check should happen earlier.
-
-> +
-> +	for (; *alt_arg_sizes; alt_arg_sizes++)
-> +		if (_IOC_SIZE(cmd) == *alt_arg_sizes)
-> +			return 0;
-> +
-> +	return -ENOIOCTLCMD;
-> +}
-> +
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  			       unsigned long __arg)
->  {
-> @@ -426,9 +476,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  	char __karg[256], *karg = __karg;
->  	long ret;
->  
-> -	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
-> -	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
-> -		return -ENOIOCTLCMD;
-> +	ret = is_valid_ioctl(cmd);
-> +	if (ret)
-> +		return ret;
->  
->  	info = &ioctl_info[_IOC_NR(cmd)];
->  
-> @@ -444,6 +494,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  			goto out_free;
->  	}
->  
-> +	/* Set the rest of the argument struct to zero */
-> +	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
-> +
->  	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
->  		mutex_lock(&dev->graph_mutex);
->  
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index 50b319355edf..d6b913a3032d 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -53,6 +53,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-hisi-tv-demo.o \
+ 			rc-imon-mce.o \
+ 			rc-imon-pad.o \
++			rc-imon-rsc.o \
+ 			rc-iodata-bctv7e.o \
+ 			rc-it913x-v1.o \
+ 			rc-it913x-v2.o \
+diff --git a/drivers/media/rc/keymaps/rc-imon-rsc.c b/drivers/media/rc/keymaps/rc-imon-rsc.c
+new file mode 100644
+index 000000000000..83e4564aaa22
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-imon-rsc.c
+@@ -0,0 +1,81 @@
++// SPDX-License-Identifier: GPL-2.0+
++//
++// Copyright (C) 2018 Sean Young <sean@mess.org>
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++//
++// Note that this remote has a stick which its own IR protocol,
++// with 16 directions. This is not supported yet.
++//
++static struct rc_map_table imon_rsc[] = {
++	{ 0x801010, KEY_EXIT },
++	{ 0x80102f, KEY_POWER },
++	{ 0x80104a, KEY_SCREENSAVER },	/* Screensaver */
++	{ 0x801049, KEY_TIME },		/* Timer */
++	{ 0x801054, KEY_NUMERIC_1 },
++	{ 0x801055, KEY_NUMERIC_2 },
++	{ 0x801056, KEY_NUMERIC_3 },
++	{ 0x801057, KEY_NUMERIC_4 },
++	{ 0x801058, KEY_NUMERIC_5 },
++	{ 0x801059, KEY_NUMERIC_6 },
++	{ 0x80105a, KEY_NUMERIC_7 },
++	{ 0x80105b, KEY_NUMERIC_8 },
++	{ 0x80105c, KEY_NUMERIC_9 },
++	{ 0x801081, KEY_SCREEN },	/* Desktop */
++	{ 0x80105d, KEY_NUMERIC_0 },
++	{ 0x801082, KEY_MAX },
++	{ 0x801048, KEY_ESC },
++	{ 0x80104b, KEY_MEDIA },	/* Windows key */
++	{ 0x801083, KEY_MENU },
++	{ 0x801045, KEY_APPSELECT },	/* app launcher */
++	{ 0x801084, KEY_STOP },
++	{ 0x801046, KEY_CYCLEWINDOWS },
++	{ 0x801085, KEY_BACKSPACE },
++	{ 0x801086, KEY_KEYBOARD },
++	{ 0x801087, KEY_SPACE },
++	{ 0x80101e, KEY_RESERVED },	/* shift tab */
++	{ 0x801098, BTN_0 },
++	{ 0x80101f, KEY_TAB },
++	{ 0x80101b, BTN_LEFT },
++	{ 0x80101d, BTN_RIGHT },
++	{ 0x801016, BTN_MIDDLE },	/* drag and drop */
++	{ 0x801088, KEY_MUTE },
++	{ 0x80105e, KEY_VOLUMEDOWN },
++	{ 0x80105f, KEY_VOLUMEUP },
++	{ 0x80104c, KEY_PLAY },
++	{ 0x80104d, KEY_PAUSE },
++	{ 0x80104f, KEY_EJECTCD },
++	{ 0x801050, KEY_PREVIOUS },
++	{ 0x801051, KEY_NEXT },
++	{ 0x80104e, KEY_STOP },
++	{ 0x801052, KEY_REWIND },
++	{ 0x801053, KEY_FASTFORWARD },
++	{ 0x801089, KEY_ZOOM }		/* full screen */
++};
++
++static struct rc_map_list imon_rsc_map = {
++	.map = {
++		.scan     = imon_rsc,
++		.size     = ARRAY_SIZE(imon_rsc),
++		.rc_proto = RC_PROTO_NEC,
++		.name     = RC_MAP_IMON_RSC,
++	}
++};
++
++static int __init init_rc_map_imon_rsc(void)
++{
++	return rc_map_register(&imon_rsc_map);
++}
++
++static void __exit exit_rc_map_imon_rsc(void)
++{
++	rc_map_unregister(&imon_rsc_map);
++}
++
++module_init(init_rc_map_imon_rsc)
++module_exit(exit_rc_map_imon_rsc)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Sean Young <sean@mess.org>");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7046734b3895..7fc84991bd12 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -211,6 +211,7 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_HISI_TV_DEMO              "rc-hisi-tv-demo"
+ #define RC_MAP_IMON_MCE                  "rc-imon-mce"
+ #define RC_MAP_IMON_PAD                  "rc-imon-pad"
++#define RC_MAP_IMON_RSC                  "rc-imon-rsc"
+ #define RC_MAP_IODATA_BCTV7E             "rc-iodata-bctv7e"
+ #define RC_MAP_IT913X_V1                 "rc-it913x-v1"
+ #define RC_MAP_IT913X_V2                 "rc-it913x-v2"
+-- 
+2.14.3
