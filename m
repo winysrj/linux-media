@@ -1,140 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:47305 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750775AbeCCElX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 23:41:23 -0500
-Message-ID: <c571aaa9f904d9a4c0138ca837b02bf7@smtp-cloud8.xs4all.net>
-Date: Sat, 03 Mar 2018 05:41:08 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:48812 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753860AbeCFQ5V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 11:57:21 -0500
+Date: Tue, 6 Mar 2018 17:57:15 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        g.liakhovetski@gmx.de, bhumirks@gmail.com, joe@perches.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 01/11] media: tw9910: Re-order variables declaration
+Message-ID: <20180306165715.GD19648@w540>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
+ <20180306135152.3fed9766@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20180306135152.3fed9766@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+On Tue, Mar 06, 2018 at 01:51:52PM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri,  2 Mar 2018 15:46:33 +0100
+> Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
+>
+> > Re-order variables declaration to respect 'reverse christmas tree'
+> > ordering whenever possible.
+>
+> To be frank, I don't like the idea of reverse christmas tree ordering
+> myself... Perhaps due to the time I used to program on assembler,
+> where alignment issues could happen, I find a way more logic to order
+> based on complexity and size of the argument...
+>
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/i2c/tw9910.c | 23 +++++++++++------------
+> >  1 file changed, 11 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+> > index cc648de..3a5e307 100644
+> > --- a/drivers/media/i2c/tw9910.c
+> > +++ b/drivers/media/i2c/tw9910.c
+> > @@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
+> >
+> >  static int tw9910_power(struct i2c_client *client, int enable)
+> >  {
+> > -	int ret;
+> >  	u8 acntl1;
+> >  	u8 acntl2;
+> > +	int ret;
+>
+> ... So, in this case, the order is already the right one, according
+> with my own criteria :-)
+>
+> There was some discussion about the order sometime ago at LKML:
+>
+> 	https://patchwork.kernel.org/patch/9411999/
+>
+> As I'm not seeing the proposed patch there at checkpatch, nor any
+> comments about xmas tree at coding style, I think that there were no
+> agreements about the ordering.
+>
+> So, while there's no consensus about that, let's keep it as-is.
 
-date:			Sat Mar  3 05:00:11 CET 2018
-media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
-media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
-v4l-utils git hash:	5090c6cb0265c6847ff4b0e89b37c172eb0c1c62
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Thanks for explaining. I was sure it was part of the coding style
+rules! My bad, feel free to ditch this patch (same for ov772x ofc).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.53-i686: ERRORS
-linux-3.16.53-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.93-i686: ERRORS
-linux-3.18.93-x86_64: ERRORS
-linux-3.19-i686: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.49-i686: ERRORS
-linux-4.1.49-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+Thanks
+   j
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>
+> Regards,
+> Mauro
