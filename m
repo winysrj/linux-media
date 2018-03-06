@@ -1,90 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa6.microchip.iphmx.com ([216.71.154.253]:28747 "EHLO
-        esa6.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425539AbeCBJTz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 04:19:55 -0500
-Subject: Re: [PATCH v3 05/10] pwm: add PWM mode to pwm_config()
-To: Thierry Reding <thierry.reding@gmail.com>
-CC: <shc_work@mail.ru>, <kgene@kernel.org>, <krzk@kernel.org>,
-        <linux@armlinux.org.uk>, <mturquette@baylibre.com>,
-        <sboyd@codeaurora.org>, <jani.nikula@linux.intel.com>,
-        <joonas.lahtinen@linux.intel.com>, <rodrigo.vivi@intel.com>,
-        <airlied@linux.ie>, <kamil@wypas.org>, <b.zolnierkie@samsung.com>,
-        <jdelvare@suse.com>, <linux@roeck-us.net>,
-        <dmitry.torokhov@gmail.com>, <rpurdie@rpsys.net>,
-        <jacek.anaszewski@gmail.com>, <pavel@ucw.cz>, <mchehab@kernel.org>,
-        <sean@mess.org>, <lee.jones@linaro.org>,
-        <daniel.thompson@linaro.org>, <jingoohan1@gmail.com>,
-        <milo.kim@ti.com>, <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <corbet@lwn.net>, <nicolas.ferre@microchip.com>,
-        <alexandre.belloni@free-electrons.com>,
-        <linux-pwm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-clk@vger.kernel.org>,
-        <intel-gfx@lists.freedesktop.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-leds@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-doc@vger.kernel.org>
-References: <1519300881-8136-1-git-send-email-claudiu.beznea@microchip.com>
- <1519300881-8136-6-git-send-email-claudiu.beznea@microchip.com>
- <20180228194429.GD22932@mithrandir>
-From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
-Message-ID: <0c3fc3ba-8640-0b2c-a9ec-ab848227c92d@microchip.com>
-Date: Fri, 2 Mar 2018 11:19:43 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180228194429.GD22932@mithrandir>
-Content-Type: text/plain; charset="windows-1252"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44189 "EHLO
+        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753976AbeCFTPl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 14:15:41 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 4/4] cx23885: Override 888 ImpactVCBe crystal frequency
+Date: Tue,  6 Mar 2018 13:15:37 -0600
+Message-Id: <1520363737-25724-5-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
+References: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hauppauge produced a revision of ImpactVCBe using an 888,
+with a 25MHz crystal, instead of using the default third
+overtone 50Mhz crystal. This overrides that frequency so
+that the cx25840 is properly configured. Without the proper
+crystal setup the cx25840 cannot load the firmware or
+decode video.
 
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/pci/cx23885/cx23885-core.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-On 28.02.2018 21:44, Thierry Reding wrote:
-> On Thu, Feb 22, 2018 at 02:01:16PM +0200, Claudiu Beznea wrote:
->> Add PWM mode to pwm_config() function. The drivers which uses pwm_config()
->> were adapted to this change.
->>
->> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
->> ---
->>  arch/arm/mach-s3c24xx/mach-rx1950.c  | 11 +++++++++--
->>  drivers/bus/ts-nbus.c                |  2 +-
->>  drivers/clk/clk-pwm.c                |  3 ++-
->>  drivers/gpu/drm/i915/intel_panel.c   | 17 ++++++++++++++---
->>  drivers/hwmon/pwm-fan.c              |  2 +-
->>  drivers/input/misc/max77693-haptic.c |  2 +-
->>  drivers/input/misc/max8997_haptic.c  |  6 +++++-
->>  drivers/leds/leds-pwm.c              |  5 ++++-
->>  drivers/media/rc/ir-rx51.c           |  5 ++++-
->>  drivers/media/rc/pwm-ir-tx.c         |  5 ++++-
->>  drivers/video/backlight/lm3630a_bl.c |  4 +++-
->>  drivers/video/backlight/lp855x_bl.c  |  4 +++-
->>  drivers/video/backlight/lp8788_bl.c  |  5 ++++-
->>  drivers/video/backlight/pwm_bl.c     | 11 +++++++++--
->>  drivers/video/fbdev/ssd1307fb.c      |  3 ++-
->>  include/linux/pwm.h                  |  6 ++++--
->>  16 files changed, 70 insertions(+), 21 deletions(-)
-> 
-> I don't think it makes sense to leak mode support into the legacy API.
-> The pwm_config() function is considered legacy
-I missed this aspect.
-
- and should eventually go
-> away. As such it doesn't make sense to integrate a new feature such as
-> PWM modes into it. 
-Agree.
-
-All users of pwm_config() assume normal mode, and
-> that's what pwm_config() should provide.
-Agree.
-
-> 
-> Anyone that needs something other than normal mode should use the new
-> atomic PWM API.
-Agree.
-
-> 
-> Thierry
-> 
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index 2c76a02..ff369e9 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -881,6 +881,16 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 	if (cx23885_boards[dev->board].clk_freq > 0)
+ 		dev->clk_freq = cx23885_boards[dev->board].clk_freq;
+ 
++	if (dev->board == CX23885_BOARD_HAUPPAUGE_IMPACTVCBE &&
++		dev->pci->subsystem_device == 0x7137) {
++		/* Hauppauge ImpactVCBe device ID 0x7137 is populated
++		 * with an 888, and a 25Mhz crystal, instead of the
++		 * usual third overtone 50Mhz. The default clock rate must
++		 * be overridden so the cx25840 is properly configured
++		 */
++		dev->clk_freq = 25000000;
++	}
++
+ 	dev->pci_bus  = dev->pci->bus->number;
+ 	dev->pci_slot = PCI_SLOT(dev->pci->devfn);
+ 	cx23885_irq_add(dev, 0x001f00);
+-- 
+2.7.4
