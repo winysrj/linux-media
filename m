@@ -1,60 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:34892 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753406AbeC1OOG (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54744 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754052AbeCFWsJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:14:06 -0400
-Date: Wed, 28 Mar 2018 17:13:29 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: devel@driverdev.osuosl.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Avraham Shukron <avraham.shukron@gmail.com>,
-        Alan Cox <alan@linux.intel.com>
-Subject: Re: [PATCH 12/18] media: staging: atomisp: avoid a warning if 32
- bits build
-Message-ID: <20180328141329.6nhx5qcaigqwz25d@mwanda>
-References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
- <313cb7db7e3fc7c7c14d2e82e249ccebcbd51ff8.1522098456.git.mchehab@s-opensource.com>
+        Tue, 6 Mar 2018 17:48:09 -0500
+Subject: Re: [PATCHv2 5/7] cec-pin: add error injection support
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180305135139.95652-1-hverkuil@xs4all.nl>
+ <20180305135139.95652-6-hverkuil@xs4all.nl>
+Message-ID: <526d0a58-b032-2b8b-1c47-8168918b4330@xs4all.nl>
+Date: Tue, 6 Mar 2018 23:48:05 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <313cb7db7e3fc7c7c14d2e82e249ccebcbd51ff8.1522098456.git.mchehab@s-opensource.com>
+In-Reply-To: <20180305135139.95652-6-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 26, 2018 at 05:10:45PM -0400, Mauro Carvalho Chehab wrote:
-> Checking if a size_t value is bigger than ULONG_INT only makes
-> sense if building on 64 bits, as warned by:
-> 	drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c:697 gmin_get_config_var() warn: impossible condition '(*out_len > (~0)) => (0-u32max > u32max)'
+On 05/03/18 14:51, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Implement all the error injection commands.
+> 
+> The state machine gets new states for the various error situations,
+> helper functions are added to detect whether an error injection is
+> active and the actual error injections are implemented.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c    | 2 ++
->  1 file changed, 2 insertions(+)
+>  drivers/media/cec/cec-pin-priv.h |  38 ++-
+>  drivers/media/cec/cec-pin.c      | 542 +++++++++++++++++++++++++++++++++++----
+>  2 files changed, 521 insertions(+), 59 deletions(-)
 > 
-> diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-> index be0c5e11e86b..3283c1b05d6a 100644
-> --- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-> +++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-> @@ -693,9 +693,11 @@ static int gmin_get_config_var(struct device *dev, const char *var,
->  	for (i = 0; i < sizeof(var8) && var8[i]; i++)
->  		var16[i] = var8[i];
->  
-> +#ifdef CONFIG_64BIT
->  	/* To avoid owerflows when calling the efivar API */
->  	if (*out_len > ULONG_MAX)
->  		return -EINVAL;
+> diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
+> index 779384f18689..c9349f68e554 100644
+> --- a/drivers/media/cec/cec-pin-priv.h
+> +++ b/drivers/media/cec/cec-pin-priv.h
+
+<snip>
+
+> +static bool tx_error_inj(struct cec_pin *pin, unsigned int mode_offset,
+> +			 int arg_idx, u8 *arg)
+> +{
+> +#ifdef CONFIG_CEC_PIN_ERROR_INJ
+> +	u16 cmd = cec_pin_tx_error_inj(pin);
+> +	u64 e = pin->error_inj[cmd];
+> +	unsigned int mode = (e >> mode_offset) & CEC_ERROR_INJ_MODE_MASK;
+> +
+> +	if (arg_idx) {
+
+Oops, this should be arg_idx >= 0. It's -1 if there is no argument associated
+with the error injection command.
+
+> +		u8 pos = pin->error_inj_args[cmd][arg_idx];
+> +
+> +		if (arg)
+> +			*arg = pos;
+> +		else if (pos != pin->tx_bit)
+> +			return false;
+> +	}
+> +
+> +	switch (mode) {
+> +	case CEC_ERROR_INJ_MODE_ONCE:
+> +		pin->error_inj[cmd] &= ~(CEC_ERROR_INJ_MODE_MASK << mode_offset);
+> +		return true;
+> +	case CEC_ERROR_INJ_MODE_ALWAYS:
+> +		return true;
+> +	case CEC_ERROR_INJ_MODE_TOGGLE:
+> +		return pin->tx_toggle;
+> +	default:
+> +		return false;
+> +	}
+> +#else
+> +	return false;
 > +#endif
+> +}
 
-I should just silence this particular warning in Smatch.  I feel like
-this is a pretty common thing and the ifdefs aren't very pretty.  :(
+<snip>
 
-regards,
-dan carpenter
+> +		case EOM_BIT:
+> +			v = pin->tx_bit / 10 ==
+> +				pin->tx_msg.len + pin->tx_extra_bytes - 1;
+> +			if (pin->tx_msg.len > 1 && tx_early_eom(pin)) {
+
+tx_early_eom should only be called for the second-to-last byte.
+
+> +				/* Error injection: set EOM one byte early */
+> +				v = pin->tx_bit / 10 ==
+> +					pin->tx_msg.len + pin->tx_extra_bytes - 2;
+> +				pin->tx_post_eom = true;
+> +			}
+> +			if (tx_no_eom(pin)) {
+
+Ditto for tx_no_eom: only call for the last byte.
+
+Otherwise for mode 'once' this error injection command will be cleared
+before the end of the message is reached.
+
+> +				/* Error injection: no EOM */
+> +				v = false;
+> +			}
+>  			pin->state = v ? CEC_ST_TX_DATA_BIT_1_LOW :
+> -				CEC_ST_TX_DATA_BIT_0_LOW;
+> +					 CEC_ST_TX_DATA_BIT_0_LOW;
+>  			break;
+
+Regards,
+
+	Hans
