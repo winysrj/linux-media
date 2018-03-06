@@ -1,266 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:34062 "EHLO mail.bootlin.com"
+Received: from mail.horus.com ([78.46.148.228]:47665 "EHLO mail.horus.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1425894AbeCBOfY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 09:35:24 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 07/12] media: ov5640: Program the visible resolution
-Date: Fri,  2 Mar 2018 15:34:55 +0100
-Message-Id: <20180302143500.32650-8-maxime.ripard@bootlin.com>
-In-Reply-To: <20180302143500.32650-1-maxime.ripard@bootlin.com>
-References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
+        id S1753243AbeCFRtx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 12:49:53 -0500
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Carlo Caione <carlo@caione.org>,
+        Kevin Hilman <khilman@baylibre.com>
+Cc: Heiner Kallweit <hkallweit1@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Alex Deryskyba <alex@codesnake.com>,
+        Jonas Karlman <jonas@kwiboo.se>, linux-media@vger.kernel.org,
+        linux-amlogic@lists.infradead.org
+Subject: [PATCH] media: rc: meson-ir: add timeout on idle
+Date: Tue,  6 Mar 2018 18:41:22 +0100
+Message-Id: <20180306174122.6017-1-hias@horus.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The active frame size is set in the initialization arrays, but the value
-itself is also available in the struct ov5640_mode_info.
+Meson doesn't seem to be able to generate timeout events
+in hardware. So install a software timer to generate the
+timeout events required by the decoders to prevent
+"ghost keypresses".
 
-Let's move these values out of the big bytes arrays, and program it with
-the value of the mode that we are given.
-
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Matthias Reichl <hias@horus.com>
 ---
- drivers/media/i2c/ov5640.c | 58 +++++++++++-----------------------------------
- 1 file changed, 14 insertions(+), 44 deletions(-)
+ drivers/media/rc/meson-ir.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 443b167bcd20..0eeb1667bbe7 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -58,6 +58,8 @@
- #define OV5640_REG_AEC_PK_MANUAL	0x3503
- #define OV5640_REG_AEC_PK_REAL_GAIN	0x350a
- #define OV5640_REG_AEC_PK_VTS		0x350c
-+#define OV5640_REG_TIMING_DVPHO		0x3808
-+#define OV5640_REG_TIMING_DVPVO		0x380a
- #define OV5640_REG_TIMING_HTS		0x380c
- #define OV5640_REG_TIMING_VTS		0x380e
- #define OV5640_REG_TIMING_TC_REG21	0x3821
-@@ -271,8 +273,6 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -346,8 +346,6 @@ static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -367,8 +365,6 @@ static const struct reg_value ov5640_setting_15fps_VGA_640_480[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -389,8 +385,6 @@ static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -401,8 +395,7 @@ static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
- 	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
- 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
- 	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3503, 0x00, 0, 0},
--	{0x3808, 0x04, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x03, 0, 0},
--	{0x380b, 0x00, 0, 0}, {0x3035, 0x12, 0, 0},
-+	{0x3035, 0x12, 0, 0},
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index f2204eb77e2a..f34c5836412b 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -69,6 +69,7 @@ struct meson_ir {
+ 	void __iomem	*reg;
+ 	struct rc_dev	*rc;
+ 	spinlock_t	lock;
++	struct timer_list timeout_timer;
  };
  
- static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
-@@ -412,8 +405,6 @@ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -423,8 +414,7 @@ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
- 	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
- 	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
- 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
--	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3808, 0x04, 0, 0},
--	{0x3809, 0x00, 0, 0}, {0x380a, 0x03, 0, 0}, {0x380b, 0x00, 0, 0},
-+	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
- };
+ static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
+@@ -98,6 +99,10 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
+ 	rawir.pulse = !!(status & STATUS_IR_DEC_IN);
  
- static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
-@@ -434,8 +424,6 @@ static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
--	{0x380b, 0xf0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -455,8 +443,6 @@ static const struct reg_value ov5640_setting_15fps_QVGA_320_240[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
--	{0x380b, 0xf0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -476,8 +462,6 @@ static const struct reg_value ov5640_setting_30fps_QCIF_176_144[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
--	{0x380b, 0x90, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -496,8 +480,6 @@ static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
--	{0x380b, 0x90, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -517,8 +499,6 @@ static const struct reg_value ov5640_setting_30fps_NTSC_720_480[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -538,8 +518,6 @@ static const struct reg_value ov5640_setting_15fps_NTSC_720_480[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
--	{0x380b, 0xe0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -559,8 +537,6 @@ static const struct reg_value ov5640_setting_30fps_PAL_720_576[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
--	{0x380b, 0x40, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -580,8 +556,6 @@ static const struct reg_value ov5640_setting_15fps_PAL_720_576[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
--	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
--	{0x380b, 0x40, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -602,8 +576,6 @@ static const struct reg_value ov5640_setting_30fps_720P_1280_720[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
--	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
--	{0x380b, 0xd0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -624,8 +596,6 @@ static const struct reg_value ov5640_setting_15fps_720P_1280_720[] = {
- 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
--	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
--	{0x380b, 0xd0, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
- 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
-@@ -646,8 +616,6 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
- 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
--	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
--	{0x380b, 0x98, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
- 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
-@@ -662,8 +630,7 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
- 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
--	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
--	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
-+	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0},
- 	{0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
- 	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
- 	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
-@@ -682,8 +649,6 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
- 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
--	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
--	{0x380b, 0x98, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
- 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
-@@ -698,8 +663,7 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
- 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
- 	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
- 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
--	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
--	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
-+	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0},
- 	{0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
- 	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
- 	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
-@@ -717,8 +681,6 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
- 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
- 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
- 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
--	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
--	{0x380b, 0x98, 0, 0},
- 	{0x3810, 0x00, 0, 0},
- 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
- 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
-@@ -1398,6 +1360,14 @@ static int ov5640_set_timings(struct ov5640_dev *sensor,
+ 	ir_raw_event_store(ir->rc, &rawir);
++
++	mod_timer(&ir->timeout_timer,
++		jiffies + nsecs_to_jiffies(ir->rc->timeout));
++
+ 	ir_raw_event_handle(ir->rc);
+ 
+ 	spin_unlock(&ir->lock);
+@@ -105,6 +110,17 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
++static void meson_ir_timeout_timer(struct timer_list *t)
++{
++	struct meson_ir *ir = from_timer(ir, t, timeout_timer);
++	DEFINE_IR_RAW_EVENT(rawir);
++
++	rawir.timeout = true;
++	rawir.duration = ir->rc->timeout;
++	ir_raw_event_store(ir->rc, &rawir);
++	ir_raw_event_handle(ir->rc);
++}
++
+ static int meson_ir_probe(struct platform_device *pdev)
  {
- 	int ret;
+ 	struct device *dev = &pdev->dev;
+@@ -145,7 +161,9 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
+ 	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
+ 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
++	ir->rc->min_timeout = 1;
+ 	ir->rc->timeout = MS_TO_NS(200);
++	ir->rc->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	ir->rc->driver_name = DRIVER_NAME;
  
-+	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPHO, mode->hact);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPVO, mode->vact);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_HTS, mode->htot);
- 	if (ret < 0)
+ 	spin_lock_init(&ir->lock);
+@@ -157,6 +175,8 @@ static int meson_ir_probe(struct platform_device *pdev)
  		return ret;
+ 	}
+ 
++	timer_setup(&ir->timeout_timer, meson_ir_timeout_timer, 0);
++
+ 	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, NULL, ir);
+ 	if (ret) {
+ 		dev_err(dev, "failed to request irq\n");
+@@ -198,6 +218,8 @@ static int meson_ir_remove(struct platform_device *pdev)
+ 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
+ 	spin_unlock_irqrestore(&ir->lock, flags);
+ 
++	del_timer_sync(&ir->timeout_timer);
++
+ 	return 0;
+ }
+ 
 -- 
-2.14.3
+2.11.0
