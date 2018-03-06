@@ -1,98 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:34030 "EHLO mail.bootlin.com"
+Received: from osg.samsung.com ([64.30.133.232]:44907 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1425831AbeCBOfX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 09:35:23 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
+        id S1750838AbeCFPf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 10:35:26 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 05/12] media: ov5640: Change horizontal and vertical resolutions name
-Date: Fri,  2 Mar 2018 15:34:53 +0100
-Message-Id: <20180302143500.32650-6-maxime.ripard@bootlin.com>
-In-Reply-To: <20180302143500.32650-1-maxime.ripard@bootlin.com>
-References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] media: ov772x: constify ov772x_frame_intervals
+Date: Tue,  6 Mar 2018 10:35:22 -0500
+Message-Id: <7b69f2cb91319abdacf37be501db2eae45112a09.1520350517.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current width and height parameters in the struct ov5640_mode_info are
-actually the active horizontal and vertical resolutions.
+The values on this array never changes. Make it const.
 
-Since we're going to add a few other parameters, let's pick a better, more
-precise name for these values.
-
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/ov5640.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/media/i2c/ov772x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 0415484e32fb..8c04f2880715 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -166,8 +166,8 @@ struct reg_value {
- struct ov5640_mode_info {
- 	enum ov5640_mode_id id;
- 	enum ov5640_downsize_mode dn_mode;
--	u32 width;
--	u32 height;
-+	u32 hact;
-+	u32 vact;
- 	const struct reg_value *reg_data;
- 	u32 reg_data_size;
- };
-@@ -1388,10 +1388,10 @@ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
- 		if (!mode->reg_data)
- 			continue;
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 16665af0c712..321105bb3161 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -531,7 +531,7 @@ static const struct ov772x_win_size ov772x_win_sizes[] = {
+ /*
+  * frame rate settings lists
+  */
+-static unsigned int ov772x_frame_intervals[] = { 5, 10, 15, 20, 30, 60 };
++static const unsigned int ov772x_frame_intervals[] = { 5, 10, 15, 20, 30, 60 };
  
--		if ((nearest && mode->width <= width &&
--		     mode->height <= height) ||
--		    (!nearest && mode->width == width &&
--		     mode->height == height))
-+		if ((nearest && mode->hact <= width &&
-+		     mode->vact <= height) ||
-+		    (!nearest && mode->hact == width &&
-+		     mode->vact == height))
- 			break;
- 	}
- 
-@@ -1871,8 +1871,8 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
- 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
- 	if (!mode)
- 		return -EINVAL;
--	fmt->width = mode->width;
--	fmt->height = mode->height;
-+	fmt->width = mode->hact;
-+	fmt->height = mode->vact;
- 
- 	if (new_mode)
- 		*new_mode = mode;
-@@ -2304,9 +2304,9 @@ static int ov5640_enum_frame_size(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	fse->min_width = fse->max_width =
--		ov5640_mode_data[0][fse->index].width;
-+		ov5640_mode_data[0][fse->index].hact;
- 	fse->min_height = fse->max_height =
--		ov5640_mode_data[0][fse->index].height;
-+		ov5640_mode_data[0][fse->index].vact;
- 
- 	return 0;
- }
-@@ -2369,7 +2369,7 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 	mode = sensor->current_mode;
- 
- 	frame_rate = ov5640_try_frame_interval(sensor, &fi->interval,
--					       mode->width, mode->height);
-+					       mode->hact, mode->vact);
- 	if (frame_rate < 0)
- 		frame_rate = OV5640_15_FPS;
- 
+ /*
+  * general function
 -- 
 2.14.3
