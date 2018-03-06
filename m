@@ -1,51 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:19666 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932162AbeCKP66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Mar 2018 11:58:58 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>,
-        "Lai, Jim" <jim.lai@intel.com>
-Subject: RE: [PATCH v6] media: imx258: Add imx258 camera sensor driver
-Date: Sun, 11 Mar 2018 15:58:54 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D532128@PGSMSX111.gar.corp.intel.com>
-References: <1520002549-6564-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5D1a1Wd0ns85rkg8cJwK+y9uYzaS=c46efOniuGhvFk+w@mail.gmail.com>
-In-Reply-To: <CAAFQd5D1a1Wd0ns85rkg8cJwK+y9uYzaS=c46efOniuGhvFk+w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from bombadil.infradead.org ([198.137.202.133]:40504 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753878AbeCFQS1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 11:18:27 -0500
+Date: Tue, 6 Mar 2018 13:18:23 -0300
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH v2 11/12] [media] ngene: move the tsin_exchange()
+ stripcopy block into a function
+Message-ID: <20180306131823.4b6280ba@vento.lan>
+In-Reply-To: <20180225123140.19486-12-d.scheller.oss@gmail.com>
+References: <20180225123140.19486-1-d.scheller.oss@gmail.com>
+        <20180225123140.19486-12-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T2theS4gQWxsIGNvbW1lbnRzIGFyZSBhZGRyZXNzZWQgaW4gdjcuICAoaHR0cHM6Ly9wYXRjaHdv
-cmsubGludXh0di5vcmcvcGF0Y2gvNDc4NjkvKQ0KDQpUaGFua3MgZm9yIGFsbCB0aGUgY29tbWVu
-dHMgYW5kIHN1Z2dlc3Rpb25zLg0KDQpSZWdhcmRzLCBBbmR5DQoNCi0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQpGcm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVtLm9yZ10g
-DQpTZW50OiBGcmlkYXksIE1hcmNoIDIsIDIwMTggMTE6NDQgUE0NClRvOiBZZWgsIEFuZHkgPGFu
-ZHkueWVoQGludGVsLmNvbT4NCkNjOiBMaW51eCBNZWRpYSBNYWlsaW5nIExpc3QgPGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGxpbnV4Lmlu
-dGVsLmNvbT47IENoZW4sIEphc29uWCBaIDxqYXNvbnguei5jaGVuQGludGVsLmNvbT47IENoaWFu
-ZywgQWxhblggPGFsYW54LmNoaWFuZ0BpbnRlbC5jb20+DQpTdWJqZWN0OiBSZTogW1BBVENIIHY2
-XSBtZWRpYTogaW14MjU4OiBBZGQgaW14MjU4IGNhbWVyYSBzZW5zb3IgZHJpdmVyDQoNCkhpIEFu
-ZHksDQoNClRoYW5rcyBmb3IgdGhlIHBhdGNoLiBMZXQgbWUgcG9zdCBzb21lIGNvbW1lbnRzIGlu
-bGluZS4NCg0KT24gRnJpLCBNYXIgMiwgMjAxOCBhdCAxMTo1NSBQTSwgQW5keSBZZWggPGFuZHku
-eWVoQGludGVsLmNvbT4gd3JvdGU6DQo+IEFkZCBhIFY0TDIgc3ViLWRldmljZSBkcml2ZXIgZm9y
-IHRoZSBTb255IElNWDI1OCBpbWFnZSBzZW5zb3IuDQo+IFRoaXMgaXMgYSBjYW1lcmEgc2Vuc29y
-IHVzaW5nIHRoZSBJMkMgYnVzIGZvciBjb250cm9sIGFuZCB0aGUNCj4gQ1NJLTIgYnVzIGZvciBk
-YXRhLg0KPg0KPiBTaWduZWQtb2ZmLWJ5OiBKYXNvbiBDaGVuIDxqYXNvbnguei5jaGVuQGludGVs
-LmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogQWxhbiBDaGlhbmcgPGFsYW54LmNoaWFuZ0BpbnRlbC5j
-b20+DQo+IC0tLQ0KPiBzaW5jZSB2MjoNCj4gLS0gVXBkYXRlIHRoZSBzdHJlYW1pbmcgZnVuY3Rp
-b24gdG8gcmVtb3ZlIFNXX1NUQU5EQlkgaW4gdGhlIGJlZ2lubmluZy4NCj4gLS0gQWRqdXN0IHRo
-ZSBkZWxheSB0aW1lIGZyb20gMW1zIHRvIDEybXMgYmVmb3JlIHNldCBzdHJlYW0tb24gcmVnaXN0
-ZXIuDQo+IHNpbmNlIHYzOg0KPiAtLSBmaXggdGhlIHNkLmVudGl0eSB0byBtYWtlIGNvZGUgYmUg
-Y29tcGlsZWQgb24gdGhlIG1haW5saW5lIGtlcm5lbC4NCj4gc2luY2UgdjQ6DQo+IC0tIEVuYWJs
-ZWQgQUcsIERHLCBhbmQgRXhwb3N1cmUgdGltZSBjb250cm9sIGNvcnJlY3RseS4NCj4gc2luY2Ug
-djU6DQo+IC0tIFNlbnNvciB2ZW5kb3IgcHJvdmlkZWQgYSBuZXcgc2V0dGluZyB0byBmaXggZGlm
-ZmVyZW50IENMSyBpc3N1ZQ0KPiAtLSBBZGQgb25lIG1vcmUgcmVzb2x1dGlvbiBmb3IgMTA0OHg3
-ODAsIHVzZWQgZm9yIFZHQSBzdHJlYW1pbmcNCg0K
+Em Sun, 25 Feb 2018 13:31:39 +0100
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> Move the copy logic that will skip previously inserted TS NULL frames when
+> moving data to the DVB ring buffers into an own function. This is done to
+> not duplicate code all over the place with the following TS offset shift
+> fixup patch.
+> 
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> ---
+>  drivers/media/pci/ngene/ngene-dvb.c | 48 +++++++++++++++++++++----------------
+>  1 file changed, 27 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/pci/ngene/ngene-dvb.c b/drivers/media/pci/ngene/ngene-dvb.c
+> index f71fd41c762c..6d72b9f69418 100644
+> --- a/drivers/media/pci/ngene/ngene-dvb.c
+> +++ b/drivers/media/pci/ngene/ngene-dvb.c
+> @@ -123,6 +123,32 @@ static u32 overflow;
+>  static u32 stripped;
+>  #endif
+>  
+> +static inline void tsin_copy_stripped(struct ngene *dev, void *buf)
+> +{
+> +	if (memcmp(buf, fill_ts, sizeof(fill_ts)) != 0) {
+> +		if (dvb_ringbuffer_free(&dev->tsin_rbuf) >= 188) {
+> +			dvb_ringbuffer_write(&dev->tsin_rbuf, buf, 188);
+> +			wake_up(&dev->tsin_rbuf.queue);
+> +#ifdef DEBUG_CI_XFER
+> +			ok++;
+> +#endif
+> +		}
+> +#ifdef DEBUG_CI_XFER
+> +		else
+> +			overflow++;
+> +#endif
+> +	}
+> +#ifdef DEBUG_CI_XFER
+> +	else
+> +		stripped++;
+> +
+> +	if (ok % 100 == 0 && overflow)
+> +		dev_warn(&dev->pci_dev->dev,
+> +			 "%s: ok %u overflow %u dropped %u\n",
+> +			 __func__, ok, overflow, stripped);
+> +#endif
+
+Those blocks are ugly. Also, there's no Kconfig way to enable those
+debug messages.
+
+If they're meant only for your own consumption, just keep it
+outside of upstream.
+
+Otherwise, please change the logic in a way that it would
+make the code harder to read/enable.
+
+> +}
+> +
+>  void *tsin_exchange(void *priv, void *buf, u32 len, u32 clock, u32 flags)
+>  {
+>  	struct ngene_channel *chan = priv;
+> @@ -134,28 +160,8 @@ void *tsin_exchange(void *priv, void *buf, u32 len, u32 clock, u32 flags)
+>  
+>  	if (dev->ci.en && chan->number == 2) {
+>  		while (len >= 188) {
+> -			if (memcmp(buf, fill_ts, sizeof fill_ts) != 0) {
+> -				if (dvb_ringbuffer_free(&dev->tsin_rbuf) >= 188) {
+> -					dvb_ringbuffer_write(&dev->tsin_rbuf, buf, 188);
+> -					wake_up(&dev->tsin_rbuf.queue);
+> -#ifdef DEBUG_CI_XFER
+> -					ok++;
+> -#endif
+> -				}
+> -#ifdef DEBUG_CI_XFER
+> -				else
+> -					overflow++;
+> -#endif
+> -			}
+> -#ifdef DEBUG_CI_XFER
+> -			else
+> -				stripped++;
+> +			tsin_copy_stripped(dev, buf);
+>  
+> -			if (ok % 100 == 0 && overflow)
+> -				dev_warn(&dev->pci_dev->dev,
+> -					 "%s: ok %u overflow %u dropped %u\n",
+> -					 __func__, ok, overflow, stripped);
+> -#endif
+>  			buf += 188;
+>  			len -= 188;
+>  		}
+
+
+
+Thanks,
+Mauro
