@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60365 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752725AbeC1OBb (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44181 "EHLO
+        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750836AbeCFTPk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:31 -0400
-Subject: Re: [RFCv9 PATCH 00/29] Request API
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 6 Mar 2018 14:15:40 -0500
+From: Brad Love <brad@nextdimension.cc>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
-Message-ID: <2128fbeb-61ea-09dc-1543-2a42f2736a23@xs4all.nl>
-Date: Wed, 28 Mar 2018 16:01:26 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 0/4] [resend] cx25840: Add non-default crystal frequency support
+Date: Tue,  6 Mar 2018 13:15:33 -0600
+Message-Id: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/28/2018 03:50 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Hi all,
-> 
-> This patch series is an attempt to pick the best parts of
-> Alexandre's RFCv4:
+Hauppauge produced a revision of ImpactVCBe using an 888,
+with a 25MHz crystal, instead of using the default third
+overtone 50Mhz crystal. Custom configuration of the cx25840
+is required to load the firmware and properly decode video.
 
-"sending too many recipients in a short time. Please try again later."
+This patch set add an extra clocking option to the cx25840 driver.
+If a cx2388x board is produced using non-default crystal, then
+clk_freq can be set in the board profile and then used by the
+cx25840 to set up the PLL's. To pass frequency, the cx23885 driver
+sets the cx25840 v4l subdev host data to a pointer to clk_freq.
 
-So patches 17 and up will appear a bit later. I'll drop the CC list to
-avoid hitting this issue again. My ISP is not friendly for kernel
-developers who need to post large series to many people :-(
+The only additional clock rate included is cx23888 with 25MHz crystal.
 
-Regards,
+Brad Love (4):
+  cx25840: Use subdev host data for PLL override
+  cx23885: change 887/888 default to 888
+  cx23885: Set subdev host data to clk_freq pointer
+  cx23885: Override 888 ImpactVCBe crystal frequency
 
-	Hans
+ drivers/media/i2c/cx25840/cx25840-core.c  | 28 ++++++++++++++++++++++------
+ drivers/media/pci/cx23885/cx23885-cards.c |  4 ++++
+ drivers/media/pci/cx23885/cx23885-core.c  | 16 +++++++++++++---
+ 3 files changed, 39 insertions(+), 9 deletions(-)
+
+-- 
+2.7.4
