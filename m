@@ -1,140 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34812 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751553AbeCWEsw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 00:48:52 -0400
-Message-ID: <793f0c12f38c0251c3eab69137ac6236@smtp-cloud9.xs4all.net>
-Date: Fri, 23 Mar 2018 05:48:49 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:49367 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753466AbeCFPMF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 10:12:05 -0500
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: [PATCH v2] media: rc: new driver for early iMon device
+Date: Tue,  6 Mar 2018 15:12:03 +0000
+Message-Id: <20180306151204.851-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+These devices were supported by the lirc_imon.c driver which was removed
+from staging in commit f41003a23a02 ("[media] staging: lirc_imon: port
+remaining usb ids to imon and remove").
 
-Results of the daily build of media_tree:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ MAINTAINERS                 |   7 ++
+ drivers/media/rc/Kconfig    |  12 +++
+ drivers/media/rc/Makefile   |   1 +
+ drivers/media/rc/imon_raw.c | 199 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 219 insertions(+)
+ create mode 100644 drivers/media/rc/imon_raw.c
 
-date:			Fri Mar 23 05:00:11 CET 2018
-media-tree git hash:	f67449fdba3b9dbdd340d8cbf17dfa711d5bd2fb
-media_build git hash:	e95b7e6bfea396f9dfb1ff7d4d6b95ecacd53d3d
-v4l-utils git hash:	fe8efe407c35e99f450321bfa1c1e75550952f7b
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.100-i686: ERRORS
-linux-3.2.100-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.55-i686: ERRORS
-linux-3.16.55-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.100-i686: ERRORS
-linux-3.18.100-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.50-i686: ERRORS
-linux-4.1.50-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.99-i686: ERRORS
-linux-4.4.99-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.87-i686: ERRORS
-linux-4.9.87-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: WARNINGS
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: WARNINGS
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.27-i686: WARNINGS
-linux-4.14.27-x86_64: WARNINGS
-linux-4.15.10-i686: WARNINGS
-linux-4.15.10-x86_64: WARNINGS
-linux-4.16-rc5-i686: WARNINGS
-linux-4.16-rc5-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0eea2f0e9456..e1ac64c4830b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6903,6 +6903,13 @@ M:	James Hogan <jhogan@kernel.org>
+ S:	Maintained
+ F:	drivers/media/rc/img-ir/
+ 
++IMON SOUNDGRAPH USB IR RECEIVER
++M:	Sean Young <sean@mess.org>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/rc/imon_raw.c
++F:	drivers/media/rc/imon.c
++
+ IMS TWINTURBO FRAMEBUFFER DRIVER
+ L:	linux-fbdev@vger.kernel.org
+ S:	Orphan
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 447f82c1f65a..7ad05a6ef350 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -175,6 +175,18 @@ config IR_IMON
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called imon.
+ 
++config IR_IMON_RAW
++	tristate "SoundGraph iMON Receiver (early raw IR models)"
++	depends on USB_ARCH_HAS_HCD
++	depends on RC_CORE
++	select USB
++	---help---
++	   Say Y here if you want to use a SoundGraph iMON IR Receiver,
++	   early raw models.
++
++	   To compile this driver as a module, choose M here: the
++	   module will be called imon_raw.
++
+ config IR_MCEUSB
+ 	tristate "Windows Media Center Ed. eHome Infrared Transceiver"
+ 	depends on USB_ARCH_HAS_HCD
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 0e857816ac2d..e098e127b26a 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -19,6 +19,7 @@ obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
+ obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
+ obj-$(CONFIG_IR_HIX5HD2) += ir-hix5hd2.o
+ obj-$(CONFIG_IR_IMON) += imon.o
++obj-$(CONFIG_IR_IMON_RAW) += imon_raw.o
+ obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
+ obj-$(CONFIG_IR_MCEUSB) += mceusb.o
+ obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
+diff --git a/drivers/media/rc/imon_raw.c b/drivers/media/rc/imon_raw.c
+new file mode 100644
+index 000000000000..32709f96de14
+--- /dev/null
++++ b/drivers/media/rc/imon_raw.c
+@@ -0,0 +1,199 @@
++// SPDX-License-Identifier: GPL-2.0+
++//
++// Copyright (C) 2018 Sean Young <sean@mess.org>
++
++#include <linux/module.h>
++#include <linux/usb.h>
++#include <linux/usb/input.h>
++#include <media/rc-core.h>
++
++/* Each bit is 250us */
++#define BIT_DURATION 250000
++
++struct imon {
++	struct device *dev;
++	struct urb *ir_urb;
++	struct rc_dev *rcdev;
++	u8 ir_buf[8];
++	char phys[64];
++};
++
++/*
++ * ffs/find_next_bit() searches in the wrong direction, so open-code our own.
++ */
++static inline int is_bit_set(const u8 *buf, int bit)
++{
++	return buf[bit / 8] & (0x80 >> (bit & 7));
++}
++
++static void imon_ir_data(struct imon *imon)
++{
++	DEFINE_IR_RAW_EVENT(rawir);
++	int offset = 0, size = 5 * 8;
++	int bit;
++
++	dev_dbg(imon->dev, "data: %*ph", 8, imon->ir_buf);
++
++	while (offset < size) {
++		bit = offset;
++		while (!is_bit_set(imon->ir_buf, bit) && bit < size)
++			bit++;
++		dev_dbg(imon->dev, "pulse: %d bits", bit - offset);
++		if (bit > offset) {
++			rawir.pulse = true;
++			rawir.duration = (bit - offset) * BIT_DURATION;
++			ir_raw_event_store_with_filter(imon->rcdev, &rawir);
++		}
++
++		if (bit >= size)
++			break;
++
++		offset = bit;
++		while (is_bit_set(imon->ir_buf, bit) && bit < size)
++			bit++;
++		dev_dbg(imon->dev, "space: %d bits", bit - offset);
++
++		rawir.pulse = false;
++		rawir.duration = (bit - offset) * BIT_DURATION;
++		ir_raw_event_store_with_filter(imon->rcdev, &rawir);
++
++		offset = bit;
++	}
++
++	if (imon->ir_buf[7] == 0x0a) {
++		ir_raw_event_set_idle(imon->rcdev, true);
++		ir_raw_event_handle(imon->rcdev);
++	}
++}
++
++static void imon_ir_rx(struct urb *urb)
++{
++	struct imon *imon = urb->context;
++	int ret;
++
++	switch (urb->status) {
++	case 0:
++		if (imon->ir_buf[7] != 0xff)
++			imon_ir_data(imon);
++		break;
++	case -ECONNRESET:
++	case -ENOENT:
++	case -ESHUTDOWN:
++		usb_unlink_urb(urb);
++		return;
++	case -EPIPE:
++	default:
++		dev_dbg(imon->dev, "error: urb status = %d", urb->status);
++		break;
++	}
++
++	ret = usb_submit_urb(urb, GFP_ATOMIC);
++	if (ret && ret != -ENODEV)
++		dev_warn(imon->dev, "failed to resubmit urb: %d", ret);
++}
++
++static int imon_probe(struct usb_interface *intf,
++		      const struct usb_device_id *id)
++{
++	struct usb_endpoint_descriptor *ir_ep = NULL;
++	struct usb_host_interface *idesc;
++	struct usb_device *udev;
++	struct rc_dev *rcdev;
++	struct imon *imon;
++	int i, ret;
++
++	udev = interface_to_usbdev(intf);
++	idesc = intf->cur_altsetting;
++
++	for (i = 0; i < idesc->desc.bNumEndpoints; i++) {
++		struct usb_endpoint_descriptor *ep = &idesc->endpoint[i].desc;
++
++		if (usb_endpoint_is_int_in(ep)) {
++			ir_ep = ep;
++			break;
++		}
++	}
++
++	if (!ir_ep) {
++		dev_err(&intf->dev, "IR endpoint missing");
++		return -ENODEV;
++	}
++
++	imon = devm_kmalloc(&intf->dev, sizeof(*imon), GFP_KERNEL);
++	if (!imon)
++		return -ENOMEM;
++
++	imon->ir_urb = usb_alloc_urb(0, GFP_KERNEL);
++	if (!imon->ir_urb)
++		return -ENOMEM;
++
++	imon->dev = &intf->dev;
++	usb_fill_int_urb(imon->ir_urb, udev,
++			 usb_rcvintpipe(udev, ir_ep->bEndpointAddress),
++			 imon->ir_buf, sizeof(imon->ir_buf),
++			 imon_ir_rx, imon, ir_ep->bInterval);
++
++	rcdev = devm_rc_allocate_device(&intf->dev, RC_DRIVER_IR_RAW);
++	if (!rcdev) {
++		ret = -ENOMEM;
++		goto free_urb;
++	}
++
++	usb_make_path(udev, imon->phys, sizeof(imon->phys));
++
++	rcdev->device_name = "iMON Station";
++	rcdev->driver_name = KBUILD_MODNAME;
++	rcdev->input_phys = imon->phys;
++	usb_to_input_id(udev, &rcdev->input_id);
++	rcdev->dev.parent = &intf->dev;
++	rcdev->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
++	rcdev->map_name = RC_MAP_IMON_RSC;
++	rcdev->rx_resolution = BIT_DURATION;
++	rcdev->priv = imon;
++
++	ret = devm_rc_register_device(&intf->dev, rcdev);
++	if (ret)
++		goto free_urb;
++
++	imon->rcdev = rcdev;
++
++	ret = usb_submit_urb(imon->ir_urb, GFP_KERNEL);
++	if (ret)
++		goto free_urb;
++
++	usb_set_intfdata(intf, imon);
++
++	return 0;
++
++free_urb:
++	usb_free_urb(imon->ir_urb);
++	return ret;
++}
++
++static void imon_disconnect(struct usb_interface *intf)
++{
++	struct imon *imon = usb_get_intfdata(intf);
++
++	usb_kill_urb(imon->ir_urb);
++	usb_free_urb(imon->ir_urb);
++}
++
++static const struct usb_device_id imon_table[] = {
++	/* SoundGraph iMON (IR only) -- sg_imon.inf */
++	{ USB_DEVICE(0x04e8, 0xff30) },
++	{}
++};
++
++static struct usb_driver imon_driver = {
++	.name = KBUILD_MODNAME,
++	.probe = imon_probe,
++	.disconnect = imon_disconnect,
++	.id_table = imon_table
++};
++
++module_usb_driver(imon_driver);
++
++MODULE_DESCRIPTION("Early raw iMON IR devices");
++MODULE_AUTHOR("Sean Young <sean@mess.org>");
++MODULE_LICENSE("GPL");
++MODULE_DEVICE_TABLE(usb, imon_table);
+-- 
+2.14.3
