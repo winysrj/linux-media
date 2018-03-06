@@ -1,104 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx194.ext.ti.com ([198.47.27.80]:26981 "EHLO
-        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbeCZQlf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 12:41:35 -0400
-Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-References: <20180314154136.16468-1-s-anna@ti.com> <5767280.aLITpzbm0N@avalon>
-From: Suman Anna <s-anna@ti.com>
-Message-ID: <e0151287-f294-3540-9b12-a96e05db61c0@ti.com>
-Date: Mon, 26 Mar 2018 11:40:58 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:34436 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750836AbeCFQOY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 11:14:24 -0500
+Date: Tue, 6 Mar 2018 13:14:20 -0300
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: [PATCH v2 08/12] [media] ngene: deduplicate I2C adapter
+ evaluation
+Message-ID: <20180306131420.0f012549@vento.lan>
+In-Reply-To: <20180306130615.25fd87b5@vento.lan>
+References: <20180225123140.19486-1-d.scheller.oss@gmail.com>
+        <20180225123140.19486-9-d.scheller.oss@gmail.com>
+        <20180306130615.25fd87b5@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <5767280.aLITpzbm0N@avalon>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Tue, 6 Mar 2018 13:06:15 -0300
+Mauro Carvalho Chehab <mchehab@kernel.org> escreveu:
 
-On 03/21/2018 05:26 AM, Laurent Pinchart wrote:
-> Hi Suman,
+> Em Sun, 25 Feb 2018 13:31:36 +0100
+> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 > 
-> Thank you for the patch.
+> > From: Daniel Scheller <d.scheller@gmx.net>
+> > 
+> > The I2C adapter evaluation (based on chan->number) is duplicated at
+> > several places (tuner_attach_() functions, demod_attach_stv0900() and
+> > cineS2_probe()). Clean this up by wrapping that construct in a separate
+> > function which all users of that can pass the ngene_channel pointer and
+> > get the correct I2C adapter from.
 > 
-> On Wednesday, 14 March 2018 17:41:36 EET Suman Anna wrote:
->> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
->> ARM DMA backend. The current code creates a dma_iommu_mapping and
->> attaches this to the ISP device, but never detaches the mapping in
->> either the probe failure paths or the driver remove path resulting
->> in an unbalanced mapping refcount and a memory leak. Fix this properly.
->>
->> Reported-by: Pavel Machek <pavel@ucw.cz>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> This patch doesn't apply. 
 
-I don't see this patch in -next yet, can you pick up this patch at your
-earliest?
+Forget that. Patch 7 was missing. After applying it, this one
+merged OK.
+
+> 
+> Please rebase from this point at the top of the media tree.
+> 
+> PS.: Perhaps I ended by merging an older version of some of your
+> patches, as I noticed that some e-mails got lost either by me or
+> by patch work along those days.
+
+
+> 
+> > 
+> > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> > ---
+> >  drivers/media/pci/ngene/ngene-cards.c | 41 +++++++++++++----------------------
+> >  1 file changed, 15 insertions(+), 26 deletions(-)
+> > 
+> > diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+> > index 00b100660784..dff55c7c9f86 100644
+> > --- a/drivers/media/pci/ngene/ngene-cards.c
+> > +++ b/drivers/media/pci/ngene/ngene-cards.c
+> > @@ -118,17 +118,25 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
+> >  /* Demod/tuner attachment ***************************************************/
+> >  /****************************************************************************/
+> >  
+> > +static struct i2c_adapter *i2c_adapter_from_chan(struct ngene_channel *chan)
+> > +{
+> > +	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+> > +	if (chan->number < 2)
+> > +		return &chan->dev->channel[0].i2c_adapter;
+> > +
+> > +	return &chan->dev->channel[1].i2c_adapter;
+> > +}
+> > +
+> >  static int tuner_attach_stv6110(struct ngene_channel *chan)
+> >  {
+> >  	struct device *pdev = &chan->dev->pci_dev->dev;
+> > -	struct i2c_adapter *i2c;
+> > +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+> >  	struct stv090x_config *feconf = (struct stv090x_config *)
+> >  		chan->dev->card_info->fe_config[chan->number];
+> >  	struct stv6110x_config *tunerconf = (struct stv6110x_config *)
+> >  		chan->dev->card_info->tuner_config[chan->number];
+> >  	const struct stv6110x_devctl *ctl;
+> >  
+> > -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+> >  	if (chan->number < 2)
+> >  		i2c = &chan->dev->channel[0].i2c_adapter;
+> >  	else
+> > @@ -158,16 +166,10 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
+> >  static int tuner_attach_stv6111(struct ngene_channel *chan)
+> >  {
+> >  	struct device *pdev = &chan->dev->pci_dev->dev;
+> > -	struct i2c_adapter *i2c;
+> > +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+> >  	struct dvb_frontend *fe;
+> >  	u8 adr = 4 + ((chan->number & 1) ? 0x63 : 0x60);
+> >  
+> > -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+> > -	if (chan->number < 2)
+> > -		i2c = &chan->dev->channel[0].i2c_adapter;
+> > -	else
+> > -		i2c = &chan->dev->channel[1].i2c_adapter;
+> > -
+> >  	fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr);
+> >  	if (!fe) {
+> >  		fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr & ~4);
+> > @@ -197,10 +199,9 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+> >  static int tuner_attach_tda18271(struct ngene_channel *chan)
+> >  {
+> >  	struct device *pdev = &chan->dev->pci_dev->dev;
+> > -	struct i2c_adapter *i2c;
+> > +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+> >  	struct dvb_frontend *fe;
+> >  
+> > -	i2c = &chan->dev->channel[0].i2c_adapter;
+> >  	if (chan->fe->ops.i2c_gate_ctrl)
+> >  		chan->fe->ops.i2c_gate_ctrl(chan->fe, 1);
+> >  	fe = dvb_attach(tda18271c2dd_attach, chan->fe, i2c, 0x60);
+> > @@ -240,7 +241,7 @@ static int tuner_tda18212_ping(struct ngene_channel *chan,
+> >  static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
+> >  {
+> >  	struct device *pdev = &chan->dev->pci_dev->dev;
+> > -	struct i2c_adapter *i2c;
+> > +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+> >  	struct i2c_client *client;
+> >  	struct tda18212_config config = {
+> >  		.fe = chan->fe,
+> > @@ -262,12 +263,6 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
+> >  	else
+> >  		board_info.addr = 0x60;
+> >  
+> > -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+> > -	if (chan->number < 2)
+> > -		i2c = &chan->dev->channel[0].i2c_adapter;
+> > -	else
+> > -		i2c = &chan->dev->channel[1].i2c_adapter;
+> > -
+> >  	/*
+> >  	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
+> >  	 * combo, the tda18212 must be probed by reading it's id _twice_ when
+> > @@ -320,7 +315,7 @@ static int tuner_attach_probe(struct ngene_channel *chan)
+> >  static int demod_attach_stv0900(struct ngene_channel *chan)
+> >  {
+> >  	struct device *pdev = &chan->dev->pci_dev->dev;
+> > -	struct i2c_adapter *i2c;
+> > +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+> >  	struct stv090x_config *feconf = (struct stv090x_config *)
+> >  		chan->dev->card_info->fe_config[chan->number];
+> >  
+> > @@ -620,7 +615,7 @@ static int port_has_xo2(struct i2c_adapter *i2c, u8 *type, u8 *id)
+> >  static int cineS2_probe(struct ngene_channel *chan)
+> >  {
+> >  	struct device *pdev = &chan->dev->pci_dev->dev;
+> > -	struct i2c_adapter *i2c;
+> > +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
+> >  	struct stv090x_config *fe_conf;
+> >  	u8 buf[3];
+> >  	u8 xo2_type, xo2_id, xo2_demodtype;
+> > @@ -628,12 +623,6 @@ static int cineS2_probe(struct ngene_channel *chan)
+> >  	struct i2c_msg i2c_msg = { .flags = 0, .buf = buf };
+> >  	int rc;
+> >  
+> > -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+> > -	if (chan->number < 2)
+> > -		i2c = &chan->dev->channel[0].i2c_adapter;
+> > -	else
+> > -		i2c = &chan->dev->channel[1].i2c_adapter;
+> > -
+> >  	if (port_has_xo2(i2c, &xo2_type, &xo2_id)) {
+> >  		xo2_id >>= 2;
+> >  		dev_dbg(pdev, "XO2 on channel %d (type %d, id %d)\n",
+> 
+> 
+> 
+> Thanks,
+> Mauro
+
+
 
 Thanks,
-Suman
-
-> 
->> ---
->> v2 Changes:
->>  - Dropped the error_attach label, and returned directly from the
->>    first error path (comments from Sakari)
->>  - Added Sakari's Acked-by
->> v1: https://patchwork.kernel.org/patch/10276759/
->>
->> Pavel,
->> I dropped your Tested-by from v2 since I modified the patch, can you
->> recheck the new patch again? Thanks.
->>
->> regards
->> Suman
->>
->>  drivers/media/platform/omap3isp/isp.c | 7 ++++---
->>  1 file changed, 4 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/omap3isp/isp.c
->> b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..f2db5128d786
->> 100644
->> --- a/drivers/media/platform/omap3isp/isp.c
->> +++ b/drivers/media/platform/omap3isp/isp.c
->> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device
->> *isp)
->>
->>  static void isp_detach_iommu(struct isp_device *isp)
->>  {
->> +	arm_iommu_detach_device(isp->dev);
->>  	arm_iommu_release_mapping(isp->mapping);
->>  	isp->mapping = NULL;
->>  }
->> @@ -1961,8 +1962,7 @@ static int isp_attach_iommu(struct isp_device *isp)
->>  	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
->>  	if (IS_ERR(mapping)) {
->>  		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
->> -		ret = PTR_ERR(mapping);
->> -		goto error;
->> +		return PTR_ERR(mapping);
->>  	}
->>
->>  	isp->mapping = mapping;
->> @@ -1977,7 +1977,8 @@ static int isp_attach_iommu(struct isp_device *isp)
->>  	return 0;
->>
->>  error:
->> -	isp_detach_iommu(isp);
->> +	arm_iommu_release_mapping(isp->mapping);
->> +	isp->mapping = NULL;
->>  	return ret;
->>  }
-> 
+Mauro
