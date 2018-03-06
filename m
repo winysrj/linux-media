@@ -1,150 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:58196 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426315AbeCBOrA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:00 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
-        joe@perches.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 02/11] media: tw9910: Re-organize in-code comments
-Date: Fri,  2 Mar 2018 15:46:34 +0100
-Message-Id: <1520002003-10200-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:53552 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753860AbeCFREv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 12:04:51 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH] media: ov5640: fix get_/set_fmt colorspace related fields
+Date: Tue, 6 Mar 2018 18:04:39 +0100
+Message-ID: <1520355879-20291-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A lot of comments that would fit a single line were spread on two or
-more lines. Also fix capitalization and punctuation where appropriate.
+Fix set of missing colorspace related fields in get_/set_fmt.
+Detected by v4l2-compliance tool.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/i2c/tw9910.c | 44 +++++++++++++-------------------------------
- 1 file changed, 13 insertions(+), 31 deletions(-)
+ drivers/media/i2c/ov5640.c | 29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index 3a5e307..1c3c8f0 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -388,7 +388,7 @@ static int tw9910_set_hsync(struct i2c_client *client)
- 	if (ret < 0)
- 		return ret;
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 03940f0..676f635 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1874,7 +1874,13 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
+ 		if (ov5640_formats[i].code == fmt->code)
+ 			break;
+ 	if (i >= ARRAY_SIZE(ov5640_formats))
+-		fmt->code = ov5640_formats[0].code;
++		i = 0;
++
++	fmt->code = ov5640_formats[i].code;
++	fmt->colorspace = ov5640_formats[i].colorspace;
++	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
++	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
++	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
  
--	/* So far only revisions 0 and 1 have been seen */
-+	/* So far only revisions 0 and 1 have been seen. */
- 	/* bit 2 - 0 */
- 	if (priv->revision == 1)
- 		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
-@@ -652,21 +652,15 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
- 	int ret = -EINVAL;
- 	u8 val;
- 
--	/*
--	 * select suitable norm
--	 */
-+	/* Select suitable norm. */
- 	priv->scale = tw9910_select_norm(priv->norm, *width, *height);
- 	if (!priv->scale)
- 		goto tw9910_set_fmt_error;
- 
--	/*
--	 * reset hardware
--	 */
-+	/* Reset hardware. */
- 	tw9910_reset(client);
- 
--	/*
--	 * set bus width
--	 */
-+	/* Set bus width. */
- 	val = 0x00;
- 	if (priv->info->buswidth == 16)
- 		val = LEN;
-@@ -675,9 +669,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
- 	if (ret < 0)
- 		goto tw9910_set_fmt_error;
- 
--	/*
--	 * select MPOUT behavior
--	 */
-+	/* Select MPOUT behavior. */
- 	switch (priv->info->mpout) {
- 	case TW9910_MPO_VLOSS:
- 		val = RTSEL_VLOSS; break;
-@@ -703,16 +695,12 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
- 	if (ret < 0)
- 		goto tw9910_set_fmt_error;
- 
--	/*
--	 * set scale
--	 */
-+	/* Set scale. */
- 	ret = tw9910_set_scale(client, priv->scale);
- 	if (ret < 0)
- 		goto tw9910_set_fmt_error;
- 
--	/*
--	 * set hsync
--	 */
-+	/* Set hsync. */
- 	ret = tw9910_set_hsync(client);
- 	if (ret < 0)
- 		goto tw9910_set_fmt_error;
-@@ -739,7 +727,7 @@ static int tw9910_get_selection(struct v4l2_subdev *sd,
- 
- 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
- 		return -EINVAL;
--	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
-+	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported. */
- 	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
- 		return -EINVAL;
- 
-@@ -791,9 +779,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
- 	WARN_ON(mf->field != V4L2_FIELD_ANY &&
- 		mf->field != V4L2_FIELD_INTERLACED_BT);
- 
--	/*
--	 * check color format
--	 */
-+	/* Check color format. */
- 	if (mf->code != MEDIA_BUS_FMT_UYVY8_2X8)
- 		return -EINVAL;
- 
-@@ -831,9 +817,7 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- 	mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
- 	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
--	/*
--	 * select suitable norm
--	 */
-+	/* Select suitable norm. */
- 	scale = tw9910_select_norm(priv->norm, mf->width, mf->height);
- 	if (!scale)
- 		return -EINVAL;
-@@ -855,9 +839,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 	return 0;
+ }
+@@ -1885,6 +1891,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+ 	const struct ov5640_mode_info *new_mode;
++	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
  	int ret;
- 	s32 id;
  
--	/*
--	 * tw9910 only use 8 or 16 bit bus width
--	 */
-+	/* TW9910 only use 8 or 16 bit bus width. */
- 	if (priv->info->buswidth != 16 && priv->info->buswidth != 8) {
- 		dev_err(&client->dev, "bus width error\n");
- 		return -ENODEV;
-@@ -868,8 +850,8 @@ static int tw9910_video_probe(struct i2c_client *client)
- 		return ret;
+ 	if (format->pad != 0)
+@@ -1897,7 +1904,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 		goto out;
+ 	}
  
- 	/*
--	 * check and show Product ID
--	 * So far only revisions 0 and 1 have been seen
-+	 * Check and show Product ID.
-+	 * So far only revisions 0 and 1 have been seen.
- 	 */
- 	id = i2c_smbus_read_byte_data(client, ID);
- 	priv->revision = GET_REV(id);
+-	ret = ov5640_try_fmt_internal(sd, &format->format,
++	ret = ov5640_try_fmt_internal(sd, mbus_fmt,
+ 				      sensor->current_fr, &new_mode);
+ 	if (ret)
+ 		goto out;
+@@ -1906,12 +1913,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 		struct v4l2_mbus_framefmt *fmt =
+ 			v4l2_subdev_get_try_format(sd, cfg, 0);
+ 
+-		*fmt = format->format;
++		*fmt = *mbus_fmt;
+ 		goto out;
+ 	}
+ 
+ 	sensor->current_mode = new_mode;
+-	sensor->fmt = format->format;
++	sensor->fmt = *mbus_fmt;
+ 	sensor->pending_mode_change = true;
+ out:
+ 	mutex_unlock(&sensor->lock);
+@@ -2497,16 +2504,22 @@ static int ov5640_probe(struct i2c_client *client,
+ 	struct fwnode_handle *endpoint;
+ 	struct ov5640_dev *sensor;
+ 	int ret;
++	struct v4l2_mbus_framefmt *fmt;
+ 
+ 	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+ 	if (!sensor)
+ 		return -ENOMEM;
+ 
+ 	sensor->i2c_client = client;
+-	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	sensor->fmt.width = 640;
+-	sensor->fmt.height = 480;
+-	sensor->fmt.field = V4L2_FIELD_NONE;
++	fmt = &sensor->fmt;
++	fmt->code = ov5640_formats[0].code;
++	fmt->colorspace = ov5640_formats[0].colorspace;
++	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
++	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
++	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
++	fmt->width = 640;
++	fmt->height = 480;
++	fmt->field = V4L2_FIELD_NONE;
+ 	sensor->frame_interval.numerator = 1;
+ 	sensor->frame_interval.denominator = ov5640_framerates[OV5640_30_FPS];
+ 	sensor->current_fr = OV5640_30_FPS;
 -- 
-2.7.4
+1.9.1
