@@ -1,66 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:53997 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbeCUH0n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 03:26:43 -0400
-Received: by mail-it0-f66.google.com with SMTP id b136-v6so5649176iti.3
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2018 00:26:43 -0700 (PDT)
-Subject: Re: [PATCH] media: ov5645: add missing of_node_put() in error path
-To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1521476057-28792-1-git-send-email-akinobu.mita@gmail.com>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <9164528c-fbd0-51e1-a94d-29d72735d1e1@linaro.org>
-Date: Wed, 21 Mar 2018 15:26:39 +0800
+Received: from bombadil.infradead.org ([198.137.202.133]:42140 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752784AbeCFR33 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 12:29:29 -0500
+Date: Tue, 6 Mar 2018 14:29:23 -0300
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Mariusz Bialonczyk <manio@skyboo.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@redhat.com>,
+        Evgeniy Polyakov <zbr@ioremap.net>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] w1: fix w1_ds2438 documentation
+Message-ID: <20180306142923.6364ad2b@vento.lan>
+In-Reply-To: <20180302075524.27868-1-manio@skyboo.net>
+References: <20180302075524.27868-1-manio@skyboo.net>
 MIME-Version: 1.0
-In-Reply-To: <1521476057-28792-1-git-send-email-akinobu.mita@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Akinobu.
+Em Fri,  2 Mar 2018 08:55:24 +0100
+Mariusz Bialonczyk <manio@skyboo.net> escreveu:
 
-Acked-by: Todor Tomov <todor.tomov@linaro.org>
-
-On 20.03.2018 00:14, Akinobu Mita wrote:
-> The device node obtained with of_graph_get_next_endpoint() should be
-> released by calling of_node_put().  But it was not released when
-> v4l2_fwnode_endpoint_parse() failed.
-> 
-> This change moves the of_node_put() call before the error check and
-> fixes the issue.
-> 
-> Cc: Todor Tomov <todor.tomov@linaro.org>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
 > ---
->  drivers/media/i2c/ov5645.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+>  Documentation/w1/slaves/w1_ds2438 | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
-> index d28845f..a31fe18 100644
-> --- a/drivers/media/i2c/ov5645.c
-> +++ b/drivers/media/i2c/ov5645.c
-> @@ -1131,13 +1131,14 @@ static int ov5645_probe(struct i2c_client *client,
+> diff --git a/Documentation/w1/slaves/w1_ds2438 b/Documentation/w1/slaves/w1_ds2438
+> index b99f3674c5b4..e64f65a09387 100644
+> --- a/Documentation/w1/slaves/w1_ds2438
+> +++ b/Documentation/w1/slaves/w1_ds2438
+> @@ -60,4 +60,4 @@ vad: general purpose A/D input (VAD)
+>  vdd: battery input (VDD)
 >  
->  	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint),
->  					 &ov5645->ep);
-> +
-> +	of_node_put(endpoint);
-> +
->  	if (ret < 0) {
->  		dev_err(dev, "parsing endpoint node failed\n");
->  		return ret;
->  	}
->  
-> -	of_node_put(endpoint);
-> -
->  	if (ov5645->ep.bus_type != V4L2_MBUS_CSI2) {
->  		dev_err(dev, "invalid bus type, must be CSI2\n");
->  		return -EINVAL;
-> 
+>  After the voltage conversion the value is returned as decimal ASCII.
+> -Note: The value is in mV, so to get a volts the value has to be divided by 10.
+> +Note: To get a volts the value has to be divided by 100.
+
+Hmm... I've no idea why you sent this to linux-media and to me...
+
+The proper maintainer seems to be Evgeniy:
+
+ ./scripts/get_maintainer.pl -f Documentation/w1/slaves/w1_ds2438
+Evgeniy Polyakov <zbr@ioremap.net> (maintainer:W1 DALLAS'S 1-WIRE BUS)
+Jonathan Corbet <corbet@lwn.net> (maintainer:DOCUMENTATION)
+Greg Kroah-Hartman <gregkh@linuxfoundation.org> (commit_signer:1/1=100%)
+Mariusz Bialonczyk <manio@skyboo.net> (commit_signer:1/1=100%,authored:1/1=100%,added_lines:63/63=100%)
+linux-doc@vger.kernel.org (open list:DOCUMENTATION)
+linux-kernel@vger.kernel.org (open list)
+
+
+
+Thanks,
+Mauro
