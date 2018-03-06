@@ -1,65 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:18777 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750708AbeC2Gj5 (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44193 "EHLO
+        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750836AbeCFTPl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 02:39:57 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset="UTF-8"
-Message-id: <5ABC8A3A.5030602@samsung.com>
-Date: Thu, 29 Mar 2018 15:39:54 +0900
-From: Inki Dae <inki.dae@samsung.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Brian Warner <brian.warner@samsung.com>
-Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
- 3.18
-In-reply-to: <20180329042558.GA9003@kroah.com>
-References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
-        <cover.1522260310.git.mchehab@s-opensource.com> <5ABC23A0.20907@samsung.com>
-        <20180329042558.GA9003@kroah.com>
+        Tue, 6 Mar 2018 14:15:41 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 3/4] cx23885: Set subdev host data to clk_freq pointer
+Date: Tue,  6 Mar 2018 13:15:36 -0600
+Message-Id: <1520363737-25724-4-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
+References: <1520363737-25724-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Currently clk_freq is ignored entirely, because the cx235840 driver
+configures the xtal at the chip defaults. This is an issue if a
+board is produced with a non-default frequency crystal. If clk_freq
+is not zero the cx25840 will attempt to use the setting provided,
+or fall back to defaults otherwise.
 
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/pci/cx23885/cx23885-cards.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-2018년 03월 29일 13:25에 Greg KH 이(가) 쓴 글:
-> On Thu, Mar 29, 2018 at 08:22:08AM +0900, Inki Dae wrote:
->> Really thanks for doing this. :) There would be many users who use
->> Linux-3.18 for their products yet.
-> 
-> For new products?  They really should not be.  The kernel is officially
-
-Really no. Old products would still be using Linux-3.18 kernel without kernel upgrade. For new product, most of SoC vendors will use Linux-4.x including us.
-Actually, we are preparing for kernel upgrade for some devices even some old devices (to Linux-4.14-LTS) and almost done.
-
-> end-of-life, but I'm keeping it alive for a short while longer just
-> because too many people seem to still be using it.  However, they are
-> not actually updating the kernel in their devices, so I don't think I
-> will be doing many more new 3.18.y releases.
-> 
-> It's a problem when people ask for support, and then don't use the
-> releases given to them :(
-> 
-> What is keeping you on 3.18.y and not allowing you to move to a newer
-> kernel version?
-
-We also want to move to latest kernel version. However, there is a case that we cannot upgrade the kernel.
-In case that SoC vendor never share firmwares and relevant data sheets, we cannot upgrade the kernel. However, we have to resolve the security issues for users of this device.
-
-Thanks,
-Inki Dae
-
-> 
-> thanks,
-> 
-> greg k-h
-> 
-> 
-> 
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 41f5669..3a1c551 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -2362,6 +2362,10 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", 0x88 >> 1, NULL);
+ 		if (dev->sd_cx25840) {
++			/* set host data for clk_freq configuration */
++			v4l2_set_subdev_hostdata(dev->sd_cx25840,
++						&dev->clk_freq);
++
+ 			dev->sd_cx25840->grp_id = CX23885_HW_AV_CORE;
+ 			v4l2_subdev_call(dev->sd_cx25840, core, load_fw);
+ 		}
+-- 
+2.7.4
