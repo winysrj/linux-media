@@ -1,286 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49367 "EHLO gofer.mess.org"
+Received: from mail.bootlin.com ([62.4.15.54]:56199 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753466AbeCFPMF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 10:12:05 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2] media: rc: new driver for early iMon device
-Date: Tue,  6 Mar 2018 15:12:03 +0000
-Message-Id: <20180306151204.851-1-sean@mess.org>
+        id S1753369AbeCFJeu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 04:34:50 -0500
+Date: Tue, 6 Mar 2018 10:34:37 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>
+Subject: Re: [PATCH 0/7] media: sun6i: Various fixes and improvements
+Message-ID: <20180306093437.5etrtg63bvzey3ue@flea.lan>
+References: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
+ <20180305093535.11801-1-maxime.ripard@bootlin.com>
+ <20180305183535.b75ec79199efc3cacefc49c2@magewell.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="waw4nwtslzohd7j3"
+Content-Disposition: inline
+In-Reply-To: <20180305183535.b75ec79199efc3cacefc49c2@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These devices were supported by the lirc_imon.c driver which was removed
-from staging in commit f41003a23a02 ("[media] staging: lirc_imon: port
-remaining usb ids to imon and remove").
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- MAINTAINERS                 |   7 ++
- drivers/media/rc/Kconfig    |  12 +++
- drivers/media/rc/Makefile   |   1 +
- drivers/media/rc/imon_raw.c | 199 ++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 219 insertions(+)
- create mode 100644 drivers/media/rc/imon_raw.c
+--waw4nwtslzohd7j3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0eea2f0e9456..e1ac64c4830b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6903,6 +6903,13 @@ M:	James Hogan <jhogan@kernel.org>
- S:	Maintained
- F:	drivers/media/rc/img-ir/
- 
-+IMON SOUNDGRAPH USB IR RECEIVER
-+M:	Sean Young <sean@mess.org>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/rc/imon_raw.c
-+F:	drivers/media/rc/imon.c
-+
- IMS TWINTURBO FRAMEBUFFER DRIVER
- L:	linux-fbdev@vger.kernel.org
- S:	Orphan
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 447f82c1f65a..7ad05a6ef350 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -175,6 +175,18 @@ config IR_IMON
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called imon.
- 
-+config IR_IMON_RAW
-+	tristate "SoundGraph iMON Receiver (early raw IR models)"
-+	depends on USB_ARCH_HAS_HCD
-+	depends on RC_CORE
-+	select USB
-+	---help---
-+	   Say Y here if you want to use a SoundGraph iMON IR Receiver,
-+	   early raw models.
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called imon_raw.
-+
- config IR_MCEUSB
- 	tristate "Windows Media Center Ed. eHome Infrared Transceiver"
- 	depends on USB_ARCH_HAS_HCD
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 0e857816ac2d..e098e127b26a 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
- obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
- obj-$(CONFIG_IR_HIX5HD2) += ir-hix5hd2.o
- obj-$(CONFIG_IR_IMON) += imon.o
-+obj-$(CONFIG_IR_IMON_RAW) += imon_raw.o
- obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
- obj-$(CONFIG_IR_MCEUSB) += mceusb.o
- obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
-diff --git a/drivers/media/rc/imon_raw.c b/drivers/media/rc/imon_raw.c
-new file mode 100644
-index 000000000000..32709f96de14
---- /dev/null
-+++ b/drivers/media/rc/imon_raw.c
-@@ -0,0 +1,199 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+//
-+// Copyright (C) 2018 Sean Young <sean@mess.org>
-+
-+#include <linux/module.h>
-+#include <linux/usb.h>
-+#include <linux/usb/input.h>
-+#include <media/rc-core.h>
-+
-+/* Each bit is 250us */
-+#define BIT_DURATION 250000
-+
-+struct imon {
-+	struct device *dev;
-+	struct urb *ir_urb;
-+	struct rc_dev *rcdev;
-+	u8 ir_buf[8];
-+	char phys[64];
-+};
-+
-+/*
-+ * ffs/find_next_bit() searches in the wrong direction, so open-code our own.
-+ */
-+static inline int is_bit_set(const u8 *buf, int bit)
-+{
-+	return buf[bit / 8] & (0x80 >> (bit & 7));
-+}
-+
-+static void imon_ir_data(struct imon *imon)
-+{
-+	DEFINE_IR_RAW_EVENT(rawir);
-+	int offset = 0, size = 5 * 8;
-+	int bit;
-+
-+	dev_dbg(imon->dev, "data: %*ph", 8, imon->ir_buf);
-+
-+	while (offset < size) {
-+		bit = offset;
-+		while (!is_bit_set(imon->ir_buf, bit) && bit < size)
-+			bit++;
-+		dev_dbg(imon->dev, "pulse: %d bits", bit - offset);
-+		if (bit > offset) {
-+			rawir.pulse = true;
-+			rawir.duration = (bit - offset) * BIT_DURATION;
-+			ir_raw_event_store_with_filter(imon->rcdev, &rawir);
-+		}
-+
-+		if (bit >= size)
-+			break;
-+
-+		offset = bit;
-+		while (is_bit_set(imon->ir_buf, bit) && bit < size)
-+			bit++;
-+		dev_dbg(imon->dev, "space: %d bits", bit - offset);
-+
-+		rawir.pulse = false;
-+		rawir.duration = (bit - offset) * BIT_DURATION;
-+		ir_raw_event_store_with_filter(imon->rcdev, &rawir);
-+
-+		offset = bit;
-+	}
-+
-+	if (imon->ir_buf[7] == 0x0a) {
-+		ir_raw_event_set_idle(imon->rcdev, true);
-+		ir_raw_event_handle(imon->rcdev);
-+	}
-+}
-+
-+static void imon_ir_rx(struct urb *urb)
-+{
-+	struct imon *imon = urb->context;
-+	int ret;
-+
-+	switch (urb->status) {
-+	case 0:
-+		if (imon->ir_buf[7] != 0xff)
-+			imon_ir_data(imon);
-+		break;
-+	case -ECONNRESET:
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		usb_unlink_urb(urb);
-+		return;
-+	case -EPIPE:
-+	default:
-+		dev_dbg(imon->dev, "error: urb status = %d", urb->status);
-+		break;
-+	}
-+
-+	ret = usb_submit_urb(urb, GFP_ATOMIC);
-+	if (ret && ret != -ENODEV)
-+		dev_warn(imon->dev, "failed to resubmit urb: %d", ret);
-+}
-+
-+static int imon_probe(struct usb_interface *intf,
-+		      const struct usb_device_id *id)
-+{
-+	struct usb_endpoint_descriptor *ir_ep = NULL;
-+	struct usb_host_interface *idesc;
-+	struct usb_device *udev;
-+	struct rc_dev *rcdev;
-+	struct imon *imon;
-+	int i, ret;
-+
-+	udev = interface_to_usbdev(intf);
-+	idesc = intf->cur_altsetting;
-+
-+	for (i = 0; i < idesc->desc.bNumEndpoints; i++) {
-+		struct usb_endpoint_descriptor *ep = &idesc->endpoint[i].desc;
-+
-+		if (usb_endpoint_is_int_in(ep)) {
-+			ir_ep = ep;
-+			break;
-+		}
-+	}
-+
-+	if (!ir_ep) {
-+		dev_err(&intf->dev, "IR endpoint missing");
-+		return -ENODEV;
-+	}
-+
-+	imon = devm_kmalloc(&intf->dev, sizeof(*imon), GFP_KERNEL);
-+	if (!imon)
-+		return -ENOMEM;
-+
-+	imon->ir_urb = usb_alloc_urb(0, GFP_KERNEL);
-+	if (!imon->ir_urb)
-+		return -ENOMEM;
-+
-+	imon->dev = &intf->dev;
-+	usb_fill_int_urb(imon->ir_urb, udev,
-+			 usb_rcvintpipe(udev, ir_ep->bEndpointAddress),
-+			 imon->ir_buf, sizeof(imon->ir_buf),
-+			 imon_ir_rx, imon, ir_ep->bInterval);
-+
-+	rcdev = devm_rc_allocate_device(&intf->dev, RC_DRIVER_IR_RAW);
-+	if (!rcdev) {
-+		ret = -ENOMEM;
-+		goto free_urb;
-+	}
-+
-+	usb_make_path(udev, imon->phys, sizeof(imon->phys));
-+
-+	rcdev->device_name = "iMON Station";
-+	rcdev->driver_name = KBUILD_MODNAME;
-+	rcdev->input_phys = imon->phys;
-+	usb_to_input_id(udev, &rcdev->input_id);
-+	rcdev->dev.parent = &intf->dev;
-+	rcdev->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
-+	rcdev->map_name = RC_MAP_IMON_RSC;
-+	rcdev->rx_resolution = BIT_DURATION;
-+	rcdev->priv = imon;
-+
-+	ret = devm_rc_register_device(&intf->dev, rcdev);
-+	if (ret)
-+		goto free_urb;
-+
-+	imon->rcdev = rcdev;
-+
-+	ret = usb_submit_urb(imon->ir_urb, GFP_KERNEL);
-+	if (ret)
-+		goto free_urb;
-+
-+	usb_set_intfdata(intf, imon);
-+
-+	return 0;
-+
-+free_urb:
-+	usb_free_urb(imon->ir_urb);
-+	return ret;
-+}
-+
-+static void imon_disconnect(struct usb_interface *intf)
-+{
-+	struct imon *imon = usb_get_intfdata(intf);
-+
-+	usb_kill_urb(imon->ir_urb);
-+	usb_free_urb(imon->ir_urb);
-+}
-+
-+static const struct usb_device_id imon_table[] = {
-+	/* SoundGraph iMON (IR only) -- sg_imon.inf */
-+	{ USB_DEVICE(0x04e8, 0xff30) },
-+	{}
-+};
-+
-+static struct usb_driver imon_driver = {
-+	.name = KBUILD_MODNAME,
-+	.probe = imon_probe,
-+	.disconnect = imon_disconnect,
-+	.id_table = imon_table
-+};
-+
-+module_usb_driver(imon_driver);
-+
-+MODULE_DESCRIPTION("Early raw iMON IR devices");
-+MODULE_AUTHOR("Sean Young <sean@mess.org>");
-+MODULE_LICENSE("GPL");
-+MODULE_DEVICE_TABLE(usb, imon_table);
--- 
-2.14.3
+On Mon, Mar 05, 2018 at 06:35:35PM +0800, Yong wrote:
+> > Hi Yong,
+> >=20
+> > Here are a bunch of patches I came up with after testing your last
+> > (v8) version of the CSI patches.
+> >=20
+> > There's some improvements (patches 1 and 7) and fixes for
+> > regressions found in the v8 compared to the v7 (patches 2, 3, 4 and
+> > 5), and one fix that we discussed for the signals polarity for the
+> > parallel interface (patch 6).
+> >=20
+> > Feel free to squash them in your serie for the v9.
+>=20
+> OK. Thank you!
+>=20
+> I notice that your responses have not been listed in google group
+> since February.
+
+Yeah, I know, apparently I can't change my email address in google
+groups, or unsubscribe, so I'm not subscribed with my new mail, which
+means I can't post either.
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--waw4nwtslzohd7j3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqeYK0ACgkQ0rTAlCFN
+r3RN0w//bKTwQ/jvd5lYlhMbqAZmQmpN/CG5qExy9rb/wbZHbp91tmUqQxs3EtjR
+0x/6horQrf19m2kijtiv6D4SLcnj0V1gceup0qAxhQKgSb9qts4ZiGsqXVcQhsxI
+lwl7IzV7d+fPRE2YZW7d00lC5of3cVB+1DJfGSaOcuqWo4WnLHusoRKk1oGkj0sK
+0HLVXE+72ddCJMSMoXNCT/3T0ZLMx68rJrUGb98DM4509o2oIOj5y5w4L2SltTRp
+jLID6pCvmUn8s0NSjORA9EGD5x6/xZSKWcDZMGofoeXmkpMdCg8Wj8tf6xKWAEm2
+fM0zvohzIccoeykE9ohFQKXbp9YVxXeRYq2ADD98BCP6eXxhfz2sREXegRLt8RPu
+30astpQ3bq3LcUBJrb5qX7KmjO4vgOZScjSwECXt1CTue6huHMT2awqOujiTi5E0
+1LoEZ2WlEyZvT95D/KcEGD3etQQ8kILIxnEHnyzHD8g+y/H5F7KjCYm16JM3I1Fp
+lKupNcg1F6AONqQPn4pJSsYMbagnt+TzOp47seDsKPl8vvh1sqm8wOXF+FbpGI7U
+O0rJCdWCQliI1LFyJS9W+o1IL/dDo/wBCwdAfqMVcV6fcwfbQx7TvcjDrCfsTbu2
+4dKZUTOpzlYmFK8XIIoVD1I+qDLdeDk/gYlXYlnRoFX59UQzcqM=
+=cNMI
+-----END PGP SIGNATURE-----
+
+--waw4nwtslzohd7j3--
