@@ -1,181 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58508 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752925AbeC1OZJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:25:09 -0400
-Subject: Re: [PATCH 06/15] v4l: vsp1: Share duplicated DRM pipeline
- configuration code
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+Received: from osg.samsung.com ([64.30.133.232]:37609 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750782AbeCFRDH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Mar 2018 12:03:07 -0500
+Date: Tue, 6 Mar 2018 14:03:00 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        g.liakhovetski@gmx.de, bhumirks@gmail.com, joe@perches.com,
         linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
- <20180226214516.11559-7-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <a4d25bec-b546-0aed-c0bd-506c8d53af13@ideasonboard.com>
-Date: Wed, 28 Mar 2018 15:25:04 +0100
+Subject: Re: [PATCH v2 01/11] media: tw9910: Re-order variables declaration
+Message-ID: <20180306140300.3b8513d5@vento.lan>
+In-Reply-To: <20180306165715.GD19648@w540>
+References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+        <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
+        <20180306135152.3fed9766@vento.lan>
+        <20180306165715.GD19648@w540>
 MIME-Version: 1.0
-In-Reply-To: <20180226214516.11559-7-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Tue, 6 Mar 2018 17:57:15 +0100
+jacopo mondi <jacopo@jmondi.org> escreveu:
 
-
-On 26/02/18 21:45, Laurent Pinchart wrote:
-> Move the duplicated DRM pipeline configuration code to a function and
-> call it from vsp1_du_setup_lif() and vsp1_du_atomic_flush().
+> Hi Mauro,
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-LGTM.
-
-I thought I had a bit of deja-vu on this patch ... but I can't seem to find
-anything already posted.
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 95 +++++++++++++++-------------------
->  1 file changed, 43 insertions(+), 52 deletions(-)
+> On Tue, Mar 06, 2018 at 01:51:52PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Fri,  2 Mar 2018 15:46:33 +0100
+> > Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
+> >  
+> > > Re-order variables declaration to respect 'reverse christmas tree'
+> > > ordering whenever possible.  
+> >
+> > To be frank, I don't like the idea of reverse christmas tree ordering
+> > myself... Perhaps due to the time I used to program on assembler,
+> > where alignment issues could happen, I find a way more logic to order
+> > based on complexity and size of the argument...
+> >  
+> > >
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > ---
+> > >  drivers/media/i2c/tw9910.c | 23 +++++++++++------------
+> > >  1 file changed, 11 insertions(+), 12 deletions(-)
+> > >
+> > > diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+> > > index cc648de..3a5e307 100644
+> > > --- a/drivers/media/i2c/tw9910.c
+> > > +++ b/drivers/media/i2c/tw9910.c
+> > > @@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
+> > >
+> > >  static int tw9910_power(struct i2c_client *client, int enable)
+> > >  {
+> > > -	int ret;
+> > >  	u8 acntl1;
+> > >  	u8 acntl2;
+> > > +	int ret;  
+> >
+> > ... So, in this case, the order is already the right one, according
+> > with my own criteria :-)
+> >
+> > There was some discussion about the order sometime ago at LKML:
+> >
+> > 	https://patchwork.kernel.org/patch/9411999/
+> >
+> > As I'm not seeing the proposed patch there at checkpatch, nor any
+> > comments about xmas tree at coding style, I think that there were no
+> > agreements about the ordering.
+> >
+> > So, while there's no consensus about that, let's keep it as-is.  
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index e210917fdc3f..9a043a915c0b 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -42,6 +42,47 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
->  		drm_pipe->du_complete(drm_pipe->du_private, completed);
->  }
->  
-> +/* -----------------------------------------------------------------------------
-> + * Pipeline Configuration
-> + */
-> +
-> +/* Configure all entities in the pipeline. */
-> +static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
-> +{
-> +	struct vsp1_entity *entity;
-> +	struct vsp1_entity *next;
-> +	struct vsp1_dl_list *dl;
-> +
-> +	dl = vsp1_dl_list_get(pipe->output->dlm);
-> +
-> +	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
-> +		/* Disconnect unused RPFs from the pipeline. */
-> +		if (entity->type == VSP1_ENTITY_RPF &&
-> +		    !pipe->inputs[entity->index]) {
-> +			vsp1_dl_list_write(dl, entity->route->reg,
-> +					   VI6_DPR_NODE_UNUSED);
-> +
-> +			entity->pipe = NULL;
-> +			list_del(&entity->list_pipe);
-> +
-> +			continue;
-> +		}
-> +
-> +		vsp1_entity_route_setup(entity, pipe, dl);
-> +
-> +		if (entity->ops->configure) {
-> +			entity->ops->configure(entity, pipe, dl,
-> +					       VSP1_ENTITY_PARAMS_INIT);
-> +			entity->ops->configure(entity, pipe, dl,
-> +					       VSP1_ENTITY_PARAMS_RUNTIME);
-> +			entity->ops->configure(entity, pipe, dl,
-> +					       VSP1_ENTITY_PARAMS_PARTITION);
-> +		}
-> +	}
-> +
-> +	vsp1_dl_list_commit(dl);
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * DU Driver API
->   */
-> @@ -85,9 +126,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	struct vsp1_drm_pipeline *drm_pipe;
->  	struct vsp1_pipeline *pipe;
->  	struct vsp1_bru *bru;
-> -	struct vsp1_entity *entity;
-> -	struct vsp1_entity *next;
-> -	struct vsp1_dl_list *dl;
->  	struct v4l2_subdev_format format;
->  	unsigned long flags;
->  	unsigned int i;
-> @@ -239,22 +277,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
->  
->  	/* Configure all entities in the pipeline. */
-> -	dl = vsp1_dl_list_get(pipe->output->dlm);
-> -
-> -	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
-> -		vsp1_entity_route_setup(entity, pipe, dl);
-> -
-> -		if (entity->ops->configure) {
-> -			entity->ops->configure(entity, pipe, dl,
-> -					       VSP1_ENTITY_PARAMS_INIT);
-> -			entity->ops->configure(entity, pipe, dl,
-> -					       VSP1_ENTITY_PARAMS_RUNTIME);
-> -			entity->ops->configure(entity, pipe, dl,
-> -					       VSP1_ENTITY_PARAMS_PARTITION);
-> -		}
-> -	}
-> -
-> -	vsp1_dl_list_commit(dl);
-> +	vsp1_du_pipeline_configure(pipe);
->  
->  	/* Start the pipeline. */
->  	spin_lock_irqsave(&pipe->irqlock, flags);
-> @@ -490,15 +513,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
->  	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
->  	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-> -	struct vsp1_entity *entity;
-> -	struct vsp1_entity *next;
-> -	struct vsp1_dl_list *dl;
->  	unsigned int i;
->  	int ret;
->  
-> -	/* Prepare the display list. */
-> -	dl = vsp1_dl_list_get(pipe->output->dlm);
-> -
->  	/* Count the number of enabled inputs and sort them by Z-order. */
->  	pipe->num_inputs = 0;
->  
-> @@ -557,33 +574,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  				__func__, rpf->entity.index);
->  	}
->  
-> -	/* Configure all entities in the pipeline. */
-> -	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
-> -		/* Disconnect unused RPFs from the pipeline. */
-> -		if (entity->type == VSP1_ENTITY_RPF &&
-> -		    !pipe->inputs[entity->index]) {
-> -			vsp1_dl_list_write(dl, entity->route->reg,
-> -					   VI6_DPR_NODE_UNUSED);
-> -
-> -			entity->pipe = NULL;
-> -			list_del(&entity->list_pipe);
-> -
-> -			continue;
-> -		}
-> -
-> -		vsp1_entity_route_setup(entity, pipe, dl);
-> -
-> -		if (entity->ops->configure) {
-> -			entity->ops->configure(entity, pipe, dl,
-> -					       VSP1_ENTITY_PARAMS_INIT);
-> -			entity->ops->configure(entity, pipe, dl,
-> -					       VSP1_ENTITY_PARAMS_RUNTIME);
-> -			entity->ops->configure(entity, pipe, dl,
-> -					       VSP1_ENTITY_PARAMS_PARTITION);
-> -		}
-> -	}
-> -
-> -	vsp1_dl_list_commit(dl);
-> +	vsp1_du_pipeline_configure(pipe);
->  }
->  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
->  
-> 
+> Thanks for explaining. I was sure it was part of the coding style
+> rules! My bad, feel free to ditch this patch (same for ov772x ofc).
+
+Heh, there are so many rules that it is hard to get all of them.
+
+Also, some maintainers might actually be expecting some ordering.
+
+I ditched this patch (and the one for ov772x) and applied the
+remaining ones.
+
+Thanks,
+Mauro
