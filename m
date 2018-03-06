@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41561 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751980AbeCMQmb (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44164 "EHLO
+        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753868AbeCFTPJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 12:42:31 -0400
-Subject: Re: [PATCH 1/3] rcar-vin: remove duplicated check of state in irq
- handler
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com
-References: <20180310000953.25366-1-niklas.soderlund+renesas@ragnatech.se>
- <20180310000953.25366-2-niklas.soderlund+renesas@ragnatech.se>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <a6fa3bbf-52e5-5576-fbea-3a280a1c8bb1@ideasonboard.com>
-Date: Tue, 13 Mar 2018 17:42:25 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180310000953.25366-2-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Tue, 6 Mar 2018 14:15:09 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 8/8] cx23885: Fix gpio on Hauppauge QuadHD PCIe cards
+Date: Tue,  6 Mar 2018 13:15:02 -0600
+Message-Id: <1520363702-25536-9-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1520363702-25536-1-git-send-email-brad@nextdimension.cc>
+References: <1520363702-25536-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Bug fix for gpios
 
-Thanks for the patch series :) - I've been looking forward to seeing this one !
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/pci/cx23885/cx23885-cards.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On 10/03/18 01:09, Niklas Söderlund wrote:
-> This is an error from when the driver where converted from soc-camera.
-> There is absolutely no gain to check the state variable two times to be
-> extra sure if the hardware is stopped.
-
-I'll not say this isn't a redundant check ... but isn't the check against two
-different states, and thus the remaining check doesn't actually catch the case
-now where state == STOPPED ?
-
-(Perhaps state != RUNNING would be better ?, but I haven't checked the rest of
-the code)
-
---
-Kieran
-
-
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 6 ------
->  1 file changed, 6 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index 23fdff7a7370842e..b4be75d5009080f7 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -916,12 +916,6 @@ static irqreturn_t rvin_irq(int irq, void *data)
->  	rvin_ack_interrupt(vin);
->  	handled = 1;
->  
-> -	/* Nothing to do if capture status is 'STOPPED' */
-> -	if (vin->state == STOPPED) {
-> -		vin_dbg(vin, "IRQ while state stopped\n");
-> -		goto done;
-> -	}
-> -
->  	/* Nothing to do if capture status is 'STOPPING' */
->  	if (vin->state == STOPPING) {
->  		vin_dbg(vin, "IRQ while state stopping\n");
-> 
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 5a64098..41f5669 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -1828,8 +1828,6 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 		cx23885_gpio_set(dev, GPIO_2);
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR5525:
+-	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
+-	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
+ 	case CX23885_BOARD_HAUPPAUGE_STARBURST2:
+ 		/*
+ 		 * HVR5525 GPIO Details:
+@@ -1861,7 +1859,9 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 		 */
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885:
+ 		/*
+ 		 * GPIO-08 TER1_RESN
+-- 
+2.7.4
