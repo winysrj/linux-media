@@ -1,116 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54744 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754052AbeCFWsJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 17:48:09 -0500
-Subject: Re: [PATCHv2 5/7] cec-pin: add error injection support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180305135139.95652-1-hverkuil@xs4all.nl>
- <20180305135139.95652-6-hverkuil@xs4all.nl>
-Message-ID: <526d0a58-b032-2b8b-1c47-8168918b4330@xs4all.nl>
-Date: Tue, 6 Mar 2018 23:48:05 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180305135139.95652-6-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:45637 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935004AbeCGUIA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 15:08:00 -0500
+Received: by mail-wr0-f196.google.com with SMTP id p104so3419905wrc.12
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 12:07:59 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 2/2] [media] ngene: use common DVB I2C client handling helpers
+Date: Wed,  7 Mar 2018 21:07:56 +0100
+Message-Id: <20180307200756.7078-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180307200756.7078-1-d.scheller.oss@gmail.com>
+References: <20180307200756.7078-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/18 14:51, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Implement all the error injection commands.
-> 
-> The state machine gets new states for the various error situations,
-> helper functions are added to detect whether an error injection is
-> active and the actual error injections are implemented.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/cec/cec-pin-priv.h |  38 ++-
->  drivers/media/cec/cec-pin.c      | 542 +++++++++++++++++++++++++++++++++++----
->  2 files changed, 521 insertions(+), 59 deletions(-)
-> 
-> diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
-> index 779384f18689..c9349f68e554 100644
-> --- a/drivers/media/cec/cec-pin-priv.h
-> +++ b/drivers/media/cec/cec-pin-priv.h
+From: Daniel Scheller <d.scheller@gmx.net>
 
-<snip>
+Like in ddbridge, get rid of all duplicated I2C client handling constructs
+and rather make use of the newly added dvb_module_*() helpers. Makes
+things more clean and removes the (cosmetic) need for some variables.
 
-> +static bool tx_error_inj(struct cec_pin *pin, unsigned int mode_offset,
-> +			 int arg_idx, u8 *arg)
-> +{
-> +#ifdef CONFIG_CEC_PIN_ERROR_INJ
-> +	u16 cmd = cec_pin_tx_error_inj(pin);
-> +	u64 e = pin->error_inj[cmd];
-> +	unsigned int mode = (e >> mode_offset) & CEC_ERROR_INJ_MODE_MASK;
-> +
-> +	if (arg_idx) {
+The check on a valid ptr on ci->en isn't really needed since the cxd2099
+driver will set	it at a	time where it is going to return successfully
+from probing.
 
-Oops, this should be arg_idx >= 0. It's -1 if there is no argument associated
-with the error injection command.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+V2:
+* pass NULL as (optional) I2C name when calling dvb_module_probe()
 
-> +		u8 pos = pin->error_inj_args[cmd][arg_idx];
-> +
-> +		if (arg)
-> +			*arg = pos;
-> +		else if (pos != pin->tx_bit)
-> +			return false;
-> +	}
-> +
-> +	switch (mode) {
-> +	case CEC_ERROR_INJ_MODE_ONCE:
-> +		pin->error_inj[cmd] &= ~(CEC_ERROR_INJ_MODE_MASK << mode_offset);
-> +		return true;
-> +	case CEC_ERROR_INJ_MODE_ALWAYS:
-> +		return true;
-> +	case CEC_ERROR_INJ_MODE_TOGGLE:
-> +		return pin->tx_toggle;
-> +	default:
-> +		return false;
-> +	}
-> +#else
-> +	return false;
-> +#endif
-> +}
+ drivers/media/pci/ngene/ngene-cards.c | 25 ++++----------------
+ drivers/media/pci/ngene/ngene-core.c  | 43 ++++++++---------------------------
+ 2 files changed, 15 insertions(+), 53 deletions(-)
 
-<snip>
-
-> +		case EOM_BIT:
-> +			v = pin->tx_bit / 10 ==
-> +				pin->tx_msg.len + pin->tx_extra_bytes - 1;
-> +			if (pin->tx_msg.len > 1 && tx_early_eom(pin)) {
-
-tx_early_eom should only be called for the second-to-last byte.
-
-> +				/* Error injection: set EOM one byte early */
-> +				v = pin->tx_bit / 10 ==
-> +					pin->tx_msg.len + pin->tx_extra_bytes - 2;
-> +				pin->tx_post_eom = true;
-> +			}
-> +			if (tx_no_eom(pin)) {
-
-Ditto for tx_no_eom: only call for the last byte.
-
-Otherwise for mode 'once' this error injection command will be cleared
-before the end of the message is reached.
-
-> +				/* Error injection: no EOM */
-> +				v = false;
-> +			}
->  			pin->state = v ? CEC_ST_TX_DATA_BIT_1_LOW :
-> -				CEC_ST_TX_DATA_BIT_0_LOW;
-> +					 CEC_ST_TX_DATA_BIT_0_LOW;
->  			break;
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 37e9f0eb6d20..65fc8f23ad86 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -253,15 +253,7 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
+ 		.if_dvbt2_8 = 4000,
+ 		.if_dvbc = 5000,
+ 	};
+-	struct i2c_board_info board_info = {
+-		.type = "tda18212",
+-		.platform_data = &config,
+-	};
+-
+-	if (chan->number & 1)
+-		board_info.addr = 0x63;
+-	else
+-		board_info.addr = 0x60;
++	u8 addr = (chan->number & 1) ? 0x63 : 0x60;
+ 
+ 	/*
+ 	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
+@@ -269,20 +261,13 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
+ 	 * cold started, or it very likely will fail.
+ 	 */
+ 	if (dmdtype == DEMOD_TYPE_STV0367)
+-		tuner_tda18212_ping(chan, i2c, board_info.addr);
+-
+-	request_module(board_info.type);
++		tuner_tda18212_ping(chan, i2c, addr);
+ 
+-	/* perform tuner init/attach */
+-	client = i2c_new_device(i2c, &board_info);
+-	if (!client || !client->dev.driver)
++	/* perform tuner probe/init/attach */
++	client = dvb_module_probe("tda18212", NULL, i2c, addr, &config);
++	if (!client)
+ 		goto err;
+ 
+-	if (!try_module_get(client->dev.driver->owner)) {
+-		i2c_unregister_device(client);
+-		goto err;
+-	}
+-
+ 	chan->i2c_client[0] = client;
+ 	chan->i2c_client_fe = 1;
+ 
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index f69a8fc1ec2a..3b9a1bfaf6c0 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1408,7 +1408,6 @@ static void release_channel(struct ngene_channel *chan)
+ {
+ 	struct dvb_demux *dvbdemux = &chan->demux;
+ 	struct ngene *dev = chan->dev;
+-	struct i2c_client *client;
+ 
+ 	if (chan->running)
+ 		set_transfer(chan, 0);
+@@ -1427,12 +1426,9 @@ static void release_channel(struct ngene_channel *chan)
+ 		dvb_unregister_frontend(chan->fe);
+ 
+ 		/* release I2C client (tuner) if needed */
+-		client = chan->i2c_client[0];
+-		if (chan->i2c_client_fe && client) {
+-			module_put(client->dev.driver->owner);
+-			i2c_unregister_device(client);
++		if (chan->i2c_client_fe) {
++			dvb_module_release(chan->i2c_client[0]);
+ 			chan->i2c_client[0] = NULL;
+-			client = NULL;
+ 		}
+ 
+ 		dvb_frontend_detach(chan->fe);
+@@ -1584,11 +1580,6 @@ static void cxd_attach(struct ngene *dev)
+ 	struct ngene_ci *ci = &dev->ci;
+ 	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
+ 	struct i2c_client *client;
+-	struct i2c_board_info board_info = {
+-		.type = "cxd2099",
+-		.addr = 0x40,
+-		.platform_data = &cxd_cfg,
+-	};
+ 	int ret;
+ 	u8 type;
+ 
+@@ -1605,26 +1596,17 @@ static void cxd_attach(struct ngene *dev)
+ 	}
+ 
+ 	cxd_cfg.en = &ci->en;
+-
+-	request_module(board_info.type);
+-
+-	client = i2c_new_device(&dev->channel[0].i2c_adapter, &board_info);
+-	if (!client || !client->dev.driver)
+-		goto err_ret;
+-
+-	if (!try_module_get(client->dev.driver->owner))
+-		goto err_i2c;
+-
+-	if (!ci->en)
+-		goto err_i2c;
++	client = dvb_module_probe("cxd2099", NULL,
++				  &dev->channel[0].i2c_adapter,
++				  0x40, &cxd_cfg);
++	if (!client)
++		goto err;
+ 
+ 	ci->dev = dev;
+ 	dev->channel[0].i2c_client[0] = client;
+ 	return;
+ 
+-err_i2c:
+-	i2c_unregister_device(client);
+-err_ret:
++err:
+ 	dev_err(pdev, "CXD2099AR attach failed\n");
+ 	return;
+ }
+@@ -1632,16 +1614,11 @@ static void cxd_attach(struct ngene *dev)
+ static void cxd_detach(struct ngene *dev)
+ {
+ 	struct ngene_ci *ci = &dev->ci;
+-	struct i2c_client *client;
+ 
+ 	dvb_ca_en50221_release(ci->en);
+ 
+-	client = dev->channel[0].i2c_client[0];
+-	if (client) {
+-		module_put(client->dev.driver->owner);
+-		i2c_unregister_device(client);
+-	}
+-
++	dvb_module_release(dev->channel[0].i2c_client[0]);
++	dev->channel[0].i2c_client[0] = NULL;
+ 	ci->en = NULL;
+ }
+ 
+-- 
+2.16.1
