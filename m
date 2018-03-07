@@ -1,83 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:58610 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965190AbeCGTo6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 14:44:58 -0500
-Date: Wed, 7 Mar 2018 16:44:49 -0300
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 3/4] [media] ddbridge: use common DVB I2C client
- handling helpers
-Message-ID: <20180307164449.1aca9352@vento.lan>
-In-Reply-To: <20180307192350.930-4-d.scheller.oss@gmail.com>
-References: <20180307192350.930-1-d.scheller.oss@gmail.com>
-        <20180307192350.930-4-d.scheller.oss@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:53294 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751225AbeCGKOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 05:14:00 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Subject: [PATCH] media: cxd2880: Fix location of DVB headers
+Date: Wed,  7 Mar 2018 05:13:55 -0500
+Message-Id: <7cbc3013f60dbc22955645443855c8f092d3c534.1520417633.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  7 Mar 2018 20:23:49 +0100
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+Fix a trivial conflict, where the location of DVB headers
+got moved.
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> Instead of keeping duplicated I2C client handling construct, make use of
-> the newly introduced dvb_module_*() helpers. This not only keeps things
-> way cleaner and removes the need for duplicated I2C client attach code,
-> but even allows to get rid of some variables that won't help in making
-> things look cleaner anymore.
-> 
-> The check on a valid ptr on port->en isn't really needed since the cxd2099
-> driver will set it at a time where it is going to return successfully
-> from probing.
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/pci/ddbridge/ddbridge-ci.c   | 33 ++++++--------------------
->  drivers/media/pci/ddbridge/ddbridge-core.c | 37 +++++++-----------------------
->  2 files changed, 15 insertions(+), 55 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-> index 6585ef54ac22..d0ce6a1f1bd0 100644
-> --- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-> +++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-> @@ -324,34 +324,20 @@ static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
->  {
->  	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
->  	struct i2c_client *client;
-> -	struct i2c_board_info board_info = {
-> -		.type = "cxd2099",
-> -		.addr = 0x40,
-> -		.platform_data = &cxd_cfg,
-> -	};
->  
->  	cxd_cfg.bitrate = bitrate;
->  	cxd_cfg.en = &port->en;
->  
-> -	request_module(board_info.type);
-> -
-> -	client = i2c_new_device(&port->i2c->adap, &board_info);
-> -	if (!client || !client->dev.driver)
-> -		goto err_ret;
-> -
-> -	if (!try_module_get(client->dev.driver->owner))
-> -		goto err_i2c;
-> -
-> -	if (!port->en)
-> -		goto err_i2c;
-> +	client = dvb_module_probe("cxd2099", "cxd2099", &port->i2c->adap,
-> +				  0x40, &cxd_cfg);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c           | 2 +-
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c      | 2 +-
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c     | 2 +-
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c | 2 +-
+ drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c  | 2 +-
+ drivers/media/dvb-frontends/cxd2880/cxd2880_top.c              | 4 ++--
+ drivers/media/spi/cxd2880-spi.c                                | 6 +++---
+ 7 files changed, 10 insertions(+), 10 deletions(-)
 
-Here and on all similar calls, there's no need to duplicate the name, if
-they're identical. Just use NULL at the second time, e. g.:
-
-	client = dvb_module_probe("cxd2099", NULL, &port->i2c->adap,
-				  0x40, &cxd_cfg);
-
-The dvb_module_probe() will use the same string for both.
-
-Regards,
-Mauro
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
+index b9ef134aed79..25851bbb846e 100644
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
+@@ -7,7 +7,7 @@
+  * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
+  */
+ 
+-#include "dvb_frontend.h"
++#include <media/dvb_frontend.h>
+ #include "cxd2880_common.h"
+ #include "cxd2880_tnrdmd.h"
+ #include "cxd2880_tnrdmd_mon.h"
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
+index e1ad5187ad8f..fe3c6f8b1b3e 100644
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
+@@ -7,7 +7,7 @@
+  * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
+  */
+ 
+-#include "dvb_frontend.h"
++#include <media/dvb_frontend.h>
+ 
+ #include "cxd2880_tnrdmd_dvbt.h"
+ #include "cxd2880_tnrdmd_dvbt_mon.h"
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+index 81903102b12f..dd32004a12d8 100644
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+@@ -7,7 +7,7 @@
+  * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
+  */
+ 
+-#include "dvb_frontend.h"
++#include <media/dvb_frontend.h>
+ 
+ #include "cxd2880_tnrdmd_dvbt2.h"
+ #include "cxd2880_tnrdmd_dvbt2_mon.h"
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
+index 5296cbbca8bd..604580bf7cf7 100644
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
+@@ -11,7 +11,7 @@
+ #include "cxd2880_tnrdmd_dvbt2.h"
+ #include "cxd2880_tnrdmd_dvbt2_mon.h"
+ 
+-#include "dvb_math.h"
++#include <media/dvb_math.h>
+ 
+ static const int ref_dbm_1000[4][8] = {
+ 	{-96000, -95000, -94000, -93000, -92000, -92000, -98000, -97000},
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+index 78214a99a5df..fedc3b4a2fa0 100644
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+@@ -11,7 +11,7 @@
+ #include "cxd2880_tnrdmd_dvbt.h"
+ #include "cxd2880_tnrdmd_dvbt_mon.h"
+ 
+-#include "dvb_math.h"
++#include <media/dvb_math.h>
+ 
+ static const int ref_dbm_1000[3][5] = {
+ 	{-93000, -91000, -90000, -89000, -88000},
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
+index f109e9d98cc0..05360a11bea9 100644
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
+@@ -10,8 +10,8 @@
+ 
+ #include <linux/spi/spi.h>
+ 
+-#include "dvb_frontend.h"
+-#include "dvb_math.h"
++#include <media/dvb_frontend.h>
++#include <media/dvb_math.h>
+ 
+ #include "cxd2880.h"
+ #include "cxd2880_tnrdmd_mon.h"
+diff --git a/drivers/media/spi/cxd2880-spi.c b/drivers/media/spi/cxd2880-spi.c
+index 857e4c0d7a92..4df3bd312f48 100644
+--- a/drivers/media/spi/cxd2880-spi.c
++++ b/drivers/media/spi/cxd2880-spi.c
+@@ -12,9 +12,9 @@
+ #include <linux/spi/spi.h>
+ #include <linux/ktime.h>
+ 
+-#include "dvb_demux.h"
+-#include "dmxdev.h"
+-#include "dvb_frontend.h"
++#include <media/dvb_demux.h>
++#include <media/dmxdev.h>
++#include <media/dvb_frontend.h>
+ #include "cxd2880.h"
+ 
+ #define CXD2880_MAX_FILTER_SIZE 32
+-- 
+2.14.3
