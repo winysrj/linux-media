@@ -1,147 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:41692 "EHLO
-        mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751456AbeCNQgv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 12:36:51 -0400
-Received: by mail-lf0-f49.google.com with SMTP id m69-v6so5746693lfe.8
-        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2018 09:36:50 -0700 (PDT)
-Date: Wed, 14 Mar 2018 17:36:46 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: kieran.bingham@ideasonboard.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com
-Subject: Re: [PATCH 1/3] rcar-vin: remove duplicated check of state in irq
- handler
-Message-ID: <20180314163646.GH10974@bigcity.dyn.berto.se>
-References: <20180310000953.25366-1-niklas.soderlund+renesas@ragnatech.se>
- <20180310000953.25366-2-niklas.soderlund+renesas@ragnatech.se>
- <a6fa3bbf-52e5-5576-fbea-3a280a1c8bb1@ideasonboard.com>
- <20180313175654.GE10974@bigcity.dyn.berto.se>
- <20180314151733.GC16424@w540>
+Received: from mx2.suse.de ([195.135.220.15]:42796 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754580AbeCGTCI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 14:02:08 -0500
+Date: Wed, 7 Mar 2018 19:02:05 +0000
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+To: "French, Nicholas A." <naf@ou.edu>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, hans.verkuil@cisco.com,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: ivtv: use arch_phys_wc_add() and require PAT disabled
+Message-ID: <20180307190205.GA14069@wotan.suse.de>
+References: <DM5PR03MB3035EE1AFCEE298AFB15AC46D3C60@DM5PR03MB3035.namprd03.prod.outlook.com>
+ <20180301171936.GU14069@wotan.suse.de>
+ <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180314151733.GC16424@w540>
+In-Reply-To: <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On Tue, Mar 06, 2018 at 09:01:10PM +0000, French, Nicholas A. wrote:
+> any reason why PAT can't be enabled for ivtvfb as simply as in the attached
+> patch?
 
-On 2018-03-14 16:17:33 +0100, Jacopo Mondi wrote:
-> Hi Niklas, Kieran,
-> 
-> On Tue, Mar 13, 2018 at 06:56:54PM +0100, Niklas Söderlund wrote:
-> > Hi Kieran,
-> >
-> > Thanks for your feedback.
-> >
-> > On 2018-03-13 17:42:25 +0100, Kieran Bingham wrote:
-> > > Hi Niklas,
-> > >
-> > > Thanks for the patch series :) - I've been looking forward to seeing this one !
-> > >
-> > > On 10/03/18 01:09, Niklas Söderlund wrote:
-> > > > This is an error from when the driver where converted from soc-camera.
-> > > > There is absolutely no gain to check the state variable two times to be
-> > > > extra sure if the hardware is stopped.
-> > >
-> > > I'll not say this isn't a redundant check ... but isn't the check against two
-> > > different states, and thus the remaining check doesn't actually catch the case
-> > > now where state == STOPPED ?
-> >
-> > Thanks for noticing this, you are correct. I think I need to refresh my
-> > glasses subscription after missing this :-)
-> >
-> > >
-> > > (Perhaps state != RUNNING would be better ?, but I haven't checked the rest of
-> > > the code)
-> >
-> > I will respin this in a v2 and either use state != RUNNING or at least
-> > combine the two checks to prevent future embarrassing mistakes like
-> > this.
-> 
-> I am sorry I have missed this comment, but I think your patch has some
-> merits. Ofc no need to hold on v2 of this series for this, but still I
-> think you can re-propose this later (and I didn't get from
-> your commit message you were confusing STOPPED/STOPPING).
-> 
-> In rvin_stop_streaming(), you enter STOPPING state, disable the
-> interface cleaning ME bit in VnMC and single/continuous capture mode
-> in VnFC, and then poll on CA bit of VnMS until the VIN peripheral has
-> not been stopped, at this  point you set interface state to STOPPED.
-> 
-> As you loop you can still receive interrupts, as you are releasing the
-> spinlock when sleeping before testing the ME bit again, so it's fine
-> checking for STOPPING state in irq handler.
-> It seems to me though, that once you enter STOPPED state, you are sure the
-> peripheral has stopped and you should not receive any more interrupt, spurious
-> ones apart or when the peripheral fails to stop at all, but things went
-> south already at that point.
-> 
-> Again no need to have this part of this series, but you may want to
-> take into consideration this for the future, as with this change you can
-> remove the STOPPED state at all from the driver.
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 621b2f613d81..69de110726e8 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -1117,7 +1117,7 @@ static int ivtvfb_init_io(struct ivtv *itv)
+ 	oi->video_buffer_size = 1704960;
+ 
+ 	oi->video_pbase = itv->base_addr + IVTV_DECODER_OFFSET + oi->video_rbase;
+-	oi->video_vbase = itv->dec_mem + oi->video_rbase;
++	oi->video_vbase = ioremap_wc(oi->video_pbase, oi->video_buffer_size);
 
-You are correct.
+Note that this is the OSD buffer setup. The OSD buffer info is setup at the
+start of the routine:
 
-This patch was extracted from another series I plan to post after the 
-VIN Gen3 beast is done. The aim of that series is to add SEQ_TB/BT 
-support to VIN and to do so another state STARTING is needed to handle 
-the first few fields. But to avoid growing that series too large I 
-thought I could get away with adding this cleanup to this series which 
-cleans up the interrupt handler. So this patch will comeback in some 
-form when I post that series :-)
+struct osd_info *oi = itv->osd_info;
 
-But for now I'm happy to drop it as the performance gain with this 
-patch-set applied are so nice when running into buffer starved 
-situations.
+And note that itv->osd_info is kzalloc()'d via ivtvfb_init_card() right before
+ivtvfb_init_io(), which is the routine you are modifying.
 
-> 
-> Thanks
->    j
-> 
-> >
-> > >
-> > > --
-> > > Kieran
-> > >
-> > >
-> > > >
-> > > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > > ---
-> > > >  drivers/media/platform/rcar-vin/rcar-dma.c | 6 ------
-> > > >  1 file changed, 6 deletions(-)
-> > > >
-> > > > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > > > index 23fdff7a7370842e..b4be75d5009080f7 100644
-> > > > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > > > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > > > @@ -916,12 +916,6 @@ static irqreturn_t rvin_irq(int irq, void *data)
-> > > >  	rvin_ack_interrupt(vin);
-> > > >  	handled = 1;
-> > > >
-> > > > -	/* Nothing to do if capture status is 'STOPPED' */
-> > > > -	if (vin->state == STOPPED) {
-> > > > -		vin_dbg(vin, "IRQ while state stopped\n");
-> > > > -		goto done;
-> > > > -	}
-> > > > -
-> > > >  	/* Nothing to do if capture status is 'STOPPING' */
-> > > >  	if (vin->state == STOPPING) {
-> > > >  		vin_dbg(vin, "IRQ while state stopping\n");
-> > > >
-> >
-> > --
-> > Regards,
-> > Niklas Söderlund
+Prior to your change the OSD buffer was obtained using the itv->dec_mem + oi->video_rbase
+given itv->dec_mem was initialized via the ivtv driver module, one of which's C files
+is:
+
+drivers/media/pci/ivtv/ivtv-driver.c
+
+and has:
+
+   if (itv->has_cx23415) {
+	...
+	itv->dec_mem = ioremap_nocache(itv->base_addr + IVTV_DECODER_OFFSET - oi->video_buffer_size,
+                                IVTV_DECODER_SIZE);
+	...
+   else {
+	itv->dec_mem = itv->enc_mem;
+   }
 
 
+The way it used to work then it seems to be that we have a main ivtv driver which
+does the ioremap off of the decoder and uses that as offset. If its not
+the special cx23415 it still sets the decoder mapped offset to the encoder
+offset.
 
--- 
-Regards,
-Niklas Söderlund
+So if you wanted to do what you mention in the above hunk I think you'd then
+have to also proactively reduce the size of the ioremap_nocache()'d size on
+the ivtv driver first. It would probably make your programming easier if
+you know if the cx23415 had no frame buffer too, as then the ivtvfb driver
+would not have to be concerned for variants, or the ivtv change would only
+be relevant for cx23415 varaint users.
+
+So what I'd do is change the ioremap_nocache()'d size by substracting
+oi->video_buffer_size -- but then you have to ask yourself how you'd get
+that size. If its something you can figure out then great.
+
+The ivtv driver is a bit odd in that ivtvfb_init() will issue
+ivtvfb_callback_init() on each registered device the ivtv driver registered, so
+care must be taken with order as well on tear down.
+
+Good luck!
+
+  Luis
+
+@@ -1157,6 +1157,8 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
+ 	/* Release pseudo palette */
+ 	kfree(oi->ivtvfb_info.pseudo_palette);
+ 	arch_phys_wc_del(oi->wc_cookie);
++	if (oi->video_vbase)
++		iounmap(oi->video_vbase);
+ 	kfree(oi);
+ 	itv->osd_info = NULL;
+ }
+@@ -1167,13 +1169,6 @@ static int ivtvfb_init_card(struct ivtv *itv)
+ {
+ 	int rc;
+ 
+-#ifdef CONFIG_X86_64
+-	if (pat_enabled()) {
+-		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
+-		return -ENODEV;
+-	}
+-#endif
+-
+ 	if (itv->osd_info) {
+ 		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
+ 		return -EBUSY;
