@@ -1,63 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:34206 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934952AbeCBXvD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 18:51:03 -0500
-Received: by mail-io0-f194.google.com with SMTP id e7so12360404ioj.1
-        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2018 15:51:03 -0800 (PST)
-Subject: Re: [PATCH 2/2] media: imx-media-csi: Do not propagate the error when
- pinctrl is not found
-To: Fabio Estevam <festevam@gmail.com>, mchehab@kernel.org
-Cc: p.zabel@pengutronix.de, gustavo@embeddedor.com,
-        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
-References: <1520018049-5216-1-git-send-email-festevam@gmail.com>
- <1520018049-5216-2-git-send-email-festevam@gmail.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <b9ecba39-b809-bf9c-68a1-d3307e3b0e6c@gmail.com>
-Date: Fri, 2 Mar 2018 15:50:57 -0800
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:32403 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754833AbeCGWGG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 17:06:06 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 32/33] rcar-vin: enable support for r8a7796
+Date: Wed,  7 Mar 2018 23:05:10 +0100
+Message-Id: <20180307220511.9826-33-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1520018049-5216-2-git-send-email-festevam@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the SoC specific information for Renesas r8a7796.
 
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 44 +++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-On 03/02/2018 11:14 AM, Fabio Estevam wrote:
-> From: Fabio Estevam <fabio.estevam@nxp.com>
->
-> Since commit 52e17089d185 ("media: imx: Don't initialize vars that
-> won't be used") imx_csi_probe() fails to probe after propagating the
-> devm_pinctrl_get_select_default() error.
->
-> devm_pinctrl_get_select_default() may return -ENODEV when the CSI pinctrl
-> entry is not found, so better not to propagate the error in the -ENODEV
-> case to avoid a regression.
->
-> Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
-
-Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-
-> ---
->   drivers/staging/media/imx/imx-media-csi.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 4f290a0..5af66f6 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1799,7 +1799,10 @@ static int imx_csi_probe(struct platform_device *pdev)
->   	pinctrl = devm_pinctrl_get_select_default(priv->dev);
->   	if (IS_ERR(pinctrl)) {
->   		ret = PTR_ERR(pinctrl);
-> -		goto free;
-> +		dev_dbg(priv->dev,
-> +			"devm_pinctrl_get_select_default() failed: %d", ret);
-> +		if (ret != -ENODEV)
-> +			goto free;
->   	}
->   
->   	ret = v4l2_async_register_subdev(&priv->sd);
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index bc116cc0181171e0..0040f92bfdff947a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -931,6 +931,46 @@ static const struct rvin_info rcar_info_r8a7795es1 = {
+ 	.routes = rcar_info_r8a7795es1_routes,
+ };
+ 
++static const struct rvin_group_route rcar_info_r8a7796_routes[] = {
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 5, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 5, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 6, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 6, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 7, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 7, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a7796 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a7796_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -964,6 +1004,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a7795",
+ 		.data = &rcar_info_r8a7795,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a7796",
++		.data = &rcar_info_r8a7796,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+-- 
+2.16.2
