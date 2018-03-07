@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:41649 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751811AbeCCM4q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2018 07:56:46 -0500
-Received: by mail-qk0-f194.google.com with SMTP id w142so15337590qkb.8
-        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2018 04:56:45 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de,
-        gustavo@embeddedor.com, linux-media@vger.kernel.org,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH v3 2/2] media: imx-media-csi: Do not propagate the error when pinctrl is not found
-Date: Sat,  3 Mar 2018 09:56:30 -0300
-Message-Id: <1520081790-3437-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1520081790-3437-1-git-send-email-festevam@gmail.com>
-References: <1520081790-3437-1-git-send-email-festevam@gmail.com>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:55951 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751241AbeCGS1z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 13:27:55 -0500
+Date: Wed, 7 Mar 2018 20:27:50 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Bjorn Pagen <bjornpagen@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: v4l-utils fails to build against musl libc (with patch)
+Message-ID: <20180307182749.7xgbtummngj4mxhx@tarshish>
+References: <1520442688.19980.1.camel@gmail.com>
+ <CAARz7_gSDbpeNfw+etEJCDXGG6iRU9TPXSm9E7VLMjCg9S4ZSQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAARz7_gSDbpeNfw+etEJCDXGG6iRU9TPXSm9E7VLMjCg9S4ZSQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+Hi Bjorn,
 
-Since commit 52e17089d185 ("media: imx: Don't initialize vars that
-won't be used") imx_csi_probe() fails to probe after propagating the
-devm_pinctrl_get_select_default() error.
+On Wed, Mar 07, 2018 at 12:14:05PM -0500, Bjorn Pagen wrote:
+> Here's the link again and it's tinyurl, since the link seems to be
+> borked because of line wraparounds:
+> 
+> https://git.alpinelinux.org/cgit/aports/tree/community/v4l-utils/0001-ir-ctl-fixes-for-musl-compile.patch
+> https://tinyurl.com/y7gr6eju
 
-devm_pinctrl_get_select_default() may return -ENODEV when the CSI pinctrl
-entry is not found, so better not to propagate the error in the -ENODEV
-case to avoid a regression.
+Peter Seiderer posted a fix for that to the list a few days ago.
 
-Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
-Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
-Changes since v2:
-- Remove extraneous 'drivers/staging/media/imx/imx-media-csi.c' in commit log
-Changes since v1:
-- Add \n to the dbg message
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg127134.html
 
- drivers/staging/media/imx/imx-media-csi.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+baruch
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 4f290a0..5af66f6 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1799,7 +1799,10 @@ static int imx_csi_probe(struct platform_device *pdev)
- 	pinctrl = devm_pinctrl_get_select_default(priv->dev);
- 	if (IS_ERR(pinctrl)) {
- 		ret = PTR_ERR(pinctrl);
--		goto free;
-+		dev_dbg(priv->dev,
-+			"devm_pinctrl_get_select_default() failed: %d\n", ret);
-+		if (ret != -ENODEV)
-+			goto free;
- 	}
- 
- 	ret = v4l2_async_register_subdev(&priv->sd);
+> On Wed, Mar 7, 2018 at 12:11 PM,  <bjornpagen@gmail.com> wrote:
+> > Hey all,
+> >
+> > v4l-utils currently fails to build against musl libc, since musl, and
+> > POSIX, both do not define TEMP_FAILURE_RETRY() or strndupa().
+> >
+> > This can be fixed with a small patch from https://git.alpinelinux.org/c
+> > git/aports/tree/community/v4l-utils/0001-ir-ctl-fixes-for-musl-compile.
+> > patch.
+> >
+> > Please email me back with any questions or concerns about the patch or
+> > musl.
+> >
+> > Thanks,
+> > Bjorn Pagen
+
 -- 
-2.7.4
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
