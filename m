@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:31582 "EHLO
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:31955 "EHLO
         bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933251AbeCGWF3 (ORCPT
+        by vger.kernel.org with ESMTP id S1754767AbeCGWFr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:29 -0500
+        Wed, 7 Mar 2018 17:05:47 -0500
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -12,9 +12,9 @@ Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
         Kieran Bingham <kieran.bingham@ideasonboard.com>,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 04/33] rcar-vin: rename poorly named initialize and cleanup functions
-Date: Wed,  7 Mar 2018 23:04:42 +0100
-Message-Id: <20180307220511.9826-5-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 17/33] rcar-vin: cache video standard
+Date: Wed,  7 Mar 2018 23:04:55 +0100
+Message-Id: <20180307220511.9826-18-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -23,141 +23,108 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions to register and unregister the hardware and video device
-where poorly named from the start. Rename them to better describe their
-intended function.
+At stream on time the driver should not query the subdevice for which
+standard are used. Instead it should be cached when userspace sets the
+standard and used at stream on time.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 10 +++++-----
- drivers/media/platform/rcar-vin/rcar-dma.c  |  6 +++---
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  4 ++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |  8 ++++----
- 4 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c |  6 ++++++
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  7 ++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++++++--
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+ 4 files changed, 18 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index f1fc7978d6d1523d..2bedf20abcf3ca07 100644
+index cc863e4ec9a4d4b3..ae0339d4ec104e8c 100644
 --- a/drivers/media/platform/rcar-vin/rcar-core.c
 +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -93,7 +93,7 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
- 
--	return rvin_v4l2_probe(vin);
-+	return rvin_v4l2_register(vin);
- }
- 
- static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
-@@ -103,7 +103,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
- 
- 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
--	rvin_v4l2_remove(vin);
-+	rvin_v4l2_unregister(vin);
- 	vin->digital->subdev = NULL;
- }
- 
-@@ -245,7 +245,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (irq < 0)
- 		return irq;
- 
--	ret = rvin_dma_probe(vin, irq);
-+	ret = rvin_dma_register(vin, irq);
- 	if (ret)
+@@ -96,6 +96,12 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
  		return ret;
  
-@@ -260,7 +260,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 
- 	return 0;
- error:
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
- 	return ret;
-@@ -275,7 +275,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 
- 	return 0;
- }
++	/* Read standard */
++	vin->std = V4L2_STD_UNKNOWN;
++	ret = v4l2_subdev_call(subdev, video, g_std, &vin->std);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		return ret;
++
+ 	/* Add the controls */
+ 	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
+ 	if (ret < 0)
 diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 23fdff7a7370842e..d701b52d198243b5 100644
+index c8831e189d362c8b..7c64f1f8ec63bcf4 100644
 --- a/drivers/media/platform/rcar-vin/rcar-dma.c
 +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1153,14 +1153,14 @@ static const struct vb2_ops rvin_qops = {
- 	.wait_finish		= vb2_ops_wait_finish,
- };
- 
--void rvin_dma_remove(struct rvin_dev *vin)
-+void rvin_dma_unregister(struct rvin_dev *vin)
+@@ -592,7 +592,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ static int rvin_setup(struct rvin_dev *vin)
  {
- 	mutex_destroy(&vin->lock);
+ 	u32 vnmc, dmr, dmr2, interrupts;
+-	v4l2_std_id std;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
  
- 	v4l2_device_unregister(&vin->v4l2_dev);
- }
- 
--int rvin_dma_probe(struct rvin_dev *vin, int irq)
-+int rvin_dma_register(struct rvin_dev *vin, int irq)
- {
- 	struct vb2_queue *q = &vin->queue;
- 	int i, ret;
-@@ -1208,7 +1208,7 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
- 
- 	return 0;
- error:
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 
- 	return ret;
- }
+ 	switch (vin->format.field) {
+@@ -606,10 +605,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+-			if (std & V4L2_STD_525_60)
+-				vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		}
++		if (vin->std & V4L2_STD_525_60)
++			vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 		vnmc = VNMC_IM_FULL;
 diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b479b882da12f62d..178aecc94962abe2 100644
+index c4be0bcb8b16f941..43370c57d4b6239a 100644
 --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
 +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -839,7 +839,7 @@ static const struct v4l2_file_operations rvin_fops = {
- 	.read		= vb2_fop_read,
- };
+@@ -477,6 +477,8 @@ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ 	if (ret < 0)
+ 		return ret;
  
--void rvin_v4l2_remove(struct rvin_dev *vin)
-+void rvin_v4l2_unregister(struct rvin_dev *vin)
++	vin->std = a;
++
+ 	/* Changing the standard will change the width/height */
+ 	return rvin_reset_format(vin);
+ }
+@@ -484,9 +486,13 @@ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
  {
- 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
- 		  video_device_node_name(&vin->vdev));
-@@ -866,7 +866,7 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd, video, g_std, a);
++	if (v4l2_subdev_has_op(vin_to_source(vin), pad, dv_timings_cap))
++		return -ENOIOCTLCMD;
++
++	*a = vin->std;
++
++	return 0;
  }
  
--int rvin_v4l2_probe(struct rvin_dev *vin)
-+int rvin_v4l2_register(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
+ static int rvin_subscribe_event(struct v4l2_fh *fh,
 diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 5382078143fb3869..85cb7ec53d2b08b5 100644
+index 7fcf984f21466855..458373af9e60ea07 100644
 --- a/drivers/media/platform/rcar-vin/rcar-vin.h
 +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -153,11 +153,11 @@ struct rvin_dev {
- #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
- #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+@@ -119,6 +119,7 @@ struct rvin_info {
+  * @crop:		active cropping
+  * @compose:		active composing
+  * @source:		active size of the video source
++ * @std:		active video standard of the video source
+  */
+ struct rvin_dev {
+ 	struct device *dev;
+@@ -146,6 +147,7 @@ struct rvin_dev {
+ 	struct v4l2_rect crop;
+ 	struct v4l2_rect compose;
+ 	struct v4l2_rect source;
++	v4l2_std_id std;
+ };
  
--int rvin_dma_probe(struct rvin_dev *vin, int irq);
--void rvin_dma_remove(struct rvin_dev *vin);
-+int rvin_dma_register(struct rvin_dev *vin, int irq);
-+void rvin_dma_unregister(struct rvin_dev *vin);
- 
--int rvin_v4l2_probe(struct rvin_dev *vin);
--void rvin_v4l2_remove(struct rvin_dev *vin);
-+int rvin_v4l2_register(struct rvin_dev *vin);
-+void rvin_v4l2_unregister(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
+ #define vin_to_source(vin)		((vin)->digital->subdev)
 -- 
 2.16.2
