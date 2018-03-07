@@ -1,157 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:40760 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751141AbeCZIB0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 04:01:26 -0400
-Received: by mail-wm0-f45.google.com with SMTP id x4so1269030wmh.5
-        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2018 01:01:25 -0700 (PDT)
-Date: Mon, 26 Mar 2018 10:01:21 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-Message-ID: <20180326080121.GO14155@phenom.ffwll.local>
-References: <152147480241.18954.4556582215766884582@mail.alporthouse.com>
- <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
- <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
- <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
- <20180320140810.GU14155@phenom.ffwll.local>
- <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
- <20180321082839.GA14155@phenom.ffwll.local>
- <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
- <20180322071804.GH14155@phenom.ffwll.local>
- <ef9fa9a2-c368-1fca-a8ac-8ee8d522b6ab@gmail.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:32897 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751023AbeCGIOR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 03:14:17 -0500
+Date: Wed, 7 Mar 2018 09:14:13 +0100
+From: Simon Horman <horms@verge.net.au>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: platform: Drop OF dependency of VIDEO_RENESAS_VSP1
+Message-ID: <20180307081413.bk4tiporpu2wk2m7@verge.net.au>
+References: <1519668550-26082-1-git-send-email-geert+renesas@glider.be>
+ <20180306132515.261cf47c@vento.lan>
+ <3554226.unskCpdSGX@avalon>
+ <20180306133738.7acd5529@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ef9fa9a2-c368-1fca-a8ac-8ee8d522b6ab@gmail.com>
+In-Reply-To: <20180306133738.7acd5529@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 22, 2018 at 10:58:55AM +0100, Christian König wrote:
-> Am 22.03.2018 um 08:18 schrieb Daniel Vetter:
-> > On Wed, Mar 21, 2018 at 12:54:20PM +0100, Christian König wrote:
-> > > Am 21.03.2018 um 09:28 schrieb Daniel Vetter:
-> > > > On Tue, Mar 20, 2018 at 06:47:57PM +0100, Christian König wrote:
-> > > > > Am 20.03.2018 um 15:08 schrieb Daniel Vetter:
-> > > > > > [SNIP]
-> > > > > > For the in-driver reservation path (CS) having a slow-path that grabs a
-> > > > > > temporary reference, drops the vram lock and then locks the reservation
-> > > > > > normally (using the acquire context used already for the entire CS) is a
-> > > > > > bit tricky, but totally feasible. Ttm doesn't do that though.
-> > > > > That is exactly what we do in amdgpu as well, it's just not very efficient
-> > > > > nor reliable to retry getting the right pages for a submission over and over
-> > > > > again.
-> > > > Out of curiosity, where's that code? I did read the ttm eviction code way
-> > > > back, and that one definitely didn't do that. Would be interesting to
-> > > > update my understanding.
-> > > That is in amdgpu_cs.c. amdgpu_cs_parser_bos() does a horrible dance with
-> > > grabbing, releasing and regrabbing locks in a loop.
-> > > 
-> > > Then in amdgpu_cs_submit() we grab an lock preventing page table updates and
-> > > check if all pages are still the one we want to have:
-> > > >          amdgpu_mn_lock(p->mn);
-> > > >          if (p->bo_list) {
-> > > >                  for (i = p->bo_list->first_userptr;
-> > > >                       i < p->bo_list->num_entries; ++i) {
-> > > >                          struct amdgpu_bo *bo = p->bo_list->array[i].robj;
+On Tue, Mar 06, 2018 at 01:37:38PM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 06 Mar 2018 18:35:32 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Tuesday, 6 March 2018 18:25:15 EET Mauro Carvalho Chehab wrote:
+> > > Em Mon, 26 Feb 2018 19:09:10 +0100 Geert Uytterhoeven escreveu:  
+> > > > VIDEO_RENESAS_VSP1 depends on ARCH_RENESAS && OF.
+> > > > As ARCH_RENESAS implies OF, the latter can be dropped.
 > > > > 
-> > > >                          if
-> > > > (amdgpu_ttm_tt_userptr_needs_pages(bo->tbo.ttm)) {
-> > > >                                  amdgpu_mn_unlock(p->mn);
-> > > >                                  return -ERESTARTSYS;
-> > > >                          }
-> > > >                  }
-> > > >          }
-> > > If anything changed on the page tables we restart the whole IOCTL using
-> > > -ERESTARTSYS and try again.
-> > I'm not talking about userptr here, but general bo eviction. Sorry for the
-> > confusion.
+> > > > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > > > ---
+> > > > 
+> > > >  drivers/media/platform/Kconfig | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/drivers/media/platform/Kconfig
+> > > > b/drivers/media/platform/Kconfig index 614fbef08ddcabb0..2b8b1ad0edd9eb31
+> > > > 100644
+> > > > --- a/drivers/media/platform/Kconfig
+> > > > +++ b/drivers/media/platform/Kconfig
+> > > > @@ -448,7 +448,7 @@ config VIDEO_RENESAS_FCP
+> > > > 
+> > > >  config VIDEO_RENESAS_VSP1
+> > > >  
+> > > >  	tristate "Renesas VSP1 Video Processing Engine"
+> > > >  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+> > > > 
+> > > > -	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
+> > > > +	depends on ARCH_RENESAS || COMPILE_TEST  
+> > > 
+> > > That is not correct!
+> > > 
+> > > COMPILE_TEST doesn't depend on OF. With this patch, it will likely
+> > > cause build failures with randconfigs.  
 > > 
-> > The reason I'm dragging all the general bo management into this
-> > discussions is because we do seem to have fairly fundamental difference in
-> > how that's done, with resulting consequences for the locking hierarchy.
+> > ARCH_RENESAS implies OF, so replacing (ARCH_RENESAS && OF) with ARCH_RENESAS 
+> > doesn't change anything. The driver can be compiled with COMPILE_TEST and !OF 
+> > both before and after this patch.
+
+FWIIW, I think this is a useful cleanup.
+
+> OK!
 > > 
-> > And if this invalidate_mapping stuff should work, together with userptr
-> > and everything else, I think we're required to agree on how this is all
-> > supposed to nest, and how exactly we should back off for the other side
-> > that needs to break the locking circle.
+> > > >  	depends on (!ARM64 && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
+> > > >  	select VIDEOBUF2_DMA_CONTIG
+> > > >  	select VIDEOBUF2_VMALLOC  
 > > 
-> > That aside, I don't entirely understand why you need to restart so much. I
-> > figured that get_user_pages is ordered correctly against mmu
-> > invalidations, but I get the impression you think that's not the case. How
-> > does that happen?
 > 
-> Correct. I've had the same assumption, but both Jerome as well as our
-> internal tests proved me wrong on that.
 > 
-> Key take away from that was that you can't take any locks from neither the
-> MMU notifier nor the shrinker you also take while calling kmalloc (or
-> simpler speaking get_user_pages()).
 > 
-> Additional to that in the MMU or shrinker callback all different kinds of
-> locks might be held, so you basically can't assume that you do thinks like
-> recursive page table walks or call dma_unmap_anything.
-
-That sounds like a design bug in mmu_notifiers, since it would render them
-useless for KVM. And they were developed for that originally. I think I'll
-chat with Jerome to understand this, since it's all rather confusing.
-
-> Thinking a moment about that it actually seems to make perfect sense.
-> So it doesn't matter what order you got between the mmap_sem and your buffer
-> or allocation lock, it will simply be incorrect with other locks in the
-> system anyway.
-
-Hm, doesn't make sense to me, at least from a locking  inversion pov. I
-thought the only locks that are definitely part of the mmu_nofitier
-callback contexts are the mm locks. We're definitely fine with those, and
-kmalloc didn't bite us yet. Direct reclaim is really limited in what it
-can accomplish for good reasons.
-
-So the only thing I'm worried here is that we have a race between the
-invalidate and the gup calls, and I think fixing that race will make the
-locking more fun. But again, if that means you can'd dma_unmap stuff then
-that feels like mmu notifiers are broken by design.
--Daniel
-
-> The only solution to that problem we have found is the dance we have in
-> amdgpu now:
+> Thanks,
+> Mauro
 > 
-> 1. Inside invalidate_range_start you grab a recursive read side lock.
-> 2. Wait for all GPU operation on that pages to finish.
-> 3. Then mark all pages as dirty and accessed.
-> 4. Inside invalidate_range_end you release your recursive read side lock
-> again.
-> 
-> Then during command submission you do the following:
-> 
-> 1. Take the locks Figure out all the userptr BOs which needs new pages.
-> 2. Drop the locks again call get_user_pages().
-> 3. Install the new page arrays and reiterate with #1
-> 4. As soon as everybody has pages update your page tables and prepare all
-> command submission.
-> 5. Take the write side of our recursive lock.
-> 6. Check if all pages are still valid, if not restart the whole IOCTL.
-> 7. Submit the job to the hardware.
-> 8. Drop the write side of our recursive lock.
-> 
-> Regards,
-> Christian.
-> 
-> > -Daniel
-> 
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
