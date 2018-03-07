@@ -1,50 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:60351 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751255AbeCLOSf (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:31486 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754553AbeCGWFZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 10:18:35 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi, mchehab@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 0/4] Renesas CEU: SH7724 ECOVEC + Aptina mt9t112
-Date: Mon, 12 Mar 2018 14:43:01 +0100
-Message-Id: <1520862185-17150-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 7 Mar 2018 17:05:25 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Subject: [PATCH v12 01/33] dt-bindings: media: rcar_vin: Reverse SoC part number list
+Date: Wed,  7 Mar 2018 23:04:39 +0100
+Message-Id: <20180307220511.9826-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
-   I have squashed in the two patches I sent on top of v1 in this series, one
-fix for the build error you reported me, and reduced the patch count fixing the
-style changes on the patch that removes the soc_camera dependencies.
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 
-No frame rate control, but now a TODO note makes clear that is expected
-v4l2 compliance tool to report errors.
+Change the sorting of the part numbers from descending to ascending to
+match with other documentation.
 
-v1 -> v2:
-- Fix soc_camera driver build error
-- Add TODO note for missing frame rate control
-- Reduce patch count
+Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Jacopo Mondi (4):
-  media: i2c: Copy mt9t112 soc_camera sensor driver
-  media: i2c: mt9t112: Remove soc_camera dependencies
-  arch: sh: ecovec: Use new renesas-ceu camera driver
-  media: MAINTAINERS: Add entry for Aptina MT9T112
-
- MAINTAINERS                            |    7 +
- arch/sh/boards/mach-ecovec24/setup.c   |  338 +++++-----
- arch/sh/kernel/cpu/sh4a/clock-sh7724.c |    4 +-
- drivers/media/i2c/Kconfig              |   11 +
- drivers/media/i2c/Makefile             |    1 +
- drivers/media/i2c/mt9t112.c            | 1140 ++++++++++++++++++++++++++++++++
- drivers/media/i2c/soc_camera/mt9t112.c |    2 +-
- include/media/i2c/mt9t112.h            |   17 +-
- 8 files changed, 1338 insertions(+), 182 deletions(-)
- create mode 100644 drivers/media/i2c/mt9t112.c
-
---
-2.7.4
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 19357d0bbe6539b3..0ac715a5c331bc26 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,14 +6,14 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
+ 
+  - compatible: Must be one or more of the following
+-   - "renesas,vin-r8a7795" for the R8A7795 device
+-   - "renesas,vin-r8a7794" for the R8A7794 device
+-   - "renesas,vin-r8a7793" for the R8A7793 device
+-   - "renesas,vin-r8a7792" for the R8A7792 device
+-   - "renesas,vin-r8a7791" for the R8A7791 device
+-   - "renesas,vin-r8a7790" for the R8A7790 device
+-   - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
++   - "renesas,vin-r8a7779" for the R8A7779 device
++   - "renesas,vin-r8a7790" for the R8A7790 device
++   - "renesas,vin-r8a7791" for the R8A7791 device
++   - "renesas,vin-r8a7792" for the R8A7792 device
++   - "renesas,vin-r8a7793" for the R8A7793 device
++   - "renesas,vin-r8a7794" for the R8A7794 device
++   - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+ 
+-- 
+2.16.2
