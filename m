@@ -1,52 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56852 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754058AbeCWL5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>
-Subject: [PATCH 28/30] media: tm6000:  avoid casting just to print pointer address
-Date: Fri, 23 Mar 2018 07:57:14 -0400
-Message-Id: <e771bdf595ce7b297d9d50918300220f4981b5da.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32123 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934221AbeCGWFz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 17:05:55 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 23/33] rcar-vin: force default colorspace for media centric mode
+Date: Wed,  7 Mar 2018 23:05:01 +0100
+Message-Id: <20180307220511.9826-24-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of casting, just use %p.
+The V4L2 specification clearly documents the colorspace fields as being
+set by drivers for capture devices. Using the values supplied by
+userspace thus wouldn't comply with the API. Until the API is updated to
+allow for userspace to set these Hans wants the fields to be set by the
+driver to fixed values.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/usb/tm6000/tm6000-video.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index 8314d3fa9241..b2399d4266da 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1346,9 +1346,8 @@ static int __tm6000_open(struct file *file)
- 	fh->width = dev->width;
- 	fh->height = dev->height;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 2280535ca981993f..ea0759a645e49490 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -664,12 +664,29 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+  * V4L2 Media Controller
+  */
  
--	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=0x%08lx, dev=0x%08lx, dev->vidq=0x%08lx\n",
--			(unsigned long)fh, (unsigned long)dev,
--			(unsigned long)&dev->vidq);
-+	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=%p, dev=%p, dev->vidq=%p\n",
-+		fh, dev, &dev->vidq);
- 	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty queued=%d\n",
- 		list_empty(&dev->vidq.queued));
- 	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty active=%d\n",
++static int rvin_mc_try_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	/*
++	 * The V4L2 specification clearly documents the colorspace fields
++	 * as being set by drivers for capture devices. Using the values
++	 * supplied by userspace thus wouldn't comply with the API. Until
++	 * the API is updated force fixed vaules.
++	 */
++	pix->colorspace = RVIN_DEFAULT_COLORSPACE;
++	pix->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(pix->colorspace);
++	pix->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(pix->colorspace);
++	pix->quantization = V4L2_MAP_QUANTIZATION_DEFAULT(true, pix->colorspace,
++							  pix->ycbcr_enc);
++
++	return rvin_format_align(vin, pix);
++}
++
+ static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
+ 				   struct v4l2_format *f)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+ 
+-	return rvin_format_align(vin, &f->fmt.pix);
++	return rvin_mc_try_format(vin, &f->fmt.pix);
+ }
+ 
+ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+@@ -681,7 +698,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	if (vb2_is_busy(&vin->queue))
+ 		return -EBUSY;
+ 
+-	ret = rvin_format_align(vin, &f->fmt.pix);
++	ret = rvin_mc_try_format(vin, &f->fmt.pix);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
-2.14.3
+2.16.2
