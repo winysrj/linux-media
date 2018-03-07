@@ -1,39 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52326 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752267AbeC0G3H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 02:29:07 -0400
-Date: Tue, 27 Mar 2018 08:29:04 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ji-Hun Kim <ji_hun.kim@samsung.com>, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        arvind.yadav.cs@gmail.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] staging: media: davinci_vpfe: add error handling
- on kmalloc failure
-Message-ID: <20180327062904.GA29640@kroah.com>
-References: <CGME20180321043915epcas1p3955f5a57c6728cd1f386f805879fc3f2@epcas1p3.samsung.com>
- <1521607150-31307-1-git-send-email-ji_hun.kim@samsung.com>
- <20180327050045.GA12754@ubuntu>
- <20180327052058.xphi47mnnbtjl2fc@mwanda>
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:43147 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754039AbeCGV7W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 16:59:22 -0500
+Date: Wed, 7 Mar 2018 15:59:20 -0600
+From: Rob Herring <robh@kernel.org>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Yong Deng <yong.deng@magewell.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-arm-kernel@lists.infradead.org, Chen-Yu Tsai <wens@csie.org>
+Subject: Re: [PATCH 1/4] dt-bindings: media: sun6i: Add A31 and H3 compatibles
+Message-ID: <20180307215920.wwfhj2yaf7qbssyx@rob-hp-laptop>
+References: <20180305100432.15009-1-maxime.ripard@bootlin.com>
+ <20180305100432.15009-2-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180327052058.xphi47mnnbtjl2fc@mwanda>
+In-Reply-To: <20180305100432.15009-2-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 27, 2018 at 08:20:59AM +0300, Dan Carpenter wrote:
-> On Tue, Mar 27, 2018 at 02:00:45PM +0900, Ji-Hun Kim wrote:
-> > 
-> > Are there any opinions? I'd like to know how this patch is going.
-> > 
+On Mon, Mar 05, 2018 at 11:04:29AM +0100, Maxime Ripard wrote:
+> The H3 has a slightly different CSI controller (no BT656, no CCI) which
+> looks a lot like the original A31 controller. Add a compatible for the A31,
+> and more specific compatible the for the H3 to be used in combination for
+> the A31.
 > 
-> 
-> Looks good.  Thanks!
-> 
-> Greg just hasn't gotten to it yet.
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  Documentation/devicetree/bindings/media/sun6i-csi.txt | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 
-Greg does not take drivers/staging/media/* patches :)
+Reviewed-by: Rob Herring <robh@kernel.org>
