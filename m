@@ -1,88 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58386 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752572AbeC1OKP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:10:15 -0400
-Subject: Re: [PATCH 05/15] v4l: vsp1: Use vsp1_entity.pipe to check if entity
- belongs to a pipeline
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
- <20180226214516.11559-6-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <7198a828-35da-6080-7987-ee0370cbba3c@ideasonboard.com>
-Date: Wed, 28 Mar 2018 15:10:10 +0100
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:46841 "EHLO
+        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751072AbeCGJrP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 04:47:15 -0500
+Received: by mail-qk0-f169.google.com with SMTP id 130so1842127qkd.13
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 01:47:14 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20180226214516.11559-6-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1980bfa67f19d628df30b9b5b76bca37c2a76dde.1520414065.git.mchehab@s-opensource.com>
+References: <1980bfa67f19d628df30b9b5b76bca37c2a76dde.1520414065.git.mchehab@s-opensource.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Wed, 7 Mar 2018 06:47:14 -0300
+Message-ID: <CAOMZO5C5jSxwKMV0hZpA1emFW9ha8GN4XsTsdTfgPU4eJ44Ctw@mail.gmail.com>
+Subject: Re: [PATCH] media: dvbdev: fix building on ia64
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Mauro,
 
-On 26/02/18 21:45, Laurent Pinchart wrote:
-> The DRM pipeline handling code uses the entity's pipe list head to check
-> whether the entity is already included in a pipeline. This method is a
-> bit fragile in the sense that it uses list_empty() on a list_head that
-> is a list member. Replace it by a simpler check for the entity pipe
-> pointer.
+On Wed, Mar 7, 2018 at 6:14 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Not sure why, but, on ia64, with Linaro's gcc 7.3 compiler,
+> using #ifdef (CONFIG_I2C) is not OK.
 
-Yes, excellent.
+Looking at the kbuild report the failure happens when CONFIG_I2C=m.
 
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+IS_ENABLED() macro takes care of both built-in and module as it will expand to:
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
 
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index a7ad85ab0b08..e210917fdc3f 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -119,9 +119,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  			 * Remove the RPF from the pipe and the list of BRU
->  			 * inputs.
->  			 */
-> -			WARN_ON(list_empty(&rpf->entity.list_pipe));
-> +			WARN_ON(!rpf->entity.pipe);
+and that's the reason why IS_ENABLE() fixes the build problem.
 
-Does this WARN_ON() have much value any more ?
+Regards,
 
-I think it could probably be removed... unless there is a race between potential
-calls through vsp1_du_atomic_flush() and vsp1_du_setup_lif() - but I would be
-very surprised if that wasn't protected at the DRM levels.
-
- (Removing it if chosen doesn't need to be in this patch though)
-
->  			rpf->entity.pipe = NULL;
-> -			list_del_init(&rpf->entity.list_pipe);
-> +			list_del(&rpf->entity.list_pipe);
->  			pipe->inputs[i] = NULL;
->  
->  			bru->inputs[rpf->bru_input].rpf = NULL;
-> @@ -537,7 +537,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  			continue;
->  		}
->  
-> -		if (list_empty(&rpf->entity.list_pipe)) {
-> +		if (!rpf->entity.pipe) {
->  			rpf->entity.pipe = pipe;
->  			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
->  		}
-> @@ -566,7 +566,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  					   VI6_DPR_NODE_UNUSED);
->  
->  			entity->pipe = NULL;
-> -			list_del_init(&entity->list_pipe);
-> +			list_del(&entity->list_pipe);
->  
->  			continue;
->  		}
-> 
+Fabio Estevam
