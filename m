@@ -1,139 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:52449 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751478AbeCNN1S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 09:27:18 -0400
-Message-ID: <1521033957.1130.5.camel@bootlin.com>
-Subject: Re: [RFCv4,19/21] media: vim2m: add request support
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Date: Wed, 14 Mar 2018 14:25:57 +0100
-In-Reply-To: <CAPBb6MWAXjCWJB6x-osFKZ-wGzMiucL6oa1ZHEzTgscpJTs35Q@mail.gmail.com>
-References: <20180220044425.169493-20-acourbot@chromium.org>
-         <1520440654.1092.15.camel@bootlin.com>
-         <CAPBb6MUeUaHZj9y1N7wJk9yS8QL+zTqWCGvujcKCY0YpdeiyWg@mail.gmail.com>
-         <1520606128.15946.22.camel@bootlin.com>
-         <CAPBb6MWAXjCWJB6x-osFKZ-wGzMiucL6oa1ZHEzTgscpJTs35Q@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-kKPa2jGKCmzG1Wx2TdNo"
-Mime-Version: 1.0
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31657 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754547AbeCGWFc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 17:05:32 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 07/33] rcar-vin: move model information to own struct
+Date: Wed,  7 Mar 2018 23:04:45 +0100
+Message-Id: <20180307220511.9826-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When Gen3 support is added to the driver more than model ID will be
+different for the different SoCs. To avoid a lot of if statements in the
+code create a struct rvin_info to store this information.
 
---=-kKPa2jGKCmzG1Wx2TdNo
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+While we are at it rename the poorly chosen enum which contains the
+different model IDs from chip_id to model_id. Also sort the compatible
+string entries and make use of of_device_get_match_data() which will
+always work as the driver is DT only, so there's always a valid match.
 
-Hi,
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 56 +++++++++++++++++++++--------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 14 ++++++--
+ 3 files changed, 55 insertions(+), 18 deletions(-)
 
-On Tue, 2018-03-13 at 19:24 +0900, Alexandre Courbot wrote:
-> On Fri, Mar 9, 2018 at 11:35 PM, Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
-> > Hi,
-> >=20
-> > On Thu, 2018-03-08 at 22:48 +0900, Alexandre Courbot wrote:
-> > > Hi Paul!
-> > >=20
-> > > Thanks a lot for taking the time to try this! I am also working on
-> > > getting it to work with an actual driver, but you apparently found
-> > > rough edges that I missed.
-> > >=20
-> > > On Thu, Mar 8, 2018 at 1:37 AM, Paul Kocialkowski
-> > > <paul.kocialkowski@bootlin.com> wrote:
-> > > > On Tue, 2018-02-20 at 13:44 +0900, Alexandre Courbot wrote:
-
-[...]
-
-> > > > > +static int vim2m_request_submit(struct media_request *req,
-> > > > > +                             struct media_request_entity_data
-> > > > > *_data)
-> > > > > +{
-> > > > > +     struct v4l2_request_entity_data *data;
-> > > > > +
-> > > > > +     data =3D to_v4l2_entity_data(_data);
-> > > >=20
-> > > > We need to call v4l2_m2m_try_schedule here so that m2m
-> > > > scheduling
-> > > > can
-> > > > happen when only 2 buffers were queued and no other action was
-> > > > taken
-> > > > from usespace. In that scenario, m2m scheduling currently
-> > > > doesn't
-> > > > happen.
-> > >=20
-> > > I don't think I understand the sequence of events that results in
-> > > v4l2_m2m_try_schedule() not being called. Do you mean something
-> > > like:
-> > >=20
-> > > *
-> > > * QBUF on output queue with request set
-> > > * QBUF on capture queue
-> > > * SUBMIT_REQUEST
-> > >=20
-> > > ?
-> > >=20
-> > > The call to vb2_request_submit() right after should trigger
-> > > v4l2_m2m_try_schedule(), since the buffers associated to the
-> > > request
-> > > will enter the vb2 queue and be passed to the m2m framework, which
-> > > will then call v4l2_m2m_try_schedule(). Or maybe you are thinking
-> > > about a different sequence of events?
-> >=20
-> > This is indeed the sequence of events that I'm seeing, but the
-> > scheduling call simply did not happen on vb2_request_submit. I
-> > suppose I will need to investigate some more to find out exactly
-> > why.
-> >=20
-> > IIRC, the m2m qbuf function is called (and fails to schedule) when
-> > the
-> > ioctl happens, not when the task is submitted.
-> >=20
-> > This issue is seen with vim2m as well as the rencently-submitted
-> > sunxi-
-> > cedrus driver (with the in-driver calls to v4l2_m2m_try_schedule
-> > removed, obviously). If needs be, I could provide a standalone test
-> > program to reproduce it.
->=20
-> If you have a standalone program that can reproduce this on vim2m,
-> then I would like to see it indeed, if only to understand what I have
-> missed.
-
-You can find the test file for this use case at:
-https://gist.github.com/paulkocialkowski/4cfa350e1bbe8e3bf714480bba83ea72
-
-Cheers!
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-kKPa2jGKCmzG1Wx2TdNo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlqpIuUACgkQ3cLmz3+f
-v9FDWQf7BtBZSTrUfQdirubgIqDKOoTvi9oc+HCcKeojGitjab05rVnb9URxuvdN
-n3+sCRegHw3zOYZpjUFegoSF+jobD7Y+mFjgPrZ+FI+GFbG9zlnIyfwXY4sYeq2l
-+sdusBZxvI8GftkHB2AsLvOOcKf843rxuDI7f6opSWThxojEZtTmrCv+AV1eGfMD
-tz2fu9cgZlPzFzqEg7grHK2AlzVwIvpOHL1B87goTMcAoV6VesyW/xtJM+4ilZEC
-gHXZZUTw/grK2tJYijg97Wi24fMSpuybRq3znMBQQ2tkigWgBDgHsU4tU/9g6KO7
-ZE7UpkzjdZbKabmS68kvWfFwQ7tG5Q==
-=XD47
------END PGP SIGNATURE-----
-
---=-kKPa2jGKCmzG1Wx2TdNo--
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 663309ca9c04f208..d2b27ccff690cede 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -241,21 +241,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+  * Platform Device Driver
+  */
+ 
++static const struct rvin_info rcar_info_h1 = {
++	.model = RCAR_H1,
++};
++
++static const struct rvin_info rcar_info_m1 = {
++	.model = RCAR_M1,
++};
++
++static const struct rvin_info rcar_info_gen2 = {
++	.model = RCAR_GEN2,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+-	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+-	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+-	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+-	{ },
++	{
++		.compatible = "renesas,vin-r8a7778",
++		.data = &rcar_info_m1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7779",
++		.data = &rcar_info_h1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7790",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7791",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7793",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7794",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,rcar-gen2-vin",
++		.data = &rcar_info_gen2,
++	},
++	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
+-	const struct of_device_id *match;
+ 	struct rvin_dev *vin;
+ 	struct resource *mem;
+ 	int irq, ret;
+@@ -264,12 +296,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (!vin)
+ 		return -ENOMEM;
+ 
+-	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
+-	if (!match)
+-		return -ENODEV;
+-
+ 	vin->dev = &pdev->dev;
+-	vin->chip = (enum chip_id)match->data;
++	vin->info = of_device_get_match_data(&pdev->dev);
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 4a0610a6b4503501..0a035667c0b0e93f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
+ 
+-	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++	if (vin->info->model == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+ 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 85cb7ec53d2b08b5..3f49d2f2d6b88471 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -29,7 +29,7 @@
+ /* Address alignment mask for HW buffers */
+ #define HW_BUFFER_MASK 0x7f
+ 
+-enum chip_id {
++enum model_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+ 	RCAR_GEN2,
+@@ -88,11 +88,19 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++/**
++ * struct rvin_info - Information about the particular VIN implementation
++ * @model:		VIN model
++ */
++struct rvin_info {
++	enum model_id model;
++};
++
+ /**
+  * struct rvin_dev - Renesas VIN device structure
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+- * @chip:		type of VIN chip
++ * @info:		info about VIN instance
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -120,7 +128,7 @@ struct rvin_graph_entity {
+ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+-	enum chip_id chip;
++	const struct rvin_info *info;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
+-- 
+2.16.2
