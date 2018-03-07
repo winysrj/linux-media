@@ -1,108 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37397 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752689AbeCBTfD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 14:35:03 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/8] media: em28xx: improve the logic with sets Xclk and I2C speed
-Date: Fri,  2 Mar 2018 16:34:43 -0300
-Message-Id: <19bdfad37599b5f12c824f37a08f635cf6126018.1520018558.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1520018558.git.mchehab@s-opensource.com>
-References: <cover.1520018558.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1520018558.git.mchehab@s-opensource.com>
-References: <cover.1520018558.git.mchehab@s-opensource.com>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:32041 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934221AbeCGWFv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 17:05:51 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 20/33] rcar-vin: add function to manipulate Gen3 chsel value
+Date: Wed,  7 Mar 2018 23:04:58 +0100
+Message-Id: <20180307220511.9826-21-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic there should be called on two places. Also,
-ideally, it should not be modifying the device struct.
+On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+feature of this register is that it's only present in the VIN0 and VIN4
+instances. The register in VIN0 controls the routing for VIN0-3 and the
+register in VIN4 controls routing for VIN4-7.
 
-So, change the logic accordingly.
+To be able to control routing from a media device this function is need
+to control runtime PM for the subgroup master (VIN0 and VIN4). The
+subgroup master must be switched on before the register is manipulated,
+once the operation is complete it's safe to switch the master off and
+the new routing will still be in effect.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c | 45 +++++++++++++++++----------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 38 ++++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
+ 2 files changed, 40 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 34e16f6ab4ac..cbd7a43bd559 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2669,20 +2669,35 @@ int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 483d31f07b934929..75382ee0f3fc1dde 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -16,6 +16,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <media/videobuf2-dma-contig.h>
+ 
+@@ -1224,3 +1225,40 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(em28xx_tuner_callback);
- 
--static inline void em28xx_set_model(struct em28xx *dev)
-+static inline void em28xx_set_xclk_i2c_speed(struct em28xx *dev)
- {
--	dev->board = em28xx_boards[dev->model];
-+	struct em28xx_board *board = &em28xx_boards[dev->model];
-+	u8 xclk = board->xclk, i2c_speed = board->i2c_speed;
- 
- 	/* Those are the default values for the majority of boards
- 	   Use those values if not specified otherwise at boards entry
- 	 */
--	if (!dev->board.xclk)
--		dev->board.xclk = EM28XX_XCLK_IR_RC5_MODE |
-+	if (!xclk)
-+		xclk = EM28XX_XCLK_IR_RC5_MODE |
- 				  EM28XX_XCLK_FREQUENCY_12MHZ;
- 
--	if (!dev->board.i2c_speed)
--		dev->board.i2c_speed = EM28XX_I2C_CLK_WAIT_ENABLE |
--				       EM28XX_I2C_FREQ_100_KHZ;
-+	em28xx_write_reg(dev, EM28XX_R0F_XCLK, xclk);
 +
++/* -----------------------------------------------------------------------------
++ * Gen3 CHSEL manipulation
++ */
 +
-+	if (!i2c_speed)
-+		i2c_speed = EM28XX_I2C_CLK_WAIT_ENABLE |
-+			    EM28XX_I2C_FREQ_100_KHZ;
-+
-+	if (!dev->board.is_em2800)
-+		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, i2c_speed);
-+	msleep(50);
-+}
-+
-+static inline void em28xx_set_model(struct em28xx *dev)
++/*
++ * There is no need to have locking around changing the routing
++ * as it's only possible to do so when no VIN in the group is
++ * streaming so nothing can race with the VNMC register.
++ */
++int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
 +{
-+	dev->board = em28xx_boards[dev->model];
++	u32 ifmd, vnmc;
++	int ret;
 +
-+	em28xx_set_xclk_i2c_speed(dev);
++	ret = pm_runtime_get_sync(vin->dev);
++	if (ret < 0)
++		return ret;
++
++	/* Make register writes take effect immediately. */
++	vnmc = rvin_read(vin, VNMC_REG);
++	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
++
++	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
++		VNCSI_IFMD_CSI_CHSEL(chsel);
++
++	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
++
++	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
++
++	/* Restore VNMC. */
++	rvin_write(vin, vnmc, VNMC_REG);
++
++	pm_runtime_put(vin->dev);
++
++	return ret;
++}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 5e3ea8d401d934d1..8e20455927fe5224 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -169,4 +169,6 @@ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ /* Cropping, composing and scaling */
+ void rvin_crop_scale_comp(struct rvin_dev *vin);
  
- 	/* Should be initialized early, for I2C to work */
- 	dev->def_i2c_bus = dev->board.def_i2c_bus;
-@@ -2725,10 +2740,7 @@ static void em28xx_pre_card_setup(struct em28xx *dev)
- {
- 	/* Set the initial XCLK and I2C clock values based on the board
- 	   definition */
--	em28xx_write_reg(dev, EM28XX_R0F_XCLK, dev->board.xclk & 0x7f);
--	if (!dev->board.is_em2800)
--		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
--	msleep(50);
-+	em28xx_set_xclk_i2c_speed(dev);
- 
- 	/* request some modules */
- 	switch (dev->model) {
-@@ -3382,17 +3394,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 
- 	em28xx_pre_card_setup(dev);
- 
--	if (!dev->board.is_em2800) {
--		/* Resets I2C speed */
--		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
--		if (retval < 0) {
--			dev_err(&dev->intf->dev,
--			       "%s: em28xx_write_reg failed! retval [%d]\n",
--			       __func__, retval);
--			return retval;
--		}
--	}
--
- 	rt_mutex_init(&dev->i2c_bus_lock);
- 
- 	/* register i2c bus 0 */
++int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
++
+ #endif
 -- 
-2.14.3
+2.16.2
