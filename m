@@ -1,1202 +1,659 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:37177 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932332AbeCLOET (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:31713 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754755AbeCGWFf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 10:04:19 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi, mchehab@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 1/4] media: i2c: Copy mt9t112 soc_camera sensor driver
-Date: Mon, 12 Mar 2018 14:43:02 +0100
-Message-Id: <1520862185-17150-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520862185-17150-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520862185-17150-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 7 Mar 2018 17:05:35 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 09/33] rcar-vin: move functions regarding scaling
+Date: Wed,  7 Mar 2018 23:04:47 +0100
+Message-Id: <20180307220511.9826-10-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Copy the soc_camera based driver in v4l2 sensor driver directory.
-This commit just copies the original file without modifying it.
-No modification to KConfig and Makefile as soc_camera framework
-dependencies need to be removed first in next commit.
+In preparation of refactoring the scaling code move the code regarding
+scaling to to the top of the file to avoid the need to add forward
+declarations. No code is changed in this commit only whole functions
+moved inside the same file.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/mt9t112.c | 1163 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 1163 insertions(+)
- create mode 100644 drivers/media/i2c/mt9t112.c
+ drivers/media/platform/rcar-vin/rcar-dma.c | 602 +++++++++++++++--------------
+ 1 file changed, 303 insertions(+), 299 deletions(-)
 
-diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
-new file mode 100644
-index 0000000..297d22e
---- /dev/null
-+++ b/drivers/media/i2c/mt9t112.c
-@@ -0,0 +1,1163 @@
-+/*
-+ * mt9t112 Camera Driver
-+ *
-+ * Copyright (C) 2009 Renesas Solutions Corp.
-+ * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-+ *
-+ * Based on ov772x driver, mt9m111 driver,
-+ *
-+ * Copyright (C) 2008 Kuninori Morimoto <morimoto.kuninori@renesas.com>
-+ * Copyright (C) 2008, Robert Jarzmik <robert.jarzmik@free.fr>
-+ * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-+ * Copyright (C) 2008 Magnus Damm
-+ * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index d701b52d198243b5..a7cda3922cb74baa 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -138,305 +138,6 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
+ 	return ioread32(vin->base + offset);
+ }
+ 
+-static int rvin_setup(struct rvin_dev *vin)
+-{
+-	u32 vnmc, dmr, dmr2, interrupts;
+-	v4l2_std_id std;
+-	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+-
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_TOP:
+-		vnmc = VNMC_IM_ODD;
+-		break;
+-	case V4L2_FIELD_BOTTOM:
+-		vnmc = VNMC_IM_EVEN;
+-		break;
+-	case V4L2_FIELD_INTERLACED:
+-		/* Default to TB */
+-		vnmc = VNMC_IM_FULL;
+-		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+-			if (std & V4L2_STD_525_60)
+-				vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		}
+-		break;
+-	case V4L2_FIELD_INTERLACED_TB:
+-		vnmc = VNMC_IM_FULL;
+-		break;
+-	case V4L2_FIELD_INTERLACED_BT:
+-		vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		break;
+-	case V4L2_FIELD_ALTERNATE:
+-	case V4L2_FIELD_NONE:
+-		if (vin->continuous) {
+-			vnmc = VNMC_IM_ODD_EVEN;
+-			progressive = true;
+-		} else {
+-			vnmc = VNMC_IM_ODD;
+-		}
+-		break;
+-	default:
+-		vnmc = VNMC_IM_ODD;
+-		break;
+-	}
+-
+-	/*
+-	 * Input interface
+-	 */
+-	switch (vin->digital->code) {
+-	case MEDIA_BUS_FMT_YUYV8_1X16:
+-		/* BT.601/BT.1358 16bit YCbCr422 */
+-		vnmc |= VNMC_INF_YUV16;
+-		input_is_yuv = true;
+-		break;
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+-			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+-		input_is_yuv = true;
+-		break;
+-	case MEDIA_BUS_FMT_RGB888_1X24:
+-		vnmc |= VNMC_INF_RGB888;
+-		break;
+-	case MEDIA_BUS_FMT_UYVY10_2X10:
+-		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
+-			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+-		input_is_yuv = true;
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+-	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+-
+-	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+-		dmr2 |= VNDMR2_HPS;
+-
+-	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+-		dmr2 |= VNDMR2_VPS;
+-
+-	/*
+-	 * Output format
+-	 */
+-	switch (vin->format.pixelformat) {
+-	case V4L2_PIX_FMT_NV16:
+-		rvin_write(vin,
+-			   ALIGN(vin->format.width * vin->format.height, 0x80),
+-			   VNUVAOF_REG);
+-		dmr = VNDMR_DTMD_YCSEP;
+-		output_is_yuv = true;
+-		break;
+-	case V4L2_PIX_FMT_YUYV:
+-		dmr = VNDMR_BPSM;
+-		output_is_yuv = true;
+-		break;
+-	case V4L2_PIX_FMT_UYVY:
+-		dmr = 0;
+-		output_is_yuv = true;
+-		break;
+-	case V4L2_PIX_FMT_XRGB555:
+-		dmr = VNDMR_DTMD_ARGB1555;
+-		break;
+-	case V4L2_PIX_FMT_RGB565:
+-		dmr = 0;
+-		break;
+-	case V4L2_PIX_FMT_XBGR32:
+-		/* Note: not supported on M1 */
+-		dmr = VNDMR_EXRGB;
+-		break;
+-	default:
+-		vin_err(vin, "Invalid pixelformat (0x%x)\n",
+-			vin->format.pixelformat);
+-		return -EINVAL;
+-	}
+-
+-	/* Always update on field change */
+-	vnmc |= VNMC_VUP;
+-
+-	/* If input and output use the same colorspace, use bypass mode */
+-	if (input_is_yuv == output_is_yuv)
+-		vnmc |= VNMC_BPS;
+-
+-	/* Progressive or interlaced mode */
+-	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+-
+-	/* Ack interrupts */
+-	rvin_write(vin, interrupts, VNINTS_REG);
+-	/* Enable interrupts */
+-	rvin_write(vin, interrupts, VNIE_REG);
+-	/* Start capturing */
+-	rvin_write(vin, dmr, VNDMR_REG);
+-	rvin_write(vin, dmr2, VNDMR2_REG);
+-
+-	/* Enable module */
+-	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
+-
+-	return 0;
+-}
+-
+-static void rvin_disable_interrupts(struct rvin_dev *vin)
+-{
+-	rvin_write(vin, 0, VNIE_REG);
+-}
+-
+-static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
+-{
+-	return rvin_read(vin, VNINTS_REG);
+-}
+-
+-static void rvin_ack_interrupt(struct rvin_dev *vin)
+-{
+-	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
+-}
+-
+-static bool rvin_capture_active(struct rvin_dev *vin)
+-{
+-	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+-}
+-
+-static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+-{
+-	if (vin->continuous)
+-		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+-
+-	return 0;
+-}
+-
+-static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+-{
+-	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+-		/* If FS is set it's a Even field */
+-		if (vnms & VNMS_FS)
+-			return V4L2_FIELD_BOTTOM;
+-		return V4L2_FIELD_TOP;
+-	}
+-
+-	return vin->format.field;
+-}
+-
+-static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+-{
+-	const struct rvin_video_format *fmt;
+-	int offsetx, offsety;
+-	dma_addr_t offset;
+-
+-	fmt = rvin_format_from_pixel(vin->format.pixelformat);
+-
+-	/*
+-	 * There is no HW support for composition do the beast we can
+-	 * by modifying the buffer offset
+-	 */
+-	offsetx = vin->compose.left * fmt->bpp;
+-	offsety = vin->compose.top * vin->format.bytesperline;
+-	offset = addr + offsetx + offsety;
+-
+-	/*
+-	 * The address needs to be 128 bytes aligned. Driver should never accept
+-	 * settings that do not satisfy this in the first place...
+-	 */
+-	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
+-		return;
+-
+-	rvin_write(vin, offset, VNMB_REG(slot));
+-}
+-
+-/* Moves a buffer from the queue to the HW slots */
+-static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+-{
+-	struct rvin_buffer *buf;
+-	struct vb2_v4l2_buffer *vbuf;
+-	dma_addr_t phys_addr_top;
+-
+-	if (vin->queue_buf[slot] != NULL)
+-		return true;
+-
+-	if (list_empty(&vin->buf_list))
+-		return false;
+-
+-	vin_dbg(vin, "Filling HW slot: %d\n", slot);
+-
+-	/* Keep track of buffer we give to HW */
+-	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
+-	vbuf = &buf->vb;
+-	list_del_init(to_buf_list(vbuf));
+-	vin->queue_buf[slot] = vbuf;
+-
+-	/* Setup DMA */
+-	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+-	rvin_set_slot_addr(vin, slot, phys_addr_top);
+-
+-	return true;
+-}
+-
+-static bool rvin_fill_hw(struct rvin_dev *vin)
+-{
+-	int slot, limit;
+-
+-	limit = vin->continuous ? HW_BUFFER_NUM : 1;
+-
+-	for (slot = 0; slot < limit; slot++)
+-		if (!rvin_fill_hw_slot(vin, slot))
+-			return false;
+-	return true;
+-}
+-
+-static void rvin_capture_on(struct rvin_dev *vin)
+-{
+-	vin_dbg(vin, "Capture on in %s mode\n",
+-		vin->continuous ? "continuous" : "single");
+-
+-	if (vin->continuous)
+-		/* Continuous Frame Capture Mode */
+-		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+-	else
+-		/* Single Frame Capture Mode */
+-		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+-}
+-
+-static int rvin_capture_start(struct rvin_dev *vin)
+-{
+-	struct rvin_buffer *buf, *node;
+-	int bufs, ret;
+-
+-	/* Count number of free buffers */
+-	bufs = 0;
+-	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
+-		bufs++;
+-
+-	/* Continuous capture requires more buffers then there are HW slots */
+-	vin->continuous = bufs > HW_BUFFER_NUM;
+-
+-	if (!rvin_fill_hw(vin)) {
+-		vin_err(vin, "HW not ready to start, not enough buffers available\n");
+-		return -EINVAL;
+-	}
+-
+-	rvin_crop_scale_comp(vin);
+-
+-	ret = rvin_setup(vin);
+-	if (ret)
+-		return ret;
+-
+-	rvin_capture_on(vin);
+-
+-	vin->state = RUNNING;
+-
+-	return 0;
+-}
+-
+-static void rvin_capture_stop(struct rvin_dev *vin)
+-{
+-	/* Set continuous & single transfer off */
+-	rvin_write(vin, 0, VNFC_REG);
+-
+-	/* Disable module */
+-	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * Crop and Scaling Gen2
+  */
+@@ -892,6 +593,309 @@ void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+ 	pix->height = height;
+ }
+ 
++/* -----------------------------------------------------------------------------
++ * Hardware setup
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/i2c/mt9t112.h>
-+#include <media/soc_camera.h>
-+#include <media/v4l2-clk.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-image-sizes.h>
-+
-+/* you can check PLL/clock info */
-+/* #define EXT_CLOCK 24000000 */
-+
-+/************************************************************************
-+			macro
-+************************************************************************/
-+/*
-+ * frame size
-+ */
-+#define MAX_WIDTH   2048
-+#define MAX_HEIGHT  1536
-+
-+/*
-+ * macro of read/write
-+ */
-+#define ECHECKER(ret, x)		\
-+	do {				\
-+		(ret) = (x);		\
-+		if ((ret) < 0)		\
-+			return (ret);	\
-+	} while (0)
-+
-+#define mt9t112_reg_write(ret, client, a, b) \
-+	ECHECKER(ret, __mt9t112_reg_write(client, a, b))
-+#define mt9t112_mcu_write(ret, client, a, b) \
-+	ECHECKER(ret, __mt9t112_mcu_write(client, a, b))
-+
-+#define mt9t112_reg_mask_set(ret, client, a, b, c) \
-+	ECHECKER(ret, __mt9t112_reg_mask_set(client, a, b, c))
-+#define mt9t112_mcu_mask_set(ret, client, a, b, c) \
-+	ECHECKER(ret, __mt9t112_mcu_mask_set(client, a, b, c))
-+
-+#define mt9t112_reg_read(ret, client, a) \
-+	ECHECKER(ret, __mt9t112_reg_read(client, a))
-+
-+/*
-+ * Logical address
-+ */
-+#define _VAR(id, offset, base)	(base | (id & 0x1f) << 10 | (offset & 0x3ff))
-+#define VAR(id, offset)  _VAR(id, offset, 0x0000)
-+#define VAR8(id, offset) _VAR(id, offset, 0x8000)
-+
-+/************************************************************************
-+			struct
-+************************************************************************/
-+struct mt9t112_format {
-+	u32 code;
-+	enum v4l2_colorspace colorspace;
-+	u16 fmt;
-+	u16 order;
-+};
-+
-+struct mt9t112_priv {
-+	struct v4l2_subdev		 subdev;
-+	struct mt9t112_camera_info	*info;
-+	struct i2c_client		*client;
-+	struct v4l2_rect		 frame;
-+	struct v4l2_clk			*clk;
-+	const struct mt9t112_format	*format;
-+	int				 num_formats;
-+	u32				 flags;
-+/* for flags */
-+#define INIT_DONE	(1 << 0)
-+#define PCLK_RISING	(1 << 1)
-+};
-+
-+/************************************************************************
-+			supported format
-+************************************************************************/
-+
-+static const struct mt9t112_format mt9t112_cfmts[] = {
-+	{
-+		.code		= MEDIA_BUS_FMT_UYVY8_2X8,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.fmt		= 1,
-+		.order		= 0,
-+	}, {
-+		.code		= MEDIA_BUS_FMT_VYUY8_2X8,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.fmt		= 1,
-+		.order		= 1,
-+	}, {
-+		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.fmt		= 1,
-+		.order		= 2,
-+	}, {
-+		.code		= MEDIA_BUS_FMT_YVYU8_2X8,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.fmt		= 1,
-+		.order		= 3,
-+	}, {
-+		.code		= MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.fmt		= 8,
-+		.order		= 2,
-+	}, {
-+		.code		= MEDIA_BUS_FMT_RGB565_2X8_LE,
-+		.colorspace	= V4L2_COLORSPACE_SRGB,
-+		.fmt		= 4,
-+		.order		= 2,
-+	},
-+};
-+
-+/************************************************************************
-+			general function
-+************************************************************************/
-+static struct mt9t112_priv *to_mt9t112(const struct i2c_client *client)
++static int rvin_setup(struct rvin_dev *vin)
 +{
-+	return container_of(i2c_get_clientdata(client),
-+			    struct mt9t112_priv,
-+			    subdev);
-+}
-+
-+static int __mt9t112_reg_read(const struct i2c_client *client, u16 command)
-+{
-+	struct i2c_msg msg[2];
-+	u8 buf[2];
-+	int ret;
-+
-+	command = swab16(command);
-+
-+	msg[0].addr  = client->addr;
-+	msg[0].flags = 0;
-+	msg[0].len   = 2;
-+	msg[0].buf   = (u8 *)&command;
-+
-+	msg[1].addr  = client->addr;
-+	msg[1].flags = I2C_M_RD;
-+	msg[1].len   = 2;
-+	msg[1].buf   = buf;
-+
-+	/*
-+	 * if return value of this function is < 0,
-+	 * it mean error.
-+	 * else, under 16bit is valid data.
-+	 */
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+	if (ret < 0)
-+		return ret;
-+
-+	memcpy(&ret, buf, 2);
-+	return swab16(ret);
-+}
-+
-+static int __mt9t112_reg_write(const struct i2c_client *client,
-+			       u16 command, u16 data)
-+{
-+	struct i2c_msg msg;
-+	u8 buf[4];
-+	int ret;
-+
-+	command = swab16(command);
-+	data = swab16(data);
-+
-+	memcpy(buf + 0, &command, 2);
-+	memcpy(buf + 2, &data,    2);
-+
-+	msg.addr  = client->addr;
-+	msg.flags = 0;
-+	msg.len   = 4;
-+	msg.buf   = buf;
-+
-+	/*
-+	 * i2c_transfer return message length,
-+	 * but this function should return 0 if correct case
-+	 */
-+	ret = i2c_transfer(client->adapter, &msg, 1);
-+	if (ret >= 0)
-+		ret = 0;
-+
-+	return ret;
-+}
-+
-+static int __mt9t112_reg_mask_set(const struct i2c_client *client,
-+				  u16  command,
-+				  u16  mask,
-+				  u16  set)
-+{
-+	int val = __mt9t112_reg_read(client, command);
-+	if (val < 0)
-+		return val;
-+
-+	val &= ~mask;
-+	val |= set & mask;
-+
-+	return __mt9t112_reg_write(client, command, val);
-+}
-+
-+/* mcu access */
-+static int __mt9t112_mcu_read(const struct i2c_client *client, u16 command)
-+{
-+	int ret;
-+
-+	ret = __mt9t112_reg_write(client, 0x098E, command);
-+	if (ret < 0)
-+		return ret;
-+
-+	return __mt9t112_reg_read(client, 0x0990);
-+}
-+
-+static int __mt9t112_mcu_write(const struct i2c_client *client,
-+			       u16 command, u16 data)
-+{
-+	int ret;
-+
-+	ret = __mt9t112_reg_write(client, 0x098E, command);
-+	if (ret < 0)
-+		return ret;
-+
-+	return __mt9t112_reg_write(client, 0x0990, data);
-+}
-+
-+static int __mt9t112_mcu_mask_set(const struct i2c_client *client,
-+				  u16  command,
-+				  u16  mask,
-+				  u16  set)
-+{
-+	int val = __mt9t112_mcu_read(client, command);
-+	if (val < 0)
-+		return val;
-+
-+	val &= ~mask;
-+	val |= set & mask;
-+
-+	return __mt9t112_mcu_write(client, command, val);
-+}
-+
-+static int mt9t112_reset(const struct i2c_client *client)
-+{
-+	int ret;
-+
-+	mt9t112_reg_mask_set(ret, client, 0x001a, 0x0001, 0x0001);
-+	msleep(1);
-+	mt9t112_reg_mask_set(ret, client, 0x001a, 0x0001, 0x0000);
-+
-+	return ret;
-+}
-+
-+#ifndef EXT_CLOCK
-+#define CLOCK_INFO(a, b)
-+#else
-+#define CLOCK_INFO(a, b) mt9t112_clock_info(a, b)
-+static int mt9t112_clock_info(const struct i2c_client *client, u32 ext)
-+{
-+	int m, n, p1, p2, p3, p4, p5, p6, p7;
-+	u32 vco, clk;
-+	char *enable;
-+
-+	ext /= 1000; /* kbyte order */
-+
-+	mt9t112_reg_read(n, client, 0x0012);
-+	p1 = n & 0x000f;
-+	n = n >> 4;
-+	p2 = n & 0x000f;
-+	n = n >> 4;
-+	p3 = n & 0x000f;
-+
-+	mt9t112_reg_read(n, client, 0x002a);
-+	p4 = n & 0x000f;
-+	n = n >> 4;
-+	p5 = n & 0x000f;
-+	n = n >> 4;
-+	p6 = n & 0x000f;
-+
-+	mt9t112_reg_read(n, client, 0x002c);
-+	p7 = n & 0x000f;
-+
-+	mt9t112_reg_read(n, client, 0x0010);
-+	m = n & 0x00ff;
-+	n = (n >> 8) & 0x003f;
-+
-+	enable = ((6000 > ext) || (54000 < ext)) ? "X" : "";
-+	dev_dbg(&client->dev, "EXTCLK          : %10u K %s\n", ext, enable);
-+
-+	vco = 2 * m * ext / (n+1);
-+	enable = ((384000 > vco) || (768000 < vco)) ? "X" : "";
-+	dev_dbg(&client->dev, "VCO             : %10u K %s\n", vco, enable);
-+
-+	clk = vco / (p1+1) / (p2+1);
-+	enable = (96000 < clk) ? "X" : "";
-+	dev_dbg(&client->dev, "PIXCLK          : %10u K %s\n", clk, enable);
-+
-+	clk = vco / (p3+1);
-+	enable = (768000 < clk) ? "X" : "";
-+	dev_dbg(&client->dev, "MIPICLK         : %10u K %s\n", clk, enable);
-+
-+	clk = vco / (p6+1);
-+	enable = (96000 < clk) ? "X" : "";
-+	dev_dbg(&client->dev, "MCU CLK         : %10u K %s\n", clk, enable);
-+
-+	clk = vco / (p5+1);
-+	enable = (54000 < clk) ? "X" : "";
-+	dev_dbg(&client->dev, "SOC CLK         : %10u K %s\n", clk, enable);
-+
-+	clk = vco / (p4+1);
-+	enable = (70000 < clk) ? "X" : "";
-+	dev_dbg(&client->dev, "Sensor CLK      : %10u K %s\n", clk, enable);
-+
-+	clk = vco / (p7+1);
-+	dev_dbg(&client->dev, "External sensor : %10u K\n", clk);
-+
-+	clk = ext / (n+1);
-+	enable = ((2000 > clk) || (24000 < clk)) ? "X" : "";
-+	dev_dbg(&client->dev, "PFD             : %10u K %s\n", clk, enable);
-+
-+	return 0;
-+}
-+#endif
-+
-+static void mt9t112_frame_check(u32 *width, u32 *height, u32 *left, u32 *top)
-+{
-+	soc_camera_limit_side(left, width, 0, 0, MAX_WIDTH);
-+	soc_camera_limit_side(top, height, 0, 0, MAX_HEIGHT);
-+}
-+
-+static int mt9t112_set_a_frame_size(const struct i2c_client *client,
-+				   u16 width,
-+				   u16 height)
-+{
-+	int ret;
-+	u16 wstart = (MAX_WIDTH - width) / 2;
-+	u16 hstart = (MAX_HEIGHT - height) / 2;
-+
-+	/* (Context A) Image Width/Height */
-+	mt9t112_mcu_write(ret, client, VAR(26, 0), width);
-+	mt9t112_mcu_write(ret, client, VAR(26, 2), height);
-+
-+	/* (Context A) Output Width/Height */
-+	mt9t112_mcu_write(ret, client, VAR(18, 43), 8 + width);
-+	mt9t112_mcu_write(ret, client, VAR(18, 45), 8 + height);
-+
-+	/* (Context A) Start Row/Column */
-+	mt9t112_mcu_write(ret, client, VAR(18, 2), 4 + hstart);
-+	mt9t112_mcu_write(ret, client, VAR(18, 4), 4 + wstart);
-+
-+	/* (Context A) End Row/Column */
-+	mt9t112_mcu_write(ret, client, VAR(18, 6), 11 + height + hstart);
-+	mt9t112_mcu_write(ret, client, VAR(18, 8), 11 + width  + wstart);
-+
-+	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
-+
-+	return ret;
-+}
-+
-+static int mt9t112_set_pll_dividers(const struct i2c_client *client,
-+				    u8 m, u8 n,
-+				    u8 p1, u8 p2, u8 p3,
-+				    u8 p4, u8 p5, u8 p6,
-+				    u8 p7)
-+{
-+	int ret;
-+	u16 val;
-+
-+	/* N/M */
-+	val = (n << 8) |
-+	      (m << 0);
-+	mt9t112_reg_mask_set(ret, client, 0x0010, 0x3fff, val);
-+
-+	/* P1/P2/P3 */
-+	val = ((p3 & 0x0F) << 8) |
-+	      ((p2 & 0x0F) << 4) |
-+	      ((p1 & 0x0F) << 0);
-+	mt9t112_reg_mask_set(ret, client, 0x0012, 0x0fff, val);
-+
-+	/* P4/P5/P6 */
-+	val = (0x7         << 12) |
-+	      ((p6 & 0x0F) <<  8) |
-+	      ((p5 & 0x0F) <<  4) |
-+	      ((p4 & 0x0F) <<  0);
-+	mt9t112_reg_mask_set(ret, client, 0x002A, 0x7fff, val);
-+
-+	/* P7 */
-+	val = (0x1         << 12) |
-+	      ((p7 & 0x0F) <<  0);
-+	mt9t112_reg_mask_set(ret, client, 0x002C, 0x100f, val);
-+
-+	return ret;
-+}
-+
-+static int mt9t112_init_pll(const struct i2c_client *client)
-+{
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	int data, i, ret;
-+
-+	mt9t112_reg_mask_set(ret, client, 0x0014, 0x003, 0x0001);
-+
-+	/* PLL control: BYPASS PLL = 8517 */
-+	mt9t112_reg_write(ret, client, 0x0014, 0x2145);
-+
-+	/* Replace these registers when new timing parameters are generated */
-+	mt9t112_set_pll_dividers(client,
-+				 priv->info->divider.m,
-+				 priv->info->divider.n,
-+				 priv->info->divider.p1,
-+				 priv->info->divider.p2,
-+				 priv->info->divider.p3,
-+				 priv->info->divider.p4,
-+				 priv->info->divider.p5,
-+				 priv->info->divider.p6,
-+				 priv->info->divider.p7);
-+
-+	/*
-+	 * TEST_BYPASS  on
-+	 * PLL_ENABLE   on
-+	 * SEL_LOCK_DET on
-+	 * TEST_BYPASS  off
-+	 */
-+	mt9t112_reg_write(ret, client, 0x0014, 0x2525);
-+	mt9t112_reg_write(ret, client, 0x0014, 0x2527);
-+	mt9t112_reg_write(ret, client, 0x0014, 0x3427);
-+	mt9t112_reg_write(ret, client, 0x0014, 0x3027);
-+
-+	mdelay(10);
-+
-+	/*
-+	 * PLL_BYPASS off
-+	 * Reference clock count
-+	 * I2C Master Clock Divider
-+	 */
-+	mt9t112_reg_write(ret, client, 0x0014, 0x3046);
-+	mt9t112_reg_write(ret, client, 0x0016, 0x0400); /* JPEG initialization workaround */
-+	mt9t112_reg_write(ret, client, 0x0022, 0x0190);
-+	mt9t112_reg_write(ret, client, 0x3B84, 0x0212);
-+
-+	/* External sensor clock is PLL bypass */
-+	mt9t112_reg_write(ret, client, 0x002E, 0x0500);
-+
-+	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0002, 0x0002);
-+	mt9t112_reg_mask_set(ret, client, 0x3B82, 0x0004, 0x0004);
-+
-+	/* MCU disabled */
-+	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0004, 0x0004);
-+
-+	/* out of standby */
-+	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0001, 0);
-+
-+	mdelay(50);
-+
-+	/*
-+	 * Standby Workaround
-+	 * Disable Secondary I2C Pads
-+	 */
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-+	mdelay(1);
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-+	mdelay(1);
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-+	mdelay(1);
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-+	mdelay(1);
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-+	mdelay(1);
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-+	mdelay(1);
-+
-+	/* poll to verify out of standby. Must Poll this bit */
-+	for (i = 0; i < 100; i++) {
-+		mt9t112_reg_read(data, client, 0x0018);
-+		if (!(0x4000 & data))
-+			break;
-+
-+		mdelay(10);
-+	}
-+
-+	return ret;
-+}
-+
-+static int mt9t112_init_setting(const struct i2c_client *client)
-+{
-+
-+	int ret;
-+
-+	/* Adaptive Output Clock (A) */
-+	mt9t112_mcu_mask_set(ret, client, VAR(26, 160), 0x0040, 0x0000);
-+
-+	/* Read Mode (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 12), 0x0024);
-+
-+	/* Fine Correction (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 15), 0x00CC);
-+
-+	/* Fine IT Min (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 17), 0x01f1);
-+
-+	/* Fine IT Max Margin (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 19), 0x00fF);
-+
-+	/* Base Frame Lines (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 29), 0x032D);
-+
-+	/* Min Line Length (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 31), 0x073a);
-+
-+	/* Line Length (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 37), 0x07d0);
-+
-+	/* Adaptive Output Clock (B) */
-+	mt9t112_mcu_mask_set(ret, client, VAR(27, 160), 0x0040, 0x0000);
-+
-+	/* Row Start (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 74), 0x004);
-+
-+	/* Column Start (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 76), 0x004);
-+
-+	/* Row End (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 78), 0x60B);
-+
-+	/* Column End (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 80), 0x80B);
-+
-+	/* Fine Correction (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 87), 0x008C);
-+
-+	/* Fine IT Min (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 89), 0x01F1);
-+
-+	/* Fine IT Max Margin (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 91), 0x00FF);
-+
-+	/* Base Frame Lines (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 101), 0x0668);
-+
-+	/* Min Line Length (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 103), 0x0AF0);
-+
-+	/* Line Length (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 109), 0x0AF0);
-+
-+	/*
-+	 * Flicker Dectection registers
-+	 * This section should be replaced whenever new Timing file is generated
-+	 * All the following registers need to be replaced
-+	 * Following registers are generated from Register Wizard but user can
-+	 * modify them. For detail see auto flicker detection tuning
-+	 */
-+
-+	/* FD_FDPERIOD_SELECT */
-+	mt9t112_mcu_write(ret, client, VAR8(8, 5), 0x01);
-+
-+	/* PRI_B_CONFIG_FD_ALGO_RUN */
-+	mt9t112_mcu_write(ret, client, VAR(27, 17), 0x0003);
-+
-+	/* PRI_A_CONFIG_FD_ALGO_RUN */
-+	mt9t112_mcu_write(ret, client, VAR(26, 17), 0x0003);
-+
-+	/*
-+	 * AFD range detection tuning registers
-+	 */
-+
-+	/* search_f1_50 */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 165), 0x25);
-+
-+	/* search_f2_50 */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 166), 0x28);
-+
-+	/* search_f1_60 */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 167), 0x2C);
-+
-+	/* search_f2_60 */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 168), 0x2F);
-+
-+	/* period_50Hz (A) */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 68), 0xBA);
-+
-+	/* secret register by aptina */
-+	/* period_50Hz (A MSB) */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 303), 0x00);
-+
-+	/* period_60Hz (A) */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 69), 0x9B);
-+
-+	/* secret register by aptina */
-+	/* period_60Hz (A MSB) */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 301), 0x00);
-+
-+	/* period_50Hz (B) */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 140), 0x82);
-+
-+	/* secret register by aptina */
-+	/* period_50Hz (B) MSB */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 304), 0x00);
-+
-+	/* period_60Hz (B) */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 141), 0x6D);
-+
-+	/* secret register by aptina */
-+	/* period_60Hz (B) MSB */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 302), 0x00);
-+
-+	/* FD Mode */
-+	mt9t112_mcu_write(ret, client, VAR8(8, 2), 0x10);
-+
-+	/* Stat_min */
-+	mt9t112_mcu_write(ret, client, VAR8(8, 9), 0x02);
-+
-+	/* Stat_max */
-+	mt9t112_mcu_write(ret, client, VAR8(8, 10), 0x03);
-+
-+	/* Min_amplitude */
-+	mt9t112_mcu_write(ret, client, VAR8(8, 12), 0x0A);
-+
-+	/* RX FIFO Watermark (A) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 70), 0x0014);
-+
-+	/* RX FIFO Watermark (B) */
-+	mt9t112_mcu_write(ret, client, VAR(18, 142), 0x0014);
-+
-+	/* MCLK: 16MHz
-+	 * PCLK: 73MHz
-+	 * CorePixCLK: 36.5 MHz
-+	 */
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x0044), 133);
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x0045), 110);
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x008c), 130);
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x008d), 108);
-+
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x00A5), 27);
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a6), 30);
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a7), 32);
-+	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a8), 35);
-+
-+	return ret;
-+}
-+
-+static int mt9t112_auto_focus_setting(const struct i2c_client *client)
-+{
-+	int ret;
-+
-+	mt9t112_mcu_write(ret, client, VAR(12, 13),	0x000F);
-+	mt9t112_mcu_write(ret, client, VAR(12, 23),	0x0F0F);
-+	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x06);
-+
-+	mt9t112_reg_write(ret, client, 0x0614, 0x0000);
-+
-+	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x05);
-+	mt9t112_mcu_write(ret, client, VAR8(12, 2),	0x02);
-+	mt9t112_mcu_write(ret, client, VAR(12, 3),	0x0002);
-+	mt9t112_mcu_write(ret, client, VAR(17, 3),	0x8001);
-+	mt9t112_mcu_write(ret, client, VAR(17, 11),	0x0025);
-+	mt9t112_mcu_write(ret, client, VAR(17, 13),	0x0193);
-+	mt9t112_mcu_write(ret, client, VAR8(17, 33),	0x18);
-+	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x05);
-+
-+	return ret;
-+}
-+
-+static int mt9t112_auto_focus_trigger(const struct i2c_client *client)
-+{
-+	int ret;
-+
-+	mt9t112_mcu_write(ret, client, VAR8(12, 25), 0x01);
-+
-+	return ret;
-+}
-+
-+static int mt9t112_init_camera(const struct i2c_client *client)
-+{
-+	int ret;
-+
-+	ECHECKER(ret, mt9t112_reset(client));
-+
-+	ECHECKER(ret, mt9t112_init_pll(client));
-+
-+	ECHECKER(ret, mt9t112_init_setting(client));
-+
-+	ECHECKER(ret, mt9t112_auto_focus_setting(client));
-+
-+	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0004, 0);
-+
-+	/* Analog setting B */
-+	mt9t112_reg_write(ret, client, 0x3084, 0x2409);
-+	mt9t112_reg_write(ret, client, 0x3092, 0x0A49);
-+	mt9t112_reg_write(ret, client, 0x3094, 0x4949);
-+	mt9t112_reg_write(ret, client, 0x3096, 0x4950);
-+
-+	/*
-+	 * Disable adaptive clock
-+	 * PRI_A_CONFIG_JPEG_OB_TX_CONTROL_VAR
-+	 * PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR
-+	 */
-+	mt9t112_mcu_write(ret, client, VAR(26, 160), 0x0A2E);
-+	mt9t112_mcu_write(ret, client, VAR(27, 160), 0x0A2E);
-+
-+	/* Configure STatus in Status_before_length Format and enable header */
-+	/* PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR */
-+	mt9t112_mcu_write(ret, client, VAR(27, 144), 0x0CB4);
-+
-+	/* Enable JPEG in context B */
-+	/* PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR */
-+	mt9t112_mcu_write(ret, client, VAR8(27, 142), 0x01);
-+
-+	/* Disable Dac_TXLO */
-+	mt9t112_reg_write(ret, client, 0x316C, 0x350F);
-+
-+	/* Set max slew rates */
-+	mt9t112_reg_write(ret, client, 0x1E, 0x777);
-+
-+	return ret;
-+}
-+
-+/************************************************************************
-+			v4l2_subdev_core_ops
-+************************************************************************/
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int mt9t112_g_register(struct v4l2_subdev *sd,
-+			      struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int                ret;
-+
-+	reg->size = 2;
-+	mt9t112_reg_read(ret, client, reg->reg);
-+
-+	reg->val = (__u64)ret;
-+
-+	return 0;
-+}
-+
-+static int mt9t112_s_register(struct v4l2_subdev *sd,
-+			      const struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret;
-+
-+	mt9t112_reg_write(ret, client, reg->reg, reg->val);
-+
-+	return ret;
-+}
-+#endif
-+
-+static int mt9t112_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+}
-+
-+static const struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.g_register	= mt9t112_g_register,
-+	.s_register	= mt9t112_s_register,
-+#endif
-+	.s_power	= mt9t112_s_power,
-+};
-+
-+
-+/************************************************************************
-+			v4l2_subdev_video_ops
-+************************************************************************/
-+static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	int ret = 0;
-+
-+	if (!enable) {
-+		/* FIXME
-+		 *
-+		 * If user selected large output size,
-+		 * and used it long time,
-+		 * mt9t112 camera will be very warm.
-+		 *
-+		 * But current driver can not stop mt9t112 camera.
-+		 * So, set small size here to solve this problem.
-+		 */
-+		mt9t112_set_a_frame_size(client, VGA_WIDTH, VGA_HEIGHT);
-+		return ret;
-+	}
-+
-+	if (!(priv->flags & INIT_DONE)) {
-+		u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
-+
-+		ECHECKER(ret, mt9t112_init_camera(client));
-+
-+		/* Invert PCLK (Data sampled on falling edge of pixclk) */
-+		mt9t112_reg_write(ret, client, 0x3C20, param);
-+
-+		mdelay(5);
-+
-+		priv->flags |= INIT_DONE;
-+	}
-+
-+	mt9t112_mcu_write(ret, client, VAR(26, 7), priv->format->fmt);
-+	mt9t112_mcu_write(ret, client, VAR(26, 9), priv->format->order);
-+	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
-+
-+	mt9t112_set_a_frame_size(client,
-+				 priv->frame.width,
-+				 priv->frame.height);
-+
-+	ECHECKER(ret, mt9t112_auto_focus_trigger(client));
-+
-+	dev_dbg(&client->dev, "format : %d\n", priv->format->code);
-+	dev_dbg(&client->dev, "size   : %d x %d\n",
-+		priv->frame.width,
-+		priv->frame.height);
-+
-+	CLOCK_INFO(client, EXT_CLOCK);
-+
-+	return ret;
-+}
-+
-+static int mt9t112_set_params(struct mt9t112_priv *priv,
-+			      const struct v4l2_rect *rect,
-+			      u32 code)
-+{
-+	int i;
-+
-+	/*
-+	 * get color format
-+	 */
-+	for (i = 0; i < priv->num_formats; i++)
-+		if (mt9t112_cfmts[i].code == code)
-+			break;
-+
-+	if (i == priv->num_formats)
-+		return -EINVAL;
-+
-+	priv->frame  = *rect;
-+
-+	/*
-+	 * frame size check
-+	 */
-+	mt9t112_frame_check(&priv->frame.width, &priv->frame.height,
-+			    &priv->frame.left, &priv->frame.top);
-+
-+	priv->format = mt9t112_cfmts + i;
-+
-+	return 0;
-+}
-+
-+static int mt9t112_get_selection(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_selection *sel)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return -EINVAL;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = MAX_WIDTH;
-+		sel->r.height = MAX_HEIGHT;
-+		return 0;
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = VGA_WIDTH;
-+		sel->r.height = VGA_HEIGHT;
-+		return 0;
-+	case V4L2_SEL_TGT_CROP:
-+		sel->r = priv->frame;
-+		return 0;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int mt9t112_set_selection(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_selection *sel)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	const struct v4l2_rect *rect = &sel->r;
-+
-+	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
-+	    sel->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	return mt9t112_set_params(priv, rect, priv->format->code);
-+}
-+
-+static int mt9t112_get_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_mbus_framefmt *mf = &format->format;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	if (format->pad)
-+		return -EINVAL;
-+
-+	mf->width	= priv->frame.width;
-+	mf->height	= priv->frame.height;
-+	mf->colorspace	= priv->format->colorspace;
-+	mf->code	= priv->format->code;
-+	mf->field	= V4L2_FIELD_NONE;
-+
-+	return 0;
-+}
-+
-+static int mt9t112_s_fmt(struct v4l2_subdev *sd,
-+			 struct v4l2_mbus_framefmt *mf)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	struct v4l2_rect rect = {
-+		.width = mf->width,
-+		.height = mf->height,
-+		.left = priv->frame.left,
-+		.top = priv->frame.top,
-+	};
-+	int ret;
-+
-+	ret = mt9t112_set_params(priv, &rect, mf->code);
-+
-+	if (!ret)
-+		mf->colorspace = priv->format->colorspace;
-+
-+	return ret;
-+}
-+
-+static int mt9t112_set_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_mbus_framefmt *mf = &format->format;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	unsigned int top, left;
-+	int i;
-+
-+	if (format->pad)
-+		return -EINVAL;
-+
-+	for (i = 0; i < priv->num_formats; i++)
-+		if (mt9t112_cfmts[i].code == mf->code)
-+			break;
-+
-+	if (i == priv->num_formats) {
-+		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+		mf->colorspace = V4L2_COLORSPACE_JPEG;
-+	} else {
-+		mf->colorspace	= mt9t112_cfmts[i].colorspace;
-+	}
-+
-+	mt9t112_frame_check(&mf->width, &mf->height, &left, &top);
-+
-+	mf->field = V4L2_FIELD_NONE;
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return mt9t112_s_fmt(sd, mf);
-+	cfg->try_fmt = *mf;
-+	return 0;
-+}
-+
-+static int mt9t112_enum_mbus_code(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	if (code->pad || code->index >= priv->num_formats)
-+		return -EINVAL;
-+
-+	code->code = mt9t112_cfmts[code->index].code;
-+
-+	return 0;
-+}
-+
-+static int mt9t112_g_mbus_config(struct v4l2_subdev *sd,
-+				 struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-+
-+	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_HIGH |
-+		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING;
-+	cfg->type = V4L2_MBUS_PARALLEL;
-+	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
-+
-+	return 0;
-+}
-+
-+static int mt9t112_s_mbus_config(struct v4l2_subdev *sd,
-+				 const struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	if (soc_camera_apply_board_flags(ssdd, cfg) & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		priv->flags |= PCLK_RISING;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
-+	.s_stream	= mt9t112_s_stream,
-+	.g_mbus_config	= mt9t112_g_mbus_config,
-+	.s_mbus_config	= mt9t112_s_mbus_config,
-+};
-+
-+static const struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops = {
-+	.enum_mbus_code = mt9t112_enum_mbus_code,
-+	.get_selection	= mt9t112_get_selection,
-+	.set_selection	= mt9t112_set_selection,
-+	.get_fmt	= mt9t112_get_fmt,
-+	.set_fmt	= mt9t112_set_fmt,
-+};
-+
-+/************************************************************************
-+			i2c driver
-+************************************************************************/
-+static const struct v4l2_subdev_ops mt9t112_subdev_ops = {
-+	.core	= &mt9t112_subdev_core_ops,
-+	.video	= &mt9t112_subdev_video_ops,
-+	.pad	= &mt9t112_subdev_pad_ops,
-+};
-+
-+static int mt9t112_camera_probe(struct i2c_client *client)
-+{
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	const char          *devname;
-+	int                  chipid;
-+	int		     ret;
-+
-+	ret = mt9t112_s_power(&priv->subdev, 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * check and show chip ID
-+	 */
-+	mt9t112_reg_read(chipid, client, 0x0000);
-+
-+	switch (chipid) {
-+	case 0x2680:
-+		devname = "mt9t111";
-+		priv->num_formats = 1;
++	u32 vnmc, dmr, dmr2, interrupts;
++	v4l2_std_id std;
++	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
++
++	switch (vin->format.field) {
++	case V4L2_FIELD_TOP:
++		vnmc = VNMC_IM_ODD;
 +		break;
-+	case 0x2682:
-+		devname = "mt9t112";
-+		priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
++	case V4L2_FIELD_BOTTOM:
++		vnmc = VNMC_IM_EVEN;
++		break;
++	case V4L2_FIELD_INTERLACED:
++		/* Default to TB */
++		vnmc = VNMC_IM_FULL;
++		/* Use BT if video standard can be read and is 60 Hz format */
++		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++			if (std & V4L2_STD_525_60)
++				vnmc = VNMC_IM_FULL | VNMC_FOC;
++		}
++		break;
++	case V4L2_FIELD_INTERLACED_TB:
++		vnmc = VNMC_IM_FULL;
++		break;
++	case V4L2_FIELD_INTERLACED_BT:
++		vnmc = VNMC_IM_FULL | VNMC_FOC;
++		break;
++	case V4L2_FIELD_ALTERNATE:
++	case V4L2_FIELD_NONE:
++		if (vin->continuous) {
++			vnmc = VNMC_IM_ODD_EVEN;
++			progressive = true;
++		} else {
++			vnmc = VNMC_IM_ODD;
++		}
 +		break;
 +	default:
-+		dev_err(&client->dev, "Product ID error %04x\n", chipid);
-+		ret = -ENODEV;
-+		goto done;
++		vnmc = VNMC_IM_ODD;
++		break;
 +	}
 +
-+	dev_info(&client->dev, "%s chip ID %04x\n", devname, chipid);
++	/*
++	 * Input interface
++	 */
++	switch (vin->digital->code) {
++	case MEDIA_BUS_FMT_YUYV8_1X16:
++		/* BT.601/BT.1358 16bit YCbCr422 */
++		vnmc |= VNMC_INF_YUV16;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_UYVY8_2X8:
++		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
++			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		vnmc |= VNMC_INF_RGB888;
++		break;
++	case MEDIA_BUS_FMT_UYVY10_2X10:
++		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
++		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
++			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
++		input_is_yuv = true;
++		break;
++	default:
++		break;
++	}
 +
-+done:
-+	mt9t112_s_power(&priv->subdev, 0);
-+	return ret;
-+}
++	/* Enable VSYNC Field Toogle mode after one VSYNC input */
++	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
 +
-+static int mt9t112_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *did)
-+{
-+	struct mt9t112_priv *priv;
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-+	struct v4l2_rect rect = {
-+		.width = VGA_WIDTH,
-+		.height = VGA_HEIGHT,
-+		.left = (MAX_WIDTH - VGA_WIDTH) / 2,
-+		.top = (MAX_HEIGHT - VGA_HEIGHT) / 2,
-+	};
-+	int ret;
++	/* Hsync Signal Polarity Select */
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++		dmr2 |= VNDMR2_HPS;
 +
-+	if (!ssdd || !ssdd->drv_priv) {
-+		dev_err(&client->dev, "mt9t112: missing platform data!\n");
++	/* Vsync Signal Polarity Select */
++	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++		dmr2 |= VNDMR2_VPS;
++
++	/*
++	 * Output format
++	 */
++	switch (vin->format.pixelformat) {
++	case V4L2_PIX_FMT_NV16:
++		rvin_write(vin,
++			   ALIGN(vin->format.width * vin->format.height, 0x80),
++			   VNUVAOF_REG);
++		dmr = VNDMR_DTMD_YCSEP;
++		output_is_yuv = true;
++		break;
++	case V4L2_PIX_FMT_YUYV:
++		dmr = VNDMR_BPSM;
++		output_is_yuv = true;
++		break;
++	case V4L2_PIX_FMT_UYVY:
++		dmr = 0;
++		output_is_yuv = true;
++		break;
++	case V4L2_PIX_FMT_XRGB555:
++		dmr = VNDMR_DTMD_ARGB1555;
++		break;
++	case V4L2_PIX_FMT_RGB565:
++		dmr = 0;
++		break;
++	case V4L2_PIX_FMT_XBGR32:
++		/* Note: not supported on M1 */
++		dmr = VNDMR_EXRGB;
++		break;
++	default:
++		vin_err(vin, "Invalid pixelformat (0x%x)\n",
++			vin->format.pixelformat);
 +		return -EINVAL;
 +	}
 +
-+	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
++	/* Always update on field change */
++	vnmc |= VNMC_VUP;
 +
-+	priv->info = ssdd->drv_priv;
++	/* If input and output use the same colorspace, use bypass mode */
++	if (input_is_yuv == output_is_yuv)
++		vnmc |= VNMC_BPS;
 +
-+	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
++	/* Progressive or interlaced mode */
++	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
 +
-+	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-+	if (IS_ERR(priv->clk))
-+		return PTR_ERR(priv->clk);
++	/* Ack interrupts */
++	rvin_write(vin, interrupts, VNINTS_REG);
++	/* Enable interrupts */
++	rvin_write(vin, interrupts, VNIE_REG);
++	/* Start capturing */
++	rvin_write(vin, dmr, VNDMR_REG);
++	rvin_write(vin, dmr2, VNDMR2_REG);
 +
-+	ret = mt9t112_camera_probe(client);
++	/* Enable module */
++	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
 +
-+	/* Cannot fail: using the default supported pixel code */
-+	if (!ret)
-+		mt9t112_set_params(priv, &rect, MEDIA_BUS_FMT_UYVY8_2X8);
++	return 0;
++}
++
++static void rvin_disable_interrupts(struct rvin_dev *vin)
++{
++	rvin_write(vin, 0, VNIE_REG);
++}
++
++static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
++{
++	return rvin_read(vin, VNINTS_REG);
++}
++
++static void rvin_ack_interrupt(struct rvin_dev *vin)
++{
++	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
++}
++
++static bool rvin_capture_active(struct rvin_dev *vin)
++{
++	return rvin_read(vin, VNMS_REG) & VNMS_CA;
++}
++
++static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
++{
++	if (vin->continuous)
++		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
++
++	return 0;
++}
++
++static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
++{
++	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
++		/* If FS is set it's a Even field */
++		if (vnms & VNMS_FS)
++			return V4L2_FIELD_BOTTOM;
++		return V4L2_FIELD_TOP;
++	}
++
++	return vin->format.field;
++}
++
++static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
++{
++	const struct rvin_video_format *fmt;
++	int offsetx, offsety;
++	dma_addr_t offset;
++
++	fmt = rvin_format_from_pixel(vin->format.pixelformat);
++
++	/*
++	 * There is no HW support for composition do the beast we can
++	 * by modifying the buffer offset
++	 */
++	offsetx = vin->compose.left * fmt->bpp;
++	offsety = vin->compose.top * vin->format.bytesperline;
++	offset = addr + offsetx + offsety;
++
++	/*
++	 * The address needs to be 128 bytes aligned. Driver should never accept
++	 * settings that do not satisfy this in the first place...
++	 */
++	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
++		return;
++
++	rvin_write(vin, offset, VNMB_REG(slot));
++}
++
++/* Moves a buffer from the queue to the HW slots */
++static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
++{
++	struct rvin_buffer *buf;
++	struct vb2_v4l2_buffer *vbuf;
++	dma_addr_t phys_addr_top;
++
++	if (vin->queue_buf[slot] != NULL)
++		return true;
++
++	if (list_empty(&vin->buf_list))
++		return false;
++
++	vin_dbg(vin, "Filling HW slot: %d\n", slot);
++
++	/* Keep track of buffer we give to HW */
++	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
++	vbuf = &buf->vb;
++	list_del_init(to_buf_list(vbuf));
++	vin->queue_buf[slot] = vbuf;
++
++	/* Setup DMA */
++	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
++	rvin_set_slot_addr(vin, slot, phys_addr_top);
++
++	return true;
++}
++
++static bool rvin_fill_hw(struct rvin_dev *vin)
++{
++	int slot, limit;
++
++	limit = vin->continuous ? HW_BUFFER_NUM : 1;
++
++	for (slot = 0; slot < limit; slot++)
++		if (!rvin_fill_hw_slot(vin, slot))
++			return false;
++	return true;
++}
++
++static void rvin_capture_on(struct rvin_dev *vin)
++{
++	vin_dbg(vin, "Capture on in %s mode\n",
++		vin->continuous ? "continuous" : "single");
++
++	if (vin->continuous)
++		/* Continuous Frame Capture Mode */
++		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
 +	else
-+		v4l2_clk_put(priv->clk);
-+
-+	return ret;
++		/* Single Frame Capture Mode */
++		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
 +}
 +
-+static int mt9t112_remove(struct i2c_client *client)
++static int rvin_capture_start(struct rvin_dev *vin)
 +{
-+	struct mt9t112_priv *priv = to_mt9t112(client);
++	struct rvin_buffer *buf, *node;
++	int bufs, ret;
 +
-+	v4l2_clk_put(priv->clk);
++	/* Count number of free buffers */
++	bufs = 0;
++	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
++		bufs++;
++
++	/* Continuous capture requires more buffers then there are HW slots */
++	vin->continuous = bufs > HW_BUFFER_NUM;
++
++	if (!rvin_fill_hw(vin)) {
++		vin_err(vin, "HW not ready to start, not enough buffers available\n");
++		return -EINVAL;
++	}
++
++	rvin_crop_scale_comp(vin);
++
++	ret = rvin_setup(vin);
++	if (ret)
++		return ret;
++
++	rvin_capture_on(vin);
++
++	vin->state = RUNNING;
++
 +	return 0;
 +}
 +
-+static const struct i2c_device_id mt9t112_id[] = {
-+	{ "mt9t112", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, mt9t112_id);
++static void rvin_capture_stop(struct rvin_dev *vin)
++{
++	/* Set continuous & single transfer off */
++	rvin_write(vin, 0, VNFC_REG);
 +
-+static struct i2c_driver mt9t112_i2c_driver = {
-+	.driver = {
-+		.name = "mt9t112",
-+	},
-+	.probe    = mt9t112_probe,
-+	.remove   = mt9t112_remove,
-+	.id_table = mt9t112_id,
-+};
++	/* Disable module */
++	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
++}
 +
-+module_i2c_driver(mt9t112_i2c_driver);
-+
-+MODULE_DESCRIPTION("SoC Camera driver for mt9t112");
-+MODULE_AUTHOR("Kuninori Morimoto");
-+MODULE_LICENSE("GPL v2");
+ /* -----------------------------------------------------------------------------
+  * DMA Functions
+  */
 -- 
-2.7.4
+2.16.2
