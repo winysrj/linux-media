@@ -1,214 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:45359 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751261AbeCTBlW (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:38750 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753928AbeCGEiV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 21:41:22 -0400
-Received: by mail-qk0-f177.google.com with SMTP id s9so20561qke.12
-        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 18:41:22 -0700 (PDT)
-Message-ID: <1521510079.2912.18.camel@ndufresne.ca>
-Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for Xilinx
- M2M Video Scaler
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Rohit Athavale <RATHAVAL@xilinx.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Greg KH <gregkh@linuxfoundation.org>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 19 Mar 2018 21:41:19 -0400
-In-Reply-To: <BY1PR02MB121105ECDEE95BB9444A65AFA2AB0@BY1PR02MB1211.namprd02.prod.outlook.com>
-References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
-         <1519252996-787-2-git-send-email-rohit.athavale@xilinx.com>
-         <20180222134658.GB19182@kroah.com>
-         <1315ef81-15f1-5bc9-eff9-aaa12e70738a@xs4all.nl>
-         <BY1PR02MB121105ECDEE95BB9444A65AFA2AB0@BY1PR02MB1211.namprd02.prod.outlook.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 6 Mar 2018 23:38:21 -0500
+Message-ID: <e654725071352c821b8e188b11bd6180@smtp-cloud7.xs4all.net>
+Date: Wed, 07 Mar 2018 05:38:18 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mardi 20 mars 2018 à 00:46 +0000, Rohit Athavale a écrit :
-> Hi Hans,
-> 
-> Thanks for taking the time to take a look at this.
-> 
-> > This should definitely use the V4L2 API. I guess it could be added
-> > to staging/media with a big fat TODO that this should be converted
-> > to
-> > the V4L2 mem2mem framework.
-> > 
-> > But it makes no sense to re-invent the V4L2 streaming API :-)
-> > 
-> > drivers/media/platform/mx2_emmaprp.c does something similar to
-> > this.
-> > It's a little bit outdated (not using the latest m2m helper
-> > functions)
-> > but it is a good starting point.
-> 
-> I looked at the mx2_emmaprp.c and the Samsung G-Scaler M2M driver.
-> IMHO, the main difference between
-> the Hardware registers/capabilities is that mx2_emmaprp driver or the
-> gsc driver, have one scaling "channel"
-> if we might call it. Whereas the HW/IP I have in mind has 4-8 scaling
-> channels.
-> 
-> By a scaling channel, I mean an entity of the HW or IP, that can take
-> the following parameters :
->  - Input height, stride , width, color format, input Y and Cb/Cr
-> physically contiguous memory pointers 
->  - Output height, stride, width, color format, output Y and Cb/Cr
-> physically contiguous  memory pointers
-> 
-> Based on the above parameters, when the above are provided and the IP
-> is started, we get an interrupt on completion.
-> I'm sure you are familiar with this model. However, in the case of
-> this IP, there could be 4-8 such channels and a single interrupt
-> on the completion of the all 4-8 scaling operations.
-> 
-> In this IP, we are trying to have 4-8 input sources being scaled by
-> this single piece of hardware, by time multiplexing.
-> 
-> An example use case is :
-> 
-> Four applications (sources) will feed (enqueue) 4 input buffers to
-> the scaler, the scaler driver will synchronize the programming of
-> these buffers, when the number of buffers received  by the driver
-> meets our batch size (say a batch size of 4), it will kick start the
-> IP. The four applications  will poll on the fd, upon receiving an
-> interrupt from the hardware the poll will unblock. And all four
-> applications can dequeue their respective buffers and display them on
-> a sink.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-You should think of a better scheduling model, it will be really hard
-to design userspace that collaborate in order to optimize the IP usage.
-I think a better approach would be to queue while the IP is busy. These
-queues can then be sorted and prioritized.
+Results of the daily build of media_tree:
 
-> 
-> But each "channel" can be set to do accept its own individual input
-> and output formats. When I went through :
-> https://www.kernel.org/doc/html/v4.14/media/uapi/v4l/open.html#multip
-> le-opens
-> 
-> It appears, once an application has invoked VIDIOC_REQBUFS or
-> VIDIOC_CREATE_BUFS, other applications cannot VIDIOC_S_FMT on them.
-> However to maximize the available number of channels, it would be
-> necessary to allow several applications to be able to 
-> perform VIDIOC_S_FMT on the device node in the case of this hardware
-> as different channels can be expected to deal with different scaling
-> operations.
+date:			Wed Mar  7 05:00:12 CET 2018
+media-tree git hash:	60d0bbec5965590d72b1a2091ec7a2cc589cb8e0
+media_build git hash:	15e592e1abe9d29c9fd3b32302ac50716ef793d5
+v4l-utils git hash:	c28248deeb2d7fe43fcde948c00b9b8fa2bc1e8f
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-This does not apply to M2M devices. Each time userspace open an M2M
-device, it will get a different instance (unless there is no more
-resource available). What drivers like Samsung FIMC, GSCALER, MFC. etc.
-do, is that they limit the number of instances (open calls) to the
-number of streams they can handle in parallel. They don't seem to share
-an IRQ when doing batch though.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-i686: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.115-i686: ERRORS
+linux-4.4.115-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.80-i686: WARNINGS
+linux-4.9.80-x86_64: WARNINGS
+linux-4.10.14-i686: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14.17-i686: WARNINGS
+linux-4.14.17-x86_64: WARNINGS
+linux-4.15.2-i686: WARNINGS
+linux-4.15.2-x86_64: WARNINGS
+linux-4.16-rc1-i686: WARNINGS
+linux-4.16-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-> 
-> One option is to create a logical /dev/videoX node for each such
-> channel, and have a parent driver perform the interrupt handling,
-> batch size setting and other such common functionalities. Is there a
-> way to allow multiple applications talk to the same video device
-> node/file handle without creating logical video nodes for each
-> channel ?
+Detailed results are available here:
 
-FIMC used to expose a node per instance and it was terribly hard to
-use. I don't think this is a good idea.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-> 
-> Please let me know if the description of HW is not clear. I will look
-> forward to hear comments from you.
-> 
-> > 
-> > So for this series:
-> > 
-> > Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > If this was added to drivers/staging/media instead and with an
-> > updated
-> > TODO, then we can accept it, but we need to see some real effort
-> > afterwards
-> > to switch this to the right API. Otherwise it will be removed again
-> > after a few kernel cycles.
-> > 
-> 
-> Many thanks for providing a pathway to get this into
-> drivers/staging/media
-> 
-> I will drop this series, and re-send with the driver being placed in
-> drivers/staging/media.
-> I'll add some references to this conversation, so a new reviewer gets
-> some context of what
-> was discussed. In the meanwhile I will look into re-writing this to
-> utilize the M2M V4L2 API.
-> 
-> > Regards,
-> > 
-> > 	Hans
-> 
-> 
-> Best Regards,
-> Rohit
-> 
-> 
-> > -----Original Message-----
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > Sent: Friday, March 09, 2018 3:58 AM
-> > To: Greg KH <gregkh@linuxfoundation.org>; Rohit Athavale
-> > <RATHAVAL@xilinx.com>
-> > Cc: devel@driverdev.osuosl.org; linux-media@vger.kernel.org
-> > Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for
-> > Xilinx M2M
-> > Video Scaler
-> > 
-> > On 22/02/18 14:46, Greg KH wrote:
-> > > On Wed, Feb 21, 2018 at 02:43:14PM -0800, Rohit Athavale wrote:
-> > > > This commit adds driver support for the pre-release Xilinx M2M
-> > > > Video
-> > > > Scaler IP. There are three parts to this driver :
-> > > > 
-> > > >  - The Hardware/IP layer that reads and writes register of the
-> > > > IP
-> > > >    contained in the scaler_hw_xm2m.c
-> > > >  - The set of ioctls that applications would need to know
-> > > > contained
-> > > >    in ioctl_xm2mvsc.h
-> > > >  - The char driver that consumes the IP layer in xm2m_vscale.c
-> > > > 
-> > > > Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
-> > > > ---
-> > > 
-> > > I need an ack from the linux-media maintainers before I can
-> > > consider
-> > > this for staging, as this really looks like an "odd" video
-> > > driver...
-> > 
-> > This should definitely use the V4L2 API. I guess it could be added
-> > to staging/media with a big fat TODO that this should be converted
-> > to
-> > the V4L2 mem2mem framework.
-> > 
-> > But it makes no sense to re-invent the V4L2 streaming API :-)
-> > 
-> > drivers/media/platform/mx2_emmaprp.c does something similar to
-> > this.
-> > It's a little bit outdated (not using the latest m2m helper
-> > functions)
-> > but it is a good starting point.
-> > 
-> > So for this series:
-> > 
-> > Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > If this was added to drivers/staging/media instead and with an
-> > updated
-> > TODO, then we can accept it, but we need to see some real effort
-> > afterwards
-> > to switch this to the right API. Otherwise it will be removed again
-> > after a few kernel cycles.
-> > 
-> > Regards,
-> > 
-> > 	Hans
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
