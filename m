@@ -1,47 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:37782 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751175AbeCWEOi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 00:14:38 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 0/2] Add support for ov7251 camera sensor
-Date: Fri, 23 Mar 2018 12:14:18 +0800
-Message-Id: <1521778460-8717-1-git-send-email-todor.tomov@linaro.org>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31994 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934207AbeCGWFu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Mar 2018 17:05:50 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 18/33] rcar-vin: move media bus configuration to struct rvin_dev
+Date: Wed,  7 Mar 2018 23:04:56 +0100
+Message-Id: <20180307220511.9826-19-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
-Sensor from Omnivision.
+Bus configuration will once the driver is extended to support Gen3
+contain information not specific to only the directly connected parallel
+subdevice. Move it to struct rvin_dev to show it's not always coupled
+to the parallel subdevice.
 
---------------------------------------------------------------------------
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 10 +++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
+ 4 files changed, 19 insertions(+), 20 deletions(-)
 
-Version 2:
-- changed ov7251 node's name in DT binding example;
-- SPDX licence identifier;
-- better names for register value defines;
-- remove power reference counting and leave a power state only;
-- use v4l2_find_nearest_size() to find sensor mode by requested size;
-- set ycbcr_enc, quantization and xfer_func in set_fmt;
-- use struct fwnode_handle instead of struct device_node;
-- add comment in driver about external clock value.
-
---------------------------------------------------------------------------
-
-Todor Tomov (2):
-  dt-bindings: media: Binding document for OV7251 camera sensor
-  media: Add a driver for the ov7251 camera sensor
-
- .../devicetree/bindings/media/i2c/ov7251.txt       |   51 +
- drivers/media/i2c/Kconfig                          |   13 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov7251.c                         | 1494 ++++++++++++++++++++
- 4 files changed, 1559 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
- create mode 100644 drivers/media/i2c/ov7251.c
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index ae0339d4ec104e8c..7e494b140aaf6b7e 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+ 
+ 	/* Find compatible subdevices mbus format */
+-	vin->digital->code = 0;
++	vin->mbus_code = 0;
+ 	code.index = 0;
+ 	code.pad = vin->digital->source_pad;
+-	while (!vin->digital->code &&
++	while (!vin->mbus_code &&
+ 	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
+ 		code.index++;
+ 		switch (code.code) {
+@@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 		case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		case MEDIA_BUS_FMT_RGB888_1X24:
+-			vin->digital->code = code.code;
++			vin->mbus_code = code.code;
+ 			vin_dbg(vin, "Found media bus format for %s: %d\n",
+-				subdev->name, vin->digital->code);
++				subdev->name, vin->mbus_code);
+ 			break;
+ 		default:
+ 			break;
+ 		}
+ 	}
+ 
+-	if (!vin->digital->code) {
++	if (!vin->mbus_code) {
+ 		vin_err(vin, "Unsupported media bus format for %s\n",
+ 			subdev->name);
+ 		return -EINVAL;
+@@ -196,16 +196,16 @@ static int rvin_digital_parse_v4l2(struct device *dev,
+ 	if (vep->base.port || vep->base.id)
+ 		return -ENOTCONN;
+ 
+-	rvge->mbus_cfg.type = vep->bus_type;
++	vin->mbus_cfg.type = vep->bus_type;
+ 
+-	switch (rvge->mbus_cfg.type) {
++	switch (vin->mbus_cfg.type) {
+ 	case V4L2_MBUS_PARALLEL:
+ 		vin_dbg(vin, "Found PARALLEL media bus\n");
+-		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
++		vin->mbus_cfg.flags = vep->bus.parallel.flags;
+ 		break;
+ 	case V4L2_MBUS_BT656:
+ 		vin_dbg(vin, "Found BT656 media bus\n");
+-		rvge->mbus_cfg.flags = 0;
++		vin->mbus_cfg.flags = 0;
+ 		break;
+ 	default:
+ 		vin_err(vin, "Unknown media bus type\n");
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 7c64f1f8ec63bcf4..ee8d991a9d223778 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -630,7 +630,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital->code) {
++	switch (vin->mbus_code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -638,7 +638,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -647,7 +647,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -659,11 +659,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 43370c57d4b6239a..dd835be0f9cbcc05 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -191,7 +191,7 @@ static int rvin_try_format(struct rvin_dev *vin, u32 which,
+ 	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
+ 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
++	v4l2_fill_mbus_format(&format.format, pix, vin->mbus_code);
+ 
+ 	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 458373af9e60ea07..92a2a196cce73d75 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -62,8 +62,6 @@ struct rvin_video_format {
+  * struct rvin_graph_entity - Video endpoint from async framework
+  * @asd:	sub-device descriptor for async framework
+  * @subdev:	subdevice matched using async framework
+- * @code:	Media bus format from source
+- * @mbus_cfg:	Media bus format from DT
+  * @source_pad:	source pad of remote subdevice
+  * @sink_pad:	sink pad of remote subdevice
+  */
+@@ -71,9 +69,6 @@ struct rvin_graph_entity {
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *subdev;
+ 
+-	u32 code;
+-	struct v4l2_mbus_config mbus_cfg;
+-
+ 	unsigned int source_pad;
+ 	unsigned int sink_pad;
+ };
+@@ -114,6 +109,8 @@ struct rvin_info {
+  * @sequence:		V4L2 buffers sequence number
+  * @state:		keeps track of operation state
+  *
++ * @mbus_cfg:		media bus configuration from DT
++ * @mbus_code:		media bus format code
+  * @format:		active V4L2 pixel format
+  *
+  * @crop:		active cropping
+@@ -142,6 +139,8 @@ struct rvin_dev {
+ 	unsigned int sequence;
+ 	enum rvin_dma_state state;
+ 
++	struct v4l2_mbus_config mbus_cfg;
++	u32 mbus_code;
+ 	struct v4l2_pix_format format;
+ 
+ 	struct v4l2_rect crop;
 -- 
-2.7.4
+2.16.2
