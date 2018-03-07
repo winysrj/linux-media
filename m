@@ -1,81 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:38538 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751641AbeCUR3v (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:32363 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754847AbeCGWGE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 13:29:51 -0400
-Received: by mail-wm0-f68.google.com with SMTP id l16so11337116wmh.3
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2018 10:29:51 -0700 (PDT)
-Date: Wed, 21 Mar 2018 18:29:48 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, mvoelkel@DigitalDevices.de,
-        rjkm@metzlerbros.de, jasmin@anw.at
-Subject: Re: [PATCH 0/5] SPDX license identifiers in all DD drivers
-Message-ID: <20180321182948.6bcc0542@perian.wuest.de>
-In-Reply-To: <20180321094932.GC16947@kroah.com>
-References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
-        <20180321094932.GC16947@kroah.com>
+        Wed, 7 Mar 2018 17:06:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v12 31/33] rcar-vin: enable support for r8a7795
+Date: Wed,  7 Mar 2018 23:05:09 +0100
+Message-Id: <20180307220511.9826-32-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
 
-Am Wed, 21 Mar 2018 10:49:32 +0100
-schrieb Greg KH <gregkh@linuxfoundation.org>:
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/Kconfig     |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c | 120 ++++++++++++++++++++++++++++
+ 2 files changed, 121 insertions(+), 1 deletion(-)
 
-> On Tue, Mar 20, 2018 at 10:01:27PM +0100, Daniel Scheller wrote:
-> > From: Daniel Scheller <d.scheller@gmx.net>
-> > 
-> > This series adds SPDX license identifiers to all source files which are
-> > copyright by either Digital Devices GmbH or Metzlerbros GbR, who are
-> > the original authors of the ddbridge, ngene, cxd2099, mxl5xx, stv0910
-> > and stv6111 bridge/demod/tuner drivers, with the mxl5xx driver being
-> > based on source code released by MaxLinear.
-> > [...]
-> > The original intention was to fully replace all the licensing headers
-> > with only the SPDX License Identifiers as it is done in a lot of other
-> > in-tree drivers nowadays. However, Digital Devices disagreed to do this
-> > and expressed major concerns regarding this, in that a machine readable
-> > license tag instead of a full license boilerplate won't hold up equally,
-> > so we agreed to keep the license boilerplate text as is right now.  
-> 
-> That's really odd, who at that company can I talk to about this?  Or
-> really, what lawyer at that company can I point my lawyer at to talk
-> about this, that's the only way this is going to get resolved.
-
-I'm not entirely sure, but I guess for a first start it's best to
-contact Ralph (from Metzlerbros) and Manfred (from Digital
-Devices), being the authors and copyright owners of the DDDVB driver
-package where the drivers originate from and thus is the upstream for
-the mainlined copies of the mentioned drivers. Both are in the Cc list
-(rjkm and mvoelkel) of this thread.
-
-> If it helps, _ALL_ of the major companies that are kernel developers are
-> onboard with the removal of the crazy boiler-plate text, so this tiny
-> holdout should be easy to resolve.
-> 
-> > Greg, I'm Cc'ing you on this due to the last paragraph, as AFAIK you're
-> > one of the initiators of the SPDX tagging initiative, and you even added
-> > tags to 10k+ files all over the tree :-) so we maybe can discuss this
-> > further, also with DD, in the hopes you're fine with this - sorry in
-> > advance if not.  
-> 
-> See my review of your first patch here, this needs to be done a lot
-> differently...
-
-Check. Thanks for reviewing. The intent was to do a full cleanup of all
-licensing things in one go, per driver. Will do one patch for SPDX and
-eventual boilerplate cleanup for all drivers, one for MODULE_LICENSE
-and one for missing headers in the next iteration. Though I'd wait
-with that for now if you like to contact Ralph and Manfred, and do a v2
-based on the outcome.
-
-Thanks & best regards,
-Daniel Scheller
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  Support for Renesas R-Car Video Input (VIN) driver.
+-	  Supports R-Car Gen2 SoCs.
++	  Supports R-Car Gen2 and Gen3 SoCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rcar-vin.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index a1c441c1a314feb7..bc116cc0181171e0 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
++#include <linux/sys_soc.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+@@ -832,6 +833,104 @@ static const struct rvin_info rcar_info_gen2 = {
+ 	.max_height = 2048,
+ };
+ 
++static const struct rvin_group_route rcar_info_r8a7795_routes[] = {
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 0, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(1) | BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 2, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) | BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
++	{ .csi = RVIN_CSI41, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI41, .channel = 1, .vin = 4, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
++	{ .csi = RVIN_CSI41, .channel = 1, .vin = 5, .mask = BIT(1) | BIT(3) },
++	{ .csi = RVIN_CSI41, .channel = 0, .vin = 5, .mask = BIT(2) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 6, .mask = BIT(0) },
++	{ .csi = RVIN_CSI41, .channel = 0, .vin = 6, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
++	{ .csi = RVIN_CSI41, .channel = 2, .vin = 6, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
++	{ .csi = RVIN_CSI41, .channel = 1, .vin = 7, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) | BIT(2) },
++	{ .csi = RVIN_CSI41, .channel = 3, .vin = 7, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a7795 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a7795_routes,
++};
++
++static const struct rvin_group_route rcar_info_r8a7795es1_routes[] = {
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 0, .vin = 0, .mask = BIT(2) | BIT(5) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
++	{ .csi = RVIN_CSI21, .channel = 0, .vin = 1, .mask = BIT(1) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 1, .vin = 1, .mask = BIT(5) },
++	{ .csi = RVIN_CSI21, .channel = 0, .vin = 2, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 2, .vin = 2, .mask = BIT(5) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) },
++	{ .csi = RVIN_CSI21, .channel = 1, .vin = 3, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 3, .vin = 3, .mask = BIT(5) },
++	{ .csi = RVIN_CSI41, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 0, .vin = 4, .mask = BIT(2) | BIT(5) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
++	{ .csi = RVIN_CSI21, .channel = 0, .vin = 5, .mask = BIT(1) },
++	{ .csi = RVIN_CSI41, .channel = 0, .vin = 5, .mask = BIT(2) },
++	{ .csi = RVIN_CSI41, .channel = 1, .vin = 5, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 1, .vin = 5, .mask = BIT(5) },
++	{ .csi = RVIN_CSI21, .channel = 0, .vin = 6, .mask = BIT(0) },
++	{ .csi = RVIN_CSI41, .channel = 0, .vin = 6, .mask = BIT(1) },
++	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
++	{ .csi = RVIN_CSI41, .channel = 2, .vin = 6, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 2, .vin = 6, .mask = BIT(5) },
++	{ .csi = RVIN_CSI41, .channel = 1, .vin = 7, .mask = BIT(0) },
++	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) },
++	{ .csi = RVIN_CSI21, .channel = 1, .vin = 7, .mask = BIT(2) },
++	{ .csi = RVIN_CSI41, .channel = 3, .vin = 7, .mask = BIT(3) },
++	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
++	{ .csi = RVIN_CSI21, .channel = 3, .vin = 7, .mask = BIT(5) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a7795es1 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a7795es1_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -861,12 +960,25 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,rcar-gen2-vin",
+ 		.data = &rcar_info_gen2,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a7795",
++		.data = &rcar_info_r8a7795,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
++static const struct soc_device_attribute r8a7795es1[] = {
++	{
++		.soc_id = "r8a7795", .revision = "ES1.*",
++		.data = &rcar_info_r8a7795es1,
++	},
++	{ /* Sentinel */ }
++};
++
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
++	const struct soc_device_attribute *attr;
+ 	struct rvin_dev *vin;
+ 	struct resource *mem;
+ 	int irq, ret;
+@@ -878,6 +990,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	vin->dev = &pdev->dev;
+ 	vin->info = of_device_get_match_data(&pdev->dev);
+ 
++	/*
++	 * Special care is needed on r8a7795 ES1.x since it
++	 * uses different routing than r8a7795 ES2.0.
++	 */
++	attr = soc_device_match(r8a7795es1);
++	if (attr)
++		vin->info = attr->data;
++
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+ 		return -EINVAL;
 -- 
-https://github.com/herrnst
+2.16.2
