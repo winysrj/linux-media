@@ -1,173 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f48.google.com ([209.85.214.48]:38347 "EHLO
-        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752356AbeCVH6q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Mar 2018 03:58:46 -0400
-Received: by mail-it0-f48.google.com with SMTP id 19-v6so9973257itw.3
-        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 00:58:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <e4f98a62-9526-766a-1380-d56651ac597d@xs4all.nl>
-References: <20180308182141.28997-1-matt.ranostay@konsulko.com>
- <b6b62671-e5a9-c3c9-2303-11dbc48da7c8@xs4all.nl> <CAJCx=g=VwCqm9t56j=r2KE-sDOpgA82XwxhJNbdbkFpwuJSkKw@mail.gmail.com>
- <CAJCx=g=Uci1X7FLv5jxmN=uCK7mRN7Pw6hTOLG3GUPAdfZXsoQ@mail.gmail.com>
- <56ef9e6f-e209-f9df-7a0b-fe2add6b32c9@xs4all.nl> <CAJCx=gnZPcDuXANzguaQ9DPb1L=rmkXKie1oSsxucG2GJ9F8ig@mail.gmail.com>
- <e4f98a62-9526-766a-1380-d56651ac597d@xs4all.nl>
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-Date: Thu, 22 Mar 2018 15:58:45 +0800
-Message-ID: <CAJCx=gmQfPNtzuO2uOTem5MPp+ytLyTnWtUgLbDxaTX9Qh_Hgg@mail.gmail.com>
-Subject: Re: [PATCH v5 0/2] media: video-i2c: add video-i2c driver support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:34401 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933487AbeCGRLa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 12:11:30 -0500
+Received: by mail-qt0-f180.google.com with SMTP id l25so3514984qtj.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 09:11:30 -0800 (PST)
+Message-ID: <1520442688.19980.1.camel@gmail.com>
+Subject: v4l-utils fails to build against musl libc (with patch)
+From: bjornpagen@gmail.com
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Bjorn Pagen <bjornpagen@gmail.com>
+Date: Wed, 07 Mar 2018 12:11:28 -0500
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 22, 2018 at 3:28 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 03/22/2018 06:46 AM, Matt Ranostay wrote:
->> On Mon, Mar 19, 2018 at 5:31 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 03/16/2018 03:47 AM, Matt Ranostay wrote:
->>>> On Fri, Mar 9, 2018 at 10:26 AM, Matt Ranostay
->>>> <matt.ranostay@konsulko.com> wrote:
->>>>> On Fri, Mar 9, 2018 at 4:45 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>>> Hi Matt,
->>>>>>
->>>>>> This is looking good. One request before I merge: please run the
->>>>>> 'v4l2-compliance -s -f' utility and post the result here.
->>>>>>
->>>>>> I don't think I've asked you to do that before (or if I did, I couldn't
->>>>>> find it in my mail archive).
->>>>>>
->>>>>> It should run without failures.
->>>>>>
->>>>>> Use the latest version from the git repo: https://git.linuxtv.org/v4l-utils.git/
->>>>>>
->>>>>> ./bootstrap.sh; ./configure; make; sudo make install
->>>>>
->>>>> Heh so not exactly no failures. Suspect a lot of these are due to the
->>>>> weird small 8x8 pixel input, and the fact it doesn't
->>>>> support modes a typical video capture device would.
->>>>>
->>>>> v4l2-compliance SHA   : 14ce03c18ef67aa7a3d5781f015be855fd43839c
->>>>>
->>>>> Compliance test for device /dev/video0:
->>>>>
->>>>> Driver Info:
->>>>> Driver name      : video-i2c
->>>>> Card type        : I2C 2-105 Transport Video
->>>>> Bus info         : I2C:2-105
->>>>> Driver version   : 4.14.11
->>>>> Capabilities     : 0x85200001
->>>>> Video Capture
->>>>> Read/Write
->>>>> Streaming
->>>>> Extended Pix Format
->>>>> Device Capabilities
->>>>> Device Caps      : 0x05200001
->>>>> Video Capture
->>>>> Read/Write
->>>>> Streaming
->>>>> Extended Pix Format
->>>>>
->>>>> Required ioctls:
->>>>> test VIDIOC_QUERYCAP: OK
->>>>>
->>>>> Allow for multiple opens:
->>>>> test second /dev/video0 open: OK
->>>>> test VIDIOC_QUERYCAP: OK
->>>>> test VIDIOC_G/S_PRIORITY: OK
->>>>> test for unlimited opens: OK
->>>>>
->>>>> Debug ioctls:
->>>>> test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->>>>> test VIDIOC_LOG_STATUS: OK (Not Supported)
->>>>>
->>>>> Input ioctls:
->>>>> test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->>>>> test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->>>>> test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->>>>> test VIDIOC_ENUMAUDIO: OK (Not Supported)
->>>>> test VIDIOC_G/S/ENUMINPUT: OK
->>>>> test VIDIOC_G/S_AUDIO: OK (Not Supported)
->>>>> Inputs: 1 Audio Inputs: 0 Tuners: 0
->>>>>
->>>>> Output ioctls:
->>>>> test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->>>>> test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->>>>> test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->>>>> test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->>>>> test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->>>>> Outputs: 0 Audio Outputs: 0 Modulators: 0
->>>>>
->>>>> Input/Output configuration ioctls:
->>>>> test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->>>>> test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->>>>> test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->>>>> test VIDIOC_G/S_EDID: OK (Not Supported)
->>>>>
->>>>> Control ioctls (Input 0):
->>>>> test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
->>>>> test VIDIOC_QUERYCTRL: OK (Not Supported)
->>>>> test VIDIOC_G/S_CTRL: OK (Not Supported)
->>>>> test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
->>>>> test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
->>>>> test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->>>>> Standard Controls: 0 Private Controls: 0
->>>>>
->>>>> Format ioctls (Input 0):
->>>>> test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->>>>> test VIDIOC_G/S_PARM: OK
->>>>> test VIDIOC_G_FBUF: OK (Not Supported)
->>>>> test VIDIOC_G_FMT: OK
->>>>> test VIDIOC_TRY_FMT: OK
->>>>> test VIDIOC_S_FMT: OK
->>>>> test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->>>>> test Cropping: OK (Not Supported)
->>>>> test Composing: OK (Not Supported)
->>>>> test Scaling: OK (Not Supported)
->>>>>
->>>>> Codec ioctls (Input 0):
->>>>> test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->>>>> test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->>>>> test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->>>>>
->>>>> Buffer ioctls (Input 0):
->>>>> test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>>>> test VIDIOC_EXPBUF: OK (Not Supported)
->>>>>
->>>>> Test input 0:
->>>>>
->>>>> Streaming ioctls:
->>>>> test read/write: OK
->>>>> fail: v4l2-test-buffers.cpp(248): g_field() == V4L2_FIELD_ANY
->>>>
->>>> Noticed this seems to be the most worrying of the failures.  Any
->>>> suggestions where could be requested and still be 0 == V4L2_FIELD_ANY?
->>>
->>> struct v4l2_buffers should never return FIELD_ANY. For this driver
->>> the frames are always progressive, not interlaced, so just set this
->>> to FIELD_NONE in the driver.
->>>
->>> Basically the driver must never give FIELD_ANY back to userspace.
->>> Userspace can pass in FIELD_ANY when it calls TRY/S_FMT, but it should
->>> always be replaced with a non-zero field value. In this case FIELD_NONE.
->>
->>
->> Which callback would that be in? Because currently the driver is only
->> handling the v4l2_pix_format settings, and not
->> vb2_v4l2_buffer settings.
->
-> You typically do that in buffer_prepare(). BTW, I noticed that you do not
-> set the sequence counter in v4l2_buffer! You set that just before calling
-> vb2_buffer_done().
->
+Hey all,
 
-Ah explains another compliance failure I see now :)
+v4l-utils currently fails to build against musl libc, since musl, and
+POSIX, both do not define TEMP_FAILURE_RETRY() or strndupa(). 
+
+This can be fixed with a small patch from https://git.alpinelinux.org/c
+git/aports/tree/community/v4l-utils/0001-ir-ctl-fixes-for-musl-compile.
+patch.
+
+Please email me back with any questions or concerns about the patch or
+musl.
 
 Thanks,
-
-Matt
-
-> Regards,
->
->         Hans
+Bjorn Pagen
