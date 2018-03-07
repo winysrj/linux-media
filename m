@@ -1,65 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24438 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163254AbeCBB7I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:08 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 13/32] rcar-vin: update bytesperline and sizeimage calculation
-Date: Fri,  2 Mar 2018 02:57:32 +0100
-Message-Id: <20180302015751.25596-14-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:39549 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934297AbeCGUH7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 15:07:59 -0500
+Received: by mail-wr0-f194.google.com with SMTP id w77so3439131wrc.6
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 12:07:58 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 1/2] [media] ddbridge: use common DVB I2C client handling helpers
+Date: Wed,  7 Mar 2018 21:07:55 +0100
+Message-Id: <20180307200756.7078-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove over complicated logic to calculate the value for bytesperline
-and sizeimage that was carried over from the soc_camera port. There is
-no need to find the max value of bytesperline and sizeimage from
-user-space as they are set to 0 before the max_t() operation.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Instead of keeping duplicated I2C client handling construct, make use of
+the newly introduced dvb_module_*() helpers. This not only keeps things
+way cleaner and removes the need for duplicated I2C client attach code,
+but even allows to get rid of some variables that won't help in making
+things look cleaner anymore.
+
+The check on a valid ptr on port->en isn't really needed since the cxd2099
+driver will set it at a time where it is going to return successfully
+from probing.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+V2:
+* pass NULL as (optional) I2C name when calling dvb_module_probe()
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index cef9070884d93ba6..652b85300b4ef9db 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -194,10 +194,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
- 	}
+ drivers/media/pci/ddbridge/ddbridge-ci.c   | 33 ++++++---------------------
+ drivers/media/pci/ddbridge/ddbridge-core.c | 36 ++++++------------------------
+ 2 files changed, 14 insertions(+), 55 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+index 6585ef54ac22..a9dbc4ebf94f 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -324,34 +324,20 @@ static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
+ {
+ 	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
+ 	struct i2c_client *client;
+-	struct i2c_board_info board_info = {
+-		.type = "cxd2099",
+-		.addr = 0x40,
+-		.platform_data = &cxd_cfg,
+-	};
  
--	/* Always recalculate */
--	pix->bytesperline = 0;
--	pix->sizeimage = 0;
+ 	cxd_cfg.bitrate = bitrate;
+ 	cxd_cfg.en = &port->en;
+ 
+-	request_module(board_info.type);
 -
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix, source);
- 	if (ret)
-@@ -232,10 +228,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
- 			      &pix->height, 4, vin->info->max_height, 2, 0);
+-	client = i2c_new_device(&port->i2c->adap, &board_info);
+-	if (!client || !client->dev.driver)
+-		goto err_ret;
+-
+-	if (!try_module_get(client->dev.driver->owner))
+-		goto err_i2c;
+-
+-	if (!port->en)
+-		goto err_i2c;
++	client = dvb_module_probe("cxd2099", NULL, &port->i2c->adap,
++				  0x40, &cxd_cfg);
++	if (!client)
++		goto err;
  
--	pix->bytesperline = max_t(u32, pix->bytesperline,
--				  rvin_format_bytesperline(pix));
--	pix->sizeimage = max_t(u32, pix->sizeimage,
--			       rvin_format_sizeimage(pix));
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
+ 	port->dvb[0].i2c_client[0] = client;
+ 	port->en_freedata = 0;
+ 	return 0;
  
- 	if (vin->info->model == RCAR_M1 &&
- 	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+-err_i2c:
+-	i2c_unregister_device(client);
+-err_ret:
++err:
+ 	dev_err(port->dev->dev, "CXD2099AR attach failed\n");
+ 	return -ENODEV;
+ }
+@@ -385,18 +371,13 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 
+ void ddb_ci_detach(struct ddb_port *port)
+ {
+-	struct i2c_client *client;
+-
+ 	if (port->dvb[0].dev)
+ 		dvb_unregister_device(port->dvb[0].dev);
+ 	if (port->en) {
+ 		dvb_ca_en50221_release(port->en);
+ 
+-		client = port->dvb[0].i2c_client[0];
+-		if (client) {
+-			module_put(client->dev.driver->owner);
+-			i2c_unregister_device(client);
+-		}
++		dvb_module_release(port->dvb[0].i2c_client[0]);
++		port->dvb[0].i2c_client[0] = NULL;
+ 
+ 		/* free alloc'ed memory if needed */
+ 		if (port->en_freedata)
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index f9bee36f1cad..90687eff5909 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -999,37 +999,21 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
+ 		.if_dvbt2_8 = 4000,
+ 		.if_dvbc = 5000,
+ 	};
+-	struct i2c_board_info board_info = {
+-		.type = "tda18212",
+-		.platform_data = &config,
+-	};
+-
+-	if (input->nr & 1)
+-		board_info.addr = 0x63;
+-	else
+-		board_info.addr = 0x60;
++	u8 addr = (input->nr & 1) ? 0x63 : 0x60;
+ 
+ 	/* due to a hardware quirk with the I2C gate on the stv0367+tda18212
+ 	 * combo, the tda18212 must be probed by reading it's id _twice_ when
+ 	 * cold started, or it very likely will fail.
+ 	 */
+ 	if (porttype == DDB_TUNER_DVBCT_ST)
+-		tuner_tda18212_ping(input, board_info.addr);
+-
+-	request_module(board_info.type);
+-
+-	/* perform tuner init/attach */
+-	client = i2c_new_device(adapter, &board_info);
+-	if (!client || !client->dev.driver)
+-		goto err;
++		tuner_tda18212_ping(input, addr);
+ 
+-	if (!try_module_get(client->dev.driver->owner)) {
+-		i2c_unregister_device(client);
++	/* perform tuner probe/init/attach */
++	client = dvb_module_probe("tda18212", NULL, adapter, addr, &config);
++	if (!client)
+ 		goto err;
+-	}
+ 
+ 	dvb->i2c_client[0] = client;
+-
+ 	return 0;
+ err:
+ 	dev_err(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
+@@ -1253,7 +1237,6 @@ static void dvb_input_detach(struct ddb_input *input)
+ {
+ 	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
+ 	struct dvb_demux *dvbdemux = &dvb->demux;
+-	struct i2c_client *client;
+ 
+ 	switch (dvb->attached) {
+ 	case 0x31:
+@@ -1263,13 +1246,8 @@ static void dvb_input_detach(struct ddb_input *input)
+ 			dvb_unregister_frontend(dvb->fe);
+ 		/* fallthrough */
+ 	case 0x30:
+-		client = dvb->i2c_client[0];
+-		if (client) {
+-			module_put(client->dev.driver->owner);
+-			i2c_unregister_device(client);
+-			dvb->i2c_client[0] = NULL;
+-			client = NULL;
+-		}
++		dvb_module_release(dvb->i2c_client[0]);
++		dvb->i2c_client[0] = NULL;
+ 
+ 		if (dvb->fe2)
+ 			dvb_frontend_detach(dvb->fe2);
 -- 
-2.16.2
+2.16.1
