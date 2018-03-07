@@ -1,216 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:39501 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751714AbeCPSNf (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31510 "EHLO
+        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754642AbeCGWF0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 14:13:35 -0400
-Received: by mail-pl0-f68.google.com with SMTP id k22-v6so5553518pls.6
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 11:13:34 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH v2 02/13] media: v4l2: async: Allow searching for asd of
- any type
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
- <1520711922-17338-3-git-send-email-steve_longerbeam@mentor.com>
- <20180315093049.oto7l2uwaoakqwax@paasikivi.fi.intel.com>
-Message-ID: <4968f477-8b92-9977-0835-7c24548907ea@gmail.com>
-Date: Fri, 16 Mar 2018 11:13:32 -0700
+        Wed, 7 Mar 2018 17:05:26 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Subject: [PATCH v12 02/33] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+Date: Wed,  7 Mar 2018 23:04:40 +0100
+Message-Id: <20180307220511.9826-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20180315093049.oto7l2uwaoakqwax@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 
-Thanks for the review...
+Add compatible strings for r8a7743 and r8a7745. No driver change
+is needed as "renesas,rcar-gen2-vin" will activate the right code.
+However, it is good practice to document compatible strings for the
+specific SoC as this allows SoC specific changes to the driver if
+needed, in addition to document SoC support and therefore allow
+checkpatch.pl to validate compatible string values.
 
-On 03/15/2018 02:30 AM, Sakari Ailus wrote:
-> Hi Steve,
->
-> Thanks for the patchset. Please see my comments below.
->
-> On Sat, Mar 10, 2018 at 11:58:31AM -0800, Steve Longerbeam wrote:
->> Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
->> searching for any type of async subdev, not just fwnodes. Rename to
->> v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
->>
->> TODO: support asd compare with CUSTOM match type in asd_equal().
-> Right now there's a recognised need to have multiple fwnodes (endpoints)
-> per sub-device. The current APIs (when it comes to the firmware interface)
-> support this with fwnode but not with other async match types.
->
-> Just FYI.
+Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Understood. The purpose of this patch is to support the next, e.g.
-to allow v4l2_async_notifier_add_subdev() to verify that an asd
-(of any type) has not already been added to the notifier.
-
-
->> Signed-off-by: Steve Longerbeam<steve_longerbeam@mentor.com>
->> ---
->>   drivers/media/v4l2-core/v4l2-async.c | 86 +++++++++++++++++++++++-------------
->>   1 file changed, 56 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
->> index 2b08d03..c083efa 100644
->> --- a/drivers/media/v4l2-core/v4l2-async.c
->> +++ b/drivers/media/v4l2-core/v4l2-async.c
->> @@ -124,6 +124,42 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
->>   	return NULL;
->>   }
->>   
->> +/* Compare two asd's for equivalence */
->> +static bool asd_equal(struct v4l2_async_subdev *asd_x,
->> +		      struct v4l2_async_subdev *asd_y)
->> +{
->> +	bool ret = false;
->> +
->> +	if (!asd_x || !asd_y)
-> Can this happen?
-
-Not really. If the caller to v4l2_async_notifier_register() places a 
-NULL pointer
-in ->subdevs[], there will be a NULL deref in 
-__v4l2_async_notifier_register()
-before this check is ever reached.
-
-I will remove this check, and add a NULL asd pointer check to
-v4l2_async_notifier_asd_valid() in the next patch.
-
->> +		return false;
-> How about checking here that the match_type ... matches? You could remove
-> that check elsewhere in the function.
->
-> You could also easily do without ret variable.
-
-Yep, done.
-
->> +
->> +	switch (asd_x->match_type) {
->> +	case V4L2_ASYNC_MATCH_DEVNAME:
->> +		if (asd_y->match_type == V4L2_ASYNC_MATCH_DEVNAME)
->> +			ret = !strcmp(asd_x->match.device_name,
->> +				      asd_y->match.device_name);
->> +		break;
->> +	case V4L2_ASYNC_MATCH_I2C:
->> +		if (asd_y->match_type == V4L2_ASYNC_MATCH_I2C)
->> +			ret = (asd_x->match.i2c.adapter_id ==
->> +			       asd_y->match.i2c.adapter_id &&
->> +			       asd_x->match.i2c.address ==
->> +			       asd_y->match.i2c.address);
->> +		break;
->> +	case V4L2_ASYNC_MATCH_FWNODE:
->> +		if (asd_y->match_type == V4L2_ASYNC_MATCH_FWNODE)
->> +			ret = (asd_x->match.fwnode == asd_y->match.fwnode);
->> +		break;
->> +	case V4L2_ASYNC_MATCH_CUSTOM:
->> +		/* TODO */
->> +		break;
->> +	default:
->> +		break;
->> +	}
->> +
->> +	return ret;
->> +}
->> +
->>   /* Find the sub-device notifier registered by a sub-device driver. */
->>   static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
->>   	struct v4l2_subdev *sd)
->> @@ -308,18 +344,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
->>   	notifier->parent = NULL;
->>   }
->>   
->> -/* See if an fwnode can be found in a notifier's lists. */
->> -static bool __v4l2_async_notifier_fwnode_has_async_subdev(
->> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
->> +/* See if an async sub-device can be found in a notifier's lists. */
->> +static bool __v4l2_async_notifier_has_async_subdev(
->> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
->>   {
->> -	struct v4l2_async_subdev *asd;
->> +	struct v4l2_async_subdev *asd_y;
->>   	struct v4l2_subdev *sd;
->>   
->> -	list_for_each_entry(asd, &notifier->waiting, list) {
->> -		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
->> -			continue;
->> -
->> -		if (asd->match.fwnode == fwnode)
->> +	list_for_each_entry(asd_y, &notifier->waiting, list) {
->> +		if (asd_equal(asd, asd_y))
->>   			return true;
->>   	}
-> You no longer need the braces here.
-
-done.
-
->>   
->> @@ -327,10 +360,7 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
->>   		if (WARN_ON(!sd->asd))
->>   			continue;
->>   
->> -		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
->> -			continue;
->> -
->> -		if (sd->asd->match.fwnode == fwnode)
->> +		if (asd_equal(asd, sd->asd))
->>   			return true;
->>   	}
->>   
->> @@ -338,33 +368,30 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
->>   }
->>   
->>   /*
->> - * Find out whether an async sub-device was set up for an fwnode already or
->> + * Find out whether an async sub-device was set up already or
->>    * whether it exists in a given notifier before @this_index.
->>    */
->> -static bool v4l2_async_notifier_fwnode_has_async_subdev(
->> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
->> +static bool v4l2_async_notifier_has_async_subdev(
->> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
->>   	unsigned int this_index)
->>   {
->>   	unsigned int j;
->>   
->>   	lockdep_assert_held(&list_lock);
->>   
->> -	/* Check that an fwnode is not being added more than once. */
->> +	/* Check that an asd is not being added more than once. */
->>   	for (j = 0; j < this_index; j++) {
->> -		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
->> -		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
->> +		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
->>   
->> -		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
->> -		    asd->match.fwnode ==
->> -		    other_asd->match.fwnode)
->> +		if (asd_equal(asd, asd_y))
->>   			return true;
->>   	}
->>   
->> -	/* Check than an fwnode did not exist in other notifiers. */
->> -	list_for_each_entry(notifier, &notifier_list, list)
->> -		if (__v4l2_async_notifier_fwnode_has_async_subdev(
->> -			    notifier, fwnode))
->> +	/* Check that an asd does not exist in other notifiers. */
->> +	list_for_each_entry(notifier, &notifier_list, list) {
->> +		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
->>   			return true;
->> +	}
-> You don't really need braces here.
-
-done.
-
-Steve
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 0ac715a5c331bc26..c60e6b0a89b67a8c 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
+ 
+  - compatible: Must be one or more of the following
++   - "renesas,vin-r8a7743" for the R8A7743 device
++   - "renesas,vin-r8a7745" for the R8A7745 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7790" for the R8A7790 device
+@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
+-   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
++   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
++     device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+ 
+    When compatible with the generic version nodes must list the
+-- 
+2.16.2
