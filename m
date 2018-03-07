@@ -1,70 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:31221 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163948AbeCBB7J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:09 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 14/32] rcar-vin: align pixelformat check
-Date: Fri,  2 Mar 2018 02:57:33 +0100
-Message-Id: <20180302015751.25596-15-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:45723 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754389AbeCGVYY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 16:24:24 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180221233825.10024-1-jhogan@kernel.org>
+References: <20180221233825.10024-1-jhogan@kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 7 Mar 2018 22:24:23 +0100
+Message-ID: <CAK8P3a2qV5n57f7=FC0nYZWfeXCVaOaK4R_7Wr74p3ZMyuwJNQ@mail.gmail.com>
+Subject: Re: [PATCH 00/13] Remove metag architecture
+To: James Hogan <jhogan@kernel.org>
+Cc: "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Jason Cooper <jason@lakedaemon.net>,
+        Marc Zyngier <marc.zyngier@arm.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
+        linux-watchdog@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-i2c@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the pixelformat is not supported it should not fail but be set to
-something that works. While we are at it move the two different
-checks of the pixelformat to the same statement.
+On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
+> These patches remove the metag architecture and tightly dependent
+> drivers from the kernel. With the 4.16 kernel the ancient gcc 4.2.4
+> based metag toolchain we have been using is hitting compiler bugs, so
+> now seems a good time to drop it altogether.
+>
+> Quoting from patch 1:
+>
+> The earliest Meta architecture port of Linux I have a record of was an
+> import of a Meta port of Linux v2.4.1 in February 2004, which was worked
+> on significantly over the next few years by Graham Whaley, Will Newton,
+> Matt Fleming, myself and others.
+>
+> Eventually the port was merged into mainline in v3.9 in March 2013, not
+> long after Imagination Technologies bought MIPS Technologies and shifted
+> its CPU focus over to the MIPS architecture.
+>
+> As a result, though the port was maintained for a while, kept on life
+> support for a while longer, and useful for testing a few specific
+> drivers for which I don't have ready access to the equivalent MIPS
+> hardware, it is now essentially dead with no users.
+>
+> It is also stuck using an out-of-tree toolchain based on GCC 4.2.4 which
+> is no longer maintained, now struggles to build modern kernels due to
+> toolchain bugs, and doesn't itself build with a modern GCC. The latest
+> buildroot port is still using an old uClibc snapshot which is no longer
+> served, and the latest uClibc doesn't build with GCC 4.2.4.
+>
+> So lets call it a day and drop the Meta architecture port from the
+> kernel. RIP Meta.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+I've pulled it into my asm-generic tree now, which is also part of linux-next,
+and followed up with patches removing frv, m32r, score, unicore32
+and blackfin. I have not removed the device drivers yet, but I'm working
+on that.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 652b85300b4ef9db..b94ca9ffb1d3b323 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -187,12 +187,10 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	u32 walign;
- 	int ret;
- 
--	/* If requested format is not supported fallback to the default */
--	if (!rvin_format_from_pixel(pix->pixelformat)) {
--		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
--			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+	if (!rvin_format_from_pixel(pix->pixelformat) ||
-+	    (vin->info->model == RCAR_M1 &&
-+	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
- 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--	}
- 
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix, source);
-@@ -231,12 +229,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->bytesperline = rvin_format_bytesperline(pix);
- 	pix->sizeimage = rvin_format_sizeimage(pix);
- 
--	if (vin->info->model == RCAR_M1 &&
--	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
--		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
--		return -EINVAL;
--	}
--
- 	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
- 		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
- 
--- 
-2.16.2
+       Arnd
