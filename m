@@ -1,95 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40847 "EHLO osg.samsung.com"
+Received: from mout.gmx.net ([212.227.17.22]:58143 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754046AbeCWL5b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:31 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        id S934121AbeCHRUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Mar 2018 12:20:45 -0500
+Date: Thu, 8 Mar 2018 18:20:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: [PATCH 08/30] media: v4l2-ioctl: fix some "too small" warnings
-Date: Fri, 23 Mar 2018 07:56:54 -0400
-Message-Id: <912d2f8228be077a1743adb797ada1dfcfe99c81.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH RESEND 0/2 v6] uvcvideo: asynchronous controls
+Message-ID: <alpine.DEB.2.20.1803081815510.17344@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While the code there is right, it produces three false positives:
-	drivers/media/v4l2-core/v4l2-ioctl.c:2868 video_usercopy() error: copy_from_user() 'parg' too small (128 vs 16383)
-	drivers/media/v4l2-core/v4l2-ioctl.c:2868 video_usercopy() error: copy_from_user() 'parg' too small (128 vs 16383)
-	drivers/media/v4l2-core/v4l2-ioctl.c:2876 video_usercopy() error: memset() 'parg' too small (128 vs 16383)
+This is an update of the two patches, adding asynchronous control
+support to the uvcvideo driver. If a control is sent, while the camera
+is still processing an earlier control, it will generate a protocol
+STALL condition on the control pipe.
 
-Store the ioctl size on a cache var, in order to suppress those.
+Thanks
+Guennadi
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+Guennadi Liakhovetski (2):
+  uvcvideo: send a control event when a Control Change interrupt arrives
+  uvcvideo: handle control pipe protocol STALLs
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 672ab22ccd96..a5dab16ff2d2 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2833,14 +2833,15 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	size_t  array_size = 0;
- 	void __user *user_ptr = NULL;
- 	void	**kernel_ptr = NULL;
-+	size_t	size = _IOC_SIZE(cmd);
- 
- 	/*  Copy arguments into temp kernel buffer  */
- 	if (_IOC_DIR(cmd) != _IOC_NONE) {
--		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
-+		if (size <= sizeof(sbuf)) {
- 			parg = sbuf;
- 		} else {
- 			/* too big to allocate from stack */
--			mbuf = kvmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
-+			mbuf = kvmalloc(size, GFP_KERNEL);
- 			if (NULL == mbuf)
- 				return -ENOMEM;
- 			parg = mbuf;
-@@ -2848,7 +2849,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 
- 		err = -EFAULT;
- 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
--			unsigned int n = _IOC_SIZE(cmd);
-+			unsigned int n = size;
- 
- 			/*
- 			 * In some cases, only a few fields are used as input,
-@@ -2869,11 +2870,11 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 				goto out;
- 
- 			/* zero out anything we don't copy from userspace */
--			if (n < _IOC_SIZE(cmd))
--				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
-+			if (n < size)
-+				memset((u8 *)parg + n, 0, size - n);
- 		} else {
- 			/* read-only ioctl */
--			memset(parg, 0, _IOC_SIZE(cmd));
-+			memset(parg, 0, size);
- 		}
- 	}
- 
-@@ -2931,7 +2932,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	switch (_IOC_DIR(cmd)) {
- 	case _IOC_READ:
- 	case (_IOC_WRITE | _IOC_READ):
--		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
-+		if (copy_to_user((void __user *)arg, parg, size))
- 			err = -EFAULT;
- 		break;
- 	}
+ drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++++++++----
+ drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
+ drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+ drivers/media/usb/uvc/uvc_video.c  |  59 +++++++++++--
+ drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+ include/uapi/linux/uvcvideo.h      |   2 +
+ 6 files changed, 322 insertions(+), 35 deletions(-)
+
 -- 
-2.14.3
+1.9.3
