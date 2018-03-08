@@ -1,104 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:37768 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751185AbeC0Hxi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 03:53:38 -0400
-Received: by mail-wm0-f67.google.com with SMTP id r131so13022126wmb.2
-        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 00:53:38 -0700 (PDT)
-Date: Tue, 27 Mar 2018 09:53:34 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Jerome Glisse <j.glisse@gmail.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-Message-ID: <20180327075334.GK14155@phenom.ffwll.local>
-References: <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
- <20180320140810.GU14155@phenom.ffwll.local>
- <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
- <20180321082839.GA14155@phenom.ffwll.local>
- <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
- <20180322071804.GH14155@phenom.ffwll.local>
- <ef9fa9a2-c368-1fca-a8ac-8ee8d522b6ab@gmail.com>
- <20180326080121.GO14155@phenom.ffwll.local>
- <20180326154224.GA11930@gmail.com>
- <f8ff3993-6605-4f8e-5ac2-c40f0450c1c6@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f8ff3993-6605-4f8e-5ac2-c40f0450c1c6@gmail.com>
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:54704 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751271AbeCHM0w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 07:26:52 -0500
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 1/3] media: vb2-core: vb2_buffer_done: consolidate docs
+Date: Thu,  8 Mar 2018 13:26:20 +0100
+Message-Id: <1520511982-985-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 27, 2018 at 09:35:17AM +0200, Christian König wrote:
-> Am 26.03.2018 um 17:42 schrieb Jerome Glisse:
-> > On Mon, Mar 26, 2018 at 10:01:21AM +0200, Daniel Vetter wrote:
-> > > On Thu, Mar 22, 2018 at 10:58:55AM +0100, Christian König wrote:
-> > > > Am 22.03.2018 um 08:18 schrieb Daniel Vetter:
-> > > > [SNIP]
-> > > > Key take away from that was that you can't take any locks from neither the
-> > > > MMU notifier nor the shrinker you also take while calling kmalloc (or
-> > > > simpler speaking get_user_pages()).
-> > > > 
-> > > > Additional to that in the MMU or shrinker callback all different kinds of
-> > > > locks might be held, so you basically can't assume that you do thinks like
-> > > > recursive page table walks or call dma_unmap_anything.
-> > > That sounds like a design bug in mmu_notifiers, since it would render them
-> > > useless for KVM. And they were developed for that originally. I think I'll
-> > > chat with Jerome to understand this, since it's all rather confusing.
-> > Doing dma_unmap() during mmu_notifier callback should be fine, it was last
-> > time i check. However there is no formal contract that it is ok to do so.
-> 
-> As I said before dma_unmap() isn't the real problem here.
-> 
-> The issues is more that you can't take a lock in the MMU notifier which you
-> would also take while allocating memory without GFP_NOIO.
-> 
-> That makes it rather tricky to do any command submission, e.g. you need to
-> grab all the pages/memory/resources prehand, then make sure that you don't
-> have a MMU notifier running concurrently and do the submission.
-> 
-> If any of the prerequisites isn't fulfilled we need to restart the
-> operation.
+Documentation about what start_streaming() should do on failure are
+scattered in two places and mostly duplicated, so consolidate them in
+one of the two places.
 
-Yeah we're hitting all that epic amount of fun now, after a chat with
-Jerome yesterady. I guess we'll figure out what we're coming up with.
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 
-> > [SNIP]
-> > A slightly better solution is using atomic counter:
-> >    driver_range_start() {
-> >      atomic_inc(&mydev->notifier_count);
-> ...
-> 
-> Yeah, that is exactly what amdgpu is doing now. Sorry if my description
-> didn't made that clear.
-> 
-> > I would like to see driver using same code, as it means one place to fix
-> > issues. I had for a long time on my TODO list doing the above conversion
-> > to amd or radeon kernel driver. I am pushing up my todo list hopefully in
-> > next few weeks i can send an rfc so people can have a real sense of how
-> > it can look.
-> 
-> Certainly a good idea, but I think we might have that separate to HMM.
-> 
-> TTM suffered really from feature overload, e.g. trying to do everything in a
-> single subsystem. And it would be rather nice to have coherent userptr
-> handling for GPUs as separate feature.
+---
+Changes v1 -> v2: none.
+---
+ include/media/videobuf2-core.h | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-TTM suffered from being a midlayer imo, not from doing too much. HMM is
-apparently structured like a toolbox (despite its documentation claiming
-otherwise), so you can pick&choose freely.
--Daniel
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5b6c541e4e1b..f1a479060f9e 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -602,9 +602,7 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+  *		Either %VB2_BUF_STATE_DONE if the operation finished
+  *		successfully, %VB2_BUF_STATE_ERROR if the operation finished
+  *		with an error or %VB2_BUF_STATE_QUEUED if the driver wants to
+- *		requeue buffers. If start_streaming fails then it should return
+- *		buffers with state %VB2_BUF_STATE_QUEUED to put them back into
+- *		the queue.
++ *		requeue buffers.
+  *
+  * This function should be called by the driver after a hardware operation on
+  * a buffer is finished and the buffer may be returned to userspace. The driver
+@@ -613,9 +611,9 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+  * to the driver by &vb2_ops->buf_queue can be passed to this function.
+  *
+  * While streaming a buffer can only be returned in state DONE or ERROR.
+- * The start_streaming op can also return them in case the DMA engine cannot
+- * be started for some reason. In that case the buffers should be returned with
+- * state QUEUED.
++ * The &vb2_ops->start_streaming op can also return them in case the DMA engine
++ * cannot be started for some reason. In that case the buffers should be
++ * returned with state QUEUED to put them back into the queue.
+  */
+ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
+ 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
