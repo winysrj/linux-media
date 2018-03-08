@@ -1,102 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32121 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752249AbeCZVqj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:46:39 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v13 11/33] rcar-vin: set a default field to fallback on
-Date: Mon, 26 Mar 2018 23:44:34 +0200
-Message-Id: <20180326214456.6655-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:44758 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966137AbeCHJt7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:49:59 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        devicetree@vger.kernel.org, heiko@sntech.de,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v6 17/17] MAINTAINERS: add entry for Rockchip ISP1 driver
+Date: Thu,  8 Mar 2018 17:48:07 +0800
+Message-Id: <20180308094807.9443-18-jacob-chen@iotwrt.com>
+In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the field is not supported by the driver it should not try to keep
-the current field. Instead it should set it to a default fallback. Since
-trying a format should always result in the same state regardless of the
-current state of the device.
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Add MAINTAINERS entry for the rockchip isp1 driver.
+This driver is maintained by rockchip officially and it
+will be used for rockchip SoC on all linux-kernel based OS.
 
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
 ---
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-* Changes since v12
-- Moved field != V4L2_FIELD_ANY check from a later commit 'rcar-vin:
-  simplify how formats are set and reset' in the series. This is to
-  avoid ignoring the field returned from the sensor if FIELD_ANY was
-  requested by the user. This was only a problem between this change and
-  a few patches later, but better to fix it now. Reported by Hans,
-  thanks for spotting this.
-- Add review tag from Hans.
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index c2265324c7c96308..16e895657c3f51c5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,6 +23,7 @@
- #include "rcar-vin.h"
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4623caf8d72d..7a9ff4fa4592 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11852,6 +11852,16 @@ F:	drivers/hid/hid-roccat*
+ F:	include/linux/hid-roccat*
+ F:	Documentation/ABI/*/sysfs-driver-hid-roccat*
  
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-+#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		vin->format.field = V4L2_FIELD_NONE;
-+		vin->format.field = RVIN_DEFAULT_FIELD;
- 		break;
- 	}
- 
-@@ -193,7 +194,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	source->width = pix->width;
- 	source->height = pix->height;
- 
--	pix->field = field;
-+	if (field != V4L2_FIELD_ANY)
-+		pix->field = field;
++ROCKCHIP ISP V1 DRIVER
++M:	Jacob chen <jacob2.chen@rock-chips.com>
++M:	Shunqian Zheng <zhengsq@rock-chips.com>
++M:	Yichong Zhong <zyc@rock-chips.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/rockchip/isp1/
++F:	Documentation/devicetree/bindings/media/rockchip-isp1.txt
++F:	Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
 +
- 	pix->width = width;
- 	pix->height = height;
- 
-@@ -213,10 +216,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	u32 walign;
- 	int ret;
- 
--	/* Keep current field if no specific one is asked for */
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = vin->format.field;
--
- 	/* If requested format is not supported fallback to the default */
- 	if (!rvin_format_from_pixel(pix->pixelformat)) {
- 		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-@@ -246,7 +245,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		pix->field = V4L2_FIELD_NONE;
-+		pix->field = RVIN_DEFAULT_FIELD;
- 		break;
- 	}
- 
+ ROCKCHIP RASTER 2D GRAPHIC ACCELERATION UNIT DRIVER
+ M:	Jacob chen <jacob2.chen@rock-chips.com>
+ L:	linux-media@vger.kernel.org
 -- 
-2.16.2
+2.16.1
