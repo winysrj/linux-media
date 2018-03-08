@@ -1,54 +1,1151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49527 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933618AbeCEJfs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 04:35:48 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>
-Subject: [PATCH 0/7] media: sun6i: Various fixes and improvements
-Date: Mon,  5 Mar 2018 10:35:27 +0100
-Message-Id: <20180305093535.11801-1-maxime.ripard@bootlin.com>
-In-Reply-To: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
-References: <1519697113-32202-1-git-send-email-yong.deng@magewell.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52115 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755005AbeCHAFn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 19:05:43 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v7 7/8] media: vsp1: Adapt entities to configure into a body
+Date: Thu,  8 Mar 2018 00:05:30 +0000
+Message-Id: <c192724a85e17f984e5fa7e5af871eb33bc19384.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Currently the entities store their configurations into a display list.
+Adapt this such that the code can be configured into a body directly,
+allowing greater flexibility and control of the content.
 
-Here are a bunch of patches I came up with after testing your last
-(v8) version of the CSI patches.
+All users of vsp1_dl_list_write() are removed in this process, thus it
+too is removed.
 
-There's some improvements (patches 1 and 7) and fixes for
-regressions found in the v8 compared to the v7 (patches 2, 3, 4 and
-5), and one fix that we discussed for the signals polarity for the
-parallel interface (patch 6).
+A helper, vsp1_dl_list_get_body0() is provided to access the internal body0
+from the display list.
 
-Feel free to squash them in your serie for the v9.
-Thanks!
-Maxime
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Maxime Ripard (7):
-  media: sun6i: Fill dma_pfn_offset to accomodate for the RAM offset
-  media: sun6i: Reduce the error level
-  media: sun6i: Pass the sun6i_csi_dev pointer to our helpers
-  media: sun6i: Don't emit a warning when the configured format isn't
-    found
-  media: sun6i: Support the YUYV format properly
-  media: sun6i: Invert the polarities
-  media: sun6i: Expose controls on the v4l2_device
+---
+v7
+ - Rebase
+ - s/prepare/configure_stream/
+ - s/configure/configure_frame/
 
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 85 ++++++++++++++--------
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h |  2 +
- .../media/platform/sunxi/sun6i-csi/sun6i_video.c   |  6 ++
- 3 files changed, 63 insertions(+), 30 deletions(-)
+ drivers/media/platform/vsp1/vsp1_bru.c    | 22 ++++++-------
+ drivers/media/platform/vsp1/vsp1_clu.c    | 22 ++++++-------
+ drivers/media/platform/vsp1/vsp1_dl.c     | 12 ++-----
+ drivers/media/platform/vsp1/vsp1_dl.h     |  2 +-
+ drivers/media/platform/vsp1/vsp1_drm.c    | 20 +++++++----
+ drivers/media/platform/vsp1/vsp1_entity.c | 15 ++++-----
+ drivers/media/platform/vsp1/vsp1_entity.h | 11 +++---
+ drivers/media/platform/vsp1/vsp1_hgo.c    | 16 ++++-----
+ drivers/media/platform/vsp1/vsp1_hgt.c    | 18 +++++-----
+ drivers/media/platform/vsp1/vsp1_hsit.c   | 10 +++---
+ drivers/media/platform/vsp1/vsp1_lif.c    | 15 ++++-----
+ drivers/media/platform/vsp1/vsp1_lut.c    | 21 ++++++------
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  4 +-
+ drivers/media/platform/vsp1/vsp1_pipe.h   |  3 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c    | 39 +++++++++++-----------
+ drivers/media/platform/vsp1/vsp1_sru.c    | 14 ++++----
+ drivers/media/platform/vsp1/vsp1_uds.c    | 24 +++++++-------
+ drivers/media/platform/vsp1/vsp1_uds.h    |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c  | 11 ++++--
+ drivers/media/platform/vsp1/vsp1_wpf.c    | 42 ++++++++++++------------
+ 20 files changed, 172 insertions(+), 151 deletions(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index d6fd265eaccb..7b9cf78b4be8 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -30,10 +30,10 @@
+  * Device Access
+  */
+ 
+-static inline void vsp1_bru_write(struct vsp1_bru *bru, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_bru_write(struct vsp1_bru *bru,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, bru->base + reg, data);
++	vsp1_dl_body_write(dlb, bru->base + reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -287,7 +287,7 @@ static const struct v4l2_subdev_ops bru_ops = {
+ 
+ static void bru_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_bru *bru = to_bru(&entity->subdev);
+ 	struct v4l2_mbus_framefmt *format;
+@@ -309,7 +309,7 @@ static void bru_configure_stream(struct vsp1_entity *entity,
+ 	 * format at the pipeline output is premultiplied.
+ 	 */
+ 	flags = pipe->output ? pipe->output->format.flags : 0;
+-	vsp1_bru_write(bru, dl, VI6_BRU_INCTRL,
++	vsp1_bru_write(bru, dlb, VI6_BRU_INCTRL,
+ 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
+ 		       0 : VI6_BRU_INCTRL_NRM);
+ 
+@@ -317,12 +317,12 @@ static void bru_configure_stream(struct vsp1_entity *entity,
+ 	 * Set the background position to cover the whole output image and
+ 	 * configure its color.
+ 	 */
+-	vsp1_bru_write(bru, dl, VI6_BRU_VIRRPF_SIZE,
++	vsp1_bru_write(bru, dlb, VI6_BRU_VIRRPF_SIZE,
+ 		       (format->width << VI6_BRU_VIRRPF_SIZE_HSIZE_SHIFT) |
+ 		       (format->height << VI6_BRU_VIRRPF_SIZE_VSIZE_SHIFT));
+-	vsp1_bru_write(bru, dl, VI6_BRU_VIRRPF_LOC, 0);
++	vsp1_bru_write(bru, dlb, VI6_BRU_VIRRPF_LOC, 0);
+ 
+-	vsp1_bru_write(bru, dl, VI6_BRU_VIRRPF_COL, bru->bgcolor |
++	vsp1_bru_write(bru, dlb, VI6_BRU_VIRRPF_COL, bru->bgcolor |
+ 		       (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT));
+ 
+ 	/*
+@@ -332,7 +332,7 @@ static void bru_configure_stream(struct vsp1_entity *entity,
+ 	 * unit.
+ 	 */
+ 	if (entity->type == VSP1_ENTITY_BRU)
+-		vsp1_bru_write(bru, dl, VI6_BRU_ROP,
++		vsp1_bru_write(bru, dlb, VI6_BRU_ROP,
+ 			       VI6_BRU_ROP_DSTSEL_BRUIN(1) |
+ 			       VI6_BRU_ROP_CROP(VI6_ROP_NOP) |
+ 			       VI6_BRU_ROP_AROP(VI6_ROP_NOP));
+@@ -374,7 +374,7 @@ static void bru_configure_stream(struct vsp1_entity *entity,
+ 		if (!(entity->type == VSP1_ENTITY_BRU && i == 1))
+ 			ctrl |= VI6_BRU_CTRL_SRCSEL_BRUIN(i);
+ 
+-		vsp1_bru_write(bru, dl, VI6_BRU_CTRL(i), ctrl);
++		vsp1_bru_write(bru, dlb, VI6_BRU_CTRL(i), ctrl);
+ 
+ 		/*
+ 		 * Harcode the blending formula to
+@@ -389,7 +389,7 @@ static void bru_configure_stream(struct vsp1_entity *entity,
+ 		 *
+ 		 * otherwise.
+ 		 */
+-		vsp1_bru_write(bru, dl, VI6_BRU_BLD(i),
++		vsp1_bru_write(bru, dlb, VI6_BRU_BLD(i),
+ 			       VI6_BRU_BLD_CCMDX_255_SRC_A |
+ 			       (premultiplied ? VI6_BRU_BLD_CCMDY_COEFY :
+ 						VI6_BRU_BLD_CCMDY_SRC_A) |
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index b8d8af6d4910..d30f8ad4687c 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -29,10 +29,10 @@
+  * Device Access
+  */
+ 
+-static inline void vsp1_clu_write(struct vsp1_clu *clu, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_clu_write(struct vsp1_clu *clu,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg, data);
++	vsp1_dl_body_write(dlb, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -215,7 +215,7 @@ static const struct v4l2_subdev_ops clu_ops = {
+  */
+ static void clu_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_clu *clu = to_clu(&entity->subdev);
+ 
+@@ -234,14 +234,14 @@ static void clu_configure_stream(struct vsp1_entity *entity,
+ static void clu_configure_frame(struct vsp1_entity *entity,
+ 				struct vsp1_pipeline *pipe,
+ 				struct vsp1_dl_list *dl,
++				struct vsp1_dl_body *dlb,
+ 				unsigned int partition)
+ {
+ 	struct vsp1_clu *clu = to_clu(&entity->subdev);
+-	struct vsp1_dl_body *dlb;
++	struct vsp1_dl_body *clu_dlb;
+ 	unsigned long flags;
+ 	u32 ctrl = VI6_CLU_CTRL_AAI | VI6_CLU_CTRL_MVS | VI6_CLU_CTRL_EN;
+ 
+-
+ 	if (partition == 0) {
+ 		/* 2D mode can only be used with the YCbCr pixel encoding. */
+ 		if (clu->mode == V4L2_CID_VSP1_CLU_MODE_2D && clu->yuv_mode)
+@@ -249,18 +249,18 @@ static void clu_configure_frame(struct vsp1_entity *entity,
+ 			     |  VI6_CLU_CTRL_OS0_2D | VI6_CLU_CTRL_OS1_2D
+ 			     |  VI6_CLU_CTRL_OS2_2D | VI6_CLU_CTRL_M2D;
+ 
+-		vsp1_clu_write(clu, dl, VI6_CLU_CTRL, ctrl);
++		vsp1_clu_write(clu, dlb, VI6_CLU_CTRL, ctrl);
+ 
+ 		spin_lock_irqsave(&clu->lock, flags);
+-		dlb = clu->clu;
++		clu_dlb = clu->clu;
+ 		clu->clu = NULL;
+ 		spin_unlock_irqrestore(&clu->lock, flags);
+ 
+-		if (dlb) {
+-			vsp1_dl_list_add_body(dl, dlb);
++		if (clu_dlb) {
++			vsp1_dl_list_add_body(dl, clu_dlb);
+ 
+ 			/* release our local reference */
+-			vsp1_dl_body_put(dlb);
++			vsp1_dl_body_put(clu_dlb);
+ 		}
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 134865287c02..37e2c984fbf3 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -449,17 +449,15 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ }
+ 
+ /**
+- * vsp1_dl_list_write - Write a register to the display list
++ * vsp1_dl_list_get_body0 - Obtain the default body for the display list
+  * @dl: The display list
+- * @reg: The register address
+- * @data: The register value
+  *
+- * Write the given register and value to the display list. Up to 256 registers
+- * can be written per display list.
++ * Obtain a pointer to the internal display list body allowing this to be passed
++ * directly to configure operations.
+  */
+-void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
++struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
+ {
+-	vsp1_dl_body_write(dl->body0, reg, data);
++	return dl->body0;
+ }
+ 
+ /**
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index f45083251644..5ad2cec5cad9 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -32,7 +32,7 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+ 
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+-void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
++struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl);
+ void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
+ 
+ struct vsp1_dl_body_pool *
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 12db55d43d01..3c8b1952799d 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -88,6 +88,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_entity *entity;
+ 	struct vsp1_entity *next;
+ 	struct vsp1_dl_list *dl;
++	struct vsp1_dl_body *dlb;
+ 	struct v4l2_subdev_format format;
+ 	unsigned long flags;
+ 	unsigned int i;
+@@ -255,12 +256,13 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 
+ 	/* Configure all entities in the pipeline. */
+ 	dl = vsp1_dl_list_get(pipe->output->dlm);
++	dlb = vsp1_dl_list_get_body0(dl);
+ 
+ 	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+-		vsp1_entity_route_setup(entity, pipe, dl);
++		vsp1_entity_route_setup(entity, pipe, dlb);
+ 
+-		vsp1_entity_configure_stream(entity, pipe, dl);
+-		vsp1_entity_configure_frame(entity, pipe, dl, 0);
++		vsp1_entity_configure_stream(entity, pipe, dlb);
++		vsp1_entity_configure_frame(entity, pipe, dl, dlb, 0);
+ 	}
+ 
+ 	vsp1_dl_list_commit(dl);
+@@ -506,12 +508,16 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 	struct vsp1_entity *entity;
+ 	struct vsp1_entity *next;
+ 	struct vsp1_dl_list *dl;
++	struct vsp1_dl_body *dlb;
+ 	unsigned int i;
+ 	int ret;
+ 
+ 	/* Prepare the display list. */
+ 	dl = vsp1_dl_list_get(pipe->output->dlm);
+ 
++	/* Retrieve the default DLB from the list */
++	dlb = vsp1_dl_list_get_body0(dl);
++
+ 	/* Count the number of enabled inputs and sort them by Z-order. */
+ 	pipe->num_inputs = 0;
+ 
+@@ -573,7 +579,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 		/* Disconnect unused RPFs from the pipeline. */
+ 		if (entity->type == VSP1_ENTITY_RPF &&
+ 		    !pipe->inputs[entity->index]) {
+-			vsp1_dl_list_write(dl, entity->route->reg,
++			vsp1_dl_body_write(dlb, entity->route->reg,
+ 					   VI6_DPR_NODE_UNUSED);
+ 
+ 			list_del_init(&entity->list_pipe);
+@@ -581,9 +587,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 			continue;
+ 		}
+ 
+-		vsp1_entity_route_setup(entity, pipe, dl);
+-		vsp1_entity_configure_stream(entity, pipe, dl);
+-		vsp1_entity_configure_frame(entity, pipe, dl, 0);
++		vsp1_entity_route_setup(entity, pipe, dlb);
++		vsp1_entity_configure_stream(entity, pipe, dlb);
++		vsp1_entity_configure_frame(entity, pipe, dl, dlb, 0);
+ 	}
+ 
+ 	vsp1_dl_list_commit(dl);
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 472284b638bc..185ca770deb7 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -26,7 +26,7 @@
+ 
+ void vsp1_entity_route_setup(struct vsp1_entity *entity,
+ 			     struct vsp1_pipeline *pipe,
+-			     struct vsp1_dl_list *dl)
++			     struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_entity *source;
+ 	u32 route;
+@@ -42,7 +42,7 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
+ 		smppt = (pipe->output->entity.index << VI6_DPR_SMPPT_TGW_SHIFT)
+ 		      | (source->route->output << VI6_DPR_SMPPT_PT_SHIFT);
+ 
+-		vsp1_dl_list_write(dl, VI6_DPR_HGO_SMPPT, smppt);
++		vsp1_dl_body_write(dlb, VI6_DPR_HGO_SMPPT, smppt);
+ 		return;
+ 	} else if (entity->type == VSP1_ENTITY_HGT) {
+ 		u32 smppt;
+@@ -55,7 +55,7 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
+ 		smppt = (pipe->output->entity.index << VI6_DPR_SMPPT_TGW_SHIFT)
+ 		      | (source->route->output << VI6_DPR_SMPPT_PT_SHIFT);
+ 
+-		vsp1_dl_list_write(dl, VI6_DPR_HGT_SMPPT, smppt);
++		vsp1_dl_body_write(dlb, VI6_DPR_HGT_SMPPT, smppt);
+ 		return;
+ 	}
+ 
+@@ -70,24 +70,25 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
+ 	 */
+ 	if (source->type == VSP1_ENTITY_BRS)
+ 		route |= VI6_DPR_ROUTE_BRSSEL;
+-	vsp1_dl_list_write(dl, source->route->reg, route);
++	vsp1_dl_body_write(dlb, source->route->reg, route);
+ }
+ 
+ void vsp1_entity_configure_stream(struct vsp1_entity *entity,
+ 				  struct vsp1_pipeline *pipe,
+-				  struct vsp1_dl_list *dl)
++				  struct vsp1_dl_body *dlb)
+ {
+ 	if (entity->ops->configure_stream)
+-		entity->ops->configure_stream(entity, pipe, dl);
++		entity->ops->configure_stream(entity, pipe, dlb);
+ }
+ 
+ void vsp1_entity_configure_frame(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+ 				 struct vsp1_dl_list *dl,
++				 struct vsp1_dl_body *dlb,
+ 				 unsigned int partition)
+ {
+ 	if (entity->ops->configure_frame)
+-		entity->ops->configure_frame(entity, pipe, dl, partition);
++		entity->ops->configure_frame(entity, pipe, dl, dlb, partition);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index b44ed5414fc3..4a3602d3919b 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -19,6 +19,7 @@
+ #include <media/v4l2-subdev.h>
+ 
+ struct vsp1_device;
++struct vsp1_dl_body;
+ struct vsp1_dl_list;
+ struct vsp1_pipeline;
+ struct vsp1_partition;
+@@ -80,9 +81,10 @@ struct vsp1_route {
+ struct vsp1_entity_operations {
+ 	void (*destroy)(struct vsp1_entity *);
+ 	void (*configure_stream)(struct vsp1_entity *, struct vsp1_pipeline *,
+-				 struct vsp1_dl_list *);
++				 struct vsp1_dl_body *);
+ 	void (*configure_frame)(struct vsp1_entity *, struct vsp1_pipeline *,
+-				struct vsp1_dl_list *, unsigned int partition);
++				struct vsp1_dl_list *, struct vsp1_dl_body *,
++				unsigned int partition);
+ 	unsigned int (*max_width)(struct vsp1_entity *, struct vsp1_pipeline *);
+ 	void (*partition)(struct vsp1_entity *, struct vsp1_pipeline *,
+ 			  struct vsp1_partition *, unsigned int,
+@@ -147,15 +149,16 @@ int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
+ 
+ void vsp1_entity_route_setup(struct vsp1_entity *entity,
+ 			     struct vsp1_pipeline *pipe,
+-			     struct vsp1_dl_list *dl);
++			     struct vsp1_dl_body *dlb);
+ 
+ void vsp1_entity_configure_stream(struct vsp1_entity *entity,
+ 				  struct vsp1_pipeline *pipe,
+-				  struct vsp1_dl_list *dl);
++				  struct vsp1_dl_body *dlb);
+ 
+ void vsp1_entity_configure_frame(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+ 				 struct vsp1_dl_list *dl,
++				 struct vsp1_dl_body *dlb,
+ 				 unsigned int partition);
+ 
+ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
+diff --git a/drivers/media/platform/vsp1/vsp1_hgo.c b/drivers/media/platform/vsp1/vsp1_hgo.c
+index ddba9f83ac7d..ec8e6d8c47e8 100644
+--- a/drivers/media/platform/vsp1/vsp1_hgo.c
++++ b/drivers/media/platform/vsp1/vsp1_hgo.c
+@@ -32,10 +32,10 @@ static inline u32 vsp1_hgo_read(struct vsp1_hgo *hgo, u32 reg)
+ 	return vsp1_read(hgo->histo.entity.vsp1, reg);
+ }
+ 
+-static inline void vsp1_hgo_write(struct vsp1_hgo *hgo, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_hgo_write(struct vsp1_hgo *hgo,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg, data);
++	vsp1_dl_body_write(dlb, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -135,7 +135,7 @@ static const struct v4l2_ctrl_config hgo_num_bins_control = {
+ 
+ static void hgo_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_hgo *hgo = to_hgo(&entity->subdev);
+ 	struct v4l2_rect *compose;
+@@ -149,12 +149,12 @@ static void hgo_configure_stream(struct vsp1_entity *entity,
+ 						HISTO_PAD_SINK,
+ 						V4L2_SEL_TGT_COMPOSE);
+ 
+-	vsp1_hgo_write(hgo, dl, VI6_HGO_REGRST, VI6_HGO_REGRST_RCLEA);
++	vsp1_hgo_write(hgo, dlb, VI6_HGO_REGRST, VI6_HGO_REGRST_RCLEA);
+ 
+-	vsp1_hgo_write(hgo, dl, VI6_HGO_OFFSET,
++	vsp1_hgo_write(hgo, dlb, VI6_HGO_OFFSET,
+ 		       (crop->left << VI6_HGO_OFFSET_HOFFSET_SHIFT) |
+ 		       (crop->top << VI6_HGO_OFFSET_VOFFSET_SHIFT));
+-	vsp1_hgo_write(hgo, dl, VI6_HGO_SIZE,
++	vsp1_hgo_write(hgo, dlb, VI6_HGO_SIZE,
+ 		       (crop->width << VI6_HGO_SIZE_HSIZE_SHIFT) |
+ 		       (crop->height << VI6_HGO_SIZE_VSIZE_SHIFT));
+ 
+@@ -166,7 +166,7 @@ static void hgo_configure_stream(struct vsp1_entity *entity,
+ 
+ 	hratio = crop->width * 2 / compose->width / 3;
+ 	vratio = crop->height * 2 / compose->height / 3;
+-	vsp1_hgo_write(hgo, dl, VI6_HGO_MODE,
++	vsp1_hgo_write(hgo, dlb, VI6_HGO_MODE,
+ 		       (hgo->num_bins == 256 ? VI6_HGO_MODE_STEP : 0) |
+ 		       (hgo->max_rgb ? VI6_HGO_MODE_MAXRGB : 0) |
+ 		       (hratio << VI6_HGO_MODE_HRATIO_SHIFT) |
+diff --git a/drivers/media/platform/vsp1/vsp1_hgt.c b/drivers/media/platform/vsp1/vsp1_hgt.c
+index c7cde8e90029..e780357f979b 100644
+--- a/drivers/media/platform/vsp1/vsp1_hgt.c
++++ b/drivers/media/platform/vsp1/vsp1_hgt.c
+@@ -32,10 +32,10 @@ static inline u32 vsp1_hgt_read(struct vsp1_hgt *hgt, u32 reg)
+ 	return vsp1_read(hgt->histo.entity.vsp1, reg);
+ }
+ 
+-static inline void vsp1_hgt_write(struct vsp1_hgt *hgt, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_hgt_write(struct vsp1_hgt *hgt,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg, data);
++	vsp1_dl_body_write(dlb, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -131,7 +131,7 @@ static const struct v4l2_ctrl_config hgt_hue_areas = {
+ 
+ static void hgt_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_hgt *hgt = to_hgt(&entity->subdev);
+ 	struct v4l2_rect *compose;
+@@ -148,12 +148,12 @@ static void hgt_configure_stream(struct vsp1_entity *entity,
+ 						HISTO_PAD_SINK,
+ 						V4L2_SEL_TGT_COMPOSE);
+ 
+-	vsp1_hgt_write(hgt, dl, VI6_HGT_REGRST, VI6_HGT_REGRST_RCLEA);
++	vsp1_hgt_write(hgt, dlb, VI6_HGT_REGRST, VI6_HGT_REGRST_RCLEA);
+ 
+-	vsp1_hgt_write(hgt, dl, VI6_HGT_OFFSET,
++	vsp1_hgt_write(hgt, dlb, VI6_HGT_OFFSET,
+ 		       (crop->left << VI6_HGT_OFFSET_HOFFSET_SHIFT) |
+ 		       (crop->top << VI6_HGT_OFFSET_VOFFSET_SHIFT));
+-	vsp1_hgt_write(hgt, dl, VI6_HGT_SIZE,
++	vsp1_hgt_write(hgt, dlb, VI6_HGT_SIZE,
+ 		       (crop->width << VI6_HGT_SIZE_HSIZE_SHIFT) |
+ 		       (crop->height << VI6_HGT_SIZE_VSIZE_SHIFT));
+ 
+@@ -161,7 +161,7 @@ static void hgt_configure_stream(struct vsp1_entity *entity,
+ 	for (i = 0; i < HGT_NUM_HUE_AREAS; ++i) {
+ 		lower = hgt->hue_areas[i*2 + 0];
+ 		upper = hgt->hue_areas[i*2 + 1];
+-		vsp1_hgt_write(hgt, dl, VI6_HGT_HUE_AREA(i),
++		vsp1_hgt_write(hgt, dlb, VI6_HGT_HUE_AREA(i),
+ 			       (lower << VI6_HGT_HUE_AREA_LOWER_SHIFT) |
+ 			       (upper << VI6_HGT_HUE_AREA_UPPER_SHIFT));
+ 	}
+@@ -169,7 +169,7 @@ static void hgt_configure_stream(struct vsp1_entity *entity,
+ 
+ 	hratio = crop->width * 2 / compose->width / 3;
+ 	vratio = crop->height * 2 / compose->height / 3;
+-	vsp1_hgt_write(hgt, dl, VI6_HGT_MODE,
++	vsp1_hgt_write(hgt, dlb, VI6_HGT_MODE,
+ 		       (hratio << VI6_HGT_MODE_HRATIO_SHIFT) |
+ 		       (vratio << VI6_HGT_MODE_VRATIO_SHIFT));
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index 0452f99592f8..b33e437b88b1 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -28,9 +28,9 @@
+  */
+ 
+ static inline void vsp1_hsit_write(struct vsp1_hsit *hsit,
+-				   struct vsp1_dl_list *dl, u32 reg, u32 data)
++				   struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg, data);
++	vsp1_dl_body_write(dlb, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -133,14 +133,14 @@ static const struct v4l2_subdev_ops hsit_ops = {
+ 
+ static void hsit_configure_stream(struct vsp1_entity *entity,
+ 				  struct vsp1_pipeline *pipe,
+-				  struct vsp1_dl_list *dl)
++				  struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_hsit *hsit = to_hsit(&entity->subdev);
+ 
+ 	if (hsit->inverse)
+-		vsp1_hsit_write(hsit, dl, VI6_HSI_CTRL, VI6_HSI_CTRL_EN);
++		vsp1_hsit_write(hsit, dlb, VI6_HSI_CTRL, VI6_HSI_CTRL_EN);
+ 	else
+-		vsp1_hsit_write(hsit, dl, VI6_HST_CTRL, VI6_HST_CTRL_EN);
++		vsp1_hsit_write(hsit, dlb, VI6_HST_CTRL, VI6_HST_CTRL_EN);
+ }
+ 
+ static const struct vsp1_entity_operations hsit_entity_ops = {
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 9d6a77586285..d9309133529d 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -27,10 +27,11 @@
+  * Device Access
+  */
+ 
+-static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_lif_write(struct vsp1_lif *lif,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg + lif->entity.index * VI6_LIF_OFFSET, data);
++	vsp1_dl_body_write(dlb, reg + lif->entity.index * VI6_LIF_OFFSET,
++			       data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -130,7 +131,7 @@ static const struct v4l2_subdev_ops lif_ops = {
+ 
+ static void lif_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	const struct v4l2_mbus_framefmt *format;
+ 	struct vsp1_lif *lif = to_lif(&entity->subdev);
+@@ -143,11 +144,11 @@ static void lif_configure_stream(struct vsp1_entity *entity,
+ 
+ 	obth = min(obth, (format->width + 1) / 2 * format->height - 4);
+ 
+-	vsp1_lif_write(lif, dl, VI6_LIF_CSBTH,
++	vsp1_lif_write(lif, dlb, VI6_LIF_CSBTH,
+ 			(hbth << VI6_LIF_CSBTH_HBTH_SHIFT) |
+ 			(lbth << VI6_LIF_CSBTH_LBTH_SHIFT));
+ 
+-	vsp1_lif_write(lif, dl, VI6_LIF_CTRL,
++	vsp1_lif_write(lif, dlb, VI6_LIF_CTRL,
+ 			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
+ 			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
+ 			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
+@@ -160,7 +161,7 @@ static void lif_configure_stream(struct vsp1_entity *entity,
+ 	 */
+ 	if ((entity->vsp1->version & VI6_IP_VERSION_MASK) ==
+ 	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M))
+-		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
++		vsp1_lif_write(lif, dlb, VI6_LIF_LBA,
+ 			       VI6_LIF_LBA_LBA0 |
+ 			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 6d160aabb185..ec07d5b0a0c0 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -29,10 +29,10 @@
+  * Device Access
+  */
+ 
+-static inline void vsp1_lut_write(struct vsp1_lut *lut, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_lut_write(struct vsp1_lut *lut,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg, data);
++	vsp1_dl_body_write(dlb, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -192,33 +192,34 @@ static const struct v4l2_subdev_ops lut_ops = {
+ 
+ static void lut_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_lut *lut = to_lut(&entity->subdev);
+ 
+-	vsp1_lut_write(lut, dl, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
++	vsp1_lut_write(lut, dlb, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
+ }
+ 
+ static void lut_configure_frame(struct vsp1_entity *entity,
+ 				struct vsp1_pipeline *pipe,
+ 				struct vsp1_dl_list *dl,
++				struct vsp1_dl_body *dlb,
+ 				unsigned int partition)
+ {
+ 	struct vsp1_lut *lut = to_lut(&entity->subdev);
+-	struct vsp1_dl_body *dlb;
++	struct vsp1_dl_body *lut_dlb;
+ 	unsigned long flags;
+ 
+ 	if (partition == 0) {
+ 		spin_lock_irqsave(&lut->lock, flags);
+-		dlb = lut->lut;
++		lut_dlb = lut->lut;
+ 		lut->lut = NULL;
+ 		spin_unlock_irqrestore(&lut->lock, flags);
+ 
+-		if (dlb) {
+-			vsp1_dl_list_add_body(dl, dlb);
++		if (lut_dlb) {
++			vsp1_dl_list_add_body(dl, lut_dlb);
+ 
+ 			/* release our local reference */
+-			vsp1_dl_body_put(dlb);
++			vsp1_dl_body_put(lut_dlb);
+ 		}
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 44944ac86d9b..5012643583b6 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -367,7 +367,7 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+  * from the input RPF alpha.
+  */
+ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+-				   struct vsp1_dl_list *dl, unsigned int alpha)
++				   struct vsp1_dl_body *dlb, unsigned int alpha)
+ {
+ 	if (!pipe->uds)
+ 		return;
+@@ -380,7 +380,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+ 	    pipe->uds_input->type == VSP1_ENTITY_BRS)
+ 		alpha = 255;
+ 
+-	vsp1_uds_set_alpha(pipe->uds, dl, alpha);
++	vsp1_uds_set_alpha(pipe->uds, dlb, alpha);
+ }
+ 
+ /*
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index dfff9b5685fe..90d29492b9b9 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -161,7 +161,8 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe);
+ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
+ 
+ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+-				   struct vsp1_dl_list *dl, unsigned int alpha);
++				   struct vsp1_dl_body *dlb,
++				   unsigned int alpha);
+ 
+ void vsp1_pipeline_propagate_partition(struct vsp1_pipeline *pipe,
+ 				       struct vsp1_partition *partition,
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 48c65e4a8546..67f2fb3e0611 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -29,9 +29,10 @@
+  */
+ 
+ static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf,
+-				  struct vsp1_dl_list *dl, u32 reg, u32 data)
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg + rpf->entity.index * VI6_RPF_OFFSET, data);
++	vsp1_dl_body_write(dlb, reg + rpf->entity.index * VI6_RPF_OFFSET,
++			       data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -48,7 +49,7 @@ static const struct v4l2_subdev_ops rpf_ops = {
+ 
+ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+ 	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
+@@ -67,7 +68,7 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 		pstride |= format->plane_fmt[1].bytesperline
+ 			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
+ 
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_PSTRIDE, pstride);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_PSTRIDE, pstride);
+ 
+ 	/* Format */
+ 	sink_format = vsp1_entity_get_pad_format(&rpf->entity,
+@@ -88,8 +89,8 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 	if (sink_format->code != source_format->code)
+ 		infmt |= VI6_RPF_INFMT_CSC;
+ 
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_INFMT, infmt);
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_DSWAP, fmtinfo->swap);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_INFMT, infmt);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_DSWAP, fmtinfo->swap);
+ 
+ 	/* Output location */
+ 	if (pipe->bru) {
+@@ -103,7 +104,7 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 		top = compose->top;
+ 	}
+ 
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_LOC,
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_LOC,
+ 		       (left << VI6_RPF_LOC_HCOORD_SHIFT) |
+ 		       (top << VI6_RPF_LOC_VCOORD_SHIFT));
+ 
+@@ -130,7 +131,7 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 	 *
+ 	 * In all cases, disable color keying.
+ 	 */
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
+ 		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
+ 				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
+ 
+@@ -167,14 +168,15 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 		rpf->mult_alpha = mult;
+ 	}
+ 
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_MSK_CTRL, 0);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_CKEY_CTRL, 0);
+ 
+ }
+ 
+ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 				struct vsp1_pipeline *pipe,
+ 				struct vsp1_dl_list *dl,
++				struct vsp1_dl_body *dlb,
+ 				unsigned int partition)
+ {
+ 	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+@@ -185,15 +187,14 @@ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 	struct v4l2_rect crop;
+ 
+ 	if (partition == 0) {
+-		vsp1_rpf_write(rpf, dl, VI6_RPF_VRTCOL_SET,
++		vsp1_rpf_write(rpf, dlb, VI6_RPF_VRTCOL_SET,
+ 			       rpf->alpha << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
+-		vsp1_rpf_write(rpf, dl, VI6_RPF_MULT_ALPHA, rpf->mult_alpha |
++		vsp1_rpf_write(rpf, dlb, VI6_RPF_MULT_ALPHA, rpf->mult_alpha |
+ 			       (rpf->alpha << VI6_RPF_MULT_ALPHA_RATIO_SHIFT));
+ 
+-		vsp1_pipeline_propagate_alpha(pipe, dl, rpf->alpha);
++		vsp1_pipeline_propagate_alpha(pipe, dlb, rpf->alpha);
+ 	}
+ 
+-
+ 	/*
+ 	 * Source size and crop offsets.
+ 	 *
+@@ -219,10 +220,10 @@ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 		crop.left += pipe->partition->rpf.left;
+ 	}
+ 
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_SRC_BSIZE,
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_BSIZE,
+ 		       (crop.width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
+ 		       (crop.height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_SRC_ESIZE,
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_ESIZE,
+ 		       (crop.width << VI6_RPF_SRC_ESIZE_EHSIZE_SHIFT) |
+ 		       (crop.height << VI6_RPF_SRC_ESIZE_EVSIZE_SHIFT));
+ 
+@@ -247,9 +248,9 @@ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 	    fmtinfo->swap_uv)
+ 		swap(mem.addr[1], mem.addr[2]);
+ 
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
++	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
+ }
+ 
+ static void rpf_partition(struct vsp1_entity *entity,
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 485b2820c8cd..7b6235655529 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -28,10 +28,10 @@
+  * Device Access
+  */
+ 
+-static inline void vsp1_sru_write(struct vsp1_sru *sru, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_sru_write(struct vsp1_sru *sru,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg, data);
++	vsp1_dl_body_write(dlb, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -273,7 +273,7 @@ static const struct v4l2_subdev_ops sru_ops = {
+ 
+ static void sru_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	const struct vsp1_sru_param *param;
+ 	struct vsp1_sru *sru = to_sru(&entity->subdev);
+@@ -299,9 +299,9 @@ static void sru_configure_stream(struct vsp1_entity *entity,
+ 
+ 	ctrl0 |= param->ctrl0;
+ 
+-	vsp1_sru_write(sru, dl, VI6_SRU_CTRL0, ctrl0);
+-	vsp1_sru_write(sru, dl, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
+-	vsp1_sru_write(sru, dl, VI6_SRU_CTRL2, param->ctrl2);
++	vsp1_sru_write(sru, dlb, VI6_SRU_CTRL0, ctrl0);
++	vsp1_sru_write(sru, dlb, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
++	vsp1_sru_write(sru, dlb, VI6_SRU_CTRL2, param->ctrl2);
+ }
+ 
+ static unsigned int sru_max_width(struct vsp1_entity *entity,
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index ce1731c2b3a9..6ddfce4bd095 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -31,22 +31,23 @@
+  * Device Access
+  */
+ 
+-static inline void vsp1_uds_write(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
+-				  u32 reg, u32 data)
++static inline void vsp1_uds_write(struct vsp1_uds *uds,
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg + uds->entity.index * VI6_UDS_OFFSET, data);
++	vsp1_dl_body_write(dlb, reg + uds->entity.index * VI6_UDS_OFFSET,
++			       data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+  * Scaling Computation
+  */
+ 
+-void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
++void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_body *dlb,
+ 			unsigned int alpha)
+ {
+ 	struct vsp1_uds *uds = to_uds(&entity->subdev);
+ 
+-	vsp1_uds_write(uds, dl, VI6_UDS_ALPVAL,
++	vsp1_uds_write(uds, dlb, VI6_UDS_ALPVAL,
+ 		       alpha << VI6_UDS_ALPVAL_VAL0_SHIFT);
+ }
+ 
+@@ -261,7 +262,7 @@ static const struct v4l2_subdev_ops uds_ops = {
+ 
+ static void uds_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_uds *uds = to_uds(&entity->subdev);
+ 	const struct v4l2_mbus_framefmt *output;
+@@ -290,18 +291,18 @@ static void uds_configure_stream(struct vsp1_entity *entity,
+ 	else
+ 		multitap = true;
+ 
+-	vsp1_uds_write(uds, dl, VI6_UDS_CTRL,
++	vsp1_uds_write(uds, dlb, VI6_UDS_CTRL,
+ 		       (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
+ 		       (multitap ? VI6_UDS_CTRL_BC : 0));
+ 
+-	vsp1_uds_write(uds, dl, VI6_UDS_PASS_BWIDTH,
++	vsp1_uds_write(uds, dlb, VI6_UDS_PASS_BWIDTH,
+ 		       (uds_passband_width(hscale)
+ 				<< VI6_UDS_PASS_BWIDTH_H_SHIFT) |
+ 		       (uds_passband_width(vscale)
+ 				<< VI6_UDS_PASS_BWIDTH_V_SHIFT));
+ 
+ 	/* Set the scaling ratios. */
+-	vsp1_uds_write(uds, dl, VI6_UDS_SCALE,
++	vsp1_uds_write(uds, dlb, VI6_UDS_SCALE,
+ 		       (hscale << VI6_UDS_SCALE_HFRAC_SHIFT) |
+ 		       (vscale << VI6_UDS_SCALE_VFRAC_SHIFT));
+ }
+@@ -309,6 +310,7 @@ static void uds_configure_stream(struct vsp1_entity *entity,
+ static void uds_configure_frame(struct vsp1_entity *entity,
+ 				struct vsp1_pipeline *pipe,
+ 				struct vsp1_dl_list *dl,
++				struct vsp1_dl_body *dlb,
+ 				unsigned int pindex)
+ {
+ 	struct vsp1_uds *uds = to_uds(&entity->subdev);
+@@ -319,13 +321,13 @@ static void uds_configure_frame(struct vsp1_entity *entity,
+ 					    UDS_PAD_SOURCE);
+ 
+ 	/* Input size clipping */
+-	vsp1_uds_write(uds, dl, VI6_UDS_HSZCLIP, VI6_UDS_HSZCLIP_HCEN |
++	vsp1_uds_write(uds, dlb, VI6_UDS_HSZCLIP, VI6_UDS_HSZCLIP_HCEN |
+ 		       (0 << VI6_UDS_HSZCLIP_HCL_OFST_SHIFT) |
+ 		       (partition->uds_sink.width
+ 				<< VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT));
+ 
+ 	/* Output size clipping */
+-	vsp1_uds_write(uds, dl, VI6_UDS_CLIP_SIZE,
++	vsp1_uds_write(uds, dlb, VI6_UDS_CLIP_SIZE,
+ 		       (partition->uds_source.width
+ 				<< VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
+ 		       (output->height
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.h b/drivers/media/platform/vsp1/vsp1_uds.h
+index 7bf3cdcffc65..d99997f3b28d 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.h
++++ b/drivers/media/platform/vsp1/vsp1_uds.h
+@@ -35,7 +35,7 @@ static inline struct vsp1_uds *to_uds(struct v4l2_subdev *subdev)
+ 
+ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index);
+ 
+-void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_list *dl,
++void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_body *dlb,
+ 			unsigned int alpha);
+ 
+ #endif /* __VSP1_UDS_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 1b5a31734834..b47708660e53 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -383,11 +383,12 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+ 					      unsigned int partition)
+ {
+ 	struct vsp1_entity *entity;
++	struct vsp1_dl_body *dlb = vsp1_dl_list_get_body0(dl);
+ 
+ 	pipe->partition = &pipe->part_table[partition];
+ 
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe)
+-		vsp1_entity_configure_frame(entity, pipe, dl, partition);
++		vsp1_entity_configure_frame(entity, pipe, dl, dlb, partition);
+ }
+ 
+ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+@@ -790,6 +791,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_entity *entity;
++	struct vsp1_dl_body *dlb;
+ 	int ret;
+ 
+ 	/* Determine this pipelines sizes for image partitioning support. */
+@@ -802,6 +804,9 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ 	if (!pipe->dl)
+ 		return -ENOMEM;
+ 
++	/* Retrieve the default DLB from the list */
++	dlb = vsp1_dl_list_get_body0(pipe->dl);
++
+ 	if (pipe->uds) {
+ 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+ 
+@@ -824,8 +829,8 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+ 	}
+ 
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		vsp1_entity_route_setup(entity, pipe, pipe->dl);
+-		vsp1_entity_configure_stream(entity, pipe, pipe->dl);
++		vsp1_entity_route_setup(entity, pipe, dlb);
++		vsp1_entity_configure_stream(entity, pipe, dlb);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 6a6cdf0fb5f1..68218625549e 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -31,9 +31,10 @@
+  */
+ 
+ static inline void vsp1_wpf_write(struct vsp1_rwpf *wpf,
+-				  struct vsp1_dl_list *dl, u32 reg, u32 data)
++				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ {
+-	vsp1_dl_list_write(dl, reg + wpf->entity.index * VI6_WPF_OFFSET, data);
++	vsp1_dl_body_write(dlb, reg + wpf->entity.index * VI6_WPF_OFFSET,
++			       data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -238,7 +239,7 @@ static void vsp1_wpf_destroy(struct vsp1_entity *entity)
+ 
+ static void wpf_configure_stream(struct vsp1_entity *entity,
+ 				 struct vsp1_pipeline *pipe,
+-				 struct vsp1_dl_list *dl)
++				 struct vsp1_dl_body *dlb)
+ {
+ 	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
+ 	struct vsp1_device *vsp1 = wpf->entity.vsp1;
+@@ -272,17 +273,17 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
+ 			outfmt |= VI6_WPF_OUTFMT_SPUVS;
+ 
+ 		/* Destination stride and byte swapping. */
+-		vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_STRIDE_Y,
++		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_STRIDE_Y,
+ 			       format->plane_fmt[0].bytesperline);
+ 		if (format->num_planes > 1)
+-			vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_STRIDE_C,
++			vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_STRIDE_C,
+ 				       format->plane_fmt[1].bytesperline);
+ 
+-		vsp1_wpf_write(wpf, dl, VI6_WPF_DSWAP, fmtinfo->swap);
++		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSWAP, fmtinfo->swap);
+ 
+ 		if (vsp1->info->features & VSP1_HAS_WPF_HFLIP &&
+ 		    wpf->entity.index == 0)
+-			vsp1_wpf_write(wpf, dl, VI6_WPF_ROT_CTRL,
++			vsp1_wpf_write(wpf, dlb, VI6_WPF_ROT_CTRL,
+ 				       VI6_WPF_ROT_CTRL_LN16 |
+ 				       (256 << VI6_WPF_ROT_CTRL_LMEM_WD_SHIFT));
+ 	}
+@@ -292,10 +293,10 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
+ 
+ 	wpf->outfmt = outfmt;
+ 
+-	vsp1_dl_list_write(dl, VI6_DPR_WPF_FPORCH(wpf->entity.index),
+-			   VI6_DPR_WPF_FPORCH_FP_WPFN);
++	vsp1_dl_body_write(dlb, VI6_DPR_WPF_FPORCH(wpf->entity.index),
++			       VI6_DPR_WPF_FPORCH_FP_WPFN);
+ 
+-	vsp1_dl_list_write(dl, VI6_WPF_WRBCK_CTRL, 0);
++	vsp1_dl_body_write(dlb, VI6_WPF_WRBCK_CTRL, 0);
+ 
+ 	/*
+ 	 * Sources. If the pipeline has a single input and BRU is not used,
+@@ -319,17 +320,18 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
+ 			? VI6_WPF_SRCRPF_VIRACT_MST
+ 			: VI6_WPF_SRCRPF_VIRACT2_MST;
+ 
+-	vsp1_wpf_write(wpf, dl, VI6_WPF_SRCRPF, srcrpf);
++	vsp1_wpf_write(wpf, dlb, VI6_WPF_SRCRPF, srcrpf);
+ 
+ 	/* Enable interrupts */
+-	vsp1_dl_list_write(dl, VI6_WPF_IRQ_STA(wpf->entity.index), 0);
+-	vsp1_dl_list_write(dl, VI6_WPF_IRQ_ENB(wpf->entity.index),
+-			   VI6_WFP_IRQ_ENB_DFEE);
++	vsp1_dl_body_write(dlb, VI6_WPF_IRQ_STA(wpf->entity.index), 0);
++	vsp1_dl_body_write(dlb, VI6_WPF_IRQ_ENB(wpf->entity.index),
++			       VI6_WFP_IRQ_ENB_DFEE);
+ }
+ 
+ static void wpf_configure_frame(struct vsp1_entity *entity,
+ 				struct vsp1_pipeline *pipe,
+ 				struct vsp1_dl_list *dl,
++				struct vsp1_dl_body *dlb,
+ 				unsigned int partition)
+ {
+ 	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
+@@ -363,7 +365,7 @@ static void wpf_configure_frame(struct vsp1_entity *entity,
+ 		if (wpf->flip.active & BIT(WPF_CTRL_HFLIP))
+ 			outfmt |= VI6_WPF_OUTFMT_HFLP;
+ 
+-		vsp1_wpf_write(wpf, dl, VI6_WPF_OUTFMT, outfmt);
++		vsp1_wpf_write(wpf, dlb, VI6_WPF_OUTFMT, outfmt);
+ 	}
+ 
+ 	sink_format = vsp1_entity_get_pad_format(&wpf->entity,
+@@ -379,10 +381,10 @@ static void wpf_configure_frame(struct vsp1_entity *entity,
+ 	if (pipe->partitions > 1)
+ 		width = pipe->partition->wpf.width;
+ 
+-	vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
++	vsp1_wpf_write(wpf, dlb, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
+ 		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
+ 		       (width << VI6_WPF_SZCLIP_SIZE_SHIFT));
+-	vsp1_wpf_write(wpf, dl, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
++	vsp1_wpf_write(wpf, dlb, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
+ 		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
+ 		       (height << VI6_WPF_SZCLIP_SIZE_SHIFT));
+ 
+@@ -474,9 +476,9 @@ static void wpf_configure_frame(struct vsp1_entity *entity,
+ 	    fmtinfo->swap_uv)
+ 		swap(mem.addr[1], mem.addr[2]);
+ 
+-	vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_ADDR_Y, mem.addr[0]);
+-	vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_ADDR_C0, mem.addr[1]);
+-	vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_ADDR_C1, mem.addr[2]);
++	vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_ADDR_Y, mem.addr[0]);
++	vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_ADDR_C0, mem.addr[1]);
++	vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_ADDR_C1, mem.addr[2]);
+ }
+ 
+ static unsigned int wpf_max_width(struct vsp1_entity *entity,
 -- 
-2.14.3
+git-series 0.9.1
