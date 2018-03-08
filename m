@@ -1,81 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f172.google.com ([209.85.128.172]:41185 "EHLO
-        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753162AbeCPQv5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 12:51:57 -0400
-Received: by mail-wr0-f172.google.com with SMTP id f14so12341587wre.8
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 09:51:57 -0700 (PDT)
-References: <20180313113311.8617-3-rui.silva@linaro.org> <201803150338.2LzbxAYM%fengguang.wu@intel.com> <m3a7v98z5u.fsf@linaro.org> <20180316161011.yelt3mqkqo7qnlnn@kekkonen.localdomain>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>,
-        kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        mchehab@kernel.org, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Subject: Re: [PATCH v3 2/2] media: ov2680: Add Omnivision OV2680 sensor driver
-In-reply-to: <20180316161011.yelt3mqkqo7qnlnn@kekkonen.localdomain>
-Date: Fri, 16 Mar 2018 16:51:53 +0000
-Message-ID: <m3woyc6k0m.fsf@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:40937 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965803AbeCHJts (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:49:48 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        devicetree@vger.kernel.org, heiko@sntech.de,
+        Wen Nuan <leo.wen@rock-chips.com>
+Subject: [PATCH v6 14/17] ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
+Date: Thu,  8 Mar 2018 17:48:04 +0800
+Message-Id: <20180308094807.9443-15-jacob-chen@iotwrt.com>
+In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-On Fri 16 Mar 2018 at 16:10, Sakari Ailus wrote:
-> On Thu, Mar 15, 2018 at 09:29:33AM +0000, Rui Miguel Silva 
-> wrote:
->> Hi,
->> On Wed 14 Mar 2018 at 19:39, kbuild test robot wrote:
->> > Hi Rui,
->> > 
->> > I love your patch! Yet something to improve:
->> > 
->> > [auto build test ERROR on v4.16-rc4]
->> > [cannot apply to next-20180314]
->> > [if your patch is applied to the wrong git tree, please drop 
->> > us a note
->> > to help improve the system]
->> > 
->> > url: 
->> > https://github.com/0day-ci/linux/commits/Rui-Miguel-Silva/media-Introduce-Omnivision-OV2680-driver/20180315-020617
->> > config: sh-allmodconfig (attached as .config)
->> > compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
->> > reproduce:
->> >         wget
->> > https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross
->> > -O ~/bin/make.cross
->> >         chmod +x ~/bin/make.cross
->> >         # save the attached .config to linux build tree
->> >         make.cross ARCH=sh
->> > 
->> > All errors (new ones prefixed by >>):
->> > 
->> >    drivers/media/i2c/ov2680.c: In function 'ov2680_set_fmt':
->> > > > drivers/media/i2c/ov2680.c:713:9: error: implicit 
->> > > > declaration of
->> > > > function 'v4l2_find_nearest_size'; did you mean
->> > > > 'v4l2_find_nearest_format'?
->> > > > [-Werror=implicit-function-declaration]
->> >      mode = v4l2_find_nearest_size(ov2680_mode_data,
->> >             ^~~~~~~~~~~~~~~~~~~~~~
->> >             v4l2_find_nearest_format
->> 
->> As requested by maintainer this series depend on this patch 
->> [0], which
->> introduce this macro. I am not sure of the status of that patch 
->> though.
->
-> No need to worry about that, the sensor driver will just be 
-> merged after
-> the dependencies are in. Mauro said he'd handle the pull request 
-> early next
-> week.
+From: Wen Nuan <leo.wen@rock-chips.com>
 
-Great, Many thanks for everything.
-
+Change-Id: I0b6122b2b34ae0f24f0d4a1111c1bbe6018cac4e
+Signed-off-by: Wen Nuan <leo.wen@rock-chips.com>
 ---
-Cheers,
-	Rui
+ arch/arm/boot/dts/rk3288.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index 3a530b72c057..ed05f3d77358 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -1164,6 +1164,15 @@
+ 		};
+ 	};
+ 
++	mipi_phy_tx1rx1: mipi-phy-tx1rx1@ff968000 {
++		compatible = "rockchip,rk3288-mipi-dphy";
++		reg = <0x0 0xff968000 0x0 0x4000>;
++		rockchip,grf = <&grf>;
++		clocks = <&cru SCLK_MIPIDSI_24M>, <&cru PCLK_MIPI_CSI>;
++		clock-names = "dphy-ref", "pclk";
++		status = "disabled";
++	};
++
+ 	edp: dp@ff970000 {
+ 		compatible = "rockchip,rk3288-dp";
+ 		reg = <0x0 0xff970000 0x0 0x4000>;
+-- 
+2.16.1
