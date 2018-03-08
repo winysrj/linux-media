@@ -1,145 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:31893 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934149AbeCGWFo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:44 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 15/33] rcar-vin: break out format alignment and checking
-Date: Wed,  7 Mar 2018 23:04:53 +0100
-Message-Id: <20180307220511.9826-16-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from gofer.mess.org ([88.97.38.141]:47091 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751971AbeCHLco (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Mar 2018 06:32:44 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2] media: rc: add new imon protocol decoder and encoder
+Date: Thu,  8 Mar 2018 11:32:43 +0000
+Message-Id: <20180308113243.19655-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to a separate function.
+This makes it possible to use the various iMON remotes with any raw IR
+RC device.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 85 ++++++++++++++++-------------
- 1 file changed, 48 insertions(+), 37 deletions(-)
+ drivers/media/rc/Kconfig               |   9 ++
+ drivers/media/rc/Makefile              |   1 +
+ drivers/media/rc/ir-imon-decoder.c     | 193 +++++++++++++++++++++++++++++++++
+ drivers/media/rc/keymaps/rc-imon-pad.c |   3 +-
+ drivers/media/rc/rc-core-priv.h        |   6 +
+ drivers/media/rc/rc-main.c             |   3 +
+ include/media/rc-map.h                 |   8 +-
+ include/uapi/linux/lirc.h              |   2 +
+ 8 files changed, 220 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/rc/ir-imon-decoder.c
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 01f2a14169a74ff3..680b25f610d1d8bb 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -87,6 +87,53 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 7ad05a6ef350..eb2c3b6eca7f 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -111,6 +111,15 @@ config IR_XMP_DECODER
+ 	---help---
+ 	   Enable this option if you have IR with XMP protocol, and
+ 	   if the IR is decoded in software
++
++config IR_IMON_DECODER
++	tristate "Enable IR raw decoder for the iMON protocol"
++	depends on RC_CORE
++	---help---
++	   Enable this option if you have iMON PAD or Antec Veris infrared
++	   remote control and you would like to use it with a raw IR
++	   receiver, or if you wish to use an encoder to transmit this IR.
++
+ endif #RC_DECODERS
  
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
+ menuconfig RC_DEVICES
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index e098e127b26a..2e1c87066f6c 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -14,6 +14,7 @@ obj-$(CONFIG_IR_SANYO_DECODER) += ir-sanyo-decoder.o
+ obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
+ obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
+ obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
++obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
+ 
+ # stand-alone IR receivers/transmitters
+ obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
+diff --git a/drivers/media/rc/ir-imon-decoder.c b/drivers/media/rc/ir-imon-decoder.c
+new file mode 100644
+index 000000000000..a1ff06a26542
+--- /dev/null
++++ b/drivers/media/rc/ir-imon-decoder.c
+@@ -0,0 +1,193 @@
++// SPDX-License-Identifier: GPL-2.0+
++// ir-imon-decoder.c - handle iMon protocol
++//
++// Copyright (C) 2018 by Sean Young <sean@mess.org>
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/module.h>
++#include "rc-core-priv.h"
++
++#define IMON_UNIT		415662 /* ns */
++#define IMON_BITS		30
++#define IMON_CHKBITS		(BIT(30) | BIT(25) | BIT(24) | BIT(22) | \
++				 BIT(21) | BIT(20) | BIT(19) | BIT(18) | \
++				 BIT(17) | BIT(16) | BIT(14) | BIT(13) | \
++				 BIT(12) | BIT(11) | BIT(10) | BIT(9))
++
++/*
++ * This protocol has 30 bits. The format is one IMON_UNIT header pulse,
++ * followed by 30 bits. Each bit is one IMON_UNIT check field, and then
++ * one IMON_UNIT field with the actual bit (1=space, 0=pulse).
++ * The check field is always space for some bits, for others it is pulse if
++ * both the preceding and current bit are zero, else space. IMON_CHKBITS
++ * defines which bits are of type check.
++ *
++ * There is no way to distinguish an incomplete message from one where
++ * the lower bits are all set, iow. the last pulse is for the lowest
++ * bit which is 0.
++ */
++enum imon_state {
++	STATE_INACTIVE,
++	STATE_BIT_CHK,
++	STATE_BIT_START,
++	STATE_FINISHED
++};
++
++/**
++ * ir_imon_decode() - Decode one iMON pulse or space
++ * @dev:	the struct rc_dev descriptor of the device
++ * @ev:		the struct ir_raw_event descriptor of the pulse/space
++ *
++ * This function returns -EINVAL if the pulse violates the state machine
++ */
++static int ir_imon_decode(struct rc_dev *dev, struct ir_raw_event ev)
 +{
-+	u32 walign;
++	struct imon_dec *data = &dev->raw->imon;
 +
-+	if (!rvin_format_from_pixel(pix->pixelformat) ||
-+	    (vin->info->model == RCAR_M1 &&
-+	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		/*
-+		 * Driver dose not (yet) support outputting ALTERNATE to a
-+		 * userspace. It does support outputting INTERLACED so use
-+		 * the VIN hardware to combine the two fields.
-+		 */
-+		pix->field = V4L2_FIELD_INTERLACED;
-+		pix->height *= 2;
-+		break;
-+	default:
-+		pix->field = RVIN_DEFAULT_FIELD;
-+		break;
++	if (!is_timing_event(ev)) {
++		if (ev.reset)
++			data->state = STATE_INACTIVE;
++		return 0;
 +	}
 +
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++	dev_dbg(&dev->dev,
++		"iMON decode started at state %d bitno %d (%uus %s)\n",
++		data->state, data->count, TO_US(ev.duration),
++		TO_STR(ev.pulse));
 +
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
++	for (;;) {
++		if (!geq_margin(ev.duration, IMON_UNIT, IMON_UNIT / 2))
++			return 0;
 +
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
++		decrease_duration(&ev, IMON_UNIT);
 +
-+	vin_dbg(vin, "Format %ux%u bpl: %u size: %u\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++		switch (data->state) {
++		case STATE_INACTIVE:
++			if (ev.pulse) {
++				data->state = STATE_BIT_CHK;
++				data->bits = 0;
++				data->count = IMON_BITS;
++			}
++			break;
++		case STATE_BIT_CHK:
++			if (IMON_CHKBITS & BIT(data->count))
++				data->last_chk = ev.pulse;
++			else if (ev.pulse)
++				goto err_out;
++			data->state = STATE_BIT_START;
++			break;
++		case STATE_BIT_START:
++			data->bits <<= 1;
++			if (!ev.pulse)
++				data->bits |= 1;
 +
++			if (IMON_CHKBITS & BIT(data->count)) {
++				if (data->last_chk != !(data->bits & 3))
++					goto err_out;
++			}
++
++			if (!data->count--)
++				data->state = STATE_FINISHED;
++			else
++				data->state = STATE_BIT_CHK;
++			break;
++		case STATE_FINISHED:
++			if (ev.pulse)
++				goto err_out;
++			rc_keydown(dev, RC_PROTO_IMON, data->bits, 0);
++			data->state = STATE_INACTIVE;
++			break;
++		}
++	}
++
++err_out:
++	dev_dbg(&dev->dev,
++		"iMON decode failed at state %d bitno %d (%uus %s)\n",
++		data->state, data->count, TO_US(ev.duration),
++		TO_STR(ev.pulse));
++
++	data->state = STATE_INACTIVE;
++
++	return -EINVAL;
++}
++
++/**
++ * ir_imon_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocol:	protocol to encode
++ * @scancode:	scancode to encode
++ * @events:	array of raw ir events to write into
++ * @max:	maximum size of @events
++ *
++ * Returns:	The number of events written.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		encoding. In this case all @max events will have been written.
++ */
++static int ir_imon_encode(enum rc_proto protocol, u32 scancode,
++			  struct ir_raw_event *events, unsigned int max)
++{
++	struct ir_raw_event *e = events;
++	int i, pulse;
++
++	if (!max--)
++		return -ENOBUFS;
++	init_ir_raw_event_duration(e, 1, IMON_UNIT);
++
++	for (i = IMON_BITS; i >= 0; i--) {
++		if (BIT(i) & IMON_CHKBITS)
++			pulse = !(scancode & (BIT(i) | BIT(i + 1)));
++		else
++			pulse = 0;
++
++		if (pulse == e->pulse) {
++			e->duration += IMON_UNIT;
++		} else {
++			if (!max--)
++				return -ENOBUFS;
++			init_ir_raw_event_duration(++e, pulse, IMON_UNIT);
++		}
++
++		pulse = !(scancode & BIT(i));
++
++		if (pulse == e->pulse) {
++			e->duration += IMON_UNIT;
++		} else {
++			if (!max--)
++				return -ENOBUFS;
++			init_ir_raw_event_duration(++e, pulse, IMON_UNIT);
++		}
++	}
++
++	if (e->pulse)
++		e++;
++
++	return e - events;
++}
++
++static struct ir_raw_handler imon_handler = {
++	.protocols	= RC_PROTO_BIT_IMON,
++	.decode		= ir_imon_decode,
++	.encode		= ir_imon_encode,
++	.carrier	= 38000,
++};
++
++static int __init ir_imon_decode_init(void)
++{
++	ir_raw_handler_register(&imon_handler);
++
++	pr_info("IR iMON protocol handler initialized\n");
 +	return 0;
 +}
 +
- /* -----------------------------------------------------------------------------
-  * V4L2
++static void __exit ir_imon_decode_exit(void)
++{
++	ir_raw_handler_unregister(&imon_handler);
++}
++
++module_init(ir_imon_decode_init);
++module_exit(ir_imon_decode_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Sean Young <sean@mess.org>");
++MODULE_DESCRIPTION("iMON IR protocol decoder");
+diff --git a/drivers/media/rc/keymaps/rc-imon-pad.c b/drivers/media/rc/keymaps/rc-imon-pad.c
+index a7296ffbf218..8501cf0a3253 100644
+--- a/drivers/media/rc/keymaps/rc-imon-pad.c
++++ b/drivers/media/rc/keymaps/rc-imon-pad.c
+@@ -134,8 +134,7 @@ static struct rc_map_list imon_pad_map = {
+ 	.map = {
+ 		.scan     = imon_pad,
+ 		.size     = ARRAY_SIZE(imon_pad),
+-		/* actual protocol details unknown, hardware decoder */
+-		.rc_proto = RC_PROTO_OTHER,
++		.rc_proto = RC_PROTO_IMON,
+ 		.name     = RC_MAP_IMON_PAD,
+ 	}
+ };
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 5e80b4273e2d..e0e6a17460f6 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -118,6 +118,12 @@ struct ir_raw_event_ctrl {
+ 		unsigned count;
+ 		u32 durations[16];
+ 	} xmp;
++	struct imon_dec {
++		int state;
++		int count;
++		int last_chk;
++		unsigned int bits;
++	} imon;
+ };
+ 
+ /* macros for IR decoders */
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 8621761a680f..b67be33bd62f 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -68,6 +68,8 @@ static const struct {
+ 		.scancode_bits = 0x1fff, .repeat_period = 250 },
+ 	[RC_PROTO_XMP] = { .name = "xmp", .repeat_period = 250 },
+ 	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 550 },
++	[RC_PROTO_IMON] = { .name = "imon",
++		.scancode_bits = 0x7fffffff, .repeat_period = 250 },
+ };
+ 
+ /* Used to keep track of known keymaps */
+@@ -1004,6 +1006,7 @@ static const struct {
+ 	  RC_PROTO_BIT_MCIR2_MSE, "mce_kbd",	"ir-mce_kbd-decoder"	},
+ 	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
+ 	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
++	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
+ };
+ 
+ /**
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7fc84991bd12..bfa3017cecba 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -36,6 +36,7 @@
+ #define RC_PROTO_BIT_SHARP		BIT_ULL(RC_PROTO_SHARP)
+ #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
+ #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
++#define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
+ 
+ #define RC_PROTO_BIT_ALL \
+ 			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
+@@ -49,7 +50,8 @@
+ 			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
+ 			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
+ 			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+-			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC)
++			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
++			 RC_PROTO_BIT_IMON)
+ /* All rc protocols for which we have decoders */
+ #define RC_PROTO_BIT_ALL_IR_DECODER \
+ 			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+@@ -62,7 +64,7 @@
+ 			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
+ 			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
+ 			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+-			 RC_PROTO_BIT_XMP)
++			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
+ 
+ #define RC_PROTO_BIT_ALL_IR_ENCODER \
+ 			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+@@ -75,7 +77,7 @@
+ 			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
+ 			 RC_PROTO_BIT_RC6_6A_24 | \
+ 			 RC_PROTO_BIT_RC6_6A_32 | RC_PROTO_BIT_RC6_MCE | \
+-			 RC_PROTO_BIT_SHARP)
++			 RC_PROTO_BIT_SHARP | RC_PROTO_BIT_IMON)
+ 
+ #define RC_SCANCODE_UNKNOWN(x)			(x)
+ #define RC_SCANCODE_OTHER(x)			(x)
+diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+index 4fe580d36e41..948d9a491083 100644
+--- a/include/uapi/linux/lirc.h
++++ b/include/uapi/linux/lirc.h
+@@ -186,6 +186,7 @@ struct lirc_scancode {
+  * @RC_PROTO_SHARP: Sharp protocol
+  * @RC_PROTO_XMP: XMP protocol
+  * @RC_PROTO_CEC: CEC protocol
++ * @RC_PROTO_IMON: iMon Pad protocol
   */
-@@ -184,7 +231,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 			     struct v4l2_pix_format *pix,
- 			     struct rvin_source_fmt *source)
- {
--	u32 walign;
- 	int ret;
+ enum rc_proto {
+ 	RC_PROTO_UNKNOWN	= 0,
+@@ -211,6 +212,7 @@ enum rc_proto {
+ 	RC_PROTO_SHARP		= 20,
+ 	RC_PROTO_XMP		= 21,
+ 	RC_PROTO_CEC		= 22,
++	RC_PROTO_IMON		= 23,
+ };
  
- 	if (!rvin_format_from_pixel(pix->pixelformat) ||
-@@ -197,42 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	if (ret)
- 		return ret;
- 
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	case V4L2_FIELD_ALTERNATE:
--		/*
--		 * Driver dose not (yet) support outputting ALTERNATE to a
--		 * userspace. It does support outputting INTERLACED so use
--		 * the VIN hardware to combine the two fields.
--		 */
--		pix->field = V4L2_FIELD_INTERLACED;
--		pix->height *= 2;
--		break;
--	default:
--		pix->field = RVIN_DEFAULT_FIELD;
--		break;
--	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = rvin_format_bytesperline(pix);
--	pix->sizeimage = rvin_format_sizeimage(pix);
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
- }
- 
- static int rvin_querycap(struct file *file, void *priv,
+ #endif
 -- 
-2.16.2
+2.14.3
