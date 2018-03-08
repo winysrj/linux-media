@@ -1,78 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37010 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751055AbeCGING (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 03:13:06 -0500
-Date: Wed, 7 Mar 2018 10:13:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH] media: ov5640: fix get_/set_fmt colorspace related fields
-Message-ID: <20180307081302.h47mjhlkeq72shw7@valkosipuli.retiisi.org.uk>
-References: <1520355879-20291-1-git-send-email-hugues.fruchet@st.com>
+Received: from mout.gmx.net ([212.227.15.19]:40789 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934104AbeCHRVj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Mar 2018 12:21:39 -0500
+Date: Thu, 8 Mar 2018 18:21:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH RESEND 2/2 v6] uvcvideo: handle control pipe protocol
+ STALLs
+Message-ID: <alpine.DEB.2.20.1803081819000.17344@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1520355879-20291-1-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+When a command ends up in a STALL on the control pipe, use the Request
+Error Code control to provide a more precise error information to the
+user.
 
-On Tue, Mar 06, 2018 at 06:04:39PM +0100, Hugues Fruchet wrote:
-> Fix set of missing colorspace related fields in get_/set_fmt.
-> Detected by v4l2-compliance tool.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+---
+ drivers/media/usb/uvc/uvc_video.c | 59 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 53 insertions(+), 6 deletions(-)
 
-Could you confirm this is the one you intended to send? There are two
-others with similar content.
-
-...
-
-> @@ -2497,16 +2504,22 @@ static int ov5640_probe(struct i2c_client *client,
->  	struct fwnode_handle *endpoint;
->  	struct ov5640_dev *sensor;
->  	int ret;
-> +	struct v4l2_mbus_framefmt *fmt;
-
-This one I'd arrange before ret. The local variable declarations should
-generally look like a Christmas tree but upside down.
-
-If you're happy with that, I can swap the two lines as well (no need for
-v2).
-
->  
->  	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
->  	if (!sensor)
->  		return -ENOMEM;
->  
->  	sensor->i2c_client = client;
-> -	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
-> -	sensor->fmt.width = 640;
-> -	sensor->fmt.height = 480;
-> -	sensor->fmt.field = V4L2_FIELD_NONE;
-> +	fmt = &sensor->fmt;
-> +	fmt->code = ov5640_formats[0].code;
-> +	fmt->colorspace = ov5640_formats[0].colorspace;
-> +	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
-> +	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> +	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
-> +	fmt->width = 640;
-> +	fmt->height = 480;
-> +	fmt->field = V4L2_FIELD_NONE;
->  	sensor->frame_interval.numerator = 1;
->  	sensor->frame_interval.denominator = ov5640_framerates[OV5640_30_FPS];
->  	sensor->current_fr = OV5640_30_FPS;
-
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 2fc0bf2..cfcc4861 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -34,15 +34,59 @@ static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 			__u8 intfnum, __u8 cs, void *data, __u16 size,
+ 			int timeout)
+ {
+-	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
++	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE, tmp, error;
+ 	unsigned int pipe;
++	int ret;
+ 
+ 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
+ 			      : usb_sndctrlpipe(dev->udev, 0);
+ 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
+ 
+-	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
++	ret = usb_control_msg(dev->udev, pipe, query, type, cs << 8,
+ 			unit << 8 | intfnum, data, size, timeout);
++
++	if (ret != -EPIPE)
++		return ret;
++
++	tmp = *(u8 *)data;
++
++	pipe = usb_rcvctrlpipe(dev->udev, 0);
++	type = USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN;
++	ret = usb_control_msg(dev->udev, pipe, UVC_GET_CUR, type,
++			      UVC_VC_REQUEST_ERROR_CODE_CONTROL << 8,
++			      unit << 8 | intfnum, data, 1, timeout);
++	error = *(u8 *)data;
++	*(u8 *)data = tmp;
++
++	if (ret < 0)
++		return ret;
++
++	if (!ret)
++		return -EINVAL;
++
++	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
++
++	switch (error) {
++	case 0:
++		/* Cannot happen - we received a STALL */
++		return -EPIPE;
++	case 1: /* Not ready */
++		return -EAGAIN;
++	case 2: /* Wrong state */
++		return -EILSEQ;
++	case 3: /* Power */
++		return -EREMOTE;
++	case 4: /* Out of range */
++		return -ERANGE;
++	case 5: /* Invalid unit */
++	case 6: /* Invalid control */
++	case 7: /* Invalid Request */
++	case 8: /* Invalid value within range */
++	default: /* reserved or unknown */
++		break;
++	}
++
++	return -EINVAL;
+ }
+ 
+ static const char *uvc_query_name(__u8 query)
+@@ -80,7 +124,7 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
+ 			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
+ 			unit, ret, size);
+-		return -EIO;
++		return ret < 0 ? ret : -EIO;
+ 	}
+ 
+ 	return 0;
+@@ -203,13 +247,15 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_warn_once(stream->dev, UVC_WARN_PROBE_DEF, "UVC non "
+ 			"compliance - GET_DEF(PROBE) not supported. "
+ 			"Enabling workaround.\n");
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 		goto out;
+ 	} else if (ret != size) {
+ 		uvc_printk(KERN_ERR, "Failed to query (%u) UVC %s control : "
+ 			"%d (exp. %u).\n", query, probe ? "probe" : "commit",
+ 			ret, size);
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 		goto out;
+ 	}
+ 
+@@ -290,7 +336,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_printk(KERN_ERR, "Failed to set UVC %s control : "
+ 			"%d (exp. %u).\n", probe ? "probe" : "commit",
+ 			ret, size);
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 	}
+ 
+ 	kfree(data);
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+1.9.3
