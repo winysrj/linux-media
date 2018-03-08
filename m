@@ -1,81 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:45723 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754389AbeCGVYY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 16:24:24 -0500
-MIME-Version: 1.0
-In-Reply-To: <20180221233825.10024-1-jhogan@kernel.org>
-References: <20180221233825.10024-1-jhogan@kernel.org>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 7 Mar 2018 22:24:23 +0100
-Message-ID: <CAK8P3a2qV5n57f7=FC0nYZWfeXCVaOaK4R_7Wr74p3ZMyuwJNQ@mail.gmail.com>
-Subject: Re: [PATCH 00/13] Remove metag architecture
-To: James Hogan <jhogan@kernel.org>
-Cc: "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Marc Zyngier <marc.zyngier@arm.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Wim Van Sebroeck <wim@linux-watchdog.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
-        linux-watchdog@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-i2c@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36463 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935744AbeCHJtg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:49:36 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        devicetree@vger.kernel.org, heiko@sntech.de,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v6 11/17] dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+Date: Thu,  8 Mar 2018 17:48:01 +0800
+Message-Id: <20180308094807.9443-12-jacob-chen@iotwrt.com>
+In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
-> These patches remove the metag architecture and tightly dependent
-> drivers from the kernel. With the 4.16 kernel the ancient gcc 4.2.4
-> based metag toolchain we have been using is hitting compiler bugs, so
-> now seems a good time to drop it altogether.
->
-> Quoting from patch 1:
->
-> The earliest Meta architecture port of Linux I have a record of was an
-> import of a Meta port of Linux v2.4.1 in February 2004, which was worked
-> on significantly over the next few years by Graham Whaley, Will Newton,
-> Matt Fleming, myself and others.
->
-> Eventually the port was merged into mainline in v3.9 in March 2013, not
-> long after Imagination Technologies bought MIPS Technologies and shifted
-> its CPU focus over to the MIPS architecture.
->
-> As a result, though the port was maintained for a while, kept on life
-> support for a while longer, and useful for testing a few specific
-> drivers for which I don't have ready access to the equivalent MIPS
-> hardware, it is now essentially dead with no users.
->
-> It is also stuck using an out-of-tree toolchain based on GCC 4.2.4 which
-> is no longer maintained, now struggles to build modern kernels due to
-> toolchain bugs, and doesn't itself build with a modern GCC. The latest
-> buildroot port is still using an old uClibc snapshot which is no longer
-> served, and the latest uClibc doesn't build with GCC 4.2.4.
->
-> So lets call it a day and drop the Meta architecture port from the
-> kernel. RIP Meta.
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-I've pulled it into my asm-generic tree now, which is also part of linux-next,
-and followed up with patches removing frv, m32r, score, unicore32
-and blackfin. I have not removed the device drivers yet, but I'm working
-on that.
+Add DT bindings documentation for Rockchip MIPI D-PHY RX
 
-       Arnd
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ .../bindings/media/rockchip-mipi-dphy.txt          | 90 ++++++++++++++++++++++
+ 1 file changed, 90 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+
+diff --git a/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+new file mode 100644
+index 000000000000..d83700faf4c4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+@@ -0,0 +1,90 @@
++Rockchip SoC MIPI RX D-PHY
++-------------------------------------------------------------
++
++Required properties:
++- compatible: value should be one of the following
++	"rockchip,rk3288-mipi-dphy"
++	"rockchip,rk3399-mipi-dphy"
++- clocks : list of clock specifiers, corresponding to entries in
++	clock-names property;
++- clock-names: required clock name.
++
++MIPI RX D-PHY use registers in "general register files", it
++should be a child of the GRF.
++MIPI TXRX D-PHY have its own registers, it must have a reg property.
++
++Optional properties:
++- reg: offset and length of the register set for the device.
++- rockchip,grf: MIPI TX1RX1 D-PHY not only has its own register but also
++		the GRF, so it is only necessary for MIPI TX1RX1 D-PHY.
++
++port node
++-------------------
++
++The device node should contain two 'port' child nodes, according to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++The first port show the sensors connected in this mipi-dphy.
++- endpoint:
++	- remote-endpoint: Linked to a sensor with a MIPI CSI-2 video bus.
++	- data-lanes : (required) an array specifying active physical MIPI-CSI2
++			data input lanes and their mapping to logical lanes; the
++			D-PHY can't reroute lanes, so the array's content should
++			be consecutive and only its length is meaningful.
++
++The port node must contain at least one endpoint. It could have multiple endpoints
++linked to different sensors, but please note that they are not supposed to be
++activated at the same time.
++
++The second port should be connected to isp node.
++- endpoint:
++	- remote-endpoint:  Linked to Rockchip ISP1, which is defined
++		in rockchip-isp1.txt.
++
++Device node example
++-------------------
++
++grf: syscon@ff770000 {
++	compatible = "rockchip,rk3288-grf", "syscon", "simple-mfd";
++
++...
++
++	mipi_dphy_rx0: mipi-dphy-rx0 {
++		compatible = "rockchip,rk3399-mipi-dphy";
++		clocks = <&cru SCLK_MIPIDPHY_REF>,
++			<&cru SCLK_DPHY_RX0_CFG>,
++			<&cru PCLK_VIO_GRF>;
++		clock-names = "dphy-ref", "dphy-cfg", "grf";
++		power-domains = <&power RK3399_PD_VIO>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				mipi_in_wcam: endpoint@0 {
++					reg = <0>;
++					remote-endpoint = <&wcam_out>;
++					data-lanes = <1 2>;
++				};
++				mipi_in_ucam: endpoint@1 {
++					reg = <1>;
++					remote-endpoint = <&ucam_out>;
++					data-lanes = <1>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				dphy_rx0_out: endpoint {
++					remote-endpoint = <&isp0_mipi_in>;
++				};
++			};
++		};
++	};
++};
+-- 
+2.16.1
