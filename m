@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34945 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932528AbeCSNLm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 09:11:42 -0400
-Received: by mail-wm0-f67.google.com with SMTP id r82so5014155wme.0
-        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 06:11:41 -0700 (PDT)
-Subject: Re: [PATCH 2/3] drm: bridge: dw-hdmi: check the cec-disable property
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-amlogic@lists.infradead.org,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180319114345.29837-1-hverkuil@xs4all.nl>
- <20180319114345.29837-3-hverkuil@xs4all.nl>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <7ec5ea06-92ab-59e6-898c-57b3e5cdf83d@baylibre.com>
-Date: Mon, 19 Mar 2018 14:11:39 +0100
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:33034 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750783AbeCHXfr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Mar 2018 18:35:47 -0500
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <20180306085530.7b51aa29@vento.lan>
+References: <20180306085530.7b51aa29@vento.lan> <151559583569.13545.12649741692530472663.stgit@warthog.procyon.org.uk>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] dvb: Save port number and provide sysfs attributes to pass values to udev
 MIME-Version: 1.0
-In-Reply-To: <20180319114345.29837-3-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <536.1520552145.1@warthog.procyon.org.uk>
+Date: Thu, 08 Mar 2018 23:35:45 +0000
+Message-ID: <537.1520552145@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19/03/2018 12:43, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> If the cec-disable property was set, then disable the DW CEC
-> controller. This is needed for boards that have their own
-> CEC controller.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> index a38db40ce990..597220e40541 100644
-> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> @@ -2508,7 +2508,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
->  		hdmi->audio = platform_device_register_full(&pdevinfo);
->  	}
->  
-> -	if (config0 & HDMI_CONFIG0_CEC) {
-> +	if ((config0 & HDMI_CONFIG0_CEC) &&
-> +	    !of_property_read_bool(np, "cec-disable")) {
->  		cec.hdmi = hdmi;
->  		cec.ops = &dw_hdmi_cec_ops;
->  		cec.irq = irq;
-> 
+Mauro Carvalho Chehab <mchehab@kernel.org> wrote:
 
-I suspected the bit was off for the Amlogic GX SoCs, I was wrong...
+> > +	dvb_class->dev_groups = dvb_class_groups,
+> >  	dvb_class->dev_uevent = dvb_uevent;
+> >  	dvb_class->devnode = dvb_devnode;
+> >  	return 0;
+> 
+> The patch itself looks good, but I'm not seeing any documentation.
 
-Reviewed-by: Neil Armstrong <narmstrong@baylibre.com>
+I should probably add something to Documentation/media/dvb-drivers/udev.rst
+
+> You should likely add something to Documentation/ABI
+
+Any suggestions as to where to add stuff in there?  The README there leaves
+a lot to be desired as to how to name elements - for instance, DVB devices can
+be seen through /sys/class/ and /sys/devices/.
+
+I could put it in sys-class-dvb or sys-devices-dvb - or, arguably, both.
+
+> and to the DVB uAPI (Documentation/media/uapi/dvb).
+
+Likewise, any suggestion as to where in here?  As far as I can tell, the docs
+here don't currently mention sysfs at all.  I'm guessing I'll need to create a
+file specifically to talk about how to use this stuff with udev.
+
+> > +	port->frontends.adapter.port_num = port->nr;
+> > +
+> 
+> Doing it for each multi-adapter device is something that bothers
+> me. The better would be if we could move this to the DVB Kernel,
+> in order to not need to check/fix every driver.
+
+I'm not sure how achievable that is: *port in this case is a private
+cx23885-specific structure object.
+
+> If, otherwise, this is not possible, then we need a patch fixing port_num
+> for all drivers that support multiple adapters.
+> 
+> Also, the risk of forgetting it seems high. So, perhaps we should
+> add a new parameter to some function (like at dvb_register_device
+> or at dvb_register_frontend), in order to make the port number
+> a mandatory attribute.
+
+Hmmm...  The cx23885 driver doesn't call either of these functions as far as I
+can tell - at least, not directly.  Maybe by vb2_dvb_register_bus()?
+
+Note that these attribute files appear for the demux, dvr and net directories
+as well as for the frontend.
+
+Hmmm... further, the port number is no longer getting through and all adapters
+are showing port 0.  The MAC address works, though.  Maybe I should drop the
+port number.
+
+David
