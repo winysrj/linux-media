@@ -1,115 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:44166 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750731AbeCOFc5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 01:32:57 -0400
-Date: Thu, 15 Mar 2018 06:32:38 +0100
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux@roeck-us.net, corbet@lwn.net,
-        tj@kernel.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net,
-        viresh.kumar@linaro.org, herbert@gondor.apana.org.au,
-        davem@davemloft.net, bp@alien8.de, mchehab@kernel.org,
-        linus.walleij@linaro.org, wsa@the-dreams.de,
-        dmitry.torokhov@gmail.com, ulf.hansson@linaro.org,
-        cyrille.pitchen@wedev4u.fr, wg@grandegger.com, mkl@pengutronix.de,
-        alexandre.belloni@bootlin.com, broonie@kernel.org,
-        jic23@kernel.org, lars@metafoo.de, jslaby@suse.com,
-        stern@rowland.harvard.edu, b.zolnierkie@samsung.com,
-        shli@kernel.org, linux-watchdog@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-ide@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        linux-can@vger.kernel.org, linux-pwm@vger.kernel.org,
-        linux-rtc@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-raid@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH 00/47] arch-removal: device drivers
-Message-ID: <20180315063238.3303b8d1@bbrezillon>
-In-Reply-To: <20180314153603.3127932-1-arnd@arndb.de>
-References: <20180314153603.3127932-1-arnd@arndb.de>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:35487 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755260AbeCHKAr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 05:00:47 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <d98ac356-a482-f26f-fd6b-6142281d99c3@xs4all.nl>
+References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+ <1514533978-20408-4-git-send-email-zhengsq@rock-chips.com> <d98ac356-a482-f26f-fd6b-6142281d99c3@xs4all.nl>
+From: Jacob Chen <jacobchen110@gmail.com>
+Date: Thu, 8 Mar 2018 18:00:45 +0800
+Message-ID: <CAFLEztSsg+EW97AN93gd-rx7A1bNwfHK5e9MpLnem40ATnfsrw@mail.gmail.com>
+Subject: Re: [PATCH v5 03/16] media: rkisp1: Add user space ABI definitions
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shunqian Zheng <zhengsq@rock-chips.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
+        Eddie Cai <eddie.cai.linux@gmail.com>,
+        Jeffy Chen <jeffy.chen@rock-chips.com>,
+        Allon Huang <allon.huang@rock-chips.com>,
+        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
+        robh+dt@kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hi Hans,
 
-On Wed, 14 Mar 2018 16:35:13 +0100
-Arnd Bergmann <arnd@arndb.de> wrote:
+2018-02-07 20:00 GMT+08:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> On 12/29/17 08:52, Shunqian Zheng wrote:
+>> From: Jeffy Chen <jeffy.chen@rock-chips.com>
+>>
+>> Add the header for userspace
+>
+> General note: I saw four cases where this documentation referred to the
+> datasheet. Three comments on that:
+>
+> 1) You don't say which datasheet.
+> 2) I assume the datasheet is under NDA?
 
-> Hi driver maintainers,
-> 
-> I just posted one series with the removal of eight architectures,
-> see https://lkml.org/lkml/2018/3/14/505 for details, or
-> https://lwn.net/Articles/748074/ for more background.
-> 
-> These are the device drivers that go along with them. I have already
-> picked up the drivers for arch/metag/ into my tree, they were reviewed
-> earlier.
-> 
-> Please let me know if you have any concerns with the patch, or if you
-> prefer to pick up the patches in your respective trees.  I created
-> the patches with 'git format-patch -D', so they will not apply without
-> manually removing those files.
-> 
-> For anything else, I'd keep the removal patches in my asm-generic tree
-> and will send a pull request for 4.17 along with the actual arch removal.
-> 
->        Arnd
-> 
-> Arnd Bergmann
->   edac: remove tile driver
->   net: tile: remove ethernet drivers
->   net: adi: remove blackfin ethernet drivers
->   net: 8390: remove m32r specific bits
->   net: remove cris etrax ethernet driver
->   net: smsc: remove m32r specific smc91x configuration
->   raid: remove tile specific raid6 implementation
->   rtc: remove tile driver
->   rtc: remove bfin driver
->   char: remove obsolete ds1302 rtc driver
->   char: remove tile-srom.c
->   char: remove blackfin OTP driver
->   pcmcia: remove m32r drivers
->   pcmcia: remove blackfin driver
->   ASoC: remove blackfin drivers
->   video/logo: remove obsolete logo files
->   fbdev: remove blackfin drivers
->   fbdev: s1d13xxxfb: remove m32r specific hacks
->   crypto: remove blackfin CRC driver
->   media: platform: remove blackfin capture driver
->   media: platform: remove m32r specific arv driver
->   cpufreq: remove blackfin driver
->   cpufreq: remove cris specific drivers
->   gpio: remove etraxfs driver
->   pinctrl: remove adi2/blackfin drivers
->   ata: remove bf54x driver
->   input: keyboard: remove bf54x driver
->   input: misc: remove blackfin rotary driver
->   mmc: remove bfin_sdh driver
->   can: remove bfin_can driver
->   watchdog: remove bfin_wdt driver
->   mtd: maps: remove bfin-async-flash driver
->   mtd: nand: remove bf5xx_nand driver
+This datasheet can't be got by customers, even under NDA.
 
-If you don't mind, I'd like to take the mtd patches through the MTD
-tree. As you've probably noticed, nand code has been moved around and
-it's easier for me to carry those 2 simple changes in my tree than
-creating an immutable branch.
+> 3) You do need to give enough information so a reasonable default can be
+>    used. I mentioned in an earlier review that creating an initial params
+>    struct that can be used as a templete would be helpful (or even
+>    required), and that would be a good place to put such defaults.
+>
 
-Let me know if this is a problem.
+It don't need a default config
+For applcation writers, they can just init it with zero data, and only
+set value for the part they concerned.
 
-Regards,
+As for ABI, i have checked there is no mismatches.
+Those structures is 32 bit aligned both in 64bit/32bit env, since
+there is no 64bit value.
+"__attribute__ ((packed))" can avoid mismatches happen when we add a
+64bit value to those structures.
 
-Boris
+As robin said, enums and bools are not guaranteed to be consistent
+between different compiler, so it's a potential risk.
+I have replace bools with unsigned char and enums with unsigned int.
 
--- 
-Boris Brezillon, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+
+> Regards,
+>
+>         Hans
