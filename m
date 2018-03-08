@@ -1,57 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f46.google.com ([209.85.160.46]:42548 "EHLO
-        mail-pl0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751996AbeCMP02 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 11:26:28 -0400
-Received: by mail-pl0-f46.google.com with SMTP id w15-v6so2372977plq.9
-        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 08:26:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <f984cfec-80a5-874f-16cb-0939d891863f@st.com>
-References: <1520782481-13558-1-git-send-email-akinobu.mita@gmail.com> <f984cfec-80a5-874f-16cb-0939d891863f@st.com>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Wed, 14 Mar 2018 00:26:07 +0900
-Message-ID: <CAC5umygoOh7mSTMjaJDTMOtaTfHL9HTsfNnEQHK1BSsFfATzsQ@mail.gmail.com>
-Subject: Re: [PATCH] media: ov5640: add missing output pixel format setting
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35368 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935735AbeCHJtc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:49:32 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        devicetree@vger.kernel.org, heiko@sntech.de,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v6 10/17] dt-bindings: Document the Rockchip ISP1 bindings
+Date: Thu,  8 Mar 2018 17:48:00 +0800
+Message-Id: <20180308094807.9443-11-jacob-chen@iotwrt.com>
+In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-03-13 1:18 GMT+09:00 Hugues FRUCHET <hugues.fruchet@st.com>:
-> Hi Akinobu,
->
-> Thanks for the patch, could you describe the test you made to reproduce
-> the issue that I can test on my side ?
->
-> I'm using usually yavta or Gstreamer, but I don't know how to trig the
-> power on/off independently of streamon/off.
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-Capturing a single image by yavta and gstreamer can reproduce this issue
-in my environment.  I use Xilinx Video IP driver for video device with
-the following change in order to support pipeline power management.
+Add DT bindings documentation for Rockchip ISP1
 
-https://patchwork.linuxtv.org/patch/46343/
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/rockchip-isp1.txt    | 69 ++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
 
-With this change, when opening the video device, s_power() is called with
-on=1 for subdevice.
-
-I observed the following steps when capturing a single image by
-'yavta -n1 -c1 -Ftest.raw /dev/video1'. (The output pixel format is
-already set up by media-ctl before this run)
-
-1. open /dev/video1
-2. ov5640_s_power() is called with on=1
-   (ov5640_s_power -> ov5640_set_power -> ov5640_restore_mode
-    -> ov5640_set_mode, and pending_mode_change is cleared)
-3. ov5640_s_stream() is called with on=1
-   (But ov5640_set_framefmt() is not called because pending_mode_change
-    has already been cleared  in step 2.)
-
-As ov5640_set_framefmt() is not called, output pixel format cannot be
-restored (OV5640_REG_FORMAT_CONTROL00 and OV5640_REG_ISP_FORMAT_MUX_CTRL).
+diff --git a/Documentation/devicetree/bindings/media/rockchip-isp1.txt b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
+new file mode 100644
+index 000000000000..4631a4b7c88a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
+@@ -0,0 +1,69 @@
++Rockchip SoC Image Signal Processing unit v1
++----------------------------------------------
++
++Rockchip ISP1 is the Camera interface for the Rockchip series of SoCs
++which contains image processing, scaling, and compression funcitons.
++
++Required properties:
++- compatible: value should be one of the following
++	"rockchip,rk3288-cif-isp";
++	"rockchip,rk3399-cif-isp";
++- reg : offset and length of the register set for the device.
++- interrupts: should contain ISP interrupt.
++- clocks: phandle to the required clocks.
++- clock-names: required clock name.
++- iommus: required a iommu node.
++
++port node
++-------------------
++
++The device node should contain one 'port' child node with child 'endpoint'
++nodes, according to the bindings defined in Documentation/devicetree/bindings/
++media/video-interfaces.txt.
++
++- endpoint(parallel):
++	- remote-endpoint: Connecting to a sensor with a parallel video bus.
++	- parallel_bus properties: Refer to Documentation/devicetree/bindings/
++		media/video-interfaces.txt.
++- endpoint(mipi):
++	- remote-endpoint: Connecting to Rockchip MIPI-DPHY,
++		which is defined in rockchip-mipi-dphy.txt.
++
++The port node must contain at least one endpoint, either parallel or mipi.
++It could have multiple endpoints, but please note the hardware don't support
++two sensors work at a time, they are supposed to work asynchronously.
++
++Device node example
++-------------------
++
++	isp0: isp0@ff910000 {
++		compatible = "rockchip,rk3399-cif-isp";
++		reg = <0x0 0xff910000 0x0 0x4000>;
++		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
++		clocks = <&cru SCLK_ISP0>,
++			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
++			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
++		clock-names = "clk_isp",
++			      "aclk_isp", "aclk_isp_wrap",
++			      "hclk_isp", "hclk_isp_wrap";
++		power-domains = <&power RK3399_PD_ISP0>;
++		iommus = <&isp0_mmu>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* mipi */
++			isp0_mipi_in: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&dphy_rx0_out>;
++			};
++
++			/* parallel */
++			isp0_parallel_in: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&ov5640_out>;
++				bus-width = <8>;
++			};
++		};
++	};
+-- 
+2.16.1
