@@ -1,199 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32368 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752462AbeCZVqu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:46:50 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v13 18/33] rcar-vin: move media bus configuration to struct rvin_dev
-Date: Mon, 26 Mar 2018 23:44:41 +0200
-Message-Id: <20180326214456.6655-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pl0-f53.google.com ([209.85.160.53]:42903 "EHLO
+        mail-pl0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935069AbeCHJsk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:48:40 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        devicetree@vger.kernel.org, heiko@sntech.de,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v6 00/17] Rockchip ISP1 Driver
+Date: Thu,  8 Mar 2018 17:47:50 +0800
+Message-Id: <20180308094807.9443-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bus configuration will once the driver is extended to support Gen3
-contain information not specific to only the directly connected parallel
-subdevice. Move it to struct rvin_dev to show it's not always coupled
-to the parallel subdevice.
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
- drivers/media/platform/rcar-vin/rcar-dma.c  | 10 +++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
- 4 files changed, 19 insertions(+), 20 deletions(-)
+changes in V6:
+  - add mipi txrx phy support
+  - remove bool and enum from uapi header
+  - add buf_prepare op
+  - correct some spelling problems
+  - return all queued buffers when starting stream failed
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 8c251687e81b345b..07a04d4bcc91b18b 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 	vin->digital->sink_pad = ret < 0 ? 0 : ret;
- 
- 	/* Find compatible subdevices mbus format */
--	vin->digital->code = 0;
-+	vin->mbus_code = 0;
- 	code.index = 0;
- 	code.pad = vin->digital->source_pad;
--	while (!vin->digital->code &&
-+	while (!vin->mbus_code &&
- 	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
- 		code.index++;
- 		switch (code.code) {
-@@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 		case MEDIA_BUS_FMT_UYVY8_2X8:
- 		case MEDIA_BUS_FMT_UYVY10_2X10:
- 		case MEDIA_BUS_FMT_RGB888_1X24:
--			vin->digital->code = code.code;
-+			vin->mbus_code = code.code;
- 			vin_dbg(vin, "Found media bus format for %s: %d\n",
--				subdev->name, vin->digital->code);
-+				subdev->name, vin->mbus_code);
- 			break;
- 		default:
- 			break;
- 		}
- 	}
- 
--	if (!vin->digital->code) {
-+	if (!vin->mbus_code) {
- 		vin_err(vin, "Unsupported media bus format for %s\n",
- 			subdev->name);
- 		return -EINVAL;
-@@ -196,16 +196,16 @@ static int rvin_digital_parse_v4l2(struct device *dev,
- 	if (vep->base.port || vep->base.id)
- 		return -ENOTCONN;
- 
--	rvge->mbus_cfg.type = vep->bus_type;
-+	vin->mbus_cfg.type = vep->bus_type;
- 
--	switch (rvge->mbus_cfg.type) {
-+	switch (vin->mbus_cfg.type) {
- 	case V4L2_MBUS_PARALLEL:
- 		vin_dbg(vin, "Found PARALLEL media bus\n");
--		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
-+		vin->mbus_cfg.flags = vep->bus.parallel.flags;
- 		break;
- 	case V4L2_MBUS_BT656:
- 		vin_dbg(vin, "Found BT656 media bus\n");
--		rvge->mbus_cfg.flags = 0;
-+		vin->mbus_cfg.flags = 0;
- 		break;
- 	default:
- 		vin_err(vin, "Unknown media bus type\n");
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 79f4074b931b5aeb..41907a200037d5d5 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -626,7 +626,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital->code) {
-+	switch (vin->mbus_code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -634,7 +634,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -643,7 +643,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -655,11 +655,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
- 
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
- 
- 	/*
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 43370c57d4b6239a..dd835be0f9cbcc05 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -191,7 +191,7 @@ static int rvin_try_format(struct rvin_dev *vin, u32 which,
- 	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
- 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
- 
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
-+	v4l2_fill_mbus_format(&format.format, pix, vin->mbus_code);
- 
- 	/* Allow the video device to override field and to scale */
- 	field = pix->field;
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 06cec4f8e5ffaf2b..952d57f32873388d 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -60,8 +60,6 @@ struct rvin_video_format {
-  * struct rvin_graph_entity - Video endpoint from async framework
-  * @asd:	sub-device descriptor for async framework
-  * @subdev:	subdevice matched using async framework
-- * @code:	Media bus format from source
-- * @mbus_cfg:	Media bus format from DT
-  * @source_pad:	source pad of remote subdevice
-  * @sink_pad:	sink pad of remote subdevice
-  */
-@@ -69,9 +67,6 @@ struct rvin_graph_entity {
- 	struct v4l2_async_subdev asd;
- 	struct v4l2_subdev *subdev;
- 
--	u32 code;
--	struct v4l2_mbus_config mbus_cfg;
--
- 	unsigned int source_pad;
- 	unsigned int sink_pad;
- };
-@@ -113,6 +108,8 @@ struct rvin_info {
-  * @sequence:		V4L2 buffers sequence number
-  * @state:		keeps track of operation state
-  *
-+ * @mbus_cfg:		media bus configuration from DT
-+ * @mbus_code:		media bus format code
-  * @format:		active V4L2 pixel format
-  *
-  * @crop:		active cropping
-@@ -142,6 +139,8 @@ struct rvin_dev {
- 	unsigned int sequence;
- 	enum rvin_dma_state state;
- 
-+	struct v4l2_mbus_config mbus_cfg;
-+	u32 mbus_code;
- 	struct v4l2_pix_format format;
- 
- 	struct v4l2_rect crop;
+changes in V5: Sync with local changes,
+  - fix the SP height limit
+  - speed up the second stream capture
+  - the second stream can't force sync for rsz when start/stop streaming
+  - add frame id to param vb2 buf
+  - enable luminance maximum threshold
+
+changes in V4:
+  - fix some bugs during development
+  - move quantization settings to rkisp1 subdev
+  - correct some spelling problems
+  - describe ports in dt-binding documents
+
+changes in V3:
+  - add some comments
+  - fix wrong use of v4l2_async_subdev_notifier_register
+  - optimize two paths capture at a time
+  - remove compose
+  - re-struct headers
+  - add a tmp wiki page: http://opensource.rock-chips.com/wiki_Rockchip-isp1
+
+changes in V2:
+  mipi-phy:
+    - use async probing
+    - make it be a child device of the GRF
+  isp:
+    - add dummy buffer
+    - change the way to get bus configuration, which make it possible to
+            add parallel sensor support in the future(without mipi-phy driver).
+
+This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
+
+Wiki Pages:
+http://opensource.rock-chips.com/wiki_Rockchip-isp1
+
+The deprecated g_mbus_config op is not dropped in  V6 because i am waiting tomasz's patches.
+
+v4l2-compliance for V6(isp params/stats nodes are passed):
+
+    v4l2-compliance SHA   : 93dc5f20727fede5097d67f8b9adabe4b8046d5b
+
+    Compliance test for device /dev/video0:
+
+    Driver Info:
+            Driver name      : rkisp1
+            Card type        : rkisp1
+            Bus info         : platform:ff910000.isp
+            Driver version   : 4.16.0
+            Capabilities     : 0x84201000
+                    Video Capture Multiplanar
+                    Streaming
+                    Extended Pix Format
+                    Device Capabilities
+            Device Caps      : 0x04201000
+                    Video Capture Multiplanar
+                    Streaming
+                    Extended Pix Format
+    Media Driver Info:
+            Driver name      : rkisp1
+            Model            : rkisp1
+            Serial           : 
+            Bus info         : 
+            Media version    : 4.16.0
+            Hardware revision: 0x00000000 (0)
+            Driver version   : 4.16.0
+    Interface Info:
+            ID               : 0x03000007
+            Type             : V4L Video
+    Entity Info:
+            ID               : 0x00000006 (6)
+            Name             : rkisp1_selfpath
+            Function         : V4L2 I/O
+            Pad 0x01000009   : Sink
+              Link 0x02000021: from remote pad 0x1000004 of entity 'rkisp1-isp-subdev': Data, Enabled
+
+    Required ioctls:
+            test MC information (see 'Media Driver Info' above): OK
+            test VIDIOC_QUERYCAP: OK
+
+    Allow for multiple opens:
+            test second /dev/video0 open: OK
+            test VIDIOC_QUERYCAP: OK
+            test VIDIOC_G/S_PRIORITY: OK
+            test for unlimited opens: OK
+
+    Debug ioctls:
+            test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+            test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+    Input ioctls:
+            test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+            test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+            test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+            test VIDIOC_ENUMAUDIO: OK (Not Supported)
+            test VIDIOC_G/S/ENUMINPUT: OK
+            test VIDIOC_G/S_AUDIO: OK (Not Supported)
+            Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+    Output ioctls:
+            test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+            test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+            test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+            test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+            test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+            Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+    Input/Output configuration ioctls:
+            test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+            test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+            test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+            test VIDIOC_G/S_EDID: OK (Not Supported)
+
+    Control ioctls (Input 0):
+            test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+            test VIDIOC_QUERYCTRL: OK
+            test VIDIOC_G/S_CTRL: OK
+            test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+            test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+            test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+            Standard Controls: 9 Private Controls: 0
+
+    Format ioctls (Input 0):
+            test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+            test VIDIOC_G/S_PARM: OK (Not Supported)
+            test VIDIOC_G_FBUF: OK (Not Supported)
+                    fail: v4l2-test-formats.cpp(330): !colorspace
+                    fail: v4l2-test-formats.cpp(454): testColorspace(pix_mp.pixelformat, pix_mp.colorspace, pix_mp.ycbcr_enc, pix_m
+    p.quantization)
+            test VIDIOC_G_FMT: FAIL
+            test VIDIOC_TRY_FMT: OK (Not Supported)
+            test VIDIOC_S_FMT: OK (Not Supported)
+            test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                    fail: v4l2-test-formats.cpp(1288): doioctl(node, VIDIOC_G_SELECTION, &sel) != EINVAL
+            test Cropping: FAIL
+            test Composing: OK (Not Supported)
+            test Scaling: OK
+
+    Codec ioctls (Input 0):
+            test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+            test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+            test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+    Buffer ioctls (Input 0):
+            test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                    fail: v4l2-test-buffers.cpp(525): VIDIOC_EXPBUF is supported, but the V4L2_MEMORY_MMAP support is missing, prob
+    ably due to earlier failing format tests.
+            test VIDIOC_EXPBUF: OK (Not Supported)
+
+    Total: 44, Succeeded: 42, Failed: 2, Warnings: 0
+
+Jacob Chen (12):
+  media: doc: add document for rkisp1 meta buffer format
+  media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
+  media: rkisp1: add Rockchip ISP1 subdev driver
+  media: rkisp1: add ISP1 statistics driver
+  media: rkisp1: add ISP1 params driver
+  media: rkisp1: add capture device driver
+  media: rkisp1: add rockchip isp1 core driver
+  dt-bindings: Document the Rockchip ISP1 bindings
+  dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+  ARM: dts: rockchip: add isp node for rk3288
+  ARM: dts: rockchip: add rx0 mipi-phy for rk3288
+  MAINTAINERS: add entry for Rockchip ISP1 driver
+
+Jeffy Chen (1):
+  media: rkisp1: Add user space ABI definitions
+
+Shunqian Zheng (3):
+  media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
+  arm64: dts: rockchip: add isp0 node for rk3399
+  arm64: dts: rockchip: add rx0 mipi-phy for rk3399
+
+Wen Nuan (1):
+  ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
+
+ .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
+ .../bindings/media/rockchip-mipi-dphy.txt          |   90 +
+ Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
+ .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   20 +
+ .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
+ MAINTAINERS                                        |   10 +
+ arch/arm/boot/dts/rk3288.dtsi                      |   33 +
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rockchip/isp1/Makefile      |    8 +
+ drivers/media/platform/rockchip/isp1/capture.c     | 1751 ++++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/capture.h     |  167 ++
+ drivers/media/platform/rockchip/isp1/common.h      |  110 ++
+ drivers/media/platform/rockchip/isp1/dev.c         |  626 +++++++
+ drivers/media/platform/rockchip/isp1/dev.h         |   93 ++
+ drivers/media/platform/rockchip/isp1/isp_params.c  | 1539 +++++++++++++++++
+ drivers/media/platform/rockchip/isp1/isp_params.h  |   49 +
+ drivers/media/platform/rockchip/isp1/isp_stats.c   |  508 ++++++
+ drivers/media/platform/rockchip/isp1/isp_stats.h   |   58 +
+ .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  868 ++++++++++
+ .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   15 +
+ drivers/media/platform/rockchip/isp1/regs.c        |  239 +++
+ drivers/media/platform/rockchip/isp1/regs.h        | 1550 +++++++++++++++++
+ drivers/media/platform/rockchip/isp1/rkisp1.c      | 1177 +++++++++++++
+ drivers/media/platform/rockchip/isp1/rkisp1.h      |  105 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
+ include/uapi/linux/rkisp1-config.h                 |  798 +++++++++
+ include/uapi/linux/videodev2.h                     |    4 +
+ 29 files changed, 9945 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+ create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
+ create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/common.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
+ create mode 100644 include/uapi/linux/rkisp1-config.h
+
 -- 
-2.16.2
+2.16.1
