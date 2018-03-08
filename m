@@ -1,140 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47223 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750832AbeCZDpg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Mar 2018 23:45:36 -0400
-Message-ID: <ab58955cb61f56804ba9488ff886af7b@smtp-cloud9.xs4all.net>
-Date: Mon, 26 Mar 2018 05:45:34 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-ua0-f180.google.com ([209.85.217.180]:36069 "EHLO
+        mail-ua0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934902AbeCHK3p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 05:29:45 -0500
+Received: by mail-ua0-f180.google.com with SMTP id j15so610700uan.3
+        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 02:29:45 -0800 (PST)
+Received: from mail-ua0-f173.google.com (mail-ua0-f173.google.com. [209.85.217.173])
+        by smtp.gmail.com with ESMTPSA id m33sm19869244uai.42.2018.03.08.02.29.42
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 08 Mar 2018 02:29:42 -0800 (PST)
+Received: by mail-ua0-f173.google.com with SMTP id e25so3548664uam.6
+        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 02:29:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 8 Mar 2018 19:29:21 +0900
+Message-ID: <CAAFQd5D1FMm4FTugstxk_6bE-QbLeNsMZM6EaVVfN_mu8_RQUA@mail.gmail.com>
+Subject: Re: [PATCH v6 00/17] Rockchip ISP1 Driver
+To: Jacob Chen <jacob-chen@iotwrt.com>
+Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
+        Eddie Cai <eddie.cai.linux@gmail.com>,
+        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
+        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Mar 8, 2018 at 6:47 PM, Jacob Chen <jacob-chen@iotwrt.com> wrote:
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
+>
+> changes in V6:
+>   - add mipi txrx phy support
+>   - remove bool and enum from uapi header
+>   - add buf_prepare op
+>   - correct some spelling problems
+>   - return all queued buffers when starting stream failed
 
-Results of the daily build of media_tree:
+Thanks Jacob.
 
-date:			Mon Mar 26 05:00:12 CEST 2018
-media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
-media_build git hash:	fb4b2c502cd76d6e5767a686d6fb1c95989031b9
-v4l-utils git hash:	098e402950fd45b5a572cccfe1d103661d418417
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+For anyone planning to review, especially Hans, who pointed it out in
+previous version, g_mbus_config is still there and we're working on
+replacing it with something less controversial.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.100-i686: ERRORS
-linux-3.2.100-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: WARNINGS
-linux-3.12.74-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.55-i686: WARNINGS
-linux-3.16.55-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.100-i686: WARNINGS
-linux-3.18.100-x86_64: WARNINGS
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.50-i686: WARNINGS
-linux-4.1.50-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.99-i686: OK
-linux-4.4.99-x86_64: OK
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.87-i686: ERRORS
-linux-4.9.87-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.27-i686: ERRORS
-linux-4.14.27-x86_64: ERRORS
-linux-4.15.10-i686: ERRORS
-linux-4.15.10-x86_64: ERRORS
-linux-4.16-rc5-i686: ERRORS
-linux-4.16-rc5-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
