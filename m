@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:32846 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750707AbeC2IqR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 04:46:17 -0400
-Date: Thu, 29 Mar 2018 11:45:43 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv9 PATCH 03/29] media-request: allocate media requests
-Message-ID: <20180329084543.qjlwg3brtfsv27pf@paasikivi.fi.intel.com>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
- <20180328135030.7116-4-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180328135030.7116-4-hverkuil@xs4all.nl>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:40873 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751642AbeCHSVr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 13:21:47 -0500
+Received: by mail-pg0-f66.google.com with SMTP id g8so2530201pgv.7
+        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 10:21:47 -0800 (PST)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Subject: [PATCH v5 0/2] media: video-i2c: add video-i2c driver support
+Date: Thu,  8 Mar 2018 10:21:39 -0800
+Message-Id: <20180308182141.28997-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add support for video-i2c polling driver
 
-On Wed, Mar 28, 2018 at 03:50:04PM +0200, Hans Verkuil wrote:
-...
-> @@ -88,6 +96,8 @@ struct media_device_ops {
->   * @disable_source: Disable Source Handler function pointer
->   *
->   * @ops:	Operation handler callbacks
-> + * @req_lock:	Serialise access to requests
-> + * @req_queue_mutex: Serialise validating and queueing requests
+Changes from v1:
+* Switch to SPDX tags versus GPLv2 license text
+* Remove unneeded zeroing of data structures
+* Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
 
-s/validating and//
+Changes from v2:
+* Add missing linux/kthread.h include that broke x86_64 build
 
-As there's no more a separate validation step. Then,
+Changes from v3:
+* Add devicetree binding documents
+* snprintf check added
+* switched to per chip support based on devicetree or i2c client id
+* add VB2_DMABUF to io_modes
+* added entry to MAINTAINERS file switched to per chip support based on devicetree or i2c client id
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Changes from v4:
+* convert pointer from of_device_get_match_data() to long instead of int to avoid compiler warning
+
+Matt Ranostay (2):
+  media: dt-bindings: Add bindings for panasonic,amg88xx
+  media: video-i2c: add video-i2c driver
+
+ .../bindings/media/i2c/panasonic,amg88xx.txt       |  19 +
+ MAINTAINERS                                        |   6 +
+ drivers/media/i2c/Kconfig                          |   9 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/video-i2c.c                      | 558 +++++++++++++++++++++
+ 5 files changed, 593 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ create mode 100644 drivers/media/i2c/video-i2c.c
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.1
