@@ -1,216 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39515 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934183AbeCENvo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 08:51:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:58572 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751434AbeCHM0w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 07:26:52 -0500
+From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 7/7] cec-pin: improve status log
-Date: Mon,  5 Mar 2018 14:51:39 +0100
-Message-Id: <20180305135139.95652-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180305135139.95652-1-hverkuil@xs4all.nl>
-References: <20180305135139.95652-1-hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 2/3] media: vb2-core: document the REQUEUEING state
+Date: Thu,  8 Mar 2018 13:26:21 +0100
+Message-Id: <1520511982-985-2-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1520511982-985-1-git-send-email-luca@lucaceresoli.net>
+References: <1520511982-985-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+VB2_BUF_STATE_REQUEUEING is accepted by vb2_buffer_done() but not
+documented, so add it along with notes about calls in interrupt
+context.
 
-Keep track of the number of short or long start bits, the number
-of short or long data bits and the number of initiated or detected
-low drive conditions.
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 
-Show this information in the status debugfs log.
-
-Helpful when debugging, particularly when doing error injection
-as well.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/cec/cec-pin-priv.h | 13 +++++++++
- drivers/media/cec/cec-pin.c      | 58 +++++++++++++++++++++++++++++++++++++---
- 2 files changed, 68 insertions(+), 3 deletions(-)
+Changes v1 -> v2: none.
+---
+ include/media/videobuf2-core.h | 24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/cec/cec-pin-priv.h b/drivers/media/cec/cec-pin-priv.h
-index c9349f68e554..dae8ba6f1037 100644
---- a/drivers/media/cec/cec-pin-priv.h
-+++ b/drivers/media/cec/cec-pin-priv.h
-@@ -181,6 +181,18 @@ struct cec_pin {
- 	struct cec_msg			rx_msg;
- 	u32				rx_bit;
- 	bool				rx_toggle;
-+	u32				rx_start_bit_low_too_short_cnt;
-+	u64				rx_start_bit_low_too_short_ts;
-+	u32				rx_start_bit_low_too_short_delta;
-+	u32				rx_start_bit_too_short_cnt;
-+	u64				rx_start_bit_too_short_ts;
-+	u32				rx_start_bit_too_short_delta;
-+	u32				rx_start_bit_too_long_cnt;
-+	u32				rx_data_bit_too_short_cnt;
-+	u64				rx_data_bit_too_short_ts;
-+	u32				rx_data_bit_too_short_delta;
-+	u32				rx_data_bit_too_long_cnt;
-+	u32				rx_low_drive_cnt;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f1a479060f9e..f20000887d3c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -358,12 +358,12 @@ struct vb2_buffer {
+  *			driver can return an error if hardware fails, in that
+  *			case all buffers that have been already given by
+  *			the @buf_queue callback are to be returned by the driver
+- *			by calling vb2_buffer_done() with %VB2_BUF_STATE_QUEUED.
+- *			If you need a minimum number of buffers before you can
+- *			start streaming, then set
+- *			&vb2_queue->min_buffers_needed. If that is non-zero then
+- *			@start_streaming won't be called until at least that
+- *			many buffers have been queued up by userspace.
++ *			by calling vb2_buffer_done() with %VB2_BUF_STATE_QUEUED
++ *			or %VB2_BUF_STATE_REQUEUEING. If you need a minimum
++ *			number of buffers before you can start streaming, then
++ *			set &vb2_queue->min_buffers_needed. If that is non-zero
++ *			then @start_streaming won't be called until at least
++ *			that many buffers have been queued up by userspace.
+  * @stop_streaming:	called when 'streaming' state must be disabled; driver
+  *			should stop any DMA transactions or wait until they
+  *			finish and give back all buffers it got from &buf_queue
+@@ -601,8 +601,9 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+  * @state:	state of the buffer, as defined by &enum vb2_buffer_state.
+  *		Either %VB2_BUF_STATE_DONE if the operation finished
+  *		successfully, %VB2_BUF_STATE_ERROR if the operation finished
+- *		with an error or %VB2_BUF_STATE_QUEUED if the driver wants to
+- *		requeue buffers.
++ *		with an error or any of %VB2_BUF_STATE_QUEUED or
++ *		%VB2_BUF_STATE_REQUEUEING if the driver wants to
++ *		requeue buffers (see below).
+  *
+  * This function should be called by the driver after a hardware operation on
+  * a buffer is finished and the buffer may be returned to userspace. The driver
+@@ -613,7 +614,12 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+  * While streaming a buffer can only be returned in state DONE or ERROR.
+  * The &vb2_ops->start_streaming op can also return them in case the DMA engine
+  * cannot be started for some reason. In that case the buffers should be
+- * returned with state QUEUED to put them back into the queue.
++ * returned with state QUEUED or REQUEUEING to put them back into the queue.
++ *
++ * %VB2_BUF_STATE_REQUEUEING is like %VB2_BUF_STATE_QUEUED, but it also calls
++ * &vb2_ops->buf_queue to queue buffers back to the driver. Note that calling
++ * vb2_buffer_done(..., VB2_BUF_STATE_REQUEUEING) from interrupt context will
++ * result in &vb2_ops->buf_queue being called in interrupt context as well.
+  */
+ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
  
- 	struct cec_msg			work_rx_msg;
- 	u8				work_tx_status;
-@@ -205,6 +217,7 @@ struct cec_pin {
- 	bool				tx_generated_poll;
- 	bool				tx_post_eom;
- 	u8				tx_extra_bytes;
-+	u32				tx_low_drive_cnt;
- #ifdef CONFIG_CEC_PIN_ERROR_INJ
- 	u64				error_inj[CEC_ERROR_INJ_OP_ANY + 1];
- 	u8				error_inj_args[CEC_ERROR_INJ_OP_ANY + 1][CEC_ERROR_INJ_NUM_ARGS];
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index 430a23392299..b509df154ca1 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -429,6 +429,7 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 			pin->state = CEC_ST_TX_WAIT_FOR_HIGH;
- 			pin->work_tx_ts = ts;
- 			pin->work_tx_status = CEC_TX_STATUS_LOW_DRIVE;
-+			pin->tx_low_drive_cnt++;
- 			wake_up_interruptible(&pin->kthread_waitq);
- 			break;
- 		}
-@@ -460,6 +461,7 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 				break;
- 			pin->work_tx_ts = ts;
- 			pin->work_tx_status = CEC_TX_STATUS_LOW_DRIVE;
-+			pin->tx_low_drive_cnt++;
- 			wake_up_interruptible(&pin->kthread_waitq);
- 			break;
- 		}
-@@ -650,6 +652,10 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 		delta = ktime_us_delta(ts, pin->ts);
- 		/* Start bit low is too short, go back to idle */
- 		if (delta < CEC_TIM_START_BIT_LOW_MIN - CEC_TIM_IDLE_SAMPLE) {
-+			if (!pin->rx_start_bit_low_too_short_cnt++) {
-+				pin->rx_start_bit_low_too_short_ts = pin->ts;
-+				pin->rx_start_bit_low_too_short_delta = delta;
-+			}
- 			cec_pin_to_idle(pin);
- 			break;
- 		}
-@@ -670,6 +676,7 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 		 * and go to idle. We just pick TOTAL_LONG.
- 		 */
- 		if (v && delta > CEC_TIM_START_BIT_TOTAL_LONG) {
-+			pin->rx_start_bit_too_long_cnt++;
- 			cec_pin_to_idle(pin);
- 			break;
- 		}
-@@ -677,6 +684,10 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 			break;
- 		/* Start bit is too short, go back to idle */
- 		if (delta < CEC_TIM_START_BIT_TOTAL_MIN - CEC_TIM_IDLE_SAMPLE) {
-+			if (!pin->rx_start_bit_too_short_cnt++) {
-+				pin->rx_start_bit_too_short_ts = pin->ts;
-+				pin->rx_start_bit_too_short_delta = delta;
-+			}
- 			cec_pin_to_idle(pin);
- 			break;
- 		}
-@@ -684,6 +695,7 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 			/* Error injection: go to low drive */
- 			cec_pin_low(pin);
- 			pin->state = CEC_ST_RX_LOW_DRIVE;
-+			pin->rx_low_drive_cnt++;
- 			break;
- 		}
- 		pin->state = CEC_ST_RX_DATA_SAMPLE;
-@@ -722,6 +734,7 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 		 * and go to idle. We just pick TOTAL_LONG.
- 		 */
- 		if (v && delta > CEC_TIM_DATA_BIT_TOTAL_LONG) {
-+			pin->rx_data_bit_too_long_cnt++;
- 			cec_pin_to_idle(pin);
- 			break;
- 		}
-@@ -732,6 +745,7 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 			/* Error injection: go to low drive */
- 			cec_pin_low(pin);
- 			pin->state = CEC_ST_RX_LOW_DRIVE;
-+			pin->rx_low_drive_cnt++;
- 			break;
- 		}
- 
-@@ -740,8 +754,13 @@ static void cec_pin_rx_states(struct cec_pin *pin, ktime_t ts)
- 		 * too short.
- 		 */
- 		if (delta < CEC_TIM_DATA_BIT_TOTAL_MIN) {
-+			if (!pin->rx_data_bit_too_short_cnt++) {
-+				pin->rx_data_bit_too_short_ts = pin->ts;
-+				pin->rx_data_bit_too_short_delta = delta;
-+			}
- 			cec_pin_low(pin);
- 			pin->state = CEC_ST_RX_LOW_DRIVE;
-+			pin->rx_low_drive_cnt++;
- 			break;
- 		}
- 		pin->ts = ts;
-@@ -1142,9 +1161,9 @@ static void cec_pin_adap_status(struct cec_adapter *adap,
- {
- 	struct cec_pin *pin = adap->pin;
- 
--	seq_printf(file, "state:   %s\n", states[pin->state].name);
--	seq_printf(file, "tx_bit:  %d\n", pin->tx_bit);
--	seq_printf(file, "rx_bit:  %d\n", pin->rx_bit);
-+	seq_printf(file, "state: %s\n", states[pin->state].name);
-+	seq_printf(file, "tx_bit: %d\n", pin->tx_bit);
-+	seq_printf(file, "rx_bit: %d\n", pin->rx_bit);
- 	seq_printf(file, "cec pin: %d\n", pin->ops->read(adap));
- 	seq_printf(file, "irq failed: %d\n", pin->enable_irq_failed);
- 	if (pin->timer_100ms_overruns) {
-@@ -1157,11 +1176,44 @@ static void cec_pin_adap_status(struct cec_adapter *adap,
- 		seq_printf(file, "avg timer overrun: %u usecs\n",
- 			   pin->timer_sum_overrun / pin->timer_100ms_overruns);
- 	}
-+	if (pin->rx_start_bit_low_too_short_cnt)
-+		seq_printf(file,
-+			   "rx start bit low too short: %u (delta %u, ts %llu)\n",
-+			   pin->rx_start_bit_low_too_short_cnt,
-+			   pin->rx_start_bit_low_too_short_delta,
-+			   pin->rx_start_bit_low_too_short_ts);
-+	if (pin->rx_start_bit_too_short_cnt)
-+		seq_printf(file,
-+			   "rx start bit too short: %u (delta %u, ts %llu)\n",
-+			   pin->rx_start_bit_too_short_cnt,
-+			   pin->rx_start_bit_too_short_delta,
-+			   pin->rx_start_bit_too_short_ts);
-+	if (pin->rx_start_bit_too_long_cnt)
-+		seq_printf(file, "rx start bit too long: %u\n",
-+			   pin->rx_start_bit_too_long_cnt);
-+	if (pin->rx_data_bit_too_short_cnt)
-+		seq_printf(file,
-+			   "rx data bit too short: %u (delta %u, ts %llu)\n",
-+			   pin->rx_data_bit_too_short_cnt,
-+			   pin->rx_data_bit_too_short_delta,
-+			   pin->rx_data_bit_too_short_ts);
-+	if (pin->rx_data_bit_too_long_cnt)
-+		seq_printf(file, "rx data bit too long: %u\n",
-+			   pin->rx_data_bit_too_long_cnt);
-+	seq_printf(file, "rx initiated low drive: %u\n", pin->rx_low_drive_cnt);
-+	seq_printf(file, "tx detected low drive: %u\n", pin->tx_low_drive_cnt);
- 	pin->timer_cnt = 0;
- 	pin->timer_100ms_overruns = 0;
- 	pin->timer_300ms_overruns = 0;
- 	pin->timer_max_overrun = 0;
- 	pin->timer_sum_overrun = 0;
-+	pin->rx_start_bit_low_too_short_cnt = 0;
-+	pin->rx_start_bit_too_short_cnt = 0;
-+	pin->rx_start_bit_too_long_cnt = 0;
-+	pin->rx_data_bit_too_short_cnt = 0;
-+	pin->rx_data_bit_too_long_cnt = 0;
-+	pin->rx_low_drive_cnt = 0;
-+	pin->tx_low_drive_cnt = 0;
- 	if (pin->ops->status)
- 		pin->ops->status(adap, file);
- }
 -- 
-2.16.1
+2.7.4
