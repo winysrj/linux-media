@@ -1,67 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:47353 "EHLO mail.kapsi.fi"
+Received: from osg.samsung.com ([64.30.133.232]:58992 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753035AbeC1Uop (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 16:44:45 -0400
-Subject: Re: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and
- merge with gl861
-To: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com
-References: <20180327174730.1887-1-tskd08@gmail.com>
- <f1ce1268-e918-a12f-959e-98644cafb2fe@iki.fi>
- <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <db8f370c-20f5-e9fe-9d2e-d12c1475dc33@iki.fi>
-Date: Wed, 28 Mar 2018 23:44:42 +0300
+        id S933906AbeCHQtM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Mar 2018 11:49:12 -0500
+Date: Thu, 8 Mar 2018 13:49:06 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Patch review
+Message-ID: <20180308134906.68809c3d@vento.lan>
+In-Reply-To: <1552444.87XHR44T4u@avalon>
+References: <alpine.DEB.2.20.1802281559500.29266@axis700.grange>
+        <1552444.87XHR44T4u@avalon>
 MIME-Version: 1.0
-In-Reply-To: <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 28 Feb 2018 17:21:27 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-
-On 03/28/2018 03:37 PM, Akihiro TSUKADA wrote:
-> Hi,
-> thanks for the comment.
+> Hi Guennadi,
 > 
->> You should implement i2c adapter to demod driver and not add such glue
->> to that USB-bridge. I mean that "relayed" stuff, i2c communication to
->> tuner via demod. I2C-mux may not work I think as there is no gate-style
->> multiplexing so you probably need plain i2c adapter. There is few
->> examples already on some demod drivers.
+> On Wednesday, 28 February 2018 17:07:00 EET Guennadi Liakhovetski wrote:
+> > Hi,
+> > 
+> > I know the "development process and responsibilities" was the main topic
+> > during the last media summit. Unfortunately I haven't attended it, from
+> > the etherpad notes I also cannot quite conclude what decisions have been
+> > made. Have any measures been discussed and agreed upon for cases, when
+> > patches don't get reviewed for many months, adding up to more than a year
+> > (in this specific case the first version submitted in June 2016)?  
 > 
-> I am afraid that the glue is actually necessary.
-> 
-> host - USB -> gl861 - I2C(1) -> tc90522 (addr:X)
->                                    \- I2C(2) -> tua6034 (addr:Y)
-> 
-> To send an i2c read message to tua6034,
-> one has to issue two transactions:
->   1. write via I2C(1) to addr:X, [ reg:0xfe, val: Y ]
->   2. read via I2C(1) from addr:X, [ out_data0, out_data1, ....]
-> 
-> The problem is that the transaction 1 is (somehow) implemented with
-> the different USB request than the other i2c transactions on I2C(1).
-> (this is confirmed by a packet capture on Windows box).
-> 
-> Although tc90522 already creats the i2c adapter for I2C(2),
-> tc90522 cannot know/control the USB implementation of I2C(1),
-> only the bridge driver can do this.
+> I assume you're talking about the "[PATCH 0/2 v6] uvcvideo: asynchronous 
+> controls" series, is that correct ?
 
-I simply cannot see why it cannot work. Just add i2c adapter and 
-suitable logic there. Transaction on your example is simply and there is 
-no problem to implement that kind of logic to demod i2c adapter.
+What's the situation of such patch review? In case you doesn't have the
+original e-mail anymore, I asked Guennadi on IRC to resubmit it, in order
+to make easier for us to review/comment about any issues there, if any.
 
-If gl861 driver i2c adapter logic is broken it can be fixed easily too. 
-It seems to support only i2c writes with len 1 and 2 bytes, but fixing 
-it should be easy if you has some sniffs.
+Regards,
+Mauro
 
-
-
-Antti
-
--- 
-http://palosaari.fi/
+Thanks,
+Mauro
