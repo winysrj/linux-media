@@ -1,120 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:43356 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752676AbeCQOzh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Mar 2018 10:55:37 -0400
-Received: by mail-wr0-f193.google.com with SMTP id o1so14329030wro.10
-        for <linux-media@vger.kernel.org>; Sat, 17 Mar 2018 07:55:36 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: Jasmin Jessich <jasmin@anw.at>
-Subject: [PATCH] [media] ddbridge, cxd2099: include guard, fix unneeded NULL init, strings
-Date: Sat, 17 Mar 2018 15:55:32 +0100
-Message-Id: <20180317145532.23202-1-d.scheller.oss@gmail.com>
+Received: from mail.bootlin.com ([62.4.15.54]:49646 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750920AbeCIKKl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 05:10:41 -0500
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Subject: [PATCH 0/9] Sunxi-Cedrus driver for the Allwinner Video Engine, using the V4L2 request API
+Date: Fri,  9 Mar 2018 11:09:24 +0100
+Message-Id: <20180309100933.15922-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+This presents a newer version of the Sunxi-Cedrus driver, that supports
+the Video Engine found in most Allwinner SoCs, starting with the A10.
 
-Three really tiny minors in this single commit which all on their own
-would just clutter up the commit history unnecessarily:
+The first version of this driver[0] was originally written and submitted
+by Florent Revest using a previous version of the request API, that is
+necessary to provide coherency between controls and the buffers they apply
+to. The driver was since adapted to use the latest version of the request
+API[1], as submitted by Alexandre Courbot. It is a hard requirement for
+this driver.
 
-* ddbridge-regs.h is lacking an include guard. Add it.
-* Fix an unnecessary NULL initialisation in ddbridge-ci. The declaration
-  of the ci struct ptr is immediately followed by kzalloc().
-* Clarify that the CXD2099AR is a Sony device in the cxd2099 driver at a
-  few places including Kconfig.
+This series also contains fixes for issues encountered with the current
+version of the request API. If accepted, these should eventually be
+squashed into the request API series.
 
-Cc Jasmin for the cxd2099 changes.
+The driver itself currently only supports MPEG2 and more codecs will be
+added to the driver eventually. The output frames provided by the
+Video Engine are in a multi-planar 32x32-tiled YUV format, with a plane
+for luminance (Y) and a plane for chrominance (UV). A specific format is
+introduced in the V4L2 API to describe it.
 
-Cc: Jasmin Jessich <jasmin@anw.at>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
-Please pull for the 4.17 merge window.
+This implementation is based on the significant work that was conducted
+by various members of the linux-sunxi community for understanding and
+documenting the Video Engine's innards.
 
- drivers/media/dvb-frontends/Kconfig        | 2 +-
- drivers/media/dvb-frontends/cxd2099.c      | 4 ++--
- drivers/media/dvb-frontends/cxd2099.h      | 2 +-
- drivers/media/pci/ddbridge/ddbridge-ci.c   | 2 +-
- drivers/media/pci/ddbridge/ddbridge-regs.h | 4 ++++
- 5 files changed, 9 insertions(+), 5 deletions(-)
+[0]: https://lkml.org/lkml/2016/8/25/246
+[1]: https://lkml.org/lkml/2018/2/19/872
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 687086cdb870..fda645cbe68e 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -903,7 +903,7 @@ comment "Common Interface (EN50221) controller drivers"
- 	depends on DVB_CORE
- 
- config DVB_CXD2099
--	tristate "CXD2099AR Common Interface driver"
-+	tristate "Sony CXD2099AR Common Interface driver"
- 	depends on DVB_CORE && I2C
- 	select REGMAP_I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/dvb-frontends/cxd2099.c b/drivers/media/dvb-frontends/cxd2099.c
-index c0a5849b76bb..4a0ce3037fd6 100644
---- a/drivers/media/dvb-frontends/cxd2099.c
-+++ b/drivers/media/dvb-frontends/cxd2099.c
-@@ -1,5 +1,5 @@
- /*
-- * cxd2099.c: Driver for the CXD2099AR Common Interface Controller
-+ * cxd2099.c: Driver for the Sony CXD2099AR Common Interface Controller
-  *
-  * Copyright (C) 2010-2013 Digital Devices GmbH
-  *
-@@ -699,6 +699,6 @@ static struct i2c_driver cxd2099_driver = {
- 
- module_i2c_driver(cxd2099_driver);
- 
--MODULE_DESCRIPTION("CXD2099AR Common Interface controller driver");
-+MODULE_DESCRIPTION("Sony CXD2099AR Common Interface controller driver");
- MODULE_AUTHOR("Ralph Metzler");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/cxd2099.h b/drivers/media/dvb-frontends/cxd2099.h
-index 8fa45a4c615a..ec1910dec3f3 100644
---- a/drivers/media/dvb-frontends/cxd2099.h
-+++ b/drivers/media/dvb-frontends/cxd2099.h
-@@ -1,5 +1,5 @@
- /*
-- * cxd2099.h: Driver for the CXD2099AR Common Interface Controller
-+ * cxd2099.h: Driver for the Sony CXD2099AR Common Interface Controller
-  *
-  * Copyright (C) 2010-2011 Digital Devices GmbH
-  *
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index a9dbc4ebf94f..cfe23d02e561 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -164,7 +164,7 @@ static struct dvb_ca_en50221 en_templ = {
- 
- static void ci_attach(struct ddb_port *port)
- {
--	struct ddb_ci *ci = NULL;
-+	struct ddb_ci *ci;
- 
- 	ci = kzalloc(sizeof(*ci), GFP_KERNEL);
- 	if (!ci)
-diff --git a/drivers/media/pci/ddbridge/ddbridge-regs.h b/drivers/media/pci/ddbridge/ddbridge-regs.h
-index 23d74ff83fe4..b978b5991940 100644
---- a/drivers/media/pci/ddbridge/ddbridge-regs.h
-+++ b/drivers/media/pci/ddbridge/ddbridge-regs.h
-@@ -17,6 +17,9 @@
-  * http://www.gnu.org/copyleft/gpl.html
-  */
- 
-+#ifndef __DDBRIDGE_REGS_H__
-+#define __DDBRIDGE_REGS_H__
-+
- /* ------------------------------------------------------------------------- */
- /* SPI Controller */
- 
-@@ -154,3 +157,4 @@
- #define LNB_BUF_LEVEL(i)		(LNB_BASE + (i) * 0x20 + 0x10)
- #define LNB_BUF_WRITE(i)		(LNB_BASE + (i) * 0x20 + 0x14)
- 
-+#endif /* __DDBRIDGE_REGS_H__ */
+Florent Revest (5):
+  v4l: Add sunxi Video Engine pixel format
+  v4l: Add MPEG2 low-level decoder API control
+  media: platform: Add Sunxi Cedrus decoder driver
+  sunxi-cedrus: Add device tree binding document
+  ARM: dts: sun5i: Use video-engine node
+
+Icenowy Zheng (1):
+  ARM: dts: sun8i: add video engine support for A33
+
+Paul Kocialkowski (2):
+  media: vim2m: Try to schedule a m2m device run on request submission
+  media: videobuf2-v4l2: Copy planes when needed in request qbuf
+
+Thomas van Kleef (1):
+  ARM: dts: sun7i: Add video engine support for the A20
+
+ .../devicetree/bindings/media/sunxi-cedrus.txt     |  44 ++
+ arch/arm/boot/dts/sun5i-a13.dtsi                   |  30 ++
+ arch/arm/boot/dts/sun7i-a20.dtsi                   |  47 ++
+ arch/arm/boot/dts/sun8i-a33.dtsi                   |  39 ++
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    |  19 +
+ drivers/media/platform/Kconfig                     |  14 +
+ drivers/media/platform/Makefile                    |   1 +
+ drivers/media/platform/sunxi-cedrus/Makefile       |   4 +
+ drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c | 313 ++++++++++++
+ .../platform/sunxi-cedrus/sunxi_cedrus_common.h    | 106 ++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.c | 568 +++++++++++++++++++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.h |  33 ++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.c  | 185 +++++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.h  |  36 ++
+ .../platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c     | 152 ++++++
+ .../platform/sunxi-cedrus/sunxi_cedrus_regs.h      | 170 ++++++
+ drivers/media/platform/vim2m.c                     |  13 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               |  15 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/v4l2-controls.h                 |  26 +
+ include/uapi/linux/videodev2.h                     |   6 +
+ 21 files changed, 1821 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+ create mode 100644 drivers/media/platform/sunxi-cedrus/Makefile
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_common.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_regs.h
+
 -- 
-2.16.1
+2.16.2
