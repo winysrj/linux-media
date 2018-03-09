@@ -1,68 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:38366 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755553AbeCSPqE (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33106 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751159AbeCIPsc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 11:46:04 -0400
-Subject: Re: [PATCH 0/8] media: fix more inconsistencies
+        Fri, 9 Mar 2018 10:48:32 -0500
+Subject: Re: [PATCH v12 33/33] rcar-vin: enable support for r8a77970
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-34-niklas.soderlund+renesas@ragnatech.se>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-References: <20180319154324.37799-1-hverkuil@xs4all.nl>
-Message-ID: <7a2247bc-7db3-140a-90e4-f33e00360b67@xs4all.nl>
-Date: Mon, 19 Mar 2018 16:45:59 +0100
+Message-ID: <deec6186-a016-dd1f-82c5-b60247cfb76f@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:48:29 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
+In-Reply-To: <20180307220511.9826-34-niklas.soderlund+renesas@ragnatech.se>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/19/2018 04:43 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 07/03/18 23:05, Niklas Söderlund wrote:
+> Add the SoC specific information for Renesas r8a77970.
 > 
-> This is a follow-up of my earlier "media: fix inconsistencies"
-> patch series (https://www.mail-archive.com/linux-media@vger.kernel.org/msg127943.html).
-> 
-> The purpose of this series is to expose the same information through
-> the old and new MC APIs. There is no reason not to do this and it is
-> frankly insane that some information is available through one API
-> and not the other and vice versa.
-> 
-> The new API should be a superset of the old one.
-> 
-> This series also adds the 'function' field to the old API for the simple
-> reason that you need this even today, otherwise you are unable to
-> correctly identify the function of a subdev if it is one of the newer
-> functions.
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Note: the 'HAS' macros assume this will land in 4.17, which is
-probably too optimistic. So if this slips to 4.18, then they need to
-be updated.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
 
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
 > 
-> Regards,
-> 
-> 	Hans
-> 
-> Hans Verkuil (8):
->   media-ioc-g-topology.rst: fix 'reserved' sizes
->   media: add function field to struct media_entity_desc
->   media-ioc-enum-entities.rst: document new 'function' field
->   media: add 'index' to struct media_v2_pad
->   media-ioc-g-topology.rst: document new 'index' field
->   media: add flags field to struct media_v2_entity
->   media-ioc-g-topology.rst: document new 'flags' field
->   media-types.rst: rename media-entity-type to media-entity-functions
-> 
->  .../uapi/mediactl/media-ioc-enum-entities.rst      | 33 +++++++++++++++++-----
->  .../media/uapi/mediactl/media-ioc-g-topology.rst   | 29 ++++++++++++++++---
->  Documentation/media/uapi/mediactl/media-types.rst  |  4 +--
->  drivers/media/media-device.c                       |  3 ++
->  include/uapi/linux/media.h                         | 21 ++++++++++++--
->  5 files changed, 74 insertions(+), 16 deletions(-)
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 0040f92bfdff947a..a7e65c720f2c191b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -971,6 +971,25 @@ static const struct rvin_info rcar_info_r8a7796 = {
+>  	.routes = rcar_info_r8a7796_routes,
+>  };
+>  
+> +static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
+> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
+> +	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
+> +	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
+> +	{ /* Sentinel */ }
+> +};
+> +
+> +static const struct rvin_info rcar_info_r8a77970 = {
+> +	.model = RCAR_GEN3,
+> +	.use_mc = true,
+> +	.max_width = 4096,
+> +	.max_height = 4096,
+> +	.routes = _rcar_info_r8a77970_routes,
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+>  	{
+>  		.compatible = "renesas,vin-r8a7778",
+> @@ -1008,6 +1027,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+>  		.compatible = "renesas,vin-r8a7796",
+>  		.data = &rcar_info_r8a7796,
+>  	},
+> +	{
+> +		.compatible = "renesas,vin-r8a77970",
+> +		.data = &rcar_info_r8a77970,
+> +	},
+>  	{ /* Sentinel */ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
 > 
