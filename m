@@ -1,113 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:55622 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750707AbeC2G56 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39616 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751096AbeCIPnZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 02:57:58 -0400
-Received: by mail-wm0-f66.google.com with SMTP id b127so8002781wmf.5
-        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 23:57:57 -0700 (PDT)
-Date: Thu, 29 Mar 2018 08:57:53 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Christian =?iso-8859-1?Q?K=F6nig?=
-        <ckoenig.leichtzumerken@gmail.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180329065753.GD3881@phenom.ffwll.local>
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-4-christian.koenig@amd.com>
+        Fri, 9 Mar 2018 10:43:25 -0500
+Subject: Re: [PATCH v12 26/33] rcar-vin: change name of video device
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-27-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5f4b2cd2-2c7f-56f0-9f50-abdd07f9cc88@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:43:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20180307220511.9826-27-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180325110000.2238-4-christian.koenig@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 25, 2018 at 12:59:56PM +0200, Christian König wrote:
-> Add a peer2peer flag noting that the importer can deal with device
-> resources which are not backed by pages.
+On 07/03/18 23:05, Niklas SÃ¶derlund wrote:
+> The rcar-vin driver needs to be part of a media controller to support
+> Gen3. Give each VIN instance a unique name so it can be referenced from
+> userspace.
 > 
-> Signed-off-by: Christian König <christian.koenig@amd.com>
+> Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Um strictly speaking they all should, but ttm never bothered to use the
-real interfaces but just hacked around the provided sg list, grabbing the
-underlying struct pages, then rebuilding&remapping the sg list again.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The entire point of using sg lists was exactly to allow this use case of
-peer2peer dma (or well in general have special exporters which managed
-memory/IO ranges not backed by struct page). So essentially you're having
-a "I'm totally not broken flag" here.
+Regards,
 
-I think a better approach would be if we add a requires_struct_page or so,
-and annotate the current importers accordingly. Or we just fix them up (it
-is all in shared ttm code after all, I think everyone else got this
-right).
--Daniel
+	Hans
 
 > ---
->  drivers/dma-buf/dma-buf.c | 1 +
->  include/linux/dma-buf.h   | 4 ++++
->  2 files changed, 5 insertions(+)
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index ffaa2f9a9c2c..f420225f93c6 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -565,6 +565,7 @@ struct dma_buf_attachment *dma_buf_attach(const struct dma_buf_attach_info *info
->  
->  	attach->dev = info->dev;
->  	attach->dmabuf = dmabuf;
-> +	attach->peer2peer = info->peer2peer;
->  	attach->priv = info->priv;
->  	attach->invalidate = info->invalidate;
->  
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index 15dd8598bff1..1ef50bd9bc5b 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -313,6 +313,7 @@ struct dma_buf {
->   * @dmabuf: buffer for this attachment.
->   * @dev: device attached to the buffer.
->   * @node: list of dma_buf_attachment.
-> + * @peer2peer: true if the importer can handle peer resources without pages.
->   * @priv: exporter specific attachment data.
->   *
->   * This structure holds the attachment information between the dma_buf buffer
-> @@ -328,6 +329,7 @@ struct dma_buf_attachment {
->  	struct dma_buf *dmabuf;
->  	struct device *dev;
->  	struct list_head node;
-> +	bool peer2peer;
->  	void *priv;
->  
->  	/**
-> @@ -392,6 +394,7 @@ struct dma_buf_export_info {
->   * @dmabuf:	the exported dma_buf
->   * @dev:	the device which wants to import the attachment
->   * @priv:	private data of importer to this attachment
-> + * @peer2peer:	true if the importer can handle peer resources without pages
->   * @invalidate:	callback to use for invalidating mappings
->   *
->   * This structure holds the information required to attach to a buffer. Used
-> @@ -401,6 +404,7 @@ struct dma_buf_attach_info {
->  	struct dma_buf *dmabuf;
->  	struct device *dev;
->  	void *priv;
-> +	bool peer2peer;
->  	void (*invalidate)(struct dma_buf_attachment *attach);
->  };
->  
-> -- 
-> 2.14.1
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index ea0759a645e49490..7c10557d965ea6ed 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -993,7 +993,7 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+>  	/* video node */
+>  	vdev->v4l2_dev = &vin->v4l2_dev;
+>  	vdev->queue = &vin->queue;
+> -	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
+> +	snprintf(vdev->name, sizeof(vdev->name), "VIN%u output", vin->id);
+>  	vdev->release = video_device_release_empty;
+>  	vdev->lock = &vin->lock;
+>  	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
 > 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
