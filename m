@@ -1,69 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31510 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754642AbeCGWF0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:26 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: [PATCH v12 02/33] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
-Date: Wed,  7 Mar 2018 23:04:40 +0100
-Message-Id: <20180307220511.9826-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:39386 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932657AbeCITLu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 14:11:50 -0500
+Received: by mail-wm0-f65.google.com with SMTP id i3so5680373wmi.4
+        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 11:11:49 -0800 (PST)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Cc: sumit.semwal@linaro.org
+Subject: [PATCH 2/4] drm/ttm: keep a reference to transfer pipelined BOs
+Date: Fri,  9 Mar 2018 20:11:42 +0100
+Message-Id: <20180309191144.1817-3-christian.koenig@amd.com>
+In-Reply-To: <20180309191144.1817-1-christian.koenig@amd.com>
+References: <20180309191144.1817-1-christian.koenig@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Make sure the transfered BO is never destroy before the transfer BO.
 
-Add compatible strings for r8a7743 and r8a7745. No driver change
-is needed as "renesas,rcar-gen2-vin" will activate the right code.
-However, it is good practice to document compatible strings for the
-specific SoC as this allows SoC specific changes to the driver if
-needed, in addition to document SoC support and therefore allow
-checkpatch.pl to validate compatible string values.
-
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Christian König <christian.koenig@amd.com>
 ---
- Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/ttm/ttm_bo_util.c | 50 +++++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 0ac715a5c331bc26..c60e6b0a89b67a8c 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
+diff --git a/drivers/gpu/drm/ttm/ttm_bo_util.c b/drivers/gpu/drm/ttm/ttm_bo_util.c
+index 1f730b3f18e5..1ee20558ee31 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo_util.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_util.c
+@@ -39,6 +39,11 @@
+ #include <linux/module.h>
+ #include <linux/reservation.h>
  
-  - compatible: Must be one or more of the following
-+   - "renesas,vin-r8a7743" for the R8A7743 device
-+   - "renesas,vin-r8a7745" for the R8A7745 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7790" for the R8A7790 device
-@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7795" for the R8A7795 device
--   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-+   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-+     device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
++struct ttm_transfer_obj {
++	struct ttm_buffer_object base;
++	struct ttm_buffer_object *bo;
++};
++
+ void ttm_bo_free_old_node(struct ttm_buffer_object *bo)
+ {
+ 	ttm_bo_mem_put(bo, &bo->mem);
+@@ -435,7 +440,11 @@ EXPORT_SYMBOL(ttm_bo_move_memcpy);
  
-    When compatible with the generic version nodes must list the
+ static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
+ {
+-	kfree(bo);
++	struct ttm_transfer_obj *fbo;
++
++	fbo = container_of(bo, struct ttm_transfer_obj, base);
++	ttm_bo_unref(&fbo->bo);
++	kfree(fbo);
+ }
+ 
+ /**
+@@ -456,14 +465,15 @@ static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
+ static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
+ 				      struct ttm_buffer_object **new_obj)
+ {
+-	struct ttm_buffer_object *fbo;
++	struct ttm_transfer_obj *fbo;
+ 	int ret;
+ 
+ 	fbo = kmalloc(sizeof(*fbo), GFP_KERNEL);
+ 	if (!fbo)
+ 		return -ENOMEM;
+ 
+-	*fbo = *bo;
++	fbo->base = *bo;
++	fbo->bo = ttm_bo_reference(bo);
+ 
+ 	/**
+ 	 * Fix up members that we shouldn't copy directly:
+@@ -471,25 +481,25 @@ static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
+ 	 */
+ 
+ 	atomic_inc(&bo->bdev->glob->bo_count);
+-	INIT_LIST_HEAD(&fbo->ddestroy);
+-	INIT_LIST_HEAD(&fbo->lru);
+-	INIT_LIST_HEAD(&fbo->swap);
+-	INIT_LIST_HEAD(&fbo->io_reserve_lru);
+-	mutex_init(&fbo->wu_mutex);
+-	fbo->moving = NULL;
+-	drm_vma_node_reset(&fbo->vma_node);
+-	atomic_set(&fbo->cpu_writers, 0);
+-
+-	kref_init(&fbo->list_kref);
+-	kref_init(&fbo->kref);
+-	fbo->destroy = &ttm_transfered_destroy;
+-	fbo->acc_size = 0;
+-	fbo->resv = &fbo->ttm_resv;
+-	reservation_object_init(fbo->resv);
+-	ret = reservation_object_trylock(fbo->resv);
++	INIT_LIST_HEAD(&fbo->base.ddestroy);
++	INIT_LIST_HEAD(&fbo->base.lru);
++	INIT_LIST_HEAD(&fbo->base.swap);
++	INIT_LIST_HEAD(&fbo->base.io_reserve_lru);
++	mutex_init(&fbo->base.wu_mutex);
++	fbo->base.moving = NULL;
++	drm_vma_node_reset(&fbo->base.vma_node);
++	atomic_set(&fbo->base.cpu_writers, 0);
++
++	kref_init(&fbo->base.list_kref);
++	kref_init(&fbo->base.kref);
++	fbo->base.destroy = &ttm_transfered_destroy;
++	fbo->base.acc_size = 0;
++	fbo->base.resv = &fbo->base.ttm_resv;
++	reservation_object_init(fbo->base.resv);
++	ret = reservation_object_trylock(fbo->base.resv);
+ 	WARN_ON(!ret);
+ 
+-	*new_obj = fbo;
++	*new_obj = &fbo->base;
+ 	return 0;
+ }
+ 
 -- 
-2.16.2
+2.14.1
