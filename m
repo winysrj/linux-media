@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:47052 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751903AbeCWMYj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 08:24:39 -0400
-Subject: Re: [PATCH 30/30] media: cec-core: fix a bug at cec_error_inj_write()
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
- <c1b1e1d6a1588d099720f8c6509736b01ccdc6ae.1521806166.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <8296b805-029a-88b5-ffdb-e35300a1f9b2@cisco.com>
-Date: Fri, 23 Mar 2018 13:24:37 +0100
+Received: from mout.gmx.net ([212.227.17.21]:60613 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751096AbeCIRBR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 12:01:17 -0500
+Received: from axis700.grange ([84.44.204.122]) by mail.gmx.com (mrgmx103
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0Lskr7-1eWJ6L2iHh-012Iml for
+ <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 18:01:16 +0100
+Received: from localhost (localhost [127.0.0.1])
+        by axis700.grange (Postfix) with ESMTP id 538D160AE4
+        for <linux-media@vger.kernel.org>; Fri,  9 Mar 2018 18:01:08 +0100 (CET)
+Date: Fri, 9 Mar 2018 18:01:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] V4L: remove myself as soc-camera maintainer
+Message-ID: <alpine.DEB.2.20.1803091800320.18806@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <c1b1e1d6a1588d099720f8c6509736b01ccdc6ae.1521806166.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/23/18 12:57, Mauro Carvalho Chehab wrote:
-> If the adapter doesn't have error_inj_parse_line() ops, the
-> write() logic won't return -EINVAL, but, instead, it will keep
-> looping, because "count" is a non-negative number.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The soc-camera framework is deprecated, patches for it are very rare
+and only contain trivial clean up. Further I haven't got any more
+soc-camera systems running modern kernels.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ MAINTAINERS | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Thanks!
-
-	Hans
-
-> ---
->  drivers/media/cec/cec-core.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-> index ea3eccfdba15..b0c87f9ea08f 100644
-> --- a/drivers/media/cec/cec-core.c
-> +++ b/drivers/media/cec/cec-core.c
-> @@ -209,14 +209,14 @@ static ssize_t cec_error_inj_write(struct file *file,
->  	if (IS_ERR(buf))
->  		return PTR_ERR(buf);
->  	p = buf;
-> -	while (p && *p && count >= 0) {
-> +	while (p && *p) {
->  		p = skip_spaces(p);
->  		line = strsep(&p, "\n");
->  		if (!*line || *line == '#')
->  			continue;
->  		if (!adap->ops->error_inj_parse_line(adap, line)) {
-> -			count = -EINVAL;
-> -			break;
-> +			kfree(buf);
-> +			return -EINVAL;
->  		}
->  	}
->  	kfree(buf);
-> 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 64cd083..80655f0 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12942,10 +12942,9 @@ S:	Maintained
+ F:	drivers/net/ethernet/smsc/smsc9420.*
+ 
+ SOC-CAMERA V4L2 SUBSYSTEM
+-M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+-S:	Maintained
++S:	Orphan
+ F:	include/media/soc*
+ F:	drivers/media/i2c/soc_camera/
+ F:	drivers/media/platform/soc_camera/
+-- 
+1.9.3
