@@ -1,243 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34130 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752507AbeCYK6G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Mar 2018 06:58:06 -0400
-Received: by mail-wr0-f193.google.com with SMTP id o8so16092883wra.1
-        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2018 03:58:05 -0700 (PDT)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        sumit.semwal@linaro.org
-Subject: [PATCH 5/5] drm/amdgpu: add independent DMA-buf import v3
-Date: Sun, 25 Mar 2018 12:57:59 +0200
-Message-Id: <20180325105759.2151-5-christian.koenig@amd.com>
-In-Reply-To: <20180325105759.2151-1-christian.koenig@amd.com>
-References: <20180325105759.2151-1-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga04.intel.com ([192.55.52.120]:36224 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751337AbeCIXtZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 18:49:25 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: acourbot@chromium.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC 5/8] videodev2.h: Add request_fd field to v4l2_buffer
+Date: Sat, 10 Mar 2018 01:48:49 +0200
+Message-Id: <1520639332-19190-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1520639332-19190-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1520639332-19190-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of relying on the DRM functions just implement our own import
-functions. This adds support for taking care of unpinned DMA-buf.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-v2: enable for all exporters, not just amdgpu, fix invalidation
-    handling, lock reservation object while setting callback
-v3: change to new dma_buf attach interface
+When queuing buffers allow for passing the request that should
+be associated with this buffer.
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[acourbot@chromium.org: make request ID 32-bit]
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+[Sakari Ailus: requests fds are int; use assign_in_user in get_v4l2_buffer]
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c | 72 ++++++++++++++++++++++++++-----
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c   | 32 +++++++++++---
- 2 files changed, 89 insertions(+), 15 deletions(-)
+ drivers/media/common/videobuf2/videobuf2-v4l2.c | 2 +-
+ drivers/media/usb/cpia2/cpia2_v4l.c             | 2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   | 7 ++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c            | 4 ++--
+ include/uapi/linux/videodev2.h                  | 3 ++-
+ 5 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-index 7fef95f0fed1..fb43faf88eb0 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-@@ -86,28 +86,24 @@ int amdgpu_gem_prime_mmap(struct drm_gem_object *obj, struct vm_area_struct *vma
- 	return ret;
- }
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 886a2d8..6d4d184 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->request_fd = 0;
+ 	b->reserved = 0;
  
--struct drm_gem_object *
--amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
--				 struct dma_buf_attachment *attach,
--				 struct sg_table *sg)
-+static struct drm_gem_object *
-+amdgpu_gem_prime_create_obj(struct drm_device *dev, struct dma_buf *dma_buf)
- {
--	struct reservation_object *resv = attach->dmabuf->resv;
-+	struct reservation_object *resv = dma_buf->resv;
- 	struct amdgpu_device *adev = dev->dev_private;
- 	struct amdgpu_bo *bo;
- 	int ret;
+ 	if (q->is_multiplanar) {
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 99f106b..af42ce3 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->request_fd = 0;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
  
- 	ww_mutex_lock(&resv->lock, NULL);
--	ret = amdgpu_bo_create(adev, attach->dmabuf->size, PAGE_SIZE,
-+	ret = amdgpu_bo_create(adev, dma_buf->size, PAGE_SIZE,
- 			       AMDGPU_GEM_DOMAIN_CPU, 0, ttm_bo_type_sg,
- 			       resv, &bo);
- 	if (ret)
- 		goto error;
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 5198c9e..61a8bd4 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -386,7 +386,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			request_fd;
+ 	__u32			reserved;
+ };
  
--	bo->tbo.sg = sg;
--	bo->tbo.ttm->sg = sg;
- 	bo->allowed_domains = AMDGPU_GEM_DOMAIN_GTT;
- 	bo->preferred_domains = AMDGPU_GEM_DOMAIN_GTT;
--	if (attach->dmabuf->ops != &amdgpu_dmabuf_ops)
-+	if (dma_buf->ops != &amdgpu_dmabuf_ops)
- 		bo->prime_shared_count = 1;
+@@ -500,7 +500,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    get_user(memory, &up->memory) ||
+ 	    put_user(memory, &kp->memory) ||
+ 	    get_user(length, &up->length) ||
+-	    put_user(length, &kp->length))
++	    put_user(length, &kp->length) ||
++	    assign_in_user(&kp->request_fd, &up->request_fd))
+ 		return -EFAULT;
  
- 	ww_mutex_unlock(&resv->lock);
-@@ -118,6 +114,26 @@ amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
- 	return ERR_PTR(ret);
- }
+ 	if (V4L2_TYPE_IS_OUTPUT(type))
+@@ -604,7 +605,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
+ 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+ 	    assign_in_user(&up->sequence, &kp->sequence) ||
+-	    assign_in_user(&up->reserved2, &kp->reserved2) ||
++	    assign_in_user(&up->request_fd, &kp->request_fd) ||
+ 	    assign_in_user(&up->reserved, &kp->reserved) ||
+ 	    get_user(length, &kp->length) ||
+ 	    put_user(length, &up->length))
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f697c23..6c623e5 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+ 	const struct v4l2_plane *plane;
+ 	int i;
  
-+struct drm_gem_object *
-+amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
-+				 struct dma_buf_attachment *attach,
-+				 struct sg_table *sg)
-+{
-+	struct drm_gem_object *obj;
-+	struct amdgpu_bo *bo;
-+
-+	obj = amdgpu_gem_prime_create_obj(dev, attach->dmabuf);
-+	if (IS_ERR(obj))
-+		return obj;
-+
-+	bo = gem_to_amdgpu_bo(obj);
-+	amdgpu_bo_reserve(bo, true);
-+	bo->tbo.sg = sg;
-+	bo->tbo.ttm->sg = sg;
-+	amdgpu_bo_unreserve(bo);
-+	return obj;
-+}
-+
- static struct sg_table *
- amdgpu_gem_map_dma_buf(struct dma_buf_attachment *attach,
- 		       enum dma_data_direction dir)
-@@ -293,9 +309,29 @@ struct dma_buf *amdgpu_gem_prime_export(struct drm_device *dev,
- 	return buf;
- }
+-	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+-			prt_names(p->type, v4l2_type_names),
++			prt_names(p->type, v4l2_type_names), p->request_fd,
+ 			p->flags, prt_names(p->field, v4l2_field_names),
+ 			p->sequence, prt_names(p->memory, v4l2_memory_names));
  
-+static void
-+amdgpu_gem_prime_invalidate_mappings(struct dma_buf_attachment *attach)
-+{
-+	struct ttm_operation_ctx ctx = { false, false };
-+	struct drm_gem_object *obj = attach->priv;
-+	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-+	struct ttm_placement placement = {};
-+	int r;
-+
-+	r = ttm_bo_validate(&bo->tbo, &placement, &ctx);
-+	if (r)
-+		DRM_ERROR("Failed to unmap DMA-buf import (%d))\n", r);
-+}
-+
- struct drm_gem_object *amdgpu_gem_prime_import(struct drm_device *dev,
- 					    struct dma_buf *dma_buf)
- {
-+	struct dma_buf_attach_info attach_info = {
-+		.dev = dev->dev,
-+		.dmabuf = dma_buf,
-+		.invalidate = amdgpu_gem_prime_invalidate_mappings
-+	};
-+	struct dma_buf_attachment *attach;
- 	struct drm_gem_object *obj;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 9827189..4fd46ae 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -909,6 +909,7 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
++ * @request_fd: fd of the request that this buffer should use
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -932,7 +933,7 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			request_fd;
+ 	__u32			reserved;
+ };
  
- 	if (dma_buf->ops == &amdgpu_dmabuf_ops) {
-@@ -310,5 +346,21 @@ struct drm_gem_object *amdgpu_gem_prime_import(struct drm_device *dev,
- 		}
- 	}
- 
--	return drm_gem_prime_import(dev, dma_buf);
-+	if (!dma_buf->invalidation_supported)
-+		return drm_gem_prime_import(dev, dma_buf);
-+
-+	obj = amdgpu_gem_prime_create_obj(dev, dma_buf);
-+	if (IS_ERR(obj))
-+		return obj;
-+
-+	attach_info.priv = obj;
-+	attach = dma_buf_attach(&attach_info);
-+	if (IS_ERR(attach)) {
-+		drm_gem_object_put(obj);
-+		return ERR_CAST(attach);
-+	}
-+
-+	get_dma_buf(dma_buf);
-+	obj->import_attach = attach;
-+	return obj;
- }
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-index d2ab40494a4c..ad93f201e7b6 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -43,6 +43,7 @@
- #include <linux/pagemap.h>
- #include <linux/debugfs.h>
- #include <linux/iommu.h>
-+#include <linux/dma-buf.h>
- #include "amdgpu.h"
- #include "amdgpu_object.h"
- #include "amdgpu_trace.h"
-@@ -685,6 +686,7 @@ struct amdgpu_ttm_gup_task_list {
- 
- struct amdgpu_ttm_tt {
- 	struct ttm_dma_tt	ttm;
-+	struct amdgpu_bo	*bo;
- 	u64			offset;
- 	uint64_t		userptr;
- 	struct mm_struct	*usermm;
-@@ -993,6 +995,7 @@ static struct ttm_tt *amdgpu_ttm_tt_create(struct ttm_buffer_object *bo,
- 		return NULL;
- 	}
- 	gtt->ttm.ttm.func = &amdgpu_backend_func;
-+	gtt->bo = ttm_to_amdgpu_bo(bo);
- 	if (ttm_sg_tt_init(&gtt->ttm, bo, page_flags)) {
- 		kfree(gtt);
- 		return NULL;
-@@ -1005,7 +1008,6 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
- {
- 	struct amdgpu_device *adev = amdgpu_ttm_adev(ttm->bdev);
- 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
--	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
- 
- 	if (gtt && gtt->userptr) {
- 		ttm->sg = kzalloc(sizeof(struct sg_table), GFP_KERNEL);
-@@ -1017,7 +1019,19 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
- 		return 0;
- 	}
- 
--	if (slave && ttm->sg) {
-+	if (ttm->page_flags & TTM_PAGE_FLAG_SG) {
-+		if (!ttm->sg) {
-+			struct dma_buf_attachment *attach;
-+			struct sg_table *sgt;
-+
-+			attach = gtt->bo->gem_base.import_attach;
-+			sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-+			if (IS_ERR(sgt))
-+				return PTR_ERR(sgt);
-+
-+			ttm->sg = sgt;
-+		}
-+
- 		drm_prime_sg_to_page_addr_arrays(ttm->sg, ttm->pages,
- 						 gtt->ttm.dma_address,
- 						 ttm->num_pages);
-@@ -1036,9 +1050,8 @@ static int amdgpu_ttm_tt_populate(struct ttm_tt *ttm,
- 
- static void amdgpu_ttm_tt_unpopulate(struct ttm_tt *ttm)
- {
--	struct amdgpu_device *adev;
- 	struct amdgpu_ttm_tt *gtt = (void *)ttm;
--	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
-+	struct amdgpu_device *adev;
- 
- 	if (gtt && gtt->userptr) {
- 		amdgpu_ttm_tt_set_user_pages(ttm, NULL);
-@@ -1047,7 +1060,16 @@ static void amdgpu_ttm_tt_unpopulate(struct ttm_tt *ttm)
- 		return;
- 	}
- 
--	if (slave)
-+	if (ttm->sg && !gtt->bo->tbo.sg) {
-+		struct dma_buf_attachment *attach;
-+
-+		attach = gtt->bo->gem_base.import_attach;
-+		dma_buf_unmap_attachment(attach, ttm->sg, DMA_BIDIRECTIONAL);
-+		ttm->sg = NULL;
-+		return;
-+	}
-+
-+	if (ttm->page_flags & TTM_PAGE_FLAG_SG)
- 		return;
- 
- 	adev = amdgpu_ttm_adev(ttm->bdev);
 -- 
-2.14.1
+2.7.4
