@@ -1,500 +1,763 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60365 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752725AbeC1OBp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 18/29] vb2: store userspace data in vb2_v4l2_buffer
-Date: Wed, 28 Mar 2018 16:01:29 +0200
-Message-Id: <20180328140140.42096-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
-References: <20180328140140.42096-1-hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:34884 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751268AbeCIPxs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:53:48 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 02/11] media: lgdt330x: fix coding style issues
+Date: Fri,  9 Mar 2018 12:53:27 -0300
+Message-Id: <637dcb8aa5a5749e679750f436ea9885fb2522a4.1520610788.git.mchehab@s-opensource.com>
+In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As we're about to convert this driver to use the new i2c
+binding way, let's first solve most coding style issues,
+in order to avoid mixing coding style changes with code
+changes.
 
-The userspace-provided plane data needs to be stored in
-vb2_v4l2_buffer. Currently this information is applied by
-__fill_vb2_buffer() which is called by the core prepare_buf
-and qbuf functions, but when using requests these functions
-aren't called yet since the buffer won't be prepared until
-the media request is actually queued.
-
-In the meantime this information has to be stored somewhere
-and vb2_v4l2_buffer is a good place for it.
-
-The __fill_vb2_buffer callback now just copies the relevant
-information from vb2_v4l2_buffer into the planes array.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/common/videobuf2/videobuf2-core.c |  25 +-
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 324 +++++++++++++-----------
- drivers/media/dvb-core/dvb_vb2.c                |   3 +-
- include/media/videobuf2-core.h                  |   3 +-
- include/media/videobuf2-v4l2.h                  |   2 +
- 5 files changed, 197 insertions(+), 160 deletions(-)
+ drivers/media/dvb-frontends/lgdt330x.c | 358 +++++++++++++++++++--------------
+ 1 file changed, 204 insertions(+), 154 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index d3f7bb33a54d..3d436ccb61f8 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -968,9 +968,8 @@ static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
+diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
+index 8ad03bd81af5..ad0842fcdba5 100644
+--- a/drivers/media/dvb-frontends/lgdt330x.c
++++ b/drivers/media/dvb-frontends/lgdt330x.c
+@@ -47,18 +47,17 @@
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug,"Turn on/off lgdt330x frontend debugging (default:off).");
+-#define dprintk(args...) \
+-do { \
+-if (debug) printk(KERN_DEBUG "lgdt330x: " args); \
++MODULE_PARM_DESC(debug, "Turn on/off lgdt330x frontend debugging (default:off).");
++#define dprintk(args...) do {				\
++	if (debug)					\
++		printk(KERN_DEBUG "lgdt330x: " args);	\
+ } while (0)
+ 
+-struct lgdt330x_state
+-{
+-	struct i2c_adapter* i2c;
++struct lgdt330x_state {
++	struct i2c_adapter *i2c;
+ 
+ 	/* Configuration settings */
+-	const struct lgdt330x_config* config;
++	const struct lgdt330x_config *config;
+ 
+ 	struct dvb_frontend frontend;
+ 
+@@ -70,21 +69,24 @@ struct lgdt330x_state
+ 	u32 current_frequency;
+ };
+ 
+-static int i2c_write_demod_bytes (struct lgdt330x_state* state,
+-				  u8 *buf, /* data bytes to send */
+-				  int len  /* number of bytes to send */ )
++static int i2c_write_demod_bytes(struct lgdt330x_state *state,
++				 u8 *buf, /* data bytes to send */
++				 int len  /* number of bytes to send */)
  {
- 	int ret = 0;
+-	struct i2c_msg msg =
+-		{ .addr = state->config->demod_address,
+-		  .flags = 0,
+-		  .buf = buf,
+-		  .len = 2 };
++	struct i2c_msg msg = {
++		.addr = state->config->demod_address,
++		.flags = 0,
++		.buf = buf,
++		.len = 2
++	};
+ 	int i;
+ 	int err;
  
--	if (pb)
--		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--				 vb, pb, vb->planes);
-+	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+			 vb, vb->planes);
- 	return ret ? ret : call_vb_qop(vb, buf_prepare, vb);
- }
- 
-@@ -988,12 +987,10 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
- 	/* Copy relevant information provided by the userspace */
--	if (pb) {
--		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--				 vb, pb, planes);
--		if (ret)
--			return ret;
--	}
-+	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+			 vb, planes);
-+	if (ret)
-+		return ret;
- 
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		/* Skip the plane if already verified */
-@@ -1104,12 +1101,10 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
- 	/* Copy relevant information provided by the userspace */
--	if (pb) {
--		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--				 vb, pb, planes);
--		if (ret)
--			return ret;
--	}
-+	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+			 vb, planes);
-+	if (ret)
-+		return ret;
- 
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 4e9c77f21858..bf7a3ba9fed0 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -154,9 +154,177 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
- 		pr_warn("use the actual size instead.\n");
- }
- 
-+static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
-+{
-+	struct vb2_queue *q = vb->vb2_queue;
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct vb2_plane *planes = vbuf->planes;
-+	unsigned int plane;
-+	int ret;
-+
-+	ret = __verify_length(vb, b);
-+	if (ret < 0) {
-+		dprintk(1, "plane parameters verification failed: %d\n", ret);
-+		return ret;
-+	}
-+	if (b->field == V4L2_FIELD_ALTERNATE && q->is_output) {
-+		/*
-+		 * If the format's field is ALTERNATE, then the buffer's field
-+		 * should be either TOP or BOTTOM, not ALTERNATE since that
-+		 * makes no sense. The driver has to know whether the
-+		 * buffer represents a top or a bottom field in order to
-+		 * program any DMA correctly. Using ALTERNATE is wrong, since
-+		 * that just says that it is either a top or a bottom field,
-+		 * but not which of the two it is.
-+		 */
-+		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
-+		return -EINVAL;
-+	}
-+	vbuf->sequence = 0;
-+
-+	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-+		switch (b->memory) {
-+		case VB2_MEMORY_USERPTR:
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				planes[plane].m.userptr =
-+					b->m.planes[plane].m.userptr;
-+				planes[plane].length =
-+					b->m.planes[plane].length;
-+			}
-+			break;
-+		case VB2_MEMORY_DMABUF:
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				planes[plane].m.fd =
-+					b->m.planes[plane].m.fd;
-+				planes[plane].length =
-+					b->m.planes[plane].length;
-+			}
-+			break;
-+		default:
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				planes[plane].m.offset =
-+					vb->planes[plane].m.offset;
-+				planes[plane].length =
-+					vb->planes[plane].length;
-+			}
-+			break;
-+		}
-+
-+		/* Fill in driver-provided information for OUTPUT types */
-+		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+			/*
-+			 * Will have to go up to b->length when API starts
-+			 * accepting variable number of planes.
-+			 *
-+			 * If bytesused == 0 for the output buffer, then fall
-+			 * back to the full buffer size. In that case
-+			 * userspace clearly never bothered to set it and
-+			 * it's a safe assumption that they really meant to
-+			 * use the full plane sizes.
-+			 *
-+			 * Some drivers, e.g. old codec drivers, use bytesused == 0
-+			 * as a way to indicate that streaming is finished.
-+			 * In that case, the driver should use the
-+			 * allow_zero_bytesused flag to keep old userspace
-+			 * applications working.
-+			 */
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				struct vb2_plane *pdst = &planes[plane];
-+				struct v4l2_plane *psrc = &b->m.planes[plane];
-+
-+				if (psrc->bytesused == 0)
-+					vb2_warn_zero_bytesused(vb);
-+
-+				if (vb->vb2_queue->allow_zero_bytesused)
-+					pdst->bytesused = psrc->bytesused;
-+				else
-+					pdst->bytesused = psrc->bytesused ?
-+						psrc->bytesused : pdst->length;
-+				pdst->data_offset = psrc->data_offset;
-+			}
-+		}
-+	} else {
-+		/*
-+		 * Single-planar buffers do not use planes array,
-+		 * so fill in relevant v4l2_buffer struct fields instead.
-+		 * In videobuf we use our internal V4l2_planes struct for
-+		 * single-planar buffers as well, for simplicity.
-+		 *
-+		 * If bytesused == 0 for the output buffer, then fall back
-+		 * to the full buffer size as that's a sensible default.
-+		 *
-+		 * Some drivers, e.g. old codec drivers, use bytesused == 0 as
-+		 * a way to indicate that streaming is finished. In that case,
-+		 * the driver should use the allow_zero_bytesused flag to keep
-+		 * old userspace applications working.
-+		 */
-+		switch (b->memory) {
-+		case VB2_MEMORY_USERPTR:
-+			planes[0].m.userptr = b->m.userptr;
-+			planes[0].length = b->length;
-+			break;
-+		case VB2_MEMORY_DMABUF:
-+			planes[0].m.fd = b->m.fd;
-+			planes[0].length = b->length;
-+			break;
-+		default:
-+			planes[0].m.offset = vb->planes[0].m.offset;
-+			planes[0].length = vb->planes[0].length;
-+			break;
-+		}
-+
-+		planes[0].data_offset = 0;
-+		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+			if (b->bytesused == 0)
-+				vb2_warn_zero_bytesused(vb);
-+
-+			if (vb->vb2_queue->allow_zero_bytesused)
-+				planes[0].bytesused = b->bytesused;
-+			else
-+				planes[0].bytesused = b->bytesused ?
-+					b->bytesused : planes[0].length;
-+		} else
-+			planes[0].bytesused = 0;
-+
-+	}
-+
-+	/* Zero flags that we handle */
-+	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
-+	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		/*
-+		 * Non-COPY timestamps and non-OUTPUT queues will get
-+		 * their timestamp and timestamp source flags from the
-+		 * queue.
-+		 */
-+		vbuf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	}
-+
-+	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		/*
-+		 * For output buffers mask out the timecode flag:
-+		 * this will be handled later in vb2_qbuf().
-+		 * The 'field' is valid metadata for this output buffer
-+		 * and so that needs to be copied here.
-+		 */
-+		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
-+		vbuf->field = b->field;
-+	} else {
-+		/* Zero any output buffer flags as this is a capture buffer */
-+		vbuf->flags &= ~V4L2_BUFFER_OUT_FLAGS;
-+		/* Zero last flag, this is a signal from driver to userspace */
-+		vbuf->flags &= ~V4L2_BUF_FLAG_LAST;
-+	}
-+
-+	return 0;
-+}
-+
- static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 				    const char *opname)
- {
-+	struct vb2_v4l2_buffer *vbuf;
-+	struct vb2_buffer *vb;
-+	int ret;
-+
- 	if (b->type != q->type) {
- 		dprintk(1, "%s: invalid buffer type\n", opname);
- 		return -EINVAL;
-@@ -178,7 +346,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
--	return __verify_planes_array(q->bufs[b->index], b);
-+	vb = q->bufs[b->index];
-+	vbuf = to_vb2_v4l2_buffer(vb);
-+	ret = __verify_planes_array(vb, b);
-+	if (ret)
-+		return ret;
-+
-+	/* Copy relevant information provided by the userspace */
-+	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
-+	return vb2_fill_vb2_v4l2_buffer(vb, b);
- }
- 
- /*
-@@ -291,153 +467,19 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-  * v4l2_buffer by the userspace. It also verifies that struct
-  * v4l2_buffer has a valid number of planes.
+-	for (i=0; i<len-1; i+=2){
+-		if ((err = i2c_transfer(state->i2c, &msg, 1)) != 1) {
+-			printk(KERN_WARNING "lgdt330x: %s error (addr %02x <- %02x, err = %i)\n", __func__, msg.buf[0], msg.buf[1], err);
++	for (i = 0; i < len - 1; i += 2) {
++		err = i2c_transfer(state->i2c, &msg, 1);
++		if (err != 1) {
++			printk(KERN_WARNING "lgdt330x: %s error (addr %02x <- %02x, err = %i)\n",
++			       __func__, msg.buf[0], msg.buf[1], err);
+ 			if (err < 0)
+ 				return err;
+ 			else
+@@ -99,21 +101,29 @@ static int i2c_write_demod_bytes (struct lgdt330x_state* state,
+  * This routine writes the register (reg) to the demod bus
+  * then reads the data returned for (len) bytes.
   */
--static int __fill_vb2_buffer(struct vb2_buffer *vb,
--		const void *pb, struct vb2_plane *planes)
-+static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
+-
+ static int i2c_read_demod_bytes(struct lgdt330x_state *state,
+ 				enum I2C_REG reg, u8 *buf, int len)
  {
--	struct vb2_queue *q = vb->vb2_queue;
--	const struct v4l2_buffer *b = pb;
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	unsigned int plane;
--	int ret;
+-	u8 wr [] = { reg };
+-	struct i2c_msg msg [] = {
+-		{ .addr = state->config->demod_address,
+-		  .flags = 0, .buf = wr,  .len = 1 },
+-		{ .addr = state->config->demod_address,
+-		  .flags = I2C_M_RD, .buf = buf, .len = len },
++	u8 wr[] = { reg };
++	struct i2c_msg msg[] = {
++		{
++			.addr = state->config->demod_address,
++			.flags = 0,
++			.buf = wr,
++			.len = 1
++		}, {
++			.addr = state->config->demod_address,
++			.flags = I2C_M_RD,
++			.buf = buf,
++			.len = len
++		},
+ 	};
+ 	int ret;
++
+ 	ret = i2c_transfer(state->i2c, msg, 2);
+ 	if (ret != 2) {
+-		printk(KERN_WARNING "lgdt330x: %s: addr 0x%02x select 0x%02x error (ret == %i)\n", __func__, state->config->demod_address, reg, ret);
++		printk(KERN_WARNING "lgdt330x: %s: addr 0x%02x select 0x%02x error (ret == %i)\n",
++		       __func__, state->config->demod_address, reg, ret);
+ 		if (ret >= 0)
+ 			ret = -EIO;
+ 	} else {
+@@ -123,19 +133,21 @@ static int i2c_read_demod_bytes(struct lgdt330x_state *state,
+ }
  
--	ret = __verify_length(vb, b);
--	if (ret < 0) {
--		dprintk(1, "plane parameters verification failed: %d\n", ret);
--		return ret;
--	}
--	if (b->field == V4L2_FIELD_ALTERNATE && q->is_output) {
--		/*
--		 * If the format's field is ALTERNATE, then the buffer's field
--		 * should be either TOP or BOTTOM, not ALTERNATE since that
--		 * makes no sense. The driver has to know whether the
--		 * buffer represents a top or a bottom field in order to
--		 * program any DMA correctly. Using ALTERNATE is wrong, since
--		 * that just says that it is either a top or a bottom field,
--		 * but not which of the two it is.
--		 */
--		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
--		return -EINVAL;
--	}
- 	vb->timestamp = 0;
--	vbuf->sequence = 0;
--
--	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
--		if (b->memory == VB2_MEMORY_USERPTR) {
--			for (plane = 0; plane < vb->num_planes; ++plane) {
--				planes[plane].m.userptr =
--					b->m.planes[plane].m.userptr;
--				planes[plane].length =
--					b->m.planes[plane].length;
--			}
--		}
--		if (b->memory == VB2_MEMORY_DMABUF) {
--			for (plane = 0; plane < vb->num_planes; ++plane) {
--				planes[plane].m.fd =
--					b->m.planes[plane].m.fd;
--				planes[plane].length =
--					b->m.planes[plane].length;
--			}
--		}
--
--		/* Fill in driver-provided information for OUTPUT types */
--		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--			/*
--			 * Will have to go up to b->length when API starts
--			 * accepting variable number of planes.
--			 *
--			 * If bytesused == 0 for the output buffer, then fall
--			 * back to the full buffer size. In that case
--			 * userspace clearly never bothered to set it and
--			 * it's a safe assumption that they really meant to
--			 * use the full plane sizes.
--			 *
--			 * Some drivers, e.g. old codec drivers, use bytesused == 0
--			 * as a way to indicate that streaming is finished.
--			 * In that case, the driver should use the
--			 * allow_zero_bytesused flag to keep old userspace
--			 * applications working.
--			 */
--			for (plane = 0; plane < vb->num_planes; ++plane) {
--				struct vb2_plane *pdst = &planes[plane];
--				struct v4l2_plane *psrc = &b->m.planes[plane];
--
--				if (psrc->bytesused == 0)
--					vb2_warn_zero_bytesused(vb);
+ /* Software reset */
+-static int lgdt3302_SwReset(struct lgdt330x_state* state)
++static int lgdt3302_sw_reset(struct lgdt330x_state *state)
+ {
+ 	u8 ret;
+ 	u8 reset[] = {
+ 		IRQ_MASK,
+-		0x00 /* bit 6 is active low software reset
+-		      *	bits 5-0 are 1 to mask interrupts */
++		/*
++		 * bit 6 is active low software reset
++		 * bits 5-0 are 1 to mask interrupts
++		 */
++		0x00
+ 	};
  
--				if (vb->vb2_queue->allow_zero_bytesused)
--					pdst->bytesused = psrc->bytesused;
--				else
--					pdst->bytesused = psrc->bytesused ?
--						psrc->bytesused : pdst->length;
--				pdst->data_offset = psrc->data_offset;
--			}
--		}
--	} else {
--		/*
--		 * Single-planar buffers do not use planes array,
--		 * so fill in relevant v4l2_buffer struct fields instead.
--		 * In videobuf we use our internal V4l2_planes struct for
--		 * single-planar buffers as well, for simplicity.
--		 *
--		 * If bytesused == 0 for the output buffer, then fall back
--		 * to the full buffer size as that's a sensible default.
--		 *
--		 * Some drivers, e.g. old codec drivers, use bytesused == 0 as
--		 * a way to indicate that streaming is finished. In that case,
--		 * the driver should use the allow_zero_bytesused flag to keep
--		 * old userspace applications working.
--		 */
--		if (b->memory == VB2_MEMORY_USERPTR) {
--			planes[0].m.userptr = b->m.userptr;
--			planes[0].length = b->length;
--		}
+ 	ret = i2c_write_demod_bytes(state,
+ 				    reset, sizeof(reset));
+ 	if (ret == 0) {
 -
--		if (b->memory == VB2_MEMORY_DMABUF) {
--			planes[0].m.fd = b->m.fd;
--			planes[0].length = b->length;
--		}
+ 		/* force reset high (inactive) and unmask interrupts */
+ 		reset[1] = 0x7f;
+ 		ret = i2c_write_demod_bytes(state,
+@@ -144,7 +156,7 @@ static int lgdt3302_SwReset(struct lgdt330x_state* state)
+ 	return ret;
+ }
+ 
+-static int lgdt3303_SwReset(struct lgdt330x_state* state)
++static int lgdt3303_sw_reset(struct lgdt330x_state *state)
+ {
+ 	u8 ret;
+ 	u8 reset[] = {
+@@ -155,7 +167,6 @@ static int lgdt3303_SwReset(struct lgdt330x_state* state)
+ 	ret = i2c_write_demod_bytes(state,
+ 				    reset, sizeof(reset));
+ 	if (ret == 0) {
 -
--		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--			if (b->bytesused == 0)
--				vb2_warn_zero_bytesused(vb);
--
--			if (vb->vb2_queue->allow_zero_bytesused)
--				planes[0].bytesused = b->bytesused;
--			else
--				planes[0].bytesused = b->bytesused ?
--					b->bytesused : planes[0].length;
--		} else
--			planes[0].bytesused = 0;
--
--	}
--
--	/* Zero flags that the vb2 core handles */
--	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
--	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
--		/*
--		 * Non-COPY timestamps and non-OUTPUT queues will get
--		 * their timestamp and timestamp source flags from the
--		 * queue.
--		 */
--		vbuf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		planes[plane].m = vbuf->planes[plane].m;
-+		planes[plane].length = vbuf->planes[plane].length;
-+		planes[plane].bytesused = vbuf->planes[plane].bytesused;
-+		planes[plane].data_offset = vbuf->planes[plane].data_offset;
+ 		/* force reset high (inactive) */
+ 		reset[1] = 0x01;
+ 		ret = i2c_write_demod_bytes(state,
+@@ -164,58 +175,74 @@ static int lgdt3303_SwReset(struct lgdt330x_state* state)
+ 	return ret;
+ }
+ 
+-static int lgdt330x_SwReset(struct lgdt330x_state* state)
++static int lgdt330x_sw_reset(struct lgdt330x_state *state)
+ {
+ 	switch (state->config->demod_chip) {
+ 	case LGDT3302:
+-		return lgdt3302_SwReset(state);
++		return lgdt3302_sw_reset(state);
+ 	case LGDT3303:
+-		return lgdt3303_SwReset(state);
++		return lgdt3303_sw_reset(state);
+ 	default:
+ 		return -ENODEV;
  	}
--
--	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--		/*
--		 * For output buffers mask out the timecode flag:
--		 * this will be handled later in vb2_qbuf().
--		 * The 'field' is valid metadata for this output buffer
--		 * and so that needs to be copied here.
--		 */
--		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
--		vbuf->field = b->field;
--	} else {
--		/* Zero any output buffer flags as this is a capture buffer */
--		vbuf->flags &= ~V4L2_BUFFER_OUT_FLAGS;
--		/* Zero last flag, this is a signal from driver to userspace */
--		vbuf->flags &= ~V4L2_BUF_FLAG_LAST;
--	}
--
+ }
+ 
+-static int lgdt330x_init(struct dvb_frontend* fe)
++static int lgdt330x_init(struct dvb_frontend *fe)
+ {
+-	/* Hardware reset is done using gpio[0] of cx23880x chip.
++	/*
++	 * Hardware reset is done using gpio[0] of cx23880x chip.
+ 	 * I'd like to do it here, but don't know how to find chip address.
+ 	 * cx88-cards.c arranges for the reset bit to be inactive (high).
+ 	 * Maybe there needs to be a callable function in cx88-core or
+-	 * the caller of this function needs to do it. */
++	 * the caller of this function needs to do it.
++	 */
+ 
+ 	/*
+ 	 * Array of byte pairs <address, value>
+ 	 * to initialize each different chip
+ 	 */
+ 	static u8 lgdt3302_init_data[] = {
+-		/* Use 50MHz parameter values from spec sheet since xtal is 50 */
+-		/* Change the value of NCOCTFV[25:0] of carrier
+-		   recovery center frequency register */
++		/* Use 50MHz param values from spec sheet since xtal is 50 */
++		/*
++		 * Change the value of NCOCTFV[25:0] of carrier
++		 * recovery center frequency register
++		 */
+ 		VSB_CARRIER_FREQ0, 0x00,
+ 		VSB_CARRIER_FREQ1, 0x87,
+ 		VSB_CARRIER_FREQ2, 0x8e,
+ 		VSB_CARRIER_FREQ3, 0x01,
+-		/* Change the TPCLK pin polarity
+-		   data is valid on falling clock */
++		/*
++		 * Change the TPCLK pin polarity
++		 * data is valid on falling clock
++		 */
+ 		DEMUX_CONTROL, 0xfb,
+-		/* Change the value of IFBW[11:0] of
+-		   AGC IF/RF loop filter bandwidth register */
++		/*
++		 * Change the value of IFBW[11:0] of
++		 * AGC IF/RF loop filter bandwidth register
++		 */
+ 		AGC_RF_BANDWIDTH0, 0x40,
+ 		AGC_RF_BANDWIDTH1, 0x93,
+ 		AGC_RF_BANDWIDTH2, 0x00,
+-		/* Change the value of bit 6, 'nINAGCBY' and
+-		   'NSSEL[1:0] of ACG function control register 2 */
++		/*
++		 * Change the value of bit 6, 'nINAGCBY' and
++		 * 'NSSEL[1:0] of ACG function control register 2
++		 */
+ 		AGC_FUNC_CTRL2, 0xc6,
+-		/* Change the value of bit 6 'RFFIX'
+-		   of AGC function control register 3 */
++		/*
++		 * Change the value of bit 6 'RFFIX'
++		 * of AGC function control register 3
++		 */
+ 		AGC_FUNC_CTRL3, 0x40,
+-		/* Set the value of 'INLVTHD' register 0x2a/0x2c
+-		   to 0x7fe */
++		/*
++		 * Set the value of 'INLVTHD' register 0x2a/0x2c
++		 * to 0x7fe
++		 */
+ 		AGC_DELAY0, 0x07,
+ 		AGC_DELAY2, 0xfe,
+-		/* Change the value of IAGCBW[15:8]
+-		   of inner AGC loop filter bandwidth */
++		/*
++		 * Change the value of IAGCBW[15:8]
++		 * of inner AGC loop filter bandwidth
++		 */
+ 		AGC_LOOP_BANDWIDTH0, 0x08,
+ 		AGC_LOOP_BANDWIDTH1, 0x9a
+ 	};
+@@ -234,7 +261,7 @@ static int lgdt330x_init(struct dvb_frontend* fe)
+ 		0x87, 0xda
+ 	};
+ 
+-	struct lgdt330x_state* state = fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	char  *chip_name;
+ 	int    err;
+ 
+@@ -249,13 +276,13 @@ static int lgdt330x_init(struct dvb_frontend* fe)
+ 		switch (state->config->clock_polarity_flip) {
+ 		case 2:
+ 			err = i2c_write_demod_bytes(state,
+-					flip_2_lgdt3303_init_data,
+-					sizeof(flip_2_lgdt3303_init_data));
++						    flip_2_lgdt3303_init_data,
++						    sizeof(flip_2_lgdt3303_init_data));
+ 			break;
+ 		case 1:
+ 			err = i2c_write_demod_bytes(state,
+-					flip_1_lgdt3303_init_data,
+-					sizeof(flip_1_lgdt3303_init_data));
++						    flip_1_lgdt3303_init_data,
++						    sizeof(flip_1_lgdt3303_init_data));
+ 			break;
+ 		case 0:
+ 		default:
+@@ -265,24 +292,24 @@ static int lgdt330x_init(struct dvb_frontend* fe)
+ 		break;
+ 	default:
+ 		chip_name = "undefined";
+-		printk (KERN_WARNING "Only LGDT3302 and LGDT3303 are supported chips.\n");
++		printk(KERN_WARNING "Only LGDT3302 and LGDT3303 are supported chips.\n");
+ 		err = -ENODEV;
+ 	}
+ 	dprintk("%s entered as %s\n", __func__, chip_name);
+ 	if (err < 0)
+ 		return err;
+-	return lgdt330x_SwReset(state);
++	return lgdt330x_sw_reset(state);
+ }
+ 
+-static int lgdt330x_read_ber(struct dvb_frontend* fe, u32* ber)
++static int lgdt330x_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	*ber = 0; /* Not supplied by the demod chips */
  	return 0;
  }
  
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index b811adf88afa..da6a8cec7d42 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -146,8 +146,7 @@ static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
- 	dprintk(3, "[%s]\n", ctx->name);
+-static int lgdt330x_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
++static int lgdt330x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ {
+-	struct lgdt330x_state* state = fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	int err;
+ 	u8 buf[2];
+ 
+@@ -298,8 +325,7 @@ static int lgdt330x_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 					   buf, sizeof(buf));
+ 		break;
+ 	default:
+-		printk(KERN_WARNING
+-		       "Only LGDT3302 and LGDT3303 are supported chips.\n");
++		printk(KERN_WARNING "Only LGDT3302 and LGDT3303 are supported chips.\n");
+ 		err = -ENODEV;
+ 	}
+ 	if (err < 0)
+@@ -322,7 +348,8 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 		0x0e, 0x87,
+ 		0x0f, 0x8e,
+ 		0x10, 0x01,
+-		0x47, 0x8b };
++		0x47, 0x8b
++	};
+ 
+ 	/*
+ 	 * Array of byte pairs <address, value>
+@@ -339,9 +366,10 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 		0x48, 0x66,
+ 		0x4d, 0x1a,
+ 		0x49, 0x08,
+-		0x4a, 0x9b };
++		0x4a, 0x9b
++	};
+ 
+-	struct lgdt330x_state* state = fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 
+ 	static u8 top_ctrl_cfg[]   = { TOP_CONTROL, 0x03 };
+ 
+@@ -360,7 +388,8 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 				state->config->pll_rf_set(fe, 1);
+ 
+ 			if (state->config->demod_chip == LGDT3303) {
+-				err = i2c_write_demod_bytes(state, lgdt3303_8vsb_44_data,
++				err = i2c_write_demod_bytes(state,
++							    lgdt3303_8vsb_44_data,
+ 							    sizeof(lgdt3303_8vsb_44_data));
+ 			}
+ 			break;
+@@ -376,8 +405,9 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 				state->config->pll_rf_set(fe, 0);
+ 
+ 			if (state->config->demod_chip == LGDT3303) {
+-				err = i2c_write_demod_bytes(state, lgdt3303_qam_data,
+-											sizeof(lgdt3303_qam_data));
++				err = i2c_write_demod_bytes(state,
++							    lgdt3303_qam_data,
++							    sizeof(lgdt3303_qam_data));
+ 			}
+ 			break;
+ 
+@@ -392,12 +422,14 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 				state->config->pll_rf_set(fe, 0);
+ 
+ 			if (state->config->demod_chip == LGDT3303) {
+-				err = i2c_write_demod_bytes(state, lgdt3303_qam_data,
+-											sizeof(lgdt3303_qam_data));
++				err = i2c_write_demod_bytes(state,
++							    lgdt3303_qam_data,
++							    sizeof(lgdt3303_qam_data));
+ 			}
+ 			break;
+ 		default:
+-			printk(KERN_WARNING "lgdt330x: %s: Modulation type(%d) UNSUPPORTED\n", __func__, p->modulation);
++			printk(KERN_WARNING "lgdt330x: %s: Modulation type(%d) UNSUPPORTED\n",
++			       __func__, p->modulation);
+ 			return -1;
+ 		}
+ 		if (err < 0)
+@@ -405,7 +437,7 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 			       __func__, p->modulation);
+ 
+ 		/*
+-		 * select serial or parallel MPEG harware interface
++		 * select serial or parallel MPEG hardware interface
+ 		 * Serial:   0x04 for LGDT3302 or 0x40 for LGDT3303
+ 		 * Parallel: 0x00
+ 		 */
+@@ -422,15 +454,18 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 	/* Tune to the specified frequency */
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		fe->ops.tuner_ops.set_params(fe);
+-		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
+ 	/* Keep track of the new frequency */
+-	/* FIXME this is the wrong way to do this...           */
+-	/* The tuner is shared with the video4linux analog API */
++	/*
++	 * FIXME this is the wrong way to do this...
++	 * The tuner is shared with the video4linux analog API
++	 */
+ 	state->current_frequency = p->frequency;
+ 
+-	lgdt330x_SwReset(state);
++	lgdt330x_sw_reset(state);
+ 	return 0;
  }
  
--static int _fill_vb2_buffer(struct vb2_buffer *vb,
--			    const void *pb, struct vb2_plane *planes)
-+static int _fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
+@@ -446,7 +481,7 @@ static int lgdt330x_get_frontend(struct dvb_frontend *fe,
+ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 				enum fe_status *status)
  {
- 	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+-	struct lgdt330x_state* state = fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	u8 buf[3];
  
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f6818f732f34..224c4820a044 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -417,8 +417,7 @@ struct vb2_ops {
- struct vb2_buf_ops {
- 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
- 	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
--	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
--				struct vb2_plane *planes);
-+	int (*fill_vb2_buffer)(struct vb2_buffer *vb, struct vb2_plane *planes);
- 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
- };
+ 	*status = 0; /* Reset status result */
+@@ -454,9 +489,11 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 	/* AGC status register */
+ 	i2c_read_demod_bytes(state, AGC_STATUS, buf, 1);
+ 	dprintk("%s: AGC_STATUS = 0x%02x\n", __func__, buf[0]);
+-	if ((buf[0] & 0x0c) == 0x8){
+-		/* Test signal does not exist flag */
+-		/* as well as the AGC lock flag.   */
++	if ((buf[0] & 0x0c) == 0x8) {
++		/*
++		 * Test signal does not exist flag
++		 * as well as the AGC lock flag.
++		 */
+ 		*status |= FE_HAS_SIGNAL;
+ 	}
  
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 3d5e2d739f05..097bf3e6951d 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -32,6 +32,7 @@
-  *		&enum v4l2_field.
-  * @timecode:	frame timecode.
-  * @sequence:	sequence count of this frame.
-+ * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
-  *
-  * Should contain enough information to be able to cover all the fields
-  * of &struct v4l2_buffer at ``videodev2.h``.
-@@ -43,6 +44,7 @@ struct vb2_v4l2_buffer {
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
-+	struct vb2_plane	planes[VB2_MAX_PLANES];
- };
+@@ -465,15 +502,15 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 	 * to see that status bit in the IRQ_STATUS register.
+ 	 * This is done in SwReset();
+ 	 */
++
+ 	/* signal status */
+ 	i2c_read_demod_bytes(state, TOP_CONTROL, buf, sizeof(buf));
+-	dprintk("%s: TOP_CONTROL = 0x%02x, IRO_MASK = 0x%02x, IRQ_STATUS = 0x%02x\n", __func__, buf[0], buf[1], buf[2]);
+-
++	dprintk("%s: TOP_CONTROL = 0x%02x, IRO_MASK = 0x%02x, IRQ_STATUS = 0x%02x\n",
++		__func__, buf[0], buf[1], buf[2]);
  
- /*
+ 	/* sync status */
+-	if ((buf[2] & 0x03) == 0x01) {
++	if ((buf[2] & 0x03) == 0x01)
+ 		*status |= FE_HAS_SYNC;
+-	}
+ 
+ 	/* FEC error status */
+ 	if ((buf[2] & 0x0c) == 0x08) {
+@@ -496,7 +533,8 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 			*status |= FE_HAS_CARRIER;
+ 		break;
+ 	default:
+-		printk(KERN_WARNING "lgdt330x: %s: Modulation set to unsupported value\n", __func__);
++		printk(KERN_WARNING "lgdt330x: %s: Modulation set to unsupported value\n",
++		       __func__);
+ 	}
+ 
+ 	return 0;
+@@ -505,7 +543,7 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 				enum fe_status *status)
+ {
+-	struct lgdt330x_state* state = fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	int err;
+ 	u8 buf[3];
+ 
+@@ -517,9 +555,11 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 		return err;
+ 
+ 	dprintk("%s: AGC_STATUS = 0x%02x\n", __func__, buf[0]);
+-	if ((buf[0] & 0x21) == 0x01){
+-		/* Test input signal does not exist flag */
+-		/* as well as the AGC lock flag.   */
++	if ((buf[0] & 0x21) == 0x01) {
++		/*
++		 * Test input signal does not exist flag
++		 * as well as the AGC lock flag.
++		 */
+ 		*status |= FE_HAS_SIGNAL;
+ 	}
+ 
+@@ -556,34 +596,36 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 		}
+ 		break;
+ 	default:
+-		printk(KERN_WARNING "lgdt330x: %s: Modulation set to unsupported value\n", __func__);
++		printk(KERN_WARNING "lgdt330x: %s: Modulation set to unsupported value\n",
++		       __func__);
+ 	}
+ 	return 0;
+ }
+ 
+-/* Calculate SNR estimation (scaled by 2^24)
+-
+-   8-VSB SNR equations from LGDT3302 and LGDT3303 datasheets, QAM
+-   equations from LGDT3303 datasheet.  VSB is the same between the '02
+-   and '03, so maybe QAM is too?  Perhaps someone with a newer datasheet
+-   that has QAM information could verify?
+-
+-   For 8-VSB: (two ways, take your pick)
+-   LGDT3302:
+-     SNR_EQ = 10 * log10(25 * 24^2 / EQ_MSE)
+-   LGDT3303:
+-     SNR_EQ = 10 * log10(25 * 32^2 / EQ_MSE)
+-   LGDT3302 & LGDT3303:
+-     SNR_PT = 10 * log10(25 * 32^2 / PT_MSE)  (we use this one)
+-   For 64-QAM:
+-     SNR    = 10 * log10( 688128   / MSEQAM)
+-   For 256-QAM:
+-     SNR    = 10 * log10( 696320   / MSEQAM)
+-
+-   We re-write the snr equation as:
+-     SNR * 2^24 = 10*(c - intlog10(MSE))
+-   Where for 256-QAM, c = log10(696320) * 2^24, and so on. */
+-
++/*
++ * Calculate SNR estimation (scaled by 2^24)
++ *
++ * 8-VSB SNR equations from LGDT3302 and LGDT3303 datasheets, QAM
++ * equations from LGDT3303 datasheet.  VSB is the same between the '02
++ * and '03, so maybe QAM is too?  Perhaps someone with a newer datasheet
++ * that has QAM information could verify?
++ *
++ * For 8-VSB: (two ways, take your pick)
++ * LGDT3302:
++ *   SNR_EQ = 10 * log10(25 * 24^2 / EQ_MSE)
++ * LGDT3303:
++ *   SNR_EQ = 10 * log10(25 * 32^2 / EQ_MSE)
++ * LGDT3302 & LGDT3303:
++ *   SNR_PT = 10 * log10(25 * 32^2 / PT_MSE)  (we use this one)
++ * For 64-QAM:
++ *   SNR    = 10 * log10( 688128   / MSEQAM)
++ * For 256-QAM:
++ *   SNR    = 10 * log10( 696320   / MSEQAM)
++ *
++ * We re-write the snr equation as:
++ *   SNR * 2^24 = 10*(c - intlog10(MSE))
++ * Where for 256-QAM, c = log10(696320) * 2^24, and so on.
++ */
+ static u32 calculate_snr(u32 mse, u32 c)
+ {
+ 	if (mse == 0) /* No signal */
+@@ -591,22 +633,24 @@ static u32 calculate_snr(u32 mse, u32 c)
+ 
+ 	mse = intlog10(mse);
+ 	if (mse > c) {
+-		/* Negative SNR, which is possible, but realisticly the
+-		demod will lose lock before the signal gets this bad.  The
+-		API only allows for unsigned values, so just return 0 */
++		/*
++		 * Negative SNR, which is possible, but realisticly the
++		 * demod will lose lock before the signal gets this bad.
++		 * The API only allows for unsigned values, so just return 0
++		 */
+ 		return 0;
+ 	}
+-	return 10*(c - mse);
++	return 10 * (c - mse);
+ }
+ 
+-static int lgdt3302_read_snr(struct dvb_frontend* fe, u16* snr)
++static int lgdt3302_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+-	struct lgdt330x_state* state = (struct lgdt330x_state*) fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	u8 buf[5];	/* read data buffer */
+ 	u32 noise;	/* noise value */
+ 	u32 c;		/* per-modulation SNR calculation constant */
+ 
+-	switch(state->current_modulation) {
++	switch (state->current_modulation) {
+ 	case VSB_8:
+ 		i2c_read_demod_bytes(state, LGDT3302_EQPH_ERR0, buf, 5);
+ #ifdef USE_EQMSE
+@@ -617,7 +661,7 @@ static int lgdt3302_read_snr(struct dvb_frontend* fe, u16* snr)
+ #else
+ 		/* Use Phase Tracker Mean-Square Error Register */
+ 		/* SNR for ranges from -13.11 to +44.08 */
+-		noise = ((buf[0] & 7<<3) << 13) | (buf[3] << 8) | buf[4];
++		noise = ((buf[0] & 7 << 3) << 13) | (buf[3] << 8) | buf[4];
+ 		c = 73957994; /* log10(25*32^2)*2^24 */
+ #endif
+ 		break;
+@@ -638,19 +682,19 @@ static int lgdt3302_read_snr(struct dvb_frontend* fe, u16* snr)
+ 	*snr = (state->snr) >> 16; /* Convert from 8.24 fixed-point to 8.8 */
+ 
+ 	dprintk("%s: noise = 0x%08x, snr = %d.%02d dB\n", __func__, noise,
+-		state->snr >> 24, (((state->snr>>8) & 0xffff) * 100) >> 16);
++		state->snr >> 24, (((state->snr >> 8) & 0xffff) * 100) >> 16);
+ 
+ 	return 0;
+ }
+ 
+-static int lgdt3303_read_snr(struct dvb_frontend* fe, u16* snr)
++static int lgdt3303_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+-	struct lgdt330x_state* state = (struct lgdt330x_state*) fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	u8 buf[5];	/* read data buffer */
+ 	u32 noise;	/* noise value */
+ 	u32 c;		/* per-modulation SNR calculation constant */
+ 
+-	switch(state->current_modulation) {
++	switch (state->current_modulation) {
+ 	case VSB_8:
+ 		i2c_read_demod_bytes(state, LGDT3303_EQPH_ERR0, buf, 5);
+ #ifdef USE_EQMSE
+@@ -687,12 +731,14 @@ static int lgdt3303_read_snr(struct dvb_frontend* fe, u16* snr)
+ 	return 0;
+ }
+ 
+-static int lgdt330x_read_signal_strength(struct dvb_frontend* fe, u16* strength)
++static int lgdt330x_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
+ 	/* Calculate Strength from SNR up to 35dB */
+-	/* Even though the SNR can go higher than 35dB, there is some comfort */
+-	/* factor in having a range of strong signals that can show at 100%   */
+-	struct lgdt330x_state* state = (struct lgdt330x_state*) fe->demodulator_priv;
++	/*
++	 * Even though the SNR can go higher than 35dB, there is some comfort
++	 * factor in having a range of strong signals that can show at 100%
++	 */
++	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	u16 snr;
+ 	int ret;
+ 
+@@ -709,7 +755,9 @@ static int lgdt330x_read_signal_strength(struct dvb_frontend* fe, u16* strength)
+ 	return 0;
+ }
+ 
+-static int lgdt330x_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fe_tune_settings)
++static int
++lgdt330x_get_tune_settings(struct dvb_frontend *fe,
++			   struct dvb_frontend_tune_settings *fe_tune_settings)
+ {
+ 	/* I have no idea about this - it may not be needed */
+ 	fe_tune_settings->min_delay_ms = 500;
+@@ -718,24 +766,25 @@ static int lgdt330x_get_tune_settings(struct dvb_frontend* fe, struct dvb_fronte
+ 	return 0;
+ }
+ 
+-static void lgdt330x_release(struct dvb_frontend* fe)
++static void lgdt330x_release(struct dvb_frontend *fe)
+ {
+-	struct lgdt330x_state* state = (struct lgdt330x_state*) fe->demodulator_priv;
++	struct lgdt330x_state *state = fe->demodulator_priv;
++
+ 	kfree(state);
+ }
+ 
+ static const struct dvb_frontend_ops lgdt3302_ops;
+ static const struct dvb_frontend_ops lgdt3303_ops;
+ 
+-struct dvb_frontend* lgdt330x_attach(const struct lgdt330x_config* config,
+-				     struct i2c_adapter* i2c)
++struct dvb_frontend *lgdt330x_attach(const struct lgdt330x_config *config,
++				     struct i2c_adapter *i2c)
+ {
+-	struct lgdt330x_state* state = NULL;
++	struct lgdt330x_state *state = NULL;
+ 	u8 buf[1];
+ 
+ 	/* Allocate memory for the internal state */
+-	state = kzalloc(sizeof(struct lgdt330x_state), GFP_KERNEL);
+-	if (state == NULL)
++	state = kzalloc(sizeof(*state), GFP_KERNEL);
++	if (!state)
+ 		goto error;
+ 
+ 	/* Setup the state */
+@@ -745,10 +794,12 @@ struct dvb_frontend* lgdt330x_attach(const struct lgdt330x_config* config,
+ 	/* Create dvb_frontend */
+ 	switch (config->demod_chip) {
+ 	case LGDT3302:
+-		memcpy(&state->frontend.ops, &lgdt3302_ops, sizeof(struct dvb_frontend_ops));
++		memcpy(&state->frontend.ops, &lgdt3302_ops,
++		       sizeof(struct dvb_frontend_ops));
+ 		break;
+ 	case LGDT3303:
+-		memcpy(&state->frontend.ops, &lgdt3303_ops, sizeof(struct dvb_frontend_ops));
++		memcpy(&state->frontend.ops, &lgdt3303_ops,
++		       sizeof(struct dvb_frontend_ops));
+ 		break;
+ 	default:
+ 		goto error;
+@@ -766,17 +817,18 @@ struct dvb_frontend* lgdt330x_attach(const struct lgdt330x_config* config,
+ 
+ error:
+ 	kfree(state);
+-	dprintk("%s: ERROR\n",__func__);
++	dprintk("%s: ERROR\n", __func__);
+ 	return NULL;
+ }
++EXPORT_SYMBOL(lgdt330x_attach);
+ 
+ static const struct dvb_frontend_ops lgdt3302_ops = {
+ 	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+-		.name= "LG Electronics LGDT3302 VSB/QAM Frontend",
+-		.frequency_min= 54000000,
+-		.frequency_max= 858000000,
+-		.frequency_stepsize= 62500,
++		.name = "LG Electronics LGDT3302 VSB/QAM Frontend",
++		.frequency_min = 54000000,
++		.frequency_max = 858000000,
++		.frequency_stepsize = 62500,
+ 		.symbol_rate_min    = 5056941,	/* QAM 64 */
+ 		.symbol_rate_max    = 10762000,	/* VSB 8  */
+ 		.caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
+@@ -796,10 +848,10 @@ static const struct dvb_frontend_ops lgdt3302_ops = {
+ static const struct dvb_frontend_ops lgdt3303_ops = {
+ 	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+-		.name= "LG Electronics LGDT3303 VSB/QAM Frontend",
+-		.frequency_min= 54000000,
+-		.frequency_max= 858000000,
+-		.frequency_stepsize= 62500,
++		.name = "LG Electronics LGDT3303 VSB/QAM Frontend",
++		.frequency_min = 54000000,
++		.frequency_max = 858000000,
++		.frequency_stepsize = 62500,
+ 		.symbol_rate_min    = 5056941,	/* QAM 64 */
+ 		.symbol_rate_max    = 10762000,	/* VSB 8  */
+ 		.caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
+@@ -819,5 +871,3 @@ static const struct dvb_frontend_ops lgdt3303_ops = {
+ MODULE_DESCRIPTION("LGDT330X (ATSC 8VSB & ITU-T J.83 AnnexB 64/256 QAM) Demodulator Driver");
+ MODULE_AUTHOR("Wilson Michaels");
+ MODULE_LICENSE("GPL");
+-
+-EXPORT_SYMBOL(lgdt330x_attach);
 -- 
-2.15.1
+2.14.3
