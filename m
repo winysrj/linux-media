@@ -1,194 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:56162 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750848AbeCIEJJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 23:09:09 -0500
-Date: Fri, 9 Mar 2018 06:09:03 +0200
-From: Baruch Siach <baruch@tkos.co.il>
-To: Jacob Chen <jacobchen110@gmail.com>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36267 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751096AbeCIP2O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:28:14 -0500
+Subject: Re: [PATCH v12 12/33] rcar-vin: fix handling of single field frames
+ (top, bottom and alternate fields)
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?utf-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy Chen <jeffy.chen@rock-chips.com>,
-        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>
-Subject: Re: [PATCH v6 00/17] Rockchip ISP1 Driver
-Message-ID: <20180309040903.hhkhylvs6q6lvqjy@tarshish>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
- <20180308120200.wpcjnbglf4x32vrp@tarshish>
- <CAFLEztTokSaXJuN8Ls0BpAEuFdTC+Viwn6PGxC=TC6vZAs+w3g@mail.gmail.com>
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-13-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4f653d33-30c4-f656-05a1-f6ea20ffdb4d@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:28:12 +0100
 MIME-Version: 1.0
+In-Reply-To: <20180307220511.9826-13-niklas.soderlund+renesas@ragnatech.se>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAFLEztTokSaXJuN8Ls0BpAEuFdTC+Viwn6PGxC=TC6vZAs+w3g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
+On 07/03/18 23:04, Niklas Söderlund wrote:
+> There was never proper support in the VIN driver to deliver ALTERNATING
+> field format to user-space, remove this field option. The problem is
+> that ALTERNATING field order requires the sequence numbers of buffers
+> returned to userspace to reflect if fields where dropped or not,
 
-On Fri, Mar 09, 2018 at 08:53:57AM +0800, Jacob Chen wrote:
-> 2018-03-08 20:02 GMT+08:00 Baruch Siach <baruch@tkos.co.il>:
-> > On Thu, Mar 08, 2018 at 05:47:50PM +0800, Jacob Chen wrote:
-> >> This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399
-> >> SoC.
-> >>
-> >> Wiki Pages:
-> >> http://opensource.rock-chips.com/wiki_Rockchip-isp1
-> >>
-> >> The deprecated g_mbus_config op is not dropped in  V6 because i am waiting
-> >> tomasz's patches.
-> >
-> > Which tree is this series based on? On top of v4.16-rc4 I get the build
-> > failure below. The V4L2_BUF_TYPE_META_OUTPUT macro, for example, is not even
-> > in media_tree.git.
+where -> were
+
+With that tiny typo fixed you can add my:
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> something which is not possible with the VIN drivers capture logic.
 > 
-> This series is based on v4.16-rc4 with below patch.
-> https://patchwork.kernel.org/patch/9792001/
-
-This patch does not apply on v4.16-rc4. I also tried v2 of this patch with the 
-same result:
-
-  https://patchwork.linuxtv.org/patch/44682/
-
-Can you push your series to a public git repo branch?
-
-Thanks,
-baruch
-
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1321:3: error: ‘const struct v4l2_ioctl_ops’ has no member named ‘vidioc_enum_fmt_meta_out’; did you mean ‘vidioc_enum_fmt_meta_cap’?
-> >   .vidioc_enum_fmt_meta_out = rkisp1_params_enum_fmt_meta_out,
-> >    ^~~~~~~~~~~~~~~~~~~~~~~~
-> >    vidioc_enum_fmt_meta_cap
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1321:30: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
-> >   .vidioc_enum_fmt_meta_out = rkisp1_params_enum_fmt_meta_out,
-> >                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1321:30: note: (near initialization for ‘rkisp1_params_ioctl.vidioc_g_std’)
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1322:3: error: ‘const struct v4l2_ioctl_ops’ has no member named ‘vidioc_g_fmt_meta_out’; did you mean ‘vidioc_g_fmt_meta_cap’?
-> >   .vidioc_g_fmt_meta_out = rkisp1_params_g_fmt_meta_out,
-> >    ^~~~~~~~~~~~~~~~~~~~~
-> >    vidioc_g_fmt_meta_cap
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1322:27: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
-> >   .vidioc_g_fmt_meta_out = rkisp1_params_g_fmt_meta_out,
-> >                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1322:27: note: (near initialization for ‘rkisp1_params_ioctl.vidioc_s_std’)
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1323:3: error: ‘const struct v4l2_ioctl_ops’ has no member named ‘vidioc_s_fmt_meta_out’; did you mean ‘vidioc_s_fmt_meta_cap’?
-> >   .vidioc_s_fmt_meta_out = rkisp1_params_g_fmt_meta_out,
-> >    ^~~~~~~~~~~~~~~~~~~~~
-> >    vidioc_s_fmt_meta_cap
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1323:27: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
-> >   .vidioc_s_fmt_meta_out = rkisp1_params_g_fmt_meta_out,
-> >                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1323:27: note: (near initialization for ‘rkisp1_params_ioctl.vidioc_querystd’)
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1324:3: error: ‘const struct v4l2_ioctl_ops’ has no member named ‘vidioc_try_fmt_meta_out’; did you mean ‘vidioc_try_fmt_meta_cap’?
-> >   .vidioc_try_fmt_meta_out = rkisp1_params_g_fmt_meta_out,
-> >    ^~~~~~~~~~~~~~~~~~~~~~~
-> >    vidioc_try_fmt_meta_cap
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1324:29: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
-> >   .vidioc_try_fmt_meta_out = rkisp1_params_g_fmt_meta_out,
-> >                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1324:29: note: (near initialization for ‘rkisp1_params_ioctl.vidioc_enum_input’)
-> > drivers/media/platform/rockchip/isp1/isp_params.c: In function ‘rkisp1_params_init_vb2_queue’:
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1462:12: error: ‘V4L2_BUF_TYPE_META_OUTPUT’ undeclared (first use in this function); did you mean ‘V4L2_BUF_TYPE_SDR_OUTPUT’?
-> >   q->type = V4L2_BUF_TYPE_META_OUTPUT;
-> >             ^~~~~~~~~~~~~~~~~~~~~~~~~
-> >             V4L2_BUF_TYPE_SDR_OUTPUT
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1462:12: note: each undeclared identifier is reported only once for each function it appears in
-> >   CC      drivers/media/platform/rockchip/isp1/mipi_dphy_sy.o
-> > drivers/media/platform/rockchip/isp1/isp_params.c: In function ‘rkisp1_register_params_vdev’:
-> > drivers/media/platform/rockchip/isp1/isp_params.c:1507:43: error: ‘V4L2_CAP_META_OUTPUT’ undeclared (first use in this function); did you mean ‘V4L2_CAP_VBI_OUTPUT’?
-> >   vdev->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_META_OUTPUT;
-> >                                            ^~~~~~~~~~~~~~~~~~~~
-> >                                            V4L2_CAP_VBI_OUTPUT
-> >
-> > Thanks,
-> > baruch
-> >
-> >> Jacob Chen (12):
-> >>   media: doc: add document for rkisp1 meta buffer format
-> >>   media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
-> >>   media: rkisp1: add Rockchip ISP1 subdev driver
-> >>   media: rkisp1: add ISP1 statistics driver
-> >>   media: rkisp1: add ISP1 params driver
-> >>   media: rkisp1: add capture device driver
-> >>   media: rkisp1: add rockchip isp1 core driver
-> >>   dt-bindings: Document the Rockchip ISP1 bindings
-> >>   dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
-> >>   ARM: dts: rockchip: add isp node for rk3288
-> >>   ARM: dts: rockchip: add rx0 mipi-phy for rk3288
-> >>   MAINTAINERS: add entry for Rockchip ISP1 driver
-> >>
-> >> Jeffy Chen (1):
-> >>   media: rkisp1: Add user space ABI definitions
-> >>
-> >> Shunqian Zheng (3):
-> >>   media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-> >>   arm64: dts: rockchip: add isp0 node for rk3399
-> >>   arm64: dts: rockchip: add rx0 mipi-phy for rk3399
-> >>
-> >> Wen Nuan (1):
-> >>   ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
-> >>
-> >>  .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
-> >>  .../bindings/media/rockchip-mipi-dphy.txt          |   90 +
-> >>  Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
-> >>  .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   20 +
-> >>  .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
-> >>  MAINTAINERS                                        |   10 +
-> >>  arch/arm/boot/dts/rk3288.dtsi                      |   33 +
-> >>  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
-> >>  drivers/media/platform/Kconfig                     |   10 +
-> >>  drivers/media/platform/Makefile                    |    1 +
-> >>  drivers/media/platform/rockchip/isp1/Makefile      |    8 +
-> >>  drivers/media/platform/rockchip/isp1/capture.c     | 1751 ++++++++++++++++++++
-> >>  drivers/media/platform/rockchip/isp1/capture.h     |  167 ++
-> >>  drivers/media/platform/rockchip/isp1/common.h      |  110 ++
-> >>  drivers/media/platform/rockchip/isp1/dev.c         |  626 +++++++
-> >>  drivers/media/platform/rockchip/isp1/dev.h         |   93 ++
-> >>  drivers/media/platform/rockchip/isp1/isp_params.c  | 1539 +++++++++++++++++
-> >>  drivers/media/platform/rockchip/isp1/isp_params.h  |   49 +
-> >>  drivers/media/platform/rockchip/isp1/isp_stats.c   |  508 ++++++
-> >>  drivers/media/platform/rockchip/isp1/isp_stats.h   |   58 +
-> >>  .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  868 ++++++++++
-> >>  .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   15 +
-> >>  drivers/media/platform/rockchip/isp1/regs.c        |  239 +++
-> >>  drivers/media/platform/rockchip/isp1/regs.h        | 1550 +++++++++++++++++
-> >>  drivers/media/platform/rockchip/isp1/rkisp1.c      | 1177 +++++++++++++
-> >>  drivers/media/platform/rockchip/isp1/rkisp1.h      |  105 ++
-> >>  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
-> >>  include/uapi/linux/rkisp1-config.h                 |  798 +++++++++
-> >>  include/uapi/linux/videodev2.h                     |    4 +
-> >>  29 files changed, 9945 insertions(+)
-> >>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
-> >>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
-> >>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
-> >>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
-> >>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
-> >>  create mode 100644 include/uapi/linux/rkisp1-config.h
-
--- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+> The VIN driver can still capture from a video source which delivers
+> frames in ALTERNATING field order, but needs to combine them using the
+> VIN hardware into INTERLACED field order. Before this change if a source
+> was delivering fields using ALTERNATE the driver would default to
+> combining them using this hardware feature. Only if the user explicitly
+> requested ALTERNATE field order would incorrect frames be delivered.
+> 
+> The height should not be cut in half for the format for TOP or BOTTOM
+> fields settings. This was a mistake and it was made visible by the
+> scaling refactoring. Correct behavior is that the user should request a
+> frame size that fits the half height frame reflected in the field
+> setting. If not the VIN will do its best to scale the top or bottom to
+> the requested format and cropping and scaling do not work as expected.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +----------
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 40 +++++++----------------------
+>  2 files changed, 10 insertions(+), 45 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index fd14be20a6604d7a..c8831e189d362c8b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	case V4L2_FIELD_INTERLACED_BT:
+>  		vnmc = VNMC_IM_FULL | VNMC_FOC;
+>  		break;
+> -	case V4L2_FIELD_ALTERNATE:
+>  	case V4L2_FIELD_NONE:
+>  		if (vin->continuous) {
+>  			vnmc = VNMC_IM_ODD_EVEN;
+> @@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+>  	return 0;
+>  }
+>  
+> -static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+> -{
+> -	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+> -		/* If FS is set it's a Even field */
+> -		if (vnms & VNMS_FS)
+> -			return V4L2_FIELD_BOTTOM;
+> -		return V4L2_FIELD_TOP;
+> -	}
+> -
+> -	return vin->format.field;
+> -}
+> -
+>  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+>  {
+>  	const struct rvin_video_format *fmt;
+> @@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+>  		goto done;
+>  
+>  	/* Capture frame */
+> -	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
+> +	vin->queue_buf[slot]->field = vin->format.field;
+>  	vin->queue_buf[slot]->sequence = sequence;
+>  	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+>  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index ebcd78b1bb6e8cb6..b76d59be64e0132d 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -121,33 +121,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
+>  	vin->format.colorspace	= mf->colorspace;
+>  	vin->format.field	= mf->field;
+>  
+> -	/*
+> -	 * If the subdevice uses ALTERNATE field mode and G_STD is
+> -	 * implemented use the VIN HW to combine the two fields to
+> -	 * one INTERLACED frame. The ALTERNATE field mode can still
+> -	 * be requested in S_FMT and be respected, this is just the
+> -	 * default which is applied at probing or when S_STD is called.
+> -	 */
+> -	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
+> -	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
+> -		vin->format.field = V4L2_FIELD_INTERLACED;
+> -
+> -	switch (vin->format.field) {
+> -	case V4L2_FIELD_TOP:
+> -	case V4L2_FIELD_BOTTOM:
+> -	case V4L2_FIELD_ALTERNATE:
+> -		vin->format.height /= 2;
+> -		break;
+> -	case V4L2_FIELD_NONE:
+> -	case V4L2_FIELD_INTERLACED_TB:
+> -	case V4L2_FIELD_INTERLACED_BT:
+> -	case V4L2_FIELD_INTERLACED:
+> -		break;
+> -	default:
+> -		vin->format.field = RVIN_DEFAULT_FIELD;
+> -		break;
+> -	}
+> -
+>  	rvin_reset_crop_compose(vin);
+>  
+>  	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+> @@ -233,15 +206,20 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	switch (pix->field) {
+>  	case V4L2_FIELD_TOP:
+>  	case V4L2_FIELD_BOTTOM:
+> -	case V4L2_FIELD_ALTERNATE:
+> -		pix->height /= 2;
+> -		source->height /= 2;
+> -		break;
+>  	case V4L2_FIELD_NONE:
+>  	case V4L2_FIELD_INTERLACED_TB:
+>  	case V4L2_FIELD_INTERLACED_BT:
+>  	case V4L2_FIELD_INTERLACED:
+>  		break;
+> +	case V4L2_FIELD_ALTERNATE:
+> +		/*
+> +		 * Driver dose not (yet) support outputting ALTERNATE to a
+> +		 * userspace. It does support outputting INTERLACED so use
+> +		 * the VIN hardware to combine the two fields.
+> +		 */
+> +		pix->field = V4L2_FIELD_INTERLACED;
+> +		pix->height *= 2;
+> +		break;
+>  	default:
+>  		pix->field = RVIN_DEFAULT_FIELD;
+>  		break;
+> 
