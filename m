@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.135]:53792 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967321AbeCAKOs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 05:14:48 -0500
-Reply-To: zhengsq@rock-chips.com
-Subject: Re: [PATCH] media: ov2685: Not delay latch for gain
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39413 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932451AbeCIWEP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 17:04:15 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <1519893856-4738-1-git-send-email-zhengsq@rock-chips.com>
- <CAAFQd5AteVDQgHaov2Jqjbx5bAjmJJiXv-7R0HG+AcE3GH-JTw@mail.gmail.com>
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-Message-ID: <d91922a4-656a-1998-6176-592f343aee5a@rock-chips.com>
-Date: Thu, 1 Mar 2018 18:14:40 +0800
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AteVDQgHaov2Jqjbx5bAjmJJiXv-7R0HG+AcE3GH-JTw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 01/11] media: vsp1: drm: Fix minor grammar error
+Date: Fri,  9 Mar 2018 22:03:59 +0000
+Message-Id: <2811ffa85a2c4d403fba0a197196bcfd9cfc9e80.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+The pixel format is 'unsupported'. Fix the small debug message which
+incorrectly declares this.
 
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2018年03月01日 16:53, Tomasz Figa wrote:
-> Hi Shunqian,
->
-> On Thu, Mar 1, 2018 at 5:44 PM, Shunqian Zheng <zhengsq@rock-chips.com> wrote:
->> Update the register 0x3503 to use 'no delay latch' for gain.
->> This makes sensor to output the first frame as normal rather
->> than a very dark one.
-> I'm not 100% sure on how this setting works, but wouldn't it mean that
-> setting the gain mid-frame would result in half of the frame having
-> old gain and another half new? Depending how this works, perhaps we
-> should set this during initial register settings, but reset after
-> streaming starts?
-Thank you.
-
-I'm not quite sure too. Then I try to change gain during capture by:
-    capture_10_frames.sh & while sleep .01; do v4l2-ctl -d /dev/video4 
---set-ctrl=analogue_gain=54; sleep .01; v4l2-ctl -d /dev/video4 
---set-ctrl=analogue_gain=1024; done
-
-The gain setting takes effect for every single frame, not in mid-frame 
-from my test.
-
-Best wishes,
-- Shunqian
->
-> Best regards,
-> Tomasz
->
->
->
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 3c8b1952799d..0459b970e9da 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -363,7 +363,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 	 */
+ 	fmtinfo = vsp1_get_format_info(vsp1, cfg->pixelformat);
+ 	if (!fmtinfo) {
+-		dev_dbg(vsp1->dev, "Unsupport pixel format %08x for RPF\n",
++		dev_dbg(vsp1->dev, "Unsupported pixel format %08x for RPF\n",
+ 			cfg->pixelformat);
+ 		return -EINVAL;
+ 	}
+-- 
+git-series 0.9.1
