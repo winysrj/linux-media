@@ -1,75 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:40616 "EHLO ale.deltatee.com"
+Received: from mail.bootlin.com ([62.4.15.54]:50004 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753117AbeC1S6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 14:58:02 -0400
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
- <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
- <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
-Date: Wed, 28 Mar 2018 12:57:57 -0600
-MIME-Version: 1.0
-In-Reply-To: <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
+        id S1750939AbeCIKPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 05:15:55 -0500
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+Subject: [PATCH 9/9] ARM: dts: sun7i: Add video engine support for the A20
+Date: Fri,  9 Mar 2018 11:14:45 +0100
+Message-Id: <20180309101445.16190-7-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Thomas van Kleef <thomas@vitsch.nl>
 
+The A20 has a video engine similare to the one in the A13.
 
-On 28/03/18 12:28 PM, Christian König wrote:
-> I'm just using amdgpu as blueprint because I'm the co-maintainer of it 
-> and know it mostly inside out.
+Add the device node in the A20.
 
-Ah, I see.
+Signed-off-by: Thomas van Kleef <thomas@vitsch.nl>
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+---
+ arch/arm/boot/dts/sun7i-a20.dtsi | 47 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-> The resource addresses are translated using dma_map_resource(). As far 
-> as I know that should be sufficient to offload all the architecture 
-> specific stuff to the DMA subsystem.
-
-It's not. The dma_map infrastructure currently has no concept of
-peer-to-peer mappings and is designed for system memory only. No
-architecture I'm aware of will translate PCI CPU addresses into PCI Bus
-addresses which is necessary for any transfer that doesn't go through
-the root complex (though on arches like x86 the CPU and Bus address
-happen to be the same). There's a lot of people that would like to see
-this change but it's likely going to be a long road before it does.
-
-Furthermore, one of the reasons our patch-set avoids going through the
-root complex at all is that IOMMU drivers will need to be made aware
-that it is operating on P2P memory and do arch-specific things
-accordingly. There will also need to be flags that indicate whether a
-given IOMMU driver supports this. None of this work is done or easy.
-
-> Yeah, but not for ours. See if you want to do real peer 2 peer you need 
-> to keep both the operation as well as the direction into account.
-
-Not sure what you are saying here... I'm pretty sure we are doing "real"
-peer 2 peer...
-
-> For example when you can do writes between A and B that doesn't mean 
-> that writes between B and A work. And reads are generally less likely to 
-> work than writes. etc...
-
-If both devices are behind a switch then the PCI spec guarantees that A
-can both read and write B and vice versa. Only once you involve root
-complexes do you have this problem. Ie. you have unknown support which
-may be no support, or partial support (stores but not loads); or
-sometimes bad performance; or a combination of both... and you need some
-way to figure out all this mess and that is hard. Whoever tries to
-implement a white list will have to sort all this out.
-
-Logan
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index bd0cd3204273..b0d21208af87 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -53,6 +53,35 @@
+ / {
+ 	interrupt-parent = <&gic>;
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		/*
++		 * MUST TO BE IN THE LOWER 256MB of RAM for the VE!
++		 * Src: http://linux-sunxi.org/Sunxi-cedrus "A
++		 * limitation of the Allwinner's VPU is the need for
++		 * buffers in the lower 256M of RAM. In order to
++		 * allocate large sets of data in this area,
++		 * "sunxi-cedrus" reserves a DMA pool that is then
++		 * used by videobuf's dma-contig backend() to allocate
++		 * input and output buffers easily and integrate that
++		 * with the v4l QBUF/DQBUF APIs."
++		 *
++		 * The lower limit is 0x41000000 but the kernel has to
++		 * be moved somewhere else in order to use this
++		 * region.
++		 */
++
++		ve_reserved: cma {
++			compatible = "shared-dma-pool";
++			reg = <0x41000000 0x9000000>;
++			no-map;
++			linux,cma-default;
++		};
++	};
++
+ 	aliases {
+ 		ethernet0 = &gmac;
+ 	};
+@@ -451,6 +480,24 @@
+ 			};
+ 		};
+ 
++		ve: video-engine@01c0e000 {
++			compatible = "allwinner,sun4i-a10-video-engine";
++			memory-region = <&ve_reserved>;
++
++			clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
++				 <&ccu CLK_DRAM_VE>;
++			clock-names = "ahb", "mod", "ram";
++
++			assigned-clocks = <&ccu CLK_VE>;
++			assigned-clock-rates = <320000000>;
++
++			resets = <&ccu RST_VE>;
++
++			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
++
++			reg = <0x01c0e000 0x1000>;
++		};
++
+ 		mmc0: mmc@1c0f000 {
+ 			compatible = "allwinner,sun7i-a20-mmc";
+ 			reg = <0x01c0f000 0x1000>;
+-- 
+2.16.2
