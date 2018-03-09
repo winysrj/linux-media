@@ -1,116 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38659 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751630AbeCUJYg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 05:24:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Paul Menzel <pmenzel+linux-media@molgen.mpg.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        it+linux-media@molgen.mpg.de,
-        Mario Limonciello <mario.limonciello@dell.com>
-Subject: Re: uvcvideo: Unknown video format,00000032-0002-0010-8000-00aa00389b71
-Date: Wed, 21 Mar 2018 11:25:42 +0200
-Message-ID: <2929738.Pf5m835D8F@avalon>
-In-Reply-To: <2b332247-72f6-d9ad-306d-d900759ea5a8@molgen.mpg.de>
-References: <8f7d4aef-84f7-ae22-8adc-cba4fa881675@molgen.mpg.de> <6647791.pjJyibMGYG@avalon> <2b332247-72f6-d9ad-306d-d900759ea5a8@molgen.mpg.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.bootlin.com ([62.4.15.54]:49945 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751060AbeCIKPx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 05:15:53 -0500
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+Subject: [PATCH 4/9] v4l: Add MPEG2 low-level decoder API control
+Date: Fri,  9 Mar 2018 11:14:40 +0100
+Message-Id: <20180309101445.16190-2-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+From: Florent Revest <florent.revest@free-electrons.com>
 
-On Tuesday, 20 March 2018 18:46:24 EET Paul Menzel wrote:
-> On 03/20/18 14:30, Laurent Pinchart wrote:
-> > On Tuesday, 20 March 2018 14:20:14 EET Paul Menzel wrote:
-> >> On the Dell XPS 13 9370, Linux 4.16-rc6 outputs the messages below.
-> >>=20
-> >> ```
->=20
-> [=E2=80=A6]
->=20
-> >> [    2.340736] input: Integrated_Webcam_HD: Integrate as
-> >> /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.0/input/input9
-> >> [    2.341447] uvcvideo: Unknown video format
-> >> 00000032-0002-0010-8000-00aa00389b71 >> [    2.341450] uvcvideo: Found
-> >> UVC 1.00 device Integrated_Webcam_HD (0bda:58f4)
->=20
-> [=E2=80=A6]
->=20
-> >> ```
-> >>=20
-> >> Please tell me, what I can do to improve the situation.
-> >=20
-> > Some vendors routinely implement new formats without bothering to send a
-> > patch for the uvcvideo driver. It would be easy to do so, but it requir=
-es
-> > knowing which format is meant by the GUID. Most format GUIDs are of the
-> > form 32595559-0000-0010-8000-00aa00389b71 that starts with a 4CC, but
-> > that's not the case here.
->=20
-> I am adding Mario to the receiver list, though he is currently on vacatio=
-n.
->=20
-> > Could you send me the output of
-> >=20
-> > lsusb -v -d 0bda:58f4
-> >=20
-> > running as root if possible ?
->=20
-> Sure, please find it attached.
+This control is to be used with the new low-level decoder API for
+MPEG2 to provide additional parameters for the hardware that cannot parse
+the input stream.
 
-Thank you.
+Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
+ include/uapi/linux/v4l2-controls.h   | 26 ++++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h       |  5 +++++
+ 4 files changed, 47 insertions(+)
 
-Could you please try the following patch ?
-
-commit 7b3dea984b380f5b4b5c1956a9c6c23966af2149
-Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date:   Wed Mar 21 11:16:40 2018 +0200
-
-    media: uvcvideo: Add KSMedia 8-bit IR format support
-   =20
-    Add support for the 8-bit IR format GUID defined in the Microsoft Kernel
-    Streaming Media API.
-   =20
-    Reported-by: Paul Menzel <pmenzel+linux-media@molgen.mpg.de>
-    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc=
-_driver.c
-index 2469b49b2b30..3691d87ef869 100644
-=2D-- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -99,6 +99,11 @@ static struct uvc_format_desc uvc_fmts[] =3D {
- 		.guid		=3D UVC_GUID_FORMAT_D3DFMT_L8,
- 		.fcc		=3D V4L2_PIX_FMT_GREY,
- 	},
-+	{
-+		.name		=3D "IR 8-bit (L8_IR)",
-+		.guid		=3D UVC_GUID_FORMAT_KSMEDIA_L8_IR,
-+		.fcc		=3D V4L2_PIX_FMT_GREY,
-+	},
- 	{
- 		.name		=3D "Greyscale 10-bit (Y10 )",
- 		.guid		=3D UVC_GUID_FORMAT_Y10,
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvi=
-deo.h
-index be5cf179228b..6b955e0dd956 100644
-=2D-- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -157,6 +157,9 @@
- #define UVC_GUID_FORMAT_D3DFMT_L8 \
- 	{0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_KSMEDIA_L8_IR \
-+	{0x32, 0x00, 0x00, 0x00, 0x02, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-=20
-=20
- /* ------------------------------------------------------------------------
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d7b1aeb32470..fa23e4ea1084 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -763,6 +763,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
+ 	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:		return "Force Key Frame";
+ 
++	case V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR:		return "MPEG2 Frame Header";
++
+ 	/* VPX controls */
+ 	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4:		return "VPX Intra Mode Decision Disable";
+@@ -1153,6 +1155,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_ALT_FREQS:
+ 		*type = V4L2_CTRL_TYPE_U32;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR:
++		*type = V4L2_CTRL_TYPE_MPEG2_FRAME_HDR;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -1473,6 +1478,13 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -ERANGE;
+ 		return 0;
+ 
++	case V4L2_CTRL_TYPE_MPEG2_FRAME_HDR:
++		return 0;
++
++	/* FIXME:just return 0 for now */
++	case V4L2_CTRL_TYPE_PRIVATE:
++		return 0;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2032,6 +2044,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	case V4L2_CTRL_TYPE_U32:
+ 		elem_size = sizeof(u32);
+ 		break;
++	case V4L2_CTRL_TYPE_MPEG2_FRAME_HDR:
++		elem_size = sizeof(struct v4l2_ctrl_mpeg2_frame_hdr);
++		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+ 			elem_size = sizeof(s32);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index a45fe078f8ae..284bace60499 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1281,6 +1281,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+ 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
+ 		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
++		case V4L2_PIX_FMT_MPEG2_FRAME:	descr = "MPEG2 FRAME"; break;
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index cbbb750d87d1..c8f25d4abce7 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -557,6 +557,8 @@ enum v4l2_mpeg_video_mpeg4_profile {
+ };
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
+ 
++#define V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR     (V4L2_CID_MPEG_BASE+450)
++
+ /*  Control IDs for VP8 streams
+  *  Although VP8 is not part of MPEG we add these controls to the MPEG class
+  *  as that class is already handling other video compression standards
+@@ -985,4 +987,28 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+ 
++struct v4l2_ctrl_mpeg2_frame_hdr {
++	__u32 slice_len;
++	__u32 slice_pos;
++	enum { MPEG1, MPEG2 } type;
++
++	__u16 width;
++	__u16 height;
++
++	enum { PCT_I = 1, PCT_P, PCT_B, PCT_D } picture_coding_type;
++	__u8 f_code[2][2];
++
++	__u8 intra_dc_precision;
++	__u8 picture_structure;
++	__u8 top_field_first;
++	__u8 frame_pred_frame_dct;
++	__u8 concealment_motion_vectors;
++	__u8 q_scale_type;
++	__u8 intra_vlc_format;
++	__u8 alternate_scan;
++
++	__u8 backward_index;
++	__u8 forward_index;
++};
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index cee906681db7..3f085f633d7e 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -636,6 +636,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+ #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+ #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
++#define V4L2_PIX_FMT_MPEG2_FRAME  v4l2_fourcc('M', 'G', '2', 'F') /* MPEG2 frame */
+ 
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+@@ -1581,6 +1582,7 @@ struct v4l2_ext_control {
+ 		__u8 __user *p_u8;
+ 		__u16 __user *p_u16;
+ 		__u32 __user *p_u32;
++		struct v4l2_ctrl_mpeg2_frame_hdr __user *p_mpeg2_frame_hdr;
+ 		void __user *ptr;
+ 	};
+ } __attribute__ ((packed));
+@@ -1625,6 +1627,9 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++	V4L2_CTRL_TYPE_MPEG2_FRAME_HDR  = 0x0109,
++
++	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-- 
+2.16.2
