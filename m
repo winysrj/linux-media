@@ -1,174 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:38630 "EHLO
-        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932838AbeCOXQy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 19:16:54 -0400
-Received: by mail-lf0-f53.google.com with SMTP id y2-v6so10542342lfc.5
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 16:16:53 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 16 Mar 2018 00:16:50 +0100
-To: Todor Tomov <ttomov@mm-sol.com>
-Cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 00/20] Add multiplexed media pads to support CSI-2
- virtual channels
-Message-ID: <20180315231650.GO10974@bigcity.dyn.berto.se>
-References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
- <403976aa-d9e3-60a3-1a33-37cf78d7c5a3@mm-sol.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <403976aa-d9e3-60a3-1a33-37cf78d7c5a3@mm-sol.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39422 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932767AbeCIWEU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 17:04:20 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 07/11] media: vsp1: Use header display lists for all WPF outputs linked to the DU
+Date: Fri,  9 Mar 2018 22:04:05 +0000
+Message-Id: <0d0411f234175bc60b2e27ce3e4c38e937184b09.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+Header mode display lists are now supported on all WPF outputs. To
+support extended headers and auto-fld capabilities for interlaced mode
+handling only header mode display lists can be used.
 
-On 2018-03-15 11:43:31 +0200, Todor Tomov wrote:
-> Hello,
-> 
-> I'm trying to understand what is the current state of the multiple virtual
-> channel support in V4L2 and Media framework. This is the last activity
-> on this topic which I was able to find. Is anything new happened since
-> this RFC, is someone working on this or planing to work on?
+Disable the headerless display list configuration, and remove the dead
+code.
 
-I'm currently working on this but right now I'm focusing on driver 
-dependencies for my use-case, once that is done I will resume to push 
-more for the multiplexed stream support. I randomly push my latest work 
-to
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 107 ++++++---------------------
+ 1 file changed, 27 insertions(+), 80 deletions(-)
 
-git://git.ragnatech.se/linux v4l2/mux
-
-But this is a unstable branch and contains some LOCAL patches to test my 
-work on Renesas platforms. But if you want to checkout my current status 
-that's the branch to check.
-
-Out of curiosity what board or use-case are you interested in where 
-multiplexed streams would be useful for you?
-
-> 
-> Best regards,
-> Todor Tomov
-> 
-> On 11.08.2017 12:56, Niklas Söderlund wrote:
-> > Hi,
-> > 
-> > This series is a RFC for how I think one could add CSI-2 virtual channel 
-> > support to the V4L2 framework. The problem is that there is no way to in 
-> > the media framework describe and control links between subdevices which 
-> > carry more then one video stream, for example a CSI-2 bus which can have 
-> > 4 virtual channels carrying different video streams.
-> > 
-> > This series adds a new pad flag which would indicate that a pad carries 
-> > multiplexed streams, adds a new s_stream() operation to the pad 
-> > operations structure which takes a new argument 'stream'. This new 
-> > s_stream() operation then is both pad and stream aware. It also extends 
-> > struct v4l2_mbus_frame_desc_entry with a new sub-struct to describe how 
-> > a CSI-2 link multiplexes virtual channels. I also include one 
-> > implementation based on Renesas R-Car which makes use of these patches 
-> > as I think they help with understanding but they have no impact on the 
-> > RFC feature itself.
-> > 
-> > The idea is that on both sides of the multiplexed media link there are 
-> > one multiplexer subdevice and one demultiplexer subdevice. These two 
-> > subdevices can't do any format conversions, there sole purpose is to 
-> > (de)multiplex the CSI-2 link. If there is hardware which can do both 
-> > CSI-2 multiplexing and format conversions they can be modeled as two 
-> > subdevices from the same device driver and using the still pending 
-> > incremental async mechanism to connect the external pads. The reason 
-> > there is no format conversion is important as the multiplexed pads can't 
-> > have a format in the current V4L2 model, get/set_fmt are not aware of 
-> > streams.
-> > 
-> >         +------------------+              +------------------+
-> >      +-------+  subdev 1   |              |  subdev 2   +-------+
-> >   +--+ Pad 1 |             |              |             | Pad 3 +---+
-> >      +--+----+   +---------+---+      +---+---------+   +----+--+
-> >         |        | Muxed pad A +------+ Muxed pad B |        |
-> >      +--+----+   +---------+---+      +---+---------+   +----+--+
-> >   +--+ Pad 2 |             |              |             | Pad 4 +---+
-> >      +-------+             |              |             +-------+
-> >         +------------------+              +------------------+
-> > 
-> > In the simple example above Pad 1 is routed to Pad 3 and Pad 2 to Pad 4, 
-> > and the video data for both of them travels the link between pad A and 
-> > B. One shortcoming of this RFC is that there currently are no way to 
-> > express to user-space which pad is routed to which stream of the 
-> > multiplexed link. But inside the kernel this is known and format 
-> > validation is done by comparing the format of Pad 1 to Pad 3 and Pad 2 
-> > to Pad 4 by the V4L2 framework. But it would be nice for the user to 
-> > also be able to get this information while setting up the MC graph in 
-> > user-space.
-> > 
-> > Obviously there are things that are not perfect in this RFC, one is the 
-> > above mentioned lack of user-space visibility of that Pad 1 is in fact 
-> > routed to Pad 3. Others are lack of Documentation/ work and I'm sure 
-> > there are error path shortcuts which are not fully thought out. One big 
-> > question is also if the s_stream() operation added to ops structure 
-> > should be a compliment to the existing ones in video and audio ops or 
-> > aim to replace the one in video ops. I'm also unsure of the CSI2 flag of 
-> > struct v4l2_mbus_frame_desc_entry don't really belong in struct 
-> > v4l2_mbus_frame_desc. And I'm sure there are lots of other stuff that's 
-> > why this is a RFC...
-> > 
-> > A big thanks to Laurent and Sakari for being really nice and taking time 
-> > helping me grasp all the possibilities and issues with this problem, all 
-> > cred to them and all blame to me for misunderstanding there guidance :-)
-> > 
-> > This series based on the latest R-Car CSI-2 and VIN patches which can be 
-> > found at [1], but that is a dependency only for the driver specific
-> > implementation which acts as an example of implementation. For the V4L2 
-> > framework patches the media-tree is the base.
-> > 
-> > 1. https://git.ragnatech.se/linux#rcar-vin-elinux-v12
-> > 
-> > Niklas Söderlund (20):
-> >   media.h: add MEDIA_PAD_FL_MUXED flag
-> >   v4l2-subdev.h: add pad and stream aware s_stream
-> >   v4l2-subdev.h: add CSI-2 bus description to struct
-> >     v4l2_mbus_frame_desc_entry
-> >   v4l2-core: check that both pads in a link are muxed if one are
-> >   v4l2-core: verify all streams formats on multiplexed links
-> >   rcar-vin: use the pad and stream aware s_stream
-> >   rcar-csi2: declare sink pad as multiplexed
-> >   rcar-csi2: switch to pad and stream aware s_stream
-> >   rcar-csi2: figure out remote pad and stream which are starting
-> >   rcar-csi2: count usage for each source pad
-> >   rcar-csi2: when starting CSI-2 receiver use frame descriptor
-> >     information
-> >   rcar-csi2: only allow formats on source pads
-> >   rcar-csi2: implement get_frame_desc
-> >   adv748x: add module param for virtual channel
-> >   adv748x: declare source pad as multiplexed
-> >   adv748x: add translation from pixelcode to CSI-2 datatype
-> >   adv748x: implement get_frame_desc
-> >   adv748x: switch to pad and stream aware s_stream
-> >   adv748x: only allow formats on sink pads
-> >   arm64: dts: renesas: salvator: use VC1 for CVBS
-> > 
-> >  arch/arm64/boot/dts/renesas/salvator-common.dtsi |   2 +-
-> >  drivers/media/i2c/adv748x/adv748x-core.c         |  10 +
-> >  drivers/media/i2c/adv748x/adv748x-csi2.c         |  78 +++++++-
-> >  drivers/media/i2c/adv748x/adv748x.h              |   1 +
-> >  drivers/media/platform/rcar-vin/rcar-csi2.c      | 239 ++++++++++++++++-------
-> >  drivers/media/platform/rcar-vin/rcar-dma.c       |   6 +-
-> >  drivers/media/v4l2-core/v4l2-subdev.c            |  65 ++++++
-> >  include/media/v4l2-subdev.h                      |  16 ++
-> >  include/uapi/linux/media.h                       |   1 +
-> >  9 files changed, 341 insertions(+), 77 deletions(-)
-> > 
-> 
-> -- 
-> Best regards,
-> Todor Tomov
-
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 6271bea5e831..dc273e3b4753 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -98,7 +98,7 @@ struct vsp1_dl_body_pool {
+  * struct vsp1_dl_list - Display list
+  * @list: entry in the display list manager lists
+  * @dlm: the display list manager
+- * @header: display list header, NULL for headerless lists
++ * @header: display list header
+  * @dma: DMA address for the header
+  * @body0: first display list body
+  * @bodies: list of extra display list bodies
+@@ -119,15 +119,9 @@ struct vsp1_dl_list {
+ 	struct list_head chain;
+ };
+ 
+-enum vsp1_dl_mode {
+-	VSP1_DL_MODE_HEADER,
+-	VSP1_DL_MODE_HEADERLESS,
+-};
+-
+ /**
+  * struct vsp1_dl_manager - Display List manager
+  * @index: index of the related WPF
+- * @mode: display list operation mode (header or headerless)
+  * @singleshot: execute the display list in single-shot mode
+  * @vsp1: the VSP1 device
+  * @lock: protects the free, active, queued, pending and gc_bodies lists
+@@ -139,7 +133,6 @@ enum vsp1_dl_mode {
+  */
+ struct vsp1_dl_manager {
+ 	unsigned int index;
+-	enum vsp1_dl_mode mode;
+ 	bool singleshot;
+ 	struct vsp1_device *vsp1;
+ 
+@@ -320,6 +313,7 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm,
+ 					       struct vsp1_dl_body_pool *pool)
+ {
+ 	struct vsp1_dl_list *dl;
++	size_t header_offset;
+ 
+ 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
+ 	if (!dl)
+@@ -332,16 +326,15 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm,
+ 	dl->body0 = vsp1_dl_body_get(pool);
+ 	if (!dl->body0)
+ 		return NULL;
+-	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+-		size_t header_offset = dl->body0->max_entries
+-				     * sizeof(*dl->body0->entries);
+ 
+-		dl->header = ((void *)dl->body0->entries) + header_offset;
+-		dl->dma = dl->body0->dma + header_offset;
++	header_offset = dl->body0->max_entries
++			     * sizeof(*dl->body0->entries);
+ 
+-		memset(dl->header, 0, sizeof(*dl->header));
+-		dl->header->lists[0].addr = dl->body0->dma;
+-	}
++	dl->header = ((void *)dl->body0->entries) + header_offset;
++	dl->dma = dl->body0->dma + header_offset;
++
++	memset(dl->header, 0, sizeof(*dl->header));
++	dl->header->lists[0].addr = dl->body0->dma;
+ 
+ 	return dl;
+ }
+@@ -473,16 +466,9 @@ struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
+  *
+  * The reference must be explicitly released by a call to vsp1_dl_body_put()
+  * when the body isn't needed anymore.
+- *
+- * Additional bodies are only usable for display lists in header mode.
+- * Attempting to add a body to a header-less display list will return an error.
+  */
+ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
+ {
+-	/* Multi-body lists are only available in header mode. */
+-	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+-		return -EINVAL;
+-
+ 	refcount_inc(&dlb->refcnt);
+ 
+ 	list_add_tail(&dlb->list, &dl->bodies);
+@@ -503,17 +489,10 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
+  * Adding a display list to a chain passes ownership of the display list to
+  * the head display list item. The chain is released when the head dl item is
+  * put back with __vsp1_dl_list_put().
+- *
+- * Chained display lists are only usable in header mode. Attempts to add a
+- * display list to a chain in header-less mode will return an error.
+  */
+ int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
+ 			   struct vsp1_dl_list *dl)
+ {
+-	/* Chained lists are only available in header mode. */
+-	if (head->dlm->mode != VSP1_DL_MODE_HEADER)
+-		return -EINVAL;
+-
+ 	head->has_chain = true;
+ 	list_add_tail(&dl->chain, &head->chain);
+ 	return 0;
+@@ -581,17 +560,10 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
+ 		return false;
+ 
+ 	/*
+-	 * Check whether the VSP1 has taken the update. In headerless mode the
+-	 * hardware indicates this by clearing the UPD bit in the DL_BODY_SIZE
+-	 * register, and in header mode by clearing the UPDHDR bit in the CMD
+-	 * register.
++	 * Check whether the VSP1 has taken the update. In header mode by
++	 * clearing the UPDHDR bit in the CMD register.
+ 	 */
+-	if (dlm->mode == VSP1_DL_MODE_HEADERLESS)
+-		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
+-			  & VI6_DL_BODY_SIZE_UPD);
+-	else
+-		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
+-			  & VI6_CMD_UPDHDR);
++	return !!(vsp1_read(vsp1, VI6_CMD(dlm->index)) & VI6_CMD_UPDHDR);
+ }
+ 
+ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
+@@ -599,26 +571,14 @@ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
+ 	struct vsp1_dl_manager *dlm = dl->dlm;
+ 	struct vsp1_device *vsp1 = dlm->vsp1;
+ 
+-	if (dlm->mode == VSP1_DL_MODE_HEADERLESS) {
+-		/*
+-		 * In headerless mode, program the hardware directly with the
+-		 * display list body address and size and set the UPD bit. The
+-		 * bit will be cleared by the hardware when the display list
+-		 * processing starts.
+-		 */
+-		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0->dma);
+-		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
+-			(dl->body0->num_entries * sizeof(*dl->header->lists)));
+-	} else {
+-		/*
+-		 * In header mode, program the display list header address. If
+-		 * the hardware is idle (single-shot mode or first frame in
+-		 * continuous mode) it will then be started independently. If
+-		 * the hardware is operating, the VI6_DL_HDR_REF_ADDR register
+-		 * will be updated with the display list address.
+-		 */
+-		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
+-	}
++	/*
++	 * In header mode, program the display list header address. If
++	 * the hardware is idle (single-shot mode or first frame in
++	 * continuous mode) it will then be started independently. If
++	 * the hardware is operating, the VI6_DL_HDR_REF_ADDR register
++	 * will be updated with the display list address.
++	 */
++	vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
+ }
+ 
+ static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
+@@ -668,15 +628,13 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	struct vsp1_dl_list *dl_next;
+ 	unsigned long flags;
+ 
+-	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+-		/* Fill the header for the head and chained display lists. */
+-		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
++	/* Fill the header for the head and chained display lists. */
++	vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
+ 
+-		list_for_each_entry(dl_next, &dl->chain, chain) {
+-			bool last = list_is_last(&dl_next->chain, &dl->chain);
++	list_for_each_entry(dl_next, &dl->chain, chain) {
++		bool last = list_is_last(&dl_next->chain, &dl->chain);
+ 
+-			vsp1_dl_list_fill_header(dl_next, last);
+-		}
++		vsp1_dl_list_fill_header(dl_next, last);
+ 	}
+ 
+ 	spin_lock_irqsave(&dlm->lock, flags);
+@@ -763,13 +721,6 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
+ 		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
+ 		 | VI6_DL_CTRL_DLE;
+ 
+-	/*
+-	 * The DRM pipeline operates with display lists in Continuous Frame
+-	 * Mode, all other pipelines use manual start.
+-	 */
+-	if (vsp1->drm)
+-		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
+-
+ 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
+ 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
+ }
+@@ -804,8 +755,6 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 		return NULL;
+ 
+ 	dlm->index = index;
+-	dlm->mode = index == 0 && !vsp1->info->uapi
+-		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
+ 	dlm->singleshot = vsp1->info->uapi;
+ 	dlm->vsp1 = vsp1;
+ 
+@@ -814,13 +763,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 
+ 	/*
+ 	 * Initialize the display list body and allocate DMA memory for the body
+-	 * and the optional header. Both are allocated together to avoid memory
++	 * and the header. Both are allocated together to avoid memory
+ 	 * fragmentation, with the header located right after the body in
+ 	 * memory.
+ 	 */
+-	header_size = dlm->mode == VSP1_DL_MODE_HEADER
+-		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
+-		    : 0;
++	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
+ 
+ 	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
+ 					     VSP1_DL_NUM_ENTRIES, header_size);
 -- 
-Regards,
-Niklas Söderlund
+git-series 0.9.1
