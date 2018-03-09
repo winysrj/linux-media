@@ -1,106 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41920 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750864AbeCZJE3 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60397 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751137AbeCIOMG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 05:04:29 -0400
-Subject: Re: [PATCH v6] ARM: dts: wheat: Fix ADV7513 address usage
-To: Simon Horman <horms@verge.net.au>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
-References: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <20180323085140.g3golwdtpezo7fhi@verge.net.au>
- <a771042b-f63a-d00f-73a1-91a7e6089fe4@ideasonboard.com>
- <20180326083143.r6jz6csckd4ljnpu@verge.net.au>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <d2c5d935-da1f-038b-a0e6-ce390273e21a@ideasonboard.com>
-Date: Mon, 26 Mar 2018 10:04:24 +0100
+        Fri, 9 Mar 2018 09:12:06 -0500
+Subject: Re: [PATCH v6 00/17] Rockchip ISP1 Driver
+To: Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        devicetree@vger.kernel.org, heiko@sntech.de,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e92343b5-6b02-2c38-6dc3-dc5d9af160c6@xs4all.nl>
+Date: Fri, 9 Mar 2018 15:12:03 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180326083143.r6jz6csckd4ljnpu@verge.net.au>
+In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+Hi Jacob,
 
-On 26/03/18 09:31, Simon Horman wrote:
-> On Fri, Mar 23, 2018 at 09:16:13PM +0000, Kieran Bingham wrote:
->> Hi Simon,
->>
->> On 23/03/18 08:51, Simon Horman wrote:
->>> On Thu, Mar 22, 2018 at 09:30:40PM +0000, Kieran Bingham wrote:
->>>> The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
->>>> bus, however in low power mode the ADV7513 will reset it's slave maps to
->>>> use the hardware defined default addresses.
->>>>
->>>> The ADV7511 driver was adapted to allow the two devices to be registered
->>>> correctly - but it did not take into account the fault whereby the
->>>> devices reset the addresses.
->>>>
->>>> This results in an address conflict between the device using the default
->>>> addresses, and the other device if it is in low-power-mode.
->>>>
->>>> Repair this issue by moving both devices away from the default address
->>>> definitions.
->>>
->>> Hi Kierean,
->>>
->>> as this is a fix
->>> a) Does it warrant a fixes tag?
->>>    Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
->>> b) Does it warrant being posted as a fix for v4.16;
->>> c) or v4.17?
->>
->> Tricky one, yes it could but this DTS fix, will only actually 'fix' the issue if
->> the corresponding driver updates to allow secondary addresses to be parsed are
->> also backported.
->>
->> It should be safe to back port the dts fix without the driver updates, but the
->> addresses specified by this patch will simply be ignored.
+This is getting very close. Besides this round of review comments the main
+blocker is mbus_config. But Thomasz is looking at that, so I will wait until
+that is resolved.
+
+Also for your v7 include the patches from Sakari that add Meta Output support.
+
+This patch series relies on those, so it is easiest to review if they are part
+of the patch series.
+
+Regards,
+
+	Hans
+
+On 08/03/18 10:47, Jacob Chen wrote:
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
 > 
-> In that case I think its safe to add the fixes tag and take the DTS patch
-> via the renesas tree. Perhaps applying it for v4.18 and allowing automatic
-> backporting to take its course is the cleanest option.
+> changes in V6:
+>   - add mipi txrx phy support
+>   - remove bool and enum from uapi header
+>   - add buf_prepare op
+>   - correct some spelling problems
+>   - return all queued buffers when starting stream failed
 > 
->> Thus if this is marked with the fixes tag the corresponding patch "drm: adv7511:
->> Add support for i2c_new_secondary_device" should also be marked.
->>
->> It looks like that patch has yet to be picked up by the DRM subsystem, so how
->> about I bundle both of these two patches together in a repost along with the
->> fixes tag.
->>
->> In fact, I don't think the ADV7511 dt-bindings update has made any progress
->> either. (dt-bindings: adv7511: Extend bindings to allow specifying slave map
->> addresses). The media tree variants for the adv7604 have already been picked up
->> by Mauro I believe though.
->>
->> I presume it would be acceptable for this dts patch (or rather all three patches
->> mentioned) to get integrated through the DRM tree ?
+> changes in V5: Sync with local changes,
+>   - fix the SP height limit
+>   - speed up the second stream capture
+>   - the second stream can't force sync for rsz when start/stop streaming
+>   - add frame id to param vb2 buf
+>   - enable luminance maximum threshold
 > 
-> Unless there is a strong reason I would prefer the dts patch to go via
-> my tree. The reason is to avoid merge conflicts bubbling up to Linus,
-> which really is something best avoided.
-
-That's perfectly fine with me.
-
-Feel free to add:
-
-Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
-
-as you suggested when you apply, or alternatively let me know if you need a repost.
-
-Regards
---
-Kieran
+> changes in V4:
+>   - fix some bugs during development
+>   - move quantization settings to rkisp1 subdev
+>   - correct some spelling problems
+>   - describe ports in dt-binding documents
+> 
+> changes in V3:
+>   - add some comments
+>   - fix wrong use of v4l2_async_subdev_notifier_register
+>   - optimize two paths capture at a time
+>   - remove compose
+>   - re-struct headers
+>   - add a tmp wiki page: http://opensource.rock-chips.com/wiki_Rockchip-isp1
+> 
+> changes in V2:
+>   mipi-phy:
+>     - use async probing
+>     - make it be a child device of the GRF
+>   isp:
+>     - add dummy buffer
+>     - change the way to get bus configuration, which make it possible to
+>             add parallel sensor support in the future(without mipi-phy driver).
+> 
+> This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
+> 
+> Wiki Pages:
+> http://opensource.rock-chips.com/wiki_Rockchip-isp1
+> 
+> The deprecated g_mbus_config op is not dropped in  V6 because i am waiting tomasz's patches.
+> 
+> v4l2-compliance for V6(isp params/stats nodes are passed):
+> 
+>     v4l2-compliance SHA   : 93dc5f20727fede5097d67f8b9adabe4b8046d5b
+> 
+>     Compliance test for device /dev/video0:
+> 
+>     Driver Info:
+>             Driver name      : rkisp1
+>             Card type        : rkisp1
+>             Bus info         : platform:ff910000.isp
+>             Driver version   : 4.16.0
+>             Capabilities     : 0x84201000
+>                     Video Capture Multiplanar
+>                     Streaming
+>                     Extended Pix Format
+>                     Device Capabilities
+>             Device Caps      : 0x04201000
+>                     Video Capture Multiplanar
+>                     Streaming
+>                     Extended Pix Format
+>     Media Driver Info:
+>             Driver name      : rkisp1
+>             Model            : rkisp1
+>             Serial           : 
+>             Bus info         : 
+>             Media version    : 4.16.0
+>             Hardware revision: 0x00000000 (0)
+>             Driver version   : 4.16.0
+>     Interface Info:
+>             ID               : 0x03000007
+>             Type             : V4L Video
+>     Entity Info:
+>             ID               : 0x00000006 (6)
+>             Name             : rkisp1_selfpath
+>             Function         : V4L2 I/O
+>             Pad 0x01000009   : Sink
+>               Link 0x02000021: from remote pad 0x1000004 of entity 'rkisp1-isp-subdev': Data, Enabled
+> 
+>     Required ioctls:
+>             test MC information (see 'Media Driver Info' above): OK
+>             test VIDIOC_QUERYCAP: OK
+> 
+>     Allow for multiple opens:
+>             test second /dev/video0 open: OK
+>             test VIDIOC_QUERYCAP: OK
+>             test VIDIOC_G/S_PRIORITY: OK
+>             test for unlimited opens: OK
+> 
+>     Debug ioctls:
+>             test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>             test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+>     Input ioctls:
+>             test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>             test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>             test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>             test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>             test VIDIOC_G/S/ENUMINPUT: OK
+>             test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>             Inputs: 1 Audio Inputs: 0 Tuners: 0
+> 
+>     Output ioctls:
+>             test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>             test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>             test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>             test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>             test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>             Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+>     Input/Output configuration ioctls:
+>             test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>             test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>             test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>             test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+>     Control ioctls (Input 0):
+>             test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>             test VIDIOC_QUERYCTRL: OK
+>             test VIDIOC_G/S_CTRL: OK
+>             test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>             test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>             test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>             Standard Controls: 9 Private Controls: 0
+> 
+>     Format ioctls (Input 0):
+>             test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>             test VIDIOC_G/S_PARM: OK (Not Supported)
+>             test VIDIOC_G_FBUF: OK (Not Supported)
+>                     fail: v4l2-test-formats.cpp(330): !colorspace
+>                     fail: v4l2-test-formats.cpp(454): testColorspace(pix_mp.pixelformat, pix_mp.colorspace, pix_mp.ycbcr_enc, pix_m
+>     p.quantization)
+>             test VIDIOC_G_FMT: FAIL
+>             test VIDIOC_TRY_FMT: OK (Not Supported)
+>             test VIDIOC_S_FMT: OK (Not Supported)
+>             test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                     fail: v4l2-test-formats.cpp(1288): doioctl(node, VIDIOC_G_SELECTION, &sel) != EINVAL
+>             test Cropping: FAIL
+>             test Composing: OK (Not Supported)
+>             test Scaling: OK
+> 
+>     Codec ioctls (Input 0):
+>             test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>             test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>             test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+>     Buffer ioctls (Input 0):
+>             test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                     fail: v4l2-test-buffers.cpp(525): VIDIOC_EXPBUF is supported, but the V4L2_MEMORY_MMAP support is missing, prob
+>     ably due to earlier failing format tests.
+>             test VIDIOC_EXPBUF: OK (Not Supported)
+> 
+>     Total: 44, Succeeded: 42, Failed: 2, Warnings: 0
+> 
+> Jacob Chen (12):
+>   media: doc: add document for rkisp1 meta buffer format
+>   media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
+>   media: rkisp1: add Rockchip ISP1 subdev driver
+>   media: rkisp1: add ISP1 statistics driver
+>   media: rkisp1: add ISP1 params driver
+>   media: rkisp1: add capture device driver
+>   media: rkisp1: add rockchip isp1 core driver
+>   dt-bindings: Document the Rockchip ISP1 bindings
+>   dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+>   ARM: dts: rockchip: add isp node for rk3288
+>   ARM: dts: rockchip: add rx0 mipi-phy for rk3288
+>   MAINTAINERS: add entry for Rockchip ISP1 driver
+> 
+> Jeffy Chen (1):
+>   media: rkisp1: Add user space ABI definitions
+> 
+> Shunqian Zheng (3):
+>   media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
+>   arm64: dts: rockchip: add isp0 node for rk3399
+>   arm64: dts: rockchip: add rx0 mipi-phy for rk3399
+> 
+> Wen Nuan (1):
+>   ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
+> 
+>  .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
+>  .../bindings/media/rockchip-mipi-dphy.txt          |   90 +
+>  Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
+>  .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   20 +
+>  .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
+>  MAINTAINERS                                        |   10 +
+>  arch/arm/boot/dts/rk3288.dtsi                      |   33 +
+>  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
+>  drivers/media/platform/Kconfig                     |   10 +
+>  drivers/media/platform/Makefile                    |    1 +
+>  drivers/media/platform/rockchip/isp1/Makefile      |    8 +
+>  drivers/media/platform/rockchip/isp1/capture.c     | 1751 ++++++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/capture.h     |  167 ++
+>  drivers/media/platform/rockchip/isp1/common.h      |  110 ++
+>  drivers/media/platform/rockchip/isp1/dev.c         |  626 +++++++
+>  drivers/media/platform/rockchip/isp1/dev.h         |   93 ++
+>  drivers/media/platform/rockchip/isp1/isp_params.c  | 1539 +++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/isp_params.h  |   49 +
+>  drivers/media/platform/rockchip/isp1/isp_stats.c   |  508 ++++++
+>  drivers/media/platform/rockchip/isp1/isp_stats.h   |   58 +
+>  .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  868 ++++++++++
+>  .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   15 +
+>  drivers/media/platform/rockchip/isp1/regs.c        |  239 +++
+>  drivers/media/platform/rockchip/isp1/regs.h        | 1550 +++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/rkisp1.c      | 1177 +++++++++++++
+>  drivers/media/platform/rockchip/isp1/rkisp1.h      |  105 ++
+>  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
+>  include/uapi/linux/rkisp1-config.h                 |  798 +++++++++
+>  include/uapi/linux/videodev2.h                     |    4 +
+>  29 files changed, 9945 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+>  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
+>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
+>  create mode 100644 include/uapi/linux/rkisp1-config.h
+> 
