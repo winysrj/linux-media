@@ -1,181 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52700 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423930AbeCBKsG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 05:48:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v11 12/32] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
-Date: Fri, 02 Mar 2018 12:48:55 +0200
-Message-ID: <2141364.444NBPQ5qU@avalon>
-In-Reply-To: <20180302015751.25596-13-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se> <20180302015751.25596-13-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from osg.samsung.com ([64.30.133.232]:49815 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751143AbeCIPxm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:53:42 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 03/11] media: lgdt330x: use pr_foo() macros
+Date: Fri,  9 Mar 2018 12:53:28 -0300
+Message-Id: <64875f3014f9da0ed6282b45b96d3329d774874e.1520610788.git.mchehab@s-opensource.com>
+In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Cleanup the usecases of dprintk() by using pr_fmt() and replace
+printk by pr_foo().
 
-Thank you for the patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/lgdt330x.c | 64 ++++++++++++++++++----------------
+ 1 file changed, 34 insertions(+), 30 deletions(-)
 
-On Friday, 2 March 2018 03:57:31 EET Niklas S=F6derlund wrote:
-> There was never proper support in the VIN driver to deliver ALTERNATING
-> field format to user-space, remove this field option. The problem is
-> that ALTERNATING filed order requires the sequence numbers of buffers
-
-s/filed/field/
-
-> returned to userspace to reflect if fields where dropped or not,
-> something which is not possible with the VIN drivers capture logic.
->=20
-> The VIN driver can still capture from a video source which delivers
-> frames in ALTERNATING field order, but needs to combine them using the
-> VIN hardware into INTERLACED field order. Before this change if a source
-> was delivering fields using ALTERNATE the driver would default to
-> combining them using this hardware feature. Only if the user explicitly
-> requested ALTERNATE filed order would incorrect frames be delivered.
->=20
-> The height should not be cut in half for the format for TOP or BOTTOM
-> fields settings. This was a mistake and it was made visible by the
-> scaling refactoring. Correct behavior is that the user should request a
-> frame size that fits the half height frame reflected in the field
-> setting. If not the VIN will do its best to scale the top or bottom to
-> the requested format and cropping and scaling do not work as expected.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +----------
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 40 +++++++----------------=
-=2D--
->  2 files changed, 10 insertions(+), 45 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> fd14be20a6604d7a..c8831e189d362c8b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
->  	case V4L2_FIELD_INTERLACED_BT:
->  		vnmc =3D VNMC_IM_FULL | VNMC_FOC;
->  		break;
-> -	case V4L2_FIELD_ALTERNATE:
-
-Just to make sure I understand things correctly, field will never be=20
-V4L2_FIELD_ALTERNATE after this patch, right ?
-
->  	case V4L2_FIELD_NONE:
->  		if (vin->continuous) {
->  			vnmc =3D VNMC_IM_ODD_EVEN;
-> @@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin,
-> u32 vnms) return 0;
->  }
->=20
-> -static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32
-> vnms)
-> -{
-> -	if (vin->format.field =3D=3D V4L2_FIELD_ALTERNATE) {
-> -		/* If FS is set it's a Even field */
-> -		if (vnms & VNMS_FS)
-> -			return V4L2_FIELD_BOTTOM;
-> -		return V4L2_FIELD_TOP;
-> -	}
-> -
-> -	return vin->format.field;
-> -}
-> -
->  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t
-> addr) {
->  	const struct rvin_video_format *fmt;
-> @@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
->  		goto done;
->=20
->  	/* Capture frame */
-> -	vin->queue_buf[slot]->field =3D rvin_get_active_field(vin, vnms);
-> +	vin->queue_buf[slot]->field =3D vin->format.field;
->  	vin->queue_buf[slot]->sequence =3D sequence;
->  	vin->queue_buf[slot]->vb2_buf.timestamp =3D ktime_get_ns();
->  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> ebcd78b1bb6e8cb6..cef9070884d93ba6 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -121,33 +121,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
->  	vin->format.colorspace	=3D mf->colorspace;
->  	vin->format.field	=3D mf->field;
->=20
-> -	/*
-> -	 * If the subdevice uses ALTERNATE field mode and G_STD is
-> -	 * implemented use the VIN HW to combine the two fields to
-> -	 * one INTERLACED frame. The ALTERNATE field mode can still
-> -	 * be requested in S_FMT and be respected, this is just the
-> -	 * default which is applied at probing or when S_STD is called.
-> -	 */
-> -	if (vin->format.field =3D=3D V4L2_FIELD_ALTERNATE &&
-> -	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
-> -		vin->format.field =3D V4L2_FIELD_INTERLACED;
-> -
-> -	switch (vin->format.field) {
-> -	case V4L2_FIELD_TOP:
-> -	case V4L2_FIELD_BOTTOM:
-> -	case V4L2_FIELD_ALTERNATE:
-> -		vin->format.height /=3D 2;
-> -		break;
-> -	case V4L2_FIELD_NONE:
-> -	case V4L2_FIELD_INTERLACED_TB:
-> -	case V4L2_FIELD_INTERLACED_BT:
-> -	case V4L2_FIELD_INTERLACED:
-> -		break;
-> -	default:
-> -		vin->format.field =3D RVIN_DEFAULT_FIELD;
-> -		break;
-> -	}
-> -
-
-I might be wrong, but if this function is called from S_STD or S_DV_TIMINGS=
-=20
-and userspace calls G_FMT immediately after that, won't it get=20
-V4L2_FIELD_ALTERNATE (assuming that's what the sensor produces of course) ?
-
->  	rvin_reset_crop_compose(vin);
->=20
->  	vin->format.bytesperline =3D rvin_format_bytesperline(&vin->format);
-> @@ -233,15 +206,20 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	switch (pix->field) {
->  	case V4L2_FIELD_TOP:
->  	case V4L2_FIELD_BOTTOM:
-> -	case V4L2_FIELD_ALTERNATE:
-> -		pix->height /=3D 2;
-> -		source->height /=3D 2;
-> -		break;
->  	case V4L2_FIELD_NONE:
->  	case V4L2_FIELD_INTERLACED_TB:
->  	case V4L2_FIELD_INTERLACED_BT:
->  	case V4L2_FIELD_INTERLACED:
->  		break;
-> +	case V4L2_FIELD_ALTERNATE:
-> +		/*
-> +		 * Driver do not (yet) support outputting ALTERNATE to a
-
-While at it, s/do/does/
-
-> +		 * userspace. It does support outputting INTERLACED so use
-> +		 * the VIN hardware to combine the two fields.
-> +		 */
-> +		pix->field =3D V4L2_FIELD_INTERLACED;
-> +		pix->height *=3D 2;
-> +		break;
->  	default:
->  		pix->field =3D RVIN_DEFAULT_FIELD;
->  		break;
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
+index ad0842fcdba5..a3139eb69c93 100644
+--- a/drivers/media/dvb-frontends/lgdt330x.c
++++ b/drivers/media/dvb-frontends/lgdt330x.c
+@@ -29,6 +29,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -48,9 +50,11 @@
+ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Turn on/off lgdt330x frontend debugging (default:off).");
+-#define dprintk(args...) do {				\
+-	if (debug)					\
+-		printk(KERN_DEBUG "lgdt330x: " args);	\
++
++#define dprintk(fmt, arg...) do {					\
++	if (debug)							\
++		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
++		       __func__, ##arg);				\
+ } while (0)
+ 
+ struct lgdt330x_state {
+@@ -85,8 +89,8 @@ static int i2c_write_demod_bytes(struct lgdt330x_state *state,
+ 	for (i = 0; i < len - 1; i += 2) {
+ 		err = i2c_transfer(state->i2c, &msg, 1);
+ 		if (err != 1) {
+-			printk(KERN_WARNING "lgdt330x: %s error (addr %02x <- %02x, err = %i)\n",
+-			       __func__, msg.buf[0], msg.buf[1], err);
++			pr_warn("%s: error (addr %02x <- %02x, err = %i)\n",
++				__func__, msg.buf[0], msg.buf[1], err);
+ 			if (err < 0)
+ 				return err;
+ 			else
+@@ -122,8 +126,8 @@ static int i2c_read_demod_bytes(struct lgdt330x_state *state,
+ 
+ 	ret = i2c_transfer(state->i2c, msg, 2);
+ 	if (ret != 2) {
+-		printk(KERN_WARNING "lgdt330x: %s: addr 0x%02x select 0x%02x error (ret == %i)\n",
+-		       __func__, state->config->demod_address, reg, ret);
++		pr_warn("%s: addr 0x%02x select 0x%02x error (ret == %i)\n",
++			__func__, state->config->demod_address, reg, ret);
+ 		if (ret >= 0)
+ 			ret = -EIO;
+ 	} else {
+@@ -295,7 +299,7 @@ static int lgdt330x_init(struct dvb_frontend *fe)
+ 		printk(KERN_WARNING "Only LGDT3302 and LGDT3303 are supported chips.\n");
+ 		err = -ENODEV;
+ 	}
+-	dprintk("%s entered as %s\n", __func__, chip_name);
++	dprintk("entered as %s\n", chip_name);
+ 	if (err < 0)
+ 		return err;
+ 	return lgdt330x_sw_reset(state);
+@@ -378,7 +382,7 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 	if (state->current_modulation != p->modulation) {
+ 		switch (p->modulation) {
+ 		case VSB_8:
+-			dprintk("%s: VSB_8 MODE\n", __func__);
++			dprintk("VSB_8 MODE\n");
+ 
+ 			/* Select VSB mode */
+ 			top_ctrl_cfg[1] = 0x03;
+@@ -395,7 +399,7 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 			break;
+ 
+ 		case QAM_64:
+-			dprintk("%s: QAM_64 MODE\n", __func__);
++			dprintk("QAM_64 MODE\n");
+ 
+ 			/* Select QAM_64 mode */
+ 			top_ctrl_cfg[1] = 0x00;
+@@ -412,7 +416,7 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 			break;
+ 
+ 		case QAM_256:
+-			dprintk("%s: QAM_256 MODE\n", __func__);
++			dprintk("QAM_256 MODE\n");
+ 
+ 			/* Select QAM_256 mode */
+ 			top_ctrl_cfg[1] = 0x01;
+@@ -428,13 +432,13 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
+ 			}
+ 			break;
+ 		default:
+-			printk(KERN_WARNING "lgdt330x: %s: Modulation type(%d) UNSUPPORTED\n",
+-			       __func__, p->modulation);
++			pr_warn("%s: Modulation type(%d) UNSUPPORTED\n",
++				__func__, p->modulation);
+ 			return -1;
+ 		}
+ 		if (err < 0)
+-			printk(KERN_WARNING "lgdt330x: %s: error blasting bytes to lgdt3303 for modulation type(%d)\n",
+-			       __func__, p->modulation);
++			pr_warn("%s: error blasting bytes to lgdt3303 for modulation type(%d)\n",
++				__func__, p->modulation);
+ 
+ 		/*
+ 		 * select serial or parallel MPEG hardware interface
+@@ -488,7 +492,7 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 
+ 	/* AGC status register */
+ 	i2c_read_demod_bytes(state, AGC_STATUS, buf, 1);
+-	dprintk("%s: AGC_STATUS = 0x%02x\n", __func__, buf[0]);
++	dprintk("AGC_STATUS = 0x%02x\n", buf[0]);
+ 	if ((buf[0] & 0x0c) == 0x8) {
+ 		/*
+ 		 * Test signal does not exist flag
+@@ -505,8 +509,8 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 
+ 	/* signal status */
+ 	i2c_read_demod_bytes(state, TOP_CONTROL, buf, sizeof(buf));
+-	dprintk("%s: TOP_CONTROL = 0x%02x, IRO_MASK = 0x%02x, IRQ_STATUS = 0x%02x\n",
+-		__func__, buf[0], buf[1], buf[2]);
++	dprintk("TOP_CONTROL = 0x%02x, IRO_MASK = 0x%02x, IRQ_STATUS = 0x%02x\n",
++		buf[0], buf[1], buf[2]);
+ 
+ 	/* sync status */
+ 	if ((buf[2] & 0x03) == 0x01)
+@@ -520,7 +524,7 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 
+ 	/* Carrier Recovery Lock Status Register */
+ 	i2c_read_demod_bytes(state, CARRIER_LOCK, buf, 1);
+-	dprintk("%s: CARRIER_LOCK = 0x%02x\n", __func__, buf[0]);
++	dprintk("CARRIER_LOCK = 0x%02x\n", buf[0]);
+ 	switch (state->current_modulation) {
+ 	case QAM_256:
+ 	case QAM_64:
+@@ -533,8 +537,8 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 			*status |= FE_HAS_CARRIER;
+ 		break;
+ 	default:
+-		printk(KERN_WARNING "lgdt330x: %s: Modulation set to unsupported value\n",
+-		       __func__);
++		pr_warn("%s: Modulation set to unsupported value\n",
++			__func__);
+ 	}
+ 
+ 	return 0;
+@@ -554,7 +558,7 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 	if (err < 0)
+ 		return err;
+ 
+-	dprintk("%s: AGC_STATUS = 0x%02x\n", __func__, buf[0]);
++	dprintk("AGC_STATUS = 0x%02x\n", buf[0]);
+ 	if ((buf[0] & 0x21) == 0x01) {
+ 		/*
+ 		 * Test input signal does not exist flag
+@@ -565,7 +569,7 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 
+ 	/* Carrier Recovery Lock Status Register */
+ 	i2c_read_demod_bytes(state, CARRIER_LOCK, buf, 1);
+-	dprintk("%s: CARRIER_LOCK = 0x%02x\n", __func__, buf[0]);
++	dprintk("CARRIER_LOCK = 0x%02x\n", buf[0]);
+ 	switch (state->current_modulation) {
+ 	case QAM_256:
+ 	case QAM_64:
+@@ -596,8 +600,8 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 		}
+ 		break;
+ 	default:
+-		printk(KERN_WARNING "lgdt330x: %s: Modulation set to unsupported value\n",
+-		       __func__);
++		pr_warn("%s: Modulation set to unsupported value\n",
++			__func__);
+ 	}
+ 	return 0;
+ }
+@@ -673,7 +677,7 @@ static int lgdt3302_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 		/* log10(688128)*2^24 and log10(696320)*2^24 */
+ 		break;
+ 	default:
+-		printk(KERN_ERR "lgdt330x: %s: Modulation set to unsupported value\n",
++		pr_err("%s: Modulation set to unsupported value\n",
+ 		       __func__);
+ 		return -EREMOTEIO; /* return -EDRIVER_IS_GIBBERED; */
+ 	}
+@@ -681,7 +685,7 @@ static int lgdt3302_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	state->snr = calculate_snr(noise, c);
+ 	*snr = (state->snr) >> 16; /* Convert from 8.24 fixed-point to 8.8 */
+ 
+-	dprintk("%s: noise = 0x%08x, snr = %d.%02d dB\n", __func__, noise,
++	dprintk("noise = 0x%08x, snr = %d.%02d dB\n", noise,
+ 		state->snr >> 24, (((state->snr >> 8) & 0xffff) * 100) >> 16);
+ 
+ 	return 0;
+@@ -717,7 +721,7 @@ static int lgdt3303_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 		/* log10(688128)*2^24 and log10(696320)*2^24 */
+ 		break;
+ 	default:
+-		printk(KERN_ERR "lgdt330x: %s: Modulation set to unsupported value\n",
++		pr_err("%s: Modulation set to unsupported value\n",
+ 		       __func__);
+ 		return -EREMOTEIO; /* return -EDRIVER_IS_GIBBERED; */
+ 	}
+@@ -725,7 +729,7 @@ static int lgdt3303_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	state->snr = calculate_snr(noise, c);
+ 	*snr = (state->snr) >> 16; /* Convert from 8.24 fixed-point to 8.8 */
+ 
+-	dprintk("%s: noise = 0x%08x, snr = %d.%02d dB\n", __func__, noise,
++	dprintk("noise = 0x%08x, snr = %d.%02d dB\n", noise,
+ 		state->snr >> 24, (((state->snr >> 8) & 0xffff) * 100) >> 16);
+ 
+ 	return 0;
+@@ -817,7 +821,7 @@ struct dvb_frontend *lgdt330x_attach(const struct lgdt330x_config *config,
+ 
+ error:
+ 	kfree(state);
+-	dprintk("%s: ERROR\n", __func__);
++	dprintk("ERROR\n");
+ 	return NULL;
+ }
+ EXPORT_SYMBOL(lgdt330x_attach);
+-- 
+2.14.3
