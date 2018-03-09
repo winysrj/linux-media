@@ -1,77 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44418 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751396AbeCUJtf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 05:49:35 -0400
-Date: Wed, 21 Mar 2018 10:49:32 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, mvoelkel@DigitalDevices.de,
-        rjkm@metzlerbros.de, jasmin@anw.at
-Subject: Re: [PATCH 0/5] SPDX license identifiers in all DD drivers
-Message-ID: <20180321094932.GC16947@kroah.com>
-References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180320210132.7873-1-d.scheller.oss@gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:35423 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932133AbeCIXtY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 18:49:24 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: acourbot@chromium.org
+Subject: [RFC 1/8] media: Support variable size IOCTL arguments
+Date: Sat, 10 Mar 2018 01:48:45 +0200
+Message-Id: <1520639332-19190-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1520639332-19190-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1520639332-19190-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 20, 2018 at 10:01:27PM +0100, Daniel Scheller wrote:
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> This series adds SPDX license identifiers to all source files which are
-> copyright by either Digital Devices GmbH or Metzlerbros GbR, who are
-> the original authors of the ddbridge, ngene, cxd2099, mxl5xx, stv0910
-> and stv6111 bridge/demod/tuner drivers, with the mxl5xx driver being
-> based on source code released by MaxLinear.
-> 
-> All source code either carries the license text "redistribute and/or
-> modify it under the terms of the GNU GPL version 2 only as published
-> by the FSF", or simply "... GPL version 2" in the case of the mxl5xx
-> driver, which all should equal to the SPDX License Identifier
-> "GPL-2.0-only" as of SPDX License List Version 3.0 published on
-> December the 28th, 2017, which is applied as license tag to all files
-> of the mentioned drivers by this series.
-> 
-> During checking of those modules I noticed that the module info carries
-> the "GPL" version tag, which, according to include/linux/module.h, equals
-> to "GPL version 2 or later", which (I believe) in turn is a mismatch to
-> what is written in the file header's license boilerplates. This series
-> corrects this by setting all MODULE_LICENSE() descriptors to "GPL v2",
-> which equals to the "GNU GPL version 2 only" phrase.
-> 
-> Besides that, this fixes some whitespace cosmetics in the headers, and
-> removes the link to gnu.org (if existing), which points to the GPLv3
-> license anyway.
-> 
-> The original intention was to fully replace all the licensing headers
-> with only the SPDX License Identifiers as it is done in a lot of other
-> in-tree drivers nowadays. However, Digital Devices disagreed to do this
-> and expressed major concerns regarding this, in that a machine readable
-> license tag instead of a full license boilerplate won't hold up equally,
-> so we agreed to keep the license boilerplate text as is right now.
+Maintain a list of supported IOCTL argument sizes and allow only those in
+the list.
 
-That's really odd, who at that company can I talk to about this?  Or
-really, what lawyer at that company can I point my lawyer at to talk
-about this, that's the only way this is going to get resolved.
+As an additional bonus, IOCTL handlers will be able to check whether the
+caller actually set (using the argument size) the field vs. assigning it
+to zero. Separate macro can be provided for that.
 
-If it helps, _ALL_ of the major companies that are kernel developers are
-onboard with the removal of the crazy boiler-plate text, so this tiny
-holdout should be easy to resolve.
+This will be easier for applications as well since there is no longer the
+problem of setting the reserved fields zero, or at least it is a lesser
+problem.
 
-> Greg, I'm Cc'ing you on this due to the last paragraph, as AFAIK you're
-> one of the initiators of the SPDX tagging initiative, and you even added
-> tags to 10k+ files all over the tree :-) so we maybe can discuss this
-> further, also with DD, in the hopes you're fine with this - sorry in
-> advance if not.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-device.c | 65 ++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 59 insertions(+), 6 deletions(-)
 
-See my review of your first patch here, this needs to be done a lot
-differently...
-
-thanks,
-
-greg k-h
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 35e81f7..da63da1 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -387,22 +387,36 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
+ /* Do acquire the graph mutex */
+ #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+ 
+-#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
+ 	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+ 		.cmd = MEDIA_IOC_##__cmd,				\
+ 		.fn = (long (*)(struct media_device *, void *))func,	\
+ 		.flags = fl,						\
++		.alt_arg_sizes = alt_sz,				\
+ 		.arg_from_user = from_user,				\
+ 		.arg_to_user = to_user,					\
+ 	}
+ 
+-#define MEDIA_IOC(__cmd, func, fl)					\
+-	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
++#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
++
++#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
++	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
++			 copy_arg_from_user, copy_arg_to_user)
++
++#define MEDIA_IOC(__cmd, func, fl)				\
++	MEDIA_IOC_ARG(__cmd, func, fl,				\
++		      copy_arg_from_user, copy_arg_to_user)
+ 
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
+ 	unsigned short flags;
++	/*
++	 * Sizes of the alternative arguments. If there are none, this
++	 * pointer is NULL.
++	 */
++	const unsigned short *alt_arg_sizes;
+ 	long (*fn)(struct media_device *dev, void *arg);
+ 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+ 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+@@ -416,6 +430,42 @@ static const struct media_ioctl_info ioctl_info[] = {
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+ };
+ 
++#define MASK_IOC_SIZE(cmd) \
++	((cmd) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
++
++static inline long is_valid_ioctl(unsigned int cmd)
++{
++	const struct media_ioctl_info *info = ioctl_info;
++	const unsigned short *alt_arg_sizes;
++
++	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info))
++		return -ENOIOCTLCMD;
++
++	info += _IOC_NR(cmd);
++
++	if (info->cmd == cmd)
++		return 0;
++
++	/*
++	 * Verify that the size-dependent patch of the IOCTL command
++	 * matches and that the size does not exceed the principal
++	 * argument size.
++	 */
++	if (MASK_IOC_SIZE(info->cmd) != MASK_IOC_SIZE(cmd)
++	    || _IOC_SIZE(info->cmd) < _IOC_SIZE(cmd))
++		return -ENOIOCTLCMD;
++
++	alt_arg_sizes = info->alt_arg_sizes;
++	if (!alt_arg_sizes)
++		return -ENOIOCTLCMD;
++
++	for (; *alt_arg_sizes; alt_arg_sizes++)
++		if (_IOC_SIZE(cmd) == *alt_arg_sizes)
++			return 0;
++
++	return -ENOIOCTLCMD;
++}
++
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long __arg)
+ {
+@@ -426,9 +476,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 	char __karg[256], *karg = __karg;
+ 	long ret;
+ 
+-	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+-	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
+-		return -ENOIOCTLCMD;
++	ret = is_valid_ioctl(cmd);
++	if (ret)
++		return ret;
+ 
+ 	info = &ioctl_info[_IOC_NR(cmd)];
+ 
+@@ -444,6 +494,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			goto out_free;
+ 	}
+ 
++	/* Set the rest of the argument struct to zero */
++	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
++
+ 	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+ 		mutex_lock(&dev->graph_mutex);
+ 
+-- 
+2.7.4
