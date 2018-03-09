@@ -1,68 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:39297 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752138AbeCZVqY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:46:24 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: [PATCH v13 01/33] dt-bindings: media: rcar_vin: Reverse SoC part number list
-Date: Mon, 26 Mar 2018 23:44:24 +0200
-Message-Id: <20180326214456.6655-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:46745 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751278AbeCIPxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:53:46 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 11/11] media: lgdt330x: add block error counts via DVBv5
+Date: Fri,  9 Mar 2018 12:53:36 -0300
+Message-Id: <9068a8d6825d63594ea8f680ef53756d55463531.1520610788.git.mchehab@s-opensource.com>
+In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Show the UCB error counts via DVBv5.
 
-Change the sorting of the part numbers from descending to ascending to
-match with other documentation.
+Please notice that there's no scale indication at the driver.
+As we don't have the datasheet, let's assume that it is receiving
+data at a rate of 10.000 packets per second. Ideally, this should
+be read or estimated.
 
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In order to avoid flooding I2C bus with data, the maximum
+polling rate for those stats was set to 1 second.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/devicetree/bindings/media/rcar_vin.txt | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/dvb-frontends/lgdt330x.c | 98 ++++++++++++++++++++++++----------
+ 1 file changed, 70 insertions(+), 28 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 1ce7ff9449c556d9..d99b6f5dee418056 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,14 +6,14 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
+diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
+index b430b0500f12..f14948df223b 100644
+--- a/drivers/media/dvb-frontends/lgdt330x.c
++++ b/drivers/media/dvb-frontends/lgdt330x.c
+@@ -65,6 +65,8 @@ struct lgdt330x_state {
+ 	/* Demodulator private data */
+ 	enum fe_modulation current_modulation;
+ 	u32 snr;	/* Result of last SNR calculation */
++	u16 ucblocks;
++	unsigned long last_stats_time;
  
-  - compatible: Must be one or more of the following
--   - "renesas,vin-r8a7795" for the R8A7795 device
--   - "renesas,vin-r8a7794" for the R8A7794 device
--   - "renesas,vin-r8a7793" for the R8A7793 device
--   - "renesas,vin-r8a7792" for the R8A7792 device
--   - "renesas,vin-r8a7791" for the R8A7791 device
--   - "renesas,vin-r8a7790" for the R8A7790 device
--   - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-+   - "renesas,vin-r8a7779" for the R8A7779 device
-+   - "renesas,vin-r8a7790" for the R8A7790 device
-+   - "renesas,vin-r8a7791" for the R8A7791 device
-+   - "renesas,vin-r8a7792" for the R8A7792 device
-+   - "renesas,vin-r8a7793" for the R8A7793 device
-+   - "renesas,vin-r8a7794" for the R8A7794 device
-+   - "renesas,vin-r8a7795" for the R8A7795 device
-    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+ 	/* Tuner private data */
+ 	u32 current_frequency;
+@@ -296,6 +298,11 @@ static int lgdt330x_init(struct dvb_frontend *fe)
  
+ 	p->cnr.len = 1;
+ 	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.len = 1;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_count.len = 1;
++	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	state->last_stats_time = 0;
+ 
+ 	return lgdt330x_sw_reset(state);
+ }
+@@ -303,29 +310,9 @@ static int lgdt330x_init(struct dvb_frontend *fe)
+ static int lgdt330x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ {
+ 	struct lgdt330x_state *state = fe->demodulator_priv;
+-	int err;
+-	u8 buf[2];
+ 
+-	*ucblocks = 0;
++	*ucblocks = state->ucblocks;
+ 
+-	switch (state->config.demod_chip) {
+-	case LGDT3302:
+-		err = i2c_read_demod_bytes(state, LGDT3302_PACKET_ERR_COUNTER1,
+-					   buf, sizeof(buf));
+-		break;
+-	case LGDT3303:
+-		err = i2c_read_demod_bytes(state, LGDT3303_PACKET_ERR_COUNTER1,
+-					   buf, sizeof(buf));
+-		break;
+-	default:
+-		dev_warn(&state->client->dev,
+-			 "Only LGDT3302 and LGDT3303 are supported chips.\n");
+-		err = -ENODEV;
+-	}
+-	if (err < 0)
+-		return err;
+-
+-	*ucblocks = (buf[0] << 8) | buf[1];
+ 	return 0;
+ }
+ 
+@@ -644,6 +631,7 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	u8 buf[3];
++	int err;
+ 
+ 	*status = 0; /* Reset status result */
+ 
+@@ -698,11 +686,38 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
+ 			 __func__);
+ 	}
+ 
+-	if (*status & FE_HAS_LOCK && lgdt3302_read_snr(fe) >= 0) {
++	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
++	if (!(*status & FE_HAS_LOCK))
++		return 0;
++
++	if (state->last_stats_time &&
++	    time_is_after_jiffies(state->last_stats_time))
++		return 0;
++
++	state->last_stats_time = jiffies +msecs_to_jiffies(1000);
++
++	err = lgdt3302_read_snr(fe);
++	if (!err) {
+ 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+ 		p->cnr.stat[0].svalue = (((u64)state->snr) * 1000) >> 24;
+-	} else {
+-		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	err = i2c_read_demod_bytes(state, LGDT3302_PACKET_ERR_COUNTER1,
++					   buf, sizeof(buf));
++	if (!err) {
++		state->ucblocks = (buf[0] << 8) | buf[1];
++
++		dprintk(state, "UCB = 0x%02x\n", state->ucblocks);
++
++		p->block_error.stat[0].uvalue += state->ucblocks;
++		/* FIXME: what's the basis for block count */
++		p->block_count.stat[0].uvalue += 10000;
++
++		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
++		p->block_count.stat[0].scale = FE_SCALE_COUNTER;
+ 	}
+ 
+ 	return 0;
+@@ -713,8 +728,8 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ {
+ 	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+-	int err;
+ 	u8 buf[3];
++	int err;
+ 
+ 	*status = 0; /* Reset status result */
+ 
+@@ -772,11 +787,38 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ 			 __func__);
+ 	}
+ 
+-	if (*status & FE_HAS_LOCK && lgdt3303_read_snr(fe) >= 0) {
++	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
++	if (!(*status & FE_HAS_LOCK))
++		return 0;
++
++	if (state->last_stats_time &&
++	    time_is_after_jiffies(state->last_stats_time))
++		return 0;
++
++	state->last_stats_time = jiffies +msecs_to_jiffies(1000);
++
++	err = lgdt3303_read_snr(fe);
++	if (!err) {
+ 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+ 		p->cnr.stat[0].svalue = (((u64)state->snr) * 1000) >> 24;
+-	} else {
+-		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	err = i2c_read_demod_bytes(state, LGDT3303_PACKET_ERR_COUNTER1,
++					   buf, sizeof(buf));
++	if (!err) {
++		state->ucblocks = (buf[0] << 8) | buf[1];
++
++		dprintk(state, "UCB = 0x%02x\n", state->ucblocks);
++
++		p->block_error.stat[0].uvalue += state->ucblocks;
++		/* FIXME: what's the basis for block count */
++		p->block_count.stat[0].uvalue += 10000;
++
++		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
++		p->block_count.stat[0].scale = FE_SCALE_COUNTER;
+ 	}
+ 
+ 	return 0;
 -- 
-2.16.2
+2.14.3
