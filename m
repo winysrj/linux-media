@@ -1,87 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:46512 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752261AbeC2QZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 12:25:54 -0400
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
- <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
- <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
- <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
- <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
- <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
- <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
- <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
- <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
-Date: Thu, 29 Mar 2018 10:25:52 -0600
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:39214 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751301AbeCIR0H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:26:07 -0500
+Received: by mail-pg0-f67.google.com with SMTP id e3so3788363pga.6
+        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 09:26:07 -0800 (PST)
+Subject: Re: [PATCH 00/13] media: imx: Switch to subdev notifiers
+To: Hans Verkuil <hverkuil@xs4all.nl>, Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+ <e0edd9bb-7ce3-5f9a-b461-e96cc20f2323@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <b2cbdbc4-2f16-685d-baf7-7c5b3d0db13b@gmail.com>
+Date: Fri, 9 Mar 2018 09:26:00 -0800
 MIME-Version: 1.0
-In-Reply-To: <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <e0edd9bb-7ce3-5f9a-b461-e96cc20f2323@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
 
-On 29/03/18 10:10 AM, Christian König wrote:
-> Why not? I mean the dma_map_resource() function is for P2P while other 
-> dma_map_* functions are only for system memory.
+On 03/09/2018 04:57 AM, Hans Verkuil wrote:
+> Hi Steve,
+>
+> I understand there will be a v2 of this series?
 
-Oh, hmm, I wasn't aware dma_map_resource was exclusively for mapping
-P2P. Though it's a bit odd seeing we've been working under the
-assumption that PCI P2P is different as it has to translate the PCI bus
-address. Where as P2P for devices on other buses is a big unknown.
+Yes. I'm mulling what to do about the empty endpoints issue.
+My initial thought was to modify the i.mx6 DTS to remove the
+empty endpoints in the video-mux input ports, which would also
+require a change to the video-mux driver. But that would also
+introduce a kernel incompatibility with previously built / existing
+DTBs.
 
->> And this is necessary to
->> check if the DMA ops in use support it or not. We can't have the
->> dma_map_X() functions do the wrong thing because they don't support it yet.
-> 
-> Well that sounds like we should just return an error from 
-> dma_map_resources() when an architecture doesn't support P2P yet as Alex 
-> suggested.
+But it sounds like there is agreement between Laurent, Philipp, and
+Sakari that it would be acceptable for media/v4l2 core to ignore empty
+endpoints, as long as that is done consistently throughout, and that
+the binding docs are updated to be more explicitly clear that the
+remote-endpoint property is optional (but recommended).
+Is that correct?
 
-Yes, well except in our patch-set we can't easily use
-dma_map_resources() as we either have SGLs to deal with or we need to
-create whole new interfaces to a number of subsystems.
+I prefer this approach, since it doesn't introduce an incompatibility
+with existing DTBs.
 
-> You don't seem to understand the implications: The devices do have a 
-> common upstream bridge! In other words your code would currently claim 
-> that P2P is supported, but in practice it doesn't work.
+So I am leaning towards modifying only the first patch in this
+series ("media: v4l2-fwnode: Let parse_endpoint callback decide
+if no remote is error"), to simply ignore empty endpoints in
+v4l2_async_notifier_fwnode_parse_endpoint() and return success.
 
-Do they? They don't on any of the Intel machines I'm looking at. The
-previous version of the patchset not only required a common upstream
-bridge but two layers of upstream bridges on both devices which would
-effectively limit transfers to PCIe switches only. But Bjorn did not
-like this.
 
-> You need to include both drivers which participate in the P2P 
-> transaction to make sure that both supports this and give them 
-> opportunity to chicken out and in the case of AMD APUs even redirect the 
-> request to another location (e.g. participate in the DMA translation).
+>   If so, then I can mark this
+> series as 'Changes Requested' in patchwork.
 
-I don't think it's the drivers responsibility to reject P2P . The
-topology is what governs support or not. The discussions we had with
-Bjorn settled on if the devices are all behind the same bridge they can
-communicate with each other. This is essentially guaranteed by the PCI spec.
+Yep, that's fine.
 
-> DMA-buf fortunately seems to handle all this already, that's why we 
-> choose it as base for our implementation.
+Steve
 
-Well, unfortunately DMA-buf doesn't help for the drivers we are working
-with as neither the block layer nor the RDMA subsystem have any
-interfaces for it.
 
-Logan
+>
+>
+>
+> On 22/02/18 02:39, Steve Longerbeam wrote:
+>> This patchset converts the imx-media driver and its dependent
+>> subdevs to use subdev notifiers.
+>>
+>> There are a couple shortcomings in v4l2-core that prevented
+>> subdev notifiers from working correctly in imx-media:
+>>
+>> 1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+>>     endpoint that is not connected to a remote device as an error.
+>>     But in the case of the video-mux subdev, this is not an error, it's
+>>     ok if some of the muxes inputs have no connection. So the first
+>>     patch is a small modification to allow the parse_endpoint callback
+>>     to decide whether an unconnected endpoint is an error.
+>>
+>> 2. In the imx-media graph, multiple subdevs will encounter the same
+>>     upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+>>     v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+>>     multiple times. This is treated as an error by
+>>     v4l2_async_notifier_register() later.
+>>
+>>     To get around this problem, add an v4l2_async_notifier_add_subdev()
+>>     which first verifies the provided asd does not already exist in the
+>>     given notifier asd list or in other registered notifiers. If the asd
+>>     exists, the function returns -EEXIST and it's up to the caller to
+>>     decide if that is an error (in imx-media case it is never an error).
+>>
+>>     Patches 2-4 deal with adding that support.
+>>
+>> 3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+>>     convenience function for parsing a subdev's fwnode port endpoints
+>>     for connected remote subdevs, registering a subdev notifier, and
+>>     then registering the sub-device itself.
+>>
+>> The remaining patches update the subdev drivers to register a
+>> subdev notifier with endpoint parsing, and the changes to imx-media
+>> to support that.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>
+>>
+>> Steve Longerbeam (13):
+>>    media: v4l2-fwnode: Let parse_endpoint callback decide if no remote is
+>>      error
+>>    media: v4l2: async: Allow searching for asd of any type
+>>    media: v4l2: async: Add v4l2_async_notifier_add_subdev
+>>    media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+>>    media: v4l2-fwnode: Add a convenience function for registering subdevs
+>>      with notifiers
+>>    media: platform: video-mux: Register a subdev notifier
+>>    media: imx: csi: Register a subdev notifier
+>>    media: imx: mipi csi-2: Register a subdev notifier
+>>    media: staging/imx: of: Remove recursive graph walk
+>>    media: staging/imx: Loop through all registered subdevs for media
+>>      links
+>>    media: staging/imx: Rename root notifier
+>>    media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+>>    media: staging/imx: TODO: Remove one assumption about OF graph parsing
+>>
+>>   drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  13 +-
+>>   drivers/media/platform/omap3isp/isp.c             |   3 +
+>>   drivers/media/platform/rcar-vin/rcar-core.c       |   3 +
+>>   drivers/media/platform/video-mux.c                |  35 ++-
+>>   drivers/media/v4l2-core/v4l2-async.c              | 275 ++++++++++++++++------
+>>   drivers/media/v4l2-core/v4l2-fwnode.c             | 230 ++++++++++--------
+>>   drivers/staging/media/imx/TODO                    |  29 +--
+>>   drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+>>   drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+>>   drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+>>   drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+>>   drivers/staging/media/imx/imx-media.h             |   6 +-
+>>   drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+>>   include/media/v4l2-async.h                        |  24 +-
+>>   include/media/v4l2-fwnode.h                       |  64 ++++-
+>>   15 files changed, 546 insertions(+), 423 deletions(-)
+>>
