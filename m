@@ -1,124 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41023 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932525AbeCSMP2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 08:15:28 -0400
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:44829 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932288AbeCIRuG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:50:06 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-References: <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
- <20170509110440.GC28248@amd> <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
- <20170516124519.GA25650@amd> <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
- <20180316205512.GA6069@amd> <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
- <20180319102354.GA12557@amd> <20180319074715.5b700405@vento.lan>
- <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl> <20180319120043.GA20451@amd>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
-Date: Mon, 19 Mar 2018 13:15:22 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180319120043.GA20451@amd>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v8 08/13] [media] vb2: add explicit fence user API
+Date: Fri,  9 Mar 2018 14:49:15 -0300
+Message-Id: <20180309174920.22373-9-gustavo@padovan.org>
+In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
+References: <20180309174920.22373-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/19/2018 01:00 PM, Pavel Machek wrote:
-> Hi!
-> 
->>> Pavel,
->>>
->>> I appreciate your efforts of adding support for mc-based devices to
->>> libv4l.
-> 
-> Thanks.
-> 
->>> I guess the main poin that Hans is pointing is that we should take
->>> extra care in order to avoid adding new symbols to libv4l ABI/API
->>> without being sure that they'll be needed in long term, as removing
->>> or changing the API is painful for app developers, and keeping it
->>> ABI compatible with apps compiled against previous versions of the
->>> library is very painful for us.
->>
->> Indeed. Sorry if I wasn't clear on that.
-> 
-> Aha, ok, no, I did not get that.
-> 
->>> The hole idea is that generic applications shouldn't notice
->>> if the device is using a mc-based device or not.
->>
->> What is needed IMHO is an RFC that explains how you want to solve this
->> problem, what the parser would look like, how this would configure a
->> complex pipeline for use with libv4l-using applications, etc.
->>
->> I.e., a full design.
->>
->> And once everyone agrees that that design is solid, then it needs to be
->> implemented.
->>
->> I really want to work with you on this, but I am not looking for partial
->> solutions.
-> 
-> Well, expecting design to be done for opensource development is a bit
-> unusual :-).
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Why? We have done that quite often in the past. Media is complex and you need
-to decide on a design up front.
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel or return an out-fence from the kernel to
+userspace.
 
-> I really see two separate tasks
-> 
-> 1) support for configuring pipeline. I believe this is best done out
-> of libv4l2. It outputs description file, format below. Currently I
-> have implemented this is in Python. File format is below.
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending a fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
 
-You do need this, but why outside of libv4l2? I'm not saying I disagree
-with you, but you need to give reasons for that.
+v6:	- big improvement on doc (Hans Verkuil)
 
-> 2) support for running libv4l2 on mc-based devices. I'd like to do
-> that.
-> 
-> Description file would look like. (# comments would not be not part of file).
-> 
-> V4L2MEDIADESC
-> 3 # number of files to open
-> /dev/video2
-> /dev/video6
-> /dev/video3
+v5:
+	- keep using reserved2 field for cpia2
+	- set fence_fd to 0 for now, for compat with userspace(Mauro)
 
-This won't work. The video nodes numbers (or even names) can change.
-Instead these should be entity names from the media controller.
+v4:
+	- make it a union with reserved2 and fence_fd (Hans Verkuil)
 
-> 3 # number of controls to map. Controls not mentioned here go to
->   # device 0 automatically. Sorted by control id.
->   # Device 0 
-> 00980913 1
-> 009a0003 1
-> 009a000a 2
+v3:
+	- make the out_fence refer to the current buffer (Hans Verkuil)
 
-You really don't need to specify the files to open. All you need is to
-specify the entity ID and the list of controls that you need.
+v2: add documentation
 
-Then libv4l can just figure out which device node(s) to open for that.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst         | 45 +++++++++++++++++++++++--
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  4 +--
+ include/uapi/linux/videodev2.h                  |  7 +++-
+ 4 files changed, 51 insertions(+), 7 deletions(-)
 
-> 
-> We can parse that easily without requiring external libraries. Sorted
-> data allow us to do binary search.
-
-But none of this addresses setting up the initial video pipeline or
-changing formats. We probably want to support that as well.
-
-For that matter: what is it exactly that we want to support? I.e. where do
-we draw the line?
-
-A good test platform for this (outside the N900) is the i.MX6 platform.
-
-Regards,
-
-	Hans
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index e2c85ddc990b..49273026740f 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -301,10 +301,22 @@ struct v4l2_buffer
+ 	elements in the ``planes`` array. The driver will fill in the
+ 	actual number of valid elements in that array.
+     * - __u32
+-      - ``reserved2``
++      - ``fence_fd``
+       -
+-      - A place holder for future extensions. Drivers and applications
+-	must set this to 0.
++      - Used to communicate fences file descriptors from userspace to kernel
++	and vice-versa. On :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` when sending
++	an in-fence for V4L2 to wait on, the ``V4L2_BUF_FLAG_IN_FENCE`` flag must
++	be used and this field set to the fence file descriptor of the in-fence
++	If the in-fence is not valid ` VIDIOC_QBUF`` returns an error.
++
++        To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE``
++	must be set, the kernel will return the out-fence file descriptor on
++	this field. If it fails to create the out-fence ``VIDIOC_QBUF` returns
++        an error.
++
++	In all other ioctls V4L2 sets this field to -1 if
++	``V4L2_BUF_FLAG_IN_FENCE`` and/or ``V4L2_BUF_FLAG_OUT_FENCE`` are set,
++	otherwise this field is set to 0 for backward compatibility.
+     * - __u32
+       - ``reserved``
+       -
+@@ -648,6 +660,33 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
++
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on the fence passed in the ``fence_fd`` field. The
++	buffer won't be queued to the driver until the fence signals. The order
++	in which buffers are queued is guaranteed to be preserved, so any
++	buffers queued after this buffer will also be blocked until this fence
++	signals. This flag must be set before calling ``VIDIOC_QBUF``. For
++	other ioctls the driver just report the value of the flag.
++
++        If the fence signals the flag is cleared and not reported anymore.
++	If the fence is not valid ``VIDIOC_QBUF`` returns an error.
++
++
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request for a fence to be attached to the buffer. The driver will fill
++	in the out-fence fd in the ``fence_fd`` field when :ref:`VIDIOC_QBUF
++	<VIDIOC_QBUF>` returns. This flag must be set before calling
++	``VIDIOC_QBUF``. For other ioctls the driver just report the value of
++	the flag.
++
++        If the creation of the  out-fence  fails ``VIDIOC_QBUF`` returns an
++	error.
+ 
+ 
+ 
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 68291ba8632d..ad1e032c3bf5 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->fence_fd = 0;
+ 	b->reserved = 0;
+ 
+ 	if (q->is_multiplanar) {
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 5198c9eeb348..3de2252e3632 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -386,7 +386,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -604,7 +604,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    assign_in_user(&up->timestamp.tv_usec, &kp->timestamp.tv_usec) ||
+ 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+ 	    assign_in_user(&up->sequence, &kp->sequence) ||
+-	    assign_in_user(&up->reserved2, &kp->reserved2) ||
++	    assign_in_user(&up->fence_fd, &kp->fence_fd) ||
+ 	    assign_in_user(&up->reserved, &kp->reserved) ||
+ 	    get_user(length, &kp->length) ||
+ 	    put_user(length, &up->length))
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 58894cfe9479..2d424aebdd1e 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -933,7 +933,10 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	union {
++		__s32		fence_fd;
++		__u32		reserved2;
++	};
+ 	__u32			reserved;
+ };
+ 
+@@ -970,6 +973,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.14.3
