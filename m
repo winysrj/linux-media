@@ -1,172 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:45020 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752331AbeC0PRT (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:46526 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751211AbeCIPaC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 11:17:19 -0400
-Received: by mail-pf0-f194.google.com with SMTP id m68so8969762pfm.11
-        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 08:17:19 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, hiranotaka@zng.info,
-        Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH 4/5] dvb: earth-pt1: add support for suspend/resume
-Date: Wed, 28 Mar 2018 00:16:01 +0900
-Message-Id: <20180327151602.12250-5-tskd08@gmail.com>
-In-Reply-To: <20180327151602.12250-1-tskd08@gmail.com>
-References: <20180327151602.12250-1-tskd08@gmail.com>
+        Fri, 9 Mar 2018 10:30:02 -0500
+Subject: Re: [PATCH v12 14/33] rcar-vin: align pixelformat check
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-15-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <09e74fb4-817f-ae34-ed1e-91523a5029cb@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:30:00 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180307220511.9826-15-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+On 07/03/18 23:04, Niklas Söderlund wrote:
+> If the pixelformat is not supported it should not fail but be set to
+> something that works. While we are at it move the two different
+> checks of the pixelformat to the same statement.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Without this patch, re-loading of the module was required after resume.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- drivers/media/pci/pt1/pt1.c | 107 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 105 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
-index 34a688952e2..1a83a624776 100644
---- a/drivers/media/pci/pt1/pt1.c
-+++ b/drivers/media/pci/pt1/pt1.c
-@@ -467,12 +467,18 @@ static int pt1_thread(void *data)
- {
- 	struct pt1 *pt1;
- 	struct pt1_buffer_page *page;
-+	bool was_frozen;
- 
- 	pt1 = data;
- 	set_freezable();
- 
--	while (!kthread_should_stop()) {
--		try_to_freeze();
-+	while (!kthread_freezable_should_stop(&was_frozen)) {
-+		if (was_frozen) {
-+			int i;
-+
-+			for (i = 0; i < PT1_NR_ADAPS; i++)
-+				pt1_set_stream(pt1, i, !!pt1->adaps[i]->users);
-+		}
- 
- 		page = pt1->tables[pt1->table_index].bufs[pt1->buf_index].page;
- 		if (!pt1_filter(pt1, page)) {
-@@ -1171,6 +1177,98 @@ static void pt1_i2c_init(struct pt1 *pt1)
- 		pt1_i2c_emit(pt1, i, 0, 0, 1, 1, 0);
- }
- 
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int pt1_suspend(struct device *dev)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct pt1 *pt1 = pci_get_drvdata(pdev);
-+
-+	pt1_init_streams(pt1);
-+	pt1_disable_ram(pt1);
-+	pt1->power = 0;
-+	pt1->reset = 1;
-+	pt1_update_power(pt1);
-+	return 0;
-+}
-+
-+static int pt1_resume(struct device *dev)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct pt1 *pt1 = pci_get_drvdata(pdev);
-+	int ret;
-+	int i;
-+
-+	pt1->power = 0;
-+	pt1->reset = 1;
-+	pt1_update_power(pt1);
-+
-+	pt1_i2c_init(pt1);
-+	pt1_i2c_wait(pt1);
-+
-+	ret = pt1_sync(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	pt1_identify(pt1);
-+
-+	ret = pt1_unlock(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	ret = pt1_reset_pci(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	ret = pt1_reset_ram(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	ret = pt1_enable_ram(pt1);
-+	if (ret < 0)
-+		goto resume_err;
-+
-+	pt1_init_streams(pt1);
-+
-+	pt1->power = 1;
-+	pt1_update_power(pt1);
-+	msleep(20);
-+
-+	pt1->reset = 0;
-+	pt1_update_power(pt1);
-+	usleep_range(1000, 2000);
-+
-+	for (i = 0; i < PT1_NR_ADAPS; i++)
-+		dvb_frontend_reinitialise(pt1->adaps[i]->fe);
-+
-+	pt1_init_table_count(pt1);
-+	for (i = 0; i < pt1_nr_tables; i++) {
-+		int j;
-+
-+		for (j = 0; j < PT1_NR_BUFS; j++)
-+			pt1->tables[i].bufs[j].page->upackets[PT1_NR_UPACKETS-1]
-+				= 0;
-+		pt1_increment_table_count(pt1);
-+	}
-+	pt1_register_tables(pt1, pt1->tables[0].addr >> PT1_PAGE_SHIFT);
-+
-+	pt1->table_index = 0;
-+	pt1->buf_index = 0;
-+	for (i = 0; i < PT1_NR_ADAPS; i++) {
-+		pt1->adaps[i]->upacket_count = 0;
-+		pt1->adaps[i]->packet_count = 0;
-+		pt1->adaps[i]->st_count = -1;
-+	}
-+
-+	return 0;
-+
-+resume_err:
-+	dev_info(&pt1->pdev->dev, "failed to resume PT1/PT2.");
-+	return 0;	/* resume anyway */
-+}
-+
-+#endif /* CONFIG_PM_SLEEP */
-+
- static void pt1_remove(struct pci_dev *pdev)
- {
- 	struct pt1 *pt1;
-@@ -1331,11 +1429,16 @@ static const struct pci_device_id pt1_id_table[] = {
- };
- MODULE_DEVICE_TABLE(pci, pt1_id_table);
- 
-+static SIMPLE_DEV_PM_OPS(pt1_pm_ops, pt1_suspend, pt1_resume);
-+
- static struct pci_driver pt1_driver = {
- 	.name		= DRIVER_NAME,
- 	.probe		= pt1_probe,
- 	.remove		= pt1_remove,
- 	.id_table	= pt1_id_table,
-+#if CONFIG_PM_SLEEP
-+	.driver.pm	= &pt1_pm_ops,
-+#endif
- };
- 
- module_pci_driver(pt1_driver);
--- 
-2.16.3
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++-----------
+>  1 file changed, 3 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 55fa69aa7c454928..01f2a14169a74ff3 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -187,12 +187,10 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	u32 walign;
+>  	int ret;
+>  
+> -	/* If requested format is not supported fallback to the default */
+> -	if (!rvin_format_from_pixel(pix->pixelformat)) {
+> -		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+> -			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+> +	if (!rvin_format_from_pixel(pix->pixelformat) ||
+> +	    (vin->info->model == RCAR_M1 &&
+> +	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
+>  		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+> -	}
+>  
+>  	/* Limit to source capabilities */
+>  	ret = __rvin_try_format_source(vin, which, pix, source);
+> @@ -231,12 +229,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	pix->bytesperline = rvin_format_bytesperline(pix);
+>  	pix->sizeimage = rvin_format_sizeimage(pix);
+>  
+> -	if (vin->info->model == RCAR_M1 &&
+> -	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+> -		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+> -		return -EINVAL;
+> -	}
+> -
+>  	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+>  		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+>  
+> 
