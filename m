@@ -1,66 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:42758 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbeCUAiY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 20:38:24 -0400
-Received: by mail-pg0-f67.google.com with SMTP id f10so1156042pgs.9
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:23 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 07/13] media: imx: csi: Register a subdev notifier
-Date: Tue, 20 Mar 2018 17:37:23 -0700
-Message-Id: <1521592649-7264-8-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:41658 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932087AbeCIS0n (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 13:26:43 -0500
+Received: by mail-io0-f195.google.com with SMTP id q24so4503690ioh.8
+        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 10:26:43 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <b6b62671-e5a9-c3c9-2303-11dbc48da7c8@xs4all.nl>
+References: <20180308182141.28997-1-matt.ranostay@konsulko.com> <b6b62671-e5a9-c3c9-2303-11dbc48da7c8@xs4all.nl>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Fri, 9 Mar 2018 10:26:41 -0800
+Message-ID: <CAJCx=g=VwCqm9t56j=r2KE-sDOpgA82XwxhJNbdbkFpwuJSkKw@mail.gmail.com>
+Subject: Re: [PATCH v5 0/2] media: video-i2c: add video-i2c driver support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the CSI port, add them to a subdev
-notifier, and register the subdev notifier for the CSI, by calling
-v4l2_async_register_fwnode_subdev().
+On Fri, Mar 9, 2018 at 4:45 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Matt,
+>
+> This is looking good. One request before I merge: please run the
+> 'v4l2-compliance -s -f' utility and post the result here.
+>
+> I don't think I've asked you to do that before (or if I did, I couldn't
+> find it in my mail archive).
+>
+> It should run without failures.
+>
+> Use the latest version from the git repo: https://git.linuxtv.org/v4l-utils.git/
+>
+> ./bootstrap.sh; ./configure; make; sudo make install
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+Heh so not exactly no failures. Suspect a lot of these are due to the
+weird small 8x8 pixel input, and the fact it doesn't
+support modes a typical video capture device would.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 5a195f8..87cf277 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1736,6 +1736,13 @@ static const struct v4l2_subdev_internal_ops csi_internal_ops = {
- 	.unregistered = csi_unregistered,
- };
- 
-+static int imx_csi_parse_endpoint(struct device *dev,
-+				  struct v4l2_fwnode_endpoint *vep,
-+				  struct v4l2_async_subdev *asd)
-+{
-+	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
-+}
-+
- static int imx_csi_probe(struct platform_device *pdev)
- {
- 	struct ipu_client_platformdata *pdata;
-@@ -1802,7 +1809,9 @@ static int imx_csi_probe(struct platform_device *pdev)
- 		goto free;
- 	}
- 
--	ret = v4l2_async_register_subdev(&priv->sd);
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&priv->sd, sizeof(struct v4l2_async_subdev),
-+		NULL, 0, imx_csi_parse_endpoint);
- 	if (ret)
- 		goto free;
- 
--- 
-2.7.4
+v4l2-compliance SHA   : 14ce03c18ef67aa7a3d5781f015be855fd43839c
+
+Compliance test for device /dev/video0:
+
+Driver Info:
+Driver name      : video-i2c
+Card type        : I2C 2-105 Transport Video
+Bus info         : I2C:2-105
+Driver version   : 4.14.11
+Capabilities     : 0x85200001
+Video Capture
+Read/Write
+Streaming
+Extended Pix Format
+Device Capabilities
+Device Caps      : 0x05200001
+Video Capture
+Read/Write
+Streaming
+Extended Pix Format
+
+Required ioctls:
+test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+test second /dev/video0 open: OK
+test VIDIOC_QUERYCAP: OK
+test VIDIOC_G/S_PRIORITY: OK
+test for unlimited opens: OK
+
+Debug ioctls:
+test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+test VIDIOC_ENUMAUDIO: OK (Not Supported)
+test VIDIOC_G/S/ENUMINPUT: OK
+test VIDIOC_G/S_AUDIO: OK (Not Supported)
+Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls (Input 0):
+test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+test VIDIOC_QUERYCTRL: OK (Not Supported)
+test VIDIOC_G/S_CTRL: OK (Not Supported)
+test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+Standard Controls: 0 Private Controls: 0
+
+Format ioctls (Input 0):
+test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+test VIDIOC_G/S_PARM: OK
+test VIDIOC_G_FBUF: OK (Not Supported)
+test VIDIOC_G_FMT: OK
+test VIDIOC_TRY_FMT: OK
+test VIDIOC_S_FMT: OK
+test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+test Cropping: OK (Not Supported)
+test Composing: OK (Not Supported)
+test Scaling: OK (Not Supported)
+
+Codec ioctls (Input 0):
+test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls (Input 0):
+test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+Streaming ioctls:
+test read/write: OK
+fail: v4l2-test-buffers.cpp(248): g_field() == V4L2_FIELD_ANY
+fail: v4l2-test-buffers.cpp(658): buf.check(q, last_seq)
+fail: v4l2-test-buffers.cpp(928): captureBufs(node, q, m2m_q,
+frame_count, false)
+test MMAP: FAIL
+fail: v4l2-test-buffers.cpp(1028): can_stream && ret != EINVAL
+test USERPTR: FAIL
+test DMABUF: Cannot test, specify --expbuf-device
+
+Stream using all formats:
+test MMAP for Format Y12 , Frame Size 8x8@10.00 Hz:
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Top: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Bottom: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Interlaced: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Sequential Top-Bottom: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Sequential Bottom-Top: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Alternating: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Interlaced Top-Bottom: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 0, Field Interlaced Bottom-Top: FAIL
+fail: v4l2-test-buffers.cpp(1472): fmt.g_sizeimage() <= size
+fail: v4l2-test-buffers.cpp(1268): q.reqbufs(node, 3)
+Stride 80, Field None: FAIL
+Total: 64, Succeeded: 44, Failed: 20, Warnings: 0
+
+
+>
+> Thanks!
+>
+>         Hans
+>
+> On 08/03/18 19:21, Matt Ranostay wrote:
+>> Add support for video-i2c polling driver
+>>
+>> Changes from v1:
+>> * Switch to SPDX tags versus GPLv2 license text
+>> * Remove unneeded zeroing of data structures
+>> * Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
+>>
+>> Changes from v2:
+>> * Add missing linux/kthread.h include that broke x86_64 build
+>>
+>> Changes from v3:
+>> * Add devicetree binding documents
+>> * snprintf check added
+>> * switched to per chip support based on devicetree or i2c client id
+>> * add VB2_DMABUF to io_modes
+>> * added entry to MAINTAINERS file switched to per chip support based on devicetree or i2c client id
+>>
+>> Changes from v4:
+>> * convert pointer from of_device_get_match_data() to long instead of int to avoid compiler warning
+>>
+>> Matt Ranostay (2):
+>>   media: dt-bindings: Add bindings for panasonic,amg88xx
+>>   media: video-i2c: add video-i2c driver
+>>
+>>  .../bindings/media/i2c/panasonic,amg88xx.txt       |  19 +
+>>  MAINTAINERS                                        |   6 +
+>>  drivers/media/i2c/Kconfig                          |   9 +
+>>  drivers/media/i2c/Makefile                         |   1 +
+>>  drivers/media/i2c/video-i2c.c                      | 558 +++++++++++++++++++++
+>>  5 files changed, 593 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+>>  create mode 100644 drivers/media/i2c/video-i2c.c
+>>
+>
