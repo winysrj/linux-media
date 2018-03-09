@@ -1,277 +1,366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:37585 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932070AbeCJT7R (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34494 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751096AbeCIPpl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Mar 2018 14:59:17 -0500
-Received: by mail-pg0-f68.google.com with SMTP id y26so4892096pgv.4
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:17 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Fri, 9 Mar 2018 10:45:41 -0500
+Subject: Re: [PATCH v12 28/33] rcar-vin: parse Gen3 OF and setup media graph
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 12/13] media: staging/imx: Switch to v4l2_async_notifier_add_subdev
-Date: Sat, 10 Mar 2018 11:58:41 -0800
-Message-Id: <1520711922-17338-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-29-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cb19f23a-7bfb-539c-5135-c185d56c78d7@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:45:38 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180307220511.9826-29-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to v4l2_async_notifier_add_subdev() when adding async subdevs
-to the imx-media root notifier. This removes the need to check for
-an already added asd, since v4l2_async_notifier_add_subdev() does this
-check. Also no need to allocate a subdevs array when registering the
-root notifier, or keeping an internal master asd_list, since this is
-moved to the notifier's asd_list.
+On 07/03/18 23:05, Niklas Söderlund wrote:
+> The parsing and registering CSI-2 subdevices with the v4l2 async
+> framework is a collaborative effort shared between the VIN instances
+> which are part of the group. When the last VIN in the group is probed it
+> asks all other VINs to parse its share of OF and record the async
+> subdevices it finds in the notifier belonging to the last probed VIN.
+> 
+> Once all CSI-2 subdevices in this notifier are bound proceed to register
+> all VIN video devices of the group and crate media device links between
+> all CSI-2 and VIN entities according to the SoC specific routing
+> configuration.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-dev.c         | 110 ++++++----------------
- drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
- drivers/staging/media/imx/imx-media.h             |   4 +-
- 3 files changed, 32 insertions(+), 87 deletions(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index dd4702a..f67ec8e 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -33,43 +33,10 @@ static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
- }
- 
- /*
-- * Find an asd by fwnode or device name. This is called during
-- * driver load to form the async subdev list and bind them.
-- */
--static struct v4l2_async_subdev *
--find_async_subdev(struct imx_media_dev *imxmd,
--		  struct fwnode_handle *fwnode,
--		  const char *devname)
--{
--	struct imx_media_async_subdev *imxasd;
--	struct v4l2_async_subdev *asd;
--
--	list_for_each_entry(imxasd, &imxmd->asd_list, list) {
--		asd = &imxasd->asd;
--		switch (asd->match_type) {
--		case V4L2_ASYNC_MATCH_FWNODE:
--			if (fwnode && asd->match.fwnode == fwnode)
--				return asd;
--			break;
--		case V4L2_ASYNC_MATCH_DEVNAME:
--			if (devname && !strcmp(asd->match.device_name,
--					       devname))
--				return asd;
--			break;
--		default:
--			break;
--		}
--	}
--
--	return NULL;
--}
--
--
--/*
-- * Adds a subdev to the async subdev list. If fwnode is non-NULL, adds
-- * the async as a V4L2_ASYNC_MATCH_FWNODE match type, otherwise as
-- * a V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name of the
-- * given platform_device. This is called during driver load when
-+ * Adds a subdev to the root notifier's async subdev list. If fwnode is
-+ * non-NULL, adds the async as a V4L2_ASYNC_MATCH_FWNODE match type,
-+ * otherwise as a V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name
-+ * of the given platform_device. This is called during driver load when
-  * forming the async subdev list.
-  */
- int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
-@@ -80,28 +47,17 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 	struct imx_media_async_subdev *imxasd;
- 	struct v4l2_async_subdev *asd;
- 	const char *devname = NULL;
--	int ret = 0;
-+	int ret;
- 
--	mutex_lock(&imxmd->mutex);
-+	imxasd = kzalloc(sizeof(*imxasd), GFP_KERNEL);
-+	if (!imxasd)
-+		return -ENOMEM;
-+
-+	asd = &imxasd->asd;
- 
- 	if (pdev)
- 		devname = dev_name(&pdev->dev);
- 
--	/* return -EEXIST if this asd already added */
--	if (find_async_subdev(imxmd, fwnode, devname)) {
--		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
--			__func__, np ? np->name : devname);
--		ret = -EEXIST;
--		goto out;
--	}
--
--	imxasd = devm_kzalloc(imxmd->md.dev, sizeof(*imxasd), GFP_KERNEL);
--	if (!imxasd) {
--		ret = -ENOMEM;
--		goto out;
--	}
--	asd = &imxasd->asd;
--
- 	if (fwnode) {
- 		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
- 		asd->match.fwnode = fwnode;
-@@ -111,16 +67,19 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 		imxasd->pdev = pdev;
- 	}
- 
--	list_add_tail(&imxasd->list, &imxmd->asd_list);
--
--	imxmd->notifier.num_subdevs++;
-+	ret = v4l2_async_notifier_add_subdev(&imxmd->notifier, asd);
-+	if (ret < 0) {
-+		if (ret == -EEXIST)
-+			dev_dbg(imxmd->md.dev, "%s: already added %s\n",
-+				__func__, np ? np->name : devname);
-+		kfree(imxasd);
-+		return ret;
-+	}
- 
- 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
- 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
- 
--out:
--	mutex_unlock(&imxmd->mutex);
--	return ret;
-+	return 0;
- }
- 
- /*
-@@ -483,10 +442,8 @@ static int imx_media_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct device_node *node = dev->of_node;
--	struct imx_media_async_subdev *imxasd;
--	struct v4l2_async_subdev **subdevs;
- 	struct imx_media_dev *imxmd;
--	int num_subdevs, i, ret;
-+	int ret;
- 
- 	imxmd = devm_kzalloc(dev, sizeof(*imxmd), GFP_KERNEL);
- 	if (!imxmd)
-@@ -515,44 +472,29 @@ static int imx_media_probe(struct platform_device *pdev)
- 
- 	dev_set_drvdata(imxmd->v4l2_dev.dev, imxmd);
- 
--	INIT_LIST_HEAD(&imxmd->asd_list);
- 	INIT_LIST_HEAD(&imxmd->vdev_list);
- 
- 	ret = imx_media_add_of_subdevs(imxmd, node);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "add_of_subdevs failed with %d\n", ret);
--		goto unreg_dev;
-+		goto notifier_cleanup;
- 	}
- 
- 	ret = imx_media_add_internal_subdevs(imxmd);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "add_internal_subdevs failed with %d\n", ret);
--		goto unreg_dev;
-+		goto notifier_cleanup;
- 	}
- 
--	num_subdevs = imxmd->notifier.num_subdevs;
--
- 	/* no subdevs? just bail */
--	if (num_subdevs == 0) {
-+	if (imxmd->notifier.num_subdevs == 0) {
- 		ret = -ENODEV;
--		goto unreg_dev;
-+		goto notifier_cleanup;
- 	}
- 
--	subdevs = devm_kzalloc(imxmd->md.dev, sizeof(*subdevs) * num_subdevs,
--			       GFP_KERNEL);
--	if (!subdevs) {
--		ret = -ENOMEM;
--		goto unreg_dev;
--	}
--
--	i = 0;
--	list_for_each_entry(imxasd, &imxmd->asd_list, list)
--		subdevs[i++] = &imxasd->asd;
--
- 	/* prepare the async subdev notifier and register it */
--	imxmd->notifier.subdevs = subdevs;
- 	imxmd->notifier.ops = &imx_media_subdev_ops;
- 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
- 					   &imxmd->notifier);
-@@ -566,7 +508,8 @@ static int imx_media_probe(struct platform_device *pdev)
- 
- del_int:
- 	imx_media_remove_internal_subdevs(imxmd);
--unreg_dev:
-+notifier_cleanup:
-+	v4l2_async_notifier_cleanup(&imxmd->notifier);
- 	v4l2_device_unregister(&imxmd->v4l2_dev);
- cleanup:
- 	media_device_cleanup(&imxmd->md);
-@@ -582,6 +525,7 @@ static int imx_media_remove(struct platform_device *pdev)
- 
- 	v4l2_async_notifier_unregister(&imxmd->notifier);
- 	imx_media_remove_internal_subdevs(imxmd);
-+	v4l2_async_notifier_cleanup(&imxmd->notifier);
- 	v4l2_device_unregister(&imxmd->v4l2_dev);
- 	media_device_unregister(&imxmd->md);
- 	media_device_cleanup(&imxmd->md);
-diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
-index daf66c2..0fdc45d 100644
---- a/drivers/staging/media/imx/imx-media-internal-sd.c
-+++ b/drivers/staging/media/imx/imx-media-internal-sd.c
-@@ -350,8 +350,11 @@ int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd)
- void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd)
- {
- 	struct imx_media_async_subdev *imxasd;
-+	struct v4l2_async_subdev *asd;
-+
-+	list_for_each_entry(asd, &imxmd->notifier.asd_list, asd_list) {
-+		imxasd = to_imx_media_asd(asd);
- 
--	list_for_each_entry(imxasd, &imxmd->asd_list, list) {
- 		if (!imxasd->pdev)
- 			continue;
- 
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 7edb18a..44532cd 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -117,12 +117,11 @@ struct imx_media_internal_sd_platformdata {
- 	int ipu_id;
- };
- 
--
- struct imx_media_async_subdev {
-+	/* the base asd - must be first in this struct */
- 	struct v4l2_async_subdev asd;
- 	/* the platform device of IPU-internal subdevs */
- 	struct platform_device *pdev;
--	struct list_head list;
- };
- 
- static inline struct imx_media_async_subdev *
-@@ -147,7 +146,6 @@ struct imx_media_dev {
- 	struct ipu_soc *ipu[2];
- 
- 	/* for async subdev registration */
--	struct list_head asd_list;
- 	struct v4l2_async_notifier notifier;
- };
- 
--- 
-2.7.4
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 246 +++++++++++++++++++++++++++-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  12 +-
+>  2 files changed, 254 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index fd4478095ac4e5b1..52fad495533bc427 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -27,6 +27,23 @@
+>  
+>  #include "rcar-vin.h"
+>  
+> +/*
+> + * The companion CSI-2 receiver driver (rcar-csi2) is known
+> + * and we know it has one source pad (pad 0) and four sink
+> + * pads (pad 1-4). So to translate a pad on the remote
+> + * CSI-2 receiver to/from the VIN internal channel number simply
+> + * subtract/add one from the pad/channel number.
+> + */
+> +#define rvin_group_csi_pad_to_channel(pad) ((pad) - 1)
+> +#define rvin_group_csi_channel_to_pad(channel) ((channel) + 1)
+> +
+> +/*
+> + * Not all VINs are created equal, master VINs control the
+> + * routing for other VIN's. We can figure out which VIN is
+> + * master by looking at a VINs id.
+> + */
+> +#define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Gen3 CSI2 Group Allocator
+>   */
+> @@ -409,6 +426,216 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  	return 0;
+>  }
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Group async notifier
+> + */
+> +
+> +static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	const struct rvin_group_route *route;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+> +	if (ret) {
+> +		vin_err(vin, "Failed to register subdev nodes\n");
+> +		return ret;
+> +	}
+> +
+> +	/* Register all video nodes for the group. */
+> +	for (i = 0; i < RCAR_VIN_NUM; i++) {
+> +		if (vin->group->vin[i]) {
+> +			ret = rvin_v4l2_register(vin->group->vin[i]);
+> +			if (ret)
+> +				return ret;
+> +		}
+> +	}
+> +
+> +	/* Create all media device links between VINs and CSI-2's. */
+> +	mutex_lock(&vin->group->lock);
+> +	for (route = vin->info->routes; route->mask; route++) {
+> +		struct media_pad *source_pad, *sink_pad;
+> +		struct media_entity *source, *sink;
+> +		unsigned int source_idx;
+> +
+> +		/* Check that VIN is part of the group. */
+> +		if (!vin->group->vin[route->vin])
+> +			continue;
+> +
+> +		/* Check that VIN' master is part of the group. */
+> +		if (!vin->group->vin[rvin_group_id_to_master(route->vin)])
+> +			continue;
+> +
+> +		/* Check that CSI-2 is part of the group. */
+> +		if (!vin->group->csi[route->csi].subdev)
+> +			continue;
+> +
+> +		source = &vin->group->csi[route->csi].subdev->entity;
+> +		source_idx = rvin_group_csi_channel_to_pad(route->channel);
+> +		source_pad = &source->pads[source_idx];
+> +
+> +		sink = &vin->group->vin[route->vin]->vdev.entity;
+> +		sink_pad = &sink->pads[0];
+> +
+> +		/* Skip if link already exists. */
+> +		if (media_entity_find_link(source_pad, sink_pad))
+> +			continue;
+> +
+> +		ret = media_create_pad_link(source, source_idx, sink, 0, 0);
+> +		if (ret) {
+> +			vin_err(vin, "Error adding link from %s to %s\n",
+> +				source->name, sink->name);
+> +			break;
+> +		}
+> +	}
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
+> +				     struct v4l2_subdev *subdev,
+> +				     struct v4l2_async_subdev *asd)
+> +{
+> +	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < RCAR_VIN_NUM; i++)
+> +		if (vin->group->vin[i])
+> +			rvin_v4l2_unregister(vin->group->vin[i]);
+> +
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	for (i = 0; i < RVIN_CSI_MAX; i++) {
+> +		if (vin->group->csi[i].fwnode != asd->match.fwnode)
+> +			continue;
+> +		vin->group->csi[i].subdev = NULL;
+> +		vin_dbg(vin, "Unbind CSI-2 %s from slot %u\n", subdev->name, i);
+> +		break;
+> +	}
+> +
+> +	mutex_unlock(&vin->group->lock);
+> +}
+> +
+> +static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
+> +				   struct v4l2_subdev *subdev,
+> +				   struct v4l2_async_subdev *asd)
+> +{
+> +	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	unsigned int i;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	for (i = 0; i < RVIN_CSI_MAX; i++) {
+> +		if (vin->group->csi[i].fwnode != asd->match.fwnode)
+> +			continue;
+> +		vin->group->csi[i].subdev = subdev;
+> +		vin_dbg(vin, "Bound CSI-2 %s to slot %u\n", subdev->name, i);
+> +		break;
+> +	}
+> +
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_async_notifier_operations rvin_group_notify_ops = {
+> +	.bound = rvin_group_notify_bound,
+> +	.unbind = rvin_group_notify_unbind,
+> +	.complete = rvin_group_notify_complete,
+> +};
+> +
+> +static int rvin_mc_parse_of_endpoint(struct device *dev,
+> +				     struct v4l2_fwnode_endpoint *vep,
+> +				     struct v4l2_async_subdev *asd)
+> +{
+> +	struct rvin_dev *vin = dev_get_drvdata(dev);
+> +
+> +	if (vep->base.port != 1 || vep->base.id >= RVIN_CSI_MAX)
+> +		return -EINVAL;
+> +
+> +	if (!of_device_is_available(to_of_node(asd->match.fwnode))) {
+> +
+> +		vin_dbg(vin, "OF device %pOF disabled, ignoring\n",
+> +			to_of_node(asd->match.fwnode));
+> +		return -ENOTCONN;
+> +
+> +	}
+> +
+> +	if (vin->group->csi[vep->base.id].fwnode) {
+> +		vin_dbg(vin, "OF device %pOF already handled\n",
+> +			to_of_node(asd->match.fwnode));
+> +		return -ENOTCONN;
+> +	}
+> +
+> +	vin->group->csi[vep->base.id].fwnode = asd->match.fwnode;
+> +
+> +	vin_dbg(vin, "Add group OF device %pOF to slot %u\n",
+> +		to_of_node(asd->match.fwnode), vep->base.id);
+> +
+> +	return 0;
+> +}
+> +
+> +static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+> +{
+> +	unsigned int count = 0;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	/* If there already is a notifier something has gone wrong, bail out. */
+> +	if (WARN_ON(vin->group->notifier)) {
+> +		mutex_unlock(&vin->group->lock);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* If not all VIN's are registered don't register the notifier. */
+> +	for (i = 0; i < RCAR_VIN_NUM; i++)
+> +		if (vin->group->vin[i])
+> +			count++;
+> +
+> +	if (vin->group->count != count) {
+> +		mutex_unlock(&vin->group->lock);
+> +		return 0;
+> +	}
+> +
+> +	/*
+> +	 * Have all VIN's look for subdevices. Some subdevices will overlap
+> +	 * but the parser function can handle it, so each subdevice will
+> +	 * only be registered once with the notifier.
+> +	 */
+> +
+> +	vin->group->notifier = &vin->notifier;
+> +
+> +	for (i = 0; i < RCAR_VIN_NUM; i++) {
+> +		if (!vin->group->vin[i])
+> +			continue;
+> +
+> +		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> +				vin->group->vin[i]->dev, vin->group->notifier,
+> +				sizeof(struct v4l2_async_subdev), 1,
+> +				rvin_mc_parse_of_endpoint);
+> +		if (ret) {
+> +			mutex_unlock(&vin->group->lock);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	vin->group->notifier->ops = &rvin_group_notify_ops;
+> +
+> +	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> +	if (ret < 0) {
+> +		vin_err(vin, "Notifier registration failed\n");
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int rvin_mc_init(struct rvin_dev *vin)
+>  {
+>  	int ret;
+> @@ -422,7 +649,15 @@ static int rvin_mc_init(struct rvin_dev *vin)
+>  	if (ret)
+>  		return ret;
+>  
+> -	return rvin_group_get(vin);
+> +	ret = rvin_group_get(vin);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = rvin_mc_parse_of_graph(vin);
+> +	if (ret)
+> +		rvin_group_put(vin);
+> +
+> +	return ret;
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -542,10 +777,15 @@ static int rcar_vin_remove(struct platform_device *pdev)
+>  	v4l2_async_notifier_unregister(&vin->notifier);
+>  	v4l2_async_notifier_cleanup(&vin->notifier);
+>  
+> -	if (vin->info->use_mc)
+> +	if (vin->info->use_mc) {
+> +		mutex_lock(&vin->group->lock);
+> +		if (vin->group->notifier == &vin->notifier)
+> +			vin->group->notifier = NULL;
+> +		mutex_unlock(&vin->group->lock);
+>  		rvin_group_put(vin);
+> -	else
+> +	} else {
+>  		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+> +	}
+>  
+>  	rvin_dma_unregister(vin);
+>  
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 9a68a5909fe07ec7..631dd382c9ccb114 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -223,9 +223,13 @@ struct rvin_dev {
+>   *
+>   * @mdev:		media device which represents the group
+>   *
+> - * @lock:		protects the count and vin members
+> + * @lock:		protects the count, notifier, vin and csi members
+>   * @count:		number of enabled VIN instances found in DT
+> + * @notifier:		pointer to the notifier of a VIN which handles the
+> + *			groups async sub-devices.
+>   * @vin:		VIN instances which are part of the group
+> + * @csi:		array of pairs of fwnode and subdev pointers
+> + *			to all CSI-2 subdevices.
+>   */
+>  struct rvin_group {
+>  	struct kref refcount;
+> @@ -234,7 +238,13 @@ struct rvin_group {
+>  
+>  	struct mutex lock;
+>  	unsigned int count;
+> +	struct v4l2_async_notifier *notifier;
+>  	struct rvin_dev *vin[RCAR_VIN_NUM];
+> +
+> +	struct {
+> +		struct fwnode_handle *fwnode;
+> +		struct v4l2_subdev *subdev;
+> +	} csi[RVIN_CSI_MAX];
+>  };
+>  
+>  int rvin_dma_register(struct rvin_dev *vin, int irq);
+> 
