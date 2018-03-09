@@ -1,106 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plaes.org ([188.166.43.21]:55780 "EHLO plaes.org"
+Received: from mail.bootlin.com ([62.4.15.54]:59946 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751056AbeCINuk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 08:50:40 -0500
-Date: Fri, 9 Mar 2018 15:38:57 +0200
-From: Priit Laes <plaes@plaes.org>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        id S1751147AbeCIPgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:36:53 -0500
+Date: Fri, 9 Mar 2018 16:36:39 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-Subject: Re: [linux-sunxi] [PATCH 6/9] sunxi-cedrus: Add device tree binding
- document
-Message-ID: <20180309133857.GA20392@solar>
-References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
- <20180309101445.16190-4-paul.kocialkowski@bootlin.com>
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v8 0/2] media: v4l: Add support for the Cadence MIPI-CSI2
+ RX
+Message-ID: <20180309153639.f2oauh5gvlgagc5v@flea>
+References: <20180215133335.9335-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="76sdo5dsk34ofwrl"
 Content-Disposition: inline
-In-Reply-To: <20180309101445.16190-4-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180215133335.9335-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 09, 2018 at 11:14:42AM +0100, Paul Kocialkowski wrote:
-> From: Florent Revest <florent.revest@free-electrons.com>
-> 
-> Device Tree bindings for the Allwinner's video engine
-> 
-> Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
-> ---
->  .../devicetree/bindings/media/sunxi-cedrus.txt     | 44 ++++++++++++++++++++++
->  1 file changed, 44 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> new file mode 100644
-> index 000000000000..138581113c49
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> @@ -0,0 +1,44 @@
-> +Device-Tree bindings for SUNXI video engine found in sunXi SoC family
-> +
-> +Required properties:
-> +- compatible	    : "allwinner,sun4i-a10-video-engine";
-> +- memory-region     : DMA pool for buffers allocation;
-> +- clocks	    : list of clock specifiers, corresponding to
-> +		      entries in clock-names property;
-> +- clock-names	    : should contain "ahb", "mod" and "ram" entries;
-> +- resets	    : phandle for reset;
-> +- interrupts	    : should contain VE interrupt number;
-> +- reg		    : should contain register base and length of VE.
-> +
-> +Example:
-> +
-> +reserved-memory {
-> +	#address-cells = <1>;
-> +	#size-cells = <1>;
-> +	ranges;
-> +
-> +	ve_reserved: cma {
-> +		compatible = "shared-dma-pool";
-> +		reg = <0x43d00000 0x9000000>;
-> +		no-map;
-> +		linux,cma-default;
-> +	};
-> +};
-> +
-> +video-engine {
-> +	compatible = "allwinner,sun4i-a10-video-engine";
-> +	memory-region = <&ve_reserved>;
-> +
-> +	clocks = <&ahb_gates 32>, <&ccu CLK_VE>,
-> +		 <&dram_gates 0>;
 
-This should be updated to sunxi-ng clocks:
+--76sdo5dsk34ofwrl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-clocks = <&ccu CLK_BUS_VE>, <&ccu CLK_VE>, <&ccu CLK_DRAM_VE>;
+On Thu, Feb 15, 2018 at 02:33:33PM +0100, Maxime Ripard wrote:
+> Hi,
+>=20
+> Here is another attempt at supporting the MIPI-CSI2 RX block from
+> Cadence.
+>=20
+> This IP block is able to receive CSI data over up to 4 lanes, and
+> split it to over 4 streams. Those streams are basically the interfaces
+> to the video grabbers that will perform the capture.
+>=20
+> It is able to map streams to both CSI datatypes and virtual channels,
+> dynamically. This is unclear at this point what the right way to
+> support it would be, so the driver only uses a static mapping between
+> the virtual channels and streams, and ignores the data types.
 
-> +	clock-names = "ahb", "mod", "ram";
-> +
-> +	assigned-clocks = <&ccu CLK_VE>;
-> +	assigned-clock-rates = <320000000>;
-> +
-> +	resets = <&ccu RST_VE>;
-> +
-> +	interrupts = <53>;
-> +
-> +	reg = <0x01c0e000 4096>;
-> +};
-> -- 
-> 2.16.2
-> 
-> -- 
-> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
+Ping?
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--76sdo5dsk34ofwrl
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqiqgYACgkQ0rTAlCFN
+r3R3aRAAkUsN9bD09gOZaSnrfBzNr1sDXkzoj+EZqYggMh+mnl2hl7mTy9/CtVLY
+vS3TFy17W0XzdiT76k0s+3ENp8pqpQ1uAVk+eHfbG4soX2BaE/nc53YJMIb9U2if
+xc9i+HK/MqP8M+jZwcfGoBFbTcMxYazrSOdGI6kqCl8XYAzSyQDuIg8qP/z1CD0f
+tML0k/WKBa5LcRJuaDIFPahhHaHjBXSXRJeJgUeuvjfsR/5kXNdmfD8RZnrH06t0
+IxChnuv+doNwFCSHyyF8boKHZyb3vx8XepjBCox87YiclKsf8xdfC4km/J27y4G3
+0yGXiVsI0wUwCBv6lEcWy+OoRGkxzMXroztPONqUNcWNXZTtvDd46BGh3vsRPuM/
+xPyNLWKYawXc8qYj+IugVEhgdMAOh9FWXnIttrH+dfk/gpRMC6ylup3xKKBAcH9d
+wqlCgV+iXGtmvlx6gi7absH9wKSfv4hcC7aJDC/MLegcQZGSOnV5XPEF2FP14Rpq
+cj0FUei68iszb6Grc4wgooIRJ709CTyC+MLQHjn9j8YabelGe1aSeFQAVMDrZgZA
+t/9QznRkeOXA4dy7gytyikpTTlMBkYtLphcH6j7Tvo+10bN5A1p+dsmWULFETnDr
+dA9pOsnEvfjzw7PYDhKpqa1IkRep/G6ccUlrTMda6pr7X7QTvwM=
+=QBSz
+-----END PGP SIGNATURE-----
+
+--76sdo5dsk34ofwrl--
