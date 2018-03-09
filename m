@@ -1,542 +1,839 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:52663 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934104AbeCHRVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 12:21:10 -0500
-Date: Thu, 8 Mar 2018 18:20:50 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH RESEND 1/2 v6] uvcvideo: send a control event when a Control
- Change interrupt arrives
-Message-ID: <alpine.DEB.2.20.1803081818060.17344@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:38763 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932666AbeCIRuW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:50:22 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v8 12/13] [media] v4l: Add V4L2_CAP_FENCES to drivers
+Date: Fri,  9 Mar 2018 14:49:19 -0300
+Message-Id: <20180309174920.22373-13-gustavo@padovan.org>
+In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
+References: <20180309174920.22373-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-UVC defines a method of handling asynchronous controls, which sends a
-USB packet over the interrupt pipe. This patch implements support for
-such packets by sending a control event to the user. Since this can
-involve USB traffic and, therefore, scheduling, this has to be done
-in a work queue.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Drivers that use videobuf2 are capable of using fences and
+should report that to userspace.
+
+The coding style is following what each drivers was already
+doing.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++++++++----
- drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
- drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
- drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
- include/uapi/linux/uvcvideo.h      |   2 +
- 5 files changed, 269 insertions(+), 29 deletions(-)
+ drivers/media/pci/cobalt/cobalt-v4l2.c             | 3 ++-
+ drivers/media/pci/cx23885/cx23885-417.c            | 2 +-
+ drivers/media/pci/cx23885/cx23885-video.c          | 3 ++-
+ drivers/media/pci/cx88/cx88-video.c                | 3 ++-
+ drivers/media/pci/dt3155/dt3155.c                  | 2 +-
+ drivers/media/pci/saa7134/saa7134-video.c          | 2 ++
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     | 3 ++-
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         | 3 ++-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            | 2 +-
+ drivers/media/pci/tw68/tw68-video.c                | 3 ++-
+ drivers/media/pci/tw686x/tw686x-video.c            | 2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        | 2 +-
+ drivers/media/platform/blackfin/bfin_capture.c     | 3 ++-
+ drivers/media/platform/coda/coda-common.c          | 3 ++-
+ drivers/media/platform/davinci/vpbe_display.c      | 3 ++-
+ drivers/media/platform/davinci/vpfe_capture.c      | 3 ++-
+ drivers/media/platform/davinci/vpif_capture.c      | 3 ++-
+ drivers/media/platform/davinci/vpif_display.c      | 3 ++-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        | 3 ++-
+ drivers/media/platform/exynos4-is/fimc-capture.c   | 3 ++-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c | 3 ++-
+ drivers/media/platform/exynos4-is/fimc-lite.c      | 2 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       | 3 ++-
+ drivers/media/platform/m2m-deinterlace.c           | 3 ++-
+ drivers/media/platform/marvell-ccic/mcam-core.c    | 2 +-
+ drivers/media/platform/mx2_emmaprp.c               | 3 ++-
+ drivers/media/platform/omap3isp/ispvideo.c         | 2 +-
+ drivers/media/platform/pxa_camera.c                | 3 ++-
+ drivers/media/platform/rcar_jpu.c                  | 3 ++-
+ drivers/media/platform/s3c-camif/camif-capture.c   | 3 ++-
+ drivers/media/platform/s5p-g2d/g2d.c               | 3 ++-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 3 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 3 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 3 ++-
+ drivers/media/platform/sh_veu.c                    | 3 ++-
+ drivers/media/platform/sh_vou.c                    | 2 +-
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 3 ++-
+ drivers/media/platform/ti-vpe/cal.c                | 2 +-
+ drivers/media/platform/ti-vpe/vpe.c                | 3 ++-
+ drivers/media/platform/vim2m.c                     | 3 ++-
+ drivers/media/platform/vivid/vivid-core.c          | 2 +-
+ drivers/media/platform/vsp1/vsp1_histo.c           | 2 +-
+ drivers/media/platform/vsp1/vsp1_video.c           | 2 +-
+ drivers/media/platform/xilinx/xilinx-dma.c         | 2 +-
+ drivers/media/usb/airspy/airspy.c                  | 2 +-
+ drivers/media/usb/au0828/au0828-video.c            | 3 ++-
+ drivers/media/usb/em28xx/em28xx-video.c            | 1 +
+ drivers/media/usb/go7007/go7007-v4l2.c             | 2 +-
+ drivers/media/usb/hackrf/hackrf.c                  | 3 ++-
+ drivers/media/usb/msi2500/msi2500.c                | 2 +-
+ drivers/media/usb/pwc/pwc-v4l.c                    | 2 +-
+ drivers/media/usb/s2255/s2255drv.c                 | 2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            | 3 ++-
+ drivers/media/usb/usbtv/usbtv-video.c              | 3 ++-
+ drivers/media/usb/uvc/uvc_driver.c                 | 1 +
+ 55 files changed, 89 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 20397ab..2a592c2 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -20,6 +20,7 @@
- #include <linux/videodev2.h>
- #include <linux/vmalloc.h>
- #include <linux/wait.h>
-+#include <linux/workqueue.h>
- #include <linux/atomic.h>
- #include <media/v4l2-ctrls.h>
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index 6b6611a0e190..ef1014b5d4a7 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -484,7 +484,8 @@ static int cobalt_querycap(struct file *file, void *priv_fh,
+ 	strlcpy(vcap->card, "cobalt", sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
+ 		 "PCIe:%s", pci_name(cobalt->pci_dev));
+-	vcap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++	vcap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++		V4L2_CAP_FENCES;
+ 	if (s->is_output)
+ 		vcap->device_caps |= V4L2_CAP_VIDEO_OUTPUT;
+ 	else
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index a71f3c7569ce..56bf7ec4e25f 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -1334,7 +1334,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 		sizeof(cap->card));
+ 	sprintf(cap->bus_info, "PCIe:%s", pci_name(dev->pci));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+-			   V4L2_CAP_STREAMING;
++			   V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	if (dev->tuner_type != TUNER_ABSENT)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_VBI_CAPTURE |
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index f8a3deadc77a..dd54e7f7074a 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -643,7 +643,8 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	strlcpy(cap->card, cx23885_boards[dev->board].name,
+ 		sizeof(cap->card));
+ 	sprintf(cap->bus_info, "PCIe:%s", pci_name(dev->pci));
+-	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING | V4L2_CAP_AUDIO;
++	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING |
++		V4L2_CAP_AUDIO | V4L2_CAP_FENCES;
+ 	if (dev->tuner_type != TUNER_ABSENT)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+ 	if (vdev->vfl_type == VFL_TYPE_VBI)
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 9be682cdb644..acc74f402a43 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -812,7 +812,8 @@ int cx88_querycap(struct file *file, struct cx88_core *core,
+ 	struct video_device *vdev = video_devdata(file);
  
-@@ -1222,30 +1223,134 @@ static void uvc_ctrl_send_event(struct uvc_fh *handle,
- {
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_event ev;
-+	bool autoupdate;
- 
- 	if (list_empty(&mapping->ev_subs))
- 		return;
- 
-+	if (!handle) {
-+		autoupdate = true;
-+		sev = list_first_entry(&mapping->ev_subs,
-+				       struct v4l2_subscribed_event, node);
-+		handle = container_of(sev->fh, struct uvc_fh, vfh);
-+	} else {
-+		autoupdate = false;
-+	}
-+
- 	uvc_ctrl_fill_event(handle->chain, &ev, ctrl, mapping, value, changes);
- 
- 	list_for_each_entry(sev, &mapping->ev_subs, node) {
- 		if (sev->fh && (sev->fh != &handle->vfh ||
- 		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK) ||
--		    (changes & V4L2_EVENT_CTRL_CH_FLAGS)))
-+		    (changes & V4L2_EVENT_CTRL_CH_FLAGS) || autoupdate))
- 			v4l2_event_queue_fh(sev->fh, &ev);
- 	}
+ 	strlcpy(cap->card, core->board.name, sizeof(cap->card));
+-	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING |
++		V4L2_CAP_FENCES;
+ 	if (core->board.tuner_type != UNSET)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+ 	switch (vdev->vfl_type) {
+diff --git a/drivers/media/pci/dt3155/dt3155.c b/drivers/media/pci/dt3155/dt3155.c
+index 1775c36891ae..b677096c7a14 100644
+--- a/drivers/media/pci/dt3155/dt3155.c
++++ b/drivers/media/pci/dt3155/dt3155.c
+@@ -311,7 +311,7 @@ static int dt3155_querycap(struct file *filp, void *p,
+ 	strcpy(cap->card, DT3155_NAME " frame grabber");
+ 	sprintf(cap->bus_info, "PCI:%s", pci_name(pd->pdev));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++		V4L2_CAP_STREAMING | V4L2_CAP_READWRITE | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
  }
- 
--static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
--	struct uvc_control *master, u32 slave_id,
--	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
-+static void __uvc_ctrl_send_slave_event(struct uvc_fh *handle,
-+				struct uvc_control *master, u32 slave_id)
- {
- 	struct uvc_control_mapping *mapping = NULL;
- 	struct uvc_control *ctrl = NULL;
- 	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
--	unsigned int i;
- 	s32 val = 0;
- 
-+	__uvc_find_control(master->entity, slave_id, &mapping, &ctrl, 0);
-+	if (ctrl == NULL)
-+		return;
-+
-+	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
-+		changes |= V4L2_EVENT_CTRL_CH_VALUE;
-+
-+	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
-+}
-+
-+static void uvc_ctrl_status_event_work(struct work_struct *work)
-+{
-+	struct uvc_device *dev = container_of(work, struct uvc_device,
-+					      async_ctrl.work);
-+	struct uvc_video_chain *chain;
-+	struct uvc_ctrl_work *w = &dev->async_ctrl;
-+	struct uvc_control_mapping *mapping;
-+	struct uvc_control *ctrl;
-+	struct uvc_fh *handle;
-+	__u8 *data;
-+	unsigned int i;
-+
-+	spin_lock_irq(&w->lock);
-+	data = w->data;
-+	w->data = NULL;
-+	chain = w->chain;
-+	ctrl = w->ctrl;
-+	handle = ctrl->handle;
-+	ctrl->handle = NULL;
-+	spin_unlock_irq(&w->lock);
-+
-+	if (mutex_lock_interruptible(&chain->ctrl_mutex))
-+		goto free;
-+
-+	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
-+		s32 value = mapping->get(mapping, UVC_GET_CUR, data);
-+
-+		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
-+			if (!mapping->slave_ids[i])
-+				break;
-+
-+			__uvc_ctrl_send_slave_event(handle, ctrl,
-+						    mapping->slave_ids[i]);
-+		}
-+
-+		if (mapping->v4l2_type == V4L2_CTRL_TYPE_MENU) {
-+			struct uvc_menu_info *menu = mapping->menu_info;
-+			unsigned int i;
-+
-+			for (i = 0; i < mapping->menu_count; ++i, ++menu)
-+				if (menu->value == value) {
-+					value = i;
-+					break;
-+				}
-+		}
-+
-+		uvc_ctrl_send_event(handle, ctrl, mapping, value,
-+				    V4L2_EVENT_CTRL_CH_VALUE);
-+	}
-+
-+	mutex_unlock(&chain->ctrl_mutex);
-+
-+free:
-+	kfree(data);
-+}
-+
-+void uvc_ctrl_status_event(struct uvc_video_chain *chain,
-+			   struct uvc_control *ctrl, __u8 *data, size_t len)
-+{
-+	struct uvc_device *dev = chain->dev;
-+	struct uvc_ctrl_work *w = &dev->async_ctrl;
-+
-+	if (list_empty(&ctrl->info.mappings))
-+		return;
-+
-+	spin_lock(&w->lock);
-+	if (w->data)
-+		/* A previous event work hasn't run yet, we lose 1 event */
-+		kfree(w->data);
-+
-+	w->data = kmalloc(len, GFP_ATOMIC);
-+	if (w->data) {
-+		memcpy(w->data, data, len);
-+		w->chain = chain;
-+		w->ctrl = ctrl;
-+		schedule_work(&w->work);
-+	}
-+	spin_unlock(&w->lock);
-+}
-+
-+static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
-+	struct uvc_control *master, u32 slave_id,
-+	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
-+{
-+	unsigned int i;
-+
- 	/*
- 	 * We can skip sending an event for the slave if the slave
- 	 * is being modified in the same transaction.
-@@ -1255,14 +1360,7 @@ static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
- 			return;
- 	}
- 
--	__uvc_find_control(master->entity, slave_id, &mapping, &ctrl, 0);
--	if (ctrl == NULL)
--		return;
--
--	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
--		changes |= V4L2_EVENT_CTRL_CH_VALUE;
--
--	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
-+	__uvc_ctrl_send_slave_event(handle, master, slave_id);
- }
- 
- static void uvc_ctrl_send_events(struct uvc_fh *handle,
-@@ -1277,6 +1375,10 @@ static void uvc_ctrl_send_events(struct uvc_fh *handle,
- 	for (i = 0; i < xctrls_count; ++i) {
- 		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
- 
-+		if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS)
-+			/* Notification will be sent from an Interrupt event */
-+			continue;
-+
- 		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
- 			if (!mapping->slave_ids[j])
- 				break;
-@@ -1472,9 +1574,10 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
- }
- 
--int uvc_ctrl_set(struct uvc_video_chain *chain,
-+int uvc_ctrl_set(struct uvc_fh *handle,
- 	struct v4l2_ext_control *xctrl)
- {
-+	struct uvc_video_chain *chain = handle->chain;
- 	struct uvc_control *ctrl;
- 	struct uvc_control_mapping *mapping;
- 	s32 value;
-@@ -1488,6 +1591,25 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 1ca6a32ad10e..aa0bc52633c3 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1534,6 +1534,8 @@ int saa7134_querycap(struct file *file, void *priv,
+ 	default:
  		return -EINVAL;
- 	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
- 		return -EACCES;
-+	if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS) {
-+		if (ctrl->handle)
-+			/*
-+			 * We have already sent this control to the camera
-+			 * recently and are currently waiting for a completion
-+			 * notification. The camera might already have completed
-+			 * its processing and is ready to accept a new control
-+			 * or it's still busy processing. If we send a new
-+			 * instance of this control now, in the former case the
-+			 * camera will process this one too and we'll get
-+			 * completions for both, but we will only deliver an
-+			 * event for one of them back to the user. In the latter
-+			 * case the camera will reply with a STALL. It's easier
-+			 * and more reliable to return an error now and let the
-+			 * user retry.
-+			 */
-+			return -EBUSY;
-+		ctrl->handle = handle;
-+	}
- 
- 	/* Clamp out of range values. */
- 	switch (mapping->v4l2_type) {
-@@ -1676,7 +1798,9 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
- 		    | (data[0] & UVC_CONTROL_CAP_SET ?
- 		       UVC_CTRL_FLAG_SET_CUR : 0)
- 		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
--		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
-+		       UVC_CTRL_FLAG_AUTO_UPDATE : 0)
-+		    | (data[0] & UVC_CONTROL_CAP_ASYNCHRONOUS ?
-+		       UVC_CTRL_FLAG_ASYNCHRONOUS : 0);
- 
- 	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
- 
-@@ -2131,6 +2255,13 @@ static void uvc_ctrl_init_ctrl(struct uvc_device *dev, struct uvc_control *ctrl)
- 	if (!ctrl->initialized)
- 		return;
- 
-+	/* Temporarily abuse DATA_CURRENT buffer to avoid 1 byte allocation */
-+	if (!uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
-+			    dev->intfnum, info->selector,
-+			    uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT), 1) &&
-+	    uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT)[0] & 0x10)
-+		ctrl->info.flags |= UVC_CTRL_FLAG_ASYNCHRONOUS;
+ 	}
 +
- 	for (; mapping < mend; ++mapping) {
- 		if (uvc_entity_match_guid(ctrl->entity, mapping->entity) &&
- 		    ctrl->info.selector == mapping->selector)
-@@ -2146,6 +2277,9 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- 	struct uvc_entity *entity;
- 	unsigned int i;
++	cap->device_caps |= V4L2_CAP_FENCES;
+ 	cap->capabilities = radio_caps | video_caps | vbi_caps |
+ 		cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO) {
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 25f9f2ebff1d..2900cde5d4a0 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -781,7 +781,8 @@ static int solo_enc_querycap(struct file *file, void  *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+ 		 pci_name(solo_dev->pdev));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
+-			V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++			V4L2_CAP_READWRITE | V4L2_CAP_STREAMING |
++			V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+index 99ffd1ed4a73..acb86823313e 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+@@ -388,7 +388,8 @@ static int solo_querycap(struct file *file, void  *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+ 		 pci_name(solo_dev->pdev));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
+-			V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++			V4L2_CAP_READWRITE | V4L2_CAP_STREAMING |
++			V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index dd199bfc1d45..4113d1279d72 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -420,7 +420,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+ 		 pci_name(vip->pdev));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+-			   V4L2_CAP_STREAMING;
++			   V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
  
-+	spin_lock_init(&dev->async_ctrl.lock);
-+	INIT_WORK(&dev->async_ctrl.work, uvc_ctrl_status_event_work);
-+
- 	/* Walk the entities list and instantiate controls */
- 	list_for_each_entry(entity, &dev->entities, list) {
- 		struct uvc_control *ctrl;
-@@ -2214,6 +2348,8 @@ void uvc_ctrl_cleanup_device(struct uvc_device *dev)
- 	struct uvc_entity *entity;
- 	unsigned int i;
+ 	return 0;
+diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+index 8c1f4a049764..6a11838a96ce 100644
+--- a/drivers/media/pci/tw68/tw68-video.c
++++ b/drivers/media/pci/tw68/tw68-video.c
+@@ -741,7 +741,8 @@ static int tw68_querycap(struct file *file, void  *priv,
+ 	cap->device_caps =
+ 		V4L2_CAP_VIDEO_CAPTURE |
+ 		V4L2_CAP_READWRITE |
+-		V4L2_CAP_STREAMING;
++		V4L2_CAP_STREAMING |
++		V4L2_CAP_FENCES;
  
-+	cancel_work_sync(&dev->async_ctrl.work);
-+
- 	/* Free controls and control mappings for all entities. */
- 	list_for_each_entry(entity, &dev->entities, list) {
- 		for (i = 0; i < entity->ncontrols; ++i) {
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index 1ef20e7..440a7be 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -78,7 +78,24 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
- /* --------------------------------------------------------------------------
-  * Status interrupt endpoint
-  */
--static void uvc_event_streaming(struct uvc_device *dev, __u8 *data, int len)
-+struct uvc_streaming_status {
-+	__u8	bStatusType;
-+	__u8	bOriginator;
-+	__u8	bEvent;
-+	__u8	bValue[];
-+} __packed;
-+
-+struct uvc_control_status {
-+	__u8	bStatusType;
-+	__u8	bOriginator;
-+	__u8	bEvent;
-+	__u8	bSelector;
-+	__u8	bAttribute;
-+	__u8	bValue[];
-+} __packed;
-+
-+static void uvc_event_streaming(struct uvc_device *dev,
-+				struct uvc_streaming_status *status, int len)
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index c3fafa97b2d0..2a527b6a83e3 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -770,7 +770,7 @@ static int tw686x_querycap(struct file *file, void *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+ 		 "PCI:%s", pci_name(dev->pci_dev));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+-			   V4L2_CAP_READWRITE;
++			   V4L2_CAP_READWRITE | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index 601ae6487617..b376c60ade04 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -1413,7 +1413,7 @@ static int vpfe_querycap(struct file *file, void  *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+ 			"platform:%s", vpfe->v4l2_dev.name);
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+-			    V4L2_CAP_READWRITE;
++			    V4L2_CAP_READWRITE | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index b7660b1000fd..cfbca15db6ac 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -704,7 +704,8 @@ static int bcap_querycap(struct file *file, void  *priv,
  {
- 	if (len < 3) {
- 		uvc_trace(UVC_TRACE_STATUS, "Invalid streaming status event "
-@@ -86,31 +103,101 @@ static void uvc_event_streaming(struct uvc_device *dev, __u8 *data, int len)
- 		return;
- 	}
+ 	struct bcap_device *bcap_dev = video_drvdata(file);
  
--	if (data[2] == 0) {
-+	if (status->bEvent == 0) {
- 		if (len < 4)
- 			return;
- 		uvc_trace(UVC_TRACE_STATUS, "Button (intf %u) %s len %d\n",
--			data[1], data[3] ? "pressed" : "released", len);
--		uvc_input_report_key(dev, KEY_CAMERA, data[3]);
-+			  status->bOriginator,
-+			  status->bValue[0] ? "pressed" : "released", len);
-+		uvc_input_report_key(dev, KEY_CAMERA, status->bValue[0]);
- 	} else {
- 		uvc_trace(UVC_TRACE_STATUS,
- 			  "Stream %u error event %02x len %d.\n",
--			  data[1], data[2], len);
-+			  status->bOriginator, status->bEvent, len);
- 	}
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	strlcpy(cap->driver, CAPTURE_DRV_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "Blackfin Platform", sizeof(cap->bus_info));
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 6deb29fe6eb7..0b7ec013ff32 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -394,7 +394,8 @@ static int coda_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, coda_product_name(ctx->dev->devtype->product),
+ 		sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "platform:" CODA_NAME, sizeof(cap->bus_info));
+-	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 6aabd21fe69f..7ec13e50b4bb 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -638,7 +638,8 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+ 	struct vpbe_layer *layer = video_drvdata(file);
+ 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+ 
+-	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	snprintf(cap->driver, sizeof(cap->driver), "%s",
+ 		dev_name(vpbe_dev->pdev));
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 6f44abf7fa31..93defad26f63 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -887,7 +887,8 @@ static int vpfe_querycap(struct file *file, void  *priv,
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querycap\n");
+ 
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	strlcpy(cap->driver, CAPTURE_DRV_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "VPFE", sizeof(cap->bus_info));
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 9364cdf62f54..ca13c8894078 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1092,7 +1092,8 @@ static int vpif_querycap(struct file *file, void  *priv,
+ {
+ 	struct vpif_capture_config *config = vpif_dev->platform_data;
+ 
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	strlcpy(cap->driver, VPIF_DRIVER_NAME, sizeof(cap->driver));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 7be636237acf..2c39b72d466f 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -584,7 +584,8 @@ static int vpif_querycap(struct file *file, void  *priv,
+ {
+ 	struct vpif_display_config *config = vpif_dev->platform_data;
+ 
+-	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	strlcpy(cap->driver, VPIF_DRIVER_NAME, sizeof(cap->driver));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 10c3e4659d38..a6465a22f5a8 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -299,7 +299,8 @@ static int gsc_m2m_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->card, GSC_MODULE_NAME " gscaler", sizeof(cap->card));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		 dev_name(&gsc->pdev->dev));
+-	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index ed9302caa004..d14e22f3c910 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -726,7 +726,8 @@ static int fimc_cap_querycap(struct file *file, void *priv,
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 
+ 	__fimc_vidioc_querycap(&fimc->pdev->dev, cap, V4L2_CAP_STREAMING |
+-					V4L2_CAP_VIDEO_CAPTURE_MPLANE);
++					V4L2_CAP_VIDEO_CAPTURE_MPLANE |
++					V4L2_CAP_FENCES);
+ 	return 0;
  }
  
--static void uvc_event_control(struct uvc_device *dev, __u8 *data, int len)
-+#define UVC_CTRL_VALUE_CHANGE	0
-+#define UVC_CTRL_INFO_CHANGE	1
-+#define UVC_CTRL_FAILURE_CHANGE	2
-+#define UVC_CTRL_MIN_CHANGE	3
-+#define UVC_CTRL_MAX_CHANGE	4
-+
-+static struct uvc_control *uvc_event_entity_ctrl(struct uvc_entity *entity,
-+					       __u8 selector)
-+{
-+	struct uvc_control *ctrl;
-+	unsigned int i;
-+
-+	for (i = 0, ctrl = entity->controls; i < entity->ncontrols; i++, ctrl++)
-+		if (ctrl->info.selector == selector)
-+			return ctrl;
-+
-+	return NULL;
-+}
-+
-+static struct uvc_control *uvc_event_find_ctrl(struct uvc_device *dev,
-+					struct uvc_control_status *status,
-+					struct uvc_video_chain **chain)
-+{
-+	list_for_each_entry((*chain), &dev->chains, list) {
-+		struct uvc_entity *entity;
-+		struct uvc_control *ctrl;
-+
-+		list_for_each_entry(entity, &(*chain)->entities, chain) {
-+			if (entity->id == status->bOriginator) {
-+				ctrl = uvc_event_entity_ctrl(entity,
-+							     status->bSelector);
-+				/*
-+				 * Some buggy cameras send asynchronous Control
-+				 * Change events for control, other than the
-+				 * ones, that had been changed, even though the
-+				 * AutoUpdate flag isn't set for the control.
-+				 */
-+				if (ctrl && (!ctrl->handle ||
-+					     ctrl->handle->chain == *chain))
-+					return ctrl;
-+			}
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+static void uvc_event_control(struct uvc_device *dev,
-+			      struct uvc_control_status *status, int len)
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index 55ba696b8cf4..d3c8d8a8428c 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -349,7 +349,8 @@ static int isp_video_querycap(struct file *file, void *priv,
  {
--	char *attrs[3] = { "value", "info", "failure" };
-+	struct uvc_video_chain *chain;
-+	struct uvc_control *ctrl;
-+	char *attrs[] = { "value", "info", "failure", "min", "max" };
+ 	struct fimc_isp *isp = video_drvdata(file);
  
--	if (len < 6 || data[2] != 0 || data[4] > 2) {
-+	if (len < 6 || status->bEvent != 0 ||
-+	    status->bAttribute >= ARRAY_SIZE(attrs)) {
- 		uvc_trace(UVC_TRACE_STATUS, "Invalid control status event "
- 				"received.\n");
- 		return;
- 	}
- 
- 	uvc_trace(UVC_TRACE_STATUS, "Control %u/%u %s change len %d.\n",
--		data[1], data[3], attrs[data[4]], len);
-+		  status->bOriginator, status->bSelector,
-+		  attrs[status->bAttribute], len);
-+
-+	/* Find the control. */
-+	ctrl = uvc_event_find_ctrl(dev, status, &chain);
-+	if (!ctrl)
-+		return;
-+
-+	switch (status->bAttribute) {
-+	case UVC_CTRL_VALUE_CHANGE:
-+		uvc_ctrl_status_event(chain, ctrl, status->bValue, len -
-+				      offsetof(struct uvc_control_status, bValue));
-+		break;
-+	case UVC_CTRL_INFO_CHANGE:
-+	case UVC_CTRL_FAILURE_CHANGE:
-+	case UVC_CTRL_MIN_CHANGE:
-+	case UVC_CTRL_MAX_CHANGE:
-+		break;
-+	}
+-	__fimc_vidioc_querycap(&isp->pdev->dev, cap, V4L2_CAP_STREAMING);
++	__fimc_vidioc_querycap(&isp->pdev->dev, cap, V4L2_CAP_STREAMING |
++			       V4L2_CAP_FENCES);
+ 	return 0;
  }
  
- static void uvc_status_complete(struct urb *urb)
-@@ -139,11 +226,13 @@ static void uvc_status_complete(struct urb *urb)
- 	if (len > 0) {
- 		switch (dev->status[0] & 0x0f) {
- 		case UVC_STATUS_TYPE_CONTROL:
--			uvc_event_control(dev, dev->status, len);
-+			uvc_event_control(dev,
-+				(struct uvc_control_status *)dev->status, len);
- 			break;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 70d5f5586a5d..5519854ef728 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -659,7 +659,7 @@ static int fimc_lite_querycap(struct file *file, void *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 					dev_name(&fimc->pdev->dev));
  
- 		case UVC_STATUS_TYPE_STREAMING:
--			uvc_event_streaming(dev, dev->status, len);
-+			uvc_event_streaming(dev,
-+				(struct uvc_streaming_status *)dev->status, len);
- 			break;
+-	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index dfc487a582c0..fb64abdc80a0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -237,7 +237,8 @@ static int fimc_m2m_querycap(struct file *file, void *fh,
+ 				     struct v4l2_capability *cap)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
+-	unsigned int caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
++	unsigned int caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
++			    V4L2_CAP_FENCES;
  
- 		default:
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 5e03239..40863eb 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -966,7 +966,7 @@ static int uvc_ioctl_s_ctrl(struct file *file, void *fh,
- 	if (ret < 0)
+ 	__fimc_vidioc_querycap(&fimc->pdev->dev, cap, caps);
+ 	return 0;
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index 35a0f45d2a51..2d5a096adc8b 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -461,7 +461,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	 * and are scheduled for removal.
+ 	 */
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
+-			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 80670eeee142..4ac0edbfc194 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1307,7 +1307,7 @@ static int mcam_vidioc_querycap(struct file *file, void *priv,
+ 	strcpy(cap->card, "marvell_ccic");
+ 	strlcpy(cap->bus_info, cam->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index d03becff66cf..b25d492e8d77 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -401,7 +401,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
+-	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index b4d4ef926749..cefcd1195a9d 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -658,7 +658,7 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	strlcpy(cap->card, video->video.name, sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
+ 
+-	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_VIDEO_CAPTURE |
+ 		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_DEVICE_CAPS;
+ 
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index c71a00736541..402649257f2b 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -1997,7 +1997,8 @@ static int pxac_vidioc_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->bus_info, "platform:pxa-camera", sizeof(cap->bus_info));
+ 	strlcpy(cap->driver, PXA_CAM_DRV_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, pxa_cam_driver_description, sizeof(cap->card));
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+index b4b2e2cf5d1a..29d8e30edc8f 100644
+--- a/drivers/media/platform/rcar_jpu.c
++++ b/drivers/media/platform/rcar_jpu.c
+@@ -676,7 +676,8 @@ static int jpu_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->driver, DRV_NAME, sizeof(cap->driver));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		 dev_name(ctx->jpu->dev));
+-	cap->device_caps |= V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
++	cap->device_caps |= V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | cap->device_caps;
+ 	memset(cap->reserved, 0, sizeof(cap->reserved));
+ 
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 9ab8e7ee2e1e..1cec90e5e159 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -643,7 +643,8 @@ static int s3c_camif_vidioc_querycap(struct file *file, void *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s.%d",
+ 		 dev_name(vp->camif->dev), vp->id);
+ 
+-	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index cb7d916bfc8b..225a765fda7c 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -299,7 +299,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strncpy(cap->driver, G2D_NAME, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, G2D_NAME, sizeof(cap->card) - 1);
+ 	cap->bus_info[0] = 0;
+-	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 28485e6b9cc8..bcd43b33eb3e 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1288,7 +1288,8 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
+ 	}
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		 dev_name(ctx->jpeg->dev));
+-	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M |
++			   V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 369db08dbcae..ba2f79c928bc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -274,7 +274,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	 * device capability flags are left only for backward compatibility
+ 	 * and are scheduled for removal.
+ 	 */
+-	cap->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index fece496c2a8e..b00415ae644b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -952,7 +952,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	 * device capability flags are left only for backward compatibility
+ 	 * and are scheduled for removal.
+ 	 */
+-	cap->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index 0682b50a67fc..fc0695292393 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -352,7 +352,8 @@ static int sh_veu_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, "sh-mobile VEU", sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "platform:sh-veu", sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+-	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
++			    V4L2_CAP_FENCES;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 4dccf29e9d78..8affb8703825 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -385,7 +385,7 @@ static int sh_vou_querycap(struct file *file, void  *priv,
+ 	strlcpy(cap->driver, "sh-vou", sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "platform:sh-vou", sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_READWRITE |
+-			   V4L2_CAP_STREAMING;
++			   V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+index 0cfdc5a67855..f3745b74724c 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+@@ -694,7 +694,8 @@ static int bdisp_querycap(struct file *file, void *fh,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s%d",
+ 		 BDISP_NAME, bdisp->id);
+ 
+-	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M |
++		V4L2_CAP_FENCES;
+ 
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index d1febe5baa6d..83f59b6408c0 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -918,7 +918,7 @@ static int cal_querycap(struct file *file, void *priv,
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+ 		 "platform:%s", ctx->v4l2_dev.name);
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+-			    V4L2_CAP_READWRITE;
++			    V4L2_CAP_READWRITE | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index c2d838884e1c..75840b21fff1 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1512,7 +1512,8 @@ static int vpe_querycap(struct file *file, void *priv,
+ 	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		VPE_MODULE_NAME);
+-	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index e1a54a28b082..13711d203fd6 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -432,7 +432,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+ 			"platform:%s", MEM2MEM_NAME);
+-	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
++			V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 82ec216f2ad8..39cd4aedd968 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -205,7 +205,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	cap->capabilities = dev->vid_cap_caps | dev->vid_out_caps |
+ 		dev->vbi_cap_caps | dev->vbi_out_caps |
+ 		dev->radio_rx_caps | dev->radio_tx_caps |
+-		dev->sdr_cap_caps | V4L2_CAP_DEVICE_CAPS;
++		dev->sdr_cap_caps | V4L2_CAP_DEVICE_CAPS | V4L2_CAP_FENCES;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_histo.c b/drivers/media/platform/vsp1/vsp1_histo.c
+index afab77cf4fa5..647b0c4d6f39 100644
+--- a/drivers/media/platform/vsp1/vsp1_histo.c
++++ b/drivers/media/platform/vsp1/vsp1_histo.c
+@@ -480,7 +480,7 @@ static int histo_v4l2_querycap(struct file *file, void *fh,
+ 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+ 			  | V4L2_CAP_VIDEO_CAPTURE_MPLANE
+ 			  | V4L2_CAP_VIDEO_OUTPUT_MPLANE
+-			  | V4L2_CAP_META_CAPTURE;
++			  | V4L2_CAP_META_CAPTURE | V4L2_CAP_FENCES;
+ 	cap->device_caps = V4L2_CAP_META_CAPTURE
+ 			 | V4L2_CAP_STREAMING;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index c2d3b8f0f487..67e44a76a4f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -964,7 +964,7 @@ vsp1_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 
+ 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+ 			  | V4L2_CAP_VIDEO_CAPTURE_MPLANE
+-			  | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
++			  | V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_FENCES;
+ 
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+ 		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE_MPLANE
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 565e466ba4fa..5652ca23ec7d 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -494,7 +494,7 @@ xvip_dma_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
+ 
+-	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS
+ 			  | dma->xdev->v4l2_caps;
+ 
+diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+index e70c9e2f3798..64a3192413e3 100644
+--- a/drivers/media/usb/airspy/airspy.c
++++ b/drivers/media/usb/airspy/airspy.c
+@@ -623,7 +623,7 @@ static int airspy_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
+ 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
+-			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
++			V4L2_CAP_READWRITE | V4L2_CAP_TUNER | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index c765d546114d..29db7799ecb6 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1199,7 +1199,8 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	cap->device_caps = V4L2_CAP_AUDIO |
+ 		V4L2_CAP_READWRITE |
+ 		V4L2_CAP_STREAMING |
+-		V4L2_CAP_TUNER;
++		V4L2_CAP_TUNER |
++		V4L2_CAP_FENCES;
+ 	if (vdev->vfl_type == VFL_TYPE_GRABBER)
+ 		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index f31339727d3b..32a58f1da4e7 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1938,6 +1938,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	if (dev->tuner_type != TUNER_ABSENT)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+ 
++	cap->device_caps |= V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps |
+ 			    V4L2_CAP_DEVICE_CAPS | V4L2_CAP_READWRITE |
+ 			    V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
+index 98cd57eaf36a..0ef0587eb136 100644
+--- a/drivers/media/usb/go7007/go7007-v4l2.c
++++ b/drivers/media/usb/go7007/go7007-v4l2.c
+@@ -289,7 +289,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	strlcpy(cap->bus_info, go->bus_info, sizeof(cap->bus_info));
+ 
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+-				V4L2_CAP_STREAMING;
++				V4L2_CAP_STREAMING | V4L2_CAP_FENCES;
+ 
+ 	if (go->board_info->num_aud_inputs)
+ 		cap->device_caps |= V4L2_CAP_AUDIO;
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index 6d692fb3e8dd..5912df138394 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -909,7 +909,8 @@ static int hackrf_querycap(struct file *file, void *fh,
+ 
+ 	dev_dbg(&intf->dev, "\n");
+ 
+-	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
++	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE |
++			   V4L2_CAP_FENCES;
+ 	if (vdev->vfl_dir == VFL_DIR_RX)
+ 		cap->device_caps |= V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
+ 	else
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 65ef755adfdc..737b10761869 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -608,7 +608,7 @@ static int msi2500_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->card, dev->vdev.name, sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
+-			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
++			V4L2_CAP_READWRITE | V4L2_CAP_TUNER | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/pwc/pwc-v4l.c b/drivers/media/usb/pwc/pwc-v4l.c
+index 043b2b97cee6..571a8c4661c5 100644
+--- a/drivers/media/usb/pwc/pwc-v4l.c
++++ b/drivers/media/usb/pwc/pwc-v4l.c
+@@ -496,7 +496,7 @@ static int pwc_querycap(struct file *file, void *fh, struct v4l2_capability *cap
+ 	strlcpy(cap->card, pdev->vdev.name, sizeof(cap->card));
+ 	usb_make_path(pdev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+-					V4L2_CAP_READWRITE;
++					V4L2_CAP_READWRITE | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index a00a15f55d37..fe4c4f23adaa 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -734,7 +734,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, "s2255", sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+-		V4L2_CAP_READWRITE;
++		V4L2_CAP_READWRITE | V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index 77b759a0bcd9..00c8ff034880 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -350,7 +350,8 @@ static int vidioc_querycap(struct file *file,
+ 	cap->device_caps =
+ 		V4L2_CAP_VIDEO_CAPTURE |
+ 		V4L2_CAP_STREAMING |
+-		V4L2_CAP_READWRITE;
++		V4L2_CAP_READWRITE |
++		V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 3668a04359e8..4b889dbff6a9 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -521,7 +521,8 @@ static int usbtv_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, "usbtv", sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE;
+-	cap->device_caps |= V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	cap->device_caps |= V4L2_CAP_READWRITE | V4L2_CAP_STREAMING |
++			    V4L2_CAP_FENCES;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 2469b49b2b30..745f69cbf8e0 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1968,6 +1968,7 @@ static int uvc_register_video(struct uvc_device *dev,
  		return ret;
+ 	}
  
--	ret = uvc_ctrl_set(chain, &xctrl);
-+	ret = uvc_ctrl_set(handle, &xctrl);
- 	if (ret < 0) {
- 		uvc_ctrl_rollback(handle);
- 		return ret;
-@@ -1041,7 +1041,7 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
- 		return ret;
- 
- 	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
--		ret = uvc_ctrl_set(chain, ctrl);
-+		ret = uvc_ctrl_set(handle, ctrl);
- 		if (ret < 0) {
- 			uvc_ctrl_rollback(handle);
- 			ctrls->error_idx = commit ? ctrls->count : i;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index b65e86b..3fa089f 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -11,6 +11,7 @@
- #include <linux/usb/video.h>
- #include <linux/uvcvideo.h>
- #include <linux/videodev2.h>
-+#include <linux/workqueue.h>
- #include <media/media-device.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
-@@ -255,6 +256,8 @@ struct uvc_control {
- 	     initialized:1;
- 
- 	__u8 *uvc_data;
-+
-+	struct uvc_fh *handle;	/* Used for asynchronous event delivery */
- };
- 
- struct uvc_format_desc {
-@@ -599,6 +602,14 @@ struct uvc_device {
- 	__u8 *status;
- 	struct input_dev *input;
- 	char input_phys[64];
-+
-+	struct uvc_ctrl_work {
-+		struct work_struct work;
-+		struct uvc_video_chain *chain;
-+		struct uvc_control *ctrl;
-+		spinlock_t lock;
-+		void *data;
-+	} async_ctrl;
- };
- 
- enum uvc_handle_state {
-@@ -754,6 +765,8 @@ extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
- extern int uvc_ctrl_init_device(struct uvc_device *dev);
- extern void uvc_ctrl_cleanup_device(struct uvc_device *dev);
- extern int uvc_ctrl_restore_values(struct uvc_device *dev);
-+extern void uvc_ctrl_status_event(struct uvc_video_chain *chain,
-+		struct uvc_control *ctrl, __u8 *data, size_t len);
- 
- extern int uvc_ctrl_begin(struct uvc_video_chain *chain);
- extern int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
-@@ -772,7 +785,7 @@ static inline int uvc_ctrl_rollback(struct uvc_fh *handle)
- 
- extern int uvc_ctrl_get(struct uvc_video_chain *chain,
- 		struct v4l2_ext_control *xctrl);
--extern int uvc_ctrl_set(struct uvc_video_chain *chain,
-+extern int uvc_ctrl_set(struct uvc_fh *handle,
- 		struct v4l2_ext_control *xctrl);
- 
- extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
-diff --git a/include/uapi/linux/uvcvideo.h b/include/uapi/linux/uvcvideo.h
-index 8381ca7c..ee0a5ec 100644
---- a/include/uapi/linux/uvcvideo.h
-+++ b/include/uapi/linux/uvcvideo.h
-@@ -27,6 +27,8 @@
- #define UVC_CTRL_FLAG_RESTORE		(1 << 6)
- /* Control can be updated by the camera. */
- #define UVC_CTRL_FLAG_AUTO_UPDATE	(1 << 7)
-+/* Control supports asynchronous reporting */
-+#define UVC_CTRL_FLAG_ASYNCHRONOUS	(1 << 8)
- 
- #define UVC_CTRL_FLAG_GET_RANGE \
- 	(UVC_CTRL_FLAG_GET_CUR | UVC_CTRL_FLAG_GET_MIN | \
++	stream->chain->caps |= V4L2_CAP_FENCES;
+ 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE
+ 			| V4L2_CAP_META_CAPTURE;
 -- 
-1.9.3
+2.14.3
