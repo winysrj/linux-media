@@ -1,95 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f48.google.com ([209.85.213.48]:46764 "EHLO
-        mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751543AbeCLIQI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 04:16:08 -0400
-Received: by mail-vk0-f48.google.com with SMTP id x125so5647638vkc.13
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 01:16:08 -0700 (PDT)
-Received: from mail-ua0-f181.google.com (mail-ua0-f181.google.com. [209.85.217.181])
-        by smtp.gmail.com with ESMTPSA id u28sm118367uae.29.2018.03.12.01.16.05
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 12 Mar 2018 01:16:05 -0700 (PDT)
-Received: by mail-ua0-f181.google.com with SMTP id c40so6203348uae.2
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 01:16:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1520842245.1513.5.camel@bootlin.com>
-References: <20180220044425.169493-20-acourbot@chromium.org>
- <1520440654.1092.15.camel@bootlin.com> <6470b45d-e9dc-0a22-febc-cd18ae1092be@gmail.com>
- <1520842245.1513.5.camel@bootlin.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 12 Mar 2018 17:15:44 +0900
-Message-ID: <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
-Subject: Re: [RFCv4,19/21] media: vim2m: add request support
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Dmitry Osipenko <digetx@gmail.com>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:40113 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932342AbeCIRt2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:49:28 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v8 00/13] V4L2 Explicit Synchronization
+Date: Fri,  9 Mar 2018 14:49:07 -0300
+Message-Id: <20180309174920.22373-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul, Dmitry,
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-On Mon, Mar 12, 2018 at 5:10 PM, Paul Kocialkowski
-<paul.kocialkowski@bootlin.com> wrote:
-> Hi,
->
-> On Sun, 2018-03-11 at 22:42 +0300, Dmitry Osipenko wrote:
->> Hello,
->>
->> On 07.03.2018 19:37, Paul Kocialkowski wrote:
->> > Hi,
->> >
->> > First off, I'd like to take the occasion to say thank-you for your
->> > work.
->> > This is a major piece of plumbing that is required for me to add
->> > support
->> > for the Allwinner CedarX VPU hardware in upstream Linux. Other
->> > drivers,
->> > such as tegra-vde (that was recently merged in staging) are also
->> > badly
->> > in need of this API.
->>
->> Certainly it would be good to have a common UAPI. Yet I haven't got my
->> hands on
->> trying to implement the V4L interface for the tegra-vde driver, but
->> I've taken a
->> look at Cedrus driver and for now I've one question:
->>
->> Would it be possible (or maybe already is) to have a single IOCTL that
->> takes input/output buffers with codec parameters, processes the
->> request(s) and returns to userspace when everything is done? Having 5
->> context switches for a single frame decode (like Cedrus VAAPI driver
->> does) looks like a bit of overhead.
->
-> The V4L2 interface exposes ioctls for differents actions and I don't
-> think there's a combined ioctl for this. The request API was introduced
-> precisely because we need to have consistency between the various ioctls
-> needed for each frame. Maybe one single (atomic) ioctl would have worked
-> too, but that's apparently not how the V4L2 API was designed.
->
-> I don't think there is any particular overhead caused by having n ioctls
-> instead of a single one. At least that would be very surprising IMHO.
+Hi,
 
-Well, there is small syscall overhead, which normally shouldn't be
-very painful, although with all the speculative execution hardening,
-can't be sure of anything anymore. :)
+So v8 is finally out addressing the comments from the previous version[1].
+For more info see v5 cover letter[2]. The most important points I address
+here is the handling of fences that signal with error to follow Hans
+suggestion. I also added V4L2_CAP_FENCES to all vb2 drivers and marked all
+codec and cobalt as unordered. More specific changelog are noted on the
+patches itself.
 
-Hans and Alex can correct me if I'm wrong, but I believe there is a
-more atomic-like API being planned, which would only need one IOCTL to
-do everything. However, that would be a more serious change to the
-V4L2 interfaces, so should be decoupled from Request API itself.
+The first 3 patches are just clean ups in preparation to add the new cap flag
+and can go upstream earlier. Then there are patches to add unordered info,
+the actual fences implementation and later the V4L2_CAP_FENCES flag.
+The last patch contains the Documentation.
 
-Best regards,
-Tomasz
+You can find the code at:
+
+https://gitlab.collabora.com/padovan/linux/tree/v4l2-fences
+
+The test tools I've been using are:
+https://gitlab.collabora.com/padovan/drm-v4l2-test
+https://gitlab.collabora.com/padovan/v4l2-fences-test
+
+Please review,
+
+Gustavo
+
+[1] https://lkml.org/lkml/2018/1/10/644
+[2] https://lkml.org/lkml/2017/11/15/550
+
+Gustavo Padovan (13):
+  [media] xilinx: regroup caps on querycap
+  [media] hackrf: group device capabilities
+  [media] omap3isp: group device capabilities
+  [media] vb2: add is_unordered callback for drivers
+  [media] v4l: add 'unordered' flag to format description ioctl
+  [media] cobalt: add .is_unordered() for cobalt
+  [media] vb2: mark codec drivers as unordered
+  [media] vb2: add explicit fence user API
+  [media] vb2: add in-fence support to QBUF
+  [media] vb2: add out-fence support to QBUF
+  [media] v4l: introduce the fences capability
+  [media] v4l: Add V4L2_CAP_FENCES to drivers
+  [media] v4l: Document explicit synchronization behavior
+
+ Documentation/media/uapi/v4l/buffer.rst            |  45 +++-
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst   |   7 +
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |  55 +++-
+ Documentation/media/uapi/v4l/vidioc-querybuf.rst   |  12 +-
+ Documentation/media/uapi/v4l/vidioc-querycap.rst   |   3 +
+ drivers/media/common/videobuf2/videobuf2-core.c    | 289 ++++++++++++++++++---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    |  58 ++++-
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |   4 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |   2 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |   3 +-
+ drivers/media/pci/cx88/cx88-video.c                |   3 +-
+ drivers/media/pci/dt3155/dt3155.c                  |   2 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   2 +
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |   3 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |   3 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |   2 +-
+ drivers/media/pci/tw68/tw68-video.c                |   3 +-
+ drivers/media/pci/tw686x/tw686x-video.c            |   2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   2 +-
+ drivers/media/platform/blackfin/bfin_capture.c     |   3 +-
+ drivers/media/platform/coda/coda-common.c          |   4 +-
+ drivers/media/platform/davinci/vpbe_display.c      |   3 +-
+ drivers/media/platform/davinci/vpfe_capture.c      |   3 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   3 +-
+ drivers/media/platform/davinci/vpif_display.c      |   3 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |   4 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   3 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |   3 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |   2 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |   4 +-
+ drivers/media/platform/m2m-deinterlace.c           |   4 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |   2 +-
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    |   1 +
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       |   1 +
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |   1 +
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |   1 +
+ drivers/media/platform/mx2_emmaprp.c               |   4 +-
+ drivers/media/platform/omap3isp/ispvideo.c         |   9 +-
+ drivers/media/platform/pxa_camera.c                |   3 +-
+ drivers/media/platform/qcom/venus/vdec.c           |   1 +
+ drivers/media/platform/qcom/venus/venc.c           |   1 +
+ drivers/media/platform/rcar_fdp1.c                 |   1 +
+ drivers/media/platform/rcar_jpu.c                  |   4 +-
+ drivers/media/platform/rockchip/rga/rga-buf.c      |   1 +
+ drivers/media/platform/s3c-camif/camif-capture.c   |   3 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |   4 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |   4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   4 +-
+ drivers/media/platform/sh_veu.c                    |   4 +-
+ drivers/media/platform/sh_vou.c                    |   2 +-
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |   4 +-
+ drivers/media/platform/ti-vpe/cal.c                |   2 +-
+ drivers/media/platform/ti-vpe/vpe.c                |   4 +-
+ drivers/media/platform/vim2m.c                     |   4 +-
+ drivers/media/platform/vivid/vivid-core.c          |   2 +-
+ drivers/media/platform/vsp1/vsp1_histo.c           |   2 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |   2 +-
+ drivers/media/platform/xilinx/xilinx-dma.c         |   7 +-
+ drivers/media/usb/airspy/airspy.c                  |   2 +-
+ drivers/media/usb/au0828/au0828-video.c            |   3 +-
+ drivers/media/usb/em28xx/em28xx-video.c            |   1 +
+ drivers/media/usb/go7007/go7007-v4l2.c             |   2 +-
+ drivers/media/usb/hackrf/hackrf.c                  |  12 +-
+ drivers/media/usb/msi2500/msi2500.c                |   2 +-
+ drivers/media/usb/pwc/pwc-v4l.c                    |   2 +-
+ drivers/media/usb/s2255/s2255drv.c                 |   2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            |   3 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |   3 +-
+ drivers/media/usb/uvc/uvc_driver.c                 |   1 +
+ drivers/media/v4l2-core/Kconfig                    |  33 +++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   4 +-
+ include/media/videobuf2-core.h                     |  45 +++-
+ include/media/videobuf2-v4l2.h                     |  10 +
+ include/uapi/linux/videodev2.h                     |   9 +-
+ 75 files changed, 650 insertions(+), 105 deletions(-)
+
+-- 
+2.14.3
