@@ -1,130 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:39301 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752918AbeCOTNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 15:13:38 -0400
-From: Peter Seiderer <ps.report@gmx.net>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34481 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932571AbeCIRt7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:49:59 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Peter Seiderer <ps.report@gmx.net>
-Subject: [PATCH v4 2/2] media: staging/imx: fill vb2_v4l2_buffer sequence entry
-Date: Thu, 15 Mar 2018 20:13:23 +0100
-Message-Id: <20180315191323.6028-2-ps.report@gmx.net>
-In-Reply-To: <20180315191323.6028-1-ps.report@gmx.net>
-References: <20180315191323.6028-1-ps.report@gmx.net>
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v8 06/13] [media] cobalt: add .is_unordered() for cobalt
+Date: Fri,  9 Mar 2018 14:49:13 -0300
+Message-Id: <20180309174920.22373-7-gustavo@padovan.org>
+In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
+References: <20180309174920.22373-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- enables gstreamer v4l2src lost frame detection, e.g:
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-  0:00:08.685185668  348  0x54f520 WARN  v4l2src gstv4l2src.c:970:gst_v4l2src_create:<v4l2src0> lost frames detected: count = 141 - ts: 0:00:08.330177332
+The cobalt driver may reorder the capture buffers so we need to report
+it as such.
 
-- fixes v4l2-compliance test failure:
+v2: - use vb2_ops_set_unordered() helper
 
-  Streaming ioctls:
-          test read/write: OK (Not Supported)
-              Video Capture:
-                  Buffer: 0 Sequence: 0 Field: None Timestamp: 92.991450s
-                  Buffer: 1 Sequence: 0 Field: None Timestamp: 93.008135s
-                  fail: v4l2-test-buffers.cpp(294): (int)g_sequence() < seq.last_seq + 1
-                  fail: v4l2-test-buffers.cpp(707): buf.check(q, last_seq)
-
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
-Changes in v2:
-  - fill vb2_v4l2_buffer sequence entry in imx-ic-prpencvf too
-    (suggested by Steve Longerbeam)
+ drivers/media/pci/cobalt/cobalt-v4l2.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Changes in v3:
-  - add changelog (suggested by Greg Kroah-Hartman, Fabio Estevam
-    and Dan Carpenter) and patch history
-  - use u32 (instead of __u32) (suggested by Dan Carpenter)
-  - let sequence counter start with zero, keeping v4l2-compliance
-    testing happy (needs additional setting of field to a valid
-    value, patch will follow soon)
-
-Changes in v4:
-  - add v4l2-compliance test failure to changelog
-  - reorder frame_sequence increment and assignement to
-    avoid -1 as start value (suggeted by Steve Longerbeam)
----
- drivers/staging/media/imx/imx-ic-prpencvf.c | 4 ++++
- drivers/staging/media/imx/imx-media-csi.c   | 4 ++++
- 2 files changed, 8 insertions(+)
-
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index ffeb017c73b2..28f41caba05d 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -103,6 +103,7 @@ struct prp_priv {
- 	int nfb4eof_irq;
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index e2a4c705d353..6b6611a0e190 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -430,6 +430,7 @@ static const struct vb2_ops cobalt_qops = {
+ 	.stop_streaming = cobalt_stop_streaming,
+ 	.wait_prepare = vb2_ops_wait_prepare,
+ 	.wait_finish = vb2_ops_wait_finish,
++	.is_unordered = vb2_ops_set_unordered,
+ };
  
- 	int stream_count;
-+	u32 frame_sequence; /* frame sequence counter */
- 	bool last_eof;  /* waiting for last EOF at stream off */
- 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
- 	struct completion last_eof_comp;
-@@ -211,12 +212,14 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
- 	done = priv->active_vb2_buf[priv->ipu_buf_num];
- 	if (done) {
- 		done->vbuf.field = vdev->fmt.fmt.pix.field;
-+		done->vbuf.sequence = priv->frame_sequence;
- 		vb = &done->vbuf.vb2_buf;
- 		vb->timestamp = ktime_get_ns();
- 		vb2_buffer_done(vb, priv->nfb4eof ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 	}
- 
-+	priv->frame_sequence++;
- 	priv->nfb4eof = false;
- 
- 	/* get next queued buffer */
-@@ -638,6 +641,7 @@ static int prp_start(struct prp_priv *priv)
- 
- 	/* init EOF completion waitq */
- 	init_completion(&priv->last_eof_comp);
-+	priv->frame_sequence = 0;
- 	priv->last_eof = false;
- 	priv->nfb4eof = false;
- 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 5f69117b5811..3f2ce05848f3 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -111,6 +111,7 @@ struct csi_priv {
- 	struct v4l2_ctrl_handler ctrl_hdlr;
- 
- 	int stream_count; /* streaming counter */
-+	u32 frame_sequence; /* frame sequence counter */
- 	bool last_eof;   /* waiting for last EOF at stream off */
- 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
- 	struct completion last_eof_comp;
-@@ -237,12 +238,14 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
- 	done = priv->active_vb2_buf[priv->ipu_buf_num];
- 	if (done) {
- 		done->vbuf.field = vdev->fmt.fmt.pix.field;
-+		done->vbuf.sequence = priv->frame_sequence;
- 		vb = &done->vbuf.vb2_buf;
- 		vb->timestamp = ktime_get_ns();
- 		vb2_buffer_done(vb, priv->nfb4eof ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 	}
- 
-+	priv->frame_sequence++;
- 	priv->nfb4eof = false;
- 
- 	/* get next queued buffer */
-@@ -544,6 +547,7 @@ static int csi_idmac_start(struct csi_priv *priv)
- 
- 	/* init EOF completion waitq */
- 	init_completion(&priv->last_eof_comp);
-+	priv->frame_sequence = 0;
- 	priv->last_eof = false;
- 	priv->nfb4eof = false;
- 
+ /* V4L2 ioctls */
 -- 
-2.16.2
+2.14.3
