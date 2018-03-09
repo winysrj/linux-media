@@ -1,221 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:40452 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752440AbeCYK6D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Mar 2018 06:58:03 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z8so16088444wrh.7
-        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2018 03:58:02 -0700 (PDT)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        sumit.semwal@linaro.org
-Subject: [PATCH 1/5] dma-buf: add optional invalidate_mappings callback v3
-Date: Sun, 25 Mar 2018 12:57:55 +0200
-Message-Id: <20180325105759.2151-1-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39420 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932831AbeCIWEX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 17:04:23 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 10/11] media: vsp1: Support Interlaced display pipelines
+Date: Fri,  9 Mar 2018 22:04:08 +0000
+Message-Id: <4d4ec5c814b5517f4cfe231ec73aff5060889164.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each importer can now provide an invalidate_mappings callback.
+Calculate the top and bottom fields for the interlaced frames and
+utilise the extended display list command feature to implement the
+auto-field operations. This allows the DU to update the VSP2 registers
+dynamically based upon the currently processing field.
 
-This allows the exporter to provide the mappings without the need to pin
-the backing store.
-
-v2: don't try to invalidate mappings when the callback is NULL,
-    lock the reservation obj while using the attachments,
-    add helper to set the callback
-v3: move flag for invalidation support into the DMA-buf,
-    use new attach_info structure to set the callback
-
-Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/dma-buf/dma-buf.c | 43 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h   | 28 ++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
+ drivers/media/platform/vsp1/vsp1_dl.c   | 10 +++-
+ drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_drm.c  | 12 ++++-
+ drivers/media/platform/vsp1/vsp1_pipe.c |  3 +-
+ drivers/media/platform/vsp1/vsp1_regs.h |  1 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 72 ++++++++++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  1 +-
+ include/media/vsp1.h                    |  1 +-
+ 8 files changed, 96 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index d2e8ca0d9427..ffaa2f9a9c2c 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -566,6 +566,7 @@ struct dma_buf_attachment *dma_buf_attach(const struct dma_buf_attach_info *info
- 	attach->dev = info->dev;
- 	attach->dmabuf = dmabuf;
- 	attach->priv = info->priv;
-+	attach->invalidate = info->invalidate;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 6d17b8bfa21c..4a079060864b 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -886,8 +886,9 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+  * with the frame end interrupt. The function always returns true in header mode
+  * as display list processing is then not continuous and races never occur.
+  */
+-bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
++bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm, bool interlaced)
+ {
++	struct vsp1_device *vsp1 = dlm->vsp1;
+ 	bool completed = false;
  
- 	mutex_lock(&dmabuf->lock);
+ 	spin_lock(&dlm->lock);
+@@ -912,6 +913,13 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	if (vsp1_dl_list_hw_update_pending(dlm))
+ 		goto done;
  
-@@ -574,7 +575,9 @@ struct dma_buf_attachment *dma_buf_attach(const struct dma_buf_attach_info *info
- 		if (ret)
- 			goto err_attach;
- 	}
-+	reservation_object_lock(dmabuf->resv, NULL);
- 	list_add(&attach->node, &dmabuf->attachments);
-+	reservation_object_unlock(dmabuf->resv);
- 
- 	mutex_unlock(&dmabuf->lock);
- 	return attach;
-@@ -600,7 +603,9 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
- 		return;
- 
- 	mutex_lock(&dmabuf->lock);
-+	reservation_object_lock(dmabuf->resv, NULL);
- 	list_del(&attach->node);
-+	reservation_object_unlock(dmabuf->resv);
- 	if (dmabuf->ops->detach)
- 		dmabuf->ops->detach(dmabuf, attach);
- 
-@@ -634,10 +639,23 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- 	if (WARN_ON(!attach || !attach->dmabuf))
- 		return ERR_PTR(-EINVAL);
- 
-+	/*
-+	 * Mapping a DMA-buf can trigger its invalidation, prevent sending this
-+	 * event to the caller by temporary removing this attachment from the
-+	 * list.
-+	 */
-+	if (attach->invalidate) {
-+		reservation_object_assert_held(attach->dmabuf->resv);
-+		list_del(&attach->node);
++	if (interlaced) {
++		u32 status = vsp1_read(vsp1, VI6_STATUS);
++
++		if (!(status & VI6_STATUS_FLD_STD(dlm->index)))
++			goto done;
 +	}
 +
- 	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
- 	if (!sg_table)
- 		sg_table = ERR_PTR(-ENOMEM);
+ 	/*
+ 	 * The device starts processing the queued display list right after the
+ 	 * frame end interrupt. The display list thus becomes active.
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 3009912ddefb..24a9fb53223a 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -57,7 +57,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 					unsigned int prealloc);
+ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+-bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
++bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm, bool interlaced);
+ struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl);
  
-+	if (attach->invalidate)
-+		list_add(&attach->node, &attach->dmabuf->attachments);
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 0459b970e9da..d7028de053ae 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -329,6 +329,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+ 	const struct vsp1_format_info *fmtinfo;
++	struct vsp1_rwpf *output = drm_pipe->pipe.output;
+ 	struct vsp1_rwpf *rpf;
+ 
+ 	if (rpf_index >= vsp1->info->rpf_count)
+@@ -368,6 +369,17 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 		return -EINVAL;
+ 	}
+ 
++	if (!(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) && cfg->interlaced) {
++		/*
++		 * Interlaced support requires extended display lists to
++		 * provide the auto-fld feature with the DU.
++		 */
++		dev_dbg(vsp1->dev, "Interlaced unsupported on this output\n");
++		return -EINVAL;
++	}
 +
- 	return sg_table;
- }
- EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
-@@ -658,6 +676,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- {
- 	might_sleep();
- 
-+	if (attach->invalidate)
-+		reservation_object_assert_held(attach->dmabuf->resv);
++	rpf->interlaced = output->interlaced = cfg->interlaced;
 +
- 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
- 		return;
+ 	rpf->fmtinfo = fmtinfo;
+ 	rpf->format.num_planes = fmtinfo->planes;
+ 	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index fa445b1a2e38..df674b3bb9a0 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -341,7 +341,8 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 	 * up being postponed by one frame. @completed represents whether the
+ 	 * active frame was finished or postponed.
+ 	 */
+-	completed = vsp1_dlm_irq_frame_end(pipe->output->dlm);
++	completed = vsp1_dlm_irq_frame_end(pipe->output->dlm,
++					   pipe->output->interlaced);
  
-@@ -666,6 +687,26 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- }
- EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
+ 	if (pipe->hgo)
+ 		vsp1_hgo_frame_end(pipe->hgo);
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 43ad68ff3167..e2dffbe82809 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -31,6 +31,7 @@
+ #define VI6_SRESET_SRTS(n)		(1 << (n))
  
-+/**
-+ * dma_buf_invalidate_mappings - invalidate all mappings of this dma_buf
-+ *
-+ * @dmabuf:	[in]	buffer which mappings should be invalidated
-+ *
-+ * Informs all attachmenst that they need to destroy and recreated all their
-+ * mappings.
-+ */
-+void dma_buf_invalidate_mappings(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach;
+ #define VI6_STATUS			0x0038
++#define VI6_STATUS_FLD_STD(n)		(1 << ((n) + 28))
+ #define VI6_STATUS_SYS_ACT(n)		(1 << ((n) + 8))
+ 
+ #define VI6_WPF_IRQ_ENB(n)		(0x0048 + (n) * 12)
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 67f2fb3e0611..51c02a1d40e5 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -24,6 +24,20 @@
+ #define RPF_MAX_WIDTH				8190
+ #define RPF_MAX_HEIGHT				8190
+ 
++/* Pre extended display list command data structure */
++struct vsp1_extcmd_auto_fld_body {
++	u32 top_y0;
++	u32 bottom_y0;
++	u32 top_c0;
++	u32 bottom_c0;
++	u32 top_c1;
++	u32 bottom_c1;
++	u32 reserved0;
++	u32 reserved1;
++} __packed;
 +
-+	reservation_object_assert_held(dmabuf->resv);
++#define VSP1_DL_EXT_AUTOFLD_INT		BIT(1)
 +
-+	list_for_each_entry(attach, &dmabuf->attachments, node)
-+		if (attach->invalidate)
-+			attach->invalidate(attach);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_invalidate_mappings);
-+
- /**
-  * DOC: cpu access
-  *
-@@ -1123,10 +1164,12 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
- 		seq_puts(s, "\tAttached Devices:\n");
- 		attach_count = 0;
+ /* -----------------------------------------------------------------------------
+  * Device Access
+  */
+@@ -68,6 +82,14 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 		pstride |= format->plane_fmt[1].bytesperline
+ 			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
  
-+		reservation_object_lock(buf_obj->resv, NULL);
- 		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
- 			seq_printf(s, "\t%s\n", dev_name(attach_obj->dev));
- 			attach_count++;
- 		}
-+		reservation_object_unlock(buf_obj->resv);
- 
- 		seq_printf(s, "Total %d devices attached\n\n",
- 				attach_count);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 2c27568d44af..15dd8598bff1 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -270,6 +270,8 @@ struct dma_buf_ops {
-  * @poll: for userspace poll support
-  * @cb_excl: for userspace poll support
-  * @cb_shared: for userspace poll support
-+ * @invalidation_supported: True when the exporter supports unpinned operation
-+ *                          using the reservation lock.
-  *
-  * This represents a shared buffer, created by calling dma_buf_export(). The
-  * userspace representation is a normal file descriptor, which can be created by
-@@ -293,6 +295,7 @@ struct dma_buf {
- 	struct list_head list_node;
- 	void *priv;
- 	struct reservation_object *resv;
-+	bool invalidation_supported;
- 
- 	/* poll support */
- 	wait_queue_head_t poll;
-@@ -326,6 +329,28 @@ struct dma_buf_attachment {
- 	struct device *dev;
- 	struct list_head node;
- 	void *priv;
-+
-+	/**
-+	 * @invalidate:
-+	 *
-+	 * Optional callback provided by the importer of the dma-buf.
-+	 *
-+	 * If provided the exporter can avoid pinning the backing store while
-+	 * mappings exists.
-+	 *
-+	 * The function is called with the lock of the reservation object
-+	 * associated with the dma_buf held and the mapping function must be
-+	 * called with this lock held as well. This makes sure that no mapping
-+	 * is created concurrently with an ongoing invalidation.
-+	 *
-+	 * After the callback all existing mappings are still valid until all
-+	 * fences in the dma_bufs reservation object are signaled, but should be
-+	 * destroyed by the importer as soon as possible.
-+	 *
-+	 * New mappings can be created immediately, but can't be used before the
-+	 * exclusive fence in the dma_bufs reservation object is signaled.
++	/*
++	 * pstride has both STRIDE_Y and STRIDE_C, but multiplying the whole
++	 * of pstride by 2 is conveniently OK here as we are multiplying both
++	 * values.
 +	 */
-+	void (*invalidate)(struct dma_buf_attachment *attach);
++	if (rpf->interlaced)
++		pstride *= 2;
++
+ 	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_PSTRIDE, pstride);
+ 
+ 	/* Format */
+@@ -104,6 +126,9 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 		top = compose->top;
+ 	}
+ 
++	if (rpf->interlaced)
++		top /= 2;
++
+ 	vsp1_rpf_write(rpf, dlb, VI6_RPF_LOC,
+ 		       (left << VI6_RPF_LOC_HCOORD_SHIFT) |
+ 		       (top << VI6_RPF_LOC_VCOORD_SHIFT));
+@@ -173,6 +198,31 @@ static void rpf_configure_stream(struct vsp1_entity *entity,
+ 
+ }
+ 
++static void vsp1_rpf_configure_autofld(struct vsp1_rwpf *rpf,
++				       struct vsp1_dl_ext_cmd *cmd)
++{
++	const struct v4l2_pix_format_mplane *format = &rpf->format;
++	struct vsp1_extcmd_auto_fld_body *auto_fld = cmd->data;
++	u32 offset_y, offset_c;
++
++	/* Re-index our auto_fld to match the current RPF */
++	auto_fld = &auto_fld[rpf->entity.index];
++
++	auto_fld->top_y0 = rpf->mem.addr[0];
++	auto_fld->top_c0 = rpf->mem.addr[1];
++	auto_fld->top_c1 = rpf->mem.addr[2];
++
++	offset_y = format->plane_fmt[0].bytesperline;
++	offset_c = format->plane_fmt[1].bytesperline;
++
++	auto_fld->bottom_y0 = rpf->mem.addr[0] + offset_y;
++	auto_fld->bottom_c0 = rpf->mem.addr[1] + offset_c;
++	auto_fld->bottom_c1 = rpf->mem.addr[2] + offset_c;
++
++	cmd->flags |= VSP1_DL_EXT_AUTOFLD_INT;
++	cmd->flags |= BIT(16 + rpf->entity.index);
++}
++
+ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 				struct vsp1_pipeline *pipe,
+ 				struct vsp1_dl_list *dl,
+@@ -182,6 +232,7 @@ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+ 	struct vsp1_rwpf_memory mem = rpf->mem;
+ 	struct vsp1_device *vsp1 = rpf->entity.vsp1;
++	struct vsp1_dl_ext_cmd *cmd;
+ 	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
+ 	const struct v4l2_pix_format_mplane *format = &rpf->format;
+ 	struct v4l2_rect crop;
+@@ -220,6 +271,11 @@ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 		crop.left += pipe->partition->rpf.left;
+ 	}
+ 
++	if (rpf->interlaced) {
++		crop.height = round_down(crop.height / 2, fmtinfo->vsub);
++		crop.top = round_down(crop.top / 2, fmtinfo->vsub);
++	}
++
+ 	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_BSIZE,
+ 		       (crop.width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
+ 		       (crop.height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
+@@ -248,11 +304,21 @@ static void rpf_configure_frame(struct vsp1_entity *entity,
+ 	    fmtinfo->swap_uv)
+ 		swap(mem.addr[1], mem.addr[2]);
+ 
+-	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
+-	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
+-	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
++	/*
++	 * Interlaced pipelines will use the extended pre-cmd to process
++	 * SRCM_ADDR_{Y,C0,C1}
++	 */
++	if (rpf->interlaced) {
++		cmd = vsp1_dlm_get_autofld_cmd(dl);
++		vsp1_rpf_configure_autofld(rpf, cmd);
++	} else {
++		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
++		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
++		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
++	}
+ }
+ 
++
+ static void rpf_partition(struct vsp1_entity *entity,
+ 			  struct vsp1_pipeline *pipe,
+ 			  struct vsp1_partition *partition,
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 58215a7ab631..27ada15e8f00 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -47,6 +47,7 @@ struct vsp1_rwpf {
+ 
+ 	struct v4l2_pix_format_mplane format;
+ 	const struct vsp1_format_info *fmtinfo;
++	bool interlaced;
+ 	unsigned int bru_input;
+ 
+ 	unsigned int alpha;
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index 68a8abe4fac5..1f7e1dfe0c12 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -49,6 +49,7 @@ struct vsp1_du_atomic_config {
+ 	struct v4l2_rect dst;
+ 	unsigned int alpha;
+ 	unsigned int zpos;
++	bool interlaced;
  };
  
- /**
-@@ -367,6 +392,7 @@ struct dma_buf_export_info {
-  * @dmabuf:	the exported dma_buf
-  * @dev:	the device which wants to import the attachment
-  * @priv:	private data of importer to this attachment
-+ * @invalidate:	callback to use for invalidating mappings
-  *
-  * This structure holds the information required to attach to a buffer. Used
-  * with dma_buf_attach() only.
-@@ -375,6 +401,7 @@ struct dma_buf_attach_info {
- 	struct dma_buf *dmabuf;
- 	struct device *dev;
- 	void *priv;
-+	void (*invalidate)(struct dma_buf_attachment *attach);
- };
- 
- /**
-@@ -406,6 +433,7 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
- 					enum dma_data_direction);
- void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
- 				enum dma_data_direction);
-+void dma_buf_invalidate_mappings(struct dma_buf *dma_buf);
- int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
- 			     enum dma_data_direction dir);
- int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
+ void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
 -- 
-2.14.1
+git-series 0.9.1
