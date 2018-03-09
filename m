@@ -1,91 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:47959 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751173AbeCIPlV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:41:21 -0500
-Subject: Re: [PATCH v12 23/33] rcar-vin: force default colorspace for media
- centric mode
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-24-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <421d4a38-32d2-25f1-918c-fd9adbf6d633@xs4all.nl>
-Date: Fri, 9 Mar 2018 16:41:19 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180307220511.9826-24-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:38822 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750913AbeCIIay (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 03:30:54 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Oleh Kravchenko <oleg@kaa.org.ua>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Peter Rosin <peda@axentia.se>,
+        Romain Reignier <r.reignier@robopec.com>
+Subject: [PATCH 1/2] media: cx231xx: get rid of videobuf-dvb dependency
+Date: Fri,  9 Mar 2018 05:30:47 -0300
+Message-Id: <dd7ed7485c5c2bdff0aa157579ed578e19e8f178.1520584203.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/18 23:05, Niklas Söderlund wrote:
-> The V4L2 specification clearly documents the colorspace fields as being
-> set by drivers for capture devices. Using the values supplied by
-> userspace thus wouldn't comply with the API. Until the API is updated to
-> allow for userspace to set these Hans wants the fields to be set by the
-> driver to fixed values.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+This driver doesn't use videobuf-dvb. So, stop adding an
+unused struct and unused header on it.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/cx231xx/Kconfig       | 1 -
+ drivers/media/usb/cx231xx/cx231xx-dvb.c | 6 +++++-
+ drivers/media/usb/cx231xx/cx231xx.h     | 3 ---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++++++++++++++--
->  1 file changed, 19 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 2280535ca981993f..ea0759a645e49490 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -664,12 +664,29 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->   * V4L2 Media Controller
->   */
->  
-> +static int rvin_mc_try_format(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-> +{
-> +	/*
-> +	 * The V4L2 specification clearly documents the colorspace fields
-> +	 * as being set by drivers for capture devices. Using the values
-> +	 * supplied by userspace thus wouldn't comply with the API. Until
-> +	 * the API is updated force fixed vaules.
-> +	 */
-> +	pix->colorspace = RVIN_DEFAULT_COLORSPACE;
-> +	pix->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(pix->colorspace);
-> +	pix->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(pix->colorspace);
-> +	pix->quantization = V4L2_MAP_QUANTIZATION_DEFAULT(true, pix->colorspace,
-> +							  pix->ycbcr_enc);
-> +
-> +	return rvin_format_align(vin, pix);
-> +}
-> +
->  static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
->  				   struct v4l2_format *f)
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
->  
-> -	return rvin_format_align(vin, &f->fmt.pix);
-> +	return rvin_mc_try_format(vin, &f->fmt.pix);
->  }
->  
->  static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
-> @@ -681,7 +698,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
->  	if (vb2_is_busy(&vin->queue))
->  		return -EBUSY;
->  
-> -	ret = rvin_format_align(vin, &f->fmt.pix);
-> +	ret = rvin_mc_try_format(vin, &f->fmt.pix);
->  	if (ret)
->  		return ret;
->  
-> 
+diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+index 6276d9b2198b..7ba05a10b36d 100644
+--- a/drivers/media/usb/cx231xx/Kconfig
++++ b/drivers/media/usb/cx231xx/Kconfig
+@@ -42,7 +42,6 @@ config VIDEO_CX231XX_ALSA
+ config VIDEO_CX231XX_DVB
+ 	tristate "DVB/ATSC Support for Cx231xx based TV cards"
+ 	depends on VIDEO_CX231XX && DVB_CORE
+-	select VIDEOBUF_DVB
+ 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_MB86A20S if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index fb5654062b1a..a5d371f64e8b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -23,8 +23,12 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ 
++#include <media/dvbdev.h>
++#include <media/dmxdev.h>
++#include <media/dvb_demux.h>
++#include <media/dvb_net.h>
++#include <media/dvb_frontend.h>
+ #include <media/v4l2-common.h>
+-#include <media/videobuf-vmalloc.h>
+ #include <media/tuner.h>
+ 
+ #include "xc5000.h"
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 65b039cf80be..dc391551de18 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -38,7 +38,6 @@
+ #include <media/v4l2-fh.h>
+ #include <media/rc-core.h>
+ #include <media/i2c/ir-kbd-i2c.h>
+-#include <media/videobuf-dvb.h>
+ 
+ #include "cx231xx-reg.h"
+ #include "cx231xx-pcb-cfg.h"
+@@ -543,8 +542,6 @@ struct cx231xx_tsport {
+ 	int                        nr;
+ 	int                        sram_chno;
+ 
+-	struct videobuf_dvb_frontends frontends;
+-
+ 	/* dma queues */
+ 
+ 	u32                        ts_packet_size;
+-- 
+2.14.3
