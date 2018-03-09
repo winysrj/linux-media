@@ -1,130 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:53294 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751225AbeCGKOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 05:14:00 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Subject: [PATCH] media: cxd2880: Fix location of DVB headers
-Date: Wed,  7 Mar 2018 05:13:55 -0500
-Message-Id: <7cbc3013f60dbc22955645443855c8f092d3c534.1520417633.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39624 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751325AbeCIPk2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:40:28 -0500
+Subject: Re: [PATCH v12 20/33] rcar-vin: add function to manipulate Gen3 chsel
+ value
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-21-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <208f776c-0316-16f0-5d3d-74674a839327@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:40:25 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180307220511.9826-21-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a trivial conflict, where the location of DVB headers
-got moved.
+On 07/03/18 23:04, Niklas Söderlund wrote:
+> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+> feature of this register is that it's only present in the VIN0 and VIN4
+> instances. The register in VIN0 controls the routing for VIN0-3 and the
+> register in VIN4 controls routing for VIN4-7.
+> 
+> To be able to control routing from a media device this function is need
+> to control runtime PM for the subgroup master (VIN0 and VIN4). The
+> subgroup master must be switched on before the register is manipulated,
+> once the operation is complete it's safe to switch the master off and
+> the new routing will still be in effect.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c           | 2 +-
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c      | 2 +-
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c     | 2 +-
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c | 2 +-
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c  | 2 +-
- drivers/media/dvb-frontends/cxd2880/cxd2880_top.c              | 4 ++--
- drivers/media/spi/cxd2880-spi.c                                | 6 +++---
- 7 files changed, 10 insertions(+), 10 deletions(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
-index b9ef134aed79..25851bbb846e 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
-@@ -7,7 +7,7 @@
-  * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
-  */
- 
--#include "dvb_frontend.h"
-+#include <media/dvb_frontend.h>
- #include "cxd2880_common.h"
- #include "cxd2880_tnrdmd.h"
- #include "cxd2880_tnrdmd_mon.h"
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
-index e1ad5187ad8f..fe3c6f8b1b3e 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt.c
-@@ -7,7 +7,7 @@
-  * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
-  */
- 
--#include "dvb_frontend.h"
-+#include <media/dvb_frontend.h>
- 
- #include "cxd2880_tnrdmd_dvbt.h"
- #include "cxd2880_tnrdmd_dvbt_mon.h"
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
-index 81903102b12f..dd32004a12d8 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
-@@ -7,7 +7,7 @@
-  * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
-  */
- 
--#include "dvb_frontend.h"
-+#include <media/dvb_frontend.h>
- 
- #include "cxd2880_tnrdmd_dvbt2.h"
- #include "cxd2880_tnrdmd_dvbt2_mon.h"
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
-index 5296cbbca8bd..604580bf7cf7 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2_mon.c
-@@ -11,7 +11,7 @@
- #include "cxd2880_tnrdmd_dvbt2.h"
- #include "cxd2880_tnrdmd_dvbt2_mon.h"
- 
--#include "dvb_math.h"
-+#include <media/dvb_math.h>
- 
- static const int ref_dbm_1000[4][8] = {
- 	{-96000, -95000, -94000, -93000, -92000, -92000, -98000, -97000},
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
-index 78214a99a5df..fedc3b4a2fa0 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
-@@ -11,7 +11,7 @@
- #include "cxd2880_tnrdmd_dvbt.h"
- #include "cxd2880_tnrdmd_dvbt_mon.h"
- 
--#include "dvb_math.h"
-+#include <media/dvb_math.h>
- 
- static const int ref_dbm_1000[3][5] = {
- 	{-93000, -91000, -90000, -89000, -88000},
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-index f109e9d98cc0..05360a11bea9 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-@@ -10,8 +10,8 @@
- 
- #include <linux/spi/spi.h>
- 
--#include "dvb_frontend.h"
--#include "dvb_math.h"
-+#include <media/dvb_frontend.h>
-+#include <media/dvb_math.h>
- 
- #include "cxd2880.h"
- #include "cxd2880_tnrdmd_mon.h"
-diff --git a/drivers/media/spi/cxd2880-spi.c b/drivers/media/spi/cxd2880-spi.c
-index 857e4c0d7a92..4df3bd312f48 100644
---- a/drivers/media/spi/cxd2880-spi.c
-+++ b/drivers/media/spi/cxd2880-spi.c
-@@ -12,9 +12,9 @@
- #include <linux/spi/spi.h>
- #include <linux/ktime.h>
- 
--#include "dvb_demux.h"
--#include "dmxdev.h"
--#include "dvb_frontend.h"
-+#include <media/dvb_demux.h>
-+#include <media/dmxdev.h>
-+#include <media/dvb_frontend.h>
- #include "cxd2880.h"
- 
- #define CXD2880_MAX_FILTER_SIZE 32
--- 
-2.14.3
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 38 ++++++++++++++++++++++++++++++
+>  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
+>  2 files changed, 40 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 483d31f07b934929..75382ee0f3fc1dde 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -16,6 +16,7 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <media/videobuf2-dma-contig.h>
+>  
+> @@ -1224,3 +1225,40 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
+>  
+>  	return ret;
+>  }
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Gen3 CHSEL manipulation
+> + */
+> +
+> +/*
+> + * There is no need to have locking around changing the routing
+> + * as it's only possible to do so when no VIN in the group is
+> + * streaming so nothing can race with the VNMC register.
+> + */
+> +int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
+> +{
+> +	u32 ifmd, vnmc;
+> +	int ret;
+> +
+> +	ret = pm_runtime_get_sync(vin->dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* Make register writes take effect immediately. */
+> +	vnmc = rvin_read(vin, VNMC_REG);
+> +	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
+> +
+> +	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
+> +		VNCSI_IFMD_CSI_CHSEL(chsel);
+> +
+> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
+> +
+> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
+> +
+> +	/* Restore VNMC. */
+> +	rvin_write(vin, vnmc, VNMC_REG);
+> +
+> +	pm_runtime_put(vin->dev);
+> +
+> +	return ret;
+> +}
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 5e3ea8d401d934d1..8e20455927fe5224 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -169,4 +169,6 @@ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>  /* Cropping, composing and scaling */
+>  void rvin_crop_scale_comp(struct rvin_dev *vin);
+>  
+> +int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
+> +
+>  #endif
+> 
