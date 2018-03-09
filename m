@@ -1,99 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0074.outbound.protection.outlook.com ([104.47.36.74]:11456
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752732AbeC1To1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 15:44:27 -0400
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
-To: Logan Gunthorpe <logang@deltatee.com>,
-        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        linux-media@vger.kernel.org
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
- <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
- <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
- <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
-Date: Wed, 28 Mar 2018 21:44:11 +0200
-MIME-Version: 1.0
-In-Reply-To: <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:44798 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932337AbeCIRtw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:49:52 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v8 04/13] [media] vb2: add is_unordered callback for drivers
+Date: Fri,  9 Mar 2018 14:49:11 -0300
+Message-Id: <20180309174920.22373-5-gustavo@padovan.org>
+In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
+References: <20180309174920.22373-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.03.2018 um 20:57 schrieb Logan Gunthorpe:
->
-> On 28/03/18 12:28 PM, Christian König wrote:
->> I'm just using amdgpu as blueprint because I'm the co-maintainer of it
->> and know it mostly inside out.
-> Ah, I see.
->
->> The resource addresses are translated using dma_map_resource(). As far
->> as I know that should be sufficient to offload all the architecture
->> specific stuff to the DMA subsystem.
-> It's not. The dma_map infrastructure currently has no concept of
-> peer-to-peer mappings and is designed for system memory only. No
-> architecture I'm aware of will translate PCI CPU addresses into PCI Bus
-> addresses which is necessary for any transfer that doesn't go through
-> the root complex (though on arches like x86 the CPU and Bus address
-> happen to be the same). There's a lot of people that would like to see
-> this change but it's likely going to be a long road before it does.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Well, isn't that exactly what dma_map_resource() is good for? As far as 
-I can see it makes sure IOMMU is aware of the access route and 
-translates a CPU address into a PCI Bus address.
+Explicit synchronization benefits a lot from ordered queues, they fit
+better in a pipeline with DRM for example so create a opt-in way for
+drivers notify videobuf2 that the queue is unordered.
 
-> Furthermore, one of the reasons our patch-set avoids going through the
-> root complex at all is that IOMMU drivers will need to be made aware
-> that it is operating on P2P memory and do arch-specific things
-> accordingly. There will also need to be flags that indicate whether a
-> given IOMMU driver supports this. None of this work is done or easy.
+Drivers don't need implement it if the queue is ordered.
 
-I'm using that with the AMD IOMMU driver and at least there it works 
-perfectly fine.
+v2: 	- improve comments for is_unordered flag (Hans)
 
->> Yeah, but not for ours. See if you want to do real peer 2 peer you need
->> to keep both the operation as well as the direction into account.
-> Not sure what you are saying here... I'm pretty sure we are doing "real"
-> peer 2 peer...
->
->> For example when you can do writes between A and B that doesn't mean
->> that writes between B and A work. And reads are generally less likely to
->> work than writes. etc...
-> If both devices are behind a switch then the PCI spec guarantees that A
-> can both read and write B and vice versa.
+v3: 	- make it bool (Hans)
+	- create vb2_ops_set_unordered() helper
 
-Sorry to say that, but I know a whole bunch of PCI devices which 
-horrible ignores that.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  6 ++++++
+ include/media/videobuf2-core.h                  |  6 ++++++
+ include/media/videobuf2-v4l2.h                  | 10 ++++++++++
+ 3 files changed, 22 insertions(+)
 
-For example all AMD APUs fall under that category...
-
-> Only once you involve root
-> complexes do you have this problem. Ie. you have unknown support which
-> may be no support, or partial support (stores but not loads); or
-> sometimes bad performance; or a combination of both... and you need some
-> way to figure out all this mess and that is hard. Whoever tries to
-> implement a white list will have to sort all this out.
-
-Yes, exactly and unfortunately it looks like I'm the poor guy who needs 
-to do this :)
-
-Regards,
-Christian.
-
->
-> Logan
-> _______________________________________________
-> amd-gfx mailing list
-> amd-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/amd-gfx
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 886a2d8d5c6c..68291ba8632d 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -961,6 +961,12 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
+ }
+ EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
+ 
++bool vb2_ops_set_unordered(struct vb2_queue *q)
++{
++	return true;
++}
++EXPORT_SYMBOL_GPL(vb2_ops_set_unordered);
++
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5b6c541e4e1b..46a9e674f7e1 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -370,6 +370,10 @@ struct vb2_buffer {
+  *			callback by calling vb2_buffer_done() with either
+  *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
+  *			vb2_wait_for_all_buffers() function
++ * @is_unordered:	tell if the queue is unordered, i.e. buffers can be
++ *			dequeued in a different order from how they were queued.
++ *			The default is assumed to be ordered and this function
++ *			only needs to be implemented for unordered queues.
+  * @buf_queue:		passes buffer vb to the driver; driver may start
+  *			hardware operation on this buffer; driver should give
+  *			the buffer back by calling vb2_buffer_done() function;
+@@ -393,6 +397,7 @@ struct vb2_ops {
+ 
+ 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
+ 	void (*stop_streaming)(struct vb2_queue *q);
++	bool (*is_unordered)(struct vb2_queue *q);
+ 
+ 	void (*buf_queue)(struct vb2_buffer *vb);
+ };
+@@ -566,6 +571,7 @@ struct vb2_queue {
+ 	u32				cnt_wait_finish;
+ 	u32				cnt_start_streaming;
+ 	u32				cnt_stop_streaming;
++	u32				cnt_is_unordered;
+ #endif
+ };
+ 
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 3d5e2d739f05..9de3c887c875 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -291,4 +291,14 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
+  */
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
+ 
++/**
++ * vb2_ops_set_unordered - helper function to mark queue as unordered
++ *
++ * @vq: pointer to &struct vb2_queue
++ *
++ * This helper just return true to notify that the driver can't deal with
++ * ordered queues.
++ */
++bool vb2_ops_set_unordered(struct vb2_queue *q);
++
+ #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
+-- 
+2.14.3
