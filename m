@@ -1,84 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38822 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750913AbeCIIay (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 03:30:54 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Oleh Kravchenko <oleg@kaa.org.ua>,
-        Matthias Schwarzott <zzam@gentoo.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Peter Rosin <peda@axentia.se>,
-        Romain Reignier <r.reignier@robopec.com>
-Subject: [PATCH 1/2] media: cx231xx: get rid of videobuf-dvb dependency
-Date: Fri,  9 Mar 2018 05:30:47 -0300
-Message-Id: <dd7ed7485c5c2bdff0aa157579ed578e19e8f178.1520584203.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40467 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932068AbeCIPsP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 10:48:15 -0500
+Subject: Re: [PATCH v12 32/33] rcar-vin: enable support for r8a7796
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-33-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1e34a894-bdd6-b095-5133-8976a624bf9e@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:48:13 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180307220511.9826-33-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver doesn't use videobuf-dvb. So, stop adding an
-unused struct and unused header on it.
+On 07/03/18 23:05, Niklas Söderlund wrote:
+> Add the SoC specific information for Renesas r8a7796.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/cx231xx/Kconfig       | 1 -
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 6 +++++-
- drivers/media/usb/cx231xx/cx231xx.h     | 3 ---
- 3 files changed, 5 insertions(+), 5 deletions(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-index 6276d9b2198b..7ba05a10b36d 100644
---- a/drivers/media/usb/cx231xx/Kconfig
-+++ b/drivers/media/usb/cx231xx/Kconfig
-@@ -42,7 +42,6 @@ config VIDEO_CX231XX_ALSA
- config VIDEO_CX231XX_DVB
- 	tristate "DVB/ATSC Support for Cx231xx based TV cards"
- 	depends on VIDEO_CX231XX && DVB_CORE
--	select VIDEOBUF_DVB
- 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_MB86A20S if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index fb5654062b1a..a5d371f64e8b 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -23,8 +23,12 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- 
-+#include <media/dvbdev.h>
-+#include <media/dmxdev.h>
-+#include <media/dvb_demux.h>
-+#include <media/dvb_net.h>
-+#include <media/dvb_frontend.h>
- #include <media/v4l2-common.h>
--#include <media/videobuf-vmalloc.h>
- #include <media/tuner.h>
- 
- #include "xc5000.h"
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 65b039cf80be..dc391551de18 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -38,7 +38,6 @@
- #include <media/v4l2-fh.h>
- #include <media/rc-core.h>
- #include <media/i2c/ir-kbd-i2c.h>
--#include <media/videobuf-dvb.h>
- 
- #include "cx231xx-reg.h"
- #include "cx231xx-pcb-cfg.h"
-@@ -543,8 +542,6 @@ struct cx231xx_tsport {
- 	int                        nr;
- 	int                        sram_chno;
- 
--	struct videobuf_dvb_frontends frontends;
--
- 	/* dma queues */
- 
- 	u32                        ts_packet_size;
--- 
-2.14.3
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 44 +++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index bc116cc0181171e0..0040f92bfdff947a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -931,6 +931,46 @@ static const struct rvin_info rcar_info_r8a7795es1 = {
+>  	.routes = rcar_info_r8a7795es1_routes,
+>  };
+>  
+> +static const struct rvin_group_route rcar_info_r8a7796_routes[] = {
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
+> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
+> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
+> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
+> +	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
+> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
+> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) },
+> +	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
+> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 5, .mask = BIT(2) },
+> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 5, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
+> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 6, .mask = BIT(1) },
+> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
+> +	{ .csi = RVIN_CSI40, .channel = 2, .vin = 6, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
+> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 7, .mask = BIT(0) },
+> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) },
+> +	{ .csi = RVIN_CSI40, .channel = 3, .vin = 7, .mask = BIT(3) },
+> +	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
+> +	{ /* Sentinel */ }
+> +};
+> +
+> +static const struct rvin_info rcar_info_r8a7796 = {
+> +	.model = RCAR_GEN3,
+> +	.use_mc = true,
+> +	.max_width = 4096,
+> +	.max_height = 4096,
+> +	.routes = rcar_info_r8a7796_routes,
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+>  	{
+>  		.compatible = "renesas,vin-r8a7778",
+> @@ -964,6 +1004,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+>  		.compatible = "renesas,vin-r8a7795",
+>  		.data = &rcar_info_r8a7795,
+>  	},
+> +	{
+> +		.compatible = "renesas,vin-r8a7796",
+> +		.data = &rcar_info_r8a7796,
+> +	},
+>  	{ /* Sentinel */ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> 
