@@ -1,103 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21565 "EHLO mga09.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:49929 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751452AbeCNWRH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 18:17:07 -0400
-Date: Thu, 15 Mar 2018 00:17:03 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] [media] ov5645: Move an error code assignment in
- ov5645_probe()
-Message-ID: <20180314221702.5rtdttyqjcpysjkd@kekkonen.localdomain>
-References: <4efad917-ca08-f257-e9a1-b5bcb7df2df2@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4efad917-ca08-f257-e9a1-b5bcb7df2df2@users.sourceforge.net>
+        id S1751019AbeCIKPx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Mar 2018 05:15:53 -0500
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+Subject: [PATCH 3/9] v4l: Add sunxi Video Engine pixel format
+Date: Fri,  9 Mar 2018 11:14:39 +0100
+Message-Id: <20180309101445.16190-1-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 14, 2018 at 10:15:43PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 14 Mar 2018 22:02:52 +0100
-> 
-> Move an assignment for a specific error code so that it is stored only once
-> in this function implementation.
-> 
-> This issue was detected by using the Coccinelle software.
+From: Florent Revest <florent.revest@free-electrons.com>
 
-How?
+Add support for the allwinner's proprietary pixel format described in
+details here: http://linux-sunxi.org/File:Ve_tile_format_v1.pdf
 
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/i2c/ov5645.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
-> index d28845f7356f..374576380fd4 100644
-> --- a/drivers/media/i2c/ov5645.c
-> +++ b/drivers/media/i2c/ov5645.c
-> @@ -1284,13 +1284,11 @@ static int ov5645_probe(struct i2c_client *client,
->  	ret = ov5645_read_reg(ov5645, OV5645_CHIP_ID_HIGH, &chip_id_high);
->  	if (ret < 0 || chip_id_high != OV5645_CHIP_ID_HIGH_BYTE) {
->  		dev_err(dev, "could not read ID high\n");
-> -		ret = -ENODEV;
->  		goto power_down;
->  	}
->  	ret = ov5645_read_reg(ov5645, OV5645_CHIP_ID_LOW, &chip_id_low);
->  	if (ret < 0 || chip_id_low != OV5645_CHIP_ID_LOW_BYTE) {
->  		dev_err(dev, "could not read ID low\n");
-> -		ret = -ENODEV;
->  		goto power_down;
->  	}
->  
-> @@ -1300,7 +1298,6 @@ static int ov5645_probe(struct i2c_client *client,
->  			      &ov5645->aec_pk_manual);
->  	if (ret < 0) {
->  		dev_err(dev, "could not read AEC/AGC mode\n");
-> -		ret = -ENODEV;
->  		goto power_down;
->  	}
->  
-> @@ -1308,7 +1305,6 @@ static int ov5645_probe(struct i2c_client *client,
->  			      &ov5645->timing_tc_reg20);
->  	if (ret < 0) {
->  		dev_err(dev, "could not read vflip value\n");
-> -		ret = -ENODEV;
->  		goto power_down;
->  	}
->  
-> @@ -1316,7 +1312,6 @@ static int ov5645_probe(struct i2c_client *client,
->  			      &ov5645->timing_tc_reg21);
->  	if (ret < 0) {
->  		dev_err(dev, "could not read hflip value\n");
-> -		ret = -ENODEV;
->  		goto power_down;
->  	}
->  
-> @@ -1334,6 +1329,7 @@ static int ov5645_probe(struct i2c_client *client,
->  
->  power_down:
->  	ov5645_s_power(&ov5645->sd, false);
-> +	ret = -ENODEV;
+This format is similar to V4L2_PIX_FMT_NV12M but the planes are divided
+in tiles of 32x32px.
 
-I don't think this is where people would expect you to set the error code
-in general. It should rather take place before goto, not after it. That'd
-mean another variable, and I'm not convinced the result would improve the
-driver.
+Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
+---
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
->  free_entity:
->  	media_entity_cleanup(&ov5645->sd.entity);
->  free_ctrl:
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 35706204e81d..cee906681db7 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,6 +669,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
++#define V4L2_PIX_FMT_SUNXI    v4l2_fourcc('S', 'X', 'I', 'Y') /* Sunxi VE's 32x32 tiled NV12 */
+ 
+ /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
+ #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.16.2
