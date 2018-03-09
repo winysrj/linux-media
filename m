@@ -1,67 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37303 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753837AbeCFQwA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 11:52:00 -0500
-Date: Tue, 6 Mar 2018 13:51:52 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        g.liakhovetski@gmx.de, bhumirks@gmail.com, joe@perches.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/11] media: tw9910: Re-order variables declaration
-Message-ID: <20180306135152.3fed9766@vento.lan>
-In-Reply-To: <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-        <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:32967 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932342AbeCIRtl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:49:41 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v8 01/13] [media] xilinx: regroup caps on querycap
+Date: Fri,  9 Mar 2018 14:49:08 -0300
+Message-Id: <20180309174920.22373-2-gustavo@padovan.org>
+In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
+References: <20180309174920.22373-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  2 Mar 2018 15:46:33 +0100
-Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-> Re-order variables declaration to respect 'reverse christmas tree'
-> ordering whenever possible.
+To better organize the code we concentrate the setting of
+V4L2_CAP_STREAMING in one place.
 
-To be frank, I don't like the idea of reverse christmas tree ordering
-myself... Perhaps due to the time I used to program on assembler, 
-where alignment issues could happen, I find a way more logic to order
-based on complexity and size of the argument...
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/platform/xilinx/xilinx-dma.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/tw9910.c | 23 +++++++++++------------
->  1 file changed, 11 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-> index cc648de..3a5e307 100644
-> --- a/drivers/media/i2c/tw9910.c
-> +++ b/drivers/media/i2c/tw9910.c
-> @@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
->  
->  static int tw9910_power(struct i2c_client *client, int enable)
->  {
-> -	int ret;
->  	u8 acntl1;
->  	u8 acntl2;
-> +	int ret;
-
-... So, in this case, the order is already the right one, according
-with my own criteria :-)
-
-There was some discussion about the order sometime ago at LKML:
-
-	https://patchwork.kernel.org/patch/9411999/
-
-As I'm not seeing the proposed patch there at checkpatch, nor any
-comments about xmas tree at coding style, I think that there were no
-agreements about the ordering.
-
-So, while there's no consensus about that, let's keep it as-is.
-
-Regards,
-Mauro
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 522cdfdd3345..565e466ba4fa 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -494,13 +494,14 @@ xvip_dma_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
+ 
+-	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
++	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS
+ 			  | dma->xdev->v4l2_caps;
+ 
+ 	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+-		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++		cap->device_caps |= V4L2_CAP_VIDEO_OUTPUT;
+ 
+ 	strlcpy(cap->driver, "xilinx-vipp", sizeof(cap->driver));
+ 	strlcpy(cap->card, dma->video.name, sizeof(cap->card));
+-- 
+2.14.3
