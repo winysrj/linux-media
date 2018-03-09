@@ -1,128 +1,330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:59262 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750748AbeCPIcx (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:45561 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751096AbeCIPmh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 04:32:53 -0400
-Date: Fri, 16 Mar 2018 11:32:34 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Ji-Hun Kim <ji_hun.kim@samsung.com>
-Cc: mchehab@kernel.org, devel@driverdev.osuosl.org,
-        gregkh@linuxfoundation.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org, arvind.yadav.cs@gmail.com,
+        Fri, 9 Mar 2018 10:42:37 -0500
+Subject: Re: [PATCH v12 25/33] rcar-vin: add group allocator functions
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging: media: davinci_vpfe: add error handling on
- kmalloc failure
-Message-ID: <20180316083234.yq7a4rx6w35amflu@mwanda>
-References: <CGME20180316045841epcas2p34dc11231c65e2032e88ac7138db2daee@epcas2p3.samsung.com>
- <1521176303-17546-1-git-send-email-ji_hun.kim@samsung.com>
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180307220511.9826-26-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0b9192ad-34cd-6607-90ec-6a00452d6e44@xs4all.nl>
+Date: Fri, 9 Mar 2018 16:42:35 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1521176303-17546-1-git-send-email-ji_hun.kim@samsung.com>
+In-Reply-To: <20180307220511.9826-26-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 16, 2018 at 01:58:23PM +0900, Ji-Hun Kim wrote:
-> There is no failure checking on the param value which will be allocated
-> memory by kmalloc. Add a null pointer checking statement. Then goto error:
-> and return -ENOMEM error code when kmalloc is failed.
+On 07/03/18 23:05, Niklas Söderlund wrote:
+> In media controller mode all VIN instances needs to be part of the same
+> media graph. There is also a need for each VIN instance to know about
+> and in some cases be able to communicate with other VIN instances.
 > 
-> Signed-off-by: Ji-Hun Kim <ji_hun.kim@samsung.com>
+> Add an allocator framework where the first VIN instance to be probed
+> creates a shared data structure and registers a media device.
+> Consecutive VINs insert themself into the global group.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
 > ---
->  drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
+>  drivers/media/platform/rcar-vin/rcar-core.c | 174 +++++++++++++++++++++++++++-
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  31 +++++
+>  2 files changed, 203 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> index 6a3434c..55a922c 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> @@ -1280,6 +1280,10 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 592dbd8642361f1e..fd4478095ac4e5b1 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -20,12 +20,174 @@
+>  #include <linux/of_graph.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/slab.h>
 >  
->  			params = kmalloc(sizeof(struct ipipe_module_params),
->  					 GFP_KERNEL);
-> +			if (!params) {
-> +				rval = -ENOMEM;
-> +				goto error;
-                                ^^^^^^^^^^
-
-What does "goto error" do, do you think?  It's not clear from the name.
-When you have an unclear goto like this it often means the error
-handling is going to be buggy.
-
-In this case, it does nothing so a direct "return -ENOMEM;" would be
-more clear.  But the rest of the error handling is buggy.
-
-  1263  static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
-  1264  {
-  1265          struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
-  1266          unsigned int i;
-  1267          int rval = 0;
-  1268  
-  1269          for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
-  1270                  unsigned int bit = 1 << i;
-  1271  
-  1272                  if (cfg->flag & bit) {
-  1273                          const struct ipipe_module_if *module_if =
-  1274                                                  &ipipe_modules[i];
-  1275                          struct ipipe_module_params *params;
-  1276                          void __user *from = *(void * __user *)
-  1277                                  ((void *)cfg + module_if->config_offset);
-  1278                          size_t size;
-  1279                          void *to;
-  1280  
-  1281                          params = kmalloc(sizeof(struct ipipe_module_params),
-  1282                                           GFP_KERNEL);
-
-Do a direct return:
-
-				if (!params)
-					return -ENOMEM;
-
-  1283                          to = (void *)params + module_if->param_offset;
-  1284                          size = module_if->param_size;
-  1285  
-  1286                          if (to && from && size) {
-  1287                                  if (copy_from_user(to, from, size)) {
-  1288                                          rval = -EFAULT;
-  1289                                          break;
-
-The most recent thing we allocated is "params" so lets do a
-"goto free_params;".  We'll have to declare "params" at the start of the
-function instead inside this block.
-
-  1290                                  }
-  1291                                  rval = module_if->set(ipipe, to);
-  1292                                  if (rval)
-  1293                                          goto error;
-
-goto free_params again since params is still the most recent thing we
-allocated.
-
-  1294                          } else if (to && !from && size) {
-  1295                                  rval = module_if->set(ipipe, NULL);
-  1296                                  if (rval)
-  1297                                          goto error;
-
-And here again goto free_params.
-
-  1298                          }
-  1299                          kfree(params);
-  1300                  }
-  1301          }
-  1302  error:
-  1303          return rval;
-
-
-Change this to:
-
-	return 0;
-
-free_params:
-	kfree(params);
-	return rval;
-
-  1304  }
-
-regards,
-dan carpenter
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-fwnode.h>
+>  
+>  #include "rcar-vin.h"
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Gen3 CSI2 Group Allocator
+> + */
+> +
+> +/* FIXME:  This should if we find a system that supports more
+> + * than one group for the whole system be replaced with a linked
+> + * list of groups. And eventually all of this should be replaced
+> + * with a global device allocator API.
+> + *
+> + * But for now this works as on all supported systems there will
+> + * be only one group for all instances.
+> + */
+> +
+> +static DEFINE_MUTEX(rvin_group_lock);
+> +static struct rvin_group *rvin_group_data;
+> +
+> +static void rvin_group_cleanup(struct rvin_group *group)
+> +{
+> +	media_device_unregister(&group->mdev);
+> +	media_device_cleanup(&group->mdev);
+> +	mutex_destroy(&group->lock);
+> +}
+> +
+> +static int rvin_group_init(struct rvin_group *group, struct rvin_dev *vin)
+> +{
+> +	struct media_device *mdev = &group->mdev;
+> +	const struct of_device_id *match;
+> +	struct device_node *np;
+> +	int ret;
+> +
+> +	mutex_init(&group->lock);
+> +
+> +	/* Count number of VINs in the system */
+> +	group->count = 0;
+> +	for_each_matching_node(np, vin->dev->driver->of_match_table)
+> +		if (of_device_is_available(np))
+> +			group->count++;
+> +
+> +	vin_dbg(vin, "found %u enabled VIN's in DT", group->count);
+> +
+> +	mdev->dev = vin->dev;
+> +
+> +	match = of_match_node(vin->dev->driver->of_match_table,
+> +			      vin->dev->of_node);
+> +
+> +	strlcpy(mdev->driver_name, KBUILD_MODNAME, sizeof(mdev->driver_name));
+> +	strlcpy(mdev->model, match->compatible, sizeof(mdev->model));
+> +	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
+> +		 dev_name(mdev->dev));
+> +
+> +	media_device_init(mdev);
+> +
+> +	ret = media_device_register(&group->mdev);
+> +	if (ret)
+> +		rvin_group_cleanup(group);
+> +
+> +	return ret;
+> +}
+> +
+> +static void rvin_group_release(struct kref *kref)
+> +{
+> +	struct rvin_group *group =
+> +		container_of(kref, struct rvin_group, refcount);
+> +
+> +	mutex_lock(&rvin_group_lock);
+> +
+> +	rvin_group_data = NULL;
+> +
+> +	rvin_group_cleanup(group);
+> +
+> +	kfree(group);
+> +
+> +	mutex_unlock(&rvin_group_lock);
+> +}
+> +
+> +static int rvin_group_get(struct rvin_dev *vin)
+> +{
+> +	struct rvin_group *group;
+> +	u32 id;
+> +	int ret;
+> +
+> +	/* Make sure VIN id is present and sane */
+> +	ret = of_property_read_u32(vin->dev->of_node, "renesas,id", &id);
+> +	if (ret) {
+> +		vin_err(vin, "%pOF: No renesas,id property found\n",
+> +			vin->dev->of_node);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (id >= RCAR_VIN_NUM) {
+> +		vin_err(vin, "%pOF: Invalid renesas,id '%u'\n",
+> +			vin->dev->of_node, id);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Join or create a VIN group */
+> +	mutex_lock(&rvin_group_lock);
+> +	if (rvin_group_data) {
+> +		group = rvin_group_data;
+> +		kref_get(&group->refcount);
+> +	} else {
+> +		group = kzalloc(sizeof(*group), GFP_KERNEL);
+> +		if (!group) {
+> +			ret = -ENOMEM;
+> +			goto err_group;
+> +		}
+> +
+> +		ret = rvin_group_init(group, vin);
+> +		if (ret) {
+> +			kfree(group);
+> +			vin_err(vin, "Failed to initialize group\n");
+> +			goto err_group;
+> +		}
+> +
+> +		kref_init(&group->refcount);
+> +
+> +		rvin_group_data = group;
+> +	}
+> +	mutex_unlock(&rvin_group_lock);
+> +
+> +	/* Add VIN to group */
+> +	mutex_lock(&group->lock);
+> +
+> +	if (group->vin[id]) {
+> +		vin_err(vin, "Duplicate renesas,id property value %u\n", id);
+> +		mutex_unlock(&group->lock);
+> +		kref_put(&group->refcount, rvin_group_release);
+> +		return -EINVAL;
+> +	}
+> +
+> +	group->vin[id] = vin;
+> +
+> +	vin->id = id;
+> +	vin->group = group;
+> +	vin->v4l2_dev.mdev = &group->mdev;
+> +
+> +	mutex_unlock(&group->lock);
+> +
+> +	return 0;
+> +err_group:
+> +	mutex_unlock(&rvin_group_lock);
+> +	return ret;
+> +}
+> +
+> +static void rvin_group_put(struct rvin_dev *vin)
+> +{
+> +	mutex_lock(&vin->group->lock);
+> +
+> +	vin->group = NULL;
+> +	vin->v4l2_dev.mdev = NULL;
+> +
+> +	if (WARN_ON(vin->group->vin[vin->id] != vin))
+> +		goto out;
+> +
+> +	vin->group->vin[vin->id] = NULL;
+> +out:
+> +	mutex_unlock(&vin->group->lock);
+> +
+> +	kref_put(&vin->group->refcount, rvin_group_release);
+> +}
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Async notifier
+>   */
+> @@ -249,12 +411,18 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  
+>  static int rvin_mc_init(struct rvin_dev *vin)
+>  {
+> +	int ret;
+> +
+>  	/* All our sources are CSI-2 */
+>  	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+>  	vin->mbus_cfg.flags = 0;
+>  
+>  	vin->pad.flags = MEDIA_PAD_FL_SINK;
+> -	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> +	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return rvin_group_get(vin);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -374,7 +542,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
+>  	v4l2_async_notifier_unregister(&vin->notifier);
+>  	v4l2_async_notifier_cleanup(&vin->notifier);
+>  
+> -	if (!vin->info->use_mc)
+> +	if (vin->info->use_mc)
+> +		rvin_group_put(vin);
+> +	else
+>  		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+>  
+>  	rvin_dma_unregister(vin);
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 7c3b734c2cd09d9a..d64cbb5716ab6f6a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -17,6 +17,8 @@
+>  #ifndef __RCAR_VIN__
+>  #define __RCAR_VIN__
+>  
+> +#include <linux/kref.h>
+> +
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-dev.h>
+> @@ -29,6 +31,11 @@
+>  /* Address alignment mask for HW buffers */
+>  #define HW_BUFFER_MASK 0x7f
+>  
+> +/* Max number on VIN instances that can be in a system */
+> +#define RCAR_VIN_NUM 8
+> +
+> +struct rvin_group;
+> +
+>  enum model_id {
+>  	RCAR_H1,
+>  	RCAR_M1,
+> @@ -101,6 +108,8 @@ struct rvin_info {
+>   * @notifier:		V4L2 asynchronous subdevs notifier
+>   * @digital:		entity in the DT for local digital subdevice
+>   *
+> + * @group:		Gen3 CSI group
+> + * @id:			Gen3 group id for this VIN
+>   * @pad:		media pad for the video device entity
+>   *
+>   * @lock:		protects @queue
+> @@ -134,6 +143,8 @@ struct rvin_dev {
+>  	struct v4l2_async_notifier notifier;
+>  	struct rvin_graph_entity *digital;
+>  
+> +	struct rvin_group *group;
+> +	unsigned int id;
+>  	struct media_pad pad;
+>  
+>  	struct mutex lock;
+> @@ -164,6 +175,26 @@ struct rvin_dev {
+>  #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
+>  #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+>  
+> +/**
+> + * struct rvin_group - VIN CSI2 group information
+> + * @refcount:		number of VIN instances using the group
+> + *
+> + * @mdev:		media device which represents the group
+> + *
+> + * @lock:		protects the count and vin members
+> + * @count:		number of enabled VIN instances found in DT
+> + * @vin:		VIN instances which are part of the group
+> + */
+> +struct rvin_group {
+> +	struct kref refcount;
+> +
+> +	struct media_device mdev;
+> +
+> +	struct mutex lock;
+> +	unsigned int count;
+> +	struct rvin_dev *vin[RCAR_VIN_NUM];
+> +};
+> +
+>  int rvin_dma_register(struct rvin_dev *vin, int irq);
+>  void rvin_dma_unregister(struct rvin_dev *vin);
+>  
+> 
