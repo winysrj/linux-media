@@ -1,55 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45571 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964841AbeCAIff (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 03:35:35 -0500
-Message-ID: <1519893326.3034.1.camel@pengutronix.de>
-Subject: Re: [PATCH] staging/imx: Fix inconsistent IS_ERR and PTR_ERR
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Date: Thu, 01 Mar 2018 09:35:26 +0100
-In-Reply-To: <20180301040939.GA13274@embeddedgus>
-References: <20180301040939.GA13274@embeddedgus>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36891 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750884AbeCJR5W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Mar 2018 12:57:22 -0500
+Subject: Re: [PATCH 0/5] Renesas CEU: SH7724 ECOVEC + Aptina mt9t112
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+        mchehab@kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f783d586-3f6b-0dad-a130-c2c52ce42634@xs4all.nl>
+Date: Sat, 10 Mar 2018 18:57:17 +0100
+MIME-Version: 1.0
+In-Reply-To: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-02-28 at 22:09 -0600, Gustavo A. R. Silva wrote:
-> Fix inconsistent IS_ERR and PTR_ERR in imx_csi_probe.
-> The proper pointer to be passed as argument is pinctrl
-> instead of priv->vdev.
-> 
-> This issue was detected with the help of Coccinelle.
-> 
-> Fixes: 52e17089d185 ("media: imx: Don't initialize vars that won't be used")
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
->  drivers/staging/media/imx/imx-media-csi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 5a195f8..4f290a0 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1798,7 +1798,7 @@ static int imx_csi_probe(struct platform_device *pdev)
->  	priv->dev->of_node = pdata->of_node;
->  	pinctrl = devm_pinctrl_get_select_default(priv->dev);
->  	if (IS_ERR(pinctrl)) {
-> -		ret = PTR_ERR(priv->vdev);
-> +		ret = PTR_ERR(pinctrl);
->  		goto free;
->  	}
+Hi Jacopo,
 
-Thanks,
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+On 02/03/18 17:35, Jacopo Mondi wrote:
+> Hello,
+>    now that CEU has been picked up for inclusion in v4.17, we can start moving
+> users of old sh_mobile_ceu_camera driver to use the newly introduced one.
+> 
+> Migo-R has been first, now it's SH7724 ECOVEC board turn.
+> 
+> ECOVEC has a camera board with two MT9T112 image sensor and one TW9910 video
+> decoder input. This series moves the mt9t112 driver away from soc_camera
+> framework and remove dependencies on it in mach-ecovec board code.
+> 
+> As per Migo-R, memory for CEU is reserved using memblocks APIs and declared
+> as DMA-capable in board code, power up/down routines have been removed from
+> board code, and GPIOs lookup table registered for sensor drivers.
+> 
+> As in the previous series, still no code has been removed or changed in
+> drivers/media/i2c/soc_camera/ until we do not remove all dependencies on it
+> in all board files.
+> 
+> Hans, since you asked me to add frame rate interval support for ov772x I expect
+> to receive the same request for mt9t112. Unfortunately I do not have access to
+> register level documentation, nor can perform any testing as I don't have the
+> camera modules. For the same reason I cannot run any v4l2-compliance test on
+> that driver, but just make sure the ECOVEC boots cleanly with the new board
+> file. I'm in favour of moving the driver to staging if you think that's the case.
+> 
+> Series based on media-tree master, and as per Migo-R I would ask SH arch/
+> changes to go through media tree as SH maintainers are un-responsive.
 
-regards
-Philipp
+When compiling this series I get this error:
+
+drivers/media/i2c/soc_camera/mt9t112.c: In function ‘mt9t112_init_pll’:
+drivers/media/i2c/soc_camera/mt9t112.c:426:16: error: dereferencing pointer to incomplete type ‘struct mt9t112_camera_info’
+      priv->info->divider.m,
+                ^~
+
+Can you take a look?
+
+Regards,
+
+	Hans
+
+> 
+> Thanks
+>   j
+> 
+> Jacopo Mondi (5):
+>   media: i2c: Copy mt9t112 soc_camera sensor driver
+>   media: i2c: mt9t112: Remove soc_camera dependencies
+>   media: i2c: mt9t112: Fix code style issues
+>   arch: sh: ecovec: Use new renesas-ceu camera driver
+>   media: MAINTAINERS: Add entry for Aptina MT9T112
+> 
+>  MAINTAINERS                            |    7 +
+>  arch/sh/boards/mach-ecovec24/setup.c   |  338 +++++-----
+>  arch/sh/kernel/cpu/sh4a/clock-sh7724.c |    4 +-
+>  drivers/media/i2c/Kconfig              |   11 +
+>  drivers/media/i2c/Makefile             |    1 +
+>  drivers/media/i2c/mt9t112.c            | 1136 ++++++++++++++++++++++++++++++++
+>  include/media/i2c/mt9t112.h            |   17 +-
+>  7 files changed, 1333 insertions(+), 181 deletions(-)
+>  create mode 100644 drivers/media/i2c/mt9t112.c
+> 
+> --
+> 2.7.4
+> 
