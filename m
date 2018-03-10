@@ -1,109 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:40854 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751908AbeCZSIY (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:40718 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751039AbeCJT7I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 14:08:24 -0400
-Received: by mail-pg0-f67.google.com with SMTP id g8so7575062pgv.7
-        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2018 11:08:23 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v3 1/5] dvb-frontends/dvb-pll: add i2c driver support
-Date: Tue, 27 Mar 2018 03:06:48 +0900
-Message-Id: <20180326180652.5385-2-tskd08@gmail.com>
-In-Reply-To: <20180326180652.5385-1-tskd08@gmail.com>
-References: <20180326180652.5385-1-tskd08@gmail.com>
+        Sat, 10 Mar 2018 14:59:08 -0500
+Received: by mail-pg0-f68.google.com with SMTP id g8so4884840pgv.7
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:08 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 07/13] media: imx: csi: Register a subdev notifier
+Date: Sat, 10 Mar 2018 11:58:36 -0800
+Message-Id: <1520711922-17338-8-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Parse neighbor remote devices on the CSI port, add them to a subdev
+notifier, and register the subdev notifier for the CSI, by calling
+v4l2_async_register_fwnode_subdev().
 
-registers the module as an i2c driver,
-but keeps dvb_pll_attach() untouched for compatibility.
-
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/dvb-frontends/dvb-pll.c | 49 +++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/dvb-pll.h |  6 +++++
- 2 files changed, 55 insertions(+)
+ drivers/staging/media/imx/imx-media-csi.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
-index 5553b89b804..614a5ea3b00 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -827,6 +827,55 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
- }
- EXPORT_SYMBOL(dvb_pll_attach);
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 5a195f8..87cf277 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1736,6 +1736,13 @@ static const struct v4l2_subdev_internal_ops csi_internal_ops = {
+ 	.unregistered = csi_unregistered,
+ };
  
-+
-+static int
-+dvb_pll_probe(struct i2c_client *client, const struct i2c_device_id *id)
++static int imx_csi_parse_endpoint(struct device *dev,
++				  struct v4l2_fwnode_endpoint *vep,
++				  struct v4l2_async_subdev *asd)
 +{
-+	struct dvb_pll_config *cfg;
-+	struct dvb_frontend *fe;
-+	unsigned int desc_id;
-+
-+	cfg = client->dev.platform_data;
-+	fe = cfg->fe;
-+	i2c_set_clientdata(client, fe);
-+	desc_id = cfg->desc_id;
-+
-+	if (!dvb_pll_attach(fe, client->addr, client->adapter, desc_id))
-+		return -ENOMEM;
-+
-+	dev_info(&client->dev, "DVB Simple Tuner attached.\n");
-+	return 0;
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
 +}
 +
-+static int dvb_pll_remove(struct i2c_client *client)
-+{
-+	struct dvb_frontend *fe;
-+
-+	fe = i2c_get_clientdata(client);
-+	dvb_pll_release(fe);
-+	return 0;
-+}
-+
-+
-+static const struct i2c_device_id dvb_pll_id[] = {
-+	{"dvb_pll", 0},
-+	{}
-+};
-+
-+
-+MODULE_DEVICE_TABLE(i2c, dvb_pll_id);
-+
-+static struct i2c_driver dvb_pll_driver = {
-+	.driver = {
-+		.name = "dvb_pll",
-+	},
-+	.probe    = dvb_pll_probe,
-+	.remove   = dvb_pll_remove,
-+	.id_table = dvb_pll_id,
-+};
-+
-+module_i2c_driver(dvb_pll_driver);
-+
- MODULE_DESCRIPTION("dvb pll library");
- MODULE_AUTHOR("Gerd Knorr");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/dvb-pll.h b/drivers/media/dvb-frontends/dvb-pll.h
-index ca885e71d2f..15bda0d0c15 100644
---- a/drivers/media/dvb-frontends/dvb-pll.h
-+++ b/drivers/media/dvb-frontends/dvb-pll.h
-@@ -30,6 +30,12 @@
- #define DVB_PLL_TDEE4		       18
- #define DVB_PLL_THOMSON_DTT7520X       19
+ static int imx_csi_probe(struct platform_device *pdev)
+ {
+ 	struct ipu_client_platformdata *pdata;
+@@ -1802,7 +1809,9 @@ static int imx_csi_probe(struct platform_device *pdev)
+ 		goto free;
+ 	}
  
-+struct dvb_pll_config {
-+	struct dvb_frontend *fe;
-+
-+	unsigned int desc_id;
-+};
-+
- #if IS_REACHABLE(CONFIG_DVB_PLL)
- /**
-  * Attach a dvb-pll to the supplied frontend structure.
+-	ret = v4l2_async_register_subdev(&priv->sd);
++	ret = v4l2_async_register_fwnode_subdev(
++		&priv->sd, sizeof(struct v4l2_async_subdev),
++		NULL, 0, imx_csi_parse_endpoint);
+ 	if (ret)
+ 		goto free;
+ 
 -- 
-2.16.2
+2.7.4
