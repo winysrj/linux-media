@@ -1,89 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44310 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752169AbeC1Hph (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:43462 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932070AbeCJT7N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 03:45:37 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id B35E7634C53
-        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:45:35 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1f15m3-0001Ib-FP
-        for linux-media@vger.kernel.org; Wed, 28 Mar 2018 10:45:35 +0300
-Date: Wed, 28 Mar 2018 10:45:35 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.17] Finding nearest matching size, sensor driver +
- SPDX header changes
-Message-ID: <20180328074535.tdjnsftc3dseuqep@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Sat, 10 Mar 2018 14:59:13 -0500
+Received: by mail-pl0-f66.google.com with SMTP id f23-v6so7097898plr.10
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:13 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 10/13] media: staging/imx: Loop through all registered subdevs for media links
+Date: Sat, 10 Mar 2018 11:58:39 -0800
+Message-Id: <1520711922-17338-11-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The root imx-media notifier no longer sees all bound subdevices because
+some of them will be bound to subdev notifiers. So imx_media_create_links()
+now needs to loop through all subdevices registered with the v4l2-device,
+not just the ones in the root notifier's done list. This should be safe
+because imx_media_create_of_links() checks if a fwnode link already
+exists before creating.
 
-Here's a change that adds the array size back to v4l2_find_nearest_size()
-as well as a few sensor and lens driver patches including fixes, cleanups
-and SPDX header changes.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-dev.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-Please pull.
-
-
-The following changes since commit 6ccd228e0cfce2a4f44558422d25c60fcb1a6710:
-
-  media: fimc-capture: get rid of two warnings (2018-03-23 08:56:36 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.17-2
-
-for you to fetch changes up to a51fe17a6a44082edf014bb9079df8aaa4feeb94:
-
-  media: ov5640: add missing output pixel format setting (2018-03-26 16:08:43 +0300)
-
-----------------------------------------------------------------
-Akinobu Mita (2):
-      media: ov5645: add missing of_node_put() in error path
-      media: ov5640: add missing output pixel format setting
-
-Chiranjeevi Rapolu (2):
-      media: ov5670: Update to SPDX identifier
-      media: ov13858: Update to SPDX identifier
-
-Fabio Estevam (1):
-      media: ov2685: Remove owner assignment from i2c_driver
-
-Hugues Fruchet (1):
-      media: ov5640: fix get_/set_fmt colorspace related fields
-
-Luca Ceresoli (1):
-      media: imx274: fix typo in error message
-
-Rajmohan Mani (1):
-      media: dw9714: Update to SPDX license identifier
-
-Sakari Ailus (1):
-      v4l: Bring back array_size parameter to v4l2_find_nearest_size
-
-Todor Tomov (1):
-      media: ov5645: Use v4l2_find_nearest_size
-
- drivers/media/i2c/dw9714.c                   | 14 ++--------
- drivers/media/i2c/imx274.c                   |  2 +-
- drivers/media/i2c/ov13858.c                  | 19 ++++----------
- drivers/media/i2c/ov2685.c                   |  1 -
- drivers/media/i2c/ov5640.c                   | 38 +++++++++++++++++++++-------
- drivers/media/i2c/ov5645.c                   | 29 ++++++---------------
- drivers/media/i2c/ov5670.c                   | 19 ++++----------
- drivers/media/platform/vivid/vivid-vid-cap.c |  5 ++--
- include/media/v4l2-common.h                  |  5 ++--
- 9 files changed, 56 insertions(+), 76 deletions(-)
-
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 289d775..4d00ed3 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -175,7 +175,7 @@ static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
+ }
+ 
+ /*
+- * create the media links for all subdevs that registered async.
++ * Create the media links for all subdevs that registered.
+  * Called after all async subdevs have bound.
+  */
+ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+@@ -184,14 +184,7 @@ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+ 	struct v4l2_subdev *sd;
+ 	int ret;
+ 
+-	/*
+-	 * Only links are created between subdevices that are known
+-	 * to the async notifier. If there are other non-async subdevices,
+-	 * they were created internally by some subdevice (smiapp is one
+-	 * example). In those cases it is expected the subdevice is
+-	 * responsible for creating those internal links.
+-	 */
+-	list_for_each_entry(sd, &notifier->done, async_list) {
++	list_for_each_entry(sd, &imxmd->v4l2_dev.subdevs, list) {
+ 		switch (sd->grp_id) {
+ 		case IMX_MEDIA_GRP_ID_VDIC:
+ 		case IMX_MEDIA_GRP_ID_IC_PRP:
+@@ -211,7 +204,10 @@ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+ 				imx_media_create_csi_of_links(imxmd, sd);
+ 			break;
+ 		default:
+-			/* this is an external fwnode subdev */
++			/*
++			 * if this subdev has fwnode links, create media
++			 * links for them.
++			 */
+ 			imx_media_create_of_links(imxmd, sd);
+ 			break;
+ 		}
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
