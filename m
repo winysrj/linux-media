@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42314 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750746AbeCQEtg (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:37805 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932343AbeCJErU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Mar 2018 00:49:36 -0400
-Message-ID: <c3ce18205442f1df8a8397bcef589738@smtp-cloud9.xs4all.net>
-Date: Sat, 17 Mar 2018 05:49:34 +0100
+        Fri, 9 Mar 2018 23:47:20 -0500
+Message-ID: <08f0123239a39a959992e1c87458f3a7@smtp-cloud9.xs4all.net>
+Date: Sat, 10 Mar 2018 05:47:16 +0100
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: ERRORS
@@ -17,9 +17,9 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Sat Mar 17 05:00:10 CET 2018
+date:			Sat Mar 10 05:00:13 CET 2018
 media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	98ee868d3c522877a7a32b05a648a3bab7a8dc75
+media_build git hash:	992168cb60d578dfaf4859a70184fc71780e503d
 v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
 gcc version:		i686-linux-gcc (GCC) 7.3.0
 sparse version:		v0.5.0-3994-g45eb2282
@@ -40,32 +40,32 @@ linux-git-mips: OK
 linux-git-powerpc64: OK
 linux-git-sh: OK
 linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
 linux-3.2.98-i686: ERRORS
 linux-3.2.98-x86_64: ERRORS
 linux-3.3.8-i686: ERRORS
 linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.8-x86_64: ERRORS
 linux-3.9.2-i686: WARNINGS
 linux-3.9.2-x86_64: WARNINGS
 linux-3.10.1-i686: WARNINGS
@@ -96,28 +96,28 @@ linux-4.2.8-i686: WARNINGS
 linux-4.2.8-x86_64: WARNINGS
 linux-4.3.6-i686: WARNINGS
 linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
+linux-4.4.115-i686: WARNINGS
+linux-4.4.115-x86_64: WARNINGS
 linux-4.5.7-i686: WARNINGS
 linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
+linux-4.6.7-i686: WARNINGS
 linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
+linux-4.7.5-i686: WARNINGS
 linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
+linux-4.8-i686: WARNINGS
 linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
+linux-4.9.80-i686: WARNINGS
+linux-4.9.80-x86_64: WARNINGS
+linux-4.10.14-i686: WARNINGS
 linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
+linux-4.11-i686: WARNINGS
 linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
+linux-4.12.1-i686: WARNINGS
 linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
+linux-4.13-i686: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14.17-i686: WARNINGS
+linux-4.14.17-x86_64: WARNINGS
 linux-4.15.2-i686: WARNINGS
 linux-4.15.2-x86_64: WARNINGS
 linux-4.16-rc1-i686: WARNINGS
