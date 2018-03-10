@@ -1,77 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35498 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933976AbeCHPHe (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:45010 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751039AbeCJT6z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 10:07:34 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v2] media: ov5640: fix frame interval enumeration
-Date: Thu, 8 Mar 2018 16:07:14 +0100
-Message-ID: <1520521634-29089-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Sat, 10 Mar 2018 14:58:55 -0500
+Received: by mail-pg0-f67.google.com with SMTP id l4so4884104pgp.11
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:58:55 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 00/13] media: imx: Switch to subdev notifiers
+Date: Sat, 10 Mar 2018 11:58:29 -0800
+Message-Id: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver must reject frame interval enumeration of unsupported resolution.
-This was detected by v4l2-compliance format ioctl test:
-v4l2-compliance Format ioctls:
-    info: found 2 frameintervals for pixel format 4745504a and size 176x144
-  fail: v4l2-test-formats.cpp(123):
-                           found frame intervals for invalid size 177x144
-    test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+This patchset converts the imx-media driver and its dependent
+subdevs to use subdev notifiers.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
-version 2:
-  - revisit patch according to Mauro comments:
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg127380.html
+There are a couple shortcomings in v4l2-core that prevented
+subdev notifiers from working correctly in imx-media:
 
- drivers/media/i2c/ov5640.c | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+   endpoint that is not connected to a remote device as an error.
+   But in the case of the video-mux subdev, this is not an error,
+   it is OK if some of the mux inputs have no connection. Also,
+   Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+   states that the 'remote-endpoint' property is optional. So the first
+   patch is a small modification to ignore empty endpoints in
+   v4l2_async_notifier_fwnode_parse_endpoint() and allow
+   __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+   parse the remaining port endpoints of the device.
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 676f635..5c08124 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1397,8 +1397,12 @@ static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
- 			break;
- 	}
- 
--	if (nearest && i < 0)
-+	if (i < 0) {
-+		/* no match */
-+		if (!nearest)
-+			return NULL;
- 		mode = &ov5640_mode_data[fr][0];
-+	}
- 
- 	return mode;
- }
-@@ -2381,8 +2385,14 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 
- 	sensor->current_fr = frame_rate;
- 	sensor->frame_interval = fi->interval;
--	sensor->current_mode = ov5640_find_mode(sensor, frame_rate, mode->width,
--						mode->height, true);
-+	mode = ov5640_find_mode(sensor, frame_rate, mode->width,
-+				mode->height, true);
-+	if (!mode) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	sensor->current_mode = mode;
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
+2. In the imx-media graph, multiple subdevs will encounter the same
+   upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+   v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+   multiple times. This is treated as an error by
+   v4l2_async_notifier_register() later.
+
+   To get around this problem, add an v4l2_async_notifier_add_subdev()
+   which first verifies the provided asd does not already exist in the
+   given notifier asd list or in other registered notifiers. If the asd
+   exists, the function returns -EEXIST and it's up to the caller to
+   decide if that is an error (in imx-media case it is never an error).
+
+   Patches 2-4 deal with adding that support.
+
+3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+   convenience function for parsing a subdev's fwnode port endpoints
+   for connected remote subdevs, registering a subdev notifier, and
+   then registering the sub-device itself.
+
+The remaining patches update the subdev drivers to register a
+subdev notifier with endpoint parsing, and the changes to imx-media
+to support that.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+History:
+v2:
+- don't pass an empty endpoint to the parse_endpoint callback, 
+  v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+  and returns success.
+- Fix a couple compile warnings and errors seen in i386 and sh archs.
+
+Steve Longerbeam (13):
+  media: v4l2-fwnode: ignore endpoints that have no remote port parent
+  media: v4l2: async: Allow searching for asd of any type
+  media: v4l2: async: Add v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Add a convenience function for registering subdevs
+    with notifiers
+  media: platform: video-mux: Register a subdev notifier
+  media: imx: csi: Register a subdev notifier
+  media: imx: mipi csi-2: Register a subdev notifier
+  media: staging/imx: of: Remove recursive graph walk
+  media: staging/imx: Loop through all registered subdevs for media
+    links
+  media: staging/imx: Rename root notifier
+  media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+  media: staging/imx: TODO: Remove one assumption about OF graph parsing
+
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  10 +-
+ drivers/media/platform/video-mux.c                |  36 ++-
+ drivers/media/v4l2-core/v4l2-async.c              | 275 ++++++++++++++++------
+ drivers/media/v4l2-core/v4l2-fwnode.c             | 228 ++++++++++--------
+ drivers/staging/media/imx/TODO                    |  29 +--
+ drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+ drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+ drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+ drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+ drivers/staging/media/imx/imx-media.h             |   6 +-
+ drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+ include/media/v4l2-async.h                        |  24 +-
+ include/media/v4l2-fwnode.h                       |  65 ++++-
+ 13 files changed, 538 insertions(+), 422 deletions(-)
+
 -- 
-1.9.1
+2.7.4
