@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38590 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751182AbeCGL2E (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43168 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751193AbeCJRTt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 06:28:04 -0500
-Date: Wed, 7 Mar 2018 13:28:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Hugues Fruchet <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH] media: ov5640: fix get_/set_fmt colorspace related fields
-Message-ID: <20180307112800.o3yhldl2xx75punp@valkosipuli.retiisi.org.uk>
-References: <1520355879-20291-1-git-send-email-hugues.fruchet@st.com>
- <20180307081302.h47mjhlkeq72shw7@valkosipuli.retiisi.org.uk>
- <CAOMZO5BEi_dWmerMx5i3UoWU_3G7m3kgUWyGu4LfNMdvWNF+pw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5BEi_dWmerMx5i3UoWU_3G7m3kgUWyGu4LfNMdvWNF+pw@mail.gmail.com>
+        Sat, 10 Mar 2018 12:19:49 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: hverkuil@xs4all.nl
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH] media: i2c: mt9t112: Add TODO note for frame rate control
+Date: Sat, 10 Mar 2018 18:19:35 +0100
+Message-Id: <1520702375-29671-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+The driver lacks support for frame rate control, and v4l2-compliance
+complains about that. Add a TODO note to warn driver users that this is
+expected.
 
-On Wed, Mar 07, 2018 at 06:51:26AM -0300, Fabio Estevam wrote:
-> Hi Sakari,
-> 
-> On Wed, Mar 7, 2018 at 5:13 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> 
-> >> @@ -2497,16 +2504,22 @@ static int ov5640_probe(struct i2c_client *client,
-> >>       struct fwnode_handle *endpoint;
-> >>       struct ov5640_dev *sensor;
-> >>       int ret;
-> >> +     struct v4l2_mbus_framefmt *fmt;
-> >
-> > This one I'd arrange before ret. The local variable declarations should
-> > generally look like a Christmas tree but upside down.
-> 
-> It seems Mauro is not happy with reverse Christmas tree ordering:
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg127221.html
+While at there, update copyright note to the year we're actually in.
 
-There are other arguments supporting the change such as:
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/mt9t112.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-- alignment with the rest of the driver and
-- putting similar definitions together (return value vs. pointers somewhere
-  else).
+diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
+index 6eaf3c6..f237d85 100644
+--- a/drivers/media/i2c/mt9t112.c
++++ b/drivers/media/i2c/mt9t112.c
+@@ -2,7 +2,7 @@
+ /*
+  * mt9t112 Camera Driver
+  *
+- * Copyright (C) 2017 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ * Copyright (C) 2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
+  *
+  * Copyright (C) 2009 Renesas Solutions Corp.
+  * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+@@ -14,6 +14,10 @@
+  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+  * Copyright (C) 2008 Magnus Damm
+  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
++ *
++ * TODO: This driver lacks support for frame rate control due to missing
++ * 	 register level documentation and suitable hardware for testing.
++ * 	 v4l-utils compliance tools will report errors.
+  */
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+ #include <linux/clk.h>
+--
+2.7.4
