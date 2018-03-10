@@ -1,55 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:38747 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932448AbeCGTaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 14:30:24 -0500
-Subject: Re: [PATCH] Fix for hanging si2168 in PCTV 292e, making code match
-To: Ron Economos <w6rz@comcast.net>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com
-References: <0e541d39-1e6c-03fc-e6a5-592f50cdaedc@comcast.net>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <1d65ea12-0bbf-c43b-8e18-cf864a909c1b@iki.fi>
-Date: Wed, 7 Mar 2018 21:30:16 +0200
-MIME-Version: 1.0
-In-Reply-To: <0e541d39-1e6c-03fc-e6a5-592f50cdaedc@comcast.net>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:46983 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932070AbeCJT7T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Mar 2018 14:59:19 -0500
+Received: by mail-pf0-f196.google.com with SMTP id z10so2661865pfh.13
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:18 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 13/13] media: staging/imx: TODO: Remove one assumption about OF graph parsing
+Date: Sat, 10 Mar 2018 11:58:42 -0800
+Message-Id: <1520711922-17338-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2018 06:39 PM, Ron Economos wrote:
-> I'm almost 100% sure that the patch I submitted (and was committed in 
-> Linux 4.16-rc1) for the si2168 fixes Nigel's issue. I would suggest that 
-> Nigel's patch be retired.
-> 
-> https://github.com/torvalds/linux/blob/master/drivers/media/dvb-frontends/si2168.c
-> 
-> media: [RESEND] media: dvb-frontends: Add delay to Si2168 restart
-> 
-> On faster CPUs a delay is required after the resume command and the 
-> restart command. Without the delay, the restart command often returns 
-> -EREMOTEIO and the Si2168 does not restart. Note that this patch fixes 
-> the same issue as https://patchwork.linuxtv.org/patch/44304/, but I 
-> believe my udelay() fix addresses the actual problem.
-> 
-> Signed-off-by: Ron Economos <w6rz@comcast.net>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> Ron
+The move to subdev notifiers fixes one assumption of OF graph parsing.
+If a subdevice has non-video related ports, the subdev driver knows not
+to follow those ports when adding remote devices to its subdev notifier.
 
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/TODO | 29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
-Yes, you are likely correct!
-
-Patch is already applied, but however I think it should be something 
-like usleep_range(100, ~0) in order to allow scheduler optimize 
-resources as upper limit of delay is not critical at all. See 
-Documentation/timers/timers-howto.txt
-
-
-regards
-Antti
-
-
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index 9eb7326..aeeb154 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -17,29 +17,15 @@
+   decided whether this feature is useful enough to make it generally
+   available by exporting to v4l2-core.
+ 
+-- The OF graph is walked at probe time to form the list of fwnodes to
+-  be passed to v4l2_async_notifier_register(), starting from the IPU
+-  CSI ports. And after all async subdevices have been bound,
+-  v4l2_fwnode_parse_link() is used to form the media links between
+-  the entities discovered by walking the OF graph.
++- After all async subdevices have been bound, v4l2_fwnode_parse_link()
++  is used to form the media links between the devices discovered in
++  the OF graph.
+ 
+   While this approach allows support for arbitrary OF graphs, there
+   are some assumptions for this to work:
+ 
+-  1. All port parent nodes reachable in the graph from the IPU CSI
+-     ports bind to V4L2 async subdevice drivers.
+-
+-     If a device has mixed-use ports such as video plus audio, the
+-     endpoints from the audio ports are followed to devices that must
+-     bind to V4L2 subdevice drivers, and not for example, to an ALSA
+-     driver or a non-V4L2 media driver. If the device were bound to
+-     such a driver, imx-media would never get an async completion
+-     notification because the device fwnode was added to the async
+-     list, but the driver does not interface with the V4L2 async
+-     framework.
+-
+-  2. Every port reachable in the graph is treated as a media pad,
+-     owned by the V4L2 subdevice that is bound to the port's parent.
++  1. If a port owned by a device in the graph has endpoint nodes, the
++     port is treated as a media pad.
+ 
+      This presents problems for devices that don't make this port = pad
+      assumption. Examples are SMIAPP compatible cameras which define only
+@@ -54,9 +40,8 @@
+      possible long-term solution is to implement a subdev API that
+      maps a port id to a media pad index.
+ 
+-  3. Every endpoint of a port reachable in the graph is treated as
+-     a media link, between V4L2 subdevices that are bound to the
+-     port parents of the local and remote endpoints.
++  2. Every endpoint of a port owned by a device in the graph is treated
++     as a media link.
+ 
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
 -- 
-http://palosaari.fi/
+2.7.4
