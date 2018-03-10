@@ -1,136 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:34494 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753839AbeCWL5d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Anton Sviridenko <anton@corp.bluecherry.net>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Ismael Luceno <ismael@iodev.co.uk>
-Subject: [PATCH 23/30] media: solo6x10: get rid of an address space warning
-Date: Fri, 23 Mar 2018 07:57:09 -0400
-Message-Id: <43e69758e6c0cc05adc4d39316f65abb120a00a0.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:37585 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932070AbeCJT7R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Mar 2018 14:59:17 -0500
+Received: by mail-pg0-f68.google.com with SMTP id y26so4892096pgv.4
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:17 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 12/13] media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+Date: Sat, 10 Mar 2018 11:58:41 -0800
+Message-Id: <1520711922-17338-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using an ancillary function to avoid duplicating
-a small portion of code that copies data either to kernelspace
-or between userspace-kernelspace, duplicate the code,
-as it prevents static analyzers to complain about it:
+Switch to v4l2_async_notifier_add_subdev() when adding async subdevs
+to the imx-media root notifier. This removes the need to check for
+an already added asd, since v4l2_async_notifier_add_subdev() does this
+check. Also no need to allocate a subdevs array when registering the
+root notifier, or keeping an internal master asd_list, since this is
+moved to the notifier's asd_list.
 
-	drivers/media/pci/solo6x10/solo6x10-g723.c:260:46: warning: cast removes address space of expression
-
-The hole idea of using __user is to make sure that the code is
-doing the right thing with address space, so there's no
-sense on use casting.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/pci/solo6x10/solo6x10-g723.c | 73 +++++++++++++++++-------------
- 1 file changed, 41 insertions(+), 32 deletions(-)
+ drivers/staging/media/imx/imx-media-dev.c         | 110 ++++++----------------
+ drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+ drivers/staging/media/imx/imx-media.h             |   4 +-
+ 3 files changed, 32 insertions(+), 87 deletions(-)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
-index 81be1b8df758..2ac33b5cc454 100644
---- a/drivers/media/pci/solo6x10/solo6x10-g723.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
-@@ -223,48 +223,57 @@ static snd_pcm_uframes_t snd_solo_pcm_pointer(struct snd_pcm_substream *ss)
- 	return idx * G723_FRAMES_PER_PAGE;
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index dd4702a..f67ec8e 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -33,43 +33,10 @@ static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
  }
  
--static int __snd_solo_pcm_copy(struct snd_pcm_substream *ss,
--			       unsigned long pos, void *dst,
--			       unsigned long count, bool in_kernel)
+ /*
+- * Find an asd by fwnode or device name. This is called during
+- * driver load to form the async subdev list and bind them.
+- */
+-static struct v4l2_async_subdev *
+-find_async_subdev(struct imx_media_dev *imxmd,
+-		  struct fwnode_handle *fwnode,
+-		  const char *devname)
 -{
--	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
--	struct solo_dev *solo_dev = solo_pcm->solo_dev;
--	int err, i;
+-	struct imx_media_async_subdev *imxasd;
+-	struct v4l2_async_subdev *asd;
 -
--	for (i = 0; i < (count / G723_FRAMES_PER_PAGE); i++) {
--		int page = (pos / G723_FRAMES_PER_PAGE) + i;
--
--		err = solo_p2m_dma_t(solo_dev, 0, solo_pcm->g723_dma,
--				     SOLO_G723_EXT_ADDR(solo_dev) +
--				     (page * G723_PERIOD_BLOCK) +
--				     (ss->number * G723_PERIOD_BYTES),
--				     G723_PERIOD_BYTES, 0, 0);
--		if (err)
--			return err;
--
--		if (in_kernel)
--			memcpy(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES);
--		else if (copy_to_user((void __user *)dst,
--				      solo_pcm->g723_buf, G723_PERIOD_BYTES))
--			return -EFAULT;
--		dst += G723_PERIOD_BYTES;
+-	list_for_each_entry(imxasd, &imxmd->asd_list, list) {
+-		asd = &imxasd->asd;
+-		switch (asd->match_type) {
+-		case V4L2_ASYNC_MATCH_FWNODE:
+-			if (fwnode && asd->match.fwnode == fwnode)
+-				return asd;
+-			break;
+-		case V4L2_ASYNC_MATCH_DEVNAME:
+-			if (devname && !strcmp(asd->match.device_name,
+-					       devname))
+-				return asd;
+-			break;
+-		default:
+-			break;
+-		}
 -	}
 -
--	return 0;
+-	return NULL;
 -}
 -
- static int snd_solo_pcm_copy_user(struct snd_pcm_substream *ss, int channel,
- 				  unsigned long pos, void __user *dst,
- 				  unsigned long count)
- {
--	return __snd_solo_pcm_copy(ss, pos, (void *)dst, count, false);
-+	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
-+	struct solo_dev *solo_dev = solo_pcm->solo_dev;
-+	int err, i;
+-
+-/*
+- * Adds a subdev to the async subdev list. If fwnode is non-NULL, adds
+- * the async as a V4L2_ASYNC_MATCH_FWNODE match type, otherwise as
+- * a V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name of the
+- * given platform_device. This is called during driver load when
++ * Adds a subdev to the root notifier's async subdev list. If fwnode is
++ * non-NULL, adds the async as a V4L2_ASYNC_MATCH_FWNODE match type,
++ * otherwise as a V4L2_ASYNC_MATCH_DEVNAME match type using the dev_name
++ * of the given platform_device. This is called during driver load when
+  * forming the async subdev list.
+  */
+ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+@@ -80,28 +47,17 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 	struct imx_media_async_subdev *imxasd;
+ 	struct v4l2_async_subdev *asd;
+ 	const char *devname = NULL;
+-	int ret = 0;
++	int ret;
+ 
+-	mutex_lock(&imxmd->mutex);
++	imxasd = kzalloc(sizeof(*imxasd), GFP_KERNEL);
++	if (!imxasd)
++		return -ENOMEM;
 +
-+	for (i = 0; i < (count / G723_FRAMES_PER_PAGE); i++) {
-+		int page = (pos / G723_FRAMES_PER_PAGE) + i;
-+
-+		err = solo_p2m_dma_t(solo_dev, 0, solo_pcm->g723_dma,
-+				     SOLO_G723_EXT_ADDR(solo_dev) +
-+				     (page * G723_PERIOD_BLOCK) +
-+				     (ss->number * G723_PERIOD_BYTES),
-+				     G723_PERIOD_BYTES, 0, 0);
-+		if (err)
-+			return err;
-+
-+		if (copy_to_user(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES))
-+			return -EFAULT;
-+		dst += G723_PERIOD_BYTES;
++	asd = &imxasd->asd;
+ 
+ 	if (pdev)
+ 		devname = dev_name(&pdev->dev);
+ 
+-	/* return -EEXIST if this asd already added */
+-	if (find_async_subdev(imxmd, fwnode, devname)) {
+-		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+-			__func__, np ? np->name : devname);
+-		ret = -EEXIST;
+-		goto out;
+-	}
+-
+-	imxasd = devm_kzalloc(imxmd->md.dev, sizeof(*imxasd), GFP_KERNEL);
+-	if (!imxasd) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-	asd = &imxasd->asd;
+-
+ 	if (fwnode) {
+ 		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 		asd->match.fwnode = fwnode;
+@@ -111,16 +67,19 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 		imxasd->pdev = pdev;
+ 	}
+ 
+-	list_add_tail(&imxasd->list, &imxmd->asd_list);
+-
+-	imxmd->notifier.num_subdevs++;
++	ret = v4l2_async_notifier_add_subdev(&imxmd->notifier, asd);
++	if (ret < 0) {
++		if (ret == -EEXIST)
++			dev_dbg(imxmd->md.dev, "%s: already added %s\n",
++				__func__, np ? np->name : devname);
++		kfree(imxasd);
++		return ret;
 +	}
-+
+ 
+ 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+ 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+ 
+-out:
+-	mutex_unlock(&imxmd->mutex);
+-	return ret;
 +	return 0;
  }
  
- static int snd_solo_pcm_copy_kernel(struct snd_pcm_substream *ss, int channel,
- 				    unsigned long pos, void *dst,
- 				    unsigned long count)
+ /*
+@@ -483,10 +442,8 @@ static int imx_media_probe(struct platform_device *pdev)
  {
--	return __snd_solo_pcm_copy(ss, pos, dst, count, true);
-+	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
-+	struct solo_dev *solo_dev = solo_pcm->solo_dev;
-+	int err, i;
-+
-+	for (i = 0; i < (count / G723_FRAMES_PER_PAGE); i++) {
-+		int page = (pos / G723_FRAMES_PER_PAGE) + i;
-+
-+		err = solo_p2m_dma_t(solo_dev, 0, solo_pcm->g723_dma,
-+				     SOLO_G723_EXT_ADDR(solo_dev) +
-+				     (page * G723_PERIOD_BLOCK) +
-+				     (ss->number * G723_PERIOD_BYTES),
-+				     G723_PERIOD_BYTES, 0, 0);
-+		if (err)
-+			return err;
-+
-+		memcpy(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES);
-+		dst += G723_PERIOD_BYTES;
-+	}
-+
-+	return 0;
- }
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *node = dev->of_node;
+-	struct imx_media_async_subdev *imxasd;
+-	struct v4l2_async_subdev **subdevs;
+ 	struct imx_media_dev *imxmd;
+-	int num_subdevs, i, ret;
++	int ret;
  
- static const struct snd_pcm_ops snd_solo_pcm_ops = {
+ 	imxmd = devm_kzalloc(dev, sizeof(*imxmd), GFP_KERNEL);
+ 	if (!imxmd)
+@@ -515,44 +472,29 @@ static int imx_media_probe(struct platform_device *pdev)
+ 
+ 	dev_set_drvdata(imxmd->v4l2_dev.dev, imxmd);
+ 
+-	INIT_LIST_HEAD(&imxmd->asd_list);
+ 	INIT_LIST_HEAD(&imxmd->vdev_list);
+ 
+ 	ret = imx_media_add_of_subdevs(imxmd, node);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+ 			 "add_of_subdevs failed with %d\n", ret);
+-		goto unreg_dev;
++		goto notifier_cleanup;
+ 	}
+ 
+ 	ret = imx_media_add_internal_subdevs(imxmd);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+ 			 "add_internal_subdevs failed with %d\n", ret);
+-		goto unreg_dev;
++		goto notifier_cleanup;
+ 	}
+ 
+-	num_subdevs = imxmd->notifier.num_subdevs;
+-
+ 	/* no subdevs? just bail */
+-	if (num_subdevs == 0) {
++	if (imxmd->notifier.num_subdevs == 0) {
+ 		ret = -ENODEV;
+-		goto unreg_dev;
++		goto notifier_cleanup;
+ 	}
+ 
+-	subdevs = devm_kzalloc(imxmd->md.dev, sizeof(*subdevs) * num_subdevs,
+-			       GFP_KERNEL);
+-	if (!subdevs) {
+-		ret = -ENOMEM;
+-		goto unreg_dev;
+-	}
+-
+-	i = 0;
+-	list_for_each_entry(imxasd, &imxmd->asd_list, list)
+-		subdevs[i++] = &imxasd->asd;
+-
+ 	/* prepare the async subdev notifier and register it */
+-	imxmd->notifier.subdevs = subdevs;
+ 	imxmd->notifier.ops = &imx_media_subdev_ops;
+ 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
+ 					   &imxmd->notifier);
+@@ -566,7 +508,8 @@ static int imx_media_probe(struct platform_device *pdev)
+ 
+ del_int:
+ 	imx_media_remove_internal_subdevs(imxmd);
+-unreg_dev:
++notifier_cleanup:
++	v4l2_async_notifier_cleanup(&imxmd->notifier);
+ 	v4l2_device_unregister(&imxmd->v4l2_dev);
+ cleanup:
+ 	media_device_cleanup(&imxmd->md);
+@@ -582,6 +525,7 @@ static int imx_media_remove(struct platform_device *pdev)
+ 
+ 	v4l2_async_notifier_unregister(&imxmd->notifier);
+ 	imx_media_remove_internal_subdevs(imxmd);
++	v4l2_async_notifier_cleanup(&imxmd->notifier);
+ 	v4l2_device_unregister(&imxmd->v4l2_dev);
+ 	media_device_unregister(&imxmd->md);
+ 	media_device_cleanup(&imxmd->md);
+diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
+index daf66c2..0fdc45d 100644
+--- a/drivers/staging/media/imx/imx-media-internal-sd.c
++++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+@@ -350,8 +350,11 @@ int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd)
+ void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd)
+ {
+ 	struct imx_media_async_subdev *imxasd;
++	struct v4l2_async_subdev *asd;
++
++	list_for_each_entry(asd, &imxmd->notifier.asd_list, asd_list) {
++		imxasd = to_imx_media_asd(asd);
+ 
+-	list_for_each_entry(imxasd, &imxmd->asd_list, list) {
+ 		if (!imxasd->pdev)
+ 			continue;
+ 
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index 7edb18a..44532cd 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -117,12 +117,11 @@ struct imx_media_internal_sd_platformdata {
+ 	int ipu_id;
+ };
+ 
+-
+ struct imx_media_async_subdev {
++	/* the base asd - must be first in this struct */
+ 	struct v4l2_async_subdev asd;
+ 	/* the platform device of IPU-internal subdevs */
+ 	struct platform_device *pdev;
+-	struct list_head list;
+ };
+ 
+ static inline struct imx_media_async_subdev *
+@@ -147,7 +146,6 @@ struct imx_media_dev {
+ 	struct ipu_soc *ipu[2];
+ 
+ 	/* for async subdev registration */
+-	struct list_head asd_list;
+ 	struct v4l2_async_notifier notifier;
+ };
+ 
 -- 
-2.14.3
+2.7.4
