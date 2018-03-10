@@ -1,103 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mklab.ph.rhbnc.ac.uk ([134.219.128.55]:33026 "EHLO
-        mklab.ph.rhul.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752735AbeC3DqR (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43854 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752067AbeCJL0k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 23:46:17 -0400
-Date: Fri, 30 Mar 2018 04:31:29 +0100 (BST)
-From: TPClmml@mklab.ph.rhul.ac.uk
-To: linux-media@vger.kernel.org
-cc: TPClmml@mklab.ph.rhul.ac.uk
-Subject: DVB-T2 support for TVR801 USB stick (Astrometa DVB-T2)
-Message-ID: <alpine.LNX.2.21.1803300427130.3376@mklab.ph.rhul.ac.uk>
+        Sat, 10 Mar 2018 06:26:40 -0500
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 09/11] media: vsp1: Provide support for extended command
+ pools
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <02dcefdd58c734623b9caf2513316380feb9f993.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <a4d6291d-7f33-e353-a080-463a86de308b@ideasonboard.com>
+Date: Sat, 10 Mar 2018 11:26:32 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=US-ASCII
+In-Reply-To: <02dcefdd58c734623b9caf2513316380feb9f993.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Could anyone clarify what is supported on this stick for me?  According to 
-https://www.linuxtv.org/wiki/index.php/Astrometa_DVB-T2 DVB-T2 has been 
-supported since kernel 4.6.  I tried using a 4.9.9 kernel about a year ago 
-and again today using 4.14.30, in both cases with the development tree 
-code from git://linuxtv.org/media_build.git.
+On 09/03/18 22:04, Kieran Bingham wrote:
+> VSPD and VSP-DL devices can provide extended display lists supporting
+> extended command display list objects.
+> 
+> These extended commands require their own dma memory areas for a header
+> and body specific to the command type.
+> 
+> Implement a command pool to allocate all necessary memory in a single
+> DMA allocation to reduce pressure on the TLB, and provide convenvient
 
-In both cases I don't get a second adapter exposed for the MN88473 demuxer 
-just the /dev/dvb/adapter0 tree for the RTL2832 which only supports DVB-T. 
-Here http://www.mklab.rhul.ac.uk/~tom/TVR801-dmesg.txt is the full dmesg 
-O/P it got using kernel 4.14.30.
+s/convenvient/convenient/
 
+> re-usable command objects for the entities to utilise.
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
 
-A year ago, for fun, I tried hacking the code a little, without really 
-knowing what I was doing but managed to get the following from dmesg,
+I feel like this adds quite a bit of 'duplication' against the body pool
+implementation - and there is scope for re-factoring somehow to make a lot more
+of this common.
 
-> dvbdev: DVB: registering new adapter (Astrometa DVB-T2)
-> usb 1-8: media controller created
-> dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
-> i2c i2c-13: Added multiplexed i2c bus 14
-> rtl2832 13-0010: Realtek RTL2832 successfully attached
-> mn88473 13-0018: Panasonic MN88473 successfully identified
-> usb 1-8: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
-> dvbdev: dvb_create_media_entity: media entity 'Realtek RTL2832 (DVB-T)' registered.
-> usb 1-8: DVB: registering adapter 0 frontend 1 (Panasonic MN88473)...
-> dvbdev: dvb_create_media_entity: media entity 'Panasonic MN88473' registered.
+I think this is still fine to go in as is for now (as an approach that is) - but
+I'd like to work out how to make this better as a later task.
 
-The MN88473 interface I got was recognised by w_scan but was not usable. 
-It complained the frequency limits were missing.  Here is an example,
+Then with a reusable implementation then we can easily move the excess display
+list headers (which are currently being allocated 1 for *every dlb* rather than
+1 for every dl) to their own pool and allocate as appropriate.
 
-> w_scan -X -a /dev/dvb/adapter0/frontend1
-> w_scan version 20161022 (compiled for DVB API 5.10)
-> WARNING: could not guess your country. Falling back to 'DE'
-> guessing country 'DE', use -c <country> to override
-> using settings for GERMANY
-> DVB aerial
-> DVB-T Europe
-> scan type TERRESTRIAL, channellist 4
-> output format czap/tzap/szap/xine
-> WARNING: could not guess your codepage. Falling back to 'UTF-8'
-> output charset 'UTF-8', use -C <charset> to override
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> Using DVB API 5.10
-> frontend 'Panasonic MN88473' supports
-> DVB-T2
-> INVERSION_AUTO
-> QAM_AUTO
-> TRANSMISSION_MODE_AUTO
-> GUARD_INTERVAL_AUTO
-> HIERARCHY_AUTO
-> FEC_AUTO
-> BANDWIDTH_AUTO not supported, trying 6/7/8 MHz.
-> This dvb driver is *buggy*: the frequency limits are undefined - please 
-> report to linuxtv.org
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> Scanning DVB-T...
-> Scanning 8MHz frequencies...
-> 474000: (time: 00:00.633)
-> 482000: (time: 00:02.641)
-> 490000: (time: 00:04.650)
-> 498000: (time: 00:06.661)
-> [cut]
-> 842000: (time: 01:32.955)
-> 850000: (time: 01:34.960)
-> 858000: (time: 01:36.969)
-> Scanning DVB-T2...
-> 474000: (time: 01:38.978)
-> 482000: (time: 01:40.989)
-> 490000: (time: 01:43.000)
-> 498000: (time: 01:45.010)
-> [cut]
-> 850000: (time: 03:13.285)
-> 858000: (time: 03:15.291)
->
-> ERROR: Sorry - i couldn't get any working frequency/transponder
->  Nothing to scan!!
+Essentially we have the following 'object's which want to have minimal DMA
+allocations (to reduce TLB pressure) - and are all sharing the same size.
+
+ - Display list headers (72 or 96 bytes)
+ - Display list bodys   (variable size - multiple per header)
+if (VSPD) {
+ - Extended display list header (16 bytes * number of bodies)
+ - Extended display list body   (autodisp 96 bytes, autofld 160 bytes)
+}
+
+The dma_pool API's don't seem to be suitable here because as far as I can tell
+it is still calling dma_alloc_coherent for each page.., rather than creating a
+large pre-allocated slab and carving from it.
+
+There certainly doesn't seem to be a way to say the number of elements to
+pre-allocate... If I'm missing something obvious here - I'd love to hear it as I
+don't want to re-invent any wheels!
+
+Surely this similar pattern occurs elsewhere in the kernel ?
+
+--
+Kieran
 
 
-After that I gave up.  Any thoughts?
-
-Many thanks
-Tom Crane
-
--- 
-Tom Crane, Dept. Physics, Royal Holloway, University of London, Egham Hill,
-Egham, Surrey, TW20 0EX, England.
-Email:  T.Crane@rhul.ac.uk
+>  drivers/media/platform/vsp1/vsp1_dl.c | 189 +++++++++++++++++++++++++++-
+>  drivers/media/platform/vsp1/vsp1_dl.h |   3 +-
+>  2 files changed, 192 insertions(+)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+> index 36440a2a2c8b..6d17b8bfa21c 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -121,6 +121,30 @@ struct vsp1_dl_body_pool {
+>  };
+>  
+>  /**
+> + * struct vsp1_cmd_pool - display list body pool
+> + * @dma: DMA address of the entries
+> + * @size: size of the full DMA memory pool in bytes
+> + * @mem: CPU memory pointer for the pool
+> + * @bodies: Array of DLB structures for the pool
+> + * @free: List of free DLB entries
+> + * @lock: Protects the pool and free list
+> + * @vsp1: the VSP1 device
+> + */
+> +struct vsp1_dl_cmd_pool {
+> +	/* DMA allocation */
+> +	dma_addr_t dma;
+> +	size_t size;
+> +	void *mem;
+> +
+> +	struct vsp1_dl_ext_cmd *cmds;
+> +	struct list_head free;
+> +
+> +	spinlock_t lock;
+> +
+> +	struct vsp1_device *vsp1;
+> +};
+> +
+> +/**
+>   * struct vsp1_dl_list - Display list
+>   * @list: entry in the display list manager lists
+>   * @dlm: the display list manager
+> @@ -176,6 +200,7 @@ struct vsp1_dl_manager {
+>  	struct vsp1_dl_list *pending;
+>  
+>  	struct vsp1_dl_body_pool *pool;
+> +	struct vsp1_dl_cmd_pool *autfld_cmds;
+>  };
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -339,6 +364,139 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> + * Display List Extended Command Management
+> + */
+> +
+> +enum vsp1_extcmd_type {
+> +	VSP1_EXTCMD_AUTODISP,
+> +	VSP1_EXTCMD_AUTOFLD,
+> +};
+> +
+> +struct vsp1_extended_command_info {
+> +	u16 opcode;
+> +	size_t body_size;
+> +} vsp1_extended_commands[] = {
+> +	[VSP1_EXTCMD_AUTODISP] = { 0x02, 96 },
+> +	[VSP1_EXTCMD_AUTOFLD]  = { 0x03, 160 },
+> +};
+> +
+> +/**
+> + * vsp1_dl_cmd_pool_create - Create a pool of commands from a single allocation
+> + * @vsp1: The VSP1 device
+> + * @type: The command pool type
+> + * @num_commands: The quantity of commands to allocate
+> + *
+> + * Allocate a pool of commands each with enough memory to contain the private
+> + * data of each command. The allocation sizes are dependent upon the command
+> + * type.
+> + *
+> + * Return a pointer to a pool on success or NULL if memory can't be allocated.
+> + */
+> +struct vsp1_dl_cmd_pool *
+> +vsp1_dl_cmd_pool_create(struct vsp1_device *vsp1, enum vsp1_extcmd_type type,
+> +			unsigned int num_cmds)
+> +{
+> +	struct vsp1_dl_cmd_pool *pool;
+> +	unsigned int i;
+> +	size_t cmd_size;
+> +
+> +	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+> +	if (!pool)
+> +		return NULL;
+> +
+> +	pool->cmds = kcalloc(num_cmds, sizeof(*pool->cmds), GFP_KERNEL);
+> +	if (!pool->cmds) {
+> +		kfree(pool);
+> +		return NULL;
+> +	}
+> +
+> +	cmd_size = sizeof(struct vsp1_dl_ext_cmd_header) +
+> +		   vsp1_extended_commands[type].body_size;
+> +	cmd_size = ALIGN(cmd_size, 16);
+> +
+> +	pool->size = cmd_size * num_cmds;
+> +	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
+> +				 GFP_KERNEL);
+> +	if (!pool->mem) {
+> +		kfree(pool->cmds);
+> +		kfree(pool);
+> +		return NULL;
+> +	}
+> +
+> +	spin_lock_init(&pool->lock);
+> +	INIT_LIST_HEAD(&pool->free);
+> +
+> +	for (i = 0; i < num_cmds; ++i) {
+> +		struct vsp1_dl_ext_cmd *cmd = &pool->cmds[i];
+> +		size_t cmd_offset = i * cmd_size;
+> +		size_t data_offset = sizeof(struct vsp1_dl_ext_cmd_header) +
+> +				     cmd_offset;
+> +
+> +		cmd->pool = pool;
+> +		cmd->cmd_opcode = vsp1_extended_commands[type].opcode;
+> +
+> +		/* TODO: Auto-disp can utilise more than one command per cmd */
+> +		cmd->num_cmds = 1;
+> +		cmd->cmds = pool->mem + cmd_offset;
+> +		cmd->cmd_dma = pool->dma + cmd_offset;
+> +
+> +		cmd->data = pool->mem + data_offset;
+> +		cmd->data_dma = pool->dma + data_offset;
+> +		cmd->data_size = vsp1_extended_commands[type].body_size;
+> +
+> +		list_add_tail(&cmd->free, &pool->free);
+> +	}
+> +
+> +	return pool;
+> +}
+> +
+> +struct vsp1_dl_ext_cmd *vsp1_dl_ext_cmd_get(struct vsp1_dl_cmd_pool *pool)
+> +{
+> +	struct vsp1_dl_ext_cmd *cmd = NULL;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&pool->lock, flags);
+> +
+> +	if (!list_empty(&pool->free)) {
+> +		cmd = list_first_entry(&pool->free, struct vsp1_dl_ext_cmd,
+> +				       free);
+> +		list_del(&cmd->free);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&pool->lock, flags);
+> +
+> +	return cmd;
+> +}
+> +
+> +void vsp1_dl_ext_cmd_put(struct vsp1_dl_ext_cmd *cmd)
+> +{
+> +	unsigned long flags;
+> +
+> +	if (!cmd)
+> +		return;
+> +
+> +	/* Reset flags, these mark data usage */
+> +	cmd->flags = 0;
+> +
+> +	spin_lock_irqsave(&cmd->pool->lock, flags);
+> +	list_add_tail(&cmd->free, &cmd->pool->free);
+> +	spin_unlock_irqrestore(&cmd->pool->lock, flags);
+> +}
+> +
+> +void vsp1_dl_ext_cmd_pool_destroy(struct vsp1_dl_cmd_pool *pool)
+> +{
+> +	if (!pool)
+> +		return;
+> +
+> +	if (pool->mem)
+> +		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
+> +			    pool->dma);
+> +
+> +	kfree(pool->cmds);
+> +	kfree(pool);
+> +}
+> +
+> +/* ----------------------------------------------------------------------------
+>   * Display List Transaction Management
+>   */
+>  
+> @@ -442,6 +600,12 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+>  
+>  	vsp1_dl_list_bodies_put(dl);
+>  
+> +	vsp1_dl_ext_cmd_put(dl->pre_cmd);
+> +	vsp1_dl_ext_cmd_put(dl->post_cmd);
+> +
+> +	dl->pre_cmd = NULL;
+> +	dl->post_cmd = NULL;
+> +
+>  	/*
+>  	 * body0 is reused as as an optimisation as presently every display list
+>  	 * has at least one body, thus we reinitialise the entries list
+> @@ -863,6 +1027,15 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+>  		list_add_tail(&dl->list, &dlm->free);
+>  	}
+>  
+> +	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) {
+> +		dlm->autfld_cmds = vsp1_dl_cmd_pool_create(vsp1,
+> +					VSP1_EXTCMD_AUTOFLD, prealloc);
+> +		if (!dlm->autfld_cmds) {
+> +			vsp1_dlm_destroy(dlm);
+> +			return NULL;
+> +		}
+> +	}
+> +
+>  	return dlm;
+>  }
+>  
+> @@ -879,4 +1052,20 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
+>  	}
+>  
+>  	vsp1_dl_body_pool_destroy(dlm->pool);
+> +	vsp1_dl_ext_cmd_pool_destroy(dlm->autfld_cmds);
+> +}
+> +
+> +struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl)
+> +{
+> +	struct vsp1_dl_manager *dlm = dl->dlm;
+> +	struct vsp1_dl_ext_cmd *cmd;
+> +
+> +	if (dl->pre_cmd)
+> +		return dl->pre_cmd;
+> +
+> +	cmd = vsp1_dl_ext_cmd_get(dlm->autfld_cmds);
+> +	if (cmd)
+> +		dl->pre_cmd = cmd;
+> +
+> +	return cmd;
+>  }
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+> index 4898b21dc840..3009912ddefb 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> @@ -23,6 +23,7 @@ struct vsp1_dl_manager;
+>  
+>  /**
+>   * struct vsp1_dl_ext_cmd - Extended Display command
+> + * @pool: pool to which this command belongs
+>   * @free: entry in the pool of free commands list
+>   * @cmd_opcode: command type opcode
+>   * @flags: flags used by the command
+> @@ -34,6 +35,7 @@ struct vsp1_dl_manager;
+>   * @data_size: size of the @data_dma memory in bytes
+>   */
+>  struct vsp1_dl_ext_cmd {
+> +	struct vsp1_dl_cmd_pool *pool;
+>  	struct list_head free;
+>  
+>  	u8 cmd_opcode;
+> @@ -56,6 +58,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+>  void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+>  void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+>  bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+> +struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl);
+>  
+>  struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+>  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+> 
