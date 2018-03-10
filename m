@@ -1,86 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f181.google.com ([209.85.217.181]:46950 "EHLO
-        mail-ua0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752494AbeCWLoO (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35158 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751039AbeCJT65 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:44:14 -0400
-Received: by mail-ua0-f181.google.com with SMTP id d1so7549318ual.13
-        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2018 04:44:13 -0700 (PDT)
-Received: from mail-ua0-f169.google.com (mail-ua0-f169.google.com. [209.85.217.169])
-        by smtp.gmail.com with ESMTPSA id y22sm1999826uag.24.2018.03.23.04.44.11
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 23 Mar 2018 04:44:11 -0700 (PDT)
-Received: by mail-ua0-f169.google.com with SMTP id l21so2117948uak.1
-        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2018 04:44:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1521218319-14972-1-git-send-email-andy.yeh@intel.com>
-References: <1521218319-14972-1-git-send-email-andy.yeh@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 23 Mar 2018 20:43:50 +0900
-Message-ID: <CAAFQd5Cbn1sqRWq6A6xYthkHtFjHaa64URDiKDMXOpDPr1r5EA@mail.gmail.com>
-Subject: Re: [PATCH v9.1] media: imx258: Add imx258 camera sensor driver
-To: Andy Yeh <andy.yeh@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sat, 10 Mar 2018 14:58:57 -0500
+Received: by mail-pf0-f195.google.com with SMTP id y186so2681123pfb.2
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:58:57 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        Alan Chiang <alanx.chiang@intel.com>,
-        "Lai, Jim" <jim.lai@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 01/13] media: v4l2-fwnode: ignore endpoints that have no remote port parent
+Date: Sat, 10 Mar 2018 11:58:30 -0800
+Message-Id: <1520711922-17338-2-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Documentation/devicetree/bindings/media/video-interfaces.txt states that
+the 'remote-endpoint' property is optional.
 
-Some issues found when reviewing cherry pick of this patch to Chrome
-OS kernel. Please see inline.
+So v4l2_async_notifier_fwnode_parse_endpoint() should not return error
+if the endpoint has no remote port parent. Just ignore the endpoint,
+skip adding an asd to the notifier and return 0.
+__v4l2_async_notifier_parse_fwnode_endpoints() will then continue
+parsing the remaining port endpoints of the device.
 
-On Sat, Mar 17, 2018 at 1:38 AM, Andy Yeh <andy.yeh@intel.com> wrote:
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[snip]
-
-> +       case V4L2_CID_VBLANK:
-> +               /*
-> +                * Auto Frame Length Line Control is enabled by default.
-> +                * Not need control Vblank Register.
-> +                */
-
-What is the meaning of this control then? Should it be read-only?
-
-> +               break;
-> +       default:
-> +               dev_info(&client->dev,
-> +                        "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> +                        ctrl->id, ctrl->val);
-> +               ret = -EINVAL;
-> +               break;
-> +       }
-> +
-> +       pm_runtime_put(&client->dev);
-> +
-> +       return ret;
-> +
-
-[snip]
-
-> +       v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx258_ctrl_ops,
-> +                               V4L2_CID_TEST_PATTERN,
-> +                               ARRAY_SIZE(imx258_test_pattern_menu) - 1,
-> +                               0, 0, imx258_test_pattern_menu);
-
-There is no code for handling this control in imx258_s_ctrl(). It's
-not a correct behavior to register a control, which isn't handled by
-the driver. Please either implement the control completely or remove
-it.
-
-> +
-> +       if (ctrl_hdlr->error) {
-> +                               ret = ctrl_hdlr->error;
-> +                               dev_err(&client->dev, "%s control init failed (%d)\n",
-> +                               __func__, ret);
-> +                               goto error;
-
-Something strange happening here with indentation.
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index d630640..b8afbac 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -363,7 +363,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+ 		fwnode_graph_get_remote_port_parent(endpoint);
+ 	if (!asd->match.fwnode) {
+ 		dev_warn(dev, "bad remote port parent\n");
+-		ret = -EINVAL;
++		ret = -ENOTCONN;
+ 		goto out_err;
+ 	}
+ 
+-- 
+2.7.4
