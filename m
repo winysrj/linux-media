@@ -1,492 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41500 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752936AbeC1Nuk (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:39628 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751039AbeCJT7E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 09:50:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv9 PATCH 08/29] v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
-Date: Wed, 28 Mar 2018 15:50:09 +0200
-Message-Id: <20180328135030.7116-9-hverkuil@xs4all.nl>
-In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+        Sat, 10 Mar 2018 14:59:04 -0500
+Received: by mail-pl0-f66.google.com with SMTP id s13-v6so7096767plq.6
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:04 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 05/13] media: v4l2-fwnode: Add a convenience function for registering subdevs with notifiers
+Date: Sat, 10 Mar 2018 11:58:34 -0800
+Message-Id: <1520711922-17338-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+for parsing a sub-device's fwnode port endpoints for connected remote
+sub-devices, registering a sub-device notifier, and then registering
+the sub-device itself.
 
-Add a 'bool from_other_dev' argument: set to true if the two
-handlers refer to different devices (e.g. it is true when
-inheriting controls from a subdev into a main v4l2 bridge
-driver).
-
-This will be used later when implementing support for the
-request API since we need to skip such controls.
-
-TODO: check drivers/staging/media/imx/imx-media-fim.c change.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/dvb-frontends/rtl2832_sdr.c        |  5 +--
- drivers/media/pci/bt8xx/bttv-driver.c            |  2 +-
- drivers/media/pci/cx23885/cx23885-417.c          |  2 +-
- drivers/media/pci/cx88/cx88-blackbird.c          |  2 +-
- drivers/media/pci/cx88/cx88-video.c              |  2 +-
- drivers/media/pci/saa7134/saa7134-empress.c      |  4 +--
- drivers/media/pci/saa7134/saa7134-video.c        |  2 +-
- drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c      |  3 +-
- drivers/media/platform/rcar_drif.c               |  2 +-
- drivers/media/platform/soc_camera/soc_camera.c   |  3 +-
- drivers/media/platform/vivid/vivid-ctrls.c       | 46 ++++++++++++------------
- drivers/media/usb/cx231xx/cx231xx-417.c          |  2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c        |  4 +--
- drivers/media/usb/msi2500/msi2500.c              |  2 +-
- drivers/media/usb/tm6000/tm6000-video.c          |  2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c             | 11 +++---
- drivers/media/v4l2-core/v4l2-device.c            |  3 +-
- drivers/staging/media/imx/imx-media-dev.c        |  2 +-
- drivers/staging/media/imx/imx-media-fim.c        |  2 +-
- include/media/v4l2-ctrls.h                       |  8 ++++-
- 21 files changed, 62 insertions(+), 49 deletions(-)
+Changes since v1:
+- add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
+  'struct v4l2_subdev' declaration.
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index c6e78d870ccd..6064d28224e8 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -1394,7 +1394,8 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
- 	case RTL2832_SDR_TUNER_E4000:
- 		v4l2_ctrl_handler_init(&dev->hdl, 9);
- 		if (subdev)
--			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler, NULL);
-+			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
-+					      NULL, true);
- 		break;
- 	case RTL2832_SDR_TUNER_R820T:
- 	case RTL2832_SDR_TUNER_R828D:
-@@ -1423,7 +1424,7 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
- 		v4l2_ctrl_handler_init(&dev->hdl, 2);
- 		if (subdev)
- 			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
--					      NULL);
-+					      NULL, true);
- 		break;
- 	default:
- 		v4l2_ctrl_handler_init(&dev->hdl, 0);
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index f697698fe38d..cdcb36d8c5c3 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -4211,7 +4211,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	/* register video4linux + input */
- 	if (!bttv_tvcards[btv->c.type].no_video) {
- 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
--				v4l2_ctrl_radio_filter);
-+				v4l2_ctrl_radio_filter, false);
- 		if (btv->radio_ctrl_handler.error) {
- 			result = btv->radio_ctrl_handler.error;
- 			goto fail2;
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index a71f3c7569ce..762823871c78 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1527,7 +1527,7 @@ int cx23885_417_register(struct cx23885_dev *dev)
- 	dev->cxhdl.priv = dev;
- 	dev->cxhdl.func = cx23885_api_func;
- 	cx2341x_handler_set_50hz(&dev->cxhdl, tsport->height == 576);
--	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL);
-+	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL, false);
- 
- 	/* Allocate and initialize V4L video device */
- 	dev->v4l_device = cx23885_video_dev_alloc(tsport,
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 0e0952e60795..39f69d89a663 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -1183,7 +1183,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	err = cx2341x_handler_init(&dev->cxhdl, 36);
- 	if (err)
- 		goto fail_core;
--	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL);
-+	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL, false);
- 
- 	/* blackbird stuff */
- 	pr_info("cx23416 based mpeg encoder (blackbird reference design)\n");
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index 9be682cdb644..e35bfa03a1e2 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -1378,7 +1378,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 		if (vc->id == V4L2_CID_CHROMA_AGC)
- 			core->chroma_agc = vc;
- 	}
--	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
-+	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL, false);
- 
- 	/* load and configure helper modules */
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 66acfd35ffc6..fc75ce00dbf8 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -265,9 +265,9 @@ static int empress_init(struct saa7134_dev *dev)
- 		 "%s empress (%s)", dev->name,
- 		 saa7134_boards[dev->board].name);
- 	v4l2_ctrl_handler_init(hdl, 21);
--	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter);
-+	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter, false);
- 	if (dev->empress_sd)
--		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL);
-+		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL, true);
- 	if (hdl->error) {
- 		video_device_release(dev->empress_dev);
- 		return hdl->error;
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 4f1091a11e91..d478c470b975 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2136,7 +2136,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
- 		hdl = &dev->radio_ctrl_handler;
- 		v4l2_ctrl_handler_init(hdl, 2);
- 		v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler,
--				v4l2_ctrl_radio_filter);
-+				v4l2_ctrl_radio_filter, false);
- 		if (hdl->error)
- 			return hdl->error;
- 	}
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index a3cdac188190..2164375f0ee0 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1424,7 +1424,7 @@ static int fimc_link_setup(struct media_entity *entity,
- 		return 0;
- 
- 	return v4l2_ctrl_add_handler(&vc->ctx->ctrls.handler,
--				     sensor->ctrl_handler, NULL);
-+				     sensor->ctrl_handler, NULL, true);
+ drivers/media/v4l2-core/v4l2-fwnode.c | 98 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           | 43 +++++++++++++++
+ 2 files changed, 141 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 99198b9..a28c7cd 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -880,6 +880,104 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
  }
+ EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
  
- static const struct media_entity_operations fimc_sd_media_ops = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b479b882da12..90246113fa03 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -900,7 +900,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	if (ret < 0)
- 		return ret;
++int v4l2_async_register_fwnode_subdev(
++	struct v4l2_subdev *sd, size_t asd_struct_size,
++	unsigned int *ports, unsigned int num_ports,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd))
++{
++	struct v4l2_async_notifier *notifier;
++	struct device *dev = sd->dev;
++	struct fwnode_handle *fwnode;
++	unsigned int subdev_port;
++	bool is_port;
++	int ret;
++
++	if (WARN_ON(!dev))
++		return -ENODEV;
++
++	fwnode = dev_fwnode(dev);
++	if (!fwnode_device_is_available(fwnode))
++		return -ENODEV;
++
++	is_port = (is_of_node(fwnode) &&
++		   of_node_cmp(to_of_node(fwnode)->name, "port") == 0);
++
++	/*
++	 * If the sub-device is a port, only parse fwnode endpoints from
++	 * this sub-device's single port id.
++	 */
++	if (is_port) {
++		/* verify the caller did not provide a ports array */
++		if (ports)
++			return -EINVAL;
++
++		ret = fwnode_property_read_u32(fwnode, "reg", &subdev_port);
++		if (ret < 0)
++			return ret;
++
++		/*
++		 * the device given to the fwnode endpoint parsing
++		 * must be the port sub-device's parent.
++		 */
++		dev = get_device(sd->dev->parent);
++
++		if (WARN_ON(!dev))
++			return -ENODEV;
++
++		ports = &subdev_port;
++		num_ports = 1;
++	}
++
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	if (!ports) {
++		ret = v4l2_async_notifier_parse_fwnode_endpoints(
++			dev, notifier, asd_struct_size, parse_endpoint);
++		if (ret < 0)
++			goto out_cleanup;
++	} else {
++		unsigned int i;
++
++		for (i = 0; i < num_ports; i++) {
++			ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++				dev, notifier, asd_struct_size,
++				ports[i], parse_endpoint);
++			if (ret < 0)
++				goto out_cleanup;
++		}
++	}
++
++	ret = v4l2_async_subdev_notifier_register(sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	sd->subdev_notifier = notifier;
++
++	if (is_port)
++		put_device(dev);
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++out_cleanup:
++	if (is_port)
++		put_device(dev);
++	v4l2_async_notifier_cleanup(notifier);
++	kfree(notifier);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_register_fwnode_subdev);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 9a4b3f8..4de0ac2 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -23,6 +23,7 @@
+ #include <linux/types.h>
  
--	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
-+	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler,
-+				    NULL, true);
- 	if (ret < 0)
- 		return ret;
+ #include <media/v4l2-mediabus.h>
++#include <media/v4l2-subdev.h>
  
-diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
-index dc7e280c91b4..159c7d2c2066 100644
---- a/drivers/media/platform/rcar_drif.c
-+++ b/drivers/media/platform/rcar_drif.c
-@@ -1168,7 +1168,7 @@ static int rcar_drif_notify_complete(struct v4l2_async_notifier *notifier)
- 	}
+ struct fwnode_handle;
+ struct v4l2_async_notifier;
+@@ -360,4 +361,46 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ int v4l2_async_notifier_parse_fwnode_sensor_common(
+ 	struct device *dev, struct v4l2_async_notifier *notifier);
  
- 	ret = v4l2_ctrl_add_handler(&sdr->ctrl_hdl,
--				    sdr->ep.subdev->ctrl_handler, NULL);
-+				    sdr->ep.subdev->ctrl_handler, NULL, true);
- 	if (ret) {
- 		rdrif_err(sdr, "failed: ctrl add hdlr ret %d\n", ret);
- 		goto error;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 69f0d8e80bd8..e6787abc34ae 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1180,7 +1180,8 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 
- 	v4l2_subdev_call(sd, video, g_tvnorms, &icd->vdev->tvnorms);
- 
--	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler, NULL);
-+	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler,
-+				    NULL, true);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index 6b0bfa091592..f369b94ad7ff 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -1662,59 +1662,59 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
- 
- 	if (dev->has_vid_cap) {
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL, false);
- 		if (hdl_vid_cap->error)
- 			return hdl_vid_cap->error;
- 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
- 	}
- 	if (dev->has_vid_out) {
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
--		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL, false);
- 		if (hdl_vid_out->error)
- 			return hdl_vid_out->error;
- 		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
- 	}
- 	if (dev->has_vbi_cap) {
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL, false);
- 		if (hdl_vbi_cap->error)
- 			return hdl_vbi_cap->error;
- 		dev->vbi_cap_dev.ctrl_handler = hdl_vbi_cap;
- 	}
- 	if (dev->has_vbi_out) {
--		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL, false);
- 		if (hdl_vbi_out->error)
- 			return hdl_vbi_out->error;
- 		dev->vbi_out_dev.ctrl_handler = hdl_vbi_out;
- 	}
- 	if (dev->has_radio_rx) {
--		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL);
-+		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL, false);
- 		if (hdl_radio_rx->error)
- 			return hdl_radio_rx->error;
- 		dev->radio_rx_dev.ctrl_handler = hdl_radio_rx;
- 	}
- 	if (dev->has_radio_tx) {
--		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL);
-+		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL, false);
- 		if (hdl_radio_tx->error)
- 			return hdl_radio_tx->error;
- 		dev->radio_tx_dev.ctrl_handler = hdl_radio_tx;
- 	}
- 	if (dev->has_sdr_cap) {
--		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL);
--		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL, false);
-+		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL, false);
- 		if (hdl_sdr_cap->error)
- 			return hdl_sdr_cap->error;
- 		dev->sdr_cap_dev.ctrl_handler = hdl_sdr_cap;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index b80e6857e2eb..fca16cf8b3bf 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1991,7 +1991,7 @@ int cx231xx_417_register(struct cx231xx *dev)
- 	dev->mpeg_ctrl_handler.ops = &cx231xx_ops;
- 	if (dev->sd_cx25840)
- 		v4l2_ctrl_add_handler(&dev->mpeg_ctrl_handler.hdl,
--				dev->sd_cx25840->ctrl_handler, NULL);
-+				dev->sd_cx25840->ctrl_handler, NULL, false);
- 	if (dev->mpeg_ctrl_handler.hdl.error) {
- 		err = dev->mpeg_ctrl_handler.hdl.error;
- 		dprintk(3, "%s: can't add cx25840 controls\n", dev->name);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index f7fcd733a2ca..2dedb18f63a0 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -2204,10 +2204,10 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 
- 	if (dev->sd_cx25840) {
- 		v4l2_ctrl_add_handler(&dev->ctrl_handler,
--				dev->sd_cx25840->ctrl_handler, NULL);
-+				dev->sd_cx25840->ctrl_handler, NULL, true);
- 		v4l2_ctrl_add_handler(&dev->radio_ctrl_handler,
- 				dev->sd_cx25840->ctrl_handler,
--				v4l2_ctrl_radio_filter);
-+				v4l2_ctrl_radio_filter, true);
- 	}
- 
- 	if (dev->ctrl_handler.error)
-diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
-index 65ef755adfdc..4aacd77a5d58 100644
---- a/drivers/media/usb/msi2500/msi2500.c
-+++ b/drivers/media/usb/msi2500/msi2500.c
-@@ -1278,7 +1278,7 @@ static int msi2500_probe(struct usb_interface *intf,
- 	}
- 
- 	/* currently all controls are from subdev */
--	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL);
-+	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL, true);
- 
- 	dev->v4l2_dev.ctrl_handler = &dev->hdl;
- 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index b2399d4266da..99d6b0da8b3d 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1622,7 +1622,7 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
- 	v4l2_ctrl_new_std(&dev->ctrl_handler, &tm6000_ctrl_ops,
- 			V4L2_CID_HUE, -128, 127, 1, 0);
- 	v4l2_ctrl_add_handler(&dev->ctrl_handler,
--			&dev->radio_ctrl_handler, NULL);
-+			&dev->radio_ctrl_handler, NULL, false);
- 
- 	if (dev->radio_ctrl_handler.error)
- 		ret = dev->radio_ctrl_handler.error;
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d29e45516eb7..aa1dd2015e84 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1995,7 +1995,8 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
- 
- /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
- static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
--			   struct v4l2_ctrl *ctrl)
-+			   struct v4l2_ctrl *ctrl,
-+			   bool from_other_dev)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	struct v4l2_ctrl_ref *new_ref;
-@@ -2019,6 +2020,7 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	if (!new_ref)
- 		return handler_set_err(hdl, -ENOMEM);
- 	new_ref->ctrl = ctrl;
-+	new_ref->from_other_dev = from_other_dev;
- 	if (ctrl->handler == hdl) {
- 		/* By default each control starts in a cluster of its own.
- 		   new_ref->ctrl is basically a cluster array with one
-@@ -2199,7 +2201,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
- 	}
- 
--	if (handler_new_ref(hdl, ctrl)) {
-+	if (handler_new_ref(hdl, ctrl, false)) {
- 		kvfree(ctrl);
- 		return NULL;
- 	}
-@@ -2368,7 +2370,8 @@ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
- /* Add the controls from another handler to our own. */
- int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 			  struct v4l2_ctrl_handler *add,
--			  bool (*filter)(const struct v4l2_ctrl *ctrl))
-+			  bool (*filter)(const struct v4l2_ctrl *ctrl),
-+			  bool from_other_dev)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	int ret = 0;
-@@ -2391,7 +2394,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Filter any unwanted controls */
- 		if (filter && !filter(ctrl))
- 			continue;
--		ret = handler_new_ref(hdl, ctrl);
-+		ret = handler_new_ref(hdl, ctrl, from_other_dev);
- 		if (ret)
- 			break;
- 	}
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 937c6de85606..8391a7f0895b 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -178,7 +178,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 
- 	sd->v4l2_dev = v4l2_dev;
- 	/* This just returns 0 if either of the two args is NULL */
--	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
-+	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler,
-+				    NULL, true);
- 	if (err)
- 		goto error_module;
- 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 289d775c4820..08799beaea42 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -391,7 +391,7 @@ static int imx_media_inherit_controls(struct imx_media_dev *imxmd,
- 
- 		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
- 					    sd->ctrl_handler,
--					    NULL);
-+					    NULL, true);
- 		if (ret)
- 			return ret;
- 	}
-diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
-index 6df189135db8..8cf773eef9da 100644
---- a/drivers/staging/media/imx/imx-media-fim.c
-+++ b/drivers/staging/media/imx/imx-media-fim.c
-@@ -463,7 +463,7 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim)
- {
- 	/* add the FIM controls to the calling subdev ctrl handler */
- 	return v4l2_ctrl_add_handler(fim->sd->ctrl_handler,
--				     &fim->ctrl_handler, NULL);
-+				     &fim->ctrl_handler, NULL, false);
- }
- EXPORT_SYMBOL_GPL(imx_media_fim_add_controls);
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 5b445b5654f7..f8faa54b5e7e 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -247,6 +247,8 @@ struct v4l2_ctrl {
-  * @ctrl:	The actual control information.
-  * @helper:	Pointer to helper struct. Used internally in
-  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-+ * @from_other_dev: If true, then @ctrl was defined in another
-+ *		device then the &struct v4l2_ctrl_handler.
-  *
-  * Each control handler has a list of these refs. The list_head is used to
-  * keep a sorted-by-control-ID list of all controls, while the next pointer
-@@ -257,6 +259,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl_ref *next;
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
-+	bool from_other_dev;
- };
- 
- /**
-@@ -633,6 +636,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
-  * @add:	The control handler whose controls you want to add to
-  *		the @hdl control handler.
-  * @filter:	This function will filter which controls should be added.
-+ * @from_other_dev: If true, then the controls in @add were defined in another
-+ *		device then @hdl.
-  *
-  * Does nothing if either of the two handlers is a NULL pointer.
-  * If @filter is NULL, then all controls are added. Otherwise only those
-@@ -642,7 +647,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
-  */
- int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 			  struct v4l2_ctrl_handler *add,
--			  v4l2_ctrl_filter filter);
-+			  v4l2_ctrl_filter filter,
-+			  bool from_other_dev);
- 
- /**
-  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
++/**
++ * v4l2_async_register_fwnode_subdev - registers a sub-device to the
++ *					asynchronous sub-device framework
++ *					and parses fwnode endpoints
++ *
++ * @sd: pointer to struct &v4l2_subdev
++ * @asd_struct_size: size of the driver's async sub-device struct, including
++ *		     sizeof(struct v4l2_async_subdev). The &struct
++ *		     v4l2_async_subdev shall be the first member of
++ *		     the driver's async sub-device struct, i.e. both
++ *		     begin at the same memory address.
++ * @ports: array of port id's to parse for fwnode endpoints. If NULL, will
++ *	   parse all ports owned by the sub-device.
++ * @num_ports: number of ports in @ports array. Ignored if @ports is NULL.
++ * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
++ *		    endpoint. Optional.
++ *
++ * This function is just like v4l2_async_register_subdev() with the exception
++ * that calling it will also parse the sub-device's firmware node endpoints
++ * using v4l2_async_notifier_parse_fwnode_endpoints() or
++ * v4l2_async_notifier_parse_fwnode_endpoints_by_port(), and registers the
++ * async sub-devices. The sub-device is similarly unregistered by calling
++ * v4l2_async_unregister_subdev().
++ *
++ * This function will work as expected if the sub-device fwnode is
++ * itself a port. The endpoints of this single port are parsed using
++ * v4l2_async_notifier_parse_fwnode_endpoints_by_port(), passing the
++ * parent of the sub-device as the port's owner. The caller must not
++ * provide a @ports array, since the sub-device owns only this port.
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
++ */
++int v4l2_async_register_fwnode_subdev(
++	struct v4l2_subdev *sd, size_t asd_struct_size,
++	unsigned int *ports, unsigned int num_ports,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd));
++
+ #endif /* _V4L2_FWNODE_H */
 -- 
-2.16.1
+2.7.4
