@@ -1,112 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:35941 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753065AbeCFQwV (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35167 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932070AbeCJT7K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 11:52:21 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH] media: ov5640: fix colorspace compliance
-Date: Tue, 6 Mar 2018 17:52:09 +0100
-Message-ID: <1520355129-10780-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Sat, 10 Mar 2018 14:59:10 -0500
+Received: by mail-pf0-f193.google.com with SMTP id y186so2681232pfb.2
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:10 -0800 (PST)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 08/13] media: imx: mipi csi-2: Register a subdev notifier
+Date: Sat, 10 Mar 2018 11:58:37 -0800
+Message-Id: <1520711922-17338-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix format ioctl colorspace related fields.
-Detected by v4l2-compliance tool.
+Parse neighbor remote devices on the MIPI CSI-2 input port, add
+them to a subdev notifier, and register the subdev notifier for the
+MIPI CSI-2 receiver, by calling v4l2_async_register_fwnode_subdev().
 
-Change-Id: I645138297033bc409751a3c7fc63e014650b8417
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+csi2_parse_endpoints() is modified to be the parse_endpoint callback.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/i2c/ov5640.c | 29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ drivers/staging/media/imx/imx6-mipi-csi2.c | 31 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 03940f0..676f635 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1874,7 +1874,13 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
- 		if (ov5640_formats[i].code == fmt->code)
- 			break;
- 	if (i >= ARRAY_SIZE(ov5640_formats))
--		fmt->code = ov5640_formats[0].code;
-+		i = 0;
-+
-+	fmt->code = ov5640_formats[i].code;
-+	fmt->colorspace = ov5640_formats[i].colorspace;
-+	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
-+	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-+	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
+diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+index ceeeb30..94eb9a1 100644
+--- a/drivers/staging/media/imx/imx6-mipi-csi2.c
++++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+@@ -551,35 +551,34 @@ static const struct v4l2_subdev_internal_ops csi2_internal_ops = {
+ 	.registered = csi2_registered,
+ };
  
+-static int csi2_parse_endpoints(struct csi2_dev *csi2)
++static int csi2_parse_endpoint(struct device *dev,
++			       struct v4l2_fwnode_endpoint *vep,
++			       struct v4l2_async_subdev *asd)
+ {
+-	struct device_node *node = csi2->dev->of_node;
+-	struct device_node *epnode;
+-	struct v4l2_fwnode_endpoint ep;
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
++	struct csi2_dev *csi2 = sd_to_dev(sd);
+ 
+-	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
+-	if (!epnode) {
+-		v4l2_err(&csi2->sd, "failed to get sink endpoint node\n");
++	if (!fwnode_device_is_available(asd->match.fwnode)) {
++		v4l2_err(&csi2->sd, "remote is not available\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	v4l2_fwnode_endpoint_parse(of_fwnode_handle(epnode), &ep);
+-	of_node_put(epnode);
+-
+-	if (ep.bus_type != V4L2_MBUS_CSI2) {
++	if (vep->bus_type != V4L2_MBUS_CSI2) {
+ 		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	csi2->bus = ep.bus.mipi_csi2;
++	csi2->bus = vep->bus.mipi_csi2;
+ 
+ 	dev_dbg(csi2->dev, "data lanes: %d\n", csi2->bus.num_data_lanes);
+ 	dev_dbg(csi2->dev, "flags: 0x%08x\n", csi2->bus.flags);
++
  	return 0;
  }
-@@ -1885,6 +1891,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 
+ static int csi2_probe(struct platform_device *pdev)
  {
- 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
- 	const struct ov5640_mode_info *new_mode;
-+	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
++	unsigned int sink_port = 0;
+ 	struct csi2_dev *csi2;
+ 	struct resource *res;
  	int ret;
+@@ -601,10 +600,6 @@ static int csi2_probe(struct platform_device *pdev)
+ 	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
+ 	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
  
- 	if (format->pad != 0)
-@@ -1897,7 +1904,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 		goto out;
- 	}
+-	ret = csi2_parse_endpoints(csi2);
+-	if (ret)
+-		return ret;
+-
+ 	csi2->pllref_clk = devm_clk_get(&pdev->dev, "ref");
+ 	if (IS_ERR(csi2->pllref_clk)) {
+ 		v4l2_err(&csi2->sd, "failed to get pll reference clock\n");
+@@ -654,7 +649,9 @@ static int csi2_probe(struct platform_device *pdev)
  
--	ret = ov5640_try_fmt_internal(sd, &format->format,
-+	ret = ov5640_try_fmt_internal(sd, mbus_fmt,
- 				      sensor->current_fr, &new_mode);
+ 	platform_set_drvdata(pdev, &csi2->sd);
+ 
+-	ret = v4l2_async_register_subdev(&csi2->sd);
++	ret = v4l2_async_register_fwnode_subdev(
++		&csi2->sd, sizeof(struct v4l2_async_subdev),
++		&sink_port, 1, csi2_parse_endpoint);
  	if (ret)
- 		goto out;
-@@ -1906,12 +1913,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_mbus_framefmt *fmt =
- 			v4l2_subdev_get_try_format(sd, cfg, 0);
+ 		goto dphy_off;
  
--		*fmt = format->format;
-+		*fmt = *mbus_fmt;
- 		goto out;
- 	}
- 
- 	sensor->current_mode = new_mode;
--	sensor->fmt = format->format;
-+	sensor->fmt = *mbus_fmt;
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
-@@ -2497,16 +2504,22 @@ static int ov5640_probe(struct i2c_client *client,
- 	struct fwnode_handle *endpoint;
- 	struct ov5640_dev *sensor;
- 	int ret;
-+	struct v4l2_mbus_framefmt *fmt;
- 
- 	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
- 	if (!sensor)
- 		return -ENOMEM;
- 
- 	sensor->i2c_client = client;
--	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
--	sensor->fmt.width = 640;
--	sensor->fmt.height = 480;
--	sensor->fmt.field = V4L2_FIELD_NONE;
-+	fmt = &sensor->fmt;
-+	fmt->code = ov5640_formats[0].code;
-+	fmt->colorspace = ov5640_formats[0].colorspace;
-+	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
-+	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-+	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
-+	fmt->width = 640;
-+	fmt->height = 480;
-+	fmt->field = V4L2_FIELD_NONE;
- 	sensor->frame_interval.numerator = 1;
- 	sensor->frame_interval.denominator = ov5640_framerates[OV5640_30_FPS];
- 	sensor->current_fr = OV5640_30_FPS;
 -- 
-1.9.1
+2.7.4
