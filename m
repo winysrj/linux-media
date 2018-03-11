@@ -1,237 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f169.google.com ([209.85.216.169]:43227 "EHLO
-        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751551AbeCVRus (ORCPT
+Received: from resqmta-ch2-11v.sys.comcast.net ([69.252.207.43]:53692 "EHLO
+        resqmta-ch2-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932110AbeCKJsj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Mar 2018 13:50:48 -0400
-Received: by mail-qt0-f169.google.com with SMTP id s48so9842355qtb.10
-        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 10:50:47 -0700 (PDT)
-Message-ID: <1521741044.18466.12.camel@ndufresne.ca>
-Subject: Re: [RFC] Request API
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 22 Mar 2018 13:50:44 -0400
-In-Reply-To: <8d6f1a84-0113-dad5-29b4-3474976fd1e1@xs4all.nl>
-References: <aa5f4986-7cb3-ec85-203d-e1afa644d769@xs4all.nl>
-         <1521736580.18466.3.camel@ndufresne.ca>
-         <8d6f1a84-0113-dad5-29b4-3474976fd1e1@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-iGNG4kesMHHOud4SPsga"
-Mime-Version: 1.0
+        Sun, 11 Mar 2018 05:48:39 -0400
+From: A Sun <as1033x@comcast.net>
+Subject: [PATCH] [media] mceusb: add IR learning support features (IR carrier
+ frequency measurement and wide-band/short range receiver)
+To: linux-media@vger.kernel.org
+Cc: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Message-ID: <20f4d234-c62f-12ab-5e15-639f7d981f56@comcast.net>
+Date: Sun, 11 Mar 2018 05:40:28 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-iGNG4kesMHHOud4SPsga
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Windows Media Center IR transceivers include two IR receivers;
+wide-band/short-range and narrow-band/long-range. The short-range
+(5cm distance) receiver is for IR learning and has IR carrier
+frequency measuring ability.
 
-Le jeudi 22 mars 2018 =C3=A0 18:22 +0100, Hans Verkuil a =C3=A9crit :
-> On 03/22/2018 05:36 PM, Nicolas Dufresne wrote:
-> > Le jeudi 22 mars 2018 =C3=A0 15:18 +0100, Hans Verkuil a =C3=A9crit :
-> > > RFC Request API
-> > > ---------------
-> > >=20
-> > > This document proposes the public API for handling requests.
-> > >=20
-> > > There has been some confusion about how to do this, so this summarize=
-s the
-> > > current approach based on conversations with the various stakeholders=
- today
-> > > (Sakari, Alexandre Courbot, Tomasz Figa and myself).
-> > >=20
-> > > The goal is to finalize this so the Request API patch series work can
-> > > continue.
-> > >=20
-> > > 1) Additions to the media API
-> > >=20
-> > >    Allocate an empty request object:
-> > >=20
-> > >    #define MEDIA_IOC_REQUEST_ALLOC _IOW('|', 0x05, __s32 *)
-> >=20
-> > I see this is MEDIA_IOC namespace, I thought that there was an opening
-> > for m2m (codec) to not have to expose a media node. Is this still the
-> > case ?
->=20
-> Allocating requests will have to be done via the media device and codecs =
-will
-> therefor register a media device as well.
->=20
-> However, it is an open question if we want to have what is basically a sh=
-ortcut
-> V4L2 ioctl like VIDIOC_REQUEST_ALLOC so applications that deal with state=
-less
-> codecs do not have to open the media device just to allocate a request.
+Add mceusb driver support to select the short range IR receiver
+and enable pass through of its IR carrier frequency measurements.
 
-CODEC driver don't have any use for the media driver. So to me it's
-important to not impose on userspace to open and manage two devices.
-The presence of a media object in the kernel should not imply exposing
-such a device in /dev.
+RC and LIRC already support these mceusb driver additions.
 
->=20
-> I guess that whether or not you want that depends on how open you are for
-> practical considerations in an API.
->=20
-> I've asked Alexandre to add this V4L2 ioctl as a final patch in the serie=
-s
-> and we can decide later on whether or not to accept it.
->=20
-> Sorry, I wanted to mention this in the RFC as a note at the end, but I fo=
-rgot.
->=20
-> >=20
-> > >=20
-> > >    This will return a file descriptor representing the request or an =
-error
-> > >    if it can't allocate the request.
-> > >=20
-> > >    If the pointer argument is NULL, then this will just return 0 (if =
-this ioctl
-> > >    is implemented) or -ENOTTY otherwise. This can be used to test whe=
-ther this
-> > >    ioctl is supported or not without actually having to allocate a re=
-quest.
-> > >=20
-> > > 2) Operations on the request fd
-> > >=20
-> > >    You can queue (aka submit) or reinit a request by calling these io=
-ctls on the request fd:
-> > >=20
-> > >    #define MEDIA_REQUEST_IOC_QUEUE   _IO('|',  128)
-> > >    #define MEDIA_REQUEST_IOC_REINIT  _IO('|',  129)
-> > >=20
-> > >    Note: the original proposal from Alexandre used IOC_SUBMIT instead=
- of
-> > >    IOC_QUEUE. I have a slight preference for QUEUE since that implies=
- that the
-> > >    request end up in a queue of requests. That's less obvious with SU=
-BMIT. I
-> > >    have no strong opinion on this, though.
-> > >=20
-> > >    With REINIT you reset the state of the request as if you had just =
-allocated
-> > >    it. You cannot REINIT a request if the request is queued but not y=
-et completed.
-> > >    It will return -EBUSY in that case.
-> > >=20
-> > >    Calling QUEUE if the request is already queued or completed will r=
-eturn -EBUSY
-> > >    as well. Or would -EPERM be better? I'm open to suggestions. Eithe=
-r error code
-> > >    will work, I think.
-> > >=20
-> > >    You can poll the request fd to wait for it to complete. A request =
-is complete
-> > >    if all the associated buffers are available for dequeuing and all =
-the associated
-> > >    controls (such as controls containing e.g. statistics) are updated=
- with their
-> > >    final values.
-> > >=20
-> > >    To free a request you close the request fd. Note that it may still=
- be in
-> > >    use internally, so this has to be refcounted.
-> > >=20
-> > >    Requests only contain the changes since the previously queued requ=
-est or
-> > >    since the current hardware state if no other requests are queued.
-> > >=20
-> > > 3) To associate a v4l2 buffer with a request the 'reserved' field in =
-struct
-> > >    v4l2_buffer is used to store the request fd. Buffers won't be 'pre=
-pared'
-> > >    until the request is queued since the request may contain informat=
-ion that
-> > >    is needed to prepare the buffer.
-> > >=20
-> > >    Queuing a buffer without a request after a buffer with a request i=
-s equivalent
-> > >    to queuing a request containing just that buffer and nothing else.=
- I.e. it will
-> > >    just use whatever values the hardware has at the time of processin=
-g.
-> > >=20
-> > > 4) To associate v4l2 controls with a request we take the first of the
-> > >    'reserved[2]' array elements in struct v4l2_ext_controls and use i=
-t to store
-> > >    the request fd.
-> > >=20
-> > >    When querying a control value from a request it will return the ne=
-west
-> > >    value in the list of pending requests, or the current hardware val=
-ue if
-> > >    is not set in any of the pending requests.
-> > >=20
-> > >    Setting controls without specifying a request fd will just act lik=
-e it does
-> > >    today: the hardware is immediately updated. This can cause race co=
-nditions
-> > >    if the same control is also specified in a queued request: it is n=
-ot defined
-> > >    which will be set first. It is therefor not a good idea to set the=
- same
-> > >    control directly as well as set it as part of a request.
-> > >=20
-> > > Notes:
-> > >=20
-> > > - Earlier versions of this API had a TRY command as well to validate =
-the
-> > >   request. I'm not sure that is useful so I dropped it, but it can ea=
-sily
-> > >   be added if there is a good use-case for it. Traditionally within V=
-4L the
-> > >   TRY ioctl will also update wrong values to something that works, bu=
-t that
-> > >   is not the intention here as far as I understand it. So the validat=
-ion
-> > >   step can also be done when the request is queued and, if it fails, =
-it will
-> > >   just return an error.
-> >=20
-> > I think it's worth to understand that this would mimic DRM Atomic
-> > interface. The reason atomic operation can be tried like this is
-> > because it's not possible to generically represent all the constraints.
-> > So this would only be useful we we do have this issue.
->=20
-> Right. I don't think this is needed for codecs, so I'd leave this out for
-> now. It can always be added later.
->=20
-> Regards,
->=20
-> 	Hans
->=20
-> >=20
-> > >=20
-> > > - If due to performance reasons we will have to allocate/queue/reinit=
- multiple
-> > >   requests with a single ioctl, then we will have to add new ioctls t=
-o the
-> > >   media device. At this moment in time it is not clear that this is r=
-eally
-> > >   needed and it certainly isn't needed for the stateless codec suppor=
-t that
-> > >   we are looking at now.
-> > >=20
-> > > Regards,
-> > >=20
-> > > 	Hans
->=20
->=20
---=-iGNG4kesMHHOud4SPsga
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Test platform:
 
------BEGIN PGP SIGNATURE-----
+Linux raspberrypi 4.9.59-v7+ #1047 SMP Sun Oct 29 12:19:23 GMT 2017 armv7l GNU/Linux
+mceusb 1-1.2:1.0: Registered Pinnacle Systems PCTV Remote USB with mce emulator interface version 1
+mceusb 1-1.2:1.0: 2 tx ports (0x0 cabled) and 2 rx sensors (0x1 active)
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWrPs9AAKCRBxUwItrAao
-HGR+AKCxHqYEuuxDkKwnxiOzzU9uPqCEqQCdFWiN0HfkTsd2VPuH+HRKTTGVa14=
-=/Qq5
------END PGP SIGNATURE-----
+Sony TV remote control
 
---=-iGNG4kesMHHOud4SPsga--
+ir-ctl from v4l-utils
+
+pi@raspberrypi:~ $ ir-ctl -V
+IR raw version 1.12.3
+pi@raspberrypi:~ $ ir-ctl -w -m -d /dev/lirc0 -r
+...
+pulse 600
+space 600
+pulse 1250
+space 550
+pulse 650
+space 600
+pulse 550
+space 600
+pulse 600
+space 600
+pulse 650
+carrier 38803
+space 16777215
+^C
+pi@raspberrypi:~ $ exit
+
+Signed-off-by: A Sun <as1033x@comcast.net>
+---
+ drivers/media/rc/mceusb.c | 90 ++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 82 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index a9187b0b4..8bbb0f2da 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -42,7 +42,7 @@
+ #include <linux/pm_wakeup.h>
+ #include <media/rc-core.h>
+ 
+-#define DRIVER_VERSION	"1.93"
++#define DRIVER_VERSION	"1.94"
+ #define DRIVER_AUTHOR	"Jarod Wilson <jarod@redhat.com>"
+ #define DRIVER_DESC	"Windows Media Center Ed. eHome Infrared Transceiver " \
+ 			"device driver"
+@@ -427,6 +427,7 @@ struct mceusb_dev {
+ 	struct rc_dev *rc;
+ 
+ 	/* optional features we can enable */
++	bool carrier_report_enabled;
+ 	bool learning_enabled;
+ 
+ 	/* core device bits */
+@@ -475,6 +476,9 @@ struct mceusb_dev {
+ 	u8 txports_cabled;	/* bitmask of transmitters with cable */
+ 	u8 rxports_active;	/* bitmask of active receive sensors */
+ 
++	/* receiver carrier frequency detection support */
++	u32 pulse_tunit;	/* IR pulse "on" cumulative time units */
++
+ 	/*
+ 	 * support for async error handler mceusb_deferred_kevent()
+ 	 * where usb_clear_halt(), usb_reset_configuration(),
+@@ -956,12 +960,60 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ }
+ 
+ /*
++ * Select or deselect the 2nd receiver port.
++ * Second receiver is learning mode, wide-band, short-range receiver.
++ * Only one receiver (long or short range) may be active at a time.
++ */
++static int mceusb_set_rx_wideband(struct rc_dev *dev, int enable)
++{
++	struct mceusb_dev *ir = dev->priv;
++	unsigned char cmdbuf[3] = { MCE_CMD_PORT_IR,
++				    MCE_CMD_SETIRRXPORTEN, 0x00 };
++
++	if (enable != 0 && enable != 1)
++		return -EINVAL;
++
++	/*
++	 * cmdbuf[2] is receiver port number
++	 * port 1 is long range receiver
++	 * port 2 is short range receiver
++	 */
++	cmdbuf[2] = enable + 1;
++	dev_dbg(ir->dev, "select %s-range receive sensor",
++		enable ? "short" : "long");
++	mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
++
++	return 0;
++}
++
++/*
++ * Enable/disable receiver carrier frequency pass through reporting.
++ * Frequency measurement only works with the short-range receiver.
++ * The long-range receiver always reports no carrier frequency
++ * (MCE_RSP_EQIRRXCFCNT, 0, 0) so we always ignore its report.
++ */
++static int mceusb_set_rx_carrier_report(struct rc_dev *dev, int enable)
++{
++	struct mceusb_dev *ir = dev->priv;
++
++	if (enable != 0 && enable != 1)
++		return -EINVAL;
++
++	dev_dbg(ir->dev, "%s short-range receiver carrier reporting",
++		enable ? "enable" : "disable");
++	ir->carrier_report_enabled = (enable == 1);
++
++	return 0;
++}
++
++/*
+  * We don't do anything but print debug spew for many of the command bits
+  * we receive from the hardware, but some of them are useful information
+  * we want to store so that we can use them.
+  */
+ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
+ {
++	DEFINE_IR_RAW_EVENT(rawir);
+ 	u8 hi = ir->buf_in[index + 1] & 0xff;
+ 	u8 lo = ir->buf_in[index + 2] & 0xff;
+ 
+@@ -980,6 +1032,18 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
+ 		ir->num_txports = hi;
+ 		ir->num_rxports = lo;
+ 		break;
++	case MCE_RSP_EQIRRXCFCNT:
++		if (ir->carrier_report_enabled && ir->learning_enabled
++		    && ir->pulse_tunit > 0) {
++			init_ir_raw_event(&rawir);
++			rawir.carrier_report = 1;
++			rawir.carrier = (1000000u / MCE_TIME_UNIT) *
++					(hi << 8 | lo) / ir->pulse_tunit;
++			dev_dbg(ir->dev, "RX carrier frequency %u Hz (pulse %u time units)",
++				rawir.carrier, ir->pulse_tunit);
++			ir_raw_event_store(ir->rc, &rawir);
++		}
++		break;
+ 
+ 	/* 1-byte return value commands */
+ 	case MCE_RSP_EQEMVER:
+@@ -990,7 +1054,11 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
+ 		break;
+ 	case MCE_RSP_EQIRRXPORTEN:
+ 		ir->learning_enabled = ((hi & 0x02) == 0x02);
+-		ir->rxports_active = hi;
++		if (ir->rxports_active != hi) {
++			dev_info(ir->dev, "%s-range (0x%x) receiver active",
++				 ir->learning_enabled ? "short" : "long", hi);
++			ir->rxports_active = hi;
++		}
+ 		break;
+ 	case MCE_RSP_CMD_ILLEGAL:
+ 		ir->need_reset = true;
+@@ -1027,12 +1095,14 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 			ir->rem--;
+ 			init_ir_raw_event(&rawir);
+ 			rawir.pulse = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
+-			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
+-					 * US_TO_NS(MCE_TIME_UNIT);
++			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK);
++			if (rawir.pulse)
++				ir->pulse_tunit += rawir.duration;
++			rawir.duration *= US_TO_NS(MCE_TIME_UNIT);
+ 
+-			dev_dbg(ir->dev, "Storing %s with duration %u",
++			dev_dbg(ir->dev, "Storing %s %u ns (%02x)",
+ 				rawir.pulse ? "pulse" : "space",
+-				rawir.duration);
++				rawir.duration,	ir->buf_in[i]);
+ 
+ 			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
+ 				event = true;
+@@ -1053,10 +1123,12 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 			ir->rem = (ir->cmd & MCE_PACKET_LENGTH_MASK);
+ 			mceusb_dev_printdata(ir, ir->buf_in, buf_len,
+ 					     i, ir->rem + 1, false);
+-			if (ir->rem)
++			if (ir->rem) {
+ 				ir->parser_state = PARSE_IRDATA;
+-			else
++			} else {
+ 				ir_raw_event_reset(ir->rc);
++				ir->pulse_tunit = 0;
++			}
+ 			break;
+ 		}
+ 
+@@ -1287,6 +1359,8 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	rc->priv = ir;
+ 	rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
+ 	rc->timeout = MS_TO_NS(100);
++	rc->s_learning_mode = mceusb_set_rx_wideband;
++	rc->s_carrier_report = mceusb_set_rx_carrier_report;
+ 	if (!ir->flags.no_tx) {
+ 		rc->s_tx_mask = mceusb_set_tx_mask;
+ 		rc->s_tx_carrier = mceusb_set_tx_carrier;
+-- 
+2.11.0
