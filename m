@@ -1,64 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34731 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751255AbeCMWSJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 18:18:09 -0400
-Received: by mail-wr0-f196.google.com with SMTP id o8so2544858wra.1
-        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 15:18:09 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rascobie@slingshot.co.nz
-Subject: [PATCH v3 0/3] Add FEC rates, S2X params and 64K transmission
-Date: Tue, 13 Mar 2018 23:18:02 +0100
-Message-Id: <20180313221805.26818-1-d.scheller.oss@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:41385 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932130AbeCKMzW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Mar 2018 08:55:22 -0400
+Date: Sun, 11 Mar 2018 12:55:19 +0000
+From: Sean Young <sean@mess.org>
+To: Matthias Reichl <hias@horus.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Carlo Caione <carlo@caione.org>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Alex Deryskyba <alex@codesnake.com>,
+        Jonas Karlman <jonas@kwiboo.se>, linux-media@vger.kernel.org,
+        linux-amlogic@lists.infradead.org
+Subject: Re: [PATCH] media: rc: meson-ir: add timeout on idle
+Message-ID: <20180311125518.pcob4wii43odmana@gofer.mess.org>
+References: <20180306174122.6017-1-hias@horus.com>
+ <20180308164327.ihhmvm6ntzvnsjy7@gofer.mess.org>
+ <20180309155451.gbocsaj4s3puc4cq@camel2.lan>
+ <20180310112744.plfxkmqbgvii7n7r@gofer.mess.org>
+ <20180310173828.7lwyicxzar22dyb7@camel2.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180310173828.7lwyicxzar22dyb7@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Matthias,
 
-Note: This v3 doesn't yet implement anything to allow userspace to detect
-bits regarding S2X, nor does it implement anything new to report frontend
-capabilities. At the moment, the main purpose for this is to enable any
-demod frontend to report the current signal parameters more accurate.
-Right now this (partially) is for the stv0910 demod, and with additional
-hardware currently in development in mind which supports more S2X bits.
-There's quite a lot missing from fe_caps right now which almost all
-demods autodetect anyway, so let's at least properly report signal stats.
+On Sat, Mar 10, 2018 at 06:38:28PM +0100, Matthias Reichl wrote:
+> On Sat, Mar 10, 2018 at 11:27:45AM +0000, Sean Young wrote:
+> > So if the timeout is below N then you will never get a space of N or larger;
+> > the largest space I know of in an IR message is 40ms in the sanyo protocol:
+> > 
+> > https://www.sbprojects.net/knowledge/ir/sharp.php
+> > 
+> > So if timeout is set to less than 40ms, we would have trouble decoding the
+> > sharp protocol.
+> > 
+> > The space between nec repeats is a little less than 100ms. I'm trying to
+> > remember what would could go wrong if the space between them would be
+> > timeouts instead. Mauro do you remember? I can imagine some IR hardware
+> > (e.g. winbond) queuing up IR after generating a timeout, thus delaying
+> > delivering IR to the kernel and we ending up generating a key up.
+> > 
+> > The problem with a higher timeout is that the trailing space (=timeout)
+> > is sometimes needed for decoding, and decoding of the last message is
+> > delayed until the timeout is received. That means the keyup message is
+> > delayed until that time, making keys a bit "sticky" and more likely to
+> > generate repeats. I'm pretty sure that is needed for rc-5 and nec.
+> 
+> Another issue with high timeouts is the response to very short button
+> presses where the remote only transmits a single scancode. It then
+> takes signal transmission time plus timeout, so roughly a quarter
+> of a second on meson-ir and ite-cir with 200ms timeout, until the
+> scancode is decoded and the keydown event is generated.
+> 
+> On longer button presses this is less of an issue as we get the
+> space signal when the first pulse of the repeated scancode is
+> received. So the delay between button press and keydown is determined
+> by the remote scancode repeat interval and with typically ~110ms
+> on nec/rc-5 a lot lower.
+> 
+> This affects both "quick fingers" using a standard remote and
+> users of programmable remotes like the Logitech Harmony where
+> the number of scancodes transmitted on a short press can be
+> configured. With a single scancode transmission we run into
+> the long keydown delay, 2 scancodes is fine, and at 3 or 4 we
+> start running into the key repeat issue.
+> 
+> We received several reports from users that their remote felt
+> "sluggish" when we switched from the downstream "amremote" driver
+> (which IIRC decoded the nec protocol in hardware) to meson-ir.
+> 
+> Lowering the timeout to 125ms or even significantly lower
+> (depending on what the protocol and IR receiver permits)
+> removes this "sluggishness", users report that their remote
+> is more "responsive".
 
-dddvb brings a few additional FEC rates (1/4 and 1/3), 64/128/256APSK
-modulations and more rolloff factors (DVB-S2X), and 64K transmission mode
-(DVB-T2). These rather trivial patches bring them to mainline, and puts
-these missing bits into the stv0910's get_frontend() callback (FEC 1/4
-and 1/3 are handled throughout the rest of the demod driver already). In
-addition (as suggestion from Richard Scobie), the stv0910 driver now
-reports it's active delivery system.
+That makes complete sense. I'm actually keen to get this lowered, since
+this makes it possible to lower the repeat period per-protocol, see
+commit d57ea877af38 which had to be reverted (the ite driver will
+need fixing up as well before this can happen).
 
-Changes from v2 to v3:
-- API bits squashed into one commit, stv0910 changes squashed into another
-  single commit
-- DVB-S2X related bits added to the uAPI docs
-- DVB API bumped to v5.12
+Lowering to below 125ms does increase the risk of regressions, so I
+am weary of that. Do you think there is benefit in doing this?
 
-Changes from v1 to v2:
-- DVB-S2X rolloff factors and reporting
-- report of the active delivery system in stv0910:get_frontend()
+Thanks
 
-Daniel Scheller (3):
-  [media] dvb_frontend: add S2X and misc. other enums
-  [media] docs: documentation bits for S2X and the 64K transmission mode
-  [media] dvb-frontends/stv0910: more detailed reporting in
-    get_frontend()
-
- Documentation/media/frontend.h.rst.exceptions      |  9 ++++
- .../media/uapi/dvb/fe_property_parameters.rst      | 50 ++++++++++++++--------
- .../dvb/frontend-property-satellite-systems.rst    |  8 ++--
- drivers/media/dvb-core/dvb_frontend.c              |  9 ++++
- drivers/media/dvb-frontends/stv0910.c              | 16 ++++---
- include/uapi/linux/dvb/frontend.h                  | 29 ++++++++++---
- include/uapi/linux/dvb/version.h                   |  2 +-
- 7 files changed, 90 insertions(+), 33 deletions(-)
-
--- 
-2.16.1
+Sean
