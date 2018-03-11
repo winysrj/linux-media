@@ -1,59 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:41690 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752478AbeCYV1q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Mar 2018 17:27:46 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v6 4/6] tuner-simple: allow setting mono radio mode
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <cover.1522012430.git.mail@maciej.szmigiero.name>
-Message-ID: <f28448e8-e819-94cb-9830-f42dbd314858@maciej.szmigiero.name>
-Date: Sun, 25 Mar 2018 23:27:43 +0200
-MIME-Version: 1.0
-In-Reply-To: <cover.1522012430.git.mail@maciej.szmigiero.name>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42157 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751227AbeCKEge (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Mar 2018 23:36:34 -0500
+Message-ID: <9ee0f18544d9bc6deb764114b3cd29b6@smtp-cloud7.xs4all.net>
+Date: Sun, 11 Mar 2018 05:36:32 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some types of tuners (Philips FMD1216ME(X) MK3 currently) we know that
-letting TDA9887 output port 1 remain high (inactive) will switch FM radio
-to mono mode.
-Let's make use of this functionality - nothing changes for the default
-stereo radio mode.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Tested on a Medion 95700 board which has a FMD1216ME tuner.
+Results of the daily build of media_tree:
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
----
- drivers/media/tuners/tuner-simple.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+date:			Sun Mar 11 05:00:11 CET 2018
+media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
+media_build git hash:	8b244766d710a8687ae6156abde9d6f377a168ad
+v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-diff --git a/drivers/media/tuners/tuner-simple.c b/drivers/media/tuners/tuner-simple.c
-index 36b88f820239..29c1473f2e9f 100644
---- a/drivers/media/tuners/tuner-simple.c
-+++ b/drivers/media/tuners/tuner-simple.c
-@@ -670,6 +670,7 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
- 	int rc, j;
- 	struct tuner_params *t_params;
- 	unsigned int freq = params->frequency;
-+	bool mono = params->audmode == V4L2_TUNER_MODE_MONO;
- 
- 	tun = priv->tun;
- 
-@@ -736,8 +737,8 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
- 			config |= TDA9887_PORT2_ACTIVE;
- 		if (t_params->intercarrier_mode)
- 			config |= TDA9887_INTERCARRIER;
--/*		if (t_params->port1_set_for_fm_mono)
--			config &= ~TDA9887_PORT1_ACTIVE;*/
-+		if (t_params->port1_set_for_fm_mono && mono)
-+			config &= ~TDA9887_PORT1_ACTIVE;
- 		if (t_params->fm_gain_normal)
- 			config |= TDA9887_GAIN_NORMAL;
- 		if (t_params->radio_if == 2)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.53-i686: ERRORS
+linux-3.16.53-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.93-i686: ERRORS
+linux-3.18.93-x86_64: ERRORS
+linux-3.19-i686: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.49-i686: ERRORS
+linux-4.1.49-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.115-i686: ERRORS
+linux-4.4.115-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.80-i686: ERRORS
+linux-4.9.80-x86_64: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14.17-i686: ERRORS
+linux-4.14.17-x86_64: ERRORS
+linux-4.15.2-i686: ERRORS
+linux-4.15.2-x86_64: ERRORS
+linux-4.16-rc1-i686: ERRORS
+linux-4.16-rc1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
