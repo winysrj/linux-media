@@ -1,182 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35364 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754042AbeCWL5d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kees Cook <keescook@chromium.org>
-Subject: [PATCH 19/30] media: saa7134-input: improve error handling
-Date: Fri, 23 Mar 2018 07:57:05 -0400
-Message-Id: <5fd46ac9291402ba1d04e2c5ce3b295e1c13143e.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:41498 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932161AbeCKTnC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Mar 2018 15:43:02 -0400
+Subject: Re: [RFCv4,19/21] media: vim2m: add request support
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+References: <20180220044425.169493-20-acourbot@chromium.org>
+ <1520440654.1092.15.camel@bootlin.com>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <6470b45d-e9dc-0a22-febc-cd18ae1092be@gmail.com>
+Date: Sun, 11 Mar 2018 22:42:50 +0300
+MIME-Version: 1.0
+In-Reply-To: <1520440654.1092.15.camel@bootlin.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, the code produces those false-positives:
-	drivers/media/pci/saa7134/saa7134-input.c:203 get_key_msi_tvanywhere_plus() error: uninitialized symbol 'b'.
-	drivers/media/pci/saa7134/saa7134-input.c:251 get_key_kworld_pc150u() error: uninitialized symbol 'b'.
-	drivers/media/pci/saa7134/saa7134-input.c:275 get_key_purpletv() error: uninitialized symbol 'b'.
+Hello,
 
-Improve the error handling code, making it to look like our
-coding style.
+On 07.03.2018 19:37, Paul Kocialkowski wrote:
+> Hi,
+> 
+> First off, I'd like to take the occasion to say thank-you for your work.
+> This is a major piece of plumbing that is required for me to add support
+> for the Allwinner CedarX VPU hardware in upstream Linux. Other drivers,
+> such as tegra-vde (that was recently merged in staging) are also badly
+> in need of this API.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/saa7134/saa7134-input.c | 46 +++++++++++++++++++++++++------
- 1 file changed, 37 insertions(+), 9 deletions(-)
+Certainly it would be good to have a common UAPI. Yet I haven't got my hands on
+trying to implement the V4L interface for the tegra-vde driver, but I've taken a
+look at Cedrus driver and for now I've one question:
 
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 33ee8322895e..0e28c5021ac4 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -115,7 +115,7 @@ static int build_key(struct saa7134_dev *dev)
- static int get_key_flydvb_trio(struct IR_i2c *ir, enum rc_proto *protocol,
- 			       u32 *scancode, u8 *toggle)
- {
--	int gpio;
-+	int gpio, rc;
- 	int attempt = 0;
- 	unsigned char b;
- 
-@@ -153,8 +153,11 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, enum rc_proto *protocol,
- 		       attempt);
- 		return -EIO;
- 	}
--	if (1 != i2c_master_recv(ir->c, &b, 1)) {
-+	rc = i2c_master_recv(ir->c, &b, 1);
-+	if (rc != 1) {
- 		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
- 	}
- 
-@@ -169,7 +172,7 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir,
- 				       u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
--	int gpio;
-+	int gpio, rc;
- 
- 	/* <dev> is needed to access GPIO. Used by the saa_readl macro. */
- 	struct saa7134_dev *dev = ir->c->adapter->algo_data;
-@@ -193,8 +196,11 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir,
- 
- 	/* GPIO says there is a button press. Get it. */
- 
--	if (1 != i2c_master_recv(ir->c, &b, 1)) {
-+	rc = i2c_master_recv(ir->c, &b, 1);
-+	if (rc != 1) {
- 		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
- 	}
- 
-@@ -218,6 +224,7 @@ static int get_key_kworld_pc150u(struct IR_i2c *ir, enum rc_proto *protocol,
- {
- 	unsigned char b;
- 	unsigned int gpio;
-+	int rc;
- 
- 	/* <dev> is needed to access GPIO. Used by the saa_readl macro. */
- 	struct saa7134_dev *dev = ir->c->adapter->algo_data;
-@@ -241,8 +248,11 @@ static int get_key_kworld_pc150u(struct IR_i2c *ir, enum rc_proto *protocol,
- 
- 	/* GPIO says there is a button press. Get it. */
- 
--	if (1 != i2c_master_recv(ir->c, &b, 1)) {
-+	rc = i2c_master_recv(ir->c, &b, 1);
-+	if (rc != 1) {
- 		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
- 	}
- 
-@@ -263,11 +273,15 @@ static int get_key_kworld_pc150u(struct IR_i2c *ir, enum rc_proto *protocol,
- static int get_key_purpletv(struct IR_i2c *ir, enum rc_proto *protocol,
- 			    u32 *scancode, u8 *toggle)
- {
-+	int rc;
- 	unsigned char b;
- 
- 	/* poll IR chip */
--	if (1 != i2c_master_recv(ir->c, &b, 1)) {
-+	rc = i2c_master_recv(ir->c, &b, 1);
-+	if (rc != 1) {
- 		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
- 	}
- 
-@@ -288,11 +302,17 @@ static int get_key_purpletv(struct IR_i2c *ir, enum rc_proto *protocol,
- static int get_key_hvr1110(struct IR_i2c *ir, enum rc_proto *protocol,
- 			   u32 *scancode, u8 *toggle)
- {
-+	int rc;
- 	unsigned char buf[5];
- 
- 	/* poll IR chip */
--	if (5 != i2c_master_recv(ir->c, buf, 5))
-+	rc = i2c_master_recv(ir->c, buf, 5);
-+	if (rc != 5) {
-+		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
-+	}
- 
- 	/* Check if some key were pressed */
- 	if (!(buf[0] & 0x80))
-@@ -319,6 +339,7 @@ static int get_key_hvr1110(struct IR_i2c *ir, enum rc_proto *protocol,
- static int get_key_beholdm6xx(struct IR_i2c *ir, enum rc_proto *protocol,
- 			      u32 *scancode, u8 *toggle)
- {
-+	int rc;
- 	unsigned char data[12];
- 	u32 gpio;
- 
-@@ -335,8 +356,11 @@ static int get_key_beholdm6xx(struct IR_i2c *ir, enum rc_proto *protocol,
- 
- 	ir->c->addr = 0x5a >> 1;
- 
--	if (12 != i2c_master_recv(ir->c, data, 12)) {
-+	rc = i2c_master_recv(ir->c, data, 12);
-+	if (rc != 12) {
- 		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
- 	}
- 
-@@ -356,12 +380,16 @@ static int get_key_pinnacle(struct IR_i2c *ir, enum rc_proto *protocol,
- 			    u32 *scancode, u8 *toggle, int parity_offset,
- 			    int marker, int code_modulo)
- {
-+	int rc;
- 	unsigned char b[4];
- 	unsigned int start = 0,parity = 0,code = 0;
- 
- 	/* poll IR chip */
--	if (4 != i2c_master_recv(ir->c, b, 4)) {
-+	rc = i2c_master_recv(ir->c, b, 4);
-+	if (rc != 4) {
- 		ir_dbg(ir, "read error\n");
-+		if (rc < 0)
-+			return rc;
- 		return -EIO;
- 	}
- 
+Would it be possible (or maybe already is) to have a single IOCTL that takes
+input/output buffers with codec parameters, processes the request(s) and returns
+to userspace when everything is done? Having 5 context switches for a single
+frame decode (like Cedrus VAAPI driver does) looks like a bit of overhead.
+
+> I have a few comments based on my experience integrating this request
+> API with the Cedrus VPU driver (and the associated libva backend), that
+> also concern the vim2m driver.
+> 
+> On Tue, 2018-02-20 at 13:44 +0900, Alexandre Courbot wrote:
+>> Set the necessary ops for supporting requests in vim2m.
+>>
+>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>> ---
+>>  drivers/media/platform/Kconfig |  1 +
+>>  drivers/media/platform/vim2m.c | 75
+>> ++++++++++++++++++++++++++++++++++
+>>  2 files changed, 76 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/Kconfig
+>> b/drivers/media/platform/Kconfig
+>> index 614fbef08ddc..09be0b5f9afe 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+> 
+> [...]
+> 
+>> +static int vim2m_request_submit(struct media_request *req,
+>> +				struct media_request_entity_data
+>> *_data)
+>> +{
+>> +	struct v4l2_request_entity_data *data;
+>> +
+>> +	data = to_v4l2_entity_data(_data);
+> 
+> We need to call v4l2_m2m_try_schedule here so that m2m scheduling can
+> happen when only 2 buffers were queued and no other action was taken
+> from usespace. In that scenario, m2m scheduling currently doesn't
+> happen.
+> 
+> However, this requires access to the m2m context, which is not easy to
+> get from req or _data. I'm not sure that some container_of magic would
+> even do the trick here.
+> 
+>> +	return vb2_request_submit(data);
+> 
+> vb2_request_submit does not lock the associated request mutex although
+> it accesses the associated queued buffers list, which I believe this
+> mutex is supposed to protect.
+> 
+> We could either wrap this call with media_request_lock(req) and
+> media_request_unlock(req) or have the lock in the function itself, which
+> would require passing it the req pointer.
+> 
+> The latter would probably be safer for future use of the function.
+> 
+>> +}
+>> +
+>> +static const struct media_request_entity_ops vim2m_request_entity_ops
+>> = {
+>> +	.data_alloc	= vim2m_entity_data_alloc,
+>> +	.data_free	= v4l2_request_entity_data_free,
+>> +	.submit		= vim2m_request_submit,
+>> +};
+>> +
+>>  /*
+>>   * File operations
+>>   */
+>> @@ -900,6 +967,9 @@ static int vim2m_open(struct file *file)
+>>  	ctx->dev = dev;
+>>  	hdl = &ctx->hdl;
+>>  	v4l2_ctrl_handler_init(hdl, 4);
+>> +	v4l2_request_entity_init(&ctx->req_entity,
+>> &vim2m_request_entity_ops,
+>> +				 &ctx->dev->vfd);
+>> +	ctx->fh.entity = &ctx->req_entity.base;
+>>  	v4l2_ctrl_new_std(hdl, &vim2m_ctrl_ops, V4L2_CID_HFLIP, 0, 1,
+>> 1, 0);
+>>  	v4l2_ctrl_new_std(hdl, &vim2m_ctrl_ops, V4L2_CID_VFLIP, 0, 1,
+>> 1, 0);
+>>  	v4l2_ctrl_new_custom(hdl, &vim2m_ctrl_trans_time_msec, NULL);
+>> @@ -999,6 +1069,9 @@ static int vim2m_probe(struct platform_device
+>> *pdev)
+>>  	if (!dev)
+>>  		return -ENOMEM;
+>>  
+>> +	v4l2_request_mgr_init(&dev->req_mgr, &dev->vfd,
+>> +			      &v4l2_request_ops);
+>> +
+>>  	spin_lock_init(&dev->irqlock);
+>>  
+>>  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+>> @@ -1012,6 +1085,7 @@ static int vim2m_probe(struct platform_device
+>> *pdev)
+>>  	vfd = &dev->vfd;
+>>  	vfd->lock = &dev->dev_mutex;
+>>  	vfd->v4l2_dev = &dev->v4l2_dev;
+>> +	vfd->req_mgr = &dev->req_mgr.base;
+>>  
+>>  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+>>  	if (ret) {
+>> @@ -1054,6 +1128,7 @@ static int vim2m_remove(struct platform_device
+>> *pdev)
+>>  	del_timer_sync(&dev->timer);
+>>  	video_unregister_device(&dev->vfd);
+>>  	v4l2_device_unregister(&dev->v4l2_dev);
+>> +	v4l2_request_mgr_free(&dev->req_mgr);
+>>  
+>>  	return 0;
+>>  }
+> 
+
+
 -- 
-2.14.3
+Dmitry
