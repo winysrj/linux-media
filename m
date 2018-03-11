@@ -1,89 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51170 "EHLO mail.bootlin.com"
+Received: from mail.anw.at ([195.234.101.228]:40594 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1424995AbeCBJfn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 04:35:43 -0500
-Date: Fri, 2 Mar 2018 10:35:40 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v8 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20180302093540.yhgv2bcyesqvbaoo@flea.lan>
-References: <20180215133335.9335-1-maxime.ripard@bootlin.com>
- <20180215133335.9335-3-maxime.ripard@bootlin.com>
- <20180301200918.GL6807@ti.com>
+        id S932120AbeCKLXB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Mar 2018 07:23:01 -0400
+Subject: Re: cron job: media_tree daily build: ERRORS
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <9ee0f18544d9bc6deb764114b3cd29b6@smtp-cloud7.xs4all.net>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <a56b1d83-e033-af63-cf52-6bd9ffc91f05@anw.at>
+Date: Sun, 11 Mar 2018 12:22:57 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5opse5bbpzu3xksz"
-Content-Disposition: inline
-In-Reply-To: <20180301200918.GL6807@ti.com>
+In-Reply-To: <9ee0f18544d9bc6deb764114b3cd29b6@smtp-cloud7.xs4all.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-AT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
---5opse5bbpzu3xksz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry, my fault!
+Will fix that soon.
 
-Hi Benoit,
+BR,
+   Jasmin
 
-On Thu, Mar 01, 2018 at 02:09:18PM -0600, Benoit Parrot wrote:
-> > +	/*
-> > +	 * FIXME: Once we'll have internal D-PHY support, the check
-> > +	 * will need to be removed.
-> > +	 */
-> > +	if (csi2rx->has_internal_dphy) {
-> > +		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
-> > +		return -EINVAL;
-> > +	}
->=20
-> As one of the more critical thing is usually how the CSI2 Receiver intera=
-ct
-> with a DPHY when can we expect this part of the driver to be implemented?
-
-That's definitely on my radar, but it isn't implemented by any
-hardware or simulation at the moment. When that is done, we will
-obviously do it.
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---5opse5bbpzu3xksz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqZGusACgkQ0rTAlCFN
-r3Rk9Q//cANITieZxy2raAUAcU8dNB0Bl8BMocnp/0fPfHAyLhWLNu14vGWTf7mB
-3fbs47uVEG+d0vqy94Lw8z9Mo98OnvsZ9n+5qwx4pgX2P2eRDcHuOlwa+2vU9aRq
-70tPUgIBXcTVrdAe+6CExl3VzDVhvMOQcHZF+TDBNyhhUU+5qHc2b1+VYdEjcSKI
-XEueJ03X/aqydREC1XvsTUaMReotyBHcIOulrFMEmKFc5bkSYYnwDzYCO4om3g+N
-C4knrl2JDsrCDscL0opc0UtiBI2nBK7/Gl3QmDv1oWhUFjOdAIDdwTpzmT5ONUVv
-0uFy5Jlehi6ejhJYouRYlPIkw9uNuicaKEEL+c9Oqaf+MKtVOlAQ5wliGosvraLR
-4jsnQ6q+IjlMXmG37Syw1+0+Is7FG6nJNexiX2gnPLVRfk4fhF7nAWG38ct9rjWi
-etASIwdxOrnReDdSnd7d2hM+l994jJ1iqrgn5YAaK45yVeu0kBJ4V3F5xIVDL509
-vlCmae77Srw0A/+bm9nJG2lJj/RPCKMFNemVTRUEn3MiWx2EUqADbXwxN4ajMhDa
-IUliAFSBtvELam1IOuLxiw/HoFTbpMl5p19NCImFriiTTEy3q3gc0MCTDeUvlk2l
-RUfiJdJtrWGkiafTM1Kc2Woxj2wOTGtnQrmCZaM96wnQQ3KkoS4=
-=l34z
------END PGP SIGNATURE-----
-
---5opse5bbpzu3xksz--
+On 03/11/2018 05:36 AM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:			Sun Mar 11 05:00:11 CET 2018
+> media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
+> media_build git hash:	8b244766d710a8687ae6156abde9d6f377a168ad
+> v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
+> gcc version:		i686-linux-gcc (GCC) 7.3.0
+> sparse version:		v0.5.0-3994-g45eb2282
+> smatch version:		v0.5.0-3994-g45eb2282
+> host hardware:		x86_64
+> host os:		4.14.0-3-amd64
+> 
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-multi: WARNINGS
+> linux-git-arm-pxa: OK
+> linux-git-arm-stm32: OK
+> linux-git-arm64: OK
+> linux-git-blackfin-bf561: OK
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: OK
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> linux-2.6.36.4-i686: ERRORS
+> linux-2.6.36.4-x86_64: ERRORS
+> linux-2.6.37.6-i686: ERRORS
+> linux-2.6.37.6-x86_64: ERRORS
+> linux-2.6.38.8-i686: ERRORS
+> linux-2.6.38.8-x86_64: ERRORS
+> linux-2.6.39.4-i686: ERRORS
+> linux-2.6.39.4-x86_64: ERRORS
+> linux-3.0.60-i686: ERRORS
+> linux-3.0.60-x86_64: ERRORS
+> linux-3.1.10-i686: ERRORS
+> linux-3.1.10-x86_64: ERRORS
+> linux-3.2.98-i686: ERRORS
+> linux-3.2.98-x86_64: ERRORS
+> linux-3.3.8-i686: ERRORS
+> linux-3.3.8-x86_64: ERRORS
+> linux-3.4.27-i686: ERRORS
+> linux-3.4.27-x86_64: ERRORS
+> linux-3.5.7-i686: WARNINGS
+> linux-3.5.7-x86_64: WARNINGS
+> linux-3.6.11-i686: WARNINGS
+> linux-3.6.11-x86_64: WARNINGS
+> linux-3.7.4-i686: WARNINGS
+> linux-3.7.4-x86_64: WARNINGS
+> linux-3.8-i686: WARNINGS
+> linux-3.8-x86_64: WARNINGS
+> linux-3.9.2-i686: ERRORS
+> linux-3.9.2-x86_64: ERRORS
+> linux-3.10.1-i686: ERRORS
+> linux-3.10.1-x86_64: ERRORS
+> linux-3.11.1-i686: ERRORS
+> linux-3.11.1-x86_64: ERRORS
+> linux-3.12.67-i686: ERRORS
+> linux-3.12.67-x86_64: ERRORS
+> linux-3.13.11-i686: ERRORS
+> linux-3.13.11-x86_64: ERRORS
+> linux-3.14.9-i686: ERRORS
+> linux-3.14.9-x86_64: ERRORS
+> linux-3.15.2-i686: ERRORS
+> linux-3.15.2-x86_64: ERRORS
+> linux-3.16.53-i686: ERRORS
+> linux-3.16.53-x86_64: ERRORS
+> linux-3.17.8-i686: ERRORS
+> linux-3.17.8-x86_64: ERRORS
+> linux-3.18.93-i686: ERRORS
+> linux-3.18.93-x86_64: ERRORS
+> linux-3.19-i686: ERRORS
+> linux-3.19-x86_64: ERRORS
+> linux-4.0.9-i686: ERRORS
+> linux-4.0.9-x86_64: ERRORS
+> linux-4.1.49-i686: ERRORS
+> linux-4.1.49-x86_64: ERRORS
+> linux-4.2.8-i686: ERRORS
+> linux-4.2.8-x86_64: ERRORS
+> linux-4.3.6-i686: ERRORS
+> linux-4.3.6-x86_64: ERRORS
+> linux-4.4.115-i686: ERRORS
+> linux-4.4.115-x86_64: ERRORS
+> linux-4.5.7-i686: ERRORS
+> linux-4.5.7-x86_64: ERRORS
+> linux-4.6.7-i686: ERRORS
+> linux-4.6.7-x86_64: ERRORS
+> linux-4.7.5-i686: ERRORS
+> linux-4.7.5-x86_64: ERRORS
+> linux-4.8-i686: ERRORS
+> linux-4.8-x86_64: ERRORS
+> linux-4.9.80-i686: ERRORS
+> linux-4.9.80-x86_64: ERRORS
+> linux-4.10.14-i686: ERRORS
+> linux-4.10.14-x86_64: ERRORS
+> linux-4.11-i686: ERRORS
+> linux-4.11-x86_64: ERRORS
+> linux-4.12.1-i686: ERRORS
+> linux-4.12.1-x86_64: ERRORS
+> linux-4.13-i686: ERRORS
+> linux-4.13-x86_64: ERRORS
+> linux-4.14.17-i686: ERRORS
+> linux-4.14.17-x86_64: ERRORS
+> linux-4.15.2-i686: ERRORS
+> linux-4.15.2-x86_64: ERRORS
+> linux-4.16-rc1-i686: ERRORS
+> linux-4.16-rc1-x86_64: ERRORS
+> apps: WARNINGS
+> spec-git: OK
+> sparse: WARNINGS
+> smatch: OK
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
