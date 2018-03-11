@@ -1,95 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:34011 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1424981AbeCBOfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Mar 2018 09:35:14 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 01/12] media: ov5640: Add auto-focus feature
-Date: Fri,  2 Mar 2018 15:34:49 +0100
-Message-Id: <20180302143500.32650-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180302143500.32650-1-maxime.ripard@bootlin.com>
-References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
+Received: from mx0b-00272701.pphosted.com ([208.86.201.61]:55066 "EHLO
+        mx0b-00272701.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751161AbeCKAbs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Mar 2018 19:31:48 -0500
+Date: Sat, 10 Mar 2018 18:15:08 -0600
+From: Nick French <naf@ou.edu>
+To: Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: [PATCH] media: ivtv: add parameter to enable ivtvfb on x86 PAT
+ systems
+Message-ID: <20180311001508.GA13581@tivo.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mylène Josserand <mylene.josserand@bootlin.com>
+ivtvfb was previously disabled for x86 PAT-enabled systems
+by commit 1bf1735b4780 ("x86/mm/pat, drivers/media/ivtv:
+Use arch_phys_wc_add() and require PAT disabled") as a
+workaround to abstract MTRR code away from device drivers.
 
-Add the auto-focus ENABLE/DISABLE feature as V4L2 control.
-Disabled by default.
+The driver is not easily upgradable to the PAT-aware
+ioremap_wc() API since the firmware hides the address
+ranges that should be marked write-combined from the driver.
+However, since a write-combined cache on the framebuffer
+is only a performance enhancement not a requirement for
+the framebuffer to function, completely disabling the driver
+in this configuration is not necessary.
 
-Signed-off-by: Mylène Josserand <mylene.josserand@bootlin.com>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Add force_pat module parameter and a corresponding kernel
+configuration parameter to optionally force initialization
+on PAT-enabled x86 systems with a warning about the lack of
+write-combined caching.
+
+Signed-off-by: Nick French <naf@ou.edu>
 ---
- drivers/media/i2c/ov5640.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/media/pci/ivtv/Kconfig  | 19 ++++++++++++++++---
+ drivers/media/pci/ivtv/ivtvfb.c | 19 +++++++++++++++++--
+ 2 files changed, 33 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index e2dd352224c7..f5e867d47ab8 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -80,8 +80,9 @@
- #define OV5640_REG_POLARITY_CTRL00	0x4740
- #define OV5640_REG_MIPI_CTRL00		0x4800
- #define OV5640_REG_DEBUG_MODE		0x4814
--#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
-+#define OV5640_REG_ISP_CTRL03		0x5003
- #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
-+#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
- #define OV5640_REG_SDE_CTRL0		0x5580
- #define OV5640_REG_SDE_CTRL1		0x5581
- #define OV5640_REG_SDE_CTRL3		0x5583
-@@ -183,6 +184,7 @@ struct ov5640_ctrls {
- 		struct v4l2_ctrl *auto_gain;
- 		struct v4l2_ctrl *gain;
- 	};
-+	struct v4l2_ctrl *auto_focus;
- 	struct v4l2_ctrl *brightness;
- 	struct v4l2_ctrl *saturation;
- 	struct v4l2_ctrl *contrast;
-@@ -2094,6 +2096,12 @@ static int ov5640_set_ctrl_test_pattern(struct ov5640_dev *sensor, int value)
- 			      0xa4, value ? 0xa4 : 0);
- }
+diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
+index c72cbbd2d40c..9c63370ed721 100644
+--- a/drivers/media/pci/ivtv/Kconfig
++++ b/drivers/media/pci/ivtv/Kconfig
+@@ -70,8 +70,21 @@ config VIDEO_FB_IVTV
+ 	  This is used in the Hauppauge PVR-350 card. There is a driver
+ 	  homepage at <http://www.ivtvdriver.org>.
  
-+static int ov5640_set_ctrl_focus(struct ov5640_dev *sensor, int value)
-+{
-+	return ov5640_mod_reg(sensor, OV5640_REG_ISP_CTRL03,
-+			      BIT(1), value ? BIT(1) : 0);
-+}
+-	  In order to use this module, you will need to boot with PAT disabled
+-	  on x86 systems, using the nopat kernel parameter.
+-
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ivtvfb.
 +
- static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
-@@ -2162,6 +2170,9 @@ static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_TEST_PATTERN:
- 		ret = ov5640_set_ctrl_test_pattern(sensor, ctrl->val);
- 		break;
-+	case V4L2_CID_FOCUS_AUTO:
-+		ret = ov5640_set_ctrl_focus(sensor, ctrl->val);
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		break;
-@@ -2224,6 +2235,9 @@ static int ov5640_init_controls(struct ov5640_dev *sensor)
- 					     ARRAY_SIZE(test_pattern_menu) - 1,
- 					     0, 0, test_pattern_menu);
++config VIDEO_FB_IVTV_FORCE_PAT
++	bool "force cx23415 frambuffer init with x86 PAT enabled"
++	depends on VIDEO_FB_IVTV && X86_PAT
++	default n
++	---help---
++	  With PAT enabled, the cx23415 framebuffer driver is not able to
++	  utilize write-combined caching on the framebuffer memory.
++	  The default behaviour is to disable the framebuffer completely
++	  when it detects PAT is enabled in the kernel (i.e. not using
++	  the nopat kernel parameter)
++
++	  With this setting enabled, the framebuffer will initialize on
++	  PAT-enabled systems but the framebuffer memory will be uncached.
++
++	  If unsure, say N.
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 621b2f613d81..5df74721aa19 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -55,6 +55,7 @@
+ /* card parameters */
+ static int ivtvfb_card_id = -1;
+ static int ivtvfb_debug = 0;
++static bool ivtvfb_force_pat = IS_ENABLED(CONFIG_VIDEO_FB_IVTV_FORCE_PAT);
+ static bool osd_laced;
+ static int osd_depth;
+ static int osd_upper;
+@@ -64,6 +65,7 @@ static int osd_xres;
  
-+	ctrls->auto_focus = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_AUTO,
-+					      0, 1, 1, 0);
+ module_param(ivtvfb_card_id, int, 0444);
+ module_param_named(debug,ivtvfb_debug, int, 0644);
++module_param_named(force_pat, ivtvfb_force_pat, bool, 0644);
+ module_param(osd_laced, bool, 0444);
+ module_param(osd_depth, int, 0444);
+ module_param(osd_upper, int, 0444);
+@@ -79,6 +81,9 @@ MODULE_PARM_DESC(debug,
+ 		 "Debug level (bitmask). Default: errors only\n"
+ 		 "\t\t\t(debug = 3 gives full debugging)");
+ 
++MODULE_PARM_DESC(force_pat,
++		 "Force initialization on x86 PAT-enabled systems (bool).\n");
 +
- 	if (hdl->error) {
- 		ret = hdl->error;
- 		goto free_ctrls;
+ /* Why upper, left, xres, yres, depth, laced ? To match terminology used
+    by fbset.
+    Why start at 1 for left & upper coordinate ? Because X doesn't allow 0 */
+@@ -1169,8 +1174,18 @@ static int ivtvfb_init_card(struct ivtv *itv)
+ 
+ #ifdef CONFIG_X86_64
+ 	if (pat_enabled()) {
+-		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
+-		return -ENODEV;
++		if (ivtvfb_force_pat) {
++			pr_info("PAT is enabled. Write-combined framebuffer "
++				"caching will be disabled. To enable caching, "
++				"boot with nopat kernel parameter\n");
++		} else {
++			pr_warn("ivtvfb needs PAT disabled for write-combined "
++				"framebuffer caching. Boot with nopat kernel "
++				"parameter to use caching, or use the "
++				"force_pat module parameter to run with "
++				"caching disabled\n");
++			return -ENODEV;
++		}
+ 	}
+ #endif
+ 
 -- 
-2.14.3
+2.13.6
