@@ -1,88 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:46983 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932070AbeCJT7T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Mar 2018 14:59:19 -0500
-Received: by mail-pf0-f196.google.com with SMTP id z10so2661865pfh.13
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:18 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+Received: from mx1.riseup.net ([198.252.153.129]:36825 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932548AbeCLSSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 14:18:13 -0400
+Subject: Re: [linux-sunxi] [PATCH 2/9] media: videobuf2-v4l2: Copy planes when
+ needed in request qbuf
+To: paul.kocialkowski@bootlin.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 13/13] media: staging/imx: TODO: Remove one assumption about OF graph parsing
-Date: Sat, 10 Mar 2018 11:58:42 -0800
-Message-Id: <1520711922-17338-14-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+References: <20180309100933.15922-1-paul.kocialkowski@bootlin.com>
+ <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+From: =?UTF-8?Q?Joonas_Kylm=c3=a4l=c3=a4?= <joonas.kylmala@iki.fi>
+Message-ID: <f5b1c8b7-d7c7-a81b-181b-46ef0323dfdd@iki.fi>
+Date: Mon, 12 Mar 2018 18:18:00 +0000
+MIME-Version: 1.0
+In-Reply-To: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The move to subdev notifiers fixes one assumption of OF graph parsing.
-If a subdevice has non-video related ports, the subdev driver knows not
-to follow those ports when adding remote devices to its subdev notifier.
+Paul Kocialkowski:
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 0627c3339572..c14528d4a518 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -592,6 +592,7 @@ int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
+>  	struct media_request *req;
+>  	struct vb2_buffer *vb;
+>  	int ret = 0;
+> +	int i;
+>  
+>  	if (b->request_fd <= 0)
+>  		return vb2_qbuf(q, b);
+> @@ -657,6 +658,17 @@ int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
+>  	qb->pre_req_state = vb->state;
+>  	qb->queue = q;
+>  	memcpy(&qb->v4l2_buf, b, sizeof(*b));
+> +
+> +	if (V4L2_TYPE_IS_MULTIPLANAR(b->type) && b->length > 0) {
+> +		qb->v4l2_buf.m.planes = kcalloc(b->length,
+> +						sizeof(struct v4l2_plane),
+> +						GFP_KERNEL);
+> +
+> +		for (i = 0; i < b->length; i++)
+> +			 memcpy(&qb->v4l2_buf.m.planes[i], &b->m.planes[i],
+> +				sizeof(struct v4l2_plane));
+> +	}
+> +
+>  	vb->request = req;
+>  	vb->state = VB2_BUF_STATE_QUEUED;
+>  	list_add_tail(&qb->node, &data->queued_buffers);
+> @@ -672,6 +684,7 @@ EXPORT_SYMBOL_GPL(vb2_qbuf_request);
+>  int vb2_request_submit(struct v4l2_request_entity_data *data)
+>  {
+>  	struct v4l2_vb2_request_buffer *qb, *n;
+> +	int i;
+>  
+>  	/* v4l2 requests require at least one buffer to reach the device */
+>  	if (list_empty(&data->queued_buffers)) {
+> @@ -686,6 +699,12 @@ int vb2_request_submit(struct v4l2_request_entity_data *data)
+>  		list_del(&qb->node);
+>  		vb->state = qb->pre_req_state;
+>  		ret = vb2_core_qbuf(q, vb->index, &qb->v4l2_buf);
+> +
+> +		if (V4L2_TYPE_IS_MULTIPLANAR(qb->v4l2_buf.type) &&
+> +		    qb->v4l2_buf.length > 0)
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/TODO | 29 +++++++----------------------
- 1 file changed, 7 insertions(+), 22 deletions(-)
+The test "qb->v4l2_buf.length > 0" seems unnecessary as it's already
+checked in the loop:
 
-diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
-index 9eb7326..aeeb154 100644
---- a/drivers/staging/media/imx/TODO
-+++ b/drivers/staging/media/imx/TODO
-@@ -17,29 +17,15 @@
-   decided whether this feature is useful enough to make it generally
-   available by exporting to v4l2-core.
- 
--- The OF graph is walked at probe time to form the list of fwnodes to
--  be passed to v4l2_async_notifier_register(), starting from the IPU
--  CSI ports. And after all async subdevices have been bound,
--  v4l2_fwnode_parse_link() is used to form the media links between
--  the entities discovered by walking the OF graph.
-+- After all async subdevices have been bound, v4l2_fwnode_parse_link()
-+  is used to form the media links between the devices discovered in
-+  the OF graph.
- 
-   While this approach allows support for arbitrary OF graphs, there
-   are some assumptions for this to work:
- 
--  1. All port parent nodes reachable in the graph from the IPU CSI
--     ports bind to V4L2 async subdevice drivers.
--
--     If a device has mixed-use ports such as video plus audio, the
--     endpoints from the audio ports are followed to devices that must
--     bind to V4L2 subdevice drivers, and not for example, to an ALSA
--     driver or a non-V4L2 media driver. If the device were bound to
--     such a driver, imx-media would never get an async completion
--     notification because the device fwnode was added to the async
--     list, but the driver does not interface with the V4L2 async
--     framework.
--
--  2. Every port reachable in the graph is treated as a media pad,
--     owned by the V4L2 subdevice that is bound to the port's parent.
-+  1. If a port owned by a device in the graph has endpoint nodes, the
-+     port is treated as a media pad.
- 
-      This presents problems for devices that don't make this port = pad
-      assumption. Examples are SMIAPP compatible cameras which define only
-@@ -54,9 +40,8 @@
-      possible long-term solution is to implement a subdev API that
-      maps a port id to a media pad index.
- 
--  3. Every endpoint of a port reachable in the graph is treated as
--     a media link, between V4L2 subdevices that are bound to the
--     port parents of the local and remote endpoints.
-+  2. Every endpoint of a port owned by a device in the graph is treated
-+     as a media link.
- 
-      Which means a port must not contain mixed-use endpoints, they
-      must all refer to media links between V4L2 subdevices.
--- 
-2.7.4
+> +			for (i = 0; i < qb->v4l2_buf.length; i++)
+> +				kfree(&qb->v4l2_buf.m.planes[i]);
+> +
+>  		kfree(qb);
+>  		if (ret)
+>  			return ret;
+> 
