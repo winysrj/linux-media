@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:63502 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751793AbeCWMfR (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:53468 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932588AbeCLRYG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 08:35:17 -0400
-Subject: Re: [PATCH 07/30] media: v4l2-tpg-core: avoid buffer overflows
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
- <1a086879fdd37d9e4c3dd4e49fac62f7e418e17e.1521806166.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <c71636ab-80f5-0173-ad45-bb5bd414a10a@cisco.com>
-Date: Fri, 23 Mar 2018 13:35:13 +0100
+        Mon, 12 Mar 2018 13:24:06 -0400
+Received: by mail-wm0-f49.google.com with SMTP id e194so18148115wmd.3
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 10:24:05 -0700 (PDT)
+Date: Mon, 12 Mar 2018 18:24:01 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christian K??nig <ckoenig.leichtzumerken@gmail.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Subject: Re: RFC: unpinned DMA-buf exporting
+Message-ID: <20180312172401.GM8589@phenom.ffwll.local>
+References: <20180309191144.1817-1-christian.koenig@amd.com>
 MIME-Version: 1.0
-In-Reply-To: <1a086879fdd37d9e4c3dd4e49fac62f7e418e17e.1521806166.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180309191144.1817-1-christian.koenig@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/23/18 12:56, Mauro Carvalho Chehab wrote:
-> Fix the following warnings:
-> 	drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:1146 gen_twopix() error: buffer overflow 'buf[1]' 8 <= 8
-> 	drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:1152 gen_twopix() error: buffer overflow 'buf[1]' 8 <= 8
+On Fri, Mar 09, 2018 at 08:11:40PM +0100, Christian K??nig wrote:
+> This set of patches adds an option invalidate_mappings callback to each
+> DMA-buf attachment which can be filled in by the importer.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> This callback allows the exporter to provided the DMA-buf content
+> without pinning it. The reservation objects lock acts as synchronization
+> point for buffer moves and creating mappings.
 > 
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index d248d1fb9d1d..37632bc524d4 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -1143,13 +1143,13 @@ static void gen_twopix(struct tpg_data *tpg,
->  	case V4L2_PIX_FMT_NV24:
->  		buf[0][offset] = r_y_h;
->  		buf[1][2 * offset] = g_u_s;
-> -		buf[1][2 * offset + 1] = b_v;
-> +		buf[1][(2 * offset + 1) % 8] = b_v;
->  		break;
->  
->  	case V4L2_PIX_FMT_NV42:
->  		buf[0][offset] = r_y_h;
->  		buf[1][2 * offset] = b_v;
-> -		buf[1][2 * offset + 1] = g_u_s;
-> +		buf[1][(2 * offset + 1) %8] = g_u_s;
+> This set includes an implementation for amdgpu which should be rather
+> easily portable to other DRM drivers.
 
-Space after '%'
+Bunch of higher level comments, and one I've forgotten in reply to patch
+1:
 
->  		break;
->  
->  	case V4L2_PIX_FMT_YUYV:
-> 
+- What happens when a dma-buf is pinned (e.g. i915 loves to pin buffers
+  for scanout)?
 
-Nice! I always wondered how to fix this bogus error, but this will do it.
+- pulling the dma-buf implementations into amdgpu makes sense, that's
+  kinda how it was meant to be anyway. The gem prime helpers are a bit too
+  much midlayer for my taste (mostly because nvidia wanted to bypass the
+  EXPORT_SYMBOL_GPL of core dma-buf, hooray for legal bs). We can always
+  extract more helpers once there's more ttm based drivers doing this.
 
-After fixing the space:
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks,
-
-	Hans
+Overall I like, there's some details to figure out first.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
