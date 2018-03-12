@@ -1,97 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56826 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752628AbeC2NDC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 09:03:02 -0400
-Subject: Re: [PATCH] media: v4l2-compat-ioctl32: don't oops on overlay
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
+Received: from mx1.riseup.net ([198.252.153.129]:39160 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932171AbeCLU3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 16:29:48 -0400
+Subject: Re: [linux-sunxi] [PATCH 5/9] media: platform: Add Sunxi Cedrus
+ decoder driver
+To: paul.kocialkowski@bootlin.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        stable@vger.kernel.org
-References: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
- <2e9cca00-5c6d-6a22-0273-98f908a304d6@xs4all.nl>
- <20180329100042.209b313c@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6ebbb28d-f498-fdeb-85b2-854f471bf4f8@xs4all.nl>
-Date: Thu, 29 Mar 2018 15:02:59 +0200
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+ <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
+From: =?UTF-8?Q?Joonas_Kylm=c3=a4l=c3=a4?= <joonas.kylmala@iki.fi>
+Message-ID: <a9cc2e3b-585a-b238-4187-e3c874013d2a@iki.fi>
+Date: Mon, 12 Mar 2018 20:29:00 +0000
 MIME-Version: 1.0
-In-Reply-To: <20180329100042.209b313c@vento.lan>
+In-Reply-To: <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29/03/18 15:00, Mauro Carvalho Chehab wrote:
-> Em Thu, 29 Mar 2018 10:40:23 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Hi Mauro,
->>
->> On 28/03/18 19:59, Mauro Carvalho Chehab wrote:
->>> At put_v4l2_window32(), it tries to access kp->clips. However,
->>> kp points to an userspace pointer. So, it should be obtained
->>> via get_user(), otherwise it can OOPS:
->>>   
->>
->> <snip>
->>
->>>
->>> cc: stable@vger.kernel.org
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
->>>  1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->>> index 5198c9eeb348..4312935f1dfc 100644
->>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->>> @@ -101,7 +101,7 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
->>>  static int put_v4l2_window32(struct v4l2_window __user *kp,
->>>  			     struct v4l2_window32 __user *up)
->>>  {
->>> -	struct v4l2_clip __user *kclips = kp->clips;
->>> +	struct v4l2_clip __user *kclips;
->>>  	struct v4l2_clip32 __user *uclips;
->>>  	compat_caddr_t p;
->>>  	u32 clipcount;
->>> @@ -116,6 +116,8 @@ static int put_v4l2_window32(struct v4l2_window __user *kp,
->>>  	if (!clipcount)
->>>  		return 0;
->>>  
->>> +	if (get_user(kclips, &kp->clips))
->>> +		return -EFAULT;
->>>  	if (get_user(p, &up->clips))
->>>  		return -EFAULT;
->>>  	uclips = compat_ptr(p);
->>>   
->>
->> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> I have no idea why I didn't find this when I tested this with v4l2-compliance,
->> but the code was certainly wrong.
-> 
-> I built 4.16-rc4 with KASAN enabled. Perhaps, it won't OOPS without
-> it. Yet, I doubt it would work without this fix.
+Paul Kocialkowski:
+> diff --git a/drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c b/drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
+> new file mode 100644
+> index 000000000000..88624035e0e3
+> --- /dev/null
+> +++ b/drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
+> @@ -0,0 +1,313 @@
+> +/*
+> + * Sunxi Cedrus codec driver
+> + *
+> + * Copyright (C) 2016 Florent Revest
+> + * Florent Revest <florent.revest@free-electrons.com>
+> + *
+> + * Based on vim2m
+> + *
+> + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
+> + * Pawel Osciak, <pawel@osciak.com>
+> + * Marek Szyprowski, <m.szyprowski@samsung.com>
+> + *
+> + * This software is licensed under the terms of the GNU General Public
+> + * License version 2, as published by the Free Software Foundation, and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include "sunxi_cedrus_common.h"
+> +
+> +#include <linux/clk.h>
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/fs.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +#include <linux/of.h>
+> +
+> +#include <linux/platform_device.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-mem2mem.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/videobuf2-dma-contig.h>
 
-I definitely did not have KASAN enabled when I tested this.
+I think that the definitions
 
-Regards,
+#include <linux/clk.h>
+#include <linux/delay.h>
+#include <linux/fs.h>
+#include <linux/sched.h>
+#include <linux/slab.h>
+#include <linux/videodev2.h>
 
-	Hans
+are not used directly in the sunxi_cedrus.c file. Therefore they should
+be removed.
 
-> 
->>
->> Thank you for debugging this!
-> 
-> Anytime.
-> 
-> Thanks,
-> Mauro
-> 
+Joonas
