@@ -1,105 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:42762 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751542AbeCUAia (ORCPT
+Received: from mail-io0-f171.google.com ([209.85.223.171]:40574 "EHLO
+        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751104AbeCLMdE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 20:38:30 -0400
-Received: by mail-pg0-f66.google.com with SMTP id f10so1156128pgs.9
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:30 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mon, 12 Mar 2018 08:33:04 -0400
+Received: by mail-io0-f171.google.com with SMTP id v6so11216650iog.7
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 05:33:04 -0700 (PDT)
+Received: from mail-io0-f169.google.com (mail-io0-f169.google.com. [209.85.223.169])
+        by smtp.gmail.com with ESMTPSA id z196sm5125651iod.50.2018.03.12.05.33.03
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 12 Mar 2018 05:33:03 -0700 (PDT)
+Received: by mail-io0-f169.google.com with SMTP id f1so11247223iob.0
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 05:33:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
+References: <20180220044425.169493-20-acourbot@chromium.org>
+ <1520440654.1092.15.camel@bootlin.com> <6470b45d-e9dc-0a22-febc-cd18ae1092be@gmail.com>
+ <1520842245.1513.5.camel@bootlin.com> <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Mon, 12 Mar 2018 21:32:42 +0900
+Message-ID: <CAPBb6MXYj0SHUWPRuCNewUetmxrePx1NFQfB6tw+BbPHS+Hkmg@mail.gmail.com>
+Subject: Re: [RFCv4,19/21] media: vim2m: add request support
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Dmitry Osipenko <digetx@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 11/13] media: staging/imx: Rename root notifier
-Date: Tue, 20 Mar 2018 17:37:27 -0700
-Message-Id: <1521592649-7264-12-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the imx-media root async notifier from "subdev_notifier" to
-simply "notifier", so as not to confuse it with true subdev notifiers.
-No functional changes.
+On Mon, Mar 12, 2018 at 5:15 PM, Tomasz Figa <tfiga@chromium.org> wrote:
+> Hi Paul, Dmitry,
+>
+> On Mon, Mar 12, 2018 at 5:10 PM, Paul Kocialkowski
+> <paul.kocialkowski@bootlin.com> wrote:
+>> Hi,
+>>
+>> On Sun, 2018-03-11 at 22:42 +0300, Dmitry Osipenko wrote:
+>>> Hello,
+>>>
+>>> On 07.03.2018 19:37, Paul Kocialkowski wrote:
+>>> > Hi,
+>>> >
+>>> > First off, I'd like to take the occasion to say thank-you for your
+>>> > work.
+>>> > This is a major piece of plumbing that is required for me to add
+>>> > support
+>>> > for the Allwinner CedarX VPU hardware in upstream Linux. Other
+>>> > drivers,
+>>> > such as tegra-vde (that was recently merged in staging) are also
+>>> > badly
+>>> > in need of this API.
+>>>
+>>> Certainly it would be good to have a common UAPI. Yet I haven't got my
+>>> hands on
+>>> trying to implement the V4L interface for the tegra-vde driver, but
+>>> I've taken a
+>>> look at Cedrus driver and for now I've one question:
+>>>
+>>> Would it be possible (or maybe already is) to have a single IOCTL that
+>>> takes input/output buffers with codec parameters, processes the
+>>> request(s) and returns to userspace when everything is done? Having 5
+>>> context switches for a single frame decode (like Cedrus VAAPI driver
+>>> does) looks like a bit of overhead.
+>>
+>> The V4L2 interface exposes ioctls for differents actions and I don't
+>> think there's a combined ioctl for this. The request API was introduced
+>> precisely because we need to have consistency between the various ioctls
+>> needed for each frame. Maybe one single (atomic) ioctl would have worked
+>> too, but that's apparently not how the V4L2 API was designed.
+>>
+>> I don't think there is any particular overhead caused by having n ioctls
+>> instead of a single one. At least that would be very surprising IMHO.
+>
+> Well, there is small syscall overhead, which normally shouldn't be
+> very painful, although with all the speculative execution hardening,
+> can't be sure of anything anymore. :)
+>
+> Hans and Alex can correct me if I'm wrong, but I believe there is a
+> more atomic-like API being planned, which would only need one IOCTL to
+> do everything. However, that would be a more serious change to the
+> V4L2 interfaces, so should be decoupled from Request API itself.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
- drivers/staging/media/imx/imx-media.h     |  2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+Indeed, we discussed the possibility to setup and submit requests in
+one syscall, similarly (at least in spirit) to the DRM atomic API.
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 4d00ed3..dd4702a 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -29,7 +29,7 @@
- 
- static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
- {
--	return container_of(n, struct imx_media_dev, subdev_notifier);
-+	return container_of(n, struct imx_media_dev, notifier);
- }
- 
- /*
-@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
- 
- 	list_add_tail(&imxasd->list, &imxmd->asd_list);
- 
--	imxmd->subdev_notifier.num_subdevs++;
-+	imxmd->notifier.num_subdevs++;
- 
- 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
- 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
-@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto unreg_dev;
- 	}
- 
--	num_subdevs = imxmd->subdev_notifier.num_subdevs;
-+	num_subdevs = imxmd->notifier.num_subdevs;
- 
- 	/* no subdevs? just bail */
- 	if (num_subdevs == 0) {
-@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
- 		subdevs[i++] = &imxasd->asd;
- 
- 	/* prepare the async subdev notifier and register it */
--	imxmd->subdev_notifier.subdevs = subdevs;
--	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
-+	imxmd->notifier.subdevs = subdevs;
-+	imxmd->notifier.ops = &imx_media_subdev_ops;
- 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
--					   &imxmd->subdev_notifier);
-+					   &imxmd->notifier);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "v4l2_async_notifier_register failed with %d\n", ret);
-@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
- 
- 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
- 
--	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
-+	v4l2_async_notifier_unregister(&imxmd->notifier);
- 	imx_media_remove_internal_subdevs(imxmd);
- 	v4l2_device_unregister(&imxmd->v4l2_dev);
- 	media_device_unregister(&imxmd->md);
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index e945e0e..7edb18a 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -148,7 +148,7 @@ struct imx_media_dev {
- 
- 	/* for async subdev registration */
- 	struct list_head asd_list;
--	struct v4l2_async_notifier subdev_notifier;
-+	struct v4l2_async_notifier notifier;
- };
- 
- enum codespace_sel {
--- 
-2.7.4
+This has only been discussed though, and as a feature to consider
+*after* the request API is merged for codecs (as the more complex
+camera use-cases would benefit more from it). As Tomasz mentioned, the
+overhead of ioctls is somehow negligible compared to the workload of
+the encoding/decoding itself, although I suppose it can still add up.
+The main advantage I can see for this is a simpler and less
+error-prone setup of requests for user-space.
