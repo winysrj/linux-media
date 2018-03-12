@@ -1,67 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-00272701.pphosted.com ([67.231.145.144]:57288 "EHLO
-        mx0a-00272701.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750761AbeCHDzn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 22:55:43 -0500
-From: "French, Nicholas A." <naf@ou.edu>
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-CC: "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ivtv: use arch_phys_wc_add() and require PAT disabled
-Date: Thu, 8 Mar 2018 03:16:29 +0000
-Message-ID: <DM5PR03MB30352350D588A81D2D02BE93D3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
-References: <DM5PR03MB3035EE1AFCEE298AFB15AC46D3C60@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180301171936.GU14069@wotan.suse.de>
- <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>,<20180307190205.GA14069@wotan.suse.de>
-In-Reply-To: <20180307190205.GA14069@wotan.suse.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+Received: from mail.bootlin.com ([62.4.15.54]:45849 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750752AbeCLI0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 04:26:09 -0400
+Message-ID: <1520843103.1513.8.camel@bootlin.com>
+Subject: Re: [RFCv4,19/21] media: vim2m: add request support
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Tomasz Figa <tfiga@chromium.org>,
+        Dmitry Osipenko <digetx@gmail.com>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Date: Mon, 12 Mar 2018 09:25:03 +0100
+In-Reply-To: <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
+References: <20180220044425.169493-20-acourbot@chromium.org>
+         <1520440654.1092.15.camel@bootlin.com>
+         <6470b45d-e9dc-0a22-febc-cd18ae1092be@gmail.com>
+         <1520842245.1513.5.camel@bootlin.com>
+         <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-vi8lL/WrEHkMCOMTypE+"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 07, 2018 at 07:02:05PM +0000, Luis R. Rodriguez wrote:
-> On Tue, Mar 06, 2018 at 09:01:10PM +0000, French, Nicholas A. wrote:
-> > any reason why PAT can't be enabled for ivtvfb as simply as in the atta=
-ched
-> > patch?
->
-> Prior to your change the OSD buffer was obtained using the itv->dec_mem +=
- oi->video_rbase
-> given itv->dec_mem was initialized via [...]
->         itv->dec_mem =3D ioremap_nocache(itv->base_addr + IVTV_DECODER_OF=
-FSET - oi->video_buffer_size,
->                                 IVTV_DECODER_SIZE);
 
-Ah, I see. So my proposed ioremap_wc call was only "working" by aliasing th=
-e ioremap_nocache()'d mem area and not actually using write combining at al=
-l.
+--=-vi8lL/WrEHkMCOMTypE+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> So what I'd do is change the ioremap_nocache()'d size by substracting
-> oi->video_buffer_size -- but then you have to ask yourself how you'd get
-> that size. If its something you can figure out then great.
+Hi,
 
-Size is easy since its hardcoded, but unfortunately getting the offset of t=
-he framebuffer inside the decoders memory to remove from the ioremap_nocach=
-e call is a chicken and egg problem: the offset is determined by querying t=
-he firmware that has been loaded to the decoder. the firmware itself will b=
-e loaded after the ioremap_nocache call at an offset from the address it re=
-turns.
+On Mon, 2018-03-12 at 17:15 +0900, Tomasz Figa wrote:
+> Hi Paul, Dmitry,
+>=20
+> On Mon, Mar 12, 2018 at 5:10 PM, Paul Kocialkowski
+> <paul.kocialkowski@bootlin.com> wrote:
+> > Hi,
+> >=20
+> > On Sun, 2018-03-11 at 22:42 +0300, Dmitry Osipenko wrote:
+> > > Hello,
+> > >=20
+> > > On 07.03.2018 19:37, Paul Kocialkowski wrote:
+> > > > Hi,
+> > > >=20
+> > > > First off, I'd like to take the occasion to say thank-you for
+> > > > your
+> > > > work.
+> > > > This is a major piece of plumbing that is required for me to add
+> > > > support
+> > > > for the Allwinner CedarX VPU hardware in upstream Linux. Other
+> > > > drivers,
+> > > > such as tegra-vde (that was recently merged in staging) are also
+> > > > badly
+> > > > in need of this API.
+> > >=20
+> > > Certainly it would be good to have a common UAPI. Yet I haven't
+> > > got my
+> > > hands on
+> > > trying to implement the V4L interface for the tegra-vde driver,
+> > > but
+> > > I've taken a
+> > > look at Cedrus driver and for now I've one question:
+> > >=20
+> > > Would it be possible (or maybe already is) to have a single IOCTL
+> > > that
+> > > takes input/output buffers with codec parameters, processes the
+> > > request(s) and returns to userspace when everything is done?
+> > > Having 5
+> > > context switches for a single frame decode (like Cedrus VAAPI
+> > > driver
+> > > does) looks like a bit of overhead.
+> >=20
+> > The V4L2 interface exposes ioctls for differents actions and I don't
+> > think there's a combined ioctl for this. The request API was
+> > introduced
+> > precisely because we need to have consistency between the various
+> > ioctls
+> > needed for each frame. Maybe one single (atomic) ioctl would have
+> > worked
+> > too, but that's apparently not how the V4L2 API was designed.
+> >=20
+> > I don't think there is any particular overhead caused by having n
+> > ioctls
+> > instead of a single one. At least that would be very surprising
+> > IMHO.
+>=20
+> Well, there is small syscall overhead, which normally shouldn't be
+> very painful, although with all the speculative execution hardening,
+> can't be sure of anything anymore. :)
 
-So unless there is a io-re-remap to change the caching status of a subset o=
-f the decoder's memory once we find out what the framebuffer offset is insi=
-de the original iremap_nocache'd area, then its a no go for write combining=
- to the framebuffer with PAT.
+Oh, my mistake then, I had it in mind that it is not really something
+noticeable. Hopefully, it won't be a limiting factor in our cases.
 
-On the other hand, it works fine for me with a nocache'd framebuffer. It's =
-certainly better for me personally to have a nocache framebuffer with PAT-e=
-nabled than the framebuffer completely disabled with PAT-enabled, but I don=
-'t think I would even propose to rollback the x86 nopat requirement in gene=
-ral. Apparently the throngs of people using this super-popular driver featu=
-re haven't complained in the last couple years, so maybe its OK for me to j=
-ust patch the pat-enabled guard out and deal with a nocache'd framebuffer.
+> Hans and Alex can correct me if I'm wrong, but I believe there is a
+> more atomic-like API being planned, which would only need one IOCTL to
+> do everything. However, that would be a more serious change to the
+> V4L2 interfaces, so should be decoupled from Request API itself.
+>=20
+> Best regards,
+> Tomasz
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-vi8lL/WrEHkMCOMTypE+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-- Nick    =
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlqmOV8ACgkQ3cLmz3+f
+v9Enqwf/dGlUworp9wGBWUKSVsM7pgf2yfj2RcdyhkJ9JyD8udtaVguCtr+V45Ie
+Ve87E+0rWw97rRBHkZwL50g18s56PwsdYzNIv8p6w203LQ224RFDqSalCBkSxPWR
+QWCLz5PVsrKPWUdFTrcdsRviTAdqcsTAfarZ6hBVukhc0Uh8+sKS243AxN+BuaKz
+9INTOr4HfLnYh/vLJjQf6n7CfKOyp12mfnIavkk75p24teRpjae9UNBrsbQJQ5d4
+W9ncC8VVWXOgY41+FdkSCcLAUvrD75tGkAGUjF7xz102Or0J5djWSvR/PUjIBuMt
+s2+bmRRjii+T8U3PtwRyI8+3UXUH1Q==
+=J1Z1
+-----END PGP SIGNATURE-----
+
+--=-vi8lL/WrEHkMCOMTypE+--
