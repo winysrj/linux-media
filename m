@@ -1,91 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:36825 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932548AbeCLSSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 14:18:13 -0400
-Subject: Re: [linux-sunxi] [PATCH 2/9] media: videobuf2-v4l2: Copy planes when
- needed in request qbuf
-To: paul.kocialkowski@bootlin.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-References: <20180309100933.15922-1-paul.kocialkowski@bootlin.com>
- <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
-From: =?UTF-8?Q?Joonas_Kylm=c3=a4l=c3=a4?= <joonas.kylmala@iki.fi>
-Message-ID: <f5b1c8b7-d7c7-a81b-181b-46ef0323dfdd@iki.fi>
-Date: Mon, 12 Mar 2018 18:18:00 +0000
+Received: from mail-io0-f179.google.com ([209.85.223.179]:39492 "EHLO
+        mail-io0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751282AbeCLTlj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 15:41:39 -0400
+Received: by mail-io0-f179.google.com with SMTP id v10so6220234iob.6
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 12:41:39 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <e4b847f4-f6e7-6284-eaec-6bd3e1945c2d@gmail.com>
+References: <20180309191144.1817-1-christian.koenig@amd.com>
+ <20180312172401.GM8589@phenom.ffwll.local> <e4b847f4-f6e7-6284-eaec-6bd3e1945c2d@gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Mon, 12 Mar 2018 20:41:37 +0100
+Message-ID: <CAKMK7uEiCxze-D6h=DuS5VXjNskbsSt3chM4=eN_JODsL407OA@mail.gmail.com>
+Subject: Re: RFC: unpinned DMA-buf exporting
+To: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Paul Kocialkowski:
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 0627c3339572..c14528d4a518 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -592,6 +592,7 @@ int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
->  	struct media_request *req;
->  	struct vb2_buffer *vb;
->  	int ret = 0;
-> +	int i;
->  
->  	if (b->request_fd <= 0)
->  		return vb2_qbuf(q, b);
-> @@ -657,6 +658,17 @@ int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
->  	qb->pre_req_state = vb->state;
->  	qb->queue = q;
->  	memcpy(&qb->v4l2_buf, b, sizeof(*b));
-> +
-> +	if (V4L2_TYPE_IS_MULTIPLANAR(b->type) && b->length > 0) {
-> +		qb->v4l2_buf.m.planes = kcalloc(b->length,
-> +						sizeof(struct v4l2_plane),
-> +						GFP_KERNEL);
-> +
-> +		for (i = 0; i < b->length; i++)
-> +			 memcpy(&qb->v4l2_buf.m.planes[i], &b->m.planes[i],
-> +				sizeof(struct v4l2_plane));
-> +	}
-> +
->  	vb->request = req;
->  	vb->state = VB2_BUF_STATE_QUEUED;
->  	list_add_tail(&qb->node, &data->queued_buffers);
-> @@ -672,6 +684,7 @@ EXPORT_SYMBOL_GPL(vb2_qbuf_request);
->  int vb2_request_submit(struct v4l2_request_entity_data *data)
->  {
->  	struct v4l2_vb2_request_buffer *qb, *n;
-> +	int i;
->  
->  	/* v4l2 requests require at least one buffer to reach the device */
->  	if (list_empty(&data->queued_buffers)) {
-> @@ -686,6 +699,12 @@ int vb2_request_submit(struct v4l2_request_entity_data *data)
->  		list_del(&qb->node);
->  		vb->state = qb->pre_req_state;
->  		ret = vb2_core_qbuf(q, vb->index, &qb->v4l2_buf);
-> +
-> +		if (V4L2_TYPE_IS_MULTIPLANAR(qb->v4l2_buf.type) &&
-> +		    qb->v4l2_buf.length > 0)
+On Mon, Mar 12, 2018 at 8:15 PM, Christian K=C3=B6nig
+<ckoenig.leichtzumerken@gmail.com> wrote:
+> Am 12.03.2018 um 18:24 schrieb Daniel Vetter:
+>>
+>> On Fri, Mar 09, 2018 at 08:11:40PM +0100, Christian K??nig wrote:
+>>>
+>>> This set of patches adds an option invalidate_mappings callback to each
+>>> DMA-buf attachment which can be filled in by the importer.
+>>>
+>>> This callback allows the exporter to provided the DMA-buf content
+>>> without pinning it. The reservation objects lock acts as synchronizatio=
+n
+>>> point for buffer moves and creating mappings.
+>>>
+>>> This set includes an implementation for amdgpu which should be rather
+>>> easily portable to other DRM drivers.
+>>
+>> Bunch of higher level comments, and one I've forgotten in reply to patch
+>> 1:
+>>
+>> - What happens when a dma-buf is pinned (e.g. i915 loves to pin buffers
+>>    for scanout)?
+>
+>
+> When you need to pin an imported DMA-buf you need to detach and reattach
+> without the invalidate_mappings callback.
 
-The test "qb->v4l2_buf.length > 0" seems unnecessary as it's already
-checked in the loop:
+I think that must both be better documented, and also somehow enforced
+with checks. Atm nothing makes sure you actually manage to unmap if
+you claim to be able to do so.
 
-> +			for (i = 0; i < qb->v4l2_buf.length; i++)
-> +				kfree(&qb->v4l2_buf.m.planes[i]);
-> +
->  		kfree(qb);
->  		if (ret)
->  			return ret;
-> 
+I think a helper to switch from pinned to unpinned would be lovely
+(just need to clear/reset the ->invalidate_mapping pointer while
+holding the reservation). Or do you expect to map buffers differently
+depending whether you can move them or not? At least for i915 we'd
+need to rework our driver quite a bit if you expect us to throw the
+mapping away just to be able to pin it. Atm pinning requires that it's
+mapped already (and depending upon platform the gpu might be using
+that exact mapping to render, so unmapping for pinning is a bad idea
+for us).
+
+>> - pulling the dma-buf implementations into amdgpu makes sense, that's
+>>    kinda how it was meant to be anyway. The gem prime helpers are a bit
+>> too
+>>    much midlayer for my taste (mostly because nvidia wanted to bypass th=
+e
+>>    EXPORT_SYMBOL_GPL of core dma-buf, hooray for legal bs). We can alway=
+s
+>>    extract more helpers once there's more ttm based drivers doing this.
+>
+>
+> Yeah, I though to abstract that similar to the AGP backend.
+>
+> Just moving some callbacks around in TTM should be sufficient to de-midla=
+yer
+> the whole thing.
+
+Yeah TTM has all the abstractions needed to handle dma-bufs
+"properly", it's just sometimes at the wrong level or can't be
+overriden. At least per my understanding of TTM (which is most likely
+... confused).
+-Daniel
+--=20
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
