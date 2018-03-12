@@ -1,87 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60365 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753357AbeC1OBq (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36714 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751379AbeCLQTV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 27/29] vim2m: support requests
-Date: Wed, 28 Mar 2018 16:01:38 +0200
-Message-Id: <20180328140140.42096-11-hverkuil@xs4all.nl>
-In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
-References: <20180328140140.42096-1-hverkuil@xs4all.nl>
+        Mon, 12 Mar 2018 12:19:21 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH] media: ov5640: add missing output pixel format setting
+Date: Mon, 12 Mar 2018 16:18:59 +0000
+Message-ID: <f984cfec-80a5-874f-16cb-0939d891863f@st.com>
+References: <1520782481-13558-1-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1520782481-13558-1-git-send-email-akinobu.mita@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <780ACD1E36ACAA489919EB696CE6CDB6@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Add support for requests to vim2m.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
-
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 9b18b32c255d..2dcf0ea85705 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -387,8 +387,26 @@ static void device_run(void *priv)
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
- 
-+	/* Apply request if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+	if (dst_buf->vb2_buf.req_obj.req &&
-+	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	device_process(ctx, src_buf, dst_buf);
- 
-+	/* Complete request if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+	if (dst_buf->vb2_buf.req_obj.req &&
-+	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	/* Run a timer, which simulates a hardware irq  */
- 	schedule_irq(dev, ctx->transtime);
- }
-@@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 		if (vbuf == NULL)
- 			return;
-+		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
-+					   &ctx->hdl);
- 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
- 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
- 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
-@@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops = {
- 	.job_abort	= job_abort,
- };
- 
-+static const struct media_device_ops m2m_media_ops = {
-+	.req_queue = vb2_request_queue,
-+};
-+
- static int vim2m_probe(struct platform_device *pdev)
- {
- 	struct vim2m_dev *dev;
-@@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	dev->mdev.dev = &pdev->dev;
- 	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
- 	media_device_init(&dev->mdev);
-+	dev->mdev.ops = &m2m_media_ops;
- 	dev->v4l2_dev.mdev = &dev->mdev;
- 	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
- 	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
--- 
-2.15.1
+SGkgQWtpbm9idSwNCg0KVGhhbmtzIGZvciB0aGUgcGF0Y2gsIGNvdWxkIHlvdSBkZXNjcmliZSB0
+aGUgdGVzdCB5b3UgbWFkZSB0byByZXByb2R1Y2UgDQp0aGUgaXNzdWUgdGhhdCBJIGNhbiB0ZXN0
+IG9uIG15IHNpZGUgPw0KDQpJJ20gdXNpbmcgdXN1YWxseSB5YXZ0YSBvciBHc3RyZWFtZXIsIGJ1
+dCBJIGRvbid0IGtub3cgaG93IHRvIHRyaWcgdGhlIA0KcG93ZXIgb24vb2ZmIGluZGVwZW5kZW50
+bHkgb2Ygc3RyZWFtb24vb2ZmLg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNCk9uIDAzLzEx
+LzIwMTggMDQ6MzQgUE0sIEFraW5vYnUgTWl0YSB3cm90ZToNCj4gVGhlIG91dHB1dCBwaXhlbCBm
+b3JtYXQgY2hhbmdlZCBieSBzZXRfZm10KCkgcGFkIG9wZXJhdGlvbiBpcyBub3QNCj4gY29ycmVj
+dGx5IGFwcGxpZWQuICBJdCBpcyBpbnRlbmRlZCB0byBiZSByZXN0b3JlZCBieSBjYWxsaW5nDQo+
+IG92NTY0MF9zZXRfZnJhbWVmbXQoKSB3aGVuIHRoZSB2aWRlbyBzdHJlYW0gaXMgc3RhcnRlZC4N
+Cj4gDQo+IEhvd2V2ZXIsIHdoZW4gdGhlIGRldmljZSBpcyBwb3dlcmVkIG9uIGJ5IHNfcG93ZXIg
+c3ViZGV2IG9wZXJhdGlvbiBiZWZvcmUNCj4gdGhlIHZpZGVvIHN0cmVhbSBpcyBzdGFydGVkLCB0
+aGUgY3VycmVudCBvdXRwdXQgbW9kZSBzZXR0aW5nIGlzIHJlc3RvcmVkDQo+IGJ5IG92NTY0MF9y
+ZXN0b3JlX21vZGUoKSB0aGF0IGFsc28gY2xlYXJzIHBlbmRpbmdfbW9kZV9jaGFuZ2UgZmxhZyBp
+bg0KPiBvdjU2NDBfc2V0X21vZGUoKS4gIFNvIG92NTY0MF9zZXRfZnJhbWVmbXQoKSBpc24ndCBj
+YWxsZWQgYXMgaW50ZW5kZWQgYW5kDQo+IHRoZSBvdXRwdXQgcGl4ZWwgZm9ybWF0IGlzIG5vdCBy
+ZXN0b3JlZC4NCj4gDQo+IFRoaXMgY2hhbmdlIGFkZHMgdGhlIG1pc3Npbmcgb3V0cHV0IHBpeGVs
+IGZvcm1hdCBzZXR0aW5nIGluIHRoZQ0KPiBvdjU2NDBfcmVzdG9yZV9tb2RlKCkgdGhhdCBpcyBj
+YWxsZWQgd2hlbiB0aGUgZGV2aWNlIGlzIHBvd2VyZWQgb24uDQo+IA0KPiBDYzogU3RldmUgTG9u
+Z2VyYmVhbSA8c2xvbmdlcmJlYW1AZ21haWwuY29tPg0KPiBDYzogSHVndWVzIEZydWNoZXQgPGh1
+Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4gQ2M6IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGxp
+bnV4LmludGVsLmNvbT4NCj4gQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkBzLW9w
+ZW5zb3VyY2UuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBBa2lub2J1IE1pdGEgPGFraW5vYnUubWl0
+YUBnbWFpbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgOSAr
+KysrKysrKy0NCj4gICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9u
+KC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2
+ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiBpbmRleCBlMmRkMzUyLi40ZWVjYzkxIDEwMDY0NA0K
+PiAtLS0gYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiArKysgYi9kcml2ZXJzL21lZGlh
+L2kyYy9vdjU2NDAuYw0KPiBAQCAtMTYzMyw2ICsxNjMzLDkgQEAgc3RhdGljIGludCBvdjU2NDBf
+c2V0X21vZGUoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4gICAJcmV0dXJuIDA7DQo+ICAg
+fQ0KPiAgIA0KPiArc3RhdGljIGludCBvdjU2NDBfc2V0X2ZyYW1lZm10KHN0cnVjdCBvdjU2NDBf
+ZGV2ICpzZW5zb3IsDQo+ICsJCQkgICAgICAgc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCAqZm9y
+bWF0KTsNCj4gKw0KPiAgIC8qIHJlc3RvcmUgdGhlIGxhc3Qgc2V0IHZpZGVvIG1vZGUgYWZ0ZXIg
+Y2hpcCBwb3dlci1vbiAqLw0KPiAgIHN0YXRpYyBpbnQgb3Y1NjQwX3Jlc3RvcmVfbW9kZShzdHJ1
+Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yKQ0KPiAgIHsNCj4gQEAgLTE2NDQsNyArMTY0NywxMSBAQCBz
+dGF0aWMgaW50IG92NTY0MF9yZXN0b3JlX21vZGUoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvcikN
+Cj4gICAJCXJldHVybiByZXQ7DQo+ICAgDQo+ICAgCS8qIG5vdyByZXN0b3JlIHRoZSBsYXN0IGNh
+cHR1cmUgbW9kZSAqLw0KPiAtCXJldHVybiBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1NjQw
+X21vZGVfaW5pdF9kYXRhKTsNCj4gKwlyZXQgPSBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1
+NjQwX21vZGVfaW5pdF9kYXRhKTsNCj4gKwlpZiAocmV0IDwgMCkNCj4gKwkJcmV0dXJuIHJldDsN
+Cj4gKw0KPiArCXJldHVybiBvdjU2NDBfc2V0X2ZyYW1lZm10KHNlbnNvciwgJnNlbnNvci0+Zm10
+KTsNCj4gICB9DQo+ICAgDQo+ICAgc3RhdGljIHZvaWQgb3Y1NjQwX3Bvd2VyKHN0cnVjdCBvdjU2
+NDBfZGV2ICpzZW5zb3IsIGJvb2wgZW5hYmxlKQ0KPiA=
