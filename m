@@ -1,107 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43406 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbeCUJrV (ORCPT
+Received: from mx0b-00272701.pphosted.com ([208.86.201.61]:58586 "EHLO
+        mx0b-00272701.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750725AbeCLEEQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 05:47:21 -0400
-Date: Wed, 21 Mar 2018 10:47:18 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, mvoelkel@DigitalDevices.de,
-        rjkm@metzlerbros.de, jasmin@anw.at
-Subject: Re: [PATCH 1/5] [media] stv0910/stv6111: add SPDX license headers
-Message-ID: <20180321094718.GB16947@kroah.com>
-References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
- <20180320210132.7873-2-d.scheller.oss@gmail.com>
+        Mon, 12 Mar 2018 00:04:16 -0400
+Date: Sun, 11 Mar 2018 23:04:02 -0500
+From: Nick French <naf@ou.edu>
+To: Ian Armstrong <mail01@iarmst.co.uk>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: ivtv: use arch_phys_wc_add() and require PAT disabled
+Message-ID: <20180312040401.GA4814@tivo.lan>
+References: <20180301171936.GU14069@wotan.suse.de>
+ <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>
+ <20180307190205.GA14069@wotan.suse.de>
+ <DM5PR03MB30352350D588A81D2D02BE93D3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
+ <20180308040601.GQ14069@wotan.suse.de>
+ <20180308041411.GR14069@wotan.suse.de>
+ <DM5PR03MB3035CCBF9718D7E42B35357FD3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
+ <MWHPR03MB30402C0F8B8F457F5F760412D3DD0@MWHPR03MB3040.namprd03.prod.outlook.com>
+ <CAB=NE6VvDNbe=XsfG0tYeFcxcXzsRkHnZxVHM79-V+1t6foU5g@mail.gmail.com>
+ <20180311232438.2b204c51@spike.private.network>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180320210132.7873-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180311232438.2b204c51@spike.private.network>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 20, 2018 at 10:01:28PM +0100, Daniel Scheller wrote:
-> From: Daniel Scheller <d.scheller@gmx.net>
+On Sun, Mar 11, 2018 at 11:24:38PM +0000, Ian Armstrong wrote:
+> On Sat, 10 Mar 2018 16:57:41 +0000
+> "French, Nicholas A." <naf@ou.edu> wrote:
 > 
-> Add SPDX license headers to the stv0910 and stv6111 DVB frontend
-> drivers. Both drivers are licensed as GPL-2.0-only, so fix this in the
-> MODULE_LICENSE while at it. Also, the includes were lacking any license
-> headers at all, so add them now.
+> > > > No what if the framebuffer driver is just requested as a
+> > > > secondary step after firmware loading?  
+> > >
+> > > Its a possibility. The decoder firmware gets loaded at the
+> > > beginning of the decoder memory range and we know its length, so
+> > > its possible to ioremap_nocache enough room for the firmware only
+> > > on init and then ioremap the remaining non-firmware decoder memory
+> > > areas appropriately after the firmware load succeeds...  
+> > 
+> > I looked in more detail, and this would be "hard" due to the way the
+> > rest of the decoder offsets are determined by either making firmware
+> > calls or scanning the decoder memory range for magic bytes and other
+> > mess.
 > 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/dvb-frontends/stv0910.c | 5 +++--
->  drivers/media/dvb-frontends/stv0910.h | 9 +++++++++
->  drivers/media/dvb-frontends/stv6111.c | 6 +++---
->  drivers/media/dvb-frontends/stv6111.h | 7 +++++++
->  4 files changed, 22 insertions(+), 5 deletions(-)
+> The buffers used for yuv output are fixed. They are located both before
+> and after the framebuffer. Their offset is fixed at 'base_addr +
+> IVTV_DECODER_OFFSET + yuv_offset[]'. The yuv offsets can be found in
+> 'ivtv-yuv.c'. The buffers are 622080 bytes in length.
 > 
-> diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-> index 52355c14fd64..ce82264e99ef 100644
-> --- a/drivers/media/dvb-frontends/stv0910.c
-> +++ b/drivers/media/dvb-frontends/stv0910.c
-> @@ -1,3 +1,4 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
+> The range would be from 'base_addr + 0x01000000 + 0x00029000' to
+> 'base_addr + 0x01000000 + 0x00748200 + 0x97dff'. This is larger than
+> required, but will catch the framebuffer and should not cause any
+> problems. If you wanted to render direct to the yuv buffers, you would
+> probably want this region included anyway (not that the current driver
+> supports that).
 
-Please only use the identifiers documented in
-Documentation/process/license-rules.rst right now.  We wrote and got
-that merged _before_ SPDX bumped the tags to 3.0 which added the (imo
-crazy) -only variants.
+Am I correct that you are talking about the possibility of re-ioremap()-ing
+the 'yuv-fb-yuv' area *after* loading the firmware, not of mapping ranges
+correctly on the first go-around?
 
-So please stick with what is already in the kernel tree, if we do decide
-to update to a newer version of SPDX, we will hit the tree all at once
-with a script to give to Linus to run.
+Because unless my math is letting me down, the decoder firmware is already
+loaded from 'base_addr + 0x01000000 + 0x0' to 'base_addr + 0x01000000 + 0x3ffff'
+which overlaps the beginning of the yuv range.
 
-
->  /*
->   * Driver for the ST STV0910 DVB-S/S2 demodulator.
->   *
-> @@ -11,7 +12,7 @@
->   *
->   * This program is distributed in the hope that it will be useful,
->   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-
-Why did you change this in this patch?
-
-Please only do "one" thing per patch.
-
-
-
->   * GNU General Public License for more details.
->   */
->  
-> @@ -1836,4 +1837,4 @@ EXPORT_SYMBOL_GPL(stv0910_attach);
->  
->  MODULE_DESCRIPTION("ST STV0910 multistandard frontend driver");
->  MODULE_AUTHOR("Ralph and Marcus Metzler, Manfred Voelkel");
-> -MODULE_LICENSE("GPL");
-> +MODULE_LICENSE("GPL v2");
-
-Again, this should be a separate patch.
-
-
-> diff --git a/drivers/media/dvb-frontends/stv0910.h b/drivers/media/dvb-frontends/stv0910.h
-> index fccd8d9b665f..93de08540ce4 100644
-> --- a/drivers/media/dvb-frontends/stv0910.h
-> +++ b/drivers/media/dvb-frontends/stv0910.h
-> @@ -1,3 +1,12 @@
-> +/* SPDX-License-Identifier: GPL-2.0-only */
-> +/*
-> + * Driver for the ST STV0910 DVB-S/S2 demodulator.
-> + *
-> + * Copyright (C) 2014-2015 Ralph Metzler <rjkm@metzlerbros.de>
-> + *                         Marcus Metzler <mocm@metzlerbros.de>
-> + *                         developed for Digital Devices GmbH
-> + */
-
-Where did that copyright notice come from?
-
-This patch is a total mix of different things, please do not do that at
-all!
-
-thanks,
-
-greg k-h
+- Nick
