@@ -1,74 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:33034 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750783AbeCHXfr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 18:35:47 -0500
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <20180306085530.7b51aa29@vento.lan>
-References: <20180306085530.7b51aa29@vento.lan> <151559583569.13545.12649741692530472663.stgit@warthog.procyon.org.uk>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] dvb: Save port number and provide sysfs attributes to pass values to udev
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <536.1520552145.1@warthog.procyon.org.uk>
-Date: Thu, 08 Mar 2018 23:35:45 +0000
-Message-ID: <537.1520552145@warthog.procyon.org.uk>
+Received: from mailout1.samsung.com ([203.254.224.24]:47377 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752163AbeCLPoH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 11:44:07 -0400
+Received: from epcas2p4.samsung.com (unknown [182.195.41.56])
+        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20180312154405epoutp012c3e62e658a70abf47d349a66f26d982~bNrPx2tRK0564605646epoutp01b
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 15:44:05 +0000 (GMT)
+To: linux-media@vger.kernel.org
+Cc: Smitha T Murthy <smitha.t@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] HEVC V4L2 controls and s5p-mfc update
+Message-id: <68f7ba13-0bf5-627b-139f-9efb1c33a467@samsung.com>
+Date: Mon, 12 Mar 2018 16:44:00 +0100
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20180312154404epcas2p1fa0c2d98b4534a2dea6536f0063ec5b3@epcas2p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@kernel.org> wrote:
+Hi Mauro,
 
-> > +	dvb_class->dev_groups = dvb_class_groups,
-> >  	dvb_class->dev_uevent = dvb_uevent;
-> >  	dvb_class->devnode = dvb_devnode;
-> >  	return 0;
-> 
-> The patch itself looks good, but I'm not seeing any documentation.
+The following changes since commit 3f127ce11353fd1071cae9b65bc13add6aec6b90:
 
-I should probably add something to Documentation/media/dvb-drivers/udev.rst
+  media: em28xx-cards: fix em28xx_duplicate_dev() (2018-03-08 06:06:51 -0500)
 
-> You should likely add something to Documentation/ABI
+are available in the git repository at:
 
-Any suggestions as to where to add stuff in there?  The README there leaves
-a lot to be desired as to how to name elements - for instance, DVB devices can
-be seen through /sys/class/ and /sys/devices/.
+  git://linuxtv.org/snawrocki/samsung.git tags/for-v4.17/media/samsung
 
-I could put it in sys-class-dvb or sys-devices-dvb - or, arguably, both.
+for you to fetch changes up to 4d26b437a1d98495454119082d50a68eadb2da4a:
 
-> and to the DVB uAPI (Documentation/media/uapi/dvb).
+  s5p-mfc: Add support for HEVC encoder (2018-03-12 16:15:28 +0100)
 
-Likewise, any suggestion as to where in here?  As far as I can tell, the docs
-here don't currently mention sysfs at all.  I'm guessing I'll need to create a
-file specifically to talk about how to use this stuff with udev.
+----------------------------------------------------------------
+Support for MFC v10.10 in the s5p-mfc driver and addition
+of related HEVC V4L2 controls.
 
-> > +	port->frontends.adapter.port_num = port->nr;
-> > +
-> 
-> Doing it for each multi-adapter device is something that bothers
-> me. The better would be if we could move this to the DVB Kernel,
-> in order to not need to check/fix every driver.
+----------------------------------------------------------------
+Smitha T Murthy (12):
+      videodev2.h: Add v4l2 definition for HEVC
+      v4l2-ioctl: add HEVC format description
+      v4l2: Documentation of HEVC compressed format
+      v4l2: Add v4l2 control IDs for HEVC encoder
+      v4l2: Documentation for HEVC CIDs
+      s5p-mfc: Rename IS_MFCV8 macro
+      s5p-mfc: Adding initial support for MFC v10.10
+      s5p-mfc: Use min scratch buffer size as provided by F/W
+      s5p-mfc: Support MFCv10.10 buffer requirements
+      s5p-mfc: Add support for HEVC decoder
+      s5p-mfc: Add VP9 decoder support
+      s5p-mfc: Add support for HEVC encoder
 
-I'm not sure how achievable that is: *port in this case is a private
-cx23885-specific structure object.
+ Documentation/devicetree/bindings/media/s5p-mfc.txt |   1 +
+ Documentation/media/uapi/v4l/extended-controls.rst  | 410 +++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-compressed.rst  |   5 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h       |  87 ++++
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h        |   2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c            |  28 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c     |   9 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h     |  68 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c       |   6 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c        |  48 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c        | 557 ++++++++++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h        |  14 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c     | 397 +++++++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h     |  15 +
+ drivers/media/v4l2-core/v4l2-ctrls.c                | 119 +++++
+ drivers/media/v4l2-core/v4l2-ioctl.c                |   1 +
+ include/uapi/linux/v4l2-controls.h                  |  93 +++-
+ include/uapi/linux/videodev2.h                      |   1 +
+ 18 files changed, 1783 insertions(+), 78 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
 
-> If, otherwise, this is not possible, then we need a patch fixing port_num
-> for all drivers that support multiple adapters.
-> 
-> Also, the risk of forgetting it seems high. So, perhaps we should
-> add a new parameter to some function (like at dvb_register_device
-> or at dvb_register_frontend), in order to make the port number
-> a mandatory attribute.
-
-Hmmm...  The cx23885 driver doesn't call either of these functions as far as I
-can tell - at least, not directly.  Maybe by vb2_dvb_register_bus()?
-
-Note that these attribute files appear for the demux, dvr and net directories
-as well as for the frontend.
-
-Hmmm... further, the port number is no longer getting through and all adapters
-are showing port 0.  The MAC address works, though.  Maybe I should drop the
-port number.
-
-David
+--
+Regards,
+Sylwester
