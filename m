@@ -1,41 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:46339 "EHLO
-        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751075AbeCGJv1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 04:51:27 -0500
-Received: by mail-qt0-f182.google.com with SMTP id m13so1835440qtg.13
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 01:51:27 -0800 (PST)
+Received: from gofer.mess.org ([88.97.38.141]:42325 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932252AbeCLN6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 09:58:13 -0400
+Date: Mon, 12 Mar 2018 13:58:11 +0000
+From: Sean Young <sean@mess.org>
+To: Matthias Reichl <hias@horus.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Carlo Caione <carlo@caione.org>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Alex Deryskyba <alex@codesnake.com>,
+        Jonas Karlman <jonas@kwiboo.se>, linux-media@vger.kernel.org,
+        linux-amlogic@lists.infradead.org
+Subject: Re: [PATCH] media: rc: meson-ir: add timeout on idle
+Message-ID: <20180312135811.g25jjzhmh3jnvgjr@gofer.mess.org>
+References: <20180306174122.6017-1-hias@horus.com>
+ <20180308164327.ihhmvm6ntzvnsjy7@gofer.mess.org>
+ <20180309155451.gbocsaj4s3puc4cq@camel2.lan>
+ <20180310112744.plfxkmqbgvii7n7r@gofer.mess.org>
+ <20180310173828.7lwyicxzar22dyb7@camel2.lan>
+ <20180311125518.pcob4wii43odmana@gofer.mess.org>
+ <20180312132000.oqrj4xjdi7lvupnu@camel2.lan>
 MIME-Version: 1.0
-In-Reply-To: <20180307081302.h47mjhlkeq72shw7@valkosipuli.retiisi.org.uk>
-References: <1520355879-20291-1-git-send-email-hugues.fruchet@st.com> <20180307081302.h47mjhlkeq72shw7@valkosipuli.retiisi.org.uk>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Wed, 7 Mar 2018 06:51:26 -0300
-Message-ID: <CAOMZO5BEi_dWmerMx5i3UoWU_3G7m3kgUWyGu4LfNMdvWNF+pw@mail.gmail.com>
-Subject: Re: [PATCH] media: ov5640: fix get_/set_fmt colorspace related fields
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hugues Fruchet <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180312132000.oqrj4xjdi7lvupnu@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Mon, Mar 12, 2018 at 02:20:00PM +0100, Matthias Reichl wrote:
+> On Sun, Mar 11, 2018 at 12:55:19PM +0000, Sean Young wrote:
+> > That makes complete sense. I'm actually keen to get this lowered, since
+> > this makes it possible to lower the repeat period per-protocol, see
+> > commit d57ea877af38 which had to be reverted (the ite driver will
+> > need fixing up as well before this can happen).
+> 
+> I remember the commit, this issue hit us in LibreELEC testbuilds
+> as well :-)
+> 
+> > Lowering to below 125ms does increase the risk of regressions, so I
+> > am weary of that. Do you think there is benefit in doing this?
+> 
+> I'd also say stick to the 125ms default. The default settings
+> should always be safe ones IMO.
 
-On Wed, Mar 7, 2018 at 5:13 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+Well, yes. I just wanted to explore the ideal situation before making
+up our minds.
 
->> @@ -2497,16 +2504,22 @@ static int ov5640_probe(struct i2c_client *client,
->>       struct fwnode_handle *endpoint;
->>       struct ov5640_dev *sensor;
->>       int ret;
->> +     struct v4l2_mbus_framefmt *fmt;
->
-> This one I'd arrange before ret. The local variable declarations should
-> generally look like a Christmas tree but upside down.
+> People who want to optimize for the last bit of performance can
+> easily do that on their own, at their own risk.
+> 
+> 
+> Personally I've been using gpio-ir-recv on RPi with the default 125ms
+> timeout and a Hauppauge rc-5 remote for about 2 years now and I've
+> always been happy with that.
 
-It seems Mauro is not happy with reverse Christmas tree ordering:
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg127221.html
+Ok. We should try to get this change for meson-ir ready for v4.17. I can
+write a patch later.
+
+> I have to acknowledge though that the responsiveness of a remote
+> with short messages, like rc-5, in combination with a low timeout
+> (I tested down to 10ms) is pretty impressive.
+
+I've been thinking about this problem. What we could do is have a 
+per-protocol maximum space length, and repeat period. The timeout
+can then be set to a maximum space length (+safety margin), and the
+keyup timer can be set to timeout + repeat period (+safety margin).
+
+If memory serves, the lirc daemon always sets the timeout with
+LIRC_SET_REC_TIMEOUT, so it would not affect lirc daemon decoding.
+
+Anyway, just an idea. Not something for v4.17.
+
+Thanks,
+
+Sean
