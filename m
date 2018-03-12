@@ -1,122 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:13106 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751903AbeCZH6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 03:58:45 -0400
-Date: Mon, 26 Mar 2018 10:58:42 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, acourbot@chromium.org
-Subject: Re: [RFC v2 00/10] Preparing the request API
-Message-ID: <20180326075842.fj4z6fkmuk3rppwo@paasikivi.fi.intel.com>
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
- <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
- <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:38639 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932244AbeCLTNS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Mar 2018 15:13:18 -0400
+Received: by mail-wm0-f54.google.com with SMTP id z9so18251997wmb.3
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 12:13:17 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH 1/4] dma-buf: add optional invalidate_mappings callback
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+References: <20180309191144.1817-1-christian.koenig@amd.com>
+ <20180309191144.1817-2-christian.koenig@amd.com>
+ <20180312170710.GL8589@phenom.ffwll.local>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <f3986703-75de-4ce3-a828-1687291bb618@gmail.com>
+Date: Mon, 12 Mar 2018 20:13:15 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+In-Reply-To: <20180312170710.GL8589@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Am 12.03.2018 um 18:07 schrieb Daniel Vetter:
+> On Fri, Mar 09, 2018 at 08:11:41PM +0100, Christian K??nig wrote:
+>> [SNIP]
+>>   
+>> +/**
+>> + * dma_buf_invalidate_mappings - invalidate all mappings of this dma_buf
+>> + *
+>> + * @dmabuf:	[in]	buffer which mappings should be invalidated
+>> + *
+>> + * Informs all attachmenst that they need to destroy and recreated all their
+>> + * mappings.
+>> + */
+>> +void dma_buf_invalidate_mappings(struct dma_buf *dmabuf)
+>> +{
+>> +	struct dma_buf_attachment *attach;
+>> +
+>> +	reservation_object_assert_held(dmabuf->resv);
+>> +
+>> +	list_for_each_entry(attach, &dmabuf->attachments, node)
+>> +		attach->invalidate_mappings(attach);
+> To make the locking work I think we also need to require importers to hold
+> the reservation object while attaching/detaching. Otherwise the list walk
+> above could go boom.
 
-On Sun, Mar 25, 2018 at 06:17:30PM +0200, Hans Verkuil wrote:
-> On 03/25/2018 05:12 PM, Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > On 03/23/2018 10:17 PM, Sakari Ailus wrote:
-> >> Hi folks,
-> >>
-> >> This preliminary RFC patchset prepares for the request API. What's new
-> >> here is support for binding arbitrary configuration or resources to
-> >> requests.
-> >>
-> >> There are a few new concepts here:
-> >>
-> >> Class --- a type of configuration or resource a driver (or e.g. the V4L2
-> >> framework) can attach to a resource. E.g. a video buffer queue would be a
-> >> class.
-> >>
-> >> Object --- an instance of the class. This may be either configuration (in
-> >> which case the setting will stay until changed, e.g. V4L2 format on a
-> >> video node) or a resource (such as a video buffer).
-> >>
-> >> Reference --- a reference to an object. If a configuration is not changed
-> >> in a request, instead of allocating a new object, a reference to an
-> >> existing object is used. This saves time and memory.
-> >>
-> >> I expect Laurent to comment on aligning the concept names between the
-> >> request API and DRM. As far as I understand, the respective DRM names for
-> >> "class" and "object" used in this set would be "object" and "state".
-> >>
-> >> The drivers will need to interact with the requests in three ways:
-> >>
-> >> - Allocate new configurations or resources. Drivers are free to store
-> >>   their own data into request objects as well. These callbacks are
-> >>   specific to classes.
-> >>
-> >> - Validate and queue callbacks. These callbacks are used to try requests
-> >>   (validate only) as well as queue them (validate and queue). These
-> >>   callbacks are media device wide, at least for now.
-> >>
-> >> The lifetime of the objects related to requests is based on refcounting
-> >> both requests and request objects. This fits well for existing use cases
-> >> whether or not based on refcounting; what still needs most of the
-> >> attention is likely that the number of gets and puts matches once the
-> >> object is no longer needed.
-> >>
-> >> Configuration can be bound to the request the usual way (V4L2 IOCTLs with
-> >> the request_fd field set to the request). Once queued, request completion
-> >> is signalled through polling the request file handle (POLLPRI).
-> >>
-> >> I'm posting this as an RFC because it's not complete yet. The code
-> >> compiles but no testing has been done yet.
-> > 
-> > Thank you for this patch series. There are some good ideas here, but it is
-> > quite far from being useful with Alexandre's RFCv4 series.
-> > 
-> > So this weekend I worked on a merger of this work and the RFCv4 Request API
-> > patch series, taking what I think are the best bits of both.
-> > 
-> > It is available here:
-> > 
-> > https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv6
-> 
-> I reorganized/cleaned up the patch series. So look here instead:
-> 
-> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv7
+Oh, good point. Going, to fix this.
 
-I looked at the set an I mostly agree with the changes. There are a few
-comments I'd like to make --- and I didn't do a thorough review.
+> [SNIP]
+>> +	/**
+>> +	 * @supports_mapping_invalidation:
+>> +	 *
+>> +	 * True for exporters which supports unpinned DMA-buf operation using
+>> +	 * the reservation lock.
+>> +	 *
+>> +	 * When attachment->invalidate_mappings is set the @map_dma_buf and
+>> +	 * @unmap_dma_buf callbacks can be called with the reservation lock
+>> +	 * held.
+>> +	 */
+>> +	bool supports_mapping_invalidation;
+> Why do we need this? Importer could simply always register with the
+> invalidate_mapping hook registered, and exporters could use it when they
+> see fit. That gives us more lockdep coverage to make sure importers use
+> their attachment callbacks correctly (aka they hold the reservation
+> object).
 
-- The purpose of completeable objects is to help the driver to manage
-  completing requests. Sometimes this is not self-evident. A request is
-  complete when all of its results are available, including buffers and
-  controls. The driver does not need to care about this. (I.e. this is not
-  the same thing as refcounting.)
+One sole reason: Backward compability.
 
-- I didn't immediately find object references in the latest set. The
-  purpose of the references is to avoid copying objects if they don't
-  change from requests to another. It's less time-consuming to allocate a
-  new reference (a few pointers) instead of allocating memory for struct
-  v4l2_format and copying the data. This starts to really matter when the
-  number of objects increase.
+I didn't wanted to audit all those different drivers if they can handle 
+being called with the reservation lock held.
 
-  Then again, I wasn't very happy with videobufs having to refer
-  themselves; perhaps we could limit referring to configuration objects
-  (vs. resource objects; this is what my last patchset referred to as
-  sticky; perhaps not a lasting name nor necessarily intended as such)
-  while putting resource objects to the request itself.
+>
+>> +
+>>   	/**
+>>   	 * @map_dma_buf:
+>>   	 *
+>> @@ -326,6 +338,29 @@ struct dma_buf_attachment {
+>>   	struct device *dev;
+>>   	struct list_head node;
+>>   	void *priv;
+>> +
+>> +	/**
+>> +	 * @invalidate_mappings:
+>> +	 *
+>> +	 * Optional callback provided by the importer of the attachment which
+>> +	 * must be set before mappings are created.
+> This doesn't work, it must be set before the attachment is created,
+> otherwise you race with your invalidate callback.
 
-  Controls would be a prime candidate for this if the control framework can
-  be made to fit this model. I'm fine adding this later on, or another
-  solution that avoids copying all unchanged configuration around for every
-  request. But I want the need to be recognised so it won't come as a
-  surprise to anyone later on.
+Another good point.
 
--- 
-Kind regards,
+>
+> I think the simplest option would be to add a new dma_buf_attach_dynamic
+> (well except a less crappy name).
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Well how about adding an optional invalidate_mappings parameter to the 
+existing dma_buf_attach?
+
+>
+>> +	 *
+>> +	 * If provided the exporter can avoid pinning the backing store while
+>> +	 * mappings exists.
+>> +	 *
+>> +	 * The function is called with the lock of the reservation object
+>> +	 * associated with the dma_buf held and the mapping function must be
+>> +	 * called with this lock held as well. This makes sure that no mapping
+>> +	 * is created concurrently with an ongoing invalidation.
+>> +	 *
+>> +	 * After the callback all existing mappings are still valid until all
+>> +	 * fences in the dma_bufs reservation object are signaled, but should be
+>> +	 * destroyed by the importer as soon as possible.
+> Do we guarantee that the importer will attach a fence, after which the
+> mapping will be gone? What about re-trying? Or just best effort (i.e. only
+> useful for evicting to try to make room).
+
+The importer should attach fences for all it's operations with the DMA-buf.
+
+> I think a helper which both unmaps _and_ waits for all the fences to clear
+> would be best, with some guarantees that it'll either fail or all the
+> mappings _will_ be gone. The locking for that one will be hilarious, since
+> we need to figure out dmabuf->lock vs. the reservation. I kinda prefer we
+> throw away the dmabuf->lock and superseed it entirely by the reservation
+> lock.
+
+Big NAK on that. The whole API is asynchronously, e.g. we never block 
+for any operation to finish.
+
+Otherwise you run into big trouble with cross device GPU resets and 
+stuff like that.
+
+>> +	 *
+>> +	 * New mappings can be created immediately, but can't be used before the
+>> +	 * exclusive fence in the dma_bufs reservation object is signaled.
+>> +	 */
+>> +	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
+> Bunch of questions about exact semantics, but I very much like this. And I
+> think besides those technical details, the overall approach seems sound.
+
+Yeah this initial implementation was buggy like hell. Just wanted to 
+confirm that the idea is going in the right direction.
+
+Thanks for the comments,
+Christian.
+
+> -Daniel
+>
