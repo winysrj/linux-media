@@ -1,68 +1,318 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36714 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751379AbeCLQTV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41770 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932387AbeCMSFz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 12:19:21 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH] media: ov5640: add missing output pixel format setting
-Date: Mon, 12 Mar 2018 16:18:59 +0000
-Message-ID: <f984cfec-80a5-874f-16cb-0939d891863f@st.com>
-References: <1520782481-13558-1-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1520782481-13558-1-git-send-email-akinobu.mita@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <780ACD1E36ACAA489919EB696CE6CDB6@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Tue, 13 Mar 2018 14:05:55 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v2 09/11] media: vsp1: Provide support for extended command pools
+Date: Tue, 13 Mar 2018 19:05:25 +0100
+Message-Id: <e9dac69c91be6e85c79d097be7c9e5f0e7241f83.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgQWtpbm9idSwNCg0KVGhhbmtzIGZvciB0aGUgcGF0Y2gsIGNvdWxkIHlvdSBkZXNjcmliZSB0
-aGUgdGVzdCB5b3UgbWFkZSB0byByZXByb2R1Y2UgDQp0aGUgaXNzdWUgdGhhdCBJIGNhbiB0ZXN0
-IG9uIG15IHNpZGUgPw0KDQpJJ20gdXNpbmcgdXN1YWxseSB5YXZ0YSBvciBHc3RyZWFtZXIsIGJ1
-dCBJIGRvbid0IGtub3cgaG93IHRvIHRyaWcgdGhlIA0KcG93ZXIgb24vb2ZmIGluZGVwZW5kZW50
-bHkgb2Ygc3RyZWFtb24vb2ZmLg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNCk9uIDAzLzEx
-LzIwMTggMDQ6MzQgUE0sIEFraW5vYnUgTWl0YSB3cm90ZToNCj4gVGhlIG91dHB1dCBwaXhlbCBm
-b3JtYXQgY2hhbmdlZCBieSBzZXRfZm10KCkgcGFkIG9wZXJhdGlvbiBpcyBub3QNCj4gY29ycmVj
-dGx5IGFwcGxpZWQuICBJdCBpcyBpbnRlbmRlZCB0byBiZSByZXN0b3JlZCBieSBjYWxsaW5nDQo+
-IG92NTY0MF9zZXRfZnJhbWVmbXQoKSB3aGVuIHRoZSB2aWRlbyBzdHJlYW0gaXMgc3RhcnRlZC4N
-Cj4gDQo+IEhvd2V2ZXIsIHdoZW4gdGhlIGRldmljZSBpcyBwb3dlcmVkIG9uIGJ5IHNfcG93ZXIg
-c3ViZGV2IG9wZXJhdGlvbiBiZWZvcmUNCj4gdGhlIHZpZGVvIHN0cmVhbSBpcyBzdGFydGVkLCB0
-aGUgY3VycmVudCBvdXRwdXQgbW9kZSBzZXR0aW5nIGlzIHJlc3RvcmVkDQo+IGJ5IG92NTY0MF9y
-ZXN0b3JlX21vZGUoKSB0aGF0IGFsc28gY2xlYXJzIHBlbmRpbmdfbW9kZV9jaGFuZ2UgZmxhZyBp
-bg0KPiBvdjU2NDBfc2V0X21vZGUoKS4gIFNvIG92NTY0MF9zZXRfZnJhbWVmbXQoKSBpc24ndCBj
-YWxsZWQgYXMgaW50ZW5kZWQgYW5kDQo+IHRoZSBvdXRwdXQgcGl4ZWwgZm9ybWF0IGlzIG5vdCBy
-ZXN0b3JlZC4NCj4gDQo+IFRoaXMgY2hhbmdlIGFkZHMgdGhlIG1pc3Npbmcgb3V0cHV0IHBpeGVs
-IGZvcm1hdCBzZXR0aW5nIGluIHRoZQ0KPiBvdjU2NDBfcmVzdG9yZV9tb2RlKCkgdGhhdCBpcyBj
-YWxsZWQgd2hlbiB0aGUgZGV2aWNlIGlzIHBvd2VyZWQgb24uDQo+IA0KPiBDYzogU3RldmUgTG9u
-Z2VyYmVhbSA8c2xvbmdlcmJlYW1AZ21haWwuY29tPg0KPiBDYzogSHVndWVzIEZydWNoZXQgPGh1
-Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4gQ2M6IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGxp
-bnV4LmludGVsLmNvbT4NCj4gQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkBzLW9w
-ZW5zb3VyY2UuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBBa2lub2J1IE1pdGEgPGFraW5vYnUubWl0
-YUBnbWFpbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgOSAr
-KysrKysrKy0NCj4gICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9u
-KC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2
-ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiBpbmRleCBlMmRkMzUyLi40ZWVjYzkxIDEwMDY0NA0K
-PiAtLS0gYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiArKysgYi9kcml2ZXJzL21lZGlh
-L2kyYy9vdjU2NDAuYw0KPiBAQCAtMTYzMyw2ICsxNjMzLDkgQEAgc3RhdGljIGludCBvdjU2NDBf
-c2V0X21vZGUoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4gICAJcmV0dXJuIDA7DQo+ICAg
-fQ0KPiAgIA0KPiArc3RhdGljIGludCBvdjU2NDBfc2V0X2ZyYW1lZm10KHN0cnVjdCBvdjU2NDBf
-ZGV2ICpzZW5zb3IsDQo+ICsJCQkgICAgICAgc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCAqZm9y
-bWF0KTsNCj4gKw0KPiAgIC8qIHJlc3RvcmUgdGhlIGxhc3Qgc2V0IHZpZGVvIG1vZGUgYWZ0ZXIg
-Y2hpcCBwb3dlci1vbiAqLw0KPiAgIHN0YXRpYyBpbnQgb3Y1NjQwX3Jlc3RvcmVfbW9kZShzdHJ1
-Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yKQ0KPiAgIHsNCj4gQEAgLTE2NDQsNyArMTY0NywxMSBAQCBz
-dGF0aWMgaW50IG92NTY0MF9yZXN0b3JlX21vZGUoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvcikN
-Cj4gICAJCXJldHVybiByZXQ7DQo+ICAgDQo+ICAgCS8qIG5vdyByZXN0b3JlIHRoZSBsYXN0IGNh
-cHR1cmUgbW9kZSAqLw0KPiAtCXJldHVybiBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1NjQw
-X21vZGVfaW5pdF9kYXRhKTsNCj4gKwlyZXQgPSBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1
-NjQwX21vZGVfaW5pdF9kYXRhKTsNCj4gKwlpZiAocmV0IDwgMCkNCj4gKwkJcmV0dXJuIHJldDsN
-Cj4gKw0KPiArCXJldHVybiBvdjU2NDBfc2V0X2ZyYW1lZm10KHNlbnNvciwgJnNlbnNvci0+Zm10
-KTsNCj4gICB9DQo+ICAgDQo+ICAgc3RhdGljIHZvaWQgb3Y1NjQwX3Bvd2VyKHN0cnVjdCBvdjU2
-NDBfZGV2ICpzZW5zb3IsIGJvb2wgZW5hYmxlKQ0KPiA=
+VSPD and VSP-DL devices can provide extended display lists supporting
+extended command display list objects.
+
+These extended commands require their own dma memory areas for a header
+and body specific to the command type.
+
+Implement a command pool to allocate all necessary memory in a single
+DMA allocation to reduce pressure on the TLB, and provide convenient
+re-usable command objects for the entities to utilise.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+---
+
+v2:
+ - Fix spelling typo in commit message
+ - constify, and staticify the instantiation of vsp1_extended_commands
+ - s/autfld_cmds/autofld_cmds/
+ - staticify cmd pool functions (Thanks kbuild-bot)
+
+ drivers/media/platform/vsp1/vsp1_dl.c | 190 +++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_dl.h |   3 +-
+ 2 files changed, 193 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index cd91b50deed1..d8392bd866f1 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -121,6 +121,30 @@ struct vsp1_dl_body_pool {
+ };
+ 
+ /**
++ * struct vsp1_cmd_pool - display list body pool
++ * @dma: DMA address of the entries
++ * @size: size of the full DMA memory pool in bytes
++ * @mem: CPU memory pointer for the pool
++ * @bodies: Array of DLB structures for the pool
++ * @free: List of free DLB entries
++ * @lock: Protects the pool and free list
++ * @vsp1: the VSP1 device
++ */
++struct vsp1_dl_cmd_pool {
++	/* DMA allocation */
++	dma_addr_t dma;
++	size_t size;
++	void *mem;
++
++	struct vsp1_dl_ext_cmd *cmds;
++	struct list_head free;
++
++	spinlock_t lock;
++
++	struct vsp1_device *vsp1;
++};
++
++/**
+  * struct vsp1_dl_list - Display list
+  * @list: entry in the display list manager lists
+  * @dlm: the display list manager
+@@ -163,6 +187,7 @@ struct vsp1_dl_list {
+  * @queued: list queued to the hardware (written to the DL registers)
+  * @pending: list waiting to be queued to the hardware
+  * @pool: body pool for the display list bodies
++ * @autofld_cmds: command pool to support auto-fld interlaced mode
+  */
+ struct vsp1_dl_manager {
+ 	unsigned int index;
+@@ -176,6 +201,7 @@ struct vsp1_dl_manager {
+ 	struct vsp1_dl_list *pending;
+ 
+ 	struct vsp1_dl_body_pool *pool;
++	struct vsp1_dl_cmd_pool *autofld_cmds;
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -339,6 +365,139 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ }
+ 
+ /* -----------------------------------------------------------------------------
++ * Display List Extended Command Management
++ */
++
++enum vsp1_extcmd_type {
++	VSP1_EXTCMD_AUTODISP,
++	VSP1_EXTCMD_AUTOFLD,
++};
++
++struct vsp1_extended_command_info {
++	u16 opcode;
++	size_t body_size;
++} static const vsp1_extended_commands[] = {
++	[VSP1_EXTCMD_AUTODISP] = { 0x02, 96 },
++	[VSP1_EXTCMD_AUTOFLD]  = { 0x03, 160 },
++};
++
++/**
++ * vsp1_dl_cmd_pool_create - Create a pool of commands from a single allocation
++ * @vsp1: The VSP1 device
++ * @type: The command pool type
++ * @num_commands: The quantity of commands to allocate
++ *
++ * Allocate a pool of commands each with enough memory to contain the private
++ * data of each command. The allocation sizes are dependent upon the command
++ * type.
++ *
++ * Return a pointer to a pool on success or NULL if memory can't be allocated.
++ */
++static struct vsp1_dl_cmd_pool *
++vsp1_dl_cmd_pool_create(struct vsp1_device *vsp1, enum vsp1_extcmd_type type,
++			unsigned int num_cmds)
++{
++	struct vsp1_dl_cmd_pool *pool;
++	unsigned int i;
++	size_t cmd_size;
++
++	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
++	if (!pool)
++		return NULL;
++
++	pool->cmds = kcalloc(num_cmds, sizeof(*pool->cmds), GFP_KERNEL);
++	if (!pool->cmds) {
++		kfree(pool);
++		return NULL;
++	}
++
++	cmd_size = sizeof(struct vsp1_dl_ext_cmd_header) +
++		   vsp1_extended_commands[type].body_size;
++	cmd_size = ALIGN(cmd_size, 16);
++
++	pool->size = cmd_size * num_cmds;
++	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
++				 GFP_KERNEL);
++	if (!pool->mem) {
++		kfree(pool->cmds);
++		kfree(pool);
++		return NULL;
++	}
++
++	spin_lock_init(&pool->lock);
++	INIT_LIST_HEAD(&pool->free);
++
++	for (i = 0; i < num_cmds; ++i) {
++		struct vsp1_dl_ext_cmd *cmd = &pool->cmds[i];
++		size_t cmd_offset = i * cmd_size;
++		size_t data_offset = sizeof(struct vsp1_dl_ext_cmd_header) +
++				     cmd_offset;
++
++		cmd->pool = pool;
++		cmd->cmd_opcode = vsp1_extended_commands[type].opcode;
++
++		/* TODO: Auto-disp can utilise more than one command per cmd */
++		cmd->num_cmds = 1;
++		cmd->cmds = pool->mem + cmd_offset;
++		cmd->cmd_dma = pool->dma + cmd_offset;
++
++		cmd->data = pool->mem + data_offset;
++		cmd->data_dma = pool->dma + data_offset;
++		cmd->data_size = vsp1_extended_commands[type].body_size;
++
++		list_add_tail(&cmd->free, &pool->free);
++	}
++
++	return pool;
++}
++
++static struct vsp1_dl_ext_cmd *vsp1_dl_ext_cmd_get(struct vsp1_dl_cmd_pool *pool)
++{
++	struct vsp1_dl_ext_cmd *cmd = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->lock, flags);
++
++	if (!list_empty(&pool->free)) {
++		cmd = list_first_entry(&pool->free, struct vsp1_dl_ext_cmd,
++				       free);
++		list_del(&cmd->free);
++	}
++
++	spin_unlock_irqrestore(&pool->lock, flags);
++
++	return cmd;
++}
++
++static void vsp1_dl_ext_cmd_put(struct vsp1_dl_ext_cmd *cmd)
++{
++	unsigned long flags;
++
++	if (!cmd)
++		return;
++
++	/* Reset flags, these mark data usage */
++	cmd->flags = 0;
++
++	spin_lock_irqsave(&cmd->pool->lock, flags);
++	list_add_tail(&cmd->free, &cmd->pool->free);
++	spin_unlock_irqrestore(&cmd->pool->lock, flags);
++}
++
++static void vsp1_dl_ext_cmd_pool_destroy(struct vsp1_dl_cmd_pool *pool)
++{
++	if (!pool)
++		return;
++
++	if (pool->mem)
++		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
++			    pool->dma);
++
++	kfree(pool->cmds);
++	kfree(pool);
++}
++
++/* ----------------------------------------------------------------------------
+  * Display List Transaction Management
+  */
+ 
+@@ -442,6 +601,12 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ 
+ 	vsp1_dl_list_bodies_put(dl);
+ 
++	vsp1_dl_ext_cmd_put(dl->pre_cmd);
++	vsp1_dl_ext_cmd_put(dl->post_cmd);
++
++	dl->pre_cmd = NULL;
++	dl->post_cmd = NULL;
++
+ 	/*
+ 	 * body0 is reused as as an optimisation as presently every display list
+ 	 * has at least one body, thus we reinitialise the entries list
+@@ -863,6 +1028,15 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 		list_add_tail(&dl->list, &dlm->free);
+ 	}
+ 
++	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) {
++		dlm->autofld_cmds = vsp1_dl_cmd_pool_create(vsp1,
++					VSP1_EXTCMD_AUTOFLD, prealloc);
++		if (!dlm->autofld_cmds) {
++			vsp1_dlm_destroy(dlm);
++			return NULL;
++		}
++	}
++
+ 	return dlm;
+ }
+ 
+@@ -879,4 +1053,20 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
+ 	}
+ 
+ 	vsp1_dl_body_pool_destroy(dlm->pool);
++	vsp1_dl_ext_cmd_pool_destroy(dlm->autofld_cmds);
++}
++
++struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl)
++{
++	struct vsp1_dl_manager *dlm = dl->dlm;
++	struct vsp1_dl_ext_cmd *cmd;
++
++	if (dl->pre_cmd)
++		return dl->pre_cmd;
++
++	cmd = vsp1_dl_ext_cmd_get(dlm->autofld_cmds);
++	if (cmd)
++		dl->pre_cmd = cmd;
++
++	return cmd;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 4898b21dc840..3009912ddefb 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -23,6 +23,7 @@ struct vsp1_dl_manager;
+ 
+ /**
+  * struct vsp1_dl_ext_cmd - Extended Display command
++ * @pool: pool to which this command belongs
+  * @free: entry in the pool of free commands list
+  * @cmd_opcode: command type opcode
+  * @flags: flags used by the command
+@@ -34,6 +35,7 @@ struct vsp1_dl_manager;
+  * @data_size: size of the @data_dma memory in bytes
+  */
+ struct vsp1_dl_ext_cmd {
++	struct vsp1_dl_cmd_pool *pool;
+ 	struct list_head free;
+ 
+ 	u8 cmd_opcode;
+@@ -56,6 +58,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
++struct vsp1_dl_ext_cmd *vsp1_dlm_get_autofld_cmd(struct vsp1_dl_list *dl);
+ 
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+-- 
+git-series 0.9.1
