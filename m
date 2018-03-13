@@ -1,75 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:45052 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751411AbeCUKEM (ORCPT
+Received: from relay9-d.mail.gandi.net ([217.70.183.199]:37817 "EHLO
+        relay9-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752078AbeCMJ0h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 06:04:12 -0400
-Date: Wed, 21 Mar 2018 13:03:46 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: "Yavuz, Tuba" <tuba@ece.ufl.edu>,
-        Antoine Jacquet <royale@zerezo.com>
-Cc: "security@kernel.org" <security@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: Double-free in /drivers/media/usb/zr364xx driver
-Message-ID: <20180321100346.rcjqgy52brzebmvl@mwanda>
-References: <1521556244925.19981@ece.ufl.edu>
+        Tue, 13 Mar 2018 05:26:37 -0400
+Date: Tue, 13 Mar 2018 10:26:32 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, kernel@collabora.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v8 13/13] [media] v4l: Document explicit synchronization
+ behavior
+Message-ID: <20180313092632.GF12967@w540>
+References: <20180309174920.22373-1-gustavo@padovan.org>
+ <20180309174920.22373-14-gustavo@padovan.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VuQYccsttdhdIfIP"
 Content-Disposition: inline
-In-Reply-To: <1521556244925.19981@ece.ufl.edu>
+In-Reply-To: <20180309174920.22373-14-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linux Media Devs,
 
-There is a double free on error in zr364xx_probe().  The bug report
-explains it pretty well.  v4l2_device_unregister() calls
-zr364xx_release() which frees "cam" but we also to another kfree(cam);
-before the "return err;".
+--VuQYccsttdhdIfIP
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Please give reported by credit to:
+Hi Gustavo,
+  a very small comment below
 
-Reported-by: "Yavuz, Tuba" <tuba@ece.ufl.edu>
+On Fri, Mar 09, 2018 at 02:49:20PM -0300, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>
+> Add section to VIDIOC_QBUF and VIDIOC_QUERY_BUF about it
+>
+> v6:	- Close some gaps in the docs (Hans)
+>
+> v5:
+> 	- Remove V4L2_CAP_ORDERED
+> 	- Add doc about V4L2_FMT_FLAG_UNORDERED
+>
+> v4:
+> 	- Document ordering behavior for in-fences
+> 	- Document V4L2_CAP_ORDERED capability
+> 	- Remove doc about OUT_FENCE event
+> 	- Document immediate return of out-fence in QBUF
+>
+> v3:
+> 	- make the out_fence refer to the current buffer (Hans)
+> 	- Note what happens when the IN_FENCE is not set (Hans)
+>
+> v2:
+> 	- mention that fences are files (Hans)
+> 	- rework for the new API
+>
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/vidioc-qbuf.rst     | 55 +++++++++++++++++++++++-
+>  Documentation/media/uapi/v4l/vidioc-querybuf.rst | 12 ++++--
+>  2 files changed, 63 insertions(+), 4 deletions(-)
+>
+[snip]
+> +Note the the same `fence_fd` field is used for both sending the in-fence as
+> +input argument to receive the out-fence as a return argument. A buffer can
+> +have both in-fence ond out-fence.
 
-regards,
-dan carpenter
+I feel like an "and" is missing here...
 
-On Tue, Mar 20, 2018 at 02:30:45PM +0000, Yavuz, Tuba wrote:
-> Hello,
-> 
-> 
-> It looks like there is a double-free on an error path in the zr364xx_probe function of the zr364xx driver.
-> 
-> fail:
->     v4l2_ctrl_handler_free(hdl);
->     v4l2_device_unregister(&cam->v4l2_dev);
->     =>
->         v4l2_device_disconnect
->        =>
->           put_device
->           =>
->               kobject_put
->               =>
->                   kref_put
->                   =>
->                       v4l2_device_release
->                       =>
->                           zr364xx_release (CALLBACK)
->                           =>
->                              kfree(cam)
->     kfree(cam);
-> 
-> The vulnerability exists since the initial commit<https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/drivers/media/usb/zr364xx?id=0aa77f6c2954896b132f8b6f2e9f063c52800913> 0aa77f6c2954896b132f8b6f2e9f063c52800913 of the driver.
-> 
-> 
-> Best,
-> 
-> Tuba Yavuz, Ph.D.
-> Assistant Professor
-> Electrical and Computer Engineering Department
-> University of Florida
-> Gainesville, FL 32611
-> Webpage: http://www.tuba.ece.ufl.edu/
-> Email: tuba@ece.ufl.edu
-> Phone: (352) 846 0202
+ the same `fence_fd` field is used for both sending the in-fence as
+ input argument to receive the out-fence as a return argument
+
+ the same `fence_fd` field is used for both sending the in-fence as
+ input argument *and* to receive the out-fence as a return argument
+
+I'm not a native speaker so I might be wrong though.
+
+Thanks
+   j
+
+--VuQYccsttdhdIfIP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJap5lIAAoJEHI0Bo8WoVY8xT4P/RG+sYHMAf/nQNc77TrbStah
+ygnQaJog6ZR9gSuwhWnTGvqRH4yBgyO68JDmM2aFglz0IILEvewoZwlbrhVRQpsz
+wsna/JbcfrRe6Ga3PdT0LILID4WoWfJod34v5IuP0kj/V98k5H26BGvgZPcDMP2c
+tOtiyBimtEnZs3z/u54Ijjtnb3LKs+fr4SYRMIp99t7J3s4DTwRv+PlNzmaO0u//
+SRkSPHWgCjAe6H0nuNmNFv9Tcwd7ryRixk8Y55IdDbuJvDevbAvxxlUsSPRm2G8z
++lWq+Y2wLPo7W9vKw0pBWVtXU9VhSjPCUHT5eQ0JCHjXVfOWSVUtToAsSsoYXXcc
+MUffuLB5kAjXBvdUsYLJ86rNv4EWZfYhBtV5sYleu2mhBsik9MDgBHV8G53FHozR
+f0F/gGGmbAD0zzbH1cJc4lSTve/WvY4PGUmYpG38Hc0KMJSMVdcOgPd5VLyKFJNi
+y3Em8SbfRfMn9nH8beZChRWIL+ja/hmYNPaD3dl0oJnYPWpfpFUiNWIX4NMHw/82
+kEAkgNdNqRye6Qvqj3bSADMnKSjwHkV9JmDk8/S/we0WaucYxzclKimbx7bq1jHg
+dL+2dS447Te9VpxOpi5sOg24clnIYKFoKBLSSy3iHr2PMTMVEUcsYc8+qA5pW+wd
+lFDtkbUfJ5/WlCV2lzZo
+=gXy3
+-----END PGP SIGNATURE-----
+
+--VuQYccsttdhdIfIP--
