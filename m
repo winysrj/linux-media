@@ -1,66 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:52844 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754697AbeCGTX5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 14:23:57 -0500
-Received: by mail-wm0-f66.google.com with SMTP id t3so6929963wmc.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 11:23:56 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/4] [media] dvb-frontends/Kconfig: move the SP2 driver to the CI section
-Date: Wed,  7 Mar 2018 20:23:48 +0100
-Message-Id: <20180307192350.930-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20180307192350.930-1-d.scheller.oss@gmail.com>
-References: <20180307192350.930-1-d.scheller.oss@gmail.com>
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:45908 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934309AbeCMPwF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 11:52:05 -0400
+Received: by mail-wr0-f181.google.com with SMTP id h2so149495wre.12
+        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 08:52:05 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH 1/4] dma-buf: add optional invalidate_mappings callback
+To: Daniel Vetter <daniel@ffwll.ch>, christian.koenig@amd.com
+Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <20180309191144.1817-1-christian.koenig@amd.com>
+ <20180309191144.1817-2-christian.koenig@amd.com>
+ <20180312170710.GL8589@phenom.ffwll.local>
+ <f3986703-75de-4ce3-a828-1687291bb618@gmail.com>
+ <20180313151721.GH4788@phenom.ffwll.local>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <2866813a-f2ab-0589-ee40-30935e59d3d7@gmail.com>
+Date: Tue, 13 Mar 2018 16:52:02 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180313151721.GH4788@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Am 13.03.2018 um 16:17 schrieb Daniel Vetter:
+> [SNIP]
+>>> I think a helper which both unmaps _and_ waits for all the fences to clear
+>>> would be best, with some guarantees that it'll either fail or all the
+>>> mappings _will_ be gone. The locking for that one will be hilarious, since
+>>> we need to figure out dmabuf->lock vs. the reservation. I kinda prefer we
+>>> throw away the dmabuf->lock and superseed it entirely by the reservation
+>>> lock.
+>> Big NAK on that. The whole API is asynchronously, e.g. we never block for
+>> any operation to finish.
+>>
+>> Otherwise you run into big trouble with cross device GPU resets and stuff
+>> like that.
+> But how will the unmapping work then? You can't throw the sg list away
+> before the dma stopped. The dma only stops once the fence is signalled.
+> The importer can't call dma_buf_detach because the reservation lock is
+> hogged already by the exporter trying to unmap everything.
+>
+> How is this supposed to work?
 
-The CIMaX SP2 driver is a EN50221 CI controller I2C driver similar to the
-cxd2099 driver. Move it's Kconfig block into the newly introduced CI
-subsection.
+Even after invalidation the sg list stays alive until it is explicitly 
+destroyed by the importer using dma_buf_unmap_attachment() which in turn 
+is only allowed after all fences have signaled.
 
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Cc: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/Kconfig | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+The implementation is in ttm_bo_pipeline_gutting(), basically we use the 
+same functionality as for pipelined moves/evictions which hangs the old 
+backing store on a dummy object and destroys it after all fences signaled.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index fcfa1135557e..687086cdb870 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -824,13 +824,6 @@ config DVB_A8293
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 
--config DVB_SP2
--	tristate "CIMaX SP2"
--	depends on DVB_CORE && I2C
--	default m if !MEDIA_SUBDRV_AUTOSELECT
--	help
--	  CIMaX SP2/SP2HF Common Interface module.
--
- config DVB_LGS8GL5
- 	tristate "Silicon Legend LGS-8GL5 demodulator (OFDM)"
- 	depends on DVB_CORE && I2C
-@@ -920,6 +913,13 @@ config DVB_CXD2099
- 
- 	  Say Y when you want to support these devices.
- 
-+config DVB_SP2
-+	tristate "CIMaX SP2"
-+	depends on DVB_CORE && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  CIMaX SP2/SP2HF Common Interface module.
-+
- comment "Tools to develop new frontends"
- 
- config DVB_DUMMY_FE
--- 
-2.16.1
+While the old sg list is still about to be destroyed the importer can 
+request a new sg list for the new location of the DMA-buf using 
+dma_buf_map_attachment(). This new location becomes valid after the move 
+fence in the reservation object is signaled.
+
+So from the CPU point of view multiple sg list could exists at the same 
+time which allows us to have a seamless transition from the old to the 
+new location from the GPU point of view.
+
+> Re GPU might cause a deadlock: Isn't that already a problem if you hold
+> reservations of buffers used on other gpus, which want those reservations
+> to complete the gpu reset, but that gpu reset blocks some fence that the
+> reservation holder is waiting for?
+
+Correct, that's why amdgpu and TTM tries quite hard to never wait for a 
+fence while a reservation object is locked.
+
+The only use case I haven't fixed so far is reaping deleted object 
+during eviction, but that is only a matter of my free time to fix it.
+
+> We have tons of fun with deadlocks against GPU resets, and loooooots of
+> testcases, and I kinda get the impression amdgpu is throwing a lot of
+> issues under the rug through trylock tricks that shut up lockdep, but
+> don't fix much really.
+
+Hui? Why do you think that? The only trylock I'm aware of is during 
+eviction and there it isn't a problem.
+
+> btw adding cross-release lockdep annotations for fences will probably turn
+> up _lots_ more bugs in this area.
+
+At least for amdgpu that should be handled by now.
+
+>>>> +	 *
+>>>> +	 * New mappings can be created immediately, but can't be used before the
+>>>> +	 * exclusive fence in the dma_bufs reservation object is signaled.
+>>>> +	 */
+>>>> +	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
+>>> Bunch of questions about exact semantics, but I very much like this. And I
+>>> think besides those technical details, the overall approach seems sound.
+>> Yeah this initial implementation was buggy like hell. Just wanted to confirm
+>> that the idea is going in the right direction.
+> I wanted this 7 years ago, idea very much acked :-)
+>
+Ok, thanks. Good to know.
+
+Christian.
