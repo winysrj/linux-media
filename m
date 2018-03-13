@@ -1,68 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:11861 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163224AbeCBB6y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:58:54 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: [PATCH v11 02/32] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
-Date: Fri,  2 Mar 2018 02:57:21 +0100
-Message-Id: <20180302015751.25596-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([91.232.154.25]:39345 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932777AbeCMXkL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 19:40:11 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/18] af9013: dvbv5 cnr
+Date: Wed, 14 Mar 2018 01:39:29 +0200
+Message-Id: <20180313233944.7234-3-crope@iki.fi>
+In-Reply-To: <20180313233944.7234-1-crope@iki.fi>
+References: <20180313233944.7234-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Implement dvbv5 cnr.
 
-Add compatible strings for r8a7743 and r8a7745. No driver change
-is needed as "renesas,rcar-gen2-vin" will activate the right code.
-However, it is good practice to document compatible strings for the
-specific SoC as this allows SoC specific changes to the driver if
-needed, in addition to document SoC support and therefore allow
-checkpatch.pl to validate compatible string values.
-
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/media/dvb-frontends/af9013.c      | 88 +++++++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/af9013_priv.h |  1 +
+ 2 files changed, 84 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 0ac715a5c331bc26..c60e6b0a89b67a8c 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index 4cb6371572c5..b3d08e437478 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -46,6 +46,7 @@ struct af9013_state {
+ 	unsigned long set_frontend_jiffies;
+ 	unsigned long read_status_jiffies;
+ 	unsigned long strength_jiffies;
++	unsigned long cnr_jiffies;
+ 	bool first_tune;
+ 	bool i2c_gate_state;
+ 	unsigned int statistics_step:3;
+@@ -179,7 +180,6 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
+ 	struct i2c_client *client = state->client;
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, len;
+ 	unsigned int utmp;
+ 	u8 buf[3];
+@@ -235,9 +235,6 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
+ 	}
+ 	state->snr = utmp * 10; /* dB/10 */
  
-  - compatible: Must be one or more of the following
-+   - "renesas,vin-r8a7743" for the R8A7743 device
-+   - "renesas,vin-r8a7745" for the R8A7745 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7790" for the R8A7790 device
-@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7795" for the R8A7795 device
--   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-+   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-+     device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+-	c->cnr.stat[0].svalue = 1000 * utmp;
+-	c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+-
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+@@ -757,7 +754,7 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, stmp1;
+ 	unsigned int utmp, utmp1, utmp2, utmp3, utmp4;
+-	u8 buf[2];
++	u8 buf[3];
  
-    When compatible with the generic version nodes must list the
+ 	dev_dbg(&client->dev, "\n");
+ 
+@@ -869,6 +866,87 @@ static int af9013_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 		break;
+ 	}
+ 
++	/* CNR */
++	switch (state->fe_status & FE_HAS_VITERBI) {
++	case FE_HAS_VITERBI:
++		if (time_is_after_jiffies(state->cnr_jiffies + msecs_to_jiffies(2000)))
++			break;
++
++		/* Check if cnr ready */
++		ret = regmap_read(state->regmap, 0xd2e1, &utmp);
++		if (ret)
++			goto err;
++
++		if (!((utmp >> 3) & 0x01)) {
++			dev_dbg(&client->dev, "cnr not ready\n");
++			break;
++		}
++
++		/* Read value */
++		ret = regmap_bulk_read(state->regmap, 0xd2e3, buf, 3);
++		if (ret)
++			goto err;
++
++		utmp1 = buf[2] << 16 | buf[1] << 8 | buf[0] << 0;
++
++		/* Read current modulation */
++		ret = regmap_read(state->regmap, 0xd3c1, &utmp);
++		if (ret)
++			goto err;
++
++		switch ((utmp >> 6) & 3) {
++		case 0:
++			/*
++			 * QPSK
++			 * CNR[dB] 13 * -log10((1690000 - value) / value) + 2.6
++			 * value [653799, 1689999], 2.6 / 13 = 3355443
++			 */
++			utmp1 = clamp(utmp1, 653799U, 1689999U);
++			utmp1 = ((u64)(intlog10(utmp1)
++				- intlog10(1690000 - utmp1)
++				+ 3355443) * 13 * 1000) >> 24;
++			break;
++		case 1:
++			/*
++			 * QAM-16
++			 * CNR[dB] 6 * log10((value - 370000) / (828000 - value)) + 15.7
++			 * value [371105, 827999], 15.7 / 6 = 43900382
++			 */
++			utmp1 = clamp(utmp1, 371105U, 827999U);
++			utmp1 = ((u64)(intlog10(utmp1 - 370000)
++				- intlog10(828000 - utmp1)
++				+ 43900382) * 6 * 1000) >> 24;
++			break;
++		case 2:
++			/*
++			 * QAM-64
++			 * CNR[dB] 8 * log10((value - 193000) / (425000 - value)) + 23.8
++			 * value [193246, 424999], 23.8 / 8 = 49912218
++			 */
++			utmp1 = clamp(utmp1, 193246U, 424999U);
++			utmp1 = ((u64)(intlog10(utmp1 - 193000)
++				- intlog10(425000 - utmp1)
++				+ 49912218) * 8 * 1000) >> 24;
++			break;
++		default:
++			dev_dbg(&client->dev, "invalid modulation %u\n",
++				(utmp >> 6) & 3);
++			utmp1 = 0;
++			break;
++		}
++
++		dev_dbg(&client->dev, "cnr %u\n", utmp1);
++
++		state->cnr_jiffies = jiffies;
++
++		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++		c->cnr.stat[0].svalue = utmp1;
++		break;
++	default:
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		break;
++	}
++
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed %d\n", ret);
+diff --git a/drivers/media/dvb-frontends/af9013_priv.h b/drivers/media/dvb-frontends/af9013_priv.h
+index 688fc3472cf6..9c3cb04e3494 100644
+--- a/drivers/media/dvb-frontends/af9013_priv.h
++++ b/drivers/media/dvb-frontends/af9013_priv.h
+@@ -22,6 +22,7 @@
+ #define AF9013_PRIV_H
+ 
+ #include <media/dvb_frontend.h>
++#include <media/dvb_math.h>
+ #include "af9013.h"
+ #include <linux/firmware.h>
+ #include <linux/math64.h>
 -- 
-2.16.2
+2.14.3
