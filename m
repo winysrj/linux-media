@@ -1,75 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:36604 "EHLO mga04.intel.com"
+Received: from mout.gmx.net ([212.227.17.20]:34517 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751319AbeCURGg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 13:06:36 -0400
-Date: Wed, 21 Mar 2018 19:06:30 +0200
-From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-To: "Yeh, Andy" <andy.yeh@intel.com>
-Cc: jacopo mondi <jacopo@jmondi.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
-Message-ID: <20180321170629.biuwxykqsgvltull@kekkonen.localdomain>
-References: <1521219926-15329-1-git-send-email-andy.yeh@intel.com>
- <1521219926-15329-3-git-send-email-andy.yeh@intel.com>
- <20180320102817.GB5372@w540>
- <8E0971CCB6EA9D41AF58191A2D3978B61D552FBD@PGSMSX111.gar.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D552FBD@PGSMSX111.gar.corp.intel.com>
+        id S932257AbeCMUBi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 16:01:38 -0400
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Peter Seiderer <ps.report@gmx.net>
+Subject: [PATCH] media: staging/imx: fill vb2_v4l2_buffer sequence entry
+Date: Tue, 13 Mar 2018 21:00:54 +0100
+Message-Id: <20180313200054.31305-1-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-On Wed, Mar 21, 2018 at 03:58:42PM +0000, Yeh, Andy wrote:
-> Thanks for the comments. A quick question first. For the reset we need some time to address.
-> 
-> -----Original Message-----
-> From: jacopo mondi [mailto:jacopo@jmondi.org]
-> Sent: Tuesday, March 20, 2018 6:28 PM
-> To: Yeh, Andy <andy.yeh@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; devicetree@vger.kernel.org; Chiang, AlanX <alanx.chiang@intel.com>
-> Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
-> 
-> Hi Andy,
->    a few comments on you patch below...
-> 
-> On Sat, Mar 17, 2018 at 01:05:26AM +0800, Andy Yeh wrote:
-> > From: Alan Chiang <alanx.chiang@intel.com> 
-> > a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c new file 
-> > mode 100644 index 0000000..95626e9
-> > --- /dev/null
-> > +++ b/drivers/media/i2c/dw9807.c
-> > @@ -0,0 +1,320 @@
-> > +// Copyright (C) 2018 Intel Corporation // SPDX-License-Identifier: 
-> > +GPL-2.0
-> > +
-> 
-> Nit: my understanding is that the SPDX identifier goes first
-> 
-> https://lwn.net/Articles/739183/
-> 
-> I checked this site. And it says Copyright should be before SPDX identifier.
-> ========== file01.c ==========
-> // Copyright (c) 2012-2016 Joe Random Hacker // SPDX-License-Identifier: BSD-2-Clause ...
-> ========== file02.c ==========
-> // Copyright (c) 2017 Jon Severinsson
-> // SPDX-License-Identifier: BSD-2-Clause ...
-> ========== file03.c ==========
-> // Copyright (c) 2008 The NetBSD Foundation, Inc.
-> // SPDX-License-Identifier: BSD-2-Clause-NetBSD
-
-This is an example which is AFAIU purported to show the problem with
-various BSD licenses in a comment from someone. The order of the copyright
-holder and license lines might be just random. The practice in kernel at
-least appears to be SPDX license first.
-
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 5a195f80a24d..3a6a645b9dce 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -111,6 +111,7 @@ struct csi_priv {
+ 	struct v4l2_ctrl_handler ctrl_hdlr;
+ 
+ 	int stream_count; /* streaming counter */
++	__u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;   /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+ 	struct completion last_eof_comp;
+@@ -234,8 +235,11 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+ 	struct vb2_buffer *vb;
+ 	dma_addr_t phys;
+ 
++	priv->frame_sequence++;
++
+ 	done = priv->active_vb2_buf[priv->ipu_buf_num];
+ 	if (done) {
++		done->vbuf.sequence = priv->frame_sequence;
+ 		vb = &done->vbuf.vb2_buf;
+ 		vb->timestamp = ktime_get_ns();
+ 		vb2_buffer_done(vb, priv->nfb4eof ?
+@@ -543,6 +547,7 @@ static int csi_idmac_start(struct csi_priv *priv)
+ 
+ 	/* init EOF completion waitq */
+ 	init_completion(&priv->last_eof_comp);
++	priv->frame_sequence = 0;
+ 	priv->last_eof = false;
+ 	priv->nfb4eof = false;
+ 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.16.2
