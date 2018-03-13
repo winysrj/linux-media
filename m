@@ -1,73 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34099 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751638AbeCOKwC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 06:52:02 -0400
-Date: Thu, 15 Mar 2018 11:52:00 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Suman Anna <s-anna@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mout.gmx.net ([212.227.17.21]:46575 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751255AbeCMWY6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 18:24:58 -0400
+Date: Tue, 13 Mar 2018 23:24:49 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
-Message-ID: <20180315105200.GA27057@amd>
-References: <20180314154136.16468-1-s-anna@ti.com>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: staging/imx: fill vb2_v4l2_buffer sequence entry
+Message-ID: <20180313232449.253c7626@gmx.net>
+In-Reply-To: <d3601b40-d80a-b3c1-cdf0-82128d52b398@gmail.com>
+References: <20180313200054.31305-1-ps.report@gmx.net>
+        <d3601b40-d80a-b3c1-cdf0-82128d52b398@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
-Content-Disposition: inline
-In-Reply-To: <20180314154136.16468-1-s-anna@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Steve,
 
---vkogqOf2sHV7VnPd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 13 Mar 2018 15:03:07 -0700, Steve Longerbeam <slongerbeam@gmail.com> wrote:
 
-On Wed 2018-03-14 10:41:36, Suman Anna wrote:
-> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
-> ARM DMA backend. The current code creates a dma_iommu_mapping and
-> attaches this to the ISP device, but never detaches the mapping in
-> either the probe failure paths or the driver remove path resulting
-> in an unbalanced mapping refcount and a memory leak. Fix this properly.
->=20
-> Reported-by: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> v2 Changes:
->  - Dropped the error_attach label, and returned directly from the
->    first error path (comments from Sakari)
->  - Added Sakari's Acked-by
-> v1: https://patchwork.kernel.org/patch/10276759/
->=20
-> Pavel,
-> I dropped your Tested-by from v2 since I modified the patch, can you
-> recheck the new patch again? Thanks.
+> Hi Peter,
+> 
+> Thanks for the patch.
+> 
+> This needs to be done in imx-ic-prpencvf.c as well, see
+> prp_vb2_buf_done().
 
-I updated to new -next version and re-ran the test.
+Ahh, I see...., would you prefer an follow up patch or
+an v2 patch doing the changes on mx-media-csi.c and
+imx-ic-prpencvf.c at once?
 
-Tested-by: Pavel Machek <pavel@ucw.cz>
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Regards,
+Peter
 
---vkogqOf2sHV7VnPd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqqUFAACgkQMOfwapXb+vKlrwCeKHhgwusf0xhYT9HB1cZ5aNCb
-L0UAnRm2HvW0qtnYBT+v2dPNM1obgJS5
-=9aI2
------END PGP SIGNATURE-----
-
---vkogqOf2sHV7VnPd--
+> 
+> Steve
+> 
+> 
+> On 03/13/2018 01:00 PM, Peter Seiderer wrote:
+> > Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+> > ---
+> >   drivers/staging/media/imx/imx-media-csi.c | 5 +++++
+> >   1 file changed, 5 insertions(+)
+> >
+> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> > index 5a195f80a24d..3a6a645b9dce 100644
+> > --- a/drivers/staging/media/imx/imx-media-csi.c
+> > +++ b/drivers/staging/media/imx/imx-media-csi.c
+> > @@ -111,6 +111,7 @@ struct csi_priv {
+> >   	struct v4l2_ctrl_handler ctrl_hdlr;
+> >   
+> >   	int stream_count; /* streaming counter */
+> > +	__u32 frame_sequence; /* frame sequence counter */
+> >   	bool last_eof;   /* waiting for last EOF at stream off */
+> >   	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+> >   	struct completion last_eof_comp;
+> > @@ -234,8 +235,11 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+> >   	struct vb2_buffer *vb;
+> >   	dma_addr_t phys;
+> >   
+> > +	priv->frame_sequence++;
+> > +
+> >   	done = priv->active_vb2_buf[priv->ipu_buf_num];
+> >   	if (done) {
+> > +		done->vbuf.sequence = priv->frame_sequence;
+> >   		vb = &done->vbuf.vb2_buf;
+> >   		vb->timestamp = ktime_get_ns();
+> >   		vb2_buffer_done(vb, priv->nfb4eof ?
+> > @@ -543,6 +547,7 @@ static int csi_idmac_start(struct csi_priv *priv)
+> >   
+> >   	/* init EOF completion waitq */
+> >   	init_completion(&priv->last_eof_comp);
+> > +	priv->frame_sequence = 0;
+> >   	priv->last_eof = false;
+> >   	priv->nfb4eof = false;
+> >     
+> 
