@@ -1,209 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32332 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754837AbeCGWGD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:06:03 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 30/33] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Wed,  7 Mar 2018 23:05:08 +0100
-Message-Id: <20180307220511.9826-31-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([91.232.154.25]:46715 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932840AbeCMXkQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 19:40:16 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 16/18] dvb-usb-v2: add probe/disconnect callbacks
+Date: Wed, 14 Mar 2018 01:39:42 +0200
+Message-Id: <20180313233944.7234-16-crope@iki.fi>
+In-Reply-To: <20180313233944.7234-1-crope@iki.fi>
+References: <20180313233944.7234-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The procedure to start or stop streaming using the non-MC single
-subdevice and the MC graph and multiple subdevices are quite different.
-Create a new function to abstract which method is used based on which
-mode the driver is running in and add logic to start the MC graph.
+Add probe and disconnect callbacks that behaves similarly than ones
+used commonly on Linux driver model. We need those to get early / late
+access to driver in order to use normal probe time stuff, like regmap,
+extra bus adapters and so.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 133 +++++++++++++++++++++++++++--
- 1 file changed, 126 insertions(+), 7 deletions(-)
+ drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  4 ++++
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 24 ++++++++++++++++++++----
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index da113531f0ce7dc0..580b286acbf2dab6 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1082,15 +1082,136 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+index d2e80537b2f7..3fd6cc0d6340 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+@@ -203,6 +203,8 @@ struct dvb_usb_adapter_properties {
+  * @generic_bulk_ctrl_endpoint_response: bulk control endpoint number for
+  *  receive
+  * @generic_bulk_ctrl_delay: delay between bulk control sent and receive message
++ * @probe: like probe on driver model
++ * @disconnect: like disconnect on driver model
+  * @identify_state: called to determine the firmware state (cold or warm) and
+  *  return possible firmware file name to be loaded
+  * @firmware: name of the firmware file to be loaded
+@@ -239,6 +241,8 @@ struct dvb_usb_device_properties {
+ 	u8 generic_bulk_ctrl_endpoint_response;
+ 	unsigned int generic_bulk_ctrl_delay;
+ 
++	int (*probe)(struct dvb_usb_device *);
++	void (*disconnect)(struct dvb_usb_device *);
+ #define WARM                  0
+ #define COLD                  1
+ 	int (*identify_state) (struct dvb_usb_device *, const char **);
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 2bf3bd81280a..afdcdbf005e9 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -854,8 +854,6 @@ static int dvb_usbv2_exit(struct dvb_usb_device *d)
+ 	dvb_usbv2_remote_exit(d);
+ 	dvb_usbv2_adapter_exit(d);
+ 	dvb_usbv2_i2c_exit(d);
+-	kfree(d->priv);
+-	kfree(d);
+ 
+ 	return 0;
  }
- 
-+static int rvin_mc_validate_format(struct rvin_dev *vin, struct v4l2_subdev *sd,
-+				   struct media_pad *pad)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+
-+	fmt.pad = pad->index;
-+	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-+		return -EPIPE;
-+
-+	switch (fmt.format.code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vin->mbus_code = fmt.format.code;
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+		/* Supported natively */
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		switch (vin->format.field) {
-+		case V4L2_FIELD_TOP:
-+		case V4L2_FIELD_BOTTOM:
-+		case V4L2_FIELD_NONE:
-+			break;
-+		case V4L2_FIELD_INTERLACED_TB:
-+		case V4L2_FIELD_INTERLACED_BT:
-+		case V4L2_FIELD_INTERLACED:
-+		case V4L2_FIELD_SEQ_TB:
-+		case V4L2_FIELD_SEQ_BT:
-+			/* Use VIN hardware to combine the two fields */
-+			fmt.format.height *= 2;
-+			break;
-+		default:
-+			return -EPIPE;
-+		}
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	if (fmt.format.width != vin->format.width ||
-+	    fmt.format.height != vin->format.height ||
-+	    fmt.format.code != vin->mbus_code)
-+		return -EPIPE;
-+
-+	return 0;
-+}
-+
-+static int rvin_set_stream(struct rvin_dev *vin, int on)
-+{
-+	struct media_pipeline *pipe;
-+	struct media_device *mdev;
-+	struct v4l2_subdev *sd;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	/* No media controller used, simply pass operation to subdevice. */
-+	if (!vin->info->use_mc) {
-+		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-+				       on);
-+
-+		return ret == -ENOIOCTLCMD ? 0 : ret;
-+	}
-+
-+	pad = media_entity_remote_pad(&vin->pad);
-+	if (!pad)
-+		return -EPIPE;
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	if (!on) {
-+		media_pipeline_stop(&vin->vdev.entity);
-+		return v4l2_subdev_call(sd, video, s_stream, 0);
-+	}
-+
-+	ret = rvin_mc_validate_format(vin, sd, pad);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * The graph lock needs to be taken to protect concurrent
-+	 * starts of multiple VIN instances as they might share
-+	 * a common subdevice down the line and then should use
-+	 * the same pipe.
-+	 */
-+	mdev = vin->vdev.entity.graph_obj.mdev;
-+	mutex_lock(&mdev->graph_mutex);
-+	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-+	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
-+	mutex_unlock(&mdev->graph_mutex);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-+	if (ret == -ENOIOCTLCMD)
-+		ret = 0;
-+	if (ret)
-+		media_pipeline_stop(&vin->vdev.entity);
-+
-+	return ret;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = rvin_set_stream(vin, 1);
-+	if (ret) {
-+		spin_lock_irqsave(&vin->qlock, flags);
-+		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-+		spin_unlock_irqrestore(&vin->qlock, flags);
-+		return ret;
-+	}
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1099,7 +1220,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = rvin_capture_start(vin);
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		rvin_set_stream(vin, 0);
+@@ -934,7 +932,7 @@ int dvb_usbv2_probe(struct usb_interface *intf,
+ 	if (intf->cur_altsetting->desc.bInterfaceNumber !=
+ 			d->props->bInterfaceNumber) {
+ 		ret = -ENODEV;
+-		goto err_free_all;
++		goto err_kfree_d;
  	}
  
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1110,7 +1231,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
+ 	mutex_init(&d->usb_mutex);
+@@ -946,10 +944,16 @@ int dvb_usbv2_probe(struct usb_interface *intf,
+ 			dev_err(&d->udev->dev, "%s: kzalloc() failed\n",
+ 					KBUILD_MODNAME);
+ 			ret = -ENOMEM;
+-			goto err_free_all;
++			goto err_kfree_d;
+ 		}
+ 	}
  
-@@ -1149,8 +1269,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
++	if (d->props->probe) {
++		ret = d->props->probe(d);
++		if (ret)
++			goto err_kfree_priv;
++	}
++
+ 	if (d->props->identify_state) {
+ 		const char *name = NULL;
+ 		ret = d->props->identify_state(d, &name);
+@@ -1001,6 +1005,12 @@ int dvb_usbv2_probe(struct usb_interface *intf,
+ 	return 0;
+ err_free_all:
+ 	dvb_usbv2_exit(d);
++	if (d->props->disconnect)
++		d->props->disconnect(d);
++err_kfree_priv:
++	kfree(d->priv);
++err_kfree_d:
++	kfree(d);
+ err:
+ 	dev_dbg(&udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+@@ -1021,6 +1031,12 @@ void dvb_usbv2_disconnect(struct usb_interface *intf)
  
- 	spin_unlock_irqrestore(&vin->qlock, flags);
+ 	dvb_usbv2_exit(d);
  
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	rvin_set_stream(vin, 0);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
++	if (d->props->disconnect)
++		d->props->disconnect(d);
++
++	kfree(d->priv);
++	kfree(d);
++
+ 	pr_info("%s: '%s:%s' successfully deinitialized and disconnected\n",
+ 		KBUILD_MODNAME, drvname, devname);
+ 	kfree(devname);
 -- 
-2.16.2
+2.14.3
