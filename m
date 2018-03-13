@@ -1,89 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:54759 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932682AbeCMMJg (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:35369 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933538AbeCMQiv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 08:09:36 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Tue, 13 Mar 2018 12:38:51 -0400
+Date: Tue, 13 Mar 2018 17:38:44 +0100
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Martin Sebor <msebor@gmail.com>,
-        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
-        Kota Yonezawa <Kota.Yonezawa@sony.com>,
-        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>,
-        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: cxd2880-spi: avoid out-of-bounds access warning
-Date: Tue, 13 Mar 2018 13:09:11 +0100
-Message-Id: <20180313120931.2667235-1-arnd@arndb.de>
+Cc: Binoy Jayan <binoy.jayan@linaro.org>,
+        Jasmin Jessich <jasmin@anw.at>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: ngene: avoid unused variable warning
+Message-ID: <20180313173844.0644a716@perian.wuest.de>
+In-Reply-To: <20180313130620.4040088-1-arnd@arndb.de>
+References: <20180313130620.4040088-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The -Warray-bounds warning in gcc-8 triggers for a newly added file:
+Am Tue, 13 Mar 2018 14:06:03 +0100
+schrieb Arnd Bergmann <arnd@arndb.de>:
 
-drivers/media/spi/cxd2880-spi.c: In function 'cxd2880_write_reg':
-drivers/media/spi/cxd2880-spi.c:111:3: error: 'memcpy' forming offset [133, 258] is out of the bounds [0, 132] of object 'send_data' with type 'u8[132]' {aka 'unsigned char[132]'} [-Werror=array-bounds]
+> The newly added pdev variable is only used in an #ifdef, causing a
+> build warning without CONFIG_PCI_MSI, unless we move the declaration
+> inside the same #ifdef:
+> 
+> drivers/media/pci/ngene/ngene-core.c: In function 'ngene_start':
+> drivers/media/pci/ngene/ngene-core.c:1328:17: error: unused variable 'pdev' [-Werror=unused-variable]
+> 
+> Fixes: 6795bf626482 ("media: ngene: convert kernellog printing from printk() to dev_*() macros")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-The problem appears to be that we have two range checks in this function,
-first comparing against BURST_WRITE_MAX (128) and then comparing against
-a literal '255'. The logic checking the buffer size looks at the second
-one and decides that this might be the actual maximum data length.
+Acked-by: Daniel Scheller <d.scheller@gmx.net>
 
-This is understandable behavior from the compiler, but the code is actually
-safe. Since the first check is already shorter, we can remove the loop
-and only leave that. To be on the safe side in case BURST_WRITE_MAX might
-be increased, I'm leaving the check against U8_MAX.
+Thanks!
 
-Fixes: bd24fcddf6b8 ("media: cxd2880-spi: Add support for CXD2880 SPI interface")
-Cc: Martin Sebor <msebor@gmail.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/spi/cxd2880-spi.c | 24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+> ---
+>  drivers/media/pci/ngene/ngene-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+> index 3b9a1bfaf6c0..25f16833a475 100644
+> --- a/drivers/media/pci/ngene/ngene-core.c
+> +++ b/drivers/media/pci/ngene/ngene-core.c
+> @@ -1325,7 +1325,6 @@ static int ngene_buffer_config(struct ngene *dev)
+>  
+>  static int ngene_start(struct ngene *dev)
+>  {
+> -	struct device *pdev = &dev->pci_dev->dev;
+>  	int stat;
+>  	int i;
+>  
+> @@ -1359,6 +1358,7 @@ static int ngene_start(struct ngene *dev)
+>  #ifdef CONFIG_PCI_MSI
+>  	/* enable MSI if kernel and card support it */
+>  	if (pci_msi_enabled() && dev->card_info->msi_supported) {
+> +		struct device *pdev = &dev->pci_dev->dev;
+>  		unsigned long flags;
+>  
+>  		ngwritel(0, NGENE_INT_ENABLE);
 
-diff --git a/drivers/media/spi/cxd2880-spi.c b/drivers/media/spi/cxd2880-spi.c
-index 4df3bd312f48..011a37c2f272 100644
---- a/drivers/media/spi/cxd2880-spi.c
-+++ b/drivers/media/spi/cxd2880-spi.c
-@@ -88,7 +88,7 @@ static int cxd2880_write_reg(struct spi_device *spi,
- 		pr_err("invalid arg\n");
- 		return -EINVAL;
- 	}
--	if (size > BURST_WRITE_MAX) {
-+	if (size > BURST_WRITE_MAX || size > U8_MAX) {
- 		pr_err("data size > WRITE_MAX\n");
- 		return -EINVAL;
- 	}
-@@ -101,24 +101,14 @@ static int cxd2880_write_reg(struct spi_device *spi,
- 	send_data[0] = 0x0e;
- 	write_data_top = data;
- 
--	while (size > 0) {
--		send_data[1] = sub_address;
--		if (size > 255)
--			send_data[2] = 255;
--		else
--			send_data[2] = (u8)size;
-+	send_data[1] = sub_address;
-+	send_data[2] = (u8)size;
- 
--		memcpy(&send_data[3], write_data_top, send_data[2]);
-+	memcpy(&send_data[3], write_data_top, send_data[2]);
- 
--		ret = cxd2880_write_spi(spi, send_data, send_data[2] + 3);
--		if (ret) {
--			pr_err("write spi failed %d\n", ret);
--			break;
--		}
--		sub_address += send_data[2];
--		write_data_top += send_data[2];
--		size -= send_data[2];
--	}
-+	ret = cxd2880_write_spi(spi, send_data, send_data[2] + 3);
-+	if (ret)
-+		pr_err("write spi failed %d\n", ret);
- 
- 	return ret;
- }
+Best regards,
+Daniel Scheller
 -- 
-2.9.0
+https://github.com/herrnst
