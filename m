@@ -1,597 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52113 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754834AbeCHAFk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 19:05:40 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v7 4/8] media: vsp1: Convert display lists to use new body pool
-Date: Thu,  8 Mar 2018 00:05:27 +0000
-Message-Id: <2ee9fcdd1ca50a51b9d5215f990fd7f1ac831ad3.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:31095 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932610AbeCMNrC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 09:47:02 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Sakari Ailus" <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 09/12] media: ov5640: Compute the clock rate at runtime
+Date: Tue, 13 Mar 2018 13:46:50 +0000
+Message-ID: <0eaeb0ef-9330-b535-8642-95064a1cde91@st.com>
+References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
+ <20180302143500.32650-10-maxime.ripard@bootlin.com>
+In-Reply-To: <20180302143500.32650-10-maxime.ripard@bootlin.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <717D84A28E75EA46A7BF8848126759B0@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adapt the dl->body0 object to use an object from the body pool. This
-greatly reduces the pressure on the TLB for IPMMU use cases, as all of
-the lists use a single allocation for the main body.
-
-The CLU and LUT objects pre-allocate a pool containing three bodies,
-allowing a userspace update before the hardware has committed a previous
-set of tables.
-
-Bodies are no longer 'freed' in interrupt context, but instead released
-back to their respective pools. This allows us to remove the garbage
-collector in the DLM.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
----
-v3:
- - 's/fragment/body', 's/fragments/bodies/'
- - CLU/LUT now allocate 3 bodies
- - vsp1_dl_list_fragments_free -> vsp1_dl_list_bodies_put
-
-v2:
- - Use dl->body0->max_entries to determine header offset, instead of the
-   global constant VSP1_DL_NUM_ENTRIES which is incorrect.
- - squash updates for LUT, CLU, and fragment cleanup into single patch.
-   (Not fully bisectable when separated)
-
- drivers/media/platform/vsp1/vsp1_clu.c |  27 ++-
- drivers/media/platform/vsp1/vsp1_clu.h |   1 +-
- drivers/media/platform/vsp1/vsp1_dl.c  | 223 ++++++--------------------
- drivers/media/platform/vsp1/vsp1_dl.h  |   3 +-
- drivers/media/platform/vsp1/vsp1_lut.c |  27 ++-
- drivers/media/platform/vsp1/vsp1_lut.h |   1 +-
- 6 files changed, 101 insertions(+), 181 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index 9621afa3658c..2018144470c5 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -23,6 +23,8 @@
- #define CLU_MIN_SIZE				4U
- #define CLU_MAX_SIZE				8190U
- 
-+#define CLU_SIZE				(17 * 17 * 17)
-+
- /* -----------------------------------------------------------------------------
-  * Device Access
-  */
-@@ -47,19 +49,19 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_body_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
-+	dlb = vsp1_dl_body_get(clu->pool);
- 	if (!dlb)
- 		return -ENOMEM;
- 
- 	vsp1_dl_body_write(dlb, VI6_CLU_ADDR, 0);
--	for (i = 0; i < 17 * 17 * 17; ++i)
-+	for (i = 0; i < CLU_SIZE; ++i)
- 		vsp1_dl_body_write(dlb, VI6_CLU_DATA, ctrl->p_new.p_u32[i]);
- 
- 	spin_lock_irq(&clu->lock);
- 	swap(clu->clu, dlb);
- 	spin_unlock_irq(&clu->lock);
- 
--	vsp1_dl_body_free(dlb);
-+	vsp1_dl_body_put(dlb);
- 	return 0;
- }
- 
-@@ -261,8 +263,16 @@ static void clu_configure(struct vsp1_entity *entity,
- 	}
- }
- 
-+static void clu_destroy(struct vsp1_entity *entity)
-+{
-+	struct vsp1_clu *clu = to_clu(&entity->subdev);
-+
-+	vsp1_dl_body_pool_destroy(clu->pool);
-+}
-+
- static const struct vsp1_entity_operations clu_entity_ops = {
- 	.configure = clu_configure,
-+	.destroy = clu_destroy,
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -288,6 +298,17 @@ struct vsp1_clu *vsp1_clu_create(struct vsp1_device *vsp1)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-+	/*
-+	 * Pre-allocate a body pool, with 3 bodies allowing a userspace update
-+	 * before the hardware has committed a previous set of tables, handling
-+	 * both the queued and pending dl entries. One extra entry is added to
-+	 * the CLU_SIZE to allow for the VI6_CLU_ADDR header.
-+	 */
-+	clu->pool = vsp1_dl_body_pool_create(clu->entity.vsp1, 3, CLU_SIZE + 1,
-+					     0);
-+	if (!clu->pool)
-+		return ERR_PTR(-ENOMEM);
-+
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&clu->ctrls, 2);
- 	v4l2_ctrl_new_custom(&clu->ctrls, &clu_table_control, NULL);
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.h b/drivers/media/platform/vsp1/vsp1_clu.h
-index 036e0a2f1a42..fa3fe856725b 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.h
-+++ b/drivers/media/platform/vsp1/vsp1_clu.h
-@@ -36,6 +36,7 @@ struct vsp1_clu {
- 	spinlock_t lock;
- 	unsigned int mode;
- 	struct vsp1_dl_body *clu;
-+	struct vsp1_dl_body_pool *pool;
- };
- 
- static inline struct vsp1_clu *to_clu(struct v4l2_subdev *subdev)
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 0208e72cb356..74476726451c 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -111,7 +111,7 @@ struct vsp1_dl_list {
- 	struct vsp1_dl_header *header;
- 	dma_addr_t dma;
- 
--	struct vsp1_dl_body body0;
-+	struct vsp1_dl_body *body0;
- 	struct list_head bodies;
- 
- 	bool has_chain;
-@@ -135,8 +135,6 @@ enum vsp1_dl_mode {
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-  * @pool: body pool for the display list bodies
-- * @gc_work: bodies garbage collector work struct
-- * @gc_bodies: array of display list bodies waiting to be freed
-  */
- struct vsp1_dl_manager {
- 	unsigned int index;
-@@ -151,9 +149,6 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *pending;
- 
- 	struct vsp1_dl_body_pool *pool;
--
--	struct work_struct gc_work;
--	struct list_head gc_bodies;
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -291,89 +286,6 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
- 	spin_unlock_irqrestore(&dlb->pool->lock, flags);
- }
- 
--/*
-- * Initialize a display list body object and allocate DMA memory for the body
-- * data. The display list body object is expected to have been initialized to
-- * 0 when allocated.
-- */
--static int vsp1_dl_body_init(struct vsp1_device *vsp1,
--			     struct vsp1_dl_body *dlb, unsigned int num_entries,
--			     size_t extra_size)
--{
--	size_t size = num_entries * sizeof(*dlb->entries) + extra_size;
--
--	dlb->vsp1 = vsp1;
--	dlb->size = size;
--	dlb->max_entries = num_entries;
--
--	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
--				    GFP_KERNEL);
--	if (!dlb->entries)
--		return -ENOMEM;
--
--	return 0;
--}
--
--/*
-- * Cleanup a display list body and free allocated DMA memory allocated.
-- */
--static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
--{
--	dma_free_wc(dlb->vsp1->bus_master, dlb->size, dlb->entries, dlb->dma);
--}
--
--/**
-- * vsp1_dl_body_alloc - Allocate a display list body
-- * @vsp1: The VSP1 device
-- * @num_entries: The maximum number of entries that the body can contain
-- *
-- * Allocate a display list body with enough memory to contain the requested
-- * number of entries.
-- *
-- * Return a pointer to a body on success or NULL if memory can't be allocated.
-- */
--struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
--					    unsigned int num_entries)
--{
--	struct vsp1_dl_body *dlb;
--	int ret;
--
--	dlb = kzalloc(sizeof(*dlb), GFP_KERNEL);
--	if (!dlb)
--		return NULL;
--
--	ret = vsp1_dl_body_init(vsp1, dlb, num_entries, 0);
--	if (ret < 0) {
--		kfree(dlb);
--		return NULL;
--	}
--
--	return dlb;
--}
--
--/**
-- * vsp1_dl_body_free - Free a display list body
-- * @dlb: The body
-- *
-- * Free the given display list body and the associated DMA memory.
-- *
-- * Bodies must only be freed explicitly if they are not added to a display
-- * list, as the display list will take ownership of them and free them
-- * otherwise. Manual free typically happens at cleanup time for bodies that
-- * have been allocated but not used.
-- *
-- * Passing a NULL pointer to this function is safe, in that case no operation
-- * will be performed.
-- */
--void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
--{
--	if (!dlb)
--		return;
--
--	vsp1_dl_body_cleanup(dlb);
--	kfree(dlb);
--}
--
- /**
-  * vsp1_dl_body_write - Write a register to a display list body
-  * @dlb: The body
-@@ -399,11 +311,10 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
-  * Display List Transaction Management
-  */
- 
--static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
-+static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm,
-+					       struct vsp1_dl_body_pool *pool)
- {
- 	struct vsp1_dl_list *dl;
--	size_t header_size;
--	int ret;
- 
- 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
- 	if (!dl)
-@@ -412,41 +323,39 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- 	INIT_LIST_HEAD(&dl->bodies);
- 	dl->dlm = dlm;
- 
--	/*
--	 * Initialize the display list body and allocate DMA memory for the body
--	 * and the optional header. Both are allocated together to avoid memory
--	 * fragmentation, with the header located right after the body in
--	 * memory.
--	 */
--	header_size = dlm->mode == VSP1_DL_MODE_HEADER
--		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
--		    : 0;
--
--	ret = vsp1_dl_body_init(dlm->vsp1, &dl->body0, VSP1_DL_NUM_ENTRIES,
--				header_size);
--	if (ret < 0) {
--		kfree(dl);
-+	/* Retrieve a body from our DLM body pool */
-+	dl->body0 = vsp1_dl_body_get(pool);
-+	if (!dl->body0)
- 		return NULL;
--	}
--
- 	if (dlm->mode == VSP1_DL_MODE_HEADER) {
--		size_t header_offset = VSP1_DL_NUM_ENTRIES
--				     * sizeof(*dl->body0.entries);
-+		size_t header_offset = dl->body0->max_entries
-+				     * sizeof(*dl->body0->entries);
- 
--		dl->header = ((void *)dl->body0.entries) + header_offset;
--		dl->dma = dl->body0.dma + header_offset;
-+		dl->header = ((void *)dl->body0->entries) + header_offset;
-+		dl->dma = dl->body0->dma + header_offset;
- 
- 		memset(dl->header, 0, sizeof(*dl->header));
--		dl->header->lists[0].addr = dl->body0.dma;
-+		dl->header->lists[0].addr = dl->body0->dma;
- 	}
- 
- 	return dl;
- }
- 
-+static void vsp1_dl_list_bodies_put(struct vsp1_dl_list *dl)
-+{
-+	struct vsp1_dl_body *dlb, *tmp;
-+
-+	list_for_each_entry_safe(dlb, tmp, &dl->bodies, list) {
-+		list_del(&dlb->list);
-+		vsp1_dl_body_put(dlb);
-+	}
-+}
-+
- static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
- {
--	vsp1_dl_body_cleanup(&dl->body0);
--	list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
-+	vsp1_dl_body_put(dl->body0);
-+	vsp1_dl_list_bodies_put(dl);
-+
- 	kfree(dl);
- }
- 
-@@ -500,18 +409,13 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
- 
- 	dl->has_chain = false;
- 
-+	vsp1_dl_list_bodies_put(dl);
-+
- 	/*
--	 * We can't free bodies here as DMA memory can only be freed in
--	 * interruptible context. Move all bodies to the display list manager's
--	 * list of bodies to be freed, they will be garbage-collected by the
--	 * work queue.
-+	 * body0 is reused as as an optimisation as presently every display list
-+	 * has at least one body, thus we reinitialise the entries list
- 	 */
--	if (!list_empty(&dl->bodies)) {
--		list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
--		schedule_work(&dl->dlm->gc_work);
--	}
--
--	dl->body0.num_entries = 0;
-+	dl->body0->num_entries = 0;
- 
- 	list_add_tail(&dl->list, &dl->dlm->free);
- }
-@@ -548,7 +452,7 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
-  */
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
- {
--	vsp1_dl_body_write(&dl->body0, reg, data);
-+	vsp1_dl_body_write(dl->body0, reg, data);
- }
- 
- /**
-@@ -561,8 +465,7 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-  * in the order in which bodies are added.
-  *
-  * Adding a body to a display list passes ownership of the body to the list. The
-- * caller must not touch the body after this call, and must not free it
-- * explicitly with vsp1_dl_body_free().
-+ * caller must not touch the body after this call.
-  *
-  * Additional bodies are only usable for display lists in header mode.
-  * Attempting to add a body to a header-less display list will return an error.
-@@ -620,7 +523,7 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
- 	 * list was allocated.
- 	 */
- 
--	hdr->num_bytes = dl->body0.num_entries
-+	hdr->num_bytes = dl->body0->num_entries
- 		       * sizeof(*dl->header->lists);
- 
- 	list_for_each_entry(dlb, &dl->bodies, list) {
-@@ -694,9 +597,9 @@ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
- 		 * bit will be cleared by the hardware when the display list
- 		 * processing starts.
- 		 */
--		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
-+		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0->dma);
- 		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
--			   (dl->body0.num_entries * sizeof(*dl->header->lists)));
-+			(dl->body0->num_entries * sizeof(*dl->header->lists)));
- 	} else {
- 		/*
- 		 * In header mode, program the display list header address. If
-@@ -879,45 +782,12 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- 	dlm->pending = NULL;
- }
- 
--/*
-- * Free all bodies awaiting to be garbage-collected.
-- *
-- * This function must be called without the display list manager lock held.
-- */
--static void vsp1_dlm_bodies_free(struct vsp1_dl_manager *dlm)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&dlm->lock, flags);
--
--	while (!list_empty(&dlm->gc_bodies)) {
--		struct vsp1_dl_body *dlb;
--
--		dlb = list_first_entry(&dlm->gc_bodies, struct vsp1_dl_body,
--				       list);
--		list_del(&dlb->list);
--
--		spin_unlock_irqrestore(&dlm->lock, flags);
--		vsp1_dl_body_free(dlb);
--		spin_lock_irqsave(&dlm->lock, flags);
--	}
--
--	spin_unlock_irqrestore(&dlm->lock, flags);
--}
--
--static void vsp1_dlm_garbage_collect(struct work_struct *work)
--{
--	struct vsp1_dl_manager *dlm =
--		container_of(work, struct vsp1_dl_manager, gc_work);
--
--	vsp1_dlm_bodies_free(dlm);
--}
--
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 					unsigned int index,
- 					unsigned int prealloc)
- {
- 	struct vsp1_dl_manager *dlm;
-+	size_t header_size;
- 	unsigned int i;
- 
- 	dlm = devm_kzalloc(vsp1->dev, sizeof(*dlm), GFP_KERNEL);
-@@ -932,13 +802,26 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 
- 	spin_lock_init(&dlm->lock);
- 	INIT_LIST_HEAD(&dlm->free);
--	INIT_LIST_HEAD(&dlm->gc_bodies);
--	INIT_WORK(&dlm->gc_work, vsp1_dlm_garbage_collect);
-+
-+	/*
-+	 * Initialize the display list body and allocate DMA memory for the body
-+	 * and the optional header. Both are allocated together to avoid memory
-+	 * fragmentation, with the header located right after the body in
-+	 * memory.
-+	 */
-+	header_size = dlm->mode == VSP1_DL_MODE_HEADER
-+		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
-+		    : 0;
-+
-+	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
-+					     VSP1_DL_NUM_ENTRIES, header_size);
-+	if (!dlm->pool)
-+		return NULL;
- 
- 	for (i = 0; i < prealloc; ++i) {
- 		struct vsp1_dl_list *dl;
- 
--		dl = vsp1_dl_list_alloc(dlm);
-+		dl = vsp1_dl_list_alloc(dlm, dlm->pool);
- 		if (!dl)
- 			return NULL;
- 
-@@ -955,12 +838,10 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
- 	if (!dlm)
- 		return;
- 
--	cancel_work_sync(&dlm->gc_work);
--
- 	list_for_each_entry_safe(dl, next, &dlm->free, list) {
- 		list_del(&dl->list);
- 		vsp1_dl_list_free(dl);
- 	}
- 
--	vsp1_dlm_bodies_free(dlm);
-+	vsp1_dl_body_pool_destroy(dlm->pool);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 031032e304d2..7e820ac6865a 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -42,9 +42,6 @@ void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
- struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
- void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
- 
--struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
--					unsigned int num_entries);
--void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
- void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
- int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb);
- int vsp1_dl_list_add_chain(struct vsp1_dl_list *head, struct vsp1_dl_list *dl);
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index aa2b40327529..262cb72139d6 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -23,6 +23,8 @@
- #define LUT_MIN_SIZE				4U
- #define LUT_MAX_SIZE				8190U
- 
-+#define LUT_SIZE				256
-+
- /* -----------------------------------------------------------------------------
-  * Device Access
-  */
-@@ -44,11 +46,11 @@ static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_body_alloc(lut->entity.vsp1, 256);
-+	dlb = vsp1_dl_body_get(lut->pool);
- 	if (!dlb)
- 		return -ENOMEM;
- 
--	for (i = 0; i < 256; ++i)
-+	for (i = 0; i < LUT_SIZE; ++i)
- 		vsp1_dl_body_write(dlb, VI6_LUT_TABLE + 4 * i,
- 				       ctrl->p_new.p_u32[i]);
- 
-@@ -56,7 +58,7 @@ static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
- 	swap(lut->lut, dlb);
- 	spin_unlock_irq(&lut->lock);
- 
--	vsp1_dl_body_free(dlb);
-+	vsp1_dl_body_put(dlb);
- 	return 0;
- }
- 
-@@ -87,7 +89,7 @@ static const struct v4l2_ctrl_config lut_table_control = {
- 	.max = 0x00ffffff,
- 	.step = 1,
- 	.def = 0,
--	.dims = { 256},
-+	.dims = { LUT_SIZE },
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -217,8 +219,16 @@ static void lut_configure(struct vsp1_entity *entity,
- 	}
- }
- 
-+static void lut_destroy(struct vsp1_entity *entity)
-+{
-+	struct vsp1_lut *lut = to_lut(&entity->subdev);
-+
-+	vsp1_dl_body_pool_destroy(lut->pool);
-+}
-+
- static const struct vsp1_entity_operations lut_entity_ops = {
- 	.configure = lut_configure,
-+	.destroy = lut_destroy,
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -244,6 +254,15 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-+	/*
-+	 * Pre-allocate a body pool, with 3 bodies allowing a userspace update
-+	 * before the hardware has committed a previous set of tables, handling
-+	 * both the queued and pending dl entries.
-+	 */
-+	lut->pool = vsp1_dl_body_pool_create(vsp1, 3, LUT_SIZE, 0);
-+	if (!lut->pool)
-+		return ERR_PTR(-ENOMEM);
-+
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&lut->ctrls, 1);
- 	v4l2_ctrl_new_custom(&lut->ctrls, &lut_table_control, NULL);
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.h b/drivers/media/platform/vsp1/vsp1_lut.h
-index f8c4e8f0a79d..499ed0070bd2 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.h
-+++ b/drivers/media/platform/vsp1/vsp1_lut.h
-@@ -33,6 +33,7 @@ struct vsp1_lut {
- 
- 	spinlock_t lock;
- 	struct vsp1_dl_body *lut;
-+	struct vsp1_dl_body_pool *pool;
- };
- 
- static inline struct vsp1_lut *to_lut(struct v4l2_subdev *subdev)
--- 
-git-series 0.9.1
+SGkgTWF4aW1lLA0KDQpCZWxvdyBjb21tZW50cyBhYm91dCBKUEVHIGlzc3VlLg0KDQpPbiAwMy8w
+Mi8yMDE4IDAzOjM0IFBNLCBNYXhpbWUgUmlwYXJkIHdyb3RlOg0KPiBUaGUgY2xvY2sgcmF0ZSwg
+d2hpbGUgaGFyZGNvZGVkIHVudGlsIG5vdywgaXMgYWN0dWFsbHkgYSBmdW5jdGlvbiBvZiB0aGUN
+Cj4gcmVzb2x1dGlvbiwgZnJhbWVyYXRlIGFuZCBieXRlcyBwZXIgcGl4ZWwuIE5vdyB0aGF0IHdl
+IGhhdmUgYW4gYWxnb3JpdGhtIHRvDQo+IGFkanVzdCBvdXIgY2xvY2sgcmF0ZSwgd2UgY2FuIHNl
+bGVjdCBpdCBkeW5hbWljYWxseSB3aGVuIHdlIGNoYW5nZSB0aGUNCj4gbW9kZS4NCj4gDQo+IFRo
+aXMgY2hhbmdlcyBhIGJpdCB0aGUgY2xvY2sgcmF0ZSBiZWluZyB1c2VkLCB3aXRoIHRoZSBmb2xs
+b3dpbmcgZWZmZWN0Og0KPiANCj4gKy0tLS0tLSstLS0tLS0rLS0tLS0tKy0tLS0tLSstLS0tLSst
+LS0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tKw0KPiB8IEhhY3Qg
+fCBWYWN0IHwgSHRvdCB8IFZ0b3QgfCBGUFMgfCBIYXJkY29kZWQgY2xvY2sgfCBDb21wdXRlZCBj
+bG9jayB8IERldmlhdGlvbiB8DQo+ICstLS0tLS0rLS0tLS0tKy0tLS0tLSstLS0tLS0rLS0tLS0r
+LS0tLS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLSsNCj4gfCAgNjQw
+IHwgIDQ4MCB8IDE4OTYgfCAxMDgwIHwgIDE1IHwgICAgICAgIDU2MDAwMDAwIHwgICAgICAgNjE0
+MzA0MDAgfCA4Ljg0ICUgICAgfA0KPiB8ICA2NDAgfCAgNDgwIHwgMTg5NiB8IDEwODAgfCAgMzAg
+fCAgICAgICAxMTIwMDAwMDAgfCAgICAgIDEyMjg2MDgwMCB8IDguODQgJSAgICB8DQo+IHwgMTAy
+NCB8ICA3NjggfCAxODk2IHwgMTA4MCB8ICAxNSB8ICAgICAgICA1NjAwMDAwMCB8ICAgICAgIDYx
+NDMwNDAwIHwgOC44NCAlICAgIHwNCj4gfCAxMDI0IHwgIDc2OCB8IDE4OTYgfCAxMDgwIHwgIDMw
+IHwgICAgICAgMTEyMDAwMDAwIHwgICAgICAxMjI4NjA4MDAgfCA4Ljg0ICUgICAgfA0KPiB8ICAz
+MjAgfCAgMjQwIHwgMTg5NiB8ICA5ODQgfCAgMTUgfCAgICAgICAgNTYwMDAwMDAgfCAgICAgICA1
+NTk2OTkyMCB8IDAuMDUgJSAgICB8DQo+IHwgIDMyMCB8ICAyNDAgfCAxODk2IHwgIDk4NCB8ICAz
+MCB8ICAgICAgIDExMjAwMDAwMCB8ICAgICAgMTExOTM5ODQwIHwgMC4wNSAlICAgIHwNCj4gfCAg
+MTc2IHwgIDE0NCB8IDE4OTYgfCAgOTg0IHwgIDE1IHwgICAgICAgIDU2MDAwMDAwIHwgICAgICAg
+NTU5Njk5MjAgfCAwLjA1ICUgICAgfA0KPiB8ICAxNzYgfCAgMTQ0IHwgMTg5NiB8ICA5ODQgfCAg
+MzAgfCAgICAgICAxMTIwMDAwMDAgfCAgICAgIDExMTkzOTg0MCB8IDAuMDUgJSAgICB8DQo+IHwg
+IDcyMCB8ICA0ODAgfCAxODk2IHwgIDk4NCB8ICAxNSB8ICAgICAgICA1NjAwMDAwMCB8ICAgICAg
+IDU1OTY5OTIwIHwgMC4wNSAlICAgIHwNCj4gfCAgNzIwIHwgIDQ4MCB8IDE4OTYgfCAgOTg0IHwg
+IDMwIHwgICAgICAgMTEyMDAwMDAwIHwgICAgICAxMTE5Mzk4NDAgfCAwLjA1ICUgICAgfA0KPiB8
+ICA3MjAgfCAgNTc2IHwgMTg5NiB8ICA5ODQgfCAgMTUgfCAgICAgICAgNTYwMDAwMDAgfCAgICAg
+ICA1NTk2OTkyMCB8IDAuMDUgJSAgICB8DQo+IHwgIDcyMCB8ICA1NzYgfCAxODk2IHwgIDk4NCB8
+ICAzMCB8ICAgICAgIDExMjAwMDAwMCB8ICAgICAgMTExOTM5ODQwIHwgMC4wNSAlICAgIHwNCj4g
+fCAxMjgwIHwgIDcyMCB8IDE4OTIgfCAgNzQwIHwgIDE1IHwgICAgICAgIDQyMDAwMDAwIHwgICAg
+ICAgNDIwMDI0MDAgfCAwLjAxICUgICAgfA0KPiB8IDEyODAgfCAgNzIwIHwgMTg5MiB8ICA3NDAg
+fCAgMzAgfCAgICAgICAgODQwMDAwMDAgfCAgICAgICA4NDAwNDgwMCB8IDAuMDEgJSAgICB8DQo+
+IHwgMTkyMCB8IDEwODAgfCAyNTAwIHwgMTEyMCB8ICAxNSB8ICAgICAgICA4NDAwMDAwMCB8ICAg
+ICAgIDg0MDAwMDAwIHwgMC4wMCAlICAgIHwNCj4gfCAxOTIwIHwgMTA4MCB8IDI1MDAgfCAxMTIw
+IHwgIDMwIHwgICAgICAgMTY4MDAwMDAwIHwgICAgICAxNjgwMDAwMDAgfCAwLjAwICUgICAgfA0K
+PiB8IDI1OTIgfCAxOTQ0IHwgMjg0NCB8IDE5NDQgfCAgMTUgfCAgICAgICAgODQwMDAwMDAgfCAg
+ICAgIDE2NTg2MjA4MCB8IDQ5LjM2ICUgICB8DQo+ICstLS0tLS0rLS0tLS0tKy0tLS0tLSstLS0t
+LS0rLS0tLS0rLS0tLS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLSsN
+Cj4gDQo+IE9ubHkgdGhlIDY0MHg0ODAsIDEwMjR4NzY4IGFuZCAyNTkyeDE5NDQgbW9kZXMgYXJl
+IHNpZ25pZmljYW50bHkgYWZmZWN0ZWQNCj4gYnkgdGhlIG5ldyBmb3JtdWxhLg0KPiANCj4gSW4g
+dGhpcyBjYXNlLCA2NDB4NDgwIGFuZCAxMDI0eDc2OCBhcmUgYWN0dWFsbHkgZml4ZWQgYnkgdGhp
+cyBkcml2ZXIuDQo+IEluZGVlZCwgdGhlIHNlbnNvciB3YXMgc2VuZGluZyBkYXRhIGF0LCBmb3Ig
+ZXhhbXBsZSwgMjcuMzNmcHMgaW5zdGVhZCBvZg0KPiAzMGZwcy4gVGhpcyBpcyAtOSUsIHdoaWNo
+IGlzIHJvdWdobHkgd2hhdCB3ZSdyZSBzZWVpbmcgaW4gdGhlIGFycmF5Lg0KPiBUZXN0aW5nIHRo
+ZXNlIG1vZGVzIHdpdGggdGhlIG5ldyBjbG9jayBzZXR1cCBhY3R1YWxseSBmaXggdGhhdCBlcnJv
+ciwgYW5kDQo+IGRhdGEgYXJlIG5vdyBzZW50IGF0IGFyb3VuZCAzMGZwcy4NCj4gDQo+IDI1OTJ4
+MTk0NCwgb24gdGhlIG90aGVyIGhhbmQsIGlzIHByb2JhYmx5IGR1ZSB0byB0aGUgZmFjdCB0aGF0
+IHRoaXMgbW9kZQ0KPiBjYW4gb25seSBiZSB1c2VkIHVzaW5nIE1JUEktQ1NJMiwgaW4gYSB0d28g
+bGFuZSBtb2RlLiBUaGlzIHdvdWxkIGhhdmUgdG8gYmUNCj4gdGVzdGVkIHRob3VnaC4NCj4gDQo+
+IFNpZ25lZC1vZmYtYnk6IE1heGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAYm9vdGxpbi5jb20+
+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgNDEgKysrKysrKysrKysr
+KysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMTcgaW5z
+ZXJ0aW9ucygrKSwgMjQgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiBpbmRleCAz
+MjNjZGUyN2RkOGIuLmJkZjM3OGQ4MGUwNyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9p
+MmMvb3Y1NjQwLmMNCj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4gQEAgLTEy
+Niw2ICsxMjYsMTIgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBvdjU2NDBfcGl4Zm10IG92NTY0MF9m
+b3JtYXRzW10gPSB7DQo+ICAgCXsgTUVESUFfQlVTX0ZNVF9SR0I1NjVfMlg4X0JFLCBWNEwyX0NP
+TE9SU1BBQ0VfU1JHQiwgfSwNCj4gICB9Ow0KPiAgIA0KPiArLyoNCj4gKyAqIEZJWE1FOiBJZiB3
+ZSBldmVyIGhhdmUgc29tZXRoaW5nIGVsc2UsIHdlJ2xsIG9idmlvdXNseSBuZWVkIHRvIGhhdmUN
+Cj4gKyAqIHNvbWV0aGluZyBzbWFydGVyLg0KPiArICovDQo+ICsjZGVmaW5lIE9WNTY0MF9GT1JN
+QVRTX0JQUAkyDQo+ICsNCg0KV2UgaGF2ZSB0aGUgY2FzZSB3aXRoIEpQRUcgd2hpY2ggaXMgMSBi
+eXRlLg0KDQo+ICAgLyoNCj4gICAgKiBGSVhNRTogcmVtb3ZlIHRoaXMgd2hlbiBhIHN1YmRldiBB
+UEkgYmVjb21lcyBhdmFpbGFibGUNCj4gICAgKiB0byBzZXQgdGhlIE1JUEkgQ1NJLTIgdmlydHVh
+bCBjaGFubmVsLg0KPiBAQCAtMTcyLDcgKzE3OCw2IEBAIHN0cnVjdCBvdjU2NDBfbW9kZV9pbmZv
+IHsNCj4gICAJdTMyIGh0b3Q7DQo+ICAgCXUzMiB2YWN0Ow0KPiAgIAl1MzIgdnRvdDsNCj4gLQl1
+MzIgY2xvY2s7DQo+ICAgCWNvbnN0IHN0cnVjdCByZWdfdmFsdWUgKnJlZ19kYXRhOw0KPiAgIAl1
+MzIgcmVnX2RhdGFfc2l6ZTsNCj4gICB9Ow0KPiBAQCAtNjk2LDcgKzcwMSw2IEBAIHN0YXRpYyBj
+b25zdCBzdHJ1Y3QgcmVnX3ZhbHVlIG92NTY0MF9zZXR0aW5nXzE1ZnBzX1FTWEdBXzI1OTJfMTk0
+NFtdID0gew0KPiAgIC8qIHBvd2VyLW9uIHNlbnNvciBpbml0IHJlZyB0YWJsZSAqLw0KPiAgIHN0
+YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyBvdjU2NDBfbW9kZV9pbml0X2RhdGEg
+PSB7DQo+ICAgCTAsIFNVQlNBTVBMSU5HLCA2NDAsIDE4OTYsIDQ4MCwgOTg0LA0KPiAtCTExMjAw
+MDAwMCwNCj4gICAJb3Y1NjQwX2luaXRfc2V0dGluZ18zMGZwc19WR0EsDQo+ICAgCUFSUkFZX1NJ
+WkUob3Y1NjQwX2luaXRfc2V0dGluZ18zMGZwc19WR0EpLA0KPiAgIH07DQo+IEBAIC03MDYsOTEg
+KzcxMCw3NCBAQCBvdjU2NDBfbW9kZV9kYXRhW09WNTY0MF9OVU1fRlJBTUVSQVRFU11bT1Y1NjQw
+X05VTV9NT0RFU10gPSB7DQo+ICAgCXsNCj4gICAJCXtPVjU2NDBfTU9ERV9RQ0lGXzE3Nl8xNDQs
+IFNVQlNBTVBMSU5HLA0KPiAgIAkJIDE3NiwgMTg5NiwgMTQ0LCA5ODQsDQo+IC0JCSA1NjAwMDAw
+MCwNCj4gICAJCSBvdjU2NDBfc2V0dGluZ18xNWZwc19RQ0lGXzE3Nl8xNDQsDQo+ICAgCQkgQVJS
+QVlfU0laRShvdjU2NDBfc2V0dGluZ18xNWZwc19RQ0lGXzE3Nl8xNDQpfSwNCj4gICAJCXtPVjU2
+NDBfTU9ERV9RVkdBXzMyMF8yNDAsIFNVQlNBTVBMSU5HLA0KPiAgIAkJIDMyMCwgMTg5NiwgMjQw
+LCA5ODQsDQo+IC0JCSA1NjAwMDAwMCwNCj4gICAJCSBvdjU2NDBfc2V0dGluZ18xNWZwc19RVkdB
+XzMyMF8yNDAsDQo+ICAgCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0dGluZ18xNWZwc19RVkdBXzMy
+MF8yNDApfSwNCj4gICAJCXtPVjU2NDBfTU9ERV9WR0FfNjQwXzQ4MCwgU1VCU0FNUExJTkcsDQo+
+ICAgCQkgNjQwLCAxODk2LCA0ODAsIDEwODAsDQo+IC0JCSA1NjAwMDAwMCwNCj4gICAJCSBvdjU2
+NDBfc2V0dGluZ18xNWZwc19WR0FfNjQwXzQ4MCwNCj4gICAJCSBBUlJBWV9TSVpFKG92NTY0MF9z
+ZXR0aW5nXzE1ZnBzX1ZHQV82NDBfNDgwKX0sDQo+ICAgCQl7T1Y1NjQwX01PREVfTlRTQ183MjBf
+NDgwLCBTVUJTQU1QTElORywNCj4gICAJCSA3MjAsIDE4OTYsIDQ4MCwgOTg0LA0KPiAtCQkgNTYw
+MDAwMDAsDQo+ICAgCQkgb3Y1NjQwX3NldHRpbmdfMTVmcHNfTlRTQ183MjBfNDgwLA0KPiAgIAkJ
+IEFSUkFZX1NJWkUob3Y1NjQwX3NldHRpbmdfMTVmcHNfTlRTQ183MjBfNDgwKX0sDQo+ICAgCQl7
+T1Y1NjQwX01PREVfUEFMXzcyMF81NzYsIFNVQlNBTVBMSU5HLA0KPiAgIAkJIDcyMCwgMTg5Niwg
+NTc2LCA5ODQsDQo+IC0JCSA1NjAwMDAwMCwNCj4gICAJCSBvdjU2NDBfc2V0dGluZ18xNWZwc19Q
+QUxfNzIwXzU3NiwNCj4gICAJCSBBUlJBWV9TSVpFKG92NTY0MF9zZXR0aW5nXzE1ZnBzX1BBTF83
+MjBfNTc2KX0sDQo+ICAgCQl7T1Y1NjQwX01PREVfWEdBXzEwMjRfNzY4LCBTVUJTQU1QTElORywN
+Cj4gICAJCSAxMDI0LCAxODk2LCA3NjgsIDEwODAsDQo+IC0JCSA1NjAwMDAwMCwNCj4gICAJCSBv
+djU2NDBfc2V0dGluZ18xNWZwc19YR0FfMTAyNF83NjgsDQo+ICAgCQkgQVJSQVlfU0laRShvdjU2
+NDBfc2V0dGluZ18xNWZwc19YR0FfMTAyNF83NjgpfSwNCj4gICAJCXtPVjU2NDBfTU9ERV83MjBQ
+XzEyODBfNzIwLCBTVUJTQU1QTElORywNCj4gICAJCSAxMjgwLCAxODkyLCA3MjAsIDc0MCwNCj4g
+LQkJIDQyMDAwMDAwLA0KPiAgIAkJIG92NTY0MF9zZXR0aW5nXzE1ZnBzXzcyMFBfMTI4MF83MjAs
+DQo+ICAgCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0dGluZ18xNWZwc183MjBQXzEyODBfNzIwKX0s
+DQo+ICAgCQl7T1Y1NjQwX01PREVfMTA4MFBfMTkyMF8xMDgwLCBTQ0FMSU5HLA0KPiAgIAkJIDE5
+MjAsIDI1MDAsIDEwODAsIDExMjAsDQo+IC0JCSA4NDAwMDAwMCwNCj4gICAJCSBvdjU2NDBfc2V0
+dGluZ18xNWZwc18xMDgwUF8xOTIwXzEwODAsDQo+ICAgCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0
+dGluZ18xNWZwc18xMDgwUF8xOTIwXzEwODApfSwNCj4gICAJCXtPVjU2NDBfTU9ERV9RU1hHQV8y
+NTkyXzE5NDQsIFNDQUxJTkcsDQo+ICAgCQkgMjU5MiwgMjg0NCwgMTk0NCwgMTk2OCwNCj4gLQkJ
+IDE2ODAwMDAwMCwNCj4gICAJCSBvdjU2NDBfc2V0dGluZ18xNWZwc19RU1hHQV8yNTkyXzE5NDQs
+DQo+ICAgCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0dGluZ18xNWZwc19RU1hHQV8yNTkyXzE5NDQp
+fSwNCj4gICAJfSwgew0KPiAgIAkJe09WNTY0MF9NT0RFX1FDSUZfMTc2XzE0NCwgU1VCU0FNUExJ
+TkcsDQo+ICAgCQkgMTc2LCAxODk2LCAxNDQsIDk4NCwNCj4gLQkJIDExMjAwMDAwMCwNCj4gICAJ
+CSBvdjU2NDBfc2V0dGluZ18zMGZwc19RQ0lGXzE3Nl8xNDQsDQo+ICAgCQkgQVJSQVlfU0laRShv
+djU2NDBfc2V0dGluZ18zMGZwc19RQ0lGXzE3Nl8xNDQpfSwNCj4gICAJCXtPVjU2NDBfTU9ERV9R
+VkdBXzMyMF8yNDAsIFNVQlNBTVBMSU5HLA0KPiAgIAkJIDMyMCwgMTg5NiwgMjQwLCA5ODQsDQo+
+IC0JCSAxMTIwMDAwMDAsDQo+ICAgCQkgb3Y1NjQwX3NldHRpbmdfMzBmcHNfUVZHQV8zMjBfMjQw
+LA0KPiAgIAkJIEFSUkFZX1NJWkUob3Y1NjQwX3NldHRpbmdfMzBmcHNfUVZHQV8zMjBfMjQwKX0s
+DQo+ICAgCQl7T1Y1NjQwX01PREVfVkdBXzY0MF80ODAsIFNVQlNBTVBMSU5HLA0KPiAgIAkJIDY0
+MCwgMTg5NiwgNDgwLCAxMDgwLA0KPiAtCQkgMTEyMDAwMDAwLA0KPiAgIAkJIG92NTY0MF9zZXR0
+aW5nXzMwZnBzX1ZHQV82NDBfNDgwLA0KPiAgIAkJIEFSUkFZX1NJWkUob3Y1NjQwX3NldHRpbmdf
+MzBmcHNfVkdBXzY0MF80ODApfSwNCj4gICAJCXtPVjU2NDBfTU9ERV9OVFNDXzcyMF80ODAsIFNV
+QlNBTVBMSU5HLA0KPiAgIAkJIDcyMCwgMTg5NiwgNDgwLCA5ODQsDQo+IC0JCSAxMTIwMDAwMDAs
+DQo+ICAgCQkgb3Y1NjQwX3NldHRpbmdfMzBmcHNfTlRTQ183MjBfNDgwLA0KPiAgIAkJIEFSUkFZ
+X1NJWkUob3Y1NjQwX3NldHRpbmdfMzBmcHNfTlRTQ183MjBfNDgwKX0sDQo+ICAgCQl7T1Y1NjQw
+X01PREVfUEFMXzcyMF81NzYsIFNVQlNBTVBMSU5HLA0KPiAgIAkJIDcyMCwgMTg5NiwgNTc2LCA5
+ODQsDQo+IC0JCSAxMTIwMDAwMDAsDQo+ICAgCQkgb3Y1NjQwX3NldHRpbmdfMzBmcHNfUEFMXzcy
+MF81NzYsDQo+ICAgCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0dGluZ18zMGZwc19QQUxfNzIwXzU3
+Nil9LA0KPiAgIAkJe09WNTY0MF9NT0RFX1hHQV8xMDI0Xzc2OCwgU1VCU0FNUExJTkcsDQo+ICAg
+CQkgMTAyNCwgMTg5NiwgNzY4LCAxMDgwLA0KPiAtCQkgMTEyMDAwMDAwLA0KPiAgIAkJIG92NTY0
+MF9zZXR0aW5nXzMwZnBzX1hHQV8xMDI0Xzc2OCwNCj4gICAJCSBBUlJBWV9TSVpFKG92NTY0MF9z
+ZXR0aW5nXzMwZnBzX1hHQV8xMDI0Xzc2OCl9LA0KPiAgIAkJe09WNTY0MF9NT0RFXzcyMFBfMTI4
+MF83MjAsIFNVQlNBTVBMSU5HLA0KPiAgIAkJIDEyODAsIDE4OTIsIDcyMCwgNzQwLA0KPiAtCQkg
+ODQwMDAwMDAsDQo+ICAgCQkgb3Y1NjQwX3NldHRpbmdfMzBmcHNfNzIwUF8xMjgwXzcyMCwNCj4g
+ICAJCSBBUlJBWV9TSVpFKG92NTY0MF9zZXR0aW5nXzMwZnBzXzcyMFBfMTI4MF83MjApfSwNCj4g
+ICAJCXtPVjU2NDBfTU9ERV8xMDgwUF8xOTIwXzEwODAsIFNDQUxJTkcsDQo+ICAgCQkgMTkyMCwg
+MjUwMCwgMTA4MCwgMTEyMCwNCj4gLQkJIDE2ODAwMDAwMCwNCj4gICAJCSBvdjU2NDBfc2V0dGlu
+Z18zMGZwc18xMDgwUF8xOTIwXzEwODAsDQo+ICAgCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0dGlu
+Z18zMGZwc18xMDgwUF8xOTIwXzEwODApfSwNCj4gLQkJe09WNTY0MF9NT0RFX1FTWEdBXzI1OTJf
+MTk0NCwgLTEsIDAsIDAsIDAsIDAsIDAsIE5VTEwsIDB9LA0KPiArCQl7T1Y1NjQwX01PREVfUVNY
+R0FfMjU5Ml8xOTQ0LCAtMSwgMCwgMCwgMCwgMCwgTlVMTCwgMH0sDQo+ICAgCX0sDQo+ICAgfTsN
+Cj4gICANCj4gQEAgLTE4NTQsNiArMTg0MSw3IEBAIHN0YXRpYyBpbnQgb3Y1NjQwX3NldF9tb2Rl
+KHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+ICAgew0KPiAgIAljb25zdCBzdHJ1Y3Qgb3Y1
+NjQwX21vZGVfaW5mbyAqbW9kZSA9IHNlbnNvci0+Y3VycmVudF9tb2RlOw0KPiAgIAllbnVtIG92
+NTY0MF9kb3duc2l6ZV9tb2RlIGRuX21vZGUsIG9yaWdfZG5fbW9kZTsNCj4gKwl1bnNpZ25lZCBs
+b25nIHJhdGU7DQo+ICAgCWludCByZXQ7DQo+ICAgDQo+ICAgCWRuX21vZGUgPSBtb2RlLT5kbl9t
+b2RlOw0KPiBAQCAtMTg2OCwxMCArMTg1NiwxNSBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfbW9k
+ZShzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLA0KPiAgIAlpZiAocmV0KQ0KPiAgIAkJcmV0dXJu
+IHJldDsNCj4gICANCj4gLQlpZiAoc2Vuc29yLT5lcC5idXNfdHlwZSA9PSBWNEwyX01CVVNfQ1NJ
+MikNCj4gLQkJcmV0ID0gb3Y1NjQwX3NldF9taXBpX3BjbGsoc2Vuc29yLCBtb2RlLT5jbG9jayk7
+DQo+IC0JZWxzZQ0KPiAtCQlyZXQgPSBvdjU2NDBfc2V0X2R2cF9wY2xrKHNlbnNvciwgbW9kZS0+
+Y2xvY2spOw0KPiArCXJhdGUgPSBtb2RlLT52dG90ICogbW9kZS0+aHRvdCAqIE9WNTY0MF9GT1JN
+QVRTX0JQUDsNCg0KUHJvcG9zYWw6DQoJcmF0ZSA9IG1vZGUtPnZ0b3QgKiBtb2RlLT5odG90ICoN
+CgkJKHNlbnNvci0+Zm10LmNvZGUgPT0gTUVESUFfQlVTX0ZNVF9KUEVHXzFYOCA/IDEgOiAyKTsN
+Cg0KDQo+ICsJcmF0ZSAqPSBvdjU2NDBfZnJhbWVyYXRlc1tzZW5zb3ItPmN1cnJlbnRfZnJdOw0K
+PiArDQo+ICsJaWYgKHNlbnNvci0+ZXAuYnVzX3R5cGUgPT0gVjRMMl9NQlVTX0NTSTIpIHsNCj4g
+KwkJcmF0ZSA9IHJhdGUgLyBzZW5zb3ItPmVwLmJ1cy5taXBpX2NzaTIubnVtX2RhdGFfbGFuZXM7
+DQo+ICsJCXJldCA9IG92NTY0MF9zZXRfbWlwaV9wY2xrKHNlbnNvciwgcmF0ZSk7DQo+ICsJfSBl
+bHNlIHsNCj4gKwkJcmV0ID0gb3Y1NjQwX3NldF9kdnBfcGNsayhzZW5zb3IsIHJhdGUpOw0KPiAr
+CX0NCj4gICANCj4gICAJaWYgKHJldCA8IDApDQo+ICAgCQlyZXR1cm4gMDsNCj4gDQoNCkJSDQpI
+dWd1ZXMu
