@@ -1,53 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:44040 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753314AbeC1Num (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.13]:40713 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933209AbeCMMGC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 09:50:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>
-Subject: [RFCv9 PATCH 14/29] v4l2-ctrls: do not clone non-standard controls
-Date: Wed, 28 Mar 2018 15:50:15 +0200
-Message-Id: <20180328135030.7116-15-hverkuil@xs4all.nl>
-In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+        Tue, 13 Mar 2018 08:06:02 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: v4l: omap_vout: vrfb: remove an unused variable
+Date: Tue, 13 Mar 2018 13:05:36 +0100
+Message-Id: <20180313120548.2603484-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+We now get a warning after the 'dmadev' variable is no longer used:
 
-Only standard controls can be successfully cloned: handler_new_ref, used
-by v4l2_ctrl_request_clone(), forcibly calls v4l2_ctrl_new_std() which
-fails to find custom controls names, and we eventually hit the condition
-that name == NULL in v4l2_ctrl_new().
+drivers/media/platform/omap/omap_vout_vrfb.c: In function 'omap_vout_prepare_vrfb':
+drivers/media/platform/omap/omap_vout_vrfb.c:239:21: error: unused variable 'dmadev' [-Werror=unused-variable]
 
-This prevents us from using non-standard controls with requests, but
-that is enough for testing purposes.
-
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Fixes: 8f0aa38292f2 ("media: v4l: omap_vout: vrfb: Use the wrapper for prep_interleaved_dma()")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/platform/omap/omap_vout_vrfb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 62f91c0f1e5f..6cf6b2154462 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2876,6 +2876,11 @@ static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
- 		if (filter && !filter(ctrl))
- 			continue;
- 		err = handler_new_ref(hdl, ctrl, &new_ref, false);
-+		if (err) {
-+			printk("%s: handler_new_ref on control %x (%s) returned %d\n", __func__, ctrl->id, ctrl->name, err);
-+			err = 0;
-+			continue;
-+		}
- 		if (err)
- 			break;
- 		if (from->req_obj.req)
+diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
+index 72c0ac2cbf3d..1d8508237220 100644
+--- a/drivers/media/platform/omap/omap_vout_vrfb.c
++++ b/drivers/media/platform/omap/omap_vout_vrfb.c
+@@ -236,7 +236,6 @@ int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
+ 	struct dma_async_tx_descriptor *tx;
+ 	enum dma_ctrl_flags flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
+ 	struct dma_chan *chan = vout->vrfb_dma_tx.chan;
+-	struct dma_device *dmadev = chan->device;
+ 	struct dma_interleaved_template *xt = vout->vrfb_dma_tx.xt;
+ 	dma_cookie_t cookie;
+ 	enum dma_status status;
 -- 
-2.16.1
+2.9.0
