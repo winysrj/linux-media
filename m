@@ -1,85 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56334 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751227AbeC2NAy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 09:00:54 -0400
-Date: Thu, 29 Mar 2018 10:00:42 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH] media: v4l2-compat-ioctl32: don't oops on overlay
-Message-ID: <20180329100042.209b313c@vento.lan>
-In-Reply-To: <2e9cca00-5c6d-6a22-0273-98f908a304d6@xs4all.nl>
-References: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
-        <2e9cca00-5c6d-6a22-0273-98f908a304d6@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34731 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751255AbeCMWSJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 18:18:09 -0400
+Received: by mail-wr0-f196.google.com with SMTP id o8so2544858wra.1
+        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 15:18:09 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rascobie@slingshot.co.nz
+Subject: [PATCH v3 0/3] Add FEC rates, S2X params and 64K transmission
+Date: Tue, 13 Mar 2018 23:18:02 +0100
+Message-Id: <20180313221805.26818-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 29 Mar 2018 10:40:23 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> Hi Mauro,
-> 
-> On 28/03/18 19:59, Mauro Carvalho Chehab wrote:
-> > At put_v4l2_window32(), it tries to access kp->clips. However,
-> > kp points to an userspace pointer. So, it should be obtained
-> > via get_user(), otherwise it can OOPS:
-> >   
-> 
-> <snip>
-> 
-> > 
-> > cc: stable@vger.kernel.org
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > index 5198c9eeb348..4312935f1dfc 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -101,7 +101,7 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
-> >  static int put_v4l2_window32(struct v4l2_window __user *kp,
-> >  			     struct v4l2_window32 __user *up)
-> >  {
-> > -	struct v4l2_clip __user *kclips = kp->clips;
-> > +	struct v4l2_clip __user *kclips;
-> >  	struct v4l2_clip32 __user *uclips;
-> >  	compat_caddr_t p;
-> >  	u32 clipcount;
-> > @@ -116,6 +116,8 @@ static int put_v4l2_window32(struct v4l2_window __user *kp,
-> >  	if (!clipcount)
-> >  		return 0;
-> >  
-> > +	if (get_user(kclips, &kp->clips))
-> > +		return -EFAULT;
-> >  	if (get_user(p, &up->clips))
-> >  		return -EFAULT;
-> >  	uclips = compat_ptr(p);
-> >   
-> 
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I have no idea why I didn't find this when I tested this with v4l2-compliance,
-> but the code was certainly wrong.
+Note: This v3 doesn't yet implement anything to allow userspace to detect
+bits regarding S2X, nor does it implement anything new to report frontend
+capabilities. At the moment, the main purpose for this is to enable any
+demod frontend to report the current signal parameters more accurate.
+Right now this (partially) is for the stv0910 demod, and with additional
+hardware currently in development in mind which supports more S2X bits.
+There's quite a lot missing from fe_caps right now which almost all
+demods autodetect anyway, so let's at least properly report signal stats.
 
-I built 4.16-rc4 with KASAN enabled. Perhaps, it won't OOPS without
-it. Yet, I doubt it would work without this fix.
+dddvb brings a few additional FEC rates (1/4 and 1/3), 64/128/256APSK
+modulations and more rolloff factors (DVB-S2X), and 64K transmission mode
+(DVB-T2). These rather trivial patches bring them to mainline, and puts
+these missing bits into the stv0910's get_frontend() callback (FEC 1/4
+and 1/3 are handled throughout the rest of the demod driver already). In
+addition (as suggestion from Richard Scobie), the stv0910 driver now
+reports it's active delivery system.
 
-> 
-> Thank you for debugging this!
+Changes from v2 to v3:
+- API bits squashed into one commit, stv0910 changes squashed into another
+  single commit
+- DVB-S2X related bits added to the uAPI docs
+- DVB API bumped to v5.12
 
-Anytime.
+Changes from v1 to v2:
+- DVB-S2X rolloff factors and reporting
+- report of the active delivery system in stv0910:get_frontend()
 
-Thanks,
-Mauro
+Daniel Scheller (3):
+  [media] dvb_frontend: add S2X and misc. other enums
+  [media] docs: documentation bits for S2X and the 64K transmission mode
+  [media] dvb-frontends/stv0910: more detailed reporting in
+    get_frontend()
+
+ Documentation/media/frontend.h.rst.exceptions      |  9 ++++
+ .../media/uapi/dvb/fe_property_parameters.rst      | 50 ++++++++++++++--------
+ .../dvb/frontend-property-satellite-systems.rst    |  8 ++--
+ drivers/media/dvb-core/dvb_frontend.c              |  9 ++++
+ drivers/media/dvb-frontends/stv0910.c              | 16 ++++---
+ include/uapi/linux/dvb/frontend.h                  | 29 ++++++++++---
+ include/uapi/linux/dvb/version.h                   |  2 +-
+ 7 files changed, 90 insertions(+), 33 deletions(-)
+
+-- 
+2.16.1
