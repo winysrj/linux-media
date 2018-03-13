@@ -1,102 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:47665 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753243AbeCFRtx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 12:49:53 -0500
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>, linux-media@vger.kernel.org,
-        linux-amlogic@lists.infradead.org
-Subject: [PATCH] media: rc: meson-ir: add timeout on idle
-Date: Tue,  6 Mar 2018 18:41:22 +0100
-Message-Id: <20180306174122.6017-1-hias@horus.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44908 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751824AbeCMSnL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 14:43:11 -0400
+Subject: Re: [PATCH 1/3] rcar-vin: remove duplicated check of state in irq
+ handler
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com
+References: <20180310000953.25366-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180310000953.25366-2-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <17a2486d-5a99-3511-c7b6-a50001fd0e7e@xs4all.nl>
+Date: Tue, 13 Mar 2018 11:43:03 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180310000953.25366-2-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Meson doesn't seem to be able to generate timeout events
-in hardware. So install a software timer to generate the
-timeout events required by the decoders to prevent
-"ghost keypresses".
+On 03/09/2018 04:09 PM, Niklas Söderlund wrote:
+> This is an error from when the driver where converted from soc-camera.
 
-Signed-off-by: Matthias Reichl <hias@horus.com>
----
- drivers/media/rc/meson-ir.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+where -> was
 
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index f2204eb77e2a..f34c5836412b 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -69,6 +69,7 @@ struct meson_ir {
- 	void __iomem	*reg;
- 	struct rc_dev	*rc;
- 	spinlock_t	lock;
-+	struct timer_list timeout_timer;
- };
- 
- static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
-@@ -98,6 +99,10 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
- 	rawir.pulse = !!(status & STATUS_IR_DEC_IN);
- 
- 	ir_raw_event_store(ir->rc, &rawir);
-+
-+	mod_timer(&ir->timeout_timer,
-+		jiffies + nsecs_to_jiffies(ir->rc->timeout));
-+
- 	ir_raw_event_handle(ir->rc);
- 
- 	spin_unlock(&ir->lock);
-@@ -105,6 +110,17 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
-+static void meson_ir_timeout_timer(struct timer_list *t)
-+{
-+	struct meson_ir *ir = from_timer(ir, t, timeout_timer);
-+	DEFINE_IR_RAW_EVENT(rawir);
-+
-+	rawir.timeout = true;
-+	rawir.duration = ir->rc->timeout;
-+	ir_raw_event_store(ir->rc, &rawir);
-+	ir_raw_event_handle(ir->rc);
-+}
-+
- static int meson_ir_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -145,7 +161,9 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
- 	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
- 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
-+	ir->rc->min_timeout = 1;
- 	ir->rc->timeout = MS_TO_NS(200);
-+	ir->rc->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
- 	ir->rc->driver_name = DRIVER_NAME;
- 
- 	spin_lock_init(&ir->lock);
-@@ -157,6 +175,8 @@ static int meson_ir_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	timer_setup(&ir->timeout_timer, meson_ir_timeout_timer, 0);
-+
- 	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, NULL, ir);
- 	if (ret) {
- 		dev_err(dev, "failed to request irq\n");
-@@ -198,6 +218,8 @@ static int meson_ir_remove(struct platform_device *pdev)
- 	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
- 	spin_unlock_irqrestore(&ir->lock, flags);
- 
-+	del_timer_sync(&ir->timeout_timer);
-+
- 	return 0;
- }
- 
--- 
-2.11.0
+> There is absolutely no gain to check the state variable two times to be
+> extra sure if the hardware is stopped.
+
+I'll wait for v2 before applying this.
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 6 ------
+>  1 file changed, 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 23fdff7a7370842e..b4be75d5009080f7 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -916,12 +916,6 @@ static irqreturn_t rvin_irq(int irq, void *data)
+>  	rvin_ack_interrupt(vin);
+>  	handled = 1;
+>  
+> -	/* Nothing to do if capture status is 'STOPPED' */
+> -	if (vin->state == STOPPED) {
+> -		vin_dbg(vin, "IRQ while state stopped\n");
+> -		goto done;
+> -	}
+> -
+>  	/* Nothing to do if capture status is 'STOPPING' */
+>  	if (vin->state == STOPPING) {
+>  		vin_dbg(vin, "IRQ while state stopping\n");
+> 
