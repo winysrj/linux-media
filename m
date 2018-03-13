@@ -1,86 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37609 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750782AbeCFRDH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 12:03:07 -0500
-Date: Tue, 6 Mar 2018 14:03:00 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        g.liakhovetski@gmx.de, bhumirks@gmail.com, joe@perches.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/11] media: tw9910: Re-order variables declaration
-Message-ID: <20180306140300.3b8513d5@vento.lan>
-In-Reply-To: <20180306165715.GD19648@w540>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-        <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
-        <20180306135152.3fed9766@vento.lan>
-        <20180306165715.GD19648@w540>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40287 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932503AbeCMLdU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 07:33:20 -0400
+Received: by mail-wr0-f193.google.com with SMTP id m4so8829631wrb.7
+        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 04:33:20 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v3 0/2] media: Introduce Omnivision OV2680 driver
+Date: Tue, 13 Mar 2018 11:33:09 +0000
+Message-Id: <20180313113311.8617-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 6 Mar 2018 17:57:15 +0100
-jacopo mondi <jacopo@jmondi.org> escreveu:
+Add driver and bindings for the OV2680 2 megapixel CMOS 1/5" sensor, which has
+a single MIPI lane interface and output format of 10-bit Raw RGB.
 
-> Hi Mauro,
-> 
-> On Tue, Mar 06, 2018 at 01:51:52PM -0300, Mauro Carvalho Chehab wrote:
-> > Em Fri,  2 Mar 2018 15:46:33 +0100
-> > Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
-> >  
-> > > Re-order variables declaration to respect 'reverse christmas tree'
-> > > ordering whenever possible.  
-> >
-> > To be frank, I don't like the idea of reverse christmas tree ordering
-> > myself... Perhaps due to the time I used to program on assembler,
-> > where alignment issues could happen, I find a way more logic to order
-> > based on complexity and size of the argument...
-> >  
-> > >
-> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > > ---
-> > >  drivers/media/i2c/tw9910.c | 23 +++++++++++------------
-> > >  1 file changed, 11 insertions(+), 12 deletions(-)
-> > >
-> > > diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-> > > index cc648de..3a5e307 100644
-> > > --- a/drivers/media/i2c/tw9910.c
-> > > +++ b/drivers/media/i2c/tw9910.c
-> > > @@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
-> > >
-> > >  static int tw9910_power(struct i2c_client *client, int enable)
-> > >  {
-> > > -	int ret;
-> > >  	u8 acntl1;
-> > >  	u8 acntl2;
-> > > +	int ret;  
-> >
-> > ... So, in this case, the order is already the right one, according
-> > with my own criteria :-)
-> >
-> > There was some discussion about the order sometime ago at LKML:
-> >
-> > 	https://patchwork.kernel.org/patch/9411999/
-> >
-> > As I'm not seeing the proposed patch there at checkpatch, nor any
-> > comments about xmas tree at coding style, I think that there were no
-> > agreements about the ordering.
-> >
-> > So, while there's no consensus about that, let's keep it as-is.  
-> 
-> Thanks for explaining. I was sure it was part of the coding style
-> rules! My bad, feel free to ditch this patch (same for ov772x ofc).
+Features supported are described in PATCH 2/2.
 
-Heh, there are so many rules that it is hard to get all of them.
+v2->v3:
+Rob Herring:
+    - add Reviewed-by tag to dts PATCH 1/1
 
-Also, some maintainers might actually be expecting some ordering.
+Sakari Ailus:
+    - align register values with bracket
+    - redone the {write|read}_reg i2c functions
+    - add bayer order handling with flip and mirror controls
+    - fix error path in probe release resources
+    - remove i2c_device_id and use probe_new
 
-I ditched this patch (and the one for ov772x) and applied the
-remaining ones.
+Myself:
+    - remove ; at the end of macros
+    
+v1->v2:
+Fabio Estevam:
+    - s/OV5640/OV2680 in PATCH 1/2 changelog
 
-Thanks,
-Mauro
+Sakari Ailus:
+    - add description on endpoint properties in bindings
+    - add single endpoint in bindings
+    - drop OF dependency
+    - cleanup includes
+    - fix case in Color Bars
+    - remove frame rate selection
+    - 8/16/24 bit register access in the same transaction
+    - merge _reset and _soft_reset to _enable and rename it to power_on 
+    - _gain_set use only the gain value (drop & 0x7ff)
+    - _gain_get remove the (0x377)
+    - single write/read at _exposure_set/get use write_reg24/read_reg24
+    - move mode_set_direct to _mode_set
+    - _mode_set set auto exposure/gain based on ctrl value
+    - s_frame_interval equal to g_frame_interval
+    - use closest match from: v4l: common: Add a function to obtain best size from a list 
+    - check v4l2_ctrl_new_std return in _init
+
+    - fix gain manual value in auto_cluster
+
+Cheers,
+    Rui
+
+Rui Miguel Silva (2):
+  media: ov2680: dt: Add bindings for OV2680
+  media: ov2680: Add Omnivision OV2680 sensor driver
+
+ .../devicetree/bindings/media/i2c/ov2680.txt       |   40 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov2680.c                         | 1130 ++++++++++++++++++++
+ 4 files changed, 1183 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
+ create mode 100644 drivers/media/i2c/ov2680.c
+
+-- 
+2.16.2
