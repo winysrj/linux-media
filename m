@@ -1,102 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37470 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751157AbeCZU3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 16:29:06 -0400
-Date: Mon, 26 Mar 2018 17:28:55 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH 08/30] media: v4l2-ioctl: fix some "too small" warnings
-Message-ID: <20180326172808.1271b10b@vento.lan>
-In-Reply-To: <2278589.Q4kJOvEtWm@avalon>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-        <20180323215356.3ib2ho2q7sd5z27v@kekkonen.localdomain>
-        <20180326070816.26859af6@vento.lan>
-        <2278589.Q4kJOvEtWm@avalon>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35488 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751808AbeCMODx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 10:03:53 -0400
+Subject: Re: [PATCH 02/11] media: vsp1: use kernel __packed for structures
+To: David Laight <David.Laight@ACULAB.COM>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <767c4c9f6aa4799a58f0979b318208f1d3e27860.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <b58ff7ec7f7246498325e74b31ba3664@AcuMS.aculab.com>
+ <8513c264-103f-94c8-cc46-972412d13da5@ideasonboard.com>
+ <554b73e9ee2d43b19ac42ee380b7d160@AcuMS.aculab.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <8ecfb374-e979-a54d-74d9-d65dfbb5c3ef@ideasonboard.com>
+Date: Tue, 13 Mar 2018 15:03:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <554b73e9ee2d43b19ac42ee380b7d160@AcuMS.aculab.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 26 Mar 2018 21:47:33 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi David,
 
-> Hi Mauro,
+On 13/03/18 13:38, David Laight wrote:
+> From: Kieran Bingham [mailto:kieran.bingham+renesas@ideasonboard.com]
+>> On 13/03/18 11:20, David Laight wrote:
+>>> From: Kieran Bingham
+>>>> Sent: 09 March 2018 22:04
+>>>> The kernel provides a __packed definition to abstract away from the
+>>>> compiler specific attributes tag.
+>>>>
+>>>> Convert all packed structures in VSP1 to use it.
+>>>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>> ---
+>>>>  drivers/media/platform/vsp1/vsp1_dl.c | 6 +++---
+>>>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+>>>> index 37e2c984fbf3..382e45c2054e 100644
+>>>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+>>>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+>>>> @@ -29,19 +29,19 @@
+>>>>  struct vsp1_dl_header_list {
+>>>>  	u32 num_bytes;
+>>>>  	u32 addr;
+>>>> -} __attribute__((__packed__));
+>>>> +} __packed;
+>>>>
+>>>>  struct vsp1_dl_header {
+>>>>  	u32 num_lists;
+>>>>  	struct vsp1_dl_header_list lists[8];
+>>>>  	u32 next_header;
+>>>>  	u32 flags;
+>>>> -} __attribute__((__packed__));
+>>>> +} __packed;
+>>>>
+>>>>  struct vsp1_dl_entry {
+>>>>  	u32 addr;
+>>>>  	u32 data;
+>>>> -} __attribute__((__packed__));
+>>>> +} __packed;
+>>>
+>>> Do these structures ever actually appear in misaligned memory?
+>>> If they don't then they shouldn't be marked 'packed'.
+>>
+>> I believe the declaration is to ensure that the struct definition is not altered
+>> by the compiler as these structures specifically define the layout of how the
+>> memory is read by the VSP1 hardware.
 > 
-> On Monday, 26 March 2018 13:08:16 EEST Mauro Carvalho Chehab wrote:
-> > Em Fri, 23 Mar 2018 23:53:56 +0200 Sakari Ailus escreveu:  
-> > > On Fri, Mar 23, 2018 at 07:56:54AM -0400, Mauro Carvalho Chehab wrote:  
-> > >> While the code there is right, it produces three false positives:
-> > >> 	drivers/media/v4l2-core/v4l2-ioctl.c:2868 video_usercopy() error:
-> > >> 	copy_from_user() 'parg' too small (128 vs 16383)
-> > >> 	drivers/media/v4l2-core/v4l2-ioctl.c:2868 video_usercopy() error:
-> > >> 	copy_from_user() 'parg' too small (128 vs 16383)
-> > >> 	drivers/media/v4l2-core/v4l2-ioctl.c:2876 video_usercopy() error:
-> > >> 	memset() 'parg' too small (128 vs 16383)> > 
-> > >> Store the ioctl size on a cache var, in order to suppress those.  
-> > > 
-> > > I have to say I'm not a big fan of changing perfectly fine code in order
-> > > to please static analysers.  
-> > 
-> > Well, there's a side effect of this patch: it allows gcc to better
-> > optimize the text size, with is good:
-> > 
-> >    text	   data	    bss	    dec	    hex	filename
-> >   34538	   2320	      0	  36858	  
-> > 8ffa	old/drivers/media/v4l2-core/v4l2-ioctl.o 34490	   2320	      0	 
-> > 36810	   8fca	new/drivers/media/v4l2-core/v4l2-ioctl.o  
-> > > What's this, smatch? I wonder if it could be fixed
-> > > instead of changing the code. That'd be presumably a lot more work though.  
-> > 
-> > Yes, the warnings came from smatch. No idea how easy/hard would be to
-> > change it.
-> >   
-> > > On naming --- "size" is rather more generic, but it's not a long function
-> > > either. I'd be a bit more specific, e.g. ioc_size or arg_size.  
-> > 
-> > Agreed.
-> > 
-> > I'll add the enclosed patch changing it to ioc_size.
-> > 
-> > 
-> > Thanks,
-> > Mauro
-> > 
-> > [PATCH] media: v4l2-ioctl: rename a temp var that stores _IOC_SIZE(cmd)
-> > 
-> > Instead of just calling it as "size", let's name it as "ioc_size",
-> > as it reflects better its contents.
-> > 
-> > As this is constant along the function, also mark it as const.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> The C language and ABI define structure layouts.
 > 
-> I would have expected a v2 of the original patch, but it seems you pushed it 
-> to the public master branch before giving anyone a change to review it 
-> (Sakari's review came 10h after the past was posted).
+>> Certainly 2 u32's sequentially stored in a struct are unlikely to be moved or
+>> rearranged by the compiler (though I believe it would be free to do so if it
+>> chose without this attribute), but I think the declaration shows the intent of
+>> the memory structure.
 > 
-> Patches need to be reviewed before being applied, and that applies to all 
-> patches, regarding of the author. Please refrain from merging future patches 
-> before they get reviewed.
+> The language requires the fields be in order and the ABI stops the compiler
+> adding 'random' padding.
+> 
+>> Isn't this a common approach throughout the kernel when dealing with hardware
+>> defined memory structures ?
+> 
+> Absolutely not.
+> __packed tells the compiler that the structure might be on any address boundary.
+> On many architectures this means the compiler must use byte accesses with shifts
+> and ors for every access.
+> The most a hardware defined structure will have is a compile-time assert
+> that it is the correct size (to avoid silly errors from changes).
 
-It shouldn't have pushed. It happened due to some script errors,
-when I was handling a request from Hans to push upstream some fixes
-for -rc7, as mentioned on IRC:
-	https://linuxtv.org/irc/irclogger_log/v4l?date=2018-03-23,Fri
 
-As I said there:
 
-"If someone finds an issue on the warning fixes, I can revert or apply a fixup
- I really hate when things like that happens :-("
+Ok - interesting, I see what you're saying - and certainly don't want the
+compiler to be performing byte accesses on the structures unnecessarily.
 
-Thanks,
-Mauro
+I'm trying to distinguish the difference here. Is the single point that
+ __packed
+
+causes byte-access, where as
+
+__attribute__((__packed__));
+
+does not?
+
+Looking at the GCC docs [0]: I see that  __attribute__((__packed__)) tells the
+compiler that the "structure or union is placed to minimize the memory required".
+
+However, the keil compiler docs[1] do certainly declare that __packed causes
+byte alignment.
+
+I was confused/thrown off here by the Kernel defining __packed as
+__attribute__((packed)) at [2].
+
+Do __attribute__((packed)) and __attribute__((__packed__)) differ ?
+
+In which case, from what I've read so far I wish "__packed" was "__unaligned"...
+
+
+[0]
+https://gcc.gnu.org/onlinedocs/gcc/Common-Type-Attributes.html#index-packed-type-attribute
+
+[1] http://www.keil.com/support/man/docs/armcc/armcc_chr1359124230195.htm
+
+[2]
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/compiler-gcc.h?h=v4.16-rc5#n92
+
+
+Regards
+
+Kieran
+
+
+> 	David
+> 
