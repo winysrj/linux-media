@@ -1,64 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43877 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753100AbeC1OBq (ORCPT
+Received: from mail-pl0-f46.google.com ([209.85.160.46]:42548 "EHLO
+        mail-pl0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751996AbeCMP02 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 22/29] videobuf2-core: add vb2_core_request_has_buffers
-Date: Wed, 28 Mar 2018 16:01:33 +0200
-Message-Id: <20180328140140.42096-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
-References: <20180328140140.42096-1-hverkuil@xs4all.nl>
+        Tue, 13 Mar 2018 11:26:28 -0400
+Received: by mail-pl0-f46.google.com with SMTP id w15-v6so2372977plq.9
+        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 08:26:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <f984cfec-80a5-874f-16cb-0939d891863f@st.com>
+References: <1520782481-13558-1-git-send-email-akinobu.mita@gmail.com> <f984cfec-80a5-874f-16cb-0939d891863f@st.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Wed, 14 Mar 2018 00:26:07 +0900
+Message-ID: <CAC5umygoOh7mSTMjaJDTMOtaTfHL9HTsfNnEQHK1BSsFfATzsQ@mail.gmail.com>
+Subject: Re: [PATCH] media: ov5640: add missing output pixel format setting
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2018-03-13 1:18 GMT+09:00 Hugues FRUCHET <hugues.fruchet@st.com>:
+> Hi Akinobu,
+>
+> Thanks for the patch, could you describe the test you made to reproduce
+> the issue that I can test on my side ?
+>
+> I'm using usually yavta or Gstreamer, but I don't know how to trig the
+> power on/off independently of streamon/off.
 
-Add a new helper function that returns true if a media_request
-contains buffers.
+Capturing a single image by yavta and gstreamer can reproduce this issue
+in my environment.  I use Xilinx Video IP driver for video device with
+the following change in order to support pipeline power management.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 12 ++++++++++++
- include/media/videobuf2-core.h                  |  2 ++
- 2 files changed, 14 insertions(+)
+https://patchwork.linuxtv.org/patch/46343/
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 7499221da1c5..b9d898b116c4 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1333,6 +1333,18 @@ static const struct media_request_object_ops vb2_core_req_ops = {
- 	.release = vb2_req_release,
- };
- 
-+bool vb2_core_request_has_buffers(struct media_request *req)
-+{
-+	struct media_request_object *obj;
-+
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (obj->ops == &vb2_core_req_ops)
-+			return true;
-+	}
-+	return false;
-+}
-+EXPORT_SYMBOL_GPL(vb2_core_request_has_buffers);
-+
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
- 			 struct media_request *req)
- {
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 72663c2a3ba3..e23dc028aee7 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -1158,4 +1158,6 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb);
-  */
- int vb2_verify_memory_type(struct vb2_queue *q,
- 		enum vb2_memory memory, unsigned int type);
-+
-+bool vb2_core_request_has_buffers(struct media_request *req);
- #endif /* _MEDIA_VIDEOBUF2_CORE_H */
--- 
-2.15.1
+With this change, when opening the video device, s_power() is called with
+on=1 for subdevice.
+
+I observed the following steps when capturing a single image by
+'yavta -n1 -c1 -Ftest.raw /dev/video1'. (The output pixel format is
+already set up by media-ctl before this run)
+
+1. open /dev/video1
+2. ov5640_s_power() is called with on=1
+   (ov5640_s_power -> ov5640_set_power -> ov5640_restore_mode
+    -> ov5640_set_mode, and pending_mode_change is cleared)
+3. ov5640_s_stream() is called with on=1
+   (But ov5640_set_framefmt() is not called because pending_mode_change
+    has already been cleared  in step 2.)
+
+As ov5640_set_framefmt() is not called, output pixel format cannot be
+restored (OV5640_REG_FORMAT_CONTROL00 and OV5640_REG_ISP_FORMAT_MUX_CTRL).
