@@ -1,302 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:23193 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1161626AbeCAUf3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 15:35:29 -0500
-Date: Thu, 1 Mar 2018 14:35:16 -0600
-From: Benoit Parrot <bparrot@ti.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:65119 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752252AbeCMOca (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 10:32:30 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, <nm@ti.com>,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v5 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-Message-ID: <20180301203515.GM6807@ti.com>
-References: <20180301113049.16470-1-maxime.ripard@bootlin.com>
- <20180301113049.16470-3-maxime.ripard@bootlin.com>
+        "Sakari Ailus" <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 11/12] media: ov5640: Add 60 fps support
+Date: Tue, 13 Mar 2018 14:32:14 +0000
+Message-ID: <ff080b97-3f7a-36fa-0e1c-16e83106d6a1@st.com>
+References: <20180302143500.32650-1-maxime.ripard@bootlin.com>
+ <20180302143500.32650-12-maxime.ripard@bootlin.com>
+In-Reply-To: <20180302143500.32650-12-maxime.ripard@bootlin.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <696F837C27381344AF5040F52966A0A5@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20180301113049.16470-3-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maxime,
-
-Thanks you for the patch,
-
-Maxime Ripard <maxime.ripard@bootlin.com> wrote on Thu [2018-Mar-01 12:30:49 +0100]:
-> The Cadence MIPI-CSI2 TX controller is an hardware block meant to be used
-> as a bridge between pixel interfaces and a CSI-2 bus.
-> 
-> It supports operating with an internal or external D-PHY, with up to 4
-> lanes, or without any D-PHY. The current code only supports the latter
-> case.
-> 
-> While the virtual channel input on the pixel interface can be directly
-> mapped to CSI2, the datatype input is actually a selection signal (3-bits)
-> mapping to a table of up to 8 preconfigured datatypes/formats (programmed
-> at start-up)
-> 
-> The block supports up to 8 input datatypes.
-> 
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  drivers/media/platform/cadence/Kconfig       |  11 +
->  drivers/media/platform/cadence/Makefile      |   1 +
->  drivers/media/platform/cadence/cdns-csi2tx.c | 527 +++++++++++++++++++++++++++
->  3 files changed, 539 insertions(+)
->  create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
-> 
-> diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/platform/cadence/Kconfig
-> index 18f061e5cbd1..83dcf2b1814b 100644
-> --- a/drivers/media/platform/cadence/Kconfig
-> +++ b/drivers/media/platform/cadence/Kconfig
-> @@ -14,4 +14,15 @@ config VIDEO_CADENCE_CSI2RX
->  	  To compile this driver as a module, choose M here: the module will be
->  	  called cdns-csi2rx.
->  
-> +config VIDEO_CADENCE_CSI2TX
-> +	tristate "Cadence MIPI-CSI2 TX Controller"
-> +	depends on MEDIA_CONTROLLER
-> +	depends on VIDEO_V4L2_SUBDEV_API
-> +	select V4L2_FWNODE
-> +	help
-> +	  Support for the Cadence MIPI CSI2 Transceiver controller.
-> +
-> +	  To compile this driver as a module, choose M here: the module will be
-> +	  called cdns-csi2tx.
-> +
->  endif
-> diff --git a/drivers/media/platform/cadence/Makefile b/drivers/media/platform/cadence/Makefile
-> index 99a4086b7448..7fe992273162 100644
-> --- a/drivers/media/platform/cadence/Makefile
-> +++ b/drivers/media/platform/cadence/Makefile
-> @@ -1 +1,2 @@
->  obj-$(CONFIG_VIDEO_CADENCE_CSI2RX)	+= cdns-csi2rx.o
-> +obj-$(CONFIG_VIDEO_CADENCE_CSI2TX)	+= cdns-csi2tx.o
-> diff --git a/drivers/media/platform/cadence/cdns-csi2tx.c b/drivers/media/platform/cadence/cdns-csi2tx.c
-> new file mode 100644
-> index 000000000000..8de277e6aec1
-> --- /dev/null
-> +++ b/drivers/media/platform/cadence/cdns-csi2tx.c
-> @@ -0,0 +1,527 @@
-> +// SPDX-License-Identifier: GPL-2.0+
-> +/*
-> + * Driver for Cadence MIPI-CSI2 TX Controller
-> + *
-> + * Copyright (C) 2017 Cadence Design Systems Inc.
-> + */
-> +
-> +#include <linux/atomic.h>
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/mutex.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#define CSI2TX_DEVICE_CONFIG_REG	0x00
-> +
-> +#define CSI2TX_CONFIG_REG		0x20
-> +#define CSI2TX_CONFIG_CFG_REQ			BIT(2)
-> +#define CSI2TX_CONFIG_SRST_REQ			BIT(1)
-> +
-> +#define CSI2TX_DPHY_CFG_REG		0x28
-> +#define CSI2TX_DPHY_CFG_CLK_RESET		BIT(16)
-> +#define CSI2TX_DPHY_CFG_LANE_RESET(n)		BIT((n) + 12)
-> +#define CSI2TX_DPHY_CFG_MODE_MASK		GENMASK(9, 8)
-> +#define CSI2TX_DPHY_CFG_MODE_LPDT		(2 << 8)
-> +#define CSI2TX_DPHY_CFG_MODE_HS			(1 << 8)
-> +#define CSI2TX_DPHY_CFG_MODE_ULPS		(0 << 8)
-> +#define CSI2TX_DPHY_CFG_CLK_ENABLE		BIT(4)
-> +#define CSI2TX_DPHY_CFG_LANE_ENABLE(n)		BIT(n)
-> +
-> +#define CSI2TX_DPHY_CLK_WAKEUP_REG	0x2c
-> +#define CSI2TX_DPHY_CLK_WAKEUP_ULPS_CYCLES(n)	((n) & 0xffff)
-> +
-> +#define CSI2TX_DT_CFG_REG(n)		(0x80 + (n) * 8)
-> +#define CSI2TX_DT_CFG_DT(n)			(((n) & 0x3f) << 2)
-> +
-> +#define CSI2TX_DT_FORMAT_REG(n)		(0x84 + (n) * 8)
-> +#define CSI2TX_DT_FORMAT_BYTES_PER_LINE(n)	(((n) & 0xffff) << 16)
-> +#define CSI2TX_DT_FORMAT_MAX_LINE_NUM(n)	((n) & 0xffff)
-> +
-> +#define CSI2TX_STREAM_IF_CFG_REG(n)	(0x100 + (n) * 4)
-> +#define CSI2TX_STREAM_IF_CFG_FILL_LEVEL(n)	((n) & 0x1f)
-> +
-> +#define CSI2TX_LANES_MAX	4
-> +#define CSI2TX_STREAMS_MAX	4
-> +
-> +enum csi2tx_pads {
-> +	CSI2TX_PAD_SOURCE,
-> +	CSI2TX_PAD_SINK_STREAM0,
-> +	CSI2TX_PAD_SINK_STREAM1,
-> +	CSI2TX_PAD_SINK_STREAM2,
-> +	CSI2TX_PAD_SINK_STREAM3,
-> +	CSI2TX_PAD_MAX,
-> +};
-> +
-> +struct csi2tx_fmt {
-> +	u32	mbus;
-> +	u32	dt;
-> +	u32	bpp;
-> +};
-> +
-> +struct csi2tx_priv {
-> +	struct device			*dev;
-> +	unsigned int			count;
-> +
-> +	/*
-> +	 * Used to prevent race conditions between multiple,
-> +	 * concurrent calls to start and stop.
-> +	 */
-> +	struct mutex			lock;
-> +
-> +	void __iomem			*base;
-> +
-> +	struct clk			*esc_clk;
-> +	struct clk			*p_clk;
-> +	struct clk			*pixel_clk[CSI2TX_STREAMS_MAX];
-> +
-> +	struct v4l2_subdev		subdev;
-> +	struct media_pad		pads[CSI2TX_PAD_MAX];
-> +	struct v4l2_mbus_framefmt	pad_fmts[CSI2TX_PAD_MAX];
-> +
-> +	bool				has_internal_dphy;
-> +	u8				lanes[CSI2TX_LANES_MAX];
-> +	unsigned int			num_lanes;
-> +	unsigned int			max_lanes;
-> +	unsigned int			max_streams;
-> +};
-> +
-> +static const struct csi2tx_fmt csi2tx_formats[] = {
-> +	{
-> +		.mbus	= MEDIA_BUS_FMT_UYVY8_1X16,
-> +		.bpp	= 2,
-> +		.dt	= 0x1e,
-> +	},
-> +	{
-> +		.mbus	= MEDIA_BUS_FMT_RGB888_1X24,
-> +		.bpp	= 3,
-> +		.dt	= 0x24,
-> +	},
-> +};
-> +
-> +static const struct v4l2_mbus_framefmt fmt_default = {
-> +	.width		= 1280,
-> +	.height		= 720,
-> +	.code		= MEDIA_BUS_FMT_RGB888_1X24,
-> +	.field		= V4L2_FIELD_NONE,
-> +	.colorspace	= V4L2_COLORSPACE_DEFAULT,
-> +};
-> +
-> +static inline
-> +struct csi2tx_priv *v4l2_subdev_to_csi2tx(struct v4l2_subdev *subdev)
-> +{
-> +	return container_of(subdev, struct csi2tx_priv, subdev);
-> +}
-> +
-> +static const struct csi2tx_fmt *csitx_get_fmt_from_mbus(struct v4l2_mbus_framefmt *mfmt)
-> +{
-> +	unsigned int i;
-> +
-> +	if (!mfmt)
-> +		return NULL;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(csi2tx_formats); i++)
-> +		if (csi2tx_formats[i].mbus == mfmt->code)
-> +			return &csi2tx_formats[i];
-> +
-> +	return NULL;
-> +}
-> +
-> +static int csi2tx_enum_mbus_code(struct v4l2_subdev *subdev,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	if (code->pad || code->index >= ARRAY_SIZE(csi2tx_formats))
-> +		return -EINVAL;
-> +
-> +	code->code = csi2tx_formats[code->index].mbus;
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2tx_get_pad_format(struct v4l2_subdev *subdev,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_format *fmt)
-> +{
-> +	struct csi2tx_priv *csi2tx = v4l2_subdev_to_csi2tx(subdev);
-> +
-> +	fmt->format = csi2tx->pad_fmts[fmt->pad];
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2tx_set_pad_format(struct v4l2_subdev *subdev,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_format *fmt)
-> +{
-> +	struct csi2tx_priv *csi2tx = v4l2_subdev_to_csi2tx(subdev);
-> +
-> +	csi2tx->pad_fmts[fmt->pad] = fmt->format;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_pad_ops csi2tx_pad_ops = {
-> +	.enum_mbus_code	= csi2tx_enum_mbus_code,
-> +	.get_fmt	= csi2tx_get_pad_format,
-> +	.set_fmt	= csi2tx_set_pad_format,
-> +};
-> +
-> +static void csi2tx_reset(struct csi2tx_priv *csi2tx)
-> +{
-> +	writel(CSI2TX_CONFIG_SRST_REQ, csi2tx->base + CSI2TX_CONFIG_REG);
-> +
-> +	udelay(10);
-> +}
-> +
-> +static int csi2tx_start(struct csi2tx_priv *csi2tx)
-> +{
-> +	struct media_entity *entity = &csi2tx->subdev.entity;
-> +	struct media_link *link;
-> +	unsigned int i;
-> +	u32 reg;
-> +
-> +	csi2tx_reset(csi2tx);
-> +
-> +	writel(CSI2TX_CONFIG_CFG_REQ, csi2tx->base + CSI2TX_CONFIG_REG);
-> +
-> +	udelay(10);
-> +
-> +	writel(CSI2TX_DPHY_CLK_WAKEUP_ULPS_CYCLES(32),
-> +	       csi2tx->base + CSI2TX_DPHY_CLK_WAKEUP_REG);
-
-I am sorry if I missed this previously but do all these
-CSI2TX_DPHY* reg access assume that "has_internal_dphy" is true?
-
-Regards,
-Benoit
-
-[snip]
+SGkgTWF4aW1lLA0KDQpTZWUgYmVsb3cgcmVzdCBvZiBjb21tZW50cyByZWdhcmRpbmcgZnJhbWVy
+YXRlIGFuZCBjb21wbGlhbmNlIGZhaWx1cmUuDQoNCk9uIDAzLzAyLzIwMTggMDM6MzQgUE0sIE1h
+eGltZSBSaXBhcmQgd3JvdGU6DQo+IE5vdyB0aGF0IHdlIGhhdmUgZXZlcnl0aGluZyBpbiBwbGFj
+ZSB0byBjb21wdXRlIHRoZSBjbG9jayByYXRlIGF0IHJ1bnRpbWUsDQo+IHdlIGNhbiBlbmFibGUg
+dGhlIDYwZnBzIGZyYW1lcmF0ZSBmb3IgdGhlIG1vZGUgd2UgdGVzdGVkIGl0IHdpdGguDQo+IA0K
+PiBTaWduZWQtb2ZmLWJ5OiBNYXhpbWUgUmlwYXJkIDxtYXhpbWUucmlwYXJkQGJvb3RsaW4uY29t
+Pg0KPiAtLS0NCj4gICBkcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyB8IDIwICsrKysrKysrKysr
+KysrKy0tLS0tDQo+ICAgMSBmaWxlIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDUgZGVsZXRp
+b25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgYi9k
+cml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPiBpbmRleCA1NTEwYTE5MjgxYTQuLjAzODM4ZjQy
+ZmI4MiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4gKysrIGIv
+ZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4gQEAgLTExMSw2ICsxMTEsNyBAQCBlbnVtIG92
+NTY0MF9tb2RlX2lkIHsNCj4gICBlbnVtIG92NTY0MF9mcmFtZV9yYXRlIHsNCj4gICAJT1Y1NjQw
+XzE1X0ZQUyA9IDAsDQo+ICAgCU9WNTY0MF8zMF9GUFMsDQo+ICsJT1Y1NjQwXzYwX0ZQUywNCj4g
+ICAJT1Y1NjQwX05VTV9GUkFNRVJBVEVTLA0KPiAgIH07DQo+ICAgDQo+IEBAIC0xNDQsNiArMTQ1
+LDcgQEAgTU9EVUxFX1BBUk1fREVTQyh2aXJ0dWFsX2NoYW5uZWwsDQo+ICAgc3RhdGljIGNvbnN0
+IGludCBvdjU2NDBfZnJhbWVyYXRlc1tdID0gew0KPiAgIAlbT1Y1NjQwXzE1X0ZQU10gPSAxNSwN
+Cj4gICAJW09WNTY0MF8zMF9GUFNdID0gMzAsDQo+ICsJW09WNTY0MF82MF9GUFNdID0gNjAsDQo+
+ICAgfTsNCj4gICANCj4gICAvKiByZWd1bGF0b3Igc3VwcGxpZXMgKi8NCj4gQEAgLTE0NDcsNiAr
+MTQ0OSwxMSBAQCBvdjU2NDBfZmluZF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsIGVu
+dW0gb3Y1NjQwX2ZyYW1lX3JhdGUgZnIsDQo+ICAgCSAgICBmciAhPSBPVjU2NDBfMTVfRlBTKQ0K
+PiAgIAkJcmV0dXJuIE5VTEw7DQo+ICAgDQo+ICsJLyogT25seSA2NDB4NDgwIGNhbiBvcGVyYXRl
+IGF0IDYwZnBzIChmb3Igbm93KSAqLw0KPiArCWlmIChmciA9PSBPVjU2NDBfNjBfRlBTICYmDQo+
+ICsJICAgIHdpZHRoICE9IDY0MCAmJiBoZWlnaHQgIT0gNDgwKQ0KPiArCQlyZXR1cm4gTlVMTDsN
+Cj4gKw0KDQpTYW1lIGNvbW1lbnQgYXMgb24gcGF0Y2hzZXQgMTAvMTIsIFZHQSBleGNlcHRpb24g
+cHV0IGluIGZvciBsb29wOg0KDQoJZm9yIChpID0gT1Y1NjQwX05VTV9NT0RFUyAtIDE7IGkgPj0g
+MDsgaS0tKSB7DQoJCW1vZGUgPSAmb3Y1NjQwX21vZGVfZGF0YVtpXTsNCg0KCQlpZiAoIW1vZGUt
+PnJlZ19kYXRhKQ0KCQkJY29udGludWU7DQoNCgkJaWYgKChuZWFyZXN0ICYmIG1vZGUtPmhhY3Qg
+PD0gd2lkdGggJiYNCgkJICAgICBtb2RlLT52YWN0IDw9IGhlaWdodCkgfHwNCgkJICAgICghbmVh
+cmVzdCAmJiBtb2RlLT5oYWN0ID09IHdpZHRoICYmDQoJCSAgICAgbW9kZS0+dmFjdCA9PSBoZWln
+aHQpKSB7DQoNCgkJCS8qIDI1OTJ4MTk0NCBjYW4gb25seSBvcGVyYXRlIGF0IDE1ZnBzICovDQoJ
+CQlpZiAobW9kZS0+aGFjdCA9PSAyNTkyICYmIG1vZGUtPnZhY3QgPT0gMTk0NCAmJg0KCQkJICAg
+IGZyICE9IE9WNTY0MF8xNV9GUFMpDQoJCQkJY29udGludWU7LyogbmV4dCBsb3dlciByZXNvbHV0
+aW9uICovDQoNCgkJCS8qIE9ubHkgNjQweDQ4MCBjYW4gb3BlcmF0ZSBhdCA2MGZwcyAoZm9yIG5v
+dykgKi8NCgkJCWlmIChmciA9PSBPVjU2NDBfNjBfRlBTICYmDQoJCQkgICAgIShtb2RlLT5oYWN0
+ID09IDY0MCAmJiBtb2RlLT52YWN0ID09IDQ4MCkpDQoJCQkJY29udGludWU7LyogbmV4dCBsb3dl
+ciByZXNvbHV0aW9uICovDQoNCgkJCWJyZWFrOy8qIHNlbGVjdCB0aGlzIHJlc29sdXRpb24gKi8N
+CgkJfQ0KCX0NCg0KDQo+ICAgCXJldHVybiBtb2RlOw0KPiAgIH0NCj4gICANCj4gQEAgLTE4NzUs
+MTIgKzE4ODIsMTIgQEAgc3RhdGljIGludCBvdjU2NDBfdHJ5X2ZyYW1lX2ludGVydmFsKHN0cnVj
+dCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+ICAgCWludCByZXQ7DQo+ICAgDQo+ICAgCW1pbmZwcyA9
+IG92NTY0MF9mcmFtZXJhdGVzW09WNTY0MF8xNV9GUFNdOw0KPiAtCW1heGZwcyA9IG92NTY0MF9m
+cmFtZXJhdGVzW09WNTY0MF8zMF9GUFNdOw0KPiArCW1heGZwcyA9IG92NTY0MF9mcmFtZXJhdGVz
+W09WNTY0MF82MF9GUFNdOw0KPiAgIA0KPiAgIAlpZiAoZmktPm51bWVyYXRvciA9PSAwKSB7DQo+
+ICAgCQlmaS0+ZGVub21pbmF0b3IgPSBtYXhmcHM7DQo+ICAgCQlmaS0+bnVtZXJhdG9yID0gMTsN
+Cj4gLQkJcmV0dXJuIE9WNTY0MF8zMF9GUFM7DQo+ICsJCXJldHVybiBPVjU2NDBfNjBfRlBTOw0K
+DQpUaGVyZSBpcyBhIHByb2JsZW0gaGVyZSBiZWNhdXNlIHdlIGRvbid0IHZhbGlkYXRlIHRoYXQg
+NjBmcHMgaXMgDQpzdXBwb3J0ZWQgaW4gdGhlIGN1cnJlbnRseSBzZXQgbW9kZSwgd2UgbXVzdCBp
+bmplY3QgdGhpcyBmcmFtZXJhdGUgdmFsdWUgDQppbiBvdjU2NDBfZmluZF9tb2RlKGZyYW1lcmF0
+ZSwgd2lkdGgsIGhlaWdodCkgaW4gb3JkZXIgdG8gdmFsaWRhdGUgaXQgDQooLUVJTlZBTCBpZiBu
+b3Qgc3VwcG9ydGVkKToNCg0KICArCQlyZXQgPSBPVjU2NDBfNjBfRlBTOw0KICArCQlnb3RvIGZp
+bmRfbW9kZTsNCiAgKwl9DQpbLi4uXQ0KK2ZpbmRfbW9kZToNCgltb2RlID0gb3Y1NjQwX2ZpbmRf
+bW9kZShzZW5zb3IsIGZyYW1lX3JhdGUsIHdpZHRoLCBoZWlnaHQsIGZhbHNlKTsNCglyZXR1cm4g
+bW9kZSA/IHJldCA6IC1FSU5WQUw7DQogIH0NCg0KVGhlbiB3ZSBoYXZlIHRvIGNhdGNoIGVycm9y
+IGluIG92NTY0MF9zX2ZyYW1lX2ludGVydmFsKCkgYW5kIHJldHVybiBhbiANCmFjY2VwdGFibGUg
+ZnJhbWUgaW50ZXJ2YWwgdG8gdXNlcjoNCg0KICAJZnJhbWVfcmF0ZSA9IG92NTY0MF90cnlfZnJh
+bWVfaW50ZXJ2YWwoc2Vuc29yLCAmZmktPmludGVydmFsLA0KICAJCQkJCSAgICAgICBtb2RlLT5o
+YWN0LCBtb2RlLT52YWN0KTsNCi0JaWYgKGZyYW1lX3JhdGUgPCAwKQ0KLQkJZnJhbWVfcmF0ZSA9
+IE9WNTY0MF8xNV9GUFM7DQotDQotCXNlbnNvci0+Y3VycmVudF9mciA9IGZyYW1lX3JhdGU7DQot
+CXNlbnNvci0+ZnJhbWVfaW50ZXJ2YWwgPSBmaS0+aW50ZXJ2YWw7DQpXZSBhbHNvIGhhdmUgdG8g
+dXBkYXRlIGN1cnJlbnQgZnJhbWVyYXRlIG9ubHkgaWYgZnJhbWVyYXRlIGhhcyBiZWVuIA0KdmFs
+aWRhdGVkLg0KDQorCWlmIChmcmFtZV9yYXRlIDwgMCkgew0KKwkJLyogcmV0dXJuIGEgdmFsaWQg
+ZnJhbWUgaW50ZXJ2YWwgdmFsdWUgKi8NCisJCWZpLT5pbnRlcnZhbCA9IHNlbnNvci0+ZnJhbWVf
+aW50ZXJ2YWw7DQogIAkJZ290byBvdXQ7DQogIAl9DQoNCisJc2Vuc29yLT5jdXJyZW50X2ZyID0g
+ZnJhbWVfcmF0ZTsNCisJc2Vuc29yLT5mcmFtZV9pbnRlcnZhbCA9IGZpLT5pbnRlcnZhbDsNCiAg
+CXNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSA9IHRydWU7DQogIG91dDoNCg0KDQpBYm91dCA2
+MCBmcHMgYnkgZGVmYXVsdCBpZiAoZmktPm51bWVyYXRvciA9PSAwKTogc2hvdWxkbid0IHdlIHN0
+aWNrIHRvIGEgDQpkZWZhdWx0IHZhbHVlIHN1cHBvcnRlZCBieSBhbGwgbW9kZXMgc3VjaCBhcyAz
+MGZwcyA/DQoNCj4gICAJfQ0KPiAgIA0KPiAgIAlmcHMgPSBESVZfUk9VTkRfQ0xPU0VTVChmaS0+
+ZGVub21pbmF0b3IsIGZpLT5udW1lcmF0b3IpOw0KPiBAQCAtMTg5MiwxMCArMTg5OSwxMyBAQCBz
+dGF0aWMgaW50IG92NTY0MF90cnlfZnJhbWVfaW50ZXJ2YWwoc3RydWN0IG92NTY0MF9kZXYgKnNl
+bnNvciwNCj4gICAJCWZpLT5kZW5vbWluYXRvciA9IG1pbmZwczsNCj4gICAJZWxzZSBpZiAoMiAq
+IGZwcyA+PSAyICogbWluZnBzICsgKG1heGZwcyAtIG1pbmZwcykpDQo+ICAgCQlmaS0+ZGVub21p
+bmF0b3IgPSBtYXhmcHM7DQo+IC0JZWxzZQ0KPiAtCQlmaS0+ZGVub21pbmF0b3IgPSBtaW5mcHM7
+DQo+ICAgDQo+IC0JcmV0ID0gKGZpLT5kZW5vbWluYXRvciA9PSBtaW5mcHMpID8gT1Y1NjQwXzE1
+X0ZQUyA6IE9WNTY0MF8zMF9GUFM7DQo+ICsJaWYgKGZpLT5kZW5vbWluYXRvciA9PSBtaW5mcHMp
+DQo+ICsJCXJldCA9IE9WNTY0MF8xNV9GUFM7DQo+ICsJZWxzZSBpZiAoZmktPmRlbm9taW5hdG9y
+ID09IG1heGZwcykNCj4gKwkJcmV0ID0gT1Y1NjQwXzYwX0ZQUzsNCj4gKwllbHNlDQo+ICsJCXJl
+dCA9IE9WNTY0MF8zMF9GUFM7DQo+ICAgDQo+ICAgCW1vZGUgPSBvdjU2NDBfZmluZF9tb2RlKHNl
+bnNvciwgcmV0LCB3aWR0aCwgaGVpZ2h0LCBmYWxzZSk7DQo+ICAgCXJldHVybiBtb2RlID8gcmV0
+IDogLUVJTlZBTDsNCj4gDQoNCldpdGggdGhpcyA2MGZwcyBjaGFuZ2UsIHdlIGhhdmUgYWxzbyB0
+byBjaGFuZ2UgdGhlIGRlZmF1bHQgbW9kZSB0byBWR0EsIA0KYmVjYXVzZSBpdCdzIHRoZSBvbmx5
+IG9uZSByZXNvbHV0aW9uIHRoYXQgc3VwcG9ydHMgYWxsIHRoZSAzIGZyYW1lcmF0ZXMgDQoxNS8z
+MC82MDoNCg0Kc3RhdGljIGNvbnN0IHN0cnVjdCBvdjU2NDBfbW9kZV9pbmZvICoNCiAgb3Y1NjQw
+X2ZpbmRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLCBlbnVtIG92NTY0MF9mcmFtZV9y
+YXRlIGZyLA0KICAJCSBpbnQgd2lkdGgsIGludCBoZWlnaHQsIGJvb2wgbmVhcmVzdCkNCiAgew0K
+DQogIAlpZiAoaSA8IDApIHsNCiAgCQkvKiBubyBtYXRjaCAqLw0KICAJCWlmICghbmVhcmVzdCkN
+CiAgCQkJcmV0dXJuIE5VTEw7DQotCQltb2RlID0gJm92NTY0MF9tb2RlX2RhdGFbMF07DQorCQlt
+b2RlID0gJm92NTY0MF9tb2RlX2RhdGFbT1Y1NjQwX01PREVfVkdBXzY0MF80ODBdOy8qIFZHQSBj
+YW4gZG8gYWxsIA0KZnBzICovDQogIAl9DQoNCg0KQmVzdCByZWdhcmRzLA0KSHVndWVzLg==
