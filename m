@@ -1,52 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:42525 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935762AbeCHJto (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:49:44 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        devicetree@vger.kernel.org, heiko@sntech.de,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v6 13/17] ARM: dts: rockchip: add rx0 mipi-phy for rk3288
-Date: Thu,  8 Mar 2018 17:48:03 +0800
-Message-Id: <20180308094807.9443-14-jacob-chen@iotwrt.com>
-In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:59262 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751996AbeCMSeT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 14:34:19 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] pixfmt-v4l2.rst: fix broken enum :c:type:
+Message-ID: <7f33d0c1-a087-c2a8-3453-1f2cf65e1d39@xs4all.nl>
+Date: Tue, 13 Mar 2018 11:34:12 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+:c:type:: -> :c:type:
 
-It's a Designware MIPI D-PHY, used by ISP in rk3288.
-
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- arch/arm/boot/dts/rk3288.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index 6c122aaf06a7..3a530b72c057 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -864,6 +864,13 @@
- 			status = "disabled";
- 		};
- 
-+		mipi_phy_rx0: mipi-phy-rx0 {
-+			compatible = "rockchip,rk3288-mipi-dphy";
-+			clocks = <&cru SCLK_MIPIDSI_24M>, <&cru PCLK_MIPI_CSI>;
-+			clock-names = "dphy-ref", "pclk";
-+			status = "disabled";
-+		};
-+
- 		io_domains: io-domains {
- 			compatible = "rockchip,rk3288-io-voltage-domain";
- 			status = "disabled";
--- 
-2.16.1
+diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+index 2ee164c25637..6622938c1b41 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
+@@ -40,7 +40,7 @@ Single-planar format structure
+ 	RGB formats in :ref:`rgb-formats`, YUV formats in
+ 	:ref:`yuv-formats`, and reserved codes in
+ 	:ref:`reserved-formats`
+-    * - enum :c:type::`v4l2_field`
++    * - enum :c:type:`v4l2_field`
+       - ``field``
+       - Video images are typically interlaced. Applications can request to
+ 	capture or output only the top or bottom field, or both fields
