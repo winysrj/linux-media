@@ -1,202 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49141 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750955AbeCZNYJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 09:24:09 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, acourbot@chromium.org, tfiga@google.com,
-        hverkuil@xs4all.nl
-Subject: [RFC v2.1 1/1] media: Support variable size IOCTL arguments
-Date: Mon, 26 Mar 2018 16:23:24 +0300
-Message-Id: <1522070604-3213-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41755 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753158AbeCMSFr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 14:05:47 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v2 06/11] media: vsp1: Provide VSP1 feature helper macro
+Date: Tue, 13 Mar 2018 19:05:22 +0100
+Message-Id: <fbb2b73d14dc8051bf86a8e452965b3b400dd007.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maintain a list of supported IOCTL argument sizes and allow only those in
-the list.
+The VSP1 devices define their specific capabilities through features
+marked in their device info structure. Various parts of the code read
+this info structure to infer if the features are available.
 
-As an additional bonus, IOCTL handlers will be able to check whether the
-caller actually set (using the argument size) the field vs. assigning it
-to zero. Separate macro can be provided for that.
+Wrap this into a more readable vsp1_feature(vsp1, f) macro to ensure
+that usage is consistent throughout the driver.
 
-This will be easier for applications as well since there is no longer the
-problem of setting the reserved fields zero, or at least it is a lesser
-problem.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
-Hi folks,
+ drivers/media/platform/vsp1/vsp1.h     |  2 ++
+ drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++--------
+ drivers/media/platform/vsp1/vsp1_wpf.c |  6 +++---
+ 3 files changed, 13 insertions(+), 11 deletions(-)
 
-I've essentially addressed Mauro's comments on v2.
-
-The code is only compile tested so far but the changes from the last
-tested version are not that big. There's still some uncertainty though.
-
-since v2:
-
-- Rework is_valid_ioctl based on the comments
-
-	- Improved comments,
-	
-	- Rename cmd as user_cmd, as this comes from the user
-	
-	- Check whether there are alternative argument sizes before any
-	  checks on IOCTL command if there is no exact match
-	  
-	- Use IOCSIZE_MASK macro instead of creating our own
-
-- Add documentation for macros declaring IOCTLs
-
-
- drivers/media/media-device.c | 98 +++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 92 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 35e81f7..279d740 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -387,22 +387,65 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
- /* Do acquire the graph mutex */
- #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
- 
--#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-+/**
-+ * MEDIA_IOC_SZ_ARG - Declare a Media device IOCTL with alternative size and
-+ *		      to_user/from_user callbacks
-+ *
-+ * @__cmd:	The IOCTL command suffix (without "MEDIA_IOC_")
-+ * @func:	The handler function
-+ * @fl:		Flags from @enum media_ioc_flags
-+ * @alt_sz:	A 0-terminated list of alternative argument struct sizes.
-+ * @from_user:	Function to copy argument struct from the user to the kernel
-+ * @to_user:	Function to copy argument struct to the user from the kernel
-+ */
-+#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
- 	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
- 		.cmd = MEDIA_IOC_##__cmd,				\
- 		.fn = (long (*)(struct media_device *, void *))func,	\
- 		.flags = fl,						\
-+		.alt_arg_sizes = alt_sz,				\
- 		.arg_from_user = from_user,				\
- 		.arg_to_user = to_user,					\
- 	}
- 
--#define MEDIA_IOC(__cmd, func, fl)					\
--	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
-+/**
-+ * MEDIA_IOC_ARG - Declare a Media device IOCTL with to_user/from_user callbacks
-+ *
-+ * Just as MEDIA_IOC_SZ_ARG but without the alternative size list.
-+ */
-+#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-+	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
-+
-+/**
-+ * MEDIA_IOC_ARG - Declare a Media device IOCTL with alternative argument struct
-+ *		   sizes
-+ *
-+ * Just as MEDIA_IOC_SZ_ARG but without the callbacks to copy the data from the
-+ * user space and back to user space.
-+ */
-+#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
-+	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
-+			 copy_arg_from_user, copy_arg_to_user)
-+
-+/**
-+ * MEDIA_IOC_ARG - Declare a Media device IOCTL
-+ *
-+ * Just as MEDIA_IOC_SZ_ARG but without the alternative size list or the
-+ * callbacks to copy the data from the user space and back to user space.
-+ */
-+#define MEDIA_IOC(__cmd, func, fl)				\
-+	MEDIA_IOC_ARG(__cmd, func, fl,				\
-+		      copy_arg_from_user, copy_arg_to_user)
- 
- /* the table is indexed by _IOC_NR(cmd) */
- struct media_ioctl_info {
- 	unsigned int cmd;
- 	unsigned short flags;
-+	/*
-+	 * Sizes of the alternative arguments. If there are none, this
-+	 * pointer is NULL.
-+	 */
-+	const unsigned short *alt_arg_sizes;
- 	long (*fn)(struct media_device *dev, void *arg);
- 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
- 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
-@@ -416,6 +459,46 @@ static const struct media_ioctl_info ioctl_info[] = {
- 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 78ef838416b3..1c080538c993 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -69,6 +69,8 @@ struct vsp1_device_info {
+ 	bool uapi;
  };
  
-+static inline long is_valid_ioctl(unsigned int user_cmd)
-+{
-+	const struct media_ioctl_info *info = ioctl_info;
-+	const unsigned short *alt_arg_sizes;
++#define vsp1_feature(vsp1, f) ((vsp1)->info->features & (f))
 +
-+	if (_IOC_NR(user_cmd) >= ARRAY_SIZE(ioctl_info))
-+		return -ENOIOCTLCMD;
-+
-+	info += _IOC_NR(user_cmd);
-+
-+	if (user_cmd == info->cmd)
-+		return 0;
-+
-+	/*
-+	 * There was no exact match between the user-passed IOCTL command and
-+	 * the definition. Are there earlier revisions of the argument struct
-+	 * available?
-+	 */
-+	if (!info->alt_arg_sizes)
-+		return -ENOIOCTLCMD;
-+
-+	/*
-+	 * Variable size IOCTL argument support allows using either the latest
-+	 * revision of the IOCTL argument struct or an earlier version. Check
-+	 * that the size-independent portions of the IOCTL command match and
-+	 * that the size matches with one of the alternative sizes that
-+	 * represent earlier revisions of the argument struct.
-+	 */
-+	if ((user_cmd & ~IOCSIZE_MASK) != (info->cmd & ~IOCSIZE_MASK)
-+	    || _IOC_SIZE(user_cmd) < _IOC_SIZE(info->cmd))
-+		return -ENOIOCTLCMD;
-+
-+	for (alt_arg_sizes = info->alt_arg_sizes; *alt_arg_sizes;
-+	     alt_arg_sizes++)
-+		if (_IOC_SIZE(user_cmd) == *alt_arg_sizes)
-+			return 0;
-+
-+	return -ENOIOCTLCMD;
-+}
-+
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 			       unsigned long __arg)
- {
-@@ -426,9 +509,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 	char __karg[256], *karg = __karg;
- 	long ret;
- 
--	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
--	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
--		return -ENOIOCTLCMD;
-+	ret = is_valid_ioctl(cmd);
-+	if (ret)
-+		return ret;
- 
- 	info = &ioctl_info[_IOC_NR(cmd)];
- 
-@@ -444,6 +527,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 			goto out_free;
+ struct vsp1_device {
+ 	struct device *dev;
+ 	const struct vsp1_device_info *info;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index eed9516e25e1..6fa0019ffc6e 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -268,7 +268,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
  	}
  
-+	/* Set the rest of the argument struct to zero */
-+	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
-+
- 	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
- 		mutex_lock(&dev->graph_mutex);
+ 	/* Instantiate all the entities. */
+-	if (vsp1->info->features & VSP1_HAS_BRS) {
++	if (vsp1_feature(vsp1, VSP1_HAS_BRS)) {
+ 		vsp1->brs = vsp1_bru_create(vsp1, VSP1_ENTITY_BRS);
+ 		if (IS_ERR(vsp1->brs)) {
+ 			ret = PTR_ERR(vsp1->brs);
+@@ -278,7 +278,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		list_add_tail(&vsp1->brs->entity.list_dev, &vsp1->entities);
+ 	}
  
+-	if (vsp1->info->features & VSP1_HAS_BRU) {
++	if (vsp1_feature(vsp1, VSP1_HAS_BRU)) {
+ 		vsp1->bru = vsp1_bru_create(vsp1, VSP1_ENTITY_BRU);
+ 		if (IS_ERR(vsp1->bru)) {
+ 			ret = PTR_ERR(vsp1->bru);
+@@ -288,7 +288,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
+ 	}
+ 
+-	if (vsp1->info->features & VSP1_HAS_CLU) {
++	if (vsp1_feature(vsp1, VSP1_HAS_CLU)) {
+ 		vsp1->clu = vsp1_clu_create(vsp1);
+ 		if (IS_ERR(vsp1->clu)) {
+ 			ret = PTR_ERR(vsp1->clu);
+@@ -314,7 +314,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 
+ 	list_add_tail(&vsp1->hst->entity.list_dev, &vsp1->entities);
+ 
+-	if (vsp1->info->features & VSP1_HAS_HGO && vsp1->info->uapi) {
++	if (vsp1_feature(vsp1, VSP1_HAS_HGO) && vsp1->info->uapi) {
+ 		vsp1->hgo = vsp1_hgo_create(vsp1);
+ 		if (IS_ERR(vsp1->hgo)) {
+ 			ret = PTR_ERR(vsp1->hgo);
+@@ -325,7 +325,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 			      &vsp1->entities);
+ 	}
+ 
+-	if (vsp1->info->features & VSP1_HAS_HGT && vsp1->info->uapi) {
++	if (vsp1_feature(vsp1, VSP1_HAS_HGT) && vsp1->info->uapi) {
+ 		vsp1->hgt = vsp1_hgt_create(vsp1);
+ 		if (IS_ERR(vsp1->hgt)) {
+ 			ret = PTR_ERR(vsp1->hgt);
+@@ -356,7 +356,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		}
+ 	}
+ 
+-	if (vsp1->info->features & VSP1_HAS_LUT) {
++	if (vsp1_feature(vsp1, VSP1_HAS_LUT)) {
+ 		vsp1->lut = vsp1_lut_create(vsp1);
+ 		if (IS_ERR(vsp1->lut)) {
+ 			ret = PTR_ERR(vsp1->lut);
+@@ -390,7 +390,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		}
+ 	}
+ 
+-	if (vsp1->info->features & VSP1_HAS_SRU) {
++	if (vsp1_feature(vsp1, VSP1_HAS_SRU)) {
+ 		vsp1->sru = vsp1_sru_create(vsp1);
+ 		if (IS_ERR(vsp1->sru)) {
+ 			ret = PTR_ERR(vsp1->sru);
+@@ -524,7 +524,7 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+ 	vsp1_write(vsp1, VI6_DPR_HSI_ROUTE, VI6_DPR_NODE_UNUSED);
+ 	vsp1_write(vsp1, VI6_DPR_BRU_ROUTE, VI6_DPR_NODE_UNUSED);
+ 
+-	if (vsp1->info->features & VSP1_HAS_BRS)
++	if (vsp1_feature(vsp1, VSP1_HAS_BRS))
+ 		vsp1_write(vsp1, VI6_DPR_ILV_BRS_ROUTE, VI6_DPR_NODE_UNUSED);
+ 
+ 	vsp1_write(vsp1, VI6_DPR_HGO_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 68218625549e..f90e474cf2cc 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -146,13 +146,13 @@ static int wpf_init_controls(struct vsp1_rwpf *wpf)
+ 	if (wpf->entity.index != 0) {
+ 		/* Only WPF0 supports flipping. */
+ 		num_flip_ctrls = 0;
+-	} else if (vsp1->info->features & VSP1_HAS_WPF_HFLIP) {
++	} else if (vsp1_feature(vsp1, VSP1_HAS_WPF_HFLIP)) {
+ 		/*
+ 		 * When horizontal flip is supported the WPF implements three
+ 		 * controls (horizontal flip, vertical flip and rotation).
+ 		 */
+ 		num_flip_ctrls = 3;
+-	} else if (vsp1->info->features & VSP1_HAS_WPF_VFLIP) {
++	} else if (vsp1_feature(vsp1, VSP1_HAS_WPF_VFLIP)) {
+ 		/*
+ 		 * When only vertical flip is supported the WPF implements a
+ 		 * single control (vertical flip).
+@@ -281,7 +281,7 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
+ 
+ 		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSWAP, fmtinfo->swap);
+ 
+-		if (vsp1->info->features & VSP1_HAS_WPF_HFLIP &&
++		if (vsp1_feature(vsp1, VSP1_HAS_WPF_HFLIP) &&
+ 		    wpf->entity.index == 0)
+ 			vsp1_wpf_write(wpf, dlb, VI6_WPF_ROT_CTRL,
+ 				       VI6_WPF_ROT_CTRL_LN16 |
 -- 
-2.7.4
+git-series 0.9.1
