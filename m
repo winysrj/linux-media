@@ -1,119 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:44711 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1428693AbeCBOrN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:13 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
-        joe@perches.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 07/11] media: ov772x: Re-organize in-code comments
-Date: Fri,  2 Mar 2018 15:46:39 +0100
-Message-Id: <1520002003-10200-8-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:50452 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933831AbeCMPrp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 11:47:45 -0400
+Subject: Re: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>,
+        <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20180312165207.12436-1-s-anna@ti.com>
+ <20180313111407.egptbq5vbkny5q4d@valkosipuli.retiisi.org.uk>
+From: Suman Anna <s-anna@ti.com>
+Message-ID: <5c3f99e2-001b-b80a-f840-bc3201addc93@ti.com>
+Date: Tue, 13 Mar 2018 10:47:08 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180313111407.egptbq5vbkny5q4d@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A lot of comments that would fit a single line were spread on two or
-more lines. Also fix capitalization and punctuation where appropriate.
+Hi Sakari,
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/ov772x.c | 32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+On 03/13/2018 06:14 AM, Sakari Ailus wrote:
+> Hi Suman,
+> 
+> Thanks for the patch.
+> 
+> On Mon, Mar 12, 2018 at 11:52:07AM -0500, Suman Anna wrote:
+>> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+>> ARM DMA backend. The current code creates a dma_iommu_mapping and
+>> attaches this to the ISP device, but never detaches the mapping in
+>> either the probe failure paths or the driver remove path resulting
+>> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+>>
+>> Reported-by: Pavel Machek <pavel@ucw.cz>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Tested-by: Pavel Machek <pavel@ucw.cz>
+>> ---
+>> Hi Mauro, Laurent,
+>>
+>> This fixes an issue reported by Pavel and discussed on this
+>> thread,
+>> https://marc.info/?l=linux-omap&m=152051945803598&w=2
+>>
+>> Posting this again to the appropriate lists.
+>>
+>> regards
+>> Suman
+>>
+>>  drivers/media/platform/omap3isp/isp.c | 7 +++++--
+>>  1 file changed, 5 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+>> index 8eb000e3d8fd..c7d667bfc2af 100644
+>> --- a/drivers/media/platform/omap3isp/isp.c
+>> +++ b/drivers/media/platform/omap3isp/isp.c
+>> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device *isp)
+>>  
+>>  static void isp_detach_iommu(struct isp_device *isp)
+>>  {
+>> +	arm_iommu_detach_device(isp->dev);
+>>  	arm_iommu_release_mapping(isp->mapping);
+>>  	isp->mapping = NULL;
+>>  }
+>> @@ -1971,13 +1972,15 @@ static int isp_attach_iommu(struct isp_device *isp)
+>>  	ret = arm_iommu_attach_device(isp->dev, mapping);
+>>  	if (ret < 0) {
+>>  		dev_err(isp->dev, "failed to attach device to VA mapping\n");
+>> -		goto error;
+>> +		goto error_attach;
+> 
+> Instead of changing the label here, could you return immediately where the
+> previous point of error handling is? No need to add another label.
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index a418455..8849da1 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -910,17 +910,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	int ret;
- 	u8  val;
- 
--	/*
--	 * reset hardware
--	 */
-+	/* Reset hardware. */
- 	ov772x_reset(client);
- 
--	/*
--	 * Edge Ctrl
--	 */
-+	/* Edge Ctrl. */
- 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
- 		/*
--		 * Manual Edge Control Mode
-+		 * Manual Edge Control Mode.
- 		 *
- 		 * Edge auto strength bit is set by default.
- 		 * Remove it when manual mode.
-@@ -944,9 +940,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 
- 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
- 		/*
--		 * Auto Edge Control Mode
-+		 * Auto Edge Control Mode.
- 		 *
--		 * set upper and lower limit
-+		 * Set upper and lower limit.
- 		 */
- 		ret = ov772x_mask_set(client,
- 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
-@@ -961,7 +957,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			goto ov772x_set_fmt_error;
- 	}
- 
--	/* Format and window size */
-+	/* Format and window size. */
- 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
-@@ -993,9 +989,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
--	/*
--	 * set DSP_CTRL3
--	 */
-+	/* Set DSP_CTRL3. */
- 	val = cfmt->dsp3;
- 	if (val) {
- 		ret = ov772x_mask_set(client,
-@@ -1011,9 +1005,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			goto ov772x_set_fmt_error;
- 	}
- 
--	/*
--	 * set COM3
--	 */
-+	/* Set COM3. */
- 	val = cfmt->com3;
- 	if (priv->info->flags & OV772X_FLAG_VFLIP)
- 		val |= VFLIP_IMG;
-@@ -1041,9 +1033,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
--	/*
--	 * set COM8
--	 */
-+	/* Set COM8. */
- 	if (priv->band_filter) {
- 		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
- 		if (!ret)
-@@ -1153,9 +1143,7 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 	if (ret < 0)
- 		return ret;
- 
--	/*
--	 * check and show product ID and manufacturer ID
--	 */
-+	/* Check and show product ID and manufacturer ID. */
- 	pid = ov772x_read(client, PID);
- 	ver = ov772x_read(client, VER);
- 
--- 
-2.7.4
+Yeah, I debated about this while doing the patch, and chose to retain
+the previous common return on the error paths. There are only 2 error
+paths, so didn't want to mix them up. If you still prefer the mixed
+style, I can post a v2.
+
+regards
+Suman
+
+> 
+> After fixing that you can add:
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+>>  	}
+>>  
+>>  	return 0;
+>>  
+>> +error_attach:
+>> +	arm_iommu_release_mapping(isp->mapping);
+>> +	isp->mapping = NULL;
+>>  error:
+>> -	isp_detach_iommu(isp);
+>>  	return ret;
+>>  }
+>>  
+>>
+> 
