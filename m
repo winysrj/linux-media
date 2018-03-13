@@ -1,152 +1,369 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.133]:35893 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965372AbeCHGjA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 01:39:00 -0500
-From: Wen Nuan <leo.wen@rock-chips.com>
-To: mchehab@kernel.org, davem@davemloft.net,
-        gregkh@linuxfoundation.org, linus.walleij@linaro.org,
-        rdunlap@infradead.org, jacob2.chen@rock-chips.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        eddie.cai@rock-chips.com, Leo Wen <leo.wen@rock-chips.com>
-Subject: [PATCH v4 2/2] dt-bindings: Document the Rockchip RK1608 bindings
-Date: Thu,  8 Mar 2018 14:38:42 +0800
-Message-Id: <1520491122-5629-3-git-send-email-leo.wen@rock-chips.com>
-In-Reply-To: <1520491122-5629-1-git-send-email-leo.wen@rock-chips.com>
-References: <1520491122-5629-1-git-send-email-leo.wen@rock-chips.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50710 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751606AbeCMSrH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 14:47:07 -0400
+Subject: Re: [PATCH 3/3] rcar-vin: use scratch buffer and always run in
+ continuous mode
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com
+References: <20180310000953.25366-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180310000953.25366-4-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6ff31cab-9219-154c-8840-ac13944ff06e@xs4all.nl>
+Date: Tue, 13 Mar 2018 11:47:00 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20180310000953.25366-4-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Leo Wen <leo.wen@rock-chips.com>
+On 03/09/2018 04:09 PM, Niklas Söderlund wrote:
+> Instead of switching capture mode depending on how many buffers are
+> available use a scratch buffer and always run in continuous mode. By
+> using a scratch buffer the responsiveness of the capture loop is
+> increased as it can keep running even if there are no buffers available
+> from userspace.
+> 
+> As soon as a userspace queues a buffer it is inserted into the capture
+> loop and returned as soon as it is filled. This is a improvement on the
+> previous logic where the whole capture loop was stopped and switched to
+> single capture mode if userspace did not feed the VIN driver buffers at
+> the same time it consumed them. To make matters worse it was difficult
+> for the driver to reenter continues mode if it entered single mode even
 
-Add DT bindings documentation for Rockchip RK1608.
+continues -> continuous
 
-Changes V4:
-- Revise the comment of node.
-- Revise the comment of 'endpoint@1'.
+> if userspace started to queue buffers faster. This resulted in
+> suboptimal performance where if userspace where delayed for a short
+> period the ongoing capture would be slowed down and run in single mode
+> until the capturing process where restarted.
+> 
+> An additional effect of this change is that the capture logic can be
+> made much simple as we know that continues mode will always be used.
 
-Signed-off-by: Leo Wen <leo.wen@rock-chips.com>
----
- Documentation/devicetree/bindings/media/rk1608.txt | 95 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 96 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rk1608.txt
+ditto
 
-diff --git a/Documentation/devicetree/bindings/media/rk1608.txt b/Documentation/devicetree/bindings/media/rk1608.txt
-new file mode 100644
-index 0000000..ea23d2d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rk1608.txt
-@@ -0,0 +1,95 @@
-+Rockchip RK1608 as a PreISP to link on Soc
-+------------------------------------------
-+
-+Required properties:
-+
-+- compatible		: "rockchip,rk1608";
-+- reg			: SPI slave address of the rk1608;
-+- clocks		: Must contain an entry for each entry in clock-names;
-+- clock-names		: Must contain "mclk" for the device's master clock;
-+- reset-gpios		: GPIO connected to reset pin;
-+- irq-gpios		: GPIO connected to irq pin;
-+- sleepst-gpios		: GPIO connected to sleepst pin;
-+- wakeup-gpios		: GPIO connected to wakeup pin;
-+- powerdown-gpios	: GPIO connected to powerdown pin;
-+- pinctrl-names		: Should contain only one value - "default";
-+- pinctrl-0		: Pin control group to be used for this controller;
-+
-+Optional properties:
-+
-+- spi-max-frequency	: Maximum SPI clocking speed of the device;
-+
-+The device node should contain one or two port child nodes with child
-+'endpoint' node. There are two ports then port@0 must
-+describe the output and port@1 input channels. Please refer to the
-+bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+endpoint node
-+-------------
-+
-+- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-+	       video-interfaces.txt. If present it should be <1> - the device
-+	       supports only one data lane without re-mapping.
-+
-+Note1: Since no data is generated in RK1608，so this is meaningful that you need
-+a extra sensor (such as a camera) mounted on RK1608. You need to use endpoint@x
-+to match these sensors.
-+
-+Note2:You must set the current value of the spi pins to be 8mA, if they are not.
-+
-+Example:
-+&spi0 {
-+	status = "okay";
-+	spi_rk1608@00 {
-+		compatible =  "rockchip,rk1608";
-+		status = "okay";
-+		reg = <0>;
-+		spi-max-frequency = <24000000>;
-+		link-freqs = /bits/ 64 <LINK_FREQ>;
-+		clocks = <&cru SCLK_SPI0>, <&cru SCLK_VIP_OUT>,
-+		<&cru DCLK_VOP0>, <&cru ACLK_VIP>, <&cru HCLK_VIP>,
-+		<&cru PCLK_ISP_IN>, <&cru PCLK_ISP_IN>,
-+		<&cru PCLK_ISP_IN>, <&cru SCLK_MIPIDSI_24M>,
-+		<&cru PCLK_MIPI_CSI>;
-+		clock-names = "mclk", "mipi_clk",  "pd_cif", "aclk_cif",
-+			"hclk_cif", "cif0_in", "g_pclkin_cif",
-+			"cif0_out", "clk_mipi_24m", "hclk_mipiphy";
-+		reset-gpios = <&gpio6 0 GPIO_ACTIVE_HIGH>;
-+		irq-gpios = <&gpio6 2 GPIO_ACTIVE_HIGH>;
-+		sleepst-gpios = <&gpio6 1 GPIO_ACTIVE_HIGH>;
-+		wakeup-gpios = <&gpio6 4 GPIO_ACTIVE_HIGH>;
-+		powerdown-gpios = <&gpio8 0 GPIO_ACTIVE_HIGH>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&rk1608_irq_gpios &rk1608_wake_gpios
-+			     &rk1608_sleep_gpios>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			port@0 {
-+				mipi_dphy_out0: endpoint@0 {
-+					remote-endpoint = <&mipi_dphy_in0>;
-+					clock-lanes = <0>;
-+					data-lanes = <1 2 3 4>;
-+					clock-noncontinuous;
-+					link-frequencies =
-+						/bits/ 64 <LINK_FREQ>;
-+				};
-+			};
-+
-+			port@1 {
-+				sensor_in0: endpoint@0 {
-+					remote-endpoint = <&sensor_out0>;
-+				};
-+				/* If you have a second sensor,
-+				 * add the 'endpoint@1' node here.
-+				 */
-+				sensor_in1: endpoint@1 {
-+					remote-endpoint = <&sensor_out1>;
-+				};
-+			};
-+		};
-+	};
-+};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b2a98e3..04d227b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -141,6 +141,7 @@ M:	Leo Wen <leo.wen@rock-chips.com>
- S:	Maintained
- F:	drivers/media/spi/rk1608.c
- F:	drivers/media/spi/rk1608.h
-+F:	Documentation/devicetree/bindings/media/rk1608.txt
- 
- 3C59X NETWORK DRIVER
- M:	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
--- 
-2.7.4
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 187 ++++++++---------------------
+>  drivers/media/platform/rcar-vin/rcar-vin.h |   6 +-
+>  2 files changed, 52 insertions(+), 141 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 8ea73cdc9a720abe..208cf8a0ea77002d 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -168,12 +168,8 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		break;
+>  	case V4L2_FIELD_ALTERNATE:
+>  	case V4L2_FIELD_NONE:
+> -		if (vin->continuous) {
+> -			vnmc = VNMC_IM_ODD_EVEN;
+> -			progressive = true;
+> -		} else {
+> -			vnmc = VNMC_IM_ODD;
+> -		}
+> +		vnmc = VNMC_IM_ODD_EVEN;
+> +		progressive = true;
+>  		break;
+>  	default:
+>  		vnmc = VNMC_IM_ODD;
+> @@ -298,14 +294,6 @@ static bool rvin_capture_active(struct rvin_dev *vin)
+>  	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+>  }
+>  
+> -static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+> -{
+> -	if (vin->continuous)
+> -		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+> -
+> -	return 0;
+> -}
+> -
+>  static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+>  {
+>  	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+> @@ -344,76 +332,47 @@ static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+>  	rvin_write(vin, offset, VNMB_REG(slot));
+>  }
+>  
+> -/* Moves a buffer from the queue to the HW slots */
+> -static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+> +/*
+> + * Moves a buffer from the queue to the HW slot. If no buffer is
+> + * available use the scratch buffer. The scratch buffer is never
+> + * returned to userspace, its only function is to enable the capture
+> + * loop to keep running.
+> + */
+> +static void rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+>  {
+>  	struct rvin_buffer *buf;
+>  	struct vb2_v4l2_buffer *vbuf;
+> -	dma_addr_t phys_addr_top;
+> -
+> -	if (vin->queue_buf[slot] != NULL)
+> -		return true;
+> +	dma_addr_t phys_addr;
+>  
+> -	if (list_empty(&vin->buf_list))
+> -		return false;
+> +	/* A already populated slot shall never be overwritten. */
+> +	if (WARN_ON(vin->queue_buf[slot] != NULL))
+> +		return;
+>  
+>  	vin_dbg(vin, "Filling HW slot: %d\n", slot);
+>  
+> -	/* Keep track of buffer we give to HW */
+> -	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
+> -	vbuf = &buf->vb;
+> -	list_del_init(to_buf_list(vbuf));
+> -	vin->queue_buf[slot] = vbuf;
+> -
+> -	/* Setup DMA */
+> -	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+> -	rvin_set_slot_addr(vin, slot, phys_addr_top);
+> -
+> -	return true;
+> -}
+> -
+> -static bool rvin_fill_hw(struct rvin_dev *vin)
+> -{
+> -	int slot, limit;
+> -
+> -	limit = vin->continuous ? HW_BUFFER_NUM : 1;
+> -
+> -	for (slot = 0; slot < limit; slot++)
+> -		if (!rvin_fill_hw_slot(vin, slot))
+> -			return false;
+> -	return true;
+> -}
+> -
+> -static void rvin_capture_on(struct rvin_dev *vin)
+> -{
+> -	vin_dbg(vin, "Capture on in %s mode\n",
+> -		vin->continuous ? "continuous" : "single");
+> +	if (list_empty(&vin->buf_list)) {
+> +		vin->queue_buf[slot] = NULL;
+> +		phys_addr = vin->scratch_phys;
+> +	} else {
+> +		/* Keep track of buffer we give to HW */
+> +		buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
+> +		vbuf = &buf->vb;
+> +		list_del_init(to_buf_list(vbuf));
+> +		vin->queue_buf[slot] = vbuf;
+> +
+> +		/* Setup DMA */
+> +		phys_addr = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+> +	}
+>  
+> -	if (vin->continuous)
+> -		/* Continuous Frame Capture Mode */
+> -		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+> -	else
+> -		/* Single Frame Capture Mode */
+> -		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+> +	rvin_set_slot_addr(vin, slot, phys_addr);
+>  }
+>  
+>  static int rvin_capture_start(struct rvin_dev *vin)
+>  {
+> -	struct rvin_buffer *buf, *node;
+> -	int bufs, ret;
+> +	int slot, ret;
+>  
+> -	/* Count number of free buffers */
+> -	bufs = 0;
+> -	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
+> -		bufs++;
+> -
+> -	/* Continuous capture requires more buffers then there are HW slots */
+> -	vin->continuous = bufs > HW_BUFFER_NUM;
+> -
+> -	if (!rvin_fill_hw(vin)) {
+> -		vin_err(vin, "HW not ready to start, not enough buffers available\n");
+> -		return -EINVAL;
+> -	}
+> +	for (slot = 0; slot < HW_BUFFER_NUM; slot++)
+> +		rvin_fill_hw_slot(vin, slot);
+>  
+>  	rvin_crop_scale_comp(vin);
+>  
+> @@ -421,7 +380,10 @@ static int rvin_capture_start(struct rvin_dev *vin)
+>  	if (ret)
+>  		return ret;
+>  
+> -	rvin_capture_on(vin);
+> +	vin_dbg(vin, "Starting to capture\n");
+> +
+> +	/* Continuous Frame Capture Mode */
+> +	rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+>  
+>  	vin->state = RUNNING;
+>  
+> @@ -904,7 +866,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+>  	struct rvin_dev *vin = data;
+>  	u32 int_status, vnms;
+>  	int slot;
+> -	unsigned int i, sequence, handled = 0;
+> +	unsigned int handled = 0;
+>  	unsigned long flags;
+>  
+>  	spin_lock_irqsave(&vin->qlock, flags);
+> @@ -924,65 +886,25 @@ static irqreturn_t rvin_irq(int irq, void *data)
+>  
+>  	/* Prepare for capture and update state */
+>  	vnms = rvin_read(vin, VNMS_REG);
+> -	slot = rvin_get_active_slot(vin, vnms);
+> -	sequence = vin->sequence++;
+> -
+> -	vin_dbg(vin, "IRQ %02d: %d\tbuf0: %c buf1: %c buf2: %c\tmore: %d\n",
+> -		sequence, slot,
+> -		slot == 0 ? 'x' : vin->queue_buf[0] != NULL ? '1' : '0',
+> -		slot == 1 ? 'x' : vin->queue_buf[1] != NULL ? '1' : '0',
+> -		slot == 2 ? 'x' : vin->queue_buf[2] != NULL ? '1' : '0',
+> -		!list_empty(&vin->buf_list));
+> -
+> -	/* HW have written to a slot that is not prepared we are in trouble */
+> -	if (WARN_ON((vin->queue_buf[slot] == NULL)))
+> -		goto done;
+> +	slot = (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+>  
+>  	/* Capture frame */
+> -	vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
+> -	vin->queue_buf[slot]->sequence = sequence;
+> -	vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+> -	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
+> -	vin->queue_buf[slot] = NULL;
+> -
+> -	/* Prepare for next frame */
+> -	if (!rvin_fill_hw(vin)) {
+> -
+> -		/*
+> -		 * Can't supply HW with new buffers fast enough. Halt
+> -		 * capture until more buffers are available.
+> -		 */
+> -		vin->state = STALLED;
+> -
+> -		/*
+> -		 * The continuous capturing requires an explicit stop
+> -		 * operation when there is no buffer to be set into
+> -		 * the VnMBm registers.
+> -		 */
+> -		if (vin->continuous) {
+> -			rvin_capture_stop(vin);
+> -			vin_dbg(vin, "IRQ %02d: hw not ready stop\n", sequence);
+> -
+> -			/* Maybe we can continue in single capture mode */
+> -			for (i = 0; i < HW_BUFFER_NUM; i++) {
+> -				if (vin->queue_buf[i]) {
+> -					list_add(to_buf_list(vin->queue_buf[i]),
+> -						 &vin->buf_list);
+> -					vin->queue_buf[i] = NULL;
+> -				}
+> -			}
+> -
+> -			if (!list_empty(&vin->buf_list))
+> -				rvin_capture_start(vin);
+> -		}
+> +	if (vin->queue_buf[slot]) {
+> +		vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
+> +		vin->queue_buf[slot]->sequence = vin->sequence;
+> +		vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+> +		vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf,
+> +				VB2_BUF_STATE_DONE);
+> +		vin->queue_buf[slot] = NULL;
+>  	} else {
+> -		/*
+> -		 * The single capturing requires an explicit capture
+> -		 * operation to fetch the next frame.
+> -		 */
+> -		if (!vin->continuous)
+> -			rvin_capture_on(vin);
+> +		/* Scratch buffer was used, dropping frame. */
+> +		vin_dbg(vin, "Dropping frame %u\n", vin->sequence);
+>  	}
+> +
+> +	vin->sequence++;
+> +
+> +	/* Prepare for next frame */
+> +	rvin_fill_hw_slot(vin, slot);
+>  done:
+>  	spin_unlock_irqrestore(&vin->qlock, flags);
+>  
+> @@ -1053,13 +975,6 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+>  
+>  	list_add_tail(to_buf_list(vbuf), &vin->buf_list);
+>  
+> -	/*
+> -	 * If capture is stalled add buffer to HW and restart
+> -	 * capturing if HW is ready to continue.
+> -	 */
+> -	if (vin->state == STALLED)
+> -		rvin_capture_start(vin);
+> -
+>  	spin_unlock_irqrestore(&vin->qlock, flags);
+>  }
+>  
+> @@ -1202,7 +1117,7 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
+>  	q->ops = &rvin_qops;
+>  	q->mem_ops = &vb2_dma_contig_memops;
+>  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> -	q->min_buffers_needed = 1;
+> +	q->min_buffers_needed = 4;
+>  	q->dev = vin->dev;
+>  
+>  	ret = vb2_queue_init(q);
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 11a981d707c7ca47..1adc1b809f761e71 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -38,13 +38,11 @@ enum chip_id {
+>  /**
+>   * STOPPED  - No operation in progress
+>   * RUNNING  - Operation in progress have buffers
+> - * STALLED  - No operation in progress have no buffers
+>   * STOPPING - Stopping operation
+>   */
+>  enum rvin_dma_state {
+>  	STOPPED = 0,
+>  	RUNNING,
+> -	STALLED,
+>  	STOPPING,
+>  };
+>  
+> @@ -105,11 +103,10 @@ struct rvin_graph_entity {
+>   * @scratch:		cpu address for scratch buffer
+>   * @scratch_phys:	pysical address of the scratch buffer
+>   *
+> - * @qlock:		protects @queue_buf, @buf_list, @continuous, @sequence
+> + * @qlock:		protects @queue_buf, @buf_list, @sequence
+>   *			@state
+>   * @queue_buf:		Keeps track of buffers given to HW slot
+>   * @buf_list:		list of queued buffers
+> - * @continuous:		tracks if active operation is continuous or single mode
+>   * @sequence:		V4L2 buffers sequence number
+>   * @state:		keeps track of operation state
+>   *
+> @@ -138,7 +135,6 @@ struct rvin_dev {
+>  	spinlock_t qlock;
+>  	struct vb2_v4l2_buffer *queue_buf[HW_BUFFER_NUM];
+>  	struct list_head buf_list;
+> -	bool continuous;
+>  	unsigned int sequence;
+>  	enum rvin_dma_state state;
+>  
+> 
+
+Looks good!
+
+Regards,
+
+	Hans
