@@ -1,315 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52104 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754781AbeCHAFh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 19:05:37 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v7 0/8] vsp1: TLB optimisation and DL caching
-Date: Thu,  8 Mar 2018 00:05:23 +0000
-Message-Id: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail.kapsi.fi ([91.232.154.25]:46819 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932801AbeCMXkN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 19:40:13 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 08/18] af9013: add i2c mux adapter for tuner bus
+Date: Wed, 14 Mar 2018 01:39:34 +0200
+Message-Id: <20180313233944.7234-8-crope@iki.fi>
+In-Reply-To: <20180313233944.7234-1-crope@iki.fi>
+References: <20180313233944.7234-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each display list currently allocates an area of DMA memory to store register
-settings for the VSP1 to process. Each of these allocations adds pressure to
-the IPMMU TLB entries.
+Add muxed i2c adapter for demod tuner i2c bus gate control.
 
-We can reduce the pressure by pre-allocating larger areas and dividing the area
-across multiple bodies represented as a pool.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/Kconfig       |   2 +-
+ drivers/media/dvb-frontends/af9013.c      | 126 +++++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/af9013.h      |   1 +
+ drivers/media/dvb-frontends/af9013_priv.h |   1 +
+ 4 files changed, 111 insertions(+), 19 deletions(-)
 
-With this reconfiguration of bodies, we can adapt the configuration code to
-separate out constant hardware configuration and cache it for re-use.
-
-The patches provided in this series can be found at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git  tags/vsp1/tlb-optimise/v7
-
-I hope that this series is at a stage where it could be integrated now.  It has
-had some thorough testing and is already integrated in both renesas-drivers and
-renesas-bsp. (except for the minor changes in v7 that is...)
-
-Please note that checkpatch complains on patch 6/8 in this series:
-
-v7-0006-media-vsp1-Refactor-display-list-configure-operations.patch
-------------------------------------------------------------------------------------------------------
-WARNING: function definition argument 'struct vsp1_entity *' should also have an identifier name
-#290: FILE: drivers/media/platform/vsp1/vsp1_entity.h:82:
-+       void (*configure_stream)(struct vsp1_entity *, struct vsp1_pipeline *,
-
-However - this complaint is regarding pre-existing code. I have only renamed
-the function pointers.  I do also disagree with checkpatch here - as there is
-no need to provide an identifier name, and it does not improve readability in
-this instance to state:
-	...(vsp1_entity *entity, struct vsp1_pipeline *pipe)
-
-Thus - I have ignored these warnings.
-
-
-Changelog:
-----------
-
-v7:
- - Rebased on to linux-media/master (v4.16-rc4)
- - Clean up the formatting of the vsp1_dl_list_add_body()
- - Fix formatting and white space
- -  s/prepare/configure_stream/
- -  s/configure/configure_frame/
-
-v6:
- - Rebased on to linux-media/master (v4.16-rc1)
- - Removed DRM/UIF (DISCOM/ColorKey) updates
-
-v5:
- - Rebased on to renesas-drivers-2018-01-09-v4.15-rc7 to fix conflicts
-   with DRM and UIF updates on VSP1 driver
-
-v4:
- - Rebased to v4.14
- * v4l: vsp1: Use reference counting for bodies
-   - Fix up reference handling comments
-
- * v4l: vsp1: Provide a body pool
-   - Provide comment explaining extra allocation on body pool
-     highlighting area for optimisation later.
-
- * v4l: vsp1: Refactor display list configure operations
-   - Fix up comment to describe yuv_mode caching rather than format
-
- * vsp1: Adapt entities to configure into a body
-   - Rename vsp1_dl_list_get_body() to vsp1_dl_list_get_body0()
-
- * v4l: vsp1: Move video configuration to a cached dlb
-   - Adjust pipe configured flag to be reset on resume rather than suspend
-   - rename dl_child, dl_next
-
-Testing:
---------
-The VSP unit tests have been run on this patch set with the following results:
-
---- Test loop 1 ---
-- vsp-unit-test-0000.sh
-Test Conditions:
-  Platform          Renesas Salvator-X 2nd version board based on r8a7795 ES2.0+
-  Kernel release    4.16.0-rc4-arm64-renesas-01067-g397eb3811ec0
-  convert           /usr/bin/convert
-  compare           /usr/bin/compare
-  killall           /usr/bin/killall
-  raw2rgbpnm        /usr/bin/raw2rgbpnm
-  stress            /usr/bin/stress
-  yavta             /usr/bin/yavta
-- vsp-unit-test-0001.sh
-Testing WPF packing in RGB332: pass
-Testing WPF packing in ARGB555: pass
-Testing WPF packing in XRGB555: pass
-Testing WPF packing in RGB565: pass
-Testing WPF packing in BGR24: pass
-Testing WPF packing in RGB24: pass
-Testing WPF packing in ABGR32: pass
-Testing WPF packing in ARGB32: pass
-Testing WPF packing in XBGR32: pass
-Testing WPF packing in XRGB32: pass
-- vsp-unit-test-0002.sh
-Testing WPF packing in NV12M: pass
-Testing WPF packing in NV16M: pass
-Testing WPF packing in NV21M: pass
-Testing WPF packing in NV61M: pass
-Testing WPF packing in UYVY: pass
-Testing WPF packing in VYUY: skip
-Testing WPF packing in YUV420M: pass
-Testing WPF packing in YUV422M: pass
-Testing WPF packing in YUV444M: pass
-Testing WPF packing in YVU420M: pass
-Testing WPF packing in YVU422M: pass
-Testing WPF packing in YVU444M: pass
-Testing WPF packing in YUYV: pass
-Testing WPF packing in YVYU: pass
-- vsp-unit-test-0003.sh
-Testing scaling from 640x640 to 640x480 in RGB24: pass
-Testing scaling from 1024x768 to 640x480 in RGB24: pass
-Testing scaling from 640x480 to 1024x768 in RGB24: pass
-Testing scaling from 640x640 to 640x480 in YUV444M: pass
-Testing scaling from 1024x768 to 640x480 in YUV444M: pass
-Testing scaling from 640x480 to 1024x768 in YUV444M: pass
-- vsp-unit-test-0004.sh
-Testing histogram in RGB24: pass
-Testing histogram in YUV444M: pass
-- vsp-unit-test-0005.sh
-Testing RPF.0: pass
-Testing RPF.1: pass
-Testing RPF.2: pass
-Testing RPF.3: pass
-Testing RPF.4: pass
-- vsp-unit-test-0006.sh
-Testing invalid pipeline with no RPF: pass
-Testing invalid pipeline with no WPF: pass
-- vsp-unit-test-0007.sh
-Testing BRU in RGB24 with 1 inputs: pass
-Testing BRU in RGB24 with 2 inputs: pass
-Testing BRU in RGB24 with 3 inputs: pass
-Testing BRU in RGB24 with 4 inputs: pass
-Testing BRU in RGB24 with 5 inputs: pass
-Testing BRU in YUV444M with 1 inputs: pass
-Testing BRU in YUV444M with 2 inputs: pass
-Testing BRU in YUV444M with 3 inputs: pass
-Testing BRU in YUV444M with 4 inputs: pass
-Testing BRU in YUV444M with 5 inputs: pass
-- vsp-unit-test-0008.sh
-Test requires unavailable feature set `bru rpf.0 uds wpf.0': skipped
-- vsp-unit-test-0009.sh
-Test requires unavailable feature set `rpf.0 wpf.0 wpf.1': skipped
-- vsp-unit-test-0010.sh
-Testing CLU in RGB24 with zero configuration: pass
-Testing CLU in RGB24 with identity configuration: pass
-Testing CLU in RGB24 with wave configuration: pass
-Testing CLU in YUV444M with zero configuration: pass
-Testing CLU in YUV444M with identity configuration: pass
-Testing CLU in YUV444M with wave configuration: pass
-Testing LUT in RGB24 with zero configuration: pass
-Testing LUT in RGB24 with identity configuration: pass
-Testing LUT in RGB24 with gamma configuration: pass
-Testing LUT in YUV444M with zero configuration: pass
-Testing LUT in YUV444M with identity configuration: pass
-Testing LUT in YUV444M with gamma configuration: pass
-- vsp-unit-test-0011.sh
-Testing  hflip=0 vflip=0 rotate=0: pass
-Testing  hflip=1 vflip=0 rotate=0: pass
-Testing  hflip=0 vflip=1 rotate=0: pass
-Testing  hflip=1 vflip=1 rotate=0: pass
-Testing  hflip=0 vflip=0 rotate=90: pass
-Testing  hflip=1 vflip=0 rotate=90: pass
-Testing  hflip=0 vflip=1 rotate=90: pass
-Testing  hflip=1 vflip=1 rotate=90: pass
-- vsp-unit-test-0012.sh
-Testing hflip: pass
-Testing vflip: pass
-- vsp-unit-test-0013.sh
-Testing RPF unpacking in RGB332: pass
-Testing RPF unpacking in ARGB555: pass
-Testing RPF unpacking in XRGB555: pass
-Testing RPF unpacking in RGB565: pass
-Testing RPF unpacking in BGR24: pass
-Testing RPF unpacking in RGB24: pass
-Testing RPF unpacking in ABGR32: pass
-Testing RPF unpacking in ARGB32: pass
-Testing RPF unpacking in XBGR32: pass
-Testing RPF unpacking in XRGB32: pass
-- vsp-unit-test-0014.sh
-Testing RPF unpacking in NV12M: pass
-Testing RPF unpacking in NV16M: pass
-Testing RPF unpacking in NV21M: pass
-Testing RPF unpacking in NV61M: pass
-Testing RPF unpacking in UYVY: pass
-Testing RPF unpacking in VYUY: skip
-Testing RPF unpacking in YUV420M: pass
-Testing RPF unpacking in YUV422M: pass
-Testing RPF unpacking in YUV444M: pass
-Testing RPF unpacking in YVU420M: pass
-Testing RPF unpacking in YVU422M: pass
-Testing RPF unpacking in YVU444M: pass
-Testing RPF unpacking in YUYV: pass
-Testing RPF unpacking in YVYU: pass
-- vsp-unit-test-0015.sh
-Testing SRU scaling from 1024x768 to 1024x768 in RGB24: pass
-Testing SRU scaling from 1024x768 to 2048x1536 in RGB24: pass
-Testing SRU scaling from 1024x768 to 1024x768 in YUV444M: pass
-Testing SRU scaling from 1024x768 to 2048x1536 in YUV444M: pass
-- vsp-unit-test-0016.sh
-Testing  hflip=0 vflip=0 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=0 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=0 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=0 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=1 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=0 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=0 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=1 rotate=0 1024x768 -> 640x480: pass
-Testing  hflip=0 vflip=0 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=0 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=0 rotate=90 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=0 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=0 rotate=90 1024x768 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=0 vflip=1 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=0 vflip=1 rotate=90 1024x768 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=90 640x480 -> 640x480: pass
-Testing  hflip=1 vflip=1 rotate=90 640x480 -> 1024x768: pass
-Testing  hflip=1 vflip=1 rotate=90 1024x768 -> 640x480: pass
-- vsp-unit-test-0017.sh
-- vsp-unit-test-0018.sh
-Testing RPF crop from (0,0)/512x384: pass
-Testing RPF crop from (32,32)/512x384: pass
-Testing RPF crop from (32,64)/512x384: pass
-Testing RPF crop from (64,32)/512x384: pass
-- vsp-unit-test-0019.sh
-- vsp-unit-test-0020.sh
-- vsp-unit-test-0021.sh
-Testing WPF packing in RGB332 during stress testing: pass
-Testing WPF packing in ARGB555 during stress testing: pass
-Testing WPF packing in XRGB555 during stress testing: pass
-Testing WPF packing in RGB565 during stress testing: pass
-Testing WPF packing in BGR24 during stress testing: pass
-Testing WPF packing in RGB24 during stress testing: pass
-Testing WPF packing in ABGR32 during stress testing: pass
-Testing WPF packing in ARGB32 during stress testing: pass
-Testing WPF packing in XBGR32 during stress testing: pass
-Testing WPF packing in XRGB32 during stress testing: pass
-./vsp-unit-test-0021.sh: line 34:  4489 Killed                  stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M
-- vsp-unit-test-0022.sh
-Testing long duration pipelines under stress: pass
-./vsp-unit-test-0022.sh: line 38:  6457 Killed                  stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M
-- vsp-unit-test-0023.sh
-Testing histogram HGT with hue areas 0,255,255,255,255,255,255,255,255,255,255,255: pass
-Testing histogram HGT with hue areas 0,40,40,80,80,120,120,160,160,200,200,255: pass
-Testing histogram HGT with hue areas 220,40,40,80,80,120,120,160,160,200,200,220: pass
-Testing histogram HGT with hue areas 0,10,50,60,100,110,150,160,200,210,250,255: pass
-Testing histogram HGT with hue areas 10,20,50,60,100,110,150,160,200,210,230,240: pass
-Testing histogram HGT with hue areas 240,20,60,80,100,120,140,160,180,200,210,220: pass
-- vsp-unit-test-0024.sh
-Test requires unavailable feature set `rpf.0 rpf.1 brs wpf.0': skipped
-158 tests: 142 passed, 0 failed, 3 skipped
-
-Kieran Bingham (8):
-  media: vsp1: Reword uses of 'fragment' as 'body'
-  media: vsp1: Protect bodies against overflow
-  media: vsp1: Provide a body pool
-  media: vsp1: Convert display lists to use new body pool
-  media: vsp1: Use reference counting for bodies
-  media: vsp1: Refactor display list configure operations
-  media: vsp1: Adapt entities to configure into a body
-  media: vsp1: Move video configuration to a cached dlb
-
- drivers/media/platform/vsp1/vsp1_bru.c    |  32 +--
- drivers/media/platform/vsp1/vsp1_clu.c    | 102 +++---
- drivers/media/platform/vsp1/vsp1_clu.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_dl.c     | 393 +++++++++++++----------
- drivers/media/platform/vsp1/vsp1_dl.h     |  19 +-
- drivers/media/platform/vsp1/vsp1_drm.c    |  35 +--
- drivers/media/platform/vsp1/vsp1_entity.c |  26 +-
- drivers/media/platform/vsp1/vsp1_entity.h |  38 +-
- drivers/media/platform/vsp1/vsp1_hgo.c    |  26 +--
- drivers/media/platform/vsp1/vsp1_hgt.c    |  28 +--
- drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  25 +-
- drivers/media/platform/vsp1/vsp1_lut.c    |  77 +++--
- drivers/media/platform/vsp1/vsp1_lut.h    |   1 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |  11 +-
- drivers/media/platform/vsp1/vsp1_pipe.h   |   7 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    | 183 +++++------
- drivers/media/platform/vsp1/vsp1_sru.c    |  24 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |  75 ++--
- drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
- drivers/media/platform/vsp1/vsp1_video.c  |  82 ++---
- drivers/media/platform/vsp1/vsp1_video.h  |   2 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    | 327 +++++++++----------
- 23 files changed, 845 insertions(+), 691 deletions(-)
-
-base-commit: 8514509ba5933f4e4ade0d5d81be117f18c1ebd2
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index 687086cdb870..0712069fd9fe 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -462,7 +462,7 @@ config DVB_TDA10048
+ 
+ config DVB_AF9013
+ 	tristate "Afatech AF9013 demodulator"
+-	depends on DVB_CORE && I2C
++	depends on DVB_CORE && I2C && I2C_MUX
+ 	select REGMAP
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
+index 87a55cd67e03..d55c5f67ce0f 100644
+--- a/drivers/media/dvb-frontends/af9013.c
++++ b/drivers/media/dvb-frontends/af9013.c
+@@ -23,6 +23,7 @@
+ struct af9013_state {
+ 	struct i2c_client *client;
+ 	struct regmap *regmap;
++	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	u32 clk;
+ 	u8 tuner;
+@@ -1257,9 +1258,65 @@ static struct dvb_frontend *af9013_get_dvb_frontend(struct i2c_client *client)
+ 	return &state->fe;
+ }
+ 
++static struct i2c_adapter *af9013_get_i2c_adapter(struct i2c_client *client)
++{
++	struct af9013_state *state = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++
++	return state->muxc->adapter[0];
++}
++
++/*
++ * XXX: Hackish solution. We use virtual register, reg bit 16, to carry info
++ * about i2c adapter locking. Own locking is needed because i2c mux call has
++ * already locked i2c adapter.
++ */
++static int af9013_select(struct i2c_mux_core *muxc, u32 chan)
++{
++	struct af9013_state *state = i2c_mux_priv(muxc);
++	struct i2c_client *client = state->client;
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	if (state->ts_mode == AF9013_TS_MODE_USB)
++		ret = regmap_update_bits(state->regmap, 0x1d417, 0x08, 0x08);
++	else
++		ret = regmap_update_bits(state->regmap, 0x1d607, 0x04, 0x04);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed %d\n", ret);
++	return ret;
++}
++
++static int af9013_deselect(struct i2c_mux_core *muxc, u32 chan)
++{
++	struct af9013_state *state = i2c_mux_priv(muxc);
++	struct i2c_client *client = state->client;
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	if (state->ts_mode == AF9013_TS_MODE_USB)
++		ret = regmap_update_bits(state->regmap, 0x1d417, 0x08, 0x00);
++	else
++		ret = regmap_update_bits(state->regmap, 0x1d607, 0x04, 0x00);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed %d\n", ret);
++	return ret;
++}
++
+ /* Own I2C access routines needed for regmap as chip uses extra command byte */
+ static int af9013_wregs(struct i2c_client *client, u8 cmd, u16 reg,
+-			const u8 *val, int len)
++			const u8 *val, int len, u8 lock)
+ {
+ 	int ret;
+ 	u8 buf[21];
+@@ -1281,7 +1338,12 @@ static int af9013_wregs(struct i2c_client *client, u8 cmd, u16 reg,
+ 	buf[1] = (reg >> 0) & 0xff;
+ 	buf[2] = cmd;
+ 	memcpy(&buf[3], val, len);
+-	ret = i2c_transfer(client->adapter, msg, 1);
++
++	if (lock)
++		i2c_lock_adapter(client->adapter);
++	ret = __i2c_transfer(client->adapter, msg, 1);
++	if (lock)
++		i2c_unlock_adapter(client->adapter);
+ 	if (ret < 0) {
+ 		goto err;
+ 	} else if (ret != 1) {
+@@ -1296,7 +1358,7 @@ static int af9013_wregs(struct i2c_client *client, u8 cmd, u16 reg,
+ }
+ 
+ static int af9013_rregs(struct i2c_client *client, u8 cmd, u16 reg,
+-			u8 *val, int len)
++			u8 *val, int len, u8 lock)
+ {
+ 	int ret;
+ 	u8 buf[3];
+@@ -1317,7 +1379,12 @@ static int af9013_rregs(struct i2c_client *client, u8 cmd, u16 reg,
+ 	buf[0] = (reg >> 8) & 0xff;
+ 	buf[1] = (reg >> 0) & 0xff;
+ 	buf[2] = cmd;
+-	ret = i2c_transfer(client->adapter, msg, 2);
++
++	if (lock)
++		i2c_lock_adapter(client->adapter);
++	ret = __i2c_transfer(client->adapter, msg, 2);
++	if (lock)
++		i2c_unlock_adapter(client->adapter);
+ 	if (ret < 0) {
+ 		goto err;
+ 	} else if (ret != 2) {
+@@ -1337,25 +1404,27 @@ static int af9013_regmap_write(void *context, const void *data, size_t count)
+ 	struct af9013_state *state = i2c_get_clientdata(client);
+ 	int ret, i;
+ 	u8 cmd;
+-	u16 reg = ((u8 *)data)[0] << 8|((u8 *)data)[1] << 0;
+-	u8 *val = &((u8 *)data)[2];
+-	const unsigned int len = count - 2;
++	u8 lock = !((u8 *)data)[0];
++	u16 reg = ((u8 *)data)[1] << 8 | ((u8 *)data)[2] << 0;
++	u8 *val = &((u8 *)data)[3];
++	const unsigned int len = count - 3;
+ 
+ 	if (state->ts_mode == AF9013_TS_MODE_USB && (reg & 0xff00) != 0xae00) {
+ 		cmd = 0 << 7|0 << 6|(len - 1) << 2|1 << 1|1 << 0;
+-		ret = af9013_wregs(client, cmd, reg, val, len);
++		ret = af9013_wregs(client, cmd, reg, val, len, lock);
+ 		if (ret)
+ 			goto err;
+ 	} else if (reg >= 0x5100 && reg < 0x8fff) {
+ 		/* Firmware download */
+ 		cmd = 1 << 7|1 << 6|(len - 1) << 2|1 << 1|1 << 0;
+-		ret = af9013_wregs(client, cmd, reg, val, len);
++		ret = af9013_wregs(client, cmd, reg, val, len, lock);
+ 		if (ret)
+ 			goto err;
+ 	} else {
+ 		cmd = 0 << 7|0 << 6|(1 - 1) << 2|1 << 1|1 << 0;
+ 		for (i = 0; i < len; i++) {
+-			ret = af9013_wregs(client, cmd, reg + i, val + i, 1);
++			ret = af9013_wregs(client, cmd, reg + i, val + i, 1,
++					   lock);
+ 			if (ret)
+ 				goto err;
+ 		}
+@@ -1374,19 +1443,21 @@ static int af9013_regmap_read(void *context, const void *reg_buf,
+ 	struct af9013_state *state = i2c_get_clientdata(client);
+ 	int ret, i;
+ 	u8 cmd;
+-	u16 reg = ((u8 *)reg_buf)[0] << 8|((u8 *)reg_buf)[1] << 0;
++	u8 lock = !((u8 *)reg_buf)[0];
++	u16 reg = ((u8 *)reg_buf)[1] << 8 | ((u8 *)reg_buf)[2] << 0;
+ 	u8 *val = &((u8 *)val_buf)[0];
+ 	const unsigned int len = val_size;
+ 
+ 	if (state->ts_mode == AF9013_TS_MODE_USB && (reg & 0xff00) != 0xae00) {
+ 		cmd = 0 << 7|0 << 6|(len - 1) << 2|1 << 1|0 << 0;
+-		ret = af9013_rregs(client, cmd, reg, val_buf, len);
++		ret = af9013_rregs(client, cmd, reg, val_buf, len, lock);
+ 		if (ret)
+ 			goto err;
+ 	} else {
+ 		cmd = 0 << 7|0 << 6|(1 - 1) << 2|1 << 1|0 << 0;
+ 		for (i = 0; i < len; i++) {
+-			ret = af9013_rregs(client, cmd, reg + i, val + i, 1);
++			ret = af9013_rregs(client, cmd, reg + i, val + i, 1,
++					   lock);
+ 			if (ret)
+ 				goto err;
+ 		}
+@@ -1411,8 +1482,9 @@ static int af9013_probe(struct i2c_client *client,
+ 		.write = af9013_regmap_write,
+ 	};
+ 	static const struct regmap_config regmap_config = {
+-		.reg_bits    =  16,
+-		.val_bits    =  8,
++		/* Actual reg is 16 bits, see i2c adapter lock */
++		.reg_bits = 24,
++		.val_bits = 8,
+ 	};
+ 
+ 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+@@ -1421,6 +1493,8 @@ static int af9013_probe(struct i2c_client *client,
+ 		goto err;
+ 	}
+ 
++	dev_dbg(&client->dev, "\n");
++
+ 	/* Setup the state */
+ 	state->client = client;
+ 	i2c_set_clientdata(client, state);
+@@ -1438,25 +1512,36 @@ static int af9013_probe(struct i2c_client *client,
+ 		ret = PTR_ERR(state->regmap);
+ 		goto err_kfree;
+ 	}
++	/* Create mux i2c adapter */
++	state->muxc = i2c_mux_alloc(client->adapter, &client->dev, 1, 0, 0,
++				    af9013_select, af9013_deselect);
++	if (!state->muxc) {
++		ret = -ENOMEM;
++		goto err_regmap_exit;
++	}
++	state->muxc->priv = state;
++	ret = i2c_mux_add_adapter(state->muxc, 0, 0, 0);
++	if (ret)
++		goto err_regmap_exit;
+ 
+ 	/* Download firmware */
+ 	if (state->ts_mode != AF9013_TS_MODE_USB) {
+ 		ret = af9013_download_firmware(state);
+ 		if (ret)
+-			goto err_regmap_exit;
++			goto err_i2c_mux_del_adapters;
+ 	}
+ 
+ 	/* Firmware version */
+ 	ret = regmap_bulk_read(state->regmap, 0x5103, firmware_version,
+ 			       sizeof(firmware_version));
+ 	if (ret)
+-		goto err_regmap_exit;
++		goto err_i2c_mux_del_adapters;
+ 
+ 	/* Set GPIOs */
+ 	for (i = 0; i < sizeof(state->gpio); i++) {
+ 		ret = af9013_set_gpio(state, i, state->gpio[i]);
+ 		if (ret)
+-			goto err_regmap_exit;
++			goto err_i2c_mux_del_adapters;
+ 	}
+ 
+ 	/* Create dvb frontend */
+@@ -1467,6 +1552,7 @@ static int af9013_probe(struct i2c_client *client,
+ 
+ 	/* Setup callbacks */
+ 	pdata->get_dvb_frontend = af9013_get_dvb_frontend;
++	pdata->get_i2c_adapter = af9013_get_i2c_adapter;
+ 
+ 	/* Init stats to indicate which stats are supported */
+ 	c = &state->fe.dtv_property_cache;
+@@ -1482,6 +1568,8 @@ static int af9013_probe(struct i2c_client *client,
+ 		 firmware_version[0], firmware_version[1],
+ 		 firmware_version[2], firmware_version[3]);
+ 	return 0;
++err_i2c_mux_del_adapters:
++	i2c_mux_del_adapters(state->muxc);
+ err_regmap_exit:
+ 	regmap_exit(state->regmap);
+ err_kfree:
+@@ -1497,6 +1585,8 @@ static int af9013_remove(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
++	i2c_mux_del_adapters(state->muxc);
++
+ 	regmap_exit(state->regmap);
+ 
+ 	kfree(state);
+diff --git a/drivers/media/dvb-frontends/af9013.h b/drivers/media/dvb-frontends/af9013.h
+index a290722c04fd..ea63ff9242f2 100644
+--- a/drivers/media/dvb-frontends/af9013.h
++++ b/drivers/media/dvb-frontends/af9013.h
+@@ -84,6 +84,7 @@ struct af9013_platform_data {
+ 	u8 gpio[4];
+ 
+ 	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
++	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
+ 
+ /* private: For legacy media attach wrapper. Do not set value. */
+ 	bool attach_in_use;
+diff --git a/drivers/media/dvb-frontends/af9013_priv.h b/drivers/media/dvb-frontends/af9013_priv.h
+index ec74edbb6d4d..3e95de7dba51 100644
+--- a/drivers/media/dvb-frontends/af9013_priv.h
++++ b/drivers/media/dvb-frontends/af9013_priv.h
+@@ -25,6 +25,7 @@
+ #include <media/dvb_math.h>
+ #include "af9013.h"
+ #include <linux/firmware.h>
++#include <linux/i2c-mux.h>
+ #include <linux/math64.h>
+ #include <linux/regmap.h>
+ 
 -- 
-git-series 0.9.1
+2.14.3
