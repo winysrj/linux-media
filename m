@@ -1,58 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:32967 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932342AbeCIRtl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 12:49:41 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57313 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750758AbeCNEsA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 00:48:00 -0400
+Message-ID: <444dc687c9d111e95e4ab464d3f64d7e@smtp-cloud7.xs4all.net>
+Date: Wed, 14 Mar 2018 05:47:57 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kernel@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v8 01/13] [media] xilinx: regroup caps on querycap
-Date: Fri,  9 Mar 2018 14:49:08 -0300
-Message-Id: <20180309174920.22373-2-gustavo@padovan.org>
-In-Reply-To: <20180309174920.22373-1-gustavo@padovan.org>
-References: <20180309174920.22373-1-gustavo@padovan.org>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-To better organize the code we concentrate the setting of
-V4L2_CAP_STREAMING in one place.
+Results of the daily build of media_tree:
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+date:			Wed Mar 14 05:00:10 CET 2018
+media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
+media_build git hash:	2a1900fddab68c7686e6b146ff91e02b32675fae
+v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 522cdfdd3345..565e466ba4fa 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -494,13 +494,14 @@ xvip_dma_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
- 	struct v4l2_fh *vfh = file->private_data;
- 	struct xvip_dma *dma = to_xvip_dma(vfh->vdev);
- 
--	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
-+	cap->device_caps = V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS
- 			  | dma->xdev->v4l2_caps;
- 
- 	if (dma->queue.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
- 	else
--		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+		cap->device_caps |= V4L2_CAP_VIDEO_OUTPUT;
- 
- 	strlcpy(cap->driver, "xilinx-vipp", sizeof(cap->driver));
- 	strlcpy(cap->card, dma->video.name, sizeof(cap->card));
--- 
-2.14.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: WARNINGS
+linux-4.15.2-x86_64: WARNINGS
+linux-4.16-rc1-i686: WARNINGS
+linux-4.16-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
