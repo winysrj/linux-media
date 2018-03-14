@@ -1,130 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0059.outbound.protection.outlook.com ([104.47.41.59]:44416
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933689AbeCTAqj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 20:46:39 -0400
-From: Rohit Athavale <RATHAVAL@xilinx.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Greg KH <gregkh@linuxfoundation.org>
-CC: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Rohit Athavale <RATHAVAL@xilinx.com>
-Subject: RE: [PATCH v2 1/3] staging: xm2mvscale: Driver support for Xilinx M2M
- Video Scaler
-Date: Tue, 20 Mar 2018 00:46:32 +0000
-Message-ID: <BY1PR02MB121105ECDEE95BB9444A65AFA2AB0@BY1PR02MB1211.namprd02.prod.outlook.com>
-References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
- <1519252996-787-2-git-send-email-rohit.athavale@xilinx.com>
- <20180222134658.GB19182@kroah.com>
- <1315ef81-15f1-5bc9-eff9-aaa12e70738a@xs4all.nl>
-In-Reply-To: <1315ef81-15f1-5bc9-eff9-aaa12e70738a@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-qt0-f179.google.com ([209.85.216.179]:37111 "EHLO
+        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753057AbeCNIVp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 04:21:45 -0400
 MIME-Version: 1.0
+In-Reply-To: <30abb41033b9670c06a54ff484d61d25d3c6e5cd.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <30abb41033b9670c06a54ff484d61d25d3c6e5cd.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 14 Mar 2018 09:21:44 +0100
+Message-ID: <CAMuHMdU2XR36gmyuprDFLn5riuST_Av+--cncdOnYdiDsT-9Yw@mail.gmail.com>
+Subject: Re: [PATCH v2 02/11] media: vsp1: Remove packed attributes from
+ aligned structures
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSGFucywNCg0KVGhhbmtzIGZvciB0YWtpbmcgdGhlIHRpbWUgdG8gdGFrZSBhIGxvb2sgYXQg
-dGhpcy4NCg0KPiBUaGlzIHNob3VsZCBkZWZpbml0ZWx5IHVzZSB0aGUgVjRMMiBBUEkuIEkgZ3Vl
-c3MgaXQgY291bGQgYmUgYWRkZWQNCj4gdG8gc3RhZ2luZy9tZWRpYSB3aXRoIGEgYmlnIGZhdCBU
-T0RPIHRoYXQgdGhpcyBzaG91bGQgYmUgY29udmVydGVkIHRvDQo+IHRoZSBWNEwyIG1lbTJtZW0g
-ZnJhbWV3b3JrLg0KPiANCj4gQnV0IGl0IG1ha2VzIG5vIHNlbnNlIHRvIHJlLWludmVudCB0aGUg
-VjRMMiBzdHJlYW1pbmcgQVBJIDotKQ0KPiANCj4gZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9teDJf
-ZW1tYXBycC5jIGRvZXMgc29tZXRoaW5nIHNpbWlsYXIgdG8gdGhpcy4NCj4gSXQncyBhIGxpdHRs
-ZSBiaXQgb3V0ZGF0ZWQgKG5vdCB1c2luZyB0aGUgbGF0ZXN0IG0ybSBoZWxwZXIgZnVuY3Rpb25z
-KQ0KPiBidXQgaXQgaXMgYSBnb29kIHN0YXJ0aW5nIHBvaW50Lg0KDQpJIGxvb2tlZCBhdCB0aGUg
-bXgyX2VtbWFwcnAuYyBhbmQgdGhlIFNhbXN1bmcgRy1TY2FsZXIgTTJNIGRyaXZlci4gSU1ITywg
-dGhlIG1haW4gZGlmZmVyZW5jZSBiZXR3ZWVuDQp0aGUgSGFyZHdhcmUgcmVnaXN0ZXJzL2NhcGFi
-aWxpdGllcyBpcyB0aGF0IG14Ml9lbW1hcHJwIGRyaXZlciBvciB0aGUgZ3NjIGRyaXZlciwgaGF2
-ZSBvbmUgc2NhbGluZyAiY2hhbm5lbCINCmlmIHdlIG1pZ2h0IGNhbGwgaXQuIFdoZXJlYXMgdGhl
-IEhXL0lQIEkgaGF2ZSBpbiBtaW5kIGhhcyA0LTggc2NhbGluZyBjaGFubmVscy4NCg0KQnkgYSBz
-Y2FsaW5nIGNoYW5uZWwsIEkgbWVhbiBhbiBlbnRpdHkgb2YgdGhlIEhXIG9yIElQLCB0aGF0IGNh
-biB0YWtlIHRoZSBmb2xsb3dpbmcgcGFyYW1ldGVycyA6DQogLSBJbnB1dCBoZWlnaHQsIHN0cmlk
-ZSAsIHdpZHRoLCBjb2xvciBmb3JtYXQsIGlucHV0IFkgYW5kIENiL0NyIHBoeXNpY2FsbHkgY29u
-dGlndW91cyBtZW1vcnkgcG9pbnRlcnMgDQogLSBPdXRwdXQgaGVpZ2h0LCBzdHJpZGUsIHdpZHRo
-LCBjb2xvciBmb3JtYXQsIG91dHB1dCBZIGFuZCBDYi9DciBwaHlzaWNhbGx5IGNvbnRpZ3VvdXMg
-IG1lbW9yeSBwb2ludGVycw0KDQpCYXNlZCBvbiB0aGUgYWJvdmUgcGFyYW1ldGVycywgd2hlbiB0
-aGUgYWJvdmUgYXJlIHByb3ZpZGVkIGFuZCB0aGUgSVAgaXMgc3RhcnRlZCwgd2UgZ2V0IGFuIGlu
-dGVycnVwdCBvbiBjb21wbGV0aW9uLg0KSSdtIHN1cmUgeW91IGFyZSBmYW1pbGlhciB3aXRoIHRo
-aXMgbW9kZWwuIEhvd2V2ZXIsIGluIHRoZSBjYXNlIG9mIHRoaXMgSVAsIHRoZXJlIGNvdWxkIGJl
-IDQtOCBzdWNoIGNoYW5uZWxzIGFuZCBhIHNpbmdsZSBpbnRlcnJ1cHQNCm9uIHRoZSBjb21wbGV0
-aW9uIG9mIHRoZSBhbGwgNC04IHNjYWxpbmcgb3BlcmF0aW9ucy4NCg0KSW4gdGhpcyBJUCwgd2Ug
-YXJlIHRyeWluZyB0byBoYXZlIDQtOCBpbnB1dCBzb3VyY2VzIGJlaW5nIHNjYWxlZCBieSB0aGlz
-IHNpbmdsZSBwaWVjZSBvZiBoYXJkd2FyZSwgYnkgdGltZSBtdWx0aXBsZXhpbmcuDQoNCkFuIGV4
-YW1wbGUgdXNlIGNhc2UgaXMgOg0KDQpGb3VyIGFwcGxpY2F0aW9ucyAoc291cmNlcykgd2lsbCBm
-ZWVkIChlbnF1ZXVlKSA0IGlucHV0IGJ1ZmZlcnMgdG8gdGhlIHNjYWxlciwgdGhlIHNjYWxlciBk
-cml2ZXIgd2lsbCBzeW5jaHJvbml6ZSB0aGUgcHJvZ3JhbW1pbmcgb2YgdGhlc2UgYnVmZmVycywg
-d2hlbiB0aGUgbnVtYmVyIG9mIGJ1ZmZlcnMgcmVjZWl2ZWQgIGJ5IHRoZSBkcml2ZXIgbWVldHMg
-b3VyIGJhdGNoIHNpemUgKHNheSBhIGJhdGNoIHNpemUgb2YgNCksIGl0IHdpbGwga2ljayBzdGFy
-dCB0aGUgSVAuIFRoZSBmb3VyIGFwcGxpY2F0aW9ucyAgd2lsbCBwb2xsIG9uIHRoZSBmZCwgdXBv
-biByZWNlaXZpbmcgYW4gaW50ZXJydXB0IGZyb20gdGhlIGhhcmR3YXJlIHRoZSBwb2xsIHdpbGwg
-dW5ibG9jay4gQW5kIGFsbCBmb3VyIGFwcGxpY2F0aW9ucyBjYW4gZGVxdWV1ZSB0aGVpciByZXNw
-ZWN0aXZlIGJ1ZmZlcnMgYW5kIGRpc3BsYXkgdGhlbSBvbiBhIHNpbmsuDQoNCkJ1dCBlYWNoICJj
-aGFubmVsIiBjYW4gYmUgc2V0IHRvIGRvIGFjY2VwdCBpdHMgb3duIGluZGl2aWR1YWwgaW5wdXQg
-YW5kIG91dHB1dCBmb3JtYXRzLiBXaGVuIEkgd2VudCB0aHJvdWdoIDoNCmh0dHBzOi8vd3d3Lmtl
-cm5lbC5vcmcvZG9jL2h0bWwvdjQuMTQvbWVkaWEvdWFwaS92NGwvb3Blbi5odG1sI211bHRpcGxl
-LW9wZW5zDQoNCkl0IGFwcGVhcnMsIG9uY2UgYW4gYXBwbGljYXRpb24gaGFzIGludm9rZWQgVklE
-SU9DX1JFUUJVRlMgb3IgVklESU9DX0NSRUFURV9CVUZTLCBvdGhlciBhcHBsaWNhdGlvbnMgY2Fu
-bm90IFZJRElPQ19TX0ZNVCBvbiB0aGVtLiBIb3dldmVyIHRvIG1heGltaXplIHRoZSBhdmFpbGFi
-bGUgbnVtYmVyIG9mIGNoYW5uZWxzLCBpdCB3b3VsZCBiZSBuZWNlc3NhcnkgdG8gYWxsb3cgc2V2
-ZXJhbCBhcHBsaWNhdGlvbnMgdG8gYmUgYWJsZSB0byANCnBlcmZvcm0gVklESU9DX1NfRk1UIG9u
-IHRoZSBkZXZpY2Ugbm9kZSBpbiB0aGUgY2FzZSBvZiB0aGlzIGhhcmR3YXJlIGFzIGRpZmZlcmVu
-dCBjaGFubmVscyBjYW4gYmUgZXhwZWN0ZWQgdG8gZGVhbCB3aXRoIGRpZmZlcmVudCBzY2FsaW5n
-IG9wZXJhdGlvbnMuDQoNCk9uZSBvcHRpb24gaXMgdG8gY3JlYXRlIGEgbG9naWNhbCAvZGV2L3Zp
-ZGVvWCBub2RlIGZvciBlYWNoIHN1Y2ggY2hhbm5lbCwgYW5kIGhhdmUgYSBwYXJlbnQgZHJpdmVy
-IHBlcmZvcm0gdGhlIGludGVycnVwdCBoYW5kbGluZywgYmF0Y2ggc2l6ZSBzZXR0aW5nIGFuZCBv
-dGhlciBzdWNoIGNvbW1vbiBmdW5jdGlvbmFsaXRpZXMuIElzIHRoZXJlIGEgd2F5IHRvIGFsbG93
-IG11bHRpcGxlIGFwcGxpY2F0aW9ucyB0YWxrIHRvIHRoZSBzYW1lIHZpZGVvIGRldmljZSBub2Rl
-L2ZpbGUgaGFuZGxlIHdpdGhvdXQgY3JlYXRpbmcgbG9naWNhbCB2aWRlbyBub2RlcyBmb3IgZWFj
-aCBjaGFubmVsID8NCg0KUGxlYXNlIGxldCBtZSBrbm93IGlmIHRoZSBkZXNjcmlwdGlvbiBvZiBI
-VyBpcyBub3QgY2xlYXIuIEkgd2lsbCBsb29rIGZvcndhcmQgdG8gaGVhciBjb21tZW50cyBmcm9t
-IHlvdS4NCg0KPiANCj4gU28gZm9yIHRoaXMgc2VyaWVzOg0KPiANCj4gTmFja2VkLWJ5OiBIYW5z
-IFZlcmt1aWwgPGhhbnMudmVya3VpbEBjaXNjby5jb20+DQo+IA0KPiBJZiB0aGlzIHdhcyBhZGRl
-ZCB0byBkcml2ZXJzL3N0YWdpbmcvbWVkaWEgaW5zdGVhZCBhbmQgd2l0aCBhbiB1cGRhdGVkDQo+
-IFRPRE8sIHRoZW4gd2UgY2FuIGFjY2VwdCBpdCwgYnV0IHdlIG5lZWQgdG8gc2VlIHNvbWUgcmVh
-bCBlZmZvcnQgYWZ0ZXJ3YXJkcw0KPiB0byBzd2l0Y2ggdGhpcyB0byB0aGUgcmlnaHQgQVBJLiBP
-dGhlcndpc2UgaXQgd2lsbCBiZSByZW1vdmVkIGFnYWluDQo+IGFmdGVyIGEgZmV3IGtlcm5lbCBj
-eWNsZXMuDQo+IA0KDQpNYW55IHRoYW5rcyBmb3IgcHJvdmlkaW5nIGEgcGF0aHdheSB0byBnZXQg
-dGhpcyBpbnRvIGRyaXZlcnMvc3RhZ2luZy9tZWRpYQ0KDQpJIHdpbGwgZHJvcCB0aGlzIHNlcmll
-cywgYW5kIHJlLXNlbmQgd2l0aCB0aGUgZHJpdmVyIGJlaW5nIHBsYWNlZCBpbiBkcml2ZXJzL3N0
-YWdpbmcvbWVkaWEuDQpJJ2xsIGFkZCBzb21lIHJlZmVyZW5jZXMgdG8gdGhpcyBjb252ZXJzYXRp
-b24sIHNvIGEgbmV3IHJldmlld2VyIGdldHMgc29tZSBjb250ZXh0IG9mIHdoYXQNCndhcyBkaXNj
-dXNzZWQuIEluIHRoZSBtZWFud2hpbGUgSSB3aWxsIGxvb2sgaW50byByZS13cml0aW5nIHRoaXMg
-dG8gdXRpbGl6ZSB0aGUgTTJNIFY0TDIgQVBJLg0KDQo+IFJlZ2FyZHMsDQo+IA0KPiAJSGFucw0K
-DQoNCkJlc3QgUmVnYXJkcywNClJvaGl0DQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPiBGcm9tOiBIYW5zIFZlcmt1aWwgW21haWx0bzpodmVya3VpbEB4czRhbGwubmxdDQo+IFNl
-bnQ6IEZyaWRheSwgTWFyY2ggMDksIDIwMTggMzo1OCBBTQ0KPiBUbzogR3JlZyBLSCA8Z3JlZ2to
-QGxpbnV4Zm91bmRhdGlvbi5vcmc+OyBSb2hpdCBBdGhhdmFsZQ0KPiA8UkFUSEFWQUxAeGlsaW54
-LmNvbT4NCj4gQ2M6IGRldmVsQGRyaXZlcmRldi5vc3Vvc2wub3JnOyBsaW51eC1tZWRpYUB2Z2Vy
-Lmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiAxLzNdIHN0YWdpbmc6IHhtMm12
-c2NhbGU6IERyaXZlciBzdXBwb3J0IGZvciBYaWxpbnggTTJNDQo+IFZpZGVvIFNjYWxlcg0KPiAN
-Cj4gT24gMjIvMDIvMTggMTQ6NDYsIEdyZWcgS0ggd3JvdGU6DQo+ID4gT24gV2VkLCBGZWIgMjEs
-IDIwMTggYXQgMDI6NDM6MTRQTSAtMDgwMCwgUm9oaXQgQXRoYXZhbGUgd3JvdGU6DQo+ID4+IFRo
-aXMgY29tbWl0IGFkZHMgZHJpdmVyIHN1cHBvcnQgZm9yIHRoZSBwcmUtcmVsZWFzZSBYaWxpbngg
-TTJNIFZpZGVvDQo+ID4+IFNjYWxlciBJUC4gVGhlcmUgYXJlIHRocmVlIHBhcnRzIHRvIHRoaXMg
-ZHJpdmVyIDoNCj4gPj4NCj4gPj4gIC0gVGhlIEhhcmR3YXJlL0lQIGxheWVyIHRoYXQgcmVhZHMg
-YW5kIHdyaXRlcyByZWdpc3RlciBvZiB0aGUgSVANCj4gPj4gICAgY29udGFpbmVkIGluIHRoZSBz
-Y2FsZXJfaHdfeG0ybS5jDQo+ID4+ICAtIFRoZSBzZXQgb2YgaW9jdGxzIHRoYXQgYXBwbGljYXRp
-b25zIHdvdWxkIG5lZWQgdG8ga25vdyBjb250YWluZWQNCj4gPj4gICAgaW4gaW9jdGxfeG0ybXZz
-Yy5oDQo+ID4+ICAtIFRoZSBjaGFyIGRyaXZlciB0aGF0IGNvbnN1bWVzIHRoZSBJUCBsYXllciBp
-biB4bTJtX3ZzY2FsZS5jDQo+ID4+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IFJvaGl0IEF0aGF2YWxl
-IDxyb2hpdC5hdGhhdmFsZUB4aWxpbnguY29tPg0KPiA+PiAtLS0NCj4gPg0KPiA+IEkgbmVlZCBh
-biBhY2sgZnJvbSB0aGUgbGludXgtbWVkaWEgbWFpbnRhaW5lcnMgYmVmb3JlIEkgY2FuIGNvbnNp
-ZGVyDQo+ID4gdGhpcyBmb3Igc3RhZ2luZywgYXMgdGhpcyByZWFsbHkgbG9va3MgbGlrZSBhbiAi
-b2RkIiB2aWRlbyBkcml2ZXIuLi4NCj4gDQo+IFRoaXMgc2hvdWxkIGRlZmluaXRlbHkgdXNlIHRo
-ZSBWNEwyIEFQSS4gSSBndWVzcyBpdCBjb3VsZCBiZSBhZGRlZA0KPiB0byBzdGFnaW5nL21lZGlh
-IHdpdGggYSBiaWcgZmF0IFRPRE8gdGhhdCB0aGlzIHNob3VsZCBiZSBjb252ZXJ0ZWQgdG8NCj4g
-dGhlIFY0TDIgbWVtMm1lbSBmcmFtZXdvcmsuDQo+IA0KPiBCdXQgaXQgbWFrZXMgbm8gc2Vuc2Ug
-dG8gcmUtaW52ZW50IHRoZSBWNEwyIHN0cmVhbWluZyBBUEkgOi0pDQo+IA0KPiBkcml2ZXJzL21l
-ZGlhL3BsYXRmb3JtL214Ml9lbW1hcHJwLmMgZG9lcyBzb21ldGhpbmcgc2ltaWxhciB0byB0aGlz
-Lg0KPiBJdCdzIGEgbGl0dGxlIGJpdCBvdXRkYXRlZCAobm90IHVzaW5nIHRoZSBsYXRlc3QgbTJt
-IGhlbHBlciBmdW5jdGlvbnMpDQo+IGJ1dCBpdCBpcyBhIGdvb2Qgc3RhcnRpbmcgcG9pbnQuDQo+
-IA0KPiBTbyBmb3IgdGhpcyBzZXJpZXM6DQo+IA0KPiBOYWNrZWQtYnk6IEhhbnMgVmVya3VpbCA8
-aGFucy52ZXJrdWlsQGNpc2NvLmNvbT4NCj4gDQo+IElmIHRoaXMgd2FzIGFkZGVkIHRvIGRyaXZl
-cnMvc3RhZ2luZy9tZWRpYSBpbnN0ZWFkIGFuZCB3aXRoIGFuIHVwZGF0ZWQNCj4gVE9ETywgdGhl
-biB3ZSBjYW4gYWNjZXB0IGl0LCBidXQgd2UgbmVlZCB0byBzZWUgc29tZSByZWFsIGVmZm9ydCBh
-ZnRlcndhcmRzDQo+IHRvIHN3aXRjaCB0aGlzIHRvIHRoZSByaWdodCBBUEkuIE90aGVyd2lzZSBp
-dCB3aWxsIGJlIHJlbW92ZWQgYWdhaW4NCj4gYWZ0ZXIgYSBmZXcga2VybmVsIGN5Y2xlcy4NCj4g
-DQo+IFJlZ2FyZHMsDQo+IA0KPiAJSGFucw0K
+On Tue, Mar 13, 2018 at 7:05 PM, Kieran Bingham
+<kieran.bingham+renesas@ideasonboard.com> wrote:
+> The use of the packed attribute can cause a performance penalty for
+> all accesses to the struct members, as the compiler will assume that the
+> structure has the potential to have an unaligned base.
+>
+> These structures are all correctly aligned and contain no holes, thus
+> the attribute is redundant and negatively impacts performance, so we
+> remove the attributes entirely.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
