@@ -1,1331 +1,468 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:47077 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752271AbeCOOjA (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.133]:38987 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751366AbeCNPit (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 10:39:00 -0400
-Date: Thu, 15 Mar 2018 15:38:56 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/4] media: i2c: Copy mt9t112 soc_camera sensor driver
-Message-ID: <20180315143856.GF16424@w540>
-References: <1520862185-17150-1-git-send-email-jacopo+renesas@jmondi.org>
- <1520862185-17150-2-git-send-email-jacopo+renesas@jmondi.org>
- <20180315113533.cwgf7g7sir7gyplk@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="27ZtN5FSuKKSZcBU"
-Content-Disposition: inline
-In-Reply-To: <20180315113533.cwgf7g7sir7gyplk@valkosipuli.retiisi.org.uk>
+        Wed, 14 Mar 2018 11:38:49 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux@roeck-us.net, corbet@lwn.net,
+        tj@kernel.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net,
+        viresh.kumar@linaro.org, herbert@gondor.apana.org.au,
+        davem@davemloft.net, bp@alien8.de, mchehab@kernel.org,
+        linus.walleij@linaro.org, wsa@the-dreams.de,
+        dmitry.torokhov@gmail.com, ulf.hansson@linaro.org,
+        boris.brezillon@bootlin.com, cyrille.pitchen@wedev4u.fr,
+        wg@grandegger.com, mkl@pengutronix.de,
+        alexandre.belloni@bootlin.com, broonie@kernel.org,
+        jic23@kernel.org, lars@metafoo.de, jslaby@suse.com,
+        stern@rowland.harvard.edu, b.zolnierkie@samsung.com,
+        shli@kernel.org, linux-watchdog@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-ide@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-can@vger.kernel.org, linux-pwm@vger.kernel.org,
+        linux-rtc@vger.kernel.org, linux-spi@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-raid@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 00/47] arch-removal: device drivers
+Date: Wed, 14 Mar 2018 16:35:13 +0100
+Message-Id: <20180314153603.3127932-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi driver maintainers,
 
---27ZtN5FSuKKSZcBU
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+I just posted one series with the removal of eight architectures,
+see https://lkml.org/lkml/2018/3/14/505 for details, or
+https://lwn.net/Articles/748074/ for more background.
 
-Hi Sakari,
-   thanks for looking into this!
+These are the device drivers that go along with them. I have already
+picked up the drivers for arch/metag/ into my tree, they were reviewed
+earlier.
 
-On Thu, Mar 15, 2018 at 01:35:34PM +0200, Sakari Ailus wrote:
-> Hi Jacopo,
->
-> I wonder if it'd make sense to just make all the changes to the driver and
-> then have it reviewed; I'm not sure the old driver can be said to have been
-> in a known-good state that'd be useful to compare against. I think you did
-> that with another driver as well.
->
+Please let me know if you have any concerns with the patch, or if you
+prefer to pick up the patches in your respective trees.  I created
+the patches with 'git format-patch -D', so they will not apply without
+manually removing those files.
 
-Well, I understand this is still debated, and I see your point.
-As far as I can tell the driver had been developed to work with SH4
-Ecovec boards and there tested.
+For anything else, I'd keep the removal patches in my asm-generic tree
+and will send a pull request for 4.17 along with the actual arch removal.
 
-I'm not sure I fully got you here though. Are you proposing to
-squash my next patch that cleans up the driver into this one and
-propose it as a completely new driver to be reviewed from scratch?
+       Arnd
 
-In the two previous driver I touched in this "remove soc_camera"
-journey (ov772x and tw9910) I have followed this same pattern: copy
-the soc_camera driver without removing the existing one, and pile on
-top my changes/cleanups in another patch. Then port the board code to
-use the new sensor driver, and the new CEU driver as well.
+Arnd Bergmann
+  edac: remove tile driver
+  net: tile: remove ethernet drivers
+  net: adi: remove blackfin ethernet drivers
+  net: 8390: remove m32r specific bits
+  net: remove cris etrax ethernet driver
+  net: smsc: remove m32r specific smc91x configuration
+  raid: remove tile specific raid6 implementation
+  rtc: remove tile driver
+  rtc: remove bfin driver
+  char: remove obsolete ds1302 rtc driver
+  char: remove tile-srom.c
+  char: remove blackfin OTP driver
+  pcmcia: remove m32r drivers
+  pcmcia: remove blackfin driver
+  ASoC: remove blackfin drivers
+  video/logo: remove obsolete logo files
+  fbdev: remove blackfin drivers
+  fbdev: s1d13xxxfb: remove m32r specific hacks
+  crypto: remove blackfin CRC driver
+  media: platform: remove blackfin capture driver
+  media: platform: remove m32r specific arv driver
+  cpufreq: remove blackfin driver
+  cpufreq: remove cris specific drivers
+  gpio: remove etraxfs driver
+  pinctrl: remove adi2/blackfin drivers
+  ata: remove bf54x driver
+  input: keyboard: remove bf54x driver
+  input: misc: remove blackfin rotary driver
+  mmc: remove bfin_sdh driver
+  can: remove bfin_can driver
+  watchdog: remove bfin_wdt driver
+  mtd: maps: remove bfin-async-flash driver
+  mtd: nand: remove bf5xx_nand driver
+  spi: remove blackfin related host drivers
+  i2c: remove bfin-twi driver
+  pwm: remobe pwm-bfin driver
+  usb: host: remove tilegx platform glue
+  usb: musb: remove blackfin port
+  usb: isp1362: remove blackfin arch glue
+  serial: remove cris/etrax uart drivers
+  serial: remove blackfin drivers
+  serial: remove m32r_sio driver
+  serial: remove tile uart driver
+  tty: remove bfin_jtag_comm and hvc_bfin_jtag drivers
+  tty: hvc: remove tile driver
+  staging: irda: remove bfin_sir driver
+  staging: iio: remove iio-trig-bfin-timer driver
 
-Also, how would you like to proceed here? Hans sent a pull request for
-the series, should I go with incremental changes on top of this?
+ .../devicetree/bindings/gpio/gpio-etraxfs.txt      |   22 -
+ .../bindings/serial/axis,etraxfs-uart.txt          |   22 -
+ Documentation/watchdog/watchdog-parameters.txt     |    5 -
+ MAINTAINERS                                        |    8 -
+ drivers/ata/Kconfig                                |    9 -
+ drivers/ata/Makefile                               |    1 -
+ drivers/ata/pata_bf54x.c                           | 1703 --------
+ drivers/char/Kconfig                               |   48 -
+ drivers/char/Makefile                              |    3 -
+ drivers/char/bfin-otp.c                            |  237 --
+ drivers/char/ds1302.c                              |  357 --
+ drivers/char/tile-srom.c                           |  475 ---
+ drivers/cpufreq/Makefile                           |    3 -
+ drivers/cpufreq/blackfin-cpufreq.c                 |  217 -
+ drivers/cpufreq/cris-artpec3-cpufreq.c             |   93 -
+ drivers/cpufreq/cris-etraxfs-cpufreq.c             |   92 -
+ drivers/crypto/Kconfig                             |    7 -
+ drivers/crypto/Makefile                            |    1 -
+ drivers/crypto/bfin_crc.c                          |  753 ----
+ drivers/crypto/bfin_crc.h                          |  124 -
+ drivers/edac/Kconfig                               |    8 -
+ drivers/edac/Makefile                              |    2 -
+ drivers/edac/tile_edac.c                           |  265 --
+ drivers/gpio/Kconfig                               |    9 -
+ drivers/gpio/Makefile                              |    1 -
+ drivers/gpio/gpio-etraxfs.c                        |  475 ---
+ drivers/i2c/busses/Kconfig                         |   18 -
+ drivers/i2c/busses/Makefile                        |    1 -
+ drivers/i2c/busses/i2c-bfin-twi.c                  |  737 ----
+ drivers/input/keyboard/Kconfig                     |    9 -
+ drivers/input/keyboard/Makefile                    |    1 -
+ drivers/input/keyboard/bf54x-keys.c                |  396 --
+ drivers/input/misc/Kconfig                         |    9 -
+ drivers/input/misc/Makefile                        |    1 -
+ drivers/input/misc/bfin_rotary.c                   |  294 --
+ drivers/media/platform/Kconfig                     |   22 -
+ drivers/media/platform/Makefile                    |    4 -
+ drivers/media/platform/arv.c                       |  884 ----
+ drivers/media/platform/blackfin/Kconfig            |   16 -
+ drivers/media/platform/blackfin/Makefile           |    2 -
+ drivers/media/platform/blackfin/bfin_capture.c     |  983 -----
+ drivers/media/platform/blackfin/ppi.c              |  361 --
+ drivers/mmc/host/Kconfig                           |   19 -
+ drivers/mmc/host/Makefile                          |    1 -
+ drivers/mmc/host/bfin_sdh.c                        |  679 ----
+ drivers/mtd/maps/Kconfig                           |   10 -
+ drivers/mtd/maps/Makefile                          |    1 -
+ drivers/mtd/maps/bfin-async-flash.c                |  196 -
+ drivers/mtd/nand/raw/Kconfig                       |   32 -
+ drivers/mtd/nand/raw/Makefile                      |    1 -
+ drivers/mtd/nand/raw/bf5xx_nand.c                  |  861 ----
+ drivers/net/Makefile                               |    1 -
+ drivers/net/can/Kconfig                            |    9 -
+ drivers/net/can/Makefile                           |    1 -
+ drivers/net/can/bfin_can.c                         |  784 ----
+ drivers/net/cris/Makefile                          |    1 -
+ drivers/net/cris/eth_v10.c                         | 1742 --------
+ drivers/net/ethernet/8390/Kconfig                  |    3 +-
+ drivers/net/ethernet/8390/ne.c                     |   23 +-
+ drivers/net/ethernet/Kconfig                       |    2 -
+ drivers/net/ethernet/Makefile                      |    2 -
+ drivers/net/ethernet/adi/Kconfig                   |   66 -
+ drivers/net/ethernet/adi/Makefile                  |    5 -
+ drivers/net/ethernet/adi/bfin_mac.c                | 1881 ---------
+ drivers/net/ethernet/adi/bfin_mac.h                |  104 -
+ drivers/net/ethernet/smsc/Kconfig                  |    4 +-
+ drivers/net/ethernet/smsc/smc91x.h                 |   26 -
+ drivers/net/ethernet/tile/Kconfig                  |   18 -
+ drivers/net/ethernet/tile/Makefile                 |   11 -
+ drivers/net/ethernet/tile/tilegx.c                 | 2279 -----------
+ drivers/net/ethernet/tile/tilepro.c                | 2397 -----------
+ drivers/pcmcia/Kconfig                             |   26 -
+ drivers/pcmcia/Makefile                            |    3 -
+ drivers/pcmcia/bfin_cf_pcmcia.c                    |  316 --
+ drivers/pcmcia/m32r_cfc.c                          |  786 ----
+ drivers/pcmcia/m32r_cfc.h                          |   88 -
+ drivers/pcmcia/m32r_pcc.c                          |  763 ----
+ drivers/pcmcia/m32r_pcc.h                          |   66 -
+ drivers/pinctrl/Kconfig                            |   19 -
+ drivers/pinctrl/Makefile                           |    3 -
+ drivers/pinctrl/pinctrl-adi2-bf54x.c               |  588 ---
+ drivers/pinctrl/pinctrl-adi2-bf60x.c               |  517 ---
+ drivers/pinctrl/pinctrl-adi2.c                     | 1114 -----
+ drivers/pinctrl/pinctrl-adi2.h                     |   75 -
+ drivers/pwm/Kconfig                                |    9 -
+ drivers/pwm/Makefile                               |    1 -
+ drivers/pwm/pwm-bfin.c                             |  157 -
+ drivers/rtc/Kconfig                                |   17 -
+ drivers/rtc/Makefile                               |    2 -
+ drivers/rtc/rtc-bfin.c                             |  448 ---
+ drivers/rtc/rtc-tile.c                             |  143 -
+ drivers/spi/Kconfig                                |   19 -
+ drivers/spi/Makefile                               |    3 -
+ drivers/spi/spi-adi-v3.c                           |  984 -----
+ drivers/spi/spi-bfin-sport.c                       |  919 -----
+ drivers/spi/spi-bfin5xx.c                          | 1462 -------
+ drivers/staging/iio/Kconfig                        |    1 -
+ drivers/staging/iio/Makefile                       |    1 -
+ drivers/staging/iio/trigger/Kconfig                |   19 -
+ drivers/staging/iio/trigger/Makefile               |    5 -
+ drivers/staging/iio/trigger/iio-trig-bfin-timer.c  |  292 --
+ drivers/staging/iio/trigger/iio-trig-bfin-timer.h  |   25 -
+ drivers/staging/irda/drivers/Kconfig               |   45 -
+ drivers/staging/irda/drivers/Makefile              |    1 -
+ drivers/staging/irda/drivers/bfin_sir.c            |  819 ----
+ drivers/staging/irda/drivers/bfin_sir.h            |   93 -
+ drivers/tty/Kconfig                                |   13 -
+ drivers/tty/Makefile                               |    1 -
+ drivers/tty/bfin_jtag_comm.c                       |  353 --
+ drivers/tty/hvc/Kconfig                            |    9 -
+ drivers/tty/hvc/Makefile                           |    2 -
+ drivers/tty/hvc/hvc_bfin_jtag.c                    |  104 -
+ drivers/tty/hvc/hvc_tile.c                         |  196 -
+ drivers/tty/serial/Kconfig                         |  198 -
+ drivers/tty/serial/Makefile                        |    6 -
+ drivers/tty/serial/bfin_sport_uart.c               |  937 -----
+ drivers/tty/serial/bfin_sport_uart.h               |   86 -
+ drivers/tty/serial/bfin_uart.c                     | 1551 -------
+ drivers/tty/serial/crisv10.c                       | 4248 --------------------
+ drivers/tty/serial/crisv10.h                       |  133 -
+ drivers/tty/serial/etraxfs-uart.c                  |  960 -----
+ drivers/tty/serial/m32r_sio.c                      | 1053 -----
+ drivers/tty/serial/m32r_sio_reg.h                  |  150 -
+ drivers/tty/serial/tilegx.c                        |  689 ----
+ drivers/usb/host/Kconfig                           |    1 +
+ drivers/usb/host/ehci-hcd.c                        |    5 -
+ drivers/usb/host/ehci-tilegx.c                     |  207 -
+ drivers/usb/host/isp1362.h                         |   44 -
+ drivers/usb/host/ohci-hcd.c                        |   18 -
+ drivers/usb/host/ohci-tilegx.c                     |  196 -
+ drivers/usb/musb/Kconfig                           |   10 +-
+ drivers/usb/musb/Makefile                          |    1 -
+ drivers/usb/musb/blackfin.c                        |  623 ---
+ drivers/usb/musb/blackfin.h                        |   81 -
+ drivers/usb/musb/musb_core.c                       |    5 -
+ drivers/usb/musb/musb_core.h                       |   30 -
+ drivers/usb/musb/musb_debugfs.c                    |    2 -
+ drivers/usb/musb/musb_dma.h                        |   11 -
+ drivers/usb/musb/musb_gadget.c                     |   35 -
+ drivers/usb/musb/musb_regs.h                       |  182 -
+ drivers/usb/musb/musbhsdma.c                       |    5 -
+ drivers/usb/musb/musbhsdma.h                       |   64 -
+ drivers/video/fbdev/Kconfig                        |  103 -
+ drivers/video/fbdev/Makefile                       |    5 -
+ drivers/video/fbdev/bf537-lq035.c                  |  891 ----
+ drivers/video/fbdev/bf54x-lq043fb.c                |  764 ----
+ drivers/video/fbdev/bfin-lq035q1-fb.c              |  864 ----
+ drivers/video/fbdev/bfin-t350mcqb-fb.c             |  669 ---
+ drivers/video/fbdev/bfin_adv7393fb.c               |  828 ----
+ drivers/video/fbdev/bfin_adv7393fb.h               |  319 --
+ drivers/video/fbdev/s1d13xxxfb.c                   |   10 -
+ drivers/video/logo/Kconfig                         |   15 -
+ drivers/video/logo/Makefile                        |    3 -
+ drivers/video/logo/logo.c                          |   12 -
+ drivers/video/logo/logo_blackfin_clut224.ppm       | 1127 ------
+ drivers/video/logo/logo_blackfin_vga16.ppm         | 1127 ------
+ drivers/video/logo/logo_m32r_clut224.ppm           | 1292 ------
+ drivers/watchdog/Kconfig                           |   17 -
+ drivers/watchdog/Makefile                          |    7 -
+ drivers/watchdog/bfin_wdt.c                        |  476 ---
+ include/linux/bfin_mac.h                           |   30 -
+ include/linux/linux_logo.h                         |    3 -
+ include/linux/platform_data/bfin_rotary.h          |  117 -
+ include/linux/platform_data/pinctrl-adi2.h         |   40 -
+ include/linux/raid/pq.h                            |    1 -
+ include/linux/usb/musb.h                           |    7 -
+ include/linux/usb/tilegx.h                         |   35 -
+ include/media/blackfin/bfin_capture.h              |   39 -
+ include/media/blackfin/ppi.h                       |   94 -
+ lib/raid6/Makefile                                 |    6 -
+ lib/raid6/algos.c                                  |    3 -
+ lib/raid6/test/Makefile                            |    7 -
+ lib/raid6/tilegx.uc                                |   87 -
+ sound/soc/Kconfig                                  |    1 -
+ sound/soc/Makefile                                 |    1 -
+ sound/soc/blackfin/Kconfig                         |  205 -
+ sound/soc/blackfin/Makefile                        |   40 -
+ sound/soc/blackfin/bf5xx-ac97-pcm.c                |  480 ---
+ sound/soc/blackfin/bf5xx-ac97.c                    |  388 --
+ sound/soc/blackfin/bf5xx-ac97.h                    |   57 -
+ sound/soc/blackfin/bf5xx-ad1836.c                  |  109 -
+ sound/soc/blackfin/bf5xx-ad193x.c                  |  131 -
+ sound/soc/blackfin/bf5xx-ad1980.c                  |  109 -
+ sound/soc/blackfin/bf5xx-ad73311.c                 |  212 -
+ sound/soc/blackfin/bf5xx-i2s-pcm.c                 |  373 --
+ sound/soc/blackfin/bf5xx-i2s-pcm.h                 |   17 -
+ sound/soc/blackfin/bf5xx-i2s.c                     |  391 --
+ sound/soc/blackfin/bf5xx-sport.c                   | 1102 -----
+ sound/soc/blackfin/bf5xx-sport.h                   |  174 -
+ sound/soc/blackfin/bf5xx-ssm2602.c                 |  126 -
+ sound/soc/blackfin/bf6xx-i2s.c                     |  239 --
+ sound/soc/blackfin/bf6xx-sport.c                   |  425 --
+ sound/soc/blackfin/bf6xx-sport.h                   |   82 -
+ sound/soc/blackfin/bfin-eval-adau1373.c            |  173 -
+ sound/soc/blackfin/bfin-eval-adau1701.c            |  113 -
+ sound/soc/blackfin/bfin-eval-adau1x61.c            |  142 -
+ sound/soc/blackfin/bfin-eval-adau1x81.c            |  129 -
+ sound/soc/blackfin/bfin-eval-adav80x.c             |  145 -
+ 198 files changed, 7 insertions(+), 56230 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/gpio/gpio-etraxfs.txt
+ delete mode 100644 Documentation/devicetree/bindings/serial/axis,etraxfs-uart.txt
+ delete mode 100644 drivers/ata/pata_bf54x.c
+ delete mode 100644 drivers/char/bfin-otp.c
+ delete mode 100644 drivers/char/ds1302.c
+ delete mode 100644 drivers/char/tile-srom.c
+ delete mode 100644 drivers/cpufreq/blackfin-cpufreq.c
+ delete mode 100644 drivers/cpufreq/cris-artpec3-cpufreq.c
+ delete mode 100644 drivers/cpufreq/cris-etraxfs-cpufreq.c
+ delete mode 100644 drivers/crypto/bfin_crc.c
+ delete mode 100644 drivers/crypto/bfin_crc.h
+ delete mode 100644 drivers/edac/tile_edac.c
+ delete mode 100644 drivers/gpio/gpio-etraxfs.c
+ delete mode 100644 drivers/i2c/busses/i2c-bfin-twi.c
+ delete mode 100644 drivers/input/keyboard/bf54x-keys.c
+ delete mode 100644 drivers/input/misc/bfin_rotary.c
+ delete mode 100644 drivers/media/platform/arv.c
+ delete mode 100644 drivers/media/platform/blackfin/Kconfig
+ delete mode 100644 drivers/media/platform/blackfin/Makefile
+ delete mode 100644 drivers/media/platform/blackfin/bfin_capture.c
+ delete mode 100644 drivers/media/platform/blackfin/ppi.c
+ delete mode 100644 drivers/mmc/host/bfin_sdh.c
+ delete mode 100644 drivers/mtd/maps/bfin-async-flash.c
+ delete mode 100644 drivers/mtd/nand/raw/bf5xx_nand.c
+ delete mode 100644 drivers/net/can/bfin_can.c
+ delete mode 100644 drivers/net/cris/Makefile
+ delete mode 100644 drivers/net/cris/eth_v10.c
+ delete mode 100644 drivers/net/ethernet/adi/Kconfig
+ delete mode 100644 drivers/net/ethernet/adi/Makefile
+ delete mode 100644 drivers/net/ethernet/adi/bfin_mac.c
+ delete mode 100644 drivers/net/ethernet/adi/bfin_mac.h
+ delete mode 100644 drivers/net/ethernet/tile/Kconfig
+ delete mode 100644 drivers/net/ethernet/tile/Makefile
+ delete mode 100644 drivers/net/ethernet/tile/tilegx.c
+ delete mode 100644 drivers/net/ethernet/tile/tilepro.c
+ delete mode 100644 drivers/pcmcia/bfin_cf_pcmcia.c
+ delete mode 100644 drivers/pcmcia/m32r_cfc.c
+ delete mode 100644 drivers/pcmcia/m32r_cfc.h
+ delete mode 100644 drivers/pcmcia/m32r_pcc.c
+ delete mode 100644 drivers/pcmcia/m32r_pcc.h
+ delete mode 100644 drivers/pinctrl/pinctrl-adi2-bf54x.c
+ delete mode 100644 drivers/pinctrl/pinctrl-adi2-bf60x.c
+ delete mode 100644 drivers/pinctrl/pinctrl-adi2.c
+ delete mode 100644 drivers/pinctrl/pinctrl-adi2.h
+ delete mode 100644 drivers/pwm/pwm-bfin.c
+ delete mode 100644 drivers/rtc/rtc-bfin.c
+ delete mode 100644 drivers/rtc/rtc-tile.c
+ delete mode 100644 drivers/spi/spi-adi-v3.c
+ delete mode 100644 drivers/spi/spi-bfin-sport.c
+ delete mode 100644 drivers/spi/spi-bfin5xx.c
+ delete mode 100644 drivers/staging/iio/trigger/Kconfig
+ delete mode 100644 drivers/staging/iio/trigger/Makefile
+ delete mode 100644 drivers/staging/iio/trigger/iio-trig-bfin-timer.c
+ delete mode 100644 drivers/staging/iio/trigger/iio-trig-bfin-timer.h
+ delete mode 100644 drivers/staging/irda/drivers/bfin_sir.c
+ delete mode 100644 drivers/staging/irda/drivers/bfin_sir.h
+ delete mode 100644 drivers/tty/bfin_jtag_comm.c
+ delete mode 100644 drivers/tty/hvc/hvc_bfin_jtag.c
+ delete mode 100644 drivers/tty/hvc/hvc_tile.c
+ delete mode 100644 drivers/tty/serial/bfin_sport_uart.c
+ delete mode 100644 drivers/tty/serial/bfin_sport_uart.h
+ delete mode 100644 drivers/tty/serial/bfin_uart.c
+ delete mode 100644 drivers/tty/serial/crisv10.c
+ delete mode 100644 drivers/tty/serial/crisv10.h
+ delete mode 100644 drivers/tty/serial/etraxfs-uart.c
+ delete mode 100644 drivers/tty/serial/m32r_sio.c
+ delete mode 100644 drivers/tty/serial/m32r_sio_reg.h
+ delete mode 100644 drivers/tty/serial/tilegx.c
+ delete mode 100644 drivers/usb/host/ehci-tilegx.c
+ delete mode 100644 drivers/usb/host/ohci-tilegx.c
+ delete mode 100644 drivers/usb/musb/blackfin.c
+ delete mode 100644 drivers/usb/musb/blackfin.h
+ delete mode 100644 drivers/video/fbdev/bf537-lq035.c
+ delete mode 100644 drivers/video/fbdev/bf54x-lq043fb.c
+ delete mode 100644 drivers/video/fbdev/bfin-lq035q1-fb.c
+ delete mode 100644 drivers/video/fbdev/bfin-t350mcqb-fb.c
+ delete mode 100644 drivers/video/fbdev/bfin_adv7393fb.c
+ delete mode 100644 drivers/video/fbdev/bfin_adv7393fb.h
+ delete mode 100644 drivers/video/logo/logo_blackfin_clut224.ppm
+ delete mode 100644 drivers/video/logo/logo_blackfin_vga16.ppm
+ delete mode 100644 drivers/video/logo/logo_m32r_clut224.ppm
+ delete mode 100644 drivers/watchdog/bfin_wdt.c
+ delete mode 100644 include/linux/bfin_mac.h
+ delete mode 100644 include/linux/platform_data/bfin_rotary.h
+ delete mode 100644 include/linux/platform_data/pinctrl-adi2.h
+ delete mode 100644 include/linux/usb/tilegx.h
+ delete mode 100644 include/media/blackfin/bfin_capture.h
+ delete mode 100644 include/media/blackfin/ppi.h
+ delete mode 100644 lib/raid6/tilegx.uc
+ delete mode 100644 sound/soc/blackfin/Kconfig
+ delete mode 100644 sound/soc/blackfin/Makefile
+ delete mode 100644 sound/soc/blackfin/bf5xx-ac97-pcm.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-ac97.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-ac97.h
+ delete mode 100644 sound/soc/blackfin/bf5xx-ad1836.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-ad193x.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-ad1980.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-ad73311.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-i2s-pcm.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-i2s-pcm.h
+ delete mode 100644 sound/soc/blackfin/bf5xx-i2s.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-sport.c
+ delete mode 100644 sound/soc/blackfin/bf5xx-sport.h
+ delete mode 100644 sound/soc/blackfin/bf5xx-ssm2602.c
+ delete mode 100644 sound/soc/blackfin/bf6xx-i2s.c
+ delete mode 100644 sound/soc/blackfin/bf6xx-sport.c
+ delete mode 100644 sound/soc/blackfin/bf6xx-sport.h
+ delete mode 100644 sound/soc/blackfin/bfin-eval-adau1373.c
+ delete mode 100644 sound/soc/blackfin/bfin-eval-adau1701.c
+ delete mode 100644 sound/soc/blackfin/bfin-eval-adau1x61.c
+ delete mode 100644 sound/soc/blackfin/bfin-eval-adau1x81.c
+ delete mode 100644 sound/soc/blackfin/bfin-eval-adav80x.c
 
-> On Mon, Mar 12, 2018 at 02:43:02PM +0100, Jacopo Mondi wrote:
-> > Copy the soc_camera based driver in v4l2 sensor driver directory.
-> > This commit just copies the original file without modifying it.
-> > No modification to KConfig and Makefile as soc_camera framework
-> > dependencies need to be removed first in next commit.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/i2c/mt9t112.c | 1163 +++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 1163 insertions(+)
-> >  create mode 100644 drivers/media/i2c/mt9t112.c
-> >
-> > diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
-> > new file mode 100644
-> > index 0000000..297d22e
-> > --- /dev/null
-> > +++ b/drivers/media/i2c/mt9t112.c
-> > @@ -0,0 +1,1163 @@
-> > +/*
-> > + * mt9t112 Camera Driver
-> > + *
-> > + * Copyright (C) 2009 Renesas Solutions Corp.
-> > + * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> > + *
-> > + * Based on ov772x driver, mt9m111 driver,
-> > + *
-> > + * Copyright (C) 2008 Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> > + * Copyright (C) 2008, Robert Jarzmik <robert.jarzmik@free.fr>
-> > + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-> > + * Copyright (C) 2008 Magnus Damm
-> > + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/delay.h>
-> > +#include <linux/i2c.h>
-> > +#include <linux/init.h>
-> > +#include <linux/module.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/v4l2-mediabus.h>
-> > +#include <linux/videodev2.h>
-> > +
-> > +#include <media/i2c/mt9t112.h>
-> > +#include <media/soc_camera.h>
-> > +#include <media/v4l2-clk.h>
-> > +#include <media/v4l2-common.h>
-> > +#include <media/v4l2-image-sizes.h>
-> > +
-> > +/* you can check PLL/clock info */
-> > +/* #define EXT_CLOCK 24000000 */
-> > +
-> > +/************************************************************************
-> > +			macro
-> > +************************************************************************/
-> > +/*
-> > + * frame size
-> > + */
-> > +#define MAX_WIDTH   2048
-> > +#define MAX_HEIGHT  1536
-> > +
-> > +/*
-> > + * macro of read/write
-> > + */
-> > +#define ECHECKER(ret, x)		\
-> > +	do {				\
-> > +		(ret) = (x);		\
-> > +		if ((ret) < 0)		\
-> > +			return (ret);	\
->
-> I think the code would be easier to follow without macros like this one.
->
-
-Yes, I agree, but again, not my code and already in mainline, so I
-felt uncomfortable chopping away pieces with an axe just because "I didn't
-like it". But if we're going for a major review I can be a bit more
-aggressive and address your comments.
-
-> > +	} while (0)
-> > +
-> > +#define mt9t112_reg_write(ret, client, a, b) \
-> > +	ECHECKER(ret, __mt9t112_reg_write(client, a, b))
-> > +#define mt9t112_mcu_write(ret, client, a, b) \
-> > +	ECHECKER(ret, __mt9t112_mcu_write(client, a, b))
-> > +
-> > +#define mt9t112_reg_mask_set(ret, client, a, b, c) \
-> > +	ECHECKER(ret, __mt9t112_reg_mask_set(client, a, b, c))
-> > +#define mt9t112_mcu_mask_set(ret, client, a, b, c) \
-> > +	ECHECKER(ret, __mt9t112_mcu_mask_set(client, a, b, c))
-> > +
-> > +#define mt9t112_reg_read(ret, client, a) \
-> > +	ECHECKER(ret, __mt9t112_reg_read(client, a))
-> > +
-> > +/*
-> > + * Logical address
-> > + */
-> > +#define _VAR(id, offset, base)	(base | (id & 0x1f) << 10 | (offset & 0x3ff))
-> > +#define VAR(id, offset)  _VAR(id, offset, 0x0000)
-> > +#define VAR8(id, offset) _VAR(id, offset, 0x8000)
-> > +
-> > +/************************************************************************
-> > +			struct
-> > +************************************************************************/
-> > +struct mt9t112_format {
-> > +	u32 code;
-> > +	enum v4l2_colorspace colorspace;
-> > +	u16 fmt;
-> > +	u16 order;
-> > +};
-> > +
-> > +struct mt9t112_priv {
-> > +	struct v4l2_subdev		 subdev;
-> > +	struct mt9t112_camera_info	*info;
-> > +	struct i2c_client		*client;
-> > +	struct v4l2_rect		 frame;
-> > +	struct v4l2_clk			*clk;
-> > +	const struct mt9t112_format	*format;
-> > +	int				 num_formats;
-> > +	u32				 flags;
-> > +/* for flags */
-> > +#define INIT_DONE	(1 << 0)
-> > +#define PCLK_RISING	(1 << 1)
-> > +};
-> > +
-> > +/************************************************************************
-> > +			supported format
-> > +************************************************************************/
-> > +
-> > +static const struct mt9t112_format mt9t112_cfmts[] = {
-> > +	{
-> > +		.code		= MEDIA_BUS_FMT_UYVY8_2X8,
-> > +		.colorspace	= V4L2_COLORSPACE_SRGB,
-> > +		.fmt		= 1,
-> > +		.order		= 0,
-> > +	}, {
-> > +		.code		= MEDIA_BUS_FMT_VYUY8_2X8,
-> > +		.colorspace	= V4L2_COLORSPACE_SRGB,
-> > +		.fmt		= 1,
-> > +		.order		= 1,
-> > +	}, {
-> > +		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
-> > +		.colorspace	= V4L2_COLORSPACE_SRGB,
-> > +		.fmt		= 1,
-> > +		.order		= 2,
-> > +	}, {
-> > +		.code		= MEDIA_BUS_FMT_YVYU8_2X8,
-> > +		.colorspace	= V4L2_COLORSPACE_SRGB,
-> > +		.fmt		= 1,
-> > +		.order		= 3,
-> > +	}, {
-> > +		.code		= MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
-> > +		.colorspace	= V4L2_COLORSPACE_SRGB,
-> > +		.fmt		= 8,
-> > +		.order		= 2,
-> > +	}, {
-> > +		.code		= MEDIA_BUS_FMT_RGB565_2X8_LE,
-> > +		.colorspace	= V4L2_COLORSPACE_SRGB,
-> > +		.fmt		= 4,
-> > +		.order		= 2,
-> > +	},
-> > +};
-> > +
-> > +/************************************************************************
-> > +			general function
-> > +************************************************************************/
-> > +static struct mt9t112_priv *to_mt9t112(const struct i2c_client *client)
-> > +{
-> > +	return container_of(i2c_get_clientdata(client),
-> > +			    struct mt9t112_priv,
-> > +			    subdev);
-> > +}
-> > +
-> > +static int __mt9t112_reg_read(const struct i2c_client *client, u16 command)
-> > +{
-> > +	struct i2c_msg msg[2];
-> > +	u8 buf[2];
-> > +	int ret;
-> > +
-> > +	command = swab16(command);
-> > +
-> > +	msg[0].addr  = client->addr;
-> > +	msg[0].flags = 0;
-> > +	msg[0].len   = 2;
-> > +	msg[0].buf   = (u8 *)&command;
-> > +
-> > +	msg[1].addr  = client->addr;
-> > +	msg[1].flags = I2C_M_RD;
-> > +	msg[1].len   = 2;
-> > +	msg[1].buf   = buf;
-> > +
-> > +	/*
-> > +	 * if return value of this function is < 0,
-> > +	 * it mean error.
-> > +	 * else, under 16bit is valid data.
-> > +	 */
-> > +	ret = i2c_transfer(client->adapter, msg, 2);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	memcpy(&ret, buf, 2);
-> > +	return swab16(ret);
-> > +}
-> > +
-> > +static int __mt9t112_reg_write(const struct i2c_client *client,
-> > +			       u16 command, u16 data)
-> > +{
-> > +	struct i2c_msg msg;
-> > +	u8 buf[4];
-> > +	int ret;
-> > +
-> > +	command = swab16(command);
-> > +	data = swab16(data);
->
-> Ouch. This presumably works on little endian systems *only*. Same in the
-> above functions.
-
-cpu_to_be16() here and everywhere else?
-
->
-> > +
-> > +	memcpy(buf + 0, &command, 2);
-> > +	memcpy(buf + 2, &data,    2);
->
-> Just use put_unaligned_be16(), that's all you need.
->
-> > +
-> > +	msg.addr  = client->addr;
-> > +	msg.flags = 0;
-> > +	msg.len   = 4;
-> > +	msg.buf   = buf;
-> > +
-> > +	/*
-> > +	 * i2c_transfer return message length,
-> > +	 * but this function should return 0 if correct case
-> > +	 */
-> > +	ret = i2c_transfer(client->adapter, &msg, 1);
-> > +	if (ret >= 0)
-> > +		ret = 0;
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int __mt9t112_reg_mask_set(const struct i2c_client *client,
-> > +				  u16  command,
-> > +				  u16  mask,
-> > +				  u16  set)
-> > +{
-> > +	int val = __mt9t112_reg_read(client, command);
-> > +	if (val < 0)
-> > +		return val;
-> > +
-> > +	val &= ~mask;
-> > +	val |= set & mask;
-> > +
-> > +	return __mt9t112_reg_write(client, command, val);
-> > +}
-> > +
-> > +/* mcu access */
-> > +static int __mt9t112_mcu_read(const struct i2c_client *client, u16 command)
-> > +{
-> > +	int ret;
-> > +
-> > +	ret = __mt9t112_reg_write(client, 0x098E, command);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	return __mt9t112_reg_read(client, 0x0990);
-> > +}
-> > +
-> > +static int __mt9t112_mcu_write(const struct i2c_client *client,
-> > +			       u16 command, u16 data)
-> > +{
-> > +	int ret;
-> > +
-> > +	ret = __mt9t112_reg_write(client, 0x098E, command);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	return __mt9t112_reg_write(client, 0x0990, data);
-> > +}
-> > +
-> > +static int __mt9t112_mcu_mask_set(const struct i2c_client *client,
-> > +				  u16  command,
-> > +				  u16  mask,
-> > +				  u16  set)
-> > +{
-> > +	int val = __mt9t112_mcu_read(client, command);
-> > +	if (val < 0)
-> > +		return val;
-> > +
-> > +	val &= ~mask;
-> > +	val |= set & mask;
-> > +
-> > +	return __mt9t112_mcu_write(client, command, val);
-> > +}
-> > +
-> > +static int mt9t112_reset(const struct i2c_client *client)
-> > +{
-> > +	int ret;
-> > +
-> > +	mt9t112_reg_mask_set(ret, client, 0x001a, 0x0001, 0x0001);
-> > +	msleep(1);
-> > +	mt9t112_reg_mask_set(ret, client, 0x001a, 0x0001, 0x0000);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +#ifndef EXT_CLOCK
-> > +#define CLOCK_INFO(a, b)
-> > +#else
-> > +#define CLOCK_INFO(a, b) mt9t112_clock_info(a, b)
-> > +static int mt9t112_clock_info(const struct i2c_client *client, u32 ext)
-> > +{
-> > +	int m, n, p1, p2, p3, p4, p5, p6, p7;
-> > +	u32 vco, clk;
-> > +	char *enable;
-> > +
-> > +	ext /= 1000; /* kbyte order */
-> > +
-> > +	mt9t112_reg_read(n, client, 0x0012);
-> > +	p1 = n & 0x000f;
-> > +	n = n >> 4;
-> > +	p2 = n & 0x000f;
-> > +	n = n >> 4;
-> > +	p3 = n & 0x000f;
-> > +
-> > +	mt9t112_reg_read(n, client, 0x002a);
-> > +	p4 = n & 0x000f;
-> > +	n = n >> 4;
-> > +	p5 = n & 0x000f;
-> > +	n = n >> 4;
-> > +	p6 = n & 0x000f;
-> > +
-> > +	mt9t112_reg_read(n, client, 0x002c);
-> > +	p7 = n & 0x000f;
-> > +
-> > +	mt9t112_reg_read(n, client, 0x0010);
-> > +	m = n & 0x00ff;
-> > +	n = (n >> 8) & 0x003f;
-> > +
-> > +	enable = ((6000 > ext) || (54000 < ext)) ? "X" : "";
-> > +	dev_dbg(&client->dev, "EXTCLK          : %10u K %s\n", ext, enable);
-> > +
-> > +	vco = 2 * m * ext / (n+1);
-> > +	enable = ((384000 > vco) || (768000 < vco)) ? "X" : "";
-> > +	dev_dbg(&client->dev, "VCO             : %10u K %s\n", vco, enable);
-> > +
-> > +	clk = vco / (p1+1) / (p2+1);
-> > +	enable = (96000 < clk) ? "X" : "";
-> > +	dev_dbg(&client->dev, "PIXCLK          : %10u K %s\n", clk, enable);
-> > +
-> > +	clk = vco / (p3+1);
-> > +	enable = (768000 < clk) ? "X" : "";
-> > +	dev_dbg(&client->dev, "MIPICLK         : %10u K %s\n", clk, enable);
-> > +
-> > +	clk = vco / (p6+1);
-> > +	enable = (96000 < clk) ? "X" : "";
-> > +	dev_dbg(&client->dev, "MCU CLK         : %10u K %s\n", clk, enable);
-> > +
-> > +	clk = vco / (p5+1);
-> > +	enable = (54000 < clk) ? "X" : "";
-> > +	dev_dbg(&client->dev, "SOC CLK         : %10u K %s\n", clk, enable);
-> > +
-> > +	clk = vco / (p4+1);
-> > +	enable = (70000 < clk) ? "X" : "";
-> > +	dev_dbg(&client->dev, "Sensor CLK      : %10u K %s\n", clk, enable);
-> > +
-> > +	clk = vco / (p7+1);
-> > +	dev_dbg(&client->dev, "External sensor : %10u K\n", clk);
-> > +
-> > +	clk = ext / (n+1);
-> > +	enable = ((2000 > clk) || (24000 < clk)) ? "X" : "";
-> > +	dev_dbg(&client->dev, "PFD             : %10u K %s\n", clk, enable);
-> > +
-> > +	return 0;
-> > +}
-> > +#endif
-> > +
-> > +static void mt9t112_frame_check(u32 *width, u32 *height, u32 *left, u32 *top)
-> > +{
-> > +	soc_camera_limit_side(left, width, 0, 0, MAX_WIDTH);
-> > +	soc_camera_limit_side(top, height, 0, 0, MAX_HEIGHT);
-> > +}
-> > +
-> > +static int mt9t112_set_a_frame_size(const struct i2c_client *client,
-> > +				   u16 width,
-> > +				   u16 height)
-> > +{
-> > +	int ret;
-> > +	u16 wstart = (MAX_WIDTH - width) / 2;
-> > +	u16 hstart = (MAX_HEIGHT - height) / 2;
-> > +
-> > +	/* (Context A) Image Width/Height */
-> > +	mt9t112_mcu_write(ret, client, VAR(26, 0), width);
-> > +	mt9t112_mcu_write(ret, client, VAR(26, 2), height);
-> > +
-> > +	/* (Context A) Output Width/Height */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 43), 8 + width);
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 45), 8 + height);
-> > +
-> > +	/* (Context A) Start Row/Column */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 2), 4 + hstart);
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 4), 4 + wstart);
-> > +
-> > +	/* (Context A) End Row/Column */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 6), 11 + height + hstart);
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 8), 11 + width  + wstart);
-> > +
-> > +	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_set_pll_dividers(const struct i2c_client *client,
-> > +				    u8 m, u8 n,
-> > +				    u8 p1, u8 p2, u8 p3,
-> > +				    u8 p4, u8 p5, u8 p6,
-> > +				    u8 p7)
-> > +{
-> > +	int ret;
-> > +	u16 val;
-> > +
-> > +	/* N/M */
-> > +	val = (n << 8) |
-> > +	      (m << 0);
-> > +	mt9t112_reg_mask_set(ret, client, 0x0010, 0x3fff, val);
-> > +
-> > +	/* P1/P2/P3 */
-> > +	val = ((p3 & 0x0F) << 8) |
-> > +	      ((p2 & 0x0F) << 4) |
-> > +	      ((p1 & 0x0F) << 0);
-> > +	mt9t112_reg_mask_set(ret, client, 0x0012, 0x0fff, val);
-> > +
-> > +	/* P4/P5/P6 */
-> > +	val = (0x7         << 12) |
-> > +	      ((p6 & 0x0F) <<  8) |
-> > +	      ((p5 & 0x0F) <<  4) |
-> > +	      ((p4 & 0x0F) <<  0);
-> > +	mt9t112_reg_mask_set(ret, client, 0x002A, 0x7fff, val);
-> > +
-> > +	/* P7 */
-> > +	val = (0x1         << 12) |
-> > +	      ((p7 & 0x0F) <<  0);
-> > +	mt9t112_reg_mask_set(ret, client, 0x002C, 0x100f, val);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_init_pll(const struct i2c_client *client)
-> > +{
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +	int data, i, ret;
-> > +
-> > +	mt9t112_reg_mask_set(ret, client, 0x0014, 0x003, 0x0001);
-> > +
-> > +	/* PLL control: BYPASS PLL = 8517 */
-> > +	mt9t112_reg_write(ret, client, 0x0014, 0x2145);
-> > +
-> > +	/* Replace these registers when new timing parameters are generated */
-> > +	mt9t112_set_pll_dividers(client,
-> > +				 priv->info->divider.m,
-> > +				 priv->info->divider.n,
-> > +				 priv->info->divider.p1,
-> > +				 priv->info->divider.p2,
-> > +				 priv->info->divider.p3,
-> > +				 priv->info->divider.p4,
-> > +				 priv->info->divider.p5,
-> > +				 priv->info->divider.p6,
-> > +				 priv->info->divider.p7);
-> > +
-> > +	/*
-> > +	 * TEST_BYPASS  on
-> > +	 * PLL_ENABLE   on
-> > +	 * SEL_LOCK_DET on
-> > +	 * TEST_BYPASS  off
-> > +	 */
-> > +	mt9t112_reg_write(ret, client, 0x0014, 0x2525);
-> > +	mt9t112_reg_write(ret, client, 0x0014, 0x2527);
-> > +	mt9t112_reg_write(ret, client, 0x0014, 0x3427);
-> > +	mt9t112_reg_write(ret, client, 0x0014, 0x3027);
-> > +
-> > +	mdelay(10);
-> > +
-> > +	/*
-> > +	 * PLL_BYPASS off
-> > +	 * Reference clock count
-> > +	 * I2C Master Clock Divider
-> > +	 */
-> > +	mt9t112_reg_write(ret, client, 0x0014, 0x3046);
-> > +	mt9t112_reg_write(ret, client, 0x0016, 0x0400); /* JPEG initialization workaround */
-> > +	mt9t112_reg_write(ret, client, 0x0022, 0x0190);
-> > +	mt9t112_reg_write(ret, client, 0x3B84, 0x0212);
-> > +
-> > +	/* External sensor clock is PLL bypass */
-> > +	mt9t112_reg_write(ret, client, 0x002E, 0x0500);
-> > +
-> > +	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0002, 0x0002);
-> > +	mt9t112_reg_mask_set(ret, client, 0x3B82, 0x0004, 0x0004);
-> > +
-> > +	/* MCU disabled */
-> > +	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0004, 0x0004);
-> > +
-> > +	/* out of standby */
-> > +	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0001, 0);
-> > +
-> > +	mdelay(50);
-> > +
-> > +	/*
-> > +	 * Standby Workaround
-> > +	 * Disable Secondary I2C Pads
-> > +	 */
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-> > +	mdelay(1);
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-> > +	mdelay(1);
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-> > +	mdelay(1);
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-> > +	mdelay(1);
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-> > +	mdelay(1);
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
-> > +	mdelay(1);
-> > +
-> > +	/* poll to verify out of standby. Must Poll this bit */
-> > +	for (i = 0; i < 100; i++) {
-> > +		mt9t112_reg_read(data, client, 0x0018);
-> > +		if (!(0x4000 & data))
-> > +			break;
-> > +
-> > +		mdelay(10);
-> > +	}
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_init_setting(const struct i2c_client *client)
-> > +{
-> > +
-> > +	int ret;
-> > +
-> > +	/* Adaptive Output Clock (A) */
-> > +	mt9t112_mcu_mask_set(ret, client, VAR(26, 160), 0x0040, 0x0000);
-> > +
-> > +	/* Read Mode (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 12), 0x0024);
-> > +
-> > +	/* Fine Correction (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 15), 0x00CC);
-> > +
-> > +	/* Fine IT Min (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 17), 0x01f1);
-> > +
-> > +	/* Fine IT Max Margin (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 19), 0x00fF);
-> > +
-> > +	/* Base Frame Lines (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 29), 0x032D);
-> > +
-> > +	/* Min Line Length (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 31), 0x073a);
-> > +
-> > +	/* Line Length (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 37), 0x07d0);
-> > +
-> > +	/* Adaptive Output Clock (B) */
-> > +	mt9t112_mcu_mask_set(ret, client, VAR(27, 160), 0x0040, 0x0000);
-> > +
-> > +	/* Row Start (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 74), 0x004);
-> > +
-> > +	/* Column Start (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 76), 0x004);
-> > +
-> > +	/* Row End (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 78), 0x60B);
-> > +
-> > +	/* Column End (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 80), 0x80B);
-> > +
-> > +	/* Fine Correction (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 87), 0x008C);
-> > +
-> > +	/* Fine IT Min (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 89), 0x01F1);
-> > +
-> > +	/* Fine IT Max Margin (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 91), 0x00FF);
-> > +
-> > +	/* Base Frame Lines (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 101), 0x0668);
-> > +
-> > +	/* Min Line Length (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 103), 0x0AF0);
-> > +
-> > +	/* Line Length (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 109), 0x0AF0);
-> > +
-> > +	/*
-> > +	 * Flicker Dectection registers
-> > +	 * This section should be replaced whenever new Timing file is generated
-> > +	 * All the following registers need to be replaced
-> > +	 * Following registers are generated from Register Wizard but user can
-> > +	 * modify them. For detail see auto flicker detection tuning
-> > +	 */
-> > +
-> > +	/* FD_FDPERIOD_SELECT */
-> > +	mt9t112_mcu_write(ret, client, VAR8(8, 5), 0x01);
-> > +
-> > +	/* PRI_B_CONFIG_FD_ALGO_RUN */
-> > +	mt9t112_mcu_write(ret, client, VAR(27, 17), 0x0003);
-> > +
-> > +	/* PRI_A_CONFIG_FD_ALGO_RUN */
-> > +	mt9t112_mcu_write(ret, client, VAR(26, 17), 0x0003);
-> > +
-> > +	/*
-> > +	 * AFD range detection tuning registers
-> > +	 */
-> > +
-> > +	/* search_f1_50 */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 165), 0x25);
-> > +
-> > +	/* search_f2_50 */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 166), 0x28);
-> > +
-> > +	/* search_f1_60 */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 167), 0x2C);
-> > +
-> > +	/* search_f2_60 */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 168), 0x2F);
-> > +
-> > +	/* period_50Hz (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 68), 0xBA);
-> > +
-> > +	/* secret register by aptina */
-> > +	/* period_50Hz (A MSB) */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 303), 0x00);
-> > +
-> > +	/* period_60Hz (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 69), 0x9B);
-> > +
-> > +	/* secret register by aptina */
-> > +	/* period_60Hz (A MSB) */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 301), 0x00);
-> > +
-> > +	/* period_50Hz (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 140), 0x82);
-> > +
-> > +	/* secret register by aptina */
-> > +	/* period_50Hz (B) MSB */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 304), 0x00);
-> > +
-> > +	/* period_60Hz (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 141), 0x6D);
-> > +
-> > +	/* secret register by aptina */
-> > +	/* period_60Hz (B) MSB */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 302), 0x00);
-> > +
-> > +	/* FD Mode */
-> > +	mt9t112_mcu_write(ret, client, VAR8(8, 2), 0x10);
-> > +
-> > +	/* Stat_min */
-> > +	mt9t112_mcu_write(ret, client, VAR8(8, 9), 0x02);
-> > +
-> > +	/* Stat_max */
-> > +	mt9t112_mcu_write(ret, client, VAR8(8, 10), 0x03);
-> > +
-> > +	/* Min_amplitude */
-> > +	mt9t112_mcu_write(ret, client, VAR8(8, 12), 0x0A);
-> > +
-> > +	/* RX FIFO Watermark (A) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 70), 0x0014);
-> > +
-> > +	/* RX FIFO Watermark (B) */
-> > +	mt9t112_mcu_write(ret, client, VAR(18, 142), 0x0014);
-> > +
-> > +	/* MCLK: 16MHz
-> > +	 * PCLK: 73MHz
-> > +	 * CorePixCLK: 36.5 MHz
-> > +	 */
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x0044), 133);
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x0045), 110);
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x008c), 130);
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x008d), 108);
-> > +
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x00A5), 27);
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a6), 30);
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a7), 32);
-> > +	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a8), 35);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_auto_focus_setting(const struct i2c_client *client)
-> > +{
-> > +	int ret;
-> > +
-> > +	mt9t112_mcu_write(ret, client, VAR(12, 13),	0x000F);
-> > +	mt9t112_mcu_write(ret, client, VAR(12, 23),	0x0F0F);
-> > +	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x06);
-> > +
-> > +	mt9t112_reg_write(ret, client, 0x0614, 0x0000);
-> > +
-> > +	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x05);
-> > +	mt9t112_mcu_write(ret, client, VAR8(12, 2),	0x02);
-> > +	mt9t112_mcu_write(ret, client, VAR(12, 3),	0x0002);
-> > +	mt9t112_mcu_write(ret, client, VAR(17, 3),	0x8001);
-> > +	mt9t112_mcu_write(ret, client, VAR(17, 11),	0x0025);
-> > +	mt9t112_mcu_write(ret, client, VAR(17, 13),	0x0193);
-> > +	mt9t112_mcu_write(ret, client, VAR8(17, 33),	0x18);
-> > +	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x05);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_auto_focus_trigger(const struct i2c_client *client)
-> > +{
-> > +	int ret;
-> > +
-> > +	mt9t112_mcu_write(ret, client, VAR8(12, 25), 0x01);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_init_camera(const struct i2c_client *client)
-> > +{
-> > +	int ret;
-> > +
-> > +	ECHECKER(ret, mt9t112_reset(client));
-> > +
-> > +	ECHECKER(ret, mt9t112_init_pll(client));
-> > +
-> > +	ECHECKER(ret, mt9t112_init_setting(client));
-> > +
-> > +	ECHECKER(ret, mt9t112_auto_focus_setting(client));
-> > +
-> > +	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0004, 0);
-> > +
-> > +	/* Analog setting B */
-> > +	mt9t112_reg_write(ret, client, 0x3084, 0x2409);
-> > +	mt9t112_reg_write(ret, client, 0x3092, 0x0A49);
-> > +	mt9t112_reg_write(ret, client, 0x3094, 0x4949);
-> > +	mt9t112_reg_write(ret, client, 0x3096, 0x4950);
-> > +
-> > +	/*
-> > +	 * Disable adaptive clock
-> > +	 * PRI_A_CONFIG_JPEG_OB_TX_CONTROL_VAR
-> > +	 * PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR
-> > +	 */
-> > +	mt9t112_mcu_write(ret, client, VAR(26, 160), 0x0A2E);
-> > +	mt9t112_mcu_write(ret, client, VAR(27, 160), 0x0A2E);
-> > +
-> > +	/* Configure STatus in Status_before_length Format and enable header */
-> > +	/* PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR */
-> > +	mt9t112_mcu_write(ret, client, VAR(27, 144), 0x0CB4);
-> > +
-> > +	/* Enable JPEG in context B */
-> > +	/* PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR */
-> > +	mt9t112_mcu_write(ret, client, VAR8(27, 142), 0x01);
-> > +
-> > +	/* Disable Dac_TXLO */
-> > +	mt9t112_reg_write(ret, client, 0x316C, 0x350F);
-> > +
-> > +	/* Set max slew rates */
-> > +	mt9t112_reg_write(ret, client, 0x1E, 0x777);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +/************************************************************************
-> > +			v4l2_subdev_core_ops
-> > +************************************************************************/
-> > +
-> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > +static int mt9t112_g_register(struct v4l2_subdev *sd,
-> > +			      struct v4l2_dbg_register *reg)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	int                ret;
-> > +
-> > +	reg->size = 2;
-> > +	mt9t112_reg_read(ret, client, reg->reg);
-> > +
-> > +	reg->val = (__u64)ret;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int mt9t112_s_register(struct v4l2_subdev *sd,
-> > +			      const struct v4l2_dbg_register *reg)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	int ret;
-> > +
-> > +	mt9t112_reg_write(ret, client, reg->reg, reg->val);
-> > +
-> > +	return ret;
-> > +}
-> > +#endif
-> > +
-> > +static int mt9t112_s_power(struct v4l2_subdev *sd, int on)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +
-> > +	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-> > +}
-> > +
-> > +static const struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
-> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > +	.g_register	= mt9t112_g_register,
-> > +	.s_register	= mt9t112_s_register,
-> > +#endif
-> > +	.s_power	= mt9t112_s_power,
-> > +};
-> > +
-> > +
-> > +/************************************************************************
-> > +			v4l2_subdev_video_ops
-> > +************************************************************************/
-> > +static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +	int ret = 0;
-> > +
-> > +	if (!enable) {
-> > +		/* FIXME
-> > +		 *
-> > +		 * If user selected large output size,
-> > +		 * and used it long time,
-> > +		 * mt9t112 camera will be very warm.
-> > +		 *
-> > +		 * But current driver can not stop mt9t112 camera.
-> > +		 * So, set small size here to solve this problem.
-> > +		 */
-> > +		mt9t112_set_a_frame_size(client, VGA_WIDTH, VGA_HEIGHT);
-> > +		return ret;
-> > +	}
-> > +
-> > +	if (!(priv->flags & INIT_DONE)) {
-> > +		u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
-> > +
-> > +		ECHECKER(ret, mt9t112_init_camera(client));
->
-> Would it be possible to do this in power-on instead?
->
-
-I guess so, yes
-
-> > +
-> > +		/* Invert PCLK (Data sampled on falling edge of pixclk) */
-> > +		mt9t112_reg_write(ret, client, 0x3C20, param);
->
-> This one as well, it's known at that time.
-
-yes, PCLK polarity comes from platform data (or eventually device
-tree)
-
->
-> > +
-> > +		mdelay(5);
-> > +
-> > +		priv->flags |= INIT_DONE;
-> > +	}
-> > +
-> > +	mt9t112_mcu_write(ret, client, VAR(26, 7), priv->format->fmt);
-> > +	mt9t112_mcu_write(ret, client, VAR(26, 9), priv->format->order);
-> > +	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
-> > +
-> > +	mt9t112_set_a_frame_size(client,
-> > +				 priv->frame.width,
-> > +				 priv->frame.height);
-> > +
-> > +	ECHECKER(ret, mt9t112_auto_focus_trigger(client));
-> > +
-> > +	dev_dbg(&client->dev, "format : %d\n", priv->format->code);
-> > +	dev_dbg(&client->dev, "size   : %d x %d\n",
-> > +		priv->frame.width,
-> > +		priv->frame.height);
-> > +
-> > +	CLOCK_INFO(client, EXT_CLOCK);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_set_params(struct mt9t112_priv *priv,
-> > +			      const struct v4l2_rect *rect,
-> > +			      u32 code)
-> > +{
-> > +	int i;
-> > +
-> > +	/*
-> > +	 * get color format
-> > +	 */
-> > +	for (i = 0; i < priv->num_formats; i++)
-> > +		if (mt9t112_cfmts[i].code == code)
-> > +			break;
-> > +
-> > +	if (i == priv->num_formats)
-> > +		return -EINVAL;
-> > +
-> > +	priv->frame  = *rect;
-> > +
-> > +	/*
-> > +	 * frame size check
-> > +	 */
-> > +	mt9t112_frame_check(&priv->frame.width, &priv->frame.height,
-> > +			    &priv->frame.left, &priv->frame.top);
-> > +
-> > +	priv->format = mt9t112_cfmts + i;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int mt9t112_get_selection(struct v4l2_subdev *sd,
-> > +		struct v4l2_subdev_pad_config *cfg,
-> > +		struct v4l2_subdev_selection *sel)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +
-> > +	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> > +		return -EINVAL;
-> > +
-> > +	switch (sel->target) {
-> > +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> > +		sel->r.left = 0;
-> > +		sel->r.top = 0;
-> > +		sel->r.width = MAX_WIDTH;
-> > +		sel->r.height = MAX_HEIGHT;
-> > +		return 0;
-> > +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> > +		sel->r.left = 0;
-> > +		sel->r.top = 0;
-> > +		sel->r.width = VGA_WIDTH;
-> > +		sel->r.height = VGA_HEIGHT;
-> > +		return 0;
-> > +	case V4L2_SEL_TGT_CROP:
-> > +		sel->r = priv->frame;
-> > +		return 0;
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> > +}
-> > +
-> > +static int mt9t112_set_selection(struct v4l2_subdev *sd,
-> > +		struct v4l2_subdev_pad_config *cfg,
-> > +		struct v4l2_subdev_selection *sel)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +	const struct v4l2_rect *rect = &sel->r;
-> > +
-> > +	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
-> > +	    sel->target != V4L2_SEL_TGT_CROP)
-> > +		return -EINVAL;
-> > +
-> > +	return mt9t112_set_params(priv, rect, priv->format->code);
-> > +}
-> > +
-> > +static int mt9t112_get_fmt(struct v4l2_subdev *sd,
-> > +		struct v4l2_subdev_pad_config *cfg,
-> > +		struct v4l2_subdev_format *format)
-> > +{
-> > +	struct v4l2_mbus_framefmt *mf = &format->format;
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +
-> > +	if (format->pad)
-> > +		return -EINVAL;
->
-> If there's just one pad, the check is redundant. (It's already present in
-> the subdev IOCTL handling.)
->
-> > +
-> > +	mf->width	= priv->frame.width;
-> > +	mf->height	= priv->frame.height;
-> > +	mf->colorspace	= priv->format->colorspace;
-> > +	mf->code	= priv->format->code;
-> > +	mf->field	= V4L2_FIELD_NONE;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int mt9t112_s_fmt(struct v4l2_subdev *sd,
-> > +			 struct v4l2_mbus_framefmt *mf)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +	struct v4l2_rect rect = {
-> > +		.width = mf->width,
-> > +		.height = mf->height,
-> > +		.left = priv->frame.left,
-> > +		.top = priv->frame.top,
-> > +	};
-> > +	int ret;
-> > +
-> > +	ret = mt9t112_set_params(priv, &rect, mf->code);
-> > +
-> > +	if (!ret)
-> > +		mf->colorspace = priv->format->colorspace;
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_set_fmt(struct v4l2_subdev *sd,
-> > +		struct v4l2_subdev_pad_config *cfg,
-> > +		struct v4l2_subdev_format *format)
-> > +{
-> > +	struct v4l2_mbus_framefmt *mf = &format->format;
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +	unsigned int top, left;
-> > +	int i;
-> > +
-> > +	if (format->pad)
-> > +		return -EINVAL;
-> > +
-> > +	for (i = 0; i < priv->num_formats; i++)
-> > +		if (mt9t112_cfmts[i].code == mf->code)
-> > +			break;
-> > +
-> > +	if (i == priv->num_formats) {
-> > +		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-> > +		mf->colorspace = V4L2_COLORSPACE_JPEG;
-> > +	} else {
-> > +		mf->colorspace	= mt9t112_cfmts[i].colorspace;
-> > +	}
-> > +
-> > +	mt9t112_frame_check(&mf->width, &mf->height, &left, &top);
-> > +
-> > +	mf->field = V4L2_FIELD_NONE;
-> > +
-> > +	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> > +		return mt9t112_s_fmt(sd, mf);
-> > +	cfg->try_fmt = *mf;
-> > +	return 0;
-> > +}
-> > +
-> > +static int mt9t112_enum_mbus_code(struct v4l2_subdev *sd,
-> > +		struct v4l2_subdev_pad_config *cfg,
-> > +		struct v4l2_subdev_mbus_code_enum *code)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +
-> > +	if (code->pad || code->index >= priv->num_formats)
-> > +		return -EINVAL;
-> > +
-> > +	code->code = mt9t112_cfmts[code->index].code;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int mt9t112_g_mbus_config(struct v4l2_subdev *sd,
-> > +				 struct v4l2_mbus_config *cfg)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +
-> > +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-> > +		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_HIGH |
-> > +		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING;
-> > +	cfg->type = V4L2_MBUS_PARALLEL;
-> > +	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int mt9t112_s_mbus_config(struct v4l2_subdev *sd,
-> > +				 const struct v4l2_mbus_config *cfg)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +
-> > +	if (soc_camera_apply_board_flags(ssdd, cfg) & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> > +		priv->flags |= PCLK_RISING;
-> > +
-> > +	return 0;
-> > +}
->
-> Do you have a DT based system where you use this? Then I think it'd be
-> rather easy to get rid of the mbus config stuff.
->
-
-Please see my next patch where I get rid of s/g_mbus_config (and it
-does not depend on DT support, which, as you can see, it's not here at
-all)
-
-> > +
-> > +static const struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
-> > +	.s_stream	= mt9t112_s_stream,
-> > +	.g_mbus_config	= mt9t112_g_mbus_config,
-> > +	.s_mbus_config	= mt9t112_s_mbus_config,
-> > +};
-> > +
-> > +static const struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops = {
-> > +	.enum_mbus_code = mt9t112_enum_mbus_code,
-> > +	.get_selection	= mt9t112_get_selection,
-> > +	.set_selection	= mt9t112_set_selection,
-> > +	.get_fmt	= mt9t112_get_fmt,
-> > +	.set_fmt	= mt9t112_set_fmt,
-> > +};
-> > +
-> > +/************************************************************************
-> > +			i2c driver
-> > +************************************************************************/
-> > +static const struct v4l2_subdev_ops mt9t112_subdev_ops = {
-> > +	.core	= &mt9t112_subdev_core_ops,
-> > +	.video	= &mt9t112_subdev_video_ops,
-> > +	.pad	= &mt9t112_subdev_pad_ops,
-> > +};
-> > +
-> > +static int mt9t112_camera_probe(struct i2c_client *client)
-> > +{
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +	const char          *devname;
-> > +	int                  chipid;
-> > +	int		     ret;
-> > +
-> > +	ret = mt9t112_s_power(&priv->subdev, 1);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/*
-> > +	 * check and show chip ID
-> > +	 */
-> > +	mt9t112_reg_read(chipid, client, 0x0000);
-> > +
-> > +	switch (chipid) {
-> > +	case 0x2680:
-> > +		devname = "mt9t111";
-> > +		priv->num_formats = 1;
-> > +		break;
-> > +	case 0x2682:
-> > +		devname = "mt9t112";
-> > +		priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
-> > +		break;
-> > +	default:
-> > +		dev_err(&client->dev, "Product ID error %04x\n", chipid);
-> > +		ret = -ENODEV;
-> > +		goto done;
-> > +	}
-> > +
-> > +	dev_info(&client->dev, "%s chip ID %04x\n", devname, chipid);
-> > +
-> > +done:
-> > +	mt9t112_s_power(&priv->subdev, 0);
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_probe(struct i2c_client *client,
-> > +			 const struct i2c_device_id *did)
-> > +{
-> > +	struct mt9t112_priv *priv;
-> > +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +	struct v4l2_rect rect = {
-> > +		.width = VGA_WIDTH,
-> > +		.height = VGA_HEIGHT,
-> > +		.left = (MAX_WIDTH - VGA_WIDTH) / 2,
-> > +		.top = (MAX_HEIGHT - VGA_HEIGHT) / 2,
-> > +	};
-> > +	int ret;
-> > +
-> > +	if (!ssdd || !ssdd->drv_priv) {
-> > +		dev_err(&client->dev, "mt9t112: missing platform data!\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
-> > +	if (!priv)
-> > +		return -ENOMEM;
-> > +
-> > +	priv->info = ssdd->drv_priv;
-> > +
-> > +	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
-> > +
-> > +	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> > +	if (IS_ERR(priv->clk))
-> > +		return PTR_ERR(priv->clk);
-> > +
-> > +	ret = mt9t112_camera_probe(client);
-> > +
-> > +	/* Cannot fail: using the default supported pixel code */
-> > +	if (!ret)
-> > +		mt9t112_set_params(priv, &rect, MEDIA_BUS_FMT_UYVY8_2X8);
-> > +	else
-> > +		v4l2_clk_put(priv->clk);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9t112_remove(struct i2c_client *client)
-> > +{
-> > +	struct mt9t112_priv *priv = to_mt9t112(client);
-> > +
-> > +	v4l2_clk_put(priv->clk);
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct i2c_device_id mt9t112_id[] = {
-> > +	{ "mt9t112", 0 },
-> > +	{ }
-> > +};
-> > +MODULE_DEVICE_TABLE(i2c, mt9t112_id);
-> > +
-> > +static struct i2c_driver mt9t112_i2c_driver = {
-> > +	.driver = {
-> > +		.name = "mt9t112",
-> > +	},
-> > +	.probe    = mt9t112_probe,
->
-> If you need to support OF based systems only, you could use probe_new and
-> drop the i2c ID table.
-
-Actually I currently need to support non-OF system only, as this
-driver was only used by SH4 Ecovec.
-
-As you know, I hope to be able to test this driver sooner or later on
-an OF capable platform and add DT support to it, but for now,
-we're stuck with board files support only.
-
-Thanks
-   j
-
-
->
-> > +	.remove   = mt9t112_remove,
-> > +	.id_table = mt9t112_id,
-> > +};
-> > +
-> > +module_i2c_driver(mt9t112_i2c_driver);
-> > +
-> > +MODULE_DESCRIPTION("SoC Camera driver for mt9t112");
-> > +MODULE_AUTHOR("Kuninori Morimoto");
-> > +MODULE_LICENSE("GPL v2");
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
-
---27ZtN5FSuKKSZcBU
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJaqoWAAAoJEHI0Bo8WoVY8W9EQAJ38uVcW0Jik5TP92d9Wg40x
-cUs/h3rXHnX2sdlmLy6PVgHsNfiXCx4QcEpcMM9eVniGvszCj26DKxUCTC2Jz8ku
-bknqWO4yVKEg6+BIt0WJj9XvEZJ1Hb4HjqoppvfDk3xsbV4wBih1fbLxtfMleXh1
-TmNBrf8n3FO/cH4J0ZNHKJlMA+ODAml8pT7VBLr4RQ5bPDt/aoegdnGtqiPEfZG8
-icThczzn9fvNBtjxP81dchMYSqy6nfIj48QZ1uc31UiWAhPdcx2OcYv2uhVZm804
-aEX7RFTU5rEBV7pCX/wXDBo4WtgVMrr46EQsPCDGQvXGGRKAtXyjoDEBARMPfVQH
-23OsmnZyQib3TlLo/Qq2+j7UMFmJx5XpZ01s51yTXYflkiZ3OHGlQemzA0LECCLe
-B4Bur47FD/uqK2Qhos/ftxUwpT4gfHPj89ChTPBU5eg52Jxz3QAdbjVdiJws8ctM
-SpWJDLymKg39mQ3uF1WuARQwqbQmzkW4ZsbbfKyK3ixDrapkzGmEO7NlsSqgLx/X
-sSmTQ+1wrk/qsvz8srfDth19VgkXK9PBKItl/9JscgjNTk79hm88MhVcyRiBVuTp
-z0iQWa3vQlK/TZuBfMiD4w2ia1eRgC1aaqlXN2kR83ZAlx47H9pf2XISzT0andFK
-Kc+xKSFOf6CBd7+1EhZX
-=NQvK
------END PGP SIGNATURE-----
-
---27ZtN5FSuKKSZcBU--
+-- 
+Cc: linux@roeck-us.net
+Cc: corbet@lwn.net
+Cc: tj@kernel.org
+Cc: gregkh@linuxfoundation.org
+Cc: rjw@rjwysocki.net
+Cc: viresh.kumar@linaro.org
+Cc: herbert@gondor.apana.org.au
+Cc: davem@davemloft.net
+Cc: bp@alien8.de
+Cc: mchehab@kernel.org
+Cc: linus.walleij@linaro.org
+Cc: wsa@the-dreams.de
+Cc: dmitry.torokhov@gmail.com
+Cc: ulf.hansson@linaro.org
+Cc: boris.brezillon@bootlin.com
+Cc: cyrille.pitchen@wedev4u.fr
+Cc: wg@grandegger.com
+Cc: mkl@pengutronix.de
+Cc: alexandre.belloni@bootlin.com
+Cc: broonie@kernel.org
+Cc: jic23@kernel.org
+Cc: lars@metafoo.de
+Cc: jslaby@suse.com
+Cc: stern@rowland.harvard.edu
+Cc: b.zolnierkie@samsung.com
+Cc: shli@kernel.org
+Cc: linux-watchdog@vger.kernel.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-ide@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-crypto@vger.kernel.org
+Cc: linux-edac@vger.kernel.org
+Cc: linux-gpio@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org
+Cc: linux-input@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org
+Cc: netdev@vger.kernel.org
+Cc: linux-can@vger.kernel.org
+Cc: linux-pwm@vger.kernel.org
+Cc: linux-rtc@vger.kernel.org
+Cc: linux-spi@vger.kernel.org
+Cc: linux-iio@vger.kernel.org
+Cc: linux-serial@vger.kernel.org
+Cc: linux-usb@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-raid@vger.kernel.org
+Cc: alsa-devel@alsa-project.org
