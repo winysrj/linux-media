@@ -1,140 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:33046 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1164297AbeCBEmH (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:45808 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751350AbeCNRVj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 23:42:07 -0500
-Message-ID: <9d5497746a0a2f8f289e97ef3088ab8e@smtp-cloud8.xs4all.net>
-Date: Fri, 02 Mar 2018 05:41:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 14 Mar 2018 13:21:39 -0400
+Subject: Re: [PATCH v3] media: staging/imx: fill vb2_v4l2_buffer sequence
+ entry
+To: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+References: <20180314165139.5356-1-ps.report@gmx.net>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <7f723320-f1cf-a769-dd32-d48c49b041e1@gmail.com>
+Date: Wed, 14 Mar 2018 10:21:31 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180314165139.5356-1-ps.report@gmx.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Peter,
 
-Results of the daily build of media_tree:
 
-date:			Fri Mar  2 05:00:18 CET 2018
-media-tree git hash:	e3e389f931a14ddf43089c7db92fc5d74edf93a4
-media_build git hash:	c3a4fa1a633e24b4a607a78ad11a61598ee177b6
-v4l-utils git hash:	ff14bf4192d28408afefb968b36850dc5ee19f53
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+On 03/14/2018 09:51 AM, Peter Seiderer wrote:
+> Enables gstreamer v4l2src lost frame detection, e.g:
+>
+>    0:00:08.685185668  348  0x54f520 WARN  v4l2src gstv4l2src.c:970:gst_v4l2src_create:<v4l2src0> lost frames detected: count = 141 - ts: 0:00:08.330177332
+>
+> Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+> ---
+> Changes in v2:
+>    - fill vb2_v4l2_buffer sequence entry in imx-ic-prpencvf too
+>      (suggested by Steve Longerbeam)
+>
+> Changes in v3:
+>    - add changelog (suggested by Greg Kroah-Hartman, Fabio Estevam
+>      and Dan Carpenter) and patch history
+>    - use u32 (instead of __u32) (suggested by Dan Carpenter)
+>    - let sequence counter start with zero,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.53-i686: ERRORS
-linux-3.16.53-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.93-i686: ERRORS
-linux-3.18.93-x86_64: ERRORS
-linux-3.19-i686: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.49-i686: ERRORS
-linux-4.1.49-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+There's no need to initialize (unsigned) priv->frame_sequence to -1. Just
+increment it _after_ the "if (done) {...}" block instead of before.
 
-Detailed results are available here:
+Steve
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>   keeping v4l2-compliance
+>      testing happy (needs additional setting of field to a valid
+>      value, patch will follow soon)
+> ---
+>   drivers/staging/media/imx/imx-ic-prpencvf.c | 5 +++++
+>   drivers/staging/media/imx/imx-media-csi.c   | 5 +++++
+>   2 files changed, 10 insertions(+)
+>
+> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+> index ae453fd422f0..274683d2d4ba 100644
+> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
+> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+> @@ -103,6 +103,7 @@ struct prp_priv {
+>   	int nfb4eof_irq;
+>   
+>   	int stream_count;
+> +	u32 frame_sequence; /* frame sequence counter */
+>   	bool last_eof;  /* waiting for last EOF at stream off */
+>   	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+>   	struct completion last_eof_comp;
+> @@ -208,8 +209,11 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
+>   	struct vb2_buffer *vb;
+>   	dma_addr_t phys;
+>   
+> +	priv->frame_sequence++;
+> +
+>   	done = priv->active_vb2_buf[priv->ipu_buf_num];
+>   	if (done) {
+> +		done->vbuf.sequence = priv->frame_sequence;
+>   		vb = &done->vbuf.vb2_buf;
+>   		vb->timestamp = ktime_get_ns();
+>   		vb2_buffer_done(vb, priv->nfb4eof ?
+> @@ -637,6 +641,7 @@ static int prp_start(struct prp_priv *priv)
+>   
+>   	/* init EOF completion waitq */
+>   	init_completion(&priv->last_eof_comp);
+> +	priv->frame_sequence = -1;
+>   	priv->last_eof = false;
+>   	priv->nfb4eof = false;
+>   
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 5a195f80a24d..161a92946a86 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -111,6 +111,7 @@ struct csi_priv {
+>   	struct v4l2_ctrl_handler ctrl_hdlr;
+>   
+>   	int stream_count; /* streaming counter */
+> +	u32 frame_sequence; /* frame sequence counter */
+>   	bool last_eof;   /* waiting for last EOF at stream off */
+>   	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+>   	struct completion last_eof_comp;
+> @@ -234,8 +235,11 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+>   	struct vb2_buffer *vb;
+>   	dma_addr_t phys;
+>   
+> +	priv->frame_sequence++;
+> +
+>   	done = priv->active_vb2_buf[priv->ipu_buf_num];
+>   	if (done) {
+> +		done->vbuf.sequence = priv->frame_sequence;
+>   		vb = &done->vbuf.vb2_buf;
+>   		vb->timestamp = ktime_get_ns();
+>   		vb2_buffer_done(vb, priv->nfb4eof ?
+> @@ -543,6 +547,7 @@ static int csi_idmac_start(struct csi_priv *priv)
+>   
+>   	/* init EOF completion waitq */
+>   	init_completion(&priv->last_eof_comp);
+> +	priv->frame_sequence = -1;
+>   	priv->last_eof = false;
+>   	priv->nfb4eof = false;
+>   
