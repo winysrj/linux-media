@@ -1,464 +1,367 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52930 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752394AbeCCUvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Mar 2018 15:51:23 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 07/11] media: em28xx-cards: rework the em28xx probing code
-Date: Sat,  3 Mar 2018 17:51:08 -0300
-Message-Id: <38f1b999dacf0e024e3dd2b161b00f45874766c3.1520110127.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
-References: <cover.1520110127.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
-References: <cover.1520110127.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56493 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753069AbeCNC5d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Mar 2018 22:57:33 -0400
+Subject: Re: [PATCH v8 07/13] [media] vb2: mark codec drivers as unordered
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: kernel@collabora.com,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20180309174920.22373-1-gustavo@padovan.org>
+ <20180309174920.22373-8-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cf5b75b9-3ecb-ff05-9cdc-0b10f1fea97e@xs4all.nl>
+Date: Tue, 13 Mar 2018 19:57:25 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180309174920.22373-8-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a complex loop there with identifies the em28xx
-endpoints. It has lots of identations inside, and big names,
-making harder to understand.
+On 03/09/2018 09:49 AM, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> In preparation to have full support to explicit fence we are
+> marking codec as non-ordered preventively. It is easier and safer from an
+> uAPI point of view to move from unordered to ordered than the opposite.
 
-Simplify it by moving the main logic into a static function.
+Same comment as for the cobalt driver: if you mark these drivers as
+unordered, shouldn't you mark the compressed formats as UNORDERED
+as well? Should we perhaps do this by default for compressed formats
+(except MJPEG) in v4l2-ioctl.c? Thus requiring drivers to clear the
+flag if they are actually ordered.
 
-While here, rename "interface" var to "intf".
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  drivers/media/platform/coda/coda-common.c          | 1 +
+>  drivers/media/platform/exynos-gsc/gsc-m2m.c        | 1 +
+>  drivers/media/platform/exynos4-is/fimc-m2m.c       | 1 +
+>  drivers/media/platform/m2m-deinterlace.c           | 1 +
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 253 +++++++++++++++++---------------
- 1 file changed, 134 insertions(+), 119 deletions(-)
+This is a deinterlaced, so this should be ordered.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 01675f577008..2ac59d8fb594 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3341,13 +3341,13 @@ EXPORT_SYMBOL_GPL(em28xx_free_device);
-  * allocates and inits the device structs, registers i2c bus and v4l device
-  */
- static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
--			   struct usb_interface *interface,
-+			   struct usb_interface *intf,
- 			   int minor)
- {
- 	int retval;
- 	const char *chip_name = NULL;
- 
--	dev->intf = interface;
-+	dev->intf = intf;
- 	mutex_init(&dev->ctrl_urb_lock);
- 	spin_lock_init(&dev->slock);
- 
-@@ -3492,11 +3492,102 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- /* high bandwidth multiplier, as encoded in highspeed endpoint descriptors */
- #define hb_mult(wMaxPacketSize) (1 + (((wMaxPacketSize) >> 11) & 0x03))
- 
-+static void em28xx_check_usb_descriptor(struct em28xx *dev,
-+					struct usb_device *udev,
-+					struct usb_interface *intf,
-+					int alt, int ep,
-+					bool *has_vendor_audio,
-+					bool *has_video,
-+					bool *has_dvb)
-+{
-+	const struct usb_endpoint_descriptor *e;
-+	int sizedescr, size;
-+
-+	/*
-+	 * NOTE:
-+	 *
-+	 * Old logic with support for isoc transfers only was:
-+	 *  0x82	isoc		=> analog
-+	 *  0x83	isoc		=> audio
-+	 *  0x84	isoc		=> digital
-+	 *
-+	 * New logic with support for bulk transfers
-+	 *  0x82	isoc		=> analog
-+	 *  0x82	bulk		=> analog
-+	 *  0x83	isoc*		=> audio
-+	 *  0x84	isoc		=> digital
-+	 *  0x84	bulk		=> analog or digital**
-+	 * (*: audio should always be isoc)
-+	 * (**: analog, if ep 0x82 is isoc, otherwise digital)
-+	 *
-+	 * The new logic preserves backwards compatibility and
-+	 * reflects the endpoint configurations we have seen
-+	 * so far. But there might be devices for which this
-+	 * logic is not sufficient...
-+	 */
-+
-+	e = &intf->altsetting[alt].endpoint[ep].desc;
-+
-+	if (!usb_endpoint_dir_in(e))
-+		return;
-+
-+	sizedescr = le16_to_cpu(e->wMaxPacketSize);
-+	size = sizedescr & 0x7ff;
-+
-+	if (udev->speed == USB_SPEED_HIGH)
-+		size = size * hb_mult(sizedescr);
-+
-+	/* Only inspect input endpoints */
-+
-+	switch (e->bEndpointAddress) {
-+	case 0x82:
-+		*has_video = true;
-+		if (usb_endpoint_xfer_isoc(e)) {
-+			dev->analog_ep_isoc = e->bEndpointAddress;
-+			dev->alt_max_pkt_size_isoc[alt] = size;
-+		} else if (usb_endpoint_xfer_bulk(e)) {
-+			dev->analog_ep_bulk = e->bEndpointAddress;
-+		}
-+		return;
-+	case 0x83:
-+		if (usb_endpoint_xfer_isoc(e))
-+			*has_vendor_audio = true;
-+		else
-+			dev_err(&intf->dev,
-+				"error: skipping audio endpoint 0x83, because it uses bulk transfers !\n");
-+		return;
-+	case 0x84:
-+		if (*has_video && (usb_endpoint_xfer_bulk(e))) {
-+			dev->analog_ep_bulk = e->bEndpointAddress;
-+		} else {
-+			if (usb_endpoint_xfer_isoc(e)) {
-+				if (size > dev->dvb_max_pkt_size_isoc) {
-+					/*
-+					 * 2) some manufacturers (e.g. Terratec)
-+					 * disable endpoints by setting
-+					 * wMaxPacketSize to 0 bytes for all
-+					 * alt settings. So far, we've seen
-+					 * this for DVB isoc endpoints only.
-+					 */
-+					*has_dvb = true;
-+					dev->dvb_ep_isoc = e->bEndpointAddress;
-+					dev->dvb_max_pkt_size_isoc = size;
-+					dev->dvb_alt_isoc = alt;
-+				}
-+			} else {
-+				*has_dvb = true;
-+				dev->dvb_ep_bulk = e->bEndpointAddress;
-+			}
-+		}
-+		return;
-+	}
-+}
-+
- /*
-  * em28xx_usb_probe()
-  * checks for supported devices
-  */
--static int em28xx_usb_probe(struct usb_interface *interface,
-+static int em28xx_usb_probe(struct usb_interface *intf,
- 			    const struct usb_device_id *id)
- {
- 	struct usb_device *udev;
-@@ -3504,17 +3595,17 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	int retval;
- 	bool has_vendor_audio = false, has_video = false, has_dvb = false;
- 	int i, nr, try_bulk;
--	const int ifnum = interface->altsetting[0].desc.bInterfaceNumber;
-+	const int ifnum = intf->altsetting[0].desc.bInterfaceNumber;
- 	char *speed;
- 
--	udev = usb_get_dev(interface_to_usbdev(interface));
-+	udev = usb_get_dev(interface_to_usbdev(intf));
- 
- 	/* Check to see next free device and mark as used */
- 	do {
- 		nr = find_first_zero_bit(em28xx_devused, EM28XX_MAXBOARDS);
- 		if (nr >= EM28XX_MAXBOARDS) {
- 			/* No free device slots */
--			dev_err(&interface->dev,
-+			dev_err(&intf->dev,
- 				"Driver supports up to %i em28xx boards.\n",
- 			       EM28XX_MAXBOARDS);
- 			retval = -ENOMEM;
-@@ -3523,13 +3614,13 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	} while (test_and_set_bit(nr, em28xx_devused));
- 
- 	/* Don't register audio interfaces */
--	if (interface->altsetting[0].desc.bInterfaceClass == USB_CLASS_AUDIO) {
--		dev_err(&interface->dev,
-+	if (intf->altsetting[0].desc.bInterfaceClass == USB_CLASS_AUDIO) {
-+		dev_err(&intf->dev,
- 			"audio device (%04x:%04x): interface %i, class %i\n",
- 			le16_to_cpu(udev->descriptor.idVendor),
- 			le16_to_cpu(udev->descriptor.idProduct),
- 			ifnum,
--			interface->altsetting[0].desc.bInterfaceClass);
-+			intf->altsetting[0].desc.bInterfaceClass);
- 
- 		retval = -ENODEV;
- 		goto err;
-@@ -3543,9 +3634,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	}
- 
- 	/* compute alternate max packet sizes */
--	dev->alt_max_pkt_size_isoc =
--				kmalloc(sizeof(dev->alt_max_pkt_size_isoc[0]) *
--					interface->num_altsetting, GFP_KERNEL);
-+	dev->alt_max_pkt_size_isoc = kcalloc(intf->num_altsetting,
-+					     sizeof(dev->alt_max_pkt_size_isoc[0]),
-+					     GFP_KERNEL);
- 	if (!dev->alt_max_pkt_size_isoc) {
- 		kfree(dev);
- 		retval = -ENOMEM;
-@@ -3553,93 +3644,17 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	}
- 
- 	/* Get endpoints */
--	for (i = 0; i < interface->num_altsetting; i++) {
-+	for (i = 0; i < intf->num_altsetting; i++) {
- 		int ep;
- 
- 		for (ep = 0;
--		     ep < interface->altsetting[i].desc.bNumEndpoints;
--		     ep++) {
--			const struct usb_endpoint_descriptor *e;
--			int sizedescr, size;
--
--			e = &interface->altsetting[i].endpoint[ep].desc;
--
--			sizedescr = le16_to_cpu(e->wMaxPacketSize);
--			size = sizedescr & 0x7ff;
--
--			if (udev->speed == USB_SPEED_HIGH)
--				size = size * hb_mult(sizedescr);
--
--			if (usb_endpoint_dir_in(e)) {
--				switch (e->bEndpointAddress) {
--				case 0x82:
--					has_video = true;
--					if (usb_endpoint_xfer_isoc(e)) {
--						dev->analog_ep_isoc =
--							    e->bEndpointAddress;
--						dev->alt_max_pkt_size_isoc[i] = size;
--					} else if (usb_endpoint_xfer_bulk(e)) {
--						dev->analog_ep_bulk =
--							    e->bEndpointAddress;
--					}
--					break;
--				case 0x83:
--					if (usb_endpoint_xfer_isoc(e)) {
--						has_vendor_audio = true;
--					} else {
--						dev_err(&interface->dev,
--							"error: skipping audio endpoint 0x83, because it uses bulk transfers !\n");
--					}
--					break;
--				case 0x84:
--					if (has_video &&
--					    (usb_endpoint_xfer_bulk(e))) {
--						dev->analog_ep_bulk =
--							    e->bEndpointAddress;
--					} else {
--						if (usb_endpoint_xfer_isoc(e)) {
--							if (size > dev->dvb_max_pkt_size_isoc) {
--								has_dvb = true; /* see NOTE (~) */
--								dev->dvb_ep_isoc = e->bEndpointAddress;
--								dev->dvb_max_pkt_size_isoc = size;
--								dev->dvb_alt_isoc = i;
--							}
--						} else {
--							has_dvb = true;
--							dev->dvb_ep_bulk = e->bEndpointAddress;
--						}
--					}
--					break;
--				}
--			}
--			/*
--			 * NOTE:
--			 * Old logic with support for isoc transfers only was:
--			 *  0x82	isoc		=> analog
--			 *  0x83	isoc		=> audio
--			 *  0x84	isoc		=> digital
--			 *
--			 * New logic with support for bulk transfers
--			 *  0x82	isoc		=> analog
--			 *  0x82	bulk		=> analog
--			 *  0x83	isoc*		=> audio
--			 *  0x84	isoc		=> digital
--			 *  0x84	bulk		=> analog or digital**
--			 * (*: audio should always be isoc)
--			 * (**: analog, if ep 0x82 is isoc, otherwise digital)
--			 *
--			 * The new logic preserves backwards compatibility and
--			 * reflects the endpoint configurations we have seen
--			 * so far. But there might be devices for which this
--			 * logic is not sufficient...
--			 */
--			/*
--			 * NOTE (~): some manufacturers (e.g. Terratec) disable
--			 * endpoints by setting wMaxPacketSize to 0 bytes for
--			 * all alt settings. So far, we've seen this for
--			 * DVB isoc endpoints only.
--			 */
--		}
-+		     ep < intf->altsetting[i].desc.bNumEndpoints;
-+		     ep++)
-+			em28xx_check_usb_descriptor(dev, udev, intf,
-+						    i, ep,
-+						    &has_vendor_audio,
-+						    &has_video,
-+						    &has_dvb);
- 	}
- 
- 	if (!(has_vendor_audio || has_video || has_dvb)) {
-@@ -3662,7 +3677,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 		speed = "unknown";
- 	}
- 
--	dev_err(&interface->dev,
-+	dev_err(&intf->dev,
- 		"New device %s %s @ %s Mbps (%04x:%04x, interface %d, class %d)\n",
- 		udev->manufacturer ? udev->manufacturer : "",
- 		udev->product ? udev->product : "",
-@@ -3670,7 +3685,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 		le16_to_cpu(udev->descriptor.idVendor),
- 		le16_to_cpu(udev->descriptor.idProduct),
- 		ifnum,
--		interface->altsetting->desc.bInterfaceNumber);
-+		intf->altsetting->desc.bInterfaceNumber);
- 
- 	/*
- 	 * Make sure we have 480 Mbps of bandwidth, otherwise things like
-@@ -3678,8 +3693,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	 * not enough even for most Digital TV streams.
- 	 */
- 	if (udev->speed != USB_SPEED_HIGH && disable_usb_speed_check == 0) {
--		dev_err(&interface->dev, "Device initialization failed.\n");
--		dev_err(&interface->dev,
-+		dev_err(&intf->dev, "Device initialization failed.\n");
-+		dev_err(&intf->dev,
- 			"Device must be connected to a high-speed USB 2.0 port.\n");
- 		retval = -ENODEV;
- 		goto err_free;
-@@ -3693,17 +3708,17 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	dev->ifnum = ifnum;
- 
- 	if (has_vendor_audio) {
--		dev_err(&interface->dev,
-+		dev_err(&intf->dev,
- 			"Audio interface %i found (Vendor Class)\n", ifnum);
- 		dev->usb_audio_type = EM28XX_USB_AUDIO_VENDOR;
- 	}
--	/* Checks if audio is provided by a USB Audio Class interface */
-+	/* Checks if audio is provided by a USB Audio Class intf */
- 	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
- 		struct usb_interface *uif = udev->config->interface[i];
- 
- 		if (uif->altsetting[0].desc.bInterfaceClass == USB_CLASS_AUDIO) {
- 			if (has_vendor_audio)
--				dev_err(&interface->dev,
-+				dev_err(&intf->dev,
- 					"em28xx: device seems to have vendor AND usb audio class interfaces !\n"
- 					"\t\tThe vendor interface will be ignored. Please contact the developers <linux-media@vger.kernel.org>\n");
- 			dev->usb_audio_type = EM28XX_USB_AUDIO_CLASS;
-@@ -3712,27 +3727,27 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	}
- 
- 	if (has_video)
--		dev_err(&interface->dev, "Video interface %i found:%s%s\n",
-+		dev_err(&intf->dev, "Video interface %i found:%s%s\n",
- 			ifnum,
- 			dev->analog_ep_bulk ? " bulk" : "",
- 			dev->analog_ep_isoc ? " isoc" : "");
- 	if (has_dvb)
--		dev_err(&interface->dev, "DVB interface %i found:%s%s\n",
-+		dev_err(&intf->dev, "DVB interface %i found:%s%s\n",
- 			ifnum,
- 			dev->dvb_ep_bulk ? " bulk" : "",
- 			dev->dvb_ep_isoc ? " isoc" : "");
- 
--	dev->num_alt = interface->num_altsetting;
-+	dev->num_alt = intf->num_altsetting;
- 
- 	if ((unsigned int)card[nr] < em28xx_bcount)
- 		dev->model = card[nr];
- 
--	/* save our data pointer in this interface device */
--	usb_set_intfdata(interface, dev);
-+	/* save our data pointer in this intf device */
-+	usb_set_intfdata(intf, dev);
- 
- 	/* allocate device struct and check if the device is a webcam */
- 	mutex_init(&dev->lock);
--	retval = em28xx_init_dev(dev, udev, interface, nr);
-+	retval = em28xx_init_dev(dev, udev, intf, nr);
- 	if (retval)
- 		goto err_free;
- 
-@@ -3749,7 +3764,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	if (has_video &&
- 	    dev->board.decoder == EM28XX_NODECODER &&
- 	    dev->em28xx_sensor == EM28XX_NOSENSOR) {
--		dev_err(&interface->dev,
-+		dev_err(&intf->dev,
- 			"Currently, V4L2 is not supported on this model\n");
- 		has_video = false;
- 		dev->has_video = false;
-@@ -3759,13 +3774,13 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	if (has_video) {
- 		if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
- 			dev->analog_xfer_bulk = 1;
--		dev_err(&interface->dev, "analog set to %s mode.\n",
-+		dev_err(&intf->dev, "analog set to %s mode.\n",
- 			dev->analog_xfer_bulk ? "bulk" : "isoc");
- 	}
- 	if (has_dvb) {
- 		if (!dev->dvb_ep_isoc || (try_bulk && dev->dvb_ep_bulk))
- 			dev->dvb_xfer_bulk = 1;
--		dev_err(&interface->dev, "dvb set to %s mode.\n",
-+		dev_err(&intf->dev, "dvb set to %s mode.\n",
- 			dev->dvb_xfer_bulk ? "bulk" : "isoc");
- 	}
- 
-@@ -3801,12 +3816,12 @@ static int em28xx_usb_probe(struct usb_interface *interface,
-  * called when the device gets disconnected
-  * video device will be unregistered on v4l2_close in case it is still open
-  */
--static void em28xx_usb_disconnect(struct usb_interface *interface)
-+static void em28xx_usb_disconnect(struct usb_interface *intf)
- {
- 	struct em28xx *dev;
- 
--	dev = usb_get_intfdata(interface);
--	usb_set_intfdata(interface, NULL);
-+	dev = usb_get_intfdata(intf);
-+	usb_set_intfdata(intf, NULL);
- 
- 	if (!dev)
- 		return;
-@@ -3823,23 +3838,23 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
- 	kref_put(&dev->ref, em28xx_free_device);
- }
- 
--static int em28xx_usb_suspend(struct usb_interface *interface,
-+static int em28xx_usb_suspend(struct usb_interface *intf,
- 			      pm_message_t message)
- {
- 	struct em28xx *dev;
- 
--	dev = usb_get_intfdata(interface);
-+	dev = usb_get_intfdata(intf);
- 	if (!dev)
- 		return 0;
- 	em28xx_suspend_extension(dev);
- 	return 0;
- }
- 
--static int em28xx_usb_resume(struct usb_interface *interface)
-+static int em28xx_usb_resume(struct usb_interface *intf)
- {
- 	struct em28xx *dev;
- 
--	dev = usb_get_intfdata(interface);
-+	dev = usb_get_intfdata(intf);
- 	if (!dev)
- 		return 0;
- 	em28xx_resume_extension(dev);
--- 
-2.14.3
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1 +
+
+JPEG is ordered.
+
+>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c       | 1 +
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 1 +
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1 +
+>  drivers/media/platform/mx2_emmaprp.c               | 1 +
+
+I believe this is also not a codec, so ordered,
+
+>  drivers/media/platform/qcom/venus/vdec.c           | 1 +
+>  drivers/media/platform/qcom/venus/venc.c           | 1 +
+>  drivers/media/platform/rcar_fdp1.c                 | 1 +
+>  drivers/media/platform/rcar_jpu.c                  | 1 +
+
+I don't think these two R-Car drivers are codecs, so these would be
+ordered (the 2nd is a JPEG codec, not sure about the first one).
+
+>  drivers/media/platform/rockchip/rga/rga-buf.c      | 1 +
+
+Not a codec driver, this is ordered,
+
+>  drivers/media/platform/s5p-g2d/g2d.c               | 1 +
+
+Not sure about this one, I don't think it is a codec driver,
+
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c        | 1 +
+
+MJPEG, so ordered,
+
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 1 +
+>  drivers/media/platform/sh_veu.c                    | 1 +
+
+Not a codec, so ordered,
+
+>  drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 1 +
+>  drivers/media/platform/ti-vpe/vpe.c                | 1 +
+>  drivers/media/platform/vim2m.c                     | 1 +
+
+Same for these three.
+
+Regards,
+
+	Hans
+
+>  22 files changed, 22 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index 04e35d70ce2e..6deb29fe6eb7 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -1649,6 +1649,7 @@ static const struct vb2_ops coda_qops = {
+>  	.stop_streaming		= coda_stop_streaming,
+>  	.wait_prepare		= vb2_ops_wait_prepare,
+>  	.wait_finish		= vb2_ops_wait_finish,
+> +	.is_unordered		= vb2_ops_set_unordered,
+>  };
+>  
+>  static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> index e9ff27949a91..10c3e4659d38 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> @@ -286,6 +286,7 @@ static const struct vb2_ops gsc_m2m_qops = {
+>  	.wait_finish	 = vb2_ops_wait_finish,
+>  	.stop_streaming	 = gsc_m2m_stop_streaming,
+>  	.start_streaming = gsc_m2m_start_streaming,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int gsc_m2m_querycap(struct file *file, void *fh,
+> diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+> index a19f8b164a47..dfc487a582c0 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-m2m.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+> @@ -227,6 +227,7 @@ static const struct vb2_ops fimc_qops = {
+>  	.wait_finish	 = vb2_ops_wait_finish,
+>  	.stop_streaming	 = stop_streaming,
+>  	.start_streaming = start_streaming,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  /*
+> diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+> index 1e4195144f39..35a0f45d2a51 100644
+> --- a/drivers/media/platform/m2m-deinterlace.c
+> +++ b/drivers/media/platform/m2m-deinterlace.c
+> @@ -856,6 +856,7 @@ static const struct vb2_ops deinterlace_qops = {
+>  	.queue_setup	 = deinterlace_queue_setup,
+>  	.buf_prepare	 = deinterlace_buf_prepare,
+>  	.buf_queue	 = deinterlace_buf_queue,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> index 226f90886484..34a4b5b2e1b5 100644
+> --- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> +++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> @@ -764,6 +764,7 @@ static const struct vb2_ops mtk_jpeg_qops = {
+>  	.wait_finish        = vb2_ops_wait_finish,
+>  	.start_streaming    = mtk_jpeg_start_streaming,
+>  	.stop_streaming     = mtk_jpeg_stop_streaming,
+> +	.is_unordered       = vb2_ops_set_unordered,
+>  };
+>  
+>  static void mtk_jpeg_set_dec_src(struct mtk_jpeg_ctx *ctx,
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> index 583d47724ee8..f3bb9f277f55 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> @@ -629,6 +629,7 @@ static const struct vb2_ops mtk_mdp_m2m_qops = {
+>  	.wait_finish	 = mtk_mdp_ctx_lock,
+>  	.stop_streaming	 = mtk_mdp_m2m_stop_streaming,
+>  	.start_streaming = mtk_mdp_m2m_start_streaming,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int mtk_mdp_m2m_querycap(struct file *file, void *fh,
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> index 86f0a7134365..4f33e9741248 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> @@ -1445,6 +1445,7 @@ static const struct vb2_ops mtk_vdec_vb2_ops = {
+>  	.buf_finish	= vb2ops_vdec_buf_finish,
+>  	.start_streaming	= vb2ops_vdec_start_streaming,
+>  	.stop_streaming	= vb2ops_vdec_stop_streaming,
+> +	.is_unordered	= vb2_ops_set_unordered,
+>  };
+>  
+>  const struct v4l2_ioctl_ops mtk_vdec_ioctl_ops = {
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> index 1b1a28abbf1f..fd763249d7bd 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -931,6 +931,7 @@ static const struct vb2_ops mtk_venc_vb2_ops = {
+>  	.wait_finish		= vb2_ops_wait_finish,
+>  	.start_streaming	= vb2ops_venc_start_streaming,
+>  	.stop_streaming		= vb2ops_venc_stop_streaming,
+> +	.is_unordered		= vb2_ops_set_unordered,
+>  };
+>  
+>  static int mtk_venc_encode_header(void *priv)
+> diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+> index 5a8eff60e95f..d03becff66cf 100644
+> --- a/drivers/media/platform/mx2_emmaprp.c
+> +++ b/drivers/media/platform/mx2_emmaprp.c
+> @@ -747,6 +747,7 @@ static const struct vb2_ops emmaprp_qops = {
+>  	.queue_setup	 = emmaprp_queue_setup,
+>  	.buf_prepare	 = emmaprp_buf_prepare,
+>  	.buf_queue	 = emmaprp_buf_queue,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index c9e9576bb08a..20acbfe2150d 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -793,6 +793,7 @@ static const struct vb2_ops vdec_vb2_ops = {
+>  	.start_streaming = vdec_start_streaming,
+>  	.stop_streaming = venus_helper_vb2_stop_streaming,
+>  	.buf_queue = venus_helper_vb2_buf_queue,
+> +	.is_unordered = vb2_ops_set_unordered,
+>  };
+>  
+>  static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+> index e3a10a852cad..abefae68ce5a 100644
+> --- a/drivers/media/platform/qcom/venus/venc.c
+> +++ b/drivers/media/platform/qcom/venus/venc.c
+> @@ -982,6 +982,7 @@ static const struct vb2_ops venc_vb2_ops = {
+>  	.start_streaming = venc_start_streaming,
+>  	.stop_streaming = venus_helper_vb2_stop_streaming,
+>  	.buf_queue = venus_helper_vb2_buf_queue,
+> +	.is_unordered = vb2_ops_set_unordered,
+>  };
+>  
+>  static void venc_buf_done(struct venus_inst *inst, unsigned int buf_type,
+> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+> index b13dec3081e5..6a744a9c1738 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -2040,6 +2040,7 @@ static const struct vb2_ops fdp1_qops = {
+>  	.stop_streaming  = fdp1_stop_streaming,
+>  	.wait_prepare	 = vb2_ops_wait_prepare,
+>  	.wait_finish	 = vb2_ops_wait_finish,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+> index f6092ae45912..b4b2e2cf5d1a 100644
+> --- a/drivers/media/platform/rcar_jpu.c
+> +++ b/drivers/media/platform/rcar_jpu.c
+> @@ -1192,6 +1192,7 @@ static const struct vb2_ops jpu_qops = {
+>  	.stop_streaming		= jpu_stop_streaming,
+>  	.wait_prepare		= vb2_ops_wait_prepare,
+>  	.wait_finish		= vb2_ops_wait_finish,
+> +	.is_unordered		= vb2_ops_set_unordered,
+>  };
+>  
+>  static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/rockchip/rga/rga-buf.c b/drivers/media/platform/rockchip/rga/rga-buf.c
+> index fa1ba98c96dc..48932f34144d 100644
+> --- a/drivers/media/platform/rockchip/rga/rga-buf.c
+> +++ b/drivers/media/platform/rockchip/rga/rga-buf.c
+> @@ -112,6 +112,7 @@ const struct vb2_ops rga_qops = {
+>  	.wait_finish = vb2_ops_wait_finish,
+>  	.start_streaming = rga_buf_start_streaming,
+>  	.stop_streaming = rga_buf_stop_streaming,
+> +	.is_unordered = vb2_ops_set_unordered,
+>  };
+>  
+>  /* RGA MMU is a 1-Level MMU, so it can't be used through the IOMMU API.
+> diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+> index 66aa8cf1d048..cb7d916bfc8b 100644
+> --- a/drivers/media/platform/s5p-g2d/g2d.c
+> +++ b/drivers/media/platform/s5p-g2d/g2d.c
+> @@ -142,6 +142,7 @@ static const struct vb2_ops g2d_qops = {
+>  	.queue_setup	= g2d_queue_setup,
+>  	.buf_prepare	= g2d_buf_prepare,
+>  	.buf_queue	= g2d_buf_queue,
+> +	.is_unordered	= vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index 79b63da27f53..28485e6b9cc8 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -2648,6 +2648,7 @@ static const struct vb2_ops s5p_jpeg_qops = {
+>  	.wait_finish		= vb2_ops_wait_finish,
+>  	.start_streaming	= s5p_jpeg_start_streaming,
+>  	.stop_streaming		= s5p_jpeg_stop_streaming,
+> +	.is_unordered		= vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 8937b0af7cb3..369db08dbcae 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -1099,6 +1099,7 @@ static struct vb2_ops s5p_mfc_dec_qops = {
+>  	.start_streaming	= s5p_mfc_start_streaming,
+>  	.stop_streaming		= s5p_mfc_stop_streaming,
+>  	.buf_queue		= s5p_mfc_buf_queue,
+> +	.is_unordered		= vb2_ops_set_unordered,
+>  };
+>  
+>  const struct s5p_mfc_codec_ops *get_dec_codec_ops(void)
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index 0d5d465561be..fece496c2a8e 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -2036,6 +2036,7 @@ static struct vb2_ops s5p_mfc_enc_qops = {
+>  	.start_streaming	= s5p_mfc_start_streaming,
+>  	.stop_streaming		= s5p_mfc_stop_streaming,
+>  	.buf_queue		= s5p_mfc_buf_queue,
+> +	.is_unordered		= vb2_ops_set_unordered,
+>  };
+>  
+>  const struct s5p_mfc_codec_ops *get_enc_codec_ops(void)
+> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+> index 1a0cde017fdf..0682b50a67fc 100644
+> --- a/drivers/media/platform/sh_veu.c
+> +++ b/drivers/media/platform/sh_veu.c
+> @@ -927,6 +927,7 @@ static const struct vb2_ops sh_veu_qops = {
+>  	.buf_queue	 = sh_veu_buf_queue,
+>  	.wait_prepare	 = vb2_ops_wait_prepare,
+>  	.wait_finish	 = vb2_ops_wait_finish,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+> index bf4ca16db440..0cfdc5a67855 100644
+> --- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+> +++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+> @@ -535,6 +535,7 @@ static const struct vb2_ops bdisp_qops = {
+>  	.wait_finish     = vb2_ops_wait_finish,
+>  	.stop_streaming  = bdisp_stop_streaming,
+>  	.start_streaming = bdisp_start_streaming,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv,
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index e395aa85c8ad..c2d838884e1c 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -2202,6 +2202,7 @@ static const struct vb2_ops vpe_qops = {
+>  	.wait_finish	 = vb2_ops_wait_finish,
+>  	.start_streaming = vpe_start_streaming,
+>  	.stop_streaming  = vpe_stop_streaming,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq,
+> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+> index 065483e62db4..e1a54a28b082 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -823,6 +823,7 @@ static const struct vb2_ops vim2m_qops = {
+>  	.stop_streaming  = vim2m_stop_streaming,
+>  	.wait_prepare	 = vb2_ops_wait_prepare,
+>  	.wait_finish	 = vb2_ops_wait_finish,
+> +	.is_unordered	 = vb2_ops_set_unordered,
+>  };
+>  
+>  static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
+> 
