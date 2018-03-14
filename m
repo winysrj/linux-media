@@ -1,54 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:37170 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423640AbeCBTO2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 14:14:28 -0500
-Received: by mail-qk0-f193.google.com with SMTP id y137so13270048qka.4
-        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2018 11:14:28 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de,
-        gustavo@embeddedor.com, linux-media@vger.kernel.org,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH 2/2] media: imx-media-csi: Do not propagate the error when pinctrl is not found
-Date: Fri,  2 Mar 2018 16:14:09 -0300
-Message-Id: <1520018049-5216-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1520018049-5216-1-git-send-email-festevam@gmail.com>
-References: <1520018049-5216-1-git-send-email-festevam@gmail.com>
+Received: from mail-out-4.itc.rwth-aachen.de ([134.130.5.49]:27745 "EHLO
+        mail-out-4.itc.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751700AbeCNUtt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 16:49:49 -0400
+To: <linux-usb@vger.kernel.org>
+CC: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>, Felipe Balbi <balbi@kernel.org>
+From: Joel Pepper <joel.pepper@rwth-aachen.de>
+Subject: uvc-gadget created with configfs sets all bFrameIndex to 1
+Message-ID: <87c86102-d235-b489-b235-a1ec9ad7ba30@rwth-aachen.de>
+Date: Wed, 14 Mar 2018 21:40:04 +0100
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+        boundary="------------02BFF3355F66597395B60FB9"
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+--------------02BFF3355F66597395B60FB9
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Since commit 52e17089d185 ("media: imx: Don't initialize vars that
-won't be used") imx_csi_probe() fails to probe after propagating the
-devm_pinctrl_get_select_default() error.
+I am currently working on an application for my master thesis that does
+transparent inline modification of  frames received from a uvc webcam
+which are served to the actual host through a uvc gadget mimicking the
+underlying webcam. I recently noticed that the host side v4l2 driver
+would only ever request bFrameIndex 1, no matter the requested format.
 
-devm_pinctrl_get_select_default() may return -ENODEV when the CSI pinctrl
-entry is not found, so better not to propagate the error in the -ENODEV
-case to avoid a regression.
 
-Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+So I used usbmon to take a closer look (pcap is attached ). Take a look
+at the Video Streaming interface descriptor in packet no. 6: All 19
+different framesizes have their bFrameIndex set to 1. This makes
+requesting any framesize but the actual first one impossible.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 4f290a0..5af66f6 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1799,7 +1799,10 @@ static int imx_csi_probe(struct platform_device *pdev)
- 	pinctrl = devm_pinctrl_get_select_default(priv->dev);
- 	if (IS_ERR(pinctrl)) {
- 		ret = PTR_ERR(pinctrl);
--		goto free;
-+		dev_dbg(priv->dev,
-+			"devm_pinctrl_get_select_default() failed: %d", ret);
-+		if (ret != -ENODEV)
-+			goto free;
- 	}
- 
- 	ret = v4l2_async_register_subdev(&priv->sd);
--- 
-2.7.4
+
+I took a quick look at drivers/usb/gadget/function/uvc_configfs.c and
+noticed that the bFrameIndex attribute of a frame is set to 1 per
+default in "uvcg_frame_make"**, but the attribute is neither made
+accessible through configfs nor could I see any mechanism by which the
+indices are set automatically.
+
+
+As I am new to kernel development, I wanted ask for comment first before
+I start brewing up a possible patch for this bug. Currently I see three
+solutions:
+
+1) Expose bFrameIndex through ConfigFs, to be set by the user
+
+2) Assign an unused bFrameIndex during "uvcg_frame_make"
+
+3) Once framesizes of a format are finalized, iterate through frames and
+assign ascending indices
+
+
+There is also obviously the possibility that I gravely misconfigured my
+gadget through configfs, if so please point me in the right direction.
+
+
+Regards,
+
+Joel
+
+
+--------------02BFF3355F66597395B60FB9
+Content-Type: application/x-pcapng; name="bFrameIndex_bug.pcapng"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="bFrameIndex_bug.pcapng"
+
+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
+--------------02BFF3355F66597395B60FB9--
