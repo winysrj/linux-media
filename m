@@ -1,166 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34964 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752876AbeC1OBp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 17/29] videodev2.h: Add request_fd field to v4l2_buffer
-Date: Wed, 28 Mar 2018 16:01:28 +0200
-Message-Id: <20180328140140.42096-1-hverkuil@xs4all.nl>
+Received: from mail.bootlin.com ([62.4.15.54]:51905 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751478AbeCNNQH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 09:16:07 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v6 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+Date: Wed, 14 Mar 2018 14:16:01 +0100
+Message-Id: <20180314131602.1531-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180314131602.1531-1-maxime.ripard@bootlin.com>
+References: <20180314131602.1531-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+video streams and can output on up to 4 CSI-2 lanes, depending on the
+hardware implementation.
 
-When queuing buffers allow for passing the request that should
-be associated with this buffer.
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
-the file descriptor.
-
-If a buffer is stored in a request, but not yet queued to the
-driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
- include/uapi/linux/videodev2.h                  | 10 +++++++++-
- 5 files changed, 19 insertions(+), 8 deletions(-)
+ .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..4e9c77f21858 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -204,7 +204,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
- 	b->reserved2 = 0;
--	b->reserved = 0;
-+	b->request_fd = 0;
- 
- 	if (q->is_multiplanar) {
- 		/*
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 99f106b13280..13aee9f67d05 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
- 	buf->reserved2 = 0;
--	buf->reserved = 0;
-+	buf->request_fd = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
- 	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 0782b3666deb..7e27d0feac94 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -387,7 +387,7 @@ struct v4l2_buffer32 {
- 	} m;
- 	__u32			length;
- 	__u32			reserved2;
--	__u32			reserved;
-+	__s32			request_fd;
- };
- 
- static int get_v4l2_plane32(struct v4l2_plane __user *up,
-@@ -486,6 +486,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
- {
- 	u32 type;
- 	u32 length;
-+	s32 request_fd;
- 	enum v4l2_memory memory;
- 	struct v4l2_plane32 __user *uplane32;
- 	struct v4l2_plane __user *uplane;
-@@ -500,7 +501,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	    get_user(memory, &up->memory) ||
- 	    put_user(memory, &kp->memory) ||
- 	    get_user(length, &up->length) ||
--	    put_user(length, &kp->length))
-+	    put_user(length, &kp->length) ||
-+	    get_user(request_fd, &up->request_fd) ||
-+	    put_user(request_fd, &kp->request_fd))
- 		return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(type))
-@@ -605,7 +608,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
- 	    assign_in_user(&up->sequence, &kp->sequence) ||
- 	    assign_in_user(&up->reserved2, &kp->reserved2) ||
--	    assign_in_user(&up->reserved, &kp->reserved) ||
-+	    assign_in_user(&up->request_fd, &kp->request_fd) ||
- 	    get_user(length, &kp->length) ||
- 	    put_user(length, &up->length))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ceeb6df0ef19..fd31f18b0aef 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 	const struct v4l2_plane *plane;
- 	int i;
- 
--	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
-+	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
--			prt_names(p->type, v4l2_type_names),
-+			prt_names(p->type, v4l2_type_names), p->request_fd,
- 			p->flags, prt_names(p->field, v4l2_field_names),
- 			p->sequence, prt_names(p->memory, v4l2_memory_names));
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6f41baa53787..88e2264b68f8 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -910,6 +910,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @request_fd: fd of the request that this buffer should use
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -934,7 +935,10 @@ struct v4l2_buffer {
- 	} m;
- 	__u32			length;
- 	__u32			reserved2;
--	__u32			reserved;
-+	union {
-+		__s32		request_fd;
-+		__u32		reserved;
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+new file mode 100644
+index 000000000000..459c6e332f52
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+@@ -0,0 +1,98 @@
++Cadence MIPI-CSI2 TX controller
++===============================
++
++The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
++4 CSI lanes in output, and up to 4 different pixel streams in input.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2tx"
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * esc_clk: escape mode clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties
++  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
++  - phy-names: must contain "dphy"
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 output
++           1    Stream 0 input
++           2    Stream 1 input
++           3    Stream 2 input
++           4    Stream 3 input
++
++           The stream input port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design. Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++Example:
++
++csi2tx: csi-bridge@0d0e1000 {
++	compatible = "cdns,csi2tx";
++	reg = <0x0d0e1000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>,
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "p_clk", "esc_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2tx_out: endpoint {
++				remote-endpoint = <&remote_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2tx_in_stream0: endpoint {
++				remote-endpoint = <&stream0_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2tx_in_stream1: endpoint {
++				remote-endpoint = <&stream1_out>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2tx_in_stream2: endpoint {
++				remote-endpoint = <&stream2_out>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2tx_in_stream3: endpoint {
++				remote-endpoint = <&stream3_out>;
++			};
++		};
 +	};
- };
- 
- /*  Flags for 'flags' field */
-@@ -952,6 +956,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_BFRAME			0x00000020
- /* Buffer is ready, but the data contained within is corrupted. */
- #define V4L2_BUF_FLAG_ERROR			0x00000040
-+/* Buffer is added to an unqueued request */
-+#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
- /* timecode field is valid */
- #define V4L2_BUF_FLAG_TIMECODE			0x00000100
- /* Buffer is prepared for queuing */
-@@ -970,6 +976,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
- /* mem2mem encoder/decoder */
- #define V4L2_BUF_FLAG_LAST			0x00100000
-+/* request_fd is valid */
-+#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
- 
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
++};
 -- 
-2.15.1
+2.14.3
