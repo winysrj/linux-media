@@ -1,145 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:42167 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932183AbeCITKp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 14:10:45 -0500
-Received: by mail-wr0-f193.google.com with SMTP id k9so9988350wre.9
-        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 11:10:44 -0800 (PST)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Cc: sumit.semwal@linaro.org
-Subject: [PATCH 1/4] dma-buf: add optional invalidate_mappings callback
-Date: Fri,  9 Mar 2018 20:10:39 +0100
-Message-Id: <20180309191042.1769-1-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mout.kundenserver.de ([212.227.126.187]:44511 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751695AbeCNPo7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 11:44:59 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 21/47] media: platform: remove m32r specific arv driver
+Date: Wed, 14 Mar 2018 16:35:34 +0100
+Message-Id: <20180314153603.3127932-22-arnd@arndb.de>
+In-Reply-To: <20180314153603.3127932-1-arnd@arndb.de>
+References: <20180314153603.3127932-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each importer can now provide an invalidate_mappings callback.
+The m32r architecture is getting removed, so this one is no longer needed.
 
-This allows the exporter to provide the mappings without the need to pin
-the backing store.
-
-Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/dma-buf/dma-buf.c | 25 +++++++++++++++++++++++++
- include/linux/dma-buf.h   | 36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+ drivers/media/platform/Kconfig  |  20 -
+ drivers/media/platform/Makefile |   2 -
+ drivers/media/platform/arv.c    | 884 ----------------------------------------
+ 3 files changed, 906 deletions(-)
+ delete mode 100644 drivers/media/platform/arv.c
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index d78d5fc173dc..ed8d5844ae74 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -629,6 +629,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 2136702c95fc..c7a1cf8a1b01 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -52,26 +52,6 @@ config VIDEO_VIU
+ 	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
+ 	  In doubt, say N.
  
- 	might_sleep();
+-config VIDEO_M32R_AR
+-	tristate "AR devices"
+-	depends on VIDEO_V4L2
+-	depends on M32R || COMPILE_TEST
+-	---help---
+-	  This is a video4linux driver for the Renesas AR (Artificial Retina)
+-	  camera module.
+-
+-config VIDEO_M32R_AR_M64278
+-	tristate "AR device with color module M64278(VGA)"
+-	depends on PLAT_M32700UT
+-	select VIDEO_M32R_AR
+-	---help---
+-	  This is a video4linux driver for the Renesas AR (Artificial
+-	  Retina) with M64278E-800 camera module.
+-	  This module supports VGA(640x480 pixels) resolutions.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called arv.
+-
+ config VIDEO_MUX
+ 	tristate "Video Multiplexer"
+ 	select MULTIPLEXER
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 2b07f2e2fca6..932515df4477 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -3,8 +3,6 @@
+ # Makefile for the video capture/playback device drivers.
+ #
  
-+	if (attach->invalidate_mappings)
-+		reservation_object_assert_held(attach->dmabuf->resv);
-+
- 	if (WARN_ON(!attach || !attach->dmabuf))
- 		return ERR_PTR(-EINVAL);
- 
-@@ -656,6 +659,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- {
- 	might_sleep();
- 
-+	if (attach->invalidate_mappings)
-+		reservation_object_assert_held(attach->dmabuf->resv);
-+
- 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
- 		return;
- 
-@@ -664,6 +670,25 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- }
- EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
- 
-+/**
-+ * dma_buf_invalidate_mappings - invalidate all mappings of this dma_buf
-+ *
-+ * @dmabuf:	[in]	buffer which mappings should be invalidated
-+ *
-+ * Informs all attachmenst that they need to destroy and recreated all their
-+ * mappings.
-+ */
-+void dma_buf_invalidate_mappings(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach;
-+
-+	reservation_object_assert_held(dmabuf->resv);
-+
-+	list_for_each_entry(attach, &dmabuf->attachments, node)
-+		attach->invalidate_mappings(attach);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_invalidate_mappings);
-+
- /**
-  * DOC: cpu access
-  *
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 085db2fee2d7..c1e2f7d93509 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -91,6 +91,18 @@ struct dma_buf_ops {
- 	 */
- 	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
- 
-+	/**
-+	 * @supports_mapping_invalidation:
-+	 *
-+	 * True for exporters which supports unpinned DMA-buf operation using
-+	 * the reservation lock.
-+	 *
-+	 * When attachment->invalidate_mappings is set the @map_dma_buf and
-+	 * @unmap_dma_buf callbacks can be called with the reservation lock
-+	 * held.
-+	 */
-+	bool supports_mapping_invalidation;
-+
- 	/**
- 	 * @map_dma_buf:
- 	 *
-@@ -326,6 +338,29 @@ struct dma_buf_attachment {
- 	struct device *dev;
- 	struct list_head node;
- 	void *priv;
-+
-+	/**
-+	 * @invalidate_mappings:
-+	 *
-+	 * Optional callback provided by the importer of the attachment which
-+	 * must be set before mappings are created.
-+	 *
-+	 * If provided the exporter can avoid pinning the backing store while
-+	 * mappings exists.
-+	 *
-+	 * The function is called with the lock of the reservation object
-+	 * associated with the dma_buf held and the mapping function must be
-+	 * called with this lock held as well. This makes sure that no mapping
-+	 * is created concurrently with an ongoing invalidation.
-+	 *
-+	 * After the callback all existing mappings are still valid until all
-+	 * fences in the dma_bufs reservation object are signaled, but should be
-+	 * destroyed by the importer as soon as possible.
-+	 *
-+	 * New mappings can be created immediately, but can't be used before the
-+	 * exclusive fence in the dma_bufs reservation object is signaled.
-+	 */
-+	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
- };
- 
- /**
-@@ -391,6 +426,7 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
- 					enum dma_data_direction);
- void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
- 				enum dma_data_direction);
-+void dma_buf_invalidate_mappings(struct dma_buf *dma_buf);
- int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
- 			     enum dma_data_direction dir);
- int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
+-obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
+-
+ obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+ obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
+ obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
+diff --git a/drivers/media/platform/arv.c b/drivers/media/platform/arv.c
+deleted file mode 100644
+index 1e865fea803c..000000000000
 -- 
-2.14.1
+2.9.0
