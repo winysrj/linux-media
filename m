@@ -1,66 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64305 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:25329 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751892AbeCNOMw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 10:12:52 -0400
-From: "Nautiyal, Ankit K" <ankit.k.nautiyal@intel.com>
-To: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org
-Cc: ville.syrjala@linux.intel.com, shashank.sharma@intel.com,
-        ppaalanen@gmail.com, daniel@fooishbar.org,
-        "Lin, Jia" <lin.a.jia@intel.com>,
-        Akashdeep Sharma <akashdeep.sharma@intel.com>,
-        Jim Bride <jim.bride@linux.intel.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Emil Velikov <emil.l.velikov@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v8 05/11] video/hdmi: Reject illegal picture aspect ratios
-Date: Wed, 14 Mar 2018 19:36:05 +0530
-Message-Id: <1521036371-29889-6-git-send-email-ankit.k.nautiyal@intel.com>
-In-Reply-To: <1521036371-29889-1-git-send-email-ankit.k.nautiyal@intel.com>
-References: <1521036371-29889-1-git-send-email-ankit.k.nautiyal@intel.com>
+        id S1751390AbeCNQU4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 12:20:56 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: RE: [PATCH v7] media: imx258: Add imx258 camera sensor driver
+Date: Wed, 14 Mar 2018 16:20:52 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D5498E3@PGSMSX111.gar.corp.intel.com>
+References: <1520784098-5593-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5DmRi20duX2TR1=OjnScP_sNH1z1JH7HmU1=DqyFpRyUA@mail.gmail.com>
+In-Reply-To: <CAAFQd5DmRi20duX2TR1=OjnScP_sNH1z1JH7HmU1=DqyFpRyUA@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
-
-AVI infoframe can only carry none, 4:3, or 16:9 picture aspect
-ratios. Return an error if the user asked for something different.
-
-Cc: Shashank Sharma <shashank.sharma@intel.com>
-Cc: "Lin, Jia" <lin.a.jia@intel.com>
-Cc: Akashdeep Sharma <akashdeep.sharma@intel.com>
-Cc: Jim Bride <jim.bride@linux.intel.com>
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
----
- drivers/video/hdmi.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
-index 111a0ab..38716eb5 100644
---- a/drivers/video/hdmi.c
-+++ b/drivers/video/hdmi.c
-@@ -93,6 +93,9 @@ ssize_t hdmi_avi_infoframe_pack(struct hdmi_avi_infoframe *frame, void *buffer,
- 	if (size < length)
- 		return -ENOSPC;
- 
-+	if (frame->picture_aspect > HDMI_PICTURE_ASPECT_16_9)
-+		return -EINVAL;
-+
- 	memset(buffer, 0, size);
- 
- 	ptr[0] = frame->type;
--- 
-2.7.4
+SGkgVG9tYXN6LA0KDQpUaGFua3MgZm9yIHRoZSBjb21tZW50cy4gT0tBWSBhcyBpbmxpbmUuDQpQ
+bGVhc2UgY2hlY2sgdGhlIFBhdGNoIFY4Lg0KDQpSZWdhcmRzLCBBbmR5DQoNCi0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVt
+Lm9yZ10gDQpTZW50OiBNb25kYXksIE1hcmNoIDEyLCAyMDE4IDM6MzMgUE0NClRvOiBZZWgsIEFu
+ZHkgPGFuZHkueWVoQGludGVsLmNvbT4NCkNjOiBMaW51eCBNZWRpYSBNYWlsaW5nIExpc3QgPGxp
+bnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cyA8c2FrYXJpLmFpbHVzQGxp
+bnV4LmludGVsLmNvbT47IENoZW4sIEphc29uWCBaIDxqYXNvbnguei5jaGVuQGludGVsLmNvbT47
+IENoaWFuZywgQWxhblggPGFsYW54LmNoaWFuZ0BpbnRlbC5jb20+OyBMYWksIEppbSA8amltLmxh
+aUBpbnRlbC5jb20+DQpTdWJqZWN0OiBSZTogW1BBVENIIHY3XSBtZWRpYTogaW14MjU4OiBBZGQg
+aW14MjU4IGNhbWVyYSBzZW5zb3IgZHJpdmVyDQoNCkhpIEFuZHksDQoNCk9uIE1vbiwgTWFyIDEy
+LCAyMDE4IGF0IDE6MDEgQU0sIEFuZHkgWWVoIDxhbmR5LnllaEBpbnRlbC5jb20+IHdyb3RlOg0K
+Pj4gQWRkIGEgVjRMMiBzdWItZGV2aWNlIGRyaXZlciBmb3IgdGhlIFNvbnkgSU1YMjU4IGltYWdl
+IHNlbnNvci4NCj4+IFRoaXMgaXMgYSBjYW1lcmEgc2Vuc29yIHVzaW5nIHRoZSBJMkMgYnVzIGZv
+ciBjb250cm9sIGFuZCB0aGUNCj4+IENTSS0yIGJ1cyBmb3IgZGF0YS4NCj4+DQo+PiBTaWduZWQt
+b2ZmLWJ5OiBKYXNvbiBDaGVuIDxqYXNvbnguei5jaGVuQGludGVsLmNvbT4NCj4+IFNpZ25lZC1v
+ZmYtYnk6IEFsYW4gQ2hpYW5nIDxhbGFueC5jaGlhbmdAaW50ZWwuY29tPg0KPj4gLS0tDQo+PiBz
+aW5jZSB2MjoNCj4+IC0tIFVwZGF0ZSB0aGUgc3RyZWFtaW5nIGZ1bmN0aW9uIHRvIHJlbW92ZSBT
+V19TVEFOREJZIGluIHRoZSBiZWdpbm5pbmcuDQo+PiAtLSBBZGp1c3QgdGhlIGRlbGF5IHRpbWUg
+ZnJvbSAxbXMgdG8gMTJtcyBiZWZvcmUgc2V0IHN0cmVhbS1vbiByZWdpc3Rlci4NCj4+IHNpbmNl
+IHYzOg0KPj4gLS0gZml4IHRoZSBzZC5lbnRpdHkgdG8gbWFrZSBjb2RlIGJlIGNvbXBpbGVkIG9u
+IHRoZSBtYWlubGluZSBrZXJuZWwuDQo+PiBzaW5jZSB2NDoNCj4+IC0tIEVuYWJsZWQgQUcsIERH
+LCBhbmQgRXhwb3N1cmUgdGltZSBjb250cm9sIGNvcnJlY3RseS4NCj4+IHNpbmNlIHY1Og0KPj4g
+LS0gU2Vuc29yIHZlbmRvciBwcm92aWRlZCBhIG5ldyBzZXR0aW5nIHRvIGZpeCBkaWZmZXJlbnQg
+Q0xLIGlzc3VlDQo+PiAtLSBBZGQgb25lIG1vcmUgcmVzb2x1dGlvbiBmb3IgMTA0OHg3ODAsIHVz
+ZWQgZm9yIFZHQSBzdHJlYW1pbmcgc2luY2UgDQo+PiB2NjoNCj4+IC0tIGltcHJvdmVkIGkyYyBy
+ZWFkL3dyaXRlIGZ1bmN0aW9uIHRvIHN1cHBvcnQgd3JpdGluZyAyIHJlZ2lzdGVycw0KPj4gLS0g
+bW9kaWZpZWQgaTJjIHJlZyByZWFkL3dyaXRlIGZ1bmN0aW9uIHdpdGggYSBtb3JlIHBvcnRhYmxl
+IHdheQ0KPj4gLS0gdXRpbGl6ZWQgdjRsMl9maW5kX25lYXJlc3Rfc2l6ZSBpbnN0ZWFkIG9mIHRo
+ZSBsb2NhbCBmaW5kX2Jlc3RfZml0IA0KPj4gZnVuY3Rpb24NCj4+IC0tIGRlZmluZWQgYW4gZW51
+bSBmb3IgdGhlIGxpbmsgZnJlcSBlbnRyaWVzIGZvciBleHBsaWNpdCBpbmRleGluZw0KPg0KPlRo
+YW5rcyBmb3IgdGhlIHBhdGNoLiBMb29rcyBhbG1vc3QgZ29vZCBub3cuIEp1c3QgdHdvIG5ldyBj
+b21tZW50cyBpbmxpbmUuDQo+DQo+W3NuaXBdDQo+PiArICAgICAgIC8qIFNldCBPcmllbnRhdGlv
+biBiZSAxODAgZGVncmVlICovDQo+PiArICAgICAgIHJldCA9IGlteDI1OF93cml0ZV9yZWcoaW14
+MjU4LCBSRUdfTUlSUk9SX0ZMSVBfQ09OVFJPTCwNCj4+ICsgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgSU1YMjU4X1JFR19WQUxVRV8wOEJJVCwgUkVHX0NPTkZJR19NSVJST1JfRkxJUCk7
+DQo+PiArICAgICAgIGlmIChyZXQpIHsNCj4+ICsgICAgICAgICAgICAgICBkZXZfZXJyKCZjbGll
+bnQtPmRldiwgIiVzIGZhaWxlZCB0byBzZXQgb3JpZW50YXRpb25cbiIsDQo+PiArICAgICAgICAg
+ICAgICAgICAgICAgICBfX2Z1bmNfXyk7DQo+PiArICAgICAgICAgICAgICAgcmV0dXJuIHJldDsN
+Cj4+ICsgICAgICAgfQ0KPj4gKw0KPj4gKyAgICAgICAvKiBBcHBseSBjdXN0b21pemVkIHZhbHVl
+cyBmcm9tIHVzZXIgKi8NCj4+ICsgICAgICAgcmV0ID0gIF9fdjRsMl9jdHJsX2hhbmRsZXJfc2V0
+dXAoaW14MjU4LT5zZC5jdHJsX2hhbmRsZXIpOw0KPj4gKyAgICAgICBpZiAocmV0KQ0KPj4gKyAg
+ICAgICAgICAgICAgIHJldHVybiByZXQ7DQo+PiArDQo+PiArICAgICAgIC8qDQo+PiArICAgICAg
+ICAqIFBlciBzZW5zb3IgZGF0YXNoZWV0Og0KPj4gKyAgICAgICAgKiBUaGVzZSBhcmUgdGhlIG1p
+bmltdW0gMTJtcyBkZWxheXMgZm9yIGFjY2Vzc2luZyB0aGUgc2Vuc29yIHRocm91Z2gNCj4+ICsg
+ICAgICAgICogSTJDIGFuZCBlbmFibGluZyBzdHJlYW1pbmcgYWZ0ZXIgbGlmdGluZyB0aGUgZGV2
+aWNlIGZyb20gcmVzZXQuDQo+PiArICAgICAgICAqLw0KPj4gKyAgICAgICB1c2xlZXBfcmFuZ2Uo
+MTIwMDAsIDEzMDAwKTsNCj4NCj5IbW0sIHRoZSBjb2RlIGFib3ZlIGFscmVhZHkgYWNjZXNzZXMg
+dGhlIHNlbnNvciB0aHJvdWdoIEkyQy4gSWYgdGhpcyB3b3JrcywgaXMgdGhpcyBzbGVlcCBwZXJo
+YXBzIGFscmVhZHkgZG9uZSBieSBBQ1BJIGNvZGUgb3IgaXQgaXMgb25seSBuZWVkZWQgZm9yIHN0
+cmVhbWluZz8NCj4NCg0KT2theS4NCnVzbGVlcCByZW1vdmVkIHNpbmNlIGNvbmZpcm1lZCBzdWZm
+aWNpZW50IGRlbGF5IGltcGxlbWVudGVkIGluIGNvcmVib290LiBTdHJlc3MgdGVzdCBwYXNzZWQu
+DQoNCj5bc25pcF0NCj4+ICsvKiBJbml0aWFsaXplIGNvbnRyb2wgaGFuZGxlcnMgKi8NCj4+ICtz
+dGF0aWMgaW50IGlteDI1OF9pbml0X2NvbnRyb2xzKHN0cnVjdCBpbXgyNTggKmlteDI1OCkgew0K
+Pj4gKyAgICAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdjRsMl9nZXRfc3ViZGV2ZGF0
+YSgmaW14MjU4LT5zZCk7DQo+PiArICAgICAgIHN0cnVjdCB2NGwyX2N0cmxfaGFuZGxlciAqY3Ry
+bF9oZGxyOw0KPj4gKyAgICAgICBzNjQgZXhwb3N1cmVfbWF4Ow0KPj4gKyAgICAgICBzNjQgdmJs
+YW5rX2RlZjsNCj4+ICsgICAgICAgczY0IHZibGFua19taW47DQo+PiArICAgICAgIHM2NCBwaXhl
+bF9yYXRlX21pbjsNCj4+ICsgICAgICAgczY0IHBpeGVsX3JhdGVfbWF4Ow0KPj4gKyAgICAgICBp
+bnQgcmV0Ow0KPj4gKw0KPj4gKyAgICAgICBjdHJsX2hkbHIgPSAmaW14MjU4LT5jdHJsX2hhbmRs
+ZXI7DQo+PiArICAgICAgIHJldCA9IHY0bDJfY3RybF9oYW5kbGVyX2luaXQoY3RybF9oZGxyLCA4
+KTsNCj4+ICsgICAgICAgaWYgKHJldCkNCj4+ICsgICAgICAgICAgICAgICByZXR1cm4gcmV0Ow0K
+Pj4gKw0KPj4gKyAgICAgICBtdXRleF9pbml0KCZpbXgyNTgtPm11dGV4KTsNCj4+ICsgICAgICAg
+Y3RybF9oZGxyLT5sb2NrID0gJmlteDI1OC0+bXV0ZXg7DQo+PiArICAgICAgIGlteDI1OC0+bGlu
+a19mcmVxID0gdjRsMl9jdHJsX25ld19pbnRfbWVudShjdHJsX2hkbHIsDQo+PiArICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICZpbXgyNThfY3RybF9vcHMsDQo+PiArICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIFY0TDJfQ0lEX0xJTktfRlJFUSwNCj4+ICsgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgQVJSQVlfU0laRShsaW5rX2ZyZXFfbWVudV9pdGVtcykgLSAxLA0K
+Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAwLA0KPj4gKyAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBsaW5rX2ZyZXFfbWVudV9pdGVtcyk7DQo+PiArDQo+PiArICAgICAg
+IGlmICghaW14MjU4LT5saW5rX2ZyZXEpIHsNCj4+ICsgICAgICAgICAgICAgICByZXQgPSAtRUlO
+VkFMOw0KPj4gKyAgICAgICAgICAgICAgIGdvdG8gZXJyb3I7DQo+PiArICAgICAgIH0NCj4+ICsN
+Cj4+ICsgICAgICAgaW14MjU4LT5saW5rX2ZyZXEtPmZsYWdzIHw9IFY0TDJfQ1RSTF9GTEFHX1JF
+QURfT05MWTsNCj4NCj5uaXQ6IEFzIGRpc2N1c3NlZCBlYXJsaWVyIHdpdGggU2FrYXJpLCBJIHRo
+aW5rIHdlIGFncmVlZCBvbiBtYWtpbmcgdGhpcywgYW5kIG90aGVyIGNvbnRyb2xzIHRoYXQgbmVl
+ZCBkZXJlZmVyZW5jaW5nIGhlcmUsIGFzIGZvbGxvd3M6DQo+DQo+ICAgICAgICBpbXgyNTgtPmxp
+bmtfZnJlcSA9IHY0bDJfY3RybF9uZXdfaW50X21lbnUoY3RybF9oZGxyLA0KPiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgJmlteDI1OF9jdHJsX29wcywNCj4gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIFY0TDJfQ0lEX0xJTktfRlJFUSwNCj4gICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIEFSUkFZX1NJWkUobGlua19mcmVxX21lbnVfaXRlbXMpIC0gMSwNCj4gICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIDAsDQo+ICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICBsaW5rX2ZyZXFfbWVudV9pdGVtcyk7DQo+ICAgICAgICBpZiAoaW14MjU4LT5saW5r
+X2ZyZXEpDQo+ICAgICAgICAgICAgICAgIGlteDI1OC0+bGlua19mcmVxLT5mbGFncyB8PSBWNEwy
+X0NUUkxfRkxBR19SRUFEX09OTFk7DQo+DQo+VGhlIGVycm9yIHdpbGwgYmUgcmVwb3J0ZWQgYXQg
+dGhlIGVuZCBvZiB0aGlzIGZ1bmN0aW9uLCB0aHJvdWdoIHRoZSBjaGVjayBmb3IgY3RybF9oZGxy
+LT5lcnJvci4NCj4NCj4NCk9LQVkNCg0KDQpCZXN0IHJlZ2FyZHMsDQpUb21hc3oNCg==
