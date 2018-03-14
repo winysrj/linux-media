@@ -1,134 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:42242 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932840AbeCNCoh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 22:44:37 -0400
-Subject: Re: [PATCH v8 04/13] [media] vb2: add is_unordered callback for
- drivers
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180309174920.22373-1-gustavo@padovan.org>
- <20180309174920.22373-5-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <82d8167e-fea2-6f28-fdfe-69e37474cc27@xs4all.nl>
-Date: Tue, 13 Mar 2018 19:44:29 -0700
+Received: from mga12.intel.com ([192.55.52.136]:25158 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750779AbeCNWar (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 18:30:47 -0400
+Date: Thu, 15 Mar 2018 00:30:43 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        jasonx.z.chen@intel.com, alanx.chiang@intel.com, jim.lai@intel.com
+Subject: Re: [PATCH v8] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180314223042.4t2thym5tspxfio3@kekkonen.localdomain>
+References: <1521044659-12598-1-git-send-email-andy.yeh@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180309174920.22373-5-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1521044659-12598-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/09/2018 09:49 AM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Explicit synchronization benefits a lot from ordered queues, they fit
-> better in a pipeline with DRM for example so create a opt-in way for
-> drivers notify videobuf2 that the queue is unordered.
-> 
-> Drivers don't need implement it if the queue is ordered.
-> 
-> v2: 	- improve comments for is_unordered flag (Hans)
-> 
-> v3: 	- make it bool (Hans)
-> 	- create vb2_ops_set_unordered() helper
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/common/videobuf2/videobuf2-v4l2.c |  6 ++++++
->  include/media/videobuf2-core.h                  |  6 ++++++
->  include/media/videobuf2-v4l2.h                  | 10 ++++++++++
->  3 files changed, 22 insertions(+)
-> 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 886a2d8d5c6c..68291ba8632d 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -961,6 +961,12 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
->  }
->  EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
->  
-> +bool vb2_ops_set_unordered(struct vb2_queue *q)
+Hi Andy,
+
+Thanks for the update. Two minor comments below.
+
+On Thu, Mar 15, 2018 at 12:24:19AM +0800, Andy Yeh wrote:
+...
+> +static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
 > +{
-> +	return true;
+> +	struct imx258 *imx258 =
+> +		container_of(ctrl->handler, struct imx258, ctrl_handler);
+> +	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+> +	int ret = 0;
+> +
+> +	/*
+> +	 * Applying V4L2 control value only happens
+> +	 * when power is up for streaming
+> +	 */
+> +	if (pm_runtime_get_if_in_use(&client->dev) == 0)
+> +		return 0;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_ANALOGUE_GAIN:
+> +		ret = imx258_write_reg(imx258, IMX258_REG_ANALOG_GAIN,
+> +				IMX258_REG_VALUE_16BIT,
+> +				ctrl->val);
+> +		break;
+> +	case V4L2_CID_EXPOSURE:
+> +		ret = imx258_write_reg(imx258, IMX258_REG_EXPOSURE,
+> +				IMX258_REG_VALUE_16BIT,
+> +				ctrl->val);
+> +		break;
+> +	case V4L2_CID_DIGITAL_GAIN:
+> +		ret = imx258_update_digital_gain(imx258, IMX258_REG_VALUE_16BIT,
+> +				ctrl->val);
+> +		break;
+> +	case V4L2_CID_VBLANK:
+> +		/*
+> +		 * Auto Frame Length Line Control is enabled by default.
+> +		 * Not need control Vblank Register.
+> +		 */
+> +		break;
+> +	default:
+> +		dev_info(&client->dev,
+> +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
+> +			 ctrl->id, ctrl->val);
+
+As this is an error, I'd set ret to e.g. -EINVAL here.
+
+> +		break;
+> +	}
+> +
+> +	pm_runtime_put(&client->dev);
+> +
+> +	return ret;
 > +}
-> +EXPORT_SYMBOL_GPL(vb2_ops_set_unordered);
 
-This should be called vb2_ops_is_unordered. The name after the vb2_ops_
-prefix should match the op name (is_unordered).
+...
 
-I also would add this to videobuf2-core.c since there is nothing V4L2
-specific about this.
-
+> +/* Initialize control handlers */
+> +static int imx258_init_controls(struct imx258 *imx258)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+> +	struct v4l2_ctrl_handler *ctrl_hdlr;
+> +	s64 exposure_max;
+> +	s64 vblank_def;
+> +	s64 vblank_min;
+> +	s64 pixel_rate_min;
+> +	s64 pixel_rate_max;
+> +	int ret;
 > +
->  MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
->  MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
->  MODULE_LICENSE("GPL");
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 5b6c541e4e1b..46a9e674f7e1 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -370,6 +370,10 @@ struct vb2_buffer {
->   *			callback by calling vb2_buffer_done() with either
->   *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
->   *			vb2_wait_for_all_buffers() function
-> + * @is_unordered:	tell if the queue is unordered, i.e. buffers can be
-> + *			dequeued in a different order from how they were queued.
-> + *			The default is assumed to be ordered and this function
-> + *			only needs to be implemented for unordered queues.
->   * @buf_queue:		passes buffer vb to the driver; driver may start
->   *			hardware operation on this buffer; driver should give
->   *			the buffer back by calling vb2_buffer_done() function;
-> @@ -393,6 +397,7 @@ struct vb2_ops {
->  
->  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
->  	void (*stop_streaming)(struct vb2_queue *q);
-> +	bool (*is_unordered)(struct vb2_queue *q);
->  
->  	void (*buf_queue)(struct vb2_buffer *vb);
->  };
-> @@ -566,6 +571,7 @@ struct vb2_queue {
->  	u32				cnt_wait_finish;
->  	u32				cnt_start_streaming;
->  	u32				cnt_stop_streaming;
-> +	u32				cnt_is_unordered;
->  #endif
->  };
->  
-> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-> index 3d5e2d739f05..9de3c887c875 100644
-> --- a/include/media/videobuf2-v4l2.h
-> +++ b/include/media/videobuf2-v4l2.h
-> @@ -291,4 +291,14 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
->   */
->  void vb2_ops_wait_finish(struct vb2_queue *vq);
->  
-> +/**
-> + * vb2_ops_set_unordered - helper function to mark queue as unordered
-> + *
-> + * @vq: pointer to &struct vb2_queue
-> + *
-> + * This helper just return true to notify that the driver can't deal with
-
-return -> returns
-
-> + * ordered queues.
-> + */
-> +bool vb2_ops_set_unordered(struct vb2_queue *q);
+> +	ctrl_hdlr = &imx258->ctrl_handler;
+> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
+> +	if (ret)
+> +		return ret;
 > +
->  #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
-> 
+> +	mutex_init(&imx258->mutex);
+> +	ctrl_hdlr->lock = &imx258->mutex;
+> +	imx258->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
+> +				&imx258_ctrl_ops,
+> +				V4L2_CID_LINK_FREQ,
+> +				ARRAY_SIZE(link_freq_menu_items) - 1,
+> +				0,
+> +				link_freq_menu_items);
+> +
+> +	if (imx258->link_freq)
+> +		imx258->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +
+> +	pixel_rate_max = link_freq_to_pixel_rate(link_freq_menu_items[0]);
+> +	pixel_rate_min = link_freq_to_pixel_rate(link_freq_menu_items[1]);
+> +	/* By default, PIXEL_RATE is read only */
+> +	imx258->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops,
+> +					V4L2_CID_PIXEL_RATE,
+> +					pixel_rate_min, pixel_rate_max,
+> +					1, pixel_rate_max);
+> +
+> +
+> +	vblank_def = imx258->cur_mode->vts_def - imx258->cur_mode->height;
+> +	vblank_min = imx258->cur_mode->vts_min - imx258->cur_mode->height;
+> +	imx258->vblank = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_VBLANK,
+> +				vblank_min,
+> +				IMX258_VTS_MAX - imx258->cur_mode->height, 1,
+> +				vblank_def);
+> +
+> +	imx258->hblank = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_HBLANK,
+> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
+> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
+> +				1,
+> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width);
+> +
+> +	if (!imx258->hblank) {
 
-Regards,
+Could you align handling for NULL hblank control with NULL link_freq above?
 
-	Hans
+> +		ret = -EINVAL;
+> +		goto error;
+> +	}
+> +
+> +	imx258->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +
+> +	exposure_max = imx258->cur_mode->vts_def - 8;
+> +	imx258->exposure = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &imx258_ctrl_ops,
+> +				V4L2_CID_EXPOSURE, IMX258_EXPOSURE_MIN,
+> +				IMX258_EXPOSURE_MAX, IMX258_EXPOSURE_STEP,
+> +				IMX258_EXPOSURE_DEFAULT);
+> +
+> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
+> +				IMX258_ANA_GAIN_MIN, IMX258_ANA_GAIN_MAX,
+> +				IMX258_ANA_GAIN_STEP, IMX258_ANA_GAIN_DEFAULT);
+> +
+> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
+> +				IMX258_DGTL_GAIN_MIN, IMX258_DGTL_GAIN_MAX,
+> +				IMX258_DGTL_GAIN_STEP,
+> +				IMX258_DGTL_GAIN_DEFAULT);
+> +
+> +	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx258_ctrl_ops,
+> +				     V4L2_CID_TEST_PATTERN,
+> +				     ARRAY_SIZE(imx258_test_pattern_menu) - 1,
+> +				     0, 0, imx258_test_pattern_menu);
+> +
+> +	if (ctrl_hdlr->error) {
+> +		ret = ctrl_hdlr->error;
+> +		dev_err(&client->dev, "%s control init failed (%d)\n",
+> +			__func__, ret);
+> +		goto error;
+> +	}
+> +
+> +	imx258->sd.ctrl_handler = ctrl_hdlr;
+> +
+> +	return 0;
+> +
+> +error:
+> +	v4l2_ctrl_handler_free(ctrl_hdlr);
+> +	mutex_destroy(&imx258->mutex);
+> +
+> +	return ret;
+> +}
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
