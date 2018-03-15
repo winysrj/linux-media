@@ -1,259 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f53.google.com ([209.85.160.53]:42903 "EHLO
-        mail-pl0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935069AbeCHJsk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:48:40 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        devicetree@vger.kernel.org, heiko@sntech.de,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v6 00/17] Rockchip ISP1 Driver
-Date: Thu,  8 Mar 2018 17:47:50 +0800
-Message-Id: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:39193 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750731AbeCOJUV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 05:20:21 -0400
+Received: by mail-wm0-f49.google.com with SMTP id u10so8855382wmu.4
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 02:20:20 -0700 (PDT)
+Date: Thu, 15 Mar 2018 10:20:13 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: christian.koenig@amd.com
+Cc: Daniel Vetter <daniel@ffwll.ch>, linaro-mm-sig@lists.linaro.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] dma-buf: add optional invalidate_mappings callback
+Message-ID: <20180315092013.GC25297@phenom.ffwll.local>
+References: <20180309191144.1817-1-christian.koenig@amd.com>
+ <20180309191144.1817-2-christian.koenig@amd.com>
+ <20180312170710.GL8589@phenom.ffwll.local>
+ <f3986703-75de-4ce3-a828-1687291bb618@gmail.com>
+ <20180313151721.GH4788@phenom.ffwll.local>
+ <2866813a-f2ab-0589-ee40-30935e59d3d7@gmail.com>
+ <20180313160052.GK4788@phenom.ffwll.local>
+ <052a6595-9fc3-48a6-9366-67ca2f2da17e@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <052a6595-9fc3-48a6-9366-67ca2f2da17e@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+On Tue, Mar 13, 2018 at 06:20:07PM +0100, Christian König wrote:
+> Am 13.03.2018 um 17:00 schrieb Daniel Vetter:
+> > On Tue, Mar 13, 2018 at 04:52:02PM +0100, Christian König wrote:
+> > > Am 13.03.2018 um 16:17 schrieb Daniel Vetter:
+> > > [SNIP]
+> > Ok, so plan is to support fully pipeline moves and everything, with the
+> > old sg tables lazily cleaned up. I was thinking more about evicting stuff
+> > and throwing it out, where there's not going to be any new sg list but the
+> > object is going to be swapped out.
+> 
+> Yes, exactly. Well my example was the unlikely case when the object is
+> swapped out and immediately swapped in again because somebody needs it.
+> 
+> > 
+> > I think some state flow charts (we can do SVG or DOT) in the kerneldoc
+> > would be sweet.Yeah, probably a good idea.
+> 
+> Sounds good and I find it great that you're volunteering for that :D
+> 
+> Ok seriously, my drawing capabilities are a bit underdeveloped. So I would
+> prefer if somebody could at least help with that.
 
-changes in V6:
-  - add mipi txrx phy support
-  - remove bool and enum from uapi header
-  - add buf_prepare op
-  - correct some spelling problems
-  - return all queued buffers when starting stream failed
+Take a look at the DOT graphs for atomic I've done a while ago. I think we
+could make a formidable competition for who's doing the worst diagrams :-)
 
-changes in V5: Sync with local changes,
-  - fix the SP height limit
-  - speed up the second stream capture
-  - the second stream can't force sync for rsz when start/stop streaming
-  - add frame id to param vb2 buf
-  - enable luminance maximum threshold
+> > > > Re GPU might cause a deadlock: Isn't that already a problem if you hold
+> > > > reservations of buffers used on other gpus, which want those reservations
+> > > > to complete the gpu reset, but that gpu reset blocks some fence that the
+> > > > reservation holder is waiting for?
+> > > Correct, that's why amdgpu and TTM tries quite hard to never wait for a
+> > > fence while a reservation object is locked.
+> > We might have a fairly huge mismatch of expectations here :-/
+> 
+> What do you mean with that?
 
-changes in V4:
-  - fix some bugs during development
-  - move quantization settings to rkisp1 subdev
-  - correct some spelling problems
-  - describe ports in dt-binding documents
+i915 expects that other drivers don't have this requirement. Our gpu reset
+can proceed even if it's all locked down.
 
-changes in V3:
-  - add some comments
-  - fix wrong use of v4l2_async_subdev_notifier_register
-  - optimize two paths capture at a time
-  - remove compose
-  - re-struct headers
-  - add a tmp wiki page: http://opensource.rock-chips.com/wiki_Rockchip-isp1
+> > > The only use case I haven't fixed so far is reaping deleted object during
+> > > eviction, but that is only a matter of my free time to fix it.
+> > Yeah, this is the hard one.
+> 
+> Actually it isn't so hard, it's just that I didn't had time so far to clean
+> it up and we never hit that issue so far during our reset testing.
+> 
+> The main point missing just a bit of functionality in the reservation object
+> and Chris and I already had a good idea how to implement that.
+> 
+> > In general the assumption is that dma_fence will get signalled no matter
+> > what you're doing, assuming the only thing you need is to not block
+> > interrupts. The i915 gpu reset logic to make that work is a bit a work of
+> > art ...
+> 
+> Correct, but I don't understand why that is so hard on i915? Our GPU
+> scheduler makes all of that rather trivial, e.g. fences either signal
+> correctly or are aborted and set as erroneous after a timeout.
 
-changes in V2:
-  mipi-phy:
-    - use async probing
-    - make it be a child device of the GRF
-  isp:
-    - add dummy buffer
-    - change the way to get bus configuration, which make it possible to
-            add parallel sensor support in the future(without mipi-phy driver).
+Yes, i915 does the same. It's the locking requirement we disagree on, i915
+can reset while holding locks. I think right now we don't reset while
+holding reservation locks, but only while holding our own locks. I think
+cross-release would help model us this and uncover all the funny
+dependency loops we have.
 
-This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
+The issue I'm seeing:
 
-Wiki Pages:
-http://opensource.rock-chips.com/wiki_Rockchip-isp1
+amdgpu: Expects that you never hold any of the heavywheight locks while
+waiting for a fence (since gpu resets will need them).
 
-The deprecated g_mbus_config op is not dropped in  V6 because i am waiting tomasz's patches.
+i915: Happily blocks on fences while holding all kinds of locks, expects
+gpu reset to be able to recover even in this case.
 
-v4l2-compliance for V6(isp params/stats nodes are passed):
+Both drivers either complete the fence (with or without setting the error
+status to EIO or something like that), that's not the difference. The work
+of art I referenced is how we managed to complete gpu reset (including
+resubmitting) while holding plenty of locks.
 
-    v4l2-compliance SHA   : 93dc5f20727fede5097d67f8b9adabe4b8046d5b
+> > If we expect amdgpu and i915 to cooperate with shared buffers I guess one
+> > has to give in. No idea how to do that best.
+> 
+> Again at least from amdgpu side I don't see much of an issue with that. So
+> what exactly do you have in mind here?
+> 
+> > > > We have tons of fun with deadlocks against GPU resets, and loooooots of
+> > > > testcases, and I kinda get the impression amdgpu is throwing a lot of
+> > > > issues under the rug through trylock tricks that shut up lockdep, but
+> > > > don't fix much really.
+> > > Hui? Why do you think that? The only trylock I'm aware of is during eviction
+> > > and there it isn't a problem.
+> > mmap fault handler had one too last time I looked, and it smelled fishy.
+> 
+> Good point, never wrapped my head fully around that one either.
+> 
+> > > > btw adding cross-release lockdep annotations for fences will probably turn
+> > > > up _lots_ more bugs in this area.
+> > > At least for amdgpu that should be handled by now.
+> > You're sure? :-)
+> 
+> Yes, except for fallback paths and bootup self tests we simply never wait
+> for fences while holding locks.
 
-    Compliance test for device /dev/video0:
+That's not what I meant with "are you sure". Did you enable the
+cross-release stuff (after patching the bunch of leftover core kernel
+issues still present), annotate dma_fence with the cross-release stuff,
+run a bunch of multi-driver (amdgpu vs i915) dma-buf sharing tests and
+weep?
 
-    Driver Info:
-            Driver name      : rkisp1
-            Card type        : rkisp1
-            Bus info         : platform:ff910000.isp
-            Driver version   : 4.16.0
-            Capabilities     : 0x84201000
-                    Video Capture Multiplanar
-                    Streaming
-                    Extended Pix Format
-                    Device Capabilities
-            Device Caps      : 0x04201000
-                    Video Capture Multiplanar
-                    Streaming
-                    Extended Pix Format
-    Media Driver Info:
-            Driver name      : rkisp1
-            Model            : rkisp1
-            Serial           : 
-            Bus info         : 
-            Media version    : 4.16.0
-            Hardware revision: 0x00000000 (0)
-            Driver version   : 4.16.0
-    Interface Info:
-            ID               : 0x03000007
-            Type             : V4L Video
-    Entity Info:
-            ID               : 0x00000006 (6)
-            Name             : rkisp1_selfpath
-            Function         : V4L2 I/O
-            Pad 0x01000009   : Sink
-              Link 0x02000021: from remote pad 0x1000004 of entity 'rkisp1-isp-subdev': Data, Enabled
+I didn't do the full thing yet, but just within i915 we've found tons of
+small little deadlocks we never really considered thanks to cross release,
+and that wasn't even including the dma_fence annotation. Luckily nothing
+that needed a full-on driver redesign.
 
-    Required ioctls:
-            test MC information (see 'Media Driver Info' above): OK
-            test VIDIOC_QUERYCAP: OK
+I guess I need to ping core kernel maintainers about cross-release again.
+I'd much prefer if we could validate ->invalidate_mapping and the
+locking/fence dependency issues using that, instead of me having to read
+and understand all the drivers.
 
-    Allow for multiple opens:
-            test second /dev/video0 open: OK
-            test VIDIOC_QUERYCAP: OK
-            test VIDIOC_G/S_PRIORITY: OK
-            test for unlimited opens: OK
+> > Trouble is that cross-release wasn't even ever enabled, much less anyone
+> > typed the dma_fence annotations. And just cross-release alone turned up
+> > _lost_ of deadlocks in i915 between fences, async workers (userptr, gpu
+> > reset) and core mm stuff.
+> 
+> Yeah, we had lots of fun with the mm locks as well but as far as I know
+> Felix and I already fixed all of them.
 
-    Debug ioctls:
-            test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-            test VIDIOC_LOG_STATUS: OK (Not Supported)
+Are you sure you mean cross-release fun, and not just normal lockdep fun?
+The cross-release is orders of magnitude more nasty imo. And we had a few
+discussions with core folks where they told us "no way we're going to
+break this depency on our side", involving a chain of cpu hotplug
+(suspend/resume does that to shut down non-boot cpus), worker threads,
+userptr, gem locking and core mm. All components required to actually
+close the loop.
 
-    Input ioctls:
-            test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-            test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-            test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-            test VIDIOC_ENUMAUDIO: OK (Not Supported)
-            test VIDIOC_G/S/ENUMINPUT: OK
-            test VIDIOC_G/S_AUDIO: OK (Not Supported)
-            Inputs: 1 Audio Inputs: 0 Tuners: 0
+I fear that with the ->invalidate_mapping callback (which inverts the
+control flow between importer and exporter) and tying dma_fences into all
+this it will be a _lot_ worse. And I'm definitely too stupid to understand
+all the dependency chains without the aid of lockdep and a full test suite
+(we have a bunch of amdgpu/i915 dma-buf tests in igt btw).
+-Daniel
 
-    Output ioctls:
-            test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-            test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-            test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-            test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-            test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-            Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-    Input/Output configuration ioctls:
-            test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-            test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-            test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-            test VIDIOC_G/S_EDID: OK (Not Supported)
-
-    Control ioctls (Input 0):
-            test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-            test VIDIOC_QUERYCTRL: OK
-            test VIDIOC_G/S_CTRL: OK
-            test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-            test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-            test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-            Standard Controls: 9 Private Controls: 0
-
-    Format ioctls (Input 0):
-            test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-            test VIDIOC_G/S_PARM: OK (Not Supported)
-            test VIDIOC_G_FBUF: OK (Not Supported)
-                    fail: v4l2-test-formats.cpp(330): !colorspace
-                    fail: v4l2-test-formats.cpp(454): testColorspace(pix_mp.pixelformat, pix_mp.colorspace, pix_mp.ycbcr_enc, pix_m
-    p.quantization)
-            test VIDIOC_G_FMT: FAIL
-            test VIDIOC_TRY_FMT: OK (Not Supported)
-            test VIDIOC_S_FMT: OK (Not Supported)
-            test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                    fail: v4l2-test-formats.cpp(1288): doioctl(node, VIDIOC_G_SELECTION, &sel) != EINVAL
-            test Cropping: FAIL
-            test Composing: OK (Not Supported)
-            test Scaling: OK
-
-    Codec ioctls (Input 0):
-            test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-            test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-            test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-    Buffer ioctls (Input 0):
-            test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                    fail: v4l2-test-buffers.cpp(525): VIDIOC_EXPBUF is supported, but the V4L2_MEMORY_MMAP support is missing, prob
-    ably due to earlier failing format tests.
-            test VIDIOC_EXPBUF: OK (Not Supported)
-
-    Total: 44, Succeeded: 42, Failed: 2, Warnings: 0
-
-Jacob Chen (12):
-  media: doc: add document for rkisp1 meta buffer format
-  media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
-  media: rkisp1: add Rockchip ISP1 subdev driver
-  media: rkisp1: add ISP1 statistics driver
-  media: rkisp1: add ISP1 params driver
-  media: rkisp1: add capture device driver
-  media: rkisp1: add rockchip isp1 core driver
-  dt-bindings: Document the Rockchip ISP1 bindings
-  dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
-  ARM: dts: rockchip: add isp node for rk3288
-  ARM: dts: rockchip: add rx0 mipi-phy for rk3288
-  MAINTAINERS: add entry for Rockchip ISP1 driver
-
-Jeffy Chen (1):
-  media: rkisp1: Add user space ABI definitions
-
-Shunqian Zheng (3):
-  media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-  arm64: dts: rockchip: add isp0 node for rk3399
-  arm64: dts: rockchip: add rx0 mipi-phy for rk3399
-
-Wen Nuan (1):
-  ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
-
- .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
- .../bindings/media/rockchip-mipi-dphy.txt          |   90 +
- Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
- .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   20 +
- .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
- MAINTAINERS                                        |   10 +
- arch/arm/boot/dts/rk3288.dtsi                      |   33 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rockchip/isp1/Makefile      |    8 +
- drivers/media/platform/rockchip/isp1/capture.c     | 1751 ++++++++++++++++++++
- drivers/media/platform/rockchip/isp1/capture.h     |  167 ++
- drivers/media/platform/rockchip/isp1/common.h      |  110 ++
- drivers/media/platform/rockchip/isp1/dev.c         |  626 +++++++
- drivers/media/platform/rockchip/isp1/dev.h         |   93 ++
- drivers/media/platform/rockchip/isp1/isp_params.c  | 1539 +++++++++++++++++
- drivers/media/platform/rockchip/isp1/isp_params.h  |   49 +
- drivers/media/platform/rockchip/isp1/isp_stats.c   |  508 ++++++
- drivers/media/platform/rockchip/isp1/isp_stats.h   |   58 +
- .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  868 ++++++++++
- .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   15 +
- drivers/media/platform/rockchip/isp1/regs.c        |  239 +++
- drivers/media/platform/rockchip/isp1/regs.h        | 1550 +++++++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.c      | 1177 +++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.h      |  105 ++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
- include/uapi/linux/rkisp1-config.h                 |  798 +++++++++
- include/uapi/linux/videodev2.h                     |    4 +
- 29 files changed, 9945 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
- create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
- create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
- create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
- create mode 100644 drivers/media/platform/rockchip/isp1/common.h
- create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
- create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
- create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
- create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
- create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
- create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
- create mode 100644 include/uapi/linux/rkisp1-config.h
+> 
+> Christian.
+> 
+> > I'd be seriously surprised if it wouldn't find an entire rats nest of
+> > issues around dma_fence once we enable it.
+> > -Daniel
+> > 
+> > > > > > > +	 *
+> > > > > > > +	 * New mappings can be created immediately, but can't be used before the
+> > > > > > > +	 * exclusive fence in the dma_bufs reservation object is signaled.
+> > > > > > > +	 */
+> > > > > > > +	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
+> > > > > > Bunch of questions about exact semantics, but I very much like this. And I
+> > > > > > think besides those technical details, the overall approach seems sound.
+> > > > > Yeah this initial implementation was buggy like hell. Just wanted to confirm
+> > > > > that the idea is going in the right direction.
+> > > > I wanted this 7 years ago, idea very much acked :-)
+> > > > 
+> > > Ok, thanks. Good to know.
+> > > 
+> > > Christian.
+> 
 
 -- 
-2.16.1
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
