@@ -1,118 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39624 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751325AbeCIPk2 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55308 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750715AbeCOEsL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:40:28 -0500
-Subject: Re: [PATCH v12 20/33] rcar-vin: add function to manipulate Gen3 chsel
- value
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-21-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <208f776c-0316-16f0-5d3d-74674a839327@xs4all.nl>
-Date: Fri, 9 Mar 2018 16:40:25 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180307220511.9826-21-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Thu, 15 Mar 2018 00:48:11 -0400
+Message-ID: <e4158e8d2a80fbe35e69e0f9c7c9d4b5@smtp-cloud7.xs4all.net>
+Date: Thu, 15 Mar 2018 05:48:07 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/18 23:04, Niklas Söderlund wrote:
-> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-> feature of this register is that it's only present in the VIN0 and VIN4
-> instances. The register in VIN0 controls the routing for VIN0-3 and the
-> register in VIN4 controls routing for VIN4-7.
-> 
-> To be able to control routing from a media device this function is need
-> to control runtime PM for the subgroup master (VIN0 and VIN4). The
-> subgroup master must be switched on before the register is manipulated,
-> once the operation is complete it's safe to switch the master off and
-> the new routing will still be in effect.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Results of the daily build of media_tree:
 
-Regards,
+date:			Thu Mar 15 05:00:18 CET 2018
+media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
+media_build git hash:	2a1900fddab68c7686e6b146ff91e02b32675fae
+v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-	Hans
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: WARNINGS
+linux-4.15.2-x86_64: WARNINGS
+linux-4.16-rc1-i686: WARNINGS
+linux-4.16-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 38 ++++++++++++++++++++++++++++++
->  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
->  2 files changed, 40 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index 483d31f07b934929..75382ee0f3fc1dde 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -16,6 +16,7 @@
->  
->  #include <linux/delay.h>
->  #include <linux/interrupt.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <media/videobuf2-dma-contig.h>
->  
-> @@ -1224,3 +1225,40 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
->  
->  	return ret;
->  }
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Gen3 CHSEL manipulation
-> + */
-> +
-> +/*
-> + * There is no need to have locking around changing the routing
-> + * as it's only possible to do so when no VIN in the group is
-> + * streaming so nothing can race with the VNMC register.
-> + */
-> +int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
-> +{
-> +	u32 ifmd, vnmc;
-> +	int ret;
-> +
-> +	ret = pm_runtime_get_sync(vin->dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* Make register writes take effect immediately. */
-> +	vnmc = rvin_read(vin, VNMC_REG);
-> +	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
-> +
-> +	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-> +		VNCSI_IFMD_CSI_CHSEL(chsel);
-> +
-> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-> +
-> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-> +
-> +	/* Restore VNMC. */
-> +	rvin_write(vin, vnmc, VNMC_REG);
-> +
-> +	pm_runtime_put(vin->dev);
-> +
-> +	return ret;
-> +}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 5e3ea8d401d934d1..8e20455927fe5224 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -169,4 +169,6 @@ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
->  /* Cropping, composing and scaling */
->  void rvin_crop_scale_comp(struct rvin_dev *vin);
->  
-> +int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
-> +
->  #endif
-> 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
