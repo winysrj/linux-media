@@ -1,156 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:56368 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751056AbeCIN5Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 08:57:16 -0500
-Date: Fri, 9 Mar 2018 14:57:02 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-Subject: Re: [PATCH 5/9] media: platform: Add Sunxi Cedrus decoder driver
-Message-ID: <20180309135702.pk4webt7xnj7lrza@flea>
-References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
- <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="k4r33uam73c6qikk"
-Content-Disposition: inline
-In-Reply-To: <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58098 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751362AbeCOKBD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 06:01:03 -0400
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-kernel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kees Cook <keescook@chromium.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Ian Abbott <abbotti@mev.co.uk>
+Subject: [PATCH][RFC] kernel.h: provide array iterator
+Date: Thu, 15 Mar 2018 11:00:50 +0100
+Message-Id: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Simplify array iteration with a helper to iterate each entry in an array.
+Utilise the existing ARRAY_SIZE macro to identify the length of the array
+and pointer arithmetic to process each item as a for loop.
 
---k4r33uam73c6qikk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+---
+ include/linux/kernel.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Hi,
+The use of static arrays to store data is a common use case throughout the
+kernel. Along with that is the obvious need to iterate that data.
 
-On Fri, Mar 09, 2018 at 11:14:41AM +0100, Paul Kocialkowski wrote:
-> +/*
-> + * mem2mem callbacks
-> + */
-> +
-> +void job_abort(void *priv)
-> +{}
+In fact there are just shy of 5000 instances of iterating a static array:
+	git grep "for .*ARRAY_SIZE" | wc -l
+	4943
 
-Is that still needed?
+When working on the UVC driver - I found that I needed to split one such
+iteration into two parts, and at the same time felt that this could be
+refactored to be cleaner / easier to read. 
 
-> +/*
-> + * device_run() - prepares and starts processing
-> + */
-> +void device_run(void *priv)
-> +{
+I do however worry that this simple short patch might not be desired or could
+also be heavily bikeshedded due to it's potential wide spread use (though
+perhaps that would be a good thing to have more users) ...  but here it is,
+along with an example usage below which is part of a separate series.
 
-This function (and the one above) should probably made static. Or at
-least if you can't, they should have a much more specific name in
-order not to conflict with anything from the core.
+The aim is to simplify iteration on static arrays, in the same way that we have
+iterators for lists. The use of the ARRAY_SIZE macro, provides all the
+protections given by "__must_be_array(arr)" to this macro too.
+
+Regards
+
+Kieran
+
+=============================================================================
+Example Usage from a pending UVC development:
+
++#define for_each_uvc_urb(uvc_urb, uvc_streaming) \
++       for_each_array_element(uvc_urb, uvc_streaming->uvc_urb)
+ 
+ /*
+  * Uninitialize isochronous/bulk URBs and free transfer buffers.
+  */
+ static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
+ {
+-       struct urb *urb;
+-       unsigned int i;
++       struct uvc_urb *uvc_urb;
+
+        uvc_video_stats_stop(stream);
+
+-       for (i = 0; i < UVC_URBS; ++i) {
+-               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
++       for_each_uvc_urb(uvc_urb, stream)
++               usb_kill_urb(uvc_urb->urb);
+
+-               urb = uvc_urb->urb;
+-               if (urb == NULL)
+-                       continue;
++       flush_workqueue(stream->async_wq);
+
+-               usb_kill_urb(urb);
+-               usb_free_urb(urb);
++       for_each_uvc_urb(uvc_urb, stream) {
++               usb_free_urb(uvc_urb->urb);
+                uvc_urb->urb = NULL;
+        }
+
+        if (free_buffers)
+                uvc_free_urb_buffers(stream);
+ }
+=============================================================================
 
 
-> +	/*
-> +	 * The VPU is only able to handle bus addresses so we have to subtract
-> +	 * the RAM offset to the physcal addresses
-> +	 */
-> +	in_buf     -=3D PHYS_OFFSET;
-> +	out_luma   -=3D PHYS_OFFSET;
-> +	out_chroma -=3D PHYS_OFFSET;
 
-You should take care of that by putting it in the dma_pfn_offset field
-of the struct device (at least before we come up with something
-better).
 
-You'll then be able to use the dma_addr_t directly without modifying it.
-
-> +	vpu->syscon =3D syscon_regmap_lookup_by_phandle(vpu->dev->of_node,
-> +						      "syscon");
-> +	if (IS_ERR(vpu->syscon)) {
-> +		vpu->syscon =3D NULL;
-> +	} else {
-> +		regmap_write_bits(vpu->syscon, SYSCON_SRAM_CTRL_REG0,
-> +				  SYSCON_SRAM_C1_MAP_VE,
-> +				  SYSCON_SRAM_C1_MAP_VE);
-> +	}
-
-This should be using our SRAM controller driver (and API), see
-Documentation/devicetree/bindings/sram/sunxi-sram.txt
-include/linux/soc/sunxi/sunxi_sram.h
-
-> +	ret =3D clk_prepare_enable(vpu->ahb_clk);
-> +	if (ret) {
-> +		dev_err(vpu->dev, "could not enable ahb clock\n");
-> +		return -EFAULT;
-> +	}
-> +	ret =3D clk_prepare_enable(vpu->mod_clk);
-> +	if (ret) {
-> +		clk_disable_unprepare(vpu->ahb_clk);
-> +		dev_err(vpu->dev, "could not enable mod clock\n");
-> +		return -EFAULT;
-> +	}
-> +	ret =3D clk_prepare_enable(vpu->ram_clk);
-> +	if (ret) {
-> +		clk_disable_unprepare(vpu->mod_clk);
-> +		clk_disable_unprepare(vpu->ahb_clk);
-> +		dev_err(vpu->dev, "could not enable ram clock\n");
-> +		return -EFAULT;
-> +	}
-
-Ideally, this should be using runtime_pm to manage the device power
-state, and disable it when not used.
-
-> +	reset_control_assert(vpu->rstc);
-> +	reset_control_deassert(vpu->rstc);
-
-You can use reset_control_reset here
-
-> +	return 0;
-> +}
-> +
-> +void sunxi_cedrus_hw_remove(struct sunxi_cedrus_dev *vpu)
-> +{
-> +	clk_disable_unprepare(vpu->ram_clk);
-> +	clk_disable_unprepare(vpu->mod_clk);
-> +	clk_disable_unprepare(vpu->ahb_clk);
-
-The device is not put back into reset here
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---k4r33uam73c6qikk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqikq0ACgkQ0rTAlCFN
-r3QY/g//d+U9VlBGVJv8nFwjXL9Y7IaUfQYPSWlycsFTAp+aEexL1qKM2oFbZa4q
-hV6qWtOT8IJOfLN4poDlZ2+IV8XW2z7t5JDBjx0quTgjbwzQFnRRZ4JstvtRBmxX
-KDVwXnrin1YaACfyZ5Kz4t4IxOwFbnZ1S9MyYB7LRPBDKrvW0iLiMgGFauuKYpOR
-mvP+3Z5iiW6ThHrkt/2YDT4SQRYDWf9QU/UPY8vMc6uUOVcc9eZGIJVCE7hyQ4Ee
-nUbDwLgANobZypCjrrQkj7Ti+GTh2W9WDwor6VtAHQ7VGseQYhooL4tnLCRcQFee
-RW6+cHM7IhCBk59Nii40N6ahJu4AN7s3f1m/jFDJv/Akwhq1NzM9Y0MCcrsAwbmR
-ux0gEUfC9wvNDBLp0snB1wL+P7y0ucRJ7oOQLmw6vEog6pD55ziR/HRLkqvtF4wW
-0zXobRIdMHdyebdMSCgfkobdmpXqO9AhrtAhumCHA0+aN5FPOt29YSmjdnNgMilh
-9DFc8IXUf9aEMEf2YcbFWXQuKYOyIFbqF/WHKH22Dy0QM351JocI6qjf25WF7D88
-hF1oDJLRHjR/WwvqhpExwDVDucgBKZoEvu52RMzuf9Pvg1mHsQX6XxaymNsW/PQF
-H257YObf3rAaJV5bSLFitmcH5DwyiYNxh34x8RWA12po5QzdnQg=
-=lOlZ
------END PGP SIGNATURE-----
-
---k4r33uam73c6qikk--
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index ce51455e2adf..95d7dae248b7 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -70,6 +70,16 @@
+  */
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+ 
++/**
++ * for_each_array_element - Iterate all items in an array
++ * @elem: pointer of array type for iteration cursor
++ * @array: array to be iterated
++ */
++#define for_each_array_element(elem, array) \
++	for (elem = &(array)[0]; \
++	     elem < &(array)[ARRAY_SIZE(array)]; \
++	     ++elem)
++
+ #define u64_to_user_ptr(x) (		\
+ {					\
+ 	typecheck(u64, x);		\
+-- 
+2.7.4
