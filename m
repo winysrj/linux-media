@@ -1,43 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:42771 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752865AbeCDPtY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2018 10:49:24 -0500
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: alan@linux.intel.com
-Cc: sakari.ailus@linux.intel.com, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com,
-        Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH 2/3] staging: media: Replace "cant" with "can't"
-Date: Sun,  4 Mar 2018 21:18:26 +0530
-Message-Id: <1520178507-25141-3-git-send-email-arushisinghal19971997@gmail.com>
-In-Reply-To: <1520178507-25141-1-git-send-email-arushisinghal19971997@gmail.com>
-References: <1520178507-25141-1-git-send-email-arushisinghal19971997@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45786 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751755AbeCOJci (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 05:32:38 -0400
+Date: Thu, 15 Mar 2018 11:32:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Yeh, Andy" <andy.yeh@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: Re: [PATCH v8] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180315093235.igi23ybawov42wlg@valkosipuli.retiisi.org.uk>
+References: <1521044659-12598-1-git-send-email-andy.yeh@intel.com>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D54990F@PGSMSX111.gar.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D54990F@PGSMSX111.gar.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace "cant" with "can't".
-"cant" is not same as "Can not" or "Can't".
+Hi Andy,
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, Mar 14, 2018 at 04:29:52PM +0000, Yeh, Andy wrote:
+> Still wrong line break...
+> Please check the list instead. Thanks.
+> https://patchwork.linuxtv.org/patch/47936/
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-index bffe215..634d38c 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-@@ -444,7 +444,7 @@ static int vpfe_register_entities(struct vpfe_device *vpfe_dev)
- 	for (i = 0; i < vpfe_dev->num_ext_subdevs; i++)
- 		/*
- 		 * if entity has no pads (ex: amplifier),
--		 * cant establish link
-+		 * can't establish link
- 		 */
- 		if (vpfe_dev->sd[i]->entity.num_pads) {
- 			ret = media_create_pad_link(&vpfe_dev->sd[i]->entity,
+The patch you sent using git send-email seems fine; I bet it's your e-mail
+client that does the rewrapping.
+
 -- 
-2.7.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
