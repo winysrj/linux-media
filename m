@@ -1,140 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:49341 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751129AbeCLEtZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 00:49:25 -0400
-Message-ID: <0898c1f0b73d77c5fd117a2a9462a254@smtp-cloud8.xs4all.net>
-Date: Mon, 12 Mar 2018 05:49:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from osg.samsung.com ([64.30.133.232]:40788 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751414AbeCOKDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 06:03:48 -0400
+Date: Thu, 15 Mar 2018 07:03:43 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 20/47] media: platform: remove blackfin capture driver
+Message-ID: <20180315070343.2034388e@vento.lan>
+In-Reply-To: <20180314153603.3127932-21-arnd@arndb.de>
+References: <20180314153603.3127932-1-arnd@arndb.de>
+        <20180314153603.3127932-21-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Wed, 14 Mar 2018 16:35:33 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Results of the daily build of media_tree:
+> The blackfin architecture is getting removed, so the video
+> capture driver is also obsolete.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-date:			Mon Mar 12 05:00:11 CET 2018
-media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	2a1900fddab68c7686e6b146ff91e02b32675fae
-v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: WARNINGS
-linux-4.15.2-x86_64: WARNINGS
-linux-4.16-rc1-i686: WARNINGS
-linux-4.16-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+> ---
+>  drivers/media/platform/Kconfig                 |   2 -
+>  drivers/media/platform/Makefile                |   2 -
+>  drivers/media/platform/blackfin/Kconfig        |  16 -
+>  drivers/media/platform/blackfin/Makefile       |   2 -
+>  drivers/media/platform/blackfin/bfin_capture.c | 983 -------------------------
+>  drivers/media/platform/blackfin/ppi.c          | 361 ---------
+>  include/media/blackfin/bfin_capture.h          |  39 -
+>  include/media/blackfin/ppi.h                   |  94 ---
+>  8 files changed, 1499 deletions(-)
+>  delete mode 100644 drivers/media/platform/blackfin/Kconfig
+>  delete mode 100644 drivers/media/platform/blackfin/Makefile
+>  delete mode 100644 drivers/media/platform/blackfin/bfin_capture.c
+>  delete mode 100644 drivers/media/platform/blackfin/ppi.c
+>  delete mode 100644 include/media/blackfin/bfin_capture.h
+>  delete mode 100644 include/media/blackfin/ppi.h
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 5d8fd71fc454..2136702c95fc 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -31,8 +31,6 @@ source "drivers/media/platform/davinci/Kconfig"
+>  
+>  source "drivers/media/platform/omap/Kconfig"
+>  
+> -source "drivers/media/platform/blackfin/Kconfig"
+> -
+>  config VIDEO_SH_VOU
+>  	tristate "SuperH VOU video output driver"
+>  	depends on MEDIA_CAMERA_SUPPORT
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index 85e112122f32..2b07f2e2fca6 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -53,8 +53,6 @@ obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra-cec/
+>  
+>  obj-y					+= stm32/
+>  
+> -obj-y                                   += blackfin/
+> -
+>  obj-y					+= davinci/
+>  
+>  obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+> diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
+> deleted file mode 100644
+> index 68fa90151b8f..000000000000
+> diff --git a/drivers/media/platform/blackfin/Makefile b/drivers/media/platform/blackfin/Makefile
+> deleted file mode 100644
+> index 30421bc23080..000000000000
+> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+> deleted file mode 100644
+> index b7660b1000fd..000000000000
+> diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
+> deleted file mode 100644
+> index d3dc765c1609..000000000000
+> diff --git a/include/media/blackfin/bfin_capture.h b/include/media/blackfin/bfin_capture.h
+> deleted file mode 100644
+> index a999a3970c69..000000000000
+> diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
+> deleted file mode 100644
+> index 987e49e8f9c9..000000000000
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Mauro
