@@ -1,52 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41751 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752778AbeCMSFp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 14:05:45 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v2 05/11] media: vsp1: Clean up DLM objects on error
-Date: Tue, 13 Mar 2018 19:05:21 +0100
-Message-Id: <0ae9f67a2dfb4e5268a968079def8da66c4b0d24.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mga02.intel.com ([134.134.136.20]:47863 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750950AbeCOBRs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Mar 2018 21:17:48 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: RE: [PATCH v8] media: imx258: Add imx258 camera sensor driver
+Date: Thu, 15 Mar 2018 01:17:44 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D549CF9@PGSMSX111.gar.corp.intel.com>
+References: <1521044659-12598-1-git-send-email-andy.yeh@intel.com>
+ <20180314223042.4t2thym5tspxfio3@kekkonen.localdomain>
+In-Reply-To: <20180314223042.4t2thym5tspxfio3@kekkonen.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If there is an error allocating a display list within a DLM object
-the existing display lists are not free'd, and neither is the DL body
-pool.
+Sure will do. Thanks Sakari.
 
-Use the existing vsp1_dlm_destroy() function to clean up on error.
+-----Original Message-----
+From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com] 
+Sent: Thursday, March 15, 2018 6:31 AM
+To: Yeh, Andy <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org; tfiga@chromium.org; Chen, JasonX Z <jasonx.z.chen@intel.com>; Chiang, AlanX <alanx.chiang@intel.com>; Lai, Jim <jim.lai@intel.com>
+Subject: Re: [PATCH v8] media: imx258: Add imx258 camera sensor driver
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Hi Andy,
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 310ce81cd724..680eedb6fc9f 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -831,8 +831,10 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 		struct vsp1_dl_list *dl;
- 
- 		dl = vsp1_dl_list_alloc(dlm, dlm->pool);
--		if (!dl)
-+		if (!dl) {
-+			vsp1_dlm_destroy(dlm);
- 			return NULL;
-+		}
- 
- 		list_add_tail(&dl->list, &dlm->free);
- 	}
--- 
-git-series 0.9.1
+Thanks for the update. Two minor comments below.
+
+On Thu, Mar 15, 2018 at 12:24:19AM +0800, Andy Yeh wrote:
+...
+> +static int imx258_set_ctrl(struct v4l2_ctrl *ctrl) {
+> +	struct imx258 *imx258 =
+> +		container_of(ctrl->handler, struct imx258, ctrl_handler);
+> +	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+> +	int ret = 0;
+> +
+> +	/*
+> +	 * Applying V4L2 control value only happens
+> +	 * when power is up for streaming
+> +	 */
+> +	if (pm_runtime_get_if_in_use(&client->dev) == 0)
+> +		return 0;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_ANALOGUE_GAIN:
+> +		ret = imx258_write_reg(imx258, IMX258_REG_ANALOG_GAIN,
+> +				IMX258_REG_VALUE_16BIT,
+> +				ctrl->val);
+> +		break;
+> +	case V4L2_CID_EXPOSURE:
+> +		ret = imx258_write_reg(imx258, IMX258_REG_EXPOSURE,
+> +				IMX258_REG_VALUE_16BIT,
+> +				ctrl->val);
+> +		break;
+> +	case V4L2_CID_DIGITAL_GAIN:
+> +		ret = imx258_update_digital_gain(imx258, IMX258_REG_VALUE_16BIT,
+> +				ctrl->val);
+> +		break;
+> +	case V4L2_CID_VBLANK:
+> +		/*
+> +		 * Auto Frame Length Line Control is enabled by default.
+> +		 * Not need control Vblank Register.
+> +		 */
+> +		break;
+> +	default:
+> +		dev_info(&client->dev,
+> +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
+> +			 ctrl->id, ctrl->val);
+
+As this is an error, I'd set ret to e.g. -EINVAL here.
+
+> +		break;
+> +	}
+> +
+> +	pm_runtime_put(&client->dev);
+> +
+> +	return ret;
+> +}
+
+...
+
+> +/* Initialize control handlers */
+> +static int imx258_init_controls(struct imx258 *imx258) {
+> +	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+> +	struct v4l2_ctrl_handler *ctrl_hdlr;
+> +	s64 exposure_max;
+> +	s64 vblank_def;
+> +	s64 vblank_min;
+> +	s64 pixel_rate_min;
+> +	s64 pixel_rate_max;
+> +	int ret;
+> +
+> +	ctrl_hdlr = &imx258->ctrl_handler;
+> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
+> +	if (ret)
+> +		return ret;
+> +
+> +	mutex_init(&imx258->mutex);
+> +	ctrl_hdlr->lock = &imx258->mutex;
+> +	imx258->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
+> +				&imx258_ctrl_ops,
+> +				V4L2_CID_LINK_FREQ,
+> +				ARRAY_SIZE(link_freq_menu_items) - 1,
+> +				0,
+> +				link_freq_menu_items);
+> +
+> +	if (imx258->link_freq)
+> +		imx258->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +
+> +	pixel_rate_max = link_freq_to_pixel_rate(link_freq_menu_items[0]);
+> +	pixel_rate_min = link_freq_to_pixel_rate(link_freq_menu_items[1]);
+> +	/* By default, PIXEL_RATE is read only */
+> +	imx258->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops,
+> +					V4L2_CID_PIXEL_RATE,
+> +					pixel_rate_min, pixel_rate_max,
+> +					1, pixel_rate_max);
+> +
+> +
+> +	vblank_def = imx258->cur_mode->vts_def - imx258->cur_mode->height;
+> +	vblank_min = imx258->cur_mode->vts_min - imx258->cur_mode->height;
+> +	imx258->vblank = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_VBLANK,
+> +				vblank_min,
+> +				IMX258_VTS_MAX - imx258->cur_mode->height, 1,
+> +				vblank_def);
+> +
+> +	imx258->hblank = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_HBLANK,
+> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
+> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
+> +				1,
+> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width);
+> +
+> +	if (!imx258->hblank) {
+
+Could you align handling for NULL hblank control with NULL link_freq above?
+
+> +		ret = -EINVAL;
+> +		goto error;
+> +	}
+> +
+> +	imx258->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +
+> +	exposure_max = imx258->cur_mode->vts_def - 8;
+> +	imx258->exposure = v4l2_ctrl_new_std(
+> +				ctrl_hdlr, &imx258_ctrl_ops,
+> +				V4L2_CID_EXPOSURE, IMX258_EXPOSURE_MIN,
+> +				IMX258_EXPOSURE_MAX, IMX258_EXPOSURE_STEP,
+> +				IMX258_EXPOSURE_DEFAULT);
+> +
+> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
+> +				IMX258_ANA_GAIN_MIN, IMX258_ANA_GAIN_MAX,
+> +				IMX258_ANA_GAIN_STEP, IMX258_ANA_GAIN_DEFAULT);
+> +
+> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
+> +				IMX258_DGTL_GAIN_MIN, IMX258_DGTL_GAIN_MAX,
+> +				IMX258_DGTL_GAIN_STEP,
+> +				IMX258_DGTL_GAIN_DEFAULT);
+> +
+> +	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx258_ctrl_ops,
+> +				     V4L2_CID_TEST_PATTERN,
+> +				     ARRAY_SIZE(imx258_test_pattern_menu) - 1,
+> +				     0, 0, imx258_test_pattern_menu);
+> +
+> +	if (ctrl_hdlr->error) {
+> +		ret = ctrl_hdlr->error;
+> +		dev_err(&client->dev, "%s control init failed (%d)\n",
+> +			__func__, ret);
+> +		goto error;
+> +	}
+> +
+> +	imx258->sd.ctrl_handler = ctrl_hdlr;
+> +
+> +	return 0;
+> +
+> +error:
+> +	v4l2_ctrl_handler_free(ctrl_hdlr);
+> +	mutex_destroy(&imx258->mutex);
+> +
+> +	return ret;
+> +}
+
+--
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
