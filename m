@@ -1,194 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46745 "EHLO osg.samsung.com"
+Received: from mout.gmx.net ([212.227.15.19]:34675 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751278AbeCIPxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:53:46 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 11/11] media: lgdt330x: add block error counts via DVBv5
-Date: Fri,  9 Mar 2018 12:53:36 -0300
-Message-Id: <9068a8d6825d63594ea8f680ef53756d55463531.1520610788.git.mchehab@s-opensource.com>
-In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
-References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
-In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
-References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+        id S1752898AbeCOTNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 15:13:38 -0400
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Peter Seiderer <ps.report@gmx.net>
+Subject: [PATCH v4 1/2] media: staging/imx: fill vb2_v4l2_buffer field entry
+Date: Thu, 15 Mar 2018 20:13:22 +0100
+Message-Id: <20180315191323.6028-1-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Show the UCB error counts via DVBv5.
+- fixes gstreamer v4l2src warning:
 
-Please notice that there's no scale indication at the driver.
-As we don't have the datasheet, let's assume that it is receiving
-data at a rate of 10.000 packets per second. Ideally, this should
-be read or estimated.
+  0:00:00.716640334  349  0x164f720 WARN  v4l2bufferpool gstv4l2bufferpool.c:1195:gst_v4l2_buffer_pool_dqbuf:<v4l2src0:pool:src> Driver should never set v4l2_buffer.field to ANY
 
-In order to avoid flooding I2C bus with data, the maximum
-polling rate for those stats was set to 1 second.
+- fixes v4l2-compliance test failure:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+  Streaming ioctls:
+          test read/write: OK (Not Supported)
+              Video Capture:
+                  Buffer: 0 Sequence: 0 Field: Any Timestamp: 58.383658s
+                  fail: v4l2-test-buffers.cpp(297): g_field() == V4L2_FIELD_ANY
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
 ---
- drivers/media/dvb-frontends/lgdt330x.c | 98 ++++++++++++++++++++++++----------
- 1 file changed, 70 insertions(+), 28 deletions(-)
+Changes in v4:
+  - new patch (put first because patch is needed to advance with
+    the v4l2-compliance test), thanks to Philipp Zabel
+    <p.zabel@pengutronix.de> for suggested solution for the right
+    field value source
+---
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 1 +
+ drivers/staging/media/imx/imx-media-csi.c   | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
-index b430b0500f12..f14948df223b 100644
---- a/drivers/media/dvb-frontends/lgdt330x.c
-+++ b/drivers/media/dvb-frontends/lgdt330x.c
-@@ -65,6 +65,8 @@ struct lgdt330x_state {
- 	/* Demodulator private data */
- 	enum fe_modulation current_modulation;
- 	u32 snr;	/* Result of last SNR calculation */
-+	u16 ucblocks;
-+	unsigned long last_stats_time;
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index ae453fd422f0..ffeb017c73b2 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -210,6 +210,7 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
  
- 	/* Tuner private data */
- 	u32 current_frequency;
-@@ -296,6 +298,11 @@ static int lgdt330x_init(struct dvb_frontend *fe)
+ 	done = priv->active_vb2_buf[priv->ipu_buf_num];
+ 	if (done) {
++		done->vbuf.field = vdev->fmt.fmt.pix.field;
+ 		vb = &done->vbuf.vb2_buf;
+ 		vb->timestamp = ktime_get_ns();
+ 		vb2_buffer_done(vb, priv->nfb4eof ?
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 5a195f80a24d..5f69117b5811 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -236,6 +236,7 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
  
- 	p->cnr.len = 1;
- 	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_error.len = 1;
-+	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_count.len = 1;
-+	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	state->last_stats_time = 0;
- 
- 	return lgdt330x_sw_reset(state);
- }
-@@ -303,29 +310,9 @@ static int lgdt330x_init(struct dvb_frontend *fe)
- static int lgdt330x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
- 	struct lgdt330x_state *state = fe->demodulator_priv;
--	int err;
--	u8 buf[2];
- 
--	*ucblocks = 0;
-+	*ucblocks = state->ucblocks;
- 
--	switch (state->config.demod_chip) {
--	case LGDT3302:
--		err = i2c_read_demod_bytes(state, LGDT3302_PACKET_ERR_COUNTER1,
--					   buf, sizeof(buf));
--		break;
--	case LGDT3303:
--		err = i2c_read_demod_bytes(state, LGDT3303_PACKET_ERR_COUNTER1,
--					   buf, sizeof(buf));
--		break;
--	default:
--		dev_warn(&state->client->dev,
--			 "Only LGDT3302 and LGDT3303 are supported chips.\n");
--		err = -ENODEV;
--	}
--	if (err < 0)
--		return err;
--
--	*ucblocks = (buf[0] << 8) | buf[1];
- 	return 0;
- }
- 
-@@ -644,6 +631,7 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
- 	struct lgdt330x_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u8 buf[3];
-+	int err;
- 
- 	*status = 0; /* Reset status result */
- 
-@@ -698,11 +686,38 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
- 			 __func__);
- 	}
- 
--	if (*status & FE_HAS_LOCK && lgdt3302_read_snr(fe) >= 0) {
-+	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
-+	if (!(*status & FE_HAS_LOCK))
-+		return 0;
-+
-+	if (state->last_stats_time &&
-+	    time_is_after_jiffies(state->last_stats_time))
-+		return 0;
-+
-+	state->last_stats_time = jiffies +msecs_to_jiffies(1000);
-+
-+	err = lgdt3302_read_snr(fe);
-+	if (!err) {
- 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
- 		p->cnr.stat[0].svalue = (((u64)state->snr) * 1000) >> 24;
--	} else {
--		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+	err = i2c_read_demod_bytes(state, LGDT3302_PACKET_ERR_COUNTER1,
-+					   buf, sizeof(buf));
-+	if (!err) {
-+		state->ucblocks = (buf[0] << 8) | buf[1];
-+
-+		dprintk(state, "UCB = 0x%02x\n", state->ucblocks);
-+
-+		p->block_error.stat[0].uvalue += state->ucblocks;
-+		/* FIXME: what's the basis for block count */
-+		p->block_count.stat[0].uvalue += 10000;
-+
-+		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+		p->block_count.stat[0].scale = FE_SCALE_COUNTER;
- 	}
- 
- 	return 0;
-@@ -713,8 +728,8 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
- {
- 	struct lgdt330x_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
--	int err;
- 	u8 buf[3];
-+	int err;
- 
- 	*status = 0; /* Reset status result */
- 
-@@ -772,11 +787,38 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
- 			 __func__);
- 	}
- 
--	if (*status & FE_HAS_LOCK && lgdt3303_read_snr(fe) >= 0) {
-+	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
-+	if (!(*status & FE_HAS_LOCK))
-+		return 0;
-+
-+	if (state->last_stats_time &&
-+	    time_is_after_jiffies(state->last_stats_time))
-+		return 0;
-+
-+	state->last_stats_time = jiffies +msecs_to_jiffies(1000);
-+
-+	err = lgdt3303_read_snr(fe);
-+	if (!err) {
- 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
- 		p->cnr.stat[0].svalue = (((u64)state->snr) * 1000) >> 24;
--	} else {
--		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+	err = i2c_read_demod_bytes(state, LGDT3303_PACKET_ERR_COUNTER1,
-+					   buf, sizeof(buf));
-+	if (!err) {
-+		state->ucblocks = (buf[0] << 8) | buf[1];
-+
-+		dprintk(state, "UCB = 0x%02x\n", state->ucblocks);
-+
-+		p->block_error.stat[0].uvalue += state->ucblocks;
-+		/* FIXME: what's the basis for block count */
-+		p->block_count.stat[0].uvalue += 10000;
-+
-+		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+		p->block_count.stat[0].scale = FE_SCALE_COUNTER;
- 	}
- 
- 	return 0;
+ 	done = priv->active_vb2_buf[priv->ipu_buf_num];
+ 	if (done) {
++		done->vbuf.field = vdev->fmt.fmt.pix.field;
+ 		vb = &done->vbuf.vb2_buf;
+ 		vb->timestamp = ktime_get_ns();
+ 		vb2_buffer_done(vb, priv->nfb4eof ?
 -- 
-2.14.3
+2.16.2
