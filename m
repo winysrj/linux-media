@@ -1,140 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42339 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750850AbeCPEsL (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:38630 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932838AbeCOXQy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 00:48:11 -0400
-Message-ID: <a7810df3b2ea46c20336fe78df0fe77c@smtp-cloud9.xs4all.net>
-Date: Fri, 16 Mar 2018 05:48:09 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 15 Mar 2018 19:16:54 -0400
+Received: by mail-lf0-f53.google.com with SMTP id y2-v6so10542342lfc.5
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 16:16:53 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Fri, 16 Mar 2018 00:16:50 +0100
+To: Todor Tomov <ttomov@mm-sol.com>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 00/20] Add multiplexed media pads to support CSI-2
+ virtual channels
+Message-ID: <20180315231650.GO10974@bigcity.dyn.berto.se>
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+ <403976aa-d9e3-60a3-1a33-37cf78d7c5a3@mm-sol.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <403976aa-d9e3-60a3-1a33-37cf78d7c5a3@mm-sol.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Todor,
 
-Results of the daily build of media_tree:
+On 2018-03-15 11:43:31 +0200, Todor Tomov wrote:
+> Hello,
+> 
+> I'm trying to understand what is the current state of the multiple virtual
+> channel support in V4L2 and Media framework. This is the last activity
+> on this topic which I was able to find. Is anything new happened since
+> this RFC, is someone working on this or planing to work on?
 
-date:			Fri Mar 16 05:00:19 CET 2018
-media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	2a1900fddab68c7686e6b146ff91e02b32675fae
-v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+I'm currently working on this but right now I'm focusing on driver 
+dependencies for my use-case, once that is done I will resume to push 
+more for the multiplexed stream support. I randomly push my latest work 
+to
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: WARNINGS
-linux-4.15.2-x86_64: WARNINGS
-linux-4.16-rc1-i686: WARNINGS
-linux-4.16-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+git://git.ragnatech.se/linux v4l2/mux
 
-Detailed results are available here:
+But this is a unstable branch and contains some LOCAL patches to test my 
+work on Renesas platforms. But if you want to checkout my current status 
+that's the branch to check.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Out of curiosity what board or use-case are you interested in where 
+multiplexed streams would be useful for you?
 
-Full logs are available here:
+> 
+> Best regards,
+> Todor Tomov
+> 
+> On 11.08.2017 12:56, Niklas Söderlund wrote:
+> > Hi,
+> > 
+> > This series is a RFC for how I think one could add CSI-2 virtual channel 
+> > support to the V4L2 framework. The problem is that there is no way to in 
+> > the media framework describe and control links between subdevices which 
+> > carry more then one video stream, for example a CSI-2 bus which can have 
+> > 4 virtual channels carrying different video streams.
+> > 
+> > This series adds a new pad flag which would indicate that a pad carries 
+> > multiplexed streams, adds a new s_stream() operation to the pad 
+> > operations structure which takes a new argument 'stream'. This new 
+> > s_stream() operation then is both pad and stream aware. It also extends 
+> > struct v4l2_mbus_frame_desc_entry with a new sub-struct to describe how 
+> > a CSI-2 link multiplexes virtual channels. I also include one 
+> > implementation based on Renesas R-Car which makes use of these patches 
+> > as I think they help with understanding but they have no impact on the 
+> > RFC feature itself.
+> > 
+> > The idea is that on both sides of the multiplexed media link there are 
+> > one multiplexer subdevice and one demultiplexer subdevice. These two 
+> > subdevices can't do any format conversions, there sole purpose is to 
+> > (de)multiplex the CSI-2 link. If there is hardware which can do both 
+> > CSI-2 multiplexing and format conversions they can be modeled as two 
+> > subdevices from the same device driver and using the still pending 
+> > incremental async mechanism to connect the external pads. The reason 
+> > there is no format conversion is important as the multiplexed pads can't 
+> > have a format in the current V4L2 model, get/set_fmt are not aware of 
+> > streams.
+> > 
+> >         +------------------+              +------------------+
+> >      +-------+  subdev 1   |              |  subdev 2   +-------+
+> >   +--+ Pad 1 |             |              |             | Pad 3 +---+
+> >      +--+----+   +---------+---+      +---+---------+   +----+--+
+> >         |        | Muxed pad A +------+ Muxed pad B |        |
+> >      +--+----+   +---------+---+      +---+---------+   +----+--+
+> >   +--+ Pad 2 |             |              |             | Pad 4 +---+
+> >      +-------+             |              |             +-------+
+> >         +------------------+              +------------------+
+> > 
+> > In the simple example above Pad 1 is routed to Pad 3 and Pad 2 to Pad 4, 
+> > and the video data for both of them travels the link between pad A and 
+> > B. One shortcoming of this RFC is that there currently are no way to 
+> > express to user-space which pad is routed to which stream of the 
+> > multiplexed link. But inside the kernel this is known and format 
+> > validation is done by comparing the format of Pad 1 to Pad 3 and Pad 2 
+> > to Pad 4 by the V4L2 framework. But it would be nice for the user to 
+> > also be able to get this information while setting up the MC graph in 
+> > user-space.
+> > 
+> > Obviously there are things that are not perfect in this RFC, one is the 
+> > above mentioned lack of user-space visibility of that Pad 1 is in fact 
+> > routed to Pad 3. Others are lack of Documentation/ work and I'm sure 
+> > there are error path shortcuts which are not fully thought out. One big 
+> > question is also if the s_stream() operation added to ops structure 
+> > should be a compliment to the existing ones in video and audio ops or 
+> > aim to replace the one in video ops. I'm also unsure of the CSI2 flag of 
+> > struct v4l2_mbus_frame_desc_entry don't really belong in struct 
+> > v4l2_mbus_frame_desc. And I'm sure there are lots of other stuff that's 
+> > why this is a RFC...
+> > 
+> > A big thanks to Laurent and Sakari for being really nice and taking time 
+> > helping me grasp all the possibilities and issues with this problem, all 
+> > cred to them and all blame to me for misunderstanding there guidance :-)
+> > 
+> > This series based on the latest R-Car CSI-2 and VIN patches which can be 
+> > found at [1], but that is a dependency only for the driver specific
+> > implementation which acts as an example of implementation. For the V4L2 
+> > framework patches the media-tree is the base.
+> > 
+> > 1. https://git.ragnatech.se/linux#rcar-vin-elinux-v12
+> > 
+> > Niklas Söderlund (20):
+> >   media.h: add MEDIA_PAD_FL_MUXED flag
+> >   v4l2-subdev.h: add pad and stream aware s_stream
+> >   v4l2-subdev.h: add CSI-2 bus description to struct
+> >     v4l2_mbus_frame_desc_entry
+> >   v4l2-core: check that both pads in a link are muxed if one are
+> >   v4l2-core: verify all streams formats on multiplexed links
+> >   rcar-vin: use the pad and stream aware s_stream
+> >   rcar-csi2: declare sink pad as multiplexed
+> >   rcar-csi2: switch to pad and stream aware s_stream
+> >   rcar-csi2: figure out remote pad and stream which are starting
+> >   rcar-csi2: count usage for each source pad
+> >   rcar-csi2: when starting CSI-2 receiver use frame descriptor
+> >     information
+> >   rcar-csi2: only allow formats on source pads
+> >   rcar-csi2: implement get_frame_desc
+> >   adv748x: add module param for virtual channel
+> >   adv748x: declare source pad as multiplexed
+> >   adv748x: add translation from pixelcode to CSI-2 datatype
+> >   adv748x: implement get_frame_desc
+> >   adv748x: switch to pad and stream aware s_stream
+> >   adv748x: only allow formats on sink pads
+> >   arm64: dts: renesas: salvator: use VC1 for CVBS
+> > 
+> >  arch/arm64/boot/dts/renesas/salvator-common.dtsi |   2 +-
+> >  drivers/media/i2c/adv748x/adv748x-core.c         |  10 +
+> >  drivers/media/i2c/adv748x/adv748x-csi2.c         |  78 +++++++-
+> >  drivers/media/i2c/adv748x/adv748x.h              |   1 +
+> >  drivers/media/platform/rcar-vin/rcar-csi2.c      | 239 ++++++++++++++++-------
+> >  drivers/media/platform/rcar-vin/rcar-dma.c       |   6 +-
+> >  drivers/media/v4l2-core/v4l2-subdev.c            |  65 ++++++
+> >  include/media/v4l2-subdev.h                      |  16 ++
+> >  include/uapi/linux/media.h                       |   1 +
+> >  9 files changed, 341 insertions(+), 77 deletions(-)
+> > 
+> 
+> -- 
+> Best regards,
+> Todor Tomov
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Regards,
+Niklas Söderlund
