@@ -1,95 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:35795 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750907AbeC0HfX (ORCPT
+Received: from mail-io0-f178.google.com ([209.85.223.178]:41153 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751701AbeCOLDC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 03:35:23 -0400
-Received: by mail-wm0-f41.google.com with SMTP id r82so19863551wme.0
-        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 00:35:22 -0700 (PDT)
-Reply-To: christian.koenig@amd.com
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-To: Jerome Glisse <j.glisse@gmail.com>, Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        Thu, 15 Mar 2018 07:03:02 -0400
+Received: by mail-io0-f178.google.com with SMTP id m83so8056726ioi.8
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 04:03:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <d9946822-cea1-f774-d6dc-94ec970b6694@gmail.com>
+References: <20180309191144.1817-1-christian.koenig@amd.com>
+ <20180309191144.1817-2-christian.koenig@amd.com> <20180312170710.GL8589@phenom.ffwll.local>
+ <f3986703-75de-4ce3-a828-1687291bb618@gmail.com> <20180313151721.GH4788@phenom.ffwll.local>
+ <2866813a-f2ab-0589-ee40-30935e59d3d7@gmail.com> <20180313160052.GK4788@phenom.ffwll.local>
+ <052a6595-9fc3-48a6-9366-67ca2f2da17e@gmail.com> <20180315092013.GC25297@phenom.ffwll.local>
+ <d9946822-cea1-f774-d6dc-94ec970b6694@gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Thu, 15 Mar 2018 12:02:59 +0100
+Message-ID: <CAKMK7uGrPRgLbd52RLoZsRA5qwCQV=xp4t_Tp8z-Qv06Yp7QNw@mail.gmail.com>
+Subject: Re: [PATCH 1/4] dma-buf: add optional invalidate_mappings callback
+To: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: "moderated list:DMA BUFFER SHARING FRAMEWORK"
         <linaro-mm-sig@lists.linaro.org>,
         amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        christian.koenig@amd.com,
+        dri-devel <dri-devel@lists.freedesktop.org>,
         "open list:DMA BUFFER SHARING FRAMEWORK"
         <linux-media@vger.kernel.org>
-References: <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
- <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
- <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
- <20180320140810.GU14155@phenom.ffwll.local>
- <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
- <20180321082839.GA14155@phenom.ffwll.local>
- <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
- <20180322071804.GH14155@phenom.ffwll.local>
- <ef9fa9a2-c368-1fca-a8ac-8ee8d522b6ab@gmail.com>
- <20180326080121.GO14155@phenom.ffwll.local>
- <20180326154224.GA11930@gmail.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Message-ID: <f8ff3993-6605-4f8e-5ac2-c40f0450c1c6@gmail.com>
-Date: Tue, 27 Mar 2018 09:35:17 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180326154224.GA11930@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 26.03.2018 um 17:42 schrieb Jerome Glisse:
-> On Mon, Mar 26, 2018 at 10:01:21AM +0200, Daniel Vetter wrote:
->> On Thu, Mar 22, 2018 at 10:58:55AM +0100, Christian König wrote:
->>> Am 22.03.2018 um 08:18 schrieb Daniel Vetter:
->>> [SNIP]
->>> Key take away from that was that you can't take any locks from neither the
->>> MMU notifier nor the shrinker you also take while calling kmalloc (or
->>> simpler speaking get_user_pages()).
+On Thu, Mar 15, 2018 at 10:56 AM, Christian K=C3=B6nig
+<ckoenig.leichtzumerken@gmail.com> wrote:
+> Am 15.03.2018 um 10:20 schrieb Daniel Vetter:
+>>
+>> On Tue, Mar 13, 2018 at 06:20:07PM +0100, Christian K=C3=B6nig wrote:
+>> [SNIP]
+>> Take a look at the DOT graphs for atomic I've done a while ago. I think =
+we
+>> could make a formidable competition for who's doing the worst diagrams :=
+-)
+>
+>
+> Thanks, going to give that a try.
+>
+>> [SNIP]
+>> amdgpu: Expects that you never hold any of the heavywheight locks while
+>> waiting for a fence (since gpu resets will need them).
+>>
+>> i915: Happily blocks on fences while holding all kinds of locks, expects
+>> gpu reset to be able to recover even in this case.
+>
+>
+> In this case I can comfort you, the looks amdgpu needs to grab during GPU
+> reset are the reservation lock of the VM page tables. I have strong doubt
+> that i915 will ever hold those.
+
+Ah good, means that very likely there's at least no huge fundamental
+design issue that we run into.
+
+> Could be that we run into problems because Thread A hold lock 1 tries to
+> take lock 2, then i915 holds 2 and our reset path needs 1.
+
+Yeah that might happen, but lockdep will catch those, and generally
+those cases can be fixed with slight reordering or re-annotating of
+the code to avoid upsetting lockdep. As long as we don't have a
+full-on functional dependency (which is what I've feared).
+
+>> [SNIP]
 >>>
->>> Additional to that in the MMU or shrinker callback all different kinds of
->>> locks might be held, so you basically can't assume that you do thinks like
->>> recursive page table walks or call dma_unmap_anything.
->> That sounds like a design bug in mmu_notifiers, since it would render them
->> useless for KVM. And they were developed for that originally. I think I'll
->> chat with Jerome to understand this, since it's all rather confusing.
-> Doing dma_unmap() during mmu_notifier callback should be fine, it was last
-> time i check. However there is no formal contract that it is ok to do so.
+>>> Yes, except for fallback paths and bootup self tests we simply never wa=
+it
+>>> for fences while holding locks.
+>>
+>> That's not what I meant with "are you sure". Did you enable the
+>> cross-release stuff (after patching the bunch of leftover core kernel
+>> issues still present), annotate dma_fence with the cross-release stuff,
+>> run a bunch of multi-driver (amdgpu vs i915) dma-buf sharing tests and
+>> weep?
+>
+>
+> Ok, what exactly do you mean with cross-release checking?
 
-As I said before dma_unmap() isn't the real problem here.
+Current lockdep doesn't spot deadlocks like the below:
 
-The issues is more that you can't take a lock in the MMU notifier which 
-you would also take while allocating memory without GFP_NOIO.
+thread A: holds mutex, waiting for completion.
 
-That makes it rather tricky to do any command submission, e.g. you need 
-to grab all the pages/memory/resources prehand, then make sure that you 
-don't have a MMU notifier running concurrently and do the submission.
+thread B: acquires mutex before it will ever signal the completion A
+is waiting for
 
-If any of the prerequisites isn't fulfilled we need to restart the 
-operation.
+->deadlock
 
+cross-release lockdep support can catch these through new fancy
+annotations. Similar waiter/signaller annotations exists for waiting
+on workers and anything else, and it would be a perfect fit for
+waiter/signaller code around dma_fence.
+
+lwn has you covered a usual: https://lwn.net/Articles/709849/
+
+Cheers, Daniel
+
+>> I didn't do the full thing yet, but just within i915 we've found tons of
+>> small little deadlocks we never really considered thanks to cross releas=
+e,
+>> and that wasn't even including the dma_fence annotation. Luckily nothing
+>> that needed a full-on driver redesign.
+>>
+>> I guess I need to ping core kernel maintainers about cross-release again=
+.
+>> I'd much prefer if we could validate ->invalidate_mapping and the
+>> locking/fence dependency issues using that, instead of me having to read
+>> and understand all the drivers.
+>
 > [SNIP]
-> A slightly better solution is using atomic counter:
->    driver_range_start() {
->      atomic_inc(&mydev->notifier_count);
-...
+>>
+>> I fear that with the ->invalidate_mapping callback (which inverts the
+>> control flow between importer and exporter) and tying dma_fences into al=
+l
+>> this it will be a _lot_ worse. And I'm definitely too stupid to understa=
+nd
+>> all the dependency chains without the aid of lockdep and a full test sui=
+te
+>> (we have a bunch of amdgpu/i915 dma-buf tests in igt btw).
+>
+>
+> Yes, that is also something I worry about.
+>
+> Regards,
+> Christian.
 
-Yeah, that is exactly what amdgpu is doing now. Sorry if my description 
-didn't made that clear.
 
-> I would like to see driver using same code, as it means one place to fix
-> issues. I had for a long time on my TODO list doing the above conversion
-> to amd or radeon kernel driver. I am pushing up my todo list hopefully in
-> next few weeks i can send an rfc so people can have a real sense of how
-> it can look.
 
-Certainly a good idea, but I think we might have that separate to HMM.
-
-TTM suffered really from feature overload, e.g. trying to do everything 
-in a single subsystem. And it would be rather nice to have coherent 
-userptr handling for GPUs as separate feature.
-
-Regards,
-Christian.
+--=20
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
