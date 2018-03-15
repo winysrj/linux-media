@@ -1,43 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f175.google.com ([209.85.192.175]:35653 "EHLO
-        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751223AbeC3NVG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Mar 2018 09:21:06 -0400
-Received: by mail-pf0-f175.google.com with SMTP id u86so5391078pfd.2
-        for <linux-media@vger.kernel.org>; Fri, 30 Mar 2018 06:21:05 -0700 (PDT)
-Subject: Re: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and
- merge with gl861
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com
-References: <20180327174730.1887-1-tskd08@gmail.com>
- <f1ce1268-e918-a12f-959e-98644cafb2fe@iki.fi>
- <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
- <db8f370c-20f5-e9fe-9d2e-d12c1475dc33@iki.fi>
-From: Akihiro TSUKADA <tskd08@gmail.com>
-Message-ID: <30d0270b-852a-39df-14e5-4c12d59aeac7@gmail.com>
-Date: Fri, 30 Mar 2018 22:21:01 +0900
-MIME-Version: 1.0
-In-Reply-To: <db8f370c-20f5-e9fe-9d2e-d12c1475dc33@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en_US
-Content-Transfer-Encoding: 7bit
+Received: from mout.gmx.net ([212.227.15.18]:39301 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752918AbeCOTNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 15:13:38 -0400
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Peter Seiderer <ps.report@gmx.net>
+Subject: [PATCH v4 2/2] media: staging/imx: fill vb2_v4l2_buffer sequence entry
+Date: Thu, 15 Mar 2018 20:13:23 +0100
+Message-Id: <20180315191323.6028-2-ps.report@gmx.net>
+In-Reply-To: <20180315191323.6028-1-ps.report@gmx.net>
+References: <20180315191323.6028-1-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I simply cannot see why it cannot work. Just add i2c adapter and
-> suitable logic there. Transaction on your example is simply and there is
-> no problem to implement that kind of logic to demod i2c adapter.
+- enables gstreamer v4l2src lost frame detection, e.g:
 
-I might be totally wrong, but...
+  0:00:08.685185668  348  0x54f520 WARN  v4l2src gstv4l2src.c:970:gst_v4l2src_create:<v4l2src0> lost frames detected: count = 141 - ts: 0:00:08.330177332
 
-i2c transactions to a tuner must use:
-1. usb_control_msg(request:3) for the first half (write) of reads
-2. usb_control_msg(request:1) for the other writes
-3. usb_control_msg(request:2) for (all) reads
+- fixes v4l2-compliance test failure:
 
-How can the demod driver control the 'request' argument of USB messages
-that are sent to its parent (not to the demod itself),
-when the bridge of tc90522 cannot be limited to gl861 (or even to USB) ?
+  Streaming ioctls:
+          test read/write: OK (Not Supported)
+              Video Capture:
+                  Buffer: 0 Sequence: 0 Field: None Timestamp: 92.991450s
+                  Buffer: 1 Sequence: 0 Field: None Timestamp: 93.008135s
+                  fail: v4l2-test-buffers.cpp(294): (int)g_sequence() < seq.last_seq + 1
+                  fail: v4l2-test-buffers.cpp(707): buf.check(q, last_seq)
 
-Akihiro
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+Changes in v2:
+  - fill vb2_v4l2_buffer sequence entry in imx-ic-prpencvf too
+    (suggested by Steve Longerbeam)
+
+Changes in v3:
+  - add changelog (suggested by Greg Kroah-Hartman, Fabio Estevam
+    and Dan Carpenter) and patch history
+  - use u32 (instead of __u32) (suggested by Dan Carpenter)
+  - let sequence counter start with zero, keeping v4l2-compliance
+    testing happy (needs additional setting of field to a valid
+    value, patch will follow soon)
+
+Changes in v4:
+  - add v4l2-compliance test failure to changelog
+  - reorder frame_sequence increment and assignement to
+    avoid -1 as start value (suggeted by Steve Longerbeam)
+---
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 4 ++++
+ drivers/staging/media/imx/imx-media-csi.c   | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index ffeb017c73b2..28f41caba05d 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -103,6 +103,7 @@ struct prp_priv {
+ 	int nfb4eof_irq;
+ 
+ 	int stream_count;
++	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;  /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+ 	struct completion last_eof_comp;
+@@ -211,12 +212,14 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
+ 	done = priv->active_vb2_buf[priv->ipu_buf_num];
+ 	if (done) {
+ 		done->vbuf.field = vdev->fmt.fmt.pix.field;
++		done->vbuf.sequence = priv->frame_sequence;
+ 		vb = &done->vbuf.vb2_buf;
+ 		vb->timestamp = ktime_get_ns();
+ 		vb2_buffer_done(vb, priv->nfb4eof ?
+ 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 	}
+ 
++	priv->frame_sequence++;
+ 	priv->nfb4eof = false;
+ 
+ 	/* get next queued buffer */
+@@ -638,6 +641,7 @@ static int prp_start(struct prp_priv *priv)
+ 
+ 	/* init EOF completion waitq */
+ 	init_completion(&priv->last_eof_comp);
++	priv->frame_sequence = 0;
+ 	priv->last_eof = false;
+ 	priv->nfb4eof = false;
+ 
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 5f69117b5811..3f2ce05848f3 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -111,6 +111,7 @@ struct csi_priv {
+ 	struct v4l2_ctrl_handler ctrl_hdlr;
+ 
+ 	int stream_count; /* streaming counter */
++	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;   /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+ 	struct completion last_eof_comp;
+@@ -237,12 +238,14 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+ 	done = priv->active_vb2_buf[priv->ipu_buf_num];
+ 	if (done) {
+ 		done->vbuf.field = vdev->fmt.fmt.pix.field;
++		done->vbuf.sequence = priv->frame_sequence;
+ 		vb = &done->vbuf.vb2_buf;
+ 		vb->timestamp = ktime_get_ns();
+ 		vb2_buffer_done(vb, priv->nfb4eof ?
+ 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 	}
+ 
++	priv->frame_sequence++;
+ 	priv->nfb4eof = false;
+ 
+ 	/* get next queued buffer */
+@@ -544,6 +547,7 @@ static int csi_idmac_start(struct csi_priv *priv)
+ 
+ 	/* init EOF completion waitq */
+ 	init_completion(&priv->last_eof_comp);
++	priv->frame_sequence = 0;
+ 	priv->last_eof = false;
+ 	priv->nfb4eof = false;
+ 
+-- 
+2.16.2
