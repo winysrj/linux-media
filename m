@@ -1,124 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:7650 "EHLO mga18.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:5431 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750947AbeCFKLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 05:11:54 -0500
-Date: Tue, 6 Mar 2018 12:11:51 +0200
+        id S1751449AbeCOJay (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Mar 2018 05:30:54 -0400
+Date: Thu, 15 Mar 2018 11:30:49 +0200
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Andy Yeh <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        Alan Chiang <alanx.chiang@intel.com>
-Subject: Re: [PATCH v6] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180306101151.mgjrbd5kjxtcm54d@paasikivi.fi.intel.com>
-References: <1520002549-6564-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5D1a1Wd0ns85rkg8cJwK+y9uYzaS=c46efOniuGhvFk+w@mail.gmail.com>
- <20180306084045.gabhdrsjks5m7htq@paasikivi.fi.intel.com>
- <CAAFQd5AhfZRKM3sjO3vtbmfOV4RHSEL_AM8AS3FLZdYySiZhPg@mail.gmail.com>
- <20180306091814.rd3coopexzlmrhhf@paasikivi.fi.intel.com>
- <CAAFQd5A20nP16kFZSfZ5T2pONA2D80VXhoR0pEwy=Ev1B+gH6Q@mail.gmail.com>
- <20180306094617.2jjy3fxg64757evh@paasikivi.fi.intel.com>
- <CAAFQd5CECWFvn9GfZV526m_Bt3FgEiyA9To-_-y8cN4-dvWjFg@mail.gmail.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Yong Zhi <yong.zhi@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v2 02/13] media: v4l2: async: Allow searching for asd of
+ any type
+Message-ID: <20180315093049.oto7l2uwaoakqwax@paasikivi.fi.intel.com>
+References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+ <1520711922-17338-3-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAAFQd5CECWFvn9GfZV526m_Bt3FgEiyA9To-_-y8cN4-dvWjFg@mail.gmail.com>
+In-Reply-To: <1520711922-17338-3-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 06, 2018 at 06:52:16PM +0900, Tomasz Figa wrote:
-> On Tue, Mar 6, 2018 at 6:46 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > On Tue, Mar 06, 2018 at 06:28:43PM +0900, Tomasz Figa wrote:
-> >> On Tue, Mar 6, 2018 at 6:18 PM, Sakari Ailus
-> >> <sakari.ailus@linux.intel.com> wrote:
-> >> > On Tue, Mar 06, 2018 at 05:51:36PM +0900, Tomasz Figa wrote:
-> >> >> On Tue, Mar 6, 2018 at 5:40 PM, Sakari Ailus
-> >> >> <sakari.ailus@linux.intel.com> wrote:
-> >> >> > Hi Tomasz and Andy,
-> >> >> >
-> >> >> > On Sat, Mar 03, 2018 at 12:43:59AM +0900, Tomasz Figa wrote:
-> >> >> > ...
-> >> >> >> > +static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
-> >> >> >> > +{
-> >> >> >> > +       struct imx258 *imx258 =
-> >> >> >> > +               container_of(ctrl->handler, struct imx258, ctrl_handler);
-> >> >> >> > +       struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-> >> >> >> > +       int ret = 0;
-> >> >> >> > +       /*
-> >> >> >> > +        * Applying V4L2 control value only happens
-> >> >> >> > +        * when power is up for streaming
-> >> >> >> > +        */
-> >> >> >> > +       if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-> >> >> >> > +               return 0;
-> >> >> >>
-> >> >> >> I thought we decided to fix this to handle disabled runtime PM properly.
-> >> >> >
-> >> >> > Good point. I bet this is a problem in a few other drivers, too. How would
-> >> >> > you fix that? Check for zero only?
-> >> >> >
-> >> >>
-> >> >> bool need_runtime_put;
-> >> >>
-> >> >> ret = pm_runtime_get_if_in_use(&client->dev);
-> >> >> if (ret <= 0 && ret != -EINVAL)
-> >> >>         return ret;
-> >> >> need_runtime_put = ret > 0;
-> >> >>
-> >> >> // Do stuff ...
-> >> >>
-> >> >> if (need_runtime_put)
-> >> >>        pm_runtime_put(&client->dev);
-> >> >>
-> >> >> I don't like how ugly it is, but it appears to be the only way to
-> >> >> handle this correctly.
-> >> >
-> >> > The driver enables runtime PM so if runtime PM is enabled in kernel
-> >> > configuration, it is enabled here. In that case pm_runtime_get_if_in_use()
-> >> > will return either 0 or 1. So as far as I can see, changing the lines to:
-> >> >
-> >> >         if (!pm_runtime_get_if_in_use(&client->dev))
-> >> >                 return 0;
-> >> >
-> >> > is enough.
-> >>
-> >> Right, my bad. Somehow I was convinced that enable status can change at
-> >> runtime.
-> >
-> > Good point. I guess in principle this could happen although I can't see a
-> > reason to do so, other than to break things --- quoting
-> > Documentation/power/runtime_pm.txt:
-> >
-> >         The user space can effectively disallow the driver of the device to
-> >         power manage it at run time by changing the value of its
-> >         /sys/devices/.../power/control attribute to "on", which causes
-> >         pm_runtime_forbid() to be called. In principle, this mechanism may
-> >         also be used by the driver to effectively turn off the runtime
-> >         power management of the device until the user space turns it on.
-> >         Namely, during the initialization the driver can make sure that the
-> >         runtime PM status of the device is 'active' and call
-> >         pm_runtime_forbid(). It should be noted, however, that if the user
-> >         space has already intentionally changed the value of
-> >         /sys/devices/.../power/control to "auto" to allow the driver to
-> >         power manage the device at run time, the driver may confuse it by
-> >         using pm_runtime_forbid() this way.
-> >
-> > So that comes with a warning that things might not work well after doing
-> > so.
-> >
-> > What comes to the driver code, I still wouldn't complicate it by attempting
-> > to make a driver work in such a case.
-> 
-> I think pm_runtime_forbid() and pm_runtime_enable() operate on
-> complete different data. That was exactly the source of my confusion
-> earlier. Looking at the code [1], even if runtime PM is "forbidden",
-> it is still "enabled" and just the usage count is incremented.
-> 
-> https://elixir.bootlin.com/linux/latest/source/drivers/base/power/runtime.c#L1314
+Hi Steve,
 
-Ah, right. Thanks for the correction. Then indeed this is very clear.
+Thanks for the patchset. Please see my comments below.
+
+On Sat, Mar 10, 2018 at 11:58:31AM -0800, Steve Longerbeam wrote:
+> Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
+> searching for any type of async subdev, not just fwnodes. Rename to
+> v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
+> 
+> TODO: support asd compare with CUSTOM match type in asd_equal().
+
+Right now there's a recognised need to have multiple fwnodes (endpoints)
+per sub-device. The current APIs (when it comes to the firmware interface)
+support this with fwnode but not with other async match types.
+
+Just FYI.
+
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 86 +++++++++++++++++++++++-------------
+>  1 file changed, 56 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 2b08d03..c083efa 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -124,6 +124,42 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+>  	return NULL;
+>  }
+>  
+> +/* Compare two asd's for equivalence */
+> +static bool asd_equal(struct v4l2_async_subdev *asd_x,
+> +		      struct v4l2_async_subdev *asd_y)
+> +{
+> +	bool ret = false;
+> +
+> +	if (!asd_x || !asd_y)
+
+Can this happen?
+
+> +		return false;
+
+How about checking here that the match_type ... matches? You could remove
+that check elsewhere in the function.
+
+You could also easily do without ret variable.
+
+> +
+> +	switch (asd_x->match_type) {
+> +	case V4L2_ASYNC_MATCH_DEVNAME:
+> +		if (asd_y->match_type == V4L2_ASYNC_MATCH_DEVNAME)
+> +			ret = !strcmp(asd_x->match.device_name,
+> +				      asd_y->match.device_name);
+> +		break;
+> +	case V4L2_ASYNC_MATCH_I2C:
+> +		if (asd_y->match_type == V4L2_ASYNC_MATCH_I2C)
+> +			ret = (asd_x->match.i2c.adapter_id ==
+> +			       asd_y->match.i2c.adapter_id &&
+> +			       asd_x->match.i2c.address ==
+> +			       asd_y->match.i2c.address);
+> +		break;
+> +	case V4L2_ASYNC_MATCH_FWNODE:
+> +		if (asd_y->match_type == V4L2_ASYNC_MATCH_FWNODE)
+> +			ret = (asd_x->match.fwnode == asd_y->match.fwnode);
+> +		break;
+> +	case V4L2_ASYNC_MATCH_CUSTOM:
+> +		/* TODO */
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  /* Find the sub-device notifier registered by a sub-device driver. */
+>  static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+>  	struct v4l2_subdev *sd)
+> @@ -308,18 +344,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+>  	notifier->parent = NULL;
+>  }
+>  
+> -/* See if an fwnode can be found in a notifier's lists. */
+> -static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
+> +/* See if an async sub-device can be found in a notifier's lists. */
+> +static bool __v4l2_async_notifier_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
+>  {
+> -	struct v4l2_async_subdev *asd;
+> +	struct v4l2_async_subdev *asd_y;
+>  	struct v4l2_subdev *sd;
+>  
+> -	list_for_each_entry(asd, &notifier->waiting, list) {
+> -		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> -			continue;
+> -
+> -		if (asd->match.fwnode == fwnode)
+> +	list_for_each_entry(asd_y, &notifier->waiting, list) {
+> +		if (asd_equal(asd, asd_y))
+>  			return true;
+>  	}
+
+You no longer need the braces here.
+
+>  
+> @@ -327,10 +360,7 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+>  		if (WARN_ON(!sd->asd))
+>  			continue;
+>  
+> -		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> -			continue;
+> -
+> -		if (sd->asd->match.fwnode == fwnode)
+> +		if (asd_equal(asd, sd->asd))
+>  			return true;
+>  	}
+>  
+> @@ -338,33 +368,30 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+>  }
+>  
+>  /*
+> - * Find out whether an async sub-device was set up for an fwnode already or
+> + * Find out whether an async sub-device was set up already or
+>   * whether it exists in a given notifier before @this_index.
+>   */
+> -static bool v4l2_async_notifier_fwnode_has_async_subdev(
+> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
+> +static bool v4l2_async_notifier_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
+>  	unsigned int this_index)
+>  {
+>  	unsigned int j;
+>  
+>  	lockdep_assert_held(&list_lock);
+>  
+> -	/* Check that an fwnode is not being added more than once. */
+> +	/* Check that an asd is not being added more than once. */
+>  	for (j = 0; j < this_index; j++) {
+> -		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+> -		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
+> +		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
+>  
+> -		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+> -		    asd->match.fwnode ==
+> -		    other_asd->match.fwnode)
+> +		if (asd_equal(asd, asd_y))
+>  			return true;
+>  	}
+>  
+> -	/* Check than an fwnode did not exist in other notifiers. */
+> -	list_for_each_entry(notifier, &notifier_list, list)
+> -		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+> -			    notifier, fwnode))
+> +	/* Check that an asd does not exist in other notifiers. */
+> +	list_for_each_entry(notifier, &notifier_list, list) {
+> +		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
+>  			return true;
+> +	}
+
+You don't really need braces here.
+
+>  
+>  	return false;
+>  }
+> @@ -392,12 +419,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  		case V4L2_ASYNC_MATCH_I2C:
+> -			break;
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+> -			if (v4l2_async_notifier_fwnode_has_async_subdev(
+> -				    notifier, asd->match.fwnode, i)) {
+> +			if (v4l2_async_notifier_has_async_subdev(
+> +				    notifier, asd, i)) {
+>  				dev_err(dev,
+> -					"fwnode has already been registered or in notifier's subdev list\n");
+> +					"asd has already been registered or in notifier's subdev list\n");
+>  				ret = -EEXIST;
+>  				goto err_unlock;
+>  			}
 
 -- 
+Kind regards,
+
 Sakari Ailus
 sakari.ailus@linux.intel.com
