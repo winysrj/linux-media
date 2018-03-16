@@ -1,76 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f180.google.com ([209.85.128.180]:35907 "EHLO
-        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752414AbeC2KJY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 06:09:24 -0400
-Received: by mail-wr0-f180.google.com with SMTP id y55so4864726wry.3
-        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2018 03:09:23 -0700 (PDT)
-Subject: Re: [v2,2/2] media: Add a driver for the ov7251 camera sensor
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: jacopo mondi <jacopo@jmondi.org>, mchehab@kernel.org,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1521778460-8717-3-git-send-email-todor.tomov@linaro.org>
- <20180323134003.GB11499@w540>
- <419f6976-ee6a-f2c1-1097-a51776469ee4@linaro.org>
- <20180329082923.e55pclvlclamnsqz@paasikivi.fi.intel.com>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <6625da39-9f35-f0ae-e40c-8ae508018aae@linaro.org>
-Date: Thu, 29 Mar 2018 13:09:18 +0300
+Received: from szxga06-in.huawei.com ([45.249.212.32]:59882 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751334AbeCPOhV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 10:37:21 -0400
+Subject: Re: [PATCH v2 17/21] scsi: hisi_sas: Remove depends on HAS_DMA in
+ case of platform dependency
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "Mark Brown" <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        "Jonathan Cameron" <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        "David Woodhouse" <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        "Bjorn Andersson" <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        "Stefan Wahren" <stefan.wahren@i2se.com>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+ <1521208314-4783-18-git-send-email-geert@linux-m68k.org>
+CC: <alsa-devel@alsa-project.org>, <linux-iio@vger.kernel.org>,
+        <linux-fpga@vger.kernel.org>, <linux-remoteproc@vger.kernel.org>,
+        <linux-fbdev@vger.kernel.org>, <linux-ide@vger.kernel.org>,
+        <linux-mtd@lists.infradead.org>, <linux-i2c@vger.kernel.org>,
+        <linux1394-devel@lists.sourceforge.net>,
+        <devel@driverdev.osuosl.org>, <linux-scsi@vger.kernel.org>,
+        <linux-serial@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-block@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <linux-usb@vger.kernel.org>, <linux-mmc@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-spi@vger.kernel.org>,
+        <iommu@lists.linux-foundation.org>, <linux-crypto@vger.kernel.org>
+From: John Garry <john.garry@huawei.com>
+Message-ID: <0786b588-f165-6f71-7ede-7c26a27becbc@huawei.com>
+Date: Fri, 16 Mar 2018 14:36:46 +0000
 MIME-Version: 1.0
-In-Reply-To: <20180329082923.e55pclvlclamnsqz@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <1521208314-4783-18-git-send-email-geert@linux-m68k.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
+On 16/03/2018 13:51, Geert Uytterhoeven wrote:
+> Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+> symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+> In most cases this other symbol is an architecture or platform specific
+> symbol, or PCI.
+>
+> Generic symbols and drivers without platform dependencies keep their
+> dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+> cannot work anyway.
+>
+> This simplifies the dependencies, and allows to improve compile-testing.
+>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Reviewed-by: Mark Brown <broonie@kernel.org>
+> Acked-by: Robin Murphy <robin.murphy@arm.com>
 
-On 29.03.2018 11:29, Sakari Ailus wrote:
-> Hi Todor and Jacopo,
-> 
-> On Thu, Mar 29, 2018 at 10:50:10AM +0300, Todor Tomov wrote:
-> ...
->>>> +static const struct of_device_id ov7251_of_match[] = {
->>>> +	{ .compatible = "ovti,ov7251" },
->>>> +	{ /* sentinel */ }
->>>> +};
->>>> +MODULE_DEVICE_TABLE(of, ov7251_of_match);
->>>> +
->>>> +static struct i2c_driver ov7251_i2c_driver = {
->>>> +	.driver = {
->>>> +		.of_match_table = of_match_ptr(ov7251_of_match),
->>>> +		.name  = "ov7251",
->>>> +	},
->>>> +	.probe  = ov7251_probe,
->>>> +	.remove = ov7251_remove,
->>>> +	.id_table = ov7251_id,
->>>
->>> As this driver depends on CONFIG_OF, I've been suggested to use probe_new and
->>> get rid of i2c id_tables.
->>
->> Yes, I'll do that.
-> 
-> The proposal sounds good to me but rather than adding CONFIG_OF dependency,
-> I'd instead suggest changing the of_property_read_u32 to
-> fwnode_property_read_u32; then the driver may work on ACPI based systems as
-> well. 
-
-Ok.
-
-> There's another change needed, too, which is not using of_match_ptr
-> macro, but instead assigning the of_match_table unconditionally.
-
-In that case the MODULE_DEVICE_TABLE(i2c, ...) is again not needed?
-And matching will be again via of_match_table?
-
-> 
-> Up to you.
-> 
-
-Thank you for your help!
- 
-Best regards,
-Todor Tomov
+Acked-by: John Garry <john.garry@huawei.com>
