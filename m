@@ -1,12 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newton.telenet-ops.be ([195.130.132.45]:46262 "EHLO
-        newton.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752169AbeCPOBg (ORCPT
+Received: from andre.telenet-ops.be ([195.130.132.53]:48520 "EHLO
+        andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753644AbeCPOwT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 10:01:36 -0400
-Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
-        by newton.telenet-ops.be (Postfix) with ESMTPS id 402n391nLtzMqygf
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 14:52:53 +0100 (CET)
+        Fri, 16 Mar 2018 10:52:19 -0400
 From: Geert Uytterhoeven <geert@linux-m68k.org>
 To: Christoph Hellwig <hch@lst.de>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
@@ -53,9 +50,9 @@ Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
         linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
         linux-kernel@vger.kernel.org,
         Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v2 02/21] ata: Remove depends on HAS_DMA in case of platform dependency
-Date: Fri, 16 Mar 2018 14:51:35 +0100
-Message-Id: <1521208314-4783-3-git-send-email-geert@linux-m68k.org>
+Subject: [PATCH v2 08/21] iio: adc: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:41 +0100
+Message-Id: <1521208314-4783-9-git-send-email-geert@linux-m68k.org>
 In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
@@ -81,28 +78,28 @@ v2:
   - Drop RFC state,
   - Split per subsystem.
 ---
- drivers/ata/Kconfig | 2 --
+ drivers/iio/adc/Kconfig | 2 --
  1 file changed, 2 deletions(-)
 
-diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index a7120d6211546949..9eaeed1fb237fa33 100644
---- a/drivers/ata/Kconfig
-+++ b/drivers/ata/Kconfig
-@@ -398,7 +398,6 @@ config SATA_DWC_VDEBUG
- 
- config SATA_HIGHBANK
- 	tristate "Calxeda Highbank SATA support"
+diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
+index 72bc2b71765ae2ff..57f46e88f5c2536e 100644
+--- a/drivers/iio/adc/Kconfig
++++ b/drivers/iio/adc/Kconfig
+@@ -158,7 +158,6 @@ config AT91_SAMA5D2_ADC
+ 	tristate "Atmel AT91 SAMA5D2 ADC"
+ 	depends on ARCH_AT91 || COMPILE_TEST
+ 	depends on HAS_IOMEM
 -	depends on HAS_DMA
- 	depends on ARCH_HIGHBANK || COMPILE_TEST
+ 	select IIO_TRIGGERED_BUFFER
  	help
- 	  This option enables support for the Calxeda Highbank SoC's
-@@ -408,7 +407,6 @@ config SATA_HIGHBANK
- 
- config SATA_MV
- 	tristate "Marvell SATA support"
+ 	  Say yes here to build support for Atmel SAMA5D2 ADC which is
+@@ -647,7 +646,6 @@ config SD_ADC_MODULATOR
+ config STM32_ADC_CORE
+ 	tristate "STMicroelectronics STM32 adc core"
+ 	depends on ARCH_STM32 || COMPILE_TEST
 -	depends on HAS_DMA
- 	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
- 		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
- 	select GENERIC_PHY
+ 	depends on OF
+ 	depends on REGULATOR
+ 	select IIO_BUFFER
 -- 
 2.7.4
