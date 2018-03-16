@@ -1,56 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:42047 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426315AbeCBOqz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:46:55 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
-        joe@perches.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 00/11] media: ov772x/tw9910 cleanup
-Date: Fri,  2 Mar 2018 15:46:32 +0100
-Message-Id: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from osg.samsung.com ([64.30.133.232]:59917 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933444AbeCPQDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 12:03:15 -0400
+Date: Fri, 16 Mar 2018 13:03:09 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: I2C media binding model
+Message-ID: <20180316130309.1f89476f@vento.lan>
+In-Reply-To: <30147ff6-d0c2-a337-86d2-75fa5454c86c@gmail.com>
+References: <20180307122547.6c38f600@vento.lan>
+        <30147ff6-d0c2-a337-86d2-75fa5454c86c@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-   as I had one more patch to add to the series, I have now re-based it on top
-of Joe's changes, which were based on top of yours already part of media-tree
-master branch.
+Em Fri, 16 Mar 2018 23:50:31 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-Please apply on top of:
+> Hi,
+> 
+> As the new i2c binding helper was introduced,
+> I am now re-writing the following patches to use new helper functions.
+> 
+> > 5. Jan,16 2015: [v2,1/2] dvb: tua6034: add a new driver for Infineon tua6034 tuner
+> >         http://patchwork.linuxtv.org/patch/27927 
+> > 6. Jan,16 2015: [v2,2/2] dvb-usb-friio: split and merge into dvb-usbv2-gl861
+> >         http://patchwork.linuxtv.org/patch/27928   
 
-commit bc3c49d6bbfb ("media: tw9910: Miscellaneous neatening")
-commit 71c07c61b340 ("media: tw9910: Whitespace alignment")
-commit ae24b8a1d5f9 ("media: tw9910: solve coding style issues")
-commit 2d595d14fe8b ("media: ov772x: fix whitespace issues")
+Thank you!
 
-Thanks
-  j
+> But I noticed that the tua6034 (used in Friio devices) can be supported
+> by "tuner-simple" driver.
+> Since "tuner-simple" is not an i2c driver,
+> I am wondering if
+> 1) I should use/modify "tuner-simple" driver without adding new one
+>     but with one more dvb_attach un-replaced, or,
+> 2) I should make a new i2c driver as my previous patch #27927
+>    but with the duplicated function with tuner-simple.
+> 
+> Re-writing tuner-simple into a new i2c driver does not seem to be
+> an option to me, because that would affect lots of dvb/v4l drivers,
+> and I cannot test them.
 
-v1 -> v2:
-- Rebased on top of Joe's cleanup patches: 2 patches squashed
-- Add patch 12/12
+If the driver is pure DVB, then maybe the best would be to add support
+for it at:
 
+	./drivers/media/dvb-frontends/dvb-pll.c
 
-Jacopo Mondi (11):
-  media: tw9910: Re-order variables declaration
-  media: tw9910: Re-organize in-code comments
-  media: tw9910: Mixed style fixes
-  media: tw9910: Sort includes alphabetically
-  media: tw9910: Replace msleep(1) with usleep_range
-  media: ov772x: Align function parameters
-  media: ov772x: Re-organize in-code comments
-  media: ov772x: Empty line before end-of-function return
-  media: ov772x: Re-order variables declaration
-  media: ov772x: Replace msleep(1) with usleep_range
-  media: ov772x: Unregister async subdevice
+It basically does the same as a "tuner-simple" driver, but without all
+the complexity required to handle V4L2 calls.
 
- drivers/media/i2c/ov772x.c | 65 ++++++++++++++++--------------------
- drivers/media/i2c/tw9910.c | 83 ++++++++++++++++++----------------------------
- 2 files changed, 61 insertions(+), 87 deletions(-)
+It should be simple to convert it to also accept the new I2C binding
+and use the new I2C binding at the caller drivers.
 
---
-2.7.4
+> In addition, I also intend to re-write "earth-pt1" driver in the future
+> by decomposing the current monolithic module into component drivers:
+>   bridge: earth-pt1 (cut down one)
+>   demod:  tc90522
+>   TERR-tuner: tda6654 (NEW?)
+>   SAT-tuner:  qm1d1b0004 (NEW)
+
+Sounds nice!
+
+> There exists a "tda665x" tuner driver (in dvb-frontends/),
+> but it does not use the new i2c binding helpers either,
+> and it seems that it can be supported by "tuner-simple" as well.
+> So the similar situation here, though the tda665x driver is
+> used only by "mantis" currently.
+
+It it is just a PLL, then it could also be converted to use
+dvb-pll.h at the Mantis driver, and we could get rid of the
+driver.
+
+Regards,
+Mauro
