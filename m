@@ -1,140 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:38750 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753928AbeCGEiV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 23:38:21 -0500
-Message-ID: <e654725071352c821b8e188b11bd6180@smtp-cloud7.xs4all.net>
-Date: Wed, 07 Mar 2018 05:38:18 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-eopbgr40137.outbound.protection.outlook.com ([40.107.4.137]:59885
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754257AbeCPP1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 11:27:34 -0400
+Subject: Re: [PATCH][RFC] kernel.h: provide array iterator
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-kernel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kees Cook <keescook@chromium.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Ian Abbott <abbotti@mev.co.uk>
+References: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
+From: Rasmus Villemoes <rasmus.villemoes@prevas.dk>
+Message-ID: <b6af11b9-d697-59ec-6acc-80f0657a3e11@prevas.dk>
+Date: Fri, 16 Mar 2018 16:27:28 +0100
+MIME-Version: 1.0
+In-Reply-To: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2018-03-15 11:00, Kieran Bingham wrote:
+> Simplify array iteration with a helper to iterate each entry in an array.
+> Utilise the existing ARRAY_SIZE macro to identify the length of the array
+> and pointer arithmetic to process each item as a for loop.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> ---
+>  include/linux/kernel.h | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> The use of static arrays to store data is a common use case throughout the
+> kernel. Along with that is the obvious need to iterate that data.
+> 
+> In fact there are just shy of 5000 instances of iterating a static array:
+> 	git grep "for .*ARRAY_SIZE" | wc -l
+> 	4943
+> 
+> When working on the UVC driver - I found that I needed to split one such
+> iteration into two parts, and at the same time felt that this could be
+> refactored to be cleaner / easier to read. 
 
-Results of the daily build of media_tree:
+About that, it would be helpful if you first converted to the new
+iterator, so that one can more easily see they are equivalent. And then
+split in two, adding the flush_workqueue call. Or do it the other way
+around. But please don't mix the two in one patch, especially not if
+it's supposed to act as an example of how to use the new helper.
 
-date:			Wed Mar  7 05:00:12 CET 2018
-media-tree git hash:	60d0bbec5965590d72b1a2091ec7a2cc589cb8e0
-media_build git hash:	15e592e1abe9d29c9fd3b32302ac50716ef793d5
-v4l-utils git hash:	c28248deeb2d7fe43fcde948c00b9b8fa2bc1e8f
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+> I do however worry that this simple short patch might not be desired or could
+> also be heavily bikeshedded due to it's potential wide spread use (though
+> perhaps that would be a good thing to have more users) ...  but here it is,
+> along with an example usage below which is part of a separate series.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.53-i686: ERRORS
-linux-3.16.53-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.93-i686: ERRORS
-linux-3.18.93-x86_64: ERRORS
-linux-3.19-i686: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.49-i686: ERRORS
-linux-4.1.49-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.115-i686: ERRORS
-linux-4.4.115-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.80-i686: WARNINGS
-linux-4.9.80-x86_64: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14.17-i686: WARNINGS
-linux-4.14.17-x86_64: WARNINGS
-linux-4.15.2-i686: WARNINGS
-linux-4.15.2-x86_64: WARNINGS
-linux-4.16-rc1-i686: WARNINGS
-linux-4.16-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+I think it can be useful, and it does have the must_be_array protection
+built in, so code doesn't silently break if one changes from a
+fixed-size allocation to e.g. a kmalloc-based one. Just don't attempt a
+tree-wide mass conversion, but obviously starting to make use of it when
+refactoring code anyway is fine.
 
-Detailed results are available here:
+And now, the bikeshedding you expected :)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+> index ce51455e2adf..95d7dae248b7 100644
+> --- a/include/linux/kernel.h
+> +++ b/include/linux/kernel.h
+> @@ -70,6 +70,16 @@
+>   */
+>  #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+>  
+> +/**
+> + * for_each_array_element - Iterate all items in an array
+> + * @elem: pointer of array type for iteration cursor
 
-Full logs are available here:
+Hm, "pointer of array type" sounds wrong; it's not a "pointer to array".
+But "pointer of array elements' type" is clumsy. Maybe just "@elem:
+iteration cursor" is clear enough.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> + * @array: array to be iterated
+> + */
+> +#define for_each_array_element(elem, array) \
+> +	for (elem = &(array)[0]; \
+> +	     elem < &(array)[ARRAY_SIZE(array)]; \
+> +	     ++elem)
+> +
 
-The Media Infrastructure API from this daily build is here:
+Please parenthesize elem as well.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Rasmus
