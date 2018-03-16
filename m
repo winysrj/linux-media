@@ -1,70 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:38802 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751713AbeCRMsA (ORCPT
+Received: from smtprelay0246.hostedemail.com ([216.40.44.246]:44903 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750877AbeCPSps (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Mar 2018 08:48:00 -0400
-Date: Sun, 18 Mar 2018 07:47:57 -0500
-From: Rob Herring <robh@kernel.org>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Andy Whitcroft <apw@canonical.com>,
-        Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH] dt-bindings: media: rcar_vin: Use status "okay"
-Message-ID: <20180317231028.xehdgkpagjs6nerm@rob-hp-laptop>
-References: <1520588080-31264-1-git-send-email-geert+renesas@glider.be>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1520588080-31264-1-git-send-email-geert+renesas@glider.be>
+        Fri, 16 Mar 2018 14:45:48 -0400
+Message-ID: <1521225943.6119.10.camel@perches.com>
+Subject: Re: [PATCH][RFC] kernel.h: provide array iterator
+From: Joe Perches <joe@perches.com>
+To: Rasmus Villemoes <rasmus.villemoes@prevas.dk>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-kernel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kees Cook <keescook@chromium.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Ian Abbott <abbotti@mev.co.uk>
+Date: Fri, 16 Mar 2018 11:45:43 -0700
+In-Reply-To: <b6af11b9-d697-59ec-6acc-80f0657a3e11@prevas.dk>
+References: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
+         <b6af11b9-d697-59ec-6acc-80f0657a3e11@prevas.dk>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 09, 2018 at 10:34:40AM +0100, Geert Uytterhoeven wrote:
-> According to the Devicetree Specification, "ok" is not a valid status.
+On Fri, 2018-03-16 at 16:27 +0100, Rasmus Villemoes wrote:
+> On 2018-03-15 11:00, Kieran Bingham wrote:
+> > Simplify array iteration with a helper to iterate each entry in an array.
+> > Utilise the existing ARRAY_SIZE macro to identify the length of the array
+> > and pointer arithmetic to process each item as a for loop.
 
-Correct.
+I recall getting negative feedback on a similar proposal
+a decade ago:
 
-> Fixes: 47c71bd61b772cd7 ("[media] rcar_vin: add devicetree support")
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
-> For the checkpatch TODO list?
-> https://www.devicetree.org/
-> 
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index 68c5c497b7fa5551..a19517e1c669eb35 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -81,7 +81,7 @@ Board setup example for Gen2 platforms (vin1 composite video input)
->  -------------------------------------------------------------------
->  
->  &i2c2   {
-> -        status = "ok";
-> +        status = "okay";
+https://lkml.org/lkml/2007/2/13/25
 
-However, I prefer that status not be in examples as it applies to any 
-node and the SoC/board split is not relevant to binding docs. I'd 
-cleaned all these up except for the cases with SoC/board split.
-
->          pinctrl-0 = <&i2c2_pins>;
->          pinctrl-names = "default";
->  
-> @@ -104,7 +104,7 @@ Board setup example for Gen2 platforms (vin1 composite video input)
->          pinctrl-0 = <&vin1_pins>;
->          pinctrl-names = "default";
->  
-> -        status = "ok";
-> +        status = "okay";
->  
->          port {
->                  #address-cells = <1>;
-> -- 
-> 2.7.4
-> 
+Not sure this is different.
