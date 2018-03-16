@@ -1,88 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63032 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755407AbeCSKra (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 06:47:30 -0400
-Date: Mon, 19 Mar 2018 07:47:23 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180319074715.5b700405@vento.lan>
-In-Reply-To: <20180319102354.GA12557@amd>
-References: <20170426132337.GA6482@amd>
-        <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
-        <20170508222819.GA14833@amd>
-        <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
-        <20170509110440.GC28248@amd>
-        <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
-        <20170516124519.GA25650@amd>
-        <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
-        <20180316205512.GA6069@amd>
-        <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
-        <20180319102354.GA12557@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from leibniz.telenet-ops.be ([195.130.137.77]:36392 "EHLO
+        leibniz.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752454AbeCPOB6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 10:01:58 -0400
+Received: from andre.telenet-ops.be (andre.telenet-ops.be [IPv6:2a02:1800:120:4::f00:15])
+        by leibniz.telenet-ops.be (Postfix) with ESMTPS id 402n3929BJzMqdSB
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 14:52:53 +0100 (CET)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v2 21/21] usb: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:54 +0100
+Message-Id: <1521208314-4783-22-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 19 Mar 2018 11:23:54 +0100
-Pavel Machek <pavel@ucw.cz> escreveu:
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-> Hi!
-> 
-> > I really don't want to add functions for this to libv4l2. That's just a
-> > quick hack. The real solution is to parse this from a config
-> > file. But  
-> 
-> No, this is not a quick hack. These are functions that will eventually
-> be used by the config parser. (Oh and they allow me to use camera on
-> complex hardware, but...).
-> 
-> Hmm, I have mentioned that already. See quoted text below. 
-> 
-> > that is a lot more work and it is something that needs to be designed
-> > properly.
-> > 
-> > And that requires someone to put in the time and effort...  
-> 
-> Which is what I'm trying to do. But some cooperation from your side is
-> needed, too. I acknowledged some kind of parser is needed. I can
-> do that. Are you willing to cooperate?
-> 
-> But I need your feedback on the parts below. We can bikeshed about the
-> parser later.
-> 
-> Do they look acceptable? Did I hook up right functions in acceptable
-> way?
-> 
-> If so, yes, I can proceed with parser.
-> 
-> Best regards,
-> 							Pavel
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
+This simplifies the dependencies, and allows to improve compile-testing.
 
-Pavel,
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com> [drivers/usb/gadget/]
+---
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/usb/gadget/udc/Kconfig | 4 ++--
+ drivers/usb/mtu3/Kconfig       | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-I appreciate your efforts of adding support for mc-based devices to
-libv4l.
-
-I guess the main poin that Hans is pointing is that we should take
-extra care in order to avoid adding new symbols to libv4l ABI/API
-without being sure that they'll be needed in long term, as removing
-or changing the API is painful for app developers, and keeping it
-ABI compatible with apps compiled against previous versions of the
-library is very painful for us.
-
-The hole idea is that generic applications shouldn't notice
-if the device is using a mc-based device or not.
-
-Regards,
-Mauro
+diff --git a/drivers/usb/gadget/udc/Kconfig b/drivers/usb/gadget/udc/Kconfig
+index 0875d38476ee9395..9c3b4f86965e80c7 100644
+--- a/drivers/usb/gadget/udc/Kconfig
++++ b/drivers/usb/gadget/udc/Kconfig
+@@ -179,7 +179,7 @@ config USB_R8A66597
+ 
+ config USB_RENESAS_USBHS_UDC
+ 	tristate 'Renesas USBHS controller'
+-	depends on USB_RENESAS_USBHS && HAS_DMA
++	depends on USB_RENESAS_USBHS
+ 	help
+ 	   Renesas USBHS is a discrete USB host and peripheral controller chip
+ 	   that supports both full and high speed USB 2.0 data transfers.
+@@ -192,7 +192,7 @@ config USB_RENESAS_USBHS_UDC
+ config USB_RENESAS_USB3
+ 	tristate 'Renesas USB3.0 Peripheral controller'
+ 	depends on ARCH_RENESAS || COMPILE_TEST
+-	depends on EXTCON && HAS_DMA
++	depends on EXTCON
+ 	help
+ 	   Renesas USB3.0 Peripheral controller is a USB peripheral controller
+ 	   that supports super, high, and full speed USB 3.0 data transfers.
+diff --git a/drivers/usb/mtu3/Kconfig b/drivers/usb/mtu3/Kconfig
+index 25cd61947beea51e..c0c0eb88e5eafc74 100644
+--- a/drivers/usb/mtu3/Kconfig
++++ b/drivers/usb/mtu3/Kconfig
+@@ -2,7 +2,7 @@
+ 
+ config USB_MTU3
+ 	tristate "MediaTek USB3 Dual Role controller"
+-	depends on EXTCON && (USB || USB_GADGET) && HAS_DMA
++	depends on EXTCON && (USB || USB_GADGET)
+ 	depends on ARCH_MEDIATEK || COMPILE_TEST
+ 	select USB_XHCI_MTK if USB_SUPPORT && USB_XHCI_HCD
+ 	help
+-- 
+2.7.4
