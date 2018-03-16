@@ -1,269 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:44679 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752303AbeCXOut (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Mar 2018 10:50:49 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Matthias Reichl <hias@horus.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        linux-amlogic@lists.infradead.org
-Subject: [PATCH 1/3] media: rc: set timeout to smallest value required by enabled protocols
-Date: Sat, 24 Mar 2018 14:50:43 +0000
-Message-Id: <1bfde5431538be705f5336e147a040e83779b0b9.1521901953.git.sean@mess.org>
-In-Reply-To: <cover.1521901953.git.sean@mess.org>
-References: <cover.1521901953.git.sean@mess.org>
-In-Reply-To: <cover.1521901953.git.sean@mess.org>
-References: <cover.1521901953.git.sean@mess.org>
+Received: from aserp2120.oracle.com ([141.146.126.78]:59262 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750748AbeCPIcx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 04:32:53 -0400
+Date: Fri, 16 Mar 2018 11:32:34 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Ji-Hun Kim <ji_hun.kim@samsung.com>
+Cc: mchehab@kernel.org, devel@driverdev.osuosl.org,
+        gregkh@linuxfoundation.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org, arvind.yadav.cs@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: davinci_vpfe: add error handling on
+ kmalloc failure
+Message-ID: <20180316083234.yq7a4rx6w35amflu@mwanda>
+References: <CGME20180316045841epcas2p34dc11231c65e2032e88ac7138db2daee@epcas2p3.samsung.com>
+ <1521176303-17546-1-git-send-email-ji_hun.kim@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1521176303-17546-1-git-send-email-ji_hun.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The longer the IR timeout, the longer we wait until delivering each
-scancode. By reducing this timeout, we reduce the time it take for the
-last scancode to be delivered.
+On Fri, Mar 16, 2018 at 01:58:23PM +0900, Ji-Hun Kim wrote:
+> There is no failure checking on the param value which will be allocated
+> memory by kmalloc. Add a null pointer checking statement. Then goto error:
+> and return -ENOMEM error code when kmalloc is failed.
+> 
+> Signed-off-by: Ji-Hun Kim <ji_hun.kim@samsung.com>
+> ---
+>  drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> index 6a3434c..55a922c 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> @@ -1280,6 +1280,10 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+>  
+>  			params = kmalloc(sizeof(struct ipipe_module_params),
+>  					 GFP_KERNEL);
+> +			if (!params) {
+> +				rval = -ENOMEM;
+> +				goto error;
+                                ^^^^^^^^^^
 
-Note that the lirc daemon disables all protocols, in case we revert back
-to the default value.
+What does "goto error" do, do you think?  It's not clear from the name.
+When you have an unclear goto like this it often means the error
+handling is going to be buggy.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-imon-decoder.c    |  1 +
- drivers/media/rc/ir-jvc-decoder.c     |  1 +
- drivers/media/rc/ir-mce_kbd-decoder.c |  1 +
- drivers/media/rc/ir-nec-decoder.c     |  1 +
- drivers/media/rc/ir-rc5-decoder.c     |  1 +
- drivers/media/rc/ir-rc6-decoder.c     |  1 +
- drivers/media/rc/ir-sanyo-decoder.c   |  1 +
- drivers/media/rc/ir-sharp-decoder.c   |  1 +
- drivers/media/rc/ir-sony-decoder.c    |  1 +
- drivers/media/rc/ir-xmp-decoder.c     |  1 +
- drivers/media/rc/rc-core-priv.h       |  1 +
- drivers/media/rc/rc-ir-raw.c          | 31 ++++++++++++++++++++++++++++++-
- drivers/media/rc/rc-main.c            | 12 ++++++------
- 13 files changed, 47 insertions(+), 7 deletions(-)
+In this case, it does nothing so a direct "return -ENOMEM;" would be
+more clear.  But the rest of the error handling is buggy.
 
-diff --git a/drivers/media/rc/ir-imon-decoder.c b/drivers/media/rc/ir-imon-decoder.c
-index a1ff06a26542..9024b359e5ee 100644
---- a/drivers/media/rc/ir-imon-decoder.c
-+++ b/drivers/media/rc/ir-imon-decoder.c
-@@ -170,6 +170,7 @@ static struct ir_raw_handler imon_handler = {
- 	.decode		= ir_imon_decode,
- 	.encode		= ir_imon_encode,
- 	.carrier	= 38000,
-+	.max_space	= IMON_UNIT * IMON_BITS * 2,
- };
- 
- static int __init ir_imon_decode_init(void)
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index 8cb68ae43282..190c690b14f8 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -213,6 +213,7 @@ static struct ir_raw_handler jvc_handler = {
- 	.decode		= ir_jvc_decode,
- 	.encode		= ir_jvc_encode,
- 	.carrier	= 38000,
-+	.max_space	= JVC_TRAILER_SPACE,
- };
- 
- static int __init ir_jvc_decode_init(void)
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index c110984ca671..ae4b980c4a16 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -475,6 +475,7 @@ static struct ir_raw_handler mce_kbd_handler = {
- 	.raw_register	= ir_mce_kbd_register,
- 	.raw_unregister	= ir_mce_kbd_unregister,
- 	.carrier	= 36000,
-+	.max_space	= MCIR2_MAX_LEN,
- };
- 
- static int __init ir_mce_kbd_decode_init(void)
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 21647b809e6f..fac12f867a81 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -253,6 +253,7 @@ static struct ir_raw_handler nec_handler = {
- 	.decode		= ir_nec_decode,
- 	.encode		= ir_nec_encode,
- 	.carrier	= 38000,
-+	.max_space	= NEC_TRAILER_SPACE,
- };
- 
- static int __init ir_nec_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index 74d3b859c3a2..711068c8de90 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -274,6 +274,7 @@ static struct ir_raw_handler rc5_handler = {
- 	.decode		= ir_rc5_decode,
- 	.encode		= ir_rc5_encode,
- 	.carrier	= 36000,
-+	.max_space	= RC5_TRAILER,
- };
- 
- static int __init ir_rc5_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 8314da32453f..9cc4820878c7 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -394,6 +394,7 @@ static struct ir_raw_handler rc6_handler = {
- 	.decode		= ir_rc6_decode,
- 	.encode		= ir_rc6_encode,
- 	.carrier	= 36000,
-+	.max_space	= RC6_SUFFIX_SPACE,
- };
- 
- static int __init ir_rc6_decode_init(void)
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index 4efe6db5376a..e72787b446c9 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -210,6 +210,7 @@ static struct ir_raw_handler sanyo_handler = {
- 	.decode		= ir_sanyo_decode,
- 	.encode		= ir_sanyo_encode,
- 	.carrier	= 38000,
-+	.max_space	= SANYO_TRAILER_SPACE,
- };
- 
- static int __init ir_sanyo_decode_init(void)
-diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
-index 6a38c50566a4..ccbd4c12d1d7 100644
---- a/drivers/media/rc/ir-sharp-decoder.c
-+++ b/drivers/media/rc/ir-sharp-decoder.c
-@@ -226,6 +226,7 @@ static struct ir_raw_handler sharp_handler = {
- 	.decode		= ir_sharp_decode,
- 	.encode		= ir_sharp_encode,
- 	.carrier	= 38000,
-+	.max_space	= SHARP_TRAILER_SPACE,
- };
- 
- static int __init ir_sharp_decode_init(void)
-diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
-index 6764ec9de646..598bae8d8ffb 100644
---- a/drivers/media/rc/ir-sony-decoder.c
-+++ b/drivers/media/rc/ir-sony-decoder.c
-@@ -224,6 +224,7 @@ static struct ir_raw_handler sony_handler = {
- 	.decode		= ir_sony_decode,
- 	.encode		= ir_sony_encode,
- 	.carrier	= 40000,
-+	.max_space	= SONY_TRAILER_SPACE,
- };
- 
- static int __init ir_sony_decode_init(void)
-diff --git a/drivers/media/rc/ir-xmp-decoder.c b/drivers/media/rc/ir-xmp-decoder.c
-index 58b47af1a763..e005a75a86fe 100644
---- a/drivers/media/rc/ir-xmp-decoder.c
-+++ b/drivers/media/rc/ir-xmp-decoder.c
-@@ -199,6 +199,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- static struct ir_raw_handler xmp_handler = {
- 	.protocols	= RC_PROTO_BIT_XMP,
- 	.decode		= ir_xmp_decode,
-+	.max_space	= XMP_TRAILER_SPACE,
- };
- 
- static int __init ir_xmp_decode_init(void)
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index e0e6a17460f6..8c38941295b8 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -37,6 +37,7 @@ struct ir_raw_handler {
- 	int (*encode)(enum rc_proto protocol, u32 scancode,
- 		      struct ir_raw_event *events, unsigned int max);
- 	u32 carrier;
-+	u32 max_space;
- 
- 	/* These two should only be used by the mce kbd decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 374f83105a23..f4e1fd95f839 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -233,7 +233,36 @@ ir_raw_get_allowed_protocols(void)
- 
- static int change_protocol(struct rc_dev *dev, u64 *rc_proto)
- {
--	/* the caller will update dev->enabled_protocols */
-+	struct ir_raw_handler *handler;
-+	u32 timeout = 0;
-+
-+	if (!dev->max_timeout)
-+		return 0;
-+
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & *rc_proto) {
-+			if (timeout < handler->max_space)
-+				timeout = handler->max_space;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+
-+	if (timeout == 0)
-+		timeout = IR_DEFAULT_TIMEOUT;
-+	else
-+		timeout += MS_TO_NS(10);
-+
-+	if (timeout < dev->min_timeout)
-+		timeout = dev->min_timeout;
-+	else if (timeout > dev->max_timeout)
-+		timeout = dev->max_timeout;
-+
-+	if (dev->s_timeout)
-+		dev->s_timeout(dev, timeout);
-+	else
-+		dev->timeout = timeout;
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index b67be33bd62f..6a720e9c7aa8 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1241,6 +1241,9 @@ static ssize_t store_protocols(struct device *device,
- 	if (rc < 0)
- 		goto out;
- 
-+	if (dev->driver_type == RC_DRIVER_IR_RAW)
-+		ir_raw_load_modules(&new_protocols);
-+
- 	rc = dev->change_protocol(dev, &new_protocols);
- 	if (rc < 0) {
- 		dev_dbg(&dev->dev, "Error setting protocols to 0x%llx\n",
-@@ -1248,9 +1251,6 @@ static ssize_t store_protocols(struct device *device,
- 		goto out;
- 	}
- 
--	if (dev->driver_type == RC_DRIVER_IR_RAW)
--		ir_raw_load_modules(&new_protocols);
--
- 	if (new_protocols != old_protocols) {
- 		*current_protocols = new_protocols;
- 		dev_dbg(&dev->dev, "Protocols changed to 0x%llx\n",
-@@ -1735,6 +1735,9 @@ static int rc_prepare_rx_device(struct rc_dev *dev)
- 	if (dev->driver_type == RC_DRIVER_SCANCODE && !dev->change_protocol)
- 		dev->enabled_protocols = dev->allowed_protocols;
- 
-+	if (dev->driver_type == RC_DRIVER_IR_RAW)
-+		ir_raw_load_modules(&rc_proto);
-+
- 	if (dev->change_protocol) {
- 		rc = dev->change_protocol(dev, &rc_proto);
- 		if (rc < 0)
-@@ -1742,9 +1745,6 @@ static int rc_prepare_rx_device(struct rc_dev *dev)
- 		dev->enabled_protocols = rc_proto;
- 	}
- 
--	if (dev->driver_type == RC_DRIVER_IR_RAW)
--		ir_raw_load_modules(&rc_proto);
--
- 	set_bit(EV_KEY, dev->input_dev->evbit);
- 	set_bit(EV_REP, dev->input_dev->evbit);
- 	set_bit(EV_MSC, dev->input_dev->evbit);
--- 
-2.14.3
+  1263  static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+  1264  {
+  1265          struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
+  1266          unsigned int i;
+  1267          int rval = 0;
+  1268  
+  1269          for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
+  1270                  unsigned int bit = 1 << i;
+  1271  
+  1272                  if (cfg->flag & bit) {
+  1273                          const struct ipipe_module_if *module_if =
+  1274                                                  &ipipe_modules[i];
+  1275                          struct ipipe_module_params *params;
+  1276                          void __user *from = *(void * __user *)
+  1277                                  ((void *)cfg + module_if->config_offset);
+  1278                          size_t size;
+  1279                          void *to;
+  1280  
+  1281                          params = kmalloc(sizeof(struct ipipe_module_params),
+  1282                                           GFP_KERNEL);
+
+Do a direct return:
+
+				if (!params)
+					return -ENOMEM;
+
+  1283                          to = (void *)params + module_if->param_offset;
+  1284                          size = module_if->param_size;
+  1285  
+  1286                          if (to && from && size) {
+  1287                                  if (copy_from_user(to, from, size)) {
+  1288                                          rval = -EFAULT;
+  1289                                          break;
+
+The most recent thing we allocated is "params" so lets do a
+"goto free_params;".  We'll have to declare "params" at the start of the
+function instead inside this block.
+
+  1290                                  }
+  1291                                  rval = module_if->set(ipipe, to);
+  1292                                  if (rval)
+  1293                                          goto error;
+
+goto free_params again since params is still the most recent thing we
+allocated.
+
+  1294                          } else if (to && !from && size) {
+  1295                                  rval = module_if->set(ipipe, NULL);
+  1296                                  if (rval)
+  1297                                          goto error;
+
+And here again goto free_params.
+
+  1298                          }
+  1299                          kfree(params);
+  1300                  }
+  1301          }
+  1302  error:
+  1303          return rval;
+
+
+Change this to:
+
+	return 0;
+
+free_params:
+	kfree(params);
+	return rval;
+
+  1304  }
+
+regards,
+dan carpenter
