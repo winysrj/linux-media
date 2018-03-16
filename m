@@ -1,94 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:55259 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751025AbeC0I1Q (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:38881 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751877AbeCPAlE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 04:27:16 -0400
-Received: by mail-wm0-f48.google.com with SMTP id h76so20005870wme.4
-        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 01:27:16 -0700 (PDT)
-Date: Tue, 27 Mar 2018 10:27:12 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Jerome Glisse <j.glisse@gmail.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-Message-ID: <20180327082712.GR14155@phenom.ffwll.local>
-References: <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
- <20180321082839.GA14155@phenom.ffwll.local>
- <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
- <20180322071804.GH14155@phenom.ffwll.local>
- <ef9fa9a2-c368-1fca-a8ac-8ee8d522b6ab@gmail.com>
- <20180326080121.GO14155@phenom.ffwll.local>
- <20180326154224.GA11930@gmail.com>
- <f8ff3993-6605-4f8e-5ac2-c40f0450c1c6@gmail.com>
- <20180327075334.GK14155@phenom.ffwll.local>
- <71f3f0cc-263d-bf60-aff8-6f2277884aaf@gmail.com>
+        Thu, 15 Mar 2018 20:41:04 -0400
+Received: by mail-lf0-f67.google.com with SMTP id y2-v6so10748583lfc.5
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 17:41:03 -0700 (PDT)
+Date: Fri, 16 Mar 2018 01:41:00 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v6 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX
+ Device Tree bindings
+Message-ID: <20180316004100.GE3432@bigcity.dyn.berto.se>
+References: <20180314131602.1531-1-maxime.ripard@bootlin.com>
+ <20180314131602.1531-2-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <71f3f0cc-263d-bf60-aff8-6f2277884aaf@gmail.com>
+In-Reply-To: <20180314131602.1531-2-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 27, 2018 at 10:06:04AM +0200, Christian König wrote:
-> Am 27.03.2018 um 09:53 schrieb Daniel Vetter:
-> > [SNIP]
-> > > > [SNIP]
-> > > > A slightly better solution is using atomic counter:
-> > > >     driver_range_start() {
-> > > >       atomic_inc(&mydev->notifier_count);
-> > > ...
-> > > 
-> > > Yeah, that is exactly what amdgpu is doing now. Sorry if my description
-> > > didn't made that clear.
-> > > 
-> > > > I would like to see driver using same code, as it means one place to fix
-> > > > issues. I had for a long time on my TODO list doing the above conversion
-> > > > to amd or radeon kernel driver. I am pushing up my todo list hopefully in
-> > > > next few weeks i can send an rfc so people can have a real sense of how
-> > > > it can look.
-> > > Certainly a good idea, but I think we might have that separate to HMM.
-> > > 
-> > > TTM suffered really from feature overload, e.g. trying to do everything in a
-> > > single subsystem. And it would be rather nice to have coherent userptr
-> > > handling for GPUs as separate feature.
-> > TTM suffered from being a midlayer imo, not from doing too much.
-> 
-> Yeah, completely agree.
-> 
-> midlayers work as long as you concentrate on doing exactly one things in
-> your midlayer. E.g. in the case of TTM the callback for BO move handling is
-> well justified.
-> 
-> Only all the stuff around it like address space handling etc... is really
-> wrong designed and should be separated (which is exactly what DRM MM did,
-> but TTM still uses this in the wrong way).
+Hi Maxime,
 
-Yeah the addres space allocator part of ttm really is backwards and makes
-adding quick driver hacks and heuristics for better allocations schemes
-really hard to add. Same for tuning how/what exactly you evict.
+Thanks for your patch,
 
-> > HMM is apparently structured like a toolbox (despite its documentation claiming
-> > otherwise), so you can pick&choose freely.
+On 2018-03-14 14:16:01 +0100, Maxime Ripard wrote:
+> The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+> video streams and can output on up to 4 CSI-2 lanes, depending on the
+> hardware implementation.
 > 
-> That sounds good, but I would still have a better feeling if userptr
-> handling would be separated. That avoids mangling things together again.
+> It can operate with an external D-PHY, an internal one or no D-PHY at all
+> in some configurations.
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
-Jerome said he wants to do at least one prototype conversion of one of the
-"I can't fault" userptr implementation over to the suitable subset of HMM
-helpers. I guess we'll see once he's submitting the patches, but it
-sounded exactly like what the doctor ordered :-)
--Daniel
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+>  .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
+>  1 file changed, 98 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> new file mode 100644
+> index 000000000000..459c6e332f52
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> @@ -0,0 +1,98 @@
+> +Cadence MIPI-CSI2 TX controller
+> +===============================
+> +
+> +The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
+> +4 CSI lanes in output, and up to 4 different pixel streams in input.
+> +
+> +Required properties:
+> +  - compatible: must be set to "cdns,csi2tx"
+> +  - reg: base address and size of the memory mapped region
+> +  - clocks: phandles to the clocks driving the controller
+> +  - clock-names: must contain:
+> +    * esc_clk: escape mode clock
+> +    * p_clk: register bank clock
+> +    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
+> +                         implemented in hardware, between 0 and 3
+> +
+> +Optional properties
+> +  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
+> +  - phy-names: must contain "dphy"
+> +
+> +Required subnodes:
+> +  - ports: A ports node with one port child node per device input and output
+> +           port, in accordance with the video interface bindings defined in
+> +           Documentation/devicetree/bindings/media/video-interfaces.txt. The
+> +           port nodes are numbered as follows.
+> +
+> +           Port Description
+> +           -----------------------------
+> +           0    CSI-2 output
+> +           1    Stream 0 input
+> +           2    Stream 1 input
+> +           3    Stream 2 input
+> +           4    Stream 3 input
+> +
+> +           The stream input port nodes are optional if they are not
+> +           connected to anything at the hardware level or implemented
+> +           in the design. Since there is only one endpoint per port,
+> +           the endpoints are not numbered.
+> +
+> +Example:
+> +
+> +csi2tx: csi-bridge@0d0e1000 {
+> +	compatible = "cdns,csi2tx";
+> +	reg = <0x0d0e1000 0x1000>;
+> +	clocks = <&byteclock>, <&byteclock>,
+> +		 <&coreclock>, <&coreclock>,
+> +		 <&coreclock>, <&coreclock>;
+> +	clock-names = "p_clk", "esc_clk",
+> +		      "pixel_if0_clk", "pixel_if1_clk",
+> +		      "pixel_if2_clk", "pixel_if3_clk";
+> +
+> +	ports {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		port@0 {
+> +			reg = <0>;
+> +
+> +			csi2tx_out: endpoint {
+> +				remote-endpoint = <&remote_in>;
+> +				clock-lanes = <0>;
+> +				data-lanes = <1 2>;
+> +			};
+> +		};
+> +
+> +		port@1 {
+> +			reg = <1>;
+> +
+> +			csi2tx_in_stream0: endpoint {
+> +				remote-endpoint = <&stream0_out>;
+> +			};
+> +		};
+> +
+> +		port@2 {
+> +			reg = <2>;
+> +
+> +			csi2tx_in_stream1: endpoint {
+> +				remote-endpoint = <&stream1_out>;
+> +			};
+> +		};
+> +
+> +		port@3 {
+> +			reg = <3>;
+> +
+> +			csi2tx_in_stream2: endpoint {
+> +				remote-endpoint = <&stream2_out>;
+> +			};
+> +		};
+> +
+> +		port@4 {
+> +			reg = <4>;
+> +
+> +			csi2tx_in_stream3: endpoint {
+> +				remote-endpoint = <&stream3_out>;
+> +			};
+> +		};
+> +	};
+> +};
+> -- 
+> 2.14.3
+> 
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Regards,
+Niklas Söderlund
