@@ -1,66 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:37003 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755846AbeCSPna (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:53229 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752720AbeCPNUz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 11:43:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 4/8] media: add 'index' to struct media_v2_pad
-Date: Mon, 19 Mar 2018 16:43:20 +0100
-Message-Id: <20180319154324.37799-5-hverkuil@xs4all.nl>
-In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
-References: <20180319154324.37799-1-hverkuil@xs4all.nl>
+        Fri, 16 Mar 2018 09:20:55 -0400
+Received: by mail-wm0-f68.google.com with SMTP id t3so2995630wmc.2
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 06:20:54 -0700 (PDT)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Subject: [PATCH 2/5] drm/ttm: keep a reference to transfer pipelined BOs
+Date: Fri, 16 Mar 2018 14:20:46 +0100
+Message-Id: <20180316132049.1748-3-christian.koenig@amd.com>
+In-Reply-To: <20180316132049.1748-1-christian.koenig@amd.com>
+References: <20180316132049.1748-1-christian.koenig@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Make sure the transfered BO is never destroy before the transfer BO.
 
-The v2 pad structure never exposed the pad index, which made it impossible
-to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
-
-It is really trivial to just expose this information, so implement this.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Christian König <christian.koenig@amd.com>
 ---
- drivers/media/media-device.c | 1 +
- include/uapi/linux/media.h   | 7 ++++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/ttm/ttm_bo_util.c | 50 +++++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index dca1e5a3e0f9..73ffea3e81c9 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
- 		kpad.id = pad->graph_obj.id;
- 		kpad.entity_id = pad->entity->graph_obj.id;
- 		kpad.flags = pad->flags;
-+		kpad.index = pad->index;
+diff --git a/drivers/gpu/drm/ttm/ttm_bo_util.c b/drivers/gpu/drm/ttm/ttm_bo_util.c
+index 1f730b3f18e5..1ee20558ee31 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo_util.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_util.c
+@@ -39,6 +39,11 @@
+ #include <linux/module.h>
+ #include <linux/reservation.h>
  
- 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
- 			ret = -EFAULT;
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 8fb50c122536..d4bad16d9431 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -310,11 +310,16 @@ struct media_v2_interface {
- 	};
- } __attribute__ ((packed));
- 
-+/* Appeared in 4.17.0 */
-+#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-+	((media_version) >= 0x00041100)
++struct ttm_transfer_obj {
++	struct ttm_buffer_object base;
++	struct ttm_buffer_object *bo;
++};
 +
- struct media_v2_pad {
- 	__u32 id;
- 	__u32 entity_id;
- 	__u32 flags;
--	__u32 reserved[5];
-+	__u32 index;
-+	__u32 reserved[4];
- } __attribute__ ((packed));
+ void ttm_bo_free_old_node(struct ttm_buffer_object *bo)
+ {
+ 	ttm_bo_mem_put(bo, &bo->mem);
+@@ -435,7 +440,11 @@ EXPORT_SYMBOL(ttm_bo_move_memcpy);
  
- struct media_v2_link {
+ static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
+ {
+-	kfree(bo);
++	struct ttm_transfer_obj *fbo;
++
++	fbo = container_of(bo, struct ttm_transfer_obj, base);
++	ttm_bo_unref(&fbo->bo);
++	kfree(fbo);
+ }
+ 
+ /**
+@@ -456,14 +465,15 @@ static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
+ static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
+ 				      struct ttm_buffer_object **new_obj)
+ {
+-	struct ttm_buffer_object *fbo;
++	struct ttm_transfer_obj *fbo;
+ 	int ret;
+ 
+ 	fbo = kmalloc(sizeof(*fbo), GFP_KERNEL);
+ 	if (!fbo)
+ 		return -ENOMEM;
+ 
+-	*fbo = *bo;
++	fbo->base = *bo;
++	fbo->bo = ttm_bo_reference(bo);
+ 
+ 	/**
+ 	 * Fix up members that we shouldn't copy directly:
+@@ -471,25 +481,25 @@ static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
+ 	 */
+ 
+ 	atomic_inc(&bo->bdev->glob->bo_count);
+-	INIT_LIST_HEAD(&fbo->ddestroy);
+-	INIT_LIST_HEAD(&fbo->lru);
+-	INIT_LIST_HEAD(&fbo->swap);
+-	INIT_LIST_HEAD(&fbo->io_reserve_lru);
+-	mutex_init(&fbo->wu_mutex);
+-	fbo->moving = NULL;
+-	drm_vma_node_reset(&fbo->vma_node);
+-	atomic_set(&fbo->cpu_writers, 0);
+-
+-	kref_init(&fbo->list_kref);
+-	kref_init(&fbo->kref);
+-	fbo->destroy = &ttm_transfered_destroy;
+-	fbo->acc_size = 0;
+-	fbo->resv = &fbo->ttm_resv;
+-	reservation_object_init(fbo->resv);
+-	ret = reservation_object_trylock(fbo->resv);
++	INIT_LIST_HEAD(&fbo->base.ddestroy);
++	INIT_LIST_HEAD(&fbo->base.lru);
++	INIT_LIST_HEAD(&fbo->base.swap);
++	INIT_LIST_HEAD(&fbo->base.io_reserve_lru);
++	mutex_init(&fbo->base.wu_mutex);
++	fbo->base.moving = NULL;
++	drm_vma_node_reset(&fbo->base.vma_node);
++	atomic_set(&fbo->base.cpu_writers, 0);
++
++	kref_init(&fbo->base.list_kref);
++	kref_init(&fbo->base.kref);
++	fbo->base.destroy = &ttm_transfered_destroy;
++	fbo->base.acc_size = 0;
++	fbo->base.resv = &fbo->base.ttm_resv;
++	reservation_object_init(fbo->base.resv);
++	ret = reservation_object_trylock(fbo->base.resv);
+ 	WARN_ON(!ret);
+ 
+-	*new_obj = fbo;
++	*new_obj = &fbo->base;
+ 	return 0;
+ }
+ 
 -- 
-2.15.1
+2.14.1
