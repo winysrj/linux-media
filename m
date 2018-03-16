@@ -1,232 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32314 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754798AbeCGWGC (ORCPT
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:44722 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752585AbeCPIMe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:06:02 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 29/33] rcar-vin: add link notify for Gen3
-Date: Wed,  7 Mar 2018 23:05:07 +0100
-Message-Id: <20180307220511.9826-30-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 16 Mar 2018 04:12:34 -0400
+Received: by mail-wr0-f181.google.com with SMTP id v65so10715148wrc.11
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 01:12:34 -0700 (PDT)
+Subject: Re: [PATCH 00/20] Add multiplexed media pads to support CSI-2 virtual
+ channels
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        linux-renesas-soc@vger.kernel.org
+References: <20170811095703.6170-1-niklas.soderlund+renesas@ragnatech.se>
+ <403976aa-d9e3-60a3-1a33-37cf78d7c5a3@mm-sol.com>
+ <20180315231650.GO10974@bigcity.dyn.berto.se>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <726d8b45-6f32-0d29-e383-6943e3db3833@linaro.org>
+Date: Fri, 16 Mar 2018 10:12:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20180315231650.GO10974@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the ability to process media device link change requests. Link
-enabling is a bit complicated on Gen3, whether or not it's possible to
-enable a link depends on what other links already are enabled. On Gen3
-the 8 VINs are split into two subgroup's (VIN0-3 and VIN4-7) and from a
-routing perspective these two groups are independent of each other.
-Each subgroup's routing is controlled by the subgroup VIN master
-instance (VIN0 and VIN4).
+Hi Niklas,
 
-There are a limited number of possible route setups available for each
-subgroup and the configuration of each setup is dictated by the
-hardware. On H3 for example there are 6 possible route setups for each
-subgroup to choose from.
+On 16.03.2018 01:16, Niklas Söderlund wrote:
+> Hi Todor,
+> 
+> On 2018-03-15 11:43:31 +0200, Todor Tomov wrote:
+>> Hello,
+>>
+>> I'm trying to understand what is the current state of the multiple virtual
+>> channel support in V4L2 and Media framework. This is the last activity
+>> on this topic which I was able to find. Is anything new happened since
+>> this RFC, is someone working on this or planing to work on?
+> 
+> I'm currently working on this but right now I'm focusing on driver 
+> dependencies for my use-case, once that is done I will resume to push 
+> more for the multiplexed stream support. I randomly push my latest work 
+> to
+> 
+> git://git.ragnatech.se/linux v4l2/mux
+> 
+> But this is a unstable branch and contains some LOCAL patches to test my 
+> work on Renesas platforms. But if you want to checkout my current status 
+> that's the branch to check.
+> 
+> Out of curiosity what board or use-case are you interested in where 
+> multiplexed streams would be useful for you?
 
-This leads to the media device link notification code being rather large
-since it will find the best routing configuration to try and accommodate
-as many links as possible. When it's not possible to enable a new link
-due to hardware constrains the link_notifier callback will return
--EMLINK.
+Good to hear that you are still working on this :)
+I'm working on QComm SoCs and I may need multiple virtual channel
+support however the usecases are not clear yet. I'll be keeping an
+eye on any activity from you then ;) or when I have more details
+about my usecases I'll try to evaluate how they fit with this RFC.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Thank you.
+Best regards,
+Todor Tomov
 
----
+> 
+>>
+>> Best regards,
+>> Todor Tomov
+>>
+>> On 11.08.2017 12:56, Niklas Söderlund wrote:
+>>> Hi,
+>>>
+>>> This series is a RFC for how I think one could add CSI-2 virtual channel 
+>>> support to the V4L2 framework. The problem is that there is no way to in 
+>>> the media framework describe and control links between subdevices which 
+>>> carry more then one video stream, for example a CSI-2 bus which can have 
+>>> 4 virtual channels carrying different video streams.
+>>>
+>>> This series adds a new pad flag which would indicate that a pad carries 
+>>> multiplexed streams, adds a new s_stream() operation to the pad 
+>>> operations structure which takes a new argument 'stream'. This new 
+>>> s_stream() operation then is both pad and stream aware. It also extends 
+>>> struct v4l2_mbus_frame_desc_entry with a new sub-struct to describe how 
+>>> a CSI-2 link multiplexes virtual channels. I also include one 
+>>> implementation based on Renesas R-Car which makes use of these patches 
+>>> as I think they help with understanding but they have no impact on the 
+>>> RFC feature itself.
+>>>
+>>> The idea is that on both sides of the multiplexed media link there are 
+>>> one multiplexer subdevice and one demultiplexer subdevice. These two 
+>>> subdevices can't do any format conversions, there sole purpose is to 
+>>> (de)multiplex the CSI-2 link. If there is hardware which can do both 
+>>> CSI-2 multiplexing and format conversions they can be modeled as two 
+>>> subdevices from the same device driver and using the still pending 
+>>> incremental async mechanism to connect the external pads. The reason 
+>>> there is no format conversion is important as the multiplexed pads can't 
+>>> have a format in the current V4L2 model, get/set_fmt are not aware of 
+>>> streams.
+>>>
+>>>         +------------------+              +------------------+
+>>>      +-------+  subdev 1   |              |  subdev 2   +-------+
+>>>   +--+ Pad 1 |             |              |             | Pad 3 +---+
+>>>      +--+----+   +---------+---+      +---+---------+   +----+--+
+>>>         |        | Muxed pad A +------+ Muxed pad B |        |
+>>>      +--+----+   +---------+---+      +---+---------+   +----+--+
+>>>   +--+ Pad 2 |             |              |             | Pad 4 +---+
+>>>      +-------+             |              |             +-------+
+>>>         +------------------+              +------------------+
+>>>
+>>> In the simple example above Pad 1 is routed to Pad 3 and Pad 2 to Pad 4, 
+>>> and the video data for both of them travels the link between pad A and 
+>>> B. One shortcoming of this RFC is that there currently are no way to 
+>>> express to user-space which pad is routed to which stream of the 
+>>> multiplexed link. But inside the kernel this is known and format 
+>>> validation is done by comparing the format of Pad 1 to Pad 3 and Pad 2 
+>>> to Pad 4 by the V4L2 framework. But it would be nice for the user to 
+>>> also be able to get this information while setting up the MC graph in 
+>>> user-space.
+>>>
+>>> Obviously there are things that are not perfect in this RFC, one is the 
+>>> above mentioned lack of user-space visibility of that Pad 1 is in fact 
+>>> routed to Pad 3. Others are lack of Documentation/ work and I'm sure 
+>>> there are error path shortcuts which are not fully thought out. One big 
+>>> question is also if the s_stream() operation added to ops structure 
+>>> should be a compliment to the existing ones in video and audio ops or 
+>>> aim to replace the one in video ops. I'm also unsure of the CSI2 flag of 
+>>> struct v4l2_mbus_frame_desc_entry don't really belong in struct 
+>>> v4l2_mbus_frame_desc. And I'm sure there are lots of other stuff that's 
+>>> why this is a RFC...
+>>>
+>>> A big thanks to Laurent and Sakari for being really nice and taking time 
+>>> helping me grasp all the possibilities and issues with this problem, all 
+>>> cred to them and all blame to me for misunderstanding there guidance :-)
+>>>
+>>> This series based on the latest R-Car CSI-2 and VIN patches which can be 
+>>> found at [1], but that is a dependency only for the driver specific
+>>> implementation which acts as an example of implementation. For the V4L2 
+>>> framework patches the media-tree is the base.
+>>>
+>>> 1. https://git.ragnatech.se/linux#rcar-vin-elinux-v12
+>>>
+>>> Niklas Söderlund (20):
+>>>   media.h: add MEDIA_PAD_FL_MUXED flag
+>>>   v4l2-subdev.h: add pad and stream aware s_stream
+>>>   v4l2-subdev.h: add CSI-2 bus description to struct
+>>>     v4l2_mbus_frame_desc_entry
+>>>   v4l2-core: check that both pads in a link are muxed if one are
+>>>   v4l2-core: verify all streams formats on multiplexed links
+>>>   rcar-vin: use the pad and stream aware s_stream
+>>>   rcar-csi2: declare sink pad as multiplexed
+>>>   rcar-csi2: switch to pad and stream aware s_stream
+>>>   rcar-csi2: figure out remote pad and stream which are starting
+>>>   rcar-csi2: count usage for each source pad
+>>>   rcar-csi2: when starting CSI-2 receiver use frame descriptor
+>>>     information
+>>>   rcar-csi2: only allow formats on source pads
+>>>   rcar-csi2: implement get_frame_desc
+>>>   adv748x: add module param for virtual channel
+>>>   adv748x: declare source pad as multiplexed
+>>>   adv748x: add translation from pixelcode to CSI-2 datatype
+>>>   adv748x: implement get_frame_desc
+>>>   adv748x: switch to pad and stream aware s_stream
+>>>   adv748x: only allow formats on sink pads
+>>>   arm64: dts: renesas: salvator: use VC1 for CVBS
+>>>
+>>>  arch/arm64/boot/dts/renesas/salvator-common.dtsi |   2 +-
+>>>  drivers/media/i2c/adv748x/adv748x-core.c         |  10 +
+>>>  drivers/media/i2c/adv748x/adv748x-csi2.c         |  78 +++++++-
+>>>  drivers/media/i2c/adv748x/adv748x.h              |   1 +
+>>>  drivers/media/platform/rcar-vin/rcar-csi2.c      | 239 ++++++++++++++++-------
+>>>  drivers/media/platform/rcar-vin/rcar-dma.c       |   6 +-
+>>>  drivers/media/v4l2-core/v4l2-subdev.c            |  65 ++++++
+>>>  include/media/v4l2-subdev.h                      |  16 ++
+>>>  include/uapi/linux/media.h                       |   1 +
+>>>  9 files changed, 341 insertions(+), 77 deletions(-)
+>>>
+>>
+>> -- 
+>> Best regards,
+>> Todor Tomov
+> 
 
-* Changes since v11
-- Fixed spelling
-- Updated comment to clarify the intent that no link can be enabled if
-any video node is open.
-- Use container_of() instead of a loop to find struct vin_dev from the
-video device.
----
- drivers/media/platform/rcar-vin/rcar-core.c | 147 ++++++++++++++++++++++++++++
- 1 file changed, 147 insertions(+)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 52fad495533bc427..a1c441c1a314feb7 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -24,6 +24,7 @@
- 
- #include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
-+#include <media/v4l2-mc.h>
- 
- #include "rcar-vin.h"
- 
-@@ -44,6 +45,151 @@
-  */
- #define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
- 
-+/* -----------------------------------------------------------------------------
-+ * Media Controller link notification
-+ */
-+
-+/* group lock should be held when calling this function. */
-+static int rvin_group_entity_to_csi_id(struct rvin_group *group,
-+				       struct media_entity *entity)
-+{
-+	struct v4l2_subdev *sd;
-+	unsigned int i;
-+
-+	sd = media_entity_to_v4l2_subdev(entity);
-+
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (group->csi[i].subdev == sd)
-+			return i;
-+
-+	return -ENODEV;
-+}
-+
-+static unsigned int rvin_group_get_mask(struct rvin_dev *vin,
-+					enum rvin_csi_id csi_id,
-+					unsigned char channel)
-+{
-+	const struct rvin_group_route *route;
-+	unsigned int mask = 0;
-+
-+	for (route = vin->info->routes; route->mask; route++) {
-+		if (route->vin == vin->id &&
-+		    route->csi == csi_id &&
-+		    route->channel == channel) {
-+			vin_dbg(vin,
-+				"Adding route: vin: %d csi: %d channel: %d\n",
-+				route->vin, route->csi, route->channel);
-+			mask |= route->mask;
-+		}
-+	}
-+
-+	return mask;
-+}
-+
-+/*
-+ * Link setup for the links between a VIN and a CSI-2 receiver is a bit
-+ * complex. The reason for this is that the register controlling routing
-+ * is not present in each VIN instance. There are special VINs which
-+ * control routing for themselves and other VINs. There are not many
-+ * different possible links combinations that can be enabled at the same
-+ * time, therefor all already enabled links which are controlled by a
-+ * master VIN need to be taken into account when making the decision
-+ * if a new link can be enabled or not.
-+ *
-+ * 1. Find out which VIN the link the user tries to enable is connected to.
-+ * 2. Lookup which master VIN controls the links for this VIN.
-+ * 3. Start with a bitmask with all bits set.
-+ * 4. For each previously enabled link from the master VIN bitwise AND its
-+ *    route mask (see documentation for mask in struct rvin_group_route)
-+ *    with the bitmask.
-+ * 5. Bitwise AND the mask for the link the user tries to enable to the bitmask.
-+ * 6. If the bitmask is not empty at this point the new link can be enabled
-+ *    while keeping all previous links enabled. Update the CHSEL value of the
-+ *    master VIN and inform the user that the link could be enabled.
-+ *
-+ * Please note that no link can be enabled if any VIN in the group is
-+ * currently open.
-+ */
-+static int rvin_group_link_notify(struct media_link *link, u32 flags,
-+				  unsigned int notification)
-+{
-+	struct rvin_group *group = container_of(link->graph_obj.mdev,
-+						struct rvin_group, mdev);
-+	unsigned int master_id, channel, mask_new, i;
-+	unsigned int mask = ~0;
-+	struct media_entity *entity;
-+	struct video_device *vdev;
-+	struct media_pad *csi_pad;
-+	struct rvin_dev *vin = NULL;
-+	int csi_id, ret;
-+
-+	ret = v4l2_pipeline_link_notify(link, flags, notification);
-+	if (ret)
-+		return ret;
-+
-+	/* Only care about link enablement for VIN nodes. */
-+	if (!(flags & MEDIA_LNK_FL_ENABLED) ||
-+	    !is_media_entity_v4l2_video_device(link->sink->entity))
-+		return 0;
-+
-+	/* If any entity is in use don't allow link changes. */
-+	media_device_for_each_entity(entity, &group->mdev)
-+		if (entity->use_count)
-+			return -EBUSY;
-+
-+	mutex_lock(&group->lock);
-+
-+	/* Find the master VIN that controls the routes. */
-+	vdev = media_entity_to_video_device(link->sink->entity);
-+	vin = container_of(vdev, struct rvin_dev, vdev);
-+	master_id = rvin_group_id_to_master(vin->id);
-+
-+	if (WARN_ON(!group->vin[master_id])) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	/* Build a mask for already enabled links. */
-+	for (i = master_id; i < master_id + 4; i++) {
-+		if (!group->vin[i])
-+			continue;
-+
-+		/* Get remote CSI-2, if any. */
-+		csi_pad = media_entity_remote_pad(
-+				&group->vin[i]->vdev.entity.pads[0]);
-+		if (!csi_pad)
-+			continue;
-+
-+		csi_id = rvin_group_entity_to_csi_id(group, csi_pad->entity);
-+		channel = rvin_group_csi_pad_to_channel(csi_pad->index);
-+
-+		mask &= rvin_group_get_mask(group->vin[i], csi_id, channel);
-+	}
-+
-+	/* Add the new link to the existing mask and check if it works. */
-+	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
-+	channel = rvin_group_csi_pad_to_channel(link->source->index);
-+	mask_new = mask & rvin_group_get_mask(vin, csi_id, channel);
-+
-+	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
-+
-+	if (!mask_new) {
-+		ret = -EMLINK;
-+		goto out;
-+	}
-+
-+	/* New valid CHSEL found, set the new value. */
-+	ret = rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
-+out:
-+	mutex_unlock(&group->lock);
-+
-+	return ret;
-+}
-+
-+static const struct media_device_ops rvin_media_ops = {
-+	.link_notify = rvin_group_link_notify,
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Gen3 CSI2 Group Allocator
-  */
-@@ -85,6 +231,7 @@ static int rvin_group_init(struct rvin_group *group, struct rvin_dev *vin)
- 	vin_dbg(vin, "found %u enabled VIN's in DT", group->count);
- 
- 	mdev->dev = vin->dev;
-+	mdev->ops = &rvin_media_ops;
- 
- 	match = of_match_node(vin->dev->driver->of_match_table,
- 			      vin->dev->of_node);
 -- 
-2.16.2
+Best regards,
+Todor Tomov
