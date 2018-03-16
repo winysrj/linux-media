@@ -1,215 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40467 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751102AbeCIPr6 (ORCPT
+Received: from andre.telenet-ops.be ([195.130.132.53]:48526 "EHLO
+        andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753397AbeCPOui (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:47:58 -0500
-Subject: Re: [PATCH v12 31/33] rcar-vin: enable support for r8a7795
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-32-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b8784696-e879-1c5c-d5ba-263ac4aba191@xs4all.nl>
-Date: Fri, 9 Mar 2018 16:47:56 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180307220511.9826-32-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Fri, 16 Mar 2018 10:50:38 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v2 16/21] remoteproc: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:49 +0100
+Message-Id: <1521208314-4783-17-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/18 23:05, Niklas Söderlund wrote:
-> Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Regards,
+This simplifies the dependencies, and allows to improve compile-testing.
 
-	Hans
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+---
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/remoteproc/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-> ---
->  drivers/media/platform/rcar-vin/Kconfig     |   2 +-
->  drivers/media/platform/rcar-vin/rcar-core.c | 120 ++++++++++++++++++++++++++++
->  2 files changed, 121 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-> index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
-> --- a/drivers/media/platform/rcar-vin/Kconfig
-> +++ b/drivers/media/platform/rcar-vin/Kconfig
-> @@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
->  	select V4L2_FWNODE
->  	---help---
->  	  Support for Renesas R-Car Video Input (VIN) driver.
-> -	  Supports R-Car Gen2 SoCs.
-> +	  Supports R-Car Gen2 and Gen3 SoCs.
->  
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called rcar-vin.
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index a1c441c1a314feb7..bc116cc0181171e0 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -21,6 +21,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> +#include <linux/sys_soc.h>
->  
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-fwnode.h>
-> @@ -832,6 +833,104 @@ static const struct rvin_info rcar_info_gen2 = {
->  	.max_height = 2048,
->  };
->  
-> +static const struct rvin_group_route rcar_info_r8a7795_routes[] = {
-> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
-> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 0, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(1) | BIT(3) },
-> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 2, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) | BIT(2) },
-> +	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI41, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
-> +	{ .csi = RVIN_CSI41, .channel = 1, .vin = 4, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI41, .channel = 1, .vin = 5, .mask = BIT(1) | BIT(3) },
-> +	{ .csi = RVIN_CSI41, .channel = 0, .vin = 5, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 6, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI41, .channel = 0, .vin = 6, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI41, .channel = 2, .vin = 6, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI41, .channel = 1, .vin = 7, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) | BIT(2) },
-> +	{ .csi = RVIN_CSI41, .channel = 3, .vin = 7, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
-> +	{ /* Sentinel */ }
-> +};
-> +
-> +static const struct rvin_info rcar_info_r8a7795 = {
-> +	.model = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +	.routes = rcar_info_r8a7795_routes,
-> +};
-> +
-> +static const struct rvin_group_route rcar_info_r8a7795es1_routes[] = {
-> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 0, .vin = 0, .mask = BIT(2) | BIT(5) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI21, .channel = 0, .vin = 1, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 1, .vin = 1, .mask = BIT(5) },
-> +	{ .csi = RVIN_CSI21, .channel = 0, .vin = 2, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 2, .vin = 2, .mask = BIT(5) },
-> +	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI21, .channel = 1, .vin = 3, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 3, .vin = 3, .mask = BIT(5) },
-> +	{ .csi = RVIN_CSI41, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 0, .vin = 4, .mask = BIT(2) | BIT(5) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI21, .channel = 0, .vin = 5, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI41, .channel = 0, .vin = 5, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI41, .channel = 1, .vin = 5, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 1, .vin = 5, .mask = BIT(5) },
-> +	{ .csi = RVIN_CSI21, .channel = 0, .vin = 6, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI41, .channel = 0, .vin = 6, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI41, .channel = 2, .vin = 6, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 2, .vin = 6, .mask = BIT(5) },
-> +	{ .csi = RVIN_CSI41, .channel = 1, .vin = 7, .mask = BIT(0) },
-> +	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) },
-> +	{ .csi = RVIN_CSI21, .channel = 1, .vin = 7, .mask = BIT(2) },
-> +	{ .csi = RVIN_CSI41, .channel = 3, .vin = 7, .mask = BIT(3) },
-> +	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
-> +	{ .csi = RVIN_CSI21, .channel = 3, .vin = 7, .mask = BIT(5) },
-> +	{ /* Sentinel */ }
-> +};
-> +
-> +static const struct rvin_info rcar_info_r8a7795es1 = {
-> +	.model = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +	.routes = rcar_info_r8a7795es1_routes,
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] = {
->  	{
->  		.compatible = "renesas,vin-r8a7778",
-> @@ -861,12 +960,25 @@ static const struct of_device_id rvin_of_id_table[] = {
->  		.compatible = "renesas,rcar-gen2-vin",
->  		.data = &rcar_info_gen2,
->  	},
-> +	{
-> +		.compatible = "renesas,vin-r8a7795",
-> +		.data = &rcar_info_r8a7795,
-> +	},
->  	{ /* Sentinel */ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
->  
-> +static const struct soc_device_attribute r8a7795es1[] = {
-> +	{
-> +		.soc_id = "r8a7795", .revision = "ES1.*",
-> +		.data = &rcar_info_r8a7795es1,
-> +	},
-> +	{ /* Sentinel */ }
-> +};
-> +
->  static int rcar_vin_probe(struct platform_device *pdev)
->  {
-> +	const struct soc_device_attribute *attr;
->  	struct rvin_dev *vin;
->  	struct resource *mem;
->  	int irq, ret;
-> @@ -878,6 +990,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  	vin->dev = &pdev->dev;
->  	vin->info = of_device_get_match_data(&pdev->dev);
->  
-> +	/*
-> +	 * Special care is needed on r8a7795 ES1.x since it
-> +	 * uses different routing than r8a7795 ES2.0.
-> +	 */
-> +	attr = soc_device_match(r8a7795es1);
-> +	if (attr)
-> +		vin->info = attr->data;
-> +
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	if (mem == NULL)
->  		return -EINVAL;
-> 
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index b609e1d3654ba65f..b60d8132113de0f7 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -23,7 +23,6 @@ config IMX_REMOTEPROC
+ 
+ config OMAP_REMOTEPROC
+ 	tristate "OMAP remoteproc support"
+-	depends on HAS_DMA
+ 	depends on ARCH_OMAP4 || SOC_OMAP5
+ 	depends on OMAP_IOMMU
+ 	select MAILBOX
+-- 
+2.7.4
