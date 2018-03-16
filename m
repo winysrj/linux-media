@@ -1,122 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:49325 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932923AbeCEIvy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2018 03:51:54 -0500
-Date: Mon, 5 Mar 2018 09:51:48 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: jacopo+renesas@jmondi.org, linux-media@vger.kernel.org
-Subject: Re: [bug report] media: i2c: Copy tw9910 soc_camera sensor driver
-Message-ID: <20180305085148.GH4023@w540>
-References: <20180301095954.GA12656@mwanda>
- <20180302142016.GG4023@w540>
- <20180305072109.xl446yralwhapdap@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20180305072109.xl446yralwhapdap@mwanda>
+Received: from andre.telenet-ops.be ([195.130.132.53]:48522 "EHLO
+        andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753988AbeCPOyv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 10:54:51 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v2 10/21] lightnvm: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:43 +0100
+Message-Id: <1521208314-4783-11-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-On Mon, Mar 05, 2018 at 10:21:09AM +0300, Dan Carpenter wrote:
-> On Fri, Mar 02, 2018 at 03:20:16PM +0100, jacopo mondi wrote:
-> > Hi Dan,
-> >
-> > On Thu, Mar 01, 2018 at 12:59:54PM +0300, Dan Carpenter wrote:
-> > > [ I know you're just copying files, but you might have a fix for these
-> > >   since you're looking at the code.  - dan ]
-> >
-> > According to the static analyzer I should simply substitute all those
-> > expressions with 0s.
->
-> I really try not to print warnings for stuff which is just white space
-> complaints like that.  For example, Smatch ignores inconsistent NULL
-> checking if every caller passes non-NULL parameters or Smatch ignores
-> comparing unsigned with zero if it's just clamping to between zero and
-> max.
->
-> > I would instead keep them for sake of readability
-> > and accordance with register description in the video decoder manual.
-> >
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Sorry, I did not make myself clear, see below!
+This simplifies the dependencies, and allows to improve compile-testing.
 
-> > Thanks
-> >    j
-> >
->
-> [ snip ]
->
-> > >    511  static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
-> > >    512  {
-> > >    513          struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > >    514          struct tw9910_priv *priv = to_tw9910(client);
-> > >    515          const unsigned int hact = 720;
-> > >    516          const unsigned int hdelay = 15;
-> > >                                    ^^^^^^^^^^^
-> > >    517          unsigned int vact;
-> > >    518          unsigned int vdelay;
-> > >    519          int ret;
-> > >    520
-> > >    521          if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
-> > >    522                  return -EINVAL;
-> > >    523
-> > >    524          priv->norm = norm;
-> > >    525          if (norm & V4L2_STD_525_60) {
-> > >    526                  vact = 240;
-> > >    527                  vdelay = 18;
-> > >    528                  ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
-> > >    529          } else {
-> > >    530                  vact = 288;
-> > >    531                  vdelay = 24;
-> > >    532                  ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
-> > >    533          }
-> > >    534          if (!ret)
-> > >    535                  ret = i2c_smbus_write_byte_data(client, CROP_HI,
-> > >    536                                                  ((vdelay >> 2) & 0xc0) |
-> > >    537                          ((vact >> 4) & 0x30) |
-> > >    538                          ((hdelay >> 6) & 0x0c) |
-> > >                                   ^^^^^^^^^^^
-> > > 15 >> 6 is zero.
-> > >
-> > >    539                          ((hact >> 8) & 0x03));
->
-> I looked at the spec and it seems to me that we should doing something
-> like:
->
-> 	(((vdelay >> 8) & 0x3) << 6) |
-> 	(((vact >> 8) & 0x3) << 4) |
-> 	(((hedelay >> 8) & 0x3) << 2) |
-> 	((hact >> 8) & 0x03);
->
->
-> But this is the first time I've looked and it and I can't even be sure
-> I'm looking in the right place.
+Notes:
+  - FSL_FMAN keeps its dependency on HAS_DMA, as it calls set_dma_ops(),
+    which does not exist if HAS_DMA=n (Do we need a dummy? The use of
+    set_dma_ops() in this driver is questionable),
+  - SND_SOC_LPASS_IPQ806X and SND_SOC_LPASS_PLATFORM loose their
+    dependency on HAS_DMA, as they are selected from
+    SND_SOC_APQ8016_SBC.
 
-That's correct. I admit I haven't looked at the register composition in
-detail, I just didn't want to substitute the whole expressions with
-0s as it hides what values the register is composed of and that was
-the "accordance with register description" I mentioned...
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+---
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/lightnvm/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In your suggested fix:
-
-> 	(((vdelay >> 8) & 0x3) << 6) |
-> 	(((vact >> 8) & 0x3) << 4) |
-> 	(((hedelay >> 8) & 0x3) << 2) |
-> 	((hact >> 8) & 0x03);
->
-
-Won't your analyzer in that case point out that
-"15 >> 8 is zero" again? I may have been underestimating it though
-
-Thanks for noticing this!
-    j
-
-
->
-> regards,
-> dan carpenter
->
+diff --git a/drivers/lightnvm/Kconfig b/drivers/lightnvm/Kconfig
+index 10c08982185a572f..9c03f35d9df113c6 100644
+--- a/drivers/lightnvm/Kconfig
++++ b/drivers/lightnvm/Kconfig
+@@ -4,7 +4,7 @@
+ 
+ menuconfig NVM
+ 	bool "Open-Channel SSD target support"
+-	depends on BLOCK && HAS_DMA && PCI
++	depends on BLOCK && PCI
+ 	select BLK_DEV_NVME
+ 	help
+ 	  Say Y here to get to enable Open-channel SSDs.
+-- 
+2.7.4
