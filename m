@@ -1,125 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34205 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751738AbeCOJam (ORCPT
+Received: from laurent.telenet-ops.be ([195.130.137.89]:53942 "EHLO
+        laurent.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752933AbeCPNwr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 05:30:42 -0400
-Received: by mail-wm0-f68.google.com with SMTP id a20so22215151wmd.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 02:30:41 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: mchehab@kernel.org, mcoquelin.stm32@gmail.com,
-        alexandre.torgue@st.com, hans.verkuil@cisco.com
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Fri, 16 Mar 2018 09:52:47 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
         linux-kernel@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 2/2] cec: stm32: add suspend/resume functions
-Date: Thu, 15 Mar 2018 10:29:49 +0100
-Message-Id: <20180315092949.9895-3-benjamin.gaignard@st.com>
-In-Reply-To: <20180315092949.9895-1-benjamin.gaignard@st.com>
-References: <20180315092949.9895-1-benjamin.gaignard@st.com>
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v2 06/21] fpga: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:39 +0100
+Message-Id: <1521208314-4783-7-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-If wake up irq is defined in device-tree cec adapter
-could be used has wake up source.
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+This simplifies the dependencies, and allows to improve compile-testing.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
 ---
- drivers/media/platform/stm32/stm32-cec.c | 44 +++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/fpga/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/platform/stm32/stm32-cec.c b/drivers/media/platform/stm32/stm32-cec.c
-index 35cc2ffd6b96..68e18ee6655b 100644
---- a/drivers/media/platform/stm32/stm32-cec.c
-+++ b/drivers/media/platform/stm32/stm32-cec.c
-@@ -11,8 +11,11 @@
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/of_irq.h>
- #include <linux/platform_device.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pm_wakeirq.h>
- #include <linux/regmap.h>
+diff --git a/drivers/fpga/Kconfig b/drivers/fpga/Kconfig
+index f47ef848bcd056d5..fd539132542e30ee 100644
+--- a/drivers/fpga/Kconfig
++++ b/drivers/fpga/Kconfig
+@@ -53,7 +53,6 @@ config FPGA_MGR_ALTERA_CVP
+ config FPGA_MGR_ZYNQ_FPGA
+ 	tristate "Xilinx Zynq FPGA"
+ 	depends on ARCH_ZYNQ || COMPILE_TEST
+-	depends on HAS_DMA
+ 	help
+ 	  FPGA manager driver support for Xilinx Zynq FPGAs.
  
- #include <media/cec.h>
-@@ -243,7 +246,7 @@ static int stm32_cec_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct stm32_cec *cec;
- 	void __iomem *mmio;
--	int ret;
-+	int ret, wakeirq;
- 
- 	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
- 	if (!cec)
-@@ -274,6 +277,12 @@ static int stm32_cec_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	wakeirq = of_irq_get_byname(pdev->dev.of_node, "wakeup");
-+	if (wakeirq > 0) {
-+		device_init_wakeup(&pdev->dev, true);
-+		dev_pm_set_dedicated_wake_irq(&pdev->dev, wakeirq);
-+	}
-+
- 	cec->clk_cec = devm_clk_get(&pdev->dev, "cec");
- 	if (IS_ERR(cec->clk_cec)) {
- 		dev_err(&pdev->dev, "Cannot get cec clock\n");
-@@ -312,12 +321,44 @@ static int stm32_cec_remove(struct platform_device *pdev)
- {
- 	struct stm32_cec *cec = platform_get_drvdata(pdev);
- 
-+	dev_pm_clear_wake_irq(&pdev->dev);
-+	device_init_wakeup(&pdev->dev, false);
-+
- 	cec_unregister_adapter(cec->adap);
- 
- 	pm_runtime_disable(&pdev->dev);
- 
- 	return 0;
- }
-+
-+static int __maybe_unused stm32_cec_suspend(struct device *dev)
-+{
-+	struct stm32_cec *cec = dev_get_drvdata(dev);
-+
-+	pm_runtime_force_suspend(dev);
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq_wake(cec->irq);
-+
-+	pinctrl_pm_select_sleep_state(dev);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused stm32_cec_resume(struct device *dev)
-+{
-+	struct stm32_cec *cec = dev_get_drvdata(dev);
-+
-+	pinctrl_pm_select_default_state(dev);
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_wake(cec->irq);
-+
-+	pm_runtime_force_resume(dev);
-+
-+	return 0;
-+}
-+
- static int __maybe_unused stm32_cec_runtime_suspend(struct device *dev)
- {
- 	struct stm32_cec *cec = dev_get_drvdata(dev);
-@@ -341,6 +382,7 @@ static int __maybe_unused stm32_cec_runtime_resume(struct device *dev)
- static const struct dev_pm_ops stm32_cec_pm_ops = {
- 	SET_RUNTIME_PM_OPS(stm32_cec_runtime_suspend, stm32_cec_runtime_resume,
- 			   NULL)
-+	SET_SYSTEM_SLEEP_PM_OPS(stm32_cec_suspend, stm32_cec_resume)
- };
- 
- static const struct of_device_id stm32_cec_of_match[] = {
 -- 
-2.15.0
+2.7.4
