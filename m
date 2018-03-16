@@ -1,76 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36387 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933192AbeCNDM0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 23:12:26 -0400
-Subject: Re: [PATCH v8 11/13] [media] v4l: introduce the fences capability
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180309174920.22373-1-gustavo@padovan.org>
- <20180309174920.22373-12-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <69cd0da1-9f71-6ce9-7ca0-955d9d3fae61@xs4all.nl>
-Date: Tue, 13 Mar 2018 20:12:19 -0700
+Received: from mga11.intel.com ([192.55.52.93]:46225 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934626AbeCPQKl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 12:10:41 -0400
+Date: Fri, 16 Mar 2018 18:10:12 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
+        mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ryan Harkin <ryan.harkin@linaro.org>
+Subject: Re: [PATCH v3 2/2] media: ov2680: Add Omnivision OV2680 sensor driver
+Message-ID: <20180316161011.yelt3mqkqo7qnlnn@kekkonen.localdomain>
+References: <20180313113311.8617-3-rui.silva@linaro.org>
+ <201803150338.2LzbxAYM%fengguang.wu@intel.com>
+ <m3a7v98z5u.fsf@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <20180309174920.22373-12-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m3a7v98z5u.fsf@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/09/2018 09:49 AM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On Thu, Mar 15, 2018 at 09:29:33AM +0000, Rui Miguel Silva wrote:
+> Hi,
+> On Wed 14 Mar 2018 at 19:39, kbuild test robot wrote:
+> > Hi Rui,
+> > 
+> > I love your patch! Yet something to improve:
+> > 
+> > [auto build test ERROR on v4.16-rc4]
+> > [cannot apply to next-20180314]
+> > [if your patch is applied to the wrong git tree, please drop us a note
+> > to help improve the system]
+> > 
+> > url: https://github.com/0day-ci/linux/commits/Rui-Miguel-Silva/media-Introduce-Omnivision-OV2680-driver/20180315-020617
+> > config: sh-allmodconfig (attached as .config)
+> > compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+> > reproduce:
+> >         wget
+> > https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross
+> > -O ~/bin/make.cross
+> >         chmod +x ~/bin/make.cross
+> >         # save the attached .config to linux build tree
+> >         make.cross ARCH=sh
+> > 
+> > All errors (new ones prefixed by >>):
+> > 
+> >    drivers/media/i2c/ov2680.c: In function 'ov2680_set_fmt':
+> > > > drivers/media/i2c/ov2680.c:713:9: error: implicit declaration of
+> > > > function 'v4l2_find_nearest_size'; did you mean
+> > > > 'v4l2_find_nearest_format'?
+> > > > [-Werror=implicit-function-declaration]
+> >      mode = v4l2_find_nearest_size(ov2680_mode_data,
+> >             ^~~~~~~~~~~~~~~~~~~~~~
+> >             v4l2_find_nearest_format
 > 
-> Drivers capable of using fences (vb2 drivers) should report the
-> V4L2_CAP_FENCES to userspace, so add this flag to the uapi.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  Documentation/media/uapi/v4l/vidioc-querycap.rst | 3 +++
->  include/uapi/linux/videodev2.h                   | 1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-querycap.rst b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> index 66fb1b3d6e6e..414016065309 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-querycap.rst
-> @@ -254,6 +254,9 @@ specification the ioctl returns an ``EINVAL`` error code.
->      * - ``V4L2_CAP_TOUCH``
->        - 0x10000000
->        - This is a touch device.
-> +    * - ``V4L2_CAP_FENCES``
-> +      - 0x20000000
-> +      - The device support explicit synchronization.
+> As requested by maintainer this series depend on this patch [0], which
+> introduce this macro. I am not sure of the status of that patch though.
 
-support -> supports
+No need to worry about that, the sensor driver will just be merged after
+the dependencies are in. Mauro said he'd handle the pull request early next
+week.
 
->      * - ``V4L2_CAP_DEVICE_CAPS``
->        - 0x80000000
->        - The driver fills the ``device_caps`` field. This capability can
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2d424aebdd1e..db58204e346e 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -460,6 +460,7 @@ struct v4l2_capability {
->  #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
->  
->  #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
-> +#define V4L2_CAP_FENCES                 0x20000000  /* Supports explicit synchronization */
->  
->  #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
->  
-> 
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
