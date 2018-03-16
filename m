@@ -1,62 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:38032 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752169AbeC1RBY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 13:01:24 -0400
-Received: by mail-pl0-f65.google.com with SMTP id m22-v6so1961735pls.5
-        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:01:24 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
-        crope@iki.fi
-Subject: [PATCH v4 0/5] dvb-usb-friio: decompose friio and merge with gl861
-Date: Thu, 29 Mar 2018 02:00:56 +0900
-Message-Id: <20180328170101.29385-1-tskd08@gmail.com>
+Received: from isis.lip6.fr ([132.227.60.2]:61580 "EHLO isis.lip6.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750969AbeCPGsq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 02:48:46 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Fri, 16 Mar 2018 07:41:47 +0100
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Kees Cook <keescook@chromium.org>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Ian Abbott <abbotti@mev.co.uk>, cocci@systeme.lip6.fr,
+        keescook@google.com
+Subject: Re: [PATCH][RFC] kernel.h: provide array iterator
+In-Reply-To: <CAGXu5jJETok21C7Au=+hh+1jMwTOqULXpL1QF5S2b_i-CoeoQw@mail.gmail.com>
+References: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
+ <CAGXu5jJETok21C7Au=+hh+1jMwTOqULXpL1QF5S2b_i-CoeoQw@mail.gmail.com>
+Message-ID: <3d969683074366dfa32e2fbb83bf3b65@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Le 16.03.2018 05:21, Kees Cook a écrit :
+> On Thu, Mar 15, 2018 at 3:00 AM, Kieran Bingham
+> <kieran.bingham@ideasonboard.com> wrote:
+>> Simplify array iteration with a helper to iterate each entry in an 
+>> array.
+>> Utilise the existing ARRAY_SIZE macro to identify the length of the 
+>> array
+>> and pointer arithmetic to process each item as a for loop.
+>> 
+>> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>> ---
+>>  include/linux/kernel.h | 10 ++++++++++
+>>  1 file changed, 10 insertions(+)
+>> 
+>> The use of static arrays to store data is a common use case throughout 
+>> the
+>> kernel. Along with that is the obvious need to iterate that data.
+>> 
+>> In fact there are just shy of 5000 instances of iterating a static 
+>> array:
+>>         git grep "for .*ARRAY_SIZE" | wc -l
+>>         4943
+> 
+> I suspect the main question is "Does this macro make the code easier to 
+> read?"
+> 
+> I think it does, and we have other kinds of iterators like this in the
+> kernel already. Would it be worth building a Coccinelle script to do
+> the 5000 replacements?
 
-This series decomposes dvb-usb-friio into sub drivers
-and merge the bridge driver with dvb-usb-gl861.
-As to the demod & tuner drivers, existing drivers are re-used.
 
-Changes since v3:
-- dvb-pll,gl681: use i2c_device_id/i2c_board_info to specify pll_desc
+Coccinelle should be able to replace the for loop header.  Coccinelle
+could create the local macro.  Coccinelle might not put the definition 
+in
+exactly the right place.  Before the function of the first use would be
+possible, or before any function.
 
-Changes since v2:
-- used the new i2c binding helpers instead of my own one
-- extends dvb-pll instead of creating a new tuner driver
-- merged gl861-friio.c with gl861.c
-- improved module counting
-- made i2c communications on USB robust (regarding DMA)
+I don't think that Coccinelle could figure out how to split one loop 
+into
+two as done here, unless that specific pattern is very common.  I guess
+that the split is to add the flush_workqueue, and is not the main goal?
 
-Replaces:
-patch #27927, dvb: tua6034: add a new driver for Infineon tua6034 tuner
-patch #27928, dvb-usb-friio: split and merge into dvb-usbv2-gl861
+julia
 
-Akihiro Tsukada (5):
-  dvb-frontends/dvb-pll: add i2c driver support
-  dvb-frontends/dvb-pll: add tua6034 ISDB-T tuner used in Friio
-  dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and merge with gl861
-  dvb-usb-v2/gl861: use usleep_range() for short delay
-  dvb-usb-v2/gl861: ensure  USB message buffers DMA'able
 
- drivers/media/dvb-frontends/dvb-pll.c |  86 ++++++
- drivers/media/dvb-frontends/dvb-pll.h |  26 ++
- drivers/media/usb/dvb-usb-v2/Kconfig  |   5 +-
- drivers/media/usb/dvb-usb-v2/gl861.c  | 485 ++++++++++++++++++++++++++++++-
- drivers/media/usb/dvb-usb-v2/gl861.h  |   1 +
- drivers/media/usb/dvb-usb/Kconfig     |   6 -
- drivers/media/usb/dvb-usb/Makefile    |   3 -
- drivers/media/usb/dvb-usb/friio-fe.c  | 441 ----------------------------
- drivers/media/usb/dvb-usb/friio.c     | 522 ----------------------------------
- drivers/media/usb/dvb-usb/friio.h     |  99 -------
- 10 files changed, 591 insertions(+), 1083 deletions(-)
- delete mode 100644 drivers/media/usb/dvb-usb/friio-fe.c
- delete mode 100644 drivers/media/usb/dvb-usb/friio.c
- delete mode 100644 drivers/media/usb/dvb-usb/friio.h
 
--- 
-2.16.3
+
+> -Kees
+> 
+>> 
+>> When working on the UVC driver - I found that I needed to split one 
+>> such
+>> iteration into two parts, and at the same time felt that this could be
+>> refactored to be cleaner / easier to read.
+>> 
+>> I do however worry that this simple short patch might not be desired 
+>> or could
+>> also be heavily bikeshedded due to it's potential wide spread use 
+>> (though
+>> perhaps that would be a good thing to have more users) ...  but here 
+>> it is,
+>> along with an example usage below which is part of a separate series.
+>> 
+>> The aim is to simplify iteration on static arrays, in the same way 
+>> that we have
+>> iterators for lists. The use of the ARRAY_SIZE macro, provides all the
+>> protections given by "__must_be_array(arr)" to this macro too.
+>> 
+>> Regards
+>> 
+>> Kieran
+>> 
+>> =============================================================================
+>> Example Usage from a pending UVC development:
+>> 
+>> +#define for_each_uvc_urb(uvc_urb, uvc_streaming) \
+>> +       for_each_array_element(uvc_urb, uvc_streaming->uvc_urb)
+>> 
+>>  /*
+>>   * Uninitialize isochronous/bulk URBs and free transfer buffers.
+>>   */
+>>  static void uvc_uninit_video(struct uvc_streaming *stream, int 
+>> free_buffers)
+>>  {
+>> -       struct urb *urb;
+>> -       unsigned int i;
+>> +       struct uvc_urb *uvc_urb;
+>> 
+>>         uvc_video_stats_stop(stream);
+>> 
+>> -       for (i = 0; i < UVC_URBS; ++i) {
+>> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
+>> +       for_each_uvc_urb(uvc_urb, stream)
+>> +               usb_kill_urb(uvc_urb->urb);
+>> 
+>> -               urb = uvc_urb->urb;
+>> -               if (urb == NULL)
+>> -                       continue;
+>> +       flush_workqueue(stream->async_wq);
+>> 
+>> -               usb_kill_urb(urb);
+>> -               usb_free_urb(urb);
+>> +       for_each_uvc_urb(uvc_urb, stream) {
+>> +               usb_free_urb(uvc_urb->urb);
+>>                 uvc_urb->urb = NULL;
+>>         }
+>> 
+>>         if (free_buffers)
+>>                 uvc_free_urb_buffers(stream);
+>>  }
+>> =============================================================================
+>> 
+>> 
+>> 
+>> 
+>> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+>> index ce51455e2adf..95d7dae248b7 100644
+>> --- a/include/linux/kernel.h
+>> +++ b/include/linux/kernel.h
+>> @@ -70,6 +70,16 @@
+>>   */
+>>  #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + 
+>> __must_be_array(arr))
+>> 
+>> +/**
+>> + * for_each_array_element - Iterate all items in an array
+>> + * @elem: pointer of array type for iteration cursor
+>> + * @array: array to be iterated
+>> + */
+>> +#define for_each_array_element(elem, array) \
+>> +       for (elem = &(array)[0]; \
+>> +            elem < &(array)[ARRAY_SIZE(array)]; \
+>> +            ++elem)
+>> +
+>>  #define u64_to_user_ptr(x) (           \
+>>  {                                      \
+>>         typecheck(u64, x);              \
+>> --
+>> 2.7.4
+>> 
