@@ -1,184 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31657 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754547AbeCGWFc (ORCPT
+Received: from newton.telenet-ops.be ([195.130.132.45]:46262 "EHLO
+        newton.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752169AbeCPOBg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:32 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 07/33] rcar-vin: move model information to own struct
-Date: Wed,  7 Mar 2018 23:04:45 +0100
-Message-Id: <20180307220511.9826-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 16 Mar 2018 10:01:36 -0400
+Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
+        by newton.telenet-ops.be (Postfix) with ESMTPS id 402n391nLtzMqygf
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 14:52:53 +0100 (CET)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v2 02/21] ata: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:35 +0100
+Message-Id: <1521208314-4783-3-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When Gen3 support is added to the driver more than model ID will be
-different for the different SoCs. To avoid a lot of if statements in the
-code create a struct rvin_info to store this information.
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-While we are at it rename the poorly chosen enum which contains the
-different model IDs from chip_id to model_id. Also sort the compatible
-string entries and make use of of_device_get_match_data() which will
-always work as the driver is DT only, so there's always a valid match.
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This simplifies the dependencies, and allows to improve compile-testing.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 56 +++++++++++++++++++++--------
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 14 ++++++--
- 3 files changed, 55 insertions(+), 18 deletions(-)
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/ata/Kconfig | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 663309ca9c04f208..d2b27ccff690cede 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -241,21 +241,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Platform Device Driver
-  */
+diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+index a7120d6211546949..9eaeed1fb237fa33 100644
+--- a/drivers/ata/Kconfig
++++ b/drivers/ata/Kconfig
+@@ -398,7 +398,6 @@ config SATA_DWC_VDEBUG
  
-+static const struct rvin_info rcar_info_h1 = {
-+	.model = RCAR_H1,
-+};
-+
-+static const struct rvin_info rcar_info_m1 = {
-+	.model = RCAR_M1,
-+};
-+
-+static const struct rvin_info rcar_info_gen2 = {
-+	.model = RCAR_GEN2,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
--	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
--	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
--	{ },
-+	{
-+		.compatible = "renesas,vin-r8a7778",
-+		.data = &rcar_info_m1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7779",
-+		.data = &rcar_info_h1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7790",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7791",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7793",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7794",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,rcar-gen2-vin",
-+		.data = &rcar_info_gen2,
-+	},
-+	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ config SATA_HIGHBANK
+ 	tristate "Calxeda Highbank SATA support"
+-	depends on HAS_DMA
+ 	depends on ARCH_HIGHBANK || COMPILE_TEST
+ 	help
+ 	  This option enables support for the Calxeda Highbank SoC's
+@@ -408,7 +407,6 @@ config SATA_HIGHBANK
  
- static int rcar_vin_probe(struct platform_device *pdev)
- {
--	const struct of_device_id *match;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -264,12 +296,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (!vin)
- 		return -ENOMEM;
- 
--	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
--	if (!match)
--		return -ENODEV;
--
- 	vin->dev = &pdev->dev;
--	vin->chip = (enum chip_id)match->data;
-+	vin->info = of_device_get_match_data(&pdev->dev);
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 4a0610a6b4503501..0a035667c0b0e93f 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
--	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+	if (vin->info->model == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
- 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 85cb7ec53d2b08b5..3f49d2f2d6b88471 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -29,7 +29,7 @@
- /* Address alignment mask for HW buffers */
- #define HW_BUFFER_MASK 0x7f
- 
--enum chip_id {
-+enum model_id {
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_GEN2,
-@@ -88,11 +88,19 @@ struct rvin_graph_entity {
- 	unsigned int sink_pad;
- };
- 
-+/**
-+ * struct rvin_info - Information about the particular VIN implementation
-+ * @model:		VIN model
-+ */
-+struct rvin_info {
-+	enum model_id model;
-+};
-+
- /**
-  * struct rvin_dev - Renesas VIN device structure
-  * @dev:		(OF) device
-  * @base:		device I/O register space remapped to virtual memory
-- * @chip:		type of VIN chip
-+ * @info:		info about VIN instance
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-@@ -120,7 +128,7 @@ struct rvin_graph_entity {
- struct rvin_dev {
- 	struct device *dev;
- 	void __iomem *base;
--	enum chip_id chip;
-+	const struct rvin_info *info;
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
+ config SATA_MV
+ 	tristate "Marvell SATA support"
+-	depends on HAS_DMA
+ 	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
+ 		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
+ 	select GENERIC_PHY
 -- 
-2.16.2
+2.7.4
