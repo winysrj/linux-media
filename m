@@ -1,149 +1,461 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:36028 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752180AbeCWVS1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 17:18:27 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, acourbot@chromium.org
-Subject: [RFC v2 00/10] Preparing the request API
-Date: Fri, 23 Mar 2018 23:17:34 +0200
-Message-Id: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:48936 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752014AbeCPHq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 03:46:58 -0400
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: dri-devel@lists.freedesktop.org
+Cc: qemu-devel@nongnu.org, Gerd Hoffmann <kraxel@redhat.com>,
+        David Airlie <airlied@linux.ie>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        linux-kernel@vger.kernel.org (open list),
+        linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
+        linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
+        FRAMEWORK),
+        linux-kselftest@vger.kernel.org (open list:KERNEL SELFTEST FRAMEWORK)
+Subject: [PATCH v2] Add udmabuf misc device
+Date: Fri, 16 Mar 2018 08:46:49 +0100
+Message-Id: <20180316074650.5415-1-kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+A driver to let userspace turn iovecs into dma-bufs.
 
-This preliminary RFC patchset prepares for the request API. What's new
-here is support for binding arbitrary configuration or resources to
-requests.
+Use case:  Allows qemu create dmabufs for the vga framebuffer or
+virtio-gpu ressources.  Then they can be passed around to display
+those guest things on the host.  To spice client for classic full
+framebuffer display, and hopefully some day to wayland server for
+seamless guest window display.
 
-There are a few new concepts here:
+Those dma-bufs are accounted against user's shm mlock bucket as the
+pages are effectively locked in memory.
 
-Class --- a type of configuration or resource a driver (or e.g. the V4L2
-framework) can attach to a resource. E.g. a video buffer queue would be a
-class.
+Cc: David Airlie <airlied@linux.ie>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+---
+ include/uapi/linux/udmabuf.h                      |  23 ++
+ drivers/dma-buf/udmabuf.c                         | 261 ++++++++++++++++++++++
+ tools/testing/selftests/drivers/dma-buf/udmabuf.c |  69 ++++++
+ drivers/dma-buf/Kconfig                           |   7 +
+ drivers/dma-buf/Makefile                          |   1 +
+ tools/testing/selftests/drivers/dma-buf/Makefile  |   5 +
+ 6 files changed, 366 insertions(+)
+ create mode 100644 include/uapi/linux/udmabuf.h
+ create mode 100644 drivers/dma-buf/udmabuf.c
+ create mode 100644 tools/testing/selftests/drivers/dma-buf/udmabuf.c
+ create mode 100644 tools/testing/selftests/drivers/dma-buf/Makefile
 
-Object --- an instance of the class. This may be either configuration (in
-which case the setting will stay until changed, e.g. V4L2 format on a
-video node) or a resource (such as a video buffer).
-
-Reference --- a reference to an object. If a configuration is not changed
-in a request, instead of allocating a new object, a reference to an
-existing object is used. This saves time and memory.
-
-I expect Laurent to comment on aligning the concept names between the
-request API and DRM. As far as I understand, the respective DRM names for
-"class" and "object" used in this set would be "object" and "state".
-
-The drivers will need to interact with the requests in three ways:
-
-- Allocate new configurations or resources. Drivers are free to store
-  their own data into request objects as well. These callbacks are
-  specific to classes.
-
-- Validate and queue callbacks. These callbacks are used to try requests
-  (validate only) as well as queue them (validate and queue). These
-  callbacks are media device wide, at least for now.
-
-The lifetime of the objects related to requests is based on refcounting
-both requests and request objects. This fits well for existing use cases
-whether or not based on refcounting; what still needs most of the
-attention is likely that the number of gets and puts matches once the
-object is no longer needed.
-
-Configuration can be bound to the request the usual way (V4L2 IOCTLs with
-the request_fd field set to the request). Once queued, request completion
-is signalled through polling the request file handle (POLLPRI).
-
-I'm posting this as an RFC because it's not complete yet. The code
-compiles but no testing has been done yet.
-
-Todo list:
-
-- Testing! (And fixing the bugs.)
-
-- Request support in a few drivers as well as the control framework.
-
-- Request support for V4L2 formats?
-
-In the future, support for changing e.g. Media controller link state or
-V4L2 sub-device formats will need to be added. Those should receive more
-attention when the core is in a good shape and the more simple use cases
-are already functional.
-
-Comments and questions are welcome.
-
-since v1:
-
-- Provide an iterator helper for request objects in a request.
-
-- Remove the request lists in the media device (they were not used)
-
-- Move request queing to request fd and add reinit (Alexandre's patchset);
-  this roughly corresponds to Request API RFC v2 from Hans.
-  (MEDIA_IOC_REQUEST_ALLOC argument is a struct pointer instead of an
-  __s32 pointer.)
-
-- Provide a way to unbind request objects from an unqueued request
-  (reinit, closing request fd).
-
-- v4l2-mem2mem + vivid implementation without control support.
-
-- More states for requests. In order to take a spinlock (or a mutex) for
-  an extended period of time, add a "QUEUEING" and "REINIT" states.
-
-- Move non-IOCTL code to media-request.c, remove extra filp argument that
-  was added in v1.
-
-- SPDX license header, other small changes.
-
-Open questions:
-
-- How to tell at complete time whether a request failed? Return error code
-  on release? What's the behaviour with reinit then --- fail on error? Add
-  another IOCTL to ask for completion status?
-
-
-Alexandre Courbot (1):
-  videodev2.h: add request_fd field to v4l2_ext_controls
-
-Hans Verkuil (1):
-  videodev2.h: Add request_fd field to v4l2_buffer
-
-Laurent Pinchart (1):
-  media: Add request API
-
-Sakari Ailus (7):
-  media: Support variable size IOCTL arguments
-  staging: media: atomisp: Remove v4l2_buffer.reserved2 field hack
-  vb2: Add support for requests
-  v4l: m2m: Simplify exiting the function in v4l2_m2m_try_schedule
-  v4l: m2m: Support requests with video buffers
-  vim2m: Register V4L2 video device after V4L2 mem2mem init
-  vim2m: Request support
-
- drivers/media/Makefile                             |   3 +-
- drivers/media/common/videobuf2/videobuf2-core.c    |  43 +-
- drivers/media/common/videobuf2/videobuf2-v4l2.c    |  40 +-
- drivers/media/media-device.c                       |  80 ++-
- drivers/media/media-request.c                      | 650 +++++++++++++++++++++
- drivers/media/platform/vim2m.c                     |  76 ++-
- drivers/media/usb/cpia2/cpia2_v4l.c                |   2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  16 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |   6 +-
- drivers/media/v4l2-core/v4l2-mem2mem.c             | 131 ++++-
- .../media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  17 +-
- include/media/media-device.h                       |  19 +-
- include/media/media-request.h                      | 301 ++++++++++
- include/media/v4l2-mem2mem.h                       |  28 +
- include/media/videobuf2-core.h                     |  19 +
- include/media/videobuf2-v4l2.h                     |  28 +
- include/uapi/linux/media.h                         |   8 +
- include/uapi/linux/videodev2.h                     |   6 +-
- 18 files changed, 1408 insertions(+), 65 deletions(-)
- create mode 100644 drivers/media/media-request.c
- create mode 100644 include/media/media-request.h
-
+diff --git a/include/uapi/linux/udmabuf.h b/include/uapi/linux/udmabuf.h
+new file mode 100644
+index 0000000000..54ceba203a
+--- /dev/null
++++ b/include/uapi/linux/udmabuf.h
+@@ -0,0 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _UAPI_LINUX_UDMABUF_H
++#define _UAPI_LINUX_UDMABUF_H
++
++#include <linux/types.h>
++#include <linux/ioctl.h>
++
++struct udmabuf_iovec {
++	__u64 base;
++	__u64 len;
++};
++
++#define UDMABUF_FLAGS_CLOEXEC	0x01
++
++struct udmabuf_create {
++	__u32 flags;
++	__u32 niov;
++	struct udmabuf_iovec iovs[];
++};
++
++#define UDMABUF_CREATE _IOW(0x42, 0x23, struct udmabuf_create)
++
++#endif /* _UAPI_LINUX_UDMABUF_H */
+diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
+new file mode 100644
+index 0000000000..664ab4ee4e
+--- /dev/null
++++ b/drivers/dma-buf/udmabuf.c
+@@ -0,0 +1,261 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/miscdevice.h>
++#include <linux/dma-buf.h>
++#include <linux/highmem.h>
++#include <linux/cred.h>
++
++#include <uapi/linux/udmabuf.h>
++
++struct udmabuf {
++	u32 pagecount;
++	struct page **pages;
++	struct user_struct *owner;
++};
++
++static int udmabuf_vm_fault(struct vm_fault *vmf)
++{
++	struct vm_area_struct *vma = vmf->vma;
++	struct udmabuf *ubuf = vma->vm_private_data;
++
++	if (WARN_ON(vmf->pgoff >= ubuf->pagecount))
++		return VM_FAULT_SIGBUS;
++
++	vmf->page = ubuf->pages[vmf->pgoff];
++	get_page(vmf->page);
++	return 0;
++}
++
++static const struct vm_operations_struct udmabuf_vm_ops = {
++	.fault = udmabuf_vm_fault,
++};
++
++static int mmap_udmabuf(struct dma_buf *buf, struct vm_area_struct *vma)
++{
++	struct udmabuf *ubuf = buf->priv;
++
++	if ((vma->vm_flags & VM_SHARED) == 0)
++		return -EINVAL;
++
++	vma->vm_ops = &udmabuf_vm_ops;
++	vma->vm_private_data = ubuf;
++	return 0;
++}
++
++static struct sg_table *map_udmabuf(struct dma_buf_attachment *at,
++				    enum dma_data_direction direction)
++{
++	struct udmabuf *ubuf = at->dmabuf->priv;
++	struct sg_table *sg;
++
++	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
++	if (!sg)
++		goto err1;
++	if (sg_alloc_table_from_pages(sg, ubuf->pages, ubuf->pagecount,
++				      0, ubuf->pagecount << PAGE_SHIFT,
++				      GFP_KERNEL) < 0)
++		goto err2;
++	if (!dma_map_sg(at->dev, sg->sgl, sg->nents, direction))
++		goto err3;
++
++	return sg;
++
++err3:
++	sg_free_table(sg);
++err2:
++	kfree(sg);
++err1:
++	return ERR_PTR(-ENOMEM);
++}
++
++static void unmap_udmabuf(struct dma_buf_attachment *at,
++			  struct sg_table *sg,
++			  enum dma_data_direction direction)
++{
++	sg_free_table(sg);
++	kfree(sg);
++}
++
++static void release_udmabuf(struct dma_buf *buf)
++{
++	struct udmabuf *ubuf = buf->priv;
++	pgoff_t pg;
++
++	for (pg = 0; pg < ubuf->pagecount; pg++)
++		put_page(ubuf->pages[pg]);
++	user_shm_unlock(ubuf->pagecount << PAGE_SHIFT, ubuf->owner);
++	free_uid(ubuf->owner);
++	kfree(ubuf->pages);
++	kfree(ubuf);
++}
++
++static void *kmap_atomic_udmabuf(struct dma_buf *buf, unsigned long page_num)
++{
++	struct udmabuf *ubuf = buf->priv;
++	struct page *page = ubuf->pages[page_num];
++
++	return kmap_atomic(page);
++}
++
++static void *kmap_udmabuf(struct dma_buf *buf, unsigned long page_num)
++{
++	struct udmabuf *ubuf = buf->priv;
++	struct page *page = ubuf->pages[page_num];
++
++	return kmap(page);
++}
++
++static struct dma_buf_ops udmabuf_ops = {
++	.map_dma_buf	  = map_udmabuf,
++	.unmap_dma_buf	  = unmap_udmabuf,
++	.release	  = release_udmabuf,
++	.map_atomic	  = kmap_atomic_udmabuf,
++	.map		  = kmap_udmabuf,
++	.mmap		  = mmap_udmabuf,
++};
++
++static long udmabuf_ioctl_create(struct file *filp, unsigned long arg)
++{
++	struct udmabuf_create create;
++	struct udmabuf_iovec *iovs;
++	struct udmabuf *ubuf;
++	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
++	struct dma_buf *buf;
++	pgoff_t pgoff, pgcnt;
++	u32 iov, flags;
++	int ret;
++
++	if (copy_from_user(&create, (void __user *)arg,
++			   sizeof(struct udmabuf_create)))
++		return -EFAULT;
++
++	iovs = kmalloc_array(create.niov, sizeof(struct udmabuf_iovec),
++			     GFP_KERNEL);
++	if (!iovs)
++		return -ENOMEM;
++
++	arg += offsetof(struct udmabuf_create, iovs);
++	ret = -EFAULT;
++	if (copy_from_user(iovs, (void __user *)arg,
++			   create.niov * sizeof(struct udmabuf_iovec)))
++		goto err_free_iovs;
++
++	ubuf = kzalloc(sizeof(struct udmabuf), GFP_KERNEL);
++	if (!ubuf)
++		goto err_free_iovs;
++
++	ret = -EINVAL;
++	for (iov = 0; iov < create.niov; iov++) {
++		if (!IS_ALIGNED(iovs[iov].base, PAGE_SIZE))
++			goto err_free_buf;
++		if (!IS_ALIGNED(iovs[iov].len, PAGE_SIZE))
++			goto err_free_buf;
++		ubuf->pagecount += iovs[iov].len >> PAGE_SHIFT;
++	}
++
++	/* this effectively mlocks the pages so account it accordingly */
++	ret = -ENOMEM;
++	ubuf->owner = current_user();
++	if (!user_shm_lock(ubuf->pagecount << PAGE_SHIFT, ubuf->owner))
++		goto err_free_buf;
++
++	ubuf->pages = kmalloc_array(ubuf->pagecount, sizeof(struct page*),
++				    GFP_KERNEL);
++	if (!ubuf->pages)
++		goto err_shm_unlock;
++
++	pgoff = 0;
++	for (iov = 0; iov < create.niov; iov++) {
++		pgcnt = iovs[iov].len >> PAGE_SHIFT;
++		while (pgcnt > 0) {
++			ret = get_user_pages_fast(iovs[iov].base, pgcnt,
++						  true, /* write */
++						  ubuf->pages + pgoff);
++			if (ret < 0)
++				goto err_put_pages;
++			pgoff += ret;
++			pgcnt -= ret;
++		}
++	}
++
++	exp_info.ops  = &udmabuf_ops;
++	exp_info.size = ubuf->pagecount << PAGE_SHIFT;
++	exp_info.priv = ubuf;
++
++	buf = dma_buf_export(&exp_info);
++	if (IS_ERR(buf)) {
++		ret = PTR_ERR(buf);
++		goto err_put_pages;
++	}
++
++	flags = 0;
++	if (create.flags & UDMABUF_FLAGS_CLOEXEC)
++		flags |= O_CLOEXEC;
++
++	kfree(iovs);
++	return dma_buf_fd(buf, flags);
++
++err_put_pages:
++	while (pgoff > 0)
++		put_page(ubuf->pages[--pgoff]);
++err_shm_unlock:
++	user_shm_unlock(ubuf->pagecount << PAGE_SHIFT, ubuf->owner);
++err_free_buf:
++	free_uid(ubuf->owner);
++	kfree(ubuf->pages);
++	kfree(ubuf);
++err_free_iovs:
++	kfree(iovs);
++	return ret;
++}
++
++static long udmabuf_ioctl(struct file *filp, unsigned int ioctl,
++				  unsigned long arg)
++{
++	long ret;
++
++	switch (ioctl) {
++	case UDMABUF_CREATE:
++		ret = udmabuf_ioctl_create(filp, arg);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++	return ret;
++}
++
++static const struct file_operations udmabuf_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl = udmabuf_ioctl,
++};
++
++static struct miscdevice udmabuf_misc = {
++	.minor          = MISC_DYNAMIC_MINOR,
++	.name           = "udmabuf",
++	.fops           = &udmabuf_fops,
++};
++
++static int __init udmabuf_dev_init(void)
++{
++	return misc_register(&udmabuf_misc);
++}
++
++static void __exit udmabuf_dev_exit(void)
++{
++	misc_deregister(&udmabuf_misc);
++}
++
++module_init(udmabuf_dev_init)
++module_exit(udmabuf_dev_exit)
++
++MODULE_AUTHOR("Gerd Hoffmann <kraxel@redhat.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/tools/testing/selftests/drivers/dma-buf/udmabuf.c b/tools/testing/selftests/drivers/dma-buf/udmabuf.c
+new file mode 100644
+index 0000000000..3472c8ee49
+--- /dev/null
++++ b/tools/testing/selftests/drivers/dma-buf/udmabuf.c
+@@ -0,0 +1,69 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <malloc.h>
++
++#include <sys/ioctl.h>
++#include <linux/udmabuf.h>
++
++#define TEST_PREFIX	"drivers/dma-buf/udmabuf"
++#define NUM_PAGES       4
++
++int main(int argc, char *argv[])
++{
++	struct udmabuf_create *create;
++	void *mem;
++	int dev, fd;
++
++	dev = open("/dev/udmabuf", O_RDWR);
++	if (dev < 0) {
++		printf("%s: [skip]\n", TEST_PREFIX);
++		exit(77);
++	}
++
++	mem = memalign(getpagesize(), getpagesize() * NUM_PAGES);
++	if (mem == NULL) {
++		printf("%s: [FAIL]\n", TEST_PREFIX);
++		exit (1);
++	}
++
++	create = malloc(sizeof(struct udmabuf_create) +
++			sizeof(struct udmabuf_iovec));
++	create->flags = 0;
++	create->niov  = 1;
++
++	/* should fail (base not page aligned) */
++	create->iovs[0].base = (intptr_t)mem + getpagesize()/2;
++	create->iovs[0].len  = getpagesize();
++	fd = ioctl(dev, UDMABUF_CREATE, create);
++	if (fd >= 0) {
++		printf("%s: [FAIL]\n", TEST_PREFIX);
++		exit(1);
++	}
++
++	/* should fail (size not multiple of page) */
++	create->iovs[0].base = (intptr_t)mem;
++	create->iovs[0].len  = getpagesize()/2;
++	fd = ioctl(dev, UDMABUF_CREATE, create);
++	if (fd >= 0) {
++		printf("%s: [FAIL]\n", TEST_PREFIX);
++		exit(1);
++	}
++
++	/* should work */
++	create->iovs[0].base = (intptr_t)mem;
++	create->iovs[0].len  = getpagesize() * NUM_PAGES;
++	fd = ioctl(dev, UDMABUF_CREATE, create);
++	if (fd < 0) {
++		printf("%s: [FAIL]\n", TEST_PREFIX);
++		exit(1);
++	}
++	close(fd);
++
++	fprintf(stderr, "%s: ok\n", TEST_PREFIX);
++	close(dev);
++	return 0;
++}
+diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
+index ed3b785bae..19be3ec62d 100644
+--- a/drivers/dma-buf/Kconfig
++++ b/drivers/dma-buf/Kconfig
+@@ -30,4 +30,11 @@ config SW_SYNC
+ 	  WARNING: improper use of this can result in deadlocking kernel
+ 	  drivers from userspace. Intended for test and debug only.
+ 
++config UDMABUF
++	bool "userspace dmabuf misc driver"
++	default n
++	depends on DMA_SHARED_BUFFER
++	---help---
++	  A driver to let userspace turn iovs into dma-bufs.
++
+ endmenu
+diff --git a/drivers/dma-buf/Makefile b/drivers/dma-buf/Makefile
+index c33bf88631..0913a6ccab 100644
+--- a/drivers/dma-buf/Makefile
++++ b/drivers/dma-buf/Makefile
+@@ -1,3 +1,4 @@
+ obj-y := dma-buf.o dma-fence.o dma-fence-array.o reservation.o seqno-fence.o
+ obj-$(CONFIG_SYNC_FILE)		+= sync_file.o
+ obj-$(CONFIG_SW_SYNC)		+= sw_sync.o sync_debug.o
++obj-$(CONFIG_UDMABUF)		+= udmabuf.o
+diff --git a/tools/testing/selftests/drivers/dma-buf/Makefile b/tools/testing/selftests/drivers/dma-buf/Makefile
+new file mode 100644
+index 0000000000..4154c3d7aa
+--- /dev/null
++++ b/tools/testing/selftests/drivers/dma-buf/Makefile
+@@ -0,0 +1,5 @@
++CFLAGS += -I../../../../../usr/include/
++
++TEST_GEN_PROGS := udmabuf
++
++include ../../lib.mk
 -- 
-2.7.4
+2.9.3
