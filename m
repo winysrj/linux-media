@@ -1,82 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f176.google.com ([209.85.217.176]:38038 "EHLO
-        mail-ua0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751124AbeC0Lxc (ORCPT
+Received: from baptiste.telenet-ops.be ([195.130.132.51]:49186 "EHLO
+        baptiste.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753211AbeCPNwy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 07:53:32 -0400
-Received: by mail-ua0-f176.google.com with SMTP id q38so2394463uad.5
-        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 04:53:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+S3egAvOZa5sGdPfO1YPynF06ydPPZLiftyvC33Lb0_CL=m=A@mail.gmail.com>
-References: <CA+S3egAvOZa5sGdPfO1YPynF06ydPPZLiftyvC33Lb0_CL=m=A@mail.gmail.com>
-From: P G <zradu1100@gmail.com>
-Date: Tue, 27 Mar 2018 14:53:31 +0300
-Message-ID: <CA+S3egBhLoH0iR3MSw7b1bXdL+38o5MWi3pe26PDsNUEiSSEMg@mail.gmail.com>
-Subject: Re: FM radio (SAA7134)
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Fri, 16 Mar 2018 09:52:54 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v2 14/21] mtd: Remove depends on HAS_DMA in case of platform dependency
+Date: Fri, 16 Mar 2018 14:51:47 +0100
+Message-Id: <1521208314-4783-15-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I do not know if this is the problem but:
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-   As per V4L2 specifications VIDIOC_S_FREQUENCY ioctl expects tuning
-   frequency in units of 62.5 KHz, or if the struct v4l2_tuner or struct
-   v4l2_modulator capabilities flag V4L2_TUNER_CAP_LOW is set, in units
-   of 62.5 Hz. But FM driver presently handling the frequency in
-   units of 1 KHz
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-   FM driver is not setting V4L2_TUNER_CAP_LOW flag , but its
-returning vtun.rangelow
-   and vtun.rangehigh ranges in HZ . This needs to be corrected in FM driver.
+This simplifies the dependencies, and allows to improve compile-testing.
 
-On Tue, Mar 27, 2018 at 1:52 PM, P G <zradu1100@gmail.com> wrote:
-> I have tuner card, with radio tuner.
->
-> The modules are loaded fine, no errors in dmesg, but radio is having issues.
-> I use radio application from xawtv, and also fm tools, but none of
-> them is working properly.
-> When i fire up radio, it tunes to 1.04MHZ, and i hear sound noise
-> (like when radio isn't tuned). If i tune to another frequency, let's
-> say 88.0Mhz, i hear the radio station sound for 1-2 seconds, and then
-> the tuner tunes back to 1.04Mhz.
-> Same applies for fm tools. I tune with command fm 88.0 on, tuner tunes
-> in the apropriate radio station for a few seconds and then it goes
-> back to noise.
->
-> You can see it here as well:
-> Code:
->
-> v4l2-ctl -d /dev/radio0 --all
->
-> Driver Info (not using libv4l2):
->         Driver name   : saa7134
->         Card type     : ASUSTeK P7131 Hybrid
->         Bus info      : PCI:0000:04:01.0
->         Driver version: 3.13.2
->         Capabilities  : 0x85050015
->                 Video Capture
->                 Video Overlay
->                 VBI Capture
->                 Tuner
->                 Radio
->                 Read/Write
->                 Streaming
->                 Device Capabilities
->         Device Caps   : 0x00050000
->                 Tuner
->                 Radio
-> Priority: 2
-> Frequency for tuner 0: 16640 (1.040000 MHz)
-> Tuner 0:
->         Name                 : Radio
->         Capabilities         : 62.5 Hz stereo freq-bands
->         Frequency range      : 65.000 MHz - 108.000 MHz
->         Signal strength/AFC  : 0%/0
->         Current audio mode   : stereo
->         Available subchannels: mono
->                            mute (bool)   : default=0 value=0
->
-> The frequency of the tuner is 1.040000 MHz, but the range of the tuner
-> is between 65 and 108 as it should be.
-> Does anyone has any idea if is FM driver bug?
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+---
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Drop new dependency of MTD_NAND_MARVELL on HAS_DMA,
+  - Split per subsystem.
+---
+ drivers/mtd/nand/Kconfig    | 8 ++------
+ drivers/mtd/spi-nor/Kconfig | 2 +-
+ 2 files changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index 736ac887303c88ba..55a2f8a2fa90cd87 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -46,7 +46,7 @@ config MTD_NAND_DENALI
+ config MTD_NAND_DENALI_PCI
+         tristate "Support Denali NAND controller on Intel Moorestown"
+ 	select MTD_NAND_DENALI
+-	depends on HAS_DMA && PCI
++	depends on PCI
+         help
+           Enable the driver for NAND flash on Intel Moorestown, using the
+           Denali NAND controller core.
+@@ -184,7 +184,6 @@ config MTD_NAND_S3C2410_CLKSTOP
+ config MTD_NAND_TANGO
+ 	tristate "NAND Flash support for Tango chips"
+ 	depends on ARCH_TANGO || COMPILE_TEST
+-	depends on HAS_DMA
+ 	help
+ 	  Enables the NAND Flash controller on Tango chips.
+ 
+@@ -328,7 +327,7 @@ config MTD_NAND_MARVELL
+ 	tristate "NAND controller support on Marvell boards"
+ 	depends on PXA3xx || ARCH_MMP || PLAT_ORION || ARCH_MVEBU || \
+ 		   COMPILE_TEST
+-	depends on HAS_IOMEM && HAS_DMA
++	depends on HAS_IOMEM
+ 	help
+ 	  This enables the NAND flash controller driver for Marvell boards,
+ 	  including:
+@@ -490,7 +489,6 @@ config MTD_NAND_SH_FLCTL
+ 	tristate "Support for NAND on Renesas SuperH FLCTL"
+ 	depends on SUPERH || COMPILE_TEST
+ 	depends on HAS_IOMEM
+-	depends on HAS_DMA
+ 	help
+ 	  Several Renesas SuperH CPU has FLCTL. This option enables support
+ 	  for NAND Flash using FLCTL.
+@@ -558,7 +556,6 @@ config MTD_NAND_SUNXI
+ config MTD_NAND_HISI504
+ 	tristate "Support for NAND controller on Hisilicon SoC Hip04"
+ 	depends on ARCH_HISI || COMPILE_TEST
+-	depends on HAS_DMA
+ 	help
+ 	  Enables support for NAND controller on Hisilicon SoC Hip04.
+ 
+@@ -572,7 +569,6 @@ config MTD_NAND_QCOM
+ config MTD_NAND_MTK
+ 	tristate "Support for NAND controller on MTK SoCs"
+ 	depends on ARCH_MEDIATEK || COMPILE_TEST
+-	depends on HAS_DMA
+ 	help
+ 	  Enables support for NAND controller on MTK SoCs.
+ 	  This controller is found on mt27xx, mt81xx, mt65xx SoCs.
+diff --git a/drivers/mtd/spi-nor/Kconfig b/drivers/mtd/spi-nor/Kconfig
+index 89da88e591215db1..c493b8230a38c059 100644
+--- a/drivers/mtd/spi-nor/Kconfig
++++ b/drivers/mtd/spi-nor/Kconfig
+@@ -71,7 +71,7 @@ config SPI_FSL_QUADSPI
+ config SPI_HISI_SFC
+ 	tristate "Hisilicon SPI-NOR Flash Controller(SFC)"
+ 	depends on ARCH_HISI || COMPILE_TEST
+-	depends on HAS_IOMEM && HAS_DMA
++	depends on HAS_IOMEM
+ 	help
+ 	  This enables support for hisilicon SPI-NOR flash controller.
+ 
+-- 
+2.7.4
