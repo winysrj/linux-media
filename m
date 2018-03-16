@@ -1,84 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36151 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753472AbeC1OBr (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34030 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751348AbeCPNUz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 26/29] vim2m: use workqueue
-Date: Wed, 28 Mar 2018 16:01:37 +0200
-Message-Id: <20180328140140.42096-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
-References: <20180328140140.42096-1-hverkuil@xs4all.nl>
+        Fri, 16 Mar 2018 09:20:55 -0400
+Received: by mail-wm0-f65.google.com with SMTP id a20so2732540wmd.1
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 06:20:55 -0700 (PDT)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Subject: [PATCH 3/5] drm/ttm: remove the backing store if no placement is given
+Date: Fri, 16 Mar 2018 14:20:47 +0100
+Message-Id: <20180316132049.1748-4-christian.koenig@amd.com>
+In-Reply-To: <20180316132049.1748-1-christian.koenig@amd.com>
+References: <20180316132049.1748-1-christian.koenig@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Pipeline removal of the BOs backing store when the placement is given
+during validation.
 
-v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-interrupt context. Switch to a workqueue instead.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Christian König <christian.koenig@amd.com>
 ---
- drivers/media/platform/vim2m.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/ttm/ttm_bo.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index ef970434af13..9b18b32c255d 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -150,6 +150,7 @@ struct vim2m_dev {
- 	spinlock_t		irqlock;
+diff --git a/drivers/gpu/drm/ttm/ttm_bo.c b/drivers/gpu/drm/ttm/ttm_bo.c
+index 98e06f8bf23b..17e821f01d0a 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo.c
++++ b/drivers/gpu/drm/ttm/ttm_bo.c
+@@ -1078,6 +1078,18 @@ int ttm_bo_validate(struct ttm_buffer_object *bo,
+ 	uint32_t new_flags;
  
- 	struct timer_list	timer;
-+	struct work_struct	work_run;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
- };
-@@ -392,9 +393,10 @@ static void device_run(void *priv)
- 	schedule_irq(dev, ctx->transtime);
- }
- 
--static void device_isr(struct timer_list *t)
-+static void device_work(struct work_struct *w)
- {
--	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+	struct vim2m_dev *vim2m_dev =
-+		container_of(w, struct vim2m_dev, work_run);
- 	struct vim2m_ctx *curr_ctx;
- 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
-@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
- 	}
- }
- 
-+static void device_isr(struct timer_list *t)
-+{
-+	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
+ 	reservation_object_assert_held(bo->resv);
 +
-+	schedule_work(&vim2m_dev->work_run);
-+}
++	/*
++	 * Remove the backing store if no placement is given.
++	 */
++	if (!placement->num_placement && !placement->num_busy_placement) {
++		ret = ttm_bo_pipeline_gutting(bo);
++		if (ret)
++			return ret;
 +
- /*
-  * video ioctls
-  */
-@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long flags;
- 
-+	flush_scheduled_work();
- 	for (;;) {
- 		if (V4L2_TYPE_IS_OUTPUT(q->type))
- 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd = &dev->vfd;
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	INIT_WORK(&dev->work_run, device_work);
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	dev->mdev.dev = &pdev->dev;
++		return ttm_tt_create(bo, false);
++	}
++
+ 	/*
+ 	 * Check whether we need to move buffer.
+ 	 */
 -- 
-2.15.1
+2.14.1
