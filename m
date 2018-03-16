@@ -1,196 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:37999 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753386AbeCVJex (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Mar 2018 05:34:53 -0400
-Date: Thu, 22 Mar 2018 17:34:15 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 238f694e1b7f8297f1256c57e41f69c39576c9b4
-Message-ID: <5ab37897.4ttl/ZvEWH1VxXzt%fengguang.wu@intel.com>
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:34565 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751094AbeCPEVR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Mar 2018 00:21:17 -0400
+Received: by mail-ua0-f196.google.com with SMTP id m43so5809866uah.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 21:21:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
+References: <1521108052-26861-1-git-send-email-kieran.bingham@ideasonboard.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 15 Mar 2018 21:21:15 -0700
+Message-ID: <CAGXu5jJETok21C7Au=+hh+1jMwTOqULXpL1QF5S2b_i-CoeoQw@mail.gmail.com>
+Subject: Re: [PATCH][RFC] kernel.h: provide array iterator
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Ian Abbott <abbotti@mev.co.uk>,
+        Julia Lawall <julia.lawall@lip6.fr>, cocci@systeme.lip6.fr
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 238f694e1b7f8297f1256c57e41f69c39576c9b4  media: v4l2-common: fix a compilation breakage
+On Thu, Mar 15, 2018 at 3:00 AM, Kieran Bingham
+<kieran.bingham@ideasonboard.com> wrote:
+> Simplify array iteration with a helper to iterate each entry in an array.
+> Utilise the existing ARRAY_SIZE macro to identify the length of the array
+> and pointer arithmetic to process each item as a for loop.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> ---
+>  include/linux/kernel.h | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>
+> The use of static arrays to store data is a common use case throughout the
+> kernel. Along with that is the obvious need to iterate that data.
+>
+> In fact there are just shy of 5000 instances of iterating a static array:
+>         git grep "for .*ARRAY_SIZE" | wc -l
+>         4943
 
-elapsed time: 172m
+I suspect the main question is "Does this macro make the code easier to read?"
 
-configs tested: 166
+I think it does, and we have other kinds of iterators like this in the
+kernel already. Would it be worth building a Coccinelle script to do
+the 5000 replacements?
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+-Kees
 
-blackfin                            defconfig
-ia64                                defconfig
-mips                                defconfig
-x86_64                 randconfig-a0-03221102
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-i386                   randconfig-c0-03221059
-x86_64                randconfig-in0-03221058
-x86_64                randconfig-it0-03221059
-i386                               tinyconfig
-i386                   randconfig-x013-201811
-i386                   randconfig-x014-201811
-i386                   randconfig-x012-201811
-i386                   randconfig-x015-201811
-i386                   randconfig-x016-201811
-i386                   randconfig-x019-201811
-i386                   randconfig-x010-201811
-i386                   randconfig-x018-201811
-i386                   randconfig-x011-201811
-i386                   randconfig-x017-201811
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-i386                   randconfig-n0-03221105
-ia64                             alldefconfig
-ia64                              allnoconfig
-i386                   randconfig-i0-03221101
-i386                   randconfig-i1-03221101
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-s390                        default_defconfig
-x86_64                 randconfig-g0-03221106
-arm                              allmodconfig
-arm                                      arm5
-arm                                     arm67
-arm                       imx_v6_v7_defconfig
-arm                          ixp4xx_defconfig
-arm                        mvebu_v7_defconfig
-arm                       omap2plus_defconfig
-arm                                    sa1100
-arm                                   samsung
-arm                                        sh
-arm                           tegra_defconfig
-arm64                            alldefconfig
-arm64                            allmodconfig
-x86_64                                  kexec
-x86_64                                   rhel
-x86_64                               rhel-7.2
-i386                   randconfig-a0-03221107
-i386                   randconfig-a1-03221107
-x86_64                 randconfig-s0-03221107
-x86_64                 randconfig-s1-03221107
-alpha                               defconfig
-parisc                            allnoconfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-blackfin                BF526-EZBRD_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                  TCM-BF537_defconfig
-cris                 etrax-100lx_v2_defconfig
-sh                                  defconfig
-x86_64                 randconfig-x010-201811
-x86_64                 randconfig-x013-201811
-x86_64                 randconfig-x014-201811
-x86_64                 randconfig-x019-201811
-x86_64                 randconfig-x011-201811
-x86_64                 randconfig-x015-201811
-x86_64                 randconfig-x018-201811
-x86_64                 randconfig-x016-201811
-x86_64                 randconfig-x017-201811
-x86_64                 randconfig-x012-201811
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-i386                   randconfig-s0-03221113
-i386                   randconfig-s1-03221113
-x86_64                 randconfig-s3-03221113
-x86_64                 randconfig-s4-03221113
-x86_64                 randconfig-s5-03221113
-i386                             allmodconfig
-x86_64                 randconfig-i0-03221103
-i386                   randconfig-b0-03221103
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-i386                   randconfig-h0-03221100
-i386                   randconfig-h1-03221100
-x86_64                randconfig-ne0-03221101
-x86_64                 randconfig-h0-03221101
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                           allmodconfig
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                                     txx9
-x86_64                randconfig-ws0-03221103
-c6x                        evmc6678_defconfig
-h8300                    h8300h-sim_defconfig
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-nios2                         10m50_defconfig
-score                      spct6600_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-arm                               allnoconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-arm64                               defconfig
-i386                   randconfig-x073-201811
-i386                   randconfig-x075-201811
-i386                   randconfig-x071-201811
-i386                   randconfig-x076-201811
-i386                   randconfig-x079-201811
-i386                   randconfig-x070-201811
-i386                   randconfig-x077-201811
-i386                   randconfig-x074-201811
-i386                   randconfig-x078-201811
-i386                   randconfig-x072-201811
-x86_64               randconfig-x008-03221059
-x86_64               randconfig-x003-03221059
-x86_64               randconfig-x001-03221059
-x86_64               randconfig-x004-03221059
-x86_64               randconfig-x006-03221059
-x86_64               randconfig-x002-03221059
-x86_64               randconfig-x007-03221059
-x86_64               randconfig-x000-03221059
-x86_64               randconfig-x009-03221059
-x86_64               randconfig-x005-03221059
-x86_64                 randconfig-r0-03221059
-i386                   randconfig-x006-201811
-i386                   randconfig-x000-201811
-i386                   randconfig-x008-201811
-i386                   randconfig-x004-201811
-i386                   randconfig-x009-201811
-i386                   randconfig-x003-201811
-i386                   randconfig-x005-201811
-i386                   randconfig-x002-201811
-i386                   randconfig-x001-201811
-i386                   randconfig-x007-201811
-i386                             alldefconfig
-i386                              allnoconfig
-i386                                defconfig
+>
+> When working on the UVC driver - I found that I needed to split one such
+> iteration into two parts, and at the same time felt that this could be
+> refactored to be cleaner / easier to read.
+>
+> I do however worry that this simple short patch might not be desired or could
+> also be heavily bikeshedded due to it's potential wide spread use (though
+> perhaps that would be a good thing to have more users) ...  but here it is,
+> along with an example usage below which is part of a separate series.
+>
+> The aim is to simplify iteration on static arrays, in the same way that we have
+> iterators for lists. The use of the ARRAY_SIZE macro, provides all the
+> protections given by "__must_be_array(arr)" to this macro too.
+>
+> Regards
+>
+> Kieran
+>
+> =============================================================================
+> Example Usage from a pending UVC development:
+>
+> +#define for_each_uvc_urb(uvc_urb, uvc_streaming) \
+> +       for_each_array_element(uvc_urb, uvc_streaming->uvc_urb)
+>
+>  /*
+>   * Uninitialize isochronous/bulk URBs and free transfer buffers.
+>   */
+>  static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
+>  {
+> -       struct urb *urb;
+> -       unsigned int i;
+> +       struct uvc_urb *uvc_urb;
+>
+>         uvc_video_stats_stop(stream);
+>
+> -       for (i = 0; i < UVC_URBS; ++i) {
+> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
+> +       for_each_uvc_urb(uvc_urb, stream)
+> +               usb_kill_urb(uvc_urb->urb);
+>
+> -               urb = uvc_urb->urb;
+> -               if (urb == NULL)
+> -                       continue;
+> +       flush_workqueue(stream->async_wq);
+>
+> -               usb_kill_urb(urb);
+> -               usb_free_urb(urb);
+> +       for_each_uvc_urb(uvc_urb, stream) {
+> +               usb_free_urb(uvc_urb->urb);
+>                 uvc_urb->urb = NULL;
+>         }
+>
+>         if (free_buffers)
+>                 uvc_free_urb_buffers(stream);
+>  }
+> =============================================================================
+>
+>
+>
+>
+> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+> index ce51455e2adf..95d7dae248b7 100644
+> --- a/include/linux/kernel.h
+> +++ b/include/linux/kernel.h
+> @@ -70,6 +70,16 @@
+>   */
+>  #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+>
+> +/**
+> + * for_each_array_element - Iterate all items in an array
+> + * @elem: pointer of array type for iteration cursor
+> + * @array: array to be iterated
+> + */
+> +#define for_each_array_element(elem, array) \
+> +       for (elem = &(array)[0]; \
+> +            elem < &(array)[ARRAY_SIZE(array)]; \
+> +            ++elem)
+> +
+>  #define u64_to_user_ptr(x) (           \
+>  {                                      \
+>         typecheck(u64, x);              \
+> --
+> 2.7.4
+>
 
-Thanks,
-Fengguang
+
+
+-- 
+Kees Cook
+Pixel Security
