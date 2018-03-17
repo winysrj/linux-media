@@ -1,72 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f176.google.com ([209.85.217.176]:39991 "EHLO
-        mail-ua0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752654AbeCFDDD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2018 22:03:03 -0500
-Received: by mail-ua0-f176.google.com with SMTP id c14so12066427uak.7
-        for <linux-media@vger.kernel.org>; Mon, 05 Mar 2018 19:03:03 -0800 (PST)
-Received: from mail-ua0-f176.google.com (mail-ua0-f176.google.com. [209.85.217.176])
-        by smtp.gmail.com with ESMTPSA id k17sm422889uaf.44.2018.03.05.19.03.01
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 05 Mar 2018 19:03:01 -0800 (PST)
-Received: by mail-ua0-f176.google.com with SMTP id q12so2476658uae.4
-        for <linux-media@vger.kernel.org>; Mon, 05 Mar 2018 19:03:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <d91922a4-656a-1998-6176-592f343aee5a@rock-chips.com>
-References: <1519893856-4738-1-git-send-email-zhengsq@rock-chips.com>
- <CAAFQd5AteVDQgHaov2Jqjbx5bAjmJJiXv-7R0HG+AcE3GH-JTw@mail.gmail.com> <d91922a4-656a-1998-6176-592f343aee5a@rock-chips.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 6 Mar 2018 12:02:40 +0900
-Message-ID: <CAAFQd5BFthOWqg4Bidhn2qK+cKvva2yrDeZEYvnWukWN=FhRDg@mail.gmail.com>
-Subject: Re: [PATCH] media: ov2685: Not delay latch for gain
-To: Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:35149 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753450AbeCQP2h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Mar 2018 11:28:37 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1 3/5] media: staging: tegra-vde: Correct minimum size of U/V planes
+Date: Sat, 17 Mar 2018 18:28:13 +0300
+Message-Id: <419bd84d9a3e098d5796a6ce74be25be5381f544.1521300358.git.digetx@gmail.com>
+In-Reply-To: <cover.1521300358.git.digetx@gmail.com>
+References: <cover.1521300358.git.digetx@gmail.com>
+In-Reply-To: <cover.1521300358.git.digetx@gmail.com>
+References: <cover.1521300358.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 1, 2018 at 7:14 PM, Shunqian Zheng <zhengsq@rock-chips.com> wro=
-te:
-> Hi Tomasz,
->
->
-> On 2018=E5=B9=B403=E6=9C=8801=E6=97=A5 16:53, Tomasz Figa wrote:
->>
->> Hi Shunqian,
->>
->> On Thu, Mar 1, 2018 at 5:44 PM, Shunqian Zheng <zhengsq@rock-chips.com>
->> wrote:
->>>
->>> Update the register 0x3503 to use 'no delay latch' for gain.
->>> This makes sensor to output the first frame as normal rather
->>> than a very dark one.
->>
->> I'm not 100% sure on how this setting works, but wouldn't it mean that
->> setting the gain mid-frame would result in half of the frame having
->> old gain and another half new? Depending how this works, perhaps we
->> should set this during initial register settings, but reset after
->> streaming starts?
->
-> Thank you.
->
-> I'm not quite sure too. Then I try to change gain during capture by:
->    capture_10_frames.sh & while sleep .01; do v4l2-ctl -d /dev/video4
-> --set-ctrl=3Danalogue_gain=3D54; sleep .01; v4l2-ctl -d /dev/video4
-> --set-ctrl=3Danalogue_gain=3D1024; done
->
-> The gain setting takes effect for every single frame, not in mid-frame fr=
-om
-> my test.
+Stride of U/V planes must be aligned to 16 bytes (2 macroblocks). This
+needs to be taken into account, otherwise it is possible to get a silent
+memory corruption if dmabuf size is less than the size of decoded video
+frame.
 
-Alright. I wasn't able to confirm the exact meaning of this bit myself
-unfortunately, but if that's the behavior you're seeing, we should be
-fine.
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/staging/media/tegra-vde/tegra-vde.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-
-Best regards,
-Tomasz
+diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
+index 14899c887d58..94b4db55cdb5 100644
+--- a/drivers/staging/media/tegra-vde/tegra-vde.c
++++ b/drivers/staging/media/tegra-vde/tegra-vde.c
+@@ -602,12 +602,12 @@ static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
+ 					     struct tegra_vde_h264_frame *src,
+ 					     enum dma_data_direction dma_dir,
+ 					     bool baseline_profile,
+-					     size_t csize)
++					     size_t lsize, size_t csize)
+ {
+ 	int err;
+ 
+ 	err = tegra_vde_attach_dmabuf(dev, src->y_fd,
+-				      src->y_offset, csize * 4, SZ_256,
++				      src->y_offset, lsize, SZ_256,
+ 				      &frame->y_dmabuf_attachment,
+ 				      &frame->y_addr,
+ 				      &frame->y_sgt,
+@@ -773,9 +773,11 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	enum dma_data_direction dma_dir;
+ 	dma_addr_t bitstream_data_addr;
+ 	dma_addr_t bsev_ptr;
++	size_t lsize, csize;
+ 	size_t bitstream_data_size;
+ 	unsigned int macroblocks_nb;
+ 	unsigned int read_bytes;
++	unsigned int cstride;
+ 	unsigned int i;
+ 	long timeout;
+ 	int ret, err;
+@@ -814,6 +816,10 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 		goto free_dpb_frames;
+ 	}
+ 
++	cstride = ALIGN(ctx.pic_width_in_mbs * 8, 16);
++	csize = cstride * ctx.pic_height_in_mbs * 8;
++	lsize = macroblocks_nb * 256;
++
+ 	for (i = 0; i < ctx.dpb_frames_nb; i++) {
+ 		ret = tegra_vde_validate_frame(dev, &frames[i]);
+ 		if (ret)
+@@ -827,7 +833,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 		ret = tegra_vde_attach_dmabufs_to_frame(dev, &dpb_frames[i],
+ 							&frames[i], dma_dir,
+ 							ctx.baseline_profile,
+-							macroblocks_nb * 64);
++							lsize, csize);
+ 		if (ret)
+ 			goto release_dpb_frames;
+ 	}
+-- 
+2.16.1
