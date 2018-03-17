@@ -1,36 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:59036 "EHLO
-        resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933728AbeCGQyW (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:41122 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752077AbeCQP2d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 11:54:22 -0500
-To: linux-media@vger.kernel.org
-From: Ron Economos <w6rz@comcast.net>
-Subject: Re: [PATCH] Fix for hanging si2168 in PCTV 292e, making code match
-Message-ID: <420dbd99-30f7-7d4b-5af0-36065b5a3434@comcast.net>
-Date: Wed, 7 Mar 2018 08:54:20 -0800
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Sat, 17 Mar 2018 11:28:33 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v1 0/5] Tegra Video Decoder patches for 4.17
+Date: Sat, 17 Mar 2018 18:28:10 +0300
+Message-Id: <cover.1521300358.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm almost 100% sure that the patch I submitted (and was committed in 
-Linux 4.16-rc1) for the si2168 fixes Nigel's issue. I would suggest that 
-Nigel's patch be retired.
+Hello media maintainers,
 
-https://github.com/torvalds/linux/blob/master/drivers/media/dvb-frontends/si2168.c
+I've been postponing sending out these patches for awhile because I was
+waiting for a review for the Tegra memory controller patches that would
+allow to reset VDE HW properly and was hoping that they will get into 4.17,
+but it's getting quite late now and seems 4.18 is the best bet now for the
+proper VDE reset. So here is a small patchset that addresses couple of
+minor issues that I've spotted over time.
 
-media: [RESEND] media: dvb-frontends: Add delay to Si2168 restart
+Dmitry Osipenko (5):
+  media: staging: tegra-vde: Align bitstream size to 16K
+  media: staging: tegra-vde: Silence some of checkpatch warnings
+  media: staging: tegra-vde: Correct minimum size of U/V planes
+  media: staging: tegra-vde: Do not handle spurious interrupts
+  media: staging: tegra-vde: Correct included header
 
-On faster CPUs a delay is required after the resume command and the 
-restart command. Without the delay, the restart command often returns 
--EREMOTEIO and the Si2168 does not restart. Note that this patch fixes 
-the same issue as https://patchwork.linuxtv.org/patch/44304/, but I 
-believe my udelay() fix addresses the actual problem.
+ drivers/staging/media/tegra-vde/tegra-vde.c | 63 ++++++++++++++++-------------
+ 1 file changed, 34 insertions(+), 29 deletions(-)
 
-Signed-off-by: Ron Economos <w6rz@comcast.net>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Ron
+-- 
+2.16.1
