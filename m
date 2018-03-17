@@ -1,74 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:33590 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750820AbeC2Jcr (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42314 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750746AbeCQEtg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 05:32:47 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset="utf-8"
-Message-id: <5ABCB2BC.6050408@samsung.com>
-Date: Thu, 29 Mar 2018 18:32:44 +0900
-From: Inki Dae <inki.dae@samsung.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Brian Warner <brian.warner@samsung.com>
-Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
- 3.18
-In-reply-to: <20180329070045.GA8759@kroah.com>
-References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
-        <cover.1522260310.git.mchehab@s-opensource.com> <5ABC23A0.20907@samsung.com>
-        <20180329042558.GA9003@kroah.com> <5ABC8A3A.5030602@samsung.com>
-        <20180329070045.GA8759@kroah.com>
+        Sat, 17 Mar 2018 00:49:36 -0400
+Message-ID: <c3ce18205442f1df8a8397bcef589738@smtp-cloud9.xs4all.net>
+Date: Sat, 17 Mar 2018 05:49:34 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-2018년 03월 29일 16:00에 Greg KH 이(가) 쓴 글:
-> On Thu, Mar 29, 2018 at 03:39:54PM +0900, Inki Dae wrote:
->> 2018년 03월 29일 13:25에 Greg KH 이(가) 쓴 글:
->>> On Thu, Mar 29, 2018 at 08:22:08AM +0900, Inki Dae wrote:
->>>> Really thanks for doing this. :) There would be many users who use
->>>> Linux-3.18 for their products yet.
->>>
->>> For new products?  They really should not be.  The kernel is officially
->>
->> Really no. Old products would still be using Linux-3.18 kernel without
->> kernel upgrade. For new product, most of SoC vendors will use
->> Linux-4.x including us.
->> Actually, we are preparing for kernel upgrade for some devices even
->> some old devices (to Linux-4.14-LTS) and almost done.
-> 
-> That is great to hear.
-> 
->>> What is keeping you on 3.18.y and not allowing you to move to a newer
->>> kernel version?
->>
->> We also want to move to latest kernel version. However, there is a case that we cannot upgrade the kernel.
->> In case that SoC vendor never share firmwares and relevant data
->> sheets, we cannot upgrade the kernel. However, we have to resolve the
->> security issues for users of this device.
-> 
-> It sounds like you need to be getting those security updates from those
-> SoC vendors, as they are the ones you are paying for support for that
+date:			Sat Mar 17 05:00:10 CET 2018
+media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
+media_build git hash:	98ee868d3c522877a7a32b05a648a3bab7a8dc75
+v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-It's true but some open source developers like me who use vendor kernel without vendor's support will never get the security updates from them.
-So if you merge CVE patches even through this kernel is already EOL then many open source developers would be glad. :)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.98-i686: ERRORS
+linux-3.2.98-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.53-i686: WARNINGS
+linux-3.16.53-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.93-i686: WARNINGS
+linux-3.18.93-x86_64: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.49-i686: WARNINGS
+linux-4.1.49-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.115-i686: OK
+linux-4.4.115-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-i686: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-i686: OK
+linux-4.8-x86_64: WARNINGS
+linux-4.9.80-i686: OK
+linux-4.9.80-x86_64: OK
+linux-4.10.14-i686: OK
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-i686: OK
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-i686: OK
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-i686: OK
+linux-4.13-x86_64: OK
+linux-4.14.17-i686: OK
+linux-4.14.17-x86_64: OK
+linux-4.15.2-i686: WARNINGS
+linux-4.15.2-x86_64: WARNINGS
+linux-4.16-rc1-i686: WARNINGS
+linux-4.16-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-Thanks,
-Inki Dae
+Detailed results are available here:
 
-> kernel version that they are forcing you to stay on.
-> 
-> good luck!
-> 
-> greg k-h
-> 
-> 
-> 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
