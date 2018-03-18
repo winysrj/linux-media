@@ -1,140 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57147 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750784AbeCMEsC (ORCPT
+Received: from www242.your-server.de ([188.40.28.22]:51697 "EHLO
+        www242.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752092AbeCRNEN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 00:48:02 -0400
-Message-ID: <c49ef886ce386d1c67cc1c5646408007@smtp-cloud9.xs4all.net>
-Date: Tue, 13 Mar 2018 05:47:59 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Sun, 18 Mar 2018 09:04:13 -0400
+From: Rainer Keller <mail@rainerkeller.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, Rainer Keller <mail@rainerkeller.de>
+Subject: [PATCH] media: dvb: add alternative USB PID for Hauppauge WinTV-soloHD
+Date: Sun, 18 Mar 2018 13:40:16 +0100
+Message-Id: <20180318124016.2229-1-mail@rainerkeller.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Newer DVB receivers of this type have a different USB PID.
 
-Results of the daily build of media_tree:
+Signed-off-by: Rainer Keller <mail@rainerkeller.de>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 2 ++
+ include/media/dvb-usb-ids.h             | 1 +
+ 2 files changed, 3 insertions(+)
 
-date:			Tue Mar 13 05:00:10 CET 2018
-media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	2a1900fddab68c7686e6b146ff91e02b32675fae
-v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: WARNINGS
-linux-4.15.2-x86_64: WARNINGS
-linux-4.16-rc1-i686: WARNINGS
-linux-4.16-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 34e16f6ab4ac..adb0d6b2e8a3 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2611,6 +2611,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM28178_BOARD_PCTV_292E },
+ 	{ USB_DEVICE(0x2040, 0x0264), /* Hauppauge WinTV-soloHD */
+ 			.driver_info = EM28178_BOARD_PCTV_292E },
++	{ USB_DEVICE(0x2040, 0x8268), /* Hauppauge WinTV-soloHD alt. PID */
++			.driver_info = EM28178_BOARD_PCTV_292E },
+ 	{ USB_DEVICE(0x0413, 0x6f07),
+ 			.driver_info = EM2861_BOARD_LEADTEK_VC100 },
+ 	{ USB_DEVICE(0xeb1a, 0x8179),
+diff --git a/include/media/dvb-usb-ids.h b/include/media/dvb-usb-ids.h
+index 28e2be5c8a98..f9e73b4a6e89 100644
+--- a/include/media/dvb-usb-ids.h
++++ b/include/media/dvb-usb-ids.h
+@@ -418,6 +418,7 @@
+ #define USB_PID_SVEON_STV27                             0xd3af
+ #define USB_PID_TURBOX_DTT_2000                         0xd3a4
+ #define USB_PID_WINTV_SOLOHD                            0x0264
++#define USB_PID_WINTV_SOLOHD_2                          0x8268
+ #define USB_PID_EVOLVEO_XTRATV_STICK			0xa115
+ #define USB_PID_HAMA_DVBT_HYBRID			0x2758
+ #define USB_PID_XBOX_ONE_TUNER                          0x02d5
+-- 
+2.16.1
