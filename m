@@ -1,93 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:34944 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032944AbeCAQnX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 11:43:23 -0500
-MIME-Version: 1.0
-In-Reply-To: <1519921628.3034.5.camel@pengutronix.de>
-References: <20180301040939.GA13274@embeddedgus> <CAOMZO5B_UGZ3De1UjUXzU6-wGMgRrRJVWZ8z+a+HoCpwWkeBwg@mail.gmail.com>
- <1519921628.3034.5.camel@pengutronix.de>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Thu, 1 Mar 2018 13:43:22 -0300
-Message-ID: <CAOMZO5C93iuJSPw48vare5qCHwZiDDOva6X0bZ=xVTr1XJRPbg@mail.gmail.com>
-Subject: Re: [PATCH] staging/imx: Fix inconsistent IS_ERR and PTR_ERR
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:36587 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754088AbeCRSqQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Mar 2018 14:46:16 -0400
+Received: by mail-lf0-f66.google.com with SMTP id z143-v6so15969975lff.3
+        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2018 11:46:16 -0700 (PDT)
+Subject: Re: [PATCH v2 10/21] lightnvm: Remove depends on HAS_DMA in case of
+ platform dependency
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Content-Type: text/plain; charset="UTF-8"
+        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+ <1521208314-4783-11-git-send-email-geert@linux-m68k.org>
+From: =?UTF-8?Q?Matias_Bj=c3=b8rling?= <mb@lightnvm.io>
+Message-ID: <319a2b17-f08e-7219-cf5d-08e2df81d55c@lightnvm.io>
+Date: Sun, 18 Mar 2018 19:46:11 +0100
+MIME-Version: 1.0
+In-Reply-To: <1521208314-4783-11-git-send-email-geert@linux-m68k.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 1, 2018 at 1:27 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+On 03/16/2018 02:51 PM, Geert Uytterhoeven wrote:
+> Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+> symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+> In most cases this other symbol is an architecture or platform specific
+> symbol, or PCI.
+> 
+> Generic symbols and drivers without platform dependencies keep their
+> dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+> cannot work anyway.
+> 
+> This simplifies the dependencies, and allows to improve compile-testing.
+> 
+> Notes:
+>    - FSL_FMAN keeps its dependency on HAS_DMA, as it calls set_dma_ops(),
+>      which does not exist if HAS_DMA=n (Do we need a dummy? The use of
+>      set_dma_ops() in this driver is questionable),
+>    - SND_SOC_LPASS_IPQ806X and SND_SOC_LPASS_PLATFORM loose their
+>      dependency on HAS_DMA, as they are selected from
+>      SND_SOC_APQ8016_SBC.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Reviewed-by: Mark Brown <broonie@kernel.org>
+> Acked-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+> v2:
+>    - Add Reviewed-by, Acked-by,
+>    - Drop RFC state,
+>    - Split per subsystem.
+> ---
+>   drivers/lightnvm/Kconfig | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/lightnvm/Kconfig b/drivers/lightnvm/Kconfig
+> index 10c08982185a572f..9c03f35d9df113c6 100644
+> --- a/drivers/lightnvm/Kconfig
+> +++ b/drivers/lightnvm/Kconfig
+> @@ -4,7 +4,7 @@
+>   
+>   menuconfig NVM
+>   	bool "Open-Channel SSD target support"
+> -	depends on BLOCK && HAS_DMA && PCI
+> +	depends on BLOCK && PCI
+>   	select BLK_DEV_NVME
+>   	help
+>   	  Say Y here to get to enable Open-channel SSDs.
+> 
 
-> Oh, this only works for csi ports that have pinctrl in their csi port
-> node, like:
->
-> &ipu1_csi0 {
->         pinctrl-names = "default";
->         pinctrl-0 = <&pinctrl_ipu1_csi0>;
-> };
+Looks good.
 
-This is the case for imx6qdl-sabresd.dtsi and even in this case
-devm_pinctrl_get_select_default() fails
-
-> pinctrl would have to be moved out of the csi port nodes, for example
-> into their parent ipu nodes, or maybe more correctly, into the video mux
-> nodes in each device tree.
-
-Tried it like this:
-
---- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-@@ -154,12 +154,9 @@
- };
-
- &ipu1_csi0_mux_from_parallel_sensor {
--       remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
--};
--
--&ipu1_csi0 {
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+       remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
- };
-
- &mipi_csi {
-
-
-but still get the devm_pinctrl_get_select_default() failure.
-
-I was not able to change the dts so that
-devm_pinctrl_get_select_default() succeeds.
-
-If you agree I can send the following change:
-
-diff --git a/drivers/staging/media/imx/imx-media-csi.c
-b/drivers/staging/media/imx/imx-media-csi.c
-index 5a195f8..c40f786 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1797,11 +1797,8 @@ static int imx_csi_probe(struct platform_device *pdev)
-         */
-        priv->dev->of_node = pdata->of_node;
-        pinctrl = devm_pinctrl_get_select_default(priv->dev);
--       if (IS_ERR(pinctrl)) {
--               ret = PTR_ERR(priv->vdev);
--               goto free;
--       }
--
-+       if (IS_ERR(pinctrl))
-+               dev_dbg(priv->dev, "pintrl_get_select_default() failed\n");
-        ret = v4l2_async_register_subdev(&priv->sd);
-        if (ret)
-                goto free;
-
-So that the error is ignored and we still can change the pinctrl values via dts.
-
-What do you think?
+Reviewed-by: Matias Bjørling <mb@lightnvm.io>
