@@ -1,43 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx4-1.i-mecca.net ([65.39.179.63]:36580 "EHLO
-        mail17.adrlist.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751840AbeC1Ibn (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:45098 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755325AbeCSM6Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 04:31:43 -0400
+        Mon, 19 Mar 2018 08:58:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: Thomas Stein <info@mail17.adrlist.net>
-Subject: FW: Neue Kunden
-Date: Wed, 28 Mar 2018 04:31:43 -0400
-Message-ID: <20180328_083143_083557.info@mail17.adrlist.net>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Mime-Version: 1.0
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/5] pixfmt-v4l2-mplane.rst: fix types
+Date: Mon, 19 Mar 2018 13:58:18 +0100
+Message-Id: <20180319125820.31254-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180319125820.31254-1-hverkuil@xs4all.nl>
+References: <20180319125820.31254-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sehr geehrte Damen und Herren, 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-nach unserem Besuch Ihrer Homepage möchten wir Ihnen ein Angebot von Produkten vorstellen, das Ihnen ermöglichen wird, den Verkauf Ihrer Produkte sowie Dienstleistungen deutlich zu erhöhen.
+The v4l2_pix_format_mplane documentation still had 'enum's as types.
+Replace by __u8 and add a reference to the enum.
 
-Ich biete Ihnen den ganz neuen Adressenkatalog der Österreicher Unternehmen an, in dem sich direkte Kontaktdaten der Firmeninhaber und Manager befinden.
+Also put ycbcr_enc and hsv_enc in a union.
 
-Die Datenbanken der Firmen sind in für Sie interessante und relevante Zielgruppen untergliedert.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../media/uapi/v4l/pixfmt-v4l2-mplane.rst          | 36 ++++++++++++++--------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-Die Firmenangaben beinhalten:
-Name der Firma, Ansprechpartner, E-mail Adresse, Tel. + Fax-Nr., PLZ, Ort, Straße etc.
-
-*** 
-1. Österreich 2018 ( 104 000 ) - 149 EUR ( bis zum 28.03.2018 )
-***
-
-Die Verwendungsmöglichkeiten der Datenbanken sind praktisch unbegrenzt und Sie können durch Verwendung 
-der von uns entwickelten Programme des personalisierten Versendens von Angeboten u.ä. mittels
-E-mailing bzw. Fax effektive und sichere Werbekampagnen damit durchführen.
-Bitte informieren Sie sich über die weiteren Details einmal unverbindlich auf unseren Webseite:
-
-http://www.adr-list.net/?page=catalog
-
-
-MfG
-Thomas Stein
-http://www.adr-list.net/?page=catalog 
+diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+index 337e8188caf1..ef52f637d8e9 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
+@@ -55,12 +55,14 @@ describing all planes of that format.
+       - ``pixelformat``
+       - The pixel format. Both single- and multi-planar four character
+ 	codes can be used.
+-    * - enum :c:type:`v4l2_field`
++    * - __u32
+       - ``field``
+-      - See struct :c:type:`v4l2_pix_format`.
+-    * - enum :c:type:`v4l2_colorspace`
++      - Field order, from enum :c:type:`v4l2_field`.
++        See struct :c:type:`v4l2_pix_format`.
++    * - __u32
+       - ``colorspace``
+-      - See struct :c:type:`v4l2_pix_format`.
++      - Colorspace encoding, from enum :c:type:`v4l2_colorspace`.
++        See struct :c:type:`v4l2_pix_format`.
+     * - struct :c:type:`v4l2_plane_pix_format`
+       - ``plane_fmt[VIDEO_MAX_PLANES]``
+       - An array of structures describing format of each plane this pixel
+@@ -73,24 +75,34 @@ describing all planes of that format.
+     * - __u8
+       - ``flags``
+       - Flags set by the application or driver, see :ref:`format-flags`.
+-    * - enum :c:type:`v4l2_ycbcr_encoding`
++    * - union {
++      - (anonymous)
++      -
++    * - __u8
+       - ``ycbcr_enc``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_hsv_encoding`
++    * - __u8
+       - ``hsv_enc``
+-      - This information supplements the ``colorspace`` and must be set by
++      - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_quantization`
++    * - }
++      -
++      -
++    * - __u8
+       - ``quantization``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Quantization range, from enum :c:type:`v4l2_quantization`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_xfer_func`
++    * - __u8
+       - ``xfer_func``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Transfer function, from enum :c:type:`v4l2_xfer_func`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+     * - __u8
+-- 
+2.15.1
