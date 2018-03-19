@@ -1,153 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:38611 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750838AbeCFQjT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 11:39:19 -0500
-Received: by mail-wm0-f65.google.com with SMTP id z9so23355242wmb.3
-        for <linux-media@vger.kernel.org>; Tue, 06 Mar 2018 08:39:18 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at
-Subject: [PATCH 1/4] [media] ddbridge: adapt cxd2099 attach to new i2c_client way
-Date: Tue,  6 Mar 2018 17:39:10 +0100
-Message-Id: <20180306163913.1519-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20180306163913.1519-1-d.scheller.oss@gmail.com>
-References: <20180306163913.1519-1-d.scheller.oss@gmail.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47424 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755096AbeCSM6Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 08:58:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/5] v4l2-mediabus.h: add hsv_enc
+Date: Mon, 19 Mar 2018 13:58:16 +0100
+Message-Id: <20180319125820.31254-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180319125820.31254-1-hverkuil@xs4all.nl>
+References: <20180319125820.31254-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Change the way the cxd2099 hardware is being attached to the new I2C
-client interface way.
+Just like struct v4l2_pix_format add a hsv_enc field to describe
+the HSV encoding. It is in a union with the ycbcr_enc, since it
+is one or the other.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-ci.c | 62 +++++++++++++++++++++++++++++---
- drivers/media/pci/ddbridge/ddbridge.h    |  1 +
- 2 files changed, 58 insertions(+), 5 deletions(-)
+ include/uapi/linux/v4l2-mediabus.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index ed19890710d6..6585ef54ac22 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -172,6 +172,7 @@ static void ci_attach(struct ddb_port *port)
- 	memcpy(&ci->en, &en_templ, sizeof(en_templ));
- 	ci->en.data = ci;
- 	port->en = &ci->en;
-+	port->en_freedata = 1;
- 	ci->port = port;
- 	ci->nr = port->nr - 2;
- }
-@@ -304,6 +305,7 @@ static void ci_xo2_attach(struct ddb_port *port)
- 	memcpy(&ci->en, &en_xo2_templ, sizeof(en_xo2_templ));
- 	ci->en.data = ci;
- 	port->en = &ci->en;
-+	port->en_freedata = 1;
- 	ci->port = port;
- 	ci->nr = port->nr - 2;
- 	ci->port->creg = 0;
-@@ -311,20 +313,58 @@ static void ci_xo2_attach(struct ddb_port *port)
- 	write_creg(ci, 0x08, 0x08);
- }
- 
--static struct cxd2099_cfg cxd_cfg = {
-+static const struct cxd2099_cfg cxd_cfgtmpl = {
- 	.bitrate =  72000,
--	.adr     =  0x40,
- 	.polarity = 1,
- 	.clock_mode = 1,
- 	.max_i2c = 512,
- };
- 
-+static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
-+{
-+	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
-+	struct i2c_client *client;
-+	struct i2c_board_info board_info = {
-+		.type = "cxd2099",
-+		.addr = 0x40,
-+		.platform_data = &cxd_cfg,
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 123a231001a8..52fd6cc9d491 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -24,6 +24,7 @@
+  * @field:	used interlacing type (from enum v4l2_field)
+  * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+  * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
++ * @hsv_enc:	HSV encoding of the data (from enum v4l2_hsv_encoding)
+  * @quantization: quantization of the data (from enum v4l2_quantization)
+  * @xfer_func:  transfer function of the data (from enum v4l2_xfer_func)
+  */
+@@ -33,7 +34,12 @@ struct v4l2_mbus_framefmt {
+ 	__u32			code;
+ 	__u32			field;
+ 	__u32			colorspace;
+-	__u16			ycbcr_enc;
++	union {
++		/* enum v4l2_ycbcr_encoding */
++		__u16		ycbcr_enc;
++		/* enum v4l2_hsv_encoding */
++		__u16		hsv_enc;
 +	};
-+
-+	cxd_cfg.bitrate = bitrate;
-+	cxd_cfg.en = &port->en;
-+
-+	request_module(board_info.type);
-+
-+	client = i2c_new_device(&port->i2c->adap, &board_info);
-+	if (!client || !client->dev.driver)
-+		goto err_ret;
-+
-+	if (!try_module_get(client->dev.driver->owner))
-+		goto err_i2c;
-+
-+	if (!port->en)
-+		goto err_i2c;
-+
-+	port->dvb[0].i2c_client[0] = client;
-+	port->en_freedata = 0;
-+	return 0;
-+
-+err_i2c:
-+	i2c_unregister_device(client);
-+err_ret:
-+	dev_err(port->dev->dev, "CXD2099AR attach failed\n");
-+	return -ENODEV;
-+}
-+
- int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- {
-+	int ret;
-+
- 	switch (port->type) {
- 	case DDB_CI_EXTERNAL_SONY:
--		cxd_cfg.bitrate = bitrate;
--		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
-+		ret = ci_cxd2099_attach(port, bitrate);
-+		if (ret)
-+			return -ENODEV;
- 		break;
- 	case DDB_CI_EXTERNAL_XO2:
- 	case DDB_CI_EXTERNAL_XO2_B:
-@@ -345,11 +385,23 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- 
- void ddb_ci_detach(struct ddb_port *port)
- {
-+	struct i2c_client *client;
-+
- 	if (port->dvb[0].dev)
- 		dvb_unregister_device(port->dvb[0].dev);
- 	if (port->en) {
- 		dvb_ca_en50221_release(port->en);
--		kfree(port->en->data);
-+
-+		client = port->dvb[0].i2c_client[0];
-+		if (client) {
-+			module_put(client->dev.driver->owner);
-+			i2c_unregister_device(client);
-+		}
-+
-+		/* free alloc'ed memory if needed */
-+		if (port->en_freedata)
-+			kfree(port->en->data);
-+
- 		port->en = NULL;
- 	}
- }
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 095457737bc1..f223dc6c9963 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -276,6 +276,7 @@ struct ddb_port {
- 	struct ddb_input      *input[2];
- 	struct ddb_output     *output;
- 	struct dvb_ca_en50221 *en;
-+	u8                     en_freedata;
- 	struct ddb_dvb         dvb[2];
- 	u32                    gap;
- 	u32                    obr;
+ 	__u16			quantization;
+ 	__u16			xfer_func;
+ 	__u16			reserved[11];
 -- 
-2.16.1
+2.15.1
