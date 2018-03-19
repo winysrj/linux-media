@@ -1,63 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40292 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751256AbeC2HAu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 03:00:50 -0400
-Date: Thu, 29 Mar 2018 09:00:45 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Brian Warner <brian.warner@samsung.com>
-Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
- 3.18
-Message-ID: <20180329070045.GA8759@kroah.com>
-References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
- <cover.1522260310.git.mchehab@s-opensource.com>
- <5ABC23A0.20907@samsung.com>
- <20180329042558.GA9003@kroah.com>
- <5ABC8A3A.5030602@samsung.com>
+Received: from osg.samsung.com ([64.30.133.232]:63032 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755407AbeCSKra (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 06:47:30 -0400
+Date: Mon, 19 Mar 2018 07:47:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180319074715.5b700405@vento.lan>
+In-Reply-To: <20180319102354.GA12557@amd>
+References: <20170426132337.GA6482@amd>
+        <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+        <20170508222819.GA14833@amd>
+        <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl>
+        <20170509110440.GC28248@amd>
+        <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
+        <20170516124519.GA25650@amd>
+        <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
+        <20180316205512.GA6069@amd>
+        <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
+        <20180319102354.GA12557@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5ABC8A3A.5030602@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 29, 2018 at 03:39:54PM +0900, Inki Dae wrote:
-> 2018년 03월 29일 13:25에 Greg KH 이(가) 쓴 글:
-> > On Thu, Mar 29, 2018 at 08:22:08AM +0900, Inki Dae wrote:
-> >> Really thanks for doing this. :) There would be many users who use
-> >> Linux-3.18 for their products yet.
+Em Mon, 19 Mar 2018 11:23:54 +0100
+Pavel Machek <pavel@ucw.cz> escreveu:
+
+> Hi!
+> 
+> > I really don't want to add functions for this to libv4l2. That's just a
+> > quick hack. The real solution is to parse this from a config
+> > file. But  
+> 
+> No, this is not a quick hack. These are functions that will eventually
+> be used by the config parser. (Oh and they allow me to use camera on
+> complex hardware, but...).
+> 
+> Hmm, I have mentioned that already. See quoted text below. 
+> 
+> > that is a lot more work and it is something that needs to be designed
+> > properly.
 > > 
-> > For new products?  They really should not be.  The kernel is officially
+> > And that requires someone to put in the time and effort...  
 > 
-> Really no. Old products would still be using Linux-3.18 kernel without
-> kernel upgrade. For new product, most of SoC vendors will use
-> Linux-4.x including us.
-> Actually, we are preparing for kernel upgrade for some devices even
-> some old devices (to Linux-4.14-LTS) and almost done.
-
-That is great to hear.
-
-> > What is keeping you on 3.18.y and not allowing you to move to a newer
-> > kernel version?
+> Which is what I'm trying to do. But some cooperation from your side is
+> needed, too. I acknowledged some kind of parser is needed. I can
+> do that. Are you willing to cooperate?
 > 
-> We also want to move to latest kernel version. However, there is a case that we cannot upgrade the kernel.
-> In case that SoC vendor never share firmwares and relevant data
-> sheets, we cannot upgrade the kernel. However, we have to resolve the
-> security issues for users of this device.
+> But I need your feedback on the parts below. We can bikeshed about the
+> parser later.
+> 
+> Do they look acceptable? Did I hook up right functions in acceptable
+> way?
+> 
+> If so, yes, I can proceed with parser.
+> 
+> Best regards,
+> 							Pavel
 
-It sounds like you need to be getting those security updates from those
-SoC vendors, as they are the ones you are paying for support for that
-kernel version that they are forcing you to stay on.
 
-good luck!
+Pavel,
 
-greg k-h
+I appreciate your efforts of adding support for mc-based devices to
+libv4l.
+
+I guess the main poin that Hans is pointing is that we should take
+extra care in order to avoid adding new symbols to libv4l ABI/API
+without being sure that they'll be needed in long term, as removing
+or changing the API is painful for app developers, and keeping it
+ABI compatible with apps compiled against previous versions of the
+library is very painful for us.
+
+The hole idea is that generic applications shouldn't notice
+if the device is using a mc-based device or not.
+
+Regards,
+Mauro
