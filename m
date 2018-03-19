@@ -1,98 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newton.telenet-ops.be ([195.130.132.45]:45302 "EHLO
-        newton.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751594AbeCPOBa (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53640 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755299AbeCSM6Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 10:01:30 -0400
-Received: from andre.telenet-ops.be (andre.telenet-ops.be [IPv6:2a02:1800:120:4::f00:15])
-        by newton.telenet-ops.be (Postfix) with ESMTPS id 402n392rcqzMqyts
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 14:52:53 +0100 (CET)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v2 05/21] firewire: Remove depends on HAS_DMA in case of platform dependency
-Date: Fri, 16 Mar 2018 14:51:38 +0100
-Message-Id: <1521208314-4783-6-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
-References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+        Mon, 19 Mar 2018 08:58:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/5] subdev-formats.rst: fix incorrect types
+Date: Mon, 19 Mar 2018 13:58:17 +0100
+Message-Id: <20180319125820.31254-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180319125820.31254-1-hverkuil@xs4all.nl>
+References: <20180319125820.31254-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
+The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
 
-This simplifies the dependencies, and allows to improve compile-testing.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/firewire/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+ Documentation/media/uapi/v4l/subdev-formats.rst | 27 +++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/firewire/Kconfig b/drivers/firewire/Kconfig
-index 145974f9662b63e6..4199849e37585181 100644
---- a/drivers/firewire/Kconfig
-+++ b/drivers/firewire/Kconfig
-@@ -1,5 +1,4 @@
- menu "IEEE 1394 (FireWire) support"
--	depends on HAS_DMA
- 	depends on PCI || COMPILE_TEST
- 	# firewire-core does not depend on PCI but is
- 	# not useful without PCI controller driver
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 9fcabe7f9367..a3f30853f8a8 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -37,19 +37,34 @@ Media Bus Formats
+       - Image colorspace, from enum
+ 	:c:type:`v4l2_colorspace`. See
+ 	:ref:`colorspaces` for details.
+-    * - enum :c:type:`v4l2_ycbcr_encoding`
++    * - union {
++      - (anonymous)
++      -
++    * - __u16
+       - ``ycbcr_enc``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
++        This information supplements the ``colorspace`` and must be set by
++	the driver for capture streams and by the application for output
++	streams, see :ref:`colorspaces`.
++    * - __u16
++      - ``hsv_enc``
++      - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_quantization`
++    * - }
++      -
++      -
++    * - __u16
+       - ``quantization``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Quantization range, from enum :c:type:`v4l2_quantization`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+-    * - enum :c:type:`v4l2_xfer_func`
++    * - __u16
+       - ``xfer_func``
+-      - This information supplements the ``colorspace`` and must be set by
++      - Transfer function, from enum :c:type:`v4l2_xfer_func`.
++        This information supplements the ``colorspace`` and must be set by
+ 	the driver for capture streams and by the application for output
+ 	streams, see :ref:`colorspaces`.
+     * - __u16
 -- 
-2.7.4
+2.15.1
