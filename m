@@ -1,140 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57313 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750758AbeCNEsA (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:51256 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754166AbeCSOJk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 00:48:00 -0400
-Message-ID: <444dc687c9d111e95e4ab464d3f64d7e@smtp-cloud7.xs4all.net>
-Date: Wed, 14 Mar 2018 05:47:57 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 19 Mar 2018 10:09:40 -0400
+Received: by mail-wm0-f53.google.com with SMTP id h21so15400206wmd.1
+        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 07:09:40 -0700 (PDT)
+Date: Mon, 19 Mar 2018 15:09:36 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christian =?iso-8859-1?Q?K=F6nig?=
+        <ckoenig.leichtzumerken@gmail.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+Subject: Re: RFC: unpinned DMA-buf exporting v2
+Message-ID: <20180319140936.GO14155@phenom.ffwll.local>
+References: <20180316132049.1748-1-christian.koenig@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180316132049.1748-1-christian.koenig@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Mar 16, 2018 at 02:20:44PM +0100, Christian König wrote:
+> Hi everybody,
+> 
+> since I've got positive feedback from Daniel I continued working on this approach.
+> 
+> A few issues are still open:
+> 1. Daniel suggested that I make the invalidate_mappings callback a parameter of dma_buf_attach().
+> 
+> This approach unfortunately won't work because when the attachment is
+> created the importer is not necessarily ready to handle invalidation
+> events.
 
-Results of the daily build of media_tree:
+Why do you have this constraint? This sounds a bit like inverted
+create/teardown sequence troubles, where you make an object "life" before
+the thing is fully set up.
 
-date:			Wed Mar 14 05:00:10 CET 2018
-media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	2a1900fddab68c7686e6b146ff91e02b32675fae
-v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Can't we fix this by creating the entire ttm scaffolding you'll need for a
+dma-buf upfront, and only once you have everything we grab the dma_buf
+attachment? At that point you really should be able to evict buffers
+again.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: WARNINGS
-linux-4.15.2-x86_64: WARNINGS
-linux-4.16-rc1-i686: WARNINGS
-linux-4.16-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+Not requiring invalidate_mapping to be set together with the attachment
+means we can't ever require importers to support it (e.g. to address your
+concern with the userspace dma-buf userptr magic).
 
-Detailed results are available here:
+> E.g. in the amdgpu example we first need to setup the imported GEM/TMM
+> objects and install that in the attachment.
+> 
+> My solution is to introduce a separate function to grab the locks and
+> set the callback, this function could then be used to pin the buffer
+> later on if that turns out to be necessary after all.
+> 
+> 2. With my example setup this currently results in a ping/pong situation
+> because the exporter prefers a VRAM placement while the importer prefers
+> a GTT placement.
+> 
+> This results in quite a performance drop, but can be fixed by a simple
+> mesa patch which allows shred BOs to be placed in both VRAM and GTT.
+> 
+> Question is what should we do in the meantime? Accept the performance
+> drop or only allow unpinned sharing with new Mesa?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Maybe the exporter should not try to move stuff back into VRAM as long as
+there's an active dma-buf? I mean it's really cool that it works, but
+maybe let's just do this for a tech demo :-)
 
-Full logs are available here:
+Of course if it then runs out of TT then it could still try to move it
+back in. And "let's not move it when it's imported" is probably too stupid
+too, and will need to be improved again with more heuristics, but would at
+least get it off the ground.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Long term you might want to move perhaps once per 10 seconds or so, to get
+idle importers to detach. Adjust 10s to match whatever benchmark/workload
+you care about.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
