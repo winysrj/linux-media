@@ -1,231 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:37089 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751115AbeCIAx6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 19:53:58 -0500
-MIME-Version: 1.0
-In-Reply-To: <20180308120200.wpcjnbglf4x32vrp@tarshish>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com> <20180308120200.wpcjnbglf4x32vrp@tarshish>
-From: Jacob Chen <jacobchen110@gmail.com>
-Date: Fri, 9 Mar 2018 08:53:57 +0800
-Message-ID: <CAFLEztTokSaXJuN8Ls0BpAEuFdTC+Viwn6PGxC=TC6vZAs+w3g@mail.gmail.com>
-Subject: Re: [PATCH v6 00/17] Rockchip ISP1 Driver
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy Chen <jeffy.chen@rock-chips.com>,
-        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38816 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755826AbeCSPn3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 11:43:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 2/8] media: add function field to struct media_entity_desc
+Date: Mon, 19 Mar 2018 16:43:18 +0100
+Message-Id: <20180319154324.37799-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
+References: <20180319154324.37799-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Baruch,
+From: Hans Verkuil <hansverk@cisco.com>
 
-2018-03-08 20:02 GMT+08:00 Baruch Siach <baruch@tkos.co.il>:
-> Hi Jacob,
->
-> On Thu, Mar 08, 2018 at 05:47:50PM +0800, Jacob Chen wrote:
->> This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk33=
-99
->> SoC.
->>
->> Wiki Pages:
->> http://opensource.rock-chips.com/wiki_Rockchip-isp1
->>
->> The deprecated g_mbus_config op is not dropped in  V6 because i am waiti=
-ng
->> tomasz's patches.
->
-> Which tree is this series based on? On top of v4.16-rc4 I get the build
-> failure below. The V4L2_BUF_TYPE_META_OUTPUT macro, for example, is not e=
-ven
-> in media_tree.git.
->
+This adds support for 'proper' functions to the existing API.
+This information was before only available through the new v2
+API, with this change it's available to both.
 
-This series is based on v4.16-rc4 with below patch.
-https://patchwork.kernel.org/patch/9792001/
+Yes, the plan is to allow entities to expose multiple functions for
+multi-function devices, but we do not support it anywhere so this
+is still vaporware.
 
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/media-device.c | 1 +
+ include/uapi/linux/media.h   | 7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-> drivers/media/platform/rockchip/isp1/isp_params.c:1321:3: error: =E2=80=
-=98const struct v4l2_ioctl_ops=E2=80=99 has no member named =E2=80=98vidioc=
-_enum_fmt_meta_out=E2=80=99; did you mean =E2=80=98vidioc_enum_fmt_meta_cap=
-=E2=80=99?
->   .vidioc_enum_fmt_meta_out =3D rkisp1_params_enum_fmt_meta_out,
->    ^~~~~~~~~~~~~~~~~~~~~~~~
->    vidioc_enum_fmt_meta_cap
-> drivers/media/platform/rockchip/isp1/isp_params.c:1321:30: error: initial=
-ization from incompatible pointer type [-Werror=3Dincompatible-pointer-type=
-s]
->   .vidioc_enum_fmt_meta_out =3D rkisp1_params_enum_fmt_meta_out,
->                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/media/platform/rockchip/isp1/isp_params.c:1321:30: note: (near in=
-itialization for =E2=80=98rkisp1_params_ioctl.vidioc_g_std=E2=80=99)
-> drivers/media/platform/rockchip/isp1/isp_params.c:1322:3: error: =E2=80=
-=98const struct v4l2_ioctl_ops=E2=80=99 has no member named =E2=80=98vidioc=
-_g_fmt_meta_out=E2=80=99; did you mean =E2=80=98vidioc_g_fmt_meta_cap=E2=80=
-=99?
->   .vidioc_g_fmt_meta_out =3D rkisp1_params_g_fmt_meta_out,
->    ^~~~~~~~~~~~~~~~~~~~~
->    vidioc_g_fmt_meta_cap
-> drivers/media/platform/rockchip/isp1/isp_params.c:1322:27: error: initial=
-ization from incompatible pointer type [-Werror=3Dincompatible-pointer-type=
-s]
->   .vidioc_g_fmt_meta_out =3D rkisp1_params_g_fmt_meta_out,
->                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/media/platform/rockchip/isp1/isp_params.c:1322:27: note: (near in=
-itialization for =E2=80=98rkisp1_params_ioctl.vidioc_s_std=E2=80=99)
-> drivers/media/platform/rockchip/isp1/isp_params.c:1323:3: error: =E2=80=
-=98const struct v4l2_ioctl_ops=E2=80=99 has no member named =E2=80=98vidioc=
-_s_fmt_meta_out=E2=80=99; did you mean =E2=80=98vidioc_s_fmt_meta_cap=E2=80=
-=99?
->   .vidioc_s_fmt_meta_out =3D rkisp1_params_g_fmt_meta_out,
->    ^~~~~~~~~~~~~~~~~~~~~
->    vidioc_s_fmt_meta_cap
-> drivers/media/platform/rockchip/isp1/isp_params.c:1323:27: error: initial=
-ization from incompatible pointer type [-Werror=3Dincompatible-pointer-type=
-s]
->   .vidioc_s_fmt_meta_out =3D rkisp1_params_g_fmt_meta_out,
->                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/media/platform/rockchip/isp1/isp_params.c:1323:27: note: (near in=
-itialization for =E2=80=98rkisp1_params_ioctl.vidioc_querystd=E2=80=99)
-> drivers/media/platform/rockchip/isp1/isp_params.c:1324:3: error: =E2=80=
-=98const struct v4l2_ioctl_ops=E2=80=99 has no member named =E2=80=98vidioc=
-_try_fmt_meta_out=E2=80=99; did you mean =E2=80=98vidioc_try_fmt_meta_cap=
-=E2=80=99?
->   .vidioc_try_fmt_meta_out =3D rkisp1_params_g_fmt_meta_out,
->    ^~~~~~~~~~~~~~~~~~~~~~~
->    vidioc_try_fmt_meta_cap
-> drivers/media/platform/rockchip/isp1/isp_params.c:1324:29: error: initial=
-ization from incompatible pointer type [-Werror=3Dincompatible-pointer-type=
-s]
->   .vidioc_try_fmt_meta_out =3D rkisp1_params_g_fmt_meta_out,
->                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/media/platform/rockchip/isp1/isp_params.c:1324:29: note: (near in=
-itialization for =E2=80=98rkisp1_params_ioctl.vidioc_enum_input=E2=80=99)
-> drivers/media/platform/rockchip/isp1/isp_params.c: In function =E2=80=98r=
-kisp1_params_init_vb2_queue=E2=80=99:
-> drivers/media/platform/rockchip/isp1/isp_params.c:1462:12: error: =E2=80=
-=98V4L2_BUF_TYPE_META_OUTPUT=E2=80=99 undeclared (first use in this functio=
-n); did you mean =E2=80=98V4L2_BUF_TYPE_SDR_OUTPUT=E2=80=99?
->   q->type =3D V4L2_BUF_TYPE_META_OUTPUT;
->             ^~~~~~~~~~~~~~~~~~~~~~~~~
->             V4L2_BUF_TYPE_SDR_OUTPUT
-> drivers/media/platform/rockchip/isp1/isp_params.c:1462:12: note: each und=
-eclared identifier is reported only once for each function it appears in
->   CC      drivers/media/platform/rockchip/isp1/mipi_dphy_sy.o
-> drivers/media/platform/rockchip/isp1/isp_params.c: In function =E2=80=98r=
-kisp1_register_params_vdev=E2=80=99:
-> drivers/media/platform/rockchip/isp1/isp_params.c:1507:43: error: =E2=80=
-=98V4L2_CAP_META_OUTPUT=E2=80=99 undeclared (first use in this function); d=
-id you mean =E2=80=98V4L2_CAP_VBI_OUTPUT=E2=80=99?
->   vdev->device_caps =3D V4L2_CAP_STREAMING | V4L2_CAP_META_OUTPUT;
->                                            ^~~~~~~~~~~~~~~~~~~~
->                                            V4L2_CAP_VBI_OUTPUT
->
-> Thanks,
-> baruch
->
->> Jacob Chen (12):
->>   media: doc: add document for rkisp1 meta buffer format
->>   media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
->>   media: rkisp1: add Rockchip ISP1 subdev driver
->>   media: rkisp1: add ISP1 statistics driver
->>   media: rkisp1: add ISP1 params driver
->>   media: rkisp1: add capture device driver
->>   media: rkisp1: add rockchip isp1 core driver
->>   dt-bindings: Document the Rockchip ISP1 bindings
->>   dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
->>   ARM: dts: rockchip: add isp node for rk3288
->>   ARM: dts: rockchip: add rx0 mipi-phy for rk3288
->>   MAINTAINERS: add entry for Rockchip ISP1 driver
->>
->> Jeffy Chen (1):
->>   media: rkisp1: Add user space ABI definitions
->>
->> Shunqian Zheng (3):
->>   media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
->>   arm64: dts: rockchip: add isp0 node for rk3399
->>   arm64: dts: rockchip: add rx0 mipi-phy for rk3399
->>
->> Wen Nuan (1):
->>   ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
->>
->>  .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
->>  .../bindings/media/rockchip-mipi-dphy.txt          |   90 +
->>  Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
->>  .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   20 +
->>  .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
->>  MAINTAINERS                                        |   10 +
->>  arch/arm/boot/dts/rk3288.dtsi                      |   33 +
->>  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
->>  drivers/media/platform/Kconfig                     |   10 +
->>  drivers/media/platform/Makefile                    |    1 +
->>  drivers/media/platform/rockchip/isp1/Makefile      |    8 +
->>  drivers/media/platform/rockchip/isp1/capture.c     | 1751 +++++++++++++=
-+++++++
->>  drivers/media/platform/rockchip/isp1/capture.h     |  167 ++
->>  drivers/media/platform/rockchip/isp1/common.h      |  110 ++
->>  drivers/media/platform/rockchip/isp1/dev.c         |  626 +++++++
->>  drivers/media/platform/rockchip/isp1/dev.h         |   93 ++
->>  drivers/media/platform/rockchip/isp1/isp_params.c  | 1539 +++++++++++++=
-++++
->>  drivers/media/platform/rockchip/isp1/isp_params.h  |   49 +
->>  drivers/media/platform/rockchip/isp1/isp_stats.c   |  508 ++++++
->>  drivers/media/platform/rockchip/isp1/isp_stats.h   |   58 +
->>  .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  868 ++++++++++
->>  .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   15 +
->>  drivers/media/platform/rockchip/isp1/regs.c        |  239 +++
->>  drivers/media/platform/rockchip/isp1/regs.h        | 1550 +++++++++++++=
-++++
->>  drivers/media/platform/rockchip/isp1/rkisp1.c      | 1177 +++++++++++++
->>  drivers/media/platform/rockchip/isp1/rkisp1.h      |  105 ++
->>  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
->>  include/uapi/linux/rkisp1-config.h                 |  798 +++++++++
->>  include/uapi/linux/videodev2.h                     |    4 +
->>  29 files changed, 9945 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp=
-1.txt
->>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-mip=
-i-dphy.txt
->>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-para=
-ms.rst
->>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat=
-.rst
->>  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
->>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
->>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
->>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
->>  create mode 100644 include/uapi/linux/rkisp1-config.h
->>
->> --
->> 2.16.1
->>
->
-> --
->      http://baruch.siach.name/blog/                  ~. .~   Tk Open Syst=
-ems
-> =3D}------------------------------------------------ooO--U--Ooo----------=
---{=3D
->    - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7c3ab37c258a..dca1e5a3e0f9 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -115,6 +115,7 @@ static long media_device_enum_entities(struct media_device *mdev,
+ 	if (ent->name)
+ 		strlcpy(entd->name, ent->name, sizeof(entd->name));
+ 	entd->type = ent->function;
++	entd->function = ent->function;
+ 	entd->revision = 0;		/* Unused */
+ 	entd->flags = ent->flags;
+ 	entd->group_id = 0;		/* Unused */
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 86c7dcc9cba3..8fb50c122536 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -146,6 +146,10 @@ struct media_device_info {
+ /* OR with the entity id value to find the next entity */
+ #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+ 
++/* Appeared in 4.17.0 */
++#define MEDIA_ENTITY_DESC_HAS_FUNCTION(media_version) \
++	((media_version) >= 0x00041100)
++
+ struct media_entity_desc {
+ 	__u32 id;
+ 	char name[32];
+@@ -155,8 +159,9 @@ struct media_entity_desc {
+ 	__u32 group_id;
+ 	__u16 pads;
+ 	__u16 links;
++	__u32 function;
+ 
+-	__u32 reserved[4];
++	__u32 reserved[3];
+ 
+ 	union {
+ 		/* Node specifications */
+-- 
+2.15.1
