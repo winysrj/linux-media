@@ -1,409 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:33975 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932786AbeCMXkO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 19:40:14 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 09/18] af9015: attach demod using i2c binding
-Date: Wed, 14 Mar 2018 01:39:35 +0200
-Message-Id: <20180313233944.7234-9-crope@iki.fi>
-In-Reply-To: <20180313233944.7234-1-crope@iki.fi>
-References: <20180313233944.7234-1-crope@iki.fi>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56921 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932300AbeCSMs5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 08:48:57 -0400
+Date: Mon, 19 Mar 2018 13:48:55 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180319124855.GA18886@amd>
+References: <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl>
+ <20170516124519.GA25650@amd>
+ <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl>
+ <20180316205512.GA6069@amd>
+ <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl>
+ <20180319102354.GA12557@amd>
+ <20180319074715.5b700405@vento.lan>
+ <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
+ <20180319120043.GA20451@amd>
+ <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Disposition: inline
+In-Reply-To: <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-af9013 demod driver has i2c binding. Use it.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9015.c | 158 ++++++++++++++++++++--------------
- drivers/media/usb/dvb-usb-v2/af9015.h |   4 +-
- 2 files changed, 96 insertions(+), 66 deletions(-)
+--UlVJffcvxoiEqYs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index 7e4cce05b911..f07aa42535e5 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -148,8 +148,8 @@ static int af9015_write_reg_i2c(struct dvb_usb_device *d, u8 addr, u16 reg,
- 	struct af9015_state *state = d_to_priv(d);
- 	struct req_t req = {WRITE_I2C, addr, reg, 1, 1, 1, &val};
- 
--	if (addr == state->af9013_config[0].i2c_addr ||
--	    addr == state->af9013_config[1].i2c_addr)
-+	if (addr == state->af9013_i2c_addr[0] ||
-+	    addr == state->af9013_i2c_addr[1])
- 		req.addr_len = 3;
- 
- 	return af9015_ctrl_msg(d, &req);
-@@ -161,8 +161,8 @@ static int af9015_read_reg_i2c(struct dvb_usb_device *d, u8 addr, u16 reg,
- 	struct af9015_state *state = d_to_priv(d);
- 	struct req_t req = {READ_I2C, addr, reg, 0, 1, 1, val};
- 
--	if (addr == state->af9013_config[0].i2c_addr ||
--	    addr == state->af9013_config[1].i2c_addr)
-+	if (addr == state->af9013_i2c_addr[0] ||
-+	    addr == state->af9013_i2c_addr[1])
- 		req.addr_len = 3;
- 
- 	return af9015_ctrl_msg(d, &req);
-@@ -258,7 +258,7 @@ Due to that the only way to select correct tuner is use demodulator I2C-gate.
- 			ret = -EOPNOTSUPP;
- 			goto err;
- 		}
--		if (msg[0].addr == state->af9013_config[0].i2c_addr)
-+		if (msg[0].addr == state->af9013_i2c_addr[0])
- 			req.cmd = WRITE_MEMORY;
- 		else
- 			req.cmd = WRITE_I2C;
-@@ -276,7 +276,7 @@ Due to that the only way to select correct tuner is use demodulator I2C-gate.
- 			ret = -EOPNOTSUPP;
- 			goto err;
- 		}
--		if (msg[0].addr == state->af9013_config[0].i2c_addr)
-+		if (msg[0].addr == state->af9013_i2c_addr[0])
- 			req.cmd = READ_MEMORY;
- 		else
- 			req.cmd = READ_I2C;
-@@ -293,7 +293,7 @@ Due to that the only way to select correct tuner is use demodulator I2C-gate.
- 			ret = -EOPNOTSUPP;
- 			goto err;
- 		}
--		if (msg[0].addr == state->af9013_config[0].i2c_addr) {
-+		if (msg[0].addr == state->af9013_i2c_addr[0]) {
- 			ret = -EINVAL;
- 			goto err;
- 		}
-@@ -478,7 +478,7 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 	if (d->udev->speed == USB_SPEED_FULL)
- 		state->dual_mode = 0;
- 
--	state->af9013_config[0].i2c_addr = AF9015_I2C_DEMOD;
-+	state->af9013_i2c_addr[0] = AF9015_I2C_DEMOD;
- 
- 	if (state->dual_mode) {
- 		/* read 2nd demodulator I2C address */
-@@ -487,7 +487,7 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 		if (ret)
- 			goto error;
- 
--		state->af9013_config[1].i2c_addr = val >> 1;
-+		state->af9013_i2c_addr[1] = val >> 1;
- 	}
- 
- 	for (i = 0; i < state->dual_mode + 1; i++) {
-@@ -500,20 +500,20 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 			goto error;
- 		switch (val) {
- 		case 0:
--			state->af9013_config[i].clock = 28800000;
-+			state->af9013_pdata[i].clk = 28800000;
- 			break;
- 		case 1:
--			state->af9013_config[i].clock = 20480000;
-+			state->af9013_pdata[i].clk = 20480000;
- 			break;
- 		case 2:
--			state->af9013_config[i].clock = 28000000;
-+			state->af9013_pdata[i].clk = 28000000;
- 			break;
- 		case 3:
--			state->af9013_config[i].clock = 25000000;
-+			state->af9013_pdata[i].clk = 25000000;
- 			break;
- 		}
--		dev_dbg(&intf->dev, "[%d] xtal %02x, clock %u\n",
--			i, val, state->af9013_config[i].clock);
-+		dev_dbg(&intf->dev, "[%d] xtal %02x, clk %u\n",
-+			i, val, state->af9013_pdata[i].clk);
- 
- 		/* IF frequency */
- 		req.addr = AF9015_EEPROM_IF1H + offset;
-@@ -521,17 +521,17 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 		if (ret)
- 			goto error;
- 
--		state->af9013_config[i].if_frequency = val << 8;
-+		state->af9013_pdata[i].if_frequency = val << 8;
- 
- 		req.addr = AF9015_EEPROM_IF1L + offset;
- 		ret = af9015_ctrl_msg(d, &req);
- 		if (ret)
- 			goto error;
- 
--		state->af9013_config[i].if_frequency += val;
--		state->af9013_config[i].if_frequency *= 1000;
-+		state->af9013_pdata[i].if_frequency += val;
-+		state->af9013_pdata[i].if_frequency *= 1000;
- 		dev_dbg(&intf->dev, "[%d] if frequency %u\n",
--			i, state->af9013_config[i].if_frequency);
-+			i, state->af9013_pdata[i].if_frequency);
- 
- 		/* MT2060 IF1 */
- 		req.addr = AF9015_EEPROM_MT2060_IF1H  + offset;
-@@ -561,17 +561,17 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 		case AF9013_TUNER_TDA18271:
- 		case AF9013_TUNER_QT1010A:
- 		case AF9013_TUNER_TDA18218:
--			state->af9013_config[i].spec_inv = 1;
-+			state->af9013_pdata[i].spec_inv = 1;
- 			break;
- 		case AF9013_TUNER_MXL5003D:
- 		case AF9013_TUNER_MXL5005D:
- 		case AF9013_TUNER_MXL5005R:
- 		case AF9013_TUNER_MXL5007T:
--			state->af9013_config[i].spec_inv = 0;
-+			state->af9013_pdata[i].spec_inv = 0;
- 			break;
- 		case AF9013_TUNER_MC44S803:
--			state->af9013_config[i].gpio[1] = AF9013_GPIO_LO;
--			state->af9013_config[i].spec_inv = 1;
-+			state->af9013_pdata[i].gpio[1] = AF9013_GPIO_LO;
-+			state->af9013_pdata[i].spec_inv = 1;
- 			break;
- 		default:
- 			dev_err(&intf->dev,
-@@ -580,7 +580,7 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 			return -ENODEV;
- 		}
- 
--		state->af9013_config[i].tuner = val;
-+		state->af9013_pdata[i].tuner = val;
- 		dev_dbg(&intf->dev, "[%d] tuner id %02x\n", i, val);
- 	}
- 
-@@ -601,7 +601,7 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 		state->dual_mode = 0;
- 
- 		/* set correct IF */
--		state->af9013_config[0].if_frequency = 4570000;
-+		state->af9013_pdata[0].if_frequency = 4570000;
- 	}
- 
- 	return ret;
-@@ -741,7 +741,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
- 	fw_params[2] = state->firmware_checksum >> 8;
- 	fw_params[3] = state->firmware_checksum & 0xff;
- 
--	ret = af9015_read_reg_i2c(d, state->af9013_config[1].i2c_addr,
-+	ret = af9015_read_reg_i2c(d, state->af9013_i2c_addr[1],
- 			0x98be, &val);
- 	if (ret)
- 		goto error;
-@@ -771,7 +771,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
- 		goto error;
- 
- 	/* request boot firmware */
--	ret = af9015_write_reg_i2c(d, state->af9013_config[1].i2c_addr,
-+	ret = af9015_write_reg_i2c(d, state->af9013_i2c_addr[1],
- 			0xe205, 1);
- 	dev_dbg(&intf->dev, "firmware boot cmd status %d\n", ret);
- 	if (ret)
-@@ -781,7 +781,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
- 		msleep(100);
- 
- 		/* check firmware status */
--		ret = af9015_read_reg_i2c(d, state->af9013_config[1].i2c_addr,
-+		ret = af9015_read_reg_i2c(d, state->af9013_i2c_addr[1],
- 				0x98be, &val);
- 		dev_dbg(&intf->dev, "firmware status cmd status %d, firmware status %02x\n",
- 			ret, val);
-@@ -810,18 +810,22 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
- 	struct af9015_state *state = adap_to_priv(adap);
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct usb_interface *intf = d->intf;
-+	struct i2c_client *client;
- 	int ret;
- 
-+	dev_dbg(&intf->dev, "adap id %u\n", adap->id);
-+
- 	if (adap->id == 0) {
--		state->af9013_config[0].ts_mode = AF9013_TS_USB;
--		memcpy(state->af9013_config[0].api_version, "\x0\x1\x9\x0", 4);
--		state->af9013_config[0].gpio[0] = AF9013_GPIO_HI;
--		state->af9013_config[0].gpio[3] = AF9013_GPIO_TUNER_ON;
-+		state->af9013_pdata[0].ts_mode = AF9013_TS_MODE_USB;
-+		memcpy(state->af9013_pdata[0].api_version, "\x0\x1\x9\x0", 4);
-+		state->af9013_pdata[0].gpio[0] = AF9013_GPIO_HI;
-+		state->af9013_pdata[0].gpio[3] = AF9013_GPIO_TUNER_ON;
- 	} else if (adap->id == 1) {
--		state->af9013_config[1].ts_mode = AF9013_TS_SERIAL;
--		memcpy(state->af9013_config[1].api_version, "\x0\x1\x9\x0", 4);
--		state->af9013_config[1].gpio[0] = AF9013_GPIO_TUNER_ON;
--		state->af9013_config[1].gpio[1] = AF9013_GPIO_LO;
-+		state->af9013_pdata[1].ts_mode = AF9013_TS_MODE_SERIAL;
-+		state->af9013_pdata[1].ts_output_pin = 7;
-+		memcpy(state->af9013_pdata[1].api_version, "\x0\x1\x9\x0", 4);
-+		state->af9013_pdata[1].gpio[0] = AF9013_GPIO_TUNER_ON;
-+		state->af9013_pdata[1].gpio[1] = AF9013_GPIO_LO;
- 
- 		/* copy firmware to 2nd demodulator */
- 		if (state->dual_mode) {
-@@ -833,16 +837,24 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
- 				dev_err(&intf->dev,
- 					"firmware copy to 2nd frontend failed, will disable it\n");
- 				state->dual_mode = 0;
--				return -ENODEV;
-+				goto err;
- 			}
- 		} else {
--			return -ENODEV;
-+			ret = -ENODEV;
-+			goto err;
- 		}
- 	}
- 
--	/* attach demodulator */
--	adap->fe[0] = dvb_attach(af9013_attach,
--		&state->af9013_config[adap->id], &adap_to_d(adap)->i2c_adap);
-+	/* Add I2C demod */
-+	client = dvb_module_probe("af9013", NULL, &d->i2c_adap,
-+				  state->af9013_i2c_addr[adap->id],
-+				  &state->af9013_pdata[adap->id]);
-+	if (!client) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+	adap->fe[0] = state->af9013_pdata[adap->id].get_dvb_frontend(client);
-+	state->demod_i2c_client[adap->id] = client;
- 
- 	/*
- 	 * AF9015 firmware does not like if it gets interrupted by I2C adapter
-@@ -869,7 +881,26 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
- 		adap->fe[0]->ops.sleep = af9015_af9013_sleep;
- 	}
- 
--	return adap->fe[0] == NULL ? -ENODEV : 0;
-+	return 0;
-+err:
-+	dev_dbg(&intf->dev, "failed %d\n", ret);
-+	return ret;
-+}
-+
-+static int af9015_frontend_detach(struct dvb_usb_adapter *adap)
-+{
-+	struct af9015_state *state = adap_to_priv(adap);
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+	struct usb_interface *intf = d->intf;
-+	struct i2c_client *client;
-+
-+	dev_dbg(&intf->dev, "adap id %u\n", adap->id);
-+
-+	/* Remove I2C demod */
-+	client = state->demod_i2c_client[adap->id];
-+	dvb_module_release(client);
-+
-+	return 0;
- }
- 
- static struct mt2060_config af9015_mt2060_config = {
-@@ -940,64 +971,60 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct af9015_state *state = d_to_priv(d);
- 	struct usb_interface *intf = d->intf;
-+	struct i2c_client *client;
-+	struct i2c_adapter *adapter;
- 	int ret;
- 
--	dev_dbg(&intf->dev, "\n");
-+	dev_dbg(&intf->dev, "adap id %u\n", adap->id);
-+
-+	client = state->demod_i2c_client[adap->id];
-+	adapter = state->af9013_pdata[adap->id].get_i2c_adapter(client);
- 
--	switch (state->af9013_config[adap->id].tuner) {
-+	switch (state->af9013_pdata[adap->id].tuner) {
- 	case AF9013_TUNER_MT2060:
- 	case AF9013_TUNER_MT2060_2:
--		ret = dvb_attach(mt2060_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap, &af9015_mt2060_config,
--			state->mt2060_if1[adap->id])
--			== NULL ? -ENODEV : 0;
-+		ret = dvb_attach(mt2060_attach, adap->fe[0], adapter,
-+			&af9015_mt2060_config,
-+			state->mt2060_if1[adap->id]) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_QT1010:
- 	case AF9013_TUNER_QT1010A:
--		ret = dvb_attach(qt1010_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(qt1010_attach, adap->fe[0], adapter,
- 			&af9015_qt1010_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_TDA18271:
--		ret = dvb_attach(tda18271_attach, adap->fe[0], 0x60,
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(tda18271_attach, adap->fe[0], 0x60, adapter,
- 			&af9015_tda18271_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_TDA18218:
--		ret = dvb_attach(tda18218_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(tda18218_attach, adap->fe[0], adapter,
- 			&af9015_tda18218_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_MXL5003D:
--		ret = dvb_attach(mxl5005s_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(mxl5005s_attach, adap->fe[0], adapter,
- 			&af9015_mxl5003_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_MXL5005D:
- 	case AF9013_TUNER_MXL5005R:
--		ret = dvb_attach(mxl5005s_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(mxl5005s_attach, adap->fe[0], adapter,
- 			&af9015_mxl5005_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_ENV77H11D5:
--		ret = dvb_attach(dvb_pll_attach, adap->fe[0], 0x60,
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(dvb_pll_attach, adap->fe[0], 0x60, adapter,
- 			DVB_PLL_TDA665X) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_MC44S803:
--		ret = dvb_attach(mc44s803_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(mc44s803_attach, adap->fe[0], adapter,
- 			&af9015_mc44s803_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_MXL5007T:
--		ret = dvb_attach(mxl5007t_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+		ret = dvb_attach(mxl5007t_attach, adap->fe[0], adapter,
- 			0x60, &af9015_mxl5007t_config) == NULL ? -ENODEV : 0;
- 		break;
- 	case AF9013_TUNER_UNKNOWN:
- 	default:
- 		dev_err(&intf->dev, "unknown tuner, tuner id %02x\n",
--			state->af9013_config[adap->id].tuner);
-+			state->af9013_pdata[adap->id].tuner);
- 		ret = -ENODEV;
- 	}
- 
-@@ -1404,6 +1431,7 @@ static struct dvb_usb_device_properties af9015_props = {
- 	.i2c_algo = &af9015_i2c_algo,
- 	.read_config = af9015_read_config,
- 	.frontend_attach = af9015_af9013_frontend_attach,
-+	.frontend_detach = af9015_frontend_detach,
- 	.tuner_attach = af9015_tuner_attach,
- 	.init = af9015_init,
- 	.get_rc_config = af9015_get_rc_config,
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.h b/drivers/media/usb/dvb-usb-v2/af9015.h
-index 3a9d9815ab7a..97339bf3749b 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.h
-@@ -125,7 +125,9 @@ struct af9015_state {
- 	u16 firmware_size;
- 	u16 firmware_checksum;
- 	u32 eeprom_sum;
--	struct af9013_config af9013_config[2];
-+	struct af9013_platform_data af9013_pdata[2];
-+	struct i2c_client *demod_i2c_client[2];
-+	u8 af9013_i2c_addr[2];
- 
- 	/* for demod callback override */
- 	int (*set_frontend[2]) (struct dvb_frontend *fe);
--- 
-2.14.3
+Hi!
+
+> >> I really want to work with you on this, but I am not looking for parti=
+al
+> >> solutions.
+> >=20
+> > Well, expecting design to be done for opensource development is a bit
+> > unusual :-).
+>=20
+> Why? We have done that quite often in the past. Media is complex and you =
+need
+> to decide on a design up front.
+
+
+
+> > I really see two separate tasks
+> >=20
+> > 1) support for configuring pipeline. I believe this is best done out
+> > of libv4l2. It outputs description file, format below. Currently I
+> > have implemented this is in Python. File format is below.
+>=20
+> You do need this, but why outside of libv4l2? I'm not saying I disagree
+> with you, but you need to give reasons for that.
+
+I'd prefer to do this in Python. There's a lot to configure there, and
+I'm not sure if libv4l2 is is right place for it. Anyway, design of 2)
+does not depend on this.
+
+> > 2) support for running libv4l2 on mc-based devices. I'd like to do
+> > that.
+> >=20
+> > Description file would look like. (# comments would not be not part of =
+file).
+> >=20
+> > V4L2MEDIADESC
+> > 3 # number of files to open
+> > /dev/video2
+> > /dev/video6
+> > /dev/video3
+>=20
+> This won't work. The video nodes numbers (or even names) can change.
+> Instead these should be entity names from the media controller.
+
+Yes, it will work. 1) will configure the pipeline, and prepare
+V4L2MEDIADESC file. The device names/numbers are stable after the
+system is booted.
+
+If these were entity names, v4l2_open() would have to go to /sys and
+search for corresponding files... which would be rather complex and
+slow.
+
+> > 3 # number of controls to map. Controls not mentioned here go to
+> >   # device 0 automatically. Sorted by control id.
+> >   # Device 0=20
+> > 00980913 1
+> > 009a0003 1
+> > 009a000a 2
+>=20
+> You really don't need to specify the files to open. All you need is to
+> specify the entity ID and the list of controls that you need.
+>=20
+> Then libv4l can just figure out which device node(s) to open for
+> that.
+
+Yes, but that would slow down v4l2_open() needlessly. I'd prefer to
+avoid that.
+
+> > We can parse that easily without requiring external libraries. Sorted
+> > data allow us to do binary search.
+>=20
+> But none of this addresses setting up the initial video pipeline or
+> changing formats. We probably want to support that as well.
+
+Well, maybe one day. But I don't believe we should attempt to support
+that today.
+
+Currently, there's no way to test that camera works on N900 with
+mainline v4l2... which is rather sad. Advanced use cases can come later.
+
+> For that matter: what is it exactly that we want to support? I.e. where do
+> we draw the line?
+
+I'd start with fixed format first. Python prepares pipeline, and
+provides V4L2MEDIADESC file libv4l2 can use. You can have that this
+week.
+
+I guess it would make sense to support "application says preffered
+resolution, libv4l2 attempts to set up some kind of pipeline to get
+that resolution", but yes, interface there will likely be quite
+complex.
+
+Media control is more than 5 years old now. libv4l2 is still
+completely uses on media control-based devices, and people are asking
+for controls propagation in the kernel to fix that. My proposol
+implements simple controls propagation in the userland. I believe we
+should do that.
+
+> A good test platform for this (outside the N900) is the i.MX6 platform.
+
+Do you have one?
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--UlVJffcvxoiEqYs2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqvsbcACgkQMOfwapXb+vIblgCfUfvwLVoFYmAO9WRxWdiu4e14
+NdIAn3Q99K8qoXINLtf6pieSOGHQNc3r
+=xxrj
+-----END PGP SIGNATURE-----
+
+--UlVJffcvxoiEqYs2--
