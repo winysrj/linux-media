@@ -1,90 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49957 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751056AbeCIKPy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 05:15:54 -0500
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Cc: Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:33983 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966145AbeCSQOt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 12:14:49 -0400
+Received: by mail-pl0-f67.google.com with SMTP id u11-v6so6857329plq.1
+        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 09:14:49 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-Subject: [PATCH 6/9] sunxi-cedrus: Add device tree binding document
-Date: Fri,  9 Mar 2018 11:14:42 +0100
-Message-Id: <20180309101445.16190-4-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
-References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH] media: ov5645: add missing of_node_put() in error path
+Date: Tue, 20 Mar 2018 01:14:17 +0900
+Message-Id: <1521476057-28792-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Florent Revest <florent.revest@free-electrons.com>
+The device node obtained with of_graph_get_next_endpoint() should be
+released by calling of_node_put().  But it was not released when
+v4l2_fwnode_endpoint_parse() failed.
 
-Device Tree bindings for the Allwinner's video engine
+This change moves the of_node_put() call before the error check and
+fixes the issue.
 
-Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- .../devicetree/bindings/media/sunxi-cedrus.txt     | 44 ++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+ drivers/media/i2c/ov5645.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-new file mode 100644
-index 000000000000..138581113c49
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-@@ -0,0 +1,44 @@
-+Device-Tree bindings for SUNXI video engine found in sunXi SoC family
+diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
+index d28845f..a31fe18 100644
+--- a/drivers/media/i2c/ov5645.c
++++ b/drivers/media/i2c/ov5645.c
+@@ -1131,13 +1131,14 @@ static int ov5645_probe(struct i2c_client *client,
+ 
+ 	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint),
+ 					 &ov5645->ep);
 +
-+Required properties:
-+- compatible	    : "allwinner,sun4i-a10-video-engine";
-+- memory-region     : DMA pool for buffers allocation;
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "ahb", "mod" and "ram" entries;
-+- resets	    : phandle for reset;
-+- interrupts	    : should contain VE interrupt number;
-+- reg		    : should contain register base and length of VE.
++	of_node_put(endpoint);
 +
-+Example:
-+
-+reserved-memory {
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges;
-+
-+	ve_reserved: cma {
-+		compatible = "shared-dma-pool";
-+		reg = <0x43d00000 0x9000000>;
-+		no-map;
-+		linux,cma-default;
-+	};
-+};
-+
-+video-engine {
-+	compatible = "allwinner,sun4i-a10-video-engine";
-+	memory-region = <&ve_reserved>;
-+
-+	clocks = <&ahb_gates 32>, <&ccu CLK_VE>,
-+		 <&dram_gates 0>;
-+	clock-names = "ahb", "mod", "ram";
-+
-+	assigned-clocks = <&ccu CLK_VE>;
-+	assigned-clock-rates = <320000000>;
-+
-+	resets = <&ccu RST_VE>;
-+
-+	interrupts = <53>;
-+
-+	reg = <0x01c0e000 4096>;
-+};
+ 	if (ret < 0) {
+ 		dev_err(dev, "parsing endpoint node failed\n");
+ 		return ret;
+ 	}
+ 
+-	of_node_put(endpoint);
+-
+ 	if (ov5645->ep.bus_type != V4L2_MBUS_CSI2) {
+ 		dev_err(dev, "invalid bus type, must be CSI2\n");
+ 		return -EINVAL;
 -- 
-2.16.2
+2.7.4
