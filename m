@@ -1,93 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56650 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752315AbeCNJ2e (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:61162 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932708AbeCSOaN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 05:28:34 -0400
-Date: Wed, 14 Mar 2018 11:28:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Suman Anna <s-anna@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>,
-        linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] media: omap3isp: fix unbalanced dma_iommu_mapping
-Message-ID: <20180314092830.ny6gmodbnxafddwe@valkosipuli.retiisi.org.uk>
-References: <20180312165207.12436-1-s-anna@ti.com>
- <20180313111407.egptbq5vbkny5q4d@valkosipuli.retiisi.org.uk>
- <5c3f99e2-001b-b80a-f840-bc3201addc93@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5c3f99e2-001b-b80a-f840-bc3201addc93@ti.com>
+        Mon, 19 Mar 2018 10:30:13 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, smitha.t@samsung.com, a.hajda@samsung.com,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-mfc: Amend initial min, max values of HEVC hierarchical
+ coding QP controls
+Date: Mon, 19 Mar 2018 15:29:58 +0100
+Message-id: <20180319142958.21569-1-s.nawrocki@samsung.com>
+References: <CGME20180319143010epcas2p25aa33888e29cc229adf272369b6e684b@epcas2p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 13, 2018 at 10:47:08AM -0500, Suman Anna wrote:
-> Hi Sakari,
-> 
-> On 03/13/2018 06:14 AM, Sakari Ailus wrote:
-> > Hi Suman,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Mon, Mar 12, 2018 at 11:52:07AM -0500, Suman Anna wrote:
-> >> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
-> >> ARM DMA backend. The current code creates a dma_iommu_mapping and
-> >> attaches this to the ISP device, but never detaches the mapping in
-> >> either the probe failure paths or the driver remove path resulting
-> >> in an unbalanced mapping refcount and a memory leak. Fix this properly.
-> >>
-> >> Reported-by: Pavel Machek <pavel@ucw.cz>
-> >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> >> Tested-by: Pavel Machek <pavel@ucw.cz>
-> >> ---
-> >> Hi Mauro, Laurent,
-> >>
-> >> This fixes an issue reported by Pavel and discussed on this
-> >> thread,
-> >> https://marc.info/?l=linux-omap&m=152051945803598&w=2
-> >>
-> >> Posting this again to the appropriate lists.
-> >>
-> >> regards
-> >> Suman
-> >>
-> >>  drivers/media/platform/omap3isp/isp.c | 7 +++++--
-> >>  1 file changed, 5 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> >> index 8eb000e3d8fd..c7d667bfc2af 100644
-> >> --- a/drivers/media/platform/omap3isp/isp.c
-> >> +++ b/drivers/media/platform/omap3isp/isp.c
-> >> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device *isp)
-> >>  
-> >>  static void isp_detach_iommu(struct isp_device *isp)
-> >>  {
-> >> +	arm_iommu_detach_device(isp->dev);
-> >>  	arm_iommu_release_mapping(isp->mapping);
-> >>  	isp->mapping = NULL;
-> >>  }
-> >> @@ -1971,13 +1972,15 @@ static int isp_attach_iommu(struct isp_device *isp)
-> >>  	ret = arm_iommu_attach_device(isp->dev, mapping);
-> >>  	if (ret < 0) {
-> >>  		dev_err(isp->dev, "failed to attach device to VA mapping\n");
-> >> -		goto error;
-> >> +		goto error_attach;
-> > 
-> > Instead of changing the label here, could you return immediately where the
-> > previous point of error handling is? No need to add another label.
-> 
-> Yeah, I debated about this while doing the patch, and chose to retain
-> the previous common return on the error paths. There are only 2 error
-> paths, so didn't want to mix them up. If you still prefer the mixed
-> style, I can post a v2.
+Valid range for those controls is specified in documentation as [0, 51],
+so initialize the controls to such range rather than [INT_MIN, INT_MAX].
 
-Yes, please. In general if you only need return a value, a label isn't
-needed for that even if goto + labels would be otherwise used for error
-handling.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 810dabe2f1b9..7382b41f4f6d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -856,56 +856,56 @@ static struct mfc_control controls[] = {
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
+ 	{
+ 		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.minimum = INT_MIN,
+-		.maximum = INT_MAX,
++		.minimum = 0,
++		.maximum = 51,
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.2
