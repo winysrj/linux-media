@@ -1,160 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:39137 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753089AbeC1RPb (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:12510 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752273AbeCSFdS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 13:15:31 -0400
-Received: by mail-pg0-f67.google.com with SMTP id b9so1173769pgf.6
-        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:15:31 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v2 5/5] dvb: earth-pt1:  replace schedule_timeout with usleep_range
-Date: Thu, 29 Mar 2018 02:15:03 +0900
-Message-Id: <20180328171503.30541-6-tskd08@gmail.com>
-In-Reply-To: <20180328171503.30541-1-tskd08@gmail.com>
-References: <20180328171503.30541-1-tskd08@gmail.com>
+        Mon, 19 Mar 2018 01:33:18 -0400
+From: Ji-Hun Kim <ji_hun.kim@samsung.com>
+To: mchehab@kernel.org, dan.carpenter@oracle.com
+Cc: gregkh@linuxfoundation.org, arvind.yadav.cs@gmail.com,
+        ji_hun.kim@samsung.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH v2] staging: media: davinci_vpfe: add error handling on
+ kmalloc failure
+Date: Mon, 19 Mar 2018 14:32:57 +0900
+Message-id: <1521437577-8168-1-git-send-email-ji_hun.kim@samsung.com>
+References: <CGME20180319053315epcas2p3c61bd9a1bec8d67cde77765842a3205c@epcas2p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+There is no failure checking on the param value which will be allocated
+memory by kmalloc. Add a null pointer checking statement. Then goto error:
+and return -ENOMEM error code when kmalloc is failed.
 
-As described in Document/timers/timers-howto.txt,
-hrtimer-based delay should be used for small sleeps.
-
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Ji-Hun Kim <ji_hun.kim@samsung.com>
 ---
 Changes since v1:
-- none
+  - Return with -ENOMEM directly, instead of goto error: then return.
 
- drivers/media/pci/pt1/pt1.c | 34 +++++++++++++++++++++++-----------
- 1 file changed, 23 insertions(+), 11 deletions(-)
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
-index 80510616c4c..43249269469 100644
---- a/drivers/media/pci/pt1/pt1.c
-+++ b/drivers/media/pci/pt1/pt1.c
-@@ -18,7 +18,10 @@
-  */
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index 6a3434c..ffcd86d 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1280,6 +1280,9 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
  
- #include <linux/kernel.h>
-+#include <linux/sched.h>
- #include <linux/sched/signal.h>
-+#include <linux/hrtimer.h>
-+#include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-@@ -321,7 +324,7 @@ static int pt1_unlock(struct pt1 *pt1)
- 	for (i = 0; i < 3; i++) {
- 		if (pt1_read_reg(pt1, 0) & 0x80000000)
- 			return 0;
--		schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+		usleep_range(1000, 2000);
- 	}
- 	dev_err(&pt1->pdev->dev, "could not unlock\n");
- 	return -EIO;
-@@ -335,7 +338,7 @@ static int pt1_reset_pci(struct pt1 *pt1)
- 	for (i = 0; i < 10; i++) {
- 		if (pt1_read_reg(pt1, 0) & 0x00000001)
- 			return 0;
--		schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+		usleep_range(1000, 2000);
- 	}
- 	dev_err(&pt1->pdev->dev, "could not reset PCI\n");
- 	return -EIO;
-@@ -349,7 +352,7 @@ static int pt1_reset_ram(struct pt1 *pt1)
- 	for (i = 0; i < 10; i++) {
- 		if (pt1_read_reg(pt1, 0) & 0x00000002)
- 			return 0;
--		schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+		usleep_range(1000, 2000);
- 	}
- 	dev_err(&pt1->pdev->dev, "could not reset RAM\n");
- 	return -EIO;
-@@ -366,7 +369,7 @@ static int pt1_do_enable_ram(struct pt1 *pt1)
- 			if ((pt1_read_reg(pt1, 0) & 0x00000004) != status)
- 				return 0;
- 		}
--		schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+		usleep_range(1000, 2000);
- 	}
- 	dev_err(&pt1->pdev->dev, "could not enable RAM\n");
- 	return -EIO;
-@@ -376,7 +379,7 @@ static int pt1_enable_ram(struct pt1 *pt1)
- {
- 	int i, ret;
- 	int phase;
--	schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+	usleep_range(1000, 2000);
- 	phase = pt1->pdev->device == 0x211a ? 128 : 166;
- 	for (i = 0; i < phase; i++) {
- 		ret = pt1_do_enable_ram(pt1);
-@@ -463,6 +466,9 @@ static int pt1_thread(void *data)
- 	struct pt1_buffer_page *page;
- 	bool was_frozen;
- 
-+#define PT1_FETCH_DELAY 10
-+#define PT1_FETCH_DELAY_DELTA 2
+ 			params = kmalloc(sizeof(struct ipipe_module_params),
+ 					 GFP_KERNEL);
++			if (!params)
++				return -ENOMEM;
 +
- 	pt1 = data;
- 	set_freezable();
+ 			to = (void *)params + module_if->param_offset;
+ 			size = module_if->param_size;
  
-@@ -476,7 +482,13 @@ static int pt1_thread(void *data)
+@@ -1323,6 +1326,9 @@ static int ipipe_g_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
  
- 		page = pt1->tables[pt1->table_index].bufs[pt1->buf_index].page;
- 		if (!pt1_filter(pt1, page)) {
--			schedule_timeout_interruptible((HZ + 999) / 1000);
-+			ktime_t delay;
+ 			params =  kmalloc(sizeof(struct ipipe_module_params),
+ 						GFP_KERNEL);
++			if (!params)
++				return -ENOMEM;
 +
-+			delay = PT1_FETCH_DELAY * NSEC_PER_MSEC;
-+			set_current_state(TASK_INTERRUPTIBLE);
-+			schedule_hrtimeout_range(&delay,
-+					PT1_FETCH_DELAY_DELTA * NSEC_PER_MSEC,
-+					HRTIMER_MODE_REL);
- 			continue;
- 		}
+ 			from = (void *)params + module_if->param_offset;
+ 			size = module_if->param_size;
  
-@@ -712,7 +724,7 @@ pt1_update_power(struct pt1 *pt1)
- 		adap = pt1->adaps[i];
- 		switch (adap->voltage) {
- 		case SEC_VOLTAGE_13: /* actually 11V */
--			bits |= 1 << 1;
-+			bits |= 1 << 2;
- 			break;
- 		case SEC_VOLTAGE_18: /* actually 15V */
- 			bits |= 1 << 1 | 1 << 2;
-@@ -766,7 +778,7 @@ static int pt1_wakeup(struct dvb_frontend *fe)
- 	adap = container_of(fe->dvb, struct pt1_adapter, adap);
- 	adap->sleep = 0;
- 	pt1_update_power(adap->pt1);
--	schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+	usleep_range(1000, 2000);
- 
- 	ret = config_demod(adap->demod_i2c_client, adap->pt1->fe_clk);
- 	if (ret == 0 && adap->orig_init)
-@@ -1073,7 +1085,7 @@ static int pt1_i2c_end(struct pt1 *pt1, int addr)
- 	do {
- 		if (signal_pending(current))
- 			return -EINTR;
--		schedule_timeout_interruptible((HZ + 999) / 1000);
-+		usleep_range(1000, 2000);
- 	} while (pt1_read_reg(pt1, 0) & 0x00000080);
- 	return 0;
- }
-@@ -1376,11 +1388,11 @@ static int pt1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	pt1->power = 1;
- 	pt1_update_power(pt1);
--	schedule_timeout_uninterruptible((HZ + 49) / 50);
-+	msleep(20);
- 
- 	pt1->reset = 0;
- 	pt1_update_power(pt1);
--	schedule_timeout_uninterruptible((HZ + 999) / 1000);
-+	usleep_range(1000, 2000);
- 
- 	ret = pt1_init_frontends(pt1);
- 	if (ret < 0)
 -- 
-2.16.3
+1.9.1
