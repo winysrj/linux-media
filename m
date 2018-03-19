@@ -1,114 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:50200 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751180AbeCLNUD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 09:20:03 -0400
-Date: Mon, 12 Mar 2018 14:20:00 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>, linux-media@vger.kernel.org,
-        linux-amlogic@lists.infradead.org
-Subject: Re: [PATCH] media: rc: meson-ir: add timeout on idle
-Message-ID: <20180312132000.oqrj4xjdi7lvupnu@camel2.lan>
-References: <20180306174122.6017-1-hias@horus.com>
- <20180308164327.ihhmvm6ntzvnsjy7@gofer.mess.org>
- <20180309155451.gbocsaj4s3puc4cq@camel2.lan>
- <20180310112744.plfxkmqbgvii7n7r@gofer.mess.org>
- <20180310173828.7lwyicxzar22dyb7@camel2.lan>
- <20180311125518.pcob4wii43odmana@gofer.mess.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:35811 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933620AbeCSQX0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 12:23:26 -0400
+Received: by mail-wm0-f43.google.com with SMTP id r82so6304454wme.0
+        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 09:23:26 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH 1/5] dma-buf: add optional invalidate_mappings callback v2
+To: Chris Wilson <chris@chris-wilson.co.uk>, christian.koenig@amd.com,
+        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
+References: <20180316132049.1748-1-christian.koenig@amd.com>
+ <20180316132049.1748-2-christian.koenig@amd.com>
+ <152120831102.25315.4326885184264378830@mail.alporthouse.com>
+ <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
+ <152147480241.18954.4556582215766884582@mail.alporthouse.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
+Date: Mon, 19 Mar 2018 17:23:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180311125518.pcob4wii43odmana@gofer.mess.org>
+In-Reply-To: <152147480241.18954.4556582215766884582@mail.alporthouse.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Am 19.03.2018 um 16:53 schrieb Chris Wilson:
+> Quoting Christian König (2018-03-16 14:22:32)
+> [snip, probably lost too must context]
+>> This allows for full grown pipelining, e.g. the exporter can say I need
+>> to move the buffer for some operation. Then let the move operation wait
+>> for all existing fences in the reservation object and install the fence
+>> of the move operation as exclusive fence.
+> Ok, the situation I have in mind is the non-pipelined case: revoking
+> dma-buf for mmu_invalidate_range or shrink_slab. I would need a
+> completion event that can be waited on the cpu for all the invalidate
+> callbacks. (Essentially an atomic_t counter plus struct completion; a
+> lighter version of dma_fence, I wonder where I've seen that before ;)
 
-On Sun, Mar 11, 2018 at 12:55:19PM +0000, Sean Young wrote:
-> Hi Matthias,
-> 
-> On Sat, Mar 10, 2018 at 06:38:28PM +0100, Matthias Reichl wrote:
-> > On Sat, Mar 10, 2018 at 11:27:45AM +0000, Sean Young wrote:
-> > > So if the timeout is below N then you will never get a space of N or larger;
-> > > the largest space I know of in an IR message is 40ms in the sanyo protocol:
-> > > 
-> > > https://www.sbprojects.net/knowledge/ir/sharp.php
-> > > 
-> > > So if timeout is set to less than 40ms, we would have trouble decoding the
-> > > sharp protocol.
-> > > 
-> > > The space between nec repeats is a little less than 100ms. I'm trying to
-> > > remember what would could go wrong if the space between them would be
-> > > timeouts instead. Mauro do you remember? I can imagine some IR hardware
-> > > (e.g. winbond) queuing up IR after generating a timeout, thus delaying
-> > > delivering IR to the kernel and we ending up generating a key up.
-> > > 
-> > > The problem with a higher timeout is that the trailing space (=timeout)
-> > > is sometimes needed for decoding, and decoding of the last message is
-> > > delayed until the timeout is received. That means the keyup message is
-> > > delayed until that time, making keys a bit "sticky" and more likely to
-> > > generate repeats. I'm pretty sure that is needed for rc-5 and nec.
-> > 
-> > Another issue with high timeouts is the response to very short button
-> > presses where the remote only transmits a single scancode. It then
-> > takes signal transmission time plus timeout, so roughly a quarter
-> > of a second on meson-ir and ite-cir with 200ms timeout, until the
-> > scancode is decoded and the keydown event is generated.
-> > 
-> > On longer button presses this is less of an issue as we get the
-> > space signal when the first pulse of the repeated scancode is
-> > received. So the delay between button press and keydown is determined
-> > by the remote scancode repeat interval and with typically ~110ms
-> > on nec/rc-5 a lot lower.
-> > 
-> > This affects both "quick fingers" using a standard remote and
-> > users of programmable remotes like the Logitech Harmony where
-> > the number of scancodes transmitted on a short press can be
-> > configured. With a single scancode transmission we run into
-> > the long keydown delay, 2 scancodes is fine, and at 3 or 4 we
-> > start running into the key repeat issue.
-> > 
-> > We received several reports from users that their remote felt
-> > "sluggish" when we switched from the downstream "amremote" driver
-> > (which IIRC decoded the nec protocol in hardware) to meson-ir.
-> > 
-> > Lowering the timeout to 125ms or even significantly lower
-> > (depending on what the protocol and IR receiver permits)
-> > removes this "sluggishness", users report that their remote
-> > is more "responsive".
-> 
-> That makes complete sense. I'm actually keen to get this lowered, since
-> this makes it possible to lower the repeat period per-protocol, see
-> commit d57ea877af38 which had to be reverted (the ite driver will
-> need fixing up as well before this can happen).
+Actually that is harmless.
 
-I remember the commit, this issue hit us in LibreELEC testbuilds
-as well :-)
+When you need to unmap a DMA-buf because of mmu_invalidate_range or 
+shrink_slab you need to wait for it's reservation object anyway.
 
-> Lowering to below 125ms does increase the risk of regressions, so I
-> am weary of that. Do you think there is benefit in doing this?
+This needs to be done to make sure that the backing memory is now idle, 
+it doesn't matter if the jobs where submitted by DMA-buf importers or 
+your own driver.
 
-I'd also say stick to the 125ms default. The default settings
-should always be safe ones IMO.
+The sg tables pointing to the now released memory might live a bit 
+longer, but that is unproblematic and actually intended.
 
-People who want to optimize for the last bit of performance can
-easily do that on their own, at their own risk.
+When we would try to destroy the sg tables in an mmu_invalidate_range or 
+shrink_slab callback we would run into a lockdep horror.
 
-Personally I've been using gpio-ir-recv on RPi with the default 125ms
-timeout and a Hauppauge rc-5 remote for about 2 years now and I've
-always been happy with that.
+Regards,
+Christian.
 
-I have to acknowledge though that the responsiveness of a remote
-with short messages, like rc-5, in combination with a low timeout
-(I tested down to 10ms) is pretty impressive.
-
-so long,
-
-Hias
+>
+> Even so, it basically means passing a fence object down to the async
+> callbacks for them to signal when they are complete. Just to handle the
+> non-pipelined version. :|
+> -Chris
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
