@@ -1,97 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:34477 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1164179AbeCBB7b (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55494 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932487AbeCSLLW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:31 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 31/32] rcar-vin: enable support for r8a7796
-Date: Fri,  2 Mar 2018 02:57:50 +0100
-Message-Id: <20180302015751.25596-32-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 19 Mar 2018 07:11:22 -0400
+Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+References: <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com> <20170508222819.GA14833@amd>
+ <db37ee9a-9675-d1db-5d2e-b0549ba004fd@xs4all.nl> <20170509110440.GC28248@amd>
+ <c4f61bc5-6650-9468-5fbf-8041403a0ef2@xs4all.nl> <20170516124519.GA25650@amd>
+ <76e09f45-8f04-1149-a744-ccb19f36871a@xs4all.nl> <20180316205512.GA6069@amd>
+ <c2a7e1f3-589d-7186-2a85-545bfa1c4536@xs4all.nl> <20180319102354.GA12557@amd>
+ <20180319074715.5b700405@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
+Date: Mon, 19 Mar 2018 12:11:11 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180319074715.5b700405@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7796.
+On 03/19/2018 11:47 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 19 Mar 2018 11:23:54 +0100
+> Pavel Machek <pavel@ucw.cz> escreveu:
+> 
+>> Hi!
+>>
+>>> I really don't want to add functions for this to libv4l2. That's just a
+>>> quick hack. The real solution is to parse this from a config
+>>> file. But  
+>>
+>> No, this is not a quick hack. These are functions that will eventually
+>> be used by the config parser. (Oh and they allow me to use camera on
+>> complex hardware, but...).
+>>
+>> Hmm, I have mentioned that already. See quoted text below. 
+>>
+>>> that is a lot more work and it is something that needs to be designed
+>>> properly.
+>>>
+>>> And that requires someone to put in the time and effort...  
+>>
+>> Which is what I'm trying to do. But some cooperation from your side is
+>> needed, too. I acknowledged some kind of parser is needed. I can
+>> do that. Are you willing to cooperate?
+>>
+>> But I need your feedback on the parts below. We can bikeshed about the
+>> parser later.
+>>
+>> Do they look acceptable? Did I hook up right functions in acceptable
+>> way?
+>>
+>> If so, yes, I can proceed with parser.
+>>
+>> Best regards,
+>> 							Pavel
+> 
+> 
+> Pavel,
+> 
+> I appreciate your efforts of adding support for mc-based devices to
+> libv4l.
+> 
+> I guess the main poin that Hans is pointing is that we should take
+> extra care in order to avoid adding new symbols to libv4l ABI/API
+> without being sure that they'll be needed in long term, as removing
+> or changing the API is painful for app developers, and keeping it
+> ABI compatible with apps compiled against previous versions of the
+> library is very painful for us.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 44 +++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+Indeed. Sorry if I wasn't clear on that.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 8017d386fc9bc545..f631a66e9cb69265 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -931,6 +931,46 @@ static const struct rvin_info rcar_info_r8a7795es1 = {
- 	.routes = rcar_info_r8a7795es1_routes,
- };
- 
-+static const struct rvin_group_route rcar_info_r8a7796_routes[] = {
-+	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 0, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
-+	{ .vin = 1, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(3) },
-+	{ .vin = 1, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 3, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
-+	{ .vin = 3, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
-+	{ .vin = 4, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 4, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
-+	{ .vin = 5, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 5, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 5, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(3) },
-+	{ .vin = 5, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
-+	{ .vin = 6, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 6, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
-+	{ .vin = 7, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 7, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) },
-+	{ .vin = 7, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
-+	{ .vin = 7, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a7796 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = rcar_info_r8a7796_routes,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
- 		.compatible = "renesas,vin-r8a7778",
-@@ -964,6 +1004,10 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,vin-r8a7795",
- 		.data = &rcar_info_r8a7795,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a7796",
-+		.data = &rcar_info_r8a7796,
-+	},
- 	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
--- 
-2.16.2
+> The hole idea is that generic applications shouldn't notice
+> if the device is using a mc-based device or not.
+
+What is needed IMHO is an RFC that explains how you want to solve this
+problem, what the parser would look like, how this would configure a
+complex pipeline for use with libv4l-using applications, etc.
+
+I.e., a full design.
+
+And once everyone agrees that that design is solid, then it needs to be
+implemented.
+
+I really want to work with you on this, but I am not looking for partial
+solutions.
+
+I think a proper solution is a fair amount of work. If you are willing to
+take that on, then that would be fantastic.
+
+Regards,
+
+	Hans
