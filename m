@@ -1,112 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:58831 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932772AbeCMXkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 19:40:15 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 12/18] af9015: use af9013 demod pid filters
-Date: Wed, 14 Mar 2018 01:39:38 +0200
-Message-Id: <20180313233944.7234-12-crope@iki.fi>
-In-Reply-To: <20180313233944.7234-1-crope@iki.fi>
-References: <20180313233944.7234-1-crope@iki.fi>
+Received: from userp2130.oracle.com ([156.151.31.86]:35218 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755339AbeCSHPL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 03:15:11 -0400
+Date: Mon, 19 Mar 2018 10:14:35 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Ji-Hun Kim <ji_hun.kim@samsung.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        arvind.yadav.cs@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: Re: [PATCH] staging: media: davinci_vpfe: add error handling on
+ kmalloc failure
+Message-ID: <20180319071435.svpg72uomxfc6hoj@mwanda>
+References: <CGME20180316045841epcas2p34dc11231c65e2032e88ac7138db2daee@epcas2p3.samsung.com>
+ <1521176303-17546-1-git-send-email-ji_hun.kim@samsung.com>
+ <20180316083234.yq7a4rx6w35amflu@mwanda>
+ <20180319042457.GB2915@ubuntu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180319042457.GB2915@ubuntu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PID filters are moved to af9013 demod driver as those are property of
-demod. As pid filters are now implemented correctly by demod driver,
-we could enable pid filter support for possible slave demod too on
-dual tuner configuration.
+On Mon, Mar 19, 2018 at 01:24:57PM +0900, Ji-Hun Kim wrote:
+> >   1294                          } else if (to && !from && size) {
+> >   1295                                  rval = module_if->set(ipipe, NULL);
+> >   1296                                  if (rval)
+> >   1297                                          goto error;
+> > 
+> > And here again goto free_params.
+> > 
+> >   1298                          }
+> >   1299                          kfree(params);
+> >   1300                  }
+> >   1301          }
+> >   1302  error:
+> >   1303          return rval;
+> > 
+> > 
+> > Change this to:
+> > 
+> > 	return 0;
+> Instead of returning rval, returning 0 would be fine? It looks that should
+> return rval in normal case.
+> 
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9015.c | 49 +++++++++++++----------------------
- 1 file changed, 18 insertions(+), 31 deletions(-)
+In the proposed code, the errors all do a return or a goto so "rval"
+would be zero here.  Then the error path would look like:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index f07aa42535e5..8e2f704c6ca5 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -474,10 +474,6 @@ static int af9015_read_config(struct dvb_usb_device *d)
- 	state->dual_mode = val;
- 	dev_dbg(&intf->dev, "ts mode %02x\n", state->dual_mode);
- 
--	/* disable 2nd adapter because we don't have PID-filters */
--	if (d->udev->speed == USB_SPEED_FULL)
--		state->dual_mode = 0;
--
- 	state->af9013_i2c_addr[0] = AF9015_I2C_DEMOD;
- 
- 	if (state->dual_mode) {
-@@ -1045,43 +1041,28 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
- 
- static int af9015_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
--	struct dvb_usb_device *d = adap_to_d(adap);
--	struct usb_interface *intf = d->intf;
-+	struct af9015_state *state = adap_to_priv(adap);
-+	struct af9013_platform_data *pdata = &state->af9013_pdata[adap->id];
- 	int ret;
- 
--	dev_dbg(&intf->dev, "onoff %d\n", onoff);
--
--	if (onoff)
--		ret = af9015_set_reg_bit(d, 0xd503, 0);
--	else
--		ret = af9015_clear_reg_bit(d, 0xd503, 0);
-+	mutex_lock(&state->fe_mutex);
-+	ret = pdata->pid_filter_ctrl(adap->fe[0], onoff);
-+	mutex_unlock(&state->fe_mutex);
- 
- 	return ret;
- }
- 
--static int af9015_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
--	int onoff)
-+static int af9015_pid_filter(struct dvb_usb_adapter *adap, int index,
-+			     u16 pid, int onoff)
- {
--	struct dvb_usb_device *d = adap_to_d(adap);
--	struct usb_interface *intf = d->intf;
-+	struct af9015_state *state = adap_to_priv(adap);
-+	struct af9013_platform_data *pdata = &state->af9013_pdata[adap->id];
- 	int ret;
--	u8 idx;
--
--	dev_dbg(&intf->dev, "index %d, pid %04x, onoff %d\n",
--		index, pid, onoff);
- 
--	ret = af9015_write_reg(d, 0xd505, (pid & 0xff));
--	if (ret)
--		goto error;
--
--	ret = af9015_write_reg(d, 0xd506, (pid >> 8));
--	if (ret)
--		goto error;
--
--	idx = ((index & 0x1f) | (1 << 5));
--	ret = af9015_write_reg(d, 0xd504, idx);
-+	mutex_lock(&state->fe_mutex);
-+	ret = pdata->pid_filter(adap->fe[0], index, pid, onoff);
-+	mutex_unlock(&state->fe_mutex);
- 
--error:
- 	return ret;
- }
- 
-@@ -1448,6 +1429,12 @@ static struct dvb_usb_device_properties af9015_props = {
- 
- 			.stream = DVB_USB_STREAM_BULK(0x84, 8, TS_USB20_FRAME_SIZE),
- 		}, {
-+			.caps = DVB_USB_ADAP_HAS_PID_FILTER |
-+				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+			.pid_filter_count = 32,
-+			.pid_filter = af9015_pid_filter,
-+			.pid_filter_ctrl = af9015_pid_filter_ctrl,
-+
- 			.stream = DVB_USB_STREAM_BULK(0x85, 8, TS_USB20_FRAME_SIZE),
- 		},
- 	},
--- 
-2.14.3
+err_free_params:
+	kfree(params);
+	return rval;
+}
+
+regards,
+dan carpenter
