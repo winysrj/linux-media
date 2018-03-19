@@ -1,108 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:63411 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163785AbeCBB67 (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:37003 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755846AbeCSPna (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:58:59 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 08/32] rcar-vin: move max width and height information to chip information
-Date: Fri,  2 Mar 2018 02:57:27 +0100
-Message-Id: <20180302015751.25596-9-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 19 Mar 2018 11:43:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 4/8] media: add 'index' to struct media_v2_pad
+Date: Mon, 19 Mar 2018 16:43:20 +0100
+Message-Id: <20180319154324.37799-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
+References: <20180319154324.37799-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the max supported width and height will be different from Gen2.
-Move the limits to the struct rvin_info to prepare for Gen3 support.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The v2 pad structure never exposed the pad index, which made it impossible
+to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
+
+It is really trivial to just expose this information, so implement this.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
- drivers/media/platform/rcar-vin/rcar-vin.h  | 5 +++++
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ drivers/media/media-device.c | 1 +
+ include/uapi/linux/media.h   | 7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index d2b27ccff690cede..cc863e4ec9a4d4b3 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -243,14 +243,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index dca1e5a3e0f9..73ffea3e81c9 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		kpad.id = pad->graph_obj.id;
+ 		kpad.entity_id = pad->entity->graph_obj.id;
+ 		kpad.flags = pad->flags;
++		kpad.index = pad->index;
  
- static const struct rvin_info rcar_info_h1 = {
- 	.model = RCAR_H1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
+ 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+ 			ret = -EFAULT;
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 8fb50c122536..d4bad16d9431 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -310,11 +310,16 @@ struct media_v2_interface {
+ 	};
+ } __attribute__ ((packed));
  
- static const struct rvin_info rcar_info_m1 = {
- 	.model = RCAR_M1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.model = RCAR_GEN2,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct of_device_id rvin_of_id_table[] = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 0a035667c0b0e93f..8805d7911a761019 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,8 +23,6 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
--#define RVIN_MAX_WIDTH		2048
--#define RVIN_MAX_HEIGHT		2048
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -258,8 +256,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
- 	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 3f49d2f2d6b88471..f195d174eeacda10 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -91,9 +91,14 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @model:		VIN model
-+ * @max_width:		max input width the VIN supports
-+ * @max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum model_id model;
++/* Appeared in 4.17.0 */
++#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
++	((media_version) >= 0x00041100)
 +
-+	unsigned int max_width;
-+	unsigned int max_height;
- };
+ struct media_v2_pad {
+ 	__u32 id;
+ 	__u32 entity_id;
+ 	__u32 flags;
+-	__u32 reserved[5];
++	__u32 index;
++	__u32 reserved[4];
+ } __attribute__ ((packed));
  
- /**
+ struct media_v2_link {
 -- 
-2.16.2
+2.15.1
