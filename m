@@ -1,220 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32399 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752480AbeCZVqv (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50519 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751304AbeCTH1s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:46:51 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v13 19/33] rcar-vin: enable Gen3 hardware configuration
-Date: Mon, 26 Mar 2018 23:44:42 +0200
-Message-Id: <20180326214456.6655-20-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 20 Mar 2018 03:27:48 -0400
+Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for Xilinx M2M
+ Video Scaler
+To: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Rohit Athavale <RATHAVAL@xilinx.com>,
+        Greg KH <gregkh@linuxfoundation.org>
+Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
+ <1519252996-787-2-git-send-email-rohit.athavale@xilinx.com>
+ <20180222134658.GB19182@kroah.com>
+ <1315ef81-15f1-5bc9-eff9-aaa12e70738a@xs4all.nl>
+ <BY1PR02MB121105ECDEE95BB9444A65AFA2AB0@BY1PR02MB1211.namprd02.prod.outlook.com>
+ <1521510079.2912.18.camel@ndufresne.ca>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9009fc75-1f1e-4332-271a-0b4cf1cb296b@xs4all.nl>
+Date: Tue, 20 Mar 2018 08:27:42 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1521510079.2912.18.camel@ndufresne.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the register needed to work with Gen3 hardware. This patch adds
-the logic for how to work with the Gen3 hardware. More work is required
-to enable the subdevice structure needed to configure capturing.
+On 03/20/2018 02:41 AM, Nicolas Dufresne wrote:
+> Le mardi 20 mars 2018 à 00:46 +0000, Rohit Athavale a écrit :
+>> Hi Hans,
+>>
+>> Thanks for taking the time to take a look at this.
+>>
+>>> This should definitely use the V4L2 API. I guess it could be added
+>>> to staging/media with a big fat TODO that this should be converted
+>>> to
+>>> the V4L2 mem2mem framework.
+>>>
+>>> But it makes no sense to re-invent the V4L2 streaming API :-)
+>>>
+>>> drivers/media/platform/mx2_emmaprp.c does something similar to
+>>> this.
+>>> It's a little bit outdated (not using the latest m2m helper
+>>> functions)
+>>> but it is a good starting point.
+>>
+>> I looked at the mx2_emmaprp.c and the Samsung G-Scaler M2M driver.
+>> IMHO, the main difference between
+>> the Hardware registers/capabilities is that mx2_emmaprp driver or the
+>> gsc driver, have one scaling "channel"
+>> if we might call it. Whereas the HW/IP I have in mind has 4-8 scaling
+>> channels.
+>>
+>> By a scaling channel, I mean an entity of the HW or IP, that can take
+>> the following parameters :
+>>  - Input height, stride , width, color format, input Y and Cb/Cr
+>> physically contiguous memory pointers 
+>>  - Output height, stride, width, color format, output Y and Cb/Cr
+>> physically contiguous  memory pointers
+>>
+>> Based on the above parameters, when the above are provided and the IP
+>> is started, we get an interrupt on completion.
+>> I'm sure you are familiar with this model. However, in the case of
+>> this IP, there could be 4-8 such channels and a single interrupt
+>> on the completion of the all 4-8 scaling operations.
+>>
+>> In this IP, we are trying to have 4-8 input sources being scaled by
+>> this single piece of hardware, by time multiplexing.
+>>
+>> An example use case is :
+>>
+>> Four applications (sources) will feed (enqueue) 4 input buffers to
+>> the scaler, the scaler driver will synchronize the programming of
+>> these buffers, when the number of buffers received  by the driver
+>> meets our batch size (say a batch size of 4), it will kick start the
+>> IP. The four applications  will poll on the fd, upon receiving an
+>> interrupt from the hardware the poll will unblock. And all four
+>> applications can dequeue their respective buffers and display them on
+>> a sink.
+> 
+> You should think of a better scheduling model, it will be really hard
+> to design userspace that collaborate in order to optimize the IP usage.
+> I think a better approach would be to queue while the IP is busy. These
+> queues can then be sorted and prioritized.
+> 
+>>
+>> But each "channel" can be set to do accept its own individual input
+>> and output formats. When I went through :
+>> https://www.kernel.org/doc/html/v4.14/media/uapi/v4l/open.html#multip
+>> le-opens
+>>
+>> It appears, once an application has invoked VIDIOC_REQBUFS or
+>> VIDIOC_CREATE_BUFS, other applications cannot VIDIOC_S_FMT on them.
+>> However to maximize the available number of channels, it would be
+>> necessary to allow several applications to be able to 
+>> perform VIDIOC_S_FMT on the device node in the case of this hardware
+>> as different channels can be expected to deal with different scaling
+>> operations.
+> 
+> This does not apply to M2M devices. Each time userspace open an M2M
+> device, it will get a different instance (unless there is no more
+> resource available). What drivers like Samsung FIMC, GSCALER, MFC. etc.
+> do, is that they limit the number of instances (open calls) to the
+> number of streams they can handle in parallel. They don't seem to share
+> an IRQ when doing batch though.
+> 
+>>
+>> One option is to create a logical /dev/videoX node for each such
+>> channel, and have a parent driver perform the interrupt handling,
+>> batch size setting and other such common functionalities. Is there a
+>> way to allow multiple applications talk to the same video device
+>> node/file handle without creating logical video nodes for each
+>> channel ?
+> 
+> FIMC used to expose a node per instance and it was terribly hard to
+> use. I don't think this is a good idea.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 94 ++++++++++++++++++++----------
- drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
- 2 files changed, 64 insertions(+), 31 deletions(-)
+See Nicolas' answers. The mem2mem framework should work well for you,
+I think. The job_ready callback can be used to signal when enough
+buffers are queued to satisfy your IP requirements.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 41907a200037d5d5..696e53af8fc791bd 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -33,21 +33,23 @@
- #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
- #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
- #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
--#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
--#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
--#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
--#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
- #define VNIS_REG	0x2C	/* Video n Image Stride Register */
- #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
- #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
- #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
- #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
- #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
--#define VNYS_REG	0x50	/* Video n Y Scale Register */
--#define VNXS_REG	0x54	/* Video n X Scale Register */
- #define VNDMR_REG	0x58	/* Video n Data Mode Register */
- #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
- #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
-+
-+/* Register offsets specific for Gen2 */
-+#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-+#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-+#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-+#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
-+#define VNYS_REG	0x50	/* Video n Y Scale Register */
-+#define VNXS_REG	0x54	/* Video n X Scale Register */
- #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
- #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
- #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
-@@ -73,9 +75,13 @@
- #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
- #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
- 
-+/* Register offsets specific for Gen3 */
-+#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
- 
- /* Register bit fields for R-Car VIN */
- /* Video n Main Control Register bits */
-+#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
-+#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
- #define VNMC_FOC		(1 << 21)
- #define VNMC_YCAL		(1 << 19)
- #define VNMC_INF_YUV8_BT656	(0 << 16)
-@@ -119,6 +125,13 @@
- #define VNDMR2_FTEV		(1 << 17)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
- 
-+/* Video n CSI2 Interface Mode Register (Gen3) */
-+#define VNCSI_IFMD_DES2		(1 << 27)
-+#define VNCSI_IFMD_DES1		(1 << 26)
-+#define VNCSI_IFMD_DES0		(1 << 25)
-+#define VNCSI_IFMD_CSI_CHSEL(n) (((n) & 0xf) << 0)
-+#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
-+
- struct rvin_buffer {
- 	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
-@@ -514,28 +527,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
- 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
- }
- 
--void rvin_crop_scale_comp(struct rvin_dev *vin)
-+static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
- {
- 	u32 xs, ys;
- 
--	/* Set Start/End Pixel/Line Pre-Clip */
--	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
--	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
--	switch (vin->format.field) {
--	case V4L2_FIELD_INTERLACED:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
--		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
--			   VNELPRC_REG);
--		break;
--	default:
--		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
--		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
--			   VNELPRC_REG);
--		break;
--	}
--
- 	/* Set scaling coefficient */
- 	ys = 0;
- 	if (vin->crop.height != vin->compose.height)
-@@ -573,11 +568,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
--		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
--	else
--		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
--
- 	vin_dbg(vin,
- 		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
- 		vin->crop.width, vin->crop.height, vin->crop.left,
-@@ -585,6 +575,37 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		0, 0);
- }
- 
-+void rvin_crop_scale_comp(struct rvin_dev *vin)
-+{
-+	/* Set Start/End Pixel/Line Pre-Clip */
-+	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-+	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-+
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-+		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-+			   VNELPRC_REG);
-+		break;
-+	default:
-+		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-+		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-+			   VNELPRC_REG);
-+		break;
-+	}
-+
-+	/* TODO: Add support for the UDS scaler. */
-+	if (vin->info->model != RCAR_GEN3)
-+		rvin_crop_scale_comp_gen2(vin);
-+
-+	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-+		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-+	else
-+		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Hardware setup
-  */
-@@ -652,7 +673,10 @@ static int rvin_setup(struct rvin_dev *vin)
- 	}
- 
- 	/* Enable VSYNC Field Toogle mode after one VSYNC input */
--	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-+	if (vin->info->model == RCAR_GEN3)
-+		dmr2 = VNDMR2_FTEV;
-+	else
-+		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
- 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-@@ -704,6 +728,14 @@ static int rvin_setup(struct rvin_dev *vin)
- 	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
-+	if (vin->info->model == RCAR_GEN3) {
-+		/* Select between CSI-2 and Digital input */
-+		if (vin->mbus_cfg.type == V4L2_MBUS_CSI2)
-+			vnmc &= ~VNMC_DPINE;
-+		else
-+			vnmc |= VNMC_DPINE;
-+	}
-+
- 	/* Progressive or interlaced mode */
- 	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 952d57f32873388d..321283f1618ae0b9 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -33,6 +33,7 @@ enum model_id {
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_GEN2,
-+	RCAR_GEN3,
- };
- 
- /**
--- 
-2.16.2
+BTW, those requirements sound really weird. Is this really how Xilinx
+wants to implement this? It's not how scalers are used 'in the real world'.
+This whole 'batching' thing is strange.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> Please let me know if the description of HW is not clear. I will look
+>> forward to hear comments from you.
+>>
+>>>
+>>> So for this series:
+>>>
+>>> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> If this was added to drivers/staging/media instead and with an
+>>> updated
+>>> TODO, then we can accept it, but we need to see some real effort
+>>> afterwards
+>>> to switch this to the right API. Otherwise it will be removed again
+>>> after a few kernel cycles.
+>>>
+>>
+>> Many thanks for providing a pathway to get this into
+>> drivers/staging/media
+>>
+>> I will drop this series, and re-send with the driver being placed in
+>> drivers/staging/media.
+>> I'll add some references to this conversation, so a new reviewer gets
+>> some context of what
+>> was discussed. In the meanwhile I will look into re-writing this to
+>> utilize the M2M V4L2 API.
+>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>
+>>
+>> Best Regards,
+>> Rohit
+>>
+>>
+>>> -----Original Message-----
+>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>> Sent: Friday, March 09, 2018 3:58 AM
+>>> To: Greg KH <gregkh@linuxfoundation.org>; Rohit Athavale
+>>> <RATHAVAL@xilinx.com>
+>>> Cc: devel@driverdev.osuosl.org; linux-media@vger.kernel.org
+>>> Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for
+>>> Xilinx M2M
+>>> Video Scaler
+>>>
+>>> On 22/02/18 14:46, Greg KH wrote:
+>>>> On Wed, Feb 21, 2018 at 02:43:14PM -0800, Rohit Athavale wrote:
+>>>>> This commit adds driver support for the pre-release Xilinx M2M
+>>>>> Video
+>>>>> Scaler IP. There are three parts to this driver :
+>>>>>
+>>>>>  - The Hardware/IP layer that reads and writes register of the
+>>>>> IP
+>>>>>    contained in the scaler_hw_xm2m.c
+>>>>>  - The set of ioctls that applications would need to know
+>>>>> contained
+>>>>>    in ioctl_xm2mvsc.h
+>>>>>  - The char driver that consumes the IP layer in xm2m_vscale.c
+>>>>>
+>>>>> Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
+>>>>> ---
+>>>>
+>>>> I need an ack from the linux-media maintainers before I can
+>>>> consider
+>>>> this for staging, as this really looks like an "odd" video
+>>>> driver...
+>>>
+>>> This should definitely use the V4L2 API. I guess it could be added
+>>> to staging/media with a big fat TODO that this should be converted
+>>> to
+>>> the V4L2 mem2mem framework.
+>>>
+>>> But it makes no sense to re-invent the V4L2 streaming API :-)
+>>>
+>>> drivers/media/platform/mx2_emmaprp.c does something similar to
+>>> this.
+>>> It's a little bit outdated (not using the latest m2m helper
+>>> functions)
+>>> but it is a good starting point.
+>>>
+>>> So for this series:
+>>>
+>>> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> If this was added to drivers/staging/media instead and with an
+>>> updated
+>>> TODO, then we can accept it, but we need to see some real effort
+>>> afterwards
+>>> to switch this to the right API. Otherwise it will be removed again
+>>> after a few kernel cycles.
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
