@@ -1,200 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:24178 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752280AbeCOQiX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 12:38:23 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>,
-        "Lai, Jim" <jim.lai@intel.com>
-Subject: RE: [PATCH v8] media: imx258: Add imx258 camera sensor driver
-Date: Thu, 15 Mar 2018 16:38:17 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D54D217@PGSMSX111.gar.corp.intel.com>
-References: <1521044659-12598-1-git-send-email-andy.yeh@intel.com>
- <20180314223042.4t2thym5tspxfio3@kekkonen.localdomain>
-In-Reply-To: <20180314223042.4t2thym5tspxfio3@kekkonen.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35199 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751269AbeCTSDW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 14:03:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Paul Menzel <pmenzel+linux-media@molgen.mpg.de>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        it+linux-media@molgen.mpg.de
+Subject: Re: uvcvideo: Unknown video format,00000032-0002-0010-8000-00aa00389b71
+Date: Tue, 20 Mar 2018 20:04:27 +0200
+Message-ID: <15529671.DGPDy3yHsE@avalon>
+In-Reply-To: <1521567951.20523.81.camel@ndufresne.ca>
+References: <8f7d4aef-84f7-ae22-8adc-cba4fa881675@molgen.mpg.de> <1521567951.20523.81.camel@ndufresne.ca>
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both comments are OKAY.
+Hi Nicolas,
 
-Thanks.
+On Tuesday, 20 March 2018 19:45:51 EET Nicolas Dufresne wrote:
+> Le mardi 20 mars 2018 =E0 13:20 +0100, Paul Menzel a =E9crit :
+> > Dear Linux folks,
+> >=20
+> >=20
+> > On the Dell XPS 13 9370, Linux 4.16-rc6 outputs the messages below.
+> >=20
+> > ```
+> > [    2.338094] calling  uvc_init+0x0/0x1000 [uvcvideo] @ 295
+> > [    2.338569] calling  iTCO_wdt_init_module+0x0/0x1000 [iTCO_wdt] @ 280
+> > [    2.338570] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
+> > [    2.338713] iTCO_wdt: Found a Intel PCH TCO device (Version=3D4,
+> > TCOBASE=3D0x0400)
+> > [    2.338755] uvcvideo: Found UVC 1.00 device Integrated_Webcam_HD
+> > (0bda:58f4)
+> > [    2.338827] iTCO_wdt: initialized. heartbeat=3D30 sec (nowayout=3D0)
+> > [    2.338851] initcall iTCO_wdt_init_module+0x0/0x1000 [iTCO_wdt]
+> > returned 0 after 271 usecs
+> > [    2.340669] uvcvideo 1-5:1.0: Entity type for entity Extension 4 was
+> > not initialized!
+> > [    2.340670] uvcvideo 1-5:1.0: Entity type for entity Extension 7 was
+> > not initialized!
+> > [    2.340672] uvcvideo 1-5:1.0: Entity type for entity Processing 2 was
+> > not initialized!
+> > [    2.340673] uvcvideo 1-5:1.0: Entity type for entity Camera 1 was not
+> > initialized!
+> > [    2.340736] input: Integrated_Webcam_HD: Integrate as
+> > /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.0/input/input9
+> > [    2.341447] uvcvideo: Unknown video format
+> > 00000032-0002-0010-8000-00aa00389b71
+>=20
+> While the 0002 is suspicious, this is pretty close to a color format.
+> I've recently come across of similar format using D3DFORMAT instead of
+> GUID. According to the vendor*, this camera module includes an infrared
+> camera (340x340), so I suspect this is to specify the format it
+> outputs. A good guess to start with would be that this is
+> D3DFMT_X8L8V8U8 (0x32).
 
------Original Message-----
-From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com] 
-Sent: Thursday, March 15, 2018 6:31 AM
-To: Yeh, Andy <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org; tfiga@chromium.org; Chen, JasonX Z <jasonx.z.chen@intel.com>; Chiang, AlanX <alanx.chiang@intel.com>; Lai, Jim <jim.lai@intel.com>
-Subject: Re: [PATCH v8] media: imx258: Add imx258 camera sensor driver
+Isn't 0x32 D3DFMT_L8, not D3DFMT_X8L8V8U8 ?
 
-Hi Andy,
+> To test it, you could map this
+> V4L2_PIX_FMT_YUV32/xRGB and see if the driver is happy with the buffer
+> size.
 
-Thanks for the update. Two minor comments below.
+VideoStreaming Interface Descriptor:
+        bLength                            30
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         1
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            340
+        wHeight                           340
+        dwMinBitRate                 55488000
+        dwMaxBitRate                 55488000
+        dwMaxVideoFrameBufferSize      115600
+        dwDefaultFrameInterval         166666
+        bFrameIntervalType                  1
+        dwFrameInterval( 0)            166666
 
-On Thu, Mar 15, 2018 at 12:24:19AM +0800, Andy Yeh wrote:
-...
-> +static int imx258_set_ctrl(struct v4l2_ctrl *ctrl) {
-> +	struct imx258 *imx258 =
-> +		container_of(ctrl->handler, struct imx258, ctrl_handler);
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-> +	int ret = 0;
-> +
-> +	/*
-> +	 * Applying V4L2 control value only happens
-> +	 * when power is up for streaming
-> +	 */
-> +	if (pm_runtime_get_if_in_use(&client->dev) == 0)
-> +		return 0;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_ANALOGUE_GAIN:
-> +		ret = imx258_write_reg(imx258, IMX258_REG_ANALOG_GAIN,
-> +				IMX258_REG_VALUE_16BIT,
-> +				ctrl->val);
-> +		break;
-> +	case V4L2_CID_EXPOSURE:
-> +		ret = imx258_write_reg(imx258, IMX258_REG_EXPOSURE,
-> +				IMX258_REG_VALUE_16BIT,
-> +				ctrl->val);
-> +		break;
-> +	case V4L2_CID_DIGITAL_GAIN:
-> +		ret = imx258_update_digital_gain(imx258, IMX258_REG_VALUE_16BIT,
-> +				ctrl->val);
-> +		break;
-> +	case V4L2_CID_VBLANK:
-> +		/*
-> +		 * Auto Frame Length Line Control is enabled by default.
-> +		 * Not need control Vblank Register.
-> +		 */
-> +		break;
-> +	default:
-> +		dev_info(&client->dev,
-> +			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-> +			 ctrl->id, ctrl->val);
+340*340 is 115600, so this should be a 8-bit format.
 
-As this is an error, I'd set ret to e.g. -EINVAL here.
+> Then render it to make sure it looks some image of some sort. A
+> new format will need to be defined as this format is in the wrong
+> order, and is ambiguous (it may mean AYUV or xYUV). I'm not sure if we
+> need specific formats to differentiate infrared data from YUV images,
+> need to be discussed.
 
+If the format is indeed D3DFMT_L8, it should map to V4L2_PIX_FMT_GREY (8-bi=
+t=20
+luminance). I suspect the camera transmits a depth map though.
 
-> +		break;
-> +	}
-> +
-> +	pm_runtime_put(&client->dev);
-> +
-> +	return ret;
-> +}
+> *https://dustinweb.azureedge.net/media/338953/xps-13-9370.pdf
+>=20
+> > [    2.341450] uvcvideo: Found UVC 1.00 device Integrated_Webcam_HD
+> > (0bda:58f4)
+> > [    2.343371] uvcvideo: Unable to create debugfs 1-2 directory.
+> > [    2.343420] uvcvideo 1-5:1.2: Entity type for entity Extension 10 was
+> > not initialized!
+> > [    2.343422] uvcvideo 1-5:1.2: Entity type for entity Extension 12 was
+> > not initialized!
+> > [    2.343423] uvcvideo 1-5:1.2: Entity type for entity Processing 9 was
+> > not initialized!
+> > [    2.343424] uvcvideo 1-5:1.2: Entity type for entity Camera 11 was
+> > not initialized!
+> > [    2.343472] input: Integrated_Webcam_HD: Integrate as
+> > /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.2/input/input10
+> > [    2.343496] usbcore: registered new interface driver uvcvideo
+> > [    2.343496] USB Video Class driver (1.1.1)
+> > [    2.343501] initcall uvc_init+0x0/0x1000 [uvcvideo] returned 0 after
+> > 5275 usecs
+> > ```
+> >=20
+> > Please tell me, what I can do to improve the situation.
 
-...
+=2D-=20
+Regards,
 
-> +/* Initialize control handlers */
-> +static int imx258_init_controls(struct imx258 *imx258) {
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-> +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> +	s64 exposure_max;
-> +	s64 vblank_def;
-> +	s64 vblank_min;
-> +	s64 pixel_rate_min;
-> +	s64 pixel_rate_max;
-> +	int ret;
-> +
-> +	ctrl_hdlr = &imx258->ctrl_handler;
-> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
-> +	if (ret)
-> +		return ret;
-> +
-> +	mutex_init(&imx258->mutex);
-> +	ctrl_hdlr->lock = &imx258->mutex;
-> +	imx258->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-> +				&imx258_ctrl_ops,
-> +				V4L2_CID_LINK_FREQ,
-> +				ARRAY_SIZE(link_freq_menu_items) - 1,
-> +				0,
-> +				link_freq_menu_items);
-> +
-> +	if (imx258->link_freq)
-> +		imx258->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +	pixel_rate_max = link_freq_to_pixel_rate(link_freq_menu_items[0]);
-> +	pixel_rate_min = link_freq_to_pixel_rate(link_freq_menu_items[1]);
-> +	/* By default, PIXEL_RATE is read only */
-> +	imx258->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops,
-> +					V4L2_CID_PIXEL_RATE,
-> +					pixel_rate_min, pixel_rate_max,
-> +					1, pixel_rate_max);
-> +
-> +
-> +	vblank_def = imx258->cur_mode->vts_def - imx258->cur_mode->height;
-> +	vblank_min = imx258->cur_mode->vts_min - imx258->cur_mode->height;
-> +	imx258->vblank = v4l2_ctrl_new_std(
-> +				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_VBLANK,
-> +				vblank_min,
-> +				IMX258_VTS_MAX - imx258->cur_mode->height, 1,
-> +				vblank_def);
-> +
-> +	imx258->hblank = v4l2_ctrl_new_std(
-> +				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_HBLANK,
-> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
-> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
-> +				1,
-> +				IMX258_PPL_DEFAULT - imx258->cur_mode->width);
-> +
-> +	if (!imx258->hblank) {
-
-Could you align handling for NULL hblank control with NULL link_freq above?
-
-> +		ret = -EINVAL;
-> +		goto error;
-> +	}
-> +
-> +	imx258->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +	exposure_max = imx258->cur_mode->vts_def - 8;
-> +	imx258->exposure = v4l2_ctrl_new_std(
-> +				ctrl_hdlr, &imx258_ctrl_ops,
-> +				V4L2_CID_EXPOSURE, IMX258_EXPOSURE_MIN,
-> +				IMX258_EXPOSURE_MAX, IMX258_EXPOSURE_STEP,
-> +				IMX258_EXPOSURE_DEFAULT);
-> +
-> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-> +				IMX258_ANA_GAIN_MIN, IMX258_ANA_GAIN_MAX,
-> +				IMX258_ANA_GAIN_STEP, IMX258_ANA_GAIN_DEFAULT);
-> +
-> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
-> +				IMX258_DGTL_GAIN_MIN, IMX258_DGTL_GAIN_MAX,
-> +				IMX258_DGTL_GAIN_STEP,
-> +				IMX258_DGTL_GAIN_DEFAULT);
-> +
-> +	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx258_ctrl_ops,
-> +				     V4L2_CID_TEST_PATTERN,
-> +				     ARRAY_SIZE(imx258_test_pattern_menu) - 1,
-> +				     0, 0, imx258_test_pattern_menu);
-> +
-> +	if (ctrl_hdlr->error) {
-> +		ret = ctrl_hdlr->error;
-> +		dev_err(&client->dev, "%s control init failed (%d)\n",
-> +			__func__, ret);
-> +		goto error;
-> +	}
-> +
-> +	imx258->sd.ctrl_handler = ctrl_hdlr;
-> +
-> +	return 0;
-> +
-> +error:
-> +	v4l2_ctrl_handler_free(ctrl_hdlr);
-> +	mutex_destroy(&imx258->mutex);
-> +
-> +	return ret;
-> +}
-
---
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Laurent Pinchart
