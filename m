@@ -1,104 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f171.google.com ([209.85.223.171]:40574 "EHLO
-        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751104AbeCLMdE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 08:33:04 -0400
-Received: by mail-io0-f171.google.com with SMTP id v6so11216650iog.7
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 05:33:04 -0700 (PDT)
-Received: from mail-io0-f169.google.com (mail-io0-f169.google.com. [209.85.223.169])
-        by smtp.gmail.com with ESMTPSA id z196sm5125651iod.50.2018.03.12.05.33.03
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 12 Mar 2018 05:33:03 -0700 (PDT)
-Received: by mail-io0-f169.google.com with SMTP id f1so11247223iob.0
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2018 05:33:03 -0700 (PDT)
+Received: from mail-co1nam03on0101.outbound.protection.outlook.com ([104.47.40.101]:42176
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750968AbeCTDsQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 23:48:16 -0400
+From: <Yasunari.Takiguchi@sony.com>
+To: <arnd@arndb.de>, <mchehab@kernel.org>
+CC: <msebor@gmail.com>, <Toshihiko.Matsumoto@sony.com>,
+        <Kota.Yonezawa@sony.com>, <Satoshi.C.Watanabe@sony.com>,
+        <Masayuki.Yamamoto@sony.com>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <Yasunari.Takiguchi@sony.com>
+Subject: RE: [PATCH] media: cxd2880-spi: avoid out-of-bounds access warning
+Date: Tue, 20 Mar 2018 03:47:57 +0000
+Message-ID: <02699364973B424C83A42A84B04FDA85484BC2@JPYOKXMS113.jp.sony.com>
+References: <20180313120931.2667235-1-arnd@arndb.de>
+In-Reply-To: <20180313120931.2667235-1-arnd@arndb.de>
+Content-Language: ja-JP
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
-References: <20180220044425.169493-20-acourbot@chromium.org>
- <1520440654.1092.15.camel@bootlin.com> <6470b45d-e9dc-0a22-febc-cd18ae1092be@gmail.com>
- <1520842245.1513.5.camel@bootlin.com> <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 12 Mar 2018 21:32:42 +0900
-Message-ID: <CAPBb6MXYj0SHUWPRuCNewUetmxrePx1NFQfB6tw+BbPHS+Hkmg@mail.gmail.com>
-Subject: Re: [RFCv4,19/21] media: vim2m: add request support
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 12, 2018 at 5:15 PM, Tomasz Figa <tfiga@chromium.org> wrote:
-> Hi Paul, Dmitry,
->
-> On Mon, Mar 12, 2018 at 5:10 PM, Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
->> Hi,
->>
->> On Sun, 2018-03-11 at 22:42 +0300, Dmitry Osipenko wrote:
->>> Hello,
->>>
->>> On 07.03.2018 19:37, Paul Kocialkowski wrote:
->>> > Hi,
->>> >
->>> > First off, I'd like to take the occasion to say thank-you for your
->>> > work.
->>> > This is a major piece of plumbing that is required for me to add
->>> > support
->>> > for the Allwinner CedarX VPU hardware in upstream Linux. Other
->>> > drivers,
->>> > such as tegra-vde (that was recently merged in staging) are also
->>> > badly
->>> > in need of this API.
->>>
->>> Certainly it would be good to have a common UAPI. Yet I haven't got my
->>> hands on
->>> trying to implement the V4L interface for the tegra-vde driver, but
->>> I've taken a
->>> look at Cedrus driver and for now I've one question:
->>>
->>> Would it be possible (or maybe already is) to have a single IOCTL that
->>> takes input/output buffers with codec parameters, processes the
->>> request(s) and returns to userspace when everything is done? Having 5
->>> context switches for a single frame decode (like Cedrus VAAPI driver
->>> does) looks like a bit of overhead.
->>
->> The V4L2 interface exposes ioctls for differents actions and I don't
->> think there's a combined ioctl for this. The request API was introduced
->> precisely because we need to have consistency between the various ioctls
->> needed for each frame. Maybe one single (atomic) ioctl would have worked
->> too, but that's apparently not how the V4L2 API was designed.
->>
->> I don't think there is any particular overhead caused by having n ioctls
->> instead of a single one. At least that would be very surprising IMHO.
->
-> Well, there is small syscall overhead, which normally shouldn't be
-> very painful, although with all the speculative execution hardening,
-> can't be sure of anything anymore. :)
->
-> Hans and Alex can correct me if I'm wrong, but I believe there is a
-> more atomic-like API being planned, which would only need one IOCTL to
-> do everything. However, that would be a more serious change to the
-> V4L2 interfaces, so should be decoupled from Request API itself.
+Hi.
 
-Indeed, we discussed the possibility to setup and submit requests in
-one syscall, similarly (at least in spirit) to the DRM atomic API.
+We check the patch. 
 
-This has only been discussed though, and as a feature to consider
-*after* the request API is merged for codecs (as the more complex
-camera use-cases would benefit more from it). As Tomasz mentioned, the
-overhead of ioctls is somehow negligible compared to the workload of
-the encoding/decoding itself, although I suppose it can still add up.
-The main advantage I can see for this is a simpler and less
-error-prone setup of requests for user-space.
+> -----Original Message-----
+> From: Arnd Bergmann [mailto:arnd@arndb.de]
+> Sent: Tuesday, March 13, 2018 9:09 PM
+> To: Takiguchi, Yasunari (SSS); Mauro Carvalho Chehab
+> Cc: Arnd Bergmann; Martin Sebor; Matsumoto, Toshihiko (SSS); Yonezawa,
+> Kota (SSS); Watanabe, Satoshi (SSS); Yamamoto, Masayuki (SSS);
+> linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] media: cxd2880-spi: avoid out-of-bounds access warning
+> 
+> The -Warray-bounds warning in gcc-8 triggers for a newly added file:
+> 
+> drivers/media/spi/cxd2880-spi.c: In function 'cxd2880_write_reg':
+> drivers/media/spi/cxd2880-spi.c:111:3: error: 'memcpy' forming offset
+> [133, 258] is out of the bounds [0, 132] of object 'send_data' with type
+> 'u8[132]' {aka 'unsigned char[132]'} [-Werror=array-bounds]
+> 
+> The problem appears to be that we have two range checks in this function,
+> first comparing against BURST_WRITE_MAX (128) and then comparing against
+> a literal '255'. The logic checking the buffer size looks at the second
+> one and decides that this might be the actual maximum data length.
+> 
+> This is understandable behavior from the compiler, but the code is
+> actually safe. Since the first check is already shorter, we can remove
+> the loop and only leave that. To be on the safe side in case BURST_WRITE_MAX
+> might be increased, I'm leaving the check against U8_MAX.
+> 
+> Fixes: bd24fcddf6b8 ("media: cxd2880-spi: Add support for CXD2880 SPI
+> interface")
+> Cc: Martin Sebor <msebor@gmail.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/spi/cxd2880-spi.c | 24 +++++++-----------------
+>  1 file changed, 7 insertions(+), 17 deletions(-)
+
+Reviewed-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
