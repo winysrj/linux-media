@@ -1,172 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f171.google.com ([209.85.216.171]:41271 "EHLO
-        mail-qt0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932590AbeCNBJs (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33962 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753501AbeCTN3J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 21:09:48 -0400
-Received: by mail-qt0-f171.google.com with SMTP id j4so1776903qth.8
-        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 18:09:48 -0700 (PDT)
-Message-ID: <1520989785.5128.16.camel@ndufresne.ca>
-Subject: Re: [PATCH] media: vb2: unify calling of set_page_dirty_lock
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Tue, 13 Mar 2018 21:09:45 -0400
-In-Reply-To: <1520988249.5128.13.camel@ndufresne.ca>
-References: <20170829112603.32732-1-stanimir.varbanov@linaro.org>
-         <1507650010.2784.11.camel@ndufresne.ca>
-         <20171015204014.2awhhygw6hi3lxas@valkosipuli.retiisi.org.uk>
-         <1508108964.4502.6.camel@ndufresne.ca>
-         <20171017101420.5a5cvyhkadmcqgfy@valkosipuli.retiisi.org.uk>
-         <1508249953.19297.4.camel@ndufresne.ca>
-         <8f1eda59-fc51-b77e-ae43-9603b5759b14@linaro.org>
-         <1520988249.5128.13.camel@ndufresne.ca>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 20 Mar 2018 09:29:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Paul Menzel <pmenzel+linux-media@molgen.mpg.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        it+linux-media@molgen.mpg.de
+Subject: Re: uvcvideo: Unknown video format,00000032-0002-0010-8000-00aa00389b71
+Date: Tue, 20 Mar 2018 15:30:14 +0200
+Message-ID: <6647791.pjJyibMGYG@avalon>
+In-Reply-To: <8f7d4aef-84f7-ae22-8adc-cba4fa881675@molgen.mpg.de>
+References: <8f7d4aef-84f7-ae22-8adc-cba4fa881675@molgen.mpg.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mardi 13 mars 2018 à 20:44 -0400, Nicolas Dufresne a écrit :
-> Le mercredi 18 octobre 2017 à 11:34 +0300, Stanimir Varbanov a écrit
-> :
-> > 
-> > On 10/17/2017 05:19 PM, Nicolas Dufresne wrote:
-> > > Le mardi 17 octobre 2017 à 13:14 +0300, Sakari Ailus a écrit :
-> > > > On Sun, Oct 15, 2017 at 07:09:24PM -0400, Nicolas Dufresne
-> > > > wrote:
-> > > > > Le dimanche 15 octobre 2017 à 23:40 +0300, Sakari Ailus a
-> > > > > écrit
-> > > > > :
-> > > > > > Hi Nicolas,
-> > > > > > 
-> > > > > > On Tue, Oct 10, 2017 at 11:40:10AM -0400, Nicolas Dufresne
-> > > > > > wrote:
-> > > > > > > Le mardi 29 août 2017 à 14:26 +0300, Stanimir Varbanov a
-> > > > > > > écrit :
-> > > > > > > > Currently videobuf2-dma-sg checks for dma direction for
-> > > > > > > > every single page and videobuf2-dc lacks any dma
-> > > > > > > > direction
-> > > > > > > > checks and calls set_page_dirty_lock unconditionally.
-> > > > > > > > 
-> > > > > > > > Thus unify and align the invocations of
-> > > > > > > > set_page_dirty_lock
-> > > > > > > > for videobuf2-dc, videobuf2-sg  memory allocators with
-> > > > > > > > videobuf2-vmalloc, i.e. the pattern used in vmalloc has
-> > > > > > > > been
-> > > > > > > > copied to dc and dma-sg.
-> > > > > > > 
-> > > > > > > Just before we go too far in "doing like vmalloc", I
-> > > > > > > would
-> > > > > > > like to
-> > > > > > > share this small video that display coherency issues when
-> > > > > > > rendering
-> > > > > > > vmalloc backed DMABuf over various KMS/DRM driver. I can
-> > > > > > > reproduce
-> > > > > > > this
-> > > > > > > easily with Intel and MSM display drivers using UVC or
-> > > > > > > Vivid as
-> > > > > > > source.
-> > > > > > > 
-> > > > > > > The following is an HDMI capture of the following
-> > > > > > > GStreamer
-> > > > > > > pipeline
-> > > > > > > running on Dragonboard 410c.
-> > > > > > > 
-> > > > > > >     gst-launch-1.0 -v v4l2src device=/dev/video2 !
-> > > > > > > video/x-
-> > > > > > > raw,format=NV16,width=1280,height=720 ! kmssink
-> > > > > > >     https://people.collabora.com/~nicolas/vmalloc-issue.m
-> > > > > > > ov
-> > > > > > > 
-> > > > > > > Feedback on this issue would be more then welcome. It's
-> > > > > > > not
-> > > > > > > clear
-> > > > > > > to me
-> > > > > > > who's bug is this (v4l2, drm or iommu). The software is
-> > > > > > > unlikely to
-> > > > > > > be
-> > > > > > > blamed as this same pipeline works fine with non-vmalloc
-> > > > > > > based
-> > > > > > > sources.
-> > > > > > 
-> > > > > > Could you elaborate this a little bit more? Which Intel CPU
-> > > > > > do you
-> > > > > > have
-> > > > > > there?
-> > > > > 
-> > > > > I have tested with Skylake and Ivy Bridge and on Dragonboard
-> > > > > 410c
-> > > > > (Qualcomm APQ8016 SoC) (same visual artefact)
-> > > > 
-> > > > I presume kmssink draws on the display. Which GPU did you use?
-> > > 
-> > > In order, GPU will be Iris Pro 580, Intel® Ivybridge Mobile and
-> > > an
-> > > Adreno (3x ?). Why does it matter ? I'm pretty sure the GPU is
-> > > not
-> > > used
-> > > on the DB410c for this use case.
-> > 
-> > Nicolas, for me this looks like a problem in v4l2. In the case of
-> > vivid
-> > the stats overlay (where the coherency issues are observed, and
-> > most
-> > probably the issue will be observed on the whole image but
-> > fortunately
-> > it is a static image pattern) are filled by the CPU but I cannot
-> > see
-> > where the cache is flushed. Also I'm wondering why .finish method
-> > is
-> > missing for dma-vmalloc mem_ops.
-> > 
-> > To be sure that the problem is in vmalloc v4l2 allocator, could you
-> > change the allocator to dma-contig, there is a module param for
-> > that
-> > called 'allocators'.
-> 
-> I've looked into this again. I have hit the same issue but with CPU
-> to
-> DRM, using DMABuf allocated from DRM Dumb buffers. In that case,
-> using
-> DMA_BUF_IOCTL_SYNC fixes the issues.
-> 
-> This raises a lot of question around the model used in V4L2. As you
-> mention, prepare/finish are missing in dma-vmalloc mem_ops. I'll give
-> a
-> try implementing that, it should cover my initial use case, but then
-> I
-> believe it will fail if my pipeline is:
-> 
->   UVC -> in plane CPU modification -> DRM
-> 
-> Because we don't implement begin/end_cpu_access on our exported
-> DMABuf.
-> It should also fail for the following use case:
-> 
->   UVC (importer) -> DRM
-> 
-> UVC driver won't call the remote dmabuf being/end_cpu_access method.
-> This one is difficult because UVC driver and vivid don't seem to be
-> aware of being an importer, exported or simply exporting to CPU
-> (through mmap). I believe what we have now pretty much assumes the
-> what
-> we export as vmalloc is to be used by CPU only. Also, the usual
-> direction used by prepare/finish ops won't work for drivers like
-> vivid
-> and UVC that write into the buffers using the cpu.
-> 
-> To be continued ...
+Hi Paul,
 
-While I was writing that, I was already outdated, as of now, we only
-have one ops, called sync. This implements the to_cpu direction only.
+On Tuesday, 20 March 2018 14:20:14 EET Paul Menzel wrote:
+> Dear Linux folks,
+> 
+> 
+> On the Dell XPS 13 9370, Linux 4.16-rc6 outputs the messages below.
+> 
+> ```
+> [    2.338094] calling  uvc_init+0x0/0x1000 [uvcvideo] @ 295
+> [    2.338569] calling  iTCO_wdt_init_module+0x0/0x1000 [iTCO_wdt] @ 280
+> [    2.338570] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
+> [    2.338713] iTCO_wdt: Found a Intel PCH TCO device (Version=4,
+> TCOBASE=0x0400)
+> [    2.338755] uvcvideo: Found UVC 1.00 device Integrated_Webcam_HD
+> (0bda:58f4)
+> [    2.338827] iTCO_wdt: initialized. heartbeat=30 sec (nowayout=0)
+> [    2.338851] initcall iTCO_wdt_init_module+0x0/0x1000 [iTCO_wdt]
+> returned 0 after 271 usecs
+> [    2.340669] uvcvideo 1-5:1.0: Entity type for entity Extension 4 was
+> not initialized!
+> [    2.340670] uvcvideo 1-5:1.0: Entity type for entity Extension 7 was
+> not initialized!
+> [    2.340672] uvcvideo 1-5:1.0: Entity type for entity Processing 2 was
+> not initialized!
+> [    2.340673] uvcvideo 1-5:1.0: Entity type for entity Camera 1 was not
+> initialized!
+> [    2.340736] input: Integrated_Webcam_HD: Integrate as
+> /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.0/input/input9
+> [    2.341447] uvcvideo: Unknown video format
+> 00000032-0002-0010-8000-00aa00389b71
+> [    2.341450] uvcvideo: Found UVC 1.00 device Integrated_Webcam_HD
+> (0bda:58f4)
+> [    2.343371] uvcvideo: Unable to create debugfs 1-2 directory.
+> [    2.343420] uvcvideo 1-5:1.2: Entity type for entity Extension 10 was
+> not initialized!
+> [    2.343422] uvcvideo 1-5:1.2: Entity type for entity Extension 12 was
+> not initialized!
+> [    2.343423] uvcvideo 1-5:1.2: Entity type for entity Processing 9 was
+> not initialized!
+> [    2.343424] uvcvideo 1-5:1.2: Entity type for entity Camera 11 was
+> not initialized!
+> [    2.343472] input: Integrated_Webcam_HD: Integrate as
+> /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.2/input/input10
+> [    2.343496] usbcore: registered new interface driver uvcvideo
+> [    2.343496] USB Video Class driver (1.1.1)
+> [    2.343501] initcall uvc_init+0x0/0x1000 [uvcvideo] returned 0 after
+> 5275 usecs
+> ```
+> 
+> Please tell me, what I can do to improve the situation.
 
-> 
-> Nicolas
-> 
-> 
+Some vendors routinely implement new formats without bothering to send a patch 
+for the uvcvideo driver. It would be easy to do so, but it requires knowing 
+which format is meant by the GUID. Most format GUIDs are of the form 
+32595559-0000-0010-8000-00aa00389b71 that starts with a 4CC, but that's not 
+the case here.
+
+Could you send me the output of
+
+lsusb -v -d 0bda:58f4
+
+running as root if possible ?
+
+-- 
+Regards,
+
+Laurent Pinchart
