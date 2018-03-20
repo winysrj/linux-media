@@ -1,145 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:38178 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754202AbeC2SII (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58206 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750888AbeCTFGN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 14:08:08 -0400
-Date: Thu, 29 Mar 2018 22:37:57 +0430
-From: Nasser <afshin.nasser@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability on
- some hardware
-Message-ID: <20180329180757.GA27220@smart-ThinkPad-T410>
-References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
- <20180326064353.187f752c@vento.lan>
- <20180326222921.GA5373@smart-ThinkPad-T410>
- <20180329143435.GA4392@smart-ThinkPad-T410>
- <20180329120240.169a5f33@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180329120240.169a5f33@vento.lan>
+        Tue, 20 Mar 2018 01:06:13 -0400
+Message-ID: <9a3e38cc5e39ef55b3c373e24947d4e0@smtp-cloud9.xs4all.net>
+Date: Tue, 20 Mar 2018 06:06:10 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 29, 2018 at 12:02:40PM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 29 Mar 2018 19:04:35 +0430
-> Nasser <afshin.nasser@gmail.com> escreveu:
-> 
-> > On Tue, Mar 27, 2018 at 02:59:21AM +0430, Nasser wrote:
-> > Hi Mauro,
-> > 
-> > Thank you for taking time to review my patch.
-> > 
-> > May be I should rephrase the commit message to something like:
-> > 	Use the default register values as suggested in TVP5150AM1 datasheet
-> > 
-> > As this is not a hardware-dependent issue. Am I missing something?
-> 
-> It is not a matter of rephasing, but, instead, to be sure that it won't
-> cause regressions on existing hardware.
-> 
-> Yet, it would worth if you could describe at the patch what hardware
-> did you test it, and if VBI was tested too.
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Does this means that I should resend the patch with this additional info?
-Sorry for not being clear about that. This was a custom board based on
-ARM. The VBI was not used.
+Results of the daily build of media_tree:
 
-> Anyway, I'll try to find some time to run some tests on the hardware
-> I have with tvp5150 too.
+date:			Tue Mar 20 05:00:13 CET 2018
+media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
+media_build git hash:	e95b7e6bfea396f9dfb1ff7d4d6b95ecacd53d3d
+v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-It sounds great.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.101-i686: WARNINGS
+linux-3.0.101-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.100-i686: WARNINGS
+linux-3.2.100-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.113-i686: WARNINGS
+linux-3.4.113-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.10-i686: WARNINGS
+linux-3.7.10-x86_64: WARNINGS
+linux-3.8.13-i686: WARNINGS
+linux-3.8.13-x86_64: WARNINGS
+linux-3.9.11-i686: WARNINGS
+linux-3.9.11-x86_64: WARNINGS
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.55-i686: WARNINGS
+linux-3.16.55-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.100-i686: WARNINGS
+linux-3.18.100-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.50-i686: WARNINGS
+linux-4.1.50-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.99-i686: OK
+linux-4.4.99-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: WARNINGS
+linux-4.9.87-i686: WARNINGS
+linux-4.9.87-x86_64: WARNINGS
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: WARNINGS
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: WARNINGS
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.27-i686: OK
+linux-4.14.27-x86_64: OK
+linux-4.15.10-i686: OK
+linux-4.15.10-x86_64: OK
+linux-4.16-rc5-i686: OK
+linux-4.16-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-> 
-> Regards,
-> Mauro
-> 
-> > 
-> > > On Mon, Mar 26, 2018 at 06:43:53AM -0300, Mauro Carvalho Chehab wrote:  
-> > > > Hi Nasser,
-> > > > 
-> > > > Em Mon, 26 Mar 2018 03:26:33 +0430
-> > > > Nasser Afshin <afshin.nasser@gmail.com> escreveu:
-> > > >   
-> > > > > According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
-> > > > > resistor if it's been disabled. On hardware that does not have such
-> > > > > resistor, we should use the default output enable value.
-> > > > > This prevents the color burst lock instability problem.  
-> > > >  
-> > > 
-> > > Color burst lock instability is just a side effect of not using the
-> > > recommended value for this bit. If we use the recommended setting, we
-> > > will support more hardware while not breaking anything.
-> > >   
-> > > > If this is hardware-dependent, you should instead store it at
-> > > > OF (for SoC) or pass via platform_data (for PCI/USB devices).
-> > > >  
-> > > 
-> > > We have used the recommended value for this bit (as the datasheet
-> > > suggests) while we are in tvp5150_init_enable but in tvp5150_s_stream
-> > > we are using the wrong value.
-> > > 
-> > > Also we have this comment at line 319:
-> > >     /* Default values as sugested at TVP5150AM1 datasheet */
-> > > But as you see, TVP5150_MISC_CTL is not set to its suggested default
-> > > value.
-> > >    
+Detailed results are available here:
 
-Any way the assignment to tvp5150_init_default after the above comment
-seems not to be correct according to the "3.21.4 Miscellaneous Controls
-Register" part in the datasheet. While following the same comment phrase
-on line 455, we see the correct assignment as the default values to 
-tvp5150_init_enable.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Sorry this is so lengthy.
+Full logs are available here:
 
-Thank you,
-Nasser
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-> > > > > 
-> > > > > Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
-> > > > > ---
-> > > > >  drivers/media/i2c/tvp5150.c | 5 +++--
-> > > > >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > > > > index 2476d812f669..0e9713814816 100644
-> > > > > --- a/drivers/media/i2c/tvp5150.c
-> > > > > +++ b/drivers/media/i2c/tvp5150.c
-> > > > > @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
-> > > > >  		TVP5150_OP_MODE_CTL,0x00
-> > > > >  	},
-> > > > >  	{ /* 0x03 */
-> > > > > -		TVP5150_MISC_CTL,0x01
-> > > > > +		TVP5150_MISC_CTL,0x21
-> > > > >  	},
-> > > > >  	{ /* 0x06 */
-> > > > >  		TVP5150_COLOR_KIL_THSH_CTL,0x10
-> > > > > @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
-> > > > >  		 * Enable the YCbCr and clock outputs. In discrete sync mode
-> > > > >  		 * (non-BT.656) additionally enable the the sync outputs.
-> > > > >  		 */
-> > > > > -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
-> > > > > +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
-> > > > > +			TVP5150_MISC_CTL_INTREQ_OE;
-> > > > >  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-> > > > >  			val |= TVP5150_MISC_CTL_SYNC_OE;
-> > > > >  	}  
-> > > > 
-> > > > 
-> > > > 
-> > > > Thanks,
-> > > > Mauro  
-> > 
-> > Thanks,
-> > Nasser
-> 
-> 
-> 
-> Thanks,
-> Mauro
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
