@@ -1,78 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24353 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163926AbeCBB7E (ORCPT
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:45359 "EHLO
+        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751261AbeCTBlW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 11/32] rcar-vin: set a default field to fallback on
-Date: Fri,  2 Mar 2018 02:57:30 +0100
-Message-Id: <20180302015751.25596-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+        Mon, 19 Mar 2018 21:41:22 -0400
+Received: by mail-qk0-f177.google.com with SMTP id s9so20561qke.12
+        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 18:41:22 -0700 (PDT)
+Message-ID: <1521510079.2912.18.camel@ndufresne.ca>
+Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for Xilinx
+ M2M Video Scaler
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Rohit Athavale <RATHAVAL@xilinx.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Greg KH <gregkh@linuxfoundation.org>
+Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 19 Mar 2018 21:41:19 -0400
+In-Reply-To: <BY1PR02MB121105ECDEE95BB9444A65AFA2AB0@BY1PR02MB1211.namprd02.prod.outlook.com>
+References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
+         <1519252996-787-2-git-send-email-rohit.athavale@xilinx.com>
+         <20180222134658.GB19182@kroah.com>
+         <1315ef81-15f1-5bc9-eff9-aaa12e70738a@xs4all.nl>
+         <BY1PR02MB121105ECDEE95BB9444A65AFA2AB0@BY1PR02MB1211.namprd02.prod.outlook.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the field is not supported by the driver it should not try to keep
-the current field. Instead it should set it to a default fallback. Since
-trying a format should always result in the same state regardless of the
-current state of the device.
+Le mardi 20 mars 2018 à 00:46 +0000, Rohit Athavale a écrit :
+> Hi Hans,
+> 
+> Thanks for taking the time to take a look at this.
+> 
+> > This should definitely use the V4L2 API. I guess it could be added
+> > to staging/media with a big fat TODO that this should be converted
+> > to
+> > the V4L2 mem2mem framework.
+> > 
+> > But it makes no sense to re-invent the V4L2 streaming API :-)
+> > 
+> > drivers/media/platform/mx2_emmaprp.c does something similar to
+> > this.
+> > It's a little bit outdated (not using the latest m2m helper
+> > functions)
+> > but it is a good starting point.
+> 
+> I looked at the mx2_emmaprp.c and the Samsung G-Scaler M2M driver.
+> IMHO, the main difference between
+> the Hardware registers/capabilities is that mx2_emmaprp driver or the
+> gsc driver, have one scaling "channel"
+> if we might call it. Whereas the HW/IP I have in mind has 4-8 scaling
+> channels.
+> 
+> By a scaling channel, I mean an entity of the HW or IP, that can take
+> the following parameters :
+>  - Input height, stride , width, color format, input Y and Cb/Cr
+> physically contiguous memory pointers 
+>  - Output height, stride, width, color format, output Y and Cb/Cr
+> physically contiguous  memory pointers
+> 
+> Based on the above parameters, when the above are provided and the IP
+> is started, we get an interrupt on completion.
+> I'm sure you are familiar with this model. However, in the case of
+> this IP, there could be 4-8 such channels and a single interrupt
+> on the completion of the all 4-8 scaling operations.
+> 
+> In this IP, we are trying to have 4-8 input sources being scaled by
+> this single piece of hardware, by time multiplexing.
+> 
+> An example use case is :
+> 
+> Four applications (sources) will feed (enqueue) 4 input buffers to
+> the scaler, the scaler driver will synchronize the programming of
+> these buffers, when the number of buffers received  by the driver
+> meets our batch size (say a batch size of 4), it will kick start the
+> IP. The four applications  will poll on the fd, upon receiving an
+> interrupt from the hardware the poll will unblock. And all four
+> applications can dequeue their respective buffers and display them on
+> a sink.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+You should think of a better scheduling model, it will be really hard
+to design userspace that collaborate in order to optimize the IP usage.
+I think a better approach would be to queue while the IP is busy. These
+queues can then be sorted and prioritized.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index c2265324c7c96308..ebcd78b1bb6e8cb6 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,6 +23,7 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-+#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		vin->format.field = V4L2_FIELD_NONE;
-+		vin->format.field = RVIN_DEFAULT_FIELD;
- 		break;
- 	}
- 
-@@ -213,10 +214,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	u32 walign;
- 	int ret;
- 
--	/* Keep current field if no specific one is asked for */
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = vin->format.field;
--
- 	/* If requested format is not supported fallback to the default */
- 	if (!rvin_format_from_pixel(pix->pixelformat)) {
- 		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-@@ -246,7 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		pix->field = V4L2_FIELD_NONE;
-+		pix->field = RVIN_DEFAULT_FIELD;
- 		break;
- 	}
- 
--- 
-2.16.2
+> 
+> But each "channel" can be set to do accept its own individual input
+> and output formats. When I went through :
+> https://www.kernel.org/doc/html/v4.14/media/uapi/v4l/open.html#multip
+> le-opens
+> 
+> It appears, once an application has invoked VIDIOC_REQBUFS or
+> VIDIOC_CREATE_BUFS, other applications cannot VIDIOC_S_FMT on them.
+> However to maximize the available number of channels, it would be
+> necessary to allow several applications to be able to 
+> perform VIDIOC_S_FMT on the device node in the case of this hardware
+> as different channels can be expected to deal with different scaling
+> operations.
+
+This does not apply to M2M devices. Each time userspace open an M2M
+device, it will get a different instance (unless there is no more
+resource available). What drivers like Samsung FIMC, GSCALER, MFC. etc.
+do, is that they limit the number of instances (open calls) to the
+number of streams they can handle in parallel. They don't seem to share
+an IRQ when doing batch though.
+
+> 
+> One option is to create a logical /dev/videoX node for each such
+> channel, and have a parent driver perform the interrupt handling,
+> batch size setting and other such common functionalities. Is there a
+> way to allow multiple applications talk to the same video device
+> node/file handle without creating logical video nodes for each
+> channel ?
+
+FIMC used to expose a node per instance and it was terribly hard to
+use. I don't think this is a good idea.
+
+> 
+> Please let me know if the description of HW is not clear. I will look
+> forward to hear comments from you.
+> 
+> > 
+> > So for this series:
+> > 
+> > Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > If this was added to drivers/staging/media instead and with an
+> > updated
+> > TODO, then we can accept it, but we need to see some real effort
+> > afterwards
+> > to switch this to the right API. Otherwise it will be removed again
+> > after a few kernel cycles.
+> > 
+> 
+> Many thanks for providing a pathway to get this into
+> drivers/staging/media
+> 
+> I will drop this series, and re-send with the driver being placed in
+> drivers/staging/media.
+> I'll add some references to this conversation, so a new reviewer gets
+> some context of what
+> was discussed. In the meanwhile I will look into re-writing this to
+> utilize the M2M V4L2 API.
+> 
+> > Regards,
+> > 
+> > 	Hans
+> 
+> 
+> Best Regards,
+> Rohit
+> 
+> 
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: Friday, March 09, 2018 3:58 AM
+> > To: Greg KH <gregkh@linuxfoundation.org>; Rohit Athavale
+> > <RATHAVAL@xilinx.com>
+> > Cc: devel@driverdev.osuosl.org; linux-media@vger.kernel.org
+> > Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for
+> > Xilinx M2M
+> > Video Scaler
+> > 
+> > On 22/02/18 14:46, Greg KH wrote:
+> > > On Wed, Feb 21, 2018 at 02:43:14PM -0800, Rohit Athavale wrote:
+> > > > This commit adds driver support for the pre-release Xilinx M2M
+> > > > Video
+> > > > Scaler IP. There are three parts to this driver :
+> > > > 
+> > > >  - The Hardware/IP layer that reads and writes register of the
+> > > > IP
+> > > >    contained in the scaler_hw_xm2m.c
+> > > >  - The set of ioctls that applications would need to know
+> > > > contained
+> > > >    in ioctl_xm2mvsc.h
+> > > >  - The char driver that consumes the IP layer in xm2m_vscale.c
+> > > > 
+> > > > Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
+> > > > ---
+> > > 
+> > > I need an ack from the linux-media maintainers before I can
+> > > consider
+> > > this for staging, as this really looks like an "odd" video
+> > > driver...
+> > 
+> > This should definitely use the V4L2 API. I guess it could be added
+> > to staging/media with a big fat TODO that this should be converted
+> > to
+> > the V4L2 mem2mem framework.
+> > 
+> > But it makes no sense to re-invent the V4L2 streaming API :-)
+> > 
+> > drivers/media/platform/mx2_emmaprp.c does something similar to
+> > this.
+> > It's a little bit outdated (not using the latest m2m helper
+> > functions)
+> > but it is a good starting point.
+> > 
+> > So for this series:
+> > 
+> > Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > If this was added to drivers/staging/media instead and with an
+> > updated
+> > TODO, then we can accept it, but we need to see some real effort
+> > afterwards
+> > to switch this to the right API. Otherwise it will be removed again
+> > after a few kernel cycles.
+> > 
+> > Regards,
+> > 
+> > 	Hans
