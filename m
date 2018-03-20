@@ -1,155 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:44080 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751806AbeCZNfL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 09:35:11 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v7 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-Date: Mon, 26 Mar 2018 15:34:55 +0200
-Message-Id: <20180326133456.16584-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180326133456.16584-1-maxime.ripard@bootlin.com>
-References: <20180326133456.16584-1-maxime.ripard@bootlin.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55942 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751455AbeCTVBm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 17:01:42 -0400
+Received: by mail-wm0-f67.google.com with SMTP id t7so6063443wmh.5
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 14:01:42 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: gregkh@linuxfoundation.org, mvoelkel@DigitalDevices.de,
+        rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH 5/5] [media] ngene: add SPDX license headers
+Date: Tue, 20 Mar 2018 22:01:32 +0100
+Message-Id: <20180320210132.7873-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20180320210132.7873-1-d.scheller.oss@gmail.com>
+References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
-video streams and can output on up to 4 CSI-2 lanes, depending on the
-hardware implementation.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+Add SPDX license headers in all ngene driver files and fix MODULE_LICENSE
+accordingly.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ drivers/media/pci/ngene/Makefile      |  2 +-
+ drivers/media/pci/ngene/ngene-cards.c | 10 +++-------
+ drivers/media/pci/ngene/ngene-core.c  |  8 ++------
+ drivers/media/pci/ngene/ngene-dvb.c   |  8 ++------
+ drivers/media/pci/ngene/ngene-i2c.c   |  8 ++------
+ drivers/media/pci/ngene/ngene.h       |  7 ++-----
+ 6 files changed, 12 insertions(+), 31 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-new file mode 100644
-index 000000000000..459c6e332f52
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-@@ -0,0 +1,98 @@
-+Cadence MIPI-CSI2 TX controller
-+===============================
-+
-+The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
-+4 CSI lanes in output, and up to 4 different pixel streams in input.
-+
-+Required properties:
-+  - compatible: must be set to "cdns,csi2tx"
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * esc_clk: escape mode clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
-+
-+Optional properties
-+  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
-+  - phy-names: must contain "dphy"
-+
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes are numbered as follows.
-+
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 output
-+           1    Stream 0 input
-+           2    Stream 1 input
-+           3    Stream 2 input
-+           4    Stream 3 input
-+
-+           The stream input port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design. Since there is only one endpoint per port,
-+           the endpoints are not numbered.
-+
-+Example:
-+
-+csi2tx: csi-bridge@0d0e1000 {
-+	compatible = "cdns,csi2tx";
-+	reg = <0x0d0e1000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>,
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "p_clk", "esc_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi2tx_out: endpoint {
-+				remote-endpoint = <&remote_in>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi2tx_in_stream0: endpoint {
-+				remote-endpoint = <&stream0_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2tx_in_stream1: endpoint {
-+				remote-endpoint = <&stream1_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2tx_in_stream2: endpoint {
-+				remote-endpoint = <&stream2_out>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2tx_in_stream3: endpoint {
-+				remote-endpoint = <&stream3_out>;
-+			};
-+		};
-+	};
-+};
+diff --git a/drivers/media/pci/ngene/Makefile b/drivers/media/pci/ngene/Makefile
+index ec450ad19281..115152c96d50 100644
+--- a/drivers/media/pci/ngene/Makefile
++++ b/drivers/media/pci/ngene/Makefile
+@@ -1,4 +1,4 @@
+-# SPDX-License-Identifier: GPL-2.0
++# SPDX-License-Identifier: GPL-2.0-only
+ #
+ # Makefile for the nGene device driver
+ #
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 65fc8f23ad86..23fb6f33fa49 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * ngene-cards.c: nGene PCIe bridge driver - card specific info
+  *
+@@ -8,19 +9,14 @@
+  *                         support for EEPROM-copying,
+  *                         support for new dual DVB-S2 card prototype
+  *
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  * GNU General Public License for more details.
+- *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+@@ -1265,4 +1261,4 @@ module_exit(module_exit_ngene);
+ 
+ MODULE_DESCRIPTION("nGene");
+ MODULE_AUTHOR("Micronas, Ralph Metzler, Manfred Voelkel");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 3b9a1bfaf6c0..5da1c2b9732f 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * ngene.c: nGene PCIe bridge driver
+  *
+@@ -8,19 +9,14 @@
+  *                         support for EEPROM-copying,
+  *                         support for new dual DVB-S2 card prototype
+  *
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  * GNU General Public License for more details.
+- *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/media/pci/ngene/ngene-dvb.c b/drivers/media/pci/ngene/ngene-dvb.c
+index fee89b9ed9c1..fe250f4d37de 100644
+--- a/drivers/media/pci/ngene/ngene-dvb.c
++++ b/drivers/media/pci/ngene/ngene-dvb.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * ngene-dvb.c: nGene PCIe bridge driver - DVB functions
+  *
+@@ -8,19 +9,14 @@
+  *                         support for EEPROM-copying,
+  *                         support for new dual DVB-S2 card prototype
+  *
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  * GNU General Public License for more details.
+- *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/media/pci/ngene/ngene-i2c.c b/drivers/media/pci/ngene/ngene-i2c.c
+index 092d46c2a3a9..f023a6764dd4 100644
+--- a/drivers/media/pci/ngene/ngene-i2c.c
++++ b/drivers/media/pci/ngene/ngene-i2c.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * ngene-i2c.c: nGene PCIe bridge driver i2c functions
+  *
+@@ -8,19 +9,14 @@
+  *                         support for EEPROM-copying,
+  *                         support for new dual DVB-S2 card prototype
+  *
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  * GNU General Public License for more details.
+- *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ /* FIXME - some of these can probably be removed */
+diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
+index 01d9f1b58fcb..f1299f81ddf9 100644
+--- a/drivers/media/pci/ngene/ngene.h
++++ b/drivers/media/pci/ngene/ngene.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
+ /*
+  * ngene.h: nGene PCIe bridge driver
+  *
+@@ -7,14 +8,10 @@
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  * GNU General Public License for more details.
+- *
+- * To obtain the license, point your browser to
+- * http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #ifndef _NGENE_H_
 -- 
-2.14.3
+2.16.1
