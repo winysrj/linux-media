@@ -1,253 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:38396 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751147AbeC2HuO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 03:50:14 -0400
-Received: by mail-wr0-f173.google.com with SMTP id m13so4485762wrj.5
-        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2018 00:50:13 -0700 (PDT)
-From: Todor Tomov <todor.tomov@linaro.org>
-Subject: Re: [v2,2/2] media: Add a driver for the ov7251 camera sensor
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1521778460-8717-3-git-send-email-todor.tomov@linaro.org>
- <20180323134003.GB11499@w540>
-Message-ID: <419f6976-ee6a-f2c1-1097-a51776469ee4@linaro.org>
-Date: Thu, 29 Mar 2018 10:50:10 +0300
+Received: from mail-sn1nam01on0042.outbound.protection.outlook.com ([104.47.32.42]:27456
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752701AbeCTKyd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 06:54:33 -0400
+Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
+ invalidate_mappings callback v2
+To: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Cc: "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+References: <20180316132049.1748-1-christian.koenig@amd.com>
+ <20180316132049.1748-2-christian.koenig@amd.com>
+ <152120831102.25315.4326885184264378830@mail.alporthouse.com>
+ <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
+ <152147480241.18954.4556582215766884582@mail.alporthouse.com>
+ <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
+ <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
+Date: Tue, 20 Mar 2018 11:54:18 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180323134003.GB11499@w540>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-Thank you for your prompt review.
-
-On 23.03.2018 15:40, jacopo mondi wrote:
-> Hi Todor,
->    thanks for the patch.
-> 
-> When running checkpatch --strict I see a few warning you can easily
-> close (braces indentation mostly, and one additional empty line at
-> line 1048).
-
-Thank you for pointing me to the --strict mode. There are a few CHECKs for
-braces alignment for which the alignment is still better as it is now
-I think. However there were also a few reasonable points and I have
-updated the code according to them.
-
-> 
-> A few more nits below.
-> 
-> On Fri, Mar 23, 2018 at 12:14:20PM +0800, Todor Tomov wrote:
->> The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
->> Sensor from Omnivision.
+Am 20.03.2018 um 08:44 schrieb Daniel Vetter:
+> On Mon, Mar 19, 2018 at 5:23 PM, Christian König
+> <ckoenig.leichtzumerken@gmail.com> wrote:
+>> Am 19.03.2018 um 16:53 schrieb Chris Wilson:
+>>> Quoting Christian König (2018-03-16 14:22:32)
+>>> [snip, probably lost too must context]
+>>>> This allows for full grown pipelining, e.g. the exporter can say I need
+>>>> to move the buffer for some operation. Then let the move operation wait
+>>>> for all existing fences in the reservation object and install the fence
+>>>> of the move operation as exclusive fence.
+>>> Ok, the situation I have in mind is the non-pipelined case: revoking
+>>> dma-buf for mmu_invalidate_range or shrink_slab. I would need a
+>>> completion event that can be waited on the cpu for all the invalidate
+>>> callbacks. (Essentially an atomic_t counter plus struct completion; a
+>>> lighter version of dma_fence, I wonder where I've seen that before ;)
 >>
->> The driver supports the following modes:
->> - 640x480 30fps
->> - 640x480 60fps
->> - 640x480 90fps
+>> Actually that is harmless.
 >>
->> Output format is MIPI RAW 10.
+>> When you need to unmap a DMA-buf because of mmu_invalidate_range or
+>> shrink_slab you need to wait for it's reservation object anyway.
+> reservation_object only prevents adding new fences, you still have to
+> wait for all the current ones to signal. Also, we have dma-access
+> without fences in i915. "I hold the reservation_object" does not imply
+> you can just go and nuke the backing storage.
+
+I was not talking about taking the lock, but rather using 
+reservation_object_wait_timeout_rcu().
+
+To be more precise you actually can't take the reservation object lock 
+in an mmu_invalidate_range callback and you can only trylock it in a 
+shrink_slab callback.
+
+>> This needs to be done to make sure that the backing memory is now idle, it
+>> doesn't matter if the jobs where submitted by DMA-buf importers or your own
+>> driver.
 >>
->> The driver supports configuration via user controls for:
->> - exposure and gain;
->> - horizontal and vertical flip;
->> - test pattern.
+>> The sg tables pointing to the now released memory might live a bit longer,
+>> but that is unproblematic and actually intended.
+> I think that's very problematic. One reason for an IOMMU is that you
+> have device access isolation, and a broken device can't access memory
+> it shouldn't be able to access. From that security-in-depth point of
+> view it's not cool that there's some sg tables hanging around still
+> that a broken GPU could use. And let's not pretend hw is perfect,
+> especially GPUs :-)
+
+I completely agree on that, but there is unfortunately no other way.
+
+See you simply can't take a reservation object lock in an mmu or slab 
+callback, you can only trylock them.
+
+For example it would require changing all allocations done while holding 
+any reservation lock to GFP_NOIO.
+
+>> When we would try to destroy the sg tables in an mmu_invalidate_range or
+>> shrink_slab callback we would run into a lockdep horror.
+> So I'm no expert on this, but I think this is exactly what we're doing
+> in i915. Kinda no other way to actually free the memory without
+> throwing all the nice isolation aspects of an IOMMU into the wind. Can
+> you please paste the lockdeps you've seen with amdgpu when trying to
+> do that?
+
+Taking a quick look at i915 I can definitely say that this is actually 
+quite buggy what you guys do here.
+
+For coherent usage you need to install some lock to prevent concurrent 
+get_user_pages(), command submission and 
+invalidate_range_start/invalidate_range_end from the MMU notifier.
+
+Otherwise you can't guarantee that you are actually accessing the right 
+page in the case of a fork() or mprotect().
+
+Felix and I hammered for quite some time on amdgpu until all of this was 
+handled correctly, see drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c.
+
+I can try to gather the lockdep splat from my mail history, but it 
+essentially took us multiple years to get rid of all of them.
+
+Regards,
+Christian.
+
+> -Daniel
+>
+>> Regards,
+>> Christian.
 >>
->> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->> ---
->>  drivers/media/i2c/Kconfig  |   13 +
->>  drivers/media/i2c/Makefile |    1 +
->>  drivers/media/i2c/ov7251.c | 1494 ++++++++++++++++++++++++++++++++++++++++++++
->>  3 files changed, 1508 insertions(+)
->>  create mode 100644 drivers/media/i2c/ov7251.c
+>>> Even so, it basically means passing a fence object down to the async
+>>> callbacks for them to signal when they are complete. Just to handle the
+>>> non-pipelined version. :|
+>>> -Chris
+>>> _______________________________________________
+>>> dri-devel mailing list
+>>> dri-devel@lists.freedesktop.org
+>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 >>
->> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->> index 541f0d28..89aecb3 100644
->> --- a/drivers/media/i2c/Kconfig
->> +++ b/drivers/media/i2c/Kconfig
->> @@ -688,6 +688,19 @@ config VIDEO_OV5695
->>  	  To compile this driver as a module, choose M here: the
->>  	  module will be called ov5695.
->>
->> +config VIDEO_OV7251
->> +	tristate "OmniVision OV7251 sensor support"
->> +	depends on OF
->> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->> +	depends on MEDIA_CAMERA_SUPPORT
->> +	select V4L2_FWNODE
->> +	---help---
->> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
->> +	  OV7251 camera.
->> +
->> +	  To compile this driver as a module, choose M here: the
->> +	  module will be called ov7251.
->> +
->>  config VIDEO_OV772X
->>  	tristate "OmniVision OV772x sensor support"
->>  	depends on I2C && VIDEO_V4L2
->> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
->> index ea34aee..c8585b1 100644
->> --- a/drivers/media/i2c/Makefile
->> +++ b/drivers/media/i2c/Makefile
->> @@ -70,6 +70,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
->>  obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
->>  obj-$(CONFIG_VIDEO_OV5695) += ov5695.o
->>  obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
->> +obj-$(CONFIG_VIDEO_OV7251) += ov7251.o
->>  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
->>  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
->>  obj-$(CONFIG_VIDEO_OV772X) += ov772x.o
->> diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
->> new file mode 100644
->> index 0000000..7b401a9
->> --- /dev/null
->> +++ b/drivers/media/i2c/ov7251.c
->> @@ -0,0 +1,1494 @@
-
-<snip>
-
->> +static int ov7251_s_power(struct v4l2_subdev *sd, int on)
->> +{
->> +	struct ov7251 *ov7251 = to_ov7251(sd);
->> +	int ret = 0;
->> +
->> +	mutex_lock(&ov7251->power_lock);
->> +
->> +	/*
->> +	 * If the power state is modified from 0 to 1 or from 1 to 0,
->> +	 * update the power state.
->> +	 */
->> +	if (ov7251->power_on == !on) {
-> 
->         if (ov7251->power_on == !!on) {
->                 mutex_unlock(&ov7251->power_lock);
->                 return 0;
->         }
-> 
-> And you can save one indentation level and remove ret initialization.
-> 
-
-Good hint, I'd rather save one indentation level by:
-
-	if (ov7251->power_on == !!on)
-		goto exit;
-
-> 
->> +		if (on) {
->> +			ret = ov7251_set_power_on(ov7251);
->> +			if (ret < 0)
->> +				goto exit;
->> +
->> +			ret = ov7251_set_register_array(ov7251,
->> +					ov7251_global_init_setting,
->> +					ARRAY_SIZE(ov7251_global_init_setting));
->> +			if (ret < 0) {
->> +				dev_err(ov7251->dev,
->> +					"could not set init registers\n");
->> +				ov7251_set_power_off(ov7251);
->> +				goto exit;
->> +			}
->> +
->> +			ov7251->power_on = true;
->> +		} else {
->> +			ov7251_set_power_off(ov7251);
->> +			ov7251->power_on = false;
->> +		}
->> +	}
->> +
->> +exit:
->> +	mutex_unlock(&ov7251->power_lock);
->> +
->> +	return ret;
->> +}
->> +
-
-<snip>
-
->> +
->> +static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
->> +				  struct v4l2_subdev_pad_config *cfg,
->> +				  struct v4l2_subdev_frame_size_enum *fse)
->> +{
-> 
-> Shouldn't you check for (pad != 0) in all subdev pad operations?
-> I see other driver with a single pad doing this...
-
-I looked up now and I can see that this is checked in v4l2-subdev.c
-in subdev_do_ioctl() before the driver's callback is called.
-
-> 
-> 
->> +	if (fse->code != MEDIA_BUS_FMT_SBGGR10_1X10)
->> +		return -EINVAL;
->> +
->> +	if (fse->index >= ARRAY_SIZE(ov7251_mode_info_data))
->> +		return -EINVAL;
->> +
->> +	fse->min_width = ov7251_mode_info_data[fse->index].width;
->> +	fse->max_width = ov7251_mode_info_data[fse->index].width;
->> +	fse->min_height = ov7251_mode_info_data[fse->index].height;
->> +	fse->max_height = ov7251_mode_info_data[fse->index].height;
->> +
->> +	return 0;
->> +}
->> +
-
-<snip>
-
->> +
->> +static const struct i2c_device_id ov7251_id[] = {
->> +	{ "ov7251", 0 },
->> +	{}
->> +};
->> +MODULE_DEVICE_TABLE(i2c, ov7251_id);
->> +
->> +static const struct of_device_id ov7251_of_match[] = {
->> +	{ .compatible = "ovti,ov7251" },
->> +	{ /* sentinel */ }
->> +};
->> +MODULE_DEVICE_TABLE(of, ov7251_of_match);
->> +
->> +static struct i2c_driver ov7251_i2c_driver = {
->> +	.driver = {
->> +		.of_match_table = of_match_ptr(ov7251_of_match),
->> +		.name  = "ov7251",
->> +	},
->> +	.probe  = ov7251_probe,
->> +	.remove = ov7251_remove,
->> +	.id_table = ov7251_id,
-> 
-> As this driver depends on CONFIG_OF, I've been suggested to use probe_new and
-> get rid of i2c id_tables.
-
-Yes, I'll do that.
-
-> 
-> With the above nits clarified, and as you addressed my v1 comments:
-> 
-> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-
-Would you like to see the corrections or I can add the tag before sending them?
-
-> 
-> Thanks
->    j
-> 
->> +};
->> +
->> +module_i2c_driver(ov7251_i2c_driver);
->> +
->> +MODULE_DESCRIPTION("Omnivision OV7251 Camera Driver");
->> +MODULE_AUTHOR("Todor Tomov <todor.tomov@linaro.org>");
->> +MODULE_LICENSE("GPL v2");
-
--- 
-Best regards,
-Todor Tomov
+>> _______________________________________________
+>> Linaro-mm-sig mailing list
+>> Linaro-mm-sig@lists.linaro.org
+>> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+>
+>
