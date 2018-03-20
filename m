@@ -1,48 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56391 "EHLO osg.samsung.com"
+Received: from mail.kapsi.fi ([91.232.154.25]:55695 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750838AbeCFQe6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 11:34:58 -0500
-Date: Tue, 6 Mar 2018 13:34:51 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Bhumika Goyal <bhumirks@gmail.com>
-Subject: Re: [PATCH] media: ov772x: constify ov772x_frame_intervals
-Message-ID: <20180306133451.4be117e6@vento.lan>
-In-Reply-To: <20180306160526.GC19648@w540>
-References: <7b69f2cb91319abdacf37be501db2eae45112a09.1520350517.git.mchehab@s-opensource.com>
-        <20180306160526.GC19648@w540>
+        id S934168AbeCTAUL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Mar 2018 20:20:11 -0400
+Received: from mobile-access-6df048-240.dhcp.inet.fi ([109.240.72.240] helo=localhost.localdomain)
+        by mail.kapsi.fi with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.84_2)
+        (envelope-from <crope@iki.fi>)
+        id 1ey50a-0005dR-Lj
+        for linux-media@vger.kernel.org; Tue, 20 Mar 2018 02:20:08 +0200
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL] af9013/af9015 improvements
+Message-ID: <48c03259-66d8-00e2-3e26-59b8308283e8@iki.fi>
+Date: Tue, 20 Mar 2018 02:20:07 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 6 Mar 2018 17:05:26 +0100
-jacopo mondi <jacopo@jmondi.org> escreveu:
+The following changes since commit 3f127ce11353fd1071cae9b65bc13add6aec6b90:
 
-> Hi Mauro,
-> 
-> On Tue, Mar 06, 2018 at 10:35:22AM -0500, Mauro Carvalho Chehab wrote:
-> > The values on this array never changes. Make it const.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
-> 
-> Acked-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> 
-> Since I'm sure there will be more cleanup/fixes on tw9910 and ov772x,
-> could you please take into account my series:
-> [PATCH v2 00/11] media: ov772x/tw9910 cleanup
-> before any additional change to these 2 drivers?
+   media: em28xx-cards: fix em28xx_duplicate_dev() (2018-03-08 06:06:51 
+-0500)
 
-That is the next on my patch queue :-)
+are available in the Git repository at:
 
-Reviewing them right now.
+   git://linuxtv.org/anttip/media_tree.git af9015_pull
 
-Regards,
-Mauro
+for you to fetch changes up to 3a11388095b992f0da01238adaec8b68cbad5c09:
+
+   af9015: correct some coding style issues (2018-03-14 01:32:56 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (18):
+       af9013: change lock detection slightly
+       af9013: dvbv5 signal strength
+       af9013: dvbv5 cnr
+       af9013: dvbv5 ber and per
+       af9013: wrap dvbv3 statistics via dvbv5
+       af9015: fix logging
+       af9013: convert inittabs suitable for regmap_update_bits
+       af9013: add i2c mux adapter for tuner bus
+       af9015: attach demod using i2c binding
+       af9013: remove all legacy media attach releated stuff
+       af9013: add pid filter support
+       af9015: use af9013 demod pid filters
+       af9015: refactor firmware download
+       af9015: refactor copy firmware to slave demod
+       af9015: enhance streaming config
+       dvb-usb-v2: add probe/disconnect callbacks
+       af9015: convert to regmap api
+       af9015: correct some coding style issues
+
+  drivers/media/dvb-frontends/Kconfig         |    2 +-
+  drivers/media/dvb-frontends/af9013.c        |  909 
++++++++++++++++++++++++++++++++++++++++++---------------------------------------
+  drivers/media/dvb-frontends/af9013.h        |   48 ++---
+  drivers/media/dvb-frontends/af9013_priv.h   | 1558 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------
+  drivers/media/usb/dvb-usb-v2/Kconfig        |    1 +
+  drivers/media/usb/dvb-usb-v2/af9015.c       |  985 
+++++++++++++++++++++++++++++++++++++++++++++------------------------------------------
+  drivers/media/usb/dvb-usb-v2/af9015.h       |   20 +-
+  drivers/media/usb/dvb-usb-v2/dvb_usb.h      |    4 +
+  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |   24 ++-
+  9 files changed, 1778 insertions(+), 1773 deletions(-)
+
+-- 
+http://palosaari.fi/
