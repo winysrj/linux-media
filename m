@@ -1,173 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.137]:53362 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933935AbeCHAqV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 19:46:21 -0500
-Subject: Re: [PATCH V2 2/2] dt-bindings: Document the Rockchip RK1608 bindings
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: mchehab@kernel.org, davem@davemloft.net,
-        gregkh@linuxfoundation.org, linus.walleij@linaro.org,
-        rdunlap@infradead.org, jacob2.chen@rock-chips.com,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        eddie.cai@rock-chips.com
-References: <1519633504-64357-1-git-send-email-leo.wen@rock-chips.com>
- <20180307095308.5eo4mthzx2oujszn@valkosipuli.retiisi.org.uk>
-From: leo <leo.wen@rock-chips.com>
-Message-ID: <fab0e426-6686-b2e5-d607-a41a6c9f71e2@rock-chips.com>
-Date: Thu, 8 Mar 2018 08:46:12 +0800
-MIME-Version: 1.0
-In-Reply-To: <20180307095308.5eo4mthzx2oujszn@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mailout3.samsung.com ([203.254.224.33]:19712 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752815AbeCTMOb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 08:14:31 -0400
+To: linux-media@vger.kernel.org
+Cc: Smitha T Murthy <smitha.t@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] HEVC V4L2 controls and s5p-mfc update
+Message-id: <d4d81bd9-faff-b612-9f92-b6884eac07be@samsung.com>
+Date: Tue, 20 Mar 2018 13:14:25 +0100
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20180320121429epcas2p276e834ad420d7553013981d35750a9b8@epcas2p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-Hi Sakari,
+The following changes since commit 3f127ce11353fd1071cae9b65bc13add6aec6b90:
 
-Thanks for your advice,  i'll revise it.
-> Hi Wen,
->
-> On Mon, Feb 26, 2018 at 04:25:04PM +0800, Wen Nuan wrote:
->> From: Leo Wen <leo.wen@rock-chips.com>
->>
->> Add DT bindings documentation for Rockchip RK1608.
->>
->> Changes V2:
->> - Delete spi-min-frequency property.
->> - Add the external sensor's control pin and clock properties.
->> - Delete the '&pinctrl' node.
->>
->> Signed-off-by: Leo Wen <leo.wen@rock-chips.com>
->> ---
->>   Documentation/devicetree/bindings/media/rk1608.txt | 97 ++++++++++++++++++++++
->>   MAINTAINERS                                        |  1 +
->>   2 files changed, 98 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/rk1608.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/rk1608.txt b/Documentation/devicetree/bindings/media/rk1608.txt
->> new file mode 100644
->> index 0000000..a9721a8
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/rk1608.txt
->> @@ -0,0 +1,97 @@
->> +Rockchip RK1608 as a PreISP to link on Soc
->> +------------------------------------------
->> +
->> +Required properties:
->> +
->> +- compatible		: "rockchip,rk1608";
->> +- reg			: SPI slave address of the rk1608;
->> +- clocks		: Must contain an entry for each entry in clock-names;
->> +- clock-names		: Must contain "mclk" for the device's master clock;
->> +- reset-gpio		: GPIO connected to reset pin;
->> +- irq-gpio		: GPIO connected to irq pin;
->> +- sleepst-gpio		: GPIO connected to sleepst pin;
->> +- wakeup-gpio		: GPIO connected to wakeup pin;
->> +- powerdown-gpio	: GPIO connected to powerdown pin;
->> +- rockchip,powerdown0	: GPIO connected to the sensor0's powerdown pin;
->> +- rockchip,reset0	: GPIO connected to the sensor0's reset pin;
->> +- rockchip,powerdown1	: GPIO connected to the sensor1's powerdown pin;
->> +- rockchip,reset1	: GPIO connected to the sensor1's reset pin;
-> Aren't these sensor's properties and not related to the ISP?
-There not related to the ISP,  just connected to the external sensor0/1.
->
->> +- pinctrl-names		: Should contain only one value - "default";
->> +- pinctrl-0		: Pin control group to be used for this controller;
->> +
->> +Optional properties:
->> +
->> +- spi-max-frequency	: Maximum SPI clocking speed of the device;
->> +
->> +The device node should contain one 'port' child node with one child 'endpoint'
->> +node, according to the bindings defined in Documentation/devicetree/bindings/
->> +media/video-interfaces.txt. The following are properties specific to those
->> +nodes.
->> +
->> +endpoint node
->> +-------------
->> +
->> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
->> +	       video-interfaces.txt. If present it should be <1> - the device
->> +	       supports only one data lane without re-mapping.
->> +
->> +Note1: Since no data is generated in RK1608，so this is meaningful that you need
->> +a extra sensor (such as a camera) mounted on RK1608. You need to use endpoint@x
->> +to match these sensors.
->> +
->> +Note2:You must set the current value of the spi pins to be 8mA, if they are not.
->> +
->> +Example:
->> +&spi0 {
->> +	status = "okay";
->> +	spi_rk1608@00 {
->> +		compatible =  "rockchip,rk1608";
->> +		status = "okay";
->> +		reg = <0>;
->> +		spi-max-frequency = <24000000>;
->> +		link-freqs = /bits/ 64 <400000000>;
->> +		clocks = <&cru SCLK_SPI0>, <&cru SCLK_VIP_OUT>,
->> +		<&cru DCLK_VOP0>, <&cru ACLK_VIP>, <&cru HCLK_VIP>,
->> +		<&cru PCLK_ISP_IN>, <&cru PCLK_ISP_IN>,
->> +		<&cru PCLK_ISP_IN>, <&cru SCLK_MIPIDSI_24M>,
->> +		<&cru PCLK_MIPI_CSI>;
->> +		clock-names = "mclk", "mipi_clk",  "pd_cif", "aclk_cif",
->> +			"hclk_cif", "cif0_in", "g_pclkin_cif",
->> +			"cif0_out", "clk_mipi_24m", "hclk_mipiphy";
->> +		reset-gpio = <&gpio6 0 GPIO_ACTIVE_HIGH>;
->> +		irq-gpio = <&gpio6 2 GPIO_ACTIVE_HIGH>;
->> +		sleepst-gpio = <&gpio6 1 GPIO_ACTIVE_HIGH>;
->> +		wakeup-gpio = <&gpio6 4 GPIO_ACTIVE_HIGH>;
->> +		powerdown-gpio = <&gpio8 0 GPIO_ACTIVE_HIGH>;
->> +
->> +		rockchip,powerdown1 = <&gpio5 9 GPIO_ACTIVE_HIGH>;
->> +		rockchip,reset1 = <&gpio6 8 GPIO_ACTIVE_HIGH>;
->> +
->> +		rockchip,powerdown0 = <&gpio5 8 GPIO_ACTIVE_HIGH>;
->> +		rockchip,reset0 = <&gpio6 7 GPIO_ACTIVE_HIGH>;
->> +
->> +		pinctrl-names = "default";
->> +		pinctrl-0 = <&rk1608_irq_gpios &rk1608_wake_gpios
->> +			     &rk1608_sleep_gpios>;
->> +
->> +		port@0 {
->> +			mipi_dphy_out: endpoint {
->> +				remote-endpoint = <&mipi_dphy_in>;
->> +				clock-lanes = <0>;
->> +				data-lanes = <1 2 3 4>;
->> +				clock-noncontinuous;
->> +				link-frequencies =
->> +					/bits/ 64 <400000000>;
->> +			};
->> +		};
->> +		/* Example: we have two cameras */
-> What determines which one is active? The documentation above states there
-> may only be a single endpoint per port. And a single port only, not two as
-> you have here.
->
-I'm  sorry , i wrote the wrongcommend.
-There can be a lot of it on every port.
-If you just want sensor0 to be active, delete the 'sensor_in1' node.
->> +		port@1 {
->> +			sensor_in0: endpoint@0 {
->> +				remote-endpoint = <&sensor_out0>;
->> +			};
->> +			sensor_in1: endpoint@1 {
->> +				remote-endpoint = <&sensor_out1>;
->> +			};
->> +		};
->> +	};
->> +};
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index b2a98e3..04d227b 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -141,6 +141,7 @@ M:	Leo Wen <leo.wen@rock-chips.com>
->>   S:	Maintained
->>   F:	drivers/media/spi/rk1608.c
->>   F:	drivers/media/spi/rk1608.h
->> +F:	Documentation/devicetree/bindings/media/rk1608.txt
->>   
->>   3C59X NETWORK DRIVER
->>   M:	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
+  media: em28xx-cards: fix em28xx_duplicate_dev() (2018-03-08 06:06:51 -0500)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git tags/v4.17-media-samsung
+
+for you to fetch changes up to 8e8ae9fe34ac0611494b0b540476c4b9b52eac5b:
+
+  s5p-mfc: Amend initial min, max values of HEVC hierarchical coding QP controls (2018-03-19 17:44:24 +0100)
+
+----------------------------------------------------------------
+Support for MFC v10.10 in the s5p-mfc driver and addition
+of related HEVC V4L2 controls.
+
+----------------------------------------------------------------
+Marek Szyprowski (1):
+      media: s5p-mfc: Use real device for request_firmware() call
+
+Smitha T Murthy (12):
+      videodev2.h: Add v4l2 definition for HEVC
+      v4l2-ioctl: add HEVC format description
+      v4l2: Documentation of HEVC compressed format
+      v4l2: Add v4l2 control IDs for HEVC encoder
+      v4l2: Documentation for HEVC CIDs
+      s5p-mfc: Rename IS_MFCV8 macro
+      s5p-mfc: Adding initial support for MFC v10.10
+      s5p-mfc: Use min scratch buffer size as provided by F/W
+      s5p-mfc: Support MFCv10.10 buffer requirements
+      s5p-mfc: Add support for HEVC decoder
+      s5p-mfc: Add VP9 decoder support
+      s5p-mfc: Add support for HEVC encoder
+
+Sylwester Nawrocki (2):
+      s5p-mfc: Ensure HEVC QP controls range is properly updated
+      s5p-mfc: Amend initial min, max values of HEVC hierarchical coding QP controls
+
+ Documentation/devicetree/bindings/media/s5p-mfc.txt |   1 +
+ Documentation/media/uapi/v4l/extended-controls.rst  | 410 ++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-compressed.rst  |   5 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h       |  87 +++
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h        |   2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c            |  28 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c     |   9 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h     |  68 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c       |   8 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c        |  48 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c        | 597 ++++++++++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h        |  14 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c     | 397 ++++++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h     |  15 +
+ drivers/media/v4l2-core/v4l2-ctrls.c                | 119 ++++
+ drivers/media/v4l2-core/v4l2-ioctl.c                |   1 +
+ include/uapi/linux/v4l2-controls.h                  |  93 +++-
+ include/uapi/linux/videodev2.h                      |   1 +
+ 18 files changed, 1824 insertions(+), 79 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+
+
+-- 
+Regards,
+Sylwester
