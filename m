@@ -1,125 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35771 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752131AbeCOQUf (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:50339 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753269AbeCTOIQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 12:20:35 -0400
-Date: Thu, 15 Mar 2018 17:20:08 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/4] media: i2c: Copy mt9t112 soc_camera sensor driver
-Message-ID: <20180315162008.GA31710@w540>
-References: <1520862185-17150-1-git-send-email-jacopo+renesas@jmondi.org>
- <1520862185-17150-2-git-send-email-jacopo+renesas@jmondi.org>
- <20180315113533.cwgf7g7sir7gyplk@valkosipuli.retiisi.org.uk>
- <20180315143856.GF16424@w540>
- <d1cfdb88-ec5d-5229-6fd7-0916905fc8e8@xs4all.nl>
+        Tue, 20 Mar 2018 10:08:16 -0400
+Received: by mail-wm0-f45.google.com with SMTP id f19so3752431wmc.0
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 07:08:15 -0700 (PDT)
+Date: Tue, 20 Mar 2018 15:08:10 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
+ invalidate_mappings callback v2
+Message-ID: <20180320140810.GU14155@phenom.ffwll.local>
+References: <20180316132049.1748-1-christian.koenig@amd.com>
+ <20180316132049.1748-2-christian.koenig@amd.com>
+ <152120831102.25315.4326885184264378830@mail.alporthouse.com>
+ <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
+ <152147480241.18954.4556582215766884582@mail.alporthouse.com>
+ <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
+ <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
+ <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <d1cfdb88-ec5d-5229-6fd7-0916905fc8e8@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Mar 20, 2018 at 11:54:18AM +0100, Christian König wrote:
+> Am 20.03.2018 um 08:44 schrieb Daniel Vetter:
+> > On Mon, Mar 19, 2018 at 5:23 PM, Christian König
+> > <ckoenig.leichtzumerken@gmail.com> wrote:
+> > > Am 19.03.2018 um 16:53 schrieb Chris Wilson:
+> > > > Quoting Christian König (2018-03-16 14:22:32)
+> > > > [snip, probably lost too must context]
+> > > > > This allows for full grown pipelining, e.g. the exporter can say I need
+> > > > > to move the buffer for some operation. Then let the move operation wait
+> > > > > for all existing fences in the reservation object and install the fence
+> > > > > of the move operation as exclusive fence.
+> > > > Ok, the situation I have in mind is the non-pipelined case: revoking
+> > > > dma-buf for mmu_invalidate_range or shrink_slab. I would need a
+> > > > completion event that can be waited on the cpu for all the invalidate
+> > > > callbacks. (Essentially an atomic_t counter plus struct completion; a
+> > > > lighter version of dma_fence, I wonder where I've seen that before ;)
+> > > 
+> > > Actually that is harmless.
+> > > 
+> > > When you need to unmap a DMA-buf because of mmu_invalidate_range or
+> > > shrink_slab you need to wait for it's reservation object anyway.
+> > reservation_object only prevents adding new fences, you still have to
+> > wait for all the current ones to signal. Also, we have dma-access
+> > without fences in i915. "I hold the reservation_object" does not imply
+> > you can just go and nuke the backing storage.
+> 
+> I was not talking about taking the lock, but rather using
+> reservation_object_wait_timeout_rcu().
+> 
+> To be more precise you actually can't take the reservation object lock in an
+> mmu_invalidate_range callback and you can only trylock it in a shrink_slab
+> callback.
 
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Ah ok, and yes agreed. Kinda. See below.
 
-Hi Hans,
+> > > This needs to be done to make sure that the backing memory is now idle, it
+> > > doesn't matter if the jobs where submitted by DMA-buf importers or your own
+> > > driver.
+> > > 
+> > > The sg tables pointing to the now released memory might live a bit longer,
+> > > but that is unproblematic and actually intended.
+> > I think that's very problematic. One reason for an IOMMU is that you
+> > have device access isolation, and a broken device can't access memory
+> > it shouldn't be able to access. From that security-in-depth point of
+> > view it's not cool that there's some sg tables hanging around still
+> > that a broken GPU could use. And let's not pretend hw is perfect,
+> > especially GPUs :-)
+> 
+> I completely agree on that, but there is unfortunately no other way.
+> 
+> See you simply can't take a reservation object lock in an mmu or slab
+> callback, you can only trylock them.
+> 
+> For example it would require changing all allocations done while holding any
+> reservation lock to GFP_NOIO.
 
-On Thu, Mar 15, 2018 at 08:30:21AM -0700, Hans Verkuil wrote:
-> On 03/15/2018 07:38 AM, jacopo mondi wrote:
-> > Hi Sakari,
-> >    thanks for looking into this!
-> >
-> > On Thu, Mar 15, 2018 at 01:35:34PM +0200, Sakari Ailus wrote:
-> >> Hi Jacopo,
-> >>
-> >> I wonder if it'd make sense to just make all the changes to the driver and
-> >> then have it reviewed; I'm not sure the old driver can be said to have been
-> >> in a known-good state that'd be useful to compare against. I think you did
-> >> that with another driver as well.
-> >>
-> >
-> > Well, I understand this is still debated, and I see your point.
-> > As far as I can tell the driver had been developed to work with SH4
-> > Ecovec boards and there tested.
-> >
-> > I'm not sure I fully got you here though. Are you proposing to
-> > squash my next patch that cleans up the driver into this one and
-> > propose it as a completely new driver to be reviewed from scratch?
-> >
-> > In the two previous driver I touched in this "remove soc_camera"
-> > journey (ov772x and tw9910) I have followed this same pattern: copy
-> > the soc_camera driver without removing the existing one, and pile on
-> > top my changes/cleanups in another patch. Then port the board code to
-> > use the new sensor driver, and the new CEU driver as well.
-> >
-> > Also, how would you like to proceed here? Hans sent a pull request for
-> > the series, should I go with incremental changes on top of this?
->
-> I don't want to postpone this conversion. The i2c/mt9t112.c is bug-compatible
-> with i2c/soc-camera/mt9t112.c which is good enough for me. Being able to
-> remove soc-camera in the (hopefully very) near future is the most important
-> thing here.
->
-> Once Jacopo can actually test the sensor, then that's a good time to review
-> the driver in more detail.
->
-> This reminded me that I actually started testing this sensor a year
-> ago (I bought the same sensor on ebay, I completely forgot about that!).
->
-> My attempt is here:
->
-> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=mt9t112
->
-> I never finished it because I had no documentation on the pinout and never
-> got around to hooking my oscilloscope up to it to figure this out. I was
-> testing this with the atmel-isc.c driver.
->
-> This might be of some use to you, Jacopo, once you have the sensor.
+Yeah mmu and slab can only trylock, and they need to skip to the next
+object when the trylock fails. But once you have the lock you imo should
+be able to clean up the entire mess still. We definitely do that for the
+i915 shrinkers, and I don't see how going to importers through the
+->invalidate_mapping callback changes anything with that.
 
-Thanks for the info. I'll see what I can do. I don't have register
-level document, and if the module is the same you have neither a
-pinout description. This is going to be fun :/
+For the in-driver reservation path (CS) having a slow-path that grabs a
+temporary reference, drops the vram lock and then locks the reservation
+normally (using the acquire context used already for the entire CS) is a
+bit tricky, but totally feasible. Ttm doesn't do that though.
 
-I'll then refrain from sending more patches for this series/driver
-until we cannot actually test the sensor, fixes apart, if any, of course.
+So there's completely feasible ways to make sure the sg list is all
+properly released, all DMA gone and the IOMMU mappings torn down. Anything
+else is just a bit shoddy device driver programming imo.
 
-Thanks
-   j
+> > > When we would try to destroy the sg tables in an mmu_invalidate_range or
+> > > shrink_slab callback we would run into a lockdep horror.
+> > So I'm no expert on this, but I think this is exactly what we're doing
+> > in i915. Kinda no other way to actually free the memory without
+> > throwing all the nice isolation aspects of an IOMMU into the wind. Can
+> > you please paste the lockdeps you've seen with amdgpu when trying to
+> > do that?
+> 
+> Taking a quick look at i915 I can definitely say that this is actually quite
+> buggy what you guys do here.
 
->
+Note that there are 2 paths for i915 userptr. One is the mmu notifier, the
+other one is the root-only hack we have for dubious reasons (or that I
+really don't see the point in myself).
+
+> For coherent usage you need to install some lock to prevent concurrent
+> get_user_pages(), command submission and
+> invalidate_range_start/invalidate_range_end from the MMU notifier.
+> 
+> Otherwise you can't guarantee that you are actually accessing the right page
+> in the case of a fork() or mprotect().
+
+Yeah doing that with a full lock will create endless amounts of issues,
+but I don't see why we need that. Userspace racing stuff with itself gets
+to keep all the pieces. This is like racing DIRECT_IO against mprotect and
+fork.
+
+Leaking the IOMMU mappings otoh means rogue userspace could do a bunch of
+stray writes (I don't see anywhere code in amdgpu_mn.c to unmap at least
+the gpu side PTEs to make stuff inaccessible) and wreak the core kernel's
+book-keeping.
+
+In i915 we guarantee that we call set_page_dirty/mark_page_accessed only
+after all the mappings are really gone (both GPU PTEs and sg mapping),
+guaranteeing that any stray writes from either the GPU or IOMMU will
+result in faults (except bugs in the IOMMU, but can't have it all, "IOMMU
+actually works" is an assumption behind device isolation).
+
+> Felix and I hammered for quite some time on amdgpu until all of this was
+> handled correctly, see drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c.
+
+Maybe we should have more shared code in this, it seems to be a source of
+endless amounts of fun ...
+
+> I can try to gather the lockdep splat from my mail history, but it
+> essentially took us multiple years to get rid of all of them.
+
+I'm very much interested in specifically the splat that makes it
+impossible for you folks to remove the sg mappings. That one sounds bad.
+And would essentially make mmu_notifiers useless for their primary use
+case, which is handling virtual machines where you really have to make
+sure the IOMMU mapping is gone before you claim it's gone, because there's
+no 2nd level of device checks (like GPU PTEs, or command checker) catching
+stray writes.
+
+Cheers, Daniel
+
+> 
 > Regards,
->
-> 	Hans
+> Christian.
+> 
+> > -Daniel
+> > 
+> > > Regards,
+> > > Christian.
+> > > 
+> > > > Even so, it basically means passing a fence object down to the async
+> > > > callbacks for them to signal when they are complete. Just to handle the
+> > > > non-pipelined version. :|
+> > > > -Chris
+> > > > _______________________________________________
+> > > > dri-devel mailing list
+> > > > dri-devel@lists.freedesktop.org
+> > > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> > > 
+> > > _______________________________________________
+> > > Linaro-mm-sig mailing list
+> > > Linaro-mm-sig@lists.linaro.org
+> > > https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+> > 
+> > 
+> 
 
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJaqp04AAoJEHI0Bo8WoVY8JQQP/jHzm5tlUBjYLExvnJcOnDAD
-ocK4En9NHx3NOL/hcxEj8y+RILFoDlE2QxQvXj2ZF113HP/ZdbegUKv4HU66tRIT
-L9aw7NHd8CDv4lE6pLUZBQIqFnhO0ejvY4vGJrQUJGwkCld50sQnaHCp4XOtgMK7
-QmJ1SQtDQNEBPL4kJNiyYEbYol8uKr/TBX5uCTlac7/Rua5JJ2dR/CVKoqZIz1Qr
-iRfWpLbuIoUrNXyDy+YEKvwP+2YFbkETzajG18hg1GIeZwPmLjZu7zUji2N5o7D8
-raqLYgfsaFrtSXo+u325OhdnH/86s+k7AmF871l2LNi+emTMYjgrxbcQFPRjPrfi
-ptwH0diNJQccPVwqnceXH+CJoAcC9Z/earDge70hIFKz3u3j0DCoWU7+21Obvq8k
-Uc4dD/WdKP3pFPIWKMqoeUT/i0Hc7aeLwckcVjjcR52WYjN80HTuo1EEhncI/45G
-L+8utn4b6AvQ48N6sfY8946eGQzdZD138b+2YBm+uUFbkwZCfimIDHMYvNKcdJGH
-/0ioAcvJjThekLb/chUXZfY3Fivoi6Rf57hIlrX0gMehfCc8m3l6XtOFbZ4FP0JB
-ocYGHb38FQ8TTSv88WRVNn2QPTqlzS4kWKNbsV9SiuLHhcZeTuuFeZ1EmzdcIDeU
-t2kIrGCNWUH+KXr9D0Xv
-=rVaa
------END PGP SIGNATURE-----
-
---/04w6evG8XlLl3ft--
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
