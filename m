@@ -1,65 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18266 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753507AbeCFN5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 08:57:01 -0500
-Date: Tue, 6 Mar 2018 15:56:58 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Todor Tomov <todor.tomov@linaro.org>, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: ov5645: Fix write_reg return code
-Message-ID: <20180306135658.dh5vlmsevodrcr7m@paasikivi.fi.intel.com>
-References: <1518082920-11309-1-git-send-email-todor.tomov@linaro.org>
- <20180306104010.234737a6@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180306104010.234737a6@vento.lan>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:37419 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751475AbeCTVBm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 17:01:42 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z12so3138876wrg.4
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 14:01:41 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: gregkh@linuxfoundation.org, mvoelkel@DigitalDevices.de,
+        rjkm@metzlerbros.de, jasmin@anw.at
+Subject: [PATCH 0/5] SPDX license identifiers in all DD drivers
+Date: Tue, 20 Mar 2018 22:01:27 +0100
+Message-Id: <20180320210132.7873-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI Mauro,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Tue, Mar 06, 2018 at 10:40:10AM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu,  8 Feb 2018 11:41:59 +0200
-> Todor Tomov <todor.tomov@linaro.org> escreveu:
-> 
-> > I2C transfer functions return number of successful operations (on success).
-> > 
-> > Do not return the received positive return code but instead return 0 on
-> > success. The users of write_reg function already use this logic.
-> > 
-> > Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> > ---
-> >  drivers/media/i2c/ov5645.c | 6 ++++--
-> >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
-> > index d28845f..9755562 100644
-> > --- a/drivers/media/i2c/ov5645.c
-> > +++ b/drivers/media/i2c/ov5645.c
-> > @@ -600,11 +600,13 @@ static int ov5645_write_reg(struct ov5645 *ov5645, u16 reg, u8 val)
-> >  	regbuf[2] = val;
-> >  
-> >  	ret = i2c_master_send(ov5645->i2c_client, regbuf, 3);
-> > -	if (ret < 0)
-> > +	if (ret < 0) {
-> >  		dev_err(ov5645->dev, "%s: write reg error %d: reg=%x, val=%x\n",
-> >  			__func__, ret, reg, val);
-> > +		return ret;
-> > +	}
-> 
-> Actually, if ret < 3, it should return an error too (like -EREMOTEIO 
-> or -EIO).
+This series adds SPDX license identifiers to all source files which are
+copyright by either Digital Devices GmbH or Metzlerbros GbR, who are
+the original authors of the ddbridge, ngene, cxd2099, mxl5xx, stv0910
+and stv6111 bridge/demod/tuner drivers, with the mxl5xx driver being
+based on source code released by MaxLinear.
 
-i2c_master_send() always returns a negative error code or the number of
-octets written.
+All source code either carries the license text "redistribute and/or
+modify it under the terms of the GNU GPL version 2 only as published
+by the FSF", or simply "... GPL version 2" in the case of the mxl5xx
+driver, which all should equal to the SPDX License Identifier
+"GPL-2.0-only" as of SPDX License List Version 3.0 published on
+December the 28th, 2017, which is applied as license tag to all files
+of the mentioned drivers by this series.
 
-But thank you for reminding me about the patch. :-)
+During checking of those modules I noticed that the module info carries
+the "GPL" version tag, which, according to include/linux/module.h, equals
+to "GPL version 2 or later", which (I believe) in turn is a mismatch to
+what is written in the file header's license boilerplates. This series
+corrects this by setting all MODULE_LICENSE() descriptors to "GPL v2",
+which equals to the "GNU GPL version 2 only" phrase.
+
+Besides that, this fixes some whitespace cosmetics in the headers, and
+removes the link to gnu.org (if existing), which points to the GPLv3
+license anyway.
+
+The original intention was to fully replace all the licensing headers
+with only the SPDX License Identifiers as it is done in a lot of other
+in-tree drivers nowadays. However, Digital Devices disagreed to do this
+and expressed major concerns regarding this, in that a machine readable
+license tag instead of a full license boilerplate won't hold up equally,
+so we agreed to keep the license boilerplate text as is right now.
+
+Greg, I'm Cc'ing you on this due to the last paragraph, as AFAIK you're
+one of the initiators of the SPDX tagging initiative, and you even added
+tags to 10k+ files all over the tree :-) so we maybe can discuss this
+further, also with DD, in the hopes you're fine with this - sorry in
+advance if not.
+
+Ralph, Manfred, I'm Cc'ing you on these five patches aswell, so if there
+are any concerns left regarding the changes proposed by these patches,
+please raise them.
+
+Daniel Scheller (5):
+  [media] stv0910/stv6111: add SPDX license headers
+  [media] dvb-frontends/mxl5xx: add SPDX license headers
+  [media] dvb-frontends/cxd2099: add SPDX license headers
+  [media] ddbridge: add SPDX license headers
+  [media] ngene: add SPDX license headers
+
+ drivers/media/dvb-frontends/cxd2099.c      |  5 +++--
+ drivers/media/dvb-frontends/cxd2099.h      |  3 ++-
+ drivers/media/dvb-frontends/mxl5xx.c       |  6 +++---
+ drivers/media/dvb-frontends/mxl5xx.h       | 13 +++++++++++++
+ drivers/media/dvb-frontends/mxl5xx_defs.h  |  1 +
+ drivers/media/dvb-frontends/mxl5xx_regs.h  |  4 ++--
+ drivers/media/dvb-frontends/stv0910.c      |  5 +++--
+ drivers/media/dvb-frontends/stv0910.h      |  9 +++++++++
+ drivers/media/dvb-frontends/stv6111.c      |  6 +++---
+ drivers/media/dvb-frontends/stv6111.h      |  7 +++++++
+ drivers/media/pci/ddbridge/Makefile        |  2 +-
+ drivers/media/pci/ddbridge/ddbridge-ci.c   |  6 ++----
+ drivers/media/pci/ddbridge/ddbridge-ci.h   |  6 ++----
+ drivers/media/pci/ddbridge/ddbridge-core.c |  8 ++------
+ drivers/media/pci/ddbridge/ddbridge-hw.c   |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-hw.h   |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-i2c.h  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-io.h   |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-main.c |  8 ++++----
+ drivers/media/pci/ddbridge/ddbridge-max.c  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-max.h  |  4 ++--
+ drivers/media/pci/ddbridge/ddbridge-regs.h |  7 ++-----
+ drivers/media/pci/ddbridge/ddbridge.h      |  7 ++-----
+ drivers/media/pci/ngene/Makefile           |  2 +-
+ drivers/media/pci/ngene/ngene-cards.c      | 10 +++-------
+ drivers/media/pci/ngene/ngene-core.c       |  8 ++------
+ drivers/media/pci/ngene/ngene-dvb.c        |  8 ++------
+ drivers/media/pci/ngene/ngene-i2c.c        |  8 ++------
+ drivers/media/pci/ngene/ngene.h            |  7 ++-----
+ 30 files changed, 87 insertions(+), 87 deletions(-)
 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.16.1
