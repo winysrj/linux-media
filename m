@@ -1,132 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:2827 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751050AbeCZJb0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 05:31:26 -0400
-Date: Mon, 26 Mar 2018 12:31:24 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: Re: [RFC v2 06/10] vb2: Add support for requests
-Message-ID: <20180326093123.updxgjystax46xdm@paasikivi.fi.intel.com>
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
- <1521839864-10146-7-git-send-email-sakari.ailus@linux.intel.com>
- <CAAFQd5BZEExQoAgx7UAzLhyEnFLDoMDj2SYp+9_39105rwktBA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BZEExQoAgx7UAzLhyEnFLDoMDj2SYp+9_39105rwktBA@mail.gmail.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34742 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751343AbeCUAiM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 20:38:12 -0400
+Received: by mail-pg0-f67.google.com with SMTP id m15so1328651pgc.1
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:12 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 00/13] media: imx: Switch to subdev notifiers
+Date: Tue, 20 Mar 2018 17:37:16 -0700
+Message-Id: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 26, 2018 at 03:02:53PM +0900, Tomasz Figa wrote:
-> Hi Sakari,
-> 
-> I would have appreciated being CCed on this series, but anyway, thanks
-> for sending it. Please see my comments inline.
-> 
-> On Sat, Mar 24, 2018 at 6:17 AM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > Associate a buffer to a request when it is queued and disassociate when it
-> > is done.
-> >
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/common/videobuf2/videobuf2-core.c | 43 ++++++++++++++++++++++++-
-> >  drivers/media/common/videobuf2/videobuf2-v4l2.c | 40 ++++++++++++++++++++++-
-> >  include/media/videobuf2-core.h                  | 19 +++++++++++
-> >  include/media/videobuf2-v4l2.h                  | 28 ++++++++++++++++
-> >  4 files changed, 128 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> > index d3f7bb3..b8535de 100644
-> > --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> > +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> > @@ -346,6 +346,9 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
-> >                         break;
-> >                 }
-> >
-> > +               if (q->class)
-> > +                       media_request_object_init(q->class, &vb->req_obj);
-> > +
-> >                 vb->state = VB2_BUF_STATE_DEQUEUED;
-> >                 vb->vb2_queue = q;
-> >                 vb->num_planes = num_planes;
-> > @@ -520,7 +523,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
-> >         /* Free videobuf buffers */
-> >         for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
-> >              ++buffer) {
-> > -               kfree(q->bufs[buffer]);
-> > +               if (q->class)
-> > +                       media_request_object_put(&q->bufs[buffer]->req_obj);
-> > +               else
-> > +                       kfree(q->bufs[buffer]);
-> >                 q->bufs[buffer] = NULL;
-> >         }
-> >
-> > @@ -944,6 +950,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
-> >         default:
-> >                 /* Inform any processes that may be waiting for buffers */
-> >                 wake_up(&q->done_wq);
-> > +               if (vb->req_ref) {
-> > +                       media_request_ref_complete(vb->req_ref);
-> > +                       vb->req_ref = NULL;
-> > +               }
-> >                 break;
-> >         }
-> >  }
-> > @@ -1249,6 +1259,32 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> >                 return -EIO;
-> >         }
-> >
-> > +       if (vb->request_fd) {
-> 
-> 0 is a perfectly valid FD.
+This patchset converts the imx-media driver and its dependent
+subdevs to use subdev notifiers.
 
-Agreed. This part was written before Hans's RFC albeit sent afterwards.
+There are a couple shortcomings in v4l2-core that prevented
+subdev notifiers from working correctly in imx-media:
 
-> 
-> > +               struct media_request *req;
-> > +               struct media_request_ref *ref;
-> > +
-> > +               if (!q->class) {
-> > +                       dprintk(1, "requests not enabled for the queue\n");
-> > +                       return -EINVAL;
-> > +               }
-> > +
-> > +               req = media_request_find(q->class->mdev, vb->request_fd);
-> > +               if (IS_ERR(req)) {
-> > +                       dprintk(1, "no request found for fd %d (%ld)\n",
-> > +                               vb->request_fd, PTR_ERR(req));
-> > +                       return PTR_ERR(req);
-> > +               }
-> > +
-> > +               ref = media_request_object_bind(req,
-> > +                                               &q->bufs[vb->index]->req_obj);
-> > +               media_request_put(req);
-> > +
-> > +               if (IS_ERR(ref))
-> > +                       return PTR_ERR(ref);
-> > +
-> > +               vb->req_ref = ref;
-> > +       }
-> > +
-> 
-> I'm not sure how this would work. The client calling QBUF with request
-> FD would end up queuing the buffer to the driver, which I'd say isn't
-> an expected side effect of something that is usually done early as
-> part of preparing the request.
-> 
-> As we agreed in the UAPI RFC, the buffer should be only prepared and
-> queued at request queue time and I believe Alex had it implemented
-> properly in his latest RFC v4. We should reuse that patch instead,
-> since we spent quite a bit of time to go through all the corner cases
-> and make sure it works for the most exotic use case we could imagine.
+1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+   endpoint that is not connected to a remote device as an error.
+   But in the case of the video-mux subdev, this is not an error,
+   it is OK if some of the mux inputs have no connection. Also,
+   Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+   states that the 'remote-endpoint' property is optional. So the first
+   patch is a small modification to ignore empty endpoints in
+   v4l2_async_notifier_fwnode_parse_endpoint() and allow
+   __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+   parse the remaining port endpoints of the device.
 
-Yes, we need more than the above patch. No disagreement there.
+2. In the imx-media graph, multiple subdevs will encounter the same
+   upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+   v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+   multiple times. This is treated as an error by
+   v4l2_async_notifier_register() later.
+
+   To get around this problem, add an v4l2_async_notifier_add_subdev()
+   which first verifies the provided asd does not already exist in the
+   given notifier asd list or in other registered notifiers. If the asd
+   exists, the function returns -EEXIST and it's up to the caller to
+   decide if that is an error (in imx-media case it is never an error).
+
+   Patches 2-4 deal with adding that support.
+
+3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+   convenience function for parsing a subdev's fwnode port endpoints
+   for connected remote subdevs, registering a subdev notifier, and
+   then registering the sub-device itself.
+
+The remaining patches update the subdev drivers to register a
+subdev notifier with endpoint parsing, and the changes to imx-media
+to support that.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+History:
+v3:
+- code optimization in asd_equal(), and remove unneeded braces,
+  suggested by Sakari Ailus.
+- add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+- fix an error-out path in v4l2_async_register_fwnode_subdev() that
+  forgot to put device.
+
+v2:
+- don't pass an empty endpoint to the parse_endpoint callback, 
+  v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+  and returns success.
+- Fix a couple compile warnings and errors seen in i386 and sh archs.
+
+
+Steve Longerbeam (13):
+  media: v4l2-fwnode: ignore endpoints that have no remote port parent
+  media: v4l2: async: Allow searching for asd of any type
+  media: v4l2: async: Add v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Add a convenience function for registering subdevs
+    with notifiers
+  media: platform: video-mux: Register a subdev notifier
+  media: imx: csi: Register a subdev notifier
+  media: imx: mipi csi-2: Register a subdev notifier
+  media: staging/imx: of: Remove recursive graph walk
+  media: staging/imx: Loop through all registered subdevs for media
+    links
+  media: staging/imx: Rename root notifier
+  media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+  media: staging/imx: TODO: Remove one assumption about OF graph parsing
+
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  10 +-
+ drivers/media/platform/video-mux.c                |  36 ++-
+ drivers/media/v4l2-core/v4l2-async.c              | 268 ++++++++++++++++------
+ drivers/media/v4l2-core/v4l2-fwnode.c             | 231 +++++++++++--------
+ drivers/staging/media/imx/TODO                    |  29 +--
+ drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+ drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+ drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+ drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+ drivers/staging/media/imx/imx-media.h             |   6 +-
+ drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+ include/media/v4l2-async.h                        |  24 +-
+ include/media/v4l2-fwnode.h                       |  65 +++++-
+ 13 files changed, 534 insertions(+), 422 deletions(-)
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
