@@ -1,48 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48897 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752124AbeCWMpf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 08:45:35 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] media: dvb-usb-v2: fix a missing dependency of I2C_MUX
-Date: Fri, 23 Mar 2018 08:45:28 -0400
-Message-Id: <0d2a531d00a36e378fce570cb96dbddee1f825f7.1521809120.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:47014 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751687AbeCUDjD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 23:39:03 -0400
+Received: by mail-qk0-f174.google.com with SMTP id o184so4089598qkd.13
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 20:39:03 -0700 (PDT)
+Message-ID: <1521603539.27691.5.camel@ndufresne.ca>
+Subject: Re: uvcvideo: Unknown video
+ format,00000032-0002-0010-8000-00aa00389b71
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Paul Menzel <pmenzel+linux-media@molgen.mpg.de>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        it+linux-media@molgen.mpg.de
+Date: Tue, 20 Mar 2018 23:38:59 -0400
+In-Reply-To: <15529671.DGPDy3yHsE@avalon>
+References: <8f7d4aef-84f7-ae22-8adc-cba4fa881675@molgen.mpg.de>
+         <1521567951.20523.81.camel@ndufresne.ca> <15529671.DGPDy3yHsE@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that af9015 requires I2C_MUX, all drivers that select
-it should also depend on it.
+Le mardi 20 mars 2018 à 20:04 +0200, Laurent Pinchart a écrit :
+> Hi Nicolas,
+> 
+> On Tuesday, 20 March 2018 19:45:51 EET Nicolas Dufresne wrote:
+> > Le mardi 20 mars 2018 à 13:20 +0100, Paul Menzel a écrit :
+> > > Dear Linux folks,
+> > > 
+> > > 
+> > > On the Dell XPS 13 9370, Linux 4.16-rc6 outputs the messages below.
+> > > 
+> > > ```
+> > > [    2.338094] calling  uvc_init+0x0/0x1000 [uvcvideo] @ 295
+> > > [    2.338569] calling  iTCO_wdt_init_module+0x0/0x1000 [iTCO_wdt] @ 280
+> > > [    2.338570] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
+> > > [    2.338713] iTCO_wdt: Found a Intel PCH TCO device (Version=4,
+> > > TCOBASE=0x0400)
+> > > [    2.338755] uvcvideo: Found UVC 1.00 device Integrated_Webcam_HD
+> > > (0bda:58f4)
+> > > [    2.338827] iTCO_wdt: initialized. heartbeat=30 sec (nowayout=0)
+> > > [    2.338851] initcall iTCO_wdt_init_module+0x0/0x1000 [iTCO_wdt]
+> > > returned 0 after 271 usecs
+> > > [    2.340669] uvcvideo 1-5:1.0: Entity type for entity Extension 4 was
+> > > not initialized!
+> > > [    2.340670] uvcvideo 1-5:1.0: Entity type for entity Extension 7 was
+> > > not initialized!
+> > > [    2.340672] uvcvideo 1-5:1.0: Entity type for entity Processing 2 was
+> > > not initialized!
+> > > [    2.340673] uvcvideo 1-5:1.0: Entity type for entity Camera 1 was not
+> > > initialized!
+> > > [    2.340736] input: Integrated_Webcam_HD: Integrate as
+> > > /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.0/input/input9
+> > > [    2.341447] uvcvideo: Unknown video format
+> > > 00000032-0002-0010-8000-00aa00389b71
+> > 
+> > While the 0002 is suspicious, this is pretty close to a color format.
+> > I've recently come across of similar format using D3DFORMAT instead of
+> > GUID. According to the vendor*, this camera module includes an infrared
+> > camera (340x340), so I suspect this is to specify the format it
+> > outputs. A good guess to start with would be that this is
+> > D3DFMT_X8L8V8U8 (0x32).
+> 
+> Isn't 0x32 D3DFMT_L8, not D3DFMT_X8L8V8U8 ?
 
-   drivers/media/dvb-frontends/af9013.o: In function `af9013_remove':
->> drivers/media/dvb-frontends/af9013.c:1560: undefined reference to `i2c_mux_del_adapters'
-   drivers/media/dvb-frontends/af9013.o: In function `af9013_probe':
->> drivers/media/dvb-frontends/af9013.c:1488: undefined reference to `i2c_mux_alloc'
->> drivers/media/dvb-frontends/af9013.c:1495: undefined reference to `i2c_mux_add_adapter'
-   drivers/media/dvb-frontends/af9013.c:1544: undefined reference to `i2c_mux_del_adapters'
+You are right, sorry about that, I totally miss-translate. It felt
+weird. This is much more likely yes. So maybe it's the same mapping
+(but with the -00002- instead) as what I added for the HoloLense
+Camera.
+> 
+> > To test it, you could map this
+> > V4L2_PIX_FMT_YUV32/xRGB and see if the driver is happy with the buffer
+> > size.
+> 
+> VideoStreaming Interface Descriptor:
+>         bLength                            30
+>         bDescriptorType                    36
+>         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+>         bFrameIndex                         1
+>         bmCapabilities                   0x00
+>           Still image unsupported
+>         wWidth                            340
+>         wHeight                           340
+>         dwMinBitRate                 55488000
+>         dwMaxBitRate                 55488000
+>         dwMaxVideoFrameBufferSize      115600
+>         dwDefaultFrameInterval         166666
+>         bFrameIntervalType                  1
+>         dwFrameInterval( 0)            166666
+> 
+> 340*340 is 115600, so this should be a 8-bit format.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb-v2/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Indeed, that matches.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-index 09a52aae299a..37053477b84d 100644
---- a/drivers/media/usb/dvb-usb-v2/Kconfig
-+++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-@@ -15,7 +15,7 @@ config DVB_USB_V2
- 
- config DVB_USB_AF9015
- 	tristate "Afatech AF9015 DVB-T USB2.0 support"
--	depends on DVB_USB_V2
-+	depends on DVB_USB_V2 && I2C_MUX
- 	select REGMAP
- 	select DVB_AF9013
- 	select DVB_PLL              if MEDIA_SUBDRV_AUTOSELECT
--- 
-2.14.3
+> 
+> > Then render it to make sure it looks some image of some sort. A
+> > new format will need to be defined as this format is in the wrong
+> > order, and is ambiguous (it may mean AYUV or xYUV). I'm not sure if we
+> > need specific formats to differentiate infrared data from YUV images,
+> > need to be discussed.
+> 
+> If the format is indeed D3DFMT_L8, it should map to V4L2_PIX_FMT_GREY (8-bit 
+> luminance). I suspect the camera transmits a depth map though.
+
+I wonder if we should think of a way to tell userspace this is fnfrared
+data rather then black and white ?
+
+> 
+> > *https://dustinweb.azureedge.net/media/338953/xps-13-9370.pdf
+> > 
+> > > [    2.341450] uvcvideo: Found UVC 1.00 device Integrated_Webcam_HD
+> > > (0bda:58f4)
+> > > [    2.343371] uvcvideo: Unable to create debugfs 1-2 directory.
+> > > [    2.343420] uvcvideo 1-5:1.2: Entity type for entity Extension 10 was
+> > > not initialized!
+> > > [    2.343422] uvcvideo 1-5:1.2: Entity type for entity Extension 12 was
+> > > not initialized!
+> > > [    2.343423] uvcvideo 1-5:1.2: Entity type for entity Processing 9 was
+> > > not initialized!
+> > > [    2.343424] uvcvideo 1-5:1.2: Entity type for entity Camera 11 was
+> > > not initialized!
+> > > [    2.343472] input: Integrated_Webcam_HD: Integrate as
+> > > /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.2/input/input10
+> > > [    2.343496] usbcore: registered new interface driver uvcvideo
+> > > [    2.343496] USB Video Class driver (1.1.1)
+> > > [    2.343501] initcall uvc_init+0x0/0x1000 [uvcvideo] returned 0 after
+> > > 5275 usecs
+> > > ```
+> > > 
+> > > Please tell me, what I can do to improve the situation.
+> 
+> 
