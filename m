@@ -1,77 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0051.outbound.protection.outlook.com ([104.47.34.51]:44962
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751193AbeC1QDB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 12:03:01 -0400
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
-To: Logan Gunthorpe <logang@deltatee.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
-Date: Wed, 28 Mar 2018 18:02:46 +0200
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37218 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752833AbeCUTji (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Mar 2018 15:39:38 -0400
+Date: Wed, 21 Mar 2018 20:39:36 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mvoelkel@DigitalDevices.de,
+        rjkm@metzlerbros.de, jasmin@anw.at
+Subject: Re: [PATCH 0/5] SPDX license identifiers in all DD drivers
+Message-ID: <20180321193936.GC19781@kroah.com>
+References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
+ <20180321094932.GC16947@kroah.com>
+ <20180321182948.6bcc0542@perian.wuest.de>
 MIME-Version: 1.0
-In-Reply-To: <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180321182948.6bcc0542@perian.wuest.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.03.2018 um 17:47 schrieb Logan Gunthorpe:
->
-> On 28/03/18 09:07 AM, Christian König wrote:
->> Am 28.03.2018 um 14:38 schrieb Christoph Hellwig:
->>> On Sun, Mar 25, 2018 at 12:59:54PM +0200, Christian König wrote:
->>>> From: "wdavis@nvidia.com" <wdavis@nvidia.com>
->>>>
->>>> Add an interface to find the first device which is upstream of both
->>>> devices.
->>> Please work with Logan and base this on top of the outstanding peer
->>> to peer patchset.
->> Can you point me to that? The last code I could find about that was from
->> 2015.
-> The latest posted series is here:
->
-> https://lkml.org/lkml/2018/3/12/830
->
-> However, we've made some significant changes to the area that's similar
-> to what you are doing. You can find lasted un-posted here:
->
-> https://github.com/sbates130272/linux-p2pmem/tree/pci-p2p-v4-pre2
->
-> Specifically this function would be of interest to you:
->
-> https://github.com/sbates130272/linux-p2pmem/blob/0e9468ae2a5a5198513dd12990151e09105f0351/drivers/pci/p2pdma.c#L239
->
-> However, the difference between what we are doing is that we are
-> interested in the distance through the common upstream device and you
-> appear to be finding the actual common device.
+On Wed, Mar 21, 2018 at 06:29:48PM +0100, Daniel Scheller wrote:
+> Hi Greg,
+> 
+> Am Wed, 21 Mar 2018 10:49:32 +0100
+> schrieb Greg KH <gregkh@linuxfoundation.org>:
+> 
+> > On Tue, Mar 20, 2018 at 10:01:27PM +0100, Daniel Scheller wrote:
+> > > From: Daniel Scheller <d.scheller@gmx.net>
+> > > 
+> > > This series adds SPDX license identifiers to all source files which are
+> > > copyright by either Digital Devices GmbH or Metzlerbros GbR, who are
+> > > the original authors of the ddbridge, ngene, cxd2099, mxl5xx, stv0910
+> > > and stv6111 bridge/demod/tuner drivers, with the mxl5xx driver being
+> > > based on source code released by MaxLinear.
+> > > [...]
+> > > The original intention was to fully replace all the licensing headers
+> > > with only the SPDX License Identifiers as it is done in a lot of other
+> > > in-tree drivers nowadays. However, Digital Devices disagreed to do this
+> > > and expressed major concerns regarding this, in that a machine readable
+> > > license tag instead of a full license boilerplate won't hold up equally,
+> > > so we agreed to keep the license boilerplate text as is right now.  
+> > 
+> > That's really odd, who at that company can I talk to about this?  Or
+> > really, what lawyer at that company can I point my lawyer at to talk
+> > about this, that's the only way this is going to get resolved.
+> 
+> I'm not entirely sure, but I guess for a first start it's best to
+> contact Ralph (from Metzlerbros) and Manfred (from Digital
+> Devices), being the authors and copyright owners of the DDDVB driver
+> package where the drivers originate from and thus is the upstream for
+> the mainlined copies of the mentioned drivers. Both are in the Cc list
+> (rjkm and mvoelkel) of this thread.
+> 
+> > If it helps, _ALL_ of the major companies that are kernel developers are
+> > onboard with the removal of the crazy boiler-plate text, so this tiny
+> > holdout should be easy to resolve.
+> > 
+> > > Greg, I'm Cc'ing you on this due to the last paragraph, as AFAIK you're
+> > > one of the initiators of the SPDX tagging initiative, and you even added
+> > > tags to 10k+ files all over the tree :-) so we maybe can discuss this
+> > > further, also with DD, in the hopes you're fine with this - sorry in
+> > > advance if not.  
+> > 
+> > See my review of your first patch here, this needs to be done a lot
+> > differently...
+> 
+> Check. Thanks for reviewing. The intent was to do a full cleanup of all
+> licensing things in one go, per driver. Will do one patch for SPDX and
+> eventual boilerplate cleanup for all drivers, one for MODULE_LICENSE
+> and one for missing headers in the next iteration. Though I'd wait
+> with that for now if you like to contact Ralph and Manfred, and do a v2
+> based on the outcome.
 
-Yeah, that looks very similar to what I picked up from the older 
-patches, going to read up on that after my vacation.
+You can always just do the "add a SPDX line" patches now, that touch
+nothing else.  No one can get upset at that.
 
-Just in general why are you interested in the "distance" of the devices?
+thanks,
 
-And BTW: At least for writes that Peer 2 Peer transactions between 
-different root complexes work is actually more common than the other way 
-around.
-
-So I'm a bit torn between using a blacklist or a whitelist. A whitelist 
-is certainly more conservative approach, but that could get a bit long.
-
-Thanks,
-Christian.
-
->
-> Thanks,
->
-> Logan
+greg k-h
