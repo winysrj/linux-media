@@ -1,54 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61383 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S967059AbeCAJsi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 04:48:38 -0500
-Date: Thu, 1 Mar 2018 06:48:33 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC] media: em28xx: don't use coherent buffer for DMA
- transfers
-Message-ID: <20180301064833.59eed81a@vento.lan>
-In-Reply-To: <CAGoCfixqh-p6YWV3Fb9hGpX5Wv=qiWHFseuFRva66XsYtGkgFQ@mail.gmail.com>
-References: <df78951777f4edb8f627b043a12c710f0ba2497d.1519753238.git.mchehab@s-opensource.com>
-        <CAGoCfixqh-p6YWV3Fb9hGpX5Wv=qiWHFseuFRva66XsYtGkgFQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:45546 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751343AbeCUAi1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 20:38:27 -0400
+Received: by mail-pf0-f193.google.com with SMTP id l27so1340030pfk.12
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:27 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 09/13] media: staging/imx: of: Remove recursive graph walk
+Date: Tue, 20 Mar 2018 17:37:25 -0700
+Message-Id: <1521592649-7264-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 28 Feb 2018 09:49:12 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+After moving to subdev notifiers, it's no longer necessary to recursively
+walk the OF graph, because the subdev notifiers will discover and add
+devices from the graph for us.
 
-> On Tue, Feb 27, 2018 at 12:42 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > While coherent memory is cheap on x86, it has problems on
-> > arm. So, stop using it.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >
-> > I wrote this patch in order to check if this would make things better
-> > for ISOCH transfers on Raspberry Pi3. It didn't. Yet, keep using
-> > coherent memory at USB drivers seem an overkill.
-> >
-> > So, I'm actually not sure if we should either go ahead and merge it
-> > or not.
-> >
-> > Comments? Tests?
-> 
-> For what it's worth, while I haven't tested this patch you're
-> proposing, I've been running what is essentially the same change in a
-> private tree for several years in order for the device to work better
-> with several TI Davinci SOC platforms.
+So the recursive of_parse_subdev() function is gone, replaced with
+of_add_csi() which adds only the CSI port fwnodes to the imx-media
+root notifier.
 
-Good to know! I guess then it is worth applying it. Btw, while here,
-I'm wandering if it should keep using URB_ISO_ASAP flag or not. On
-my tests, for DVB, it seems to be working both ways. Didn't test
-analog TV yet.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-of.c | 106 +++----------------------------
+ 1 file changed, 8 insertions(+), 98 deletions(-)
 
-Thanks,
-Mauro
+diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+index acde372..1c91754 100644
+--- a/drivers/staging/media/imx/imx-media-of.c
++++ b/drivers/staging/media/imx/imx-media-of.c
+@@ -20,74 +20,19 @@
+ #include <video/imx-ipu-v3.h>
+ #include "imx-media.h"
+ 
+-static int of_get_port_count(const struct device_node *np)
++static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
+ {
+-	struct device_node *ports, *child;
+-	int num = 0;
+-
+-	/* check if this node has a ports subnode */
+-	ports = of_get_child_by_name(np, "ports");
+-	if (ports)
+-		np = ports;
+-
+-	for_each_child_of_node(np, child)
+-		if (of_node_cmp(child->name, "port") == 0)
+-			num++;
+-
+-	of_node_put(ports);
+-	return num;
+-}
+-
+-/*
+- * find the remote device node given local endpoint node
+- */
+-static bool of_get_remote(struct device_node *epnode,
+-			  struct device_node **remote_node)
+-{
+-	struct device_node *rp, *rpp;
+-	struct device_node *remote;
+-	bool is_csi_port;
+-
+-	rp = of_graph_get_remote_port(epnode);
+-	rpp = of_graph_get_remote_port_parent(epnode);
+-
+-	if (of_device_is_compatible(rpp, "fsl,imx6q-ipu")) {
+-		/* the remote is one of the CSI ports */
+-		remote = rp;
+-		of_node_put(rpp);
+-		is_csi_port = true;
+-	} else {
+-		remote = rpp;
+-		of_node_put(rp);
+-		is_csi_port = false;
+-	}
+-
+-	if (!of_device_is_available(remote)) {
+-		of_node_put(remote);
+-		*remote_node = NULL;
+-	} else {
+-		*remote_node = remote;
+-	}
+-
+-	return is_csi_port;
+-}
+-
+-static int
+-of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+-		bool is_csi_port)
+-{
+-	int i, num_ports, ret;
++	int ret;
+ 
+-	if (!of_device_is_available(sd_np)) {
++	if (!of_device_is_available(csi_np)) {
+ 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+-			sd_np->name);
++			csi_np->name);
+ 		/* unavailable is not an error */
+ 		return 0;
+ 	}
+ 
+-	/* register this subdev with async notifier */
+-	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(sd_np),
+-					 NULL);
++	/* add CSI fwnode to async notifier */
++	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np), NULL);
+ 	if (ret) {
+ 		if (ret == -EEXIST) {
+ 			/* already added, everything is fine */
+@@ -98,42 +43,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 		return ret;
+ 	}
+ 
+-	/*
+-	 * the ipu-csi has one sink port. The source pads are not
+-	 * represented in the device tree by port nodes, but are
+-	 * described by the internal pads and links later.
+-	 */
+-	num_ports = is_csi_port ? 1 : of_get_port_count(sd_np);
+-
+-	for (i = 0; i < num_ports; i++) {
+-		struct device_node *epnode = NULL, *port, *remote_np;
+-
+-		port = is_csi_port ? sd_np : of_graph_get_port_by_id(sd_np, i);
+-		if (!port)
+-			continue;
+-
+-		for_each_child_of_node(port, epnode) {
+-			bool remote_is_csi;
+-
+-			remote_is_csi = of_get_remote(epnode, &remote_np);
+-			if (!remote_np)
+-				continue;
+-
+-			ret = of_parse_subdev(imxmd, remote_np, remote_is_csi);
+-			of_node_put(remote_np);
+-			if (ret)
+-				break;
+-		}
+-
+-		if (port != sd_np)
+-			of_node_put(port);
+-		if (ret) {
+-			of_node_put(epnode);
+-			break;
+-		}
+-	}
+-
+-	return ret;
++	return 0;
+ }
+ 
+ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
+@@ -147,7 +57,7 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
+ 		if (!csi_np)
+ 			break;
+ 
+-		ret = of_parse_subdev(imxmd, csi_np, true);
++		ret = of_add_csi(imxmd, csi_np);
+ 		of_node_put(csi_np);
+ 		if (ret)
+ 			return ret;
+-- 
+2.7.4
