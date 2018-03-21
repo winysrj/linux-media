@@ -1,62 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0101.outbound.protection.outlook.com ([104.47.40.101]:42176
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750968AbeCTDsQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 23:48:16 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <arnd@arndb.de>, <mchehab@kernel.org>
-CC: <msebor@gmail.com>, <Toshihiko.Matsumoto@sony.com>,
-        <Kota.Yonezawa@sony.com>, <Satoshi.C.Watanabe@sony.com>,
-        <Masayuki.Yamamoto@sony.com>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <Yasunari.Takiguchi@sony.com>
-Subject: RE: [PATCH] media: cxd2880-spi: avoid out-of-bounds access warning
-Date: Tue, 20 Mar 2018 03:47:57 +0000
-Message-ID: <02699364973B424C83A42A84B04FDA85484BC2@JPYOKXMS113.jp.sony.com>
-References: <20180313120931.2667235-1-arnd@arndb.de>
-In-Reply-To: <20180313120931.2667235-1-arnd@arndb.de>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43406 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751455AbeCUJrV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Mar 2018 05:47:21 -0400
+Date: Wed, 21 Mar 2018 10:47:18 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, mvoelkel@DigitalDevices.de,
+        rjkm@metzlerbros.de, jasmin@anw.at
+Subject: Re: [PATCH 1/5] [media] stv0910/stv6111: add SPDX license headers
+Message-ID: <20180321094718.GB16947@kroah.com>
+References: <20180320210132.7873-1-d.scheller.oss@gmail.com>
+ <20180320210132.7873-2-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180320210132.7873-2-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
-
-We check the patch. 
-
-> -----Original Message-----
-> From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: Tuesday, March 13, 2018 9:09 PM
-> To: Takiguchi, Yasunari (SSS); Mauro Carvalho Chehab
-> Cc: Arnd Bergmann; Martin Sebor; Matsumoto, Toshihiko (SSS); Yonezawa,
-> Kota (SSS); Watanabe, Satoshi (SSS); Yamamoto, Masayuki (SSS);
-> linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH] media: cxd2880-spi: avoid out-of-bounds access warning
+On Tue, Mar 20, 2018 at 10:01:28PM +0100, Daniel Scheller wrote:
+> From: Daniel Scheller <d.scheller@gmx.net>
 > 
-> The -Warray-bounds warning in gcc-8 triggers for a newly added file:
+> Add SPDX license headers to the stv0910 and stv6111 DVB frontend
+> drivers. Both drivers are licensed as GPL-2.0-only, so fix this in the
+> MODULE_LICENSE while at it. Also, the includes were lacking any license
+> headers at all, so add them now.
 > 
-> drivers/media/spi/cxd2880-spi.c: In function 'cxd2880_write_reg':
-> drivers/media/spi/cxd2880-spi.c:111:3: error: 'memcpy' forming offset
-> [133, 258] is out of the bounds [0, 132] of object 'send_data' with type
-> 'u8[132]' {aka 'unsigned char[132]'} [-Werror=array-bounds]
-> 
-> The problem appears to be that we have two range checks in this function,
-> first comparing against BURST_WRITE_MAX (128) and then comparing against
-> a literal '255'. The logic checking the buffer size looks at the second
-> one and decides that this might be the actual maximum data length.
-> 
-> This is understandable behavior from the compiler, but the code is
-> actually safe. Since the first check is already shorter, we can remove
-> the loop and only leave that. To be on the safe side in case BURST_WRITE_MAX
-> might be increased, I'm leaving the check against U8_MAX.
-> 
-> Fixes: bd24fcddf6b8 ("media: cxd2880-spi: Add support for CXD2880 SPI
-> interface")
-> Cc: Martin Sebor <msebor@gmail.com>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 > ---
->  drivers/media/spi/cxd2880-spi.c | 24 +++++++-----------------
->  1 file changed, 7 insertions(+), 17 deletions(-)
+>  drivers/media/dvb-frontends/stv0910.c | 5 +++--
+>  drivers/media/dvb-frontends/stv0910.h | 9 +++++++++
+>  drivers/media/dvb-frontends/stv6111.c | 6 +++---
+>  drivers/media/dvb-frontends/stv6111.h | 7 +++++++
+>  4 files changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+> index 52355c14fd64..ce82264e99ef 100644
+> --- a/drivers/media/dvb-frontends/stv0910.c
+> +++ b/drivers/media/dvb-frontends/stv0910.c
+> @@ -1,3 +1,4 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
 
-Reviewed-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Please only use the identifiers documented in
+Documentation/process/license-rules.rst right now.  We wrote and got
+that merged _before_ SPDX bumped the tags to 3.0 which added the (imo
+crazy) -only variants.
+
+So please stick with what is already in the kernel tree, if we do decide
+to update to a newer version of SPDX, we will hit the tree all at once
+with a script to give to Linus to run.
+
+
+>  /*
+>   * Driver for the ST STV0910 DVB-S/S2 demodulator.
+>   *
+> @@ -11,7 +12,7 @@
+>   *
+>   * This program is distributed in the hope that it will be useful,
+>   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+
+Why did you change this in this patch?
+
+Please only do "one" thing per patch.
+
+
+
+>   * GNU General Public License for more details.
+>   */
+>  
+> @@ -1836,4 +1837,4 @@ EXPORT_SYMBOL_GPL(stv0910_attach);
+>  
+>  MODULE_DESCRIPTION("ST STV0910 multistandard frontend driver");
+>  MODULE_AUTHOR("Ralph and Marcus Metzler, Manfred Voelkel");
+> -MODULE_LICENSE("GPL");
+> +MODULE_LICENSE("GPL v2");
+
+Again, this should be a separate patch.
+
+
+> diff --git a/drivers/media/dvb-frontends/stv0910.h b/drivers/media/dvb-frontends/stv0910.h
+> index fccd8d9b665f..93de08540ce4 100644
+> --- a/drivers/media/dvb-frontends/stv0910.h
+> +++ b/drivers/media/dvb-frontends/stv0910.h
+> @@ -1,3 +1,12 @@
+> +/* SPDX-License-Identifier: GPL-2.0-only */
+> +/*
+> + * Driver for the ST STV0910 DVB-S/S2 demodulator.
+> + *
+> + * Copyright (C) 2014-2015 Ralph Metzler <rjkm@metzlerbros.de>
+> + *                         Marcus Metzler <mocm@metzlerbros.de>
+> + *                         developed for Digital Devices GmbH
+> + */
+
+Where did that copyright notice come from?
+
+This patch is a total mix of different things, please do not do that at
+all!
+
+thanks,
+
+greg k-h
