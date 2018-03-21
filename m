@@ -1,74 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:38073 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753004AbeC1RBm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 13:01:42 -0400
-Received: by mail-pl0-f68.google.com with SMTP id m22-v6so1962291pls.5
-        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:01:42 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
-        crope@iki.fi
-Subject: [PATCH v4 5/5] dvb-usb-v2/gl861: ensure  USB message buffers DMA'able
-Date: Thu, 29 Mar 2018 02:01:01 +0900
-Message-Id: <20180328170101.29385-6-tskd08@gmail.com>
-In-Reply-To: <20180328170101.29385-1-tskd08@gmail.com>
-References: <20180328170101.29385-1-tskd08@gmail.com>
+Received: from mga04.intel.com ([192.55.52.120]:36604 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751319AbeCURGg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Mar 2018 13:06:36 -0400
+Date: Wed, 21 Mar 2018 19:06:30 +0200
+From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: "Yeh, Andy" <andy.yeh@intel.com>
+Cc: jacopo mondi <jacopo@jmondi.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>
+Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
+Message-ID: <20180321170629.biuwxykqsgvltull@kekkonen.localdomain>
+References: <1521219926-15329-1-git-send-email-andy.yeh@intel.com>
+ <1521219926-15329-3-git-send-email-andy.yeh@intel.com>
+ <20180320102817.GB5372@w540>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D552FBD@PGSMSX111.gar.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D552FBD@PGSMSX111.gar.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Hi Andy,
 
-i2c message buf might be on stack.
+On Wed, Mar 21, 2018 at 03:58:42PM +0000, Yeh, Andy wrote:
+> Thanks for the comments. A quick question first. For the reset we need some time to address.
+> 
+> -----Original Message-----
+> From: jacopo mondi [mailto:jacopo@jmondi.org]
+> Sent: Tuesday, March 20, 2018 6:28 PM
+> To: Yeh, Andy <andy.yeh@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; devicetree@vger.kernel.org; Chiang, AlanX <alanx.chiang@intel.com>
+> Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
+> 
+> Hi Andy,
+>    a few comments on you patch below...
+> 
+> On Sat, Mar 17, 2018 at 01:05:26AM +0800, Andy Yeh wrote:
+> > From: Alan Chiang <alanx.chiang@intel.com> 
+> > a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c new file 
+> > mode 100644 index 0000000..95626e9
+> > --- /dev/null
+> > +++ b/drivers/media/i2c/dw9807.c
+> > @@ -0,0 +1,320 @@
+> > +// Copyright (C) 2018 Intel Corporation // SPDX-License-Identifier: 
+> > +GPL-2.0
+> > +
+> 
+> Nit: my understanding is that the SPDX identifier goes first
+> 
+> https://lwn.net/Articles/739183/
+> 
+> I checked this site. And it says Copyright should be before SPDX identifier.
+> ========== file01.c ==========
+> // Copyright (c) 2012-2016 Joe Random Hacker // SPDX-License-Identifier: BSD-2-Clause ...
+> ========== file02.c ==========
+> // Copyright (c) 2017 Jon Severinsson
+> // SPDX-License-Identifier: BSD-2-Clause ...
+> ========== file03.c ==========
+> // Copyright (c) 2008 The NetBSD Foundation, Inc.
+> // SPDX-License-Identifier: BSD-2-Clause-NetBSD
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
-Changes since v3:
-- none
+This is an example which is AFAIU purported to show the problem with
+various BSD licenses in a comment from someone. The order of the copyright
+holder and license lines might be just random. The practice in kernel at
+least appears to be SPDX license first.
 
- drivers/media/usb/dvb-usb-v2/gl861.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
-index 6f6dfa65bba..a5c83b561a4 100644
---- a/drivers/media/usb/dvb-usb-v2/gl861.c
-+++ b/drivers/media/usb/dvb-usb-v2/gl861.c
-@@ -22,6 +22,8 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
- 	u16 value = addr << (8 + 1);
- 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
- 	u8 req, type;
-+	u8 *buf;
-+	int ret;
- 
- 	if (wo) {
- 		req = GL861_REQ_I2C_WRITE;
-@@ -44,11 +46,23 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
- 				KBUILD_MODNAME, wlen);
- 		return -EINVAL;
- 	}
--
-+	buf = NULL;
-+	if (rlen > 0) {
-+		buf = kmalloc(rlen, GFP_KERNEL);
-+		if (!buf)
-+			return -ENOMEM;
-+	}
- 	usleep_range(1000, 2000); /* avoid I2C errors */
- 
--	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
--			       value, index, rbuf, rlen, 2000);
-+	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
-+			      value, index, buf, rlen, 2000);
-+	if (rlen > 0) {
-+		if (ret > 0)
-+			memcpy(rbuf, buf, rlen);
-+		kfree(buf);
-+	}
-+
-+	return ret;
- }
- 
- /* Friio specific I2C read/write */
 -- 
-2.16.3
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
