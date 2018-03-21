@@ -1,87 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0062.outbound.protection.outlook.com ([104.47.32.62]:16101
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751968AbeC2QK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 12:10:28 -0400
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
-To: Logan Gunthorpe <logang@deltatee.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
- <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
- <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
- <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
- <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
- <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
- <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
- <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
-Date: Thu, 29 Mar 2018 18:10:06 +0200
+Received: from osg.samsung.com ([64.30.133.232]:62616 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751714AbeCUPp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Mar 2018 11:45:59 -0400
+Date: Wed, 21 Mar 2018 12:45:52 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 6/7] cec-pin-error-inj.rst: document CEC Pin Error
+ Injection
+Message-ID: <20180321124511.7e841256@vento.lan>
+In-Reply-To: <20180305135139.95652-7-hverkuil@xs4all.nl>
+References: <20180305135139.95652-1-hverkuil@xs4all.nl>
+        <20180305135139.95652-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 29.03.2018 um 17:45 schrieb Logan Gunthorpe:
->
-> On 29/03/18 05:44 AM, Christian König wrote:
->> Am 28.03.2018 um 21:53 schrieb Logan Gunthorpe:
->>> On 28/03/18 01:44 PM, Christian König wrote:
->>>> Well, isn't that exactly what dma_map_resource() is good for? As far as
->>>> I can see it makes sure IOMMU is aware of the access route and
->>>> translates a CPU address into a PCI Bus address.
->>>> I'm using that with the AMD IOMMU driver and at least there it works
->>>> perfectly fine.
->>> Yes, it would be nice, but no arch has implemented this yet. We are just
->>> lucky in the x86 case because that arch is simple and doesn't need to do
->>> anything for P2P (partially due to the Bus and CPU addresses being the
->>> same). But in the general case, you can't rely on it.
->> Well, that an arch hasn't implemented it doesn't mean that we don't have
->> the right interface to do it.
-> Yes, but right now we don't have a performant way to check if we are
-> doing P2P or not in the dma_map_X() wrappers.
+Em Mon,  5 Mar 2018 14:51:38 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Why not? I mean the dma_map_resource() function is for P2P while other 
-dma_map_* functions are only for system memory.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The CEC Pin framework adds support for Error Injection.
+> 
+> Document all the error injections commands and how to use it.
 
-> And this is necessary to
-> check if the DMA ops in use support it or not. We can't have the
-> dma_map_X() functions do the wrong thing because they don't support it yet.
+Please notice that all debugfs/sysfs entries should *also* be
+documented at the standard way, e. g. by adding the corresponding
+documentation at Documentation/ABI.
 
-Well that sounds like we should just return an error from 
-dma_map_resources() when an architecture doesn't support P2P yet as Alex 
-suggested.
+Please see Documentation/ABI/README.
 
->> Devices integrated in the CPU usually only "claim" to be PCIe devices.
->> In reality their memory request path go directly through the integrated
->> north bridge. The reason for this is simple better throughput/latency.
-> These are just more reasons why our patchset restricts to devices behind
-> a switch. And more mess for someone to deal with if they need to relax
-> that restriction.
+Additionally, there are a few minor nitpicks on this patch.
+See below.
 
-You don't seem to understand the implications: The devices do have a 
-common upstream bridge! In other words your code would currently claim 
-that P2P is supported, but in practice it doesn't work.
+The remaining patches looked ok on my eyes.
 
-You need to include both drivers which participate in the P2P 
-transaction to make sure that both supports this and give them 
-opportunity to chicken out and in the case of AMD APUs even redirect the 
-request to another location (e.g. participate in the DMA translation).
-
-DMA-buf fortunately seems to handle all this already, that's why we 
-choose it as base for our implementation.
+I'll wait for a v3 with the debugfs ABI documentation in order to merge
+it. Feel free to put it on a separate patch.
 
 Regards,
-Christian.
+Mauro
+
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../media/cec-drivers/cec-pin-error-inj.rst        | 322 +++++++++++++++++++++
+>  Documentation/media/cec-drivers/index.rst          |   1 +
+>  MAINTAINERS                                        |   1 +
+>  3 files changed, 324 insertions(+)
+>  create mode 100644 Documentation/media/cec-drivers/cec-pin-error-inj.rst
+> 
+> diff --git a/Documentation/media/cec-drivers/cec-pin-error-inj.rst b/Documentation/media/cec-drivers/cec-pin-error-inj.rst
+> new file mode 100644
+> index 000000000000..21bda831d3fb
+> --- /dev/null
+> +++ b/Documentation/media/cec-drivers/cec-pin-error-inj.rst
+> @@ -0,0 +1,322 @@
+> +CEC Pin Framework Error Injection
+> +=================================
+> +
+> +The CEC Pin Framework is a core CEC framework for CEC hardware that only
+> +has low-level support for the CEC bus. Most hardware today will have
+> +high-level CEC support where the hardware deals with driving the CEC bus,
+> +but some older devices aren't that fancy. However, this framework also
+> +allows you to connect the CEC pin to a GPIO on e.g. a Raspberry Pi and
+> +you can become an instant CEC adapter.
+> +
+> +What makes doing this so interesting is that since we have full control
+> +over the bus it is easy to support error injection. This is ideal to
+> +test how well CEC adapters can handle error conditions.
+> +
+> +Currently only the cec-gpio driver (when the CEC line is directly
+> +connected to a pull-up GPIO line) and the AllWinner A10/A20 drm driver
+> +support this framework.
+> +
+> +If ``CONFIG_CEC_PIN_ERROR_INJ`` is enabled, then error injection is available
+> +through debugfs. Specifically, in ``/sys/kernel/debug/cec/cecX/`` there is
+> +now an ``error-inj`` file.
+> +
+> +With ``cat error-inj`` you can see both the possible commands and the current
+> +error injection status:
+> +
+> +.. code-block:: none
+
+It is usually better to use "::" instead of ".. code-block".
+
+> +
+> +	$ cat /sys/kernel/debug/cec/cec0/error-inj
+> +	# Clear error injections:
+> +	#   clear          clear all rx and tx error injections
+> +	#   rx-clear       clear all rx error injections
+> +	#   tx-clear       clear all tx error injections
+> +	#   <op> clear     clear all rx and tx error injections for <op>
+> +	#   <op> rx-clear  clear all rx error injections for <op>
+> +	#   <op> tx-clear  clear all tx error injections for <op>
+> +	#
+> +	# RX error injection:
+> +	#   <op>[,<mode>] rx-nack              NACK the message instead of sending an ACK
+> +	#   <op>[,<mode>] rx-low-drive <bit>   force a low-drive condition at this bit position
+> +	#   <op>[,<mode>] rx-add-byte          add a spurious byte to the received CEC message
+> +	#   <op>[,<mode>] rx-remove-byte       remove the last byte from the received CEC message
+> +	#   <op>[,<mode>] rx-arb-lost <poll>   generate a POLL message to trigger an arbitration lost
+> +	#
+> +	# TX error injection settings:
+> +	#   tx-ignore-nack-until-eom           ignore early NACKs until EOM
+> +	#   tx-custom-low-usecs <usecs>        define the 'low' time for the custom pulse
+> +	#   tx-custom-high-usecs <usecs>       define the 'high' time for the custom pulse
+> +	#   tx-custom-pulse                    transmit the custom pulse once the bus is idle
+> +	#
+> +	# TX error injection:
+> +	#   <op>[,<mode>] tx-no-eom            don't set the EOM bit
+> +	#   <op>[,<mode>] tx-early-eom         set the EOM bit one byte too soon
+> +	#   <op>[,<mode>] tx-add-bytes <num>   append <num> (1-255) spurious bytes to the message
+> +	#   <op>[,<mode>] tx-remove-byte       drop the last byte from the message
+> +	#   <op>[,<mode>] tx-short-bit <bit>   make this bit shorter than allowed
+> +	#   <op>[,<mode>] tx-long-bit <bit>    make this bit longer than allowed
+> +	#   <op>[,<mode>] tx-custom-bit <bit>  send the custom pulse instead of this bit
+> +	#   <op>[,<mode>] tx-short-start       send a start pulse that's too short
+> +	#   <op>[,<mode>] tx-long-start        send a start pulse that's too long
+> +	#   <op>[,<mode>] tx-custom-start      send the custom pulse instead of the start pulse
+> +	#   <op>[,<mode>] tx-last-bit <bit>    stop sending after this bit
+> +	#   <op>[,<mode>] tx-low-drive <bit>   force a low-drive condition at this bit position
+> +	#
+> +	# <op>       CEC message opcode (0-255) or 'any'
+> +	# <mode>     'once' (default), 'always', 'toggle' or 'off'
+> +	# <bit>      CEC message bit (0-159)
+> +	#            10 bits per 'byte': bits 0-7: data, bit 8: EOM, bit 9: ACK
+> +	# <poll>     CEC poll message used to test arbitration lost (0x00-0xff, default 0x0f)
+> +	# <usecs>    microseconds (0-10000000, default 1000)
+> +
+> +	clear
+> +
+> +You can write error injection commands to ``error-inj`` using ``echo 'cmd' >error-inj``
+> +or ``cat cmd.txt >error-inj``. The ``cat error-inj`` output contains the current
+> +error commands. You can save the output to a file and use it as an input to
+> +``error-inj`` later.
+
+Please word-wrap it to fit into 80 columns (actually, it is better to use
+something lower than that, like 72, as it makes easier to do small
+adjustments without needing to change an entire text block.
+
+(Same applies to other parts of this patch)
+
+
+
+Thanks,
+Mauro
