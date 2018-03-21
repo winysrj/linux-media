@@ -1,14 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45485 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751548AbeCURd4 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:54373 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752527AbeCUSyZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 13:33:56 -0400
+        Wed, 21 Mar 2018 14:54:25 -0400
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] debugfs-cec-error-inj: document CEC error inj debugfs ABI
-Message-ID: <c30b9188-84c5-d8b6-a274-2ce33dfd3b5f@xs4all.nl>
-Date: Wed, 21 Mar 2018 18:33:51 +0100
+Subject: [GIT PULL v2 FOR v4.17] cec: add error injection support + other
+ improvements
+Message-ID: <c64f5e92-6334-5a97-7964-21faaef283ed@xs4all.nl>
+Date: Wed, 21 Mar 2018 19:54:21 +0100
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
@@ -16,75 +17,52 @@ Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the core of the debugfs CEC error injection ABI.
+Same as the previous git pull except for moving and slightly editing the
+CEC Pin Error Injection documentation and adding debugfs-cec-error-inj.
 
-The driver specific commands are documented elsewhere and
-this file points to that documentation.
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/ABI/testing/debugfs-cec-error-inj | 40 +++++++++++++++++++++++++
- MAINTAINERS                                     |  1 +
- 2 files changed, 41 insertions(+)
+	Hans
+
+The following changes since commit 3f127ce11353fd1071cae9b65bc13add6aec6b90:
+
+  media: em28xx-cards: fix em28xx_duplicate_dev() (2018-03-08 06:06:51 -0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cec
+
+for you to fetch changes up to 6bf7995896c4b428f05825ec0c827c3089cdf97b:
+
+  debugfs-cec-error-inj: document CEC error inj debugfs ABI (2018-03-21 19:52:09 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (9):
+      cec: add core error injection support
+      cec-core.rst: document the error injection ops
+      cec-pin: create cec_pin_start_timer() function
+      cec-pin-error-inj: parse/show error injection
+      cec-pin: add error injection support
+      cec-pin: improve status log
+      cec: improve CEC pin event handling
+      cec-pin-error-inj.rst: document CEC Pin Error Injection
+      debugfs-cec-error-inj: document CEC error inj debugfs ABI
+
+ Documentation/ABI/testing/debugfs-cec-error-inj    |  40 +++
+ Documentation/media/kapi/cec-core.rst              |  72 +++++-
+ Documentation/media/uapi/cec/cec-api.rst           |   1 +
+ Documentation/media/uapi/cec/cec-pin-error-inj.rst | 325 ++++++++++++++++++++++++
+ MAINTAINERS                                        |   1 +
+ drivers/media/cec/Kconfig                          |   6 +
+ drivers/media/cec/Makefile                         |   4 +
+ drivers/media/cec/cec-adap.c                       |   8 +-
+ drivers/media/cec/cec-core.c                       |  58 +++++
+ drivers/media/cec/cec-pin-error-inj.c              | 342 +++++++++++++++++++++++++
+ drivers/media/cec/cec-pin-priv.h                   | 134 +++++++++-
+ drivers/media/cec/cec-pin.c                        | 664 +++++++++++++++++++++++++++++++++++++++++++------
+ drivers/media/platform/vivid/vivid-cec.c           |   8 +-
+ include/media/cec.h                                |  12 +-
+ 14 files changed, 1583 insertions(+), 92 deletions(-)
  create mode 100644 Documentation/ABI/testing/debugfs-cec-error-inj
-
-diff --git a/Documentation/ABI/testing/debugfs-cec-error-inj b/Documentation/ABI/testing/debugfs-cec-error-inj
-new file mode 100644
-index 000000000000..122b65c5fe62
---- /dev/null
-+++ b/Documentation/ABI/testing/debugfs-cec-error-inj
-@@ -0,0 +1,40 @@
-+What:		/sys/kernel/debug/cec/*/error-inj
-+Date:		March 2018
-+Contact:	Hans Verkuil <hans.verkuil@cisco.com>
-+Description:
-+
-+The CEC Framework allows for CEC error injection commands through
-+debugfs. Drivers that support this will create an error-inj file
-+through which the error injection commands can be given.
-+
-+The basic syntax is as follows:
-+
-+Leading spaces/tabs are ignored. If the next character is a '#' or the
-+end of the line was reached, then the whole line is ignored. Otherwise
-+a command is expected.
-+
-+It is up to the driver to decide what commands to implement. The only
-+exception is that the command 'clear' without any arguments must be
-+implemented and that it will remove all current error injection
-+commands.
-+
-+This ensures that you can always do 'echo clear >error-inj' to clear any
-+error injections without having to know the details of the driver-specific
-+commands.
-+
-+Note that the output of 'error-inj' shall be valid as input to 'error-inj'.
-+So this must work:
-+
-+	$ cat error-inj >einj.txt
-+	$ cat einj.txt >error-inj
-+
-+Other than these basic rules described above this ABI is not considered
-+stable and may change in the future.
-+
-+Drivers that implement this functionality must document the commands as
-+part of the CEC documentation and must keep that documentation up to date
-+when changes are made.
-+
-+The following CEC error injection implementations exist:
-+
-+- Documentation/media/uapi/cec/cec-pin-error-inj.rst
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4e59769cec0e..55a3c61e9cfb 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3307,6 +3307,7 @@ F:	include/media/cec-notifier.h
- F:	include/uapi/linux/cec.h
- F:	include/uapi/linux/cec-funcs.h
- F:	Documentation/devicetree/bindings/media/cec.txt
-+F:	Documentation/ABI/testing/debugfs-cec-error-inj
-
- CEC GPIO DRIVER
- M:	Hans Verkuil <hans.verkuil@cisco.com>
--- 
-2.15.1
+ create mode 100644 Documentation/media/uapi/cec/cec-pin-error-inj.rst
+ create mode 100644 drivers/media/cec/cec-pin-error-inj.c
