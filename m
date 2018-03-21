@@ -1,118 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57908 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751106AbeCINhG (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:42762 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751542AbeCUAia (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 08:37:06 -0500
-Subject: Re: [PATCH v6 02/17] media: doc: add document for rkisp1 meta buffer
- format
-To: Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        devicetree@vger.kernel.org, heiko@sntech.de,
-        Jacob Chen <jacob2.chen@rock-chips.com>,
-        Jacob Chen <jacob-chen@rock-chips.com>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
- <20180308094807.9443-3-jacob-chen@iotwrt.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <036c8bbe-c17f-b6fa-8432-fd7419adeda9@xs4all.nl>
-Date: Fri, 9 Mar 2018 14:37:03 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180308094807.9443-3-jacob-chen@iotwrt.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 20 Mar 2018 20:38:30 -0400
+Received: by mail-pg0-f66.google.com with SMTP id f10so1156128pgs.9
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:30 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 11/13] media: staging/imx: Rename root notifier
+Date: Tue, 20 Mar 2018 17:37:27 -0700
+Message-Id: <1521592649-7264-12-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/18 10:47, Jacob Chen wrote:
-> From: Jacob Chen <jacob2.chen@rock-chips.com>
-> 
-> This commit add docuemnt for rkisp1 meta buffer format
-> 
-> Signed-off-by: Jacob Chen <jacob-chen@rock-chips.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/media/uapi/v4l/meta-formats.rst        |  2 ++
->  .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst     | 20 ++++++++++++++++++++
->  .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst       | 18 ++++++++++++++++++
->  3 files changed, 40 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
-> index 0c4e1ecf5879..44e7edbf1dae 100644
-> --- a/Documentation/media/uapi/v4l/meta-formats.rst
-> +++ b/Documentation/media/uapi/v4l/meta-formats.rst
-> @@ -15,3 +15,5 @@ These formats are used for the :ref:`metadata` interface only.
->      pixfmt-meta-uvc
->      pixfmt-meta-vsp1-hgo
->      pixfmt-meta-vsp1-hgt
-> +    pixfmt-meta-rkisp1-params
-> +    pixfmt-meta-rkisp1-stat
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
-> new file mode 100644
-> index 000000000000..2ff4f4309795
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
-> @@ -0,0 +1,20 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _v4l2-meta-fmt-rkisp1-params:
-> +
-> +*******************************
-> +V4L2_META_FMT_RK_ISP1_PARAMS
-> +*******************************
-> +
-> +Rockchip ISP1 Parameters Data
-> +
-> +Description
-> +===========
-> +
-> +This format describes input parameters for the Rockchip ISP1.
-> +
-> +It uses c-struct :c:type:`rkisp1_isp_params_cfg`, which is defined in
-> +the ``linux/rkisp1-config.h`` header file, see it for details.
-> +
-> +The parameters consist of multiple modules.
-> +The module won't be updated if the correspond bit was not set in module_*_update.
+Rename the imx-media root async notifier from "subdev_notifier" to
+simply "notifier", so as not to confuse it with true subdev notifiers.
+No functional changes.
 
-correspond -> corresponding
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
+ drivers/staging/media/imx/imx-media.h     |  2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
-> new file mode 100644
-> index 000000000000..dca8befe58f1
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
-> @@ -0,0 +1,18 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _v4l2-meta-fmt-rkisp1-stat:
-> +
-> +*******************************
-> +V4L2_META_FMT_RK_ISP1_STAT_3A
-> +*******************************
-> +
-> +Rockchip ISP1 Statistics Data
-> +
-> +Description
-> +===========
-> +
-> +This format describes image color statistics information generated by the Rockchip
-> +ISP1.
-> +
-> +It use c-struct :c:type:`rkisp1_stat_buffer`, which is defined in
-
-use -> uses
-
-> +the ``linux/cifisp_stat.h`` header file, see it for details.
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 4d00ed3..dd4702a 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -29,7 +29,7 @@
+ 
+ static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
+ {
+-	return container_of(n, struct imx_media_dev, subdev_notifier);
++	return container_of(n, struct imx_media_dev, notifier);
+ }
+ 
+ /*
+@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 
+ 	list_add_tail(&imxasd->list, &imxmd->asd_list);
+ 
+-	imxmd->subdev_notifier.num_subdevs++;
++	imxmd->notifier.num_subdevs++;
+ 
+ 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+ 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		goto unreg_dev;
+ 	}
+ 
+-	num_subdevs = imxmd->subdev_notifier.num_subdevs;
++	num_subdevs = imxmd->notifier.num_subdevs;
+ 
+ 	/* no subdevs? just bail */
+ 	if (num_subdevs == 0) {
+@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		subdevs[i++] = &imxasd->asd;
+ 
+ 	/* prepare the async subdev notifier and register it */
+-	imxmd->subdev_notifier.subdevs = subdevs;
+-	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
++	imxmd->notifier.subdevs = subdevs;
++	imxmd->notifier.ops = &imx_media_subdev_ops;
+ 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
+-					   &imxmd->subdev_notifier);
++					   &imxmd->notifier);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+ 			 "v4l2_async_notifier_register failed with %d\n", ret);
+@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
+ 
+ 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
+ 
+-	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
++	v4l2_async_notifier_unregister(&imxmd->notifier);
+ 	imx_media_remove_internal_subdevs(imxmd);
+ 	v4l2_device_unregister(&imxmd->v4l2_dev);
+ 	media_device_unregister(&imxmd->md);
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index e945e0e..7edb18a 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -148,7 +148,7 @@ struct imx_media_dev {
+ 
+ 	/* for async subdev registration */
+ 	struct list_head asd_list;
+-	struct v4l2_async_notifier subdev_notifier;
++	struct v4l2_async_notifier notifier;
+ };
+ 
+ enum codespace_sel {
+-- 
+2.7.4
