@@ -1,168 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29262 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752530AbeC3CPR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 22:15:17 -0400
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
-        jian.xu.zheng@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v6 05/12] intel-ipu3: css: Add dma buff pool utility functions
-Date: Thu, 29 Mar 2018 21:14:53 -0500
-Message-Id: <1522376100-22098-6-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35540 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751343AbeCUAiW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Mar 2018 20:38:22 -0400
+Received: by mail-pf0-f194.google.com with SMTP id y186so1351339pfb.2
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:22 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 06/13] media: platform: video-mux: Register a subdev notifier
+Date: Tue, 20 Mar 2018 17:37:22 -0700
+Message-Id: <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pools are used to store previous parameters set by
-user with the parameter queue. Due to pipelining,
-there needs to be multiple sets (up to four)
-of parameters which are queued in a host-to-sp queue.
+Parse neighbor remote devices on the video muxes input ports, add them to a
+subdev notifier, and register the subdev notifier for the video mux, by
+calling v4l2_async_register_fwnode_subdev().
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 131 +++++++++++++++++++++++++++
- 1 file changed, 131 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+Changes since v2:
+- none
+Changes since v1:
+- add #include <linux/slab.h> for kcalloc() declaration.
+---
+ drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-new file mode 100644
-index 000000000000..84f6a7801a01
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-@@ -0,0 +1,131 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2018 Intel Corporation
-+
-+#include <linux/device.h>
-+
-+#include "ipu3-css-pool.h"
-+#include "ipu3-dmamap.h"
-+
-+int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
-+			       size_t size)
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index ee89ad7..b93b0af 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -21,8 +21,10 @@
+ #include <linux/of.h>
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
++#include <linux/slab.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+ struct video_mux {
+@@ -193,6 +195,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+ 	.video = &video_mux_subdev_video_ops,
+ };
+ 
++static int video_mux_parse_endpoint(struct device *dev,
++				    struct v4l2_fwnode_endpoint *vep,
++				    struct v4l2_async_subdev *asd)
 +{
-+	if (map->size < size && map->vaddr) {
-+		dev_warn(dev, "dma buffer is resized from %zu to %zu",
-+			 map->size, size);
-+
-+		ipu3_dmamap_free(dev, map);
-+		if (!ipu3_dmamap_alloc(dev, map, size))
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
-+		ipu3_dmamap_free(dev, &pool->entry[i].param);
-+}
-+
-+int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-+		       size_t size)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
-+		/*
-+		 * entry[i].framenum is initialized to INT_MIN so that
-+		 * ipu3_css_pool_check() can treat it as usesable slot.
-+		 */
-+		pool->entry[i].framenum = INT_MIN;
-+
-+		if (size == 0) {
-+			pool->entry[i].param.vaddr = NULL;
-+			continue;
-+		}
-+
-+		if (!ipu3_dmamap_alloc(dev, &pool->entry[i].param, size))
-+			goto fail;
-+	}
-+
-+	pool->last = IPU3_CSS_POOL_SIZE;
-+
-+	return 0;
-+
-+fail:
-+	ipu3_css_pool_cleanup(dev, pool);
-+	return -ENOMEM;
-+}
-+
-+/*
-+ * Check that the following call to pool_get succeeds.
-+ * Return negative on error.
-+ */
-+static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
-+{
-+	/* Get the oldest entry */
-+	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
-+	long diff = framenum - pool->entry[n].framenum;
-+
-+	/* if framenum wraps around and becomes smaller than entry n */
-+	if (diff < 0)
-+		diff += LONG_MAX;
-+
 +	/*
-+	 * pool->entry[n].framenum stores the frame number where that
-+	 * entry was allocated. If that was allocated more than POOL_SIZE
-+	 * frames back, it is old enough that we know it is no more in
-+	 * use by firmware.
++	 * it's not an error if remote is missing on a video-mux
++	 * input port, return -ENOTCONN to skip this endpoint with
++	 * no error.
 +	 */
-+	if (diff > IPU3_CSS_POOL_SIZE)
-+		return n;
-+
-+	return -ENOSPC;
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
 +}
 +
-+/*
-+ * Allocate a new parameter from pool at frame number `framenum'.
-+ * Release the oldest entry in the pool to make space for the new entry.
-+ * Return negative on error.
-+ */
-+int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
++static int video_mux_async_register(struct video_mux *vmux,
++				    unsigned int num_pads)
 +{
-+	int n = ipu3_css_pool_check(pool, framenum);
++	unsigned int i, *ports;
++	int ret;
 +
-+	if (n < 0)
-+		return n;
++	ports = kcalloc(num_pads - 1, sizeof(*ports), GFP_KERNEL);
++	if (!ports)
++		return -ENOMEM;
++	for (i = 0; i < num_pads - 1; i++)
++		ports[i] = i;
 +
-+	pool->entry[n].framenum = framenum;
-+	pool->last = n;
++	ret = v4l2_async_register_fwnode_subdev(
++		&vmux->subdev, sizeof(struct v4l2_async_subdev),
++		ports, num_pads - 1, video_mux_parse_endpoint);
 +
-+	return n;
++	kfree(ports);
++	return ret;
 +}
 +
-+/*
-+ * Undo, for all practical purposes, the effect of pool_get().
-+ */
-+void ipu3_css_pool_put(struct ipu3_css_pool *pool)
-+{
-+	pool->entry[pool->last].framenum = INT_MIN;
-+	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
-+}
-+
-+/*
-+ * Return the nth entry from last, if that entry has no frame stored,
-+ * return a null map instead to indicate frame not available for the entry.
-+ */
-+const struct ipu3_css_map *
-+ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
-+{
-+	static const struct ipu3_css_map null_map = { 0 };
-+	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
-+
-+	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
-+
-+	if (pool->entry[i].framenum < 0)
-+		return &null_map;
-+
-+	return &pool->entry[i].param;
-+}
+ static int video_mux_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+@@ -258,7 +292,7 @@ static int video_mux_probe(struct platform_device *pdev)
+ 
+ 	vmux->subdev.entity.ops = &video_mux_ops;
+ 
+-	return v4l2_async_register_subdev(&vmux->subdev);
++	return video_mux_async_register(vmux, num_pads);
+ }
+ 
+ static int video_mux_remove(struct platform_device *pdev)
 -- 
 2.7.4
