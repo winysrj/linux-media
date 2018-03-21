@@ -1,51 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:45653 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751069AbeCRLFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Mar 2018 07:05:17 -0400
-Date: Sun, 18 Mar 2018 11:05:16 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.17] RC meson-ir and mceusb fixes
-Message-ID: <20180318110515.2htsallnducpq76l@gofer.mess.org>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45485 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751548AbeCURd4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Mar 2018 13:33:56 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] debugfs-cec-error-inj: document CEC error inj debugfs ABI
+Message-ID: <c30b9188-84c5-d8b6-a274-2ce33dfd3b5f@xs4all.nl>
+Date: Wed, 21 Mar 2018 18:33:51 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Document the core of the debugfs CEC error injection ABI.
 
-Just two fixes for meson-ir timeout handling, and teaching mceusb how
-to do learning mode.
+The driver specific commands are documented elsewhere and
+this file points to that documentation.
 
-Thanks,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/ABI/testing/debugfs-cec-error-inj | 40 +++++++++++++++++++++++++
+ MAINTAINERS                                     |  1 +
+ 2 files changed, 41 insertions(+)
+ create mode 100644 Documentation/ABI/testing/debugfs-cec-error-inj
 
-Sean
+diff --git a/Documentation/ABI/testing/debugfs-cec-error-inj b/Documentation/ABI/testing/debugfs-cec-error-inj
+new file mode 100644
+index 000000000000..122b65c5fe62
+--- /dev/null
++++ b/Documentation/ABI/testing/debugfs-cec-error-inj
+@@ -0,0 +1,40 @@
++What:		/sys/kernel/debug/cec/*/error-inj
++Date:		March 2018
++Contact:	Hans Verkuil <hans.verkuil@cisco.com>
++Description:
++
++The CEC Framework allows for CEC error injection commands through
++debugfs. Drivers that support this will create an error-inj file
++through which the error injection commands can be given.
++
++The basic syntax is as follows:
++
++Leading spaces/tabs are ignored. If the next character is a '#' or the
++end of the line was reached, then the whole line is ignored. Otherwise
++a command is expected.
++
++It is up to the driver to decide what commands to implement. The only
++exception is that the command 'clear' without any arguments must be
++implemented and that it will remove all current error injection
++commands.
++
++This ensures that you can always do 'echo clear >error-inj' to clear any
++error injections without having to know the details of the driver-specific
++commands.
++
++Note that the output of 'error-inj' shall be valid as input to 'error-inj'.
++So this must work:
++
++	$ cat error-inj >einj.txt
++	$ cat einj.txt >error-inj
++
++Other than these basic rules described above this ABI is not considered
++stable and may change in the future.
++
++Drivers that implement this functionality must document the commands as
++part of the CEC documentation and must keep that documentation up to date
++when changes are made.
++
++The following CEC error injection implementations exist:
++
++- Documentation/media/uapi/cec/cec-pin-error-inj.rst
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4e59769cec0e..55a3c61e9cfb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3307,6 +3307,7 @@ F:	include/media/cec-notifier.h
+ F:	include/uapi/linux/cec.h
+ F:	include/uapi/linux/cec-funcs.h
+ F:	Documentation/devicetree/bindings/media/cec.txt
++F:	Documentation/ABI/testing/debugfs-cec-error-inj
 
-The following changes since commit 3f127ce11353fd1071cae9b65bc13add6aec6b90:
-
-  media: em28xx-cards: fix em28xx_duplicate_dev() (2018-03-08 06:06:51 -0500)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.17d
-
-for you to fetch changes up to fe0ed203181e0cd62d1340bc1165e76534c4dddc:
-
-  media: rc: mceusb: pid 0x0609 vid 0x031d does not under report carrier cycles (2018-03-18 10:48:49 +0000)
-
-----------------------------------------------------------------
-A Sun (1):
-      media: mceusb: add IR learning support features (IR carrier frequency measurement and wide-band/short-range receiver)
-
-Sean Young (3):
-      media: rc: meson-ir: add timeout on idle
-      media: rc: meson-ir: lower timeout and make configurable
-      media: rc: mceusb: pid 0x0609 vid 0x031d does not under report carrier cycles
-
- drivers/media/rc/mceusb.c    | 160 +++++++++++++++++++++++++++++++++++++++----
- drivers/media/rc/meson-ir.c  |   7 +-
- drivers/media/rc/rc-ir-raw.c |  30 +++++++-
- include/media/rc-core.h      |   4 +-
- 4 files changed, 181 insertions(+), 20 deletions(-)
+ CEC GPIO DRIVER
+ M:	Hans Verkuil <hans.verkuil@cisco.com>
+-- 
+2.15.1
