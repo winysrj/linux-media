@@ -1,105 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35540 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751343AbeCUAiW (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39050 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751508AbeCUKZh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 20:38:22 -0400
-Received: by mail-pf0-f194.google.com with SMTP id y186so1351339pfb.2
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:22 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 06/13] media: platform: video-mux: Register a subdev notifier
-Date: Tue, 20 Mar 2018 17:37:22 -0700
-Message-Id: <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 21 Mar 2018 06:25:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
+Date: Wed, 21 Mar 2018 12:26:42 +0200
+Message-ID: <5767280.aLITpzbm0N@avalon>
+In-Reply-To: <20180314154136.16468-1-s-anna@ti.com>
+References: <20180314154136.16468-1-s-anna@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the video muxes input ports, add them to a
-subdev notifier, and register the subdev notifier for the video mux, by
-calling v4l2_async_register_fwnode_subdev().
+Hi Suman,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
-Changes since v2:
-- none
-Changes since v1:
-- add #include <linux/slab.h> for kcalloc() declaration.
----
- drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 35 insertions(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index ee89ad7..b93b0af 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -21,8 +21,10 @@
- #include <linux/of.h>
- #include <linux/of_graph.h>
- #include <linux/platform_device.h>
-+#include <linux/slab.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- 
- struct video_mux {
-@@ -193,6 +195,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
- 	.video = &video_mux_subdev_video_ops,
- };
- 
-+static int video_mux_parse_endpoint(struct device *dev,
-+				    struct v4l2_fwnode_endpoint *vep,
-+				    struct v4l2_async_subdev *asd)
-+{
-+	/*
-+	 * it's not an error if remote is missing on a video-mux
-+	 * input port, return -ENOTCONN to skip this endpoint with
-+	 * no error.
-+	 */
-+	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
-+}
-+
-+static int video_mux_async_register(struct video_mux *vmux,
-+				    unsigned int num_pads)
-+{
-+	unsigned int i, *ports;
-+	int ret;
-+
-+	ports = kcalloc(num_pads - 1, sizeof(*ports), GFP_KERNEL);
-+	if (!ports)
-+		return -ENOMEM;
-+	for (i = 0; i < num_pads - 1; i++)
-+		ports[i] = i;
-+
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&vmux->subdev, sizeof(struct v4l2_async_subdev),
-+		ports, num_pads - 1, video_mux_parse_endpoint);
-+
-+	kfree(ports);
-+	return ret;
-+}
-+
- static int video_mux_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
-@@ -258,7 +292,7 @@ static int video_mux_probe(struct platform_device *pdev)
- 
- 	vmux->subdev.entity.ops = &video_mux_ops;
- 
--	return v4l2_async_register_subdev(&vmux->subdev);
-+	return video_mux_async_register(vmux, num_pads);
- }
- 
- static int video_mux_remove(struct platform_device *pdev)
+On Wednesday, 14 March 2018 17:41:36 EET Suman Anna wrote:
+> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
+> ARM DMA backend. The current code creates a dma_iommu_mapping and
+> attaches this to the ISP device, but never detaches the mapping in
+> either the probe failure paths or the driver remove path resulting
+> in an unbalanced mapping refcount and a memory leak. Fix this properly.
+> 
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+> v2 Changes:
+>  - Dropped the error_attach label, and returned directly from the
+>    first error path (comments from Sakari)
+>  - Added Sakari's Acked-by
+> v1: https://patchwork.kernel.org/patch/10276759/
+> 
+> Pavel,
+> I dropped your Tested-by from v2 since I modified the patch, can you
+> recheck the new patch again? Thanks.
+> 
+> regards
+> Suman
+> 
+>  drivers/media/platform/omap3isp/isp.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..f2db5128d786
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device
+> *isp)
+> 
+>  static void isp_detach_iommu(struct isp_device *isp)
+>  {
+> +	arm_iommu_detach_device(isp->dev);
+>  	arm_iommu_release_mapping(isp->mapping);
+>  	isp->mapping = NULL;
+>  }
+> @@ -1961,8 +1962,7 @@ static int isp_attach_iommu(struct isp_device *isp)
+>  	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
+>  	if (IS_ERR(mapping)) {
+>  		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
+> -		ret = PTR_ERR(mapping);
+> -		goto error;
+> +		return PTR_ERR(mapping);
+>  	}
+> 
+>  	isp->mapping = mapping;
+> @@ -1977,7 +1977,8 @@ static int isp_attach_iommu(struct isp_device *isp)
+>  	return 0;
+> 
+>  error:
+> -	isp_detach_iommu(isp);
+> +	arm_iommu_release_mapping(isp->mapping);
+> +	isp->mapping = NULL;
+>  	return ret;
+>  }
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
