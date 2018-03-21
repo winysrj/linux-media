@@ -1,91 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:52829 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751164AbeC2Ohq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 10:37:46 -0400
+Received: from mga02.intel.com ([134.134.136.20]:52899 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753087AbeCUU1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Mar 2018 16:27:44 -0400
+Date: Wed, 21 Mar 2018 22:27:38 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] media: v4l2-common: fix a compilation breakage
+Message-ID: <20180321202737.4p72qpbbq4iivqde@kekkonen.localdomain>
+References: <238f694e1b7f8297f1256c57e41f69c39576c9b4.1521662907.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <CADnq5_P-z=Noos_jaME9_CERri3C-m2hPPvx2bArr36O=1FnrA@mail.gmail.com>
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com> <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com> <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com> <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
- <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com> <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
- <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com> <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
- <CADnq5_P-z=Noos_jaME9_CERri3C-m2hPPvx2bArr36O=1FnrA@mail.gmail.com>
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Thu, 29 Mar 2018 10:37:44 -0400
-Message-ID: <CADnq5_PP_COGHxLdDtfnLrho8RNXLQFHc5s07+g55d9oXvB6rg@mail.gmail.com>
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: linaro-mm-sig@lists.linaro.org,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Maling list - DRI developers
-        <dri-devel@lists.freedesktop.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <238f694e1b7f8297f1256c57e41f69c39576c9b4.1521662907.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, didn't mean to drop the lists here. re-adding.
+Hi Mauro,
 
-On Wed, Mar 28, 2018 at 4:05 PM, Alex Deucher <alexdeucher@gmail.com> wrote=
-:
-> On Wed, Mar 28, 2018 at 3:53 PM, Logan Gunthorpe <logang@deltatee.com> wr=
-ote:
->>
->>
->> On 28/03/18 01:44 PM, Christian K=C3=B6nig wrote:
->>> Well, isn't that exactly what dma_map_resource() is good for? As far as
->>> I can see it makes sure IOMMU is aware of the access route and
->>> translates a CPU address into a PCI Bus address.
->>
->>> I'm using that with the AMD IOMMU driver and at least there it works
->>> perfectly fine.
->>
->> Yes, it would be nice, but no arch has implemented this yet. We are just
->> lucky in the x86 case because that arch is simple and doesn't need to do
->> anything for P2P (partially due to the Bus and CPU addresses being the
->> same). But in the general case, you can't rely on it.
->
-> Could we do something for the arches where it works?  I feel like peer
-> to peer has dragged out for years because everyone is trying to boil
-> the ocean for all arches.  There are a huge number of use cases for
-> peer to peer on these "simple" architectures which actually represent
-> a good deal of the users that want this.
->
-> Alex
->
->>
->>>>> Yeah, but not for ours. See if you want to do real peer 2 peer you ne=
-ed
->>>>> to keep both the operation as well as the direction into account.
->>>> Not sure what you are saying here... I'm pretty sure we are doing "rea=
-l"
->>>> peer 2 peer...
->>>>
->>>>> For example when you can do writes between A and B that doesn't mean
->>>>> that writes between B and A work. And reads are generally less likely=
- to
->>>>> work than writes. etc...
->>>> If both devices are behind a switch then the PCI spec guarantees that =
-A
->>>> can both read and write B and vice versa.
->>>
->>> Sorry to say that, but I know a whole bunch of PCI devices which
->>> horrible ignores that.
->>
->> Can you elaborate? As far as the device is concerned it shouldn't know
->> whether a request comes from a peer or from the host. If it does do
->> crazy stuff like that it's well out of spec. It's up to the switch (or
->> root complex if good support exists) to route the request to the device
->> and it's the root complex that tends to be what drops the load requests
->> which causes the asymmetries.
->>
->> Logan
->> _______________________________________________
->> amd-gfx mailing list
->> amd-gfx@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/amd-gfx
+On Wed, Mar 21, 2018 at 04:08:29PM -0400, Mauro Carvalho Chehab wrote:
+> Clearly, changeset 95ce9c28601a ("media: v4l: common: Add a
+> function to obtain best size from a list") was never tested, as it
+> broke compilation with:
+> 
+> drivers/media/platform/vivid/vivid-vid-cap.c: In function ‘vivid_try_fmt_vid_cap’:
+> drivers/media/platform/vivid/vivid-vid-cap.c:565:34: error: macro "v4l2_find_nearest_size" requer 6 argumentos, mas apenas 5 foram fornecidos
+>              mp->width, mp->height);
+>                                   ^
+> drivers/media/platform/vivid/vivid-vid-cap.c:564:4: error: ‘v4l2_find_nearest_size’ undeclared (first use in this function); did you mean ‘__v4l2_find_nearest_size’?
+>     v4l2_find_nearest_size(webcam_sizes, width, height,
+>     ^~~~~~~~~~~~~~~~~~~~~~
+>     __v4l2_find_nearest_size
+> drivers/media/platform/vivid/vivid-vid-cap.c:564:4: note: each undeclared identifier is reported only once for each function it appears in
+> drivers/media/i2c/ov5670.c: In function ‘ov5670_set_pad_format’:
+> drivers/media/i2c/ov5670.c:2233:48: error: macro "v4l2_find_nearest_size" requer 6 argumentos, mas apenas 5 foram fornecidos
+>            fmt->format.width, fmt->format.height);
+>                                                 ^
+> drivers/media/i2c/ov5670.c:2232:9: error: ‘v4l2_find_nearest_size’ undeclared (first use in this function); did you mean ‘__v4l2_find_nearest_size’?
+>   mode = v4l2_find_nearest_size(supported_modes, width, height,
+>          ^~~~~~~~~~~~~~~~~~~~~~
+>          __v4l2_find_nearest_size
+> drivers/media/i2c/ov13858.c: In function ‘ov13858_set_pad_format’:
+> drivers/media/i2c/ov13858.c:1379:48: error: macro "v4l2_find_nearest_size" requer 6 argumentos, mas apenas 5 foram fornecidos
+>            fmt->format.width, fmt->format.height);
+>                                                 ^
+> drivers/media/i2c/ov13858.c:1378:9: error: ‘v4l2_find_nearest_size’ undeclared (first use in this function); did you mean ‘__v4l2_find_nearest_size’?
+>   mode = v4l2_find_nearest_size(supported_modes, width, height,
+>          ^~~~~~~~~~~~~~~~~~~~~~
+>          __v4l2_find_nearest_size
+> drivers/media/i2c/ov13858.c:1378:9: note: each undeclared identifier is reported only once for each function it appears in
+> 
+> Basically, v4l2_find_nearest_size() callers pass 5 arguments,
+> while its definition require 6 args.
+> 
+> Unfortunately, my build process was also broken, as it was reporting me that
+> the compilation went fine:
+> 
+> 	$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='compile_checks' M=drivers/staging/media
+> 	$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='compile_checks' M=drivers/media
+> 
+> 	*** ERRORS ***
+> 
+> 	*** WARNINGS ***
+> 	compilation succeeded
+> 
+> That was due to a change here to use of linux-log-diff script that
+> provides a diffstat between the errors output. Somehow, the logic
+> was missing some fatal errors.
+
+Apologies for the above. This isn't still the intended way how things
+should be; I'll send you a new patch to properly address this on top of
+yours.
+
+What happened was that I had the patches in two different environments and
+I ended up picking the last four patches from the wrong one. :-P No errors
+from kbuild made me think the patches were the right ones...
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
