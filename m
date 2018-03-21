@@ -1,117 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36587 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754088AbeCRSqQ (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34535 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751343AbeCUAiQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Mar 2018 14:46:16 -0400
-Received: by mail-lf0-f66.google.com with SMTP id z143-v6so15969975lff.3
-        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2018 11:46:16 -0700 (PDT)
-Subject: Re: [PATCH v2 10/21] lightnvm: Remove depends on HAS_DMA in case of
- platform dependency
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
+        Tue, 20 Mar 2018 20:38:16 -0400
+Received: by mail-pf0-f196.google.com with SMTP id j20so1350658pfi.1
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:15 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
- <1521208314-4783-11-git-send-email-geert@linux-m68k.org>
-From: =?UTF-8?Q?Matias_Bj=c3=b8rling?= <mb@lightnvm.io>
-Message-ID: <319a2b17-f08e-7219-cf5d-08e2df81d55c@lightnvm.io>
-Date: Sun, 18 Mar 2018 19:46:11 +0100
-MIME-Version: 1.0
-In-Reply-To: <1521208314-4783-11-git-send-email-geert@linux-m68k.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 02/13] media: v4l2: async: Allow searching for asd of any type
+Date: Tue, 20 Mar 2018 17:37:18 -0700
+Message-Id: <1521592649-7264-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2018 02:51 PM, Geert Uytterhoeven wrote:
-> Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-> symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-> In most cases this other symbol is an architecture or platform specific
-> symbol, or PCI.
-> 
-> Generic symbols and drivers without platform dependencies keep their
-> dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-> cannot work anyway.
-> 
-> This simplifies the dependencies, and allows to improve compile-testing.
-> 
-> Notes:
->    - FSL_FMAN keeps its dependency on HAS_DMA, as it calls set_dma_ops(),
->      which does not exist if HAS_DMA=n (Do we need a dummy? The use of
->      set_dma_ops() in this driver is questionable),
->    - SND_SOC_LPASS_IPQ806X and SND_SOC_LPASS_PLATFORM loose their
->      dependency on HAS_DMA, as they are selected from
->      SND_SOC_APQ8016_SBC.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Reviewed-by: Mark Brown <broonie@kernel.org>
-> Acked-by: Robin Murphy <robin.murphy@arm.com>
-> ---
-> v2:
->    - Add Reviewed-by, Acked-by,
->    - Drop RFC state,
->    - Split per subsystem.
-> ---
->   drivers/lightnvm/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/lightnvm/Kconfig b/drivers/lightnvm/Kconfig
-> index 10c08982185a572f..9c03f35d9df113c6 100644
-> --- a/drivers/lightnvm/Kconfig
-> +++ b/drivers/lightnvm/Kconfig
-> @@ -4,7 +4,7 @@
->   
->   menuconfig NVM
->   	bool "Open-Channel SSD target support"
-> -	depends on BLOCK && HAS_DMA && PCI
-> +	depends on BLOCK && PCI
->   	select BLK_DEV_NVME
->   	help
->   	  Say Y here to get to enable Open-channel SSDs.
-> 
+Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
+searching for any type of async subdev, not just fwnodes. Rename to
+v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
 
-Looks good.
+TODO: support asd compare with CUSTOM match type in asd_equal().
 
-Reviewed-by: Matias Bjørling <mb@lightnvm.io>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+Changes since v2:
+- code optimization in asd_equal(), and remove unneeded braces,
+  suggested by Sakari Ailus.
+Changes since v1:
+- none
+---
+ drivers/media/v4l2-core/v4l2-async.c | 76 ++++++++++++++++++++++--------------
+ 1 file changed, 46 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 2b08d03..b59bbac 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -124,6 +124,34 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+ 	return NULL;
+ }
+ 
++/* Compare two asd's for equivalence */
++static bool asd_equal(struct v4l2_async_subdev *asd_x,
++		      struct v4l2_async_subdev *asd_y)
++{
++	if (asd_x->match_type != asd_y->match_type)
++		return false;
++
++	switch (asd_x->match_type) {
++	case V4L2_ASYNC_MATCH_DEVNAME:
++		return strcmp(asd_x->match.device_name,
++			      asd_y->match.device_name) == 0;
++	case V4L2_ASYNC_MATCH_I2C:
++		return asd_x->match.i2c.adapter_id ==
++			asd_y->match.i2c.adapter_id &&
++			asd_x->match.i2c.address ==
++			asd_y->match.i2c.address;
++	case V4L2_ASYNC_MATCH_FWNODE:
++		return asd_x->match.fwnode == asd_y->match.fwnode;
++	case V4L2_ASYNC_MATCH_CUSTOM:
++		/* TODO */
++		return false;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ /* Find the sub-device notifier registered by a sub-device driver. */
+ static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+ 	struct v4l2_subdev *sd)
+@@ -308,29 +336,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	notifier->parent = NULL;
+ }
+ 
+-/* See if an fwnode can be found in a notifier's lists. */
+-static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+-	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
++/* See if an async sub-device can be found in a notifier's lists. */
++static bool __v4l2_async_notifier_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
+ {
+-	struct v4l2_async_subdev *asd;
++	struct v4l2_async_subdev *asd_y;
+ 	struct v4l2_subdev *sd;
+ 
+-	list_for_each_entry(asd, &notifier->waiting, list) {
+-		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+-			continue;
+-
+-		if (asd->match.fwnode == fwnode)
++	list_for_each_entry(asd_y, &notifier->waiting, list)
++		if (asd_equal(asd, asd_y))
+ 			return true;
+-	}
+ 
+ 	list_for_each_entry(sd, &notifier->done, async_list) {
+ 		if (WARN_ON(!sd->asd))
+ 			continue;
+ 
+-		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+-			continue;
+-
+-		if (sd->asd->match.fwnode == fwnode)
++		if (asd_equal(asd, sd->asd))
+ 			return true;
+ 	}
+ 
+@@ -338,32 +359,28 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+ }
+ 
+ /*
+- * Find out whether an async sub-device was set up for an fwnode already or
++ * Find out whether an async sub-device was set up already or
+  * whether it exists in a given notifier before @this_index.
+  */
+-static bool v4l2_async_notifier_fwnode_has_async_subdev(
+-	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
++static bool v4l2_async_notifier_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
+ 	unsigned int this_index)
+ {
+ 	unsigned int j;
+ 
+ 	lockdep_assert_held(&list_lock);
+ 
+-	/* Check that an fwnode is not being added more than once. */
++	/* Check that an asd is not being added more than once. */
+ 	for (j = 0; j < this_index; j++) {
+-		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+-		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
+ 
+-		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+-		    asd->match.fwnode ==
+-		    other_asd->match.fwnode)
++		if (asd_equal(asd, asd_y))
+ 			return true;
+ 	}
+ 
+-	/* Check than an fwnode did not exist in other notifiers. */
++	/* Check that an asd does not exist in other notifiers. */
+ 	list_for_each_entry(notifier, &notifier_list, list)
+-		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+-			    notifier, fwnode))
++		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
+ 			return true;
+ 
+ 	return false;
+@@ -392,12 +409,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+-			break;
+ 		case V4L2_ASYNC_MATCH_FWNODE:
+-			if (v4l2_async_notifier_fwnode_has_async_subdev(
+-				    notifier, asd->match.fwnode, i)) {
++			if (v4l2_async_notifier_has_async_subdev(
++				    notifier, asd, i)) {
+ 				dev_err(dev,
+-					"fwnode has already been registered or in notifier's subdev list\n");
++					"asd has already been registered or in notifier's subdev list\n");
+ 				ret = -EEXIST;
+ 				goto err_unlock;
+ 			}
+-- 
+2.7.4
