@@ -1,236 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-11v.sys.comcast.net ([69.252.207.43]:53692 "EHLO
-        resqmta-ch2-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932110AbeCKJsj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Mar 2018 05:48:39 -0400
-From: A Sun <as1033x@comcast.net>
-Subject: [PATCH] [media] mceusb: add IR learning support features (IR carrier
- frequency measurement and wide-band/short range receiver)
-To: linux-media@vger.kernel.org
-Cc: Sean Young <sean@mess.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Message-ID: <20f4d234-c62f-12ab-5e15-639f7d981f56@comcast.net>
-Date: Sun, 11 Mar 2018 05:40:28 -0400
+Received: from mga14.intel.com ([192.55.52.115]:37999 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753386AbeCVJex (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Mar 2018 05:34:53 -0400
+Date: Thu, 22 Mar 2018 17:34:15 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree] BUILD SUCCESS
+ 238f694e1b7f8297f1256c57e41f69c39576c9b4
+Message-ID: <5ab37897.4ttl/ZvEWH1VxXzt%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+tree/branch: git://git.ragnatech.se/linux  media-tree
+branch HEAD: 238f694e1b7f8297f1256c57e41f69c39576c9b4  media: v4l2-common: fix a compilation breakage
 
-Windows Media Center IR transceivers include two IR receivers;
-wide-band/short-range and narrow-band/long-range. The short-range
-(5cm distance) receiver is for IR learning and has IR carrier
-frequency measuring ability.
+elapsed time: 172m
 
-Add mceusb driver support to select the short range IR receiver
-and enable pass through of its IR carrier frequency measurements.
+configs tested: 166
 
-RC and LIRC already support these mceusb driver additions.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Test platform:
+blackfin                            defconfig
+ia64                                defconfig
+mips                                defconfig
+x86_64                 randconfig-a0-03221102
+x86_64                             acpi-redef
+x86_64                           allyesdebian
+x86_64                                nfsroot
+sh                                allnoconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                            titan_defconfig
+i386                   randconfig-c0-03221059
+x86_64                randconfig-in0-03221058
+x86_64                randconfig-it0-03221059
+i386                               tinyconfig
+i386                   randconfig-x013-201811
+i386                   randconfig-x014-201811
+i386                   randconfig-x012-201811
+i386                   randconfig-x015-201811
+i386                   randconfig-x016-201811
+i386                   randconfig-x019-201811
+i386                   randconfig-x010-201811
+i386                   randconfig-x018-201811
+i386                   randconfig-x011-201811
+i386                   randconfig-x017-201811
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+i386                   randconfig-n0-03221105
+ia64                             alldefconfig
+ia64                              allnoconfig
+i386                   randconfig-i0-03221101
+i386                   randconfig-i1-03221101
+powerpc                           allnoconfig
+powerpc                             defconfig
+powerpc                       ppc64_defconfig
+s390                        default_defconfig
+x86_64                 randconfig-g0-03221106
+arm                              allmodconfig
+arm                                      arm5
+arm                                     arm67
+arm                       imx_v6_v7_defconfig
+arm                          ixp4xx_defconfig
+arm                        mvebu_v7_defconfig
+arm                       omap2plus_defconfig
+arm                                    sa1100
+arm                                   samsung
+arm                                        sh
+arm                           tegra_defconfig
+arm64                            alldefconfig
+arm64                            allmodconfig
+x86_64                                  kexec
+x86_64                                   rhel
+x86_64                               rhel-7.2
+i386                   randconfig-a0-03221107
+i386                   randconfig-a1-03221107
+x86_64                 randconfig-s0-03221107
+x86_64                 randconfig-s1-03221107
+alpha                               defconfig
+parisc                            allnoconfig
+parisc                         b180_defconfig
+parisc                        c3000_defconfig
+parisc                              defconfig
+blackfin                BF526-EZBRD_defconfig
+blackfin                BF533-EZKIT_defconfig
+blackfin            BF561-EZKIT-SMP_defconfig
+blackfin                  TCM-BF537_defconfig
+cris                 etrax-100lx_v2_defconfig
+sh                                  defconfig
+x86_64                 randconfig-x010-201811
+x86_64                 randconfig-x013-201811
+x86_64                 randconfig-x014-201811
+x86_64                 randconfig-x019-201811
+x86_64                 randconfig-x011-201811
+x86_64                 randconfig-x015-201811
+x86_64                 randconfig-x018-201811
+x86_64                 randconfig-x016-201811
+x86_64                 randconfig-x017-201811
+x86_64                 randconfig-x012-201811
+m68k                       m5475evb_defconfig
+m68k                          multi_defconfig
+m68k                           sun3_defconfig
+i386                   randconfig-s0-03221113
+i386                   randconfig-s1-03221113
+x86_64                 randconfig-s3-03221113
+x86_64                 randconfig-s4-03221113
+x86_64                 randconfig-s5-03221113
+i386                             allmodconfig
+x86_64                 randconfig-i0-03221103
+i386                   randconfig-b0-03221103
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+i386                   randconfig-h0-03221100
+i386                   randconfig-h1-03221100
+x86_64                randconfig-ne0-03221101
+x86_64                 randconfig-h0-03221101
+frv                                 defconfig
+mn10300                     asb2364_defconfig
+openrisc                    or1ksim_defconfig
+tile                         tilegx_defconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+x86_64                           allmodconfig
+mips                           32r2_defconfig
+mips                         64r6el_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+mips                                   jz4740
+mips                      malta_kvm_defconfig
+mips                                     txx9
+x86_64                randconfig-ws0-03221103
+c6x                        evmc6678_defconfig
+h8300                    h8300h-sim_defconfig
+m32r                       m32104ut_defconfig
+m32r                     mappi3.smp_defconfig
+m32r                         opsput_defconfig
+m32r                           usrv_defconfig
+nios2                         10m50_defconfig
+score                      spct6600_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+arm                               allnoconfig
+arm                         at91_dt_defconfig
+arm                           efm32_defconfig
+arm                          exynos_defconfig
+arm                        multi_v5_defconfig
+arm                        multi_v7_defconfig
+arm                        shmobile_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm64                               defconfig
+i386                   randconfig-x073-201811
+i386                   randconfig-x075-201811
+i386                   randconfig-x071-201811
+i386                   randconfig-x076-201811
+i386                   randconfig-x079-201811
+i386                   randconfig-x070-201811
+i386                   randconfig-x077-201811
+i386                   randconfig-x074-201811
+i386                   randconfig-x078-201811
+i386                   randconfig-x072-201811
+x86_64               randconfig-x008-03221059
+x86_64               randconfig-x003-03221059
+x86_64               randconfig-x001-03221059
+x86_64               randconfig-x004-03221059
+x86_64               randconfig-x006-03221059
+x86_64               randconfig-x002-03221059
+x86_64               randconfig-x007-03221059
+x86_64               randconfig-x000-03221059
+x86_64               randconfig-x009-03221059
+x86_64               randconfig-x005-03221059
+x86_64                 randconfig-r0-03221059
+i386                   randconfig-x006-201811
+i386                   randconfig-x000-201811
+i386                   randconfig-x008-201811
+i386                   randconfig-x004-201811
+i386                   randconfig-x009-201811
+i386                   randconfig-x003-201811
+i386                   randconfig-x005-201811
+i386                   randconfig-x002-201811
+i386                   randconfig-x001-201811
+i386                   randconfig-x007-201811
+i386                             alldefconfig
+i386                              allnoconfig
+i386                                defconfig
 
-Linux raspberrypi 4.9.59-v7+ #1047 SMP Sun Oct 29 12:19:23 GMT 2017 armv7l GNU/Linux
-mceusb 1-1.2:1.0: Registered Pinnacle Systems PCTV Remote USB with mce emulator interface version 1
-mceusb 1-1.2:1.0: 2 tx ports (0x0 cabled) and 2 rx sensors (0x1 active)
-
-Sony TV remote control
-
-ir-ctl from v4l-utils
-
-pi@raspberrypi:~ $ ir-ctl -V
-IR raw version 1.12.3
-pi@raspberrypi:~ $ ir-ctl -w -m -d /dev/lirc0 -r
-...
-pulse 600
-space 600
-pulse 1250
-space 550
-pulse 650
-space 600
-pulse 550
-space 600
-pulse 600
-space 600
-pulse 650
-carrier 38803
-space 16777215
-^C
-pi@raspberrypi:~ $ exit
-
-Signed-off-by: A Sun <as1033x@comcast.net>
----
- drivers/media/rc/mceusb.c | 90 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 82 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index a9187b0b4..8bbb0f2da 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -42,7 +42,7 @@
- #include <linux/pm_wakeup.h>
- #include <media/rc-core.h>
- 
--#define DRIVER_VERSION	"1.93"
-+#define DRIVER_VERSION	"1.94"
- #define DRIVER_AUTHOR	"Jarod Wilson <jarod@redhat.com>"
- #define DRIVER_DESC	"Windows Media Center Ed. eHome Infrared Transceiver " \
- 			"device driver"
-@@ -427,6 +427,7 @@ struct mceusb_dev {
- 	struct rc_dev *rc;
- 
- 	/* optional features we can enable */
-+	bool carrier_report_enabled;
- 	bool learning_enabled;
- 
- 	/* core device bits */
-@@ -475,6 +476,9 @@ struct mceusb_dev {
- 	u8 txports_cabled;	/* bitmask of transmitters with cable */
- 	u8 rxports_active;	/* bitmask of active receive sensors */
- 
-+	/* receiver carrier frequency detection support */
-+	u32 pulse_tunit;	/* IR pulse "on" cumulative time units */
-+
- 	/*
- 	 * support for async error handler mceusb_deferred_kevent()
- 	 * where usb_clear_halt(), usb_reset_configuration(),
-@@ -956,12 +960,60 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- }
- 
- /*
-+ * Select or deselect the 2nd receiver port.
-+ * Second receiver is learning mode, wide-band, short-range receiver.
-+ * Only one receiver (long or short range) may be active at a time.
-+ */
-+static int mceusb_set_rx_wideband(struct rc_dev *dev, int enable)
-+{
-+	struct mceusb_dev *ir = dev->priv;
-+	unsigned char cmdbuf[3] = { MCE_CMD_PORT_IR,
-+				    MCE_CMD_SETIRRXPORTEN, 0x00 };
-+
-+	if (enable != 0 && enable != 1)
-+		return -EINVAL;
-+
-+	/*
-+	 * cmdbuf[2] is receiver port number
-+	 * port 1 is long range receiver
-+	 * port 2 is short range receiver
-+	 */
-+	cmdbuf[2] = enable + 1;
-+	dev_dbg(ir->dev, "select %s-range receive sensor",
-+		enable ? "short" : "long");
-+	mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
-+
-+	return 0;
-+}
-+
-+/*
-+ * Enable/disable receiver carrier frequency pass through reporting.
-+ * Frequency measurement only works with the short-range receiver.
-+ * The long-range receiver always reports no carrier frequency
-+ * (MCE_RSP_EQIRRXCFCNT, 0, 0) so we always ignore its report.
-+ */
-+static int mceusb_set_rx_carrier_report(struct rc_dev *dev, int enable)
-+{
-+	struct mceusb_dev *ir = dev->priv;
-+
-+	if (enable != 0 && enable != 1)
-+		return -EINVAL;
-+
-+	dev_dbg(ir->dev, "%s short-range receiver carrier reporting",
-+		enable ? "enable" : "disable");
-+	ir->carrier_report_enabled = (enable == 1);
-+
-+	return 0;
-+}
-+
-+/*
-  * We don't do anything but print debug spew for many of the command bits
-  * we receive from the hardware, but some of them are useful information
-  * we want to store so that we can use them.
-  */
- static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- {
-+	DEFINE_IR_RAW_EVENT(rawir);
- 	u8 hi = ir->buf_in[index + 1] & 0xff;
- 	u8 lo = ir->buf_in[index + 2] & 0xff;
- 
-@@ -980,6 +1032,18 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- 		ir->num_txports = hi;
- 		ir->num_rxports = lo;
- 		break;
-+	case MCE_RSP_EQIRRXCFCNT:
-+		if (ir->carrier_report_enabled && ir->learning_enabled
-+		    && ir->pulse_tunit > 0) {
-+			init_ir_raw_event(&rawir);
-+			rawir.carrier_report = 1;
-+			rawir.carrier = (1000000u / MCE_TIME_UNIT) *
-+					(hi << 8 | lo) / ir->pulse_tunit;
-+			dev_dbg(ir->dev, "RX carrier frequency %u Hz (pulse %u time units)",
-+				rawir.carrier, ir->pulse_tunit);
-+			ir_raw_event_store(ir->rc, &rawir);
-+		}
-+		break;
- 
- 	/* 1-byte return value commands */
- 	case MCE_RSP_EQEMVER:
-@@ -990,7 +1054,11 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- 		break;
- 	case MCE_RSP_EQIRRXPORTEN:
- 		ir->learning_enabled = ((hi & 0x02) == 0x02);
--		ir->rxports_active = hi;
-+		if (ir->rxports_active != hi) {
-+			dev_info(ir->dev, "%s-range (0x%x) receiver active",
-+				 ir->learning_enabled ? "short" : "long", hi);
-+			ir->rxports_active = hi;
-+		}
- 		break;
- 	case MCE_RSP_CMD_ILLEGAL:
- 		ir->need_reset = true;
-@@ -1027,12 +1095,14 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 			ir->rem--;
- 			init_ir_raw_event(&rawir);
- 			rawir.pulse = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
--			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
--					 * US_TO_NS(MCE_TIME_UNIT);
-+			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK);
-+			if (rawir.pulse)
-+				ir->pulse_tunit += rawir.duration;
-+			rawir.duration *= US_TO_NS(MCE_TIME_UNIT);
- 
--			dev_dbg(ir->dev, "Storing %s with duration %u",
-+			dev_dbg(ir->dev, "Storing %s %u ns (%02x)",
- 				rawir.pulse ? "pulse" : "space",
--				rawir.duration);
-+				rawir.duration,	ir->buf_in[i]);
- 
- 			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
- 				event = true;
-@@ -1053,10 +1123,12 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 			ir->rem = (ir->cmd & MCE_PACKET_LENGTH_MASK);
- 			mceusb_dev_printdata(ir, ir->buf_in, buf_len,
- 					     i, ir->rem + 1, false);
--			if (ir->rem)
-+			if (ir->rem) {
- 				ir->parser_state = PARSE_IRDATA;
--			else
-+			} else {
- 				ir_raw_event_reset(ir->rc);
-+				ir->pulse_tunit = 0;
-+			}
- 			break;
- 		}
- 
-@@ -1287,6 +1359,8 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 	rc->priv = ir;
- 	rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
- 	rc->timeout = MS_TO_NS(100);
-+	rc->s_learning_mode = mceusb_set_rx_wideband;
-+	rc->s_carrier_report = mceusb_set_rx_carrier_report;
- 	if (!ir->flags.no_tx) {
- 		rc->s_tx_mask = mceusb_set_tx_mask;
- 		rc->s_tx_carrier = mceusb_set_tx_carrier;
--- 
-2.11.0
+Thanks,
+Fengguang
