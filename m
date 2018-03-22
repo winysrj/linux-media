@@ -1,110 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:59131 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750972AbeCFJqX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 04:46:23 -0500
-Date: Tue, 6 Mar 2018 11:46:17 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Andy Yeh <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        Alan Chiang <alanx.chiang@intel.com>
-Subject: Re: [PATCH v6] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180306094617.2jjy3fxg64757evh@paasikivi.fi.intel.com>
-References: <1520002549-6564-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5D1a1Wd0ns85rkg8cJwK+y9uYzaS=c46efOniuGhvFk+w@mail.gmail.com>
- <20180306084045.gabhdrsjks5m7htq@paasikivi.fi.intel.com>
- <CAAFQd5AhfZRKM3sjO3vtbmfOV4RHSEL_AM8AS3FLZdYySiZhPg@mail.gmail.com>
- <20180306091814.rd3coopexzlmrhhf@paasikivi.fi.intel.com>
- <CAAFQd5A20nP16kFZSfZ5T2pONA2D80VXhoR0pEwy=Ev1B+gH6Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5A20nP16kFZSfZ5T2pONA2D80VXhoR0pEwy=Ev1B+gH6Q@mail.gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54960 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751730AbeCVVaq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Mar 2018 17:30:46 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Simon Horman <horms@verge.net.au>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED
+        DEVICE TREE BINDINGS),
+        linux-arm-kernel@lists.infradead.org (moderated list:ARM PORT)
+Subject: [PATCH v6] ARM: dts: wheat: Fix ADV7513 address usage
+Date: Thu, 22 Mar 2018 21:30:40 +0000
+Message-Id: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 06, 2018 at 06:28:43PM +0900, Tomasz Figa wrote:
-> On Tue, Mar 6, 2018 at 6:18 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > On Tue, Mar 06, 2018 at 05:51:36PM +0900, Tomasz Figa wrote:
-> >> On Tue, Mar 6, 2018 at 5:40 PM, Sakari Ailus
-> >> <sakari.ailus@linux.intel.com> wrote:
-> >> > Hi Tomasz and Andy,
-> >> >
-> >> > On Sat, Mar 03, 2018 at 12:43:59AM +0900, Tomasz Figa wrote:
-> >> > ...
-> >> >> > +static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
-> >> >> > +{
-> >> >> > +       struct imx258 *imx258 =
-> >> >> > +               container_of(ctrl->handler, struct imx258, ctrl_handler);
-> >> >> > +       struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-> >> >> > +       int ret = 0;
-> >> >> > +       /*
-> >> >> > +        * Applying V4L2 control value only happens
-> >> >> > +        * when power is up for streaming
-> >> >> > +        */
-> >> >> > +       if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-> >> >> > +               return 0;
-> >> >>
-> >> >> I thought we decided to fix this to handle disabled runtime PM properly.
-> >> >
-> >> > Good point. I bet this is a problem in a few other drivers, too. How would
-> >> > you fix that? Check for zero only?
-> >> >
-> >>
-> >> bool need_runtime_put;
-> >>
-> >> ret = pm_runtime_get_if_in_use(&client->dev);
-> >> if (ret <= 0 && ret != -EINVAL)
-> >>         return ret;
-> >> need_runtime_put = ret > 0;
-> >>
-> >> // Do stuff ...
-> >>
-> >> if (need_runtime_put)
-> >>        pm_runtime_put(&client->dev);
-> >>
-> >> I don't like how ugly it is, but it appears to be the only way to
-> >> handle this correctly.
-> >
-> > The driver enables runtime PM so if runtime PM is enabled in kernel
-> > configuration, it is enabled here. In that case pm_runtime_get_if_in_use()
-> > will return either 0 or 1. So as far as I can see, changing the lines to:
-> >
-> >         if (!pm_runtime_get_if_in_use(&client->dev))
-> >                 return 0;
-> >
-> > is enough.
-> 
-> Right, my bad. Somehow I was convinced that enable status can change at
-> runtime.
+The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
+bus, however in low power mode the ADV7513 will reset it's slave maps to
+use the hardware defined default addresses.
 
-Good point. I guess in principle this could happen although I can't see a
-reason to do so, other than to break things --- quoting
-Documentation/power/runtime_pm.txt:
+The ADV7511 driver was adapted to allow the two devices to be registered
+correctly - but it did not take into account the fault whereby the
+devices reset the addresses.
 
-	The user space can effectively disallow the driver of the device to
-	power manage it at run time by changing the value of its
-	/sys/devices/.../power/control attribute to "on", which causes
-	pm_runtime_forbid() to be called. In principle, this mechanism may
-	also be used by the driver to effectively turn off the runtime
-	power management of the device until the user space turns it on.
-	Namely, during the initialization the driver can make sure that the
-	runtime PM status of the device is 'active' and call
-	pm_runtime_forbid(). It should be noted, however, that if the user
-	space has already intentionally changed the value of
-	/sys/devices/.../power/control to "auto" to allow the driver to
-	power manage the device at run time, the driver may confuse it by
-	using pm_runtime_forbid() this way.
+This results in an address conflict between the device using the default
+addresses, and the other device if it is in low-power-mode.
 
-So that comes with a warning that things might not work well after doing
-so.
+Repair this issue by moving both devices away from the default address
+definitions.
 
-What comes to the driver code, I still wouldn't complicate it by attempting
-to make a driver work in such a case.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+v2:
+ - Addition to series
 
+v3:
+ - Split map register addresses into individual declarations.
+
+v4:
+ - Normalise I2C usage
+
+v5:
+ - Repost without [RFT] now that it has been tested
+
+v6:
+ - s/low power power/low power/ correction from Laurent.
+
+Testing on a wheat board shows the addresses correctly assigned, and the
+default addresses (0x38, 0x3e, 0x3f which would otherwise conflict) are
+shown as actively returning data in low power mode during the scan.
+(they return 0)
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- UU -- -- -- UU -- --
+30: -- -- -- -- -- -- -- -- 38 UU -- -- -- UU 3e 3f
+40: -- -- -- -- -- -- -- -- -- UU -- -- -- UU -- --
+50: -- -- -- -- -- -- -- -- -- UU -- -- -- UU -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+
+ arch/arm/boot/dts/r8a7792-wheat.dts | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/r8a7792-wheat.dts b/arch/arm/boot/dts/r8a7792-wheat.dts
+index 293b9e3b3e70..db01de7a3811 100644
+--- a/arch/arm/boot/dts/r8a7792-wheat.dts
++++ b/arch/arm/boot/dts/r8a7792-wheat.dts
+@@ -245,9 +245,15 @@
+ 	status = "okay";
+ 	clock-frequency = <400000>;
+ 
++	/*
++	 * The adv75xx resets its addresses to defaults during low power mode.
++	 * Because we have two ADV7513 devices on the same bus, we must change
++	 * both of them away from the defaults so that they do not conflict.
++	 */
+ 	hdmi@3d {
+ 		compatible = "adi,adv7513";
+-		reg = <0x3d>;
++		reg = <0x3d>, <0x2d>, <0x4d>, <0x5d>;
++		reg-names = "main", "cec", "edid", "packet";
+ 
+ 		adi,input-depth = <8>;
+ 		adi,input-colorspace = "rgb";
+@@ -277,7 +283,8 @@
+ 
+ 	hdmi@39 {
+ 		compatible = "adi,adv7513";
+-		reg = <0x39>;
++		reg = <0x39>, <0x29>, <0x49>, <0x59>;
++		reg-names = "main", "cec", "edid", "packet";
+ 
+ 		adi,input-depth = <8>;
+ 		adi,input-colorspace = "rgb";
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
