@@ -1,110 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39674 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750789AbeCWPeS (ORCPT
+Received: from mail-wr0-f178.google.com ([209.85.128.178]:35420 "EHLO
+        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753577AbeCVJiA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 11:34:18 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: mchehab@s-opensource.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: [PATCH v2 1/1] v4l: Bring back array_size parameter to v4l2_find_nearest_size
-Date: Fri, 23 Mar 2018 17:34:15 +0200
-Message-Id: <20180323153415.25748-1-sakari.ailus@linux.intel.com>
+        Thu, 22 Mar 2018 05:38:00 -0400
+Received: by mail-wr0-f178.google.com with SMTP id 80so6868539wrb.2
+        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 02:38:00 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
+ invalidate_mappings callback v2
+To: Daniel Vetter <daniel@ffwll.ch>, christian.koenig@amd.com
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+References: <152120831102.25315.4326885184264378830@mail.alporthouse.com>
+ <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
+ <152147480241.18954.4556582215766884582@mail.alporthouse.com>
+ <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
+ <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
+ <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
+ <20180320140810.GU14155@phenom.ffwll.local>
+ <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
+ <20180321081800.GW14155@phenom.ffwll.local>
+ <c9070eb2-9b4e-9ac2-ecbc-74dcf5069858@gmail.com>
+ <20180322071425.GG14155@phenom.ffwll.local>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <d965b3b0-9696-9714-f001-672c3b0b9820@gmail.com>
+Date: Thu, 22 Mar 2018 10:37:55 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180322071425.GG14155@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An older version of the driver patches were merged accidentally which
-resulted in missing the array_size parameter that tells the length of the
-array that contains the different supported sizes.
+Am 22.03.2018 um 08:14 schrieb Daniel Vetter:
+> On Wed, Mar 21, 2018 at 10:34:05AM +0100, Christian König wrote:
+>> Am 21.03.2018 um 09:18 schrieb Daniel Vetter:
+>>> [SNIP]
+>> For correct operation you always need to implement invalidate_range_end as
+>> well and add some lock/completion work Otherwise get_user_pages() can again
+>> grab the reference to the wrong page.
+> Is this really a problem?
 
-Bring it back to v4l2_find_nearest size and make the corresponding change
-for the drivers using it as well.
+Yes, and quite a big one.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v1:
+> I figured that if a mmu_notifier invalidation is
+> going on, a get_user_pages on that mm from anywhere else (whether i915 or
+> anyone really) will serialize with the ongoing invalidate?
 
-- Rewrap v4l2_find_nearest_size() calls in the two ov sensor drivers.
+No, that isn't correct. Jerome can probably better explain that than I do.
 
- drivers/media/i2c/ov13858.c                  | 4 +++-
- drivers/media/i2c/ov5670.c                   | 4 +++-
- drivers/media/platform/vivid/vivid-vid-cap.c | 5 +++--
- include/media/v4l2-common.h                  | 5 +++--
- 4 files changed, 12 insertions(+), 6 deletions(-)
+> If that's not the case, then really any get_user_pages is racy, including all the
+> DIRECT_IO ones.
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index 30ee9f71bf0d..3e9ff8205991 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -1375,7 +1375,9 @@ ov13858_set_pad_format(struct v4l2_subdev *sd,
- 	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
- 		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
- 
--	mode = v4l2_find_nearest_size(supported_modes, width, height,
-+	mode = v4l2_find_nearest_size(supported_modes,
-+				      ARRAY_SIZE(supported_modes),
-+				      width, height,
- 				      fmt->format.width, fmt->format.height);
- 	ov13858_update_pad_format(mode, fmt);
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index 556a95c30781..4bf25f527324 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -2229,7 +2229,9 @@ static int ov5670_set_pad_format(struct v4l2_subdev *sd,
- 
- 	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
- 
--	mode = v4l2_find_nearest_size(supported_modes, width, height,
-+	mode = v4l2_find_nearest_size(supported_modes,
-+				      ARRAY_SIZE(supported_modes),
-+				      width, height,
- 				      fmt->format.width, fmt->format.height);
- 	ov5670_update_pad_format(mode, fmt);
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 01c703683657..1599159f2574 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -561,8 +561,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
- 	mp->field = vivid_field_cap(dev, mp->field);
- 	if (vivid_is_webcam(dev)) {
- 		const struct v4l2_frmsize_discrete *sz =
--			v4l2_find_nearest_size(webcam_sizes, width, height,
--					       mp->width, mp->height);
-+			v4l2_find_nearest_size(webcam_sizes,
-+					       VIVID_WEBCAM_SIZES, width,
-+					       height, mp->width, mp->height);
- 
- 		w = sz->width;
- 		h = sz->height;
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 54b689247937..160bca96d524 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -320,6 +320,7 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
-  *	set of resolutions contained in an array of a driver specific struct.
-  *
-  * @array: a driver specific array of image sizes
-+ * @array_size: the length of the driver specific array of image sizes
-  * @width_field: the name of the width field in the driver specific struct
-  * @height_field: the name of the height field in the driver specific struct
-  * @width: desired width.
-@@ -332,13 +333,13 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
-  *
-  * Returns the best match or NULL if the length of the array is zero.
-  */
--#define v4l2_find_nearest_size(array, width_field, height_field, \
-+#define v4l2_find_nearest_size(array, array_size, width_field, height_field, \
- 			       width, height)				\
- 	({								\
- 		BUILD_BUG_ON(sizeof((array)->width_field) != sizeof(u32) || \
- 			     sizeof((array)->height_field) != sizeof(u32)); \
- 		(typeof(&(*(array))))__v4l2_find_nearest_size(		\
--			(array), ARRAY_SIZE(array), sizeof(*(array)),	\
-+			(array), array_size, sizeof(*(array)),		\
- 			offsetof(typeof(*(array)), width_field),	\
- 			offsetof(typeof(*(array)), height_field),	\
- 			width, height);					\
--- 
-2.11.0
+The key point here is that get_user_pages() grabs a reference to the 
+page. So what you get is a bunch of pages which where mapped at that 
+location at a specific point in time.
+
+There is no guarantee that after get_user_pages() return you still have 
+the same pages mapped at that point, you only guarantee that the pages 
+are not reused for something else.
+
+That is perfectly sufficient for a task like DIRECT_IO where you can 
+only have block or network I/O, but unfortunately not really for GPUs 
+where you crunch of results, write them back to pages and actually count 
+on that the CPU sees the result in the right place.
+
+>> [SNIP]
+>> So no matter how you put it i915 is clearly doing something wrong here :)
+> tbh I'm not entirely clear on the reasons why this works, but
+> cross-release lockdep catches these things, and it did not complain.
+> On a high-level we make sure that mm locks needed by get_user_pages do
+> _not_ nest within dev->struct_mutex. We have massive back-off slowpaths to
+> do anything that could fault outside of our own main gem locking.
+
+I'm pretty sure that this doesn't work as intended and just hides the 
+real problem.
+
+> That was (at least in the past) a major difference with amdgpu, which
+> essentially has none of these paths. That would trivially deadlock with
+> your own gem mmap fault handler, so you had (maybe that changed) a dumb
+> retry loop, which did shut up lockdep but didn't fix any of the locking
+> inversions.
+
+Any lock you grab in an MMU callback can't be even held when you call 
+kmalloc() or get_free_page() (without GFP_NOIO).
+
+Even simple things like drm_vm_open() violate that by using GFP_KERNEL. 
+So I can 100% ensure you that what you do here is not correct.
+
+> So yeah, grabbing dev->struct_mutex is in principle totally fine while
+> holding all kinds of struct mm/vma locks. I'm not entirely clear why we
+> punt the actual unmapping to the worker though, maybe simply to not have a
+> constrained stack.
+
+I strongly disagree on that. As far as I can see what TTM does looks 
+actually like the right approach to the problem.
+
+> This is re: your statement that you can't unamp sg tables from the
+> shrinker. We can, because we've actually untangled the locking depencies
+> so that you can fully operate on gem objects from within mm/vma locks.
+> Maybe code has changed, but last time I looked at radeon/ttm a while back
+> that was totally not the case, and if you don't do all this work then yes
+> you'll deadlock.
+>
+> Doen't mean it's not impossible, because we've done it :-)
+
+And I'm pretty sure you didn't do it correctly :D
+
+> Well, it actually gets the job done. We'd need to at least get to
+> per-object locking, and probably even then we'd need to rewrite the code a
+> lot. But please note that this here is only to avoid the GFP_NOIO
+> constraint, all the other bits I clarified around why we don't actually
+> have circular locking (because the entire hierarchy is inverted for us)
+> still hold even if you would only trylock here.
+
+Well you reversed your allocation and mmap_sem lock which avoids the 
+lock inversion during page faults, but it doesn't help you at all with 
+the MMU notifier and shrinker because then there are a lot more locks 
+involved.
+
+Regards,
+Christian.
+
+> Aside: Given that yesterday a bunch of folks complained on #dri-devel that
+> amdgpu prematurely OOMs compared to i915, and that we've switched from a
+> simple trylock to this nastiness to be able to recover from more low
+> memory situation it's maybe not such a silly idea. Horrible, but not silly
+> because actually necessary.
+> -Daniel
