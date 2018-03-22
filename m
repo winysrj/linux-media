@@ -1,175 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:50516 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754705AbeCGTX6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 14:23:58 -0500
-Received: by mail-wm0-f67.google.com with SMTP id w128so6989421wmw.0
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 11:23:57 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 3/4] [media] ddbridge: use common DVB I2C client handling helpers
-Date: Wed,  7 Mar 2018 20:23:49 +0100
-Message-Id: <20180307192350.930-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20180307192350.930-1-d.scheller.oss@gmail.com>
-References: <20180307192350.930-1-d.scheller.oss@gmail.com>
+Received: from mail-qt0-f181.google.com ([209.85.216.181]:43990 "EHLO
+        mail-qt0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751902AbeCVQgX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Mar 2018 12:36:23 -0400
+Received: by mail-qt0-f181.google.com with SMTP id s48so9574357qtb.10
+        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 09:36:23 -0700 (PDT)
+Message-ID: <1521736580.18466.3.camel@ndufresne.ca>
+Subject: Re: [RFC] Request API
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 22 Mar 2018 12:36:20 -0400
+In-Reply-To: <aa5f4986-7cb3-ec85-203d-e1afa644d769@xs4all.nl>
+References: <aa5f4986-7cb3-ec85-203d-e1afa644d769@xs4all.nl>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-xcTe+7fqTQZ5zjoqu26Y"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-Instead of keeping duplicated I2C client handling construct, make use of
-the newly introduced dvb_module_*() helpers. This not only keeps things
-way cleaner and removes the need for duplicated I2C client attach code,
-but even allows to get rid of some variables that won't help in making
-things look cleaner anymore.
+--=-xcTe+7fqTQZ5zjoqu26Y
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The check on a valid ptr on port->en isn't really needed since the cxd2099
-driver will set it at a time where it is going to return successfully
-from probing.
+Le jeudi 22 mars 2018 =C3=A0 15:18 +0100, Hans Verkuil a =C3=A9crit :
+> RFC Request API
+> ---------------
+>=20
+> This document proposes the public API for handling requests.
+>=20
+> There has been some confusion about how to do this, so this summarizes th=
+e
+> current approach based on conversations with the various stakeholders tod=
+ay
+> (Sakari, Alexandre Courbot, Tomasz Figa and myself).
+>=20
+> The goal is to finalize this so the Request API patch series work can
+> continue.
+>=20
+> 1) Additions to the media API
+>=20
+>    Allocate an empty request object:
+>=20
+>    #define MEDIA_IOC_REQUEST_ALLOC _IOW('|', 0x05, __s32 *)
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-ci.c   | 33 ++++++--------------------
- drivers/media/pci/ddbridge/ddbridge-core.c | 37 +++++++-----------------------
- 2 files changed, 15 insertions(+), 55 deletions(-)
+I see this is MEDIA_IOC namespace, I thought that there was an opening
+for m2m (codec) to not have to expose a media node. Is this still the
+case ?
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index 6585ef54ac22..d0ce6a1f1bd0 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -324,34 +324,20 @@ static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
- {
- 	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
- 	struct i2c_client *client;
--	struct i2c_board_info board_info = {
--		.type = "cxd2099",
--		.addr = 0x40,
--		.platform_data = &cxd_cfg,
--	};
- 
- 	cxd_cfg.bitrate = bitrate;
- 	cxd_cfg.en = &port->en;
- 
--	request_module(board_info.type);
--
--	client = i2c_new_device(&port->i2c->adap, &board_info);
--	if (!client || !client->dev.driver)
--		goto err_ret;
--
--	if (!try_module_get(client->dev.driver->owner))
--		goto err_i2c;
--
--	if (!port->en)
--		goto err_i2c;
-+	client = dvb_module_probe("cxd2099", "cxd2099", &port->i2c->adap,
-+				  0x40, &cxd_cfg);
-+	if (!client)
-+		goto err;
- 
- 	port->dvb[0].i2c_client[0] = client;
- 	port->en_freedata = 0;
- 	return 0;
- 
--err_i2c:
--	i2c_unregister_device(client);
--err_ret:
-+err:
- 	dev_err(port->dev->dev, "CXD2099AR attach failed\n");
- 	return -ENODEV;
- }
-@@ -385,18 +371,13 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- 
- void ddb_ci_detach(struct ddb_port *port)
- {
--	struct i2c_client *client;
--
- 	if (port->dvb[0].dev)
- 		dvb_unregister_device(port->dvb[0].dev);
- 	if (port->en) {
- 		dvb_ca_en50221_release(port->en);
- 
--		client = port->dvb[0].i2c_client[0];
--		if (client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
--		}
-+		dvb_module_release(port->dvb[0].i2c_client[0]);
-+		port->dvb[0].i2c_client[0] = NULL;
- 
- 		/* free alloc'ed memory if needed */
- 		if (port->en_freedata)
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index f9bee36f1cad..36d2deb1c106 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -999,37 +999,22 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
- 		.if_dvbt2_8 = 4000,
- 		.if_dvbc = 5000,
- 	};
--	struct i2c_board_info board_info = {
--		.type = "tda18212",
--		.platform_data = &config,
--	};
--
--	if (input->nr & 1)
--		board_info.addr = 0x63;
--	else
--		board_info.addr = 0x60;
-+	u8 addr = (input->nr & 1) ? 0x63 : 0x60;
- 
- 	/* due to a hardware quirk with the I2C gate on the stv0367+tda18212
- 	 * combo, the tda18212 must be probed by reading it's id _twice_ when
- 	 * cold started, or it very likely will fail.
- 	 */
- 	if (porttype == DDB_TUNER_DVBCT_ST)
--		tuner_tda18212_ping(input, board_info.addr);
--
--	request_module(board_info.type);
--
--	/* perform tuner init/attach */
--	client = i2c_new_device(adapter, &board_info);
--	if (!client || !client->dev.driver)
--		goto err;
-+		tuner_tda18212_ping(input, addr);
- 
--	if (!try_module_get(client->dev.driver->owner)) {
--		i2c_unregister_device(client);
-+	/* perform tuner probe/init/attach */
-+	client = dvb_module_probe("tda18212", "tda18212",
-+				  adapter, addr, &config);
-+	if (!client)
- 		goto err;
--	}
- 
- 	dvb->i2c_client[0] = client;
--
- 	return 0;
- err:
- 	dev_err(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
-@@ -1253,7 +1238,6 @@ static void dvb_input_detach(struct ddb_input *input)
- {
- 	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
- 	struct dvb_demux *dvbdemux = &dvb->demux;
--	struct i2c_client *client;
- 
- 	switch (dvb->attached) {
- 	case 0x31:
-@@ -1263,13 +1247,8 @@ static void dvb_input_detach(struct ddb_input *input)
- 			dvb_unregister_frontend(dvb->fe);
- 		/* fallthrough */
- 	case 0x30:
--		client = dvb->i2c_client[0];
--		if (client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
--			dvb->i2c_client[0] = NULL;
--			client = NULL;
--		}
-+		dvb_module_release(dvb->i2c_client[0]);
-+		dvb->i2c_client[0] = NULL;
- 
- 		if (dvb->fe2)
- 			dvb_frontend_detach(dvb->fe2);
--- 
-2.16.1
+>=20
+>    This will return a file descriptor representing the request or an erro=
+r
+>    if it can't allocate the request.
+>=20
+>    If the pointer argument is NULL, then this will just return 0 (if this=
+ ioctl
+>    is implemented) or -ENOTTY otherwise. This can be used to test whether=
+ this
+>    ioctl is supported or not without actually having to allocate a reques=
+t.
+>=20
+> 2) Operations on the request fd
+>=20
+>    You can queue (aka submit) or reinit a request by calling these ioctls=
+ on the request fd:
+>=20
+>    #define MEDIA_REQUEST_IOC_QUEUE   _IO('|',  128)
+>    #define MEDIA_REQUEST_IOC_REINIT  _IO('|',  129)
+>=20
+>    Note: the original proposal from Alexandre used IOC_SUBMIT instead of
+>    IOC_QUEUE. I have a slight preference for QUEUE since that implies tha=
+t the
+>    request end up in a queue of requests. That's less obvious with SUBMIT=
+. I
+>    have no strong opinion on this, though.
+>=20
+>    With REINIT you reset the state of the request as if you had just allo=
+cated
+>    it. You cannot REINIT a request if the request is queued but not yet c=
+ompleted.
+>    It will return -EBUSY in that case.
+>=20
+>    Calling QUEUE if the request is already queued or completed will retur=
+n -EBUSY
+>    as well. Or would -EPERM be better? I'm open to suggestions. Either er=
+ror code
+>    will work, I think.
+>=20
+>    You can poll the request fd to wait for it to complete. A request is c=
+omplete
+>    if all the associated buffers are available for dequeuing and all the =
+associated
+>    controls (such as controls containing e.g. statistics) are updated wit=
+h their
+>    final values.
+>=20
+>    To free a request you close the request fd. Note that it may still be =
+in
+>    use internally, so this has to be refcounted.
+>=20
+>    Requests only contain the changes since the previously queued request =
+or
+>    since the current hardware state if no other requests are queued.
+>=20
+> 3) To associate a v4l2 buffer with a request the 'reserved' field in stru=
+ct
+>    v4l2_buffer is used to store the request fd. Buffers won't be 'prepare=
+d'
+>    until the request is queued since the request may contain information =
+that
+>    is needed to prepare the buffer.
+>=20
+>    Queuing a buffer without a request after a buffer with a request is eq=
+uivalent
+>    to queuing a request containing just that buffer and nothing else. I.e=
+. it will
+>    just use whatever values the hardware has at the time of processing.
+>=20
+> 4) To associate v4l2 controls with a request we take the first of the
+>    'reserved[2]' array elements in struct v4l2_ext_controls and use it to=
+ store
+>    the request fd.
+>=20
+>    When querying a control value from a request it will return the newest
+>    value in the list of pending requests, or the current hardware value i=
+f
+>    is not set in any of the pending requests.
+>=20
+>    Setting controls without specifying a request fd will just act like it=
+ does
+>    today: the hardware is immediately updated. This can cause race condit=
+ions
+>    if the same control is also specified in a queued request: it is not d=
+efined
+>    which will be set first. It is therefor not a good idea to set the sam=
+e
+>    control directly as well as set it as part of a request.
+>=20
+> Notes:
+>=20
+> - Earlier versions of this API had a TRY command as well to validate the
+>   request. I'm not sure that is useful so I dropped it, but it can easily
+>   be added if there is a good use-case for it. Traditionally within V4L t=
+he
+>   TRY ioctl will also update wrong values to something that works, but th=
+at
+>   is not the intention here as far as I understand it. So the validation
+>   step can also be done when the request is queued and, if it fails, it w=
+ill
+>   just return an error.
+
+I think it's worth to understand that this would mimic DRM Atomic
+interface. The reason atomic operation can be tried like this is
+because it's not possible to generically represent all the constraints.
+So this would only be useful we we do have this issue.
+
+>=20
+> - If due to performance reasons we will have to allocate/queue/reinit mul=
+tiple
+>   requests with a single ioctl, then we will have to add new ioctls to th=
+e
+>   media device. At this moment in time it is not clear that this is reall=
+y
+>   needed and it certainly isn't needed for the stateless codec support th=
+at
+>   we are looking at now.
+>=20
+> Regards,
+>=20
+> 	Hans
+--=-xcTe+7fqTQZ5zjoqu26Y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWrPbhAAKCRBxUwItrAao
+HACeAKChtHYMxj5pryhVlmyktZo+8KTZ2ACgm6H5NT6Y1xfXw3UguAgLJHuCb/s=
+=WYsK
+-----END PGP SIGNATURE-----
+
+--=-xcTe+7fqTQZ5zjoqu26Y--
