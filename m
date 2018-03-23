@@ -1,64 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52324 "EHLO mga02.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:59993 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752209AbeCWVS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 17:18:28 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, acourbot@chromium.org
-Subject: [RFC v2 05/10] staging: media: atomisp: Remove v4l2_buffer.reserved2 field hack
-Date: Fri, 23 Mar 2018 23:17:39 +0200
-Message-Id: <1521839864-10146-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1752512AbeCWOJB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 10:09:01 -0400
+Date: Fri, 23 Mar 2018 11:08:55 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Bring back array_size parameter to
+ v4l2_find_nearest_size
+Message-ID: <20180323110855.51989894@vento.lan>
+In-Reply-To: <20180323110742.4d055035@vento.lan>
+References: <20180323134841.21408-1-sakari.ailus@linux.intel.com>
+        <20180323110742.4d055035@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The atomisp driver used to use the reserved2 field in struct v4l2_buffer
-for picking a particular ISP configuration for the buffer. As reserved2
-field will have new use soon, remove this hack.
+Em Fri, 23 Mar 2018 11:07:42 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c  | 17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+> Em Fri, 23 Mar 2018 15:48:41 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > An older version of the driver patches were merged accidentally which
+> > resulted in missing the array_size parameter that tells the length of the
+> > array that contains the different supported sizes.
+> > 
+> > Bring it back to v4l2_find_nearest size and make the corresponding change
+> > for the drivers using it as well.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > Hi Mauro,
+> > 
+> > Here's the patch I mentioned. It restores the intended state of the
+> > v4l2_find_nearest_size() API as it was reviewed and acked (by Hans).
+> > 
+> > This time the exact patch is tested for vivid.
+> > 
+> >  drivers/media/i2c/ov13858.c                  | 5 +++--
+> >  drivers/media/i2c/ov5670.c                   | 5 +++--
+> >  drivers/media/platform/vivid/vivid-vid-cap.c | 5 +++--
+> >  include/media/v4l2-common.h                  | 5 +++--
+> >  4 files changed, 12 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> > index 30ee9f71bf0d..420af1e32d4e 100644
+> > --- a/drivers/media/i2c/ov13858.c
+> > +++ b/drivers/media/i2c/ov13858.c
+> > @@ -1375,8 +1375,9 @@ ov13858_set_pad_format(struct v4l2_subdev *sd,
+> >  	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
+> >  		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> >  
+> > -	mode = v4l2_find_nearest_size(supported_modes, width, height,
+> > -				      fmt->format.width, fmt->format.height);
+> > +	mode = v4l2_find_nearest_size(
+> > +		supported_modes, ARRAY_SIZE(supported_modes), width, height,
+> > +		fmt->format.width, fmt->format.height);  
+> 
+> 
+> Nitpick... I find ugly and arder to mentally parse things like the above,
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
-index 5c84dd6..182bb70 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_ioctl.c
-@@ -1283,16 +1283,7 @@ static int atomisp_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	if (!((buf->flags & NOFLUSH_FLAGS) == NOFLUSH_FLAGS))
- 		wbinvd();
- 
--	if (!atomisp_is_vf_pipe(pipe) &&
--	    (buf->reserved2 & ATOMISP_BUFFER_HAS_PER_FRAME_SETTING)) {
--		/* this buffer will have a per-frame parameter */
--		pipe->frame_request_config_id[buf->index] = buf->reserved2 &
--					~ATOMISP_BUFFER_HAS_PER_FRAME_SETTING;
--		dev_dbg(isp->dev, "This buffer requires per_frame setting which has isp_config_id %d\n",
--			pipe->frame_request_config_id[buf->index]);
--	} else {
--		pipe->frame_request_config_id[buf->index] = 0;
--	}
-+	pipe->frame_request_config_id[buf->index] = 0;
- 
- 	pipe->frame_params[buf->index] = NULL;
- 
-@@ -1470,12 +1461,10 @@ static int atomisp_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->reserved &= 0x0000ffff;
- 	if (!(buf->flags & V4L2_BUF_FLAG_ERROR))
- 		buf->reserved |= __get_frame_exp_id(pipe, buf) << 16;
--	buf->reserved2 = pipe->frame_config_id[buf->index];
- 	rt_mutex_unlock(&isp->mutex);
- 
--	dev_dbg(isp->dev, "dqbuf buffer %d (%s) for asd%d with exp_id %d, isp_config_id %d\n",
--		buf->index, vdev->name, asd->index, buf->reserved >> 16,
--		buf->reserved2);
-+	dev_dbg(isp->dev, "dqbuf buffer %d (%s) for asd%d with exp_id %d\n",
-+		buf->index, vdev->name, asd->index, buf->reserved >> 16);
- 	return 0;
- }
- 
--- 
-2.7.4
+	"arder" -> "harder"
+
+My keyboard sometimes is losing keystrokes. It seems it is approaching
+the time to replace it again.
+
+
+Thanks,
+Mauro
