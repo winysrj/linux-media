@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39102 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426315AbeCBOrF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:05 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
-        joe@perches.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 04/11] media: tw9910: Sort includes alphabetically
-Date: Fri,  2 Mar 2018 15:46:36 +0100
-Message-Id: <1520002003-10200-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:40951 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751890AbeCWDoW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Mar 2018 23:44:22 -0400
+From: Ryder Lee <ryder.lee@mediatek.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        "Ryder Lee" <ryder.lee@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>
+Subject: [PATCH] [media] vcodec: fix error return value from mtk_jpeg_clk_init()
+Date: Fri, 23 Mar 2018 11:44:13 +0800
+Message-ID: <f9295ecafa4c845ef5d9414fca47b2dc0fc6640d.1521776018.git.ryder.lee@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sort include directives alphabetically to ease maintenance.
+The error return value should be fixed as it may return EPROBE_DEFER.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Rick Chang <rick.chang@mediatek.com>
+Cc: Bin Liu <bin.liu@mediatek.com>
+Signed-off-by: Ryder Lee <ryder.lee@mediatek.com>
 ---
- drivers/media/i2c/tw9910.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index 0232017..9c12bda 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -16,13 +16,13 @@
-  */
+diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+index 226f908..af17aaa 100644
+--- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
++++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+@@ -1081,11 +1081,11 @@ static int mtk_jpeg_clk_init(struct mtk_jpeg_dev *jpeg)
  
- #include <linux/clk.h>
-+#include <linux/delay.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/i2c.h>
- #include <linux/slab.h>
--#include <linux/kernel.h>
--#include <linux/delay.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
+ 	jpeg->clk_jdec = devm_clk_get(jpeg->dev, "jpgdec");
+ 	if (IS_ERR(jpeg->clk_jdec))
+-		return -EINVAL;
++		return PTR_ERR(jpeg->clk_jdec);
  
+ 	jpeg->clk_jdec_smi = devm_clk_get(jpeg->dev, "jpgdec-smi");
+ 	if (IS_ERR(jpeg->clk_jdec_smi))
+-		return -EINVAL;
++		return PTR_ERR(jpeg->clk_jdec_smi);
+ 
+ 	return 0;
+ }
 -- 
-2.7.4
+1.9.1
