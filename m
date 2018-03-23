@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:57245 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966813AbeCBQge (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 11:36:34 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi, mchehab@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/5] media: MAINTAINERS: Add entry for Aptina MT9T112
-Date: Fri,  2 Mar 2018 17:35:41 +0100
-Message-Id: <1520008541-3961-6-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from osg.samsung.com ([64.30.133.232]:34138 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753797AbeCWL5X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 04/30] media: vpss: fix annotations for vpss_regs_base2
+Date: Fri, 23 Mar 2018 07:56:50 -0400
+Message-Id: <8395597fa4ecb0cab9241a399d78d5d3a95d928f.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add entry for Aptina/Micron MT9T112 camera sensor. The driver is
-currently orphaned.
+Fix those warnings:
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+	drivers/media/platform/davinci/vpss.c:510:25: warning: incorrect type in argument 1 (different address spaces)
+	drivers/media/platform/davinci/vpss.c:510:25:    expected void volatile [noderef] <asn:2>*addr
+	drivers/media/platform/davinci/vpss.c:510:25:    got unsigned int [usertype] *static [toplevel] [assigned] vpss_regs_base2
+	drivers/media/platform/davinci/vpss.c:520:34: warning: incorrect type in assignment (different address spaces)
+	drivers/media/platform/davinci/vpss.c:520:34:    expected unsigned int [usertype] *static [toplevel] [assigned] vpss_regs_base2
+	drivers/media/platform/davinci/vpss.c:520:34:    got void [noderef] <asn:2>*
+	drivers/media/platform/davinci/vpss.c:522:54: warning: incorrect type in argument 2 (different address spaces)
+	drivers/media/platform/davinci/vpss.c:522:54:    expected void volatile [noderef] <asn:2>*addr
+	drivers/media/platform/davinci/vpss.c:522:54:    got unsigned int [usertype] *static [toplevel] [assigned] vpss_regs_base2
+
+Weird enough, vpss_regs_base0 and vpss_regs_base1 were
+properly annotated.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/platform/davinci/vpss.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 91ed6ad..1d8be25 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9385,6 +9385,13 @@ S:	Maintained
- F:	drivers/media/i2c/mt9t001.c
- F:	include/media/i2c/mt9t001.h
- 
-+MT9T112 APTINA CAMERA SENSOR
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Orphan
-+F:	drivers/media/i2c/mt9t112.c
-+F:	include/media/i2c/mt9t112.h
-+
- MT9V032 APTINA CAMERA SENSOR
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index b73886519f4f..19cf6853411e 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -116,7 +116,7 @@ struct vpss_hw_ops {
+ struct vpss_oper_config {
+ 	__iomem void *vpss_regs_base0;
+ 	__iomem void *vpss_regs_base1;
+-	resource_size_t *vpss_regs_base2;
++	__iomem void *vpss_regs_base2;
+ 	enum vpss_platform_type platform;
+ 	spinlock_t vpss_lock;
+ 	struct vpss_hw_ops hw_ops;
 -- 
-2.7.4
+2.14.3
