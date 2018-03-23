@@ -1,76 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:39846 "EHLO osg.samsung.com"
+Received: from mga14.intel.com ([192.55.52.115]:16841 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751223AbeC1JZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 05:25:54 -0400
-Date: Wed, 28 Mar 2018 06:25:45 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Luis Oliveira <Luis.Oliveira@synopsys.com>,
-        Aishwarya Pant <aishpant@gmail.com>,
-        Riccardo Schirone <sirmy15@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 07/18] media: staging: atomisp: fix endianess issues
-Message-ID: <20180328062545.6b30aac8@vento.lan>
-In-Reply-To: <1522148575.21176.22.camel@linux.intel.com>
-References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
-        <cc521a255756c0241572816f96e3b97126ac16de.1522098456.git.mchehab@s-opensource.com>
-        <1522148575.21176.22.camel@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        id S1752201AbeCWVS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 17:18:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, acourbot@chromium.org
+Subject: [RFC v2 07/10] v4l: m2m: Simplify exiting the function in v4l2_m2m_try_schedule
+Date: Fri, 23 Mar 2018 23:17:41 +0200
+Message-Id: <1521839864-10146-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Mar 2018 14:02:55 +0300
-Andy Shevchenko <andriy.shevchenko@linux.intel.com> escreveu:
+The v4l2_m2m_try_schedule function acquires and releases multiple
+spinlocks; simplify unlocking the job lock by adding a label to unlock the
+job lock and exit the function.
 
-> On Mon, 2018-03-26 at 17:10 -0400, Mauro Carvalho Chehab wrote:
-> > There are lots of be-related warnings there, as it doesn't properly
-> > mark what data uses bigendian.  
-> 
-> > @@ -107,7 +107,7 @@ mt9m114_write_reg(struct i2c_client *client, u16
-> > data_length, u16 reg, u32 val)
-> >  	int num_msg;
-> >  	struct i2c_msg msg;
-> >  	unsigned char data[6] = {0};
-> > -	u16 *wreg;
-> > +	__be16 *wreg;
-> >   
-> 
-> > +		u16 *wdata = (void *)&data[2];
-> > +
-> > +		*wdata = be16_to_cpu(*(__be16 *)&data[2]);  
-> 
-> > +		u32 *wdata = (void *)&data[2];
-> > +
-> > +		*wdata = be32_to_cpu(*(__be32 *)&data[2]);  
-> 
-> For x86 it is okay, though in general it should use get_unaligned().
-> 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-Yeah, it makes sense to change those to use 
-get_unaligned_be16()/get_unaligned_be32(), but still the endianness
-issue remains, as it will still require the usage of __be casts.
-
-The main goal here in this patch series is to get rid of hundreds
-of smatch/sparce warnings, as it makes very hard to identify new
-warnings, due to all polution inside atomisp.
-
-A change to get_unaligned_foo() is meant to do a different
-thing: to make those i2c drivers more arch-independent.
-
-So, feel free to submit a separate patch doing that, on the
-top of it.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c4f963d..9fbf778 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -230,15 +230,13 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 
+ 	/* If the context is aborted then don't schedule it */
+ 	if (m2m_ctx->job_flags & TRANS_ABORT) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("Aborted context\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 
+ 	if (m2m_ctx->job_flags & TRANS_QUEUED) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("On job queue already\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 
+ 	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+@@ -246,9 +244,8 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	    && !m2m_ctx->out_q_ctx.buffered) {
+ 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+ 					flags_out);
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No input buffers available\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
+@@ -257,18 +254,16 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 					flags_cap);
+ 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+ 					flags_out);
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No output buffers available\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 
+ 	if (m2m_dev->m2m_ops->job_ready
+ 		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("Driver not ready\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 
+ 	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
+@@ -277,6 +272,13 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 
+ 	v4l2_m2m_try_run(m2m_dev);
++
++	return;
++
++out_unlock:
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
++
++	return;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+ 
+-- 
+2.7.4
