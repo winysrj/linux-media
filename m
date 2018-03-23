@@ -1,98 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40788 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:40847 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751414AbeCOKDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 06:03:48 -0400
-Date: Thu, 15 Mar 2018 07:03:43 -0300
+        id S1753799AbeCWL53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:29 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 20/47] media: platform: remove blackfin capture driver
-Message-ID: <20180315070343.2034388e@vento.lan>
-In-Reply-To: <20180314153603.3127932-21-arnd@arndb.de>
-References: <20180314153603.3127932-1-arnd@arndb.de>
-        <20180314153603.3127932-21-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Jaedon Shin <jaedon.shin@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: [PATCH 03/30] media: dvb_frontend: add proper __user annotations
+Date: Fri, 23 Mar 2018 07:56:49 -0400
+Message-Id: <f44d6107f87936c0359358184627fd82e60bd4b0.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Mar 2018 16:35:33 +0100
-Arnd Bergmann <arnd@arndb.de> escreveu:
+Solves those warnings:
+	drivers/media/dvb-core/dvb_frontend.c:2297:39: warning: incorrect type in argument 1 (different address spaces)
+	drivers/media/dvb-core/dvb_frontend.c:2297:39:    expected void const [noderef] <asn:1>*<noident>
+	drivers/media/dvb-core/dvb_frontend.c:2297:39:    got struct dtv_property *props
+	drivers/media/dvb-core/dvb_frontend.c:2331:39: warning: incorrect type in argument 1 (different address spaces)
+	drivers/media/dvb-core/dvb_frontend.c:2331:39:    expected void const [noderef] <asn:1>*<noident>
+	drivers/media/dvb-core/dvb_frontend.c:2331:39:    got struct dtv_property *props
 
-> The blackfin architecture is getting removed, so the video
-> capture driver is also obsolete.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+No functional changes.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> ---
->  drivers/media/platform/Kconfig                 |   2 -
->  drivers/media/platform/Makefile                |   2 -
->  drivers/media/platform/blackfin/Kconfig        |  16 -
->  drivers/media/platform/blackfin/Makefile       |   2 -
->  drivers/media/platform/blackfin/bfin_capture.c | 983 -------------------------
->  drivers/media/platform/blackfin/ppi.c          | 361 ---------
->  include/media/blackfin/bfin_capture.h          |  39 -
->  include/media/blackfin/ppi.h                   |  94 ---
->  8 files changed, 1499 deletions(-)
->  delete mode 100644 drivers/media/platform/blackfin/Kconfig
->  delete mode 100644 drivers/media/platform/blackfin/Makefile
->  delete mode 100644 drivers/media/platform/blackfin/bfin_capture.c
->  delete mode 100644 drivers/media/platform/blackfin/ppi.c
->  delete mode 100644 include/media/blackfin/bfin_capture.h
->  delete mode 100644 include/media/blackfin/ppi.h
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 5d8fd71fc454..2136702c95fc 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -31,8 +31,6 @@ source "drivers/media/platform/davinci/Kconfig"
->  
->  source "drivers/media/platform/omap/Kconfig"
->  
-> -source "drivers/media/platform/blackfin/Kconfig"
-> -
->  config VIDEO_SH_VOU
->  	tristate "SuperH VOU video output driver"
->  	depends on MEDIA_CAMERA_SUPPORT
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 85e112122f32..2b07f2e2fca6 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -53,8 +53,6 @@ obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra-cec/
->  
->  obj-y					+= stm32/
->  
-> -obj-y                                   += blackfin/
-> -
->  obj-y					+= davinci/
->  
->  obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
-> diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
-> deleted file mode 100644
-> index 68fa90151b8f..000000000000
-> diff --git a/drivers/media/platform/blackfin/Makefile b/drivers/media/platform/blackfin/Makefile
-> deleted file mode 100644
-> index 30421bc23080..000000000000
-> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-> deleted file mode 100644
-> index b7660b1000fd..000000000000
-> diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
-> deleted file mode 100644
-> index d3dc765c1609..000000000000
-> diff --git a/include/media/blackfin/bfin_capture.h b/include/media/blackfin/bfin_capture.h
-> deleted file mode 100644
-> index a999a3970c69..000000000000
-> diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
-> deleted file mode 100644
-> index 987e49e8f9c9..000000000000
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index a7ed16e0841d..21a7d4b47e1a 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2294,7 +2294,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
+ 			return -EINVAL;
+ 
+-		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
++		tvp = memdup_user((void __user *)tvps->props, tvps->num * sizeof(*tvp));
+ 		if (IS_ERR(tvp))
+ 			return PTR_ERR(tvp);
+ 
+@@ -2328,7 +2328,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
+ 			return -EINVAL;
+ 
+-		tvp = memdup_user(tvps->props, tvps->num * sizeof(*tvp));
++		tvp = memdup_user((void __user *)tvps->props, tvps->num * sizeof(*tvp));
+ 		if (IS_ERR(tvp))
+ 			return PTR_ERR(tvp);
+ 
+-- 
+2.14.3
