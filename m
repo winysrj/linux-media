@@ -1,67 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60963 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936660AbeCBQgQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 11:36:16 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@iki.fi, mchehab@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 0/5] Renesas CEU: SH7724 ECOVEC + Aptina mt9t112
-Date: Fri,  2 Mar 2018 17:35:36 +0100
-Message-Id: <1520008541-3961-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36852 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751595AbeCWVQT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 17:16:19 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v6] ARM: dts: wheat: Fix ADV7513 address usage
+To: Simon Horman <horms@verge.net.au>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+References: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <20180323085140.g3golwdtpezo7fhi@verge.net.au>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <a771042b-f63a-d00f-73a1-91a7e6089fe4@ideasonboard.com>
+Date: Fri, 23 Mar 2018 21:16:13 +0000
+MIME-Version: 1.0
+In-Reply-To: <20180323085140.g3golwdtpezo7fhi@verge.net.au>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   now that CEU has been picked up for inclusion in v4.17, we can start moving
-users of old sh_mobile_ceu_camera driver to use the newly introduced one.
+Hi Simon,
 
-Migo-R has been first, now it's SH7724 ECOVEC board turn.
+On 23/03/18 08:51, Simon Horman wrote:
+> On Thu, Mar 22, 2018 at 09:30:40PM +0000, Kieran Bingham wrote:
+>> The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
+>> bus, however in low power mode the ADV7513 will reset it's slave maps to
+>> use the hardware defined default addresses.
+>>
+>> The ADV7511 driver was adapted to allow the two devices to be registered
+>> correctly - but it did not take into account the fault whereby the
+>> devices reset the addresses.
+>>
+>> This results in an address conflict between the device using the default
+>> addresses, and the other device if it is in low-power-mode.
+>>
+>> Repair this issue by moving both devices away from the default address
+>> definitions.
+> 
+> Hi Kierean,
+> 
+> as this is a fix
+> a) Does it warrant a fixes tag?
+>    Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
+> b) Does it warrant being posted as a fix for v4.16;
+> c) or v4.17?
 
-ECOVEC has a camera board with two MT9T112 image sensor and one TW9910 video
-decoder input. This series moves the mt9t112 driver away from soc_camera
-framework and remove dependencies on it in mach-ecovec board code.
+Tricky one, yes it could but this DTS fix, will only actually 'fix' the issue if
+the corresponding driver updates to allow secondary addresses to be parsed are
+also backported.
 
-As per Migo-R, memory for CEU is reserved using memblocks APIs and declared
-as DMA-capable in board code, power up/down routines have been removed from
-board code, and GPIOs lookup table registered for sensor drivers.
+It should be safe to back port the dts fix without the driver updates, but the
+addresses specified by this patch will simply be ignored.
 
-As in the previous series, still no code has been removed or changed in
-drivers/media/i2c/soc_camera/ until we do not remove all dependencies on it
-in all board files.
+Thus if this is marked with the fixes tag the corresponding patch "drm: adv7511:
+Add support for i2c_new_secondary_device" should also be marked.
 
-Hans, since you asked me to add frame rate interval support for ov772x I expect
-to receive the same request for mt9t112. Unfortunately I do not have access to
-register level documentation, nor can perform any testing as I don't have the
-camera modules. For the same reason I cannot run any v4l2-compliance test on
-that driver, but just make sure the ECOVEC boots cleanly with the new board
-file. I'm in favour of moving the driver to staging if you think that's the case.
+It looks like that patch has yet to be picked up by the DRM subsystem, so how
+about I bundle both of these two patches together in a repost along with the
+fixes tag.
 
-Series based on media-tree master, and as per Migo-R I would ask SH arch/
-changes to go through media tree as SH maintainers are un-responsive.
+In fact, I don't think the ADV7511 dt-bindings update has made any progress
+either. (dt-bindings: adv7511: Extend bindings to allow specifying slave map
+addresses). The media tree variants for the adv7604 have already been picked up
+by Mauro I believe though.
 
-Thanks
-  j
-
-Jacopo Mondi (5):
-  media: i2c: Copy mt9t112 soc_camera sensor driver
-  media: i2c: mt9t112: Remove soc_camera dependencies
-  media: i2c: mt9t112: Fix code style issues
-  arch: sh: ecovec: Use new renesas-ceu camera driver
-  media: MAINTAINERS: Add entry for Aptina MT9T112
-
- MAINTAINERS                            |    7 +
- arch/sh/boards/mach-ecovec24/setup.c   |  338 +++++-----
- arch/sh/kernel/cpu/sh4a/clock-sh7724.c |    4 +-
- drivers/media/i2c/Kconfig              |   11 +
- drivers/media/i2c/Makefile             |    1 +
- drivers/media/i2c/mt9t112.c            | 1136 ++++++++++++++++++++++++++++++++
- include/media/i2c/mt9t112.h            |   17 +-
- 7 files changed, 1333 insertions(+), 181 deletions(-)
- create mode 100644 drivers/media/i2c/mt9t112.c
+I presume it would be acceptable for this dts patch (or rather all three patches
+mentioned) to get integrated through the DRM tree ?
 
 --
-2.7.4
+Kieran
