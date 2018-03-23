@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40847 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754000AbeCWL50 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jan Kara <jack@suse.cz>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 16/30] media: videobuf-dma-sg: Fix a weird cast
-Date: Fri, 23 Mar 2018 07:57:02 -0400
-Message-Id: <b1a5dea69e48c3306e47ac470e3ff9f2fc0bbe28.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:41374 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752628AbeCWM7W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 08:59:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org
+Subject: [PATCHv2 0/3] dw-hdmi: add property to disable CEC
+Date: Fri, 23 Mar 2018 13:59:12 +0100
+Message-Id: <20180323125915.13986-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just use %p. Fixes this warning:
-	drivers/media/v4l2-core/videobuf-dma-sg.c:247 videobuf_dma_init_kernel() warn: argument 2 to %08lx specifier is cast from pointer
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Some boards (amlogic) have two CEC controllers: the DesignWare controller
+and their own CEC controller (meson ao-cec).
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index f412429cf5ba..add2edb23eac 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -244,9 +244,8 @@ static int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
- 		goto out_free_pages;
- 	}
- 
--	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
--				(unsigned long)dma->vaddr,
--				nr_pages << PAGE_SHIFT);
-+	dprintk(1, "vmalloc is at addr %p, size=%d\n",
-+		dma->vaddr, nr_pages << PAGE_SHIFT);
- 
- 	memset(dma->vaddr, 0, nr_pages << PAGE_SHIFT);
- 	dma->nr_pages = nr_pages;
+Since the CEC line is not hooked up to the DW controller we need a way
+to disable that controller. This patch series adds the cec-disable
+property for that purpose.
+
+Regards,
+
+	Hans
+
+Changes since v1:
+
+- Move the dts change to meson-gx.dtsi since according to Neil it is
+  valid for all meson-gx boards.
+- Fix bad subject line of patch 1.
+
+Hans Verkuil (3):
+  dt-bindings: display: dw_hdmi.txt: add cec-disable property
+  drm: bridge: dw-hdmi: check the cec-disable property
+  arm64: dts: meson-gx.dtsi: add cec-disable
+
+ Documentation/devicetree/bindings/display/bridge/dw_hdmi.txt | 3 +++
+ arch/arm64/boot/dts/amlogic/meson-gx.dtsi                    | 1 +
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c                    | 3 ++-
+ 3 files changed, 6 insertions(+), 1 deletion(-)
+
 -- 
-2.14.3
+2.15.1
