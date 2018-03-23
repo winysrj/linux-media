@@ -1,179 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:40722 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932071AbeCJT7M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Mar 2018 14:59:12 -0500
-Received: by mail-pg0-f67.google.com with SMTP id g8so4884891pgv.7
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:59:11 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
+Received: from mga09.intel.com ([134.134.136.24]:22562 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751288AbeCWVyA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 17:54:00 -0400
+Date: Fri, 23 Mar 2018 23:53:56 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 09/13] media: staging/imx: of: Remove recursive graph walk
-Date: Sat, 10 Mar 2018 11:58:38 -0800
-Message-Id: <1520711922-17338-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: Re: [PATCH 08/30] media: v4l2-ioctl: fix some "too small" warnings
+Message-ID: <20180323215356.3ib2ho2q7sd5z27v@kekkonen.localdomain>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+ <912d2f8228be077a1743adb797ada1dfcfe99c81.1521806166.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <912d2f8228be077a1743adb797ada1dfcfe99c81.1521806166.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After moving to subdev notifiers, it's no longer necessary to recursively
-walk the OF graph, because the subdev notifiers will discover and add
-devices from the graph for us.
+Hi Mauro,
 
-So the recursive of_parse_subdev() function is gone, replaced with
-of_add_csi() which adds only the CSI port fwnodes to the imx-media
-root notifier.
+On Fri, Mar 23, 2018 at 07:56:54AM -0400, Mauro Carvalho Chehab wrote:
+> While the code there is right, it produces three false positives:
+> 	drivers/media/v4l2-core/v4l2-ioctl.c:2868 video_usercopy() error: copy_from_user() 'parg' too small (128 vs 16383)
+> 	drivers/media/v4l2-core/v4l2-ioctl.c:2868 video_usercopy() error: copy_from_user() 'parg' too small (128 vs 16383)
+> 	drivers/media/v4l2-core/v4l2-ioctl.c:2876 video_usercopy() error: memset() 'parg' too small (128 vs 16383)
+> 
+> Store the ioctl size on a cache var, in order to suppress those.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-of.c | 106 +++----------------------------
- 1 file changed, 8 insertions(+), 98 deletions(-)
+I have to say I'm not a big fan of changing perfectly fine code in order to
+please static analysers. What's this, smatch? I wonder if it could be fixed
+instead of changing the code. That'd be presumably a lot more work though.
 
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index acde372..1c91754 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -20,74 +20,19 @@
- #include <video/imx-ipu-v3.h>
- #include "imx-media.h"
- 
--static int of_get_port_count(const struct device_node *np)
-+static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
- {
--	struct device_node *ports, *child;
--	int num = 0;
--
--	/* check if this node has a ports subnode */
--	ports = of_get_child_by_name(np, "ports");
--	if (ports)
--		np = ports;
--
--	for_each_child_of_node(np, child)
--		if (of_node_cmp(child->name, "port") == 0)
--			num++;
--
--	of_node_put(ports);
--	return num;
--}
--
--/*
-- * find the remote device node given local endpoint node
-- */
--static bool of_get_remote(struct device_node *epnode,
--			  struct device_node **remote_node)
--{
--	struct device_node *rp, *rpp;
--	struct device_node *remote;
--	bool is_csi_port;
--
--	rp = of_graph_get_remote_port(epnode);
--	rpp = of_graph_get_remote_port_parent(epnode);
--
--	if (of_device_is_compatible(rpp, "fsl,imx6q-ipu")) {
--		/* the remote is one of the CSI ports */
--		remote = rp;
--		of_node_put(rpp);
--		is_csi_port = true;
--	} else {
--		remote = rpp;
--		of_node_put(rp);
--		is_csi_port = false;
--	}
--
--	if (!of_device_is_available(remote)) {
--		of_node_put(remote);
--		*remote_node = NULL;
--	} else {
--		*remote_node = remote;
--	}
--
--	return is_csi_port;
--}
--
--static int
--of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
--		bool is_csi_port)
--{
--	int i, num_ports, ret;
-+	int ret;
- 
--	if (!of_device_is_available(sd_np)) {
-+	if (!of_device_is_available(csi_np)) {
- 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
--			sd_np->name);
-+			csi_np->name);
- 		/* unavailable is not an error */
- 		return 0;
- 	}
- 
--	/* register this subdev with async notifier */
--	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(sd_np),
--					 NULL);
-+	/* add CSI fwnode to async notifier */
-+	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np), NULL);
- 	if (ret) {
- 		if (ret == -EEXIST) {
- 			/* already added, everything is fine */
-@@ -98,42 +43,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 		return ret;
- 	}
- 
--	/*
--	 * the ipu-csi has one sink port. The source pads are not
--	 * represented in the device tree by port nodes, but are
--	 * described by the internal pads and links later.
--	 */
--	num_ports = is_csi_port ? 1 : of_get_port_count(sd_np);
--
--	for (i = 0; i < num_ports; i++) {
--		struct device_node *epnode = NULL, *port, *remote_np;
--
--		port = is_csi_port ? sd_np : of_graph_get_port_by_id(sd_np, i);
--		if (!port)
--			continue;
--
--		for_each_child_of_node(port, epnode) {
--			bool remote_is_csi;
--
--			remote_is_csi = of_get_remote(epnode, &remote_np);
--			if (!remote_np)
--				continue;
--
--			ret = of_parse_subdev(imxmd, remote_np, remote_is_csi);
--			of_node_put(remote_np);
--			if (ret)
--				break;
--		}
--
--		if (port != sd_np)
--			of_node_put(port);
--		if (ret) {
--			of_node_put(epnode);
--			break;
--		}
--	}
--
--	return ret;
-+	return 0;
- }
- 
- int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
-@@ -147,7 +57,7 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 		if (!csi_np)
- 			break;
- 
--		ret = of_parse_subdev(imxmd, csi_np, true);
-+		ret = of_add_csi(imxmd, csi_np);
- 		of_node_put(csi_np);
- 		if (ret)
- 			return ret;
+On naming --- "size" is rather more generic, but it's not a long function
+either. I'd be a bit more specific, e.g. ioc_size or arg_size.
+
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 672ab22ccd96..a5dab16ff2d2 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -2833,14 +2833,15 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>  	size_t  array_size = 0;
+>  	void __user *user_ptr = NULL;
+>  	void	**kernel_ptr = NULL;
+> +	size_t	size = _IOC_SIZE(cmd);
+>  
+>  	/*  Copy arguments into temp kernel buffer  */
+>  	if (_IOC_DIR(cmd) != _IOC_NONE) {
+> -		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
+> +		if (size <= sizeof(sbuf)) {
+>  			parg = sbuf;
+>  		} else {
+>  			/* too big to allocate from stack */
+> -			mbuf = kvmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
+> +			mbuf = kvmalloc(size, GFP_KERNEL);
+>  			if (NULL == mbuf)
+>  				return -ENOMEM;
+>  			parg = mbuf;
+> @@ -2848,7 +2849,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>  
+>  		err = -EFAULT;
+>  		if (_IOC_DIR(cmd) & _IOC_WRITE) {
+> -			unsigned int n = _IOC_SIZE(cmd);
+> +			unsigned int n = size;
+>  
+>  			/*
+>  			 * In some cases, only a few fields are used as input,
+> @@ -2869,11 +2870,11 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>  				goto out;
+>  
+>  			/* zero out anything we don't copy from userspace */
+> -			if (n < _IOC_SIZE(cmd))
+> -				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
+> +			if (n < size)
+> +				memset((u8 *)parg + n, 0, size - n);
+>  		} else {
+>  			/* read-only ioctl */
+> -			memset(parg, 0, _IOC_SIZE(cmd));
+> +			memset(parg, 0, size);
+>  		}
+>  	}
+>  
+> @@ -2931,7 +2932,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>  	switch (_IOC_DIR(cmd)) {
+>  	case _IOC_READ:
+>  	case (_IOC_WRITE | _IOC_READ):
+> -		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
+> +		if (copy_to_user((void __user *)arg, parg, size))
+>  			err = -EFAULT;
+>  		break;
+>  	}
+
 -- 
-2.7.4
+Sakari Ailus
+sakari.ailus@linux.intel.com
