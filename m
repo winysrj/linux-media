@@ -1,121 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:46452 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426315AbeCBOq6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:46:58 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
-        joe@perches.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 01/11] media: tw9910: Re-order variables declaration
-Date: Fri,  2 Mar 2018 15:46:33 +0100
-Message-Id: <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from osg.samsung.com ([64.30.133.232]:38821 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754037AbeCWL5a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 13/30] media: cx88: fix two warnings
+Date: Fri, 23 Mar 2018 07:56:59 -0400
+Message-Id: <aea629c1261f9a8ba06a8ee93b45ac5bd4475943.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Re-order variables declaration to respect 'reverse christmas tree'
-ordering whenever possible.
+drivers/media/pci/cx88/cx88-alsa.c:295 cx88_alsa_dma_init() warn: argument 3 to %08lx specifier is cast from pointer
+drivers/media/pci/cx88/cx88-alsa.c:669 snd_cx88_wm8775_volume_put() warn: potential negative subtraction from max '65535 - (32768 * left) / right'
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/tw9910.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/media/pci/cx88/cx88-alsa.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index cc648de..3a5e307 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index 9740326bc93f..ab09bb55cf45 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -292,8 +292,8 @@ static int cx88_alsa_dma_init(struct cx88_audio_dev *chip, int nr_pages)
+ 		return -ENOMEM;
+ 	}
  
- static int tw9910_power(struct i2c_client *client, int enable)
+-	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+-		(unsigned long)buf->vaddr, nr_pages << PAGE_SHIFT);
++	dprintk(1, "vmalloc is at addr %p, size=%d\n",
++		buf->vaddr, nr_pages << PAGE_SHIFT);
+ 
+ 	memset(buf->vaddr, 0, nr_pages << PAGE_SHIFT);
+ 	buf->nr_pages = nr_pages;
+@@ -656,8 +656,8 @@ static void snd_cx88_wm8775_volume_put(struct snd_kcontrol *kcontrol,
  {
--	int ret;
- 	u8 acntl1;
- 	u8 acntl2;
-+	int ret;
+ 	struct cx88_audio_dev *chip = snd_kcontrol_chip(kcontrol);
+ 	struct cx88_core *core = chip->core;
+-	int left = value->value.integer.value[0];
+-	int right = value->value.integer.value[1];
++	u16 left = value->value.integer.value[0];
++	u16 right = value->value.integer.value[1];
+ 	int v, b;
  
- 	if (enable) {
- 		acntl1 = 0;
-@@ -428,8 +428,8 @@ static int tw9910_power(struct i2c_client *client, int enable)
- static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
- 							  u32 width, u32 height)
- {
--	const struct tw9910_scale_ctrl *scale;
- 	const struct tw9910_scale_ctrl *ret = NULL;
-+	const struct tw9910_scale_ctrl *scale;
- 	__u32 diff = 0xffffffff, tmp;
- 	int size, i;
- 
-@@ -462,8 +462,8 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct tw9910_priv *priv = to_tw9910(client);
--	u8 val;
- 	int ret;
-+	u8 val;
- 
- 	if (!enable) {
- 		switch (priv->revision) {
-@@ -512,10 +512,10 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct tw9910_priv *priv = to_tw9910(client);
--	const unsigned int hact = 720;
- 	const unsigned int hdelay = 15;
--	unsigned int vact;
-+	const unsigned int hact = 720;
- 	unsigned int vdelay;
-+	unsigned int vact;
- 	int ret;
- 
- 	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
-@@ -760,8 +760,8 @@ static int tw9910_get_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *format)
- {
--	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct tw9910_priv *priv = to_tw9910(client);
- 
- 	if (format->pad)
-@@ -813,8 +813,8 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *format)
- {
--	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *mf = &format->format;
- 	struct tw9910_priv *priv = to_tw9910(client);
- 	const struct tw9910_scale_ctrl *scale;
- 
-@@ -852,8 +852,8 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
- static int tw9910_video_probe(struct i2c_client *client)
- {
- 	struct tw9910_priv *priv = to_tw9910(client);
--	s32 id;
- 	int ret;
-+	s32 id;
- 
- 	/*
- 	 * tw9910 only use 8 or 16 bit bus width
-@@ -949,10 +949,9 @@ static int tw9910_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- 
- {
--	struct tw9910_priv		*priv;
--	struct tw9910_video_info	*info;
--	struct i2c_adapter		*adapter =
--		to_i2c_adapter(client->dev.parent);
-+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-+	struct tw9910_video_info *info;
-+	struct tw9910_priv *priv;
- 	int ret;
- 
- 	if (!client->dev.platform_data) {
+ 	/* Pass volume & balance onto any WM8775 */
 -- 
-2.7.4
+2.14.3
