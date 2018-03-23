@@ -1,117 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:41364 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752259AbeC3TpY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Mar 2018 15:45:24 -0400
-Date: Fri, 30 Mar 2018 15:45:19 -0400
-From: Jerome Glisse <jglisse@redhat.com>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        Will Davis <wdavis@nvidia.com>, Joerg Roedel <joro@8bytes.org>,
-        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
-Message-ID: <20180330194519.GC3198@redhat.com>
-References: <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
- <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
- <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
- <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
- <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
- <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
- <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
- <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
- <20180330015854.GA3572@redhat.com>
- <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
+Received: from mail-vk0-f46.google.com ([209.85.213.46]:37234 "EHLO
+        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751400AbeCWPXz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 11:23:55 -0400
+Received: by mail-vk0-f46.google.com with SMTP id u200so7507162vke.4
+        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2018 08:23:55 -0700 (PDT)
+Received: from mail-vk0-f50.google.com (mail-vk0-f50.google.com. [209.85.213.50])
+        by smtp.gmail.com with ESMTPSA id a9sm1742634vke.40.2018.03.23.08.23.53
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 23 Mar 2018 08:23:53 -0700 (PDT)
+Received: by mail-vk0-f50.google.com with SMTP id w82so7503809vkd.11
+        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2018 08:23:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
+In-Reply-To: <7fd4debd-5537-a261-06f0-c2ab1ca3b33d@xs4all.nl>
+References: <7fd4debd-5537-a261-06f0-c2ab1ca3b33d@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Sat, 24 Mar 2018 00:23:32 +0900
+Message-ID: <CAAFQd5CijUyMcuZ_TL84p-0=xBh=fQ6AH3czOg74Ceg3Dp8A2w@mail.gmail.com>
+Subject: Re: [RFCv2] Request API
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Pawel Osciak <pawel@osciak.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 30, 2018 at 12:46:42PM -0600, Logan Gunthorpe wrote:
-> 
-> 
-> On 29/03/18 07:58 PM, Jerome Glisse wrote:
-> > On Thu, Mar 29, 2018 at 10:25:52AM -0600, Logan Gunthorpe wrote:
-> >>
-> >>
-> >> On 29/03/18 10:10 AM, Christian König wrote:
-> >>> Why not? I mean the dma_map_resource() function is for P2P while other 
-> >>> dma_map_* functions are only for system memory.
-> >>
-> >> Oh, hmm, I wasn't aware dma_map_resource was exclusively for mapping
-> >> P2P. Though it's a bit odd seeing we've been working under the
-> >> assumption that PCI P2P is different as it has to translate the PCI bus
-> >> address. Where as P2P for devices on other buses is a big unknown.
-> > 
-> > dma_map_resource() is the right API (thought its current implementation
-> > is fill with x86 assumptions). So i would argue that arch can decide to
-> > implement it or simply return dma error address which trigger fallback
-> > path into the caller (at least for GPU drivers). SG variant can be added
-> > on top.
-> > 
-> > dma_map_resource() is the right API because it has all the necessary
-> > informations. It use the CPU physical address as the common address
-> > "language" with CPU physical address of PCIE bar to map to another
-> > device you can find the corresponding bus address from the IOMMU code
-> > (NOP on x86). So dma_map_resource() knows both the source device which
-> > export its PCIE bar and the destination devices.
-> 
-> Well, as it is today, it doesn't look very sane to me. The default is to
-> just return the physical address if the architecture doesn't support it.
-> So if someone tries this on an arch that hasn't added itself to return
-> an error they're very likely going to just end up DMAing to an invalid
-> address and loosing the data or causing a machine check.
+Hi Hans,
 
-Looking at upstream code it seems that the x86 bits never made it upstream
-and thus what is now upstream is only for ARM. See [1] for x86 code. Dunno
-what happen, i was convince it got merge. So yes current code is broken on
-x86. ccing Joerg maybe he remembers what happened there.
+On Fri, Mar 23, 2018 at 5:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> RFC Request API, version 2
+> --------------------------
+>
+> This document proposes the public API for handling requests.
+>
+> There has been some confusion about how to do this, so this summarizes the
+> current approach based on conversations with the various stakeholders today
+> (Sakari, Alexandre Courbot, Thomasz Figa and myself).
+>
+> 1) Additions to the media API
+>
+>    Allocate an empty request object:
+>
+>    #define MEDIA_IOC_REQUEST_ALLOC _IOW('|', 0x05, __s32 *)
+>
+>    This will return a file descriptor representing the request or an error
+>    if it can't allocate the request.
+>
+>    If the pointer argument is NULL, then this will just return 0 (if this ioctl
+>    is implemented) or -ENOTTY otherwise. This can be used to test whether this
+>    ioctl is supported or not without actually having to allocate a request.
+>
+> 2) Operations on the request fd
+>
+>    You can queue or reinit a request by calling these ioctls on the request fd:
+>
+>    #define MEDIA_REQUEST_IOC_QUEUE   _IO('|',  128)
+>    #define MEDIA_REQUEST_IOC_REINIT  _IO('|',  129)
+>
+>    With REINIT you reset the state of the request as if you had just allocated
+>    it.
+>
+>    You can poll the request fd to wait for it to complete.
+>
+>    To free a request you close the request fd. Note that it may still be in
+>    use internally, so the internal datastructures have to be refcounted.
+>
+>    For this initial implementation only buffers and controls are contained
+>    in a request. This is needed to implement stateless codecs. Supporting
+>    complex camera pipelines will require more work.
+>
+>    Requests only contain the changes to the state at request queue time
+>    relative to the previously queued request(s) or the current hardware state
+>    if no other requests were queued.
+>
+>    Once a request is completed it will retain the state at completion
+>    time.
+>
+> 3) To associate a v4l2 buffer with a request the 'reserved' field in struct
+>    v4l2_buffer is used to store the request fd. Buffers won't be 'prepared'
+>    until the request is queued since the request may contain information that
+>    is needed to prepare the buffer.
+>
+>    To indicate that request_fd should be used this flag should be set by
+>    userspace at QBUF time:
+>
+> #define V4L2_BUF_FLAG_REQUEST                   0x00800000
+>
+>    This flag will also be returned by the driver to indicate that the buffer
+>    is associated with a request.
+>
+>    TBD: what should vb2 return as request_fd value if this flag is set?
+>    This should act the same as the fence patch series and this is still
+>    being tweaked so let's wait for that to be merged first, then we can
+>    finalize this.
+>
+> 4) To associate v4l2 controls with a request we take the first of the
+>    'reserved[2]' array elements in struct v4l2_ext_controls and use it to store
+>    the request fd.
+>
+>    We also add a new WHICH value:
+>
+> #define V4L2_CTRL_WHICH_REQUEST   0x0f010000
+>
+>    This tells the control framework to get/set controls from the given
+>    request fd.
+>
+>    When querying a control value from a request it will return the newest
+>    value in the list of pending requests, or the current hardware value if
+>    is not set in any of the pending requests.
+>
+>    When a request is completed the controls will no longer change. A copy
+>    will be made of volatile controls at the time of completion (actually
+>    it will be up to the driver to decide when to do that).
+>
+>    Volatile controls and requests:
+>
+>    - If you set a volatile control in a request, then that will be ignored,
+>      unless the V4L2_CTRL_FLAG_EXECUTE_ON_WRITE flag is set as well.
+>
+>    - If you get a volatile control from a request then:
+>      1) If the request is completed it will return the value of the volatile
+>         control at completion time.
+>      2) Otherwise: if the V4L2_CTRL_FLAG_EXECUTE_ON_WRITE is set and it was
+>         set in a request, then that value is returned.
+>      3) Otherwise: return the current value from the hardware (i.e. normal
+>         behavior).
+>
+>    Read-only controls and requests:
+>
+>    - If you get a read-only control from a request then:
+>      1) If the request is completed it will return the value of the read-only
+>         control at completion time.
+>      2) Otherwise it will get the current value from the driver (i.e. normal
+>         behavior).
+>
+>    Open issue: should we receive control events if a control in a request is
+>    added/changed? Currently there are no plans to support control events for
+>    requests. I don't see a clear use-case and neither do I see an easy way
+>    of implementing this (which fd would receive those events?).
+>
+> Notes:
+>
+> - Earlier versions of this API had a TRY command as well to validate the
+>   request. I'm not sure that is useful so I dropped it, but it can easily
+>   be added if there is a good use-case for it. Traditionally within V4L the
+>   TRY ioctl will also update wrong values to something that works, but that
+>   is not the intention here as far as I understand it. So the validation
+>   step can also be done when the request is queued and, if it fails, it will
+>   just return an error.
+>
+> - If due to performance reasons we will have to allocate/queue/reinit multiple
+>   requests with a single ioctl, then we will have to add new ioctls to the
+>   media device. At this moment in time it is not clear that this is really
+>   needed and it certainly isn't needed for the stateless codec support that
+>   we are looking at now.
+>
+> - The behavior of VIDIOC_G_EXT_CTRLS with which == V4L2_CTRL_WHICH_CUR_VAL
+>   and VIDIOC_G_CTRL remains the same (i.e. it returns the current driver/HW
+>   values). However, when combined with requests the documentation should make
+>   clear that this returns a snapshot only and is racy w.r.t. applying values
+>   from a request.
+>
+> - There is a discussion whether there should be a VIDIOC_REQUEST_ALLOC ioctl
+>   for V4L2 in addition to the media ioctl. The reason is that stateless codecs
+>   do not need the media controller except for allocating requests. So a V4L2
+>   ioctl would avoid applications from having to deal with a media device.
+>   This would also add additional hassle w.r.t. SELinux as I understand it.
+>
+>   Support for this can be added for now as a final patch in the Request API
+>   patch series and we'll postpone the decision on this.
 
-[1] https://lwn.net/Articles/646605/
+FWIW:
 
-> 
-> Furthermore, the API does not have all the information it needs to do
-> sane things. A phys_addr_t doesn't really tell you anything about the
-> memory behind it or what needs to be done with it. For example, on some
-> arm64 implementations if the physical address points to a PCI BAR and
-> that BAR is behind a switch with the DMA device then the address must be
-> converted to the PCI BUS address. On the other hand, if it's a physical
-> address of a device in an SOC it might need to  be handled in a
-> completely different way. And right now all the implementations I can
-> find seem to just assume that phys_addr_t points to regular memory and
-> can be treated as such.
+Acked-by: Tomasz Figa <tfiga@chromium.org>
 
-Given it is currently only used by ARM folks it appear to at least work
-for them (tm) :) Note that Christian is doing this in PCIE only context
-and again dma_map_resource can easily figure that out if the address is
-a PCIE or something else. Note that the exporter export the CPU bus
-address. So again dma_map_resource has all the informations it will ever
-need, if the peer to peer is fundamentaly un-doable it can return dma
-error and it is up to the caller to handle this, just like GPU code do.
-
-Do you claim that dma_map_resource is missing any information ?
-
-
-> 
-> This is one of the reasons that, based on feedback, our work went from
-> being general P2P with any device to being restricted to only P2P with
-> PCI devices. The dream that we can just grab the physical address of any
-> device and use it in a DMA request is simply not realistic.
-
-I agree and understand that but for platform where such feature make sense
-this will work. For me it is PowerPC and x86 and given PowerPC has CAPI
-which has far more advance feature when it comes to peer to peer, i don't
-see something more basic not working. On x86, Intel is a bit of lone wolf,
-dunno if they gonna support this usecase pro-actively. AMD definitly will.
-
-If you feel like dma_map_resource() can be interpreted too broadly, more
-strict phrasing/wording can be added to it so people better understand its
-limitation and gotcha.
-
-Cheers,
-Jérôme
+Best regards,
+Tomasz
