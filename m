@@ -1,56 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:57373 "EHLO mga05.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:16841 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751416AbeCUP6s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 11:58:48 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: jacopo mondi <jacopo@jmondi.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: RE: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
-Date: Wed, 21 Mar 2018 15:58:42 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D552FBD@PGSMSX111.gar.corp.intel.com>
-References: <1521219926-15329-1-git-send-email-andy.yeh@intel.com>
- <1521219926-15329-3-git-send-email-andy.yeh@intel.com>
- <20180320102817.GB5372@w540>
-In-Reply-To: <20180320102817.GB5372@w540>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        id S1751471AbeCWVS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 17:18:26 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, acourbot@chromium.org
+Subject: [RFC v2 04/10] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Fri, 23 Mar 2018 23:17:38 +0200
+Message-Id: <1521839864-10146-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VGhhbmtzIGZvciB0aGUgY29tbWVudHMuIEEgcXVpY2sgcXVlc3Rpb24gZmlyc3QuIEZvciB0aGUg
-cmVzZXQgd2UgbmVlZCBzb21lIHRpbWUgdG8gYWRkcmVzcy4NCg0KLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0NCkZyb206IGphY29wbyBtb25kaSBbbWFpbHRvOmphY29wb0BqbW9uZGkub3JnXQ0K
-U2VudDogVHVlc2RheSwgTWFyY2ggMjAsIDIwMTggNjoyOCBQTQ0KVG86IFllaCwgQW5keSA8YW5k
-eS55ZWhAaW50ZWwuY29tPg0KQ2M6IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgc2FrYXJp
-LmFpbHVzQGxpbnV4LmludGVsLmNvbTsgZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmc7IENoaWFu
-ZywgQWxhblggPGFsYW54LmNoaWFuZ0BpbnRlbC5jb20+DQpTdWJqZWN0OiBSZTogUkVTRU5EW1BB
-VENIIHY2IDIvMl0gbWVkaWE6IGR3OTgwNzogQWRkIGR3OTgwNyB2Y20gZHJpdmVyDQoNCkhpIEFu
-ZHksDQogICBhIGZldyBjb21tZW50cyBvbiB5b3UgcGF0Y2ggYmVsb3cuLi4NCg0KT24gU2F0LCBN
-YXIgMTcsIDIwMTggYXQgMDE6MDU6MjZBTSArMDgwMCwgQW5keSBZZWggd3JvdGU6DQo+IEZyb206
-IEFsYW4gQ2hpYW5nIDxhbGFueC5jaGlhbmdAaW50ZWwuY29tPiANCj4gYS9kcml2ZXJzL21lZGlh
-L2kyYy9kdzk4MDcuYyBiL2RyaXZlcnMvbWVkaWEvaTJjL2R3OTgwNy5jIG5ldyBmaWxlIA0KPiBt
-b2RlIDEwMDY0NCBpbmRleCAwMDAwMDAwLi45NTYyNmU5DQo+IC0tLSAvZGV2L251bGwNCj4gKysr
-IGIvZHJpdmVycy9tZWRpYS9pMmMvZHc5ODA3LmMNCj4gQEAgLTAsMCArMSwzMjAgQEANCj4gKy8v
-IENvcHlyaWdodCAoQykgMjAxOCBJbnRlbCBDb3Jwb3JhdGlvbiAvLyBTUERYLUxpY2Vuc2UtSWRl
-bnRpZmllcjogDQo+ICtHUEwtMi4wDQo+ICsNCg0KTml0OiBteSB1bmRlcnN0YW5kaW5nIGlzIHRo
-YXQgdGhlIFNQRFggaWRlbnRpZmllciBnb2VzIGZpcnN0DQoNCmh0dHBzOi8vbHduLm5ldC9BcnRp
-Y2xlcy83MzkxODMvDQoNCkkgY2hlY2tlZCB0aGlzIHNpdGUuIEFuZCBpdCBzYXlzIENvcHlyaWdo
-dCBzaG91bGQgYmUgYmVmb3JlIFNQRFggaWRlbnRpZmllci4NCj09PT09PT09PT0gZmlsZTAxLmMg
-PT09PT09PT09PQ0KLy8gQ29weXJpZ2h0IChjKSAyMDEyLTIwMTYgSm9lIFJhbmRvbSBIYWNrZXIg
-Ly8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEJTRC0yLUNsYXVzZSAuLi4NCj09PT09PT09PT0g
-ZmlsZTAyLmMgPT09PT09PT09PQ0KLy8gQ29weXJpZ2h0IChjKSAyMDE3IEpvbiBTZXZlcmluc3Nv
-bg0KLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEJTRC0yLUNsYXVzZSAuLi4NCj09PT09PT09
-PT0gZmlsZTAzLmMgPT09PT09PT09PQ0KLy8gQ29weXJpZ2h0IChjKSAyMDA4IFRoZSBOZXRCU0Qg
-Rm91bmRhdGlvbiwgSW5jLg0KLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEJTRC0yLUNsYXVz
-ZS1OZXRCU0QNCg0KPiArI2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4NCj4gKyNpbmNsdWRlIDxsaW51
-eC9kZWxheS5oPg0KPiArI2luY2x1ZGUgPGxpbnV4L2kyYy5oPg0KPiArI2luY2x1ZGUgPGxpbnV4
-L21vZHVsZS5oPg0KPiArI2luY2x1ZGUgPGxpbnV4L3BtX3J1bnRpbWUuaD4NCj4gKyNpbmNsdWRl
-IDxtZWRpYS92NGwyLWN0cmxzLmg+DQo+ICsjaW5jbHVkZSA8bWVkaWEvdjRsMi1kZXZpY2UuaD4N
-Cj4gKw0KPiArI2RlZmluZSBEVzk4MDdfTkFNRQkJImR3OTgwNyINCj4gKyNkZWZpbmUgRFc5ODA3
-X01BWF9GT0NVU19QT1MJMTAyMw0KPg0K
+From: Alexandre Courbot <acourbot@chromium.org>
+
+Allow to specify a request to be used with the S_EXT_CTRLS and
+G_EXT_CTRLS operations.
+
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+[Sakari Ailus: reserved no longer an array, add compat32 code]
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 9 ++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 2 +-
+ include/uapi/linux/videodev2.h                | 3 ++-
+ 3 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 61a8bd4..9adb367 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -733,7 +733,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved;
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+ };
+ 
+@@ -808,7 +809,8 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &up->count) ||
+ 	    put_user(count, &kp->count) ||
+ 	    assign_in_user(&kp->error_idx, &up->error_idx) ||
+-	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++	    assign_in_user(&kp->request_fd, &up->request_fd) ||
++	    assign_in_user(&kp->reserved, &up->reserved))
+ 		return -EFAULT;
+ 
+ 	if (count == 0)
+@@ -866,7 +868,8 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &kp->count) ||
+ 	    put_user(count, &up->count) ||
+ 	    assign_in_user(&up->error_idx, &kp->error_idx) ||
+-	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)) ||
++	    assign_in_user(&up->request_fd, &kp->request_fd) ||
++	    assign_in_user(&up->reserved, &kp->reserved) ||
+ 	    get_user(kcontrols, &kp->controls))
+ 		return -EFAULT;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index c2671de..85c4bb9 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
+ 
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d39932d..e6e68a5 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1593,7 +1593,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved;
+ 	struct v4l2_ext_control *controls;
+ };
+ 
+-- 
+2.7.4
