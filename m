@@ -1,133 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38228 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751151AbeCIQ2m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 11:28:42 -0500
-Subject: Re: [PATCH v12 11/33] rcar-vin: set a default field to fallback on
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-12-niklas.soderlund+renesas@ragnatech.se>
- <4181fb92-5ac9-9ad8-a60d-65c57f5baaa0@xs4all.nl>
- <20180309161711.GI2205@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <074a1f52-2faf-6025-58b2-364def833b80@xs4all.nl>
-Date: Fri, 9 Mar 2018 17:28:39 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180309161711.GI2205@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mga07.intel.com ([134.134.136.100]:36028 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752180AbeCWVS1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 17:18:27 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, acourbot@chromium.org
+Subject: [RFC v2 00/10] Preparing the request API
+Date: Fri, 23 Mar 2018 23:17:34 +0200
+Message-Id: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/18 17:17, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> Thanks for your feedback, I don't think I can appreciate how happy I'm 
-> that you reviewed this patch-set, Thank you!
+Hi folks,
 
-You're welcome!
+This preliminary RFC patchset prepares for the request API. What's new
+here is support for binding arbitrary configuration or resources to
+requests.
 
-> 
-> On 2018-03-09 16:25:23 +0100, Hans Verkuil wrote:
->> On 07/03/18 23:04, Niklas Söderlund wrote:
->>> If the field is not supported by the driver it should not try to keep
->>> the current field. Instead it should set it to a default fallback. Since
->>> trying a format should always result in the same state regardless of the
->>> current state of the device.
->>>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> ---
->>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++------
->>>  1 file changed, 3 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->>> index c2265324c7c96308..ebcd78b1bb6e8cb6 100644
->>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
->>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->>> @@ -23,6 +23,7 @@
->>>  #include "rcar-vin.h"
->>>  
->>>  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
->>> +#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
->>>  
->>>  /* -----------------------------------------------------------------------------
->>>   * Format Conversions
->>> @@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
->>>  	case V4L2_FIELD_INTERLACED:
->>>  		break;
->>>  	default:
->>> -		vin->format.field = V4L2_FIELD_NONE;
->>> +		vin->format.field = RVIN_DEFAULT_FIELD;
->>>  		break;
->>>  	}
->>>  
->>> @@ -213,10 +214,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
->>>  	u32 walign;
->>>  	int ret;
->>>  
->>> -	/* Keep current field if no specific one is asked for */
->>> -	if (pix->field == V4L2_FIELD_ANY)
->>> -		pix->field = vin->format.field;
->>> -
->>>  	/* If requested format is not supported fallback to the default */
->>>  	if (!rvin_format_from_pixel(pix->pixelformat)) {
->>>  		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
->>> @@ -246,7 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
->>>  	case V4L2_FIELD_INTERLACED:
->>>  		break;
->>>  	default:
->>> -		pix->field = V4L2_FIELD_NONE;
->>> +		pix->field = RVIN_DEFAULT_FIELD;
->>>  		break;
->>>  	}
->>>  
->>>
->>
->> I wonder if this code is correct. What if the adv7180 is the source? Does that even
->> support FIELD_NONE? I suspect that the default field should actually depend on the
->> source. FIELD_NONE for dv_timings based or sensor based subdevs and FIELD_INTERLACED
->> for SDTV (g/s_std) subdevs.
-> 
-> I see what you mean but I think this is correct. The field is only set 
-> to V4L2_FIELD_NONE if the field returned from the source is not one of 
-> TOP, BOTTOM, ALTERNATE, NONE, INERLACED, INTERLACED_TB, INTERLACED_BT.  
-> So it works perfectly with the adv7180 as it will return 
-> V4L2_FIELD_INTERLACED and then VIN will accept that and not change it.  
-> So the field do depend on the source both before and after this change.
+There are a few new concepts here:
 
-Is it? If I pass FIELD_ANY to VIDIOC_TRY_FMT then that is passed to the
-adv7180 via __rvin_try_format and __rvin_try_format_source. But
-__rvin_try_format_source puts back the old field value after calling
-set_fmt for the adv7180 (pix->field = field).
+Class --- a type of configuration or resource a driver (or e.g. the V4L2
+framework) can attach to a resource. E.g. a video buffer queue would be a
+class.
 
-So pix->field is still FIELD_ANY when it enters the switch and so falls
-into the default case and it becomes FIELD_NONE.
+Object --- an instance of the class. This may be either configuration (in
+which case the setting will stay until changed, e.g. V4L2 format on a
+video node) or a resource (such as a video buffer).
 
-What's weird is the 'pix->field = field' in __rvin_try_format_source().
-Could that be a bug? Without that line what you say here would be correct.
+Reference --- a reference to an object. If a configuration is not changed
+in a request, instead of allocating a new object, a reference to an
+existing object is used. This saves time and memory.
 
-Regards,
+I expect Laurent to comment on aligning the concept names between the
+request API and DRM. As far as I understand, the respective DRM names for
+"class" and "object" used in this set would be "object" and "state".
 
-	Hans
+The drivers will need to interact with the requests in three ways:
 
-> 
-> This check is just to block the driver reporting SEQ_TB/BT if a source 
-> where to report that (I known of no source who reports that) to 
-> userspace as the driver do not yet support this.  I have patches to add 
-> support for this but I will keep them back until this series are picked 
-> up :-)
-> 
->>
->> I might very well be missing something here but it looks suspicious.
->>
->> Regards,
->>
->> 	Hans
-> 
+- Allocate new configurations or resources. Drivers are free to store
+  their own data into request objects as well. These callbacks are
+  specific to classes.
+
+- Validate and queue callbacks. These callbacks are used to try requests
+  (validate only) as well as queue them (validate and queue). These
+  callbacks are media device wide, at least for now.
+
+The lifetime of the objects related to requests is based on refcounting
+both requests and request objects. This fits well for existing use cases
+whether or not based on refcounting; what still needs most of the
+attention is likely that the number of gets and puts matches once the
+object is no longer needed.
+
+Configuration can be bound to the request the usual way (V4L2 IOCTLs with
+the request_fd field set to the request). Once queued, request completion
+is signalled through polling the request file handle (POLLPRI).
+
+I'm posting this as an RFC because it's not complete yet. The code
+compiles but no testing has been done yet.
+
+Todo list:
+
+- Testing! (And fixing the bugs.)
+
+- Request support in a few drivers as well as the control framework.
+
+- Request support for V4L2 formats?
+
+In the future, support for changing e.g. Media controller link state or
+V4L2 sub-device formats will need to be added. Those should receive more
+attention when the core is in a good shape and the more simple use cases
+are already functional.
+
+Comments and questions are welcome.
+
+since v1:
+
+- Provide an iterator helper for request objects in a request.
+
+- Remove the request lists in the media device (they were not used)
+
+- Move request queing to request fd and add reinit (Alexandre's patchset);
+  this roughly corresponds to Request API RFC v2 from Hans.
+  (MEDIA_IOC_REQUEST_ALLOC argument is a struct pointer instead of an
+  __s32 pointer.)
+
+- Provide a way to unbind request objects from an unqueued request
+  (reinit, closing request fd).
+
+- v4l2-mem2mem + vivid implementation without control support.
+
+- More states for requests. In order to take a spinlock (or a mutex) for
+  an extended period of time, add a "QUEUEING" and "REINIT" states.
+
+- Move non-IOCTL code to media-request.c, remove extra filp argument that
+  was added in v1.
+
+- SPDX license header, other small changes.
+
+Open questions:
+
+- How to tell at complete time whether a request failed? Return error code
+  on release? What's the behaviour with reinit then --- fail on error? Add
+  another IOCTL to ask for completion status?
+
+
+Alexandre Courbot (1):
+  videodev2.h: add request_fd field to v4l2_ext_controls
+
+Hans Verkuil (1):
+  videodev2.h: Add request_fd field to v4l2_buffer
+
+Laurent Pinchart (1):
+  media: Add request API
+
+Sakari Ailus (7):
+  media: Support variable size IOCTL arguments
+  staging: media: atomisp: Remove v4l2_buffer.reserved2 field hack
+  vb2: Add support for requests
+  v4l: m2m: Simplify exiting the function in v4l2_m2m_try_schedule
+  v4l: m2m: Support requests with video buffers
+  vim2m: Register V4L2 video device after V4L2 mem2mem init
+  vim2m: Request support
+
+ drivers/media/Makefile                             |   3 +-
+ drivers/media/common/videobuf2/videobuf2-core.c    |  43 +-
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    |  40 +-
+ drivers/media/media-device.c                       |  80 ++-
+ drivers/media/media-request.c                      | 650 +++++++++++++++++++++
+ drivers/media/platform/vim2m.c                     |  76 ++-
+ drivers/media/usb/cpia2/cpia2_v4l.c                |   2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  16 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   6 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             | 131 ++++-
+ .../media/atomisp/pci/atomisp2/atomisp_ioctl.c     |  17 +-
+ include/media/media-device.h                       |  19 +-
+ include/media/media-request.h                      | 301 ++++++++++
+ include/media/v4l2-mem2mem.h                       |  28 +
+ include/media/videobuf2-core.h                     |  19 +
+ include/media/videobuf2-v4l2.h                     |  28 +
+ include/uapi/linux/media.h                         |   8 +
+ include/uapi/linux/videodev2.h                     |   6 +-
+ 18 files changed, 1408 insertions(+), 65 deletions(-)
+ create mode 100644 drivers/media/media-request.c
+ create mode 100644 include/media/media-request.h
+
+-- 
+2.7.4
