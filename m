@@ -1,58 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:37639 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751721AbeCCLrf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2018 06:47:35 -0500
-Received: by mail-qt0-f195.google.com with SMTP id r16so15093832qtm.4
-        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2018 03:47:35 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de,
-        gustavo@embeddedor.com, linux-media@vger.kernel.org,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH v2 2/2] media: imx-media-csi: Do not propagate the error when pinctrl is not found
-Date: Sat,  3 Mar 2018 08:47:15 -0300
-Message-Id: <1520077635-21464-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1520077635-21464-1-git-send-email-festevam@gmail.com>
-References: <1520077635-21464-1-git-send-email-festevam@gmail.com>
+Received: from mga17.intel.com ([192.55.52.151]:1246 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751400AbeCWPb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 11:31:56 -0400
+Date: Fri, 23 Mar 2018 17:31:53 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Bring back array_size parameter to
+ v4l2_find_nearest_size
+Message-ID: <20180323153152.377whg5qyolvsuxq@kekkonen.localdomain>
+References: <20180323134841.21408-1-sakari.ailus@linux.intel.com>
+ <20180323110742.4d055035@vento.lan>
+ <20180323110855.51989894@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180323110855.51989894@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+On Fri, Mar 23, 2018 at 11:08:55AM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri, 23 Mar 2018 11:07:42 -0300
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> 
+> > Em Fri, 23 Mar 2018 15:48:41 +0200
+> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > 
+> > > An older version of the driver patches were merged accidentally which
+> > > resulted in missing the array_size parameter that tells the length of the
+> > > array that contains the different supported sizes.
+> > > 
+> > > Bring it back to v4l2_find_nearest size and make the corresponding change
+> > > for the drivers using it as well.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > ---
+> > > Hi Mauro,
+> > > 
+> > > Here's the patch I mentioned. It restores the intended state of the
+> > > v4l2_find_nearest_size() API as it was reviewed and acked (by Hans).
+> > > 
+> > > This time the exact patch is tested for vivid.
+> > > 
+> > >  drivers/media/i2c/ov13858.c                  | 5 +++--
+> > >  drivers/media/i2c/ov5670.c                   | 5 +++--
+> > >  drivers/media/platform/vivid/vivid-vid-cap.c | 5 +++--
+> > >  include/media/v4l2-common.h                  | 5 +++--
+> > >  4 files changed, 12 insertions(+), 8 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> > > index 30ee9f71bf0d..420af1e32d4e 100644
+> > > --- a/drivers/media/i2c/ov13858.c
+> > > +++ b/drivers/media/i2c/ov13858.c
+> > > @@ -1375,8 +1375,9 @@ ov13858_set_pad_format(struct v4l2_subdev *sd,
+> > >  	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
+> > >  		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> > >  
+> > > -	mode = v4l2_find_nearest_size(supported_modes, width, height,
+> > > -				      fmt->format.width, fmt->format.height);
+> > > +	mode = v4l2_find_nearest_size(
+> > > +		supported_modes, ARRAY_SIZE(supported_modes), width, height,
+> > > +		fmt->format.width, fmt->format.height);  
+> > 
+> > 
+> > Nitpick... I find ugly and arder to mentally parse things like the above,
 
-Since commit 52e17089d185 ("media: imx: Don't initialize vars that
-won't be used") imx_csi_probe() fails to probe after propagating the
-devm_pinctrl_get_select_default() error.
+Ok, I'll send v2.
 
-devm_pinctrl_get_select_default() may return -ENODEV when the CSI pinctrl
-entry is not found, so better not to propagate the error in the -ENODEV
-case to avoid a regression.
-drivers/staging/media/imx/imx-media-csi.c
-Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
-Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
-Changes since v1:
-- Add \n to the dbg message
+> 
+> 	"arder" -> "harder"
+> 
+> My keyboard sometimes is losing keystrokes. It seems it is approaching
+> the time to replace it again.
 
- drivers/staging/media/imx/imx-media-csi.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Perhaps an IBM model M? I once tried one but my fingers started to ache.
+:-9 So I'm still using my Keytronic keyboard from 1994. :-D
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 4f290a0..5af66f6 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1799,7 +1799,10 @@ static int imx_csi_probe(struct platform_device *pdev)
- 	pinctrl = devm_pinctrl_get_select_default(priv->dev);
- 	if (IS_ERR(pinctrl)) {
- 		ret = PTR_ERR(pinctrl);
--		goto free;
-+		dev_dbg(priv->dev,
-+			"devm_pinctrl_get_select_default() failed: %d\n", ret);
-+		if (ret != -ENODEV)
-+			goto free;
- 	}
- 
- 	ret = v4l2_async_register_subdev(&priv->sd);
 -- 
-2.7.4
+Cheers,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
