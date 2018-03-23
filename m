@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:43119 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755821AbeCSPn3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 11:43:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/8] media-ioc-g-topology.rst: fix 'reserved' sizes
-Date: Mon, 19 Mar 2018 16:43:17 +0100
-Message-Id: <20180319154324.37799-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
-References: <20180319154324.37799-1-hverkuil@xs4all.nl>
+Received: from ns.mm-sol.com ([37.157.136.199]:37557 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751175AbeCWEKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 00:10:06 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v2 0/2] Add support for ov7251 camera sensor
+Date: Fri, 23 Mar 2018 12:09:37 +0800
+Message-Id: <1521778179-8562-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
+Sensor from Omnivision.
 
-The size of the reserved arrays in the documentation is wrong. Sync
-this with the actual header.
+--------------------------------------------------------------------------
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Version 2:
+- changed ov7251 node's name in DT binding example;
+- SPDX licence identifier;
+- better names for register value defines;
+- remove power reference counting and leave a power state only;
+- use v4l2_find_nearest_size() to find sensor mode by requested size;
+- set ycbcr_enc, quantization and xfer_func in set_fmt;
+- use struct fwnode_handle instead of struct device_node;
+- add comment in driver about external clock value.
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index c8f9ea37db2d..fca4a22f6a45 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -211,7 +211,7 @@ desired arrays with the media graph elements.
- 
-        -  __u32
- 
--       -  ``reserved``\ [12]
-+       -  ``reserved``\ [6]
- 
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
-@@ -334,7 +334,7 @@ desired arrays with the media graph elements.
- 
-        -  __u32
- 
--       -  ``reserved``\ [9]
-+       -  ``reserved``\ [5]
- 
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
-@@ -390,7 +390,7 @@ desired arrays with the media graph elements.
- 
-        -  __u32
- 
--       -  ``reserved``\ [5]
-+       -  ``reserved``\ [6]
- 
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
+--------------------------------------------------------------------------
+
+Todor Tomov (2):
+  dt-bindings: media: Binding document for OV7251 camera sensor
+  media: Add a driver for the ov7251 camera sensor
+
+ .../devicetree/bindings/media/i2c/ov7251.txt       |   51 +
+ drivers/media/i2c/Kconfig                          |   13 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov7251.c                         | 1494 ++++++++++++++++++++
+ 4 files changed, 1559 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
+ create mode 100644 drivers/media/i2c/ov7251.c
+
 -- 
-2.15.1
+2.7.4
