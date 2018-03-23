@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44888 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754038AbeCWL5d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39102 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751491AbeCWO3u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 10:29:50 -0400
+Date: Fri, 23 Mar 2018 16:29:48 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Andy Yeh <andy.yeh@intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Dean A <dean@sensoray.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        =?UTF-8?q?Christopher=20D=C3=ADaz=20Riveros?= <chrisadr@gentoo.org>
-Subject: [PATCH 18/30] media: s2255drv: fix a casting warning
-Date: Fri, 23 Mar 2018 07:57:04 -0400
-Message-Id: <86f181c766218390ed8fff247a6dd4c9c2c1c5ae.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        Alan Chiang <alanx.chiang@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: Re: [PATCH v9.1] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180323142948.texcmjflbgpk2ma7@valkosipuli.retiisi.org.uk>
+References: <1521218319-14972-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5Cbn1sqRWq6A6xYthkHtFjHaa64URDiKDMXOpDPr1r5EA@mail.gmail.com>
+ <20180323135024.qxd633qccv5rtid3@paasikivi.fi.intel.com>
+ <CAAFQd5ATcV-kWCw+QQfA986G-gwSw2FUZ93Ox_m=fkjixtyuQA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5ATcV-kWCw+QQfA986G-gwSw2FUZ93Ox_m=fkjixtyuQA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/s2255/s2255drv.c:651 s2255_fillbuff() warn: argument 3 to %08lx specifier is cast from pointer
+On Fri, Mar 23, 2018 at 11:08:11PM +0900, Tomasz Figa wrote:
+> On Fri, Mar 23, 2018 at 10:50 PM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > Hi Tomasz,
+> >
+> > On Fri, Mar 23, 2018 at 08:43:50PM +0900, Tomasz Figa wrote:
+> >> Hi Andy,
+> >>
+> >> Some issues found when reviewing cherry pick of this patch to Chrome
+> >> OS kernel. Please see inline.
+> >>
+> >> On Sat, Mar 17, 2018 at 1:38 AM, Andy Yeh <andy.yeh@intel.com> wrote:
+> >>
+> >> [snip]
+> >>
+> >> > +       case V4L2_CID_VBLANK:
+> >> > +               /*
+> >> > +                * Auto Frame Length Line Control is enabled by default.
+> >> > +                * Not need control Vblank Register.
+> >> > +                */
+> >>
+> >> What is the meaning of this control then? Should it be read-only?
+> >
+> > The read-only flag is for the uAPI; the control framework still passes
+> > through changes to the control value done using kAPI to the driver.
+> 
+> The read-only flag is not even set in current code.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/s2255/s2255drv.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Ah, you're right, it's just hblank... but if the driver doesn't support
+setting this control, then it should most likely be read-only. It would
+seem like that the driver just updates the control to convey the value to
+the user.
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index a00a15f55d37..82927eb334c4 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -648,8 +648,8 @@ static void s2255_fillbuff(struct s2255_vc *vc,
- 		pr_err("s2255: =======no frame\n");
- 		return;
- 	}
--	dprintk(dev, 2, "s2255fill at : Buffer 0x%08lx size= %d\n",
--		(unsigned long)vbuf, pos);
-+	dprintk(dev, 2, "s2255fill at : Buffer %p size= %d\n",
-+		vbuf, pos);
- }
- 
- 
+> 
+> Also, I'm not sure about the control framework setting read-only
+> control. According to the code, it doesn't:
+> https://elixir.bootlin.com/linux/latest/source/drivers/media/v4l2-core/v4l2-ctrls.c#L2477
+
+If you set the control using e.g. v4l2_ctrl_s_ctrl(), it should end up to
+the driver's s_ctrl callback.
+
 -- 
-2.14.3
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
