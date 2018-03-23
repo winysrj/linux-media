@@ -1,44 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:48028 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426315AbeCBOrI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:47:08 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com,
-        joe@perches.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 05/11] media: tw9910: Replace msleep(1) with usleep_range
-Date: Fri,  2 Mar 2018 15:46:37 +0100
-Message-Id: <1520002003-10200-6-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from osg.samsung.com ([64.30.133.232]:46822 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754069AbeCWL5h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:37 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 30/30] media: cec-core: fix a bug at cec_error_inj_write()
+Date: Fri, 23 Mar 2018 07:57:16 -0400
+Message-Id: <c1b1e1d6a1588d099720f8c6509736b01ccdc6ae.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-msleep() can sleep up to 20ms.
+If the adapter doesn't have error_inj_parse_line() ops, the
+write() logic won't return -EINVAL, but, instead, it will keep
+looping, because "count" is a non-negative number.
 
-As suggested by Documentation/timers/timers_howto.txt replace it with
-usleep_range() with up to 5ms delay.
-
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/tw9910.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/cec/cec-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index 9c12bda..6f2f1d7 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -401,7 +401,7 @@ static int tw9910_set_hsync(struct i2c_client *client)
- static void tw9910_reset(struct i2c_client *client)
- {
- 	tw9910_mask_set(client, ACNTL1, SRESET, SRESET);
--	msleep(1);
-+	usleep_range(1000, 5000);
- }
- 
- static int tw9910_power(struct i2c_client *client, int enable)
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index ea3eccfdba15..b0c87f9ea08f 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -209,14 +209,14 @@ static ssize_t cec_error_inj_write(struct file *file,
+ 	if (IS_ERR(buf))
+ 		return PTR_ERR(buf);
+ 	p = buf;
+-	while (p && *p && count >= 0) {
++	while (p && *p) {
+ 		p = skip_spaces(p);
+ 		line = strsep(&p, "\n");
+ 		if (!*line || *line == '#')
+ 			continue;
+ 		if (!adap->ops->error_inj_parse_line(adap, line)) {
+-			count = -EINVAL;
+-			break;
++			kfree(buf);
++			return -EINVAL;
+ 		}
+ 	}
+ 	kfree(buf);
 -- 
-2.7.4
+2.14.3
