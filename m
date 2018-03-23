@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:51795 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425880AbeCBJhb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 04:37:31 -0500
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH] media: doc: poll: fix links to dual-ioctl sections
-Date: Fri,  2 Mar 2018 10:37:20 +0100
-Message-Id: <1519983440-9724-1-git-send-email-luca@lucaceresoli.net>
+Received: from osg.samsung.com ([64.30.133.232]:56852 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754058AbeCWL5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:36 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>
+Subject: [PATCH 28/30] media: tm6000:  avoid casting just to print pointer address
+Date: Fri, 23 Mar 2018 07:57:14 -0400
+Message-Id: <e771bdf595ce7b297d9d50918300220f4981b5da.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Links like :ref:`VIDIOC_STREAMON` expand to "ioctl VIDIOC_STREAMON,
-VIDIOC_STREAMOFF". Thus our reader will think we are talking about
-STREAMON _and_ STREAMOFF, but only one of the two actually applies
-in some cases.
+Instead of casting, just use %p.
 
-Fix by adding a link title, so the reader will read only the correct
-ioctl name.
-
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/v4l/func-poll.rst | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/usb/tm6000/tm6000-video.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/func-poll.rst b/Documentation/media/uapi/v4l/func-poll.rst
-index d0432dc09b05..360bc6523ae2 100644
---- a/Documentation/media/uapi/v4l/func-poll.rst
-+++ b/Documentation/media/uapi/v4l/func-poll.rst
-@@ -39,7 +39,7 @@ When streaming I/O has been negotiated this function waits until a
- buffer has been filled by the capture device and can be dequeued with
- the :ref:`VIDIOC_DQBUF <VIDIOC_QBUF>` ioctl. For output devices this
- function waits until the device is ready to accept a new buffer to be
--queued up with the :ref:`VIDIOC_QBUF` ioctl for
-+queued up with the :ref:`VIDIOC_QBUF <VIDIOC_QBUF>` ioctl for
- display. When buffers are already in the outgoing queue of the driver
- (capture) or the incoming queue isn't full (display) the function
- returns immediately.
-@@ -52,11 +52,11 @@ flags in the ``revents`` field, output devices the ``POLLOUT`` and
- ``POLLWRNORM`` flags. When the function timed out it returns a value of
- zero, on failure it returns -1 and the ``errno`` variable is set
- appropriately. When the application did not call
--:ref:`VIDIOC_STREAMON` the :ref:`poll() <func-poll>`
-+:ref:`VIDIOC_STREAMON <VIDIOC_STREAMON>` the :ref:`poll() <func-poll>`
- function succeeds, but sets the ``POLLERR`` flag in the ``revents``
- field. When the application has called
--:ref:`VIDIOC_STREAMON` for a capture device but
--hasn't yet called :ref:`VIDIOC_QBUF`, the
-+:ref:`VIDIOC_STREAMON <VIDIOC_STREAMON>` for a capture device but
-+hasn't yet called :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`, the
- :ref:`poll() <func-poll>` function succeeds and sets the ``POLLERR`` flag in
- the ``revents`` field. For output devices this same situation will cause
- :ref:`poll() <func-poll>` to succeed as well, but it sets the ``POLLOUT`` and
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 8314d3fa9241..b2399d4266da 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1346,9 +1346,8 @@ static int __tm6000_open(struct file *file)
+ 	fh->width = dev->width;
+ 	fh->height = dev->height;
+ 
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=0x%08lx, dev=0x%08lx, dev->vidq=0x%08lx\n",
+-			(unsigned long)fh, (unsigned long)dev,
+-			(unsigned long)&dev->vidq);
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=%p, dev=%p, dev->vidq=%p\n",
++		fh, dev, &dev->vidq);
+ 	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty queued=%d\n",
+ 		list_empty(&dev->vidq.queued));
+ 	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty active=%d\n",
 -- 
-2.7.4
+2.14.3
