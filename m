@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:37887 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932499AbeCJSfi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Mar 2018 13:35:38 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: soc_camera: mt9t112: Update to new interface
-Date: Sat, 10 Mar 2018 19:35:31 +0100
-Message-Id: <1520706931-25278-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from osg.samsung.com ([64.30.133.232]:44888 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754044AbeCWL5e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:34 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 27/30] media: em28xx-input: improve error handling code
+Date: Fri, 23 Mar 2018 07:57:13 -0400
+Message-Id: <728d9fd9f148f03ec0bfa4891a44210a032d9663.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use in the soc_camera version of mt9t112 driver the new name for the
-driver's platform data as defined by the new v4l2 driver for the same chip.
+The current I2C error handling logic makes static analyzers
+confused:
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+	drivers/media/usb/em28xx/em28xx-input.c:96 em28xx_get_key_terratec() error: uninitialized symbol 'b'.
 
+Change it to match the coding style we're using elsewhere.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
+ drivers/media/usb/em28xx/em28xx-input.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Hans: to not break bisect, would you like me to resend the whole series
-with this commit squashed in:
-[PATCH 2/5] media: i2c: mt9t112: Remove soc_camera dependencies
-that changes the driver interface, or can you do that when applying?
-
-Thanks
-   j
-
----
- drivers/media/i2c/soc_camera/mt9t112.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
-index 297d22e..b53c36d 100644
---- a/drivers/media/i2c/soc_camera/mt9t112.c
-+++ b/drivers/media/i2c/soc_camera/mt9t112.c
-@@ -85,7 +85,7 @@ struct mt9t112_format {
-
- struct mt9t112_priv {
- 	struct v4l2_subdev		 subdev;
--	struct mt9t112_camera_info	*info;
-+	struct mt9t112_platform_data	*info;
- 	struct i2c_client		*client;
- 	struct v4l2_rect		 frame;
- 	struct v4l2_clk			*clk;
---
-2.7.4
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index eb2ec0384b69..2dc1be00b8b8 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -82,11 +82,16 @@ struct em28xx_IR {
+ static int em28xx_get_key_terratec(struct i2c_client *i2c_dev,
+ 				   enum rc_proto *protocol, u32 *scancode)
+ {
++	int rc;
+ 	unsigned char b;
+ 
+ 	/* poll IR chip */
+-	if (i2c_master_recv(i2c_dev, &b, 1) != 1)
++	rc = i2c_master_recv(i2c_dev, &b, 1);
++	if (rc != 1) {
++		if (rc < 0)
++			return rc;
+ 		return -EIO;
++	}
+ 
+ 	/*
+ 	 * it seems that 0xFE indicates that a button is still hold
+-- 
+2.14.3
