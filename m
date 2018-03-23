@@ -1,151 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:41237 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751619AbeCOJ3h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 05:29:37 -0400
-Received: by mail-wr0-f193.google.com with SMTP id f14so7475995wre.8
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2018 02:29:37 -0700 (PDT)
-References: <20180313113311.8617-3-rui.silva@linaro.org> <201803150338.2LzbxAYM%fengguang.wu@intel.com>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: Re: [PATCH v3 2/2] media: ov2680: Add Omnivision OV2680 sensor driver
-In-reply-to: <201803150338.2LzbxAYM%fengguang.wu@intel.com>
-Date: Thu, 15 Mar 2018 09:29:33 +0000
-Message-ID: <m3a7v98z5u.fsf@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Received: from osg.samsung.com ([64.30.133.232]:34494 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753839AbeCWL5d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 07:57:33 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Anton Sviridenko <anton@corp.bluecherry.net>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>
+Subject: [PATCH 23/30] media: solo6x10: get rid of an address space warning
+Date: Fri, 23 Mar 2018 07:57:09 -0400
+Message-Id: <43e69758e6c0cc05adc4d39316f65abb120a00a0.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-On Wed 14 Mar 2018 at 19:39, kbuild test robot wrote:
-> Hi Rui,
->
-> I love your patch! Yet something to improve:
->
-> [auto build test ERROR on v4.16-rc4]
-> [cannot apply to next-20180314]
-> [if your patch is applied to the wrong git tree, please drop us 
-> a note to help improve the system]
->
-> url: 
-> https://github.com/0day-ci/linux/commits/Rui-Miguel-Silva/media-Introduce-Omnivision-OV2680-driver/20180315-020617
-> config: sh-allmodconfig (attached as .config)
-> compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
-> reproduce:
->         wget 
->         https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross 
->         -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=sh 
->
-> All errors (new ones prefixed by >>):
->
->    drivers/media/i2c/ov2680.c: In function 'ov2680_set_fmt':
->>> drivers/media/i2c/ov2680.c:713:9: error: implicit declaration 
->>> of function 'v4l2_find_nearest_size'; did you mean 
->>> 'v4l2_find_nearest_format'? 
->>> [-Werror=implicit-function-declaration]
->      mode = v4l2_find_nearest_size(ov2680_mode_data,
->             ^~~~~~~~~~~~~~~~~~~~~~
->             v4l2_find_nearest_format
+Instead of using an ancillary function to avoid duplicating
+a small portion of code that copies data either to kernelspace
+or between userspace-kernelspace, duplicate the code,
+as it prevents static analyzers to complain about it:
 
-As requested by maintainer this series depend on this patch [0], 
-which
-introduce this macro. I am not sure of the status of that patch 
-though.
+	drivers/media/pci/solo6x10/solo6x10-g723.c:260:46: warning: cast removes address space of expression
 
+The hole idea of using __user is to make sure that the code is
+doing the right thing with address space, so there's no
+sense on use casting.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Cheers,
-	Rui
+ drivers/media/pci/solo6x10/solo6x10-g723.c | 73 +++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 32 deletions(-)
 
-[0] https://patchwork.kernel.org/patch/10207087/
-
->>> drivers/media/i2c/ov2680.c:714:41: error: 'width' undeclared 
->>> (first use in this function)
->               ARRAY_SIZE(ov2680_mode_data), width,
->                                             ^~~~~
->    drivers/media/i2c/ov2680.c:714:41: note: each undeclared 
->    identifier is reported only once for each function it appears 
->    in
->>> drivers/media/i2c/ov2680.c:715:11: error: 'height' undeclared 
->>> (first use in this function); did you mean 'hweight8'?
->               height, fmt->width, fmt->height);
->               ^~~~~~
->               hweight8
->    cc1: some warnings being treated as errors
->
-> vim +713 drivers/media/i2c/ov2680.c
->
->    693	
->    694	static int ov2680_set_fmt(struct v4l2_subdev *sd,
->    695				  struct 
->    v4l2_subdev_pad_config *cfg,
->    696				  struct 
->    v4l2_subdev_format *format)
->    697	{
->    698		struct ov2680_dev *sensor = 
->    to_ov2680_dev(sd);
->    699		struct v4l2_mbus_framefmt *fmt = 
->    &format->format;
->    700		const struct ov2680_mode_info *mode;
->    701		int ret = 0;
->    702	
->    703		if (format->pad != 0)
->    704			return -EINVAL;
->    705	
->    706		mutex_lock(&sensor->lock);
->    707	
->    708		if (sensor->is_streaming) {
->    709			ret = -EBUSY;
->    710			goto unlock;
->    711		}
->    712	
->  > 713		mode = 
->  > v4l2_find_nearest_size(ov2680_mode_data,
->  > 714 
->  > ARRAY_SIZE(ov2680_mode_data), width,
->  > 715					      height, 
->  > fmt->width, fmt->height);
->    716		if (!mode) {
->    717			ret = -EINVAL;
->    718			goto unlock;
->    719		}
->    720	
->    721		if (format->which == 
->    V4L2_SUBDEV_FORMAT_TRY) {
->    722			fmt = 
->    v4l2_subdev_get_try_format(sd, cfg, 0);
->    723	
->    724			*fmt = format->format;
->    725			goto unlock;
->    726		}
->    727	
->    728		fmt->width = mode->width;
->    729		fmt->height = mode->height;
->    730		fmt->code = sensor->fmt.code;
->    731		fmt->colorspace = sensor->fmt.colorspace;
->    732	
->    733		sensor->current_mode = mode;
->    734		sensor->fmt = format->format;
->    735		sensor->mode_pending_changes = true;
->    736	
->    737	unlock:
->    738		mutex_unlock(&sensor->lock);
->    739	
->    740		return ret;
->    741	}
->    742	
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source 
-> Technology Center
-> https://lists.01.org/pipermail/kbuild-all 
-> Intel Corporation
+diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
+index 81be1b8df758..2ac33b5cc454 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-g723.c
++++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+@@ -223,48 +223,57 @@ static snd_pcm_uframes_t snd_solo_pcm_pointer(struct snd_pcm_substream *ss)
+ 	return idx * G723_FRAMES_PER_PAGE;
+ }
+ 
+-static int __snd_solo_pcm_copy(struct snd_pcm_substream *ss,
+-			       unsigned long pos, void *dst,
+-			       unsigned long count, bool in_kernel)
+-{
+-	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
+-	struct solo_dev *solo_dev = solo_pcm->solo_dev;
+-	int err, i;
+-
+-	for (i = 0; i < (count / G723_FRAMES_PER_PAGE); i++) {
+-		int page = (pos / G723_FRAMES_PER_PAGE) + i;
+-
+-		err = solo_p2m_dma_t(solo_dev, 0, solo_pcm->g723_dma,
+-				     SOLO_G723_EXT_ADDR(solo_dev) +
+-				     (page * G723_PERIOD_BLOCK) +
+-				     (ss->number * G723_PERIOD_BYTES),
+-				     G723_PERIOD_BYTES, 0, 0);
+-		if (err)
+-			return err;
+-
+-		if (in_kernel)
+-			memcpy(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES);
+-		else if (copy_to_user((void __user *)dst,
+-				      solo_pcm->g723_buf, G723_PERIOD_BYTES))
+-			return -EFAULT;
+-		dst += G723_PERIOD_BYTES;
+-	}
+-
+-	return 0;
+-}
+-
+ static int snd_solo_pcm_copy_user(struct snd_pcm_substream *ss, int channel,
+ 				  unsigned long pos, void __user *dst,
+ 				  unsigned long count)
+ {
+-	return __snd_solo_pcm_copy(ss, pos, (void *)dst, count, false);
++	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
++	struct solo_dev *solo_dev = solo_pcm->solo_dev;
++	int err, i;
++
++	for (i = 0; i < (count / G723_FRAMES_PER_PAGE); i++) {
++		int page = (pos / G723_FRAMES_PER_PAGE) + i;
++
++		err = solo_p2m_dma_t(solo_dev, 0, solo_pcm->g723_dma,
++				     SOLO_G723_EXT_ADDR(solo_dev) +
++				     (page * G723_PERIOD_BLOCK) +
++				     (ss->number * G723_PERIOD_BYTES),
++				     G723_PERIOD_BYTES, 0, 0);
++		if (err)
++			return err;
++
++		if (copy_to_user(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES))
++			return -EFAULT;
++		dst += G723_PERIOD_BYTES;
++	}
++
++	return 0;
+ }
+ 
+ static int snd_solo_pcm_copy_kernel(struct snd_pcm_substream *ss, int channel,
+ 				    unsigned long pos, void *dst,
+ 				    unsigned long count)
+ {
+-	return __snd_solo_pcm_copy(ss, pos, dst, count, true);
++	struct solo_snd_pcm *solo_pcm = snd_pcm_substream_chip(ss);
++	struct solo_dev *solo_dev = solo_pcm->solo_dev;
++	int err, i;
++
++	for (i = 0; i < (count / G723_FRAMES_PER_PAGE); i++) {
++		int page = (pos / G723_FRAMES_PER_PAGE) + i;
++
++		err = solo_p2m_dma_t(solo_dev, 0, solo_pcm->g723_dma,
++				     SOLO_G723_EXT_ADDR(solo_dev) +
++				     (page * G723_PERIOD_BLOCK) +
++				     (ss->number * G723_PERIOD_BYTES),
++				     G723_PERIOD_BYTES, 0, 0);
++		if (err)
++			return err;
++
++		memcpy(dst, solo_pcm->g723_buf, G723_PERIOD_BYTES);
++		dst += G723_PERIOD_BYTES;
++	}
++
++	return 0;
+ }
+ 
+ static const struct snd_pcm_ops snd_solo_pcm_ops = {
+-- 
+2.14.3
