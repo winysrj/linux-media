@@ -1,79 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:48812 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753860AbeCFQ5V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 11:57:21 -0500
-Date: Tue, 6 Mar 2018 17:57:15 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        g.liakhovetski@gmx.de, bhumirks@gmail.com, joe@perches.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/11] media: tw9910: Re-order variables declaration
-Message-ID: <20180306165715.GD19648@w540>
-References: <1520002003-10200-1-git-send-email-jacopo+renesas@jmondi.org>
- <1520002003-10200-2-git-send-email-jacopo+renesas@jmondi.org>
- <20180306135152.3fed9766@vento.lan>
+Received: from osg.samsung.com ([64.30.133.232]:57811 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752361AbeCWOHs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 10:07:48 -0400
+Date: Fri, 23 Mar 2018 11:07:42 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Bring back array_size parameter to
+ v4l2_find_nearest_size
+Message-ID: <20180323110742.4d055035@vento.lan>
+In-Reply-To: <20180323134841.21408-1-sakari.ailus@linux.intel.com>
+References: <20180323134841.21408-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20180306135152.3fed9766@vento.lan>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Fri, 23 Mar 2018 15:48:41 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-On Tue, Mar 06, 2018 at 01:51:52PM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri,  2 Mar 2018 15:46:33 +0100
-> Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
->
-> > Re-order variables declaration to respect 'reverse christmas tree'
-> > ordering whenever possible.
->
-> To be frank, I don't like the idea of reverse christmas tree ordering
-> myself... Perhaps due to the time I used to program on assembler,
-> where alignment issues could happen, I find a way more logic to order
-> based on complexity and size of the argument...
->
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/i2c/tw9910.c | 23 +++++++++++------------
-> >  1 file changed, 11 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-> > index cc648de..3a5e307 100644
-> > --- a/drivers/media/i2c/tw9910.c
-> > +++ b/drivers/media/i2c/tw9910.c
-> > @@ -406,9 +406,9 @@ static void tw9910_reset(struct i2c_client *client)
-> >
-> >  static int tw9910_power(struct i2c_client *client, int enable)
-> >  {
-> > -	int ret;
-> >  	u8 acntl1;
-> >  	u8 acntl2;
-> > +	int ret;
->
-> ... So, in this case, the order is already the right one, according
-> with my own criteria :-)
->
-> There was some discussion about the order sometime ago at LKML:
->
-> 	https://patchwork.kernel.org/patch/9411999/
->
-> As I'm not seeing the proposed patch there at checkpatch, nor any
-> comments about xmas tree at coding style, I think that there were no
-> agreements about the ordering.
->
-> So, while there's no consensus about that, let's keep it as-is.
+> An older version of the driver patches were merged accidentally which
+> resulted in missing the array_size parameter that tells the length of the
+> array that contains the different supported sizes.
+> 
+> Bring it back to v4l2_find_nearest size and make the corresponding change
+> for the drivers using it as well.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Mauro,
+> 
+> Here's the patch I mentioned. It restores the intended state of the
+> v4l2_find_nearest_size() API as it was reviewed and acked (by Hans).
+> 
+> This time the exact patch is tested for vivid.
+> 
+>  drivers/media/i2c/ov13858.c                  | 5 +++--
+>  drivers/media/i2c/ov5670.c                   | 5 +++--
+>  drivers/media/platform/vivid/vivid-vid-cap.c | 5 +++--
+>  include/media/v4l2-common.h                  | 5 +++--
+>  4 files changed, 12 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+> index 30ee9f71bf0d..420af1e32d4e 100644
+> --- a/drivers/media/i2c/ov13858.c
+> +++ b/drivers/media/i2c/ov13858.c
+> @@ -1375,8 +1375,9 @@ ov13858_set_pad_format(struct v4l2_subdev *sd,
+>  	if (fmt->format.code != MEDIA_BUS_FMT_SGRBG10_1X10)
+>  		fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+>  
+> -	mode = v4l2_find_nearest_size(supported_modes, width, height,
+> -				      fmt->format.width, fmt->format.height);
+> +	mode = v4l2_find_nearest_size(
+> +		supported_modes, ARRAY_SIZE(supported_modes), width, height,
+> +		fmt->format.width, fmt->format.height);
 
-Thanks for explaining. I was sure it was part of the coding style
-rules! My bad, feel free to ditch this patch (same for ov772x ofc).
 
-Thanks
-   j
+Nitpick... I find ugly and arder to mentally parse things like the above,
+where all arguments are on the next line. Also, it doesn't follow the
+coding style, as the parameters should be aligned with the parenthesis.
 
->
-> Regards,
-> Mauro
+It would be better coded as:
+
+	mode = v4l2_find_nearest_size(supported_modes, 
+				      ARRAY_SIZE(supported_modes),
+				      width, height,
+				      fmt->format.width, fmt->format.height);
+
+Same applies to the other occurrences of it.
+
+>  	ov13858_update_pad_format(mode, fmt);
+>  	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+>  		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
+> diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
+> index 556a95c30781..028abc860387 100644
+> --- a/drivers/media/i2c/ov5670.c
+> +++ b/drivers/media/i2c/ov5670.c
+> @@ -2229,8 +2229,9 @@ static int ov5670_set_pad_format(struct v4l2_subdev *sd,
+>  
+>  	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+>  
+> -	mode = v4l2_find_nearest_size(supported_modes, width, height,
+> -				      fmt->format.width, fmt->format.height);
+> +	mode = v4l2_find_nearest_size(
+> +		supported_modes, ARRAY_SIZE(supported_modes), width, height,
+> +		fmt->format.width, fmt->format.height);
+>  	ov5670_update_pad_format(mode, fmt);
+>  	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+>  		*v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
+> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+> index 01c703683657..1599159f2574 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> @@ -561,8 +561,9 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
+>  	mp->field = vivid_field_cap(dev, mp->field);
+>  	if (vivid_is_webcam(dev)) {
+>  		const struct v4l2_frmsize_discrete *sz =
+> -			v4l2_find_nearest_size(webcam_sizes, width, height,
+> -					       mp->width, mp->height);
+> +			v4l2_find_nearest_size(webcam_sizes,
+> +					       VIVID_WEBCAM_SIZES, width,
+> +					       height, mp->width, mp->height);
+>  
+>  		w = sz->width;
+>  		h = sz->height;
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index 54b689247937..160bca96d524 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -320,6 +320,7 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
+>   *	set of resolutions contained in an array of a driver specific struct.
+>   *
+>   * @array: a driver specific array of image sizes
+> + * @array_size: the length of the driver specific array of image sizes
+>   * @width_field: the name of the width field in the driver specific struct
+>   * @height_field: the name of the height field in the driver specific struct
+>   * @width: desired width.
+> @@ -332,13 +333,13 @@ void v4l_bound_align_image(unsigned int *width, unsigned int wmin,
+>   *
+>   * Returns the best match or NULL if the length of the array is zero.
+>   */
+> -#define v4l2_find_nearest_size(array, width_field, height_field, \
+> +#define v4l2_find_nearest_size(array, array_size, width_field, height_field, \
+>  			       width, height)				\
+>  	({								\
+>  		BUILD_BUG_ON(sizeof((array)->width_field) != sizeof(u32) || \
+>  			     sizeof((array)->height_field) != sizeof(u32)); \
+>  		(typeof(&(*(array))))__v4l2_find_nearest_size(		\
+> -			(array), ARRAY_SIZE(array), sizeof(*(array)),	\
+> +			(array), array_size, sizeof(*(array)),		\
+>  			offsetof(typeof(*(array)), width_field),	\
+>  			offsetof(typeof(*(array)), height_field),	\
+>  			width, height);					\
+
+
+
+Thanks,
+Mauro
