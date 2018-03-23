@@ -1,52 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:49296 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755867AbeCSPna (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 11:43:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 7/8] media-ioc-g-topology.rst: document new 'flags' field
-Date: Mon, 19 Mar 2018 16:43:23 +0100
-Message-Id: <20180319154324.37799-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180319154324.37799-1-hverkuil@xs4all.nl>
-References: <20180319154324.37799-1-hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:59562 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751966AbeCWMZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 08:25:58 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] media: uvc: to the right check at uvc_ioctl_enum_framesizes()
+Date: Fri, 23 Mar 2018 08:25:53 -0400
+Message-Id: <8394db595eab2534013f3ca92e953ab34d9d2151.1521807951.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+While the logic there is correct, it tricks both humans and
+machines, a the check if "i" var is not zero is actually to
+validate if the "frames" var was initialized when the loop
+ran for the first time.
 
-Document the new struct media_v2_entity 'flags' field.
+That produces the following warning:
+	drivers/media/usb/uvc/uvc_v4l2.c:1192 uvc_ioctl_enum_framesizes() error: potentially dereferencing uninitialized 'frame'.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Change the logic to do the right test instead.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/media/usb/uvc/uvc_v4l2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index b9be6b5a1985..acc1f51ad9df 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -211,7 +211,18 @@ desired arrays with the media graph elements.
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 818a4369a51a..bd32914259ae 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -1173,7 +1173,7 @@ static int uvc_ioctl_enum_framesizes(struct file *file, void *fh,
+ 	struct uvc_fh *handle = fh;
+ 	struct uvc_streaming *stream = handle->stream;
+ 	struct uvc_format *format = NULL;
+-	struct uvc_frame *frame;
++	struct uvc_frame *frame = NULL;
+ 	unsigned int index;
+ 	unsigned int i;
  
-        -  __u32
+@@ -1189,7 +1189,7 @@ static int uvc_ioctl_enum_framesizes(struct file *file, void *fh,
  
--       -  ``reserved``\ [6]
-+       -  ``flags``
-+
-+       -  Entity flags, see :ref:`media-entity-flag` for details.
-+          Only valid if ``MEDIA_V2_ENTITY_HAS_FLAGS(media_version)``
-+          returns true. The ``media_version`` is defined in struct
-+	  :c:type:`media_device_info`.
-+
-+    -  .. row 5
-+
-+       -  __u32
-+
-+       -  ``reserved``\ [5]
- 
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
+ 	/* Skip duplicate frame sizes */
+ 	for (i = 0, index = 0; i < format->nframes; i++) {
+-		if (i && frame->wWidth == format->frame[i].wWidth &&
++		if (frame && frame->wWidth == format->frame[i].wWidth &&
+ 		    frame->wHeight == format->frame[i].wHeight)
+ 			continue;
+ 		frame = &format->frame[i];
 -- 
-2.15.1
+2.14.3
