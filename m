@@ -1,35 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39937 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750738AbeC3HaI (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:34420 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751797AbeCWIvp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Mar 2018 03:30:08 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: extended-controls.rst: transmitter -> receiver
-Message-ID: <2520fc49-575b-b847-cb50-284630489a5e@xs4all.nl>
-Date: Fri, 30 Mar 2018 09:30:06 +0200
+        Fri, 23 Mar 2018 04:51:45 -0400
+Date: Fri, 23 Mar 2018 09:51:40 +0100
+From: Simon Horman <horms@verge.net.au>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v6] ARM: dts: wheat: Fix ADV7513 address usage
+Message-ID: <20180323085140.g3golwdtpezo7fhi@verge.net.au>
+References: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_CID_DV_RX_POWER_PRESENT refers to a receiver, not a transmitter.
+On Thu, Mar 22, 2018 at 09:30:40PM +0000, Kieran Bingham wrote:
+> The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
+> bus, however in low power mode the ADV7513 will reset it's slave maps to
+> use the hardware defined default addresses.
+> 
+> The ADV7511 driver was adapted to allow the two devices to be registered
+> correctly - but it did not take into account the fault whereby the
+> devices reset the addresses.
+> 
+> This results in an address conflict between the device using the default
+> addresses, and the other device if it is in low-power-mode.
+> 
+> Repair this issue by moving both devices away from the default address
+> definitions.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index d5f3eb6e674a..03931f9b1285 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -3565,7 +3565,7 @@ enum v4l2_dv_it_content_type -
-     HDMI carries 5V on one of the pins). This is often used to power an
-     eeprom which contains EDID information, such that the source can
-     read the EDID even if the sink is in standby/power off. Each bit
--    corresponds to an input pad on the transmitter. If an input pad
-+    corresponds to an input pad on the receiver. If an input pad
-     cannot detect whether power is present, then the bit for that pad
-     will be 0. This read-only control is applicable to DVI-D, HDMI and
-     DisplayPort connectors.
+Hi Kierean,
+
+as this is a fix
+a) Does it warrant a fixes tag?
+   Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
+b) Does it warrant being posted as a fix for v4.16;
+c) or v4.17?
