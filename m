@@ -1,116 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:37419 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751187AbeCIQRQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2018 11:17:16 -0500
-Received: by mail-lf0-f66.google.com with SMTP id y19-v6so13935079lfd.4
-        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2018 08:17:15 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 9 Mar 2018 17:17:11 +0100
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v12 11/33] rcar-vin: set a default field to fallback on
-Message-ID: <20180309161711.GI2205@bigcity.dyn.berto.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
- <20180307220511.9826-12-niklas.soderlund+renesas@ragnatech.se>
- <4181fb92-5ac9-9ad8-a60d-65c57f5baaa0@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4181fb92-5ac9-9ad8-a60d-65c57f5baaa0@xs4all.nl>
+Received: from mga12.intel.com ([192.55.52.136]:7253 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752199AbeCWVS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Mar 2018 17:18:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, acourbot@chromium.org
+Subject: [RFC v2 09/10] vim2m: Register V4L2 video device after V4L2 mem2mem init
+Date: Fri, 23 Mar 2018 23:17:43 +0200
+Message-Id: <1521839864-10146-10-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Initialise the V4L2 mem2mem framework before creating the video device.
+Referencing ctx->m2m_dev isn't allowed before that as it is NULL.
 
-Thanks for your feedback, I don't think I can appreciate how happy I'm 
-that you reviewed this patch-set, Thank you!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/vim2m.c | 29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-On 2018-03-09 16:25:23 +0100, Hans Verkuil wrote:
-> On 07/03/18 23:04, Niklas Söderlund wrote:
-> > If the field is not supported by the driver it should not try to keep
-> > the current field. Instead it should set it to a default fallback. Since
-> > trying a format should always result in the same state regardless of the
-> > current state of the device.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++------
-> >  1 file changed, 3 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > index c2265324c7c96308..ebcd78b1bb6e8cb6 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > @@ -23,6 +23,7 @@
-> >  #include "rcar-vin.h"
-> >  
-> >  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> > +#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
-> >  
-> >  /* -----------------------------------------------------------------------------
-> >   * Format Conversions
-> > @@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
-> >  	case V4L2_FIELD_INTERLACED:
-> >  		break;
-> >  	default:
-> > -		vin->format.field = V4L2_FIELD_NONE;
-> > +		vin->format.field = RVIN_DEFAULT_FIELD;
-> >  		break;
-> >  	}
-> >  
-> > @@ -213,10 +214,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
-> >  	u32 walign;
-> >  	int ret;
-> >  
-> > -	/* Keep current field if no specific one is asked for */
-> > -	if (pix->field == V4L2_FIELD_ANY)
-> > -		pix->field = vin->format.field;
-> > -
-> >  	/* If requested format is not supported fallback to the default */
-> >  	if (!rvin_format_from_pixel(pix->pixelformat)) {
-> >  		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-> > @@ -246,7 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
-> >  	case V4L2_FIELD_INTERLACED:
-> >  		break;
-> >  	default:
-> > -		pix->field = V4L2_FIELD_NONE;
-> > +		pix->field = RVIN_DEFAULT_FIELD;
-> >  		break;
-> >  	}
-> >  
-> > 
-> 
-> I wonder if this code is correct. What if the adv7180 is the source? Does that even
-> support FIELD_NONE? I suspect that the default field should actually depend on the
-> source. FIELD_NONE for dv_timings based or sensor based subdevs and FIELD_INTERLACED
-> for SDTV (g/s_std) subdevs.
-
-I see what you mean but I think this is correct. The field is only set 
-to V4L2_FIELD_NONE if the field returned from the source is not one of 
-TOP, BOTTOM, ALTERNATE, NONE, INERLACED, INTERLACED_TB, INTERLACED_BT.  
-So it works perfectly with the adv7180 as it will return 
-V4L2_FIELD_INTERLACED and then VIN will accept that and not change it.  
-So the field do depend on the source both before and after this change.
-
-This check is just to block the driver reporting SEQ_TB/BT if a source 
-where to report that (I known of no source who reports that) to 
-userspace as the driver do not yet support this.  I have patches to add 
-support for this but I will keep them back until this series are picked 
-up :-)
-
-> 
-> I might very well be missing something here but it looks suspicious.
-> 
-> Regards,
-> 
-> 	Hans
-
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 065483e..9b6b456 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -1008,6 +1008,16 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	atomic_set(&dev->num_inst, 0);
+ 	mutex_init(&dev->dev_mutex);
+ 
++	timer_setup(&dev->timer, device_isr, 0);
++	platform_set_drvdata(pdev, dev);
++
++	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
++	if (IS_ERR(dev->m2m_dev)) {
++		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
++		ret = PTR_ERR(dev->m2m_dev);
++		goto err_unreg_v4l2_dev;
++	}
++
+ 	dev->vfd = vim2m_videodev;
+ 	vfd = &dev->vfd;
+ 	vfd->lock = &dev->dev_mutex;
+@@ -1016,7 +1026,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
+-		goto unreg_dev;
++		goto err_unreg_vdev;
+ 	}
+ 
+ 	video_set_drvdata(vfd, dev);
+@@ -1024,22 +1034,13 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	v4l2_info(&dev->v4l2_dev,
+ 			"Device registered as /dev/video%d\n", vfd->num);
+ 
+-	timer_setup(&dev->timer, device_isr, 0);
+-	platform_set_drvdata(pdev, dev);
+-
+-	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+-	if (IS_ERR(dev->m2m_dev)) {
+-		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
+-		ret = PTR_ERR(dev->m2m_dev);
+-		goto err_m2m;
+-	}
+-
+ 	return 0;
+ 
+-err_m2m:
+-	v4l2_m2m_release(dev->m2m_dev);
++err_unreg_vdev:
+ 	video_unregister_device(&dev->vfd);
+-unreg_dev:
++	v4l2_m2m_release(dev->m2m_dev);
++
++err_unreg_v4l2_dev:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+ 	return ret;
 -- 
-Regards,
-Niklas Söderlund
+2.7.4
