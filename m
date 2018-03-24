@@ -1,124 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leibniz.telenet-ops.be ([195.130.137.77]:36374 "EHLO
-        leibniz.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752565AbeCPOCA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 10:02:00 -0400
-Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [IPv6:2a02:1800:110:4::f00:19])
-        by leibniz.telenet-ops.be (Postfix) with ESMTPS id 402n3219X3zMqdqy
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2018 14:52:46 +0100 (CET)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-ide@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-fpga@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-spi@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v2 18/21] serial: Remove depends on HAS_DMA in case of platform dependency
-Date: Fri, 16 Mar 2018 14:51:51 +0100
-Message-Id: <1521208314-4783-19-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
-References: <1521208314-4783-1-git-send-email-geert@linux-m68k.org>
+Received: from gofer.mess.org ([88.97.38.141]:43593 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752305AbeCXOuu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Mar 2018 10:50:50 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Matthias Reichl <hias@horus.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Carlo Caione <carlo@caione.org>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Alex Deryskyba <alex@codesnake.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        linux-amlogic@lists.infradead.org
+Subject: [PATCH 2/3] media: rc: add ioctl to get the current timeout
+Date: Sat, 24 Mar 2018 14:50:44 +0000
+Message-Id: <1f8a78c1d3fb04a5b81cd88792761466b61d865a.1521901953.git.sean@mess.org>
+In-Reply-To: <cover.1521901953.git.sean@mess.org>
+References: <cover.1521901953.git.sean@mess.org>
+In-Reply-To: <cover.1521901953.git.sean@mess.org>
+References: <cover.1521901953.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
+Since the kernel now modifies the timeout, make it possible to retrieve
+the current value.
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
-
-This simplifies the dependencies, and allows to improve compile-testing.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/tty/serial/Kconfig | 4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/media/uapi/rc/lirc-func.rst            |  1 +
+ Documentation/media/uapi/rc/lirc-set-rec-timeout.rst | 14 +++++++++-----
+ drivers/media/rc/lirc_dev.c                          |  7 +++++++
+ include/uapi/linux/lirc.h                            |  6 ++++++
+ 4 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index 3682fd3e960cbd64..a0ea146a2ef5af53 100644
---- a/drivers/tty/serial/Kconfig
-+++ b/drivers/tty/serial/Kconfig
-@@ -115,7 +115,6 @@ config SERIAL_SB1250_DUART_CONSOLE
+diff --git a/Documentation/media/uapi/rc/lirc-func.rst b/Documentation/media/uapi/rc/lirc-func.rst
+index ddb4620de294..9656423a3f28 100644
+--- a/Documentation/media/uapi/rc/lirc-func.rst
++++ b/Documentation/media/uapi/rc/lirc-func.rst
+@@ -17,6 +17,7 @@ LIRC Function Reference
+     lirc-get-rec-resolution
+     lirc-set-send-duty-cycle
+     lirc-get-timeout
++    lirc-get-rec-timeout
+     lirc-set-rec-timeout
+     lirc-set-rec-carrier
+     lirc-set-rec-carrier-range
+diff --git a/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst b/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst
+index b3e16bbdbc90..a833a6a4c25a 100644
+--- a/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst
++++ b/Documentation/media/uapi/rc/lirc-set-rec-timeout.rst
+@@ -1,19 +1,23 @@
+ .. -*- coding: utf-8; mode: rst -*-
  
- config SERIAL_ATMEL
- 	bool "AT91 on-chip serial port support"
--	depends on HAS_DMA
- 	depends on ARCH_AT91 || COMPILE_TEST
- 	select SERIAL_CORE
- 	select SERIAL_MCTRL_GPIO if GPIOLIB
-@@ -586,7 +585,6 @@ config BFIN_UART3_CTSRTS
+ .. _lirc_set_rec_timeout:
++.. _lirc_get_rec_timeout:
  
- config SERIAL_IMX
- 	tristate "IMX serial port support"
--	depends on HAS_DMA
- 	depends on ARCH_MXC || COMPILE_TEST
- 	select SERIAL_CORE
- 	select RATIONAL
-@@ -1436,7 +1434,6 @@ config SERIAL_PCH_UART_CONSOLE
+-**************************
+-ioctl LIRC_SET_REC_TIMEOUT
+-**************************
++***************************************************
++ioctl LIRC_GET_REC_TIMEOUT and LIRC_SET_REC_TIMEOUT
++***************************************************
  
- config SERIAL_MXS_AUART
- 	tristate "MXS AUART support"
--	depends on HAS_DMA
- 	depends on ARCH_MXS || MACH_ASM9260 || COMPILE_TEST
- 	select SERIAL_CORE
- 	select SERIAL_MCTRL_GPIO if GPIOLIB
-@@ -1656,7 +1653,6 @@ config SERIAL_SPRD_CONSOLE
- config SERIAL_STM32
- 	tristate "STMicroelectronics STM32 serial port support"
- 	select SERIAL_CORE
--	depends on HAS_DMA
- 	depends on ARCH_STM32 || COMPILE_TEST
- 	help
- 	  This driver is for the on-chip Serial Controller on
+ Name
+ ====
+ 
+-LIRC_SET_REC_TIMEOUT - sets the integer value for IR inactivity timeout.
++LIRC_GET_REC_TIMEOUT/LIRC_SET_REC_TIMEOUT - Get/set the integer value for IR inactivity timeout.
+ 
+ Synopsis
+ ========
+ 
++.. c:function:: int ioctl( int fd, LIRC_GET_REC_TIMEOUT, __u32 *timeout )
++    :name: LIRC_GET_REC_TIMEOUT
++
+ .. c:function:: int ioctl( int fd, LIRC_SET_REC_TIMEOUT, __u32 *timeout )
+     :name: LIRC_SET_REC_TIMEOUT
+ 
+@@ -30,7 +34,7 @@ Arguments
+ Description
+ ===========
+ 
+-Sets the integer value for IR inactivity timeout.
++Get and set the integer value for IR inactivity timeout.
+ 
+ If supported by the hardware, setting it to 0  disables all hardware timeouts
+ and data should be reported as soon as possible. If the exact value
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 24e9fbb80e81..17f40c8e939f 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -575,6 +575,13 @@ static long ir_lirc_ioctl(struct file *file, unsigned int cmd,
+ 		}
+ 		break;
+ 
++	case LIRC_GET_REC_TIMEOUT:
++		if (!dev->timeout)
++			ret = -ENOTTY;
++		else
++			val = DIV_ROUND_UP(dev->timeout, 1000);
++		break;
++
+ 	case LIRC_SET_REC_TIMEOUT_REPORTS:
+ 		if (!dev->timeout)
+ 			ret = -ENOTTY;
+diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+index 948d9a491083..7db6063fa6a2 100644
+--- a/include/uapi/linux/lirc.h
++++ b/include/uapi/linux/lirc.h
+@@ -134,6 +134,12 @@
+ 
+ #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+ 
++/*
++ * Return the recording timeout, which is either set by
++ * the ioctl LIRC_SET_REC_TIMEOUT or by the kernel after setting the protocols.
++ */
++#define LIRC_GET_REC_TIMEOUT	       _IOR('i', 0x00000024, __u32)
++
+ /*
+  * struct lirc_scancode - decoded scancode with protocol for use with
+  *	LIRC_MODE_SCANCODE
 -- 
-2.7.4
+2.14.3
