@@ -1,544 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59103 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751824AbeCWJW5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 05:22:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v7 1/2] uvcvideo: send a control event when a Control Change interrupt arrives
-Date: Fri, 23 Mar 2018 11:24:00 +0200
-Message-Id: <20180323092401.12162-2-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com>
-References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com>
+Received: from gofer.mess.org ([88.97.38.141]:44679 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752303AbeCXOut (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Mar 2018 10:50:49 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Matthias Reichl <hias@horus.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Carlo Caione <carlo@caione.org>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Alex Deryskyba <alex@codesnake.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        linux-amlogic@lists.infradead.org
+Subject: [PATCH 1/3] media: rc: set timeout to smallest value required by enabled protocols
+Date: Sat, 24 Mar 2018 14:50:43 +0000
+Message-Id: <1bfde5431538be705f5336e147a040e83779b0b9.1521901953.git.sean@mess.org>
+In-Reply-To: <cover.1521901953.git.sean@mess.org>
+References: <cover.1521901953.git.sean@mess.org>
+In-Reply-To: <cover.1521901953.git.sean@mess.org>
+References: <cover.1521901953.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+The longer the IR timeout, the longer we wait until delivering each
+scancode. By reducing this timeout, we reduce the time it take for the
+last scancode to be delivered.
 
-UVC defines a method of handling asynchronous controls, which sends a
-USB packet over the interrupt pipe. This patch implements support for
-such packets by sending a control event to the user. Since this can
-involve USB traffic and, therefore, scheduling, this has to be done
-in a work queue.
+Note that the lirc daemon disables all protocols, in case we revert back
+to the default value.
 
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++++++++----
- drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
- drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
- drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
- include/uapi/linux/uvcvideo.h      |   2 +
- 5 files changed, 269 insertions(+), 29 deletions(-)
+ drivers/media/rc/ir-imon-decoder.c    |  1 +
+ drivers/media/rc/ir-jvc-decoder.c     |  1 +
+ drivers/media/rc/ir-mce_kbd-decoder.c |  1 +
+ drivers/media/rc/ir-nec-decoder.c     |  1 +
+ drivers/media/rc/ir-rc5-decoder.c     |  1 +
+ drivers/media/rc/ir-rc6-decoder.c     |  1 +
+ drivers/media/rc/ir-sanyo-decoder.c   |  1 +
+ drivers/media/rc/ir-sharp-decoder.c   |  1 +
+ drivers/media/rc/ir-sony-decoder.c    |  1 +
+ drivers/media/rc/ir-xmp-decoder.c     |  1 +
+ drivers/media/rc/rc-core-priv.h       |  1 +
+ drivers/media/rc/rc-ir-raw.c          | 31 ++++++++++++++++++++++++++++++-
+ drivers/media/rc/rc-main.c            | 12 ++++++------
+ 13 files changed, 47 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 4042cbdb721b..f4773c56438c 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -20,6 +20,7 @@
- #include <linux/videodev2.h>
- #include <linux/vmalloc.h>
- #include <linux/wait.h>
-+#include <linux/workqueue.h>
- #include <linux/atomic.h>
- #include <media/v4l2-ctrls.h>
- 
-@@ -1222,30 +1223,134 @@ static void uvc_ctrl_send_event(struct uvc_fh *handle,
- {
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_event ev;
-+	bool autoupdate;
- 
- 	if (list_empty(&mapping->ev_subs))
- 		return;
- 
-+	if (!handle) {
-+		autoupdate = true;
-+		sev = list_first_entry(&mapping->ev_subs,
-+				       struct v4l2_subscribed_event, node);
-+		handle = container_of(sev->fh, struct uvc_fh, vfh);
-+	} else {
-+		autoupdate = false;
-+	}
-+
- 	uvc_ctrl_fill_event(handle->chain, &ev, ctrl, mapping, value, changes);
- 
- 	list_for_each_entry(sev, &mapping->ev_subs, node) {
- 		if (sev->fh && (sev->fh != &handle->vfh ||
- 		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK) ||
--		    (changes & V4L2_EVENT_CTRL_CH_FLAGS)))
-+		    (changes & V4L2_EVENT_CTRL_CH_FLAGS) || autoupdate))
- 			v4l2_event_queue_fh(sev->fh, &ev);
- 	}
- }
- 
--static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
--	struct uvc_control *master, u32 slave_id,
--	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
-+static void __uvc_ctrl_send_slave_event(struct uvc_fh *handle,
-+				struct uvc_control *master, u32 slave_id)
- {
- 	struct uvc_control_mapping *mapping = NULL;
- 	struct uvc_control *ctrl = NULL;
- 	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
--	unsigned int i;
- 	s32 val = 0;
- 
-+	__uvc_find_control(master->entity, slave_id, &mapping, &ctrl, 0);
-+	if (ctrl == NULL)
-+		return;
-+
-+	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
-+		changes |= V4L2_EVENT_CTRL_CH_VALUE;
-+
-+	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
-+}
-+
-+static void uvc_ctrl_status_event_work(struct work_struct *work)
-+{
-+	struct uvc_device *dev = container_of(work, struct uvc_device,
-+					      async_ctrl.work);
-+	struct uvc_video_chain *chain;
-+	struct uvc_ctrl_work *w = &dev->async_ctrl;
-+	struct uvc_control_mapping *mapping;
-+	struct uvc_control *ctrl;
-+	struct uvc_fh *handle;
-+	unsigned int i;
-+	u8 *data;
-+
-+	spin_lock_irq(&w->lock);
-+	data = w->data;
-+	w->data = NULL;
-+	chain = w->chain;
-+	ctrl = w->ctrl;
-+	handle = ctrl->handle;
-+	ctrl->handle = NULL;
-+	spin_unlock_irq(&w->lock);
-+
-+	if (mutex_lock_interruptible(&chain->ctrl_mutex))
-+		goto free;
-+
-+	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
-+		s32 value = mapping->get(mapping, UVC_GET_CUR, data);
-+
-+		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
-+			if (!mapping->slave_ids[i])
-+				break;
-+
-+			__uvc_ctrl_send_slave_event(handle, ctrl,
-+						    mapping->slave_ids[i]);
-+		}
-+
-+		if (mapping->v4l2_type == V4L2_CTRL_TYPE_MENU) {
-+			struct uvc_menu_info *menu = mapping->menu_info;
-+			unsigned int i;
-+
-+			for (i = 0; i < mapping->menu_count; ++i, ++menu)
-+				if (menu->value == value) {
-+					value = i;
-+					break;
-+				}
-+		}
-+
-+		uvc_ctrl_send_event(handle, ctrl, mapping, value,
-+				    V4L2_EVENT_CTRL_CH_VALUE);
-+	}
-+
-+	mutex_unlock(&chain->ctrl_mutex);
-+
-+free:
-+	kfree(data);
-+}
-+
-+void uvc_ctrl_status_event(struct uvc_video_chain *chain,
-+			   struct uvc_control *ctrl, u8 *data, size_t len)
-+{
-+	struct uvc_device *dev = chain->dev;
-+	struct uvc_ctrl_work *w = &dev->async_ctrl;
-+
-+	if (list_empty(&ctrl->info.mappings))
-+		return;
-+
-+	spin_lock(&w->lock);
-+	if (w->data)
-+		/* A previous event work hasn't run yet, we lose 1 event */
-+		kfree(w->data);
-+
-+	w->data = kmalloc(len, GFP_ATOMIC);
-+	if (w->data) {
-+		memcpy(w->data, data, len);
-+		w->chain = chain;
-+		w->ctrl = ctrl;
-+		schedule_work(&w->work);
-+	}
-+	spin_unlock(&w->lock);
-+}
-+
-+static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
-+	struct uvc_control *master, u32 slave_id,
-+	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
-+{
-+	unsigned int i;
-+
- 	/*
- 	 * We can skip sending an event for the slave if the slave
- 	 * is being modified in the same transaction.
-@@ -1255,14 +1360,7 @@ static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
- 			return;
- 	}
- 
--	__uvc_find_control(master->entity, slave_id, &mapping, &ctrl, 0);
--	if (ctrl == NULL)
--		return;
--
--	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
--		changes |= V4L2_EVENT_CTRL_CH_VALUE;
--
--	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
-+	__uvc_ctrl_send_slave_event(handle, master, slave_id);
- }
- 
- static void uvc_ctrl_send_events(struct uvc_fh *handle,
-@@ -1277,6 +1375,10 @@ static void uvc_ctrl_send_events(struct uvc_fh *handle,
- 	for (i = 0; i < xctrls_count; ++i) {
- 		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
- 
-+		if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS)
-+			/* Notification will be sent from an Interrupt event */
-+			continue;
-+
- 		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
- 			if (!mapping->slave_ids[j])
- 				break;
-@@ -1472,9 +1574,10 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
- }
- 
--int uvc_ctrl_set(struct uvc_video_chain *chain,
-+int uvc_ctrl_set(struct uvc_fh *handle,
- 	struct v4l2_ext_control *xctrl)
- {
-+	struct uvc_video_chain *chain = handle->chain;
- 	struct uvc_control *ctrl;
- 	struct uvc_control_mapping *mapping;
- 	s32 value;
-@@ -1488,6 +1591,25 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
- 		return -EINVAL;
- 	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
- 		return -EACCES;
-+	if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS) {
-+		if (ctrl->handle)
-+			/*
-+			 * We have already sent this control to the camera
-+			 * recently and are currently waiting for a completion
-+			 * notification. The camera might already have completed
-+			 * its processing and is ready to accept a new control
-+			 * or it's still busy processing. If we send a new
-+			 * instance of this control now, in the former case the
-+			 * camera will process this one too and we'll get
-+			 * completions for both, but we will only deliver an
-+			 * event for one of them back to the user. In the latter
-+			 * case the camera will reply with a STALL. It's easier
-+			 * and more reliable to return an error now and let the
-+			 * user retry.
-+			 */
-+			return -EBUSY;
-+		ctrl->handle = handle;
-+	}
- 
- 	/* Clamp out of range values. */
- 	switch (mapping->v4l2_type) {
-@@ -1612,7 +1734,9 @@ static int uvc_ctrl_get_flags(struct uvc_device *dev,
- 			    |  (data[0] & UVC_CONTROL_CAP_SET ?
- 				UVC_CTRL_FLAG_SET_CUR : 0)
- 			    |  (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
--				UVC_CTRL_FLAG_AUTO_UPDATE : 0);
-+				UVC_CTRL_FLAG_AUTO_UPDATE : 0)
-+			    |  (data[0] & UVC_CONTROL_CAP_ASYNCHRONOUS ?
-+				UVC_CTRL_FLAG_ASYNCHRONOUS : 0);
- 
- 	kfree(data);
- 	return ret;
-@@ -2158,6 +2282,13 @@ static void uvc_ctrl_init_ctrl(struct uvc_device *dev, struct uvc_control *ctrl)
- 	if (!ctrl->initialized)
- 		return;
- 
-+	/* Temporarily abuse DATA_CURRENT buffer to avoid 1 byte allocation */
-+	if (!uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
-+			    dev->intfnum, info->selector,
-+			    uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT), 1) &&
-+	    uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT)[0] & 0x10)
-+		ctrl->info.flags |= UVC_CTRL_FLAG_ASYNCHRONOUS;
-+
- 	for (; mapping < mend; ++mapping) {
- 		if (uvc_entity_match_guid(ctrl->entity, mapping->entity) &&
- 		    ctrl->info.selector == mapping->selector)
-@@ -2173,6 +2304,9 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
- 	struct uvc_entity *entity;
- 	unsigned int i;
- 
-+	spin_lock_init(&dev->async_ctrl.lock);
-+	INIT_WORK(&dev->async_ctrl.work, uvc_ctrl_status_event_work);
-+
- 	/* Walk the entities list and instantiate controls */
- 	list_for_each_entry(entity, &dev->entities, list) {
- 		struct uvc_control *ctrl;
-@@ -2241,6 +2375,8 @@ void uvc_ctrl_cleanup_device(struct uvc_device *dev)
- 	struct uvc_entity *entity;
- 	unsigned int i;
- 
-+	cancel_work_sync(&dev->async_ctrl.work);
-+
- 	/* Free controls and control mappings for all entities. */
- 	list_for_each_entry(entity, &dev->entities, list) {
- 		for (i = 0; i < entity->ncontrols; ++i) {
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index 7b710410584a..d1d83aed6a1d 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -78,7 +78,24 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
- /* --------------------------------------------------------------------------
-  * Status interrupt endpoint
-  */
--static void uvc_event_streaming(struct uvc_device *dev, u8 *data, int len)
-+struct uvc_streaming_status {
-+	u8	bStatusType;
-+	u8	bOriginator;
-+	u8	bEvent;
-+	u8	bValue[];
-+} __packed;
-+
-+struct uvc_control_status {
-+	u8	bStatusType;
-+	u8	bOriginator;
-+	u8	bEvent;
-+	u8	bSelector;
-+	u8	bAttribute;
-+	u8	bValue[];
-+} __packed;
-+
-+static void uvc_event_streaming(struct uvc_device *dev,
-+				struct uvc_streaming_status *status, int len)
- {
- 	if (len < 3) {
- 		uvc_trace(UVC_TRACE_STATUS, "Invalid streaming status event "
-@@ -86,31 +103,101 @@ static void uvc_event_streaming(struct uvc_device *dev, u8 *data, int len)
- 		return;
- 	}
- 
--	if (data[2] == 0) {
-+	if (status->bEvent == 0) {
- 		if (len < 4)
- 			return;
- 		uvc_trace(UVC_TRACE_STATUS, "Button (intf %u) %s len %d\n",
--			data[1], data[3] ? "pressed" : "released", len);
--		uvc_input_report_key(dev, KEY_CAMERA, data[3]);
-+			  status->bOriginator,
-+			  status->bValue[0] ? "pressed" : "released", len);
-+		uvc_input_report_key(dev, KEY_CAMERA, status->bValue[0]);
- 	} else {
- 		uvc_trace(UVC_TRACE_STATUS,
- 			  "Stream %u error event %02x len %d.\n",
--			  data[1], data[2], len);
-+			  status->bOriginator, status->bEvent, len);
- 	}
- }
- 
--static void uvc_event_control(struct uvc_device *dev, u8 *data, int len)
-+#define UVC_CTRL_VALUE_CHANGE	0
-+#define UVC_CTRL_INFO_CHANGE	1
-+#define UVC_CTRL_FAILURE_CHANGE	2
-+#define UVC_CTRL_MIN_CHANGE	3
-+#define UVC_CTRL_MAX_CHANGE	4
-+
-+static struct uvc_control *uvc_event_entity_ctrl(struct uvc_entity *entity,
-+					       u8 selector)
-+{
-+	struct uvc_control *ctrl;
-+	unsigned int i;
-+
-+	for (i = 0, ctrl = entity->controls; i < entity->ncontrols; i++, ctrl++)
-+		if (ctrl->info.selector == selector)
-+			return ctrl;
-+
-+	return NULL;
-+}
-+
-+static struct uvc_control *uvc_event_find_ctrl(struct uvc_device *dev,
-+					struct uvc_control_status *status,
-+					struct uvc_video_chain **chain)
-+{
-+	list_for_each_entry((*chain), &dev->chains, list) {
-+		struct uvc_entity *entity;
-+		struct uvc_control *ctrl;
-+
-+		list_for_each_entry(entity, &(*chain)->entities, chain) {
-+			if (entity->id == status->bOriginator) {
-+				ctrl = uvc_event_entity_ctrl(entity,
-+							     status->bSelector);
-+				/*
-+				 * Some buggy cameras send asynchronous Control
-+				 * Change events for control, other than the
-+				 * ones, that had been changed, even though the
-+				 * AutoUpdate flag isn't set for the control.
-+				 */
-+				if (ctrl && (!ctrl->handle ||
-+					     ctrl->handle->chain == *chain))
-+					return ctrl;
-+			}
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+static void uvc_event_control(struct uvc_device *dev,
-+			      struct uvc_control_status *status, int len)
- {
--	char *attrs[3] = { "value", "info", "failure" };
-+	struct uvc_video_chain *chain;
-+	struct uvc_control *ctrl;
-+	char *attrs[] = { "value", "info", "failure", "min", "max" };
- 
--	if (len < 6 || data[2] != 0 || data[4] > 2) {
-+	if (len < 6 || status->bEvent != 0 ||
-+	    status->bAttribute >= ARRAY_SIZE(attrs)) {
- 		uvc_trace(UVC_TRACE_STATUS, "Invalid control status event "
- 				"received.\n");
- 		return;
- 	}
- 
- 	uvc_trace(UVC_TRACE_STATUS, "Control %u/%u %s change len %d.\n",
--		data[1], data[3], attrs[data[4]], len);
-+		  status->bOriginator, status->bSelector,
-+		  attrs[status->bAttribute], len);
-+
-+	/* Find the control. */
-+	ctrl = uvc_event_find_ctrl(dev, status, &chain);
-+	if (!ctrl)
-+		return;
-+
-+	switch (status->bAttribute) {
-+	case UVC_CTRL_VALUE_CHANGE:
-+		uvc_ctrl_status_event(chain, ctrl, status->bValue, len -
-+				      offsetof(struct uvc_control_status, bValue));
-+		break;
-+	case UVC_CTRL_INFO_CHANGE:
-+	case UVC_CTRL_FAILURE_CHANGE:
-+	case UVC_CTRL_MIN_CHANGE:
-+	case UVC_CTRL_MAX_CHANGE:
-+		break;
-+	}
- }
- 
- static void uvc_status_complete(struct urb *urb)
-@@ -139,11 +226,13 @@ static void uvc_status_complete(struct urb *urb)
- 	if (len > 0) {
- 		switch (dev->status[0] & 0x0f) {
- 		case UVC_STATUS_TYPE_CONTROL:
--			uvc_event_control(dev, dev->status, len);
-+			uvc_event_control(dev,
-+				(struct uvc_control_status *)dev->status, len);
- 			break;
- 
- 		case UVC_STATUS_TYPE_STREAMING:
--			uvc_event_streaming(dev, dev->status, len);
-+			uvc_event_streaming(dev,
-+				(struct uvc_streaming_status *)dev->status, len);
- 			break;
- 
- 		default:
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 818a4369a51a..55f973eb16eb 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -994,7 +994,7 @@ static int uvc_ioctl_s_ctrl(struct file *file, void *fh,
- 	if (ret < 0)
- 		return ret;
- 
--	ret = uvc_ctrl_set(chain, &xctrl);
-+	ret = uvc_ctrl_set(handle, &xctrl);
- 	if (ret < 0) {
- 		uvc_ctrl_rollback(handle);
- 		return ret;
-@@ -1069,7 +1069,7 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
- 		return ret;
- 
- 	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
--		ret = uvc_ctrl_set(chain, ctrl);
-+		ret = uvc_ctrl_set(handle, ctrl);
- 		if (ret < 0) {
- 			uvc_ctrl_rollback(handle);
- 			ctrls->error_idx = commit ? ctrls->count : i;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 6b955e0dd956..483182fe1b4d 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -12,6 +12,7 @@
- #include <linux/usb/video.h>
- #include <linux/uvcvideo.h>
- #include <linux/videodev2.h>
-+#include <linux/workqueue.h>
- #include <media/media-device.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
-@@ -259,6 +260,8 @@ struct uvc_control {
- 	   initialized:1;
- 
- 	u8 *uvc_data;
-+
-+	struct uvc_fh *handle;	/* Used for asynchronous event delivery */
+diff --git a/drivers/media/rc/ir-imon-decoder.c b/drivers/media/rc/ir-imon-decoder.c
+index a1ff06a26542..9024b359e5ee 100644
+--- a/drivers/media/rc/ir-imon-decoder.c
++++ b/drivers/media/rc/ir-imon-decoder.c
+@@ -170,6 +170,7 @@ static struct ir_raw_handler imon_handler = {
+ 	.decode		= ir_imon_decode,
+ 	.encode		= ir_imon_encode,
+ 	.carrier	= 38000,
++	.max_space	= IMON_UNIT * IMON_BITS * 2,
  };
  
- struct uvc_format_desc {
-@@ -603,6 +606,14 @@ struct uvc_device {
- 	u8 *status;
- 	struct input_dev *input;
- 	char input_phys[64];
-+
-+	struct uvc_ctrl_work {
-+		struct work_struct work;
-+		struct uvc_video_chain *chain;
-+		struct uvc_control *ctrl;
-+		spinlock_t lock;
-+		void *data;
-+	} async_ctrl;
+ static int __init ir_imon_decode_init(void)
+diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
+index 8cb68ae43282..190c690b14f8 100644
+--- a/drivers/media/rc/ir-jvc-decoder.c
++++ b/drivers/media/rc/ir-jvc-decoder.c
+@@ -213,6 +213,7 @@ static struct ir_raw_handler jvc_handler = {
+ 	.decode		= ir_jvc_decode,
+ 	.encode		= ir_jvc_encode,
+ 	.carrier	= 38000,
++	.max_space	= JVC_TRAILER_SPACE,
  };
  
- enum uvc_handle_state {
-@@ -756,6 +767,8 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
- int uvc_ctrl_init_device(struct uvc_device *dev);
- void uvc_ctrl_cleanup_device(struct uvc_device *dev);
- int uvc_ctrl_restore_values(struct uvc_device *dev);
-+void uvc_ctrl_status_event(struct uvc_video_chain *chain,
-+			   struct uvc_control *ctrl, u8 *data, size_t len);
+ static int __init ir_jvc_decode_init(void)
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index c110984ca671..ae4b980c4a16 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -475,6 +475,7 @@ static struct ir_raw_handler mce_kbd_handler = {
+ 	.raw_register	= ir_mce_kbd_register,
+ 	.raw_unregister	= ir_mce_kbd_unregister,
+ 	.carrier	= 36000,
++	.max_space	= MCIR2_MAX_LEN,
+ };
  
- int uvc_ctrl_begin(struct uvc_video_chain *chain);
- int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
-@@ -773,7 +786,7 @@ static inline int uvc_ctrl_rollback(struct uvc_fh *handle)
+ static int __init ir_mce_kbd_decode_init(void)
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 21647b809e6f..fac12f867a81 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -253,6 +253,7 @@ static struct ir_raw_handler nec_handler = {
+ 	.decode		= ir_nec_decode,
+ 	.encode		= ir_nec_encode,
+ 	.carrier	= 38000,
++	.max_space	= NEC_TRAILER_SPACE,
+ };
+ 
+ static int __init ir_nec_decode_init(void)
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index 74d3b859c3a2..711068c8de90 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -274,6 +274,7 @@ static struct ir_raw_handler rc5_handler = {
+ 	.decode		= ir_rc5_decode,
+ 	.encode		= ir_rc5_encode,
+ 	.carrier	= 36000,
++	.max_space	= RC5_TRAILER,
+ };
+ 
+ static int __init ir_rc5_decode_init(void)
+diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
+index 8314da32453f..9cc4820878c7 100644
+--- a/drivers/media/rc/ir-rc6-decoder.c
++++ b/drivers/media/rc/ir-rc6-decoder.c
+@@ -394,6 +394,7 @@ static struct ir_raw_handler rc6_handler = {
+ 	.decode		= ir_rc6_decode,
+ 	.encode		= ir_rc6_encode,
+ 	.carrier	= 36000,
++	.max_space	= RC6_SUFFIX_SPACE,
+ };
+ 
+ static int __init ir_rc6_decode_init(void)
+diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
+index 4efe6db5376a..e72787b446c9 100644
+--- a/drivers/media/rc/ir-sanyo-decoder.c
++++ b/drivers/media/rc/ir-sanyo-decoder.c
+@@ -210,6 +210,7 @@ static struct ir_raw_handler sanyo_handler = {
+ 	.decode		= ir_sanyo_decode,
+ 	.encode		= ir_sanyo_encode,
+ 	.carrier	= 38000,
++	.max_space	= SANYO_TRAILER_SPACE,
+ };
+ 
+ static int __init ir_sanyo_decode_init(void)
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+index 6a38c50566a4..ccbd4c12d1d7 100644
+--- a/drivers/media/rc/ir-sharp-decoder.c
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -226,6 +226,7 @@ static struct ir_raw_handler sharp_handler = {
+ 	.decode		= ir_sharp_decode,
+ 	.encode		= ir_sharp_encode,
+ 	.carrier	= 38000,
++	.max_space	= SHARP_TRAILER_SPACE,
+ };
+ 
+ static int __init ir_sharp_decode_init(void)
+diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
+index 6764ec9de646..598bae8d8ffb 100644
+--- a/drivers/media/rc/ir-sony-decoder.c
++++ b/drivers/media/rc/ir-sony-decoder.c
+@@ -224,6 +224,7 @@ static struct ir_raw_handler sony_handler = {
+ 	.decode		= ir_sony_decode,
+ 	.encode		= ir_sony_encode,
+ 	.carrier	= 40000,
++	.max_space	= SONY_TRAILER_SPACE,
+ };
+ 
+ static int __init ir_sony_decode_init(void)
+diff --git a/drivers/media/rc/ir-xmp-decoder.c b/drivers/media/rc/ir-xmp-decoder.c
+index 58b47af1a763..e005a75a86fe 100644
+--- a/drivers/media/rc/ir-xmp-decoder.c
++++ b/drivers/media/rc/ir-xmp-decoder.c
+@@ -199,6 +199,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ static struct ir_raw_handler xmp_handler = {
+ 	.protocols	= RC_PROTO_BIT_XMP,
+ 	.decode		= ir_xmp_decode,
++	.max_space	= XMP_TRAILER_SPACE,
+ };
+ 
+ static int __init ir_xmp_decode_init(void)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index e0e6a17460f6..8c38941295b8 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -37,6 +37,7 @@ struct ir_raw_handler {
+ 	int (*encode)(enum rc_proto protocol, u32 scancode,
+ 		      struct ir_raw_event *events, unsigned int max);
+ 	u32 carrier;
++	u32 max_space;
+ 
+ 	/* These two should only be used by the mce kbd decoder */
+ 	int (*raw_register)(struct rc_dev *dev);
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 374f83105a23..f4e1fd95f839 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -233,7 +233,36 @@ ir_raw_get_allowed_protocols(void)
+ 
+ static int change_protocol(struct rc_dev *dev, u64 *rc_proto)
+ {
+-	/* the caller will update dev->enabled_protocols */
++	struct ir_raw_handler *handler;
++	u32 timeout = 0;
++
++	if (!dev->max_timeout)
++		return 0;
++
++	mutex_lock(&ir_raw_handler_lock);
++	list_for_each_entry(handler, &ir_raw_handler_list, list) {
++		if (handler->protocols & *rc_proto) {
++			if (timeout < handler->max_space)
++				timeout = handler->max_space;
++		}
++	}
++	mutex_unlock(&ir_raw_handler_lock);
++
++	if (timeout == 0)
++		timeout = IR_DEFAULT_TIMEOUT;
++	else
++		timeout += MS_TO_NS(10);
++
++	if (timeout < dev->min_timeout)
++		timeout = dev->min_timeout;
++	else if (timeout > dev->max_timeout)
++		timeout = dev->max_timeout;
++
++	if (dev->s_timeout)
++		dev->s_timeout(dev, timeout);
++	else
++		dev->timeout = timeout;
++
+ 	return 0;
  }
  
- int uvc_ctrl_get(struct uvc_video_chain *chain, struct v4l2_ext_control *xctrl);
--int uvc_ctrl_set(struct uvc_video_chain *chain, struct v4l2_ext_control *xctrl);
-+int uvc_ctrl_set(struct uvc_fh *handle, struct v4l2_ext_control *xctrl);
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index b67be33bd62f..6a720e9c7aa8 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1241,6 +1241,9 @@ static ssize_t store_protocols(struct device *device,
+ 	if (rc < 0)
+ 		goto out;
  
- int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
- 		      struct uvc_xu_control_query *xqry);
-diff --git a/include/uapi/linux/uvcvideo.h b/include/uapi/linux/uvcvideo.h
-index 020714d2c5bd..f80f05b3c423 100644
---- a/include/uapi/linux/uvcvideo.h
-+++ b/include/uapi/linux/uvcvideo.h
-@@ -28,6 +28,8 @@
- #define UVC_CTRL_FLAG_RESTORE		(1 << 6)
- /* Control can be updated by the camera. */
- #define UVC_CTRL_FLAG_AUTO_UPDATE	(1 << 7)
-+/* Control supports asynchronous reporting */
-+#define UVC_CTRL_FLAG_ASYNCHRONOUS	(1 << 8)
++	if (dev->driver_type == RC_DRIVER_IR_RAW)
++		ir_raw_load_modules(&new_protocols);
++
+ 	rc = dev->change_protocol(dev, &new_protocols);
+ 	if (rc < 0) {
+ 		dev_dbg(&dev->dev, "Error setting protocols to 0x%llx\n",
+@@ -1248,9 +1251,6 @@ static ssize_t store_protocols(struct device *device,
+ 		goto out;
+ 	}
  
- #define UVC_CTRL_FLAG_GET_RANGE \
- 	(UVC_CTRL_FLAG_GET_CUR | UVC_CTRL_FLAG_GET_MIN | \
+-	if (dev->driver_type == RC_DRIVER_IR_RAW)
+-		ir_raw_load_modules(&new_protocols);
+-
+ 	if (new_protocols != old_protocols) {
+ 		*current_protocols = new_protocols;
+ 		dev_dbg(&dev->dev, "Protocols changed to 0x%llx\n",
+@@ -1735,6 +1735,9 @@ static int rc_prepare_rx_device(struct rc_dev *dev)
+ 	if (dev->driver_type == RC_DRIVER_SCANCODE && !dev->change_protocol)
+ 		dev->enabled_protocols = dev->allowed_protocols;
+ 
++	if (dev->driver_type == RC_DRIVER_IR_RAW)
++		ir_raw_load_modules(&rc_proto);
++
+ 	if (dev->change_protocol) {
+ 		rc = dev->change_protocol(dev, &rc_proto);
+ 		if (rc < 0)
+@@ -1742,9 +1745,6 @@ static int rc_prepare_rx_device(struct rc_dev *dev)
+ 		dev->enabled_protocols = rc_proto;
+ 	}
+ 
+-	if (dev->driver_type == RC_DRIVER_IR_RAW)
+-		ir_raw_load_modules(&rc_proto);
+-
+ 	set_bit(EV_KEY, dev->input_dev->evbit);
+ 	set_bit(EV_REP, dev->input_dev->evbit);
+ 	set_bit(EV_MSC, dev->input_dev->evbit);
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
