@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [103.40.8.207] ([103.40.8.207]:3005 "EHLO azurebee.com"
-        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750936AbeC0Sts (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 14:49:48 -0400
-Message-ID: <042542c4-43186-e2f43973671181@desktop-ovg91fd>
-From: "Linda" <linda@azurebee.com>
-To: linux-media@vger.kernel.org
-Subject: Industrial routers with high?performance-price ratio and multiple functions
-Date: Tue, 27 Mar 2018 09:32:12 +0800
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:55280 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752237AbeCYVkf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Mar 2018 17:40:35 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for v4.17] v4l2-tpg-core.c: add space after %
+Message-ID: <4a3e30aa-e7eb-150b-fd94-a63f96ec81c2@xs4all.nl>
+Date: Sun, 25 Mar 2018 23:40:30 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir or Madam,
+I know, it's a measly space, but I can't stand it since the
+V4L2_PIX_FMT_NV24 case before this case does it right.
 
-If you're on the market for industrial routers, It will be glad to tell you that we can meet all of your requirements .
+So add the space in order to restore blessed symmetry and
+consistency and to make the world whole again...
 
-Our company name is Xiamen Ursalink Technology Co,We are the manufacturer specializing on designing and producing M2M/IoT hardware and solutions. 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index 37632bc524d4..9b64f4f354bf 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -1149,7 +1149,7 @@ static void gen_twopix(struct tpg_data *tpg,
+ 	case V4L2_PIX_FMT_NV42:
+ 		buf[0][offset] = r_y_h;
+ 		buf[1][2 * offset] = b_v;
+-		buf[1][(2 * offset + 1) %8] = g_u_s;
++		buf[1][(2 * offset + 1) % 8] = g_u_s;
+ 		break;
 
-The features of our products£º
-
-    1. High-availability LTE/WCDMA/GSM connection
-    2. Automated fail-over between Ethernet and cellular (dual SIMs).
-    3. IPsec, OpenVPN, DMVPN, L2TP, GRE, PPTP for safety communication.
-    4. Ultra-reliable and secure data transmission via  Gigabit Ethernet ports.
-    5. Fully integrated into Microsoft Auzure IoT eco-system, easily to be build an IoT solution. 
-    6. Python & Ursalink SDK (Python 2.7/C) for secondary development.
-    7. Free 3-year warranty 
-    8. No additional license fee (All-in-one system)
-    9. It can work as Modbus Master to send alerts by SMS.
-    10. It support TCP2COM protocol to integrate with SCADA system. 
-    ... ...
-   
-Such a high performance-price ratio, with multiple functions, and high security router is your best choice,isn¡¯t  it?
-
-To get more information£¬you can click here  or visit www.ursalink.com .
-
-More details will be available on receipt of your reply.
+ 	case V4L2_PIX_FMT_YUYV:
