@@ -1,28 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway31.websitewelcome.com ([192.185.144.218]:40988 "EHLO
-        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751319AbeCTU6M (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:41861 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752478AbeCYK6E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 16:58:12 -0400
-Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
-        by gateway31.websitewelcome.com (Postfix) with ESMTP id 848A418763E2
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 15:12:16 -0500 (CDT)
-Received: from [112.66.64.108] (port=50353 helo=bigtimedesignstudios.com)
-        by devrim.websitewelcome.com with esmtpa (Exim 4.89_1)
-        (envelope-from <tisdasb@bigtimedesignstudios.com>)
-        id 1eyNcF-0014pV-Ip
-        for linux-media@vger.kernel.org; Tue, 20 Mar 2018 15:12:16 -0500
-From: "Scott Tisdale" <tisdasb@gmail.com>
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (1.0)
-Subject: 
-Message-Id: <D3DF1E01-3212-4A7B-F0FA-F81BA42D10A7@bigtimedesignstudios.com>
-Date: Tue, 20 Mar 2018 20:14:59 +0000
-To: "linux media" <linux-media@vger.kernel.org>
-Reply-To: "Scott Tisdale" <tisdasbr@gmail.com>
+        Sun, 25 Mar 2018 06:58:04 -0400
+Received: by mail-wr0-f195.google.com with SMTP id f14so16089702wre.8
+        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2018 03:58:04 -0700 (PDT)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        sumit.semwal@linaro.org
+Subject: [PATCH 3/5] drm/ttm: remove the backing store if no placement is given
+Date: Sun, 25 Mar 2018 12:57:57 +0200
+Message-Id: <20180325105759.2151-3-christian.koenig@amd.com>
+In-Reply-To: <20180325105759.2151-1-christian.koenig@amd.com>
+References: <20180325105759.2151-1-christian.koenig@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi Linux    https://goo.gl/764kVN   Scott Tisdale
+Pipeline removal of the BOs backing store when the placement is given
+during validation.
+
+Signed-off-by: Christian König <christian.koenig@amd.com>
+---
+ drivers/gpu/drm/ttm/ttm_bo.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/gpu/drm/ttm/ttm_bo.c b/drivers/gpu/drm/ttm/ttm_bo.c
+index 98e06f8bf23b..17e821f01d0a 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo.c
++++ b/drivers/gpu/drm/ttm/ttm_bo.c
+@@ -1078,6 +1078,18 @@ int ttm_bo_validate(struct ttm_buffer_object *bo,
+ 	uint32_t new_flags;
+ 
+ 	reservation_object_assert_held(bo->resv);
++
++	/*
++	 * Remove the backing store if no placement is given.
++	 */
++	if (!placement->num_placement && !placement->num_busy_placement) {
++		ret = ttm_bo_pipeline_gutting(bo);
++		if (ret)
++			return ret;
++
++		return ttm_tt_create(bo, false);
++	}
++
+ 	/*
+ 	 * Check whether we need to move buffer.
+ 	 */
+-- 
+2.14.1
