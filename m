@@ -1,68 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:49211 "EHLO osg.samsung.com"
+Received: from vps-vb.mhejs.net ([37.28.154.113]:41366 "EHLO vps-vb.mhejs.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754364AbeCGKNm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 05:13:42 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Subject: [PATCH 2/3] media: cxd2880: don't return unitialized values
-Date: Wed,  7 Mar 2018 05:13:35 -0500
-Message-Id: <9ca4897be5adef66b8fe384b4365ce385e83582f.1520417613.git.mchehab@s-opensource.com>
-In-Reply-To: <e61591875b7b626085c079499ac1c4663bfe510e.1520417613.git.mchehab@s-opensource.com>
-References: <e61591875b7b626085c079499ac1c4663bfe510e.1520417613.git.mchehab@s-opensource.com>
-In-Reply-To: <e61591875b7b626085c079499ac1c4663bfe510e.1520417613.git.mchehab@s-opensource.com>
-References: <e61591875b7b626085c079499ac1c4663bfe510e.1520417613.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1752290AbeCYV12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Mar 2018 17:27:28 -0400
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: [PATCH v6 2/6] cx25840: add kernel-doc description of struct
+ cx25840_state
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+References: <cover.1522012430.git.mail@maciej.szmigiero.name>
+Message-ID: <b16c3e58-f083-e5ce-0c41-44485609aab8@maciej.szmigiero.name>
+Date: Sun, 25 Mar 2018 23:27:26 +0200
+MIME-Version: 1.0
+In-Reply-To: <cover.1522012430.git.mail@maciej.szmigiero.name>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c:59 cxd2880_io_spi_read_reg() error: uninitialized symbol 'ret'.
-drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c:111 cxd2880_io_spi_write_reg() error: uninitialized symbol 'ret'.
-drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c:2985 cxd2880_tnrdmd_set_cfg() error: uninitialized symbol 'ret'.
+This commit describes a device instance private data of the driver
+(struct cx25840_state) in a kernel-doc style comment.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
 ---
- drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c | 4 ++--
- drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c    | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/i2c/cx25840/cx25840-core.h | 33 ++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-index d2e37c95d748..aba59400859e 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
-@@ -16,7 +16,7 @@ static int cxd2880_io_spi_read_reg(struct cxd2880_io *io,
- 				   u8 sub_address, u8 *data,
- 				   u32 size)
- {
--	int ret;
-+	int ret = 0;
- 	struct cxd2880_spi *spi = NULL;
- 	u8 send_data[6];
- 	u8 *read_data_top = data;
-@@ -64,7 +64,7 @@ static int cxd2880_io_spi_write_reg(struct cxd2880_io *io,
- 				    u8 sub_address,
- 				    const u8 *data, u32 size)
- {
--	int ret;
-+	int ret = 0;
- 	struct cxd2880_spi *spi = NULL;
- 	u8 send_data[BURST_WRITE_MAX + 4];
- 	const u8 *write_data_top = data;
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
-index 25851bbb846e..4cf2d7cfd3f5 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd.c
-@@ -2503,7 +2503,7 @@ int cxd2880_tnrdmd_set_cfg(struct cxd2880_tnrdmd *tnr_dmd,
- 			   enum cxd2880_tnrdmd_cfg_id id,
- 			   int value)
- {
--	int ret;
-+	int ret = 0;
- 	u8 data[2] = { 0 };
- 	u8 need_sub_setting = 0;
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+index fb13a624d2e3..c323b1af1f83 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.h
++++ b/drivers/media/i2c/cx25840/cx25840-core.h
+@@ -45,6 +45,35 @@ enum cx25840_media_pads {
+ 	CX25840_NUM_PADS
+ };
  
--- 
-2.14.3
++/**
++ * struct cx25840_state - a device instance private data
++ * @c:			i2c_client struct representing this device
++ * @sd:		our V4L2 sub-device
++ * @hdl:		our V4L2 control handler
++ * @volume:		audio volume V4L2 control (non-cx2583x devices only)
++ * @mute:		audio mute V4L2 control (non-cx2583x devices only)
++ * @pvr150_workaround:	whether we enable workaround for Hauppauge PVR150
++ *			hardware bug (audio dropping out)
++ * @radio:		set if we are currently in the radio mode, otherwise
++ *			the current mode is non-radio (that is, video)
++ * @std:		currently set video standard
++ * @vid_input:		currently set video input
++ * @aud_input:		currently set audio input
++ * @audclk_freq:	currently set audio sample rate
++ * @audmode:		currently set audio mode (when in non-radio mode)
++ * @vbi_line_offset:	vbi line number offset
++ * @id:		exact device model
++ * @rev:		raw device id read from the chip
++ * @is_initialized:	whether we have already loaded firmware into the chip
++ *			and initialized it
++ * @vbi_regs_offset:	offset of vbi regs
++ * @fw_wait:		wait queue to wake an initalization function up when
++ *			firmware loading (on a separate workqueue) finishes
++ * @fw_work:		a work that actually loads the firmware on a separate
++ *			workqueue
++ * @ir_state:		a pointer to chip IR controller private data
++ * @pads:		array of supported chip pads (currently only a stub)
++ */
+ struct cx25840_state {
+ 	struct i2c_client *c;
+ 	struct v4l2_subdev sd;
+@@ -66,8 +95,8 @@ struct cx25840_state {
+ 	u32 rev;
+ 	int is_initialized;
+ 	unsigned vbi_regs_offset;
+-	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
+-	struct work_struct fw_work;   /* work entry for fw load */
++	wait_queue_head_t fw_wait;
++	struct work_struct fw_work;
+ 	struct cx25840_ir_state *ir_state;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_pad	pads[CX25840_NUM_PADS];
