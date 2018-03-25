@@ -1,298 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31919 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754641AbeCGWFp (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54374 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753281AbeCYQRf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:45 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 16/33] rcar-vin: simplify how formats are set and reset
-Date: Wed,  7 Mar 2018 23:04:54 +0100
-Message-Id: <20180307220511.9826-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
+        Sun, 25 Mar 2018 12:17:35 -0400
+Subject: Re: [RFC v2 00/10] Preparing the request API
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: acourbot@chromium.org
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+ <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
+Message-ID: <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+Date: Sun, 25 Mar 2018 18:17:30 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the recent cleanup of the format code to prepare for Gen3 it's
-possible to simplify the Gen2 format code path as well. Clean up the
-process by defining two functions to handle the set format and reset of
-format when the standard is changed.
+On 03/25/2018 05:12 PM, Hans Verkuil wrote:
+> Hi all,
+> 
+> On 03/23/2018 10:17 PM, Sakari Ailus wrote:
+>> Hi folks,
+>>
+>> This preliminary RFC patchset prepares for the request API. What's new
+>> here is support for binding arbitrary configuration or resources to
+>> requests.
+>>
+>> There are a few new concepts here:
+>>
+>> Class --- a type of configuration or resource a driver (or e.g. the V4L2
+>> framework) can attach to a resource. E.g. a video buffer queue would be a
+>> class.
+>>
+>> Object --- an instance of the class. This may be either configuration (in
+>> which case the setting will stay until changed, e.g. V4L2 format on a
+>> video node) or a resource (such as a video buffer).
+>>
+>> Reference --- a reference to an object. If a configuration is not changed
+>> in a request, instead of allocating a new object, a reference to an
+>> existing object is used. This saves time and memory.
+>>
+>> I expect Laurent to comment on aligning the concept names between the
+>> request API and DRM. As far as I understand, the respective DRM names for
+>> "class" and "object" used in this set would be "object" and "state".
+>>
+>> The drivers will need to interact with the requests in three ways:
+>>
+>> - Allocate new configurations or resources. Drivers are free to store
+>>   their own data into request objects as well. These callbacks are
+>>   specific to classes.
+>>
+>> - Validate and queue callbacks. These callbacks are used to try requests
+>>   (validate only) as well as queue them (validate and queue). These
+>>   callbacks are media device wide, at least for now.
+>>
+>> The lifetime of the objects related to requests is based on refcounting
+>> both requests and request objects. This fits well for existing use cases
+>> whether or not based on refcounting; what still needs most of the
+>> attention is likely that the number of gets and puts matches once the
+>> object is no longer needed.
+>>
+>> Configuration can be bound to the request the usual way (V4L2 IOCTLs with
+>> the request_fd field set to the request). Once queued, request completion
+>> is signalled through polling the request file handle (POLLPRI).
+>>
+>> I'm posting this as an RFC because it's not complete yet. The code
+>> compiles but no testing has been done yet.
+> 
+> Thank you for this patch series. There are some good ideas here, but it is
+> quite far from being useful with Alexandre's RFCv4 series.
+> 
+> So this weekend I worked on a merger of this work and the RFCv4 Request API
+> patch series, taking what I think are the best bits of both.
+> 
+> It is available here:
+> 
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv6
 
-While at it replace the driver local struct rvin_source_fmt with a
-struct v4l2_rect as all it's used for is keep track of the source
-dimensions.
+I reorganized/cleaned up the patch series. So look here instead:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv7
 
----
+It's easier to follow.
 
-* Changes since v11
-- This patch where 'rcar-vin: read subdevice format for crop only when
-needed'
-- Keep caching the source dimensions and drop all changes to
-rvin_g_selection() and rvin_s_selection().
-- Inline rvin_get_vin_format_from_source() into rvin_reset_format()
-which now is the only user left.
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 120 ++++++++++++----------------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  14 +---
- 2 files changed, 55 insertions(+), 79 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 680b25f610d1d8bb..c4be0bcb8b16f941 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -138,67 +138,60 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-  * V4L2
-  */
- 
--static void rvin_reset_crop_compose(struct rvin_dev *vin)
--{
--	vin->crop.top = vin->crop.left = 0;
--	vin->crop.width = vin->source.width;
--	vin->crop.height = vin->source.height;
--
--	vin->compose.top = vin->compose.left = 0;
--	vin->compose.width = vin->format.width;
--	vin->compose.height = vin->format.height;
--}
--
- static int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+		.pad = vin->digital->source_pad,
- 	};
--	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	int ret;
- 
--	fmt.pad = vin->digital->source_pad;
--
- 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
- 	if (ret)
- 		return ret;
- 
--	vin->format.width	= mf->width;
--	vin->format.height	= mf->height;
--	vin->format.colorspace	= mf->colorspace;
--	vin->format.field	= mf->field;
-+	v4l2_fill_pix_format(&vin->format, &fmt.format);
- 
--	rvin_reset_crop_compose(vin);
-+	ret = rvin_format_align(vin, &vin->format);
-+	if (ret)
-+		return ret;
- 
--	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
--	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-+	vin->source.top = vin->crop.top = 0;
-+	vin->source.left = vin->crop.left = 0;
-+	vin->source.width = vin->crop.width = vin->format.width;
-+	vin->source.height = vin->crop.height = vin->format.height;
-+
-+	vin->compose.top = vin->compose.left = 0;
-+	vin->compose.width = vin->format.width;
-+	vin->compose.height = vin->format.height;
- 
- 	return 0;
- }
- 
--static int __rvin_try_format_source(struct rvin_dev *vin,
--				    u32 which,
--				    struct v4l2_pix_format *pix,
--				    struct rvin_source_fmt *source)
-+static int rvin_try_format(struct rvin_dev *vin, u32 which,
-+			   struct v4l2_pix_format *pix,
-+			   struct v4l2_rect *crop, struct v4l2_rect *compose)
- {
--	struct v4l2_subdev *sd;
-+	struct v4l2_subdev *sd = vin_to_source(vin);
- 	struct v4l2_subdev_pad_config *pad_cfg;
- 	struct v4l2_subdev_format format = {
- 		.which = which,
-+		.pad = vin->digital->source_pad,
- 	};
- 	enum v4l2_field field;
- 	u32 width, height;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
--
- 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
- 	if (pad_cfg == NULL)
- 		return -ENOMEM;
- 
--	format.pad = vin->digital->source_pad;
-+	if (!rvin_format_from_pixel(pix->pixelformat) ||
-+	    (vin->info->model == RCAR_M1 &&
-+	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+
-+	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
- 
- 	/* Allow the video device to override field and to scale */
- 	field = pix->field;
-@@ -211,39 +204,34 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	v4l2_fill_pix_format(pix, &format.format);
- 
--	source->width = pix->width;
--	source->height = pix->height;
-+	crop->top = crop->left = 0;
-+	crop->width = pix->width;
-+	crop->height = pix->height;
-+
-+	/*
-+	 * If source is ALTERNATE the driver will use the VIN hardware
-+	 * to INTERLACE it. The crop height then needs to be doubled.
-+	 */
-+	if (pix->field == V4L2_FIELD_ALTERNATE)
-+		crop->height *= 2;
-+
-+	if (field != V4L2_FIELD_ANY)
-+		pix->field = field;
- 
--	pix->field = field;
- 	pix->width = width;
- 	pix->height = height;
- 
--	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
--		source->height);
-+	ret = rvin_format_align(vin, pix);
-+	if (ret)
-+		return ret;
- 
-+	compose->top = compose->left = 0;
-+	compose->width = pix->width;
-+	compose->height = pix->height;
- done:
- 	v4l2_subdev_free_pad_config(pad_cfg);
--	return ret;
--}
- 
--static int __rvin_try_format(struct rvin_dev *vin,
--			     u32 which,
--			     struct v4l2_pix_format *pix,
--			     struct rvin_source_fmt *source)
--{
--	int ret;
--
--	if (!rvin_format_from_pixel(pix->pixelformat) ||
--	    (vin->info->model == RCAR_M1 &&
--	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
--		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--
--	/* Limit to source capabilities */
--	ret = __rvin_try_format_source(vin, which, pix, source);
--	if (ret)
--		return ret;
--
--	return rvin_format_align(vin, pix);
-+	return 0;
- }
- 
- static int rvin_querycap(struct file *file, void *priv,
-@@ -262,33 +250,31 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
--	struct rvin_source_fmt source;
-+	struct v4l2_rect crop, compose;
- 
--	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix,
--				 &source);
-+	return rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix, &crop,
-+			       &compose);
- }
- 
- static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 			      struct v4l2_format *f)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
--	struct rvin_source_fmt source;
-+	struct v4l2_rect crop, compose;
- 	int ret;
- 
- 	if (vb2_is_busy(&vin->queue))
- 		return -EBUSY;
- 
--	ret = __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
--				&source);
-+	ret = rvin_try_format(vin, V4L2_SUBDEV_FORMAT_ACTIVE, &f->fmt.pix,
-+			      &crop, &compose);
- 	if (ret)
- 		return ret;
- 
--	vin->source.width = source.width;
--	vin->source.height = source.height;
--
- 	vin->format = f->fmt.pix;
--
--	rvin_reset_crop_compose(vin);
-+	vin->crop = crop;
-+	vin->compose = compose;
-+	vin->source = crop;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 8daba9db0e927a49..7fcf984f21466855 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -48,16 +48,6 @@ enum rvin_dma_state {
- 	STOPPING,
- };
- 
--/**
-- * struct rvin_source_fmt - Source information
-- * @width:	Width from source
-- * @height:	Height from source
-- */
--struct rvin_source_fmt {
--	u32 width;
--	u32 height;
--};
--
- /**
-  * struct rvin_video_format - Data format stored in memory
-  * @fourcc:	Pixelformat
-@@ -124,11 +114,11 @@ struct rvin_info {
-  * @sequence:		V4L2 buffers sequence number
-  * @state:		keeps track of operation state
-  *
-- * @source:		active format from the video source
-  * @format:		active V4L2 pixel format
-  *
-  * @crop:		active cropping
-  * @compose:		active composing
-+ * @source:		active size of the video source
-  */
- struct rvin_dev {
- 	struct device *dev;
-@@ -151,11 +141,11 @@ struct rvin_dev {
- 	unsigned int sequence;
- 	enum rvin_dma_state state;
- 
--	struct rvin_source_fmt source;
- 	struct v4l2_pix_format format;
- 
- 	struct v4l2_rect crop;
- 	struct v4l2_rect compose;
-+	struct v4l2_rect source;
- };
- 
- #define vin_to_source(vin)		((vin)->digital->subdev)
--- 
-2.16.2
+	Hans
