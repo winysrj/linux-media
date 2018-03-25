@@ -1,110 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:37797 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753302AbeC1Num (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 09:50:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>
-Subject: [RFCv9 PATCH 15/29] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Wed, 28 Mar 2018 15:50:16 +0200
-Message-Id: <20180328135030.7116-16-hverkuil@xs4all.nl>
-In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+Received: from mga06.intel.com ([134.134.136.31]:20401 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753321AbeCYPPY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Mar 2018 11:15:24 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
+        Tomasz Figa <tfiga@chromium.org>
+CC: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: RE: [PATCH v9.1] media: imx258: Add imx258 camera sensor driver
+Date: Sun, 25 Mar 2018 15:15:18 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D556C05@PGSMSX111.gar.corp.intel.com>
+References: <1521218319-14972-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5Cbn1sqRWq6A6xYthkHtFjHaa64URDiKDMXOpDPr1r5EA@mail.gmail.com>
+ <20180323135024.qxd633qccv5rtid3@paasikivi.fi.intel.com>
+ <CAAFQd5ATcV-kWCw+QQfA986G-gwSw2FUZ93Ox_m=fkjixtyuQA@mail.gmail.com>
+ <20180323142948.texcmjflbgpk2ma7@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180323142948.texcmjflbgpk2ma7@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+Hi Tomasz, Sakari,
 
-If which is V4L2_CTRL_WHICH_REQUEST, then the request_fd field can be
-used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+Thanks for your kindly comments. We will have an internal discussion on VBLANK control implementation to let it be read-only. 
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
- drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
- include/uapi/linux/videodev2.h                | 4 +++-
- 3 files changed, 10 insertions(+), 5 deletions(-)
+And for test pattern, we will definitely implement it but will remove the item from v4l2 menu first.
+However, since in the early stage, we found an issue that if not register TEST_PATTERN V4L2 item in kernel, HAL will crash soon when open camera.
+We would like to resolve the issue both in HAL and kernel (removing test pattern) first. 
+For test pattern implementation on imx258, it must be needed due to cros-camera-test demands it. Will complete and submit it after full internal verification.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 5198c9eeb348..0782b3666deb 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -732,7 +732,8 @@ struct v4l2_ext_controls32 {
- 	__u32 which;
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
- };
- 
-@@ -807,6 +808,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &up->count) ||
- 	    put_user(count, &kp->count) ||
- 	    assign_in_user(&kp->error_idx, &up->error_idx) ||
-+	    assign_in_user(&kp->request_fd, &up->request_fd) ||
- 	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 
-@@ -865,6 +867,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &kp->count) ||
- 	    put_user(count, &up->count) ||
- 	    assign_in_user(&up->error_idx, &kp->error_idx) ||
-+	    assign_in_user(&up->request_fd, &kp->request_fd) ||
- 	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)) ||
- 	    get_user(kcontrols, &kp->controls))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index a5dab16ff2d2..2c623da33155 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	const struct v4l2_ext_controls *p = arg;
- 	int i;
- 
--	pr_cont("which=0x%x, count=%d, error_idx=%d",
--			p->which, p->count, p->error_idx);
-+	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
-+			p->which, p->count, p->error_idx, p->request_fd);
- 	for (i = 0; i < p->count; i++) {
- 		if (!p->controls[i].size)
- 			pr_cont(", id/val=0x%x/0x%x",
-@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
- 
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved[0] = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 600877be5c22..6f41baa53787 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	struct v4l2_ext_control *controls;
- };
- 
-@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_MAX_DIMS	  (4)
- #define V4L2_CTRL_WHICH_CUR_VAL   0
- #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
-+#define V4L2_CTRL_WHICH_REQUEST   0x0f010000
- 
- enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER	     = 1,
--- 
-2.16.1
+
+Regards, Andy
+
+-----Original Message-----
+From: Sakari Ailus [mailto:sakari.ailus@iki.fi] 
+Sent: Friday, March 23, 2018 10:30 PM
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>; Yeh, Andy <andy.yeh@intel.com>; Linux Media Mailing List <linux-media@vger.kernel.org>; Chen, JasonX Z <jasonx.z.chen@intel.com>; Chiang, AlanX <alanx.chiang@intel.com>; Lai, Jim <jim.lai@intel.com>
+Subject: Re: [PATCH v9.1] media: imx258: Add imx258 camera sensor driver
+
+On Fri, Mar 23, 2018 at 11:08:11PM +0900, Tomasz Figa wrote:
+> On Fri, Mar 23, 2018 at 10:50 PM, Sakari Ailus 
+> <sakari.ailus@linux.intel.com> wrote:
+> > Hi Tomasz,
+> >
+> > On Fri, Mar 23, 2018 at 08:43:50PM +0900, Tomasz Figa wrote:
+> >> Hi Andy,
+> >>
+> >> Some issues found when reviewing cherry pick of this patch to 
+> >> Chrome OS kernel. Please see inline.
+> >>
+> >> On Sat, Mar 17, 2018 at 1:38 AM, Andy Yeh <andy.yeh@intel.com> wrote:
+> >>
+> >> [snip]
+> >>
+> >> > +       case V4L2_CID_VBLANK:
+> >> > +               /*
+> >> > +                * Auto Frame Length Line Control is enabled by default.
+> >> > +                * Not need control Vblank Register.
+> >> > +                */
+> >>
+> >> What is the meaning of this control then? Should it be read-only?
+> >
+> > The read-only flag is for the uAPI; the control framework still 
+> > passes through changes to the control value done using kAPI to the driver.
+> 
+> The read-only flag is not even set in current code.
+
+Ah, you're right, it's just hblank... but if the driver doesn't support setting this control, then it should most likely be read-only. It would seem like that the driver just updates the control to convey the value to the user.
+
+> 
+> Also, I'm not sure about the control framework setting read-only 
+> control. According to the code, it doesn't:
+> https://elixir.bootlin.com/linux/latest/source/drivers/media/v4l2-core
+> /v4l2-ctrls.c#L2477
+
+If you set the control using e.g. v4l2_ctrl_s_ctrl(), it should end up to the driver's s_ctrl callback.
+
+--
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
