@@ -1,266 +1,323 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:60650 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751232AbeCIPyz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:54:55 -0500
-Date: Fri, 9 Mar 2018 16:54:51 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Carlo Caione <carlo@caione.org>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Alex Deryskyba <alex@codesnake.com>,
-        Jonas Karlman <jonas@kwiboo.se>, linux-media@vger.kernel.org,
-        linux-amlogic@lists.infradead.org
-Subject: Re: [PATCH] media: rc: meson-ir: add timeout on idle
-Message-ID: <20180309155451.gbocsaj4s3puc4cq@camel2.lan>
-References: <20180306174122.6017-1-hias@horus.com>
- <20180308164327.ihhmvm6ntzvnsjy7@gofer.mess.org>
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:20523 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752486AbeCZVq6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:46:58 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 25/33] rcar-vin: add group allocator functions
+Date: Mon, 26 Mar 2018 23:44:48 +0200
+Message-Id: <20180326214456.6655-26-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180308164327.ihhmvm6ntzvnsjy7@gofer.mess.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+In media controller mode all VIN instances needs to be part of the same
+media graph. There is also a need for each VIN instance to know about
+and in some cases be able to communicate with other VIN instances.
 
-On Thu, Mar 08, 2018 at 04:43:27PM +0000, Sean Young wrote:
-> On Tue, Mar 06, 2018 at 06:41:22PM +0100, Matthias Reichl wrote:
-> > Meson doesn't seem to be able to generate timeout events
-> > in hardware. So install a software timer to generate the
-> > timeout events required by the decoders to prevent
-> > "ghost keypresses".
-> > 
-> > Signed-off-by: Matthias Reichl <hias@horus.com>
-> > ---
-> >  drivers/media/rc/meson-ir.c | 22 ++++++++++++++++++++++
-> >  1 file changed, 22 insertions(+)
-> > 
-> > diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-> > index f2204eb77e2a..f34c5836412b 100644
-> > --- a/drivers/media/rc/meson-ir.c
-> > +++ b/drivers/media/rc/meson-ir.c
-> > @@ -69,6 +69,7 @@ struct meson_ir {
-> >  	void __iomem	*reg;
-> >  	struct rc_dev	*rc;
-> >  	spinlock_t	lock;
-> > +	struct timer_list timeout_timer;
-> >  };
-> >  
-> >  static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
-> > @@ -98,6 +99,10 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
-> >  	rawir.pulse = !!(status & STATUS_IR_DEC_IN);
-> >  
-> >  	ir_raw_event_store(ir->rc, &rawir);
-> > +
-> > +	mod_timer(&ir->timeout_timer,
-> > +		jiffies + nsecs_to_jiffies(ir->rc->timeout));
-> > +
-> >  	ir_raw_event_handle(ir->rc);
-> >  
-> >  	spin_unlock(&ir->lock);
-> > @@ -105,6 +110,17 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
-> >  	return IRQ_HANDLED;
-> >  }
-> >  
-> > +static void meson_ir_timeout_timer(struct timer_list *t)
-> > +{
-> > +	struct meson_ir *ir = from_timer(ir, t, timeout_timer);
-> > +	DEFINE_IR_RAW_EVENT(rawir);
-> > +
-> > +	rawir.timeout = true;
-> > +	rawir.duration = ir->rc->timeout;
-> > +	ir_raw_event_store(ir->rc, &rawir);
-> > +	ir_raw_event_handle(ir->rc);
-> > +}
-> 
-> Now there can be concurrent access to the raw IR kfifo from the interrupt
-> handler and the timer. As there is a race condition between the timeout
-> timer and new IR arriving from the interrupt handler, the timeout could
-> end being generated after new IR and corrupting a message. There is very
-> similar functionality in rc-ir-raw.c (with a spinlock).
+Add an allocator framework where the first VIN instance to be probed
+creates a shared data structure and registers a media device.
+Consecutive VINs insert themself into the global group.
 
-Ah, thanks for the hint! Now I also noticed your commit a few
-weeks ago - must have missed that before.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 174 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  31 +++++
+ 2 files changed, 203 insertions(+), 2 deletions(-)
 
-> > +
-> >  static int meson_ir_probe(struct platform_device *pdev)
-> >  {
-> >  	struct device *dev = &pdev->dev;
-> > @@ -145,7 +161,9 @@ static int meson_ir_probe(struct platform_device *pdev)
-> >  	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
-> >  	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
-> >  	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
-> > +	ir->rc->min_timeout = 1;
-> >  	ir->rc->timeout = MS_TO_NS(200);
-> > +	ir->rc->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
-> 
-> Any idea why the default timeout is to 200ms? It seems very high.
-
-Indeed it is very high, but I have no idea where that might be
-coming from - so I didn't touch it.
-
-I've been testing rc-5 and NEC remotes with 20-50ms timeouts
-on meson-ir/upstream kernel and a couple of LibreELEC users are
-using 30-50ms timeouts without issues on Amlogic devices as well
-(on 3.14 vendor kernel with meson-ir timeout patch):
-
-https://forum.libreelec.tv/thread/11643-le9-0-remote-configs-ir-keytable-amlogic-devices/?postID=83124#post83124
-
-Out of curiosity: where does the 125ms IR_DEFAULT_TIMEOUT value
-come from? For raw IR signals processed by the decoders this seems
-rather high to me as well. On my RPi3 with gpio-ir-recv I'm
-using 30ms timeout (with an rc-5 remote) without issues.
-
-> >  	ir->rc->driver_name = DRIVER_NAME;
-> >  
-> >  	spin_lock_init(&ir->lock);
-> > @@ -157,6 +175,8 @@ static int meson_ir_probe(struct platform_device *pdev)
-> >  		return ret;
-> >  	}
-> >  
-> > +	timer_setup(&ir->timeout_timer, meson_ir_timeout_timer, 0);
-> > +
-> >  	ret = devm_request_irq(dev, irq, meson_ir_irq, 0, NULL, ir);
-> >  	if (ret) {
-> >  		dev_err(dev, "failed to request irq\n");
-> > @@ -198,6 +218,8 @@ static int meson_ir_remove(struct platform_device *pdev)
-> >  	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
-> >  	spin_unlock_irqrestore(&ir->lock, flags);
-> >  
-> > +	del_timer_sync(&ir->timeout_timer);
-> > +
-> >  	return 0;
-> >  }
-> >  
-> > -- 
-> > 2.11.0
-> 
-> Would you mind trying this patch?
-
-Tested-by: Matthias Reichl <hias@horus.com>
-
-Thanks a lot, this patch works fine! And having a common function
-in rc-core looks like a very good idea to me as well.
-
-Only thing I'd like to have added is min/max timeout values set
-in meson-ir so it's configurable via ir-ctl. A separate patch for
-that would make sense, though, I guess.
-
-so long & thanks,
-
-Hias
-
-> 
-> Thanks
-> 
-> Sean
-> ---
-> >>From f98f4fc05d743ac48a95694996985b2c1f0c4a4b Mon Sep 17 00:00:00 2001
-> From: Sean Young <sean@mess.org>
-> Date: Thu, 8 Mar 2018 14:42:44 +0000
-> Subject: [PATCH] media: rc: meson-ir: add timeout on idle
-> 
-> Meson doesn't seem to be able to generate timeout events in hardware. So
-> install a software timer to generate the timeout events required by the
-> decoders to prevent "ghost keypresses".
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/meson-ir.c  |  3 +--
->  drivers/media/rc/rc-ir-raw.c | 30 +++++++++++++++++++++++++++---
->  include/media/rc-core.h      |  4 +++-
->  3 files changed, 31 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-> index f2204eb77e2a..64b0aa4f4db7 100644
-> --- a/drivers/media/rc/meson-ir.c
-> +++ b/drivers/media/rc/meson-ir.c
-> @@ -97,8 +97,7 @@ static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
->  	status = readl_relaxed(ir->reg + IR_DEC_STATUS);
->  	rawir.pulse = !!(status & STATUS_IR_DEC_IN);
->  
-> -	ir_raw_event_store(ir->rc, &rawir);
-> -	ir_raw_event_handle(ir->rc);
-> +	ir_raw_event_store_with_timeout(ir->rc, &rawir);
->  
->  	spin_unlock(&ir->lock);
->  
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index 984bb82851f9..374f83105a23 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -92,7 +92,6 @@ int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
->  {
->  	ktime_t			now;
->  	DEFINE_IR_RAW_EVENT(ev);
-> -	int			rc = 0;
->  
->  	if (!dev->raw)
->  		return -EINVAL;
-> @@ -101,8 +100,33 @@ int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
->  	ev.duration = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
->  	ev.pulse = !pulse;
->  
-> +	return ir_raw_event_store_with_timeout(dev, &ev);
-> +}
-> +EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
-> +
-> +/*
-> + * ir_raw_event_store_with_timeout() - pass a pulse/space duration to the raw
-> + *				       ir decoders, schedule decoding and
-> + *				       timeout
-> + * @dev:	the struct rc_dev device descriptor
-> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
-> + *
-> + * This routine (which may be called from an interrupt context) stores a
-> + * pulse/space duration for the raw ir decoding state machines, schedules
-> + * decoding and generates a timeout.
-> + */
-> +int ir_raw_event_store_with_timeout(struct rc_dev *dev, struct ir_raw_event *ev)
-> +{
-> +	ktime_t		now;
-> +	int		rc = 0;
-> +
-> +	if (!dev->raw)
-> +		return -EINVAL;
-> +
-> +	now = ktime_get();
-> +
->  	spin_lock(&dev->raw->edge_spinlock);
-> -	rc = ir_raw_event_store(dev, &ev);
-> +	rc = ir_raw_event_store(dev, ev);
->  
->  	dev->raw->last_event = now;
->  
-> @@ -117,7 +141,7 @@ int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse)
->  
->  	return rc;
->  }
-> -EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
-> +EXPORT_SYMBOL_GPL(ir_raw_event_store_with_timeout);
->  
->  /**
->   * ir_raw_event_store_with_filter() - pass next pulse/space to decoders with some processing
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index fc3a92668bab..6742fd86ff65 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -334,7 +334,9 @@ void ir_raw_event_handle(struct rc_dev *dev);
->  int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
->  int ir_raw_event_store_edge(struct rc_dev *dev, bool pulse);
->  int ir_raw_event_store_with_filter(struct rc_dev *dev,
-> -				struct ir_raw_event *ev);
-> +				   struct ir_raw_event *ev);
-> +int ir_raw_event_store_with_timeout(struct rc_dev *dev,
-> +				    struct ir_raw_event *ev);
->  void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
->  int ir_raw_encode_scancode(enum rc_proto protocol, u32 scancode,
->  			   struct ir_raw_event *events, unsigned int max);
-> -- 
-> 2.14.3
-> 
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index e0a33d372c500ccd..38eaa246e4c0a7b5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -20,12 +20,174 @@
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ #include "rcar-vin.h"
+ 
++/* -----------------------------------------------------------------------------
++ * Gen3 CSI2 Group Allocator
++ */
++
++/* FIXME:  This should if we find a system that supports more
++ * than one group for the whole system be replaced with a linked
++ * list of groups. And eventually all of this should be replaced
++ * with a global device allocator API.
++ *
++ * But for now this works as on all supported systems there will
++ * be only one group for all instances.
++ */
++
++static DEFINE_MUTEX(rvin_group_lock);
++static struct rvin_group *rvin_group_data;
++
++static void rvin_group_cleanup(struct rvin_group *group)
++{
++	media_device_unregister(&group->mdev);
++	media_device_cleanup(&group->mdev);
++	mutex_destroy(&group->lock);
++}
++
++static int rvin_group_init(struct rvin_group *group, struct rvin_dev *vin)
++{
++	struct media_device *mdev = &group->mdev;
++	const struct of_device_id *match;
++	struct device_node *np;
++	int ret;
++
++	mutex_init(&group->lock);
++
++	/* Count number of VINs in the system */
++	group->count = 0;
++	for_each_matching_node(np, vin->dev->driver->of_match_table)
++		if (of_device_is_available(np))
++			group->count++;
++
++	vin_dbg(vin, "found %u enabled VIN's in DT", group->count);
++
++	mdev->dev = vin->dev;
++
++	match = of_match_node(vin->dev->driver->of_match_table,
++			      vin->dev->of_node);
++
++	strlcpy(mdev->driver_name, KBUILD_MODNAME, sizeof(mdev->driver_name));
++	strlcpy(mdev->model, match->compatible, sizeof(mdev->model));
++	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
++		 dev_name(mdev->dev));
++
++	media_device_init(mdev);
++
++	ret = media_device_register(&group->mdev);
++	if (ret)
++		rvin_group_cleanup(group);
++
++	return ret;
++}
++
++static void rvin_group_release(struct kref *kref)
++{
++	struct rvin_group *group =
++		container_of(kref, struct rvin_group, refcount);
++
++	mutex_lock(&rvin_group_lock);
++
++	rvin_group_data = NULL;
++
++	rvin_group_cleanup(group);
++
++	kfree(group);
++
++	mutex_unlock(&rvin_group_lock);
++}
++
++static int rvin_group_get(struct rvin_dev *vin)
++{
++	struct rvin_group *group;
++	u32 id;
++	int ret;
++
++	/* Make sure VIN id is present and sane */
++	ret = of_property_read_u32(vin->dev->of_node, "renesas,id", &id);
++	if (ret) {
++		vin_err(vin, "%pOF: No renesas,id property found\n",
++			vin->dev->of_node);
++		return -EINVAL;
++	}
++
++	if (id >= RCAR_VIN_NUM) {
++		vin_err(vin, "%pOF: Invalid renesas,id '%u'\n",
++			vin->dev->of_node, id);
++		return -EINVAL;
++	}
++
++	/* Join or create a VIN group */
++	mutex_lock(&rvin_group_lock);
++	if (rvin_group_data) {
++		group = rvin_group_data;
++		kref_get(&group->refcount);
++	} else {
++		group = kzalloc(sizeof(*group), GFP_KERNEL);
++		if (!group) {
++			ret = -ENOMEM;
++			goto err_group;
++		}
++
++		ret = rvin_group_init(group, vin);
++		if (ret) {
++			kfree(group);
++			vin_err(vin, "Failed to initialize group\n");
++			goto err_group;
++		}
++
++		kref_init(&group->refcount);
++
++		rvin_group_data = group;
++	}
++	mutex_unlock(&rvin_group_lock);
++
++	/* Add VIN to group */
++	mutex_lock(&group->lock);
++
++	if (group->vin[id]) {
++		vin_err(vin, "Duplicate renesas,id property value %u\n", id);
++		mutex_unlock(&group->lock);
++		kref_put(&group->refcount, rvin_group_release);
++		return -EINVAL;
++	}
++
++	group->vin[id] = vin;
++
++	vin->id = id;
++	vin->group = group;
++	vin->v4l2_dev.mdev = &group->mdev;
++
++	mutex_unlock(&group->lock);
++
++	return 0;
++err_group:
++	mutex_unlock(&rvin_group_lock);
++	return ret;
++}
++
++static void rvin_group_put(struct rvin_dev *vin)
++{
++	mutex_lock(&vin->group->lock);
++
++	vin->group = NULL;
++	vin->v4l2_dev.mdev = NULL;
++
++	if (WARN_ON(vin->group->vin[vin->id] != vin))
++		goto out;
++
++	vin->group->vin[vin->id] = NULL;
++out:
++	mutex_unlock(&vin->group->lock);
++
++	kref_put(&vin->group->refcount, rvin_group_release);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Async notifier
+  */
+@@ -249,12 +411,18 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 
+ static int rvin_mc_init(struct rvin_dev *vin)
+ {
++	int ret;
++
+ 	/* All our sources are CSI-2 */
+ 	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+ 	vin->mbus_cfg.flags = 0;
+ 
+ 	vin->pad.flags = MEDIA_PAD_FL_SINK;
+-	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
++	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
++	if (ret)
++		return ret;
++
++	return rvin_group_get(vin);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -374,7 +542,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+-	if (!vin->info->use_mc)
++	if (vin->info->use_mc)
++		rvin_group_put(vin);
++	else
+ 		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+ 
+ 	rvin_dma_unregister(vin);
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 5102ad254bff515b..cf5c467d45e10847 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -17,6 +17,8 @@
+ #ifndef __RCAR_VIN__
+ #define __RCAR_VIN__
+ 
++#include <linux/kref.h>
++
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+@@ -29,6 +31,11 @@
+ /* Address alignment mask for HW buffers */
+ #define HW_BUFFER_MASK 0x7f
+ 
++/* Max number on VIN instances that can be in a system */
++#define RCAR_VIN_NUM 8
++
++struct rvin_group;
++
+ enum model_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -99,6 +106,8 @@ struct rvin_info {
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @digital:		entity in the DT for local digital subdevice
+  *
++ * @group:		Gen3 CSI group
++ * @id:			Gen3 group id for this VIN
+  * @pad:		media pad for the video device entity
+  *
+  * @lock:		protects @queue
+@@ -133,6 +142,8 @@ struct rvin_dev {
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity *digital;
+ 
++	struct rvin_group *group;
++	unsigned int id;
+ 	struct media_pad pad;
+ 
+ 	struct mutex lock;
+@@ -164,6 +175,26 @@ struct rvin_dev {
+ #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
+ #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+ 
++/**
++ * struct rvin_group - VIN CSI2 group information
++ * @refcount:		number of VIN instances using the group
++ *
++ * @mdev:		media device which represents the group
++ *
++ * @lock:		protects the count and vin members
++ * @count:		number of enabled VIN instances found in DT
++ * @vin:		VIN instances which are part of the group
++ */
++struct rvin_group {
++	struct kref refcount;
++
++	struct media_device mdev;
++
++	struct mutex lock;
++	unsigned int count;
++	struct rvin_dev *vin[RCAR_VIN_NUM];
++};
++
+ int rvin_dma_register(struct rvin_dev *vin, int irq);
+ void rvin_dma_unregister(struct rvin_dev *vin);
+ 
+-- 
+2.16.2
