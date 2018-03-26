@@ -1,291 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64040 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752063AbeCEUDl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 15:03:41 -0500
-Date: Mon, 5 Mar 2018 17:03:30 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, rjkm@metzlerbros.de,
-        d.scheller@gmx.net
-Subject: Re: [PATCH V2 2/3] media: dvb-core: Added timers for
- dvb_ca_en50221_write_data
-Message-ID: <20180305170330.1d21aa60@vento.lan>
-In-Reply-To: <b7b9ecfc-f85a-23d3-481f-072965d172b5@anw.at>
-References: <1513862559-19725-1-git-send-email-jasmin@anw.at>
-        <1513862559-19725-3-git-send-email-jasmin@anw.at>
-        <b7b9ecfc-f85a-23d3-481f-072965d172b5@anw.at>
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32261 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752364AbeCZVqo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:46:44 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 15/33] rcar-vin: break out format alignment and checking
+Date: Mon, 26 Mar 2018 23:44:38 +0200
+Message-Id: <20180326214456.6655-16-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Feb 2018 00:29:43 +0100
-"Jasmin J." <jasmin@anw.at> escreveu:
+Part of the format alignment and checking can be shared with the Gen3
+format handling. Break that part out to a separate function.
 
-> Hi!
-> 
-> Please hold on in merging this series, because I have to investigate a hint
-> I got related to the buffer size handshake of the protocol driver:
->   https://www.linuxtv.org/pipermail/linux-dvb/2007-July/019116.html
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 85 ++++++++++++++++-------------
+ 1 file changed, 48 insertions(+), 37 deletions(-)
 
-Ok.
-
-I'll mark this series as "Changes requested".
-
-Please resubmit it once you have a new patch series.
-
-> 
-> BR,
->    Jasmin
-> 
-> 
-> On 12/21/2017 02:22 PM, Jasmin J. wrote:
-> > From: Jasmin Jessich <jasmin@anw.at>
-> > 
-> > Some (older) CAMs are really slow in accepting data. The CI interface
-> > specification doesn't define a handshake for accepted data. Thus, the
-> > en50221 protocol driver can't control if a data byte has been correctly
-> > written to the CAM.
-> > 
-> > The current implementation writes the length and the data quick after
-> > each other. Thus, the slow CAMs may generate a WR error, which leads to
-> > the known error logging
-> >    "CAM tried to send a buffer larger than the ecount size".
-> > 
-> > To solve this issue the en50221 protocol driver needs to wait some CAM
-> > depending time between the different bytes to be written. Because the
-> > time is CAM dependent, an individual value per CAM needs to be set. For
-> > that SysFS is used in favor of ioctl's to allow the control of the timer
-> > values independent from any user space application.
-> > 
-> > This patch adds the timers and the SysFS nodes to set/get the timeout
-> > values and the timer waiting between the different steps of the CAM write
-> > access. A timer value of 0 (default) means "no timeout".
-> > 
-> > Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> > Acked-by: Ralph Metzler <rjkm@metzlerbros.de>
-> > ---
-> >  drivers/media/dvb-core/dvb_ca_en50221.c | 132 +++++++++++++++++++++++++++++++-
-> >  1 file changed, 131 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-> > index a3b2754..9b45d6b 100644
-> > --- a/drivers/media/dvb-core/dvb_ca_en50221.c
-> > +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-> > @@ -86,6 +86,13 @@ MODULE_PARM_DESC(cam_debug, "enable verbose debug messages");
-> >  #define DVB_CA_SLOTSTATE_WAITFR         6
-> >  #define DVB_CA_SLOTSTATE_LINKINIT       7
-> >  
-> > +enum dvb_ca_timers {
-> > +	DVB_CA_TIM_WR_HIGH  /* wait after writing length high */
-> > +,	DVB_CA_TIM_WR_LOW   /* wait after writing length low */
-> > +,	DVB_CA_TIM_WR_DATA  /* wait between data bytes */
-> > +,	DVB_CA_TIM_MAX
-> > +};
-> > +
-> >  /* Information on a CA slot */
-> >  struct dvb_ca_slot {
-> >  	/* current state of the CAM */
-> > @@ -119,6 +126,11 @@ struct dvb_ca_slot {
-> >  	unsigned long timeout;
-> >  };
-> >  
-> > +struct dvb_ca_timer {
-> > +	unsigned long min;
-> > +	unsigned long max;
-> > +};
-> > +
-> >  /* Private CA-interface information */
-> >  struct dvb_ca_private {
-> >  	struct kref refcount;
-> > @@ -161,6 +173,14 @@ struct dvb_ca_private {
-> >  
-> >  	/* mutex serializing ioctls */
-> >  	struct mutex ioctl_mutex;
-> > +
-> > +	struct dvb_ca_timer timers[DVB_CA_TIM_MAX];
-> > +};
-> > +
-> > +static const char dvb_ca_tim_names[DVB_CA_TIM_MAX][15] = {
-> > +	"tim_wr_high"
-> > +,	"tim_wr_low"
-> > +,	"tim_wr_data"
-> >  };
-> >  
-> >  static void dvb_ca_private_free(struct dvb_ca_private *ca)
-> > @@ -223,6 +243,14 @@ static char *findstr(char *haystack, int hlen, char *needle, int nlen)
-> >  	return NULL;
-> >  }
-> >  
-> > +static void dvb_ca_sleep(struct dvb_ca_private *ca, enum dvb_ca_timers tim)
-> > +{
-> > +	unsigned long min = ca->timers[tim].min;
-> > +
-> > +	if (min)
-> > +		usleep_range(min, ca->timers[tim].max);
-> > +}
-> > +
-> >  /* ************************************************************************** */
-> >  /* EN50221 physical interface functions */
-> >  
-> > @@ -869,10 +897,13 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
-> >  					    bytes_write >> 8);
-> >  	if (status)
-> >  		goto exit;
-> > +	dvb_ca_sleep(ca, DVB_CA_TIM_WR_HIGH);
-> > +
-> >  	status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW,
-> >  					    bytes_write & 0xff);
-> >  	if (status)
-> >  		goto exit;
-> > +	dvb_ca_sleep(ca, DVB_CA_TIM_WR_LOW);
-> >  
-> >  	/* send the buffer */
-> >  	for (i = 0; i < bytes_write; i++) {
-> > @@ -880,6 +911,7 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
-> >  						    buf[i]);
-> >  		if (status)
-> >  			goto exit;
-> > +		dvb_ca_sleep(ca, DVB_CA_TIM_WR_DATA);
-> >  	}
-> >  
-> >  	/* check for write error (WE should now be 0) */
-> > @@ -1834,6 +1866,97 @@ static const struct dvb_device dvbdev_ca = {
-> >  };
-> >  
-> >  /* ************************************************************************** */
-> > +/* EN50221 device attributes (SysFS) */
-> > +
-> > +static int dvb_ca_tim_idx(struct dvb_ca_private *ca, const char *name)
-> > +{
-> > +	int tim_idx;
-> > +
-> > +	for (tim_idx = 0; tim_idx < DVB_CA_TIM_MAX; tim_idx++) {
-> > +		if (!strcmp(dvb_ca_tim_names[tim_idx], name))
-> > +			return tim_idx;
-> > +	}
-> > +	return -1;
-> > +}
-> > +
-> > +static ssize_t dvb_ca_tim_show(struct device *device,
-> > +			       struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct dvb_device *dvbdev = dev_get_drvdata(device);
-> > +	struct dvb_ca_private *ca = dvbdev->priv;
-> > +	int tim_idx = dvb_ca_tim_idx(ca, attr->attr.name);
-> > +
-> > +	if (tim_idx < 0)
-> > +		return -ENXIO;
-> > +
-> > +	return sprintf(buf, "%ld\n", ca->timers[tim_idx].min);
-> > +}
-> > +
-> > +static ssize_t dvb_ca_tim_store(struct device *device,
-> > +				struct device_attribute *attr,
-> > +				const char *buf, size_t count)
-> > +{
-> > +	struct dvb_device *dvbdev = dev_get_drvdata(device);
-> > +	struct dvb_ca_private *ca = dvbdev->priv;
-> > +	int tim_idx = dvb_ca_tim_idx(ca, attr->attr.name);
-> > +	unsigned long min, max;
-> > +
-> > +	if (tim_idx < 0)
-> > +		return -ENXIO;
-> > +
-> > +	if (sscanf(buf, "%lu\n", &min) != 1)
-> > +		return -EINVAL;
-> > +
-> > +	/* value is in us; 100ms is a good maximum */
-> > +	if (min > (100 * USEC_PER_MSEC))
-> > +		return -EINVAL;
-> > +
-> > +	/* +10% (rounded up) */
-> > +	max = (min * 11 + 5) / 10;
-> > +	ca->timers[tim_idx].min = min;
-> > +	ca->timers[tim_idx].max = max;
-> > +
-> > +	return count;
-> > +}
-> > +
-> > +/* attribute definition with string pointer (see include/linux/sysfs.h) */
-> > +#define DVB_CA_ATTR(_name, _mode, _show, _store) {	\
-> > +	.attr = {.name = _name, .mode = _mode },	\
-> > +	.show	= _show,				\
-> > +	.store	= _store,				\
-> > +}
-> > +
-> > +#define DVB_CA_ATTR_TIM(_tim_idx)					\
-> > +	DVB_CA_ATTR(dvb_ca_tim_names[_tim_idx], 0664, dvb_ca_tim_show,	\
-> > +		    dvb_ca_tim_store)
-> > +
-> > +static const struct device_attribute dvb_ca_attrs[DVB_CA_TIM_MAX] = {
-> > +	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_HIGH)
-> > +,	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_LOW)
-> > +,	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_DATA)
-> > +};
-> > +
-> > +static int dvb_ca_device_attrs_add(struct dvb_ca_private *ca)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < ARRAY_SIZE(dvb_ca_attrs); i++)
-> > +		if (device_create_file(ca->dvbdev->dev, &dvb_ca_attrs[i]))
-> > +			goto fail;
-> > +	return 0;
-> > +fail:
-> > +	return -1;
-> > +}
-> > +
-> > +static void ddb_device_attrs_del(struct dvb_ca_private *ca)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < ARRAY_SIZE(dvb_ca_attrs); i++)
-> > +		device_remove_file(ca->dvbdev->dev, &dvb_ca_attrs[i]);
-> > +}
-> > +
-> > +/* ************************************************************************** */
-> >  /* Initialisation/shutdown functions */
-> >  
-> >  /**
-> > @@ -1903,6 +2026,10 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
-> >  		ret = -EINTR;
-> >  		goto unregister_device;
-> >  	}
-> > +
-> > +	if (dvb_ca_device_attrs_add(ca))
-> > +		goto unregister_device;
-> > +
-> >  	mb();
-> >  
-> >  	/* create a kthread for monitoring this CA device */
-> > @@ -1912,10 +2039,12 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
-> >  		ret = PTR_ERR(ca->thread);
-> >  		pr_err("dvb_ca_init: failed to start kernel_thread (%d)\n",
-> >  		       ret);
-> > -		goto unregister_device;
-> > +		goto delete_attrs;
-> >  	}
-> >  	return 0;
-> >  
-> > +delete_attrs:
-> > +	ddb_device_attrs_del(ca);
-> >  unregister_device:
-> >  	dvb_unregister_device(ca->dvbdev);
-> >  free_slot_info:
-> > @@ -1946,6 +2075,7 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
-> >  	for (i = 0; i < ca->slot_count; i++)
-> >  		dvb_ca_en50221_slot_shutdown(ca, i);
-> >  
-> > +	ddb_device_attrs_del(ca);
-> >  	dvb_remove_device(ca->dvbdev);
-> >  	dvb_ca_private_put(ca);
-> >  	pubca->private = NULL;
-> >   
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 8dbd764883976ad1..c39891386576afb8 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -87,6 +87,53 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+ 	return pix->bytesperline * pix->height;
+ }
+ 
++static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	u32 walign;
++
++	if (!rvin_format_from_pixel(pix->pixelformat) ||
++	    (vin->info->model == RCAR_M1 &&
++	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
++		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++
++	switch (pix->field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	case V4L2_FIELD_ALTERNATE:
++		/*
++		 * Driver dose not (yet) support outputting ALTERNATE to a
++		 * userspace. It does support outputting INTERLACED so use
++		 * the VIN hardware to combine the two fields.
++		 */
++		pix->field = V4L2_FIELD_INTERLACED;
++		pix->height *= 2;
++		break;
++	default:
++		pix->field = RVIN_DEFAULT_FIELD;
++		break;
++	}
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
++
++	pix->bytesperline = rvin_format_bytesperline(pix);
++	pix->sizeimage = rvin_format_sizeimage(pix);
++
++	vin_dbg(vin, "Format %ux%u bpl: %u size: %u\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2
+  */
+@@ -186,7 +233,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     struct v4l2_pix_format *pix,
+ 			     struct rvin_source_fmt *source)
+ {
+-	u32 walign;
+ 	int ret;
+ 
+ 	if (!rvin_format_from_pixel(pix->pixelformat) ||
+@@ -199,42 +245,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	if (ret)
+ 		return ret;
+ 
+-	switch (pix->field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	case V4L2_FIELD_ALTERNATE:
+-		/*
+-		 * Driver dose not (yet) support outputting ALTERNATE to a
+-		 * userspace. It does support outputting INTERLACED so use
+-		 * the VIN hardware to combine the two fields.
+-		 */
+-		pix->field = V4L2_FIELD_INTERLACED;
+-		pix->height *= 2;
+-		break;
+-	default:
+-		pix->field = RVIN_DEFAULT_FIELD;
+-		break;
+-	}
+-
+-	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+-	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+-
+-	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+-			      &pix->height, 4, vin->info->max_height, 2, 0);
+-
+-	pix->bytesperline = rvin_format_bytesperline(pix);
+-	pix->sizeimage = rvin_format_sizeimage(pix);
+-
+-	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+-		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+-
+-	return 0;
++	return rvin_format_align(vin, pix);
+ }
+ 
+ static int rvin_querycap(struct file *file, void *priv,
+-- 
+2.16.2
