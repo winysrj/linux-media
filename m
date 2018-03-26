@@ -1,47 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:37557 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751175AbeCWEKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 00:10:06 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 0/2] Add support for ov7251 camera sensor
-Date: Fri, 23 Mar 2018 12:09:37 +0800
-Message-Id: <1521778179-8562-1-git-send-email-todor.tomov@linaro.org>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:60689 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752138AbeCZVq3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:46:29 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 05/33] rcar-vin: unregister video device on driver removal
+Date: Mon, 26 Mar 2018 23:44:28 +0200
+Message-Id: <20180326214456.6655-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
-Sensor from Omnivision.
+If the video device was registered by the complete() callback it should
+be unregistered when a device is unbound from the driver. Protect from
+printing an uninitialized video device node name by adding a check in
+rvin_v4l2_unregister() to identify that the video device is registered.
 
---------------------------------------------------------------------------
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
+ 2 files changed, 5 insertions(+)
 
-Version 2:
-- changed ov7251 node's name in DT binding example;
-- SPDX licence identifier;
-- better names for register value defines;
-- remove power reference counting and leave a power state only;
-- use v4l2_find_nearest_size() to find sensor mode by requested size;
-- set ycbcr_enc, quantization and xfer_func in set_fmt;
-- use struct fwnode_handle instead of struct device_node;
-- add comment in driver about external clock value.
-
---------------------------------------------------------------------------
-
-Todor Tomov (2):
-  dt-bindings: media: Binding document for OV7251 camera sensor
-  media: Add a driver for the ov7251 camera sensor
-
- .../devicetree/bindings/media/i2c/ov7251.txt       |   51 +
- drivers/media/i2c/Kconfig                          |   13 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov7251.c                         | 1494 ++++++++++++++++++++
- 4 files changed, 1559 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7251.txt
- create mode 100644 drivers/media/i2c/ov7251.c
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 2bedf20abcf3ca07..47f06acde2e698f2 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -272,6 +272,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	pm_runtime_disable(&pdev->dev);
+ 
++	rvin_v4l2_unregister(vin);
++
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 178aecc94962abe2..32a658214f48fa49 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -841,6 +841,9 @@ static const struct v4l2_file_operations rvin_fops = {
+ 
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
++	if (!video_is_registered(&vin->vdev))
++		return;
++
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+ 		  video_device_node_name(&vin->vdev));
+ 
 -- 
-2.7.4
+2.16.2
