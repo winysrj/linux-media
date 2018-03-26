@@ -1,111 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35368 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935735AbeCHJtc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 04:49:32 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        devicetree@vger.kernel.org, heiko@sntech.de,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v6 10/17] dt-bindings: Document the Rockchip ISP1 bindings
-Date: Thu,  8 Mar 2018 17:48:00 +0800
-Message-Id: <20180308094807.9443-11-jacob-chen@iotwrt.com>
-In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50919 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752447AbeCZPf1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 11:35:27 -0400
+Subject: Re: [RFC v2 00/10] Preparing the request API
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: acourbot@chromium.org
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+ <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
+ <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+Message-ID: <f11c24e1-599d-3248-008c-4730569cfa10@xs4all.nl>
+Date: Mon, 26 Mar 2018 17:35:18 +0200
+MIME-Version: 1.0
+In-Reply-To: <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+On 03/25/2018 06:17 PM, Hans Verkuil wrote:
+>> So this weekend I worked on a merger of this work and the RFCv4 Request API
+>> patch series, taking what I think are the best bits of both.
+>>
+>> It is available here:
+>>
+>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv6
+> 
+> I reorganized/cleaned up the patch series. So look here instead:
+> 
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv7
+> 
+> It's easier to follow.
 
-Add DT bindings documentation for Rockchip ISP1
+Status update:
 
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/rockchip-isp1.txt    | 69 ++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
+Current work-in-progress tree:
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-isp1.txt b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
-new file mode 100644
-index 000000000000..4631a4b7c88a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
-@@ -0,0 +1,69 @@
-+Rockchip SoC Image Signal Processing unit v1
-+----------------------------------------------
-+
-+Rockchip ISP1 is the Camera interface for the Rockchip series of SoCs
-+which contains image processing, scaling, and compression funcitons.
-+
-+Required properties:
-+- compatible: value should be one of the following
-+	"rockchip,rk3288-cif-isp";
-+	"rockchip,rk3399-cif-isp";
-+- reg : offset and length of the register set for the device.
-+- interrupts: should contain ISP interrupt.
-+- clocks: phandle to the required clocks.
-+- clock-names: required clock name.
-+- iommus: required a iommu node.
-+
-+port node
-+-------------------
-+
-+The device node should contain one 'port' child node with child 'endpoint'
-+nodes, according to the bindings defined in Documentation/devicetree/bindings/
-+media/video-interfaces.txt.
-+
-+- endpoint(parallel):
-+	- remote-endpoint: Connecting to a sensor with a parallel video bus.
-+	- parallel_bus properties: Refer to Documentation/devicetree/bindings/
-+		media/video-interfaces.txt.
-+- endpoint(mipi):
-+	- remote-endpoint: Connecting to Rockchip MIPI-DPHY,
-+		which is defined in rockchip-mipi-dphy.txt.
-+
-+The port node must contain at least one endpoint, either parallel or mipi.
-+It could have multiple endpoints, but please note the hardware don't support
-+two sensors work at a time, they are supposed to work asynchronously.
-+
-+Device node example
-+-------------------
-+
-+	isp0: isp0@ff910000 {
-+		compatible = "rockchip,rk3399-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
-+		clocks = <&cru SCLK_ISP0>,
-+			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
-+			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
-+		clock-names = "clk_isp",
-+			      "aclk_isp", "aclk_isp_wrap",
-+			      "hclk_isp", "hclk_isp_wrap";
-+		power-domains = <&power RK3399_PD_ISP0>;
-+		iommus = <&isp0_mmu>;
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			/* mipi */
-+			isp0_mipi_in: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&dphy_rx0_out>;
-+			};
-+
-+			/* parallel */
-+			isp0_parallel_in: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&ov5640_out>;
-+				bus-width = <8>;
-+			};
-+		};
-+	};
--- 
-2.16.1
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv8
+
+v4l2-compliance test code:
+
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=request
+
+I had hoped to have more tests ready, but there were loads of
+get/put errors (not surprisingly) which took a lot of time to fix.
+
+I also must remember for the next time that the list_add_tail prototype is:
+
+void list_add_tail(struct list_head *new, struct list_head *head)
+
+and not:
+
+void list_add_tail(struct list_head *head, struct list_head *new)
+
+Adding an object to a request worked much better than adding a request
+to an object :-)
+
+The v4l2-compliance tests I wrote test the basic creation/deletion
+of requests, and adding controls to a request.
+
+The main tests deal with all the various open/close combinations
+(media fd, video fd, request fd). It's now working for both vim2m and
+vivid.
+
+I will try to start on buffers and queueing tests tomorrow, but it might
+slip to Wednesday.
+
+An interesting corner case was vim2m: what to do if you allocate a request,
+add a control to it, then close the video file handle. Since the whole
+state is contained in the video file handle, the control inside the request
+is suddenly orphaned since the control refers to the control handler in the
+file handle state, which is now deleted.
+
+I have decided to remove the control from the request in that case. This means
+that closing the video file handle for such devices removes all request objects
+that are created by that file handle from any requests that they were bound to.
+
+For vim2m it is effectively equal to calling MEDIA_REQUEST_IOC_REINIT for the
+request.
+
+I think this is a sane approach for such devices.
+
+Regards,
+
+	Hans
