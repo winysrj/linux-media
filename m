@@ -1,86 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52899 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:49141 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753087AbeCUU1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 16:27:44 -0400
-Date: Wed, 21 Mar 2018 22:27:38 +0200
+        id S1750955AbeCZNYJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 09:24:09 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: v4l2-common: fix a compilation breakage
-Message-ID: <20180321202737.4p72qpbbq4iivqde@kekkonen.localdomain>
-References: <238f694e1b7f8297f1256c57e41f69c39576c9b4.1521662907.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <238f694e1b7f8297f1256c57e41f69c39576c9b4.1521662907.git.mchehab@s-opensource.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, acourbot@chromium.org, tfiga@google.com,
+        hverkuil@xs4all.nl
+Subject: [RFC v2.1 1/1] media: Support variable size IOCTL arguments
+Date: Mon, 26 Mar 2018 16:23:24 +0300
+Message-Id: <1522070604-3213-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Maintain a list of supported IOCTL argument sizes and allow only those in
+the list.
 
-On Wed, Mar 21, 2018 at 04:08:29PM -0400, Mauro Carvalho Chehab wrote:
-> Clearly, changeset 95ce9c28601a ("media: v4l: common: Add a
-> function to obtain best size from a list") was never tested, as it
-> broke compilation with:
-> 
-> drivers/media/platform/vivid/vivid-vid-cap.c: In function ‘vivid_try_fmt_vid_cap’:
-> drivers/media/platform/vivid/vivid-vid-cap.c:565:34: error: macro "v4l2_find_nearest_size" requer 6 argumentos, mas apenas 5 foram fornecidos
->              mp->width, mp->height);
->                                   ^
-> drivers/media/platform/vivid/vivid-vid-cap.c:564:4: error: ‘v4l2_find_nearest_size’ undeclared (first use in this function); did you mean ‘__v4l2_find_nearest_size’?
->     v4l2_find_nearest_size(webcam_sizes, width, height,
->     ^~~~~~~~~~~~~~~~~~~~~~
->     __v4l2_find_nearest_size
-> drivers/media/platform/vivid/vivid-vid-cap.c:564:4: note: each undeclared identifier is reported only once for each function it appears in
-> drivers/media/i2c/ov5670.c: In function ‘ov5670_set_pad_format’:
-> drivers/media/i2c/ov5670.c:2233:48: error: macro "v4l2_find_nearest_size" requer 6 argumentos, mas apenas 5 foram fornecidos
->            fmt->format.width, fmt->format.height);
->                                                 ^
-> drivers/media/i2c/ov5670.c:2232:9: error: ‘v4l2_find_nearest_size’ undeclared (first use in this function); did you mean ‘__v4l2_find_nearest_size’?
->   mode = v4l2_find_nearest_size(supported_modes, width, height,
->          ^~~~~~~~~~~~~~~~~~~~~~
->          __v4l2_find_nearest_size
-> drivers/media/i2c/ov13858.c: In function ‘ov13858_set_pad_format’:
-> drivers/media/i2c/ov13858.c:1379:48: error: macro "v4l2_find_nearest_size" requer 6 argumentos, mas apenas 5 foram fornecidos
->            fmt->format.width, fmt->format.height);
->                                                 ^
-> drivers/media/i2c/ov13858.c:1378:9: error: ‘v4l2_find_nearest_size’ undeclared (first use in this function); did you mean ‘__v4l2_find_nearest_size’?
->   mode = v4l2_find_nearest_size(supported_modes, width, height,
->          ^~~~~~~~~~~~~~~~~~~~~~
->          __v4l2_find_nearest_size
-> drivers/media/i2c/ov13858.c:1378:9: note: each undeclared identifier is reported only once for each function it appears in
-> 
-> Basically, v4l2_find_nearest_size() callers pass 5 arguments,
-> while its definition require 6 args.
-> 
-> Unfortunately, my build process was also broken, as it was reporting me that
-> the compilation went fine:
-> 
-> 	$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='compile_checks' M=drivers/staging/media
-> 	$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='compile_checks' M=drivers/media
-> 
-> 	*** ERRORS ***
-> 
-> 	*** WARNINGS ***
-> 	compilation succeeded
-> 
-> That was due to a change here to use of linux-log-diff script that
-> provides a diffstat between the errors output. Somehow, the logic
-> was missing some fatal errors.
+As an additional bonus, IOCTL handlers will be able to check whether the
+caller actually set (using the argument size) the field vs. assigning it
+to zero. Separate macro can be provided for that.
 
-Apologies for the above. This isn't still the intended way how things
-should be; I'll send you a new patch to properly address this on top of
-yours.
+This will be easier for applications as well since there is no longer the
+problem of setting the reserved fields zero, or at least it is a lesser
+problem.
 
-What happened was that I had the patches in two different environments and
-I ended up picking the last four patches from the wrong one. :-P No errors
-from kbuild made me think the patches were the right ones...
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Hi folks,
 
+I've essentially addressed Mauro's comments on v2.
+
+The code is only compile tested so far but the changes from the last
+tested version are not that big. There's still some uncertainty though.
+
+since v2:
+
+- Rework is_valid_ioctl based on the comments
+
+	- Improved comments,
+	
+	- Rename cmd as user_cmd, as this comes from the user
+	
+	- Check whether there are alternative argument sizes before any
+	  checks on IOCTL command if there is no exact match
+	  
+	- Use IOCSIZE_MASK macro instead of creating our own
+
+- Add documentation for macros declaring IOCTLs
+
+
+ drivers/media/media-device.c | 98 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 92 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 35e81f7..279d740 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -387,22 +387,65 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
+ /* Do acquire the graph mutex */
+ #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+ 
+-#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++/**
++ * MEDIA_IOC_SZ_ARG - Declare a Media device IOCTL with alternative size and
++ *		      to_user/from_user callbacks
++ *
++ * @__cmd:	The IOCTL command suffix (without "MEDIA_IOC_")
++ * @func:	The handler function
++ * @fl:		Flags from @enum media_ioc_flags
++ * @alt_sz:	A 0-terminated list of alternative argument struct sizes.
++ * @from_user:	Function to copy argument struct from the user to the kernel
++ * @to_user:	Function to copy argument struct to the user from the kernel
++ */
++#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
+ 	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+ 		.cmd = MEDIA_IOC_##__cmd,				\
+ 		.fn = (long (*)(struct media_device *, void *))func,	\
+ 		.flags = fl,						\
++		.alt_arg_sizes = alt_sz,				\
+ 		.arg_from_user = from_user,				\
+ 		.arg_to_user = to_user,					\
+ 	}
+ 
+-#define MEDIA_IOC(__cmd, func, fl)					\
+-	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
++/**
++ * MEDIA_IOC_ARG - Declare a Media device IOCTL with to_user/from_user callbacks
++ *
++ * Just as MEDIA_IOC_SZ_ARG but without the alternative size list.
++ */
++#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
++	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
++
++/**
++ * MEDIA_IOC_ARG - Declare a Media device IOCTL with alternative argument struct
++ *		   sizes
++ *
++ * Just as MEDIA_IOC_SZ_ARG but without the callbacks to copy the data from the
++ * user space and back to user space.
++ */
++#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
++	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
++			 copy_arg_from_user, copy_arg_to_user)
++
++/**
++ * MEDIA_IOC_ARG - Declare a Media device IOCTL
++ *
++ * Just as MEDIA_IOC_SZ_ARG but without the alternative size list or the
++ * callbacks to copy the data from the user space and back to user space.
++ */
++#define MEDIA_IOC(__cmd, func, fl)				\
++	MEDIA_IOC_ARG(__cmd, func, fl,				\
++		      copy_arg_from_user, copy_arg_to_user)
+ 
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
+ 	unsigned short flags;
++	/*
++	 * Sizes of the alternative arguments. If there are none, this
++	 * pointer is NULL.
++	 */
++	const unsigned short *alt_arg_sizes;
+ 	long (*fn)(struct media_device *dev, void *arg);
+ 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+ 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+@@ -416,6 +459,46 @@ static const struct media_ioctl_info ioctl_info[] = {
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+ };
+ 
++static inline long is_valid_ioctl(unsigned int user_cmd)
++{
++	const struct media_ioctl_info *info = ioctl_info;
++	const unsigned short *alt_arg_sizes;
++
++	if (_IOC_NR(user_cmd) >= ARRAY_SIZE(ioctl_info))
++		return -ENOIOCTLCMD;
++
++	info += _IOC_NR(user_cmd);
++
++	if (user_cmd == info->cmd)
++		return 0;
++
++	/*
++	 * There was no exact match between the user-passed IOCTL command and
++	 * the definition. Are there earlier revisions of the argument struct
++	 * available?
++	 */
++	if (!info->alt_arg_sizes)
++		return -ENOIOCTLCMD;
++
++	/*
++	 * Variable size IOCTL argument support allows using either the latest
++	 * revision of the IOCTL argument struct or an earlier version. Check
++	 * that the size-independent portions of the IOCTL command match and
++	 * that the size matches with one of the alternative sizes that
++	 * represent earlier revisions of the argument struct.
++	 */
++	if ((user_cmd & ~IOCSIZE_MASK) != (info->cmd & ~IOCSIZE_MASK)
++	    || _IOC_SIZE(user_cmd) < _IOC_SIZE(info->cmd))
++		return -ENOIOCTLCMD;
++
++	for (alt_arg_sizes = info->alt_arg_sizes; *alt_arg_sizes;
++	     alt_arg_sizes++)
++		if (_IOC_SIZE(user_cmd) == *alt_arg_sizes)
++			return 0;
++
++	return -ENOIOCTLCMD;
++}
++
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long __arg)
+ {
+@@ -426,9 +509,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 	char __karg[256], *karg = __karg;
+ 	long ret;
+ 
+-	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+-	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
+-		return -ENOIOCTLCMD;
++	ret = is_valid_ioctl(cmd);
++	if (ret)
++		return ret;
+ 
+ 	info = &ioctl_info[_IOC_NR(cmd)];
+ 
+@@ -444,6 +527,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			goto out_free;
+ 	}
+ 
++	/* Set the rest of the argument struct to zero */
++	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
++
+ 	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+ 		mutex_lock(&dev->graph_mutex);
+ 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
