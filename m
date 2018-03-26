@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f180.google.com ([209.85.217.180]:36069 "EHLO
-        mail-ua0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934902AbeCHK3p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 05:29:45 -0500
-Received: by mail-ua0-f180.google.com with SMTP id j15so610700uan.3
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 02:29:45 -0800 (PST)
-Received: from mail-ua0-f173.google.com (mail-ua0-f173.google.com. [209.85.217.173])
-        by smtp.gmail.com with ESMTPSA id m33sm19869244uai.42.2018.03.08.02.29.42
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Mar 2018 02:29:42 -0800 (PST)
-Received: by mail-ua0-f173.google.com with SMTP id e25so3548664uam.6
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 02:29:42 -0800 (PST)
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:50615 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750973AbeCZKrH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 06:47:07 -0400
+Received: by mail-wm0-f41.google.com with SMTP id i75so14439399wmf.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2018 03:47:06 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH] dma-buf: use parameter structure for dma_buf_attach
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        sumit.semwal@linaro.org
+References: <20180325113451.2425-1-christian.koenig@amd.com>
+ <20180326083638.GS14155@phenom.ffwll.local>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <0242b504-87cd-2c80-ad86-868622c3c681@gmail.com>
+Date: Mon, 26 Mar 2018 12:47:01 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 8 Mar 2018 19:29:21 +0900
-Message-ID: <CAAFQd5D1FMm4FTugstxk_6bE-QbLeNsMZM6EaVVfN_mu8_RQUA@mail.gmail.com>
-Subject: Re: [PATCH v6 00/17] Rockchip ISP1 Driver
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180326083638.GS14155@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 8, 2018 at 6:47 PM, Jacob Chen <jacob-chen@iotwrt.com> wrote:
-> From: Jacob Chen <jacob2.chen@rock-chips.com>
->
-> changes in V6:
->   - add mipi txrx phy support
->   - remove bool and enum from uapi header
->   - add buf_prepare op
->   - correct some spelling problems
->   - return all queued buffers when starting stream failed
+Am 26.03.2018 um 10:36 schrieb Daniel Vetter:
+> On Sun, Mar 25, 2018 at 01:34:51PM +0200, Christian König wrote:
+[SNIP]
+>> -	attach->dev = dev;
+>> +	attach->dev = info->dev;
+>>   	attach->dmabuf = dmabuf;
+>> +	attach->priv = info->priv;
+> The ->priv field is for the exporter, not the importer. See e.g.
+> drm_gem_map_attach. You can't let the importer set this now too, so needs
+> to be removed from the info struct.
 
-Thanks Jacob.
+Crap, in this case I need to add an importer_priv field because we now 
+need to map from the attachment to it's importer object as well.
 
-For anyone planning to review, especially Hans, who pointed it out in
-previous version, g_mbus_config is still there and we're working on
-replacing it with something less controversial.
+Thanks for noticing this.
 
-Best regards,
-Tomasz
+Regards,
+Christian.
