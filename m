@@ -1,76 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout01.plus.net ([84.93.230.227]:46722 "EHLO
-        avasout01.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751921AbeCWTyq (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:40516 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751074AbeCZKrz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 15:54:46 -0400
-From: Chris Mayo <aklhfex@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] media: em28xx-cards: output regular messages as info
-Date: Fri, 23 Mar 2018 19:47:13 +0000
-Message-Id: <20180323194713.32435-1-aklhfex@gmail.com>
+        Mon, 26 Mar 2018 06:47:55 -0400
+Received: by mail-wm0-f41.google.com with SMTP id x4so2222297wmh.5
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2018 03:47:54 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH] dma-buf: use parameter structure for dma_buf_attach
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        sumit.semwal@linaro.org
+References: <20180325113451.2425-1-christian.koenig@amd.com>
+ <20180326083638.GS14155@phenom.ffwll.local>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <84c1bd05-7ba2-c35d-a8cb-23adbbc5bfec@gmail.com>
+Date: Mon, 26 Mar 2018 12:47:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180326083638.GS14155@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Messages expected during device probe were being marked as errors.
+Am 26.03.2018 um 10:36 schrieb Daniel Vetter:
+> On Sun, Mar 25, 2018 at 01:34:51PM +0200, Christian König wrote:
+[SNIP]
+>> -	attach->dev = dev;
+>> +	attach->dev = info->dev;
+>>   	attach->dmabuf = dmabuf;
+>> +	attach->priv = info->priv;
+> The ->priv field is for the exporter, not the importer. See e.g.
+> drm_gem_map_attach. You can't let the importer set this now too, so needs
+> to be removed from the info struct.
 
-Signed-off-by: Chris Mayo <aklhfex@gmail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Crap, in this case I need to add an importer_priv field because we now 
+need to map from the attachment to it's importer object as well.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 6e0e67d23..8977c2be3 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3736,7 +3736,7 @@ static int em28xx_usb_probe(struct usb_interface *intf,
- 		speed = "unknown";
- 	}
- 
--	dev_err(&intf->dev,
-+	dev_info(&intf->dev,
- 		"New device %s %s @ %s Mbps (%04x:%04x, interface %d, class %d)\n",
- 		udev->manufacturer ? udev->manufacturer : "",
- 		udev->product ? udev->product : "",
-@@ -3771,7 +3771,7 @@ static int em28xx_usb_probe(struct usb_interface *intf,
- 	dev->dev_next = NULL;
- 
- 	if (has_vendor_audio) {
--		dev_err(&intf->dev,
-+		dev_info(&intf->dev,
- 			"Audio interface %i found (Vendor Class)\n", ifnum);
- 		dev->usb_audio_type = EM28XX_USB_AUDIO_VENDOR;
- 	}
-@@ -3790,12 +3790,12 @@ static int em28xx_usb_probe(struct usb_interface *intf,
- 	}
- 
- 	if (has_video)
--		dev_err(&intf->dev, "Video interface %i found:%s%s\n",
-+		dev_info(&intf->dev, "Video interface %i found:%s%s\n",
- 			ifnum,
- 			dev->analog_ep_bulk ? " bulk" : "",
- 			dev->analog_ep_isoc ? " isoc" : "");
- 	if (has_dvb)
--		dev_err(&intf->dev, "DVB interface %i found:%s%s\n",
-+		dev_info(&intf->dev, "DVB interface %i found:%s%s\n",
- 			ifnum,
- 			dev->dvb_ep_bulk ? " bulk" : "",
- 			dev->dvb_ep_isoc ? " isoc" : "");
-@@ -3837,13 +3837,13 @@ static int em28xx_usb_probe(struct usb_interface *intf,
- 	if (has_video) {
- 		if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
- 			dev->analog_xfer_bulk = 1;
--		dev_err(&intf->dev, "analog set to %s mode.\n",
-+		dev_info(&intf->dev, "analog set to %s mode.\n",
- 			dev->analog_xfer_bulk ? "bulk" : "isoc");
- 	}
- 	if (has_dvb) {
- 		if (!dev->dvb_ep_isoc || (try_bulk && dev->dvb_ep_bulk))
- 			dev->dvb_xfer_bulk = 1;
--		dev_err(&intf->dev, "dvb set to %s mode.\n",
-+		dev_info(&intf->dev, "dvb set to %s mode.\n",
- 			dev->dvb_xfer_bulk ? "bulk" : "isoc");
- 	}
- 
--- 
-2.16.1
+Thanks for noticing this.
+
+Regards,
+Christian.
