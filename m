@@ -1,92 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:45900 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933474AbeCENvn (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32495 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752479AbeCZVqy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 08:51:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        dri-devel@lists.freedesktop.org
-Subject: [PATCHv2 0/7] cec: add error injection support
-Date: Mon,  5 Mar 2018 14:51:32 +0100
-Message-Id: <20180305135139.95652-1-hverkuil@xs4all.nl>
+        Mon, 26 Mar 2018 17:46:54 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 22/33] rcar-vin: use different v4l2 operations in media controller mode
+Date: Mon, 26 Mar 2018 23:44:45 +0200
+Message-Id: <20180326214456.6655-23-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+When the driver runs in media controller mode it should not directly
+control the subdevice instead userspace will be responsible for
+configuring the pipeline. To be able to run in this mode a different set
+of v4l2 operations needs to be used.
 
-This patch series adds support for CEC error injection for drivers
-using the CEC Pin Framework (cec-pin.c). There are two CEC drivers
-currently using this framework: the sun4i Allwinner A10/A20 driver
-and the cec-gpio driver. This patch series was developed with the
-cec-gpio driver and a Raspberry Pi.
+Add a new set of v4l2 operations to support operation without directly
+interacting with the source subdevice.
 
-The CEC Pin Framework is meant for hardware that has no high-level
-support but only direct low-level control of the bus (i.e. pull the
-CEC line down or read the CEC line). Low-level bus access like that
-is ideal to implement error injection since you have full control of
-the bus and you can do anything you want.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-This new error injection framework can create most if not all error
-conditions that I could think of. We (Cisco) used it to verify our
-own CEC implementation and in fact this error injection framework
-was developed together with the low-level CEC analysis code in the
-cec-ctl userspace utility to analyze what is happening on the bus.
+---
 
-I have been working on creating scripts that can test a remote CEC
-adapter for low-level compliance with the CEC standard:
+* Changes since v11
+- Fixed error labels name in rvin_mc_open().
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 161 +++++++++++++++++++++++++++-
+ 2 files changed, 159 insertions(+), 4 deletions(-)
 
-https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=cec-pin-tests
-
-(note: these scripts are for the v1 version of this patch series,
-they need to be updated for this v2)
-
-These scripts are not complete yet since it isn't smart enough to
-tell the difference between different (but valid) interpretations
-of the CEC specification and actual violations of the specification.
-I plan to continue working on that since I would like to have a
-test-suite that can check a CEC implementation automatically.
-
-Special thanks go to Wolfram Sang since his i2c error injection
-presentation at the Embedded Linux Conference Europe 2017 inspired
-me to switch to debugfs for this instead of using ioctls.
-
-Changes since v1:
-
-- added 'mode' support (off/once/always/toggle).
-- simplified the error injection data structures and logic.
-- added patch 7 to log various errors in the 'status' debugfs file.
-
-Regards,
-
-	Hans
-
-
-Hans Verkuil (7):
-  cec: add core error injection support
-  cec-core.rst: document the error injection ops
-  cec-pin: create cec_pin_start_timer() function
-  cec-pin-error-inj: parse/show error injection
-  cec-pin: add error injection support
-  cec-pin-error-inj.rst: document CEC Pin Error Injection
-  cec-pin: improve status log
-
- .../media/cec-drivers/cec-pin-error-inj.rst        | 322 +++++++++++
- Documentation/media/cec-drivers/index.rst          |   1 +
- Documentation/media/kapi/cec-core.rst              |  72 ++-
- MAINTAINERS                                        |   1 +
- drivers/media/cec/Kconfig                          |   6 +
- drivers/media/cec/Makefile                         |   4 +
- drivers/media/cec/cec-core.c                       |  58 ++
- drivers/media/cec/cec-pin-error-inj.c              | 341 +++++++++++
- drivers/media/cec/cec-pin-priv.h                   | 124 +++-
- drivers/media/cec/cec-pin.c                        | 627 ++++++++++++++++++---
- include/media/cec.h                                |   5 +
- 11 files changed, 1490 insertions(+), 71 deletions(-)
- create mode 100644 Documentation/media/cec-drivers/cec-pin-error-inj.rst
- create mode 100644 drivers/media/cec/cec-pin-error-inj.c
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 1809f5c0190eafb6..a93772c10baaa003 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -627,7 +627,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (vin->std & V4L2_STD_525_60)
++		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
+ 			vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_TB:
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index dd835be0f9cbcc05..2280535ca981993f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -18,12 +18,16 @@
+ 
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
+ #include <media/v4l2-rect.h>
+ 
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_WIDTH	800
++#define RVIN_DEFAULT_HEIGHT	600
+ #define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
++#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -656,6 +660,74 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * V4L2 Media Controller
++ */
++
++static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++
++	return rvin_format_align(vin, &f->fmt.pix);
++}
++
++static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
++				 struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	if (vb2_is_busy(&vin->queue))
++		return -EBUSY;
++
++	ret = rvin_format_align(vin, &f->fmt.pix);
++	if (ret)
++		return ret;
++
++	vin->format = f->fmt.pix;
++
++	return 0;
++}
++
++static int rvin_mc_enum_input(struct file *file, void *priv,
++			      struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
++	.vidioc_querycap		= rvin_querycap,
++	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= rvin_mc_enum_input,
++	.vidioc_g_input			= rvin_g_input,
++	.vidioc_s_input			= rvin_s_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= rvin_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
+ /* -----------------------------------------------------------------------------
+  * File Operations
+  */
+@@ -799,6 +871,74 @@ static const struct v4l2_file_operations rvin_fops = {
+ 	.read		= vb2_fop_read,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * Media controller file operations
++ */
++
++static int rvin_mc_open(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	ret = mutex_lock_interruptible(&vin->lock);
++	if (ret)
++		return ret;
++
++	ret = pm_runtime_get_sync(vin->dev);
++	if (ret < 0)
++		goto err_unlock;
++
++	ret = v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
++	if (ret < 0)
++		goto err_pm;
++
++	file->private_data = vin;
++
++	ret = v4l2_fh_open(file);
++	if (ret)
++		goto err_v4l2pm;
++
++	mutex_unlock(&vin->lock);
++
++	return 0;
++err_v4l2pm:
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++err_pm:
++	pm_runtime_put(vin->dev);
++err_unlock:
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static int rvin_mc_release(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	/* the release helper will cleanup any on-going streaming. */
++	ret = _vb2_fop_release(file, NULL);
++
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++	pm_runtime_put(vin->dev);
++
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations rvin_mc_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= rvin_mc_open,
++	.release	= rvin_mc_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++	.read		= vb2_fop_read,
++};
++
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
+ 	if (!video_is_registered(&vin->vdev))
+@@ -834,18 +974,33 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+ 	/* video node */
+-	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+ 	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
+ 	vdev->release = video_device_release_empty;
+-	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
++	/* Set a default format */
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+-	rvin_reset_format(vin);
++	vin->format.width = RVIN_DEFAULT_WIDTH;
++	vin->format.height = RVIN_DEFAULT_HEIGHT;
++	vin->format.field = RVIN_DEFAULT_FIELD;
++	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
++
++	if (vin->info->use_mc) {
++		vdev->fops = &rvin_mc_fops;
++		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
++	} else {
++		vdev->fops = &rvin_fops;
++		vdev->ioctl_ops = &rvin_ioctl_ops;
++		rvin_reset_format(vin);
++	}
++
++	ret = rvin_format_align(vin, &vin->format);
++	if (ret)
++		return ret;
+ 
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
 -- 
-2.16.1
+2.16.2
