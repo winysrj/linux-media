@@ -1,112 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:38447 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751542AbeCUAiZ (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:38044 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752145AbeCZIbz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 20:38:25 -0400
-Received: by mail-pf0-f194.google.com with SMTP id d26so1346877pfn.5
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2018 17:38:25 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 08/13] media: imx: mipi csi-2: Register a subdev notifier
-Date: Tue, 20 Mar 2018 17:37:24 -0700
-Message-Id: <1521592649-7264-9-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 26 Mar 2018 04:31:55 -0400
+Subject: Re: [RFC v2 00/10] Preparing the request API
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, acourbot@chromium.org
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+ <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
+ <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+ <20180326075842.fj4z6fkmuk3rppwo@paasikivi.fi.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d151708e-9fac-f714-15f9-5178c5121798@xs4all.nl>
+Date: Mon, 26 Mar 2018 10:31:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180326075842.fj4z6fkmuk3rppwo@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the MIPI CSI-2 input port, add
-them to a subdev notifier, and register the subdev notifier for the
-MIPI CSI-2 receiver, by calling v4l2_async_register_fwnode_subdev().
+On 03/26/2018 09:58 AM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Sun, Mar 25, 2018 at 06:17:30PM +0200, Hans Verkuil wrote:
+>> On 03/25/2018 05:12 PM, Hans Verkuil wrote:
+>>> Hi all,
+>>>
+>>> On 03/23/2018 10:17 PM, Sakari Ailus wrote:
+>>>> Hi folks,
+>>>>
+>>>> This preliminary RFC patchset prepares for the request API. What's new
+>>>> here is support for binding arbitrary configuration or resources to
+>>>> requests.
+>>>>
+>>>> There are a few new concepts here:
+>>>>
+>>>> Class --- a type of configuration or resource a driver (or e.g. the V4L2
+>>>> framework) can attach to a resource. E.g. a video buffer queue would be a
+>>>> class.
+>>>>
+>>>> Object --- an instance of the class. This may be either configuration (in
+>>>> which case the setting will stay until changed, e.g. V4L2 format on a
+>>>> video node) or a resource (such as a video buffer).
+>>>>
+>>>> Reference --- a reference to an object. If a configuration is not changed
+>>>> in a request, instead of allocating a new object, a reference to an
+>>>> existing object is used. This saves time and memory.
+>>>>
+>>>> I expect Laurent to comment on aligning the concept names between the
+>>>> request API and DRM. As far as I understand, the respective DRM names for
+>>>> "class" and "object" used in this set would be "object" and "state".
+>>>>
+>>>> The drivers will need to interact with the requests in three ways:
+>>>>
+>>>> - Allocate new configurations or resources. Drivers are free to store
+>>>>   their own data into request objects as well. These callbacks are
+>>>>   specific to classes.
+>>>>
+>>>> - Validate and queue callbacks. These callbacks are used to try requests
+>>>>   (validate only) as well as queue them (validate and queue). These
+>>>>   callbacks are media device wide, at least for now.
+>>>>
+>>>> The lifetime of the objects related to requests is based on refcounting
+>>>> both requests and request objects. This fits well for existing use cases
+>>>> whether or not based on refcounting; what still needs most of the
+>>>> attention is likely that the number of gets and puts matches once the
+>>>> object is no longer needed.
+>>>>
+>>>> Configuration can be bound to the request the usual way (V4L2 IOCTLs with
+>>>> the request_fd field set to the request). Once queued, request completion
+>>>> is signalled through polling the request file handle (POLLPRI).
+>>>>
+>>>> I'm posting this as an RFC because it's not complete yet. The code
+>>>> compiles but no testing has been done yet.
+>>>
+>>> Thank you for this patch series. There are some good ideas here, but it is
+>>> quite far from being useful with Alexandre's RFCv4 series.
+>>>
+>>> So this weekend I worked on a merger of this work and the RFCv4 Request API
+>>> patch series, taking what I think are the best bits of both.
+>>>
+>>> It is available here:
+>>>
+>>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv6
+>>
+>> I reorganized/cleaned up the patch series. So look here instead:
+>>
+>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv7
+> 
+> I looked at the set an I mostly agree with the changes. There are a few
+> comments I'd like to make --- and I didn't do a thorough review.
+> 
+> - The purpose of completeable objects is to help the driver to manage
+>   completing requests. Sometimes this is not self-evident. A request is
+>   complete when all of its results are available, including buffers and
+>   controls. The driver does not need to care about this. (I.e. this is not
+>   the same thing as refcounting.)
 
-csi2_parse_endpoints() is modified to be the parse_endpoint callback.
+I must be missing something. Is there something in my series that conflicts
+with this?
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx6-mipi-csi2.c | 31 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+> - I didn't immediately find object references in the latest set. The
+>   purpose of the references is to avoid copying objects if they don't
+>   change from requests to another. It's less time-consuming to allocate a
+>   new reference (a few pointers) instead of allocating memory for struct
+>   v4l2_format and copying the data. This starts to really matter when the
+>   number of objects increase.
 
-diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
-index ceeeb30..94eb9a1 100644
---- a/drivers/staging/media/imx/imx6-mipi-csi2.c
-+++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
-@@ -551,35 +551,34 @@ static const struct v4l2_subdev_internal_ops csi2_internal_ops = {
- 	.registered = csi2_registered,
- };
- 
--static int csi2_parse_endpoints(struct csi2_dev *csi2)
-+static int csi2_parse_endpoint(struct device *dev,
-+			       struct v4l2_fwnode_endpoint *vep,
-+			       struct v4l2_async_subdev *asd)
- {
--	struct device_node *node = csi2->dev->of_node;
--	struct device_node *epnode;
--	struct v4l2_fwnode_endpoint ep;
-+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-+	struct csi2_dev *csi2 = sd_to_dev(sd);
- 
--	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
--	if (!epnode) {
--		v4l2_err(&csi2->sd, "failed to get sink endpoint node\n");
-+	if (!fwnode_device_is_available(asd->match.fwnode)) {
-+		v4l2_err(&csi2->sd, "remote is not available\n");
- 		return -EINVAL;
- 	}
- 
--	v4l2_fwnode_endpoint_parse(of_fwnode_handle(epnode), &ep);
--	of_node_put(epnode);
--
--	if (ep.bus_type != V4L2_MBUS_CSI2) {
-+	if (vep->bus_type != V4L2_MBUS_CSI2) {
- 		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
- 		return -EINVAL;
- 	}
- 
--	csi2->bus = ep.bus.mipi_csi2;
-+	csi2->bus = vep->bus.mipi_csi2;
- 
- 	dev_dbg(csi2->dev, "data lanes: %d\n", csi2->bus.num_data_lanes);
- 	dev_dbg(csi2->dev, "flags: 0x%08x\n", csi2->bus.flags);
-+
- 	return 0;
- }
- 
- static int csi2_probe(struct platform_device *pdev)
- {
-+	unsigned int sink_port = 0;
- 	struct csi2_dev *csi2;
- 	struct resource *res;
- 	int ret;
-@@ -601,10 +600,6 @@ static int csi2_probe(struct platform_device *pdev)
- 	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
- 	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
- 
--	ret = csi2_parse_endpoints(csi2);
--	if (ret)
--		return ret;
--
- 	csi2->pllref_clk = devm_clk_get(&pdev->dev, "ref");
- 	if (IS_ERR(csi2->pllref_clk)) {
- 		v4l2_err(&csi2->sd, "failed to get pll reference clock\n");
-@@ -654,7 +649,9 @@ static int csi2_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, &csi2->sd);
- 
--	ret = v4l2_async_register_subdev(&csi2->sd);
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&csi2->sd, sizeof(struct v4l2_async_subdev),
-+		&sink_port, 1, csi2_parse_endpoint);
- 	if (ret)
- 		goto dphy_off;
- 
--- 
-2.7.4
+At this point in time it is not relevant for vb2 buffers and control
+handlers. This might change for control handlers, but probably not since
+they can use v4l2_ctrl_ref references internally (I don't do that yet, but
+that will change).
+
+> 
+>   Then again, I wasn't very happy with videobufs having to refer
+>   themselves; perhaps we could limit referring to configuration objects
+>   (vs. resource objects; this is what my last patchset referred to as
+>   sticky; perhaps not a lasting name nor necessarily intended as such)
+>   while putting resource objects to the request itself.
+> 
+>   Controls would be a prime candidate for this if the control framework can
+>   be made to fit this model. I'm fine adding this later on, or another
+>   solution that avoids copying all unchanged configuration around for every
+>   request. But I want the need to be recognised so it won't come as a
+>   surprise to anyone later on.
+> 
+
+I removed it because as far as I can see this is not needed for the initial
+codec support. Whether or not it is needed for camera pipelines is something
+that can be discussed when support for that is added. I have to see it in
+context first.
+
+Adding features without having drivers that use it is never a good idea...
+
+Regards,
+
+	Hans
