@@ -1,184 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:18513 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163472AbeCBB66 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:58:58 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 07/32] rcar-vin: move model information to own struct
-Date: Fri,  2 Mar 2018 02:57:26 +0100
-Message-Id: <20180302015751.25596-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga04.intel.com ([192.55.52.120]:2827 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751050AbeCZJb0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 05:31:26 -0400
+Date: Mon, 26 Mar 2018 12:31:24 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Tomasz Figa <tfiga@google.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: Re: [RFC v2 06/10] vb2: Add support for requests
+Message-ID: <20180326093123.updxgjystax46xdm@paasikivi.fi.intel.com>
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1521839864-10146-7-git-send-email-sakari.ailus@linux.intel.com>
+ <CAAFQd5BZEExQoAgx7UAzLhyEnFLDoMDj2SYp+9_39105rwktBA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5BZEExQoAgx7UAzLhyEnFLDoMDj2SYp+9_39105rwktBA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When Gen3 support is added to the driver more than model ID will be
-different for the different SoCs. To avoid a lot of if statements in the
-code create a struct rvin_info to store this information.
+On Mon, Mar 26, 2018 at 03:02:53PM +0900, Tomasz Figa wrote:
+> Hi Sakari,
+> 
+> I would have appreciated being CCed on this series, but anyway, thanks
+> for sending it. Please see my comments inline.
+> 
+> On Sat, Mar 24, 2018 at 6:17 AM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > Associate a buffer to a request when it is queued and disassociate when it
+> > is done.
+> >
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/common/videobuf2/videobuf2-core.c | 43 ++++++++++++++++++++++++-
+> >  drivers/media/common/videobuf2/videobuf2-v4l2.c | 40 ++++++++++++++++++++++-
+> >  include/media/videobuf2-core.h                  | 19 +++++++++++
+> >  include/media/videobuf2-v4l2.h                  | 28 ++++++++++++++++
+> >  4 files changed, 128 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> > index d3f7bb3..b8535de 100644
+> > --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> > +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> > @@ -346,6 +346,9 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+> >                         break;
+> >                 }
+> >
+> > +               if (q->class)
+> > +                       media_request_object_init(q->class, &vb->req_obj);
+> > +
+> >                 vb->state = VB2_BUF_STATE_DEQUEUED;
+> >                 vb->vb2_queue = q;
+> >                 vb->num_planes = num_planes;
+> > @@ -520,7 +523,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+> >         /* Free videobuf buffers */
+> >         for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
+> >              ++buffer) {
+> > -               kfree(q->bufs[buffer]);
+> > +               if (q->class)
+> > +                       media_request_object_put(&q->bufs[buffer]->req_obj);
+> > +               else
+> > +                       kfree(q->bufs[buffer]);
+> >                 q->bufs[buffer] = NULL;
+> >         }
+> >
+> > @@ -944,6 +950,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+> >         default:
+> >                 /* Inform any processes that may be waiting for buffers */
+> >                 wake_up(&q->done_wq);
+> > +               if (vb->req_ref) {
+> > +                       media_request_ref_complete(vb->req_ref);
+> > +                       vb->req_ref = NULL;
+> > +               }
+> >                 break;
+> >         }
+> >  }
+> > @@ -1249,6 +1259,32 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
+> >                 return -EIO;
+> >         }
+> >
+> > +       if (vb->request_fd) {
+> 
+> 0 is a perfectly valid FD.
 
-While we are at it rename the poorly chosen enum which contains the
-different model IDs from chip_id to model_id. Also sort the compatible
-string entries and make use of of_device_get_match_data() which will
-always work as the driver is DT only, so there's always a valid match.
+Agreed. This part was written before Hans's RFC albeit sent afterwards.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 56 +++++++++++++++++++++--------
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 14 ++++++--
- 3 files changed, 55 insertions(+), 18 deletions(-)
+> 
+> > +               struct media_request *req;
+> > +               struct media_request_ref *ref;
+> > +
+> > +               if (!q->class) {
+> > +                       dprintk(1, "requests not enabled for the queue\n");
+> > +                       return -EINVAL;
+> > +               }
+> > +
+> > +               req = media_request_find(q->class->mdev, vb->request_fd);
+> > +               if (IS_ERR(req)) {
+> > +                       dprintk(1, "no request found for fd %d (%ld)\n",
+> > +                               vb->request_fd, PTR_ERR(req));
+> > +                       return PTR_ERR(req);
+> > +               }
+> > +
+> > +               ref = media_request_object_bind(req,
+> > +                                               &q->bufs[vb->index]->req_obj);
+> > +               media_request_put(req);
+> > +
+> > +               if (IS_ERR(ref))
+> > +                       return PTR_ERR(ref);
+> > +
+> > +               vb->req_ref = ref;
+> > +       }
+> > +
+> 
+> I'm not sure how this would work. The client calling QBUF with request
+> FD would end up queuing the buffer to the driver, which I'd say isn't
+> an expected side effect of something that is usually done early as
+> part of preparing the request.
+> 
+> As we agreed in the UAPI RFC, the buffer should be only prepared and
+> queued at request queue time and I believe Alex had it implemented
+> properly in his latest RFC v4. We should reuse that patch instead,
+> since we spent quite a bit of time to go through all the corner cases
+> and make sure it works for the most exotic use case we could imagine.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 663309ca9c04f208..d2b27ccff690cede 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -241,21 +241,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Platform Device Driver
-  */
- 
-+static const struct rvin_info rcar_info_h1 = {
-+	.model = RCAR_H1,
-+};
-+
-+static const struct rvin_info rcar_info_m1 = {
-+	.model = RCAR_M1,
-+};
-+
-+static const struct rvin_info rcar_info_gen2 = {
-+	.model = RCAR_GEN2,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
--	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
--	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
--	{ },
-+	{
-+		.compatible = "renesas,vin-r8a7778",
-+		.data = &rcar_info_m1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7779",
-+		.data = &rcar_info_h1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7790",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7791",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7793",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7794",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,rcar-gen2-vin",
-+		.data = &rcar_info_gen2,
-+	},
-+	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
- static int rcar_vin_probe(struct platform_device *pdev)
- {
--	const struct of_device_id *match;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -264,12 +296,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (!vin)
- 		return -ENOMEM;
- 
--	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
--	if (!match)
--		return -ENODEV;
--
- 	vin->dev = &pdev->dev;
--	vin->chip = (enum chip_id)match->data;
-+	vin->info = of_device_get_match_data(&pdev->dev);
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 4a0610a6b4503501..0a035667c0b0e93f 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
--	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+	if (vin->info->model == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
- 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 85cb7ec53d2b08b5..3f49d2f2d6b88471 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -29,7 +29,7 @@
- /* Address alignment mask for HW buffers */
- #define HW_BUFFER_MASK 0x7f
- 
--enum chip_id {
-+enum model_id {
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_GEN2,
-@@ -88,11 +88,19 @@ struct rvin_graph_entity {
- 	unsigned int sink_pad;
- };
- 
-+/**
-+ * struct rvin_info - Information about the particular VIN implementation
-+ * @model:		VIN model
-+ */
-+struct rvin_info {
-+	enum model_id model;
-+};
-+
- /**
-  * struct rvin_dev - Renesas VIN device structure
-  * @dev:		(OF) device
-  * @base:		device I/O register space remapped to virtual memory
-- * @chip:		type of VIN chip
-+ * @info:		info about VIN instance
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-@@ -120,7 +128,7 @@ struct rvin_graph_entity {
- struct rvin_dev {
- 	struct device *dev;
- 	void __iomem *base;
--	enum chip_id chip;
-+	const struct rvin_info *info;
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
+Yes, we need more than the above patch. No disagreement there.
+
 -- 
-2.16.2
+Sakari Ailus
+sakari.ailus@linux.intel.com
