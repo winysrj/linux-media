@@ -1,177 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:40285 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755107AbeCHNvA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 08:51:00 -0500
-Received: by mail-io0-f194.google.com with SMTP id v6so7107619iog.7
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 05:51:00 -0800 (PST)
-Received: from mail-it0-f53.google.com (mail-it0-f53.google.com. [209.85.214.53])
-        by smtp.gmail.com with ESMTPSA id 35sm14498778ios.39.2018.03.08.05.50.57
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Mar 2018 05:50:58 -0800 (PST)
-Received: by mail-it0-f53.google.com with SMTP id c11so7689572ith.4
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 05:50:57 -0800 (PST)
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32058 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752138AbeCZVqf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:46:35 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 10/33] rcar-vin: all Gen2 boards can scale simplify logic
+Date: Mon, 26 Mar 2018 23:44:33 +0200
+Message-Id: <20180326214456.6655-11-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1520441424.1092.25.camel@bootlin.com>
-References: <20180220044425.169493-14-acourbot@chromium.org> <1520441424.1092.25.camel@bootlin.com>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Thu, 8 Mar 2018 22:50:36 +0900
-Message-ID: <CAPBb6MWBezCNbApxvjkeuzrkWOd4Zq4_edsLokc=G+rKEWvmoQ@mail.gmail.com>
-Subject: Re: [RFCv4,13/21] media: videobuf2-v4l2: support for requests
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 8, 2018 at 1:50 AM, Paul Kocialkowski
-<paul.kocialkowski@bootlin.com> wrote:
-> Hi,
->
-> On Tue, 2018-02-20 at 13:44 +0900, Alexandre Courbot wrote:
->> Add a new vb2_qbuf_request() (a request-aware version of vb2_qbuf())
->> that request-aware drivers can call to queue a buffer into a request
->> instead of directly into the vb2 queue if relevent.
->>
->> This function expects that drivers invoking it are using instances of
->> v4l2_request_entity and v4l2_request_entity_data to describe their
->> entity and entity data respectively.
->>
->> Also add the vb2_request_submit() helper function which drivers can
->> invoke in order to queue all the buffers previously queued into a
->> request into the regular vb2 queue.
->
-> See a comment/proposal below about an issue I encountered when using
-> multi-planar formats.
->
->> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->> ---
->>  .../media/common/videobuf2/videobuf2-v4l2.c   | 129
->> +++++++++++++++++-
->>  include/media/videobuf2-v4l2.h                |  59 ++++++++
->>  2 files changed, 187 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index 6d4d184aa68e..0627c3339572 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->
-> [...]
->
->> +#if IS_ENABLED(CONFIG_MEDIA_REQUEST_API)
->> +int vb2_qbuf_request(struct vb2_queue *q, struct v4l2_buffer *b,
->> +                  struct media_request_entity *entity)
->> +{
->> +     struct v4l2_request_entity_data *data;
->> +     struct v4l2_vb2_request_buffer *qb;
->> +     struct media_request *req;
->> +     struct vb2_buffer *vb;
->> +     int ret = 0;
->> +
->> +     if (b->request_fd <= 0)
->> +             return vb2_qbuf(q, b);
->> +
->> +     if (!q->allow_requests)
->> +             return -EINVAL;
->> +
->> +     req = media_request_get_from_fd(b->request_fd);
->> +     if (!req)
->> +             return -EINVAL;
->> +
->> +     data = to_v4l2_entity_data(media_request_get_entity_data(req,
->> entity));
->> +     if (IS_ERR(data)) {
->> +             ret = PTR_ERR(data);
->> +             goto out;
->> +     }
->> +
->> +     mutex_lock(&req->lock);
->> +
->> +     if (req->state != MEDIA_REQUEST_STATE_IDLE) {
->> +             ret = -EINVAL;
->> +             goto out;
->> +     }
->> +
->> +     ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
->> +     if (ret)
->> +             goto out;
->> +
->> +     vb = q->bufs[b->index];
->> +     switch (vb->state) {
->> +     case VB2_BUF_STATE_DEQUEUED:
->> +             break;
->> +     case VB2_BUF_STATE_PREPARED:
->> +             break;
->> +     case VB2_BUF_STATE_PREPARING:
->> +             dprintk(1, "buffer still being prepared\n");
->> +             ret = -EINVAL;
->> +             goto out;
->> +     default:
->> +             dprintk(1, "invalid buffer state %d\n", vb->state);
->> +             ret = -EINVAL;
->> +             goto out;
->> +     }
->> +
->> +     /* do we already have a buffer for this request in the queue?
->> */
->> +     list_for_each_entry(qb, &data->queued_buffers, node) {
->> +             if (qb->queue == q) {
->> +                     ret = -EBUSY;
->> +                     goto out;
->> +             }
->> +     }
->> +
->> +     qb = kzalloc(sizeof(*qb), GFP_KERNEL);
->> +     if (!qb) {
->> +             ret = -ENOMEM;
->> +             goto out;
->> +     }
->> +
->> +     /*
->> +      * TODO should be prepare the buffer here if needed, to
->> report errors
->> +      * early?
->> +      */
->> +     qb->pre_req_state = vb->state;
->> +     qb->queue = q;
->> +     memcpy(&qb->v4l2_buf, b, sizeof(*b));
->
-> I am getting data corruption on qb->v4l2_buf.m.planes from this when
-> using planar buffers, only after exiting the ioctl handler (i.e. when
-> accessing this buffer later from the queue).
->
-> I initially thought this was because the planes pointer was copied as-is
-> from userspace, but Maxime Ripard suggested that this would have
-> automatically triggered a visible fault in the kernel.
->
-> Thus, my best guess is that the data is properly copied from userspace
-> but freed when leaving the ioctl handler, which doesn't work our with
-> the request API.
->
-> A dirty fix that I came up with consists in re-allocating the planes
-> buffer here and copying its contents from "b", so that it can live
-> beyond the ioctl call.
->
-> I am not too sure whether this should be fixed here or in the part of
-> the v4l2 common code that frees this data. What do you think?
+The logic to preserve the requested format width and height are too
+complex and come from a premature optimization for Gen3. All Gen2 SoC
+can scale and the Gen3 implementation will not use these functions at
+all so simply preserve the width and height when interacting with the
+subdevice much like the field is preserved simplifies the logic quite a
+bit.
 
-Oh, nice catch. Copying plane information indeed requires more work
-than a dumb memcpy(). I suppose this should be handled here, but let
-me come back to this after a good night of sleep. :)
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 25 +++++++++++--------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
+ 3 files changed, 11 insertions(+), 24 deletions(-)
 
-Thanks! I will try to fix this tomorrow and push a temporary version
-somewhere so you can move forward.
-
-Alex.
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 23120901b0a062ed..4f48575f2008fe34 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
+ }
+ 
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height)
+-{
+-	/* All VIN channels on Gen2 have scalers */
+-	pix->width = width;
+-	pix->height = height;
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 8805d7911a761019..c2265324c7c96308 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 		.which = which,
+ 	};
+ 	enum v4l2_field field;
++	u32 width, height;
+ 	int ret;
+ 
+ 	sd = vin_to_source(vin);
+@@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	format.pad = vin->digital->source_pad;
+ 
++	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
++	width = pix->width;
++	height = pix->height;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+@@ -186,11 +190,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	v4l2_fill_pix_format(pix, &format.format);
+ 
+-	pix->field = field;
+-
+ 	source->width = pix->width;
+ 	source->height = pix->height;
+ 
++	pix->field = field;
++	pix->width = width;
++	pix->height = height;
++
+ 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+ 		source->height);
+ 
+@@ -204,13 +210,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     struct v4l2_pix_format *pix,
+ 			     struct rvin_source_fmt *source)
+ {
+-	u32 rwidth, rheight, walign;
++	u32 walign;
+ 	int ret;
+ 
+-	/* Requested */
+-	rwidth = pix->width;
+-	rheight = pix->height;
+-
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
+@@ -248,10 +250,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		break;
+ 	}
+ 
+-	/* If source can't match format try if VIN can scale */
+-	if (source->width != rwidth || source->height != rheight)
+-		rvin_scale_try(vin, pix, rwidth, rheight);
+-
+ 	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+ 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+ 
+@@ -270,9 +268,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		return -EINVAL;
+ 	}
+ 
+-	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+-		rwidth, rheight, pix->width, pix->height,
+-		pix->bytesperline, pix->sizeimage);
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 8d135ed3f7abd855..1c91b774205a7750 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -175,8 +175,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
+ /* Cropping, composing and scaling */
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height);
+ void rvin_crop_scale_comp(struct rvin_dev *vin);
+ 
+ #endif
+-- 
+2.16.2
