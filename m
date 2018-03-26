@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f175.google.com ([209.85.217.175]:45498 "EHLO
-        mail-ua0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751730AbeCVOu5 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:54440 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751765AbeCZJoC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Mar 2018 10:50:57 -0400
-Received: by mail-ua0-f175.google.com with SMTP id x17so5716074uaj.12
-        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 07:50:56 -0700 (PDT)
-Received: from mail-ua0-f181.google.com (mail-ua0-f181.google.com. [209.85.217.181])
-        by smtp.gmail.com with ESMTPSA id 66sm1952612vkn.55.2018.03.22.07.50.55
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 22 Mar 2018 07:50:55 -0700 (PDT)
-Received: by mail-ua0-f181.google.com with SMTP id w3so5731155uae.5
-        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 07:50:55 -0700 (PDT)
+        Mon, 26 Mar 2018 05:44:02 -0400
+Date: Mon, 26 Mar 2018 06:43:53 -0300
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Nasser Afshin <afshin.nasser@gmail.com>
+Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability
+ on some hardware
+Message-ID: <20180326064353.187f752c@vento.lan>
+In-Reply-To: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
+References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5DQ1iH6XA1DvJ3vi4MZejqza1Yjcxxp_HDfu5eDD9f3jw@mail.gmail.com>
-References: <aa5f4986-7cb3-ec85-203d-e1afa644d769@xs4all.nl> <CAAFQd5DQ1iH6XA1DvJ3vi4MZejqza1Yjcxxp_HDfu5eDD9f3jw@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 22 Mar 2018 23:50:34 +0900
-Message-ID: <CAAFQd5D-Xcpsqg5QjOLcJAgbip_VS31DPfLsZCyzhpJMdiyh0A@mail.gmail.com>
-Subject: Re: [RFC] Request API
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 22, 2018 at 11:47 PM, Tomasz Figa <tfiga@chromium.org> wrote:
-> Hi Hans,
->
-> On Thu, Mar 22, 2018 at 11:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> - If due to performance reasons we will have to allocate/queue/reinit multiple
->>   requests with a single ioctl, then we will have to add new ioctls to the
->>   media device. At this moment in time it is not clear that this is really
->>   needed and it certainly isn't needed for the stateless codec support that
->>   we are looking at now.
->
-> An alternative, maybe a bit crazy, idea would be to allow adding
-> MEDIA_REQUEST_IOC_QUEUE ioctl to the request itself. This would be
-> similar to the idea of indirect command buffers in the graphics (GPU)
-> land. It could for example look like this:
->
-> // One time initialization
-> bulk_fd = ioctl(..., MEDIA_IOC_REQUEST_ALLOC, ...);
-> for (i = 0; i < N; ++i) {
->     fd[i] = ioctl(..., MEDIA_IOC_REQUEST_ALLOC, ...);
->     // Add some state
->     ioctl(fd[i], MEDIA_IOC_REQUEST_QUEUE, { .request = bulk_fd });
-> }
->
-> // Do some work
->
-> ioctl(bulk_fd, MEDIA_IOC_REQUEST_QUEUE); // Queues all the requests at once
+Hi Nasser,
 
-Forgot to mention that this could be easily added on top of the simple
-UAPI, so the added advantage would be the ability to start with
-something simple and then extend with this functionality, if it is
-really necessary.
+Em Mon, 26 Mar 2018 03:26:33 +0430
+Nasser Afshin <afshin.nasser@gmail.com> escreveu:
 
-Best regards,
-Tomasz
+> According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
+> resistor if it's been disabled. On hardware that does not have such
+> resistor, we should use the default output enable value.
+> This prevents the color burst lock instability problem.
+
+If this is hardware-dependent, you should instead store it at
+OF (for SoC) or pass via platform_data (for PCI/USB devices).
+
+> 
+> Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+> ---
+>  drivers/media/i2c/tvp5150.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 2476d812f669..0e9713814816 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
+>  		TVP5150_OP_MODE_CTL,0x00
+>  	},
+>  	{ /* 0x03 */
+> -		TVP5150_MISC_CTL,0x01
+> +		TVP5150_MISC_CTL,0x21
+>  	},
+>  	{ /* 0x06 */
+>  		TVP5150_COLOR_KIL_THSH_CTL,0x10
+> @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+>  		 * Enable the YCbCr and clock outputs. In discrete sync mode
+>  		 * (non-BT.656) additionally enable the the sync outputs.
+>  		 */
+> -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
+> +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
+> +			TVP5150_MISC_CTL_INTREQ_OE;
+>  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+>  			val |= TVP5150_MISC_CTL_SYNC_OE;
+>  	}
+
+
+
+Thanks,
+Mauro
