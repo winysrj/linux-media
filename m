@@ -1,132 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:45849 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750752AbeCLI0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 04:26:09 -0400
-Message-ID: <1520843103.1513.8.camel@bootlin.com>
-Subject: Re: [RFCv4,19/21] media: vim2m: add request support
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Tomasz Figa <tfiga@chromium.org>,
-        Dmitry Osipenko <digetx@gmail.com>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Date: Mon, 12 Mar 2018 09:25:03 +0100
-In-Reply-To: <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
-References: <20180220044425.169493-20-acourbot@chromium.org>
-         <1520440654.1092.15.camel@bootlin.com>
-         <6470b45d-e9dc-0a22-febc-cd18ae1092be@gmail.com>
-         <1520842245.1513.5.camel@bootlin.com>
-         <CAAFQd5A9mSP8Ufe-gn2Epa55M_NNOVaBL_cdWjdZ5PycbTvqbA@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-vi8lL/WrEHkMCOMTypE+"
-Mime-Version: 1.0
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:36253 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751713AbeCZHvc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 03:51:32 -0400
+Received: by mail-wm0-f52.google.com with SMTP id x82so13520215wmg.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2018 00:51:31 -0700 (PDT)
+Date: Mon, 26 Mar 2018 09:51:27 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: christian.koenig@amd.com
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
+ invalidate_mappings callback v2
+Message-ID: <20180326075127.GN14155@phenom.ffwll.local>
+References: <152147480241.18954.4556582215766884582@mail.alporthouse.com>
+ <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
+ <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
+ <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
+ <20180320140810.GU14155@phenom.ffwll.local>
+ <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
+ <20180321081800.GW14155@phenom.ffwll.local>
+ <c9070eb2-9b4e-9ac2-ecbc-74dcf5069858@gmail.com>
+ <20180322071425.GG14155@phenom.ffwll.local>
+ <d965b3b0-9696-9714-f001-672c3b0b9820@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d965b3b0-9696-9714-f001-672c3b0b9820@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Mar 22, 2018 at 10:37:55AM +0100, Christian König wrote:
+> Am 22.03.2018 um 08:14 schrieb Daniel Vetter:
+> > On Wed, Mar 21, 2018 at 10:34:05AM +0100, Christian König wrote:
+> > > Am 21.03.2018 um 09:18 schrieb Daniel Vetter:
+> > > > [SNIP]
+> > > For correct operation you always need to implement invalidate_range_end as
+> > > well and add some lock/completion work Otherwise get_user_pages() can again
+> > > grab the reference to the wrong page.
+> > Is this really a problem?
+> 
+> Yes, and quite a big one.
+> 
+> > I figured that if a mmu_notifier invalidation is
+> > going on, a get_user_pages on that mm from anywhere else (whether i915 or
+> > anyone really) will serialize with the ongoing invalidate?
+> 
+> No, that isn't correct. Jerome can probably better explain that than I do.
+> 
+> > If that's not the case, then really any get_user_pages is racy, including all the
+> > DIRECT_IO ones.
+> 
+> The key point here is that get_user_pages() grabs a reference to the page.
+> So what you get is a bunch of pages which where mapped at that location at a
+> specific point in time.
+> 
+> There is no guarantee that after get_user_pages() return you still have the
+> same pages mapped at that point, you only guarantee that the pages are not
+> reused for something else.
+> 
+> That is perfectly sufficient for a task like DIRECT_IO where you can only
+> have block or network I/O, but unfortunately not really for GPUs where you
+> crunch of results, write them back to pages and actually count on that the
+> CPU sees the result in the right place.
 
---=-vi8lL/WrEHkMCOMTypE+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hm ok, I'll chat with Jerome about this. I thought we have epic amounts of
+userptr tests, including thrashing the mappings vs gpu activity, so I'm
+somewhat surprised that this hasn't blown up yet.
 
-Hi,
+> > > [SNIP]
+> > > So no matter how you put it i915 is clearly doing something wrong here :)
+> > tbh I'm not entirely clear on the reasons why this works, but
+> > cross-release lockdep catches these things, and it did not complain.
+> > On a high-level we make sure that mm locks needed by get_user_pages do
+> > _not_ nest within dev->struct_mutex. We have massive back-off slowpaths to
+> > do anything that could fault outside of our own main gem locking.
+> 
+> I'm pretty sure that this doesn't work as intended and just hides the real
+> problem.
+> 
+> > That was (at least in the past) a major difference with amdgpu, which
+> > essentially has none of these paths. That would trivially deadlock with
+> > your own gem mmap fault handler, so you had (maybe that changed) a dumb
+> > retry loop, which did shut up lockdep but didn't fix any of the locking
+> > inversions.
+> 
+> Any lock you grab in an MMU callback can't be even held when you call
+> kmalloc() or get_free_page() (without GFP_NOIO).
+> 
+> Even simple things like drm_vm_open() violate that by using GFP_KERNEL. So I
+> can 100% ensure you that what you do here is not correct.
 
-On Mon, 2018-03-12 at 17:15 +0900, Tomasz Figa wrote:
-> Hi Paul, Dmitry,
->=20
-> On Mon, Mar 12, 2018 at 5:10 PM, Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
-> > Hi,
-> >=20
-> > On Sun, 2018-03-11 at 22:42 +0300, Dmitry Osipenko wrote:
-> > > Hello,
-> > >=20
-> > > On 07.03.2018 19:37, Paul Kocialkowski wrote:
-> > > > Hi,
-> > > >=20
-> > > > First off, I'd like to take the occasion to say thank-you for
-> > > > your
-> > > > work.
-> > > > This is a major piece of plumbing that is required for me to add
-> > > > support
-> > > > for the Allwinner CedarX VPU hardware in upstream Linux. Other
-> > > > drivers,
-> > > > such as tegra-vde (that was recently merged in staging) are also
-> > > > badly
-> > > > in need of this API.
-> > >=20
-> > > Certainly it would be good to have a common UAPI. Yet I haven't
-> > > got my
-> > > hands on
-> > > trying to implement the V4L interface for the tegra-vde driver,
-> > > but
-> > > I've taken a
-> > > look at Cedrus driver and for now I've one question:
-> > >=20
-> > > Would it be possible (or maybe already is) to have a single IOCTL
-> > > that
-> > > takes input/output buffers with codec parameters, processes the
-> > > request(s) and returns to userspace when everything is done?
-> > > Having 5
-> > > context switches for a single frame decode (like Cedrus VAAPI
-> > > driver
-> > > does) looks like a bit of overhead.
-> >=20
-> > The V4L2 interface exposes ioctls for differents actions and I don't
-> > think there's a combined ioctl for this. The request API was
-> > introduced
-> > precisely because we need to have consistency between the various
-> > ioctls
-> > needed for each frame. Maybe one single (atomic) ioctl would have
-> > worked
-> > too, but that's apparently not how the V4L2 API was designed.
-> >=20
-> > I don't think there is any particular overhead caused by having n
-> > ioctls
-> > instead of a single one. At least that would be very surprising
-> > IMHO.
->=20
-> Well, there is small syscall overhead, which normally shouldn't be
-> very painful, although with all the speculative execution hardening,
-> can't be sure of anything anymore. :)
+drm_vm_open isn't used by modern drivers anymore. We have validated the
+locking with the cross-release stuff for a few weeks, and it didn't catch
+stuff. So I'm not worried that the locking is busted, only the mmu
+notifier vs. get_user_pages races concerns me.
 
-Oh, my mistake then, I had it in mind that it is not really something
-noticeable. Hopefully, it won't be a limiting factor in our cases.
+> > So yeah, grabbing dev->struct_mutex is in principle totally fine while
+> > holding all kinds of struct mm/vma locks. I'm not entirely clear why we
+> > punt the actual unmapping to the worker though, maybe simply to not have a
+> > constrained stack.
+> 
+> I strongly disagree on that. As far as I can see what TTM does looks
+> actually like the right approach to the problem.
+> 
+> > This is re: your statement that you can't unamp sg tables from the
+> > shrinker. We can, because we've actually untangled the locking depencies
+> > so that you can fully operate on gem objects from within mm/vma locks.
+> > Maybe code has changed, but last time I looked at radeon/ttm a while back
+> > that was totally not the case, and if you don't do all this work then yes
+> > you'll deadlock.
+> > 
+> > Doen't mean it's not impossible, because we've done it :-)
+> 
+> And I'm pretty sure you didn't do it correctly :D
+> 
+> > Well, it actually gets the job done. We'd need to at least get to
+> > per-object locking, and probably even then we'd need to rewrite the code a
+> > lot. But please note that this here is only to avoid the GFP_NOIO
+> > constraint, all the other bits I clarified around why we don't actually
+> > have circular locking (because the entire hierarchy is inverted for us)
+> > still hold even if you would only trylock here.
+> 
+> Well you reversed your allocation and mmap_sem lock which avoids the lock
+> inversion during page faults, but it doesn't help you at all with the MMU
+> notifier and shrinker because then there are a lot more locks involved.
 
-> Hans and Alex can correct me if I'm wrong, but I believe there is a
-> more atomic-like API being planned, which would only need one IOCTL to
-> do everything. However, that would be a more serious change to the
-> V4L2 interfaces, so should be decoupled from Request API itself.
->=20
-> Best regards,
-> Tomasz
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-vi8lL/WrEHkMCOMTypE+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+I think we're handling all those locks correctly too. At least the
+drm_vm_open one is not the locking inversion you're looking for (since we
+fixed that, iirc even as part of userptr). Which one is it then?
 
------BEGIN PGP SIGNATURE-----
+And I disagree that leaking IOMMU mappings around just because we can't
+untangle the locking rules is good engineering. Those IOMMU mappings need
+to go, and KVM can pull it off. So should we.
+-Daniel
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlqmOV8ACgkQ3cLmz3+f
-v9Enqwf/dGlUworp9wGBWUKSVsM7pgf2yfj2RcdyhkJ9JyD8udtaVguCtr+V45Ie
-Ve87E+0rWw97rRBHkZwL50g18s56PwsdYzNIv8p6w203LQ224RFDqSalCBkSxPWR
-QWCLz5PVsrKPWUdFTrcdsRviTAdqcsTAfarZ6hBVukhc0Uh8+sKS243AxN+BuaKz
-9INTOr4HfLnYh/vLJjQf6n7CfKOyp12mfnIavkk75p24teRpjae9UNBrsbQJQ5d4
-W9ncC8VVWXOgY41+FdkSCcLAUvrD75tGkAGUjF7xz102Or0J5djWSvR/PUjIBuMt
-s2+bmRRjii+T8U3PtwRyI8+3UXUH1Q==
-=J1Z1
------END PGP SIGNATURE-----
+> 
+> Regards,
+> Christian.
+> 
+> > Aside: Given that yesterday a bunch of folks complained on #dri-devel that
+> > amdgpu prematurely OOMs compared to i915, and that we've switched from a
+> > simple trylock to this nastiness to be able to recover from more low
+> > memory situation it's maybe not such a silly idea. Horrible, but not silly
+> > because actually necessary.
+> > -Daniel
+> 
 
---=-vi8lL/WrEHkMCOMTypE+--
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
