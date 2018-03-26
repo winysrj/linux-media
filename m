@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:51428 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752297AbeCCUvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Mar 2018 15:51:18 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 00/11] em28xx: coding style improvements
-Date: Sat,  3 Mar 2018 17:51:01 -0300
-Message-Id: <cover.1520110127.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44549 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751964AbeCZRVz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 13:21:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        stable@vger.kernel.org, open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: vsp1: Fix BRx conditional path in WPF
+Date: Mon, 26 Mar 2018 20:21:51 +0300
+Message-ID: <3524048.Iptq6jntDe@avalon>
+In-Reply-To: <1522070958-24295-1-git-send-email-kieran.bingham@ideasonboard.com>
+References: <1522070958-24295-1-git-send-email-kieran.bingham@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As there are significant changes on em28xx-cards and em28xx-dvb,
-take some time to solve coding style issues there.
+Hi Kieran,
 
-This series contain only "cosmetic" changes, although there is
-a non-trivial change at em28xx-cards, making its probe function
-easier to read.
+Thank you for the patch.
 
-Anyway, no behavior changes should be noticed after this
-patch series.
+On Monday, 26 March 2018 16:29:17 EEST Kieran Bingham wrote:
+> When a BRx is provided by a pipeline, the WPF must determine the master
+> layer. Currently the condition to check this identifies pipe->bru ||
+> pipe->num_inputs > 1.
+> 
+> The code then moves on to dereference pipe->bru, thus the check fails
+> static analysers on the possibility that pipe->num_inputs could be
+> greater than 1 without pipe->bru being set.
+> 
+> The reality is that the pipeline must have a BRx to support more than
+> one input, thus this could never cause a fault - however it also
+> identifies that the num_inputs > 1 check is redundant.
+> 
+> Remove the redundant check - and always configure the master layer
+> appropriately when we have a BRx configured in our pipeline.
+> 
+> Fixes: 6134148f6098 ("v4l: vsp1: Add support for the BRS entity")
+> Cc: stable@vger.kernel.org
+> 
+> Suggested-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-Mauro Carvalho Chehab (11):
-  em28xx: Add SPDX license tags where needed
-  em28xx.h: Fix most coding style issues
-  media: em28xx-reg.h: Fix coding style issues
-  media: em28xx-audio: fix coding style issues
-  media: em28xx-camera: fix coding style issues
-  media: em28xx-cards: fix most coding style issues
-  media:: rework the em28xx probing code
-  media: em28xx-core: fix most coding style issues
-  media: em28xx-i2c: fix most coding style issues
-  media: em28xx-input: fix most coding style issues
-  media: em28xx-video: fix most coding style issues
+Looking at commit 5d0beeec59e303c76160ddd67fa73dcfc5d76de0 I think your patch 
+is correct.
 
- drivers/media/usb/em28xx/em28xx-audio.c  | 116 +++---
- drivers/media/usb/em28xx/em28xx-camera.c |  49 ++-
- drivers/media/usb/em28xx/em28xx-cards.c  | 594 +++++++++++++++++--------------
- drivers/media/usb/em28xx/em28xx-core.c   | 128 ++++---
- drivers/media/usb/em28xx/em28xx-dvb.c    |  46 +--
- drivers/media/usb/em28xx/em28xx-i2c.c    | 131 +++----
- drivers/media/usb/em28xx/em28xx-input.c  | 163 +++++----
- drivers/media/usb/em28xx/em28xx-reg.h    |  50 +--
- drivers/media/usb/em28xx/em28xx-v4l.h    |  27 +-
- drivers/media/usb/em28xx/em28xx-vbi.c    |  39 +-
- drivers/media/usb/em28xx/em28xx-video.c  | 329 +++++++++--------
- drivers/media/usb/em28xx/em28xx.h        | 338 ++++++++++--------
- 12 files changed, 1096 insertions(+), 914 deletions(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and taken in my tree.
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_wpf.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
+> b/drivers/media/platform/vsp1/vsp1_wpf.c index f7f3b4b2c2de..8bd6b2f1af15
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+> @@ -452,7 +452,7 @@ static void wpf_configure(struct vsp1_entity *entity,
+>  			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
+>  	}
+> 
+> -	if (pipe->bru || pipe->num_inputs > 1)
+> +	if (pipe->bru)
+>  		srcrpf |= pipe->bru->type == VSP1_ENTITY_BRU
+>  			? VI6_WPF_SRCRPF_VIRACT_MST
+>  			: VI6_WPF_SRCRPF_VIRACT2_MST;
 
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
