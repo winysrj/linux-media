@@ -1,328 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54929 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752945AbeC1OBq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41920 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750864AbeCZJE3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 10:01:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 20/29] videobuf2-core: integrate with media requests
-Date: Wed, 28 Mar 2018 16:01:31 +0200
-Message-Id: <20180328140140.42096-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
-References: <20180328140140.42096-1-hverkuil@xs4all.nl>
+        Mon, 26 Mar 2018 05:04:29 -0400
+Subject: Re: [PATCH v6] ARM: dts: wheat: Fix ADV7513 address usage
+To: Simon Horman <horms@verge.net.au>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+References: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <20180323085140.g3golwdtpezo7fhi@verge.net.au>
+ <a771042b-f63a-d00f-73a1-91a7e6089fe4@ideasonboard.com>
+ <20180326083143.r6jz6csckd4ljnpu@verge.net.au>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <d2c5d935-da1f-038b-a0e6-ce390273e21a@ideasonboard.com>
+Date: Mon, 26 Mar 2018 10:04:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180326083143.r6jz6csckd4ljnpu@verge.net.au>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Simon,
 
-Buffers can now be prepared or queued for a request.
+On 26/03/18 09:31, Simon Horman wrote:
+> On Fri, Mar 23, 2018 at 09:16:13PM +0000, Kieran Bingham wrote:
+>> Hi Simon,
+>>
+>> On 23/03/18 08:51, Simon Horman wrote:
+>>> On Thu, Mar 22, 2018 at 09:30:40PM +0000, Kieran Bingham wrote:
+>>>> The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
+>>>> bus, however in low power mode the ADV7513 will reset it's slave maps to
+>>>> use the hardware defined default addresses.
+>>>>
+>>>> The ADV7511 driver was adapted to allow the two devices to be registered
+>>>> correctly - but it did not take into account the fault whereby the
+>>>> devices reset the addresses.
+>>>>
+>>>> This results in an address conflict between the device using the default
+>>>> addresses, and the other device if it is in low-power-mode.
+>>>>
+>>>> Repair this issue by moving both devices away from the default address
+>>>> definitions.
+>>>
+>>> Hi Kierean,
+>>>
+>>> as this is a fix
+>>> a) Does it warrant a fixes tag?
+>>>    Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
+>>> b) Does it warrant being posted as a fix for v4.16;
+>>> c) or v4.17?
+>>
+>> Tricky one, yes it could but this DTS fix, will only actually 'fix' the issue if
+>> the corresponding driver updates to allow secondary addresses to be parsed are
+>> also backported.
+>>
+>> It should be safe to back port the dts fix without the driver updates, but the
+>> addresses specified by this patch will simply be ignored.
+> 
+> In that case I think its safe to add the fixes tag and take the DTS patch
+> via the renesas tree. Perhaps applying it for v4.18 and allowing automatic
+> backporting to take its course is the cleanest option.
+> 
+>> Thus if this is marked with the fixes tag the corresponding patch "drm: adv7511:
+>> Add support for i2c_new_secondary_device" should also be marked.
+>>
+>> It looks like that patch has yet to be picked up by the DRM subsystem, so how
+>> about I bundle both of these two patches together in a repost along with the
+>> fixes tag.
+>>
+>> In fact, I don't think the ADV7511 dt-bindings update has made any progress
+>> either. (dt-bindings: adv7511: Extend bindings to allow specifying slave map
+>> addresses). The media tree variants for the adv7604 have already been picked up
+>> by Mauro I believe though.
+>>
+>> I presume it would be acceptable for this dts patch (or rather all three patches
+>> mentioned) to get integrated through the DRM tree ?
+> 
+> Unless there is a strong reason I would prefer the dts patch to go via
+> my tree. The reason is to avoid merge conflicts bubbling up to Linus,
+> which really is something best avoided.
 
-A buffer is unbound from the request at vb2_buffer_done time or
-when the queue is cancelled.
+That's perfectly fine with me.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 106 +++++++++++++++++++++---
- drivers/media/common/videobuf2/videobuf2-v4l2.c |   4 +-
- drivers/media/dvb-core/dvb_vb2.c                |   2 +-
- include/media/videobuf2-core.h                  |  17 +++-
- 4 files changed, 113 insertions(+), 16 deletions(-)
+Feel free to add:
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 3d436ccb61f8..7499221da1c5 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -930,6 +930,14 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 		vb->state = state;
- 	}
- 	atomic_dec(&q->owned_by_drv_count);
-+
-+	if (vb->req_obj.req) {
-+		/* This is not supported at the moment */
-+		WARN_ON(state == VB2_BUF_STATE_REQUEUEING);
-+		media_request_object_unbind(&vb->req_obj);
-+		media_request_object_put(&vb->req_obj);
-+	}
-+
- 	spin_unlock_irqrestore(&q->done_lock, flags);
- 
- 	trace_vb2_buf_done(q, vb);
-@@ -1276,11 +1284,60 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 	return 0;
- }
- 
--int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
-+static int vb2_req_prepare(struct media_request_object *obj)
- {
--	struct vb2_buffer *vb;
-+	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
- 	int ret;
- 
-+	if (WARN_ON(vb->state != VB2_BUF_STATE_IN_REQUEST))
-+		return -EINVAL;
-+
-+	ret = __buf_prepare(vb, NULL);
-+	if (ret)
-+		vb->state = VB2_BUF_STATE_IN_REQUEST;
-+	return ret;
-+}
-+
-+static void __vb2_dqbuf(struct vb2_buffer *vb);
-+static void vb2_req_unprepare(struct media_request_object *obj)
-+{
-+	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
-+
-+	__vb2_dqbuf(vb);
-+	vb->state = VB2_BUF_STATE_IN_REQUEST;
-+	WARN_ON(!vb->req_obj.req);
-+}
-+
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct media_request *req);
-+
-+static void vb2_req_queue(struct media_request_object *obj)
-+{
-+	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
-+
-+	vb2_core_qbuf(vb->vb2_queue, vb->index, NULL, NULL);
-+}
-+
-+static void vb2_req_release(struct media_request_object *obj)
-+{
-+	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
-+
-+	if (vb->state == VB2_BUF_STATE_IN_REQUEST)
-+		vb->state = VB2_BUF_STATE_DEQUEUED;
-+}
-+
-+static const struct media_request_object_ops vb2_core_req_ops = {
-+	.prepare = vb2_req_prepare,
-+	.unprepare = vb2_req_unprepare,
-+	.queue = vb2_req_queue,
-+	.release = vb2_req_release,
-+};
-+
-+int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
-+			 struct media_request *req)
-+{
-+	struct vb2_buffer *vb;
-+
- 	vb = q->bufs[index];
- 	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
- 		dprintk(1, "invalid buffer state %d\n",
-@@ -1288,16 +1345,24 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 		return -EINVAL;
- 	}
- 
--	ret = __buf_prepare(vb, pb);
--	if (ret)
--		return ret;
-+	if (req) {
-+		vb->state = VB2_BUF_STATE_IN_REQUEST;
-+		media_request_object_init(&vb->req_obj);
-+		media_request_object_bind(req, &vb2_core_req_ops,
-+					  q, &vb->req_obj);
-+	} else {
-+		int ret = __buf_prepare(vb, pb);
-+
-+		if (ret)
-+			return ret;
-+	}
- 
- 	/* Fill buffer information for the userspace */
- 	call_void_bufop(q, fill_user_buffer, vb, pb);
- 
- 	dprintk(2, "prepare of buffer %d succeeded\n", vb->index);
- 
--	return ret;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
- 
-@@ -1364,13 +1429,27 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	return ret;
- }
- 
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct media_request *req)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
- 
- 	vb = q->bufs[index];
- 
-+	if (vb->state == VB2_BUF_STATE_DEQUEUED && req) {
-+		vb->state = VB2_BUF_STATE_IN_REQUEST;
-+		media_request_object_init(&vb->req_obj);
-+		media_request_object_bind(req, &vb2_core_req_ops,
-+					  q, &vb->req_obj);
-+		/* Fill buffer information for the userspace */
-+		if (pb)
-+			call_void_bufop(q, fill_user_buffer, vb, pb);
-+
-+		dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
-+		return 0;
-+	}
-+
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
- 		ret = __buf_prepare(vb, pb);
-@@ -1578,6 +1657,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
- 			vb->planes[i].dbuf_mapped = 0;
- 		}
-+	if (vb->req_obj.req) {
-+		media_request_object_unbind(&vb->req_obj);
-+		media_request_object_put(&vb->req_obj);
-+	}
- }
- 
- int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
-@@ -1700,7 +1783,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 						vb->planes[plane].mem_priv);
- 		}
- 
--		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+		if (vb->state != VB2_BUF_STATE_DEQUEUED &&
-+		    vb->state != VB2_BUF_STATE_IN_REQUEST) {
- 			vb->state = VB2_BUF_STATE_PREPARED;
- 			call_void_vb_qop(vb, buf_finish, vb);
- 		}
-@@ -2259,7 +2343,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, NULL);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2438,7 +2522,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, NULL);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2541,7 +2625,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index bf7a3ba9fed0..b8d370b97cca 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -544,7 +544,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "prepare_buf");
- 
--	return ret ? ret : vb2_core_prepare_buf(q, b->index, b);
-+	return ret ? ret : vb2_core_prepare_buf(q, b->index, b, NULL);
- }
- EXPORT_SYMBOL_GPL(vb2_prepare_buf);
- 
-@@ -612,7 +612,7 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+	return ret ? ret : vb2_core_qbuf(q, b->index, b, NULL);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index da6a8cec7d42..f1e7f0536028 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -384,7 +384,7 @@ int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
- {
- 	int ret;
- 
--	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
-+	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b, NULL);
- 	if (ret) {
- 		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
- 			b->index, ret);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 3d54654c3cd4..72663c2a3ba3 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -204,6 +204,7 @@ enum vb2_io_modes {
- /**
-  * enum vb2_buffer_state - current video buffer state.
-  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control.
-+ * @VB2_BUF_STATE_IN_REQUEST:	buffer is queued in media request.
-  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf.
-  * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver.
-  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver.
-@@ -218,6 +219,7 @@ enum vb2_io_modes {
-  */
- enum vb2_buffer_state {
- 	VB2_BUF_STATE_DEQUEUED,
-+	VB2_BUF_STATE_IN_REQUEST,
- 	VB2_BUF_STATE_PREPARING,
- 	VB2_BUF_STATE_PREPARED,
- 	VB2_BUF_STATE_QUEUED,
-@@ -732,6 +734,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  * @index:	id number of the buffer.
-  * @pb:		buffer structure passed from userspace to
-  *		&v4l2_ioctl_ops->vidioc_prepare_buf handler in driver.
-+ * @req:	pointer to &struct media_request, may be NULL.
-  *
-  * Videobuf2 core helper to implement VIDIOC_PREPARE_BUF() operation. It is
-  * called internally by VB2 by an API-specific handler, like
-@@ -743,9 +746,13 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-  * (if provided), in which driver-specific buffer initialization can
-  * be performed.
-  *
-+ * If @req is non-NULL, then the prepared buffer will be bound to this
-+ * media request.
-+ *
-  * Return: returns zero on success; an error code otherwise.
-  */
--int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
-+			 struct media_request *req);
- 
- /**
-  * vb2_core_qbuf() - Queue a buffer from userspace
-@@ -754,12 +761,17 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * @index:	id number of the buffer
-  * @pb:		buffer structure passed from userspace to
-  *		v4l2_ioctl_ops->vidioc_qbuf handler in driver
-+ * @req:	pointer to &struct media_request, may be NULL.
-  *
-  * Videobuf2 core helper to implement VIDIOC_QBUF() operation. It is called
-  * internally by VB2 by an API-specific handler, like ``videobuf2-v4l2.h``.
-  *
-  * This function:
-  *
-+ * #) If @req is non-NULL, then the buffer will be bound to this
-+ *    media request and it returns. The buffer will be prepared and
-+ *    queued to the driver (i.e. the next two steps) when the request
-+ *    itself is queued.
-  * #) if necessary, calls &vb2_ops->buf_prepare callback in the driver
-  *    (if provided), in which driver-specific buffer initialization can
-  *    be performed;
-@@ -768,7 +780,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  *
-  * Return: returns zero on success; an error code otherwise.
-  */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct media_request *req);
- 
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
--- 
-2.15.1
+Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
+
+as you suggested when you apply, or alternatively let me know if you need a repost.
+
+Regards
+--
+Kieran
