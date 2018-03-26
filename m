@@ -1,140 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:54045 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751932AbeC1Dtb (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:40818 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752364AbeCZVqk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 23:49:31 -0400
-Message-ID: <d86ee9964ca0379ea22e5c5edf1ef22d@smtp-cloud8.xs4all.net>
-Date: Wed, 28 Mar 2018 05:49:28 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 26 Mar 2018 17:46:40 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 12/33] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
+Date: Mon, 26 Mar 2018 23:44:35 +0200
+Message-Id: <20180326214456.6655-13-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+There was never proper support in the VIN driver to deliver ALTERNATING
+field format to user-space, remove this field option. The problem is
+that ALTERNATING field order requires the sequence numbers of buffers
+returned to userspace to reflect if fields were dropped or not,
+something which is not possible with the VIN drivers capture logic.
 
-Results of the daily build of media_tree:
+The VIN driver can still capture from a video source which delivers
+frames in ALTERNATING field order, but needs to combine them using the
+VIN hardware into INTERLACED field order. Before this change if a source
+was delivering fields using ALTERNATE the driver would default to
+combining them using this hardware feature. Only if the user explicitly
+requested ALTERNATE field order would incorrect frames be delivered.
 
-date:			Wed Mar 28 05:00:10 CEST 2018
-media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
-media_build git hash:	40eb338395af58c910ebd1985334e259a211d2b3
-v4l-utils git hash:	098e402950fd45b5a572cccfe1d103661d418417
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+The height should not be cut in half for the format for TOP or BOTTOM
+fields settings. This was a mistake and it was made visible by the
+scaling refactoring. Correct behavior is that the user should request a
+frame size that fits the half height frame reflected in the field
+setting. If not the VIN will do its best to scale the top or bottom to
+the requested format and cropping and scaling do not work as expected.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.101-i686: WARNINGS
-linux-3.0.101-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.100-i686: WARNINGS
-linux-3.2.100-x86_64: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.113-i686: WARNINGS
-linux-3.4.113-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.10-i686: WARNINGS
-linux-3.7.10-x86_64: WARNINGS
-linux-3.8.13-i686: WARNINGS
-linux-3.8.13-x86_64: WARNINGS
-linux-3.9.11-i686: WARNINGS
-linux-3.9.11-x86_64: WARNINGS
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: WARNINGS
-linux-3.12.74-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.55-i686: WARNINGS
-linux-3.16.55-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.100-i686: WARNINGS
-linux-3.18.100-x86_64: WARNINGS
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.50-i686: WARNINGS
-linux-4.1.50-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.99-i686: OK
-linux-4.4.99-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: WARNINGS
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.87-i686: WARNINGS
-linux-4.9.87-x86_64: WARNINGS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.27-i686: OK
-linux-4.14.27-x86_64: OK
-linux-4.15.10-i686: OK
-linux-4.15.10-x86_64: OK
-linux-4.16-rc5-i686: OK
-linux-4.16-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Detailed results are available here:
+---
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+* Changes since v12
+- Spelling where -> were.
+- Add review tag from Hans.
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +----------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 40 +++++++----------------------
+ 2 files changed, 10 insertions(+), 45 deletions(-)
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 4f48575f2008fe34..9233924e5b52de5f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 		vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		break;
+-	case V4L2_FIELD_ALTERNATE:
+ 	case V4L2_FIELD_NONE:
+ 		vnmc = VNMC_IM_ODD_EVEN;
+ 		progressive = true;
+@@ -745,18 +744,6 @@ static bool rvin_capture_active(struct rvin_dev *vin)
+ 	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+ }
+ 
+-static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+-{
+-	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+-		/* If FS is set it's a Even field */
+-		if (vnms & VNMS_FS)
+-			return V4L2_FIELD_BOTTOM;
+-		return V4L2_FIELD_TOP;
+-	}
+-
+-	return vin->format.field;
+-}
+-
+ static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+ {
+ 	const struct rvin_video_format *fmt;
+@@ -892,7 +879,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+ 
+ 	/* Capture frame */
+ 	if (vin->queue_buf[slot]) {
+-		vin->queue_buf[slot]->field = rvin_get_active_field(vin, vnms);
++		vin->queue_buf[slot]->field = vin->format.field;
+ 		vin->queue_buf[slot]->sequence = vin->sequence;
+ 		vin->queue_buf[slot]->vb2_buf.timestamp = ktime_get_ns();
+ 		vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf,
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 16e895657c3f51c5..e956a385cc13f5f3 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -121,33 +121,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	vin->format.colorspace	= mf->colorspace;
+ 	vin->format.field	= mf->field;
+ 
+-	/*
+-	 * If the subdevice uses ALTERNATE field mode and G_STD is
+-	 * implemented use the VIN HW to combine the two fields to
+-	 * one INTERLACED frame. The ALTERNATE field mode can still
+-	 * be requested in S_FMT and be respected, this is just the
+-	 * default which is applied at probing or when S_STD is called.
+-	 */
+-	if (vin->format.field == V4L2_FIELD_ALTERNATE &&
+-	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
+-		vin->format.field = V4L2_FIELD_INTERLACED;
+-
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_ALTERNATE:
+-		vin->format.height /= 2;
+-		break;
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	default:
+-		vin->format.field = RVIN_DEFAULT_FIELD;
+-		break;
+-	}
+-
+ 	rvin_reset_crop_compose(vin);
+ 
+ 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+@@ -235,15 +208,20 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	switch (pix->field) {
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_ALTERNATE:
+-		pix->height /= 2;
+-		source->height /= 2;
+-		break;
+ 	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
++	case V4L2_FIELD_ALTERNATE:
++		/*
++		 * Driver dose not (yet) support outputting ALTERNATE to a
++		 * userspace. It does support outputting INTERLACED so use
++		 * the VIN hardware to combine the two fields.
++		 */
++		pix->field = V4L2_FIELD_INTERLACED;
++		pix->height *= 2;
++		break;
+ 	default:
+ 		pix->field = RVIN_DEFAULT_FIELD;
+ 		break;
+-- 
+2.16.2
