@@ -1,56 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59562 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751966AbeCWMZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 08:25:58 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] media: uvc: to the right check at uvc_ioctl_enum_framesizes()
-Date: Fri, 23 Mar 2018 08:25:53 -0400
-Message-Id: <8394db595eab2534013f3ca92e953ab34d9d2151.1521807951.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from kirsty.vergenet.net ([202.4.237.240]:44840 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752053AbeCZIbs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 04:31:48 -0400
+Date: Mon, 26 Mar 2018 10:31:43 +0200
+From: Simon Horman <horms@verge.net.au>
+To: kieran.bingham@ideasonboard.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v6] ARM: dts: wheat: Fix ADV7513 address usage
+Message-ID: <20180326083143.r6jz6csckd4ljnpu@verge.net.au>
+References: <1521754240-10470-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <20180323085140.g3golwdtpezo7fhi@verge.net.au>
+ <a771042b-f63a-d00f-73a1-91a7e6089fe4@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a771042b-f63a-d00f-73a1-91a7e6089fe4@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While the logic there is correct, it tricks both humans and
-machines, a the check if "i" var is not zero is actually to
-validate if the "frames" var was initialized when the loop
-ran for the first time.
+On Fri, Mar 23, 2018 at 09:16:13PM +0000, Kieran Bingham wrote:
+> Hi Simon,
+> 
+> On 23/03/18 08:51, Simon Horman wrote:
+> > On Thu, Mar 22, 2018 at 09:30:40PM +0000, Kieran Bingham wrote:
+> >> The r8a7792 Wheat board has two ADV7513 devices sharing a single I2C
+> >> bus, however in low power mode the ADV7513 will reset it's slave maps to
+> >> use the hardware defined default addresses.
+> >>
+> >> The ADV7511 driver was adapted to allow the two devices to be registered
+> >> correctly - but it did not take into account the fault whereby the
+> >> devices reset the addresses.
+> >>
+> >> This results in an address conflict between the device using the default
+> >> addresses, and the other device if it is in low-power-mode.
+> >>
+> >> Repair this issue by moving both devices away from the default address
+> >> definitions.
+> > 
+> > Hi Kierean,
+> > 
+> > as this is a fix
+> > a) Does it warrant a fixes tag?
+> >    Fixes: f6eea82a87db ("ARM: dts: wheat: add DU support")
+> > b) Does it warrant being posted as a fix for v4.16;
+> > c) or v4.17?
+> 
+> Tricky one, yes it could but this DTS fix, will only actually 'fix' the issue if
+> the corresponding driver updates to allow secondary addresses to be parsed are
+> also backported.
+> 
+> It should be safe to back port the dts fix without the driver updates, but the
+> addresses specified by this patch will simply be ignored.
 
-That produces the following warning:
-	drivers/media/usb/uvc/uvc_v4l2.c:1192 uvc_ioctl_enum_framesizes() error: potentially dereferencing uninitialized 'frame'.
+In that case I think its safe to add the fixes tag and take the DTS patch
+via the renesas tree. Perhaps applying it for v4.18 and allowing automatic
+backporting to take its course is the cleanest option.
 
-Change the logic to do the right test instead.
+> Thus if this is marked with the fixes tag the corresponding patch "drm: adv7511:
+> Add support for i2c_new_secondary_device" should also be marked.
+> 
+> It looks like that patch has yet to be picked up by the DRM subsystem, so how
+> about I bundle both of these two patches together in a repost along with the
+> fixes tag.
+> 
+> In fact, I don't think the ADV7511 dt-bindings update has made any progress
+> either. (dt-bindings: adv7511: Extend bindings to allow specifying slave map
+> addresses). The media tree variants for the adv7604 have already been picked up
+> by Mauro I believe though.
+> 
+> I presume it would be acceptable for this dts patch (or rather all three patches
+> mentioned) to get integrated through the DRM tree ?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/uvc/uvc_v4l2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 818a4369a51a..bd32914259ae 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1173,7 +1173,7 @@ static int uvc_ioctl_enum_framesizes(struct file *file, void *fh,
- 	struct uvc_fh *handle = fh;
- 	struct uvc_streaming *stream = handle->stream;
- 	struct uvc_format *format = NULL;
--	struct uvc_frame *frame;
-+	struct uvc_frame *frame = NULL;
- 	unsigned int index;
- 	unsigned int i;
- 
-@@ -1189,7 +1189,7 @@ static int uvc_ioctl_enum_framesizes(struct file *file, void *fh,
- 
- 	/* Skip duplicate frame sizes */
- 	for (i = 0, index = 0; i < format->nframes; i++) {
--		if (i && frame->wWidth == format->frame[i].wWidth &&
-+		if (frame && frame->wWidth == format->frame[i].wWidth &&
- 		    frame->wHeight == format->frame[i].wHeight)
- 			continue;
- 		frame = &format->frame[i];
--- 
-2.14.3
+Unless there is a strong reason I would prefer the dts patch to go via
+my tree. The reason is to avoid merge conflicts bubbling up to Linus,
+which really is something best avoided.
