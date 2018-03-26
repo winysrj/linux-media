@@ -1,303 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:42532 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751268AbeCIPxp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 10:53:45 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 08/11] media: lgdt330x: move *read_status functions
-Date: Fri,  9 Mar 2018 12:53:33 -0300
-Message-Id: <c94545241a34fae69c8b9cad1295aba84069a551.1520610788.git.mchehab@s-opensource.com>
-In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
-References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
-In-Reply-To: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
-References: <c673e447c4776af9137fa9edd334ebf5298f1f08.1520610788.git.mchehab@s-opensource.com>
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32121 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752249AbeCZVqj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:46:39 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v13 11/33] rcar-vin: set a default field to fallback on
+Date: Mon, 26 Mar 2018 23:44:34 +0200
+Message-Id: <20180326214456.6655-12-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation to implement DVBv5 stats on this driver, move
-the *read_status functions to happen after SNR and signal
-strength routines.
+If the field is not supported by the driver it should not try to keep
+the current field. Instead it should set it to a default fallback. Since
+trying a format should always result in the same state regardless of the
+current state of the device.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 ---
- drivers/media/dvb-frontends/lgdt330x.c | 255 +++++++++++++++++----------------
- 1 file changed, 128 insertions(+), 127 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
-index c7355282bb3e..bb61b4fb1df1 100644
---- a/drivers/media/dvb-frontends/lgdt330x.c
-+++ b/drivers/media/dvb-frontends/lgdt330x.c
-@@ -472,133 +472,6 @@ static int lgdt330x_get_frontend(struct dvb_frontend *fe,
- 	return 0;
- }
+* Changes since v12
+- Moved field != V4L2_FIELD_ANY check from a later commit 'rcar-vin:
+  simplify how formats are set and reset' in the series. This is to
+  avoid ignoring the field returned from the sensor if FIELD_ANY was
+  requested by the user. This was only a problem between this change and
+  a few patches later, but better to fix it now. Reported by Hans,
+  thanks for spotting this.
+- Add review tag from Hans.
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index c2265324c7c96308..16e895657c3f51c5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -23,6 +23,7 @@
+ #include "rcar-vin.h"
  
--static int lgdt3302_read_status(struct dvb_frontend *fe,
--				enum fe_status *status)
--{
--	struct lgdt330x_state *state = fe->demodulator_priv;
--	u8 buf[3];
--
--	*status = 0; /* Reset status result */
--
--	/* AGC status register */
--	i2c_read_demod_bytes(state, AGC_STATUS, buf, 1);
--	dprintk(state, "AGC_STATUS = 0x%02x\n", buf[0]);
--	if ((buf[0] & 0x0c) == 0x8) {
--		/*
--		 * Test signal does not exist flag
--		 * as well as the AGC lock flag.
--		 */
--		*status |= FE_HAS_SIGNAL;
--	}
--
--	/*
--	 * You must set the Mask bits to 1 in the IRQ_MASK in order
--	 * to see that status bit in the IRQ_STATUS register.
--	 * This is done in SwReset();
--	 */
--
--	/* signal status */
--	i2c_read_demod_bytes(state, TOP_CONTROL, buf, sizeof(buf));
--	dprintk(state,
--		"TOP_CONTROL = 0x%02x, IRO_MASK = 0x%02x, IRQ_STATUS = 0x%02x\n",
--		buf[0], buf[1], buf[2]);
--
--	/* sync status */
--	if ((buf[2] & 0x03) == 0x01)
--		*status |= FE_HAS_SYNC;
--
--	/* FEC error status */
--	if ((buf[2] & 0x0c) == 0x08)
--		*status |= FE_HAS_LOCK | FE_HAS_VITERBI;
--
--	/* Carrier Recovery Lock Status Register */
--	i2c_read_demod_bytes(state, CARRIER_LOCK, buf, 1);
--	dprintk(state, "CARRIER_LOCK = 0x%02x\n", buf[0]);
--	switch (state->current_modulation) {
--	case QAM_256:
--	case QAM_64:
--		/* Need to understand why there are 3 lock levels here */
--		if ((buf[0] & 0x07) == 0x07)
--			*status |= FE_HAS_CARRIER;
--		break;
--	case VSB_8:
--		if ((buf[0] & 0x80) == 0x80)
--			*status |= FE_HAS_CARRIER;
--		break;
--	default:
--		dev_warn(&state->client->dev,
--			 "%s: Modulation set to unsupported value\n",
--			 __func__);
--	}
--
--	return 0;
--}
--
--static int lgdt3303_read_status(struct dvb_frontend *fe,
--				enum fe_status *status)
--{
--	struct lgdt330x_state *state = fe->demodulator_priv;
--	int err;
--	u8 buf[3];
--
--	*status = 0; /* Reset status result */
--
--	/* lgdt3303 AGC status register */
--	err = i2c_read_demod_bytes(state, 0x58, buf, 1);
--	if (err < 0)
--		return err;
--
--	dprintk(state, "AGC_STATUS = 0x%02x\n", buf[0]);
--	if ((buf[0] & 0x21) == 0x01) {
--		/*
--		 * Test input signal does not exist flag
--		 * as well as the AGC lock flag.
--		 */
--		*status |= FE_HAS_SIGNAL;
--	}
--
--	/* Carrier Recovery Lock Status Register */
--	i2c_read_demod_bytes(state, CARRIER_LOCK, buf, 1);
--	dprintk(state, "CARRIER_LOCK = 0x%02x\n", buf[0]);
--	switch (state->current_modulation) {
--	case QAM_256:
--	case QAM_64:
--		/* Need to understand why there are 3 lock levels here */
--		if ((buf[0] & 0x07) == 0x07)
--			*status |= FE_HAS_CARRIER;
--		else
--			break;
--		i2c_read_demod_bytes(state, 0x8a, buf, 1);
--		dprintk(state, "QAM LOCK = 0x%02x\n", buf[0]);
--
--		if ((buf[0] & 0x04) == 0x04)
--			*status |= FE_HAS_SYNC;
--		if ((buf[0] & 0x01) == 0x01)
--			*status |= FE_HAS_LOCK;
--		if ((buf[0] & 0x08) == 0x08)
--			*status |= FE_HAS_VITERBI;
--		break;
--	case VSB_8:
--		if ((buf[0] & 0x80) == 0x80)
--			*status |= FE_HAS_CARRIER;
--		else
--			break;
--		i2c_read_demod_bytes(state, 0x38, buf, 1);
--		dprintk(state, "8-VSB LOCK = 0x%02x\n", buf[0]);
--
--		if ((buf[0] & 0x02) == 0x00)
--			*status |= FE_HAS_SYNC;
--		if ((buf[0] & 0xfd) == 0x01)
--			*status |= FE_HAS_VITERBI | FE_HAS_LOCK;
--		break;
--	default:
--		dev_warn(&state->client->dev,
--			 "%s: Modulation set to unsupported value\n",
--			 __func__);
--	}
--	return 0;
--}
--
- /*
-  * Calculate SNR estimation (scaled by 2^24)
-  *
-@@ -754,6 +627,134 @@ static int lgdt330x_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	return 0;
- }
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
  
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
+ 	default:
+-		vin->format.field = V4L2_FIELD_NONE;
++		vin->format.field = RVIN_DEFAULT_FIELD;
+ 		break;
+ 	}
+ 
+@@ -193,7 +194,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	source->width = pix->width;
+ 	source->height = pix->height;
+ 
+-	pix->field = field;
++	if (field != V4L2_FIELD_ANY)
++		pix->field = field;
 +
-+static int lgdt3302_read_status(struct dvb_frontend *fe,
-+				enum fe_status *status)
-+{
-+	struct lgdt330x_state *state = fe->demodulator_priv;
-+	u8 buf[3];
-+
-+	*status = 0; /* Reset status result */
-+
-+	/* AGC status register */
-+	i2c_read_demod_bytes(state, AGC_STATUS, buf, 1);
-+	dprintk(state, "AGC_STATUS = 0x%02x\n", buf[0]);
-+	if ((buf[0] & 0x0c) == 0x8) {
-+		/*
-+		 * Test signal does not exist flag
-+		 * as well as the AGC lock flag.
-+		 */
-+		*status |= FE_HAS_SIGNAL;
-+	}
-+
-+	/*
-+	 * You must set the Mask bits to 1 in the IRQ_MASK in order
-+	 * to see that status bit in the IRQ_STATUS register.
-+	 * This is done in SwReset();
-+	 */
-+
-+	/* signal status */
-+	i2c_read_demod_bytes(state, TOP_CONTROL, buf, sizeof(buf));
-+	dprintk(state,
-+		"TOP_CONTROL = 0x%02x, IRO_MASK = 0x%02x, IRQ_STATUS = 0x%02x\n",
-+		buf[0], buf[1], buf[2]);
-+
-+	/* sync status */
-+	if ((buf[2] & 0x03) == 0x01)
-+		*status |= FE_HAS_SYNC;
-+
-+	/* FEC error status */
-+	if ((buf[2] & 0x0c) == 0x08)
-+		*status |= FE_HAS_LOCK | FE_HAS_VITERBI;
-+
-+	/* Carrier Recovery Lock Status Register */
-+	i2c_read_demod_bytes(state, CARRIER_LOCK, buf, 1);
-+	dprintk(state, "CARRIER_LOCK = 0x%02x\n", buf[0]);
-+	switch (state->current_modulation) {
-+	case QAM_256:
-+	case QAM_64:
-+		/* Need to understand why there are 3 lock levels here */
-+		if ((buf[0] & 0x07) == 0x07)
-+			*status |= FE_HAS_CARRIER;
-+		break;
-+	case VSB_8:
-+		if ((buf[0] & 0x80) == 0x80)
-+			*status |= FE_HAS_CARRIER;
-+		break;
-+	default:
-+		dev_warn(&state->client->dev,
-+			 "%s: Modulation set to unsupported value\n",
-+			 __func__);
-+	}
-+
-+	return 0;
-+}
-+
-+static int lgdt3303_read_status(struct dvb_frontend *fe,
-+				enum fe_status *status)
-+{
-+	struct lgdt330x_state *state = fe->demodulator_priv;
-+	int err;
-+	u8 buf[3];
-+
-+	*status = 0; /* Reset status result */
-+
-+	/* lgdt3303 AGC status register */
-+	err = i2c_read_demod_bytes(state, 0x58, buf, 1);
-+	if (err < 0)
-+		return err;
-+
-+	dprintk(state, "AGC_STATUS = 0x%02x\n", buf[0]);
-+	if ((buf[0] & 0x21) == 0x01) {
-+		/*
-+		 * Test input signal does not exist flag
-+		 * as well as the AGC lock flag.
-+		 */
-+		*status |= FE_HAS_SIGNAL;
-+	}
-+
-+	/* Carrier Recovery Lock Status Register */
-+	i2c_read_demod_bytes(state, CARRIER_LOCK, buf, 1);
-+	dprintk(state, "CARRIER_LOCK = 0x%02x\n", buf[0]);
-+	switch (state->current_modulation) {
-+	case QAM_256:
-+	case QAM_64:
-+		/* Need to understand why there are 3 lock levels here */
-+		if ((buf[0] & 0x07) == 0x07)
-+			*status |= FE_HAS_CARRIER;
-+		else
-+			break;
-+		i2c_read_demod_bytes(state, 0x8a, buf, 1);
-+		dprintk(state, "QAM LOCK = 0x%02x\n", buf[0]);
-+
-+		if ((buf[0] & 0x04) == 0x04)
-+			*status |= FE_HAS_SYNC;
-+		if ((buf[0] & 0x01) == 0x01)
-+			*status |= FE_HAS_LOCK;
-+		if ((buf[0] & 0x08) == 0x08)
-+			*status |= FE_HAS_VITERBI;
-+		break;
-+	case VSB_8:
-+		if ((buf[0] & 0x80) == 0x80)
-+			*status |= FE_HAS_CARRIER;
-+		else
-+			break;
-+		i2c_read_demod_bytes(state, 0x38, buf, 1);
-+		dprintk(state, "8-VSB LOCK = 0x%02x\n", buf[0]);
-+
-+		if ((buf[0] & 0x02) == 0x00)
-+			*status |= FE_HAS_SYNC;
-+		if ((buf[0] & 0xfd) == 0x01)
-+			*status |= FE_HAS_VITERBI | FE_HAS_LOCK;
-+		break;
-+	default:
-+		dev_warn(&state->client->dev,
-+			 "%s: Modulation set to unsupported value\n",
-+			 __func__);
-+	}
-+	return 0;
-+}
-+
- static int
- lgdt330x_get_tune_settings(struct dvb_frontend *fe,
- 			   struct dvb_frontend_tune_settings *fe_tune_settings)
+ 	pix->width = width;
+ 	pix->height = height;
+ 
+@@ -213,10 +216,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	u32 walign;
+ 	int ret;
+ 
+-	/* Keep current field if no specific one is asked for */
+-	if (pix->field == V4L2_FIELD_ANY)
+-		pix->field = vin->format.field;
+-
+ 	/* If requested format is not supported fallback to the default */
+ 	if (!rvin_format_from_pixel(pix->pixelformat)) {
+ 		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+@@ -246,7 +245,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
+ 	default:
+-		pix->field = V4L2_FIELD_NONE;
++		pix->field = RVIN_DEFAULT_FIELD;
+ 		break;
+ 	}
+ 
 -- 
-2.14.3
+2.16.2
