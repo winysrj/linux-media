@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:46182 "EHLO ale.deltatee.com"
+Received: from osg.samsung.com ([64.30.133.232]:61527 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751161AbeC2Ppa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 11:45:30 -0400
-To: christian.koenig@amd.com, Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
- <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
- <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
- <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
- <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
- <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
- <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
-Date: Thu, 29 Mar 2018 09:45:23 -0600
-MIME-Version: 1.0
-In-Reply-To: <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
+        id S1751684AbeCZVK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:10:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Georgiana Chelu <georgiana.chelu93@gmail.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 09/18] media: staging: atomisp: get rid of an unused function
+Date: Mon, 26 Mar 2018 17:10:42 -0400
+Message-Id: <bdeb1cc21d2cb06cf98383c73fdc2e8946d503de.1522098456.git.mchehab@s-opensource.com>
+In-Reply-To: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+In-Reply-To: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The function __need_realloc_mipi_buffer() is not used anywhere.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../atomisp/pci/atomisp2/atomisp_compat_css20.c     | 21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-On 29/03/18 05:44 AM, Christian König wrote:
-> Am 28.03.2018 um 21:53 schrieb Logan Gunthorpe:
->>
->> On 28/03/18 01:44 PM, Christian König wrote:
->>> Well, isn't that exactly what dma_map_resource() is good for? As far as
->>> I can see it makes sure IOMMU is aware of the access route and
->>> translates a CPU address into a PCI Bus address.
->>> I'm using that with the AMD IOMMU driver and at least there it works
->>> perfectly fine.
->> Yes, it would be nice, but no arch has implemented this yet. We are just
->> lucky in the x86 case because that arch is simple and doesn't need to do
->> anything for P2P (partially due to the Bus and CPU addresses being the
->> same). But in the general case, you can't rely on it.
-> 
-> Well, that an arch hasn't implemented it doesn't mean that we don't have 
-> the right interface to do it.
-
-Yes, but right now we don't have a performant way to check if we are
-doing P2P or not in the dma_map_X() wrappers. And this is necessary to
-check if the DMA ops in use support it or not. We can't have the
-dma_map_X() functions do the wrong thing because they don't support it yet.
-
-> Devices integrated in the CPU usually only "claim" to be PCIe devices. 
-> In reality their memory request path go directly through the integrated 
-> north bridge. The reason for this is simple better throughput/latency.
-
-These are just more reasons why our patchset restricts to devices behind
-a switch. And more mess for someone to deal with if they need to relax
-that restriction.
-
-Logan
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+index bbed1ed02074..b0e584b3cfc7 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+@@ -1159,27 +1159,6 @@ void atomisp_css_mmu_invalidate_tlb(void)
+ 	ia_css_mmu_invalidate_cache();
+ }
+ 
+-/*
+- * Check whether currently running MIPI buffer size fulfill
+- * the requirement of the stream to be run
+- */
+-bool __need_realloc_mipi_buffer(struct atomisp_device *isp)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < isp->num_of_streams; i++) {
+-		struct atomisp_sub_device *asd = &isp->asd[i];
+-
+-		if (asd->streaming !=
+-				ATOMISP_DEVICE_STREAMING_ENABLED)
+-			continue;
+-		if (asd->mipi_frame_size < isp->mipi_frame_size)
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+ int atomisp_css_start(struct atomisp_sub_device *asd,
+ 			enum atomisp_css_pipe_id pipe_id, bool in_reset)
+ {
+-- 
+2.14.3
