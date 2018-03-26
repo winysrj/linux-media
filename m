@@ -1,109 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24760 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1164158AbeCBB7U (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:37683 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752377AbeCZSIf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:20 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 23/32] rcar-vin: prepare for media controller mode initialization
-Date: Fri,  2 Mar 2018 02:57:42 +0100
-Message-Id: <20180302015751.25596-24-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 26 Mar 2018 14:08:35 -0400
+Received: by mail-pf0-f194.google.com with SMTP id t16so3610424pfh.4
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2018 11:08:35 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v3 5/5] dvb-usb-v2/gl861: ensure  USB message buffers DMA'able
+Date: Tue, 27 Mar 2018 03:06:52 +0900
+Message-Id: <20180326180652.5385-6-tskd08@gmail.com>
+In-Reply-To: <20180326180652.5385-1-tskd08@gmail.com>
+References: <20180326180652.5385-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare for media controller by calling a different initialization then
-when running in device centric mode. Add trivial configuration of
-the mbus and creation of the media pad for the video device entity.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-While we are at it clearly mark the digital device centric notifier
-functions with a comment.
+i2c message buf might be on stack.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 20 ++++++++++++++++++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |  4 ++++
- 2 files changed, 22 insertions(+), 2 deletions(-)
+ drivers/media/usb/dvb-usb-v2/gl861.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index ca22903c375d2018..eb67ad5e2633064b 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -46,6 +46,10 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
- 	return -EINVAL;
- }
+diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
+index a57afb12e84..4c29e0b417e 100644
+--- a/drivers/media/usb/dvb-usb-v2/gl861.c
++++ b/drivers/media/usb/dvb-usb-v2/gl861.c
+@@ -22,6 +22,8 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 	u16 value = addr << (8 + 1);
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 	u8 req, type;
++	u8 *buf;
++	int ret;
  
-+/* -----------------------------------------------------------------------------
-+ * Digital async notifier
-+ */
-+
- /* The vin lock shuld be held when calling the subdevice attach and detach */
- static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 					 struct v4l2_subdev *subdev)
-@@ -237,6 +241,16 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 	return 0;
- }
- 
-+static int rvin_mc_init(struct rvin_dev *vin)
-+{
-+	/* All our sources are CSI-2 */
-+	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
-+	vin->mbus_cfg.flags = 0;
-+
-+	vin->pad.flags = MEDIA_PAD_FL_SINK;
-+	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Platform Device Driver
-  */
-@@ -325,8 +339,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 		return ret;
- 
- 	platform_set_drvdata(pdev, vin);
+ 	if (wo) {
+ 		req = GL861_REQ_I2C_WRITE;
+@@ -44,11 +46,23 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 				KBUILD_MODNAME, wlen);
+ 		return -EINVAL;
+ 	}
 -
--	ret = rvin_digital_graph_init(vin);
-+	if (vin->info->use_mc)
-+		ret = rvin_mc_init(vin);
-+	else
-+		ret = rvin_digital_graph_init(vin);
- 	if (ret < 0)
- 		goto error;
++	buf = NULL;
++	if (rlen > 0) {
++		buf = kmalloc(rlen, GFP_KERNEL);
++		if (!buf)
++			return -ENOMEM;
++	}
+ 	usleep_range(1000, 2000); /* avoid I2C errors */
  
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 7bae9270c6216c3e..849f428871af113f 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -101,6 +101,8 @@ struct rvin_info {
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-  *
-+ * @pad:		media pad for the video device entity
-+ *
-  * @lock:		protects @queue
-  * @queue:		vb2 buffers queue
-  *
-@@ -130,6 +132,8 @@ struct rvin_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity *digital;
- 
-+	struct media_pad pad;
+-	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
+-			       value, index, rbuf, rlen, 2000);
++	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
++			      value, index, buf, rlen, 2000);
++	if (rlen > 0) {
++		if (ret > 0)
++			memcpy(rbuf, buf, rlen);
++		kfree(buf);
++	}
 +
- 	struct mutex lock;
- 	struct vb2_queue queue;
++	return ret;
+ }
  
+ /* Friio specific I2C read/write */
 -- 
 2.16.2
