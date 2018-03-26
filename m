@@ -1,75 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:39479 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932178AbeCLQu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 12:50:29 -0400
-To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-From: "rwarsow@gmx.de" <rwarsow@gmx.de>
-Subject: help needed: dvb-usb: recv bulk message failed: -110 AND dw2102: i2c
- transfer failed
-Message-ID: <6a9f4312-061c-d567-dc0d-048f8b5913f7@gmx.de>
-Date: Mon, 12 Mar 2018 17:50:27 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: de-DE
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47223 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750832AbeCZDpg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Mar 2018 23:45:36 -0400
+Message-ID: <ab58955cb61f56804ba9488ff886af7b@smtp-cloud9.xs4all.net>
+Date: Mon, 26 Mar 2018 05:45:34 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hallo
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I get this with kernel 4.15.8 and 4.16-rc5
+Results of the daily build of media_tree:
 
-...
-[ 166.277588] dvb-usb: Terratec Cinergy S2 USB BOX successfully 
-deinitialized and disconnected.
+date:			Mon Mar 26 05:00:12 CEST 2018
+media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
+media_build git hash:	fb4b2c502cd76d6e5767a686d6fb1c95989031b9
+v4l-utils git hash:	098e402950fd45b5a572cccfe1d103661d418417
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-[ 168.406828] usb 1-1: new high-speed USB device number 6 using xhci_hcd
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.100-i686: ERRORS
+linux-3.2.100-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.55-i686: WARNINGS
+linux-3.16.55-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.100-i686: WARNINGS
+linux-3.18.100-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.50-i686: WARNINGS
+linux-4.1.50-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.99-i686: OK
+linux-4.4.99-x86_64: OK
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.87-i686: ERRORS
+linux-4.9.87-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.27-i686: ERRORS
+linux-4.14.27-x86_64: ERRORS
+linux-4.15.10-i686: ERRORS
+linux-4.15.10-x86_64: ERRORS
+linux-4.16-rc5-i686: ERRORS
+linux-4.16-rc5-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-[ 168.534421] dw2102: su3000_identify_state
+Detailed results are available here:
 
-[ 168.534424] dvb-usb: found a 'Terratec Cinergy S2 USB BOX' in warm state.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-[ 168.534433] dw2102: su3000_power_ctrl: 1, initialized 0
+Full logs are available here:
 
-[ 168.534642] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-[ 168.534708] dvbdev: DVB: registering new adapter (Terratec Cinergy S2 
-USB BOX)
+The Media Infrastructure API from this daily build is here:
 
-[ 168.538862] dvb-usb: MAC address: bc:ea:2b:46:13:a5
-
-[ 168.849764] m88ds3103 5-0068: Unknown device. Chip_id=52
-
-[ 168.849816] dvb-usb: no frontend was attached by 'Terratec Cinergy S2 
-USB BOX'
-
-[ 168.849945] Registered IR keymap rc-tt-1500
-
-[ 168.850002] rc rc0: Terratec Cinergy S2 USB BOX as 
-/devices/pci0000:00/0000:00:14.0/usb1/1-1/rc/rc0
-
-[ 168.850084] input: Terratec Cinergy S2 USB BOX as 
-/devices/pci0000:00/0000:00:14.0/usb1/1-1/rc/rc0/input20
-
-[ 168.850287] dvb-usb: schedule remote query interval to 250 msecs.
-
-[ 168.850291] dw2102: su3000_power_ctrl: 0, initialized 1
-
-[ 168.850293] dvb-usb: Terratec Cinergy S2 USB BOX successfully 
-initialized and connected.
-
-[ 171.141939] dvb-usb: recv bulk message failed: -110
-
-[ 171.141949] dw2102: i2c transfer failed.
-
-
-more to read:
-https://forum.libreelec.tv/thread/11784-does-this-dvb-s2-tuner-work/?pageNo=4
-
--- 
-
-Greeting
-
-Ronald
+http://www.xs4all.nl/~hverkuil/spec/index.html
