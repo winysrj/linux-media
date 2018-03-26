@@ -1,317 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41766 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753098AbeCMSFw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 14:05:52 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v2 08/11] media: vsp1: Add support for extended display list headers
-Date: Tue, 13 Mar 2018 19:05:24 +0100
-Message-Id: <fab4e7a73fcaebdf221497c30cd3ae944a951d3d.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from osg.samsung.com ([64.30.133.232]:34204 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750973AbeCZKrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 06:47:49 -0400
+Date: Mon, 26 Mar 2018 07:47:42 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        acourbot@chromium.org
+Subject: Re: [RFC v2 01/10] media: Support variable size IOCTL arguments
+Message-ID: <20180326074742.433ab8f1@vento.lan>
+In-Reply-To: <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+        <1521839864-10146-2-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extended display list headers allow pre and post command lists to be
-executed by the VSP pipeline. This provides the base support for
-features such as AUTO_FLD (for interlaced support) and AUTO_DISP (for
-supporting continuous camera preview pipelines.
+Em Fri, 23 Mar 2018 23:17:35 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Maintain a list of supported IOCTL argument sizes and allow only those in
+> the list.
+> 
+> As an additional bonus, IOCTL handlers will be able to check whether the
+> caller actually set (using the argument size) the field vs. assigning it
+> to zero. Separate macro can be provided for that.
+> 
+> This will be easier for applications as well since there is no longer the
+> problem of setting the reserved fields zero, or at least it is a lesser
+> problem.
 
----
+Patch makes sense to me, but I have a few comments on it.
 
-v2:
- - remove __packed attributes
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/media-device.c | 65 ++++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 59 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 35e81f7..da63da1 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -387,22 +387,36 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
+>  /* Do acquire the graph mutex */
+>  #define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+>  
+> -#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
+> +#define MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz, from_user, to_user)	\
+>  	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+>  		.cmd = MEDIA_IOC_##__cmd,				\
+>  		.fn = (long (*)(struct media_device *, void *))func,	\
+>  		.flags = fl,						\
+> +		.alt_arg_sizes = alt_sz,				\
+>  		.arg_from_user = from_user,				\
+>  		.arg_to_user = to_user,					\
+>  	}
+>  
+> -#define MEDIA_IOC(__cmd, func, fl)					\
+> -	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
+> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
+> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, NULL, from_user, to_user)
+> +
+> +#define MEDIA_IOC_SZ(__cmd, func, fl, alt_sz)			\
+> +	MEDIA_IOC_SZ_ARG(__cmd, func, fl, alt_sz,		\
+> +			 copy_arg_from_user, copy_arg_to_user)
+> +
+> +#define MEDIA_IOC(__cmd, func, fl)				\
+> +	MEDIA_IOC_ARG(__cmd, func, fl,				\
+> +		      copy_arg_from_user, copy_arg_to_user)
 
- drivers/media/platform/vsp1/vsp1.h      |  1 +-
- drivers/media/platform/vsp1/vsp1_dl.c   | 83 +++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_dl.h   | 29 ++++++++-
- drivers/media/platform/vsp1/vsp1_drv.c  |  7 +-
- drivers/media/platform/vsp1/vsp1_regs.h |  5 +-
- 5 files changed, 116 insertions(+), 9 deletions(-)
+Please add some comments to those macros (specially the first one,
+as the names of the values are too short to help identifying what
+they are.
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 1c080538c993..bb3b32795206 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -55,6 +55,7 @@ struct vsp1_uds;
- #define VSP1_HAS_HGO		(1 << 7)
- #define VSP1_HAS_HGT		(1 << 8)
- #define VSP1_HAS_BRS		(1 << 9)
-+#define VSP1_HAS_EXT_DL		(1 << 10)
- 
- struct vsp1_device_info {
- 	u32 version;
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 5f5706f8a84c..cd91b50deed1 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -26,6 +26,9 @@
- #define VSP1_DLH_INT_ENABLE		(1 << 1)
- #define VSP1_DLH_AUTO_START		(1 << 0)
- 
-+#define VSP1_DLH_EXT_PRE_CMD_EXEC	(1 << 9)
-+#define VSP1_DLH_EXT_POST_CMD_EXEC	(1 << 8)
-+
- struct vsp1_dl_header_list {
- 	u32 num_bytes;
- 	u32 addr;
-@@ -38,11 +41,34 @@ struct vsp1_dl_header {
- 	u32 flags;
- };
- 
-+struct vsp1_dl_ext_header {
-+	u32 reserved0;		/* alignment padding */
-+
-+	u16 pre_ext_cmd_qty;
-+	u16 flags;
-+	u32 pre_ext_cmd_plist;
-+
-+	u32 post_ext_cmd_qty;
-+	u32 post_ext_cmd_plist;
-+};
-+
-+struct vsp1_dl_header_extended {
-+	struct vsp1_dl_header header;
-+	struct vsp1_dl_ext_header ext;
-+};
-+
- struct vsp1_dl_entry {
- 	u32 addr;
- 	u32 data;
- };
- 
-+struct vsp1_dl_ext_cmd_header {
-+	u32 cmd;
-+	u32 flags;
-+	u32 data;
-+	u32 reserved;
-+};
-+
- /**
-  * struct vsp1_dl_body - Display list body
-  * @list: entry in the display list list of bodies
-@@ -99,9 +125,12 @@ struct vsp1_dl_body_pool {
-  * @list: entry in the display list manager lists
-  * @dlm: the display list manager
-  * @header: display list header
-+ * @extended: extended display list header. NULL for normal lists
-  * @dma: DMA address for the header
-  * @body0: first display list body
-  * @bodies: list of extra display list bodies
-+ * @pre_cmd: pre cmd to be issued through extended dl header
-+ * @post_cmd: post cmd to be issued through extended dl header
-  * @has_chain: if true, indicates that there's a partition chain
-  * @chain: entry in the display list partition chain
-  */
-@@ -110,11 +139,15 @@ struct vsp1_dl_list {
- 	struct vsp1_dl_manager *dlm;
- 
- 	struct vsp1_dl_header *header;
-+	struct vsp1_dl_ext_header *extended;
- 	dma_addr_t dma;
- 
- 	struct vsp1_dl_body *body0;
- 	struct list_head bodies;
- 
-+	struct vsp1_dl_ext_cmd *pre_cmd;
-+	struct vsp1_dl_ext_cmd *post_cmd;
-+
- 	bool has_chain;
- 	struct list_head chain;
- };
-@@ -498,6 +531,14 @@ int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
- 	return 0;
- }
- 
-+static void vsp1_dl_ext_cmd_fill_header(struct vsp1_dl_ext_cmd *cmd)
-+{
-+	cmd->cmds[0].cmd = cmd->cmd_opcode;
-+	cmd->cmds[0].flags = cmd->flags;
-+	cmd->cmds[0].data = cmd->data_dma;
-+	cmd->cmds[0].reserved = 0;
-+}
-+
- static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
- {
- 	struct vsp1_dl_manager *dlm = dl->dlm;
-@@ -550,6 +591,27 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
- 		 */
- 		dl->header->flags = VSP1_DLH_INT_ENABLE;
- 	}
-+
-+	if (!dl->extended)
-+		return;
-+
-+	dl->extended->flags = 0;
-+
-+	if (dl->pre_cmd) {
-+		dl->extended->pre_ext_cmd_plist = dl->pre_cmd->cmd_dma;
-+		dl->extended->pre_ext_cmd_qty = dl->pre_cmd->num_cmds;
-+		dl->extended->flags |= VSP1_DLH_EXT_PRE_CMD_EXEC;
-+
-+		vsp1_dl_ext_cmd_fill_header(dl->pre_cmd);
-+	}
-+
-+	if (dl->post_cmd) {
-+		dl->extended->pre_ext_cmd_plist = dl->post_cmd->cmd_dma;
-+		dl->extended->pre_ext_cmd_qty = dl->post_cmd->num_cmds;
-+		dl->extended->flags |= VSP1_DLH_EXT_POST_CMD_EXEC;
-+
-+		vsp1_dl_ext_cmd_fill_header(dl->pre_cmd);
-+	}
- }
- 
- static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
-@@ -715,14 +777,20 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- }
- 
- /* Hardware Setup */
--void vsp1_dlm_setup(struct vsp1_device *vsp1)
-+void vsp1_dlm_setup(struct vsp1_device *vsp1, unsigned int index)
- {
- 	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT)
- 		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
- 		 | VI6_DL_CTRL_DLE;
- 
-+	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL))
-+		vsp1_write(vsp1, VI6_DL_EXT_CTRL(index),
-+			   (0x02 << VI6_DL_EXT_CTRL_POLINT_SHIFT) |
-+			   VI6_DL_EXT_CTRL_DLPRI | VI6_DL_EXT_CTRL_EXT);
-+
- 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
--	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
-+	vsp1_write(vsp1, VI6_DL_SWAP(index), VI6_DL_SWAP_LWS |
-+			 ((index == 1) ? VI6_DL_SWAP_IND : 0));
- }
- 
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
-@@ -767,7 +835,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 	 * fragmentation, with the header located right after the body in
- 	 * memory.
- 	 */
--	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
-+	header_size = vsp1_feature(vsp1, VSP1_HAS_EXT_DL) ?
-+			sizeof(struct vsp1_dl_header_extended) :
-+			sizeof(struct vsp1_dl_header);
-+
-+	header_size = ALIGN(header_size, 8);
- 
- 	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc,
- 					     VSP1_DL_NUM_ENTRIES, header_size);
-@@ -783,6 +855,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 			return NULL;
- 		}
- 
-+		/* The extended header immediately follows the header */
-+		if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL))
-+			dl->extended = (void *)dl->header
-+				     + sizeof(*dl->header);
-+
- 		list_add_tail(&dl->list, &dlm->free);
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 5ad2cec5cad9..4898b21dc840 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -21,7 +21,34 @@ struct vsp1_dl_body_pool;
- struct vsp1_dl_list;
- struct vsp1_dl_manager;
- 
--void vsp1_dlm_setup(struct vsp1_device *vsp1);
-+/**
-+ * struct vsp1_dl_ext_cmd - Extended Display command
-+ * @free: entry in the pool of free commands list
-+ * @cmd_opcode: command type opcode
-+ * @flags: flags used by the command
-+ * @cmds: array of command bodies for this extended cmd
-+ * @num_cmds: quantity of commands in @cmds array
-+ * @cmd_dma: DMA address of the command bodies
-+ * @data: memory allocation for command specific data
-+ * @data_dma: DMA address for command specific data
-+ * @data_size: size of the @data_dma memory in bytes
-+ */
-+struct vsp1_dl_ext_cmd {
-+	struct list_head free;
-+
-+	u8 cmd_opcode;
-+	u32 flags;
-+
-+	struct vsp1_dl_ext_cmd_header *cmds;
-+	unsigned int num_cmds;
-+	dma_addr_t cmd_dma;
-+
-+	void *data;
-+	dma_addr_t data_dma;
-+	size_t data_size;
-+};
-+
-+void vsp1_dlm_setup(struct vsp1_device *vsp1, unsigned int index);
- 
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 					unsigned int index,
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 6fa0019ffc6e..73d9b1a44bdb 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -532,7 +532,8 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
- 	vsp1_write(vsp1, VI6_DPR_HGT_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
- 		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
- 
--	vsp1_dlm_setup(vsp1);
-+	for (i = 0; i < vsp1->info->wpf_count; ++i)
-+		vsp1_dlm_setup(vsp1, i);
- 
- 	return 0;
- }
-@@ -741,7 +742,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
- 		.model = "VSP2-D",
- 		.gen = 3,
--		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
-+		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP | VSP1_HAS_EXT_DL,
- 		.lif_count = 1,
- 		.rpf_count = 5,
- 		.wpf_count = 2,
-@@ -759,7 +760,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.version = VI6_IP_VERSION_MODEL_VSPDL_GEN3,
- 		.model = "VSP2-DL",
- 		.gen = 3,
--		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
-+		.features = VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_EXT_DL,
- 		.lif_count = 2,
- 		.rpf_count = 5,
- 		.wpf_count = 2,
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index dae0c1901297..43ad68ff3167 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -70,12 +70,13 @@
- 
- #define VI6_DL_HDR_ADDR(n)		(0x0104 + (n) * 4)
- 
--#define VI6_DL_SWAP			0x0114
-+#define VI6_DL_SWAP(n)			(0x0114 + (n) * 56)
-+#define VI6_DL_SWAP_IND			(1 << 31)
- #define VI6_DL_SWAP_LWS			(1 << 2)
- #define VI6_DL_SWAP_WDS			(1 << 1)
- #define VI6_DL_SWAP_BTS			(1 << 0)
- 
--#define VI6_DL_EXT_CTRL			0x011c
-+#define VI6_DL_EXT_CTRL(n)		(0x011c + (n) * 36)
- #define VI6_DL_EXT_CTRL_NWE		(1 << 16)
- #define VI6_DL_EXT_CTRL_POLINT_MASK	(0x3f << 8)
- #define VI6_DL_EXT_CTRL_POLINT_SHIFT	8
--- 
-git-series 0.9.1
+>  
+>  /* the table is indexed by _IOC_NR(cmd) */
+>  struct media_ioctl_info {
+>  	unsigned int cmd;
+>  	unsigned short flags;
+> +	/*
+> +	 * Sizes of the alternative arguments. If there are none, this
+> +	 * pointer is NULL.
+> +	 */
+> +	const unsigned short *alt_arg_sizes;
+>  	long (*fn)(struct media_device *dev, void *arg);
+>  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+>  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+> @@ -416,6 +430,42 @@ static const struct media_ioctl_info ioctl_info[] = {
+>  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+>  };
+>  
+> +#define MASK_IOC_SIZE(cmd) \
+> +	((cmd) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
+
+This should be, instead at:
+	include/uapi/asm-generic/ioctl.h
+
+The patch series adding it there should also touch the other usecases
+for _IOC_SIZEMASK (evdev.c, phantom.c, v4l2-ioctl.c).
+
+> +
+> +static inline long is_valid_ioctl(unsigned int cmd)
+
+Please rename from "cmd" to "user_cmd", in order to make it
+clearer that it contains the value passed by userspace.
+
+> +{
+> +	const struct media_ioctl_info *info = ioctl_info;
+> +	const unsigned short *alt_arg_sizes;
+> +
+> +	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info))
+> +		return -ENOIOCTLCMD;
+> +
+> +	info += _IOC_NR(cmd);
+> +
+> +	if (info->cmd == cmd)
+> +		return 0;
+
+Please revert it:
+	if (user_cmd == info->cmd)
+		return 0
+
+As we're validating if the userspace ioctl code makes sense,
+and not the reverse.
+
+Please add the check if alt_arg_sizes is defined here:
+
+	alt_arg_sizes = info->alt_arg_sizes;
+	if (!alt_arg_sizes)
+		return -ENOIOCTLCMD;
+
+As the remaining code is not needed if user_cmd != info_cmd.
+
+> +
+> +	/*
+> +	 * Verify that the size-dependent patch of the IOCTL command
+> +	 * matches and that the size does not exceed the principal
+> +	 * argument size.
+> +	 */
+
+what do you mean by "principal argument size"? I guess what you're
+meaning here is the "argument size of the latest version" with is
+always bigger than the previous version. If so, make it clear.
+
+I would write it as something like:
+
+	/*
+	 * As the ioctl passed by userspace doesn't match the current
+	 * one, and there are alternate sizes for thsi ioctl, 
+	 * we need to check if the ioctl code is correct.
+	 *
+	 * Validate that the ioctl code passed by userspace matches the
+	 * Kernel definition with regards to its number, type and dir.
+	 * Also checks if the size is not bigger than the one defined
+	 * by the latest version of the ioctl.
+	 */
+
+> +	if (MASK_IOC_SIZE(info->cmd) != MASK_IOC_SIZE(cmd)
+> +	    || _IOC_SIZE(info->cmd) < _IOC_SIZE(cmd))
+> +		return -ENOIOCTLCMD;
+
+I would invert the check: what we want do to is to check if whatever
+userspace passes is valid. So, better to place user_cmd as the first
+arguments at the check, e. g.: 
+
+	if (MASK_IOC_SIZE(user_cmd) != MASK_IOC_SIZE(info->cmd)
+	    ||  _IOC_SIZE(user_cmd) > _IOC_SIZE(info->cmd))
+		return -ENOIOCTLCMD;
+
+> +
+> +	alt_arg_sizes = info->alt_arg_sizes;
+> +	if (!alt_arg_sizes)
+> +		return -ENOIOCTLCMD;
+
+As said before, this check should happen earlier.
+
+> +
+> +	for (; *alt_arg_sizes; alt_arg_sizes++)
+> +		if (_IOC_SIZE(cmd) == *alt_arg_sizes)
+> +			return 0;
+> +
+> +	return -ENOIOCTLCMD;
+> +}
+> +
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long __arg)
+>  {
+> @@ -426,9 +476,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  	char __karg[256], *karg = __karg;
+>  	long ret;
+>  
+> -	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+> -	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
+> -		return -ENOIOCTLCMD;
+> +	ret = is_valid_ioctl(cmd);
+> +	if (ret)
+> +		return ret;
+>  
+>  	info = &ioctl_info[_IOC_NR(cmd)];
+>  
+> @@ -444,6 +494,9 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			goto out_free;
+>  	}
+>  
+> +	/* Set the rest of the argument struct to zero */
+> +	memset(karg + _IOC_SIZE(cmd), 0, _IOC_SIZE(info->cmd) - _IOC_SIZE(cmd));
+> +
+>  	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+>  		mutex_lock(&dev->graph_mutex);
+>  
+
+
+
+Thanks,
+Mauro
