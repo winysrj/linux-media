@@ -1,122 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:53500 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753242AbeC1Nuj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 09:50:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv9 PATCH 06/29] media-request: add media_request_find
-Date: Wed, 28 Mar 2018 15:50:07 +0200
-Message-Id: <20180328135030.7116-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:46525 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751374AbeCZVK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:10:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 01/18] media: r820t: don't crash if attach fails
+Date: Mon, 26 Mar 2018 17:10:34 -0400
+Message-Id: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As pointed by smatch:
+	drivers/media/tuners/r820t.c:2374 r820t_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
 
-Add media_request_find() to find a request based on the file
-descriptor.
+The current function with prints error assumes that the attach
+succeeds. So, don't use it in case of failures.
 
-The caller has to call media_request_put() for the returned
-request since this function increments the refcount.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/media-request.c | 47 +++++++++++++++++++++++++++++++++++++++++++
- include/media/media-request.h |  9 +++++++++
- 2 files changed, 56 insertions(+)
+ drivers/media/tuners/r820t.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 3ee3b27fd644..d54fd353d8a6 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -194,6 +194,53 @@ static const struct file_operations request_fops = {
- 	.release = media_request_close,
- };
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index bc9299059f48..3e14b9e2e763 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -20,6 +20,8 @@
+ //
+ //	RF Gain set/get is not implemented.
  
-+/**
-+ * media_request_find - Find a request based on the file descriptor
-+ * @mdev: The media device
-+ * @request: The request file handle
-+ *
-+ * Find and return the request associated with the given file descriptor, or
-+ * an error if no such request exists.
-+ *
-+ * When the function returns a request it increases its reference count. The
-+ * caller is responsible for releasing the reference by calling
-+ * media_request_put() on the request.
-+ */
-+struct media_request *
-+media_request_find(struct media_device *mdev, int request_fd)
-+{
-+	struct file *filp;
-+	struct media_request *req;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+	if (!mdev || !mdev->ops || !mdev->ops->req_queue)
-+		return ERR_PTR(-ENOENT);
-+
-+	filp = fget(request_fd);
-+	if (!filp)
-+		return ERR_PTR(-ENOENT);
-+
-+	if (filp->f_op != &request_fops)
-+		goto err_fput;
-+	req = filp->private_data;
-+	media_request_get(req);
-+
-+	if (req->mdev != mdev)
-+		goto err_kref_put;
-+
-+	fput(filp);
-+
-+	return req;
-+
-+err_kref_put:
-+	media_request_put(req);
-+
-+err_fput:
-+	fput(filp);
-+
-+	return ERR_PTR(-EBADF);
-+}
-+EXPORT_SYMBOL_GPL(media_request_find);
-+
- int media_request_alloc(struct media_device *mdev,
- 			struct media_request_alloc *alloc)
- {
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index baed99eb1279..c01b05570a31 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -57,6 +57,9 @@ static inline void media_request_get(struct media_request *req)
+ #include <linux/videodev2.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+@@ -2371,7 +2373,7 @@ struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
+ err_no_gate:
+ 	mutex_unlock(&r820t_list_mutex);
  
- void media_request_put(struct media_request *req);
- 
-+struct media_request *
-+media_request_find(struct media_device *mdev, int request_fd);
-+
- int media_request_alloc(struct media_device *mdev,
- 			struct media_request_alloc *alloc);
- #else
-@@ -67,6 +70,12 @@ static inline void media_request_get(struct media_request *req)
- static inline void media_request_put(struct media_request *req)
- {
+-	tuner_info("%s: failed=%d\n", __func__, rc);
++	pr_info("%s: failed=%d\n", __func__, rc);
+ 	r820t_release(fe);
+ 	return NULL;
  }
-+
-+static inline struct media_request *
-+media_request_find(struct media_device *mdev, int request_fd)
-+{
-+	return ERR_PTR(-ENOENT);
-+}
- #endif
- 
- struct media_request_object_ops {
 -- 
-2.16.1
+2.14.3
