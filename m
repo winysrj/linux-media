@@ -1,84 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:51422 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752004AbeCXNlm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Mar 2018 09:41:42 -0400
-Received: by mail-wm0-f52.google.com with SMTP id v21so8113813wmc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Mar 2018 06:41:41 -0700 (PDT)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 11.1 \(3445.4.7\))
-Subject: Re: [PATCHv2 0/3] dw-hdmi: add property to disable CEC
-From: Neil Armstrong <narmstrong@baylibre.com>
-In-Reply-To: <CAFBinCA-x=4J_a_+oJX7fxhXO0qP=apEPFesATP=UNsH91qiCw@mail.gmail.com>
-Date: Sat, 24 Mar 2018 14:41:38 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <3F857A55-296E-4AFF-8375-3165D0B3DAB4@baylibre.com>
-References: <20180323125915.13986-1-hverkuil@xs4all.nl>
- <CAFBinCA-x=4J_a_+oJX7fxhXO0qP=apEPFesATP=UNsH91qiCw@mail.gmail.com>
-To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Received: from osg.samsung.com ([64.30.133.232]:64947 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751935AbeCZVK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 17:10:57 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Joe Perches <joe@perches.com>,
+        Sergiy Redko <sergredko@gmail.com>, devel@driverdev.osuosl.org
+Subject: [PATCH 14/18] media: staging: atomisp: use %p to print pointers
+Date: Mon, 26 Mar 2018 17:10:47 -0400
+Message-Id: <bed901e424710091c1415aa2fcf1c7013897f678.1522098456.git.mchehab@s-opensource.com>
+In-Reply-To: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+In-Reply-To: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+Instead of a converting pointers to unsigned long, just print
+them as-is, using %p.
 
-> Le 24 mars 2018 =C3=A0 12:00, Martin Blumenstingl =
-<martin.blumenstingl@googlemail.com> a =C3=A9crit :
->=20
-> Hello Hans, Hi Neil,
->=20
-> (apologies in advance if any of this is wrong, I don't have any CEC
-> capable TV so I can't test it)
->=20
-> On Fri, Mar 23, 2018 at 1:59 PM, Hans Verkuil <hverkuil@xs4all.nl> =
-wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>=20
->> Some boards (amlogic) have two CEC controllers: the DesignWare =
-controller
->> and their own CEC controller (meson ao-cec).
-> as far as I understand the Amlogic Meson SoCs have two domains:
-> - AO (always-on, powered even in suspend mode) where meson-ao-cec can
-> wake up the system from suspend
-> - EE (everything else, not powered during suspend) where dw-hdmi-cec =
-lives
->=20
+Fixes this warning:
+	drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c:3012 ia_css_debug_pipe_graph_dump_sp_raw_copy() warn: argument 4 to %08lx specifier is cast from pointer
 
-Exact, except =E2=80=A6 the EE CEC is not hooked to the DW-HDMI TX but =
-the RX, and thus cannot be used on GXBB/GXL/GXM.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ .../css2400/runtime/debug/src/ia_css_debug.c         | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-> this far everything is OK
->=20
->> Since the CEC line is not hooked up to the DW controller we need a =
-way
->> to disable that controller. This patch series adds the cec-disable
->> property for that purpose.
-> drivers/pinctrl/meson/pinctrl-meson-gxbb.c has ao_cec_pins and
-> ee_cec_pins, both use GPIOAO_12
-> drivers/pinctrl/meson/pinctrl-meson-gxl.c has ao_cec_pins and
-> ee_cec_pins, both use GPIOAO_8
->=20
-> @Neil: do you know if the CEC signal routing is:
-> ao_cec_pins -> meson-ao-cec
-> ee_cec_pins -> dw-hdmi-cec
-
-It=E2=80=99s hooked to the DW-HDMI RX IP used in the TV SoCs.
-
->=20
-> I'm curious because if both CEC controllers can be used then it might
-> be worth mentioning this in the cover-letter and patch description
->=20
-
-Initially I thought it was hooked to the DW-HDMI TX, but no, I guess I =
-should remove the ee_cec pinmux=E2=80=A6
-
-Neil
-
->=20
-> Regards
-> Martin
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c
+index 60395904f89a..aa9a2d115265 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/debug/src/ia_css_debug.c
+@@ -2679,9 +2679,9 @@ ia_css_debug_pipe_graph_dump_frame(
+ 	}
+ 	dtrace_dot(
+ 		"node [shape = box, "
+-		"fixedsize=true, width=2, height=0.7]; \"0x%08lx\" "
++		"fixedsize=true, width=2, height=0.7]; \"%p\" "
+ 		"[label = \"%s\\n%d(%d) x %d, %dbpp\\n%s\"];",
+-		HOST_ADDRESS(frame),
++		frame,
+ 		debug_frame_format2str(frame->info.format),
+ 		frame->info.res.width,
+ 		frame->info.padded_width,
+@@ -2691,16 +2691,16 @@ ia_css_debug_pipe_graph_dump_frame(
+ 
+ 	if (in_frame) {
+ 		dtrace_dot(
+-			"\"0x%08lx\"->\"%s(pipe%d)\" "
++			"\"%p\"->\"%s(pipe%d)\" "
+ 			"[label = %s_frame];",
+-			HOST_ADDRESS(frame),
++			frame,
+ 			blob_name, id, frame_name);
+ 	} else {
+ 		dtrace_dot(
+-			"\"%s(pipe%d)\"->\"0x%08lx\" "
++			"\"%s(pipe%d)\"->\"%p\" "
+ 			"[label = %s_frame];",
+ 			blob_name, id,
+-			HOST_ADDRESS(frame),
++			frame,
+ 			frame_name);
+ 	}
+ }
+@@ -3011,9 +3011,9 @@ ia_css_debug_pipe_graph_dump_sp_raw_copy(
+ 
+ 	snprintf(ring_buffer, sizeof(ring_buffer),
+ 		"node [shape = box, "
+-		"fixedsize=true, width=2, height=0.7]; \"0x%08lx\" "
++		"fixedsize=true, width=2, height=0.7]; \"%p\" "
+ 		"[label = \"%s\\n%d(%d) x %d\\nRingbuffer\"];",
+-		HOST_ADDRESS(out_frame),
++		out_frame,
+ 		debug_frame_format2str(out_frame->info.format),
+ 		out_frame->info.res.width,
+ 		out_frame->info.padded_width,
+@@ -3022,9 +3022,9 @@ ia_css_debug_pipe_graph_dump_sp_raw_copy(
+ 	dtrace_dot(ring_buffer);
+ 
+ 	dtrace_dot(
+-		"\"%s(pipe%d)\"->\"0x%08lx\" "
++		"\"%s(pipe%d)\"->\"%p\" "
+ 		"[label = out_frame];",
+-		"sp_raw_copy", 1, HOST_ADDRESS(out_frame));
++		"sp_raw_copy", 1, out_frame);
+ 
+ 	snprintf(dot_id_input_bin, sizeof(dot_id_input_bin), "%s(pipe%d)", "sp_raw_copy", 1);
+ }
+-- 
+2.14.3
