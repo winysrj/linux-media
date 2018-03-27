@@ -1,140 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38916 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750761AbeCHEzx (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:37768 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751185AbeC0Hxi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 23:55:53 -0500
-Message-ID: <b58cb1ab0388c5f382237828574746c4@smtp-cloud7.xs4all.net>
-Date: Thu, 08 Mar 2018 05:55:50 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 27 Mar 2018 03:53:38 -0400
+Received: by mail-wm0-f67.google.com with SMTP id r131so13022126wmb.2
+        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 00:53:38 -0700 (PDT)
+Date: Tue, 27 Mar 2018 09:53:34 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: christian.koenig@amd.com
+Cc: Jerome Glisse <j.glisse@gmail.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
+ invalidate_mappings callback v2
+Message-ID: <20180327075334.GK14155@phenom.ffwll.local>
+References: <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
+ <20180320140810.GU14155@phenom.ffwll.local>
+ <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
+ <20180321082839.GA14155@phenom.ffwll.local>
+ <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
+ <20180322071804.GH14155@phenom.ffwll.local>
+ <ef9fa9a2-c368-1fca-a8ac-8ee8d522b6ab@gmail.com>
+ <20180326080121.GO14155@phenom.ffwll.local>
+ <20180326154224.GA11930@gmail.com>
+ <f8ff3993-6605-4f8e-5ac2-c40f0450c1c6@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f8ff3993-6605-4f8e-5ac2-c40f0450c1c6@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Mar 27, 2018 at 09:35:17AM +0200, Christian König wrote:
+> Am 26.03.2018 um 17:42 schrieb Jerome Glisse:
+> > On Mon, Mar 26, 2018 at 10:01:21AM +0200, Daniel Vetter wrote:
+> > > On Thu, Mar 22, 2018 at 10:58:55AM +0100, Christian König wrote:
+> > > > Am 22.03.2018 um 08:18 schrieb Daniel Vetter:
+> > > > [SNIP]
+> > > > Key take away from that was that you can't take any locks from neither the
+> > > > MMU notifier nor the shrinker you also take while calling kmalloc (or
+> > > > simpler speaking get_user_pages()).
+> > > > 
+> > > > Additional to that in the MMU or shrinker callback all different kinds of
+> > > > locks might be held, so you basically can't assume that you do thinks like
+> > > > recursive page table walks or call dma_unmap_anything.
+> > > That sounds like a design bug in mmu_notifiers, since it would render them
+> > > useless for KVM. And they were developed for that originally. I think I'll
+> > > chat with Jerome to understand this, since it's all rather confusing.
+> > Doing dma_unmap() during mmu_notifier callback should be fine, it was last
+> > time i check. However there is no formal contract that it is ok to do so.
+> 
+> As I said before dma_unmap() isn't the real problem here.
+> 
+> The issues is more that you can't take a lock in the MMU notifier which you
+> would also take while allocating memory without GFP_NOIO.
+> 
+> That makes it rather tricky to do any command submission, e.g. you need to
+> grab all the pages/memory/resources prehand, then make sure that you don't
+> have a MMU notifier running concurrently and do the submission.
+> 
+> If any of the prerequisites isn't fulfilled we need to restart the
+> operation.
 
-Results of the daily build of media_tree:
+Yeah we're hitting all that epic amount of fun now, after a chat with
+Jerome yesterady. I guess we'll figure out what we're coming up with.
 
-date:			Thu Mar  8 05:00:12 CET 2018
-media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	ca65fdc3c843c7060a2aa22d7410541e41adf735
-v4l-utils git hash:	93dc5f20727fede5097d67f8b9adabe4b8046d5b
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+> > [SNIP]
+> > A slightly better solution is using atomic counter:
+> >    driver_range_start() {
+> >      atomic_inc(&mydev->notifier_count);
+> ...
+> 
+> Yeah, that is exactly what amdgpu is doing now. Sorry if my description
+> didn't made that clear.
+> 
+> > I would like to see driver using same code, as it means one place to fix
+> > issues. I had for a long time on my TODO list doing the above conversion
+> > to amd or radeon kernel driver. I am pushing up my todo list hopefully in
+> > next few weeks i can send an rfc so people can have a real sense of how
+> > it can look.
+> 
+> Certainly a good idea, but I think we might have that separate to HMM.
+> 
+> TTM suffered really from feature overload, e.g. trying to do everything in a
+> single subsystem. And it would be rather nice to have coherent userptr
+> handling for GPUs as separate feature.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.53-i686: ERRORS
-linux-3.16.53-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.93-i686: ERRORS
-linux-3.18.93-x86_64: ERRORS
-linux-3.19-i686: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.49-i686: ERRORS
-linux-4.1.49-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.115-i686: ERRORS
-linux-4.4.115-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.80-i686: WARNINGS
-linux-4.9.80-x86_64: WARNINGS
-linux-4.10.14-i686: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14.17-i686: WARNINGS
-linux-4.14.17-x86_64: WARNINGS
-linux-4.15.2-i686: WARNINGS
-linux-4.15.2-x86_64: WARNINGS
-linux-4.16-rc1-i686: WARNINGS
-linux-4.16-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+TTM suffered from being a midlayer imo, not from doing too much. HMM is
+apparently structured like a toolbox (despite its documentation claiming
+otherwise), so you can pick&choose freely.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
