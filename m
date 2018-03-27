@@ -1,125 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52765 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423169AbeCBLa5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 06:30:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v11 19/32] rcar-vin: add function to manipulate Gen3 chsel value
-Date: Fri, 02 Mar 2018 13:31:47 +0200
-Message-ID: <1626554.hLmvUq6KA6@avalon>
-In-Reply-To: <20180302015751.25596-20-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se> <20180302015751.25596-20-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga09.intel.com ([134.134.136.24]:4400 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752557AbeC0PSx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Mar 2018 11:18:53 -0400
+Date: Tue, 27 Mar 2018 23:18:11 +0800
+From: kbuild test robot <lkp@intel.com>
+To: tskd08@gmail.com
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: Re: [PATCH v3 3/5] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio
+Message-ID: <201803272324.AviPXumn%fengguang.wu@intel.com>
+References: <20180326180652.5385-4-tskd08@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180326180652.5385-4-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Akihiro,
 
-Thank you for the patch.
+Thank you for the patch! Perhaps something to improve:
 
-On Friday, 2 March 2018 03:57:38 EET Niklas S=F6derlund wrote:
-> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-> feature of this register is that it's only present in the VIN0 and VIN4
-> instances. The register in VIN0 controls the routing for VIN0-3 and the
-> register in VIN4 controls routing for VIN4-7.
->=20
-> To be able to control routing from a media device this function is need
-> to control runtime PM for the subgroup master (VIN0 and VIN4). The
-> subgroup master must be switched on before the register is manipulated,
-> once the operation is complete it's safe to switch the master off and
-> the new routing will still be in effect.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v4.16-rc7 next-20180327]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+url:    https://github.com/0day-ci/linux/commits/tskd08-gmail-com/dvb-frontends-dvb-pll-add-i2c-driver-support/20180327-194533
+base:   git://linuxtv.org/media_tree.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 38 ++++++++++++++++++++++++=
-+++
->  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
->  2 files changed, 40 insertions(+)
 
-By the way it would be useful if you added per-patch changelogs. You can=20
-capture them in the commit message below a --- line.
+sparse warnings: (new ones prefixed by >>)
 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> 57bb288b3ca67a60..3fb9c325285c5a5a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -16,6 +16,7 @@
->=20
->  #include <linux/delay.h>
->  #include <linux/interrupt.h>
-> +#include <linux/pm_runtime.h>
->=20
->  #include <media/videobuf2-dma-contig.h>
->=20
-> @@ -1228,3 +1229,40 @@ int rvin_dma_register(struct rvin_dev *vin, int ir=
-q)
->=20
->  	return ret;
->  }
-> +
-> +/* ---------------------------------------------------------------------=
-=2D--
-> + * Gen3 CHSEL manipulation
-> + */
-> +
-> +/*
-> + * There is no need to have locking around changing the routing
-> + * as it's only possible to do so when no VIN in the group is
-> + * streaming so nothing can race with the VNMC register.
-> + */
-> +int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
-> +{
-> +	u32 ifmd, vnmc;
-> +	int ret;
-> +
-> +	ret =3D pm_runtime_get_sync(vin->dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* Make register writes take effect immediately. */
-> +	vnmc =3D rvin_read(vin, VNMC_REG);
-> +	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
-> +
-> +	ifmd =3D VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-> +		VNCSI_IFMD_CSI_CHSEL(chsel);
-> +
-> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-> +
-> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-> +
-> +	/* Restore VNMC. */
-> +	rvin_write(vin, vnmc, VNMC_REG);
-> +
-> +	pm_runtime_put(vin->dev);
-> +
-> +	return ret;
-> +}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> b3802651eaa78ea9..666308946eb4994d 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -165,4 +165,6 @@ const struct rvin_video_format
-> *rvin_format_from_pixel(u32 pixelformat); /* Cropping, composing and
-> scaling */
->  void rvin_crop_scale_comp(struct rvin_dev *vin);
->=20
-> +int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
-> +
->  #endif
+>> drivers/media/usb/dvb-usb-v2/gl861.c:575:34: sparse: symbol 'friio_props' was not declared. Should it be static?
 
-=2D-=20
-Regards,
+Please review and possibly fold the followup patch.
 
-Laurent Pinchart
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
