@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:31606 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933824AbeCGWFa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:30 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 05/33] rcar-vin: unregister video device on driver removal
-Date: Wed,  7 Mar 2018 23:04:43 +0100
-Message-Id: <20180307220511.9826-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga11.intel.com ([192.55.52.93]:48911 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751030AbeC0LDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Mar 2018 07:03:06 -0400
+Message-ID: <1522148575.21176.22.camel@linux.intel.com>
+Subject: Re: [PATCH 07/18] media: staging: atomisp: fix endianess issues
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>,
+        Aishwarya Pant <aishpant@gmail.com>,
+        Riccardo Schirone <sirmy15@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>, devel@driverdev.osuosl.org
+Date: Tue, 27 Mar 2018 14:02:55 +0300
+In-Reply-To: <cc521a255756c0241572816f96e3b97126ac16de.1522098456.git.mchehab@s-opensource.com>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+         <cc521a255756c0241572816f96e3b97126ac16de.1522098456.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the video device was registered by the complete() callback it should
-be unregistered when a device is unbound from the driver. Protect from
-printing an uninitialized video device node name by adding a check in
-rvin_v4l2_unregister() to identify that the video device is registered.
+On Mon, 2018-03-26 at 17:10 -0400, Mauro Carvalho Chehab wrote:
+> There are lots of be-related warnings there, as it doesn't properly
+> mark what data uses bigendian.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
- 2 files changed, 5 insertions(+)
+> @@ -107,7 +107,7 @@ mt9m114_write_reg(struct i2c_client *client, u16
+> data_length, u16 reg, u32 val)
+>  	int num_msg;
+>  	struct i2c_msg msg;
+>  	unsigned char data[6] = {0};
+> -	u16 *wreg;
+> +	__be16 *wreg;
+> 
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 2bedf20abcf3ca07..47f06acde2e698f2 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -272,6 +272,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 
- 	pm_runtime_disable(&pdev->dev);
- 
-+	rvin_v4l2_unregister(vin);
-+
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 178aecc94962abe2..32a658214f48fa49 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -841,6 +841,9 @@ static const struct v4l2_file_operations rvin_fops = {
- 
- void rvin_v4l2_unregister(struct rvin_dev *vin)
- {
-+	if (!video_is_registered(&vin->vdev))
-+		return;
-+
- 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
- 		  video_device_node_name(&vin->vdev));
- 
+> +		u16 *wdata = (void *)&data[2];
+> +
+> +		*wdata = be16_to_cpu(*(__be16 *)&data[2]);
+
+> +		u32 *wdata = (void *)&data[2];
+> +
+> +		*wdata = be32_to_cpu(*(__be32 *)&data[2]);
+
+For x86 it is okay, though in general it should use get_unaligned().
+
 -- 
-2.16.2
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
