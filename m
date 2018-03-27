@@ -1,215 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:43231 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932806AbeCMXkO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 19:40:14 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/18] af9013: remove all legacy media attach releated stuff
-Date: Wed, 14 Mar 2018 01:39:36 +0200
-Message-Id: <20180313233944.7234-10-crope@iki.fi>
-In-Reply-To: <20180313233944.7234-1-crope@iki.fi>
-References: <20180313233944.7234-1-crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51758 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750942AbeC0QqP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Mar 2018 12:46:15 -0400
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process context
+Date: Tue, 27 Mar 2018 17:46:03 +0100
+Message-Id: <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No one is binding that driver through media attach so remove it and
-all related dead code.
+Newer high definition cameras, and cameras with multiple lenses such as
+the range of stereo-vision cameras now available have ever increasing
+data rates.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The inclusion of a variable length packet header in URB packets mean
+that we must memcpy the frame data out to our destination 'manually'.
+This can result in data rates of up to 2 gigabits per second being
+processed.
+
+To improve efficiency, and maximise throughput, handle the URB decode
+processing through a work queue to move it from interrupt context, and
+allow multiple processors to work on URBs in parallel.
+
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+
 ---
- drivers/media/dvb-frontends/af9013.c | 80 ------------------------------------
- drivers/media/dvb-frontends/af9013.h | 42 ++++---------------
- 2 files changed, 7 insertions(+), 115 deletions(-)
+v2:
+ - Lock full critical section of usb_submit_urb()
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index d55c5f67ce0f..15af3e9482df 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -48,7 +48,6 @@ struct af9013_state {
- 	u32 dvbv3_ber;
- 	u32 dvbv3_ucblocks;
- 	bool first_tune;
--	bool i2c_gate_state;
- };
- 
- static int af9013_set_gpio(struct af9013_state *state, u8 gpio, u8 gpioval)
-@@ -1031,45 +1030,6 @@ static int af9013_sleep(struct dvb_frontend *fe)
- 	return ret;
+v3:
+ - Fix race on submitting uvc_video_decode_data_work() to work queue.
+ - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
+ - Rename decodes -> copy_operations
+ - Don't queue work if there is no async task
+ - obtain copy op structure directly in uvc_video_decode_data()
+ - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
+
+v4:
+ - Provide for_each_uvc_urb()
+ - Simplify fix for shutdown race to flush queue before freeing URBs
+ - Rebase to v4.16-rc4 (linux-media/master) adjusting for metadata
+   conflicts.
+
+ drivers/media/usb/uvc/uvc_video.c | 107 ++++++++++++++++++++++++-------
+ drivers/media/usb/uvc/uvcvideo.h  |  28 ++++++++-
+ 2 files changed, 111 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 7dd0dcb457f3..a62e8caf367c 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1042,21 +1042,54 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+ 	return data[0];
  }
  
--static int af9013_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
--{
--	int ret;
--	struct af9013_state *state = fe->demodulator_priv;
--	struct i2c_client *client = state->client;
--
--	dev_dbg(&client->dev, "enable %d\n", enable);
--
--	/* gate already open or close */
--	if (state->i2c_gate_state == enable)
--		return 0;
--
--	if (state->ts_mode == AF9013_TS_MODE_USB)
--		ret = regmap_update_bits(state->regmap, 0xd417, 0x08,
--					 enable << 3);
--	else
--		ret = regmap_update_bits(state->regmap, 0xd607, 0x04,
--					 enable << 2);
--	if (ret)
--		goto err;
--
--	state->i2c_gate_state = enable;
--
--	return 0;
--err:
--	dev_dbg(&client->dev, "failed %d\n", ret);
--	return ret;
--}
--
--static void af9013_release(struct dvb_frontend *fe)
--{
--	struct af9013_state *state = fe->demodulator_priv;
--	struct i2c_client *client = state->client;
--
--	dev_dbg(&client->dev, "\n");
--
--	i2c_unregister_device(client);
--}
--
- static const struct dvb_frontend_ops af9013_ops;
- 
- static int af9013_download_firmware(struct af9013_state *state)
-@@ -1172,40 +1132,6 @@ static int af9013_download_firmware(struct af9013_state *state)
- 	return ret;
- }
- 
--/*
-- * XXX: That is wrapper to af9013_probe() via driver core in order to provide
-- * proper I2C client for legacy media attach binding.
-- * New users must use I2C client binding directly!
-- */
--struct dvb_frontend *af9013_attach(const struct af9013_config *config,
--				   struct i2c_adapter *i2c)
--{
--	struct i2c_client *client;
--	struct i2c_board_info board_info;
--	struct af9013_platform_data pdata;
--
--	pdata.clk = config->clock;
--	pdata.tuner = config->tuner;
--	pdata.if_frequency = config->if_frequency;
--	pdata.ts_mode = config->ts_mode;
--	pdata.ts_output_pin = 7;
--	pdata.spec_inv = config->spec_inv;
--	memcpy(&pdata.api_version, config->api_version, sizeof(pdata.api_version));
--	memcpy(&pdata.gpio, config->gpio, sizeof(pdata.gpio));
--	pdata.attach_in_use = true;
--
--	memset(&board_info, 0, sizeof(board_info));
--	strlcpy(board_info.type, "af9013", sizeof(board_info.type));
--	board_info.addr = config->i2c_addr;
--	board_info.platform_data = &pdata;
--	client = i2c_new_device(i2c, &board_info);
--	if (!client || !client->dev.driver)
--		return NULL;
--
--	return pdata.get_dvb_frontend(client);
--}
--EXPORT_SYMBOL(af9013_attach);
--
- static const struct dvb_frontend_ops af9013_ops = {
- 	.delsys = { SYS_DVBT },
- 	.info = {
-@@ -1231,8 +1157,6 @@ static const struct dvb_frontend_ops af9013_ops = {
- 			FE_CAN_MUTE_TS
- 	},
- 
--	.release = af9013_release,
--
- 	.init = af9013_init,
- 	.sleep = af9013_sleep,
- 
-@@ -1245,8 +1169,6 @@ static const struct dvb_frontend_ops af9013_ops = {
- 	.read_signal_strength = af9013_read_signal_strength,
- 	.read_ber = af9013_read_ber,
- 	.read_ucblocks = af9013_read_ucblocks,
--
--	.i2c_gate_ctrl = af9013_i2c_gate_ctrl,
- };
- 
- static struct dvb_frontend *af9013_get_dvb_frontend(struct i2c_client *client)
-@@ -1546,8 +1468,6 @@ static int af9013_probe(struct i2c_client *client,
- 
- 	/* Create dvb frontend */
- 	memcpy(&state->fe.ops, &af9013_ops, sizeof(state->fe.ops));
--	if (!pdata->attach_in_use)
--		state->fe.ops.release = NULL;
- 	state->fe.demodulator_priv = state;
- 
- 	/* Setup callbacks */
-diff --git a/drivers/media/dvb-frontends/af9013.h b/drivers/media/dvb-frontends/af9013.h
-index ea63ff9242f2..8144d4270b58 100644
---- a/drivers/media/dvb-frontends/af9013.h
-+++ b/drivers/media/dvb-frontends/af9013.h
-@@ -38,13 +38,6 @@
-  * @api_version: Firmware API version.
-  * @gpio: GPIOs.
-  * @get_dvb_frontend: Get DVB frontend callback.
-- *
-- * AF9013/5 GPIOs (mostly guessed):
-- *   * demod#1-gpio#0 - set demod#2 i2c-addr for dual devices
-- *   * demod#1-gpio#1 - xtal setting (?)
-- *   * demod#1-gpio#3 - tuner#1
-- *   * demod#2-gpio#0 - tuner#2
-- *   * demod#2-gpio#1 - xtal setting (?)
-  */
- struct af9013_platform_data {
- 	/*
-@@ -85,36 +78,15 @@ struct af9013_platform_data {
- 
- 	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
- 	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
--
--/* private: For legacy media attach wrapper. Do not set value. */
--	bool attach_in_use;
--	u8 i2c_addr;
--	u32 clock;
- };
- 
--#define af9013_config       af9013_platform_data
--#define AF9013_TS_USB       AF9013_TS_MODE_USB
--#define AF9013_TS_PARALLEL  AF9013_TS_MODE_PARALLEL
--#define AF9013_TS_SERIAL    AF9013_TS_MODE_SERIAL
--
--#if IS_REACHABLE(CONFIG_DVB_AF9013)
--/**
-- * Attach an af9013 demod
-- *
-- * @config: pointer to &struct af9013_config with demod configuration.
-- * @i2c: i2c adapter to use.
-- *
-- * return: FE pointer on success, NULL on failure.
+-static void uvc_video_decode_data(struct uvc_streaming *stream,
 +/*
-+ * AF9013/5 GPIOs (mostly guessed)
-+ * demod#1-gpio#0 - set demod#2 i2c-addr for dual devices
-+ * demod#1-gpio#1 - xtal setting (?)
-+ * demod#1-gpio#3 - tuner#1
-+ * demod#2-gpio#0 - tuner#2
-+ * demod#2-gpio#1 - xtal setting (?)
-  */
--extern struct dvb_frontend *af9013_attach(const struct af9013_config *config,
--	struct i2c_adapter *i2c);
--#else
--static inline struct dvb_frontend *af9013_attach(
--const struct af9013_config *config, struct i2c_adapter *i2c)
--{
--	pr_warn("%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif /* CONFIG_DVB_AF9013 */
++ * uvc_video_decode_data_work: Asynchronous memcpy processing
++ *
++ * Perform memcpy tasks in process context, with completion handlers
++ * to return the URB, and buffer handles.
++ */
++static void uvc_video_copy_data_work(struct work_struct *work)
++{
++	struct uvc_urb *uvc_urb = container_of(work, struct uvc_urb, work);
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < uvc_urb->async_operations; i++) {
++		struct uvc_copy_op *op = &uvc_urb->copy_operations[i];
++
++		memcpy(op->dst, op->src, op->len);
++
++		/* Release reference taken on this buffer */
++		uvc_queue_buffer_release(op->buf);
++	}
++
++	ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
++	if (ret < 0)
++		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
++			   ret);
++}
++
++static void uvc_video_decode_data(struct uvc_urb *uvc_urb,
+ 		struct uvc_buffer *buf, const u8 *data, int len)
+ {
+-	unsigned int maxlen, nbytes;
+-	void *mem;
++	unsigned int active_op = uvc_urb->async_operations;
++	struct uvc_copy_op *decode = &uvc_urb->copy_operations[active_op];
++	unsigned int maxlen;
  
- #endif /* AF9013_H */
+ 	if (len <= 0)
+ 		return;
+ 
+-	/* Copy the video data to the buffer. */
+ 	maxlen = buf->length - buf->bytesused;
+-	mem = buf->mem + buf->bytesused;
+-	nbytes = min((unsigned int)len, maxlen);
+-	memcpy(mem, data, nbytes);
+-	buf->bytesused += nbytes;
++
++	/* Take a buffer reference for async work */
++	kref_get(&buf->ref);
++
++	decode->buf = buf;
++	decode->src = data;
++	decode->dst = buf->mem + buf->bytesused;
++	decode->len = min_t(unsigned int, len, maxlen);
++
++	buf->bytesused += decode->len;
+ 
+ 	/* Complete the current frame if the buffer size was exceeded. */
+ 	if (len > maxlen) {
+@@ -1064,6 +1097,8 @@ static void uvc_video_decode_data(struct uvc_streaming *stream,
+ 		buf->error = 1;
+ 		buf->state = UVC_BUF_STATE_READY;
+ 	}
++
++	uvc_urb->async_operations++;
+ }
+ 
+ static void uvc_video_decode_end(struct uvc_streaming *stream,
+@@ -1272,7 +1307,7 @@ static void uvc_video_decode_isoc(struct uvc_urb *uvc_urb,
+ 		uvc_video_decode_meta(stream, meta_buf, mem, ret);
+ 
+ 		/* Decode the payload data. */
+-		uvc_video_decode_data(stream, buf, mem + ret,
++		uvc_video_decode_data(uvc_urb, buf, mem + ret,
+ 			urb->iso_frame_desc[i].actual_length - ret);
+ 
+ 		/* Process the header again. */
+@@ -1334,9 +1369,9 @@ static void uvc_video_decode_bulk(struct uvc_urb *uvc_urb,
+ 	 * sure buf is never dereferenced if NULL.
+ 	 */
+ 
+-	/* Process video data. */
++	/* Prepare video data for processing. */
+ 	if (!stream->bulk.skip_payload && buf != NULL)
+-		uvc_video_decode_data(stream, buf, mem, len);
++		uvc_video_decode_data(uvc_urb, buf, mem, len);
+ 
+ 	/* Detect the payload end by a URB smaller than the maximum size (or
+ 	 * a payload size equal to the maximum) and process the header again.
+@@ -1422,7 +1457,7 @@ static void uvc_video_complete(struct urb *urb)
+ 		uvc_printk(KERN_WARNING, "Non-zero status (%d) in video "
+ 			"completion handler.\n", urb->status);
+ 		/* fall through */
+-	case -ENOENT:		/* usb_kill_urb() called. */
++	case -ENOENT:		/* usb_poison_urb() called. */
+ 		if (stream->frozen)
+ 			return;
+ 		/* fall through */
+@@ -1436,6 +1471,9 @@ static void uvc_video_complete(struct urb *urb)
+ 
+ 	buf = uvc_queue_get_current_buffer(queue);
+ 
++	/* Re-initialise the URB async work. */
++	uvc_urb->async_operations = 0;
++
+ 	if (vb2_qmeta) {
+ 		spin_lock_irqsave(&qmeta->irqlock, flags);
+ 		if (!list_empty(&qmeta->irqqueue))
+@@ -1444,12 +1482,24 @@ static void uvc_video_complete(struct urb *urb)
+ 		spin_unlock_irqrestore(&qmeta->irqlock, flags);
+ 	}
+ 
++	/*
++	 * Process the URB headers, and optionally queue expensive memcpy tasks
++	 * to be deferred to a work queue.
++	 */
+ 	stream->decode(uvc_urb, buf, buf_meta);
+ 
+-	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+-		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+-			ret);
++	/* If no async work is needed, resubmit the URB immediately. */
++	if (!uvc_urb->async_operations) {
++		ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
++		if (ret < 0)
++			uvc_printk(KERN_ERR,
++				   "Failed to resubmit video URB (%d).\n",
++				   ret);
++		return;
+ 	}
++
++	INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
++	queue_work(stream->async_wq, &uvc_urb->work);
+ }
+ 
+ /*
+@@ -1544,25 +1594,29 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
+  */
+ static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
+ {
+-	struct urb *urb;
+-	unsigned int i;
++	struct uvc_urb *uvc_urb;
+ 
+ 	uvc_video_stats_stop(stream);
+ 
+-	for (i = 0; i < UVC_URBS; ++i) {
+-		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
++	/*
++	 * We must poison the URBs rather than kill them to ensure that even
++	 * after the completion handler returns, any asynchronous workqueues
++	 * will be prevented from resubmitting the URBs
++	 */
++	for_each_uvc_urb(uvc_urb, stream)
++		usb_poison_urb(uvc_urb->urb);
+ 
+-		urb = uvc_urb->urb;
+-		if (urb == NULL)
+-			continue;
++	flush_workqueue(stream->async_wq);
+ 
+-		usb_kill_urb(urb);
+-		usb_free_urb(urb);
++	for_each_uvc_urb(uvc_urb, stream) {
++		usb_free_urb(uvc_urb->urb);
+ 		uvc_urb->urb = NULL;
+ 	}
+ 
+ 	if (free_buffers)
+ 		uvc_free_urb_buffers(stream);
++
++	destroy_workqueue(stream->async_wq);
+ }
+ 
+ /*
+@@ -1720,6 +1774,11 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
+ 
+ 	uvc_video_stats_start(stream);
+ 
++	stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
++			0);
++	if (!stream->async_wq)
++		return -ENOMEM;
++
+ 	if (intf->num_altsetting > 1) {
+ 		struct usb_host_endpoint *best_ep = NULL;
+ 		unsigned int best_psize = UINT_MAX;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 112eed49bf50..27c230430eda 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -485,12 +485,30 @@ struct uvc_stats_stream {
+ #define UVC_METATADA_BUF_SIZE 1024
+ 
+ /**
++ * struct uvc_copy_op: Context structure to schedule asynchronous memcpy
++ *
++ * @buf: active buf object for this operation
++ * @dst: copy destination address
++ * @src: copy source address
++ * @len: copy length
++ */
++struct uvc_copy_op {
++	struct uvc_buffer *buf;
++	void *dst;
++	const __u8 *src;
++	size_t len;
++};
++
++/**
+  * struct uvc_urb - URB context management structure
+  *
+  * @urb: the URB described by this context structure
+  * @stream: UVC streaming context
+  * @buffer: memory storage for the URB
+  * @dma: DMA coherent addressing for the urb_buffer
++ * @async_operations: counter to indicate the number of copy operations
++ * @copy_operations: work descriptors for asynchronous copy operations
++ * @work: work queue entry for asynchronous decode
+  */
+ struct uvc_urb {
+ 	struct urb *urb;
+@@ -498,6 +516,10 @@ struct uvc_urb {
+ 
+ 	char *buffer;
+ 	dma_addr_t dma;
++
++	unsigned int async_operations;
++	struct uvc_copy_op copy_operations[UVC_MAX_PACKETS];
++	struct work_struct work;
+ };
+ 
+ struct uvc_streaming {
+@@ -530,6 +552,7 @@ struct uvc_streaming {
+ 	/* Buffers queue. */
+ 	unsigned int frozen : 1;
+ 	struct uvc_video_queue queue;
++	struct workqueue_struct *async_wq;
+ 	void (*decode)(struct uvc_urb *uvc_urb, struct uvc_buffer *buf,
+ 		       struct uvc_buffer *meta_buf);
+ 
+@@ -583,6 +606,11 @@ struct uvc_streaming {
+ 	} clock;
+ };
+ 
++#define for_each_uvc_urb(uvc_urb, uvc_streaming) \
++	for (uvc_urb = &uvc_streaming->uvc_urb[0]; \
++	     uvc_urb < &uvc_streaming->uvc_urb[UVC_URBS]; \
++	     ++uvc_urb)
++
+ struct uvc_device {
+ 	struct usb_device *udev;
+ 	struct usb_interface *intf;
 -- 
-2.14.3
+git-series 0.9.1
