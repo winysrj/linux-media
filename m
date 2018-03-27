@@ -1,140 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58206 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750888AbeCTFGN (ORCPT
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:46324 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753116AbeC0RId (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 01:06:13 -0400
-Message-ID: <9a3e38cc5e39ef55b3c373e24947d4e0@smtp-cloud9.xs4all.net>
-Date: Tue, 20 Mar 2018 06:06:10 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Tue, 27 Mar 2018 13:08:33 -0400
+Received: by mail-pl0-f67.google.com with SMTP id f5-v6so14471158plj.13
+        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 10:08:33 -0700 (PDT)
+From: tskd08@gmail.com
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH 0/4] dvb: pt3 etc.: SPDX License Identifier
+Date: Wed, 28 Mar 2018 02:08:18 +0900
+Message-Id: <20180327170822.21921-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Results of the daily build of media_tree:
+use SPDX License Identifier in the drivers that I wrote initially.
 
-date:			Tue Mar 20 05:00:13 CET 2018
-media-tree git hash:	e68854a2588a923b31eebce348f8020374843f8e
-media_build git hash:	e95b7e6bfea396f9dfb1ff7d4d6b95ecacd53d3d
-v4l-utils git hash:	14ce03c18ef67aa7a3d5781f015be855fd43839c
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Akihiro Tsukada (4):
+  dvb-frontends/tc90522: use SPDX License Identifier
+  dvb/pci/pt3: use SPDX License Identifier
+  tuners/mxl301rf: use SPDX License Identifier
+  tuners/qm1d1c0042: use SPDX License Identifier
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.101-i686: WARNINGS
-linux-3.0.101-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.100-i686: WARNINGS
-linux-3.2.100-x86_64: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.113-i686: WARNINGS
-linux-3.4.113-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.10-i686: WARNINGS
-linux-3.7.10-x86_64: WARNINGS
-linux-3.8.13-i686: WARNINGS
-linux-3.8.13-x86_64: WARNINGS
-linux-3.9.11-i686: WARNINGS
-linux-3.9.11-x86_64: WARNINGS
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: WARNINGS
-linux-3.12.74-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.55-i686: WARNINGS
-linux-3.16.55-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.100-i686: WARNINGS
-linux-3.18.100-x86_64: WARNINGS
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.50-i686: WARNINGS
-linux-4.1.50-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.99-i686: OK
-linux-4.4.99-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: WARNINGS
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: WARNINGS
-linux-4.9.87-i686: WARNINGS
-linux-4.9.87-x86_64: WARNINGS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.27-i686: OK
-linux-4.14.27-x86_64: OK
-linux-4.15.10-i686: OK
-linux-4.15.10-x86_64: OK
-linux-4.16-rc5-i686: OK
-linux-4.16-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+ drivers/media/dvb-frontends/tc90522.c | 11 +----------
+ drivers/media/dvb-frontends/tc90522.h | 11 +----------
+ drivers/media/pci/pt3/pt3.c           | 11 +----------
+ drivers/media/pci/pt3/pt3.h           | 11 +----------
+ drivers/media/pci/pt3/pt3_dma.c       | 11 +----------
+ drivers/media/pci/pt3/pt3_i2c.c       | 11 +----------
+ drivers/media/tuners/mxl301rf.c       | 11 +----------
+ drivers/media/tuners/mxl301rf.h       | 11 +----------
+ drivers/media/tuners/qm1d1c0042.c     | 11 +----------
+ drivers/media/tuners/qm1d1c0042.h     | 11 +----------
+ 10 files changed, 10 insertions(+), 100 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+2.16.3
