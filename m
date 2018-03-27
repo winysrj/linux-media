@@ -1,127 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43778 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425149AbeCBOUV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 09:20:21 -0500
-Date: Fri, 2 Mar 2018 15:20:16 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: jacopo+renesas@jmondi.org, linux-media@vger.kernel.org
-Subject: Re: [bug report] media: i2c: Copy tw9910 soc_camera sensor driver
-Message-ID: <20180302142016.GG4023@w540>
-References: <20180301095954.GA12656@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20180301095954.GA12656@mwanda>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60843 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750873AbeC0ENE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Mar 2018 00:13:04 -0400
+Message-ID: <058b1a1c65da03acc6efa3763875e30c@smtp-cloud7.xs4all.net>
+Date: Tue, 27 Mar 2018 06:13:01 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, Mar 01, 2018 at 12:59:54PM +0300, Dan Carpenter wrote:
-> [ I know you're just copying files, but you might have a fix for these
->   since you're looking at the code.  - dan ]
+Results of the daily build of media_tree:
 
-According to the static analyzer I should simply substitute all those
-expressions with 0s. I would instead keep them for sake of readability
-and accordance with register description in the video decoder manual.
+date:			Tue Mar 27 05:00:12 CEST 2018
+media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
+media_build git hash:	b608131932dcd6263285accee184bb36592f587b
+v4l-utils git hash:	098e402950fd45b5a572cccfe1d103661d418417
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-Thanks
-   j
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.101-i686: WARNINGS
+linux-3.0.101-x86_64: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.100-i686: ERRORS
+linux-3.2.100-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.10-i686: WARNINGS
+linux-3.7.10-x86_64: WARNINGS
+linux-3.8.13-i686: WARNINGS
+linux-3.8.13-x86_64: WARNINGS
+linux-3.9.11-i686: WARNINGS
+linux-3.9.11-x86_64: WARNINGS
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.55-i686: WARNINGS
+linux-3.16.55-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.100-i686: WARNINGS
+linux-3.18.100-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.50-i686: WARNINGS
+linux-4.1.50-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.99-i686: OK
+linux-4.4.99-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.87-i686: WARNINGS
+linux-4.9.87-x86_64: WARNINGS
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.27-i686: OK
+linux-4.14.27-x86_64: OK
+linux-4.15.10-i686: OK
+linux-4.15.10-x86_64: OK
+linux-4.16-rc5-i686: OK
+linux-4.16-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
->
-> Hello Jacopo Mondi,
->
-> The patch e0d76c3842ee: "media: i2c: Copy tw9910 soc_camera sensor
-> driver" from Feb 21, 2018, leads to the following static checker
-> warning:
->
->     drivers/media/i2c/tw9910.c:395 tw9910_set_hsync()
->     warn: odd binop '0x260 & 0x7'
->
->     drivers/media/i2c/tw9910.c:396 tw9910_set_hsync()
->     warn: odd binop '0x300 & 0x7'
->
->     drivers/media/i2c/tw9910.c:538 tw9910_s_std()
->     warn: odd binop '0x0 & 0xc'
->
-> drivers/media/i2c/tw9910.c
->    374  static int tw9910_set_hsync(struct i2c_client *client)
->    375  {
->    376          struct tw9910_priv *priv = to_tw9910(client);
->    377          int ret;
->    378
->    379          /* bit 10 - 3 */
->    380          ret = i2c_smbus_write_byte_data(client, HSBEGIN,
->    381                                          (HSYNC_START & 0x07F8) >> 3);
->    382          if (ret < 0)
->    383                  return ret;
->    384
->    385          /* bit 10 - 3 */
->    386          ret = i2c_smbus_write_byte_data(client, HSEND,
->    387                                          (HSYNC_END & 0x07F8) >> 3);
->    388          if (ret < 0)
->    389                  return ret;
->    390
->    391          /* So far only revisions 0 and 1 have been seen */
->    392          /* bit 2 - 0 */
->    393          if (priv->revision == 1)
->    394                  ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
->    395                                        (HSYNC_START & 0x0007) << 4 |
->                                                ^^^^^^^^^^^^^^^^^^^^
->    396                                        (HSYNC_END   & 0x0007));
->                                                ^^^^^^^^^^^^^^^^^^^^
-> These always mask to zero.
->
->    397
->    398          return ret;
->    399  }
->
-> [ snip ]
->
->    511  static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
->    512  {
->    513          struct i2c_client *client = v4l2_get_subdevdata(sd);
->    514          struct tw9910_priv *priv = to_tw9910(client);
->    515          const unsigned int hact = 720;
->    516          const unsigned int hdelay = 15;
->                                    ^^^^^^^^^^^
->    517          unsigned int vact;
->    518          unsigned int vdelay;
->    519          int ret;
->    520
->    521          if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
->    522                  return -EINVAL;
->    523
->    524          priv->norm = norm;
->    525          if (norm & V4L2_STD_525_60) {
->    526                  vact = 240;
->    527                  vdelay = 18;
->    528                  ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
->    529          } else {
->    530                  vact = 288;
->    531                  vdelay = 24;
->    532                  ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
->    533          }
->    534          if (!ret)
->    535                  ret = i2c_smbus_write_byte_data(client, CROP_HI,
->    536                                                  ((vdelay >> 2) & 0xc0) |
->    537                          ((vact >> 4) & 0x30) |
->    538                          ((hdelay >> 6) & 0x0c) |
->                                   ^^^^^^^^^^^
-> 15 >> 6 is zero.
->
->    539                          ((hact >> 8) & 0x03));
->    540          if (!ret)
->    541                  ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
->    542                                                  vdelay & 0xff);
->    543          if (!ret)
->    544                  ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
->    545                                                  vact & 0xff);
->    546
->    547          return ret;
->    548  }
->
-> regards,
-> dan carpenter
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
