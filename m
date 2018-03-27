@@ -1,2198 +1,1712 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:42242 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751765AbeCYV2O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Mar 2018 17:28:14 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v6 6/6] [media] cxusb: add analog mode support for Medion
- MD95700
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <cover.1522012430.git.mail@maciej.szmigiero.name>
-Message-ID: <8454cbea-1fc7-bbaa-33e9-f18b743a0b95@maciej.szmigiero.name>
-Date: Sun, 25 Mar 2018 23:28:11 +0200
-MIME-Version: 1.0
-In-Reply-To: <cover.1522012430.git.mail@maciej.szmigiero.name>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:43175 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753770AbeC0Rry (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Mar 2018 13:47:54 -0400
+Received: by mail-pl0-f67.google.com with SMTP id f23-v6so14553379plr.10
+        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 10:47:53 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        crope@iki.fi
+Subject: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and merge with gl861
+Date: Wed, 28 Mar 2018 02:47:30 +0900
+Message-Id: <20180327174730.1887-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for analog part of Medion 95700 in the cxusb
-driver.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-What works:
-* Video capture at various sizes with sequential fields,
-* Input switching (TV Tuner, Composite, S-Video),
-* TV and radio tuning,
-* Video standard switching and auto detection,
-* Radio mode switching (stereo / mono),
-* Unplugging while capturing,
-* DVB / analog coexistence,
-* Raw BT.656 stream support.
+Friio device contains "gl861" bridge and "tc90522" demod,
+for which the separate drivers are already in the kernel.
+But friio driver was monolithic and did not use them,
+practically copying those features.
+This patch decomposes friio driver into sub drivers and
+re-uses existing ones, thus reduces some code.
 
-What does not work yet:
-* Audio,
-* VBI,
-* Picture controls.
+It adds some features to gl861,
+to support the friio-specific init/config of the devices
+and implement i2c communications to the tuner via demod
+with USB vendor requests.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/media/usb/dvb-usb/Kconfig        |   16 +-
- drivers/media/usb/dvb-usb/Makefile       |    3 +
- drivers/media/usb/dvb-usb/cxusb-analog.c | 1914 ++++++++++++++++++++++++++++++
- drivers/media/usb/dvb-usb/cxusb.c        |    2 -
- drivers/media/usb/dvb-usb/cxusb.h        |  106 ++
- 5 files changed, 2037 insertions(+), 4 deletions(-)
- create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
+Changes since v3:
+ - make dvb_usb_device_properties static
 
-diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index 2651ae277347..b4ef8f6eb470 100644
---- a/drivers/media/usb/dvb-usb/Kconfig
-+++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -138,12 +138,24 @@ config DVB_USB_CXUSB
- 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+Changes since v2:
+(patch #27928, dvb-usb-friio: split and merge into dvb-usbv2-gl861)
+ - used the new i2c binding helpers instead of my own one
+ - merged gl861-friio.c with gl861.c
+
+ drivers/media/usb/dvb-usb-v2/Kconfig |   5 +-
+ drivers/media/usb/dvb-usb-v2/gl861.c | 468 ++++++++++++++++++++++++++++++-
+ drivers/media/usb/dvb-usb-v2/gl861.h |   1 +
+ drivers/media/usb/dvb-usb/Kconfig    |   6 -
+ drivers/media/usb/dvb-usb/Makefile   |   3 -
+ drivers/media/usb/dvb-usb/friio-fe.c | 441 -----------------------------
+ drivers/media/usb/dvb-usb/friio.c    | 522 -----------------------------------
+ drivers/media/usb/dvb-usb/friio.h    |  99 -------
+ 8 files changed, 465 insertions(+), 1080 deletions(-)
+ delete mode 100644 drivers/media/usb/dvb-usb/friio-fe.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio.h
+
+diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+index 0e4944b2b0f..e0a1f377295 100644
+--- a/drivers/media/usb/dvb-usb-v2/Kconfig
++++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+@@ -95,10 +95,13 @@ config DVB_USB_GL861
+ 	tristate "Genesys Logic GL861 USB2.0 support"
+ 	depends on DVB_USB_V2
+ 	select DVB_ZL10353 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_TC90522 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
  	help
- 	  Say Y here to support the Conexant USB2.0 hybrid reference design.
--	  Currently, only DVB and ATSC modes are supported, analog mode
--	  shall be added in the future. Devices that require this module:
-+	  DVB and ATSC modes are supported, for a basic analog mode support
-+	  see the next option ("Analog support for the Conexant USB2.0 hybrid
-+	  reference design").
-+	  Devices that require this module:
+ 	  Say Y here to support the MSI Megasky 580 (55801) DVB-T USB2.0
+-	  receiver with USB ID 0db0:5581.
++	  receiver with USB ID 0db0:5581, Friio White ISDB-T receiver
++	  with USB ID 0x7a69:0001.
  
- 	  Medion MD95700 hybrid USB2.0 device.
- 	  DViCO FusionHDTV (Bluebird) USB2.0 devices
+ config DVB_USB_LME2510
+ 	tristate "LME DM04/QQBOX DVB-S USB2.0 support"
+diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
+index b1b09c54786..ef644117f84 100644
+--- a/drivers/media/usb/dvb-usb-v2/gl861.c
++++ b/drivers/media/usb/dvb-usb-v2/gl861.c
+@@ -10,6 +10,8 @@
  
-+config DVB_USB_CXUSB_ANALOG
-+	bool "Analog support for the Conexant USB2.0 hybrid reference design"
-+	depends on DVB_USB_CXUSB && VIDEO_V4L2
-+	select VIDEO_CX25840
-+	select VIDEOBUF2_VMALLOC
-+	help
-+	  Say Y here to enable basic analog mode support for the Conexant
-+	  USB2.0 hybrid reference design.
-+	  Currently this mode is supported only on a Medion MD95700 device.
-+
- config DVB_USB_M920X
- 	tristate "Uli m920x DVB-T USB2.0 support"
- 	depends on DVB_USB
-diff --git a/drivers/media/usb/dvb-usb/Makefile b/drivers/media/usb/dvb-usb/Makefile
-index 9ad2618408ef..e47bcadcfc3d 100644
---- a/drivers/media/usb/dvb-usb/Makefile
-+++ b/drivers/media/usb/dvb-usb/Makefile
-@@ -42,6 +42,9 @@ dvb-usb-digitv-objs := digitv.o
- obj-$(CONFIG_DVB_USB_DIGITV) += dvb-usb-digitv.o
+ #include "zl10353.h"
+ #include "qt1010.h"
++#include "tc90522.h"
++#include "dvb-pll.h"
  
- dvb-usb-cxusb-objs := cxusb.o
-+ifeq ($(CONFIG_DVB_USB_CXUSB_ANALOG),y)
-+dvb-usb-cxusb-objs += cxusb-analog.o
-+endif
- obj-$(CONFIG_DVB_USB_CXUSB) += dvb-usb-cxusb.o
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- dvb-usb-ttusb2-objs := ttusb2.o
-diff --git a/drivers/media/usb/dvb-usb/cxusb-analog.c b/drivers/media/usb/dvb-usb/cxusb-analog.c
-new file mode 100644
-index 000000000000..969d82b24f41
---- /dev/null
-+++ b/drivers/media/usb/dvb-usb/cxusb-analog.c
-@@ -0,0 +1,1914 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+//
-+// DVB USB compliant linux driver for Conexant USB reference design -
-+// (analog part).
-+//
-+// Copyright (C) 2011, 2017 Maciej S. Szmigiero (mail@maciej.szmigiero.name)
-+//
-+// TODO:
-+//  * audio support,
-+//  * finish radio support (requires audio of course),
-+//  * VBI support,
-+//  * controls support
-+
-+#include <linux/bitops.h>
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/timekeeping.h>
-+#include <linux/vmalloc.h>
-+#include <media/drv-intf/cx25840.h>
-+#include <media/tuner.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/videobuf2-v4l2.h>
-+#include <media/videobuf2-vmalloc.h>
-+
-+#include "cxusb.h"
-+
-+static int cxusb_medion_v_queue_setup(struct vb2_queue *q,
-+				      unsigned int *num_buffers,
-+				      unsigned int *num_planes,
-+				      unsigned int sizes[],
-+				      struct device *alloc_devs[])
+@@ -49,6 +51,80 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 			       value, index, rbuf, rlen, 2000);
+ }
+ 
++/* Friio specific I2C read/write */
++/* special USB request is used in Friio's init/config */
++static int
++gl861_i2c_rawwrite(struct dvb_usb_device *d, u8 addr, u8 *wbuf, u16 wlen)
 +{
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	unsigned int size = cxdev->raw_mode ?
-+		CXUSB_VIDEO_MAX_FRAME_SIZE :
-+		cxdev->width * cxdev->height * 2;
-+
-+	if (*num_planes > 0) {
-+		if (*num_planes != 1)
-+			return -EINVAL;
-+
-+		if (sizes[0] < size)
-+			return -EINVAL;
-+	} else {
-+		*num_planes = 1;
-+		sizes[0] = size;
-+	}
-+
-+	if (q->num_buffers + *num_buffers < 6)
-+		*num_buffers = 6 - q->num_buffers;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_v_buf_init(struct vb2_buffer *vb)
-+{
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	cxusb_vprintk(dvbdev, OPS, "buffer init\n");
-+
-+	if (cxdev->raw_mode) {
-+		if (vb2_plane_size(vb, 0) < CXUSB_VIDEO_MAX_FRAME_SIZE)
-+			return -ENOMEM;
-+	} else {
-+		if (vb2_plane_size(vb, 0) < cxdev->width * cxdev->height * 2)
-+			return -ENOMEM;
-+	}
-+
-+	cxusb_vprintk(dvbdev, OPS, "buffer OK\n");
-+
-+	return 0;
-+}
-+
-+static void cxusb_auxbuf_init(struct cxusb_medion_auxbuf *auxbuf,
-+			      u8 *buf, unsigned int len)
-+{
-+	auxbuf->buf = buf;
-+	auxbuf->len = len;
-+	auxbuf->paylen = 0;
-+}
-+
-+static void cxusb_auxbuf_head_trim(struct dvb_usb_device *dvbdev,
-+				   struct cxusb_medion_auxbuf *auxbuf,
-+				   unsigned int pos)
-+{
-+	if (pos == 0)
-+		return;
-+
-+	if (WARN_ON(pos > auxbuf->paylen))
-+		return;
-+
-+	cxusb_vprintk(dvbdev, AUXB,
-+		      "trimming auxbuf len by %u to %u\n",
-+		      pos, auxbuf->paylen - pos);
-+
-+	memmove(auxbuf->buf, auxbuf->buf + pos, auxbuf->paylen - pos);
-+	auxbuf->paylen -= pos;
-+}
-+
-+static unsigned int cxusb_auxbuf_paylen(struct cxusb_medion_auxbuf *auxbuf)
-+{
-+	return auxbuf->paylen;
-+}
-+
-+static bool cxusb_auxbuf_make_space(struct dvb_usb_device *dvbdev,
-+				    struct cxusb_medion_auxbuf *auxbuf,
-+				    unsigned int howmuch)
-+{
-+	unsigned int freespace;
-+
-+	if (WARN_ON(howmuch >= auxbuf->len))
-+		howmuch = auxbuf->len - 1;
-+
-+	freespace = auxbuf->len - cxusb_auxbuf_paylen(auxbuf);
-+
-+	cxusb_vprintk(dvbdev, AUXB, "freespace is %u\n", freespace);
-+
-+	if (freespace >= howmuch)
-+		return true;
-+
-+	howmuch -= freespace;
-+
-+	cxusb_vprintk(dvbdev, AUXB, "will overwrite %u bytes of buffer\n",
-+		      howmuch);
-+
-+	cxusb_auxbuf_head_trim(dvbdev, auxbuf, howmuch);
-+
-+	return false;
-+}
-+
-+/* returns false if some data was overwritten */
-+static bool cxusb_auxbuf_append_urb(struct dvb_usb_device *dvbdev,
-+				    struct cxusb_medion_auxbuf *auxbuf,
-+				    struct urb *urb)
-+{
-+	unsigned long len = 0;
-+	int i;
-+	bool ret;
-+
-+	for (i = 0; i < urb->number_of_packets; i++)
-+		len += urb->iso_frame_desc[i].actual_length;
-+
-+	ret = cxusb_auxbuf_make_space(dvbdev, auxbuf, len);
-+
-+	for (i = 0; i < urb->number_of_packets; i++) {
-+		unsigned int to_copy;
-+
-+		to_copy = urb->iso_frame_desc[i].actual_length;
-+
-+		memcpy(auxbuf->buf + auxbuf->paylen, urb->transfer_buffer +
-+		       urb->iso_frame_desc[i].offset, to_copy);
-+
-+		auxbuf->paylen += to_copy;
-+	}
-+
-+	return ret;
-+}
-+
-+static bool cxusb_auxbuf_copy(struct cxusb_medion_auxbuf *auxbuf,
-+			      unsigned int pos, unsigned char *dest,
-+			      unsigned int len)
-+{
-+	if (pos + len > auxbuf->paylen)
-+		return false;
-+
-+	memcpy(dest, auxbuf->buf + pos, len);
-+
-+	return true;
-+}
-+
-+static unsigned int cxusb_auxbuf_advance(struct cxusb_medion_auxbuf *auxbuf,
-+					 unsigned int pos,
-+					 unsigned int increment)
-+{
-+	return pos + increment;
-+}
-+
-+static unsigned int cxusb_auxbuf_begin(struct cxusb_medion_auxbuf *auxbuf)
-+{
-+	return 0;
-+}
-+
-+static bool cxusb_auxbuf_isend(struct cxusb_medion_auxbuf *auxbuf,
-+			       unsigned int pos)
-+{
-+	return pos >= auxbuf->paylen;
-+}
-+
-+static bool cxusb_medion_cf_refc_fld_chg(struct dvb_usb_device *dvbdev,
-+					 struct cxusb_bt656_params *bt656,
-+					 bool firstfield,
-+					 unsigned int maxlines,
-+					 unsigned int maxlinesamples,
-+					 unsigned char buf[4])
-+{
-+	bool firstfield_code = (buf[3] & CXUSB_BT656_FIELD_MASK) ==
-+		CXUSB_BT656_FIELD_1;
-+	unsigned int remlines;
-+
-+	if (bt656->line == 0 || firstfield == firstfield_code)
-+		return false;
-+
-+	if (bt656->fmode == LINE_SAMPLES) {
-+		unsigned int remsamples = maxlinesamples -
-+			bt656->linesamples;
-+
-+		cxusb_vprintk(dvbdev, BT656,
-+			      "field %c after line %u field change\n",
-+			      firstfield ? '1' : '2', bt656->line);
-+
-+		if (bt656->buf != NULL && remsamples > 0) {
-+			memset(bt656->buf, 0, remsamples);
-+			bt656->buf += remsamples;
-+
-+			cxusb_vprintk(dvbdev, BT656,
-+				      "field %c line %u %u samples still remaining (of %u)\n",
-+				      firstfield ? '1' : '2',
-+				      bt656->line, remsamples,
-+				      maxlinesamples);
-+		}
-+
-+		bt656->line++;
-+	}
-+
-+	remlines = maxlines - bt656->line;
-+	if (bt656->buf != NULL && remlines > 0) {
-+		memset(bt656->buf, 0, remlines * maxlinesamples);
-+		bt656->buf += remlines * maxlinesamples;
-+
-+		cxusb_vprintk(dvbdev, BT656,
-+			      "field %c %u lines still remaining (of %u)\n",
-+			      firstfield ? '1' : '2', remlines,
-+			      maxlines);
-+	}
-+
-+	return true;
-+}
-+
-+static bool cxusb_medion_cf_refc_start_sch(struct dvb_usb_device *dvbdev,
-+					   struct cxusb_medion_auxbuf *auxbuf,
-+					   struct cxusb_bt656_params *bt656,
-+					   bool firstfield,
-+					   unsigned char buf[4])
-+{
-+	bool firstfield_code = (buf[3] & CXUSB_BT656_FIELD_MASK) ==
-+		CXUSB_BT656_FIELD_1;
-+	bool sav_code = (buf[3] & CXUSB_BT656_SEAV_MASK) ==
-+		CXUSB_BT656_SEAV_SAV;
-+	bool vbi_code = (buf[3] & CXUSB_BT656_VBI_MASK) ==
-+		CXUSB_BT656_VBI_ON;
-+
-+	if (bt656->fmode != START_SEARCH)
-+		return false;
-+
-+	if (sav_code && firstfield == firstfield_code) {
-+		if (!vbi_code) {
-+			cxusb_vprintk(dvbdev, BT656, "line start @ pos %x\n",
-+				      bt656->pos);
-+
-+			bt656->linesamples = 0;
-+			bt656->fmode = LINE_SAMPLES;
-+		} else {
-+			cxusb_vprintk(dvbdev, BT656, "VBI start @ pos %x\n",
-+				      bt656->pos);
-+
-+			bt656->fmode = VBI_SAMPLES;
-+		}
-+	}
-+
-+	bt656->pos = cxusb_auxbuf_advance(auxbuf, bt656->pos, 4);
-+
-+	return true;
-+}
-+
-+static bool cxusb_medion_cf_refc_line_smpl(struct dvb_usb_device *dvbdev,
-+					   struct cxusb_bt656_params *bt656,
-+					   bool firstfield,
-+					   unsigned int maxlinesamples,
-+					   unsigned char buf[4])
-+{
-+	bool sav_code = (buf[3] & CXUSB_BT656_SEAV_MASK) ==
-+		CXUSB_BT656_SEAV_SAV;
-+	unsigned int remsamples;
-+
-+	if (bt656->fmode != LINE_SAMPLES)
-+		return false;
-+
-+	if (sav_code)
-+		cxusb_vprintk(dvbdev, BT656,
-+			      "SAV in line samples @ line %u, pos %x\n",
-+			      bt656->line, bt656->pos);
-+
-+	remsamples = maxlinesamples - bt656->linesamples;
-+	if (bt656->buf != NULL && remsamples > 0) {
-+		memset(bt656->buf, 0, remsamples);
-+		bt656->buf += remsamples;
-+
-+		cxusb_vprintk(dvbdev, BT656,
-+			      "field %c line %u %u samples still remaining (of %u)\n",
-+			      firstfield ? '1' : '2', bt656->line, remsamples,
-+			      maxlinesamples);
-+	}
-+
-+	bt656->fmode = START_SEARCH;
-+	bt656->line++;
-+
-+	return true;
-+}
-+
-+static bool cxusb_medion_cf_refc_vbi_smpl(struct dvb_usb_device *dvbdev,
-+					  struct cxusb_bt656_params *bt656,
-+					  unsigned char buf[4])
-+{
-+	bool sav_code = (buf[3] & CXUSB_BT656_SEAV_MASK) ==
-+		CXUSB_BT656_SEAV_SAV;
-+
-+	if (bt656->fmode != VBI_SAMPLES)
-+		return false;
-+
-+	if (sav_code)
-+		cxusb_vprintk(dvbdev, BT656, "SAV in VBI samples @ pos %x\n",
-+			      bt656->pos);
-+
-+	bt656->fmode = START_SEARCH;
-+
-+	return true;
-+}
-+
-+static void cxusb_medion_cf_ref_code(struct dvb_usb_device *dvbdev,
-+				     struct cxusb_medion_auxbuf *auxbuf,
-+				     struct cxusb_bt656_params *bt656,
-+				     bool firstfield,
-+				     unsigned int maxlines,
-+				     unsigned int maxlinesamples,
-+				     unsigned char buf[4])
-+{
-+	if (cxusb_medion_cf_refc_start_sch(dvbdev, auxbuf, bt656, firstfield,
-+					   buf))
-+		return;
-+
-+	if (cxusb_medion_cf_refc_line_smpl(dvbdev, bt656, firstfield,
-+					   maxlinesamples, buf))
-+		return;
-+
-+	if (cxusb_medion_cf_refc_vbi_smpl(dvbdev, bt656, buf))
-+		return;
-+
-+	bt656->pos = cxusb_auxbuf_advance(auxbuf, bt656->pos, 4);
-+}
-+
-+static bool cxusb_medion_cs_start_sch(struct dvb_usb_device *dvbdev,
-+				      struct cxusb_medion_auxbuf *auxbuf,
-+				      struct cxusb_bt656_params *bt656,
-+				      unsigned int maxlinesamples)
-+{
-+	unsigned char buf[64];
-+	unsigned int idx;
-+	unsigned int tocheck = clamp_t(size_t, maxlinesamples / 4, 3,
-+				       sizeof(buf));
-+
-+	if (bt656->fmode != START_SEARCH || bt656->line == 0)
-+		return false;
-+
-+	if (!cxusb_auxbuf_copy(auxbuf, bt656->pos + 1, buf, tocheck)) {
-+		bt656->pos = cxusb_auxbuf_advance(auxbuf, bt656->pos, 1);
-+		return true;
-+	}
-+
-+	for (idx = 0; idx <= tocheck - 3; idx++)
-+		if (memcmp(buf + idx, CXUSB_BT656_PREAMBLE, 3) == 0)
-+			break;
-+
-+	if (idx <= tocheck - 3) {
-+		bt656->pos = cxusb_auxbuf_advance(auxbuf, bt656->pos, 1);
-+		return true;
-+	}
-+
-+	cxusb_vprintk(dvbdev, BT656, "line %u early start, pos %x\n",
-+		      bt656->line, bt656->pos);
-+
-+	bt656->linesamples = 0;
-+	bt656->fmode = LINE_SAMPLES;
-+
-+	return true;
-+}
-+
-+static bool cxusb_medion_cs_line_smpl(struct dvb_usb_device *dvbdev,
-+				      struct cxusb_medion_auxbuf *auxbuf,
-+				      struct cxusb_bt656_params *bt656,
-+				      unsigned int maxlinesamples,
-+				      unsigned char val)
-+{
-+	if (bt656->fmode != LINE_SAMPLES)
-+		return false;
-+
-+	if (bt656->buf != NULL)
-+		*(bt656->buf++) = val;
-+
-+	bt656->linesamples++;
-+	bt656->pos = cxusb_auxbuf_advance(auxbuf, bt656->pos, 1);
-+
-+	if (bt656->linesamples >= maxlinesamples) {
-+		bt656->fmode = START_SEARCH;
-+		bt656->line++;
-+	}
-+
-+	return true;
-+}
-+
-+static void cxusb_medion_copy_samples(struct dvb_usb_device *dvbdev,
-+				      struct cxusb_medion_auxbuf *auxbuf,
-+				      struct cxusb_bt656_params *bt656,
-+				      unsigned int maxlinesamples,
-+				      unsigned char val)
-+{
-+	if (cxusb_medion_cs_start_sch(dvbdev, auxbuf, bt656, maxlinesamples))
-+		return;
-+
-+	if (cxusb_medion_cs_line_smpl(dvbdev, auxbuf, bt656, maxlinesamples,
-+				      val))
-+		return;
-+
-+	/* TODO: copy VBI samples */
-+	bt656->pos = cxusb_auxbuf_advance(auxbuf, bt656->pos, 1);
-+}
-+
-+static bool cxusb_medion_copy_field(struct dvb_usb_device *dvbdev,
-+				    struct cxusb_medion_auxbuf *auxbuf,
-+				    struct cxusb_bt656_params *bt656,
-+				    bool firstfield,
-+				    unsigned int maxlines,
-+				    unsigned int maxlinesmpls)
-+{
-+	while (bt656->line < maxlines &&
-+	       !cxusb_auxbuf_isend(auxbuf, bt656->pos)) {
-+		unsigned char val;
-+
-+		if (!cxusb_auxbuf_copy(auxbuf, bt656->pos, &val, 1))
-+			return false;
-+
-+		if (val == CXUSB_BT656_PREAMBLE[0]) {
-+			unsigned char buf[4];
-+
-+			buf[0] = val;
-+			if (!cxusb_auxbuf_copy(auxbuf, bt656->pos + 1,
-+					       buf + 1, 3))
-+				return false;
-+
-+			if (buf[1] == CXUSB_BT656_PREAMBLE[1] &&
-+			    buf[2] == CXUSB_BT656_PREAMBLE[2]) {
-+				if (cxusb_medion_cf_refc_fld_chg(dvbdev,
-+								 bt656,
-+								 firstfield,
-+								 maxlines,
-+								 maxlinesmpls,
-+								 buf))
-+					return true;
-+
-+				cxusb_medion_cf_ref_code(dvbdev, auxbuf,
-+							 bt656, firstfield,
-+							 maxlines,
-+							 maxlinesmpls, buf);
-+
-+				continue;
-+			}
-+		}
-+
-+		cxusb_medion_copy_samples(dvbdev, auxbuf, bt656, maxlinesmpls,
-+					  val);
-+	}
-+
-+	if (bt656->line < maxlines) {
-+		cxusb_vprintk(dvbdev, BT656,
-+			      "end of buffer pos = %u, line = %u\n",
-+			      bt656->pos, bt656->line);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static void cxusb_medion_v_process_urb_raw_mode(struct cxusb_medion_dev *cxdev,
-+						struct urb *urb)
-+{
-+	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
 +	u8 *buf;
-+	struct cxusb_medion_vbuffer *vbuf;
-+	int i;
-+	unsigned long len = 0;
-+
-+	if (list_empty(&cxdev->buflist)) {
-+		dev_warn(&dvbdev->udev->dev, "no free buffers\n");
-+		return;
-+	}
-+
-+	vbuf = list_first_entry(&cxdev->buflist, struct cxusb_medion_vbuffer,
-+				list);
-+	list_del(&vbuf->list);
-+
-+	vbuf->vb2.timestamp = ktime_get_ns();
-+
-+	buf = vb2_plane_vaddr(&vbuf->vb2, 0);
-+
-+	for (i = 0; i < urb->number_of_packets; i++) {
-+		memcpy(buf, urb->transfer_buffer +
-+		       urb->iso_frame_desc[i].offset,
-+		       urb->iso_frame_desc[i].actual_length);
-+
-+		buf += urb->iso_frame_desc[i].actual_length;
-+		len += urb->iso_frame_desc[i].actual_length;
-+	}
-+
-+	vb2_set_plane_payload(&vbuf->vb2, 0, len);
-+
-+	vb2_buffer_done(&vbuf->vb2, VB2_BUF_STATE_DONE);
-+}
-+
-+static void cxusb_medion_v_process_urb(struct cxusb_medion_dev *cxdev,
-+				       struct urb *urb)
-+{
-+	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
-+	struct cxusb_bt656_params *bt656 = &cxdev->bt656;
-+	bool reset;
-+
-+	cxusb_vprintk(dvbdev, URB, "appending urb\n");
-+
-+	/*
-+	 * append new data to circ. buffer
-+	 * overwrite old data if necessary
-+	 */
-+	reset = !cxusb_auxbuf_append_urb(dvbdev, &cxdev->auxbuf, urb);
-+
-+	/*
-+	 * if this is a new frame
-+	 * fetch a buffer from list
-+	 */
-+	if (bt656->mode == NEW_FRAME) {
-+		if (!list_empty(&cxdev->buflist)) {
-+			cxdev->vbuf =
-+				list_first_entry(&cxdev->buflist,
-+						 struct cxusb_medion_vbuffer,
-+						 list);
-+			list_del(&cxdev->vbuf->list);
-+
-+			cxdev->vbuf->vb2.timestamp = ktime_get_ns();
-+		} else
-+			dev_warn(&dvbdev->udev->dev, "no free buffers\n");
-+	}
-+
-+	if (bt656->mode == NEW_FRAME || reset) {
-+		bt656->pos = cxusb_auxbuf_begin(&cxdev->auxbuf);
-+		bt656->mode = FIRST_FIELD;
-+		bt656->fmode = START_SEARCH;
-+		bt656->line = 0;
-+
-+		if (cxdev->vbuf != NULL)
-+			bt656->buf = vb2_plane_vaddr(&cxdev->vbuf->vb2, 0);
-+	}
-+
-+	cxusb_vprintk(dvbdev, URB, "auxbuf payload len %u",
-+		      cxusb_auxbuf_paylen(&cxdev->auxbuf));
-+
-+	if (bt656->mode == FIRST_FIELD) {
-+		cxusb_vprintk(dvbdev, URB, "copying field 1\n");
-+
-+		if (!cxusb_medion_copy_field(dvbdev, &cxdev->auxbuf, bt656,
-+					     true, cxdev->height / 2,
-+					     cxdev->width * 2))
-+			return;
-+
-+		/*
-+		 * do not trim buffer there in case
-+		 * we need to reset search later
-+		 */
-+		bt656->mode = SECOND_FIELD;
-+		bt656->fmode = START_SEARCH;
-+		bt656->line = 0;
-+	}
-+
-+	if (bt656->mode == SECOND_FIELD) {
-+		cxusb_vprintk(dvbdev, URB, "copying field 2\n");
-+
-+		if (!cxusb_medion_copy_field(dvbdev, &cxdev->auxbuf, bt656,
-+					     false, cxdev->height / 2,
-+					     cxdev->width * 2))
-+			return;
-+
-+		cxusb_auxbuf_head_trim(dvbdev, &cxdev->auxbuf, bt656->pos);
-+
-+		bt656->mode = NEW_FRAME;
-+
-+		if (cxdev->vbuf != NULL) {
-+			vb2_set_plane_payload(&cxdev->vbuf->vb2, 0,
-+					      cxdev->width * cxdev->height * 2);
-+
-+			vb2_buffer_done(&cxdev->vbuf->vb2, VB2_BUF_STATE_DONE);
-+
-+			cxdev->vbuf = NULL;
-+			cxdev->bt656.buf = NULL;
-+
-+			cxusb_vprintk(dvbdev, URB, "frame done\n");
-+		} else
-+			cxusb_vprintk(dvbdev, URB, "frame skipped\n");
-+	}
-+}
-+
-+static void cxusb_medion_v_complete_work(struct work_struct *work)
-+{
-+	struct cxusb_medion_dev *cxdev = container_of(work,
-+						      struct cxusb_medion_dev,
-+						      urbwork);
-+	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
-+	struct urb *urb;
-+	int ret;
-+	unsigned int i, urbn;
-+
-+	mutex_lock(cxdev->videodev->lock);
-+
-+	cxusb_vprintk(dvbdev, URB, "worker called, streaming = %d\n",
-+		      (int)cxdev->streaming);
-+
-+	if (!cxdev->streaming)
-+		goto unlock;
-+
-+	urbn = cxdev->nexturb;
-+	if (test_bit(urbn, &cxdev->urbcomplete)) {
-+		urb = cxdev->streamurbs[urbn];
-+		clear_bit(urbn, &cxdev->urbcomplete);
-+
-+		cxdev->nexturb++;
-+		cxdev->nexturb %= CXUSB_VIDEO_URBS;
-+	} else {
-+		for (i = 0, urbn++; i < CXUSB_VIDEO_URBS - 1; i++, urbn++) {
-+			urbn %= CXUSB_VIDEO_URBS;
-+			if (test_bit(urbn, &cxdev->urbcomplete)) {
-+				urb = cxdev->streamurbs[urbn];
-+				clear_bit(urbn, &cxdev->urbcomplete);
-+				break;
-+			}
-+		}
-+
-+		if (i >= CXUSB_VIDEO_URBS - 1) {
-+			cxusb_vprintk(dvbdev, URB,
-+				      "URB worker called but no URB ready\n");
-+			goto unlock;
-+		}
-+
-+		cxusb_vprintk(dvbdev, URB,
-+			      "out-of-order URB: expected %u but %u is ready\n",
-+			      cxdev->nexturb, urbn);
-+
-+		cxdev->nexturb = urbn + 1;
-+		cxdev->nexturb %= CXUSB_VIDEO_URBS;
-+	}
-+
-+	cxusb_vprintk(dvbdev, URB, "URB %u status = %d\n", urbn, urb->status);
-+
-+	if (urb->status == 0 || urb->status == -EXDEV) {
-+		int i;
-+		unsigned long len = 0;
-+
-+		for (i = 0; i < urb->number_of_packets; i++)
-+			len += urb->iso_frame_desc[i].actual_length;
-+
-+		cxusb_vprintk(dvbdev, URB, "URB %u data len = %lu\n",
-+			      urbn, len);
-+
-+		if (len > 0) {
-+			if (cxdev->raw_mode)
-+				cxusb_medion_v_process_urb_raw_mode(cxdev, urb);
-+			else
-+				cxusb_medion_v_process_urb(cxdev, urb);
-+		}
-+	}
-+
-+	cxusb_vprintk(dvbdev, URB, "URB %u submit\n", urbn);
-+
-+	ret = usb_submit_urb(urb, GFP_KERNEL);
-+	if (ret != 0)
-+		dev_err(&dvbdev->udev->dev,
-+			"unable to submit URB (%d), you'll have to restart streaming\n",
-+			ret);
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		if (test_bit(i, &cxdev->urbcomplete)) {
-+			schedule_work(&cxdev->urbwork);
-+			break;
-+		}
-+
-+unlock:
-+	mutex_unlock(cxdev->videodev->lock);
-+}
-+
-+static void cxusb_medion_v_complete(struct urb *u)
-+{
-+	struct dvb_usb_device *dvbdev = u->context;
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	unsigned int i;
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		if (cxdev->streamurbs[i] == u)
-+			break;
-+
-+	if (i >= CXUSB_VIDEO_URBS) {
-+		dev_err(&dvbdev->udev->dev,
-+			"complete on unknown URB\n");
-+		return;
-+	}
-+
-+	cxusb_vprintk(dvbdev, URB, "URB %d complete\n", i);
-+
-+	set_bit(i, &cxdev->urbcomplete);
-+	schedule_work(&cxdev->urbwork);
-+}
-+
-+static bool cxusb_medion_stream_busy(struct cxusb_medion_dev *cxdev)
-+{
-+	int i;
-+
-+	if (cxdev->streaming)
-+		return true;
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		/*
-+		 * not streaming but URB is still active -
-+		 * stream is being stopped
-+		 */
-+		if (cxdev->streamurbs[i] != NULL)
-+			return true;
-+
-+	return false;
-+}
-+
-+static void cxusb_medion_return_buffers(struct cxusb_medion_dev *cxdev,
-+					bool requeue)
-+{
-+	struct cxusb_medion_vbuffer *vbuf, *vbuf_tmp;
-+
-+	list_for_each_entry_safe(vbuf, vbuf_tmp, &cxdev->buflist,
-+				 list) {
-+		list_del(&vbuf->list);
-+		vb2_buffer_done(&vbuf->vb2, requeue ? VB2_BUF_STATE_QUEUED :
-+				VB2_BUF_STATE_ERROR);
-+	}
-+
-+	if (cxdev->vbuf != NULL) {
-+		vb2_buffer_done(&cxdev->vbuf->vb2, requeue ?
-+				VB2_BUF_STATE_QUEUED :
-+				VB2_BUF_STATE_ERROR);
-+
-+		cxdev->vbuf = NULL;
-+		cxdev->bt656.buf = NULL;
-+	}
-+}
-+
-+static int cxusb_medion_v_start_streaming(struct vb2_queue *q,
-+					  unsigned int count)
-+{
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	u8 streamon_params[2] = { 0x03, 0x00 };
-+	int npackets, i;
 +	int ret;
 +
-+	cxusb_vprintk(dvbdev, OPS, "should start streaming\n");
++	buf = kmalloc(wlen, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
 +
-+	/* already streaming */
-+	if (cxdev->streaming)
-+		return 0;
++	usleep_range(1000, 2000); /* avoid I2C errors */
++	memcpy(buf, wbuf, wlen);
++	ret = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev, 0),
++				 GL861_REQ_I2C_RAW, GL861_WRITE,
++				 addr << (8 + 1), 0x0100, buf, wlen, 2000);
++	kfree(buf);
++	return ret;
++}
 +
-+	if (cxusb_medion_stream_busy(cxdev)) {
-+		ret = -EBUSY;
-+		goto ret_retbufs;
-+	}
++/*
++ * In Friio,
++ * I2C commnucations to the tuner are relay'ed via the demod (via the bridge),
++ * so its encapsulation to USB message is different from the one to the demod.
++ */
++static int
++gl861_i2c_rawread(struct dvb_usb_device *d, u8 addr, u8 *rbuf, u16 rlen)
++{
++	u8 *buf;
++	int ret;
 +
-+	ret = v4l2_subdev_call(cxdev->cx25840, video, s_stream, 1);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev,
-+			"unable to start stream (%d)\n", ret);
-+		goto ret_retbufs;
-+	}
++	buf = kmalloc(rlen, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
 +
-+	ret = cxusb_ctrl_msg(dvbdev, CMD_STREAMING_ON, streamon_params, 2,
-+			     NULL, 0);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev,
-+			"unable to start streaming (%d)\n", ret);
-+		goto ret_unstream_cx;
-+	}
++	usleep_range(1000, 2000); /* avoid I2C errors */
 +
-+	if (cxdev->raw_mode)
-+		npackets = CXUSB_VIDEO_MAX_FRAME_PKTS;
-+	else {
-+		u8 *buf;
-+		unsigned int urblen, auxbuflen;
-+
-+		/* has to be less than full frame size */
-+		urblen = (cxdev->width * 2 + 4 + 4) * cxdev->height;
-+		npackets = urblen / CXUSB_VIDEO_PKT_SIZE;
-+		urblen = npackets * CXUSB_VIDEO_PKT_SIZE;
-+
-+		auxbuflen = (cxdev->width * 2 + 4 + 4) *
-+			(cxdev->height + 50 /* VBI lines */) + urblen;
-+
-+		buf = vmalloc(auxbuflen);
-+		if (buf == NULL) {
-+			ret = -ENOMEM;
-+			goto ret_unstream_md;
-+		}
-+
-+		cxusb_auxbuf_init(&cxdev->auxbuf, buf, auxbuflen);
-+	}
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++) {
-+		int framen;
-+		u8 *streambuf;
-+		struct urb *surb;
-+
-+		streambuf = kmalloc(npackets * CXUSB_VIDEO_PKT_SIZE,
-+				    GFP_KERNEL);
-+		if (streambuf == NULL) {
-+			if (i == 0) {
-+				ret = -ENOMEM;
-+				goto ret_freeab;
-+			} else
-+				break;
-+		}
-+
-+		surb = usb_alloc_urb(npackets, GFP_KERNEL);
-+		if (surb == NULL) {
-+			kfree(streambuf);
-+			ret = -ENOMEM;
-+			goto ret_freeu;
-+		}
-+
-+		cxdev->streamurbs[i] = surb;
-+		surb->dev = dvbdev->udev;
-+		surb->context = dvbdev;
-+		surb->pipe = usb_rcvisocpipe(dvbdev->udev, 2);
-+
-+		surb->interval = 1;
-+		surb->transfer_flags = URB_ISO_ASAP;
-+
-+		surb->transfer_buffer = streambuf;
-+
-+		surb->complete = cxusb_medion_v_complete;
-+		surb->number_of_packets = npackets;
-+		surb->transfer_buffer_length = npackets * CXUSB_VIDEO_PKT_SIZE;
-+
-+		for (framen = 0; framen < npackets; framen++) {
-+			surb->iso_frame_desc[framen].offset =
-+				CXUSB_VIDEO_PKT_SIZE * framen;
-+
-+			surb->iso_frame_desc[framen].length =
-+				CXUSB_VIDEO_PKT_SIZE;
-+		}
-+	}
-+
-+	cxdev->urbcomplete = 0;
-+	cxdev->nexturb = 0;
-+	cxdev->vbuf = NULL;
-+	cxdev->bt656.mode = NEW_FRAME;
-+	cxdev->bt656.buf = NULL;
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		if (cxdev->streamurbs[i] != NULL) {
-+			ret = usb_submit_urb(cxdev->streamurbs[i],
-+					GFP_KERNEL);
-+			if (ret != 0)
-+				dev_err(&dvbdev->udev->dev,
-+					"URB %d submission failed (%d)\n", i,
-+					ret);
-+		}
-+
-+	cxdev->streaming = true;
-+
-+	return 0;
-+
-+ret_freeu:
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		if (cxdev->streamurbs[i] != NULL) {
-+			kfree(cxdev->streamurbs[i]->transfer_buffer);
-+			usb_free_urb(cxdev->streamurbs[i]);
-+			cxdev->streamurbs[i] = NULL;
-+		}
-+
-+ret_freeab:
-+	if (!cxdev->raw_mode)
-+		vfree(cxdev->auxbuf.buf);
-+
-+ret_unstream_md:
-+	cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
-+
-+ret_unstream_cx:
-+	v4l2_subdev_call(cxdev->cx25840, video, s_stream, 0);
-+
-+ret_retbufs:
-+	cxusb_medion_return_buffers(cxdev, true);
++	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
++				 GL861_REQ_I2C_READ, GL861_READ,
++				 addr << (8 + 1), 0x0100, buf, rlen, 2000);
++	if (ret > 0 && rbuf)
++		memcpy(rbuf, buf, rlen);
++	kfree(buf);
 +
 +	return ret;
 +}
 +
-+static void cxusb_medion_v_stop_streaming(struct vb2_queue *q)
++static int
++gl861_i2c_relay_write(struct dvb_usb_device *d, struct i2c_msg *msg)
 +{
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int i, ret;
-+
-+	cxusb_vprintk(dvbdev, OPS, "should stop streaming\n");
-+
-+	if (!cxdev->streaming)
-+		return;
-+
-+	cxdev->streaming = false;
-+
-+	cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, video, s_stream, 0);
-+	if (ret != 0)
-+		dev_err(&dvbdev->udev->dev, "unable to stop stream (%d)\n",
-+			ret);
-+
-+	/* let URB completion run */
-+	mutex_unlock(cxdev->videodev->lock);
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		if (cxdev->streamurbs[i] != NULL)
-+			usb_kill_urb(cxdev->streamurbs[i]);
-+
-+	flush_work(&cxdev->urbwork);
-+
-+	mutex_lock(cxdev->videodev->lock);
-+
-+	/* free transfer buffer and URB */
-+	if (!cxdev->raw_mode)
-+		vfree(cxdev->auxbuf.buf);
-+
-+	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
-+		if (cxdev->streamurbs[i] != NULL) {
-+			kfree(cxdev->streamurbs[i]->transfer_buffer);
-+			usb_free_urb(cxdev->streamurbs[i]);
-+			cxdev->streamurbs[i] = NULL;
-+		}
-+
-+	cxusb_medion_return_buffers(cxdev, false);
-+}
-+
-+static void cxusub_medion_v_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct cxusb_medion_vbuffer *vbuf =
-+		container_of(vb, struct cxusb_medion_vbuffer, vb2);
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	/* cxusb_vprintk(dvbdev, OPS, "mmmm.. fresh buffer...\n"); */
-+
-+	list_add_tail(&vbuf->list, &cxdev->buflist);
-+}
-+
-+static void cxusub_medion_v_wait_prepare(struct vb2_queue *q)
-+{
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	mutex_unlock(cxdev->videodev->lock);
-+}
-+
-+static void cxusub_medion_v_wait_finish(struct vb2_queue *q)
-+{
-+	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	mutex_lock(cxdev->videodev->lock);
-+}
-+
-+static const struct vb2_ops cxdev_video_qops = {
-+	.queue_setup = cxusb_medion_v_queue_setup,
-+	.buf_init = cxusb_medion_v_buf_init,
-+	.start_streaming = cxusb_medion_v_start_streaming,
-+	.stop_streaming = cxusb_medion_v_stop_streaming,
-+	.buf_queue = cxusub_medion_v_buf_queue,
-+	.wait_prepare = cxusub_medion_v_wait_prepare,
-+	.wait_finish = cxusub_medion_v_wait_finish
-+};
-+
-+static int cxusb_medion_v_querycap(struct file *file, void *fh,
-+				   struct v4l2_capability *cap)
-+{
-+	const __u32 videocaps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
-+		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-+	const __u32 radiocaps = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct video_device *vdev = video_devdata(file);
-+
-+	strncpy(cap->driver, dvbdev->udev->dev.driver->name,
-+		sizeof(cap->driver) - 1);
-+	strcpy(cap->card, "Medion 95700");
-+	usb_make_path(dvbdev->udev, cap->bus_info, sizeof(cap->bus_info));
-+
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		cap->device_caps = videocaps;
-+	else
-+		cap->device_caps = radiocaps;
-+
-+	cap->capabilities = videocaps | radiocaps | V4L2_CAP_DEVICE_CAPS;
-+
-+	memset(cap->reserved, 0, sizeof(cap->reserved));
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_v_enum_fmt_vid_cap(struct file *file, void *fh,
-+					   struct v4l2_fmtdesc *f)
-+{
-+	if (f->index != 0)
-+		return -EINVAL;
-+
-+	f->flags = 0;
-+	strcpy(f->description, "YUV 4:2:2");
-+	f->pixelformat = V4L2_PIX_FMT_UYVY;
-+	memset(f->reserved, 0, sizeof(f->reserved));
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_g_fmt_vid_cap(struct file *file, void *fh,
-+				      struct v4l2_format *f)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	f->fmt.pix.width = cxdev->width;
-+	f->fmt.pix.height = cxdev->height;
-+	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-+	f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
-+	f->fmt.pix.bytesperline = cxdev->raw_mode ? 0 : cxdev->width * 2;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	f->fmt.pix.sizeimage =
-+		cxdev->raw_mode ? CXUSB_VIDEO_MAX_FRAME_SIZE :
-+		f->fmt.pix.bytesperline * f->fmt.pix.height;
-+	f->fmt.pix.priv = 0;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_g_parm(struct file *file, void *fh,
-+			       struct v4l2_streamparm *param)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	memset(&param->parm.capture, 0, sizeof(param->parm.capture));
-+
-+	if (cxdev->raw_mode)
-+		param->parm.capture.extendedmode |=
-+			CXUSB_EXTENDEDMODE_CAPTURE_RAW;
-+
-+	param->parm.capture.readbuffers = 1;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_s_parm(struct file *file, void *fh,
-+			       struct v4l2_streamparm *param)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	bool want_raw;
-+
-+	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	want_raw = param->parm.capture.extendedmode &
-+		CXUSB_EXTENDEDMODE_CAPTURE_RAW;
-+
-+	if (want_raw != cxdev->raw_mode) {
-+		if (cxusb_medion_stream_busy(cxdev) ||
-+		    vb2_is_busy(&cxdev->videoqueue))
-+			return -EBUSY;
-+
-+		cxdev->raw_mode = want_raw;
-+	}
-+
-+	param->parm.capture.readbuffers = 1;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_try_s_fmt_vid_cap(struct file *file,
-+					  struct v4l2_format *f,
-+					  bool isset)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	struct v4l2_subdev_format subfmt;
++	u8 *buf;
 +	int ret;
 +
-+	if (isset && (cxusb_medion_stream_busy(cxdev) ||
-+		      vb2_is_busy(&cxdev->videoqueue)))
-+		return -EBUSY;
-+
-+	memset(&subfmt, 0, sizeof(subfmt));
-+	subfmt.which = isset ? V4L2_SUBDEV_FORMAT_ACTIVE :
-+		V4L2_SUBDEV_FORMAT_TRY;
-+	subfmt.format.width = f->fmt.pix.width & ~1;
-+	subfmt.format.height = f->fmt.pix.height & ~1;
-+	subfmt.format.code = MEDIA_BUS_FMT_FIXED;
-+	subfmt.format.field = V4L2_FIELD_SEQ_TB;
-+	subfmt.format.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL, &subfmt);
-+	if (ret != 0) {
-+		if (ret != -ERANGE)
-+			return ret;
-+
-+		/* try some common formats */
-+		subfmt.format.width = 720;
-+		subfmt.format.height = 576;
-+		ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL,
-+				       &subfmt);
-+		if (ret != 0) {
-+			if (ret != -ERANGE)
-+				return ret;
-+
-+			subfmt.format.width = 640;
-+			subfmt.format.height = 480;
-+			ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt,
-+					       NULL, &subfmt);
-+			if (ret != 0)
-+				return ret;
-+		}
-+	}
-+
-+	f->fmt.pix.width = subfmt.format.width;
-+	f->fmt.pix.height = subfmt.format.height;
-+	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-+	f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
-+	f->fmt.pix.bytesperline = cxdev->raw_mode ? 0 : f->fmt.pix.width * 2;
-+	f->fmt.pix.sizeimage =
-+		cxdev->raw_mode ? CXUSB_VIDEO_MAX_FRAME_SIZE :
-+		f->fmt.pix.bytesperline * f->fmt.pix.height;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	f->fmt.pix.priv = 0;
-+
-+	if (isset) {
-+		cxdev->width = f->fmt.pix.width;
-+		cxdev->height = f->fmt.pix.height;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_try_fmt_vid_cap(struct file *file, void *fh,
-+					struct v4l2_format *f)
-+{
-+	return cxusb_medion_try_s_fmt_vid_cap(file, f, false);
-+}
-+
-+static int cxusb_medion_s_fmt_vid_cap(struct file *file, void *fh,
-+				      struct v4l2_format *f)
-+{
-+	return cxusb_medion_try_s_fmt_vid_cap(file, f, true);
-+}
-+
-+static const struct {
-+	struct v4l2_input input;
-+	u32 inputcfg;
-+} cxusb_medion_inputs[] = {
-+	{ .input = { .name = "TV tuner", .type = V4L2_INPUT_TYPE_TUNER,
-+		     .tuner = 0, .std = V4L2_STD_PAL },
-+	  .inputcfg = CX25840_COMPOSITE2, },
-+
-+	{  .input = { .name = "Composite", .type = V4L2_INPUT_TYPE_CAMERA,
-+		     .std = V4L2_STD_ALL },
-+	   .inputcfg = CX25840_COMPOSITE1, },
-+
-+	{  .input = { .name = "S-Video", .type = V4L2_INPUT_TYPE_CAMERA,
-+		      .std = V4L2_STD_ALL },
-+	   .inputcfg = CX25840_SVIDEO_LUMA3 | CX25840_SVIDEO_CHROMA4 }
-+};
-+
-+#define CXUSB_INPUT_CNT ARRAY_SIZE(cxusb_medion_inputs)
-+
-+static int cxusb_medion_enum_input(struct file *file, void *fh,
-+				   struct v4l2_input *inp)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	u32 index = inp->index;
-+
-+	if (index >= CXUSB_INPUT_CNT)
++	if (msg->flags & I2C_M_RD)
++		return -EINVAL;
++	if (msg->len < 2)
 +		return -EINVAL;
 +
-+	*inp = cxusb_medion_inputs[index].input;
-+	inp->index = index;
-+	inp->capabilities |= V4L2_IN_CAP_STD;
++	buf = kmalloc(msg->len - 1, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++	memcpy(buf, msg->buf + 1, msg->len - 1);
 +
-+	if (index == cxdev->input) {
++	usleep_range(1000, 2000); /* avoid I2C errors */
++
++	ret = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev, 0),
++				 GL861_REQ_I2C_RAW, GL861_WRITE,
++				 msg->addr << (8 + 1), msg->buf[0],
++				 buf, msg->len - 1, 2000);
++	kfree(buf);
++	return ret;
++}
++
+ /* I2C */
+ static int gl861_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			  int num)
+@@ -63,16 +139,35 @@ static int gl861_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 		return -EAGAIN;
+ 
+ 	for (i = 0; i < num; i++) {
+-		/* write/read request */
+-		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
+-			if (gl861_i2c_msg(d, msg[i].addr, msg[i].buf,
+-				msg[i].len, msg[i+1].buf, msg[i+1].len) < 0)
+-				break;
 +		int ret;
-+		u32 status = 0;
 +
-+		ret = v4l2_subdev_call(cxdev->cx25840, video, g_input_status,
-+				       &status);
-+		if (ret != 0)
-+			dev_warn(&dvbdev->udev->dev,
-+				 "cx25840 input status query failed (%d)\n",
-+				 ret);
-+		else
-+			inp->status = status;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_g_input(struct file *file, void *fh,
-+				unsigned int *i)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	*i = cxdev->input;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_s_input(struct file *file, void *fh,
-+				unsigned int i)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret;
-+
-+	if (i >= CXUSB_INPUT_CNT)
-+		return -EINVAL;
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, video, s_routing,
-+			       cxusb_medion_inputs[i].inputcfg, 0, 0);
-+	if (ret != 0)
-+		return ret;
-+
-+	cxdev->input = i;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_g_tuner(struct file *file, void *fh,
-+				struct v4l2_tuner *tuner)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	struct video_device *vdev = video_devdata(file);
-+	int ret;
-+
-+	if (tuner->index != 0)
-+		return -EINVAL;
-+
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		tuner->type = V4L2_TUNER_ANALOG_TV;
-+	else
-+		tuner->type = V4L2_TUNER_RADIO;
-+
-+	tuner->capability = 0;
-+	tuner->afc = 0;
-+
-+	/*
-+	 * fills:
-+	 * always: capability (static), rangelow (static), rangehigh (static)
-+	 * radio mode: afc (may fail silently), rxsubchans (static), audmode
-+	 */
-+	ret = v4l2_subdev_call(cxdev->tda9887, tuner, g_tuner, tuner);
-+	if (ret != 0)
-+		return ret;
-+
-+	/*
-+	 * fills:
-+	 * always: capability (static), rangelow (static), rangehigh (static)
-+	 * radio mode: rxsubchans (always stereo), audmode,
-+	 * signal (might be wrong)
-+	 */
-+	ret = v4l2_subdev_call(cxdev->tuner, tuner, g_tuner, tuner);
-+	if (ret != 0)
-+		return ret;
-+
-+	tuner->signal = 0;
-+
-+	/*
-+	 * fills: TV mode: capability, rxsubchans, audmode, signal
-+	 */
-+	ret = v4l2_subdev_call(cxdev->cx25840, tuner, g_tuner, tuner);
-+	if (ret != 0)
-+		return ret;
-+
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		strcpy(tuner->name, "TV tuner");
-+	else
-+		strcpy(tuner->name, "Radio tuner");
-+
-+	memset(tuner->reserved, 0, sizeof(tuner->reserved));
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_s_tuner(struct file *file, void *fh,
-+				const struct v4l2_tuner *tuner)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	struct video_device *vdev = video_devdata(file);
-+	int ret;
-+
-+	if (tuner->index != 0)
-+		return -EINVAL;
-+
-+	ret = v4l2_subdev_call(cxdev->tda9887, tuner, s_tuner, tuner);
-+	if (ret != 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(cxdev->tuner, tuner, s_tuner, tuner);
-+	if (ret != 0)
-+		return ret;
-+
-+	/*
-+	 * make sure that cx25840 is in a correct TV / radio mode,
-+	 * since calls above may have changed it for tuner / IF demod
-+	 */
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		v4l2_subdev_call(cxdev->cx25840, video, s_std, cxdev->norm);
-+	else
-+		v4l2_subdev_call(cxdev->cx25840, tuner, s_radio);
-+
-+	return v4l2_subdev_call(cxdev->cx25840, tuner, s_tuner, tuner);
-+}
-+
-+static int cxusb_medion_g_frequency(struct file *file, void *fh,
-+				    struct v4l2_frequency *freq)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	if (freq->tuner != 0)
-+		return -EINVAL;
-+
-+	return v4l2_subdev_call(cxdev->tuner, tuner, g_frequency, freq);
-+}
-+
-+static int cxusb_medion_s_frequency(struct file *file, void *fh,
-+				    const struct v4l2_frequency *freq)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	struct video_device *vdev = video_devdata(file);
-+	int ret;
-+
-+	if (freq->tuner != 0)
-+		return -EINVAL;
-+
-+	ret = v4l2_subdev_call(cxdev->tda9887, tuner, s_frequency, freq);
-+	if (ret != 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(cxdev->tuner, tuner, s_frequency, freq);
-+	if (ret != 0)
-+		return ret;
-+
-+	/*
-+	 * make sure that cx25840 is in a correct TV / radio mode,
-+	 * since calls above may have changed it for tuner / IF demod
-+	 */
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		v4l2_subdev_call(cxdev->cx25840, video, s_std, cxdev->norm);
-+	else
-+		v4l2_subdev_call(cxdev->cx25840, tuner, s_radio);
-+
-+	return v4l2_subdev_call(cxdev->cx25840, tuner, s_frequency, freq);
-+}
-+
-+static int cxusb_medion_g_std(struct file *file, void *fh,
-+			      v4l2_std_id *norm)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret;
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, video, g_std, norm);
-+	if (ret != 0) {
-+		cxusb_vprintk(dvbdev, OPS, "cannot get standard for input %u\n",
-+			      (unsigned int)cxdev->input);
-+
-+		return ret;
-+	}
-+
-+	cxusb_vprintk(dvbdev, OPS,
-+		      "current standard for input %u is %lx\n",
-+		      (unsigned int)cxdev->input,
-+		      (unsigned long)*norm);
-+
-+	if (cxdev->input == 0)
 +		/*
-+		 * make sure we don't have improper std bits set
-+		 * for TV tuner (could happen when no signal was
-+		 * present yet after reset)
++		 * relay'ed reads (from tuner) are implemented by two i2c_msg's:
++		 *   1) write the tuner reg addr & value to demod reg:0xFE
++		 *   2) read from demod for the result
++		 * Special USB requests are used for the messages.
++		 * This means that those two messages cannot be combined to
++		 * one URB like the other i2c reads, and if msg[i] is an
++		 * uncombined read message, then it is a relayed read.
 +		 */
-+		*norm &= V4L2_STD_PAL;
++		if (msg[i].flags & I2C_M_RD)
++			ret = gl861_i2c_rawread(d, msg[i].addr,
++						msg[i].buf, msg[i].len);
 +
-+	if (*norm == V4L2_STD_UNKNOWN)
-+		return -ENODATA;
++		/* write to reg:0xFE means a relay'ed write (to tuner) */
++		else if (msg[i].buf[0] == 0xfe)
++			ret = gl861_i2c_relay_write(d, &msg[i]);
 +
-+	return 0;
-+}
++		else if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
++			ret = gl861_i2c_msg(d, msg[i].addr, msg[i].buf,
++				msg[i].len, msg[i+1].buf, msg[i+1].len);
+ 			i++;
+ 		} else
+-			if (gl861_i2c_msg(d, msg[i].addr, msg[i].buf,
+-					  msg[i].len, NULL, 0) < 0)
+-				break;
++			ret = gl861_i2c_msg(d, msg[i].addr, msg[i].buf,
++					    msg[i].len, NULL, 0);
 +
-+static int cxusb_medion_s_std(struct file *file, void *fh,
-+			      v4l2_std_id norm)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret;
++		if (ret < 0)
++			break;
+ 	}
+ 
+ 	mutex_unlock(&d->i2c_mutex);
+@@ -89,6 +184,335 @@ static struct i2c_algorithm gl861_i2c_algo = {
+ 	.functionality = gl861_i2c_func,
+ };
+ 
 +
-+	cxusb_vprintk(dvbdev, OPS,
-+		      "trying to set standard for input %u to %lx\n",
-+		      (unsigned int)cxdev->input,
-+		      (unsigned long)norm);
++/*
++ * Friio specific stuff
++ */
 +
-+	/* on composite or S-Video any std is acceptable */
-+	if (cxdev->input != 0) {
-+		ret = v4l2_subdev_call(cxdev->cx25840, video, s_std, norm);
-+		if (ret)
-+			return ret;
-+
-+		goto ret_savenorm;
-+	}
-+
-+	/* TV tuner is only able to demodulate PAL */
-+	if ((norm & ~V4L2_STD_PAL) != 0)
-+		return -EINVAL;
-+
-+	/* no autodetection support */
-+	if (norm == 0)
-+		return -EINVAL;
-+
-+	ret = v4l2_subdev_call(cxdev->tda9887, video, s_std, norm);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev,
-+			"tda9887 norm setup failed (%d)\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	ret = v4l2_subdev_call(cxdev->tuner, video, s_std, norm);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev,
-+			"tuner norm setup failed (%d)\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, video, s_std, norm);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev,
-+			"cx25840 norm setup failed (%d)\n",
-+			ret);
-+		return ret;
-+	}
-+
-+ret_savenorm:
-+	cxdev->norm = norm;
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_log_status(struct file *file, void *fh)
-+{
-+	struct dvb_usb_device *dvbdev = video_drvdata(file);
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	v4l2_device_call_all(&cxdev->v4l2dev, 0, core, log_status);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops cxusb_video_ioctl = {
-+	.vidioc_querycap = cxusb_medion_v_querycap,
-+	.vidioc_enum_fmt_vid_cap = cxusb_medion_v_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap = cxusb_medion_g_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap = cxusb_medion_s_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap = cxusb_medion_try_fmt_vid_cap,
-+	.vidioc_enum_input = cxusb_medion_enum_input,
-+	.vidioc_g_input = cxusb_medion_g_input,
-+	.vidioc_s_input = cxusb_medion_s_input,
-+	.vidioc_g_parm = cxusb_medion_g_parm,
-+	.vidioc_s_parm = cxusb_medion_s_parm,
-+	.vidioc_g_tuner = cxusb_medion_g_tuner,
-+	.vidioc_s_tuner = cxusb_medion_s_tuner,
-+	.vidioc_g_frequency = cxusb_medion_g_frequency,
-+	.vidioc_s_frequency = cxusb_medion_s_frequency,
-+	.vidioc_g_std = cxusb_medion_g_std,
-+	.vidioc_s_std = cxusb_medion_s_std,
-+	.vidioc_log_status = cxusb_medion_log_status,
-+	.vidioc_reqbufs = vb2_ioctl_reqbufs,
-+	.vidioc_querybuf = vb2_ioctl_querybuf,
-+	.vidioc_qbuf = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf = vb2_ioctl_dqbuf,
-+	.vidioc_create_bufs = vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
-+	.vidioc_streamon = vb2_ioctl_streamon,
-+	.vidioc_streamoff = vb2_ioctl_streamoff
++struct friio_priv {
++	struct i2c_adapter *demod_sub_i2c;
++	struct i2c_client  *i2c_client_demod;
++	struct i2c_client  *i2c_client_tuner;
 +};
 +
-+static const struct v4l2_ioctl_ops cxusb_radio_ioctl = {
-+	.vidioc_querycap = cxusb_medion_v_querycap,
-+	.vidioc_g_tuner = cxusb_medion_g_tuner,
-+	.vidioc_s_tuner = cxusb_medion_s_tuner,
-+	.vidioc_g_frequency = cxusb_medion_g_frequency,
-+	.vidioc_s_frequency = cxusb_medion_s_frequency,
-+	.vidioc_log_status = cxusb_medion_log_status
++struct friio_config {
++	struct i2c_board_info demod_info;
++	struct tc90522_config demod_cfg;
++
++	struct i2c_board_info tuner_info;
++	struct dvb_pll_config tuner_cfg;
++};
++
++static const struct friio_config friio_config = {
++	.demod_info = { I2C_BOARD_INFO(TC90522_I2C_DEV_TER, 0x18), },
++	.tuner_info = { I2C_BOARD_INFO("dvb_pll", 0x60), },
++	.tuner_cfg = {
++		.desc_id = DVB_PLL_TUA6034_FRIIO,
++	},
 +};
 +
 +/*
-+ * in principle, this should be const, but s_io_pin_config is declared
-+ * to take non-const, and gcc complains
++ * Utility functions for Friio
 + */
-+static struct v4l2_subdev_io_pin_config cxusub_medion_pin_config[] = {
-+	{ .pin = CX25840_PIN_DVALID_PRGM0, .function = CX25840_PAD_DEFAULT,
-+	  .strength = CX25840_PIN_DRIVE_MEDIUM },
-+	{ .pin = CX25840_PIN_PLL_CLK_PRGM7, .function = CX25840_PAD_AUX_PLL },
-+	{ .pin = CX25840_PIN_HRESET_PRGM2, .function = CX25840_PAD_ACTIVE,
-+	  .strength = CX25840_PIN_DRIVE_MEDIUM }
-+};
 +
-+int cxusb_medion_analog_init(struct dvb_usb_device *dvbdev)
++/* GPIO control in Friio */
++
++#define FRIIO_CTL_LNB (1 << 0)
++#define FRIIO_CTL_STROBE (1 << 1)
++#define FRIIO_CTL_CLK (1 << 2)
++#define FRIIO_CTL_LED (1 << 3)
++
++#define FRIIO_LED_RUNNING 0x6400ff64
++#define FRIIO_LED_STOPPED 0x96ff00ff
++
++/* control PIC16F676 attached to Friio */
++static int friio_ext_ctl(struct dvb_usb_device *d,
++			    u32 sat_color, int power_on)
 +{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	u8 tuner_analog_msg_data[] = { 0x9c, 0x60, 0x85, 0x54 };
-+	struct i2c_msg tuner_analog_msg = { .addr = 0x61, .flags = 0,
-+					    .buf = tuner_analog_msg_data,
-+					    .len =
-+					    sizeof(tuner_analog_msg_data) };
-+	struct v4l2_subdev_format subfmt;
-+	int ret;
++	int i, ret;
++	struct i2c_msg msg;
++	u8 *buf;
++	u32 mask;
++	u8 power = (power_on) ? FRIIO_CTL_LNB : 0;
 +
-+	/* switch tuner to analog mode so IF demod will become accessible */
-+	ret = i2c_transfer(&dvbdev->i2c_adap, &tuner_analog_msg, 1);
-+	if (ret != 1)
-+		dev_warn(&dvbdev->udev->dev,
-+			 "tuner analog switch failed (%d)\n", ret);
++	buf = kmalloc(2, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
 +
-+	ret = v4l2_subdev_call(cxdev->cx25840, core, load_fw);
-+	if (ret != 0)
-+		dev_warn(&dvbdev->udev->dev,
-+			 "cx25840 fw load failed (%d)\n", ret);
++	msg.addr = 0x00;
++	msg.flags = 0;
++	msg.len = 2;
++	msg.buf = buf;
++	buf[0] = 0x00;
 +
-+	ret = v4l2_subdev_call(cxdev->cx25840, video, s_routing,
-+			       CX25840_COMPOSITE1, 0,
-+			       CX25840_VCONFIG_FMT_BT656 |
-+			       CX25840_VCONFIG_RES_8BIT |
-+			       CX25840_VCONFIG_VBIRAW_DISABLED |
-+			       CX25840_VCONFIG_ANCDATA_DISABLED |
-+			       CX25840_VCONFIG_ACTIVE_COMPOSITE |
-+			       CX25840_VCONFIG_VALID_ANDACTIVE |
-+			       CX25840_VCONFIG_HRESETW_NORMAL |
-+			       CX25840_VCONFIG_CLKGATE_NONE |
-+			       CX25840_VCONFIG_DCMODE_DWORDS);
-+	if (ret != 0)
-+		dev_warn(&dvbdev->udev->dev,
-+			 "cx25840 mode set failed (%d)\n", ret);
++	/* send 2bit header (&B10) */
++	buf[1] = power | FRIIO_CTL_LED | FRIIO_CTL_STROBE;
++	ret = i2c_transfer(&d->i2c_adap, &msg, 1);
++	buf[1] |= FRIIO_CTL_CLK;
++	ret += i2c_transfer(&d->i2c_adap, &msg, 1);
 +
-+	/* composite */
-+	cxdev->input = 1;
-+	cxdev->norm = 0;
++	buf[1] = power | FRIIO_CTL_STROBE;
++	ret += i2c_transfer(&d->i2c_adap, &msg, 1);
++	buf[1] |= FRIIO_CTL_CLK;
++	ret += i2c_transfer(&d->i2c_adap, &msg, 1);
 +
-+	/* TODO: setup audio samples insertion */
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, core, s_io_pin_config,
-+			       sizeof(cxusub_medion_pin_config) /
-+			       sizeof(cxusub_medion_pin_config[0]),
-+			       cxusub_medion_pin_config);
-+	if (ret != 0)
-+		dev_warn(&dvbdev->udev->dev,
-+			"cx25840 pin config failed (%d)\n", ret);
-+
-+	/* make sure that we aren't in radio mode */
-+	v4l2_subdev_call(cxdev->tda9887, video, s_std, V4L2_STD_PAL);
-+	v4l2_subdev_call(cxdev->tuner, video, s_std, V4L2_STD_PAL);
-+	v4l2_subdev_call(cxdev->cx25840, video, s_std, cxdev->norm);
-+
-+	memset(&subfmt, 0, sizeof(subfmt));
-+	subfmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	subfmt.format.width = cxdev->width;
-+	subfmt.format.height = cxdev->height;
-+	subfmt.format.code = MEDIA_BUS_FMT_FIXED;
-+	subfmt.format.field = V4L2_FIELD_SEQ_TB;
-+	subfmt.format.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+
-+	ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL, &subfmt);
-+	if (ret != 0) {
-+		subfmt.format.width = 640;
-+		subfmt.format.height = 480;
-+		ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL,
-+				       &subfmt);
-+		if (ret != 0)
-+			dev_warn(&dvbdev->udev->dev,
-+				 "cx25840 format set failed (%d)\n", ret);
++	/* send 32bit(satur, R, G, B) data in serial */
++	mask = 1 << 31;
++	for (i = 0; i < 32; i++) {
++		buf[1] = power | FRIIO_CTL_STROBE;
++		if (sat_color & mask)
++			buf[1] |= FRIIO_CTL_LED;
++		ret += i2c_transfer(&d->i2c_adap, &msg, 1);
++		buf[1] |= FRIIO_CTL_CLK;
++		ret += i2c_transfer(&d->i2c_adap, &msg, 1);
++		mask >>= 1;
 +	}
 +
-+	if (ret == 0) {
-+		cxdev->width = subfmt.format.width;
-+		cxdev->height = subfmt.format.height;
-+	}
++	/* set the strobe off */
++	buf[1] = power;
++	ret += i2c_transfer(&d->i2c_adap, &msg, 1);
++	buf[1] |= FRIIO_CTL_CLK;
++	ret += i2c_transfer(&d->i2c_adap, &msg, 1);
 +
-+	return 0;
++	kfree(buf);
++	return (ret == 70) ? 0 : -EREMOTEIO;
 +}
 +
-+static int cxusb_videoradio_open(struct file *f)
++/* init/config of Friio demod chip(?) */
++static int friio_reset(struct dvb_usb_device *d)
 +{
-+	struct dvb_usb_device *dvbdev = video_drvdata(f);
-+	int ret;
++	int i, ret;
++	u8 wbuf[2], rbuf[2];
++
++	static const u8 friio_init_cmds[][2] = {
++		{0x33, 0x08}, {0x37, 0x40}, {0x3a, 0x1f}, {0x3b, 0xff},
++		{0x3c, 0x1f}, {0x3d, 0xff}, {0x38, 0x00}, {0x35, 0x00},
++		{0x39, 0x00}, {0x36, 0x00},
++	};
++
++	ret = usb_set_interface(d->udev, 0, 0);
++	if (ret < 0)
++		return ret;
++
++	wbuf[0] = 0x11;
++	wbuf[1] = 0x02;
++	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
++	if (ret < 0)
++		return ret;
++	usleep_range(2000, 3000);
++
++	wbuf[0] = 0x11;
++	wbuf[1] = 0x00;
++	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
++	if (ret < 0)
++		return ret;
++	usleep_range(1000, 2000);
 +
 +	/*
-+	 * no locking needed since this call only modifies analog
-+	 * state if there are no other analog handles currenly
-+	 * opened so ops done via them cannot create a conflict
++	 * Check if the dev is really a Friio White, since it might be
++	 * another device, Friio Black, with the same VID/PID.
 +	 */
-+	ret = cxusb_medion_get(dvbdev, CXUSB_OPEN_ANALOG);
-+	if (ret != 0)
++
++	wbuf[0] = 0x03;
++	wbuf[1] = 0x80;
++	ret = gl861_i2c_rawwrite(d, 0x09, wbuf, 2);
++	if (ret < 0)
 +		return ret;
 +
-+	ret = v4l2_fh_open(f);
-+	if (ret != 0)
-+		goto ret_release;
-+
-+	cxusb_vprintk(dvbdev, OPS, "got open\n");
-+
-+	return 0;
-+
-+ret_release:
-+	cxusb_medion_put(dvbdev);
-+
-+	return ret;
-+}
-+
-+static int cxusb_videoradio_release(struct file *f)
-+{
-+	struct video_device *vdev = video_devdata(f);
-+	struct dvb_usb_device *dvbdev = video_drvdata(f);
-+	int ret;
-+
-+	cxusb_vprintk(dvbdev, OPS, "got release\n");
-+
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		ret = vb2_fop_release(f);
-+	else
-+		ret = v4l2_fh_release(f);
-+
-+	cxusb_medion_put(dvbdev);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_file_operations cxusb_video_fops = {
-+	.owner = THIS_MODULE,
-+	.read = vb2_fop_read,
-+	.poll = vb2_fop_poll,
-+	.unlocked_ioctl = video_ioctl2,
-+	.mmap = vb2_fop_mmap,
-+	.open = cxusb_videoradio_open,
-+	.release = cxusb_videoradio_release
-+};
-+
-+static const struct v4l2_file_operations cxusb_radio_fops = {
-+	.owner = THIS_MODULE,
-+	.unlocked_ioctl = video_ioctl2,
-+	.open = cxusb_videoradio_open,
-+	.release = cxusb_videoradio_release
-+};
-+
-+static void cxusb_medion_v4l2_release(struct v4l2_device *v4l2_dev)
-+{
-+	struct cxusb_medion_dev *cxdev =
-+		container_of(v4l2_dev, struct cxusb_medion_dev, v4l2dev);
-+	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
-+
-+	cxusb_vprintk(dvbdev, OPS, "v4l2 device release\n");
-+
-+	v4l2_device_unregister(&cxdev->v4l2dev);
-+
-+	mutex_destroy(&cxdev->dev_lock);
-+
-+	while (completion_done(&cxdev->v4l2_release))
-+		schedule();
-+
-+	complete(&cxdev->v4l2_release);
-+}
-+
-+static void cxusb_medion_videodev_release(struct video_device *vdev)
-+{
-+	struct dvb_usb_device *dvbdev = video_get_drvdata(vdev);
-+
-+	cxusb_vprintk(dvbdev, OPS, "video device release\n");
-+
-+	vb2_queue_release(vdev->queue);
-+
-+	video_device_release(vdev);
-+}
-+
-+static int cxusb_medion_register_analog_video(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret;
-+
-+	cxdev->videoqueue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	cxdev->videoqueue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-+	cxdev->videoqueue.ops = &cxdev_video_qops;
-+	cxdev->videoqueue.mem_ops = &vb2_vmalloc_memops;
-+	cxdev->videoqueue.drv_priv = dvbdev;
-+	cxdev->videoqueue.buf_struct_size =
-+		sizeof(struct cxusb_medion_vbuffer);
-+	cxdev->videoqueue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+
-+	ret = vb2_queue_init(&cxdev->videoqueue);
-+	if (ret) {
-+		dev_err(&dvbdev->udev->dev,
-+			"video queue init failed, ret = %d\n", ret);
++	usleep_range(2000, 3000);
++	ret = gl861_i2c_rawread(d, 0x09, rbuf, 2);
++	if (ret < 0)
 +		return ret;
-+	}
-+
-+	cxdev->videodev = video_device_alloc();
-+	if (cxdev->videodev == NULL) {
-+		dev_err(&dvbdev->udev->dev, "video device alloc failed\n");
-+		ret = -ENOMEM;
-+		goto ret_qrelease;
-+	}
-+
-+	cxdev->videodev->fops = &cxusb_video_fops;
-+	cxdev->videodev->v4l2_dev = &cxdev->v4l2dev;
-+	cxdev->videodev->queue = &cxdev->videoqueue;
-+	strcpy(cxdev->videodev->name, "cxusb");
-+	cxdev->videodev->vfl_dir = VFL_DIR_RX;
-+	cxdev->videodev->ioctl_ops = &cxusb_video_ioctl;
-+	cxdev->videodev->tvnorms = V4L2_STD_ALL;
-+	cxdev->videodev->release = cxusb_medion_videodev_release;
-+	cxdev->videodev->lock = &cxdev->dev_lock;
-+	video_set_drvdata(cxdev->videodev, dvbdev);
-+
-+	ret = video_register_device(cxdev->videodev, VFL_TYPE_GRABBER, -1);
-+	if (ret) {
-+		dev_err(&dvbdev->udev->dev,
-+			"video device register failed, ret = %d\n", ret);
-+		goto ret_vrelease;
-+	}
-+
-+	return 0;
-+
-+ret_vrelease:
-+	video_device_release(cxdev->videodev);
-+
-+ret_qrelease:
-+	vb2_queue_release(&cxdev->videoqueue);
-+
-+	return ret;
-+}
-+
-+static int cxusb_medion_register_analog_radio(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret;
-+
-+	cxdev->radiodev = video_device_alloc();
-+	if (cxdev->radiodev == NULL) {
-+		dev_err(&dvbdev->udev->dev, "radio device alloc failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	cxdev->radiodev->fops = &cxusb_radio_fops;
-+	cxdev->radiodev->v4l2_dev = &cxdev->v4l2dev;
-+	strcpy(cxdev->radiodev->name, "cxusb");
-+	cxdev->radiodev->vfl_dir = VFL_DIR_RX;
-+	cxdev->radiodev->ioctl_ops = &cxusb_radio_ioctl;
-+	cxdev->radiodev->release = video_device_release;
-+	cxdev->radiodev->lock = &cxdev->dev_lock;
-+	video_set_drvdata(cxdev->radiodev, dvbdev);
-+
-+	ret = video_register_device(cxdev->radiodev, VFL_TYPE_RADIO, -1);
-+	if (ret) {
-+		dev_err(&dvbdev->udev->dev,
-+			"radio device register failed, ret = %d\n", ret);
-+		video_device_release(cxdev->radiodev);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_register_analog_subdevs(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	struct tuner_setup tun_setup;
-+	struct i2c_board_info cx25840_board;
-+	struct cx25840_platform_data cx25840_platform;
-+
-+	/* attach capture chip */
-+	memset(&cx25840_platform, 0, sizeof(cx25840_platform));
-+	cx25840_platform.generic_mode = 1;
-+
-+	memset(&cx25840_board, 0, sizeof(cx25840_board));
-+	strcpy(cx25840_board.type, "cx25840");
-+	cx25840_board.addr = 0x44;
-+	cx25840_board.platform_data = &cx25840_platform;
-+
-+	cxdev->cx25840 = v4l2_i2c_new_subdev_board(&cxdev->v4l2dev,
-+						   &dvbdev->i2c_adap,
-+						   &cx25840_board, NULL);
-+	if (cxdev->cx25840 == NULL) {
-+		dev_err(&dvbdev->udev->dev, "cx25840 not found\n");
++	if (rbuf[0] != 0xff || rbuf[1] != 0xff)
 +		return -ENODEV;
-+	}
 +
-+	/* attach analog tuner */
-+	cxdev->tuner = v4l2_i2c_new_subdev(&cxdev->v4l2dev,
-+					   &dvbdev->i2c_adap,
-+					   "tuner", 0x61, NULL);
-+	if (cxdev->tuner == NULL) {
-+		dev_err(&dvbdev->udev->dev, "tuner not found\n");
-+		return -ENODEV;
-+	}
 +
-+	/* configure it */
-+	memset(&tun_setup, 0, sizeof(tun_setup));
-+	tun_setup.addr = 0x61;
-+	tun_setup.type = TUNER_PHILIPS_FMD1216ME_MK3;
-+	tun_setup.mode_mask = T_RADIO | T_ANALOG_TV;
-+	v4l2_subdev_call(cxdev->tuner, tuner, s_type_addr, &tun_setup);
-+
-+	/* attach IF demod */
-+	cxdev->tda9887 = v4l2_i2c_new_subdev(&cxdev->v4l2dev,
-+					     &dvbdev->i2c_adap,
-+					     "tuner", 0x43, NULL);
-+	if (cxdev->tda9887 == NULL) {
-+		dev_err(&dvbdev->udev->dev, "tda9887 not found\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+int cxusb_medion_register_analog(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret;
-+
-+	mutex_init(&cxdev->dev_lock);
-+
-+	init_completion(&cxdev->v4l2_release);
-+
-+	cxdev->v4l2dev.release = cxusb_medion_v4l2_release;
-+
-+	ret = v4l2_device_register(&dvbdev->udev->dev, &cxdev->v4l2dev);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev,
-+			"V4L2 device registration failed, ret = %d\n", ret);
-+		mutex_destroy(&cxdev->dev_lock);
++	ret = gl861_i2c_rawwrite(d, 0x48, wbuf, 2);
++	if (ret < 0)
 +		return ret;
++	usleep_range(2000, 3000);
++
++	ret = gl861_i2c_rawread(d, 0x48, rbuf, 2);
++	if (ret < 0)
++		return ret;
++	if (rbuf[0] != 0xff || rbuf[1] != 0xff)
++		return -ENODEV;
++
++	usleep_range(1000, 2000);
++
++	wbuf[0] = 0x30;
++	wbuf[1] = 0x04;
++	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
++	if (ret < 0)
++		return ret;
++	usleep_range(2000, 3000);
++
++	wbuf[0] = 0x00;
++	wbuf[1] = 0x01;
++	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
++	if (ret < 0)
++		return ret;
++
++	wbuf[0] = 0x06;
++	wbuf[1] = 0x0f;
++	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
++	if (ret < 0)
++		return ret;
++
++	usleep_range(10000, 11000);
++	for (i = 0; i < ARRAY_SIZE(friio_init_cmds); i++) {
++		ret = gl861_i2c_msg(d, 0x00, (u8 *)friio_init_cmds[i], 2,
++				      NULL, 0);
++		if (ret < 0)
++			return ret;
++		usleep_range(1000, 2000);
 +	}
-+
-+	ret = cxusb_medion_register_analog_subdevs(dvbdev);
-+	if (ret)
-+		goto ret_unregister;
-+
-+	INIT_WORK(&cxdev->urbwork, cxusb_medion_v_complete_work);
-+	INIT_LIST_HEAD(&cxdev->buflist);
-+
-+	cxdev->width = 320;
-+	cxdev->height = 240;
-+
-+	ret = cxusb_medion_register_analog_video(dvbdev);
-+	if (ret)
-+		goto ret_unregister;
-+
-+	ret = cxusb_medion_register_analog_radio(dvbdev);
-+	if (ret)
-+		goto ret_vunreg;
-+
 +	return 0;
-+
-+ret_vunreg:
-+	video_unregister_device(cxdev->videodev);
-+
-+ret_unregister:
-+	v4l2_device_put(&cxdev->v4l2dev);
-+	wait_for_completion(&cxdev->v4l2_release);
-+
-+	return ret;
 +}
 +
-+void cxusb_medion_unregister_analog(struct dvb_usb_device *dvbdev)
++/*
++ * DVB callbacks for Friio
++ */
++
++static int friio_power_ctrl(struct dvb_usb_device *d, int onoff)
 +{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	cxusb_vprintk(dvbdev, OPS, "unregistering analog\n");
-+
-+	video_unregister_device(cxdev->radiodev);
-+	video_unregister_device(cxdev->videodev);
-+
-+	v4l2_device_put(&cxdev->v4l2dev);
-+	wait_for_completion(&cxdev->v4l2_release);
-+
-+	cxusb_vprintk(dvbdev, OPS, "analog unregistered\n");
++	return onoff ? friio_reset(d) : 0;
 +}
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 11df020b7de3..68d62de0af01 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -11,7 +11,6 @@
-  * design, so it can be reused for the "analogue-only" device (if it will
-  * appear at all).
-  *
-- * TODO: Use the cx25840-driver for the analogue part
-  *
-  * Copyright (C) 2005 Patrick Boettcher (patrick.boettcher@posteo.de)
-  * Copyright (C) 2006 Michael Krufky (mkrufky@linuxtv.org)
-@@ -2548,5 +2547,4 @@ MODULE_AUTHOR("Michael Krufky <mkrufky@linuxtv.org>");
- MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
- MODULE_AUTHOR("Maciej S. Szmigiero <mail@maciej.szmigiero.name>");
- MODULE_DESCRIPTION("Driver for Conexant USB2.0 hybrid reference design");
--MODULE_VERSION("1.0-alpha");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
-index f586d61a7bf8..eb5ddda5962b 100644
---- a/drivers/media/usb/dvb-usb/cxusb.h
-+++ b/drivers/media/usb/dvb-usb/cxusb.h
-@@ -2,12 +2,27 @@
- #ifndef _DVB_USB_CXUSB_H_
- #define _DVB_USB_CXUSB_H_
- 
-+#include <linux/completion.h>
- #include <linux/i2c.h>
-+#include <linux/list.h>
- #include <linux/mutex.h>
-+#include <linux/usb.h>
-+#include <linux/workqueue.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-device.h>
-+#include <media/videobuf2-core.h>
- 
- #define DVB_USB_LOG_PREFIX "cxusb"
- #include "dvb-usb.h"
- 
-+#define CXUSB_VIDEO_URBS (5)
 +
-+#define CXUSB_VIDEO_PKT_SIZE 3030
-+#define CXUSB_VIDEO_MAX_FRAME_PKTS 346
-+#define CXUSB_VIDEO_MAX_FRAME_SIZE (CXUSB_VIDEO_MAX_FRAME_PKTS * \
-+					CXUSB_VIDEO_PKT_SIZE)
++static int friio_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	const struct i2c_board_info *info;
++	struct tc90522_config cfg;
++	struct i2c_client *cl;
++	struct friio_priv *priv;
 +
- /* usb commands - some of it are guesses, don't have a reference yet */
- #define CMD_BLUEBIRD_GPIO_RW 0x05
- 
-@@ -32,6 +47,20 @@
- #define CMD_ANALOG        0x50
- #define CMD_DIGITAL       0x51
- 
-+#define CXUSB_BT656_PREAMBLE ((const u8 *)"\xff\x00\x00")
++	info = &friio_config.demod_info;
++	cl = dvb_module_probe("tc90522", info->type,
++			      &adap_to_d(adap)->i2c_adap, info->addr, &cfg);
++	if (!cl)
++		return -ENODEV;
++	adap->fe[0] = cfg.fe;
 +
-+#define CXUSB_BT656_FIELD_MASK BIT(6)
-+#define CXUSB_BT656_FIELD_1 0
-+#define CXUSB_BT656_FIELD_2 BIT(6)
++	priv = adap_to_priv(adap);
++	priv->i2c_client_demod = cl;
++	priv->demod_sub_i2c = cfg.tuner_i2c;
++	return 0;
++}
 +
-+#define CXUSB_BT656_VBI_MASK BIT(5)
-+#define CXUSB_BT656_VBI_ON BIT(5)
-+#define CXUSB_BT656_VBI_OFF 0
++static int friio_frontend_detach(struct dvb_usb_adapter *adap)
++{
++	struct friio_priv *priv;
 +
-+#define CXUSB_BT656_SEAV_MASK BIT(4)
-+#define CXUSB_BT656_SEAV_EAV BIT(4)
-+#define CXUSB_BT656_SEAV_SAV 0
++	priv = adap_to_priv(adap);
++	dvb_module_release(priv->i2c_client_demod);
++	return 0;
++}
 +
- /* Max transfer size done by I2C transfer functions */
- #define MAX_XFER_SIZE  80
- 
-@@ -54,6 +83,29 @@ enum cxusb_open_type {
- 	CXUSB_OPEN_ANALOG, CXUSB_OPEN_DIGITAL
++static int friio_tuner_attach(struct dvb_usb_adapter *adap)
++{
++	const struct i2c_board_info *info;
++	struct dvb_pll_config cfg;
++	struct i2c_client *cl;
++	struct friio_priv *priv;
++
++	priv = adap_to_priv(adap);
++	info = &friio_config.tuner_info;
++	cfg = friio_config.tuner_cfg;
++	cfg.fe = adap->fe[0];
++
++	cl = dvb_module_probe("dvb_pll", info->type,
++			      priv->demod_sub_i2c, info->addr, &cfg);
++	if (!cl)
++		return -ENODEV;
++	priv->i2c_client_tuner = cl;
++	return 0;
++}
++
++static int friio_tuner_detach(struct dvb_usb_adapter *adap)
++{
++	struct friio_priv *priv;
++
++	priv = adap_to_priv(adap);
++#ifndef CONFIG_MEDIA_ATTACH
++	/* Note:
++	 * When CONFIG_MEDIA_ATTACH is defined,
++	 * the tuner module is already "put" by the following call trace:
++	 *
++	 * symbol_put_addr(fe->ops.tuner_ops.release)
++	 * dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release)
++	 * dvb_frontend_detach(fe)
++	 * dvb_usbv2_adapter_frontend_exit(adap)
++	 * dvb_usbv2_adapter_exit(d)
++	 * dvb_usbv2_exit(d)
++	 * dvb_usbv2_disconnect(intf)
++	 *
++	 * Since the tuner driver of Friio (dvb-pll) has .release defined,
++	 * dvb_module_release() should be skipped if CONFIG_MEDIA_ATTACH,
++	 * to avoid double-putting the module.
++	 * Even without dvb_module_release(),
++	 * the tuner i2c device is automatically unregistered
++	 * when its i2c adapter is unregistered with the demod i2c device.
++	 *
++	 * The same "double-putting" can happen to the demod module as well,
++	 * but tc90522 does not define any _invoke_release()'ed functions,
++	 * thus Friio is not affected.
++	 */
++	dvb_module_release(priv->i2c_client_tuner);
++#endif
++	return 0;
++}
++
++static int friio_init(struct dvb_usb_device *d)
++{
++	int i;
++	int ret;
++	struct friio_priv *priv;
++
++	static const u8 demod_init[][2] = {
++		{0x01, 0x40}, {0x04, 0x38}, {0x05, 0x40}, {0x07, 0x40},
++		{0x0f, 0x4f}, {0x11, 0x21}, {0x12, 0x0b}, {0x13, 0x2f},
++		{0x14, 0x31}, {0x16, 0x02}, {0x21, 0xc4}, {0x22, 0x20},
++		{0x2c, 0x79}, {0x2d, 0x34}, {0x2f, 0x00}, {0x30, 0x28},
++		{0x31, 0x31}, {0x32, 0xdf}, {0x38, 0x01}, {0x39, 0x78},
++		{0x3b, 0x33}, {0x3c, 0x33}, {0x48, 0x90}, {0x51, 0x68},
++		{0x5e, 0x38}, {0x71, 0x00}, {0x72, 0x08}, {0x77, 0x00},
++		{0xc0, 0x21}, {0xc1, 0x10}, {0xe4, 0x1a}, {0xea, 0x1f},
++		{0x77, 0x00}, {0x71, 0x00}, {0x71, 0x00}, {0x76, 0x0c},
++	};
++
++	/* power on LNA? */
++	ret = friio_ext_ctl(d, FRIIO_LED_STOPPED, true);
++	if (ret < 0)
++		return ret;
++	msleep(20);
++
++	/* init/config demod */
++	priv = d_to_priv(d);
++	for (i = 0; i < ARRAY_SIZE(demod_init); i++) {
++		int ret;
++
++		ret = i2c_master_send(priv->i2c_client_demod, demod_init[i], 2);
++		if (ret < 0)
++			return ret;
++	}
++	msleep(100);
++	return 0;
++}
++
++static void friio_exit(struct dvb_usb_device *d)
++{
++	friio_ext_ctl(d, FRIIO_LED_STOPPED, false);
++}
++
++static int friio_streaming_ctrl(struct dvb_frontend *fe, int onoff)
++{
++	u32 led_color;
++
++	led_color = onoff ? FRIIO_LED_RUNNING : FRIIO_LED_STOPPED;
++	return friio_ext_ctl(fe_to_d(fe), led_color, true);
++}
++
++
+ /* Callbacks for DVB USB */
+ static struct zl10353_config gl861_zl10353_config = {
+ 	.demod_address = 0x0f,
+@@ -148,11 +572,39 @@ static struct dvb_usb_device_properties gl861_props = {
+ 	}
  };
  
-+struct cxusb_medion_auxbuf {
-+	u8 *buf;
-+	unsigned int len;
-+	unsigned int paylen;
++static struct dvb_usb_device_properties friio_props = {
++	.driver_name = KBUILD_MODNAME,
++	.owner = THIS_MODULE,
++	.adapter_nr = adapter_nr,
++
++	.size_of_priv = sizeof(struct friio_priv),
++
++	.i2c_algo = &gl861_i2c_algo,
++	.power_ctrl = friio_power_ctrl,
++	.frontend_attach = friio_frontend_attach,
++	.frontend_detach = friio_frontend_detach,
++	.tuner_attach = friio_tuner_attach,
++	.tuner_detach = friio_tuner_detach,
++	.init = friio_init,
++	.exit = friio_exit,
++	.streaming_ctrl = friio_streaming_ctrl,
++
++	.num_adapters = 1,
++	.adapter = {
++		{
++			.stream = DVB_USB_STREAM_BULK(0x01, 8, 16384),
++		}
++	}
 +};
 +
-+enum cxusb_bt656_mode {
-+	NEW_FRAME, FIRST_FIELD, SECOND_FIELD
-+};
 +
-+enum cxusb_bt656_fmode {
-+	START_SEARCH, LINE_SAMPLES, VBI_SAMPLES
-+};
-+
-+struct cxusb_bt656_params {
-+	enum cxusb_bt656_mode mode;
-+	enum cxusb_bt656_fmode fmode;
-+	unsigned int pos;
-+	unsigned int line;
-+	unsigned int linesamples;
-+	u8 *buf;
-+};
-+
- struct cxusb_medion_dev {
- 	/* has to be the first one */
- 	struct cxusb_state state;
-@@ -63,18 +115,71 @@ struct cxusb_medion_dev {
- 	enum cxusb_open_type open_type;
- 	unsigned int open_ctr;
- 	struct mutex open_lock;
-+
-+#ifdef CONFIG_DVB_USB_CXUSB_ANALOG
-+	struct v4l2_device v4l2dev;
-+	struct v4l2_subdev *cx25840;
-+	struct v4l2_subdev *tuner;
-+	struct v4l2_subdev *tda9887;
-+	struct video_device *videodev, *radiodev;
-+	struct mutex dev_lock;
-+
-+	struct vb2_queue videoqueue;
-+	u32 input;
-+	bool streaming;
-+	u32 width, height;
-+	bool raw_mode;
-+	struct cxusb_medion_auxbuf auxbuf;
-+	v4l2_std_id norm;
-+
-+	struct urb *streamurbs[CXUSB_VIDEO_URBS];
-+	unsigned long urbcomplete;
-+	struct work_struct urbwork;
-+	unsigned int nexturb;
-+
-+	struct cxusb_bt656_params bt656;
-+	struct cxusb_medion_vbuffer *vbuf;
-+
-+	struct list_head buflist;
-+
-+	struct completion v4l2_release;
-+#endif
+ static const struct usb_device_id gl861_id_table[] = {
+ 	{ DVB_USB_DEVICE(USB_VID_MSI, USB_PID_MSI_MEGASKY580_55801,
+ 		&gl861_props, "MSI Mega Sky 55801 DVB-T USB2.0", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_ALINK, USB_VID_ALINK_DTU,
+ 		&gl861_props, "A-LINK DTU DVB-T USB2.0", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_774, USB_PID_FRIIO_WHITE,
++		&friio_props, "774 Friio White ISDB-T USB2.0", NULL) },
+ 	{ }
  };
+ MODULE_DEVICE_TABLE(usb, gl861_id_table);
+diff --git a/drivers/media/usb/dvb-usb-v2/gl861.h b/drivers/media/usb/dvb-usb-v2/gl861.h
+index b651b857e03..02c00e10748 100644
+--- a/drivers/media/usb/dvb-usb-v2/gl861.h
++++ b/drivers/media/usb/dvb-usb-v2/gl861.h
+@@ -9,5 +9,6 @@
  
-+struct cxusb_medion_vbuffer {
-+	struct vb2_buffer vb2;
-+	struct list_head list;
-+};
-+
-+/* Capture streaming parameters extendedmode field flags */
-+#define CXUSB_EXTENDEDMODE_CAPTURE_RAW 1
-+
- /* defines for "debug" module parameter */
- #define CXUSB_DBG_RC BIT(0)
- #define CXUSB_DBG_I2C BIT(1)
- #define CXUSB_DBG_MISC BIT(2)
-+#define CXUSB_DBG_BT656 BIT(3)
-+#define CXUSB_DBG_URB BIT(4)
-+#define CXUSB_DBG_OPS BIT(5)
-+#define CXUSB_DBG_AUXB BIT(6)
+ #define GL861_REQ_I2C_WRITE	0x01
+ #define GL861_REQ_I2C_READ	0x02
++#define GL861_REQ_I2C_RAW	0x03
  
- extern int dvb_usb_cxusb_debug;
+ #endif
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 2651ae27734..1990d1c975e 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -312,12 +312,6 @@ config DVB_USB_DTV5100
+ 	help
+ 	  Say Y here to support the AME DTV-5100 USB2.0 DVB-T receiver.
  
-+#define cxusb_vprintk(dvbdev, lvl, ...) do {				\
-+		struct cxusb_medion_dev *_cxdev = (dvbdev)->priv;	\
-+		if (dvb_usb_cxusb_debug & CXUSB_DBG_##lvl)		\
-+			v4l2_printk(KERN_DEBUG,			\
-+				    &_cxdev->v4l2dev, __VA_ARGS__);	\
-+	} while (0)
-+
- int cxusb_ctrl_msg(struct dvb_usb_device *d,
- 		   u8 cmd, const u8 *wbuf, int wlen, u8 *rbuf, int rlen);
+-config DVB_USB_FRIIO
+-	tristate "Friio ISDB-T USB2.0 Receiver support"
+-	depends on DVB_USB
+-	help
+-	  Say Y here to support the Japanese DTV receiver Friio.
+-
+ config DVB_USB_AZ6027
+ 	tristate "Azurewave DVB-S/S2 USB2.0 AZ6027 support"
+ 	depends on DVB_USB
+diff --git a/drivers/media/usb/dvb-usb/Makefile b/drivers/media/usb/dvb-usb/Makefile
+index 9ad2618408e..407d90ca8be 100644
+--- a/drivers/media/usb/dvb-usb/Makefile
++++ b/drivers/media/usb/dvb-usb/Makefile
+@@ -71,9 +71,6 @@ obj-$(CONFIG_DVB_USB_DTV5100) += dvb-usb-dtv5100.o
+ dvb-usb-cinergyT2-objs := cinergyT2-core.o cinergyT2-fe.o
+ obj-$(CONFIG_DVB_USB_CINERGY_T2) += dvb-usb-cinergyT2.o
  
-+#ifdef CONFIG_DVB_USB_CXUSB_ANALOG
-+int cxusb_medion_analog_init(struct dvb_usb_device *dvbdev);
-+int cxusb_medion_register_analog(struct dvb_usb_device *dvbdev);
-+void cxusb_medion_unregister_analog(struct dvb_usb_device *dvbdev);
-+#else
- static inline int cxusb_medion_analog_init(struct dvb_usb_device *dvbdev)
- {
- 	return -EINVAL;
-@@ -88,6 +193,7 @@ static inline int cxusb_medion_register_analog(struct dvb_usb_device *dvbdev)
- static inline void cxusb_medion_unregister_analog(struct dvb_usb_device *dvbdev)
- {
- }
-+#endif
+-dvb-usb-friio-objs := friio.o friio-fe.o
+-obj-$(CONFIG_DVB_USB_FRIIO) += dvb-usb-friio.o
+-
+ dvb-usb-az6027-objs := az6027.o
+ obj-$(CONFIG_DVB_USB_AZ6027) += dvb-usb-az6027.o
  
- int cxusb_medion_get(struct dvb_usb_device *dvbdev,
- 		     enum cxusb_open_type open_type);
+diff --git a/drivers/media/usb/dvb-usb/friio-fe.c b/drivers/media/usb/dvb-usb/friio-fe.c
+deleted file mode 100644
+index b2830c15754..00000000000
+--- a/drivers/media/usb/dvb-usb/friio-fe.c
++++ /dev/null
+@@ -1,441 +0,0 @@
+-/* DVB USB compliant Linux driver for the Friio USB2.0 ISDB-T receiver.
+- *
+- * Copyright (C) 2009 Akihiro Tsukada <tskd2@yahoo.co.jp>
+- *
+- * This module is based off the the gl861 and vp702x modules.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the Free
+- * Software Foundation, version 2.
+- *
+- * see Documentation/dvb/README.dvb-usb for more information
+- */
+-#include <linux/init.h>
+-#include <linux/string.h>
+-#include <linux/slab.h>
+-#include <linux/kernel.h>
+-
+-#include "friio.h"
+-
+-struct jdvbt90502_state {
+-	struct i2c_adapter *i2c;
+-	struct dvb_frontend frontend;
+-	struct jdvbt90502_config config;
+-};
+-
+-/* NOTE: TC90502 has 16bit register-address? */
+-/* register 0x0100 is used for reading PLL status, so reg is u16 here */
+-static int jdvbt90502_reg_read(struct jdvbt90502_state *state,
+-			       const u16 reg, u8 *buf, const size_t count)
+-{
+-	int ret;
+-	u8 wbuf[3];
+-	struct i2c_msg msg[2];
+-
+-	wbuf[0] = reg & 0xFF;
+-	wbuf[1] = 0;
+-	wbuf[2] = reg >> 8;
+-
+-	msg[0].addr = state->config.demod_address;
+-	msg[0].flags = 0;
+-	msg[0].buf = wbuf;
+-	msg[0].len = sizeof(wbuf);
+-
+-	msg[1].addr = msg[0].addr;
+-	msg[1].flags = I2C_M_RD;
+-	msg[1].buf = buf;
+-	msg[1].len = count;
+-
+-	ret = i2c_transfer(state->i2c, msg, 2);
+-	if (ret != 2) {
+-		deb_fe(" reg read failed.\n");
+-		return -EREMOTEIO;
+-	}
+-	return 0;
+-}
+-
+-/* currently 16bit register-address is not used, so reg is u8 here */
+-static int jdvbt90502_single_reg_write(struct jdvbt90502_state *state,
+-				       const u8 reg, const u8 val)
+-{
+-	struct i2c_msg msg;
+-	u8 wbuf[2];
+-
+-	wbuf[0] = reg;
+-	wbuf[1] = val;
+-
+-	msg.addr = state->config.demod_address;
+-	msg.flags = 0;
+-	msg.buf = wbuf;
+-	msg.len = sizeof(wbuf);
+-
+-	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+-		deb_fe(" reg write failed.");
+-		return -EREMOTEIO;
+-	}
+-	return 0;
+-}
+-
+-static int _jdvbt90502_write(struct dvb_frontend *fe, const u8 buf[], int len)
+-{
+-	struct jdvbt90502_state *state = fe->demodulator_priv;
+-	int err, i;
+-	for (i = 0; i < len - 1; i++) {
+-		err = jdvbt90502_single_reg_write(state,
+-						  buf[0] + i, buf[i + 1]);
+-		if (err)
+-			return err;
+-	}
+-
+-	return 0;
+-}
+-
+-/* read pll status byte via the demodulator's I2C register */
+-/* note: Win box reads it by 8B block at the I2C addr 0x30 from reg:0x80 */
+-static int jdvbt90502_pll_read(struct jdvbt90502_state *state, u8 *result)
+-{
+-	int ret;
+-
+-	/* +1 for reading */
+-	u8 pll_addr_byte = (state->config.pll_address << 1) + 1;
+-
+-	*result = 0;
+-
+-	ret = jdvbt90502_single_reg_write(state, JDVBT90502_2ND_I2C_REG,
+-					  pll_addr_byte);
+-	if (ret)
+-		goto error;
+-
+-	ret = jdvbt90502_reg_read(state, 0x0100, result, 1);
+-	if (ret)
+-		goto error;
+-
+-	deb_fe("PLL read val:%02x\n", *result);
+-	return 0;
+-
+-error:
+-	deb_fe("%s:ret == %d\n", __func__, ret);
+-	return -EREMOTEIO;
+-}
+-
+-
+-/* set pll frequency via the demodulator's I2C register */
+-static int jdvbt90502_pll_set_freq(struct jdvbt90502_state *state, u32 freq)
+-{
+-	int ret;
+-	int retry;
+-	u8 res1;
+-	u8 res2[9];
+-
+-	u8 pll_freq_cmd[PLL_CMD_LEN];
+-	u8 pll_agc_cmd[PLL_CMD_LEN];
+-	struct i2c_msg msg[2];
+-	u32 f;
+-
+-	deb_fe("%s: freq=%d, step=%d\n", __func__, freq,
+-	       state->frontend.ops.info.frequency_stepsize);
+-	/* freq -> oscilator frequency conversion. */
+-	/* freq: 473,000,000 + n*6,000,000 [+ 142857 (center freq. shift)] */
+-	f = freq / state->frontend.ops.info.frequency_stepsize;
+-	/* add 399[1/7 MHZ] = 57MHz for the IF  */
+-	f += 399;
+-	/* add center frequency shift if necessary */
+-	if (f % 7 == 0)
+-		f++;
+-	pll_freq_cmd[DEMOD_REDIRECT_REG] = JDVBT90502_2ND_I2C_REG; /* 0xFE */
+-	pll_freq_cmd[ADDRESS_BYTE] = state->config.pll_address << 1;
+-	pll_freq_cmd[DIVIDER_BYTE1] = (f >> 8) & 0x7F;
+-	pll_freq_cmd[DIVIDER_BYTE2] = f & 0xFF;
+-	pll_freq_cmd[CONTROL_BYTE] = 0xB2; /* ref.divider:28, 4MHz/28=1/7MHz */
+-	pll_freq_cmd[BANDSWITCH_BYTE] = 0x08;	/* UHF band */
+-
+-	msg[0].addr = state->config.demod_address;
+-	msg[0].flags = 0;
+-	msg[0].buf = pll_freq_cmd;
+-	msg[0].len = sizeof(pll_freq_cmd);
+-
+-	ret = i2c_transfer(state->i2c, &msg[0], 1);
+-	if (ret != 1)
+-		goto error;
+-
+-	udelay(50);
+-
+-	pll_agc_cmd[DEMOD_REDIRECT_REG] = pll_freq_cmd[DEMOD_REDIRECT_REG];
+-	pll_agc_cmd[ADDRESS_BYTE] = pll_freq_cmd[ADDRESS_BYTE];
+-	pll_agc_cmd[DIVIDER_BYTE1] = pll_freq_cmd[DIVIDER_BYTE1];
+-	pll_agc_cmd[DIVIDER_BYTE2] = pll_freq_cmd[DIVIDER_BYTE2];
+-	pll_agc_cmd[CONTROL_BYTE] = 0x9A; /*  AGC_CTRL instead of BANDSWITCH */
+-	pll_agc_cmd[AGC_CTRL_BYTE] = 0x50;
+-	/* AGC Time Constant 2s, AGC take-over point:103dBuV(lowest) */
+-
+-	msg[1].addr = msg[0].addr;
+-	msg[1].flags = 0;
+-	msg[1].buf = pll_agc_cmd;
+-	msg[1].len = sizeof(pll_agc_cmd);
+-
+-	ret = i2c_transfer(state->i2c, &msg[1], 1);
+-	if (ret != 1)
+-		goto error;
+-
+-	/* I don't know what these cmds are for,  */
+-	/* but the USB log on a windows box contains them */
+-	ret = jdvbt90502_single_reg_write(state, 0x01, 0x40);
+-	ret |= jdvbt90502_single_reg_write(state, 0x01, 0x00);
+-	if (ret)
+-		goto error;
+-	udelay(100);
+-
+-	/* wait for the demod to be ready? */
+-#define RETRY_COUNT 5
+-	for (retry = 0; retry < RETRY_COUNT; retry++) {
+-		ret = jdvbt90502_reg_read(state, 0x0096, &res1, 1);
+-		if (ret)
+-			goto error;
+-		/* if (res1 != 0x00) goto error; */
+-		ret = jdvbt90502_reg_read(state, 0x00B0, res2, sizeof(res2));
+-		if (ret)
+-			goto error;
+-		if (res2[0] >= 0xA7)
+-			break;
+-		msleep(100);
+-	}
+-	if (retry >= RETRY_COUNT) {
+-		deb_fe("%s: FE does not get ready after freq setting.\n",
+-		       __func__);
+-		return -EREMOTEIO;
+-	}
+-
+-	return 0;
+-error:
+-	deb_fe("%s:ret == %d\n", __func__, ret);
+-	return -EREMOTEIO;
+-}
+-
+-static int jdvbt90502_read_status(struct dvb_frontend *fe,
+-				  enum fe_status *state)
+-{
+-	u8 result;
+-	int ret;
+-
+-	*state = FE_HAS_SIGNAL;
+-
+-	ret = jdvbt90502_pll_read(fe->demodulator_priv, &result);
+-	if (ret) {
+-		deb_fe("%s:ret == %d\n", __func__, ret);
+-		return -EREMOTEIO;
+-	}
+-
+-	*state = FE_HAS_SIGNAL
+-		| FE_HAS_CARRIER
+-		| FE_HAS_VITERBI
+-		| FE_HAS_SYNC;
+-
+-	if (result & PLL_STATUS_LOCKED)
+-		*state |= FE_HAS_LOCK;
+-
+-	return 0;
+-}
+-
+-static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
+-					   u16 *strength)
+-{
+-	int ret;
+-	u8 rbuf[37];
+-
+-	*strength = 0;
+-
+-	/* status register (incl. signal strength) : 0x89  */
+-	/* TODO: read just the necessary registers [0x8B..0x8D]? */
+-	ret = jdvbt90502_reg_read(fe->demodulator_priv, 0x0089,
+-				  rbuf, sizeof(rbuf));
+-
+-	if (ret) {
+-		deb_fe("%s:ret == %d\n", __func__, ret);
+-		return -EREMOTEIO;
+-	}
+-
+-	/* signal_strength: rbuf[2-4] (24bit BE), use lower 16bit for now. */
+-	*strength = (rbuf[3] << 8) + rbuf[4];
+-	if (rbuf[2])
+-		*strength = 0xffff;
+-
+-	return 0;
+-}
+-
+-static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
+-{
+-	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+-
+-	/**
+-	 * NOTE: ignore all the parameters except frequency.
+-	 *       others should be fixed to the proper value for ISDB-T,
+-	 *       but don't check here.
+-	 */
+-
+-	struct jdvbt90502_state *state = fe->demodulator_priv;
+-	int ret;
+-
+-	deb_fe("%s: Freq:%d\n", __func__, p->frequency);
+-
+-	/* This driver only works on auto mode */
+-	p->inversion = INVERSION_AUTO;
+-	p->bandwidth_hz = 6000000;
+-	p->code_rate_HP = FEC_AUTO;
+-	p->code_rate_LP = FEC_AUTO;
+-	p->modulation = QAM_64;
+-	p->transmission_mode = TRANSMISSION_MODE_AUTO;
+-	p->guard_interval = GUARD_INTERVAL_AUTO;
+-	p->hierarchy = HIERARCHY_AUTO;
+-	p->delivery_system = SYS_ISDBT;
+-
+-	ret = jdvbt90502_pll_set_freq(state, p->frequency);
+-	if (ret) {
+-		deb_fe("%s:ret == %d\n", __func__, ret);
+-		return -EREMOTEIO;
+-	}
+-
+-	return 0;
+-}
+-
+-
+-/*
+- * (reg, val) commad list to initialize this module.
+- *  captured on a Windows box.
+- */
+-static u8 init_code[][2] = {
+-	{0x01, 0x40},
+-	{0x04, 0x38},
+-	{0x05, 0x40},
+-	{0x07, 0x40},
+-	{0x0F, 0x4F},
+-	{0x11, 0x21},
+-	{0x12, 0x0B},
+-	{0x13, 0x2F},
+-	{0x14, 0x31},
+-	{0x16, 0x02},
+-	{0x21, 0xC4},
+-	{0x22, 0x20},
+-	{0x2C, 0x79},
+-	{0x2D, 0x34},
+-	{0x2F, 0x00},
+-	{0x30, 0x28},
+-	{0x31, 0x31},
+-	{0x32, 0xDF},
+-	{0x38, 0x01},
+-	{0x39, 0x78},
+-	{0x3B, 0x33},
+-	{0x3C, 0x33},
+-	{0x48, 0x90},
+-	{0x51, 0x68},
+-	{0x5E, 0x38},
+-	{0x71, 0x00},
+-	{0x72, 0x08},
+-	{0x77, 0x00},
+-	{0xC0, 0x21},
+-	{0xC1, 0x10},
+-	{0xE4, 0x1A},
+-	{0xEA, 0x1F},
+-	{0x77, 0x00},
+-	{0x71, 0x00},
+-	{0x71, 0x00},
+-	{0x76, 0x0C},
+-};
+-
+-static int jdvbt90502_init(struct dvb_frontend *fe)
+-{
+-	int i = -1;
+-	int ret;
+-	struct i2c_msg msg;
+-
+-	struct jdvbt90502_state *state = fe->demodulator_priv;
+-
+-	deb_fe("%s called.\n", __func__);
+-
+-	msg.addr = state->config.demod_address;
+-	msg.flags = 0;
+-	msg.len = 2;
+-	for (i = 0; i < ARRAY_SIZE(init_code); i++) {
+-		msg.buf = init_code[i];
+-		ret = i2c_transfer(state->i2c, &msg, 1);
+-		if (ret != 1)
+-			goto error;
+-	}
+-	fe->dtv_property_cache.delivery_system = SYS_ISDBT;
+-	msleep(100);
+-
+-	return 0;
+-
+-error:
+-	deb_fe("%s: init_code[%d] failed. ret==%d\n", __func__, i, ret);
+-	return -EREMOTEIO;
+-}
+-
+-
+-static void jdvbt90502_release(struct dvb_frontend *fe)
+-{
+-	struct jdvbt90502_state *state = fe->demodulator_priv;
+-	kfree(state);
+-}
+-
+-
+-static const struct dvb_frontend_ops jdvbt90502_ops;
+-
+-struct dvb_frontend *jdvbt90502_attach(struct dvb_usb_device *d)
+-{
+-	struct jdvbt90502_state *state = NULL;
+-
+-	deb_info("%s called.\n", __func__);
+-
+-	/* allocate memory for the internal state */
+-	state = kzalloc(sizeof(struct jdvbt90502_state), GFP_KERNEL);
+-	if (state == NULL)
+-		goto error;
+-
+-	/* setup the state */
+-	state->i2c = &d->i2c_adap;
+-	state->config = friio_fe_config;
+-
+-	/* create dvb_frontend */
+-	state->frontend.ops = jdvbt90502_ops;
+-	state->frontend.demodulator_priv = state;
+-
+-	if (jdvbt90502_init(&state->frontend) < 0)
+-		goto error;
+-
+-	return &state->frontend;
+-
+-error:
+-	kfree(state);
+-	return NULL;
+-}
+-
+-static const struct dvb_frontend_ops jdvbt90502_ops = {
+-	.delsys = { SYS_ISDBT },
+-	.info = {
+-		.name			= "Comtech JDVBT90502 ISDB-T",
+-		.frequency_min		= 473000000, /* UHF 13ch, center */
+-		.frequency_max		= 767142857, /* UHF 62ch, center */
+-		.frequency_stepsize	= JDVBT90502_PLL_CLK / JDVBT90502_PLL_DIVIDER,
+-		.frequency_tolerance	= 0,
+-
+-		/* NOTE: this driver ignores all parameters but frequency. */
+-		.caps = FE_CAN_INVERSION_AUTO |
+-			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+-			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
+-			FE_CAN_FEC_7_8 | FE_CAN_FEC_8_9 | FE_CAN_FEC_AUTO |
+-			FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
+-			FE_CAN_TRANSMISSION_MODE_AUTO |
+-			FE_CAN_GUARD_INTERVAL_AUTO |
+-			FE_CAN_HIERARCHY_AUTO,
+-	},
+-
+-	.release = jdvbt90502_release,
+-
+-	.init = jdvbt90502_init,
+-	.write = _jdvbt90502_write,
+-
+-	.set_frontend = jdvbt90502_set_frontend,
+-
+-	.read_status = jdvbt90502_read_status,
+-	.read_signal_strength = jdvbt90502_read_signal_strength,
+-};
+diff --git a/drivers/media/usb/dvb-usb/friio.c b/drivers/media/usb/dvb-usb/friio.c
+deleted file mode 100644
+index 16875945e66..00000000000
+--- a/drivers/media/usb/dvb-usb/friio.c
++++ /dev/null
+@@ -1,522 +0,0 @@
+-/* DVB USB compliant Linux driver for the Friio USB2.0 ISDB-T receiver.
+- *
+- * Copyright (C) 2009 Akihiro Tsukada <tskd2@yahoo.co.jp>
+- *
+- * This module is based off the the gl861 and vp702x modules.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the Free
+- * Software Foundation, version 2.
+- *
+- * see Documentation/dvb/README.dvb-usb for more information
+- */
+-#include "friio.h"
+-
+-/* debug */
+-int dvb_usb_friio_debug;
+-module_param_named(debug, dvb_usb_friio_debug, int, 0644);
+-MODULE_PARM_DESC(debug,
+-		 "set debugging level (1=info,2=xfer,4=rc,8=fe (or-able))."
+-		 DVB_USB_DEBUG_STATUS);
+-
+-DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+-
+-/*
+- * Indirect I2C access to the PLL via FE.
+- * whole I2C protocol data to the PLL is sent via the FE's I2C register.
+- * This is done by a control msg to the FE with the I2C data accompanied, and
+- * a specific USB request number is assigned for that purpose.
+- *
+- * this func sends wbuf[1..] to the I2C register wbuf[0] at addr (= at FE).
+- * TODO: refoctored, smarter i2c functions.
+- */
+-static int gl861_i2c_ctrlmsg_data(struct dvb_usb_device *d, u8 addr,
+-				  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+-{
+-	u16 index = wbuf[0];	/* must be JDVBT90502_2ND_I2C_REG(=0xFE) */
+-	u16 value = addr << (8 + 1);
+-	int wo = (rbuf == NULL || rlen == 0);	/* write only */
+-	u8 req, type;
+-
+-	deb_xfer("write to PLL:0x%02x via FE reg:0x%02x, len:%d\n",
+-		 wbuf[1], wbuf[0], wlen - 1);
+-
+-	if (wo && wlen >= 2) {
+-		req = GL861_REQ_I2C_DATA_CTRL_WRITE;
+-		type = GL861_WRITE;
+-		udelay(20);
+-		return usb_control_msg(d->udev, usb_sndctrlpipe(d->udev, 0),
+-				       req, type, value, index,
+-				       &wbuf[1], wlen - 1, 2000);
+-	}
+-
+-	deb_xfer("not supported ctrl-msg, aborting.");
+-	return -EINVAL;
+-}
+-
+-/* normal I2C access (without extra data arguments).
+- * write to the register wbuf[0] at I2C address addr with the value wbuf[1],
+- *  or read from the register wbuf[0].
+- * register address can be 16bit (wbuf[2]<<8 | wbuf[0]) if wlen==3
+- */
+-static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+-			 u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+-{
+-	u16 index;
+-	u16 value = addr << (8 + 1);
+-	int wo = (rbuf == NULL || rlen == 0);	/* write-only */
+-	u8 req, type;
+-	unsigned int pipe;
+-
+-	/* special case for the indirect I2C access to the PLL via FE, */
+-	if (addr == friio_fe_config.demod_address &&
+-	    wbuf[0] == JDVBT90502_2ND_I2C_REG)
+-		return gl861_i2c_ctrlmsg_data(d, addr, wbuf, wlen, rbuf, rlen);
+-
+-	if (wo) {
+-		req = GL861_REQ_I2C_WRITE;
+-		type = GL861_WRITE;
+-		pipe = usb_sndctrlpipe(d->udev, 0);
+-	} else {		/* rw */
+-		req = GL861_REQ_I2C_READ;
+-		type = GL861_READ;
+-		pipe = usb_rcvctrlpipe(d->udev, 0);
+-	}
+-
+-	switch (wlen) {
+-	case 1:
+-		index = wbuf[0];
+-		break;
+-	case 2:
+-		index = wbuf[0];
+-		value = value + wbuf[1];
+-		break;
+-	case 3:
+-		/* special case for 16bit register-address */
+-		index = (wbuf[2] << 8) | wbuf[0];
+-		value = value + wbuf[1];
+-		break;
+-	default:
+-		deb_xfer("wlen = %x, aborting.", wlen);
+-		return -EINVAL;
+-	}
+-	msleep(1);
+-	return usb_control_msg(d->udev, pipe, req, type,
+-			       value, index, rbuf, rlen, 2000);
+-}
+-
+-/* I2C */
+-static int gl861_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+-			  int num)
+-{
+-	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+-	int i;
+-
+-
+-	if (num > 2)
+-		return -EINVAL;
+-
+-	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+-		return -EAGAIN;
+-
+-	for (i = 0; i < num; i++) {
+-		/* write/read request */
+-		if (i + 1 < num && (msg[i + 1].flags & I2C_M_RD)) {
+-			if (gl861_i2c_msg(d, msg[i].addr,
+-					  msg[i].buf, msg[i].len,
+-					  msg[i + 1].buf, msg[i + 1].len) < 0)
+-				break;
+-			i++;
+-		} else
+-			if (gl861_i2c_msg(d, msg[i].addr, msg[i].buf,
+-					  msg[i].len, NULL, 0) < 0)
+-				break;
+-	}
+-
+-	mutex_unlock(&d->i2c_mutex);
+-	return i;
+-}
+-
+-static u32 gl861_i2c_func(struct i2c_adapter *adapter)
+-{
+-	return I2C_FUNC_I2C;
+-}
+-
+-static int friio_ext_ctl(struct dvb_usb_adapter *adap,
+-			 u32 sat_color, int lnb_on)
+-{
+-	int i;
+-	int ret;
+-	struct i2c_msg msg;
+-	u8 *buf;
+-	u32 mask;
+-	u8 lnb = (lnb_on) ? FRIIO_CTL_LNB : 0;
+-
+-	buf = kmalloc(2, GFP_KERNEL);
+-	if (!buf)
+-		return -ENOMEM;
+-
+-	msg.addr = 0x00;
+-	msg.flags = 0;
+-	msg.len = 2;
+-	msg.buf = buf;
+-
+-	buf[0] = 0x00;
+-
+-	/* send 2bit header (&B10) */
+-	buf[1] = lnb | FRIIO_CTL_LED | FRIIO_CTL_STROBE;
+-	ret = gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-	buf[1] |= FRIIO_CTL_CLK;
+-	ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-
+-	buf[1] = lnb | FRIIO_CTL_STROBE;
+-	ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-	buf[1] |= FRIIO_CTL_CLK;
+-	ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-
+-	/* send 32bit(satur, R, G, B) data in serial */
+-	mask = 1 << 31;
+-	for (i = 0; i < 32; i++) {
+-		buf[1] = lnb | FRIIO_CTL_STROBE;
+-		if (sat_color & mask)
+-			buf[1] |= FRIIO_CTL_LED;
+-		ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-		buf[1] |= FRIIO_CTL_CLK;
+-		ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-		mask >>= 1;
+-	}
+-
+-	/* set the strobe off */
+-	buf[1] = lnb;
+-	ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-	buf[1] |= FRIIO_CTL_CLK;
+-	ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+-
+-	kfree(buf);
+-	return (ret == 70);
+-}
+-
+-
+-static int friio_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff);
+-
+-/* TODO: move these init cmds to the FE's init routine? */
+-static u8 streaming_init_cmds[][2] = {
+-	{0x33, 0x08},
+-	{0x37, 0x40},
+-	{0x3A, 0x1F},
+-	{0x3B, 0xFF},
+-	{0x3C, 0x1F},
+-	{0x3D, 0xFF},
+-	{0x38, 0x00},
+-	{0x35, 0x00},
+-	{0x39, 0x00},
+-	{0x36, 0x00},
+-};
+-static int cmdlen = sizeof(streaming_init_cmds) / 2;
+-
+-/*
+- * Command sequence in this init function is a replay
+- *  of the captured USB commands from the Windows proprietary driver.
+- */
+-static int friio_initialize(struct dvb_usb_device *d)
+-{
+-	int ret;
+-	int i;
+-	int retry = 0;
+-	u8 *rbuf, *wbuf;
+-
+-	deb_info("%s called.\n", __func__);
+-
+-	wbuf = kmalloc(3, GFP_KERNEL);
+-	if (!wbuf)
+-		return -ENOMEM;
+-
+-	rbuf = kmalloc(2, GFP_KERNEL);
+-	if (!rbuf) {
+-		kfree(wbuf);
+-		return -ENOMEM;
+-	}
+-
+-	/* use gl861_i2c_msg instead of gl861_i2c_xfer(), */
+-	/* because the i2c device is not set up yet. */
+-	wbuf[0] = 0x11;
+-	wbuf[1] = 0x02;
+-	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
+-	if (ret < 0)
+-		goto error;
+-	msleep(2);
+-
+-	wbuf[0] = 0x11;
+-	wbuf[1] = 0x00;
+-	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
+-	if (ret < 0)
+-		goto error;
+-	msleep(1);
+-
+-	/* following msgs should be in the FE's init code? */
+-	/* cmd sequence to identify the device type? (friio black/white) */
+-	wbuf[0] = 0x03;
+-	wbuf[1] = 0x80;
+-	/* can't use gl861_i2c_cmd, as the register-addr is 16bit(0x0100) */
+-	ret = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev, 0),
+-			      GL861_REQ_I2C_DATA_CTRL_WRITE, GL861_WRITE,
+-			      0x1200, 0x0100, wbuf, 2, 2000);
+-	if (ret < 0)
+-		goto error;
+-
+-	msleep(2);
+-	wbuf[0] = 0x00;
+-	wbuf[2] = 0x01;		/* reg.0x0100 */
+-	wbuf[1] = 0x00;
+-	ret = gl861_i2c_msg(d, 0x12 >> 1, wbuf, 3, rbuf, 2);
+-	/* my Friio White returns 0xffff. */
+-	if (ret < 0 || rbuf[0] != 0xff || rbuf[1] != 0xff)
+-		goto error;
+-
+-	msleep(2);
+-	wbuf[0] = 0x03;
+-	wbuf[1] = 0x80;
+-	ret = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev, 0),
+-			      GL861_REQ_I2C_DATA_CTRL_WRITE, GL861_WRITE,
+-			      0x9000, 0x0100, wbuf, 2, 2000);
+-	if (ret < 0)
+-		goto error;
+-
+-	msleep(2);
+-	wbuf[0] = 0x00;
+-	wbuf[2] = 0x01;		/* reg.0x0100 */
+-	wbuf[1] = 0x00;
+-	ret = gl861_i2c_msg(d, 0x90 >> 1, wbuf, 3, rbuf, 2);
+-	/* my Friio White returns 0xffff again. */
+-	if (ret < 0 || rbuf[0] != 0xff || rbuf[1] != 0xff)
+-		goto error;
+-
+-	msleep(1);
+-
+-restart:
+-	/* ============ start DEMOD init cmds ================== */
+-	/* read PLL status to clear the POR bit */
+-	wbuf[0] = JDVBT90502_2ND_I2C_REG;
+-	wbuf[1] = (FRIIO_PLL_ADDR << 1) + 1;	/* +1 for reading */
+-	ret = gl861_i2c_msg(d, FRIIO_DEMOD_ADDR, wbuf, 2, NULL, 0);
+-	if (ret < 0)
+-		goto error;
+-
+-	msleep(5);
+-	/* note: DEMODULATOR has 16bit register-address. */
+-	wbuf[0] = 0x00;
+-	wbuf[2] = 0x01;		/* reg addr: 0x0100 */
+-	wbuf[1] = 0x00;		/* val: not used */
+-	ret = gl861_i2c_msg(d, FRIIO_DEMOD_ADDR, wbuf, 3, rbuf, 1);
+-	if (ret < 0)
+-		goto error;
+-/*
+-	msleep(1);
+-	wbuf[0] = 0x80;
+-	wbuf[1] = 0x00;
+-	ret = gl861_i2c_msg(d, FRIIO_DEMOD_ADDR, wbuf, 2, rbuf, 1);
+-	if (ret < 0)
+-		goto error;
+- */
+-	if (rbuf[0] & 0x80) {	/* still in PowerOnReset state? */
+-		if (++retry > 3) {
+-			deb_info("failed to get the correct FE demod status:0x%02x\n",
+-				 rbuf[0]);
+-			goto error;
+-		}
+-		msleep(100);
+-		goto restart;
+-	}
+-
+-	/* TODO: check return value in rbuf */
+-	/* =========== end DEMOD init cmds ===================== */
+-	msleep(1);
+-
+-	wbuf[0] = 0x30;
+-	wbuf[1] = 0x04;
+-	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
+-	if (ret < 0)
+-		goto error;
+-
+-	msleep(2);
+-	/* following 2 cmds unnecessary? */
+-	wbuf[0] = 0x00;
+-	wbuf[1] = 0x01;
+-	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
+-	if (ret < 0)
+-		goto error;
+-
+-	wbuf[0] = 0x06;
+-	wbuf[1] = 0x0F;
+-	ret = gl861_i2c_msg(d, 0x00, wbuf, 2, NULL, 0);
+-	if (ret < 0)
+-		goto error;
+-
+-	/* some streaming ctl cmds (maybe) */
+-	msleep(10);
+-	for (i = 0; i < cmdlen; i++) {
+-		ret = gl861_i2c_msg(d, 0x00, streaming_init_cmds[i], 2,
+-				    NULL, 0);
+-		if (ret < 0)
+-			goto error;
+-		msleep(1);
+-	}
+-	msleep(20);
+-
+-	/* change the LED color etc. */
+-	ret = friio_streaming_ctrl(&d->adapter[0], 0);
+-	if (ret < 0)
+-		goto error;
+-
+-	return 0;
+-
+-error:
+-	kfree(wbuf);
+-	kfree(rbuf);
+-	deb_info("%s:ret == %d\n", __func__, ret);
+-	return -EIO;
+-}
+-
+-/* Callbacks for DVB USB */
+-
+-static int friio_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+-{
+-	int ret;
+-
+-	deb_info("%s called.(%d)\n", __func__, onoff);
+-
+-	/* set the LED color and saturation (and LNB on) */
+-	if (onoff)
+-		ret = friio_ext_ctl(adap, 0x6400ff64, 1);
+-	else
+-		ret = friio_ext_ctl(adap, 0x96ff00ff, 1);
+-
+-	if (ret != 1) {
+-		deb_info("%s failed to send cmdx. ret==%d\n", __func__, ret);
+-		return -EREMOTEIO;
+-	}
+-	return 0;
+-}
+-
+-static int friio_frontend_attach(struct dvb_usb_adapter *adap)
+-{
+-	if (friio_initialize(adap->dev) < 0)
+-		return -EIO;
+-
+-	adap->fe_adap[0].fe = jdvbt90502_attach(adap->dev);
+-	if (adap->fe_adap[0].fe == NULL)
+-		return -EIO;
+-
+-	return 0;
+-}
+-
+-/* DVB USB Driver stuff */
+-static struct dvb_usb_device_properties friio_properties;
+-
+-static int friio_probe(struct usb_interface *intf,
+-		       const struct usb_device_id *id)
+-{
+-	struct dvb_usb_device *d;
+-	struct usb_host_interface *alt;
+-	int ret;
+-
+-	if (intf->num_altsetting < GL861_ALTSETTING_COUNT)
+-		return -ENODEV;
+-
+-	alt = usb_altnum_to_altsetting(intf, FRIIO_BULK_ALTSETTING);
+-	if (alt == NULL) {
+-		deb_rc("not alt found!\n");
+-		return -ENODEV;
+-	}
+-	ret = usb_set_interface(interface_to_usbdev(intf),
+-				alt->desc.bInterfaceNumber,
+-				alt->desc.bAlternateSetting);
+-	if (ret != 0) {
+-		deb_rc("failed to set alt-setting!\n");
+-		return ret;
+-	}
+-
+-	ret = dvb_usb_device_init(intf, &friio_properties,
+-				  THIS_MODULE, &d, adapter_nr);
+-	if (ret == 0)
+-		friio_streaming_ctrl(&d->adapter[0], 1);
+-
+-	return ret;
+-}
+-
+-
+-struct jdvbt90502_config friio_fe_config = {
+-	.demod_address = FRIIO_DEMOD_ADDR,
+-	.pll_address = FRIIO_PLL_ADDR,
+-};
+-
+-static struct i2c_algorithm gl861_i2c_algo = {
+-	.master_xfer   = gl861_i2c_xfer,
+-	.functionality = gl861_i2c_func,
+-};
+-
+-static struct usb_device_id friio_table[] = {
+-	{ USB_DEVICE(USB_VID_774, USB_PID_FRIIO_WHITE) },
+-	{ }		/* Terminating entry */
+-};
+-MODULE_DEVICE_TABLE(usb, friio_table);
+-
+-
+-static struct dvb_usb_device_properties friio_properties = {
+-	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
+-	.usb_ctrl = DEVICE_SPECIFIC,
+-
+-	.size_of_priv = 0,
+-
+-	.num_adapters = 1,
+-	.adapter = {
+-		/* caps:0 =>  no pid filter, 188B TS packet */
+-		/* GL861 has a HW pid filter, but no info available. */
+-		{
+-		.num_frontends = 1,
+-		.fe = {{
+-			.caps  = 0,
+-
+-			.frontend_attach  = friio_frontend_attach,
+-			.streaming_ctrl = friio_streaming_ctrl,
+-
+-			.stream = {
+-				.type = USB_BULK,
+-				/* count <= MAX_NO_URBS_FOR_DATA_STREAM(10) */
+-				.count = 8,
+-				.endpoint = 0x01,
+-				.u = {
+-					/* GL861 has 6KB buf inside */
+-					.bulk = {
+-						.buffersize = 16384,
+-					}
+-				}
+-			},
+-		}},
+-		}
+-	},
+-	.i2c_algo = &gl861_i2c_algo,
+-
+-	.num_device_descs = 1,
+-	.devices = {
+-		{
+-			.name = "774 Friio ISDB-T USB2.0",
+-			.cold_ids = { NULL },
+-			.warm_ids = { &friio_table[0], NULL },
+-		},
+-	}
+-};
+-
+-static struct usb_driver friio_driver = {
+-	.name		= "dvb_usb_friio",
+-	.probe		= friio_probe,
+-	.disconnect	= dvb_usb_device_exit,
+-	.id_table	= friio_table,
+-};
+-
+-module_usb_driver(friio_driver);
+-
+-MODULE_AUTHOR("Akihiro Tsukada <tskd2@yahoo.co.jp>");
+-MODULE_DESCRIPTION("Driver for Friio ISDB-T USB2.0 Receiver");
+-MODULE_VERSION("0.2");
+-MODULE_LICENSE("GPL");
+diff --git a/drivers/media/usb/dvb-usb/friio.h b/drivers/media/usb/dvb-usb/friio.h
+deleted file mode 100644
+index 0f461ca10cb..00000000000
+--- a/drivers/media/usb/dvb-usb/friio.h
++++ /dev/null
+@@ -1,99 +0,0 @@
+-/* DVB USB compliant Linux driver for the Friio USB2.0 ISDB-T receiver.
+- *
+- * Copyright (C) 2009 Akihiro Tsukada <tskd2@yahoo.co.jp>
+- *
+- * This module is based off the the gl861 and vp702x modules.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the Free
+- * Software Foundation, version 2.
+- *
+- * see Documentation/dvb/README.dvb-usb for more information
+- */
+-#ifndef _DVB_USB_FRIIO_H_
+-#define _DVB_USB_FRIIO_H_
+-
+-/**
+- *      Friio Components
+- *       USB hub:                                AU4254
+- *         USB controller(+ TS dmx & streaming): GL861
+- *         Frontend:                             comtech JDVBT-90502
+- *             (tuner PLL:                       tua6034, I2C addr:(0xC0 >> 1))
+- *             (OFDM demodulator:                TC90502, I2C addr:(0x30 >> 1))
+- *         LED x3 (+LNB) control:                PIC 16F676
+- *         EEPROM:                               24C08
+- *
+- *        (USB smart card reader:                AU9522)
+- *
+- */
+-
+-#define DVB_USB_LOG_PREFIX "friio"
+-#include "dvb-usb.h"
+-
+-extern int dvb_usb_friio_debug;
+-#define deb_info(args...) dprintk(dvb_usb_friio_debug, 0x01, args)
+-#define deb_xfer(args...) dprintk(dvb_usb_friio_debug, 0x02, args)
+-#define deb_rc(args...)   dprintk(dvb_usb_friio_debug, 0x04, args)
+-#define deb_fe(args...)   dprintk(dvb_usb_friio_debug, 0x08, args)
+-
+-/* Vendor requests */
+-#define GL861_WRITE		0x40
+-#define GL861_READ		0xc0
+-
+-/* command bytes */
+-#define GL861_REQ_I2C_WRITE	0x01
+-#define GL861_REQ_I2C_READ	0x02
+-/* For control msg with data argument */
+-/* Used for accessing the PLL on the secondary I2C bus of FE via GL861 */
+-#define GL861_REQ_I2C_DATA_CTRL_WRITE	0x03
+-
+-#define GL861_ALTSETTING_COUNT	2
+-#define FRIIO_BULK_ALTSETTING	0
+-#define FRIIO_ISOC_ALTSETTING	1
+-
+-/* LED & LNB control via PIC. */
+-/* basically, it's serial control with clock and strobe. */
+-/* write the below 4bit control data to the reg 0x00 at the I2C addr 0x00 */
+-/* when controlling the LEDs, 32bit(saturation, R, G, B) is sent on the bit3*/
+-#define FRIIO_CTL_LNB (1 << 0)
+-#define FRIIO_CTL_STROBE (1 << 1)
+-#define FRIIO_CTL_CLK (1 << 2)
+-#define FRIIO_CTL_LED (1 << 3)
+-
+-/* Front End related */
+-
+-#define FRIIO_DEMOD_ADDR  (0x30 >> 1)
+-#define FRIIO_PLL_ADDR  (0xC0 >> 1)
+-
+-#define JDVBT90502_PLL_CLK	4000000
+-#define JDVBT90502_PLL_DIVIDER	28
+-
+-#define JDVBT90502_2ND_I2C_REG 0xFE
+-
+-/* byte index for pll i2c command data structure*/
+-/* see datasheet for tua6034 */
+-#define DEMOD_REDIRECT_REG 0
+-#define ADDRESS_BYTE       1
+-#define DIVIDER_BYTE1      2
+-#define DIVIDER_BYTE2      3
+-#define CONTROL_BYTE       4
+-#define BANDSWITCH_BYTE    5
+-#define AGC_CTRL_BYTE      5
+-#define PLL_CMD_LEN        6
+-
+-/* bit masks for PLL STATUS response */
+-#define PLL_STATUS_POR_MODE   0x80 /* 1: Power on Reset (test) Mode */
+-#define PLL_STATUS_LOCKED     0x40 /* 1: locked */
+-#define PLL_STATUS_AGC_ACTIVE 0x08 /* 1:active */
+-#define PLL_STATUS_TESTMODE   0x07 /* digital output level (5 level) */
+-  /* 0.15Vcc step   0x00: < 0.15Vcc, ..., 0x04: >= 0.6Vcc (<= 1Vcc) */
+-
+-
+-struct jdvbt90502_config {
+-	u8 demod_address; /* i2c addr for demodulator IC */
+-	u8 pll_address;   /* PLL addr on the secondary i2c*/
+-};
+-extern struct jdvbt90502_config friio_fe_config;
+-
+-extern struct dvb_frontend *jdvbt90502_attach(struct dvb_usb_device *d);
+-#endif
+-- 
+2.16.3
