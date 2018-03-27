@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:62519 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752735AbeCPNwC (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34339 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751068AbeC0PAS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 09:52:02 -0400
-Content-Type: text/plain; charset="utf-8"
+        Tue, 27 Mar 2018 11:00:18 -0400
+Subject: Re: [RFC v2 00/10] Preparing the request API
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: acourbot@chromium.org, Tomasz Figa <tfiga@chromium.org>
+References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
+ <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
+ <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
+ <f11c24e1-599d-3248-008c-4730569cfa10@xs4all.nl>
+Message-ID: <689b6b77-2d7c-0673-84b1-41c7bfaeeda3@xs4all.nl>
+Date: Tue, 27 Mar 2018 17:00:12 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: =?utf-8?q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
-        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-References: <20180316132049.1748-1-christian.koenig@amd.com>
- <20180316132049.1748-2-christian.koenig@amd.com>
-In-Reply-To: <20180316132049.1748-2-christian.koenig@amd.com>
-Message-ID: <152120831102.25315.4326885184264378830@mail.alporthouse.com>
-Subject: Re: [PATCH 1/5] dma-buf: add optional invalidate_mappings callback v2
-Date: Fri, 16 Mar 2018 13:51:51 +0000
+In-Reply-To: <f11c24e1-599d-3248-008c-4730569cfa10@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting Christian König (2018-03-16 13:20:45)
-> @@ -326,6 +338,29 @@ struct dma_buf_attachment {
->         struct device *dev;
->         struct list_head node;
->         void *priv;
-> +
-> +       /**
-> +        * @invalidate_mappings:
-> +        *
-> +        * Optional callback provided by the importer of the attachment which
-> +        * must be set before mappings are created.
-> +        *
-> +        * If provided the exporter can avoid pinning the backing store while
-> +        * mappings exists.
+Status update:
 
-Hmm, no I don't think it avoids the pinning issue entirely. As it stands,
-the importer doesn't have a page refcount and so they all rely on the
-exporter keeping the dmabuf pages pinned while attached. What can happen
-is that given the invalidate cb, the importers can revoke their
-attachments, letting the exporter recover the pages/sg, and then start
-again from scratch.
+Current work-in-progress tree:
 
-That also neatly answers what happens if not all importers provide an
-invalidate cb, or fail, the dmabuf remains pinned and the exporter must
-retreat.
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv8
 
-> +        *
-> +        * The function is called with the lock of the reservation object
-> +        * associated with the dma_buf held and the mapping function must be
-> +        * called with this lock held as well. This makes sure that no mapping
-> +        * is created concurrently with an ongoing invalidation.
-> +        *
-> +        * After the callback all existing mappings are still valid until all
-> +        * fences in the dma_bufs reservation object are signaled, but should be
-> +        * destroyed by the importer as soon as possible.
-> +        *
-> +        * New mappings can be created immediately, but can't be used before the
-> +        * exclusive fence in the dma_bufs reservation object is signaled.
-> +        */
-> +       void (*invalidate_mappings)(struct dma_buf_attachment *attach);
+v4l2-compliance test code:
 
-The intent is that the invalidate is synchronous and immediate, while
-locked? We are looking at recursing back into the dma_buf functions to
-remove each attachment from the invalidate cb (as well as waiting for
-dma), won't that cause some nasty issues?
--Chris
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=request
+
+It is now working for me with v4l2-compliance and vim2m and vivid.
+
+All requests and request objects are correctly freed after doing all
+the v4l2-compliance tests.
+
+It's a fairly decent test coverage, but I'm sure there are some corner
+cases that can be added.
+
+I've frozen my reqv8 branch so that can be used as a starting point for
+codec drivers.
+
+I've started a reqv9 which will be the cleaned-up version of reqv8.
+My hope is that I can finish that tomorrow and post the patch series
+to the ML at the end of the day.
+
+Regards,
+
+	Hans
