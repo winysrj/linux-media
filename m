@@ -1,77 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:34590 "EHLO osg.samsung.com"
+Received: from mga09.intel.com ([134.134.136.24]:24558 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752455AbeC1SM4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 14:12:56 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Brian Warner <brian.warner@samsung.com>
-Subject: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel 3.18
-Date: Wed, 28 Mar 2018 15:12:19 -0300
-Message-Id: <cover.1522260310.git.mchehab@s-opensource.com>
+        id S1751935AbeC0BGS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Mar 2018 21:06:18 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+CC: jacopo mondi <jacopo@jmondi.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "Chiang, AlanX" <alanx.chiang@intel.com>
+Subject: RE: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
+Date: Tue, 27 Mar 2018 01:06:14 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D559002@PGSMSX111.gar.corp.intel.com>
+References: <1521219926-15329-1-git-send-email-andy.yeh@intel.com>
+ <1521219926-15329-3-git-send-email-andy.yeh@intel.com>
+ <20180320102817.GB5372@w540>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D552FBD@PGSMSX111.gar.corp.intel.com>
+ <20180321170629.biuwxykqsgvltull@kekkonen.localdomain>
+In-Reply-To: <20180321170629.biuwxykqsgvltull@kekkonen.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Got it. We shall reverse the order in the later submission on list.
 
-Those are the backports meant to solve CVE-2017-13166 on Kernel 3.18.
+Regards, Andy
 
-It contains two v4l2-ctrls fixes that are required to avoid crashes
-at the test application.
+-----Original Message-----
+From: sakari.ailus@linux.intel.com [mailto:sakari.ailus@linux.intel.com] 
+Sent: Thursday, March 22, 2018 1:07 AM
+To: Yeh, Andy <andy.yeh@intel.com>
+Cc: jacopo mondi <jacopo@jmondi.org>; linux-media@vger.kernel.org; devicetree@vger.kernel.org; Chiang, AlanX <alanx.chiang@intel.com>
+Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
 
-I wrote two patches myself for Kernel 3.18 in order to solve some
-issues specific for Kernel 3.18 with aren't needed upstream.
-one is actually a one-line change backport. The other one makes
-sure that both 32-bits and 64-bits version of some ioctl calls
-will return the same value for a reserved field.
+Hi Andy,
 
-I noticed an extra bug while testing it, but the bug also hits upstream,
-and should be backported all the way down all stable/LTS versions.
-So, I'll send it the usual way, after merging upsream.
+On Wed, Mar 21, 2018 at 03:58:42PM +0000, Yeh, Andy wrote:
+> Thanks for the comments. A quick question first. For the reset we need some time to address.
+> 
+> -----Original Message-----
+> From: jacopo mondi [mailto:jacopo@jmondi.org]
+> Sent: Tuesday, March 20, 2018 6:28 PM
+> To: Yeh, Andy <andy.yeh@intel.com>
+> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; 
+> devicetree@vger.kernel.org; Chiang, AlanX <alanx.chiang@intel.com>
+> Subject: Re: RESEND[PATCH v6 2/2] media: dw9807: Add dw9807 vcm driver
+> 
+> Hi Andy,
+>    a few comments on you patch below...
+> 
+> On Sat, Mar 17, 2018 at 01:05:26AM +0800, Andy Yeh wrote:
+> > From: Alan Chiang <alanx.chiang@intel.com> 
+> > a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c new file 
+> > mode 100644 index 0000000..95626e9
+> > --- /dev/null
+> > +++ b/drivers/media/i2c/dw9807.c
+> > @@ -0,0 +1,320 @@
+> > +// Copyright (C) 2018 Intel Corporation // SPDX-License-Identifier: 
+> > +GPL-2.0
+> > +
+> 
+> Nit: my understanding is that the SPDX identifier goes first
+> 
+> https://lwn.net/Articles/739183/
+> 
+> I checked this site. And it says Copyright should be before SPDX identifier.
+> ========== file01.c ==========
+> // Copyright (c) 2012-2016 Joe Random Hacker // SPDX-License-Identifier: BSD-2-Clause ...
+> ========== file02.c ==========
+> // Copyright (c) 2017 Jon Severinsson
+> // SPDX-License-Identifier: BSD-2-Clause ...
+> ========== file03.c ==========
+> // Copyright (c) 2008 The NetBSD Foundation, Inc.
+> // SPDX-License-Identifier: BSD-2-Clause-NetBSD
 
+This is an example which is AFAIU purported to show the problem with various BSD licenses in a comment from someone. The order of the copyright holder and license lines might be just random. The practice in kernel at least appears to be SPDX license first.
+
+--
 Regards,
-Mauro
 
-
-Daniel Mentz (2):
-  media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
-  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
-
-Hans Verkuil (12):
-  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
-  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
-  media: v4l2-compat-ioctl32.c: fix the indentation
-  media: v4l2-compat-ioctl32.c: move 'helper' functions to
-    __get/put_v4l2_format32
-  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
-  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
-  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
-  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
-  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
-    errors
-  media: v4l2-ctrls: fix sparse warning
-
-Mauro Carvalho Chehab (2):
-  media: v4l2-compat-ioctl32: use compat_u64 for video standard
-  media: v4l2-compat-ioctl32: initialize a reserved field
-
-Ricardo Ribalda (2):
-  vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-  media: media/v4l2-ctrls: volatiles should not generate CH_VALUE
-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1020 +++++++++++++++----------
- drivers/media/v4l2-core/v4l2-ctrls.c          |   96 ++-
- drivers/media/v4l2-core/v4l2-ioctl.c          |    5 +-
- drivers/media/v4l2-core/videobuf2-core.c      |    5 +
- 4 files changed, 691 insertions(+), 435 deletions(-)
-
--- 
-2.14.3
+Sakari Ailus
+sakari.ailus@linux.intel.com
