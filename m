@@ -1,79 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:31765 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754765AbeCGWFh (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:39398 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752563AbeC0RIj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:37 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 11/33] rcar-vin: set a default field to fallback on
-Date: Wed,  7 Mar 2018 23:04:49 +0100
-Message-Id: <20180307220511.9826-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 27 Mar 2018 13:08:39 -0400
+Received: by mail-pg0-f65.google.com with SMTP id b9so1650992pgf.6
+        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 10:08:39 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH 2/4] dvb/pci/pt3: use SPDX License Identifier
+Date: Wed, 28 Mar 2018 02:08:20 +0900
+Message-Id: <20180327170822.21921-3-tskd08@gmail.com>
+In-Reply-To: <20180327170822.21921-1-tskd08@gmail.com>
+References: <20180327170822.21921-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the field is not supported by the driver it should not try to keep
-the current field. Instead it should set it to a default fallback. Since
-trying a format should always result in the same state regardless of the
-current state of the device.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/media/pci/pt3/pt3.c     | 11 +----------
+ drivers/media/pci/pt3/pt3.h     | 11 +----------
+ drivers/media/pci/pt3/pt3_dma.c | 11 +----------
+ drivers/media/pci/pt3/pt3_i2c.c | 11 +----------
+ 4 files changed, 4 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index c2265324c7c96308..ebcd78b1bb6e8cb6 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,6 +23,7 @@
- #include "rcar-vin.h"
+diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
+index b2d9fb976c9..a45cf06ae4f 100644
+--- a/drivers/media/pci/pt3/pt3.c
++++ b/drivers/media/pci/pt3/pt3.c
+@@ -1,17 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Earthsoft PT3 driver
+  *
+  * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-+#define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
+ #include <linux/freezer.h>
+diff --git a/drivers/media/pci/pt3/pt3.h b/drivers/media/pci/pt3/pt3.h
+index fbe8d9b847b..495891a4ee1 100644
+--- a/drivers/media/pci/pt3/pt3.h
++++ b/drivers/media/pci/pt3/pt3.h
+@@ -1,17 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * Earthsoft PT3 driver
+  *
+  * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
  
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -143,7 +144,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		vin->format.field = V4L2_FIELD_NONE;
-+		vin->format.field = RVIN_DEFAULT_FIELD;
- 		break;
- 	}
- 
-@@ -213,10 +214,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	u32 walign;
- 	int ret;
- 
--	/* Keep current field if no specific one is asked for */
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = vin->format.field;
--
- 	/* If requested format is not supported fallback to the default */
- 	if (!rvin_format_from_pixel(pix->pixelformat)) {
- 		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-@@ -246,7 +243,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		pix->field = V4L2_FIELD_NONE;
-+		pix->field = RVIN_DEFAULT_FIELD;
- 		break;
- 	}
- 
+ #ifndef PT3_H
+diff --git a/drivers/media/pci/pt3/pt3_dma.c b/drivers/media/pci/pt3/pt3_dma.c
+index f0ce90437fa..de677b90ea5 100644
+--- a/drivers/media/pci/pt3/pt3_dma.c
++++ b/drivers/media/pci/pt3/pt3_dma.c
+@@ -1,17 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Earthsoft PT3 driver
+  *
+  * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #include <linux/dma-mapping.h>
+ #include <linux/kernel.h>
+diff --git a/drivers/media/pci/pt3/pt3_i2c.c b/drivers/media/pci/pt3/pt3_i2c.c
+index b66138c7b36..b02be789a8c 100644
+--- a/drivers/media/pci/pt3/pt3_i2c.c
++++ b/drivers/media/pci/pt3/pt3_i2c.c
+@@ -1,17 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Earthsoft PT3 driver
+  *
+  * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+  */
+ #include <linux/delay.h>
+ #include <linux/device.h>
 -- 
-2.16.2
+2.16.3
