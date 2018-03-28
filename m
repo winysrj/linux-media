@@ -1,79 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44549 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751964AbeCZRVz (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:38059 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753353AbeC1RBh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 13:21:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        stable@vger.kernel.org, open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: vsp1: Fix BRx conditional path in WPF
-Date: Mon, 26 Mar 2018 20:21:51 +0300
-Message-ID: <3524048.Iptq6jntDe@avalon>
-In-Reply-To: <1522070958-24295-1-git-send-email-kieran.bingham@ideasonboard.com>
-References: <1522070958-24295-1-git-send-email-kieran.bingham@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 28 Mar 2018 13:01:37 -0400
+Received: by mail-pl0-f65.google.com with SMTP id m22-v6so1962132pls.5
+        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:01:37 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        crope@iki.fi
+Subject: [PATCH v4 4/5] dvb-usb-v2/gl861: use usleep_range() for short delay
+Date: Thu, 29 Mar 2018 02:01:00 +0900
+Message-Id: <20180328170101.29385-5-tskd08@gmail.com>
+In-Reply-To: <20180328170101.29385-1-tskd08@gmail.com>
+References: <20180328170101.29385-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Thank you for the patch.
+As the kernel doc "timers-howto.txt" reads,
+short delay with msleep() can take much longer.
+In a case of raspbery-pi platform where CONFIG_HZ_100 was set,
+it actually affected the init of Friio devices
+since it issues lots of i2c transactions with short delay.
 
-On Monday, 26 March 2018 16:29:17 EEST Kieran Bingham wrote:
-> When a BRx is provided by a pipeline, the WPF must determine the master
-> layer. Currently the condition to check this identifies pipe->bru ||
-> pipe->num_inputs > 1.
-> 
-> The code then moves on to dereference pipe->bru, thus the check fails
-> static analysers on the possibility that pipe->num_inputs could be
-> greater than 1 without pipe->bru being set.
-> 
-> The reality is that the pipeline must have a BRx to support more than
-> one input, thus this could never cause a fault - however it also
-> identifies that the num_inputs > 1 check is redundant.
-> 
-> Remove the redundant check - and always configure the master layer
-> appropriately when we have a BRx configured in our pipeline.
-> 
-> Fixes: 6134148f6098 ("v4l: vsp1: Add support for the BRS entity")
-> Cc: stable@vger.kernel.org
-> 
-> Suggested-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+Changes since v3:
+- none
 
-Looking at commit 5d0beeec59e303c76160ddd67fa73dcfc5d76de0 I think your patch 
-is correct.
+ drivers/media/usb/dvb-usb-v2/gl861.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and taken in my tree.
-
-> ---
->  drivers/media/platform/vsp1/vsp1_wpf.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
-> b/drivers/media/platform/vsp1/vsp1_wpf.c index f7f3b4b2c2de..8bd6b2f1af15
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-> @@ -452,7 +452,7 @@ static void wpf_configure(struct vsp1_entity *entity,
->  			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
->  	}
-> 
-> -	if (pipe->bru || pipe->num_inputs > 1)
-> +	if (pipe->bru)
->  		srcrpf |= pipe->bru->type == VSP1_ENTITY_BRU
->  			? VI6_WPF_SRCRPF_VIRACT_MST
->  			: VI6_WPF_SRCRPF_VIRACT2_MST;
-
+diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
+index a0280126bfc..6f6dfa65bba 100644
+--- a/drivers/media/usb/dvb-usb-v2/gl861.c
++++ b/drivers/media/usb/dvb-usb-v2/gl861.c
+@@ -45,7 +45,7 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 		return -EINVAL;
+ 	}
+ 
+-	msleep(1); /* avoid I2C errors */
++	usleep_range(1000, 2000); /* avoid I2C errors */
+ 
+ 	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
+ 			       value, index, rbuf, rlen, 2000);
 -- 
-Regards,
-
-Laurent Pinchart
+2.16.3
