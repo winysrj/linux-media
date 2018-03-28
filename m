@@ -1,73 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:54489 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932868AbeCNCfA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 22:35:00 -0400
-Subject: Re: [PATCH v8 03/13] [media] omap3isp: group device capabilities
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180309174920.22373-1-gustavo@padovan.org>
- <20180309174920.22373-4-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5756fc2a-c2f6-0d14-d8fc-9dcc5f7b7d93@xs4all.nl>
-Date: Tue, 13 Mar 2018 19:34:52 -0700
-MIME-Version: 1.0
-In-Reply-To: <20180309174920.22373-4-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:42241 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752318AbeC1SMq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:12:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sasha Levin <alexander.levin@microsoft.com>
+Subject: [PATCH for v3.18 07/18] media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+Date: Wed, 28 Mar 2018 15:12:26 -0300
+Message-Id: <6e6f38fc8542cf41fffcd3067026c4f015564544.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/09/2018 09:49 AM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Instead of putting V4L2_CAP_STREAMING everywhere, set device_caps
-> earlier with this value.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/platform/omap3isp/ispvideo.c | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index a751c89a3ea8..b4d4ef926749 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -658,13 +658,14 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
->  	strlcpy(cap->card, video->video.name, sizeof(cap->card));
->  	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
->  
-> -	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
-> -		| V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
-> +	cap->device_caps = V4L2_CAP_STREAMING;
-> +	cap->capabilities = cap->device_caps | V4L2_CAP_VIDEO_CAPTURE |
-> +		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_DEVICE_CAPS;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Same as in patch 1: I'd move this down to after the if-else. It makes more
-sense that way.
+commit 8ed5a59dcb47a6f76034ee760b36e089f3e82529 upstream.
 
->  
->  	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> -		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-> +		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
->  	else
-> -		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-> +		cap->device_caps |= V4L2_CAP_VIDEO_OUTPUT;
->  
->  	return 0;
->  }
-> 
+The struct v4l2_plane32 should set m.userptr as well. The same
+happens in v4l2_buffer32 and v4l2-compliance tests for this.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index b7dd98168a68..a27fd9105948 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -287,19 +287,24 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	if (memory == V4L2_MEMORY_USERPTR) {
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
++		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
++				 sizeof(up32->m.mem_offset)))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_USERPTR:
+ 		if (get_user(p, &up32->m.userptr))
+ 			return -EFAULT;
+ 		up_pln = compat_ptr(p);
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
+-	} else if (memory == V4L2_MEMORY_DMABUF) {
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
+ 			return -EFAULT;
+-	} else {
+-		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-				 sizeof(up32->m.mem_offset)))
+-			return -EFAULT;
++		break;
+ 	}
+ 
+ 	return 0;
+@@ -308,22 +313,32 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
+ 			    enum v4l2_memory memory)
+ {
++	unsigned long p;
++
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up32->data_offset, &up->data_offset,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	/* For MMAP, driver might've set up the offset, so copy it back.
+-	 * USERPTR stays the same (was userspace-provided), so no copying. */
+-	if (memory == V4L2_MEMORY_MMAP)
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+ 				 sizeof(up->m.mem_offset)))
+ 			return -EFAULT;
+-	/* For DMABUF, driver might've set up the fd, so copy it back. */
+-	if (memory == V4L2_MEMORY_DMABUF)
++		break;
++	case V4L2_MEMORY_USERPTR:
++		if (get_user(p, &up->m.userptr) ||
++		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
++			     &up32->m.userptr))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up32->m.fd, &up->m.fd,
+ 				 sizeof(up->m.fd)))
+ 			return -EFAULT;
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -383,6 +398,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (get_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -396,10 +412,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
+ 			}
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (get_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (get_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+@@ -456,6 +468,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (put_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -463,10 +476,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			if (put_user(kp->m.userptr, &up->m.userptr))
+ 				return -EFAULT;
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (put_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (put_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+-- 
+2.14.3
