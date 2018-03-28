@@ -1,123 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:45818 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750708AbeC2PCr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 11:02:47 -0400
-Date: Thu, 29 Mar 2018 12:02:40 -0300
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Nasser <afshin.nasser@gmail.com>
-Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability
- on some hardware
-Message-ID: <20180329120240.169a5f33@vento.lan>
-In-Reply-To: <20180329143435.GA4392@smart-ThinkPad-T410>
-References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
-        <20180326064353.187f752c@vento.lan>
-        <20180326222921.GA5373@smart-ThinkPad-T410>
-        <20180329143435.GA4392@smart-ThinkPad-T410>
+Received: from mail.kapsi.fi ([91.232.154.25]:47353 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753035AbeC1Uop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 16:44:45 -0400
+Subject: Re: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and
+ merge with gl861
+To: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com
+References: <20180327174730.1887-1-tskd08@gmail.com>
+ <f1ce1268-e918-a12f-959e-98644cafb2fe@iki.fi>
+ <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <db8f370c-20f5-e9fe-9d2e-d12c1475dc33@iki.fi>
+Date: Wed, 28 Mar 2018 23:44:42 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 29 Mar 2018 19:04:35 +0430
-Nasser <afshin.nasser@gmail.com> escreveu:
 
-> On Tue, Mar 27, 2018 at 02:59:21AM +0430, Nasser wrote:
-> Hi Mauro,
+
+On 03/28/2018 03:37 PM, Akihiro TSUKADA wrote:
+> Hi,
+> thanks for the comment.
 > 
-> Thank you for taking time to review my patch.
+>> You should implement i2c adapter to demod driver and not add such glue
+>> to that USB-bridge. I mean that "relayed" stuff, i2c communication to
+>> tuner via demod. I2C-mux may not work I think as there is no gate-style
+>> multiplexing so you probably need plain i2c adapter. There is few
+>> examples already on some demod drivers.
 > 
-> May be I should rephrase the commit message to something like:
-> 	Use the default register values as suggested in TVP5150AM1 datasheet
+> I am afraid that the glue is actually necessary.
 > 
-> As this is not a hardware-dependent issue. Am I missing something?
-
-It is not a matter of rephasing, but, instead, to be sure that it won't
-cause regressions on existing hardware.
-
-Yet, it would worth if you could describe at the patch what hardware
-did you test it, and if VBI was tested too.
-
-Anyway, I'll try to find some time to run some tests on the hardware
-I have with tvp5150 too.
-
-Regards,
-Mauro
-
+> host - USB -> gl861 - I2C(1) -> tc90522 (addr:X)
+>                                    \- I2C(2) -> tua6034 (addr:Y)
 > 
-> > On Mon, Mar 26, 2018 at 06:43:53AM -0300, Mauro Carvalho Chehab wrote:  
-> > > Hi Nasser,
-> > > 
-> > > Em Mon, 26 Mar 2018 03:26:33 +0430
-> > > Nasser Afshin <afshin.nasser@gmail.com> escreveu:
-> > >   
-> > > > According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
-> > > > resistor if it's been disabled. On hardware that does not have such
-> > > > resistor, we should use the default output enable value.
-> > > > This prevents the color burst lock instability problem.  
-> > >  
-> > 
-> > Color burst lock instability is just a side effect of not using the
-> > recommended value for this bit. If we use the recommended setting, we
-> > will support more hardware while not breaking anything.
-> >   
-> > > If this is hardware-dependent, you should instead store it at
-> > > OF (for SoC) or pass via platform_data (for PCI/USB devices).
-> > >  
-> > 
-> > We have used the recommended value for this bit (as the datasheet
-> > suggests) while we are in tvp5150_init_enable but in tvp5150_s_stream
-> > we are using the wrong value.
-> > 
-> > Also we have this comment at line 319:
-> >     /* Default values as sugested at TVP5150AM1 datasheet */
-> > But as you see, TVP5150_MISC_CTL is not set to its suggested default
-> > value.
-> >    
-> > > > 
-> > > > Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
-> > > > ---
-> > > >  drivers/media/i2c/tvp5150.c | 5 +++--
-> > > >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > > > index 2476d812f669..0e9713814816 100644
-> > > > --- a/drivers/media/i2c/tvp5150.c
-> > > > +++ b/drivers/media/i2c/tvp5150.c
-> > > > @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
-> > > >  		TVP5150_OP_MODE_CTL,0x00
-> > > >  	},
-> > > >  	{ /* 0x03 */
-> > > > -		TVP5150_MISC_CTL,0x01
-> > > > +		TVP5150_MISC_CTL,0x21
-> > > >  	},
-> > > >  	{ /* 0x06 */
-> > > >  		TVP5150_COLOR_KIL_THSH_CTL,0x10
-> > > > @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
-> > > >  		 * Enable the YCbCr and clock outputs. In discrete sync mode
-> > > >  		 * (non-BT.656) additionally enable the the sync outputs.
-> > > >  		 */
-> > > > -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
-> > > > +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
-> > > > +			TVP5150_MISC_CTL_INTREQ_OE;
-> > > >  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-> > > >  			val |= TVP5150_MISC_CTL_SYNC_OE;
-> > > >  	}  
-> > > 
-> > > 
-> > > 
-> > > Thanks,
-> > > Mauro  
+> To send an i2c read message to tua6034,
+> one has to issue two transactions:
+>   1. write via I2C(1) to addr:X, [ reg:0xfe, val: Y ]
+>   2. read via I2C(1) from addr:X, [ out_data0, out_data1, ....]
 > 
-> Thanks,
-> Nasser
+> The problem is that the transaction 1 is (somehow) implemented with
+> the different USB request than the other i2c transactions on I2C(1).
+> (this is confirmed by a packet capture on Windows box).
+> 
+> Although tc90522 already creats the i2c adapter for I2C(2),
+> tc90522 cannot know/control the USB implementation of I2C(1),
+> only the bridge driver can do this.
+
+I simply cannot see why it cannot work. Just add i2c adapter and 
+suitable logic there. Transaction on your example is simply and there is 
+no problem to implement that kind of logic to demod i2c adapter.
+
+If gl861 driver i2c adapter logic is broken it can be fixed easily too. 
+It seems to support only i2c writes with len 1 and 2 bytes, but fixing 
+it should be easy if you has some sniffs.
 
 
 
-Thanks,
-Mauro
+Antti
+
+-- 
+http://palosaari.fi/
