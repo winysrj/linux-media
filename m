@@ -1,84 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:47028 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751317AbeCNIDH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 04:03:07 -0400
-Date: Wed, 14 Mar 2018 09:03:01 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: dri-devel@lists.freedesktop.org,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        David Airlie <airlied@linux.ie>,
-        open list <linux-kernel@vger.kernel.org>,
-        qemu-devel@nongnu.org,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [RfC PATCH] Add udmabuf misc device
-Message-ID: <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
-References: <20180313154826.20436-1-kraxel@redhat.com>
- <20180313161035.GL4788@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180313161035.GL4788@phenom.ffwll.local>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36417 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753234AbeC1OBq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 10:01:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 23/29] videobuf2-v4l2: add vb2_request_queue helper
+Date: Wed, 28 Mar 2018 16:01:34 +0200
+Message-Id: <20180328140140.42096-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
+References: <20180328140140.42096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Either mlock account (because it's mlocked defacto), and get_user_pages
-> won't do that for you.
-> 
-> Or you write the full-blown userptr implementation, including mmu_notifier
-> support (see i915 or amdgpu), but that also requires Christian Königs
-> latest ->invalidate_mapping RFC for dma-buf (since atm exporting userptr
-> buffers is a no-go).
+Generic helper function that checks if there are buffers in
+the request and if so, prepares and queues all objects in the
+request.
 
-I guess I'll look at mlock accounting for starters then.  Easier for
-now, and leaves the door open to switch to userptr later as this should
-be transparent to userspace.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c | 39 +++++++++++++++++++++++++
+ include/media/videobuf2-v4l2.h                  |  3 ++
+ 2 files changed, 42 insertions(+)
 
-> > Known issue:  Driver API isn't complete yet.  Need add some flags, for
-> > example to support read-only buffers.
-> 
-> dma-buf has no concept of read-only. I don't think we can even enforce
-> that (not many iommus can enforce this iirc), so pretty much need to
-> require r/w memory.
-
-Ah, ok.  Just saw the 'write' arg for get_user_pages_fast and figured we
-might support that, but if iommus can't handle that anyway it's
-pointless indeed.
-
-> > Cc: David Airlie <airlied@linux.ie>
-> > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-> 
-> btw there's also the hyperdmabuf stuff from the xen folks, but imo their
-> solution of forwarding the entire dma-buf api is over the top. This here
-> looks _much_ better, pls cc all the hyperdmabuf people on your next
-> version.
-
-Fun fact: googling for "hyperdmabuf" found me your mail and nothing else :-o
-(Trying "hyper dmabuf" instead worked better then).
-
-Yes, will cc them on the next version.  Not sure it'll help much on xen
-though due to the memory management being very different.  Basically xen
-owns the memory, not the kernel of the control domain (dom0), so
-creating dmabufs for guest memory chunks isn't that simple ...
-
-Also it's not clear whenever they really need guest -> guest exports or
-guest -> dom0 exports.
-
-> Overall I like the idea, but too lazy to review.
-
-Cool.  General comments on the idea was all I was looking for for the
-moment.  Spare yor review cycles for the next version ;)
-
-> Oh, some kselftests for this stuff would be lovely.
-
-I'll look into it.
-
-thanks,
-  Gerd
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index d3ea5ec697a6..ebb951db7a8f 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -1054,6 +1054,45 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
+ }
+ EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
+ 
++int vb2_request_queue(struct media_request *req)
++{
++	struct media_request_object *obj;
++	struct media_request_object *failed_obj = NULL;
++	int ret = 0;
++
++	if (!vb2_core_request_has_buffers(req))
++		return -ENOENT;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (!obj->ops->prepare)
++			continue;
++
++		ret = obj->ops->prepare(obj);
++
++		if (ret) {
++			failed_obj = obj;
++			break;
++		}
++	}
++
++	if (ret) {
++		list_for_each_entry(obj, &req->objects, list) {
++			if (obj == failed_obj)
++				break;
++			if (obj->ops->unprepare)
++				obj->ops->unprepare(obj);
++		}
++		return ret;
++	}
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (obj->ops->queue)
++			obj->ops->queue(obj);
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_request_queue);
++
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index cf312ab4e7e8..0baa3023d7ad 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -301,4 +301,7 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
+  */
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
+ 
++struct media_request;
++int vb2_request_queue(struct media_request *req);
++
+ #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
+-- 
+2.15.1
