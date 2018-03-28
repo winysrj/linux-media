@@ -1,232 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56675 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:34590 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752298AbeCCUvT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Mar 2018 15:51:19 -0500
+        id S1753024AbeC1SM5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:12:57 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 04/11] media: em28xx-audio: fix coding style issues
-Date: Sat,  3 Mar 2018 17:51:05 -0300
-Message-Id: <8f10a53f758b09c8bbe31bc969961bf701689ca6.1520110127.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
-References: <cover.1520110127.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1520110127.git.mchehab@s-opensource.com>
-References: <cover.1520110127.git.mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.18 15/18] media: v4l2-ctrls: fix sparse warning
+Date: Wed, 28 Mar 2018 15:12:34 -0300
+Message-Id: <d53d22eb0ea4cdbcb2e7f02d789a01892d8c36cf.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a number of coding style issues at em28xx-audio.
-Fix them, by using checkpatch in strict mode to point for it.
-Automatic fixes with --fix-inplace were complemented by manual
-work.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The warning is simple:
+
+drivers/media/v4l2-core/v4l2-ctrls.c:1685:15: warning: incorrect type in assignment (different address spaces)
+
+but the fix isn't.
+
+The core problem was that the conversion from user to kernelspace was
+done at too low a level and that needed to be moved up. That made it possible
+to drop pointers to v4l2_ext_control from set_ctrl and validate_new and
+clean up this sparse warning because those functions now always operate
+on kernelspace pointers.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 70 +++++++++++++++++++--------------
- 1 file changed, 40 insertions(+), 30 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 87 +++++++++++++++++++++---------------
+ 1 file changed, 52 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index f8854b570f0d..8e799ae1df69 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -103,7 +103,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 	case -ESHUTDOWN:
- 		return;
- 	default:            /* error */
--		dprintk("urb completition error %d.\n", urb->status);
-+		dprintk("urb completion error %d.\n", urb->status);
- 		break;
- 	}
- 
-@@ -165,12 +165,11 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 		dev_err(&dev->intf->dev,
- 			"resubmit of audio urb failed (error=%i)\n",
- 			status);
--	return;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 7905ad9ffa35..3c4e22855652 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1668,10 +1668,8 @@ static int check_range(enum v4l2_ctrl_type type,
  }
  
- static int em28xx_init_audio_isoc(struct em28xx *dev)
+ /* Validate a new control */
+-static int validate_new(const struct v4l2_ctrl *ctrl,
+-			struct v4l2_ext_control *c)
++static int validate_new(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr p_new)
  {
--	int       i, errCode;
-+	int       i, err;
+-	union v4l2_ctrl_ptr ptr;
+ 	unsigned idx;
+ 	int err = 0;
  
- 	dprintk("Starting isoc transfers\n");
- 
-@@ -179,16 +178,15 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
- 		memset(dev->adev.transfer_buffer[i], 0x80,
- 		       dev->adev.urb[i]->transfer_buffer_length);
- 
--		errCode = usb_submit_urb(dev->adev.urb[i], GFP_ATOMIC);
--		if (errCode) {
-+		err = usb_submit_urb(dev->adev.urb[i], GFP_ATOMIC);
-+		if (err) {
- 			dev_err(&dev->intf->dev,
- 				"submit of audio urb failed (error=%i)\n",
--				errCode);
-+				err);
- 			em28xx_deinit_isoc_audio(dev);
- 			atomic_set(&dev->adev.stream_started, 0);
--			return errCode;
-+			return err;
- 		}
+@@ -1684,19 +1682,14 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
+ 		case V4L2_CTRL_TYPE_BOOLEAN:
+ 		case V4L2_CTRL_TYPE_BUTTON:
+ 		case V4L2_CTRL_TYPE_CTRL_CLASS:
+-			ptr.p_s32 = &c->value;
+-			return ctrl->type_ops->validate(ctrl, 0, ptr);
 -
+ 		case V4L2_CTRL_TYPE_INTEGER64:
+-			ptr.p_s64 = &c->value64;
+-			return ctrl->type_ops->validate(ctrl, 0, ptr);
++			return ctrl->type_ops->validate(ctrl, 0, p_new);
+ 		default:
+ 			break;
+ 		}
  	}
+-	ptr.p = c->ptr;
+-	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
+-		err = ctrl->type_ops->validate(ctrl, idx, ptr);
++	for (idx = 0; !err && idx < ctrl->elems; idx++)
++		err = ctrl->type_ops->validate(ctrl, idx, p_new);
+ 	return err;
+ }
  
- 	return 0;
-@@ -268,14 +266,17 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
- 	if (nonblock) {
- 		if (!mutex_trylock(&dev->lock))
- 			return -EAGAIN;
--	} else
-+	} else {
- 		mutex_lock(&dev->lock);
-+	}
+@@ -3020,6 +3013,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
+ 	cs->error_idx = cs->count;
+ 	for (i = 0; i < cs->count; i++) {
+ 		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
++		union v4l2_ctrl_ptr p_new;
  
- 	runtime->hw = snd_em28xx_hw_capture;
+ 		cs->error_idx = i;
  
- 	if (dev->adev.users == 0) {
--		if (dev->alt == 0 || dev->is_audio_only) {
--			struct usb_device *udev = interface_to_usbdev(dev->intf);
-+		if (!dev->alt || dev->is_audio_only) {
-+			struct usb_device *udev;
+@@ -3033,7 +3027,17 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
+ 		   best-effort to avoid that. */
+ 		if (set && (ctrl->flags & V4L2_CTRL_FLAG_GRABBED))
+ 			return -EBUSY;
+-		ret = validate_new(ctrl, &cs->controls[i]);
++		/*
++		 * Skip validation for now if the payload needs to be copied
++		 * from userspace into kernelspace. We'll validate those later.
++		 */
++		if (ctrl->is_ptr)
++			continue;
++		if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
++			p_new.p_s64 = &cs->controls[i].value64;
++		else
++			p_new.p_s32 = &cs->controls[i].value;
++		ret = validate_new(ctrl, p_new);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -3128,7 +3132,11 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			ret = user_to_new(cs->controls + idx, helpers[idx].ctrl);
++			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
 +
-+			udev = interface_to_usbdev(dev->intf);
++			ret = user_to_new(cs->controls + idx, ctrl);
++			if (!ret && ctrl->is_ptr)
++				ret = validate_new(ctrl, ctrl->p_new);
+ 			idx = helpers[idx].next;
+ 		} while (!ret && idx);
  
- 			if (dev->is_audio_only)
- 				/* audio is on a separate interface */
-@@ -367,9 +368,11 @@ static int snd_em28xx_hw_capture_params(struct snd_pcm_substream *substream,
- 	if (ret < 0)
- 		return ret;
- #if 0
--	/* TODO: set up em28xx audio chip to deliver the correct audio format,
--	   current default is 48000hz multiplexed => 96000hz mono
--	   which shouldn't matter since analogue TV only supports mono */
-+	/*
-+	 * TODO: set up em28xx audio chip to deliver the correct audio format,
-+	 * current default is 48000hz multiplexed => 96000hz mono
-+	 * which shouldn't matter since analogue TV only supports mono
-+	 */
- 	unsigned int channels, rate, format;
+@@ -3178,10 +3186,10 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
  
- 	format = params_format(hw_params);
-@@ -513,8 +516,9 @@ static int em28xx_vol_put(struct snd_kcontrol *kcontrol,
- 	if (nonblock) {
- 		if (!mutex_trylock(&dev->lock))
- 			return -EAGAIN;
--	} else
-+	} else {
- 		mutex_lock(&dev->lock);
-+	}
- 	rc = em28xx_read_ac97(dev, kcontrol->private_value);
- 	if (rc < 0)
- 		goto err;
-@@ -551,8 +555,9 @@ static int em28xx_vol_get(struct snd_kcontrol *kcontrol,
- 	if (nonblock) {
- 		if (!mutex_trylock(&dev->lock))
- 			return -EAGAIN;
--	} else
-+	} else {
- 		mutex_lock(&dev->lock);
-+	}
- 	val = em28xx_read_ac97(dev, kcontrol->private_value);
- 	mutex_unlock(&dev->lock);
- 	if (val < 0)
-@@ -586,8 +591,9 @@ static int em28xx_vol_put_mute(struct snd_kcontrol *kcontrol,
- 	if (nonblock) {
- 		if (!mutex_trylock(&dev->lock))
- 			return -EAGAIN;
--	} else
-+	} else {
- 		mutex_lock(&dev->lock);
-+	}
- 	rc = em28xx_read_ac97(dev, kcontrol->private_value);
- 	if (rc < 0)
- 		goto err;
-@@ -627,8 +633,9 @@ static int em28xx_vol_get_mute(struct snd_kcontrol *kcontrol,
- 	if (nonblock) {
- 		if (!mutex_trylock(&dev->lock))
- 			return -EAGAIN;
--	} else
-+	} else {
- 		mutex_lock(&dev->lock);
-+	}
- 	val = em28xx_read_ac97(dev, kcontrol->private_value);
- 	mutex_unlock(&dev->lock);
- 	if (val < 0)
-@@ -762,7 +769,7 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+ /* Helper function for VIDIOC_S_CTRL compatibility */
+-static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+-		    struct v4l2_ext_control *c, u32 ch_flags)
++static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+ {
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
++	int ret;
+ 	int i;
  
- 	if (intf->num_altsetting <= alt) {
- 		dev_err(&dev->intf->dev, "alt %d doesn't exist on interface %d\n",
--			      dev->ifnum, alt);
-+			dev->ifnum, alt);
- 		return -ENODEV;
- 	}
+ 	/* Reset the 'is_new' flags of the cluster */
+@@ -3189,8 +3197,9 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ 		if (master->cluster[i])
+ 			master->cluster[i]->is_new = 0;
  
-@@ -836,9 +843,8 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
- 	dev->adev.transfer_buffer = kcalloc(num_urb,
- 					    sizeof(*dev->adev.transfer_buffer),
- 					    GFP_ATOMIC);
--	if (!dev->adev.transfer_buffer) {
-+	if (!dev->adev.transfer_buffer)
- 		return -ENOMEM;
+-	if (c)
+-		user_to_new(c, ctrl);
++	ret = validate_new(ctrl, ctrl->p_new);
++	if (ret)
++		return ret;
+ 
+ 	/* For autoclusters with volatiles that are switched from auto to
+ 	   manual mode we have to update the current volatile values since
+@@ -3207,15 +3216,14 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ static int set_ctrl_lock(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ 			 struct v4l2_ext_control *c)
+ {
+-	int ret = validate_new(ctrl, c);
++	int ret;
+ 
+-	if (!ret) {
+-		v4l2_ctrl_lock(ctrl);
+-		ret = set_ctrl(fh, ctrl, c, 0);
+-		if (!ret)
+-			cur_to_user(c, ctrl);
+-		v4l2_ctrl_unlock(ctrl);
 -	}
++	v4l2_ctrl_lock(ctrl);
++	user_to_new(c, ctrl);
++	ret = set_ctrl(fh, ctrl, 0);
++	if (!ret)
++		cur_to_user(c, ctrl);
++	v4l2_ctrl_unlock(ctrl);
+ 	return ret;
+ }
  
- 	dev->adev.urb = kcalloc(num_urb, sizeof(*dev->adev.urb), GFP_ATOMIC);
- 	if (!dev->adev.urb) {
-@@ -899,9 +905,11 @@ static int em28xx_audio_init(struct em28xx *dev)
- 	int		    err;
- 
- 	if (dev->usb_audio_type != EM28XX_USB_AUDIO_VENDOR) {
--		/* This device does not support the extension (in this case
--		   the device is expecting the snd-usb-audio module or
--		   doesn't have analog audio support at all) */
-+		/*
-+		 * This device does not support the extension (in this case
-+		 * the device is expecting the snd-usb-audio module or
-+		 * doesn't have analog audio support at all)
-+		 */
- 		return 0;
- 	}
- 
-@@ -977,13 +985,15 @@ static int em28xx_audio_init(struct em28xx *dev)
- 
- static int em28xx_audio_fini(struct em28xx *dev)
+@@ -3223,7 +3231,7 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 					struct v4l2_control *control)
  {
--	if (dev == NULL)
-+	if (!dev)
- 		return 0;
+ 	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, control->id);
+-	struct v4l2_ext_control c;
++	struct v4l2_ext_control c = { control->id };
+ 	int ret;
  
- 	if (dev->usb_audio_type != EM28XX_USB_AUDIO_VENDOR) {
--		/* This device does not support the extension (in this case
--		   the device is expecting the snd-usb-audio module or
--		   doesn't have analog audio support at all) */
-+		/*
-+		 * This device does not support the extension (in this case
-+		 * the device is expecting the snd-usb-audio module or
-+		 * doesn't have analog audio support at all)
-+		 */
- 		return 0;
- 	}
+ 	if (ctrl == NULL || !ctrl->is_int)
+@@ -3252,7 +3260,7 @@ int __v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!ctrl->is_int);
+ 	ctrl->val = val;
+-	return set_ctrl(NULL, ctrl, NULL, 0);
++	return set_ctrl(NULL, ctrl, 0);
+ }
+ EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl);
  
-@@ -1005,7 +1015,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+@@ -3263,7 +3271,7 @@ int __v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(ctrl->is_ptr || ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+ 	*ctrl->p_new.p_s64 = val;
+-	return set_ctrl(NULL, ctrl, NULL, 0);
++	return set_ctrl(NULL, ctrl, 0);
+ }
+ EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_int64);
  
- static int em28xx_audio_suspend(struct em28xx *dev)
+@@ -3274,7 +3282,7 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_STRING);
+ 	strlcpy(ctrl->p_new.p_char, s, ctrl->maximum + 1);
+-	return set_ctrl(NULL, ctrl, NULL, 0);
++	return set_ctrl(NULL, ctrl, 0);
+ }
+ EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
+ 
+@@ -3297,8 +3305,8 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
+ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 			s64 min, s64 max, u64 step, s64 def)
  {
--	if (dev == NULL)
-+	if (!dev)
- 		return 0;
++	bool changed;
+ 	int ret;
+-	struct v4l2_ext_control c;
  
- 	if (dev->usb_audio_type != EM28XX_USB_AUDIO_VENDOR)
-@@ -1019,7 +1029,7 @@ static int em28xx_audio_suspend(struct em28xx *dev)
+ 	lockdep_assert_held(ctrl->handler->lock);
  
- static int em28xx_audio_resume(struct em28xx *dev)
- {
--	if (dev == NULL)
-+	if (!dev)
- 		return 0;
- 
- 	if (dev->usb_audio_type != EM28XX_USB_AUDIO_VENDOR)
+@@ -3325,11 +3333,20 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	ctrl->maximum = max;
+ 	ctrl->step = step;
+ 	ctrl->default_value = def;
+-	c.value = *ctrl->p_cur.p_s32;
+-	if (validate_new(ctrl, &c))
+-		c.value = def;
+-	if (c.value != *ctrl->p_cur.p_s32)
+-		ret = set_ctrl(NULL, ctrl, &c, V4L2_EVENT_CTRL_CH_RANGE);
++	cur_to_new(ctrl);
++	if (validate_new(ctrl, ctrl->p_new)) {
++		if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
++			*ctrl->p_new.p_s64 = def;
++		else
++			*ctrl->p_new.p_s32 = def;
++	}
++
++	if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
++		changed = *ctrl->p_new.p_s64 != *ctrl->p_cur.p_s64;
++	else
++		changed = *ctrl->p_new.p_s32 != *ctrl->p_cur.p_s32;
++	if (changed)
++		ret = set_ctrl(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
+ 	else
+ 		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
+ 	return ret;
 -- 
 2.14.3
