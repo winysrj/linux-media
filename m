@@ -1,157 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51763 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57502 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750873AbeC0QqP (ORCPT
+        with ESMTP id S1751434AbeC1M1P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 12:46:15 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wed, 28 Mar 2018 08:27:15 -0400
+Subject: Re: [PATCH 02/15] v4l: vsp1: Remove outdated comment
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v4 5/6] media: uvcvideo: queue: Support asynchronous buffer handling
-Date: Tue, 27 Mar 2018 17:46:02 +0100
-Message-Id: <8eb8b897792bf5fe57057be313c001a8f257a195.1522168131.git-series.kieran.bingham@ideasonboard.com>
-In-Reply-To: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
-In-Reply-To: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180226214516.11559-3-laurent.pinchart+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <0a055333-78b0-a64b-ef97-c1706b7b56b9@ideasonboard.com>
+Date: Wed, 28 Mar 2018 13:27:10 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180226214516.11559-3-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The buffer queue interface currently operates sequentially, processing
-buffers after they have fully completed.
+Hi Laurent,
 
-In preparation for supporting parallel tasks operating on the buffers,
-we will need to support buffers being processed on multiple CPUs.
+Thank you for the patch.
 
-Adapt the uvc_queue_next_buffer() such that a reference count tracks the
-active use of the buffer, returning the buffer to the VB2 stack at
-completion.
+On 26/02/18 21:45, Laurent Pinchart wrote:
+> The entities in the pipeline are all started when the LIF is setup.
+> Remove the outdated comment that state otherwise.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 61 ++++++++++++++++++++++++++------
- drivers/media/usb/uvc/uvcvideo.h  |  4 ++-
- 2 files changed, 54 insertions(+), 11 deletions(-)
+I'll start with the easy ones :-)
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 698d9a5a5aae..aefb7d073c2e 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -142,6 +142,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
- 
- 	spin_lock_irqsave(&queue->irqlock, flags);
- 	if (likely(!(queue->flags & UVC_QUEUE_DISCONNECTED))) {
-+		kref_init(&buf->ref);
- 		list_add_tail(&buf->queue, &queue->irqqueue);
- 	} else {
- 		/* If the device is disconnected return the buffer to userspace
-@@ -454,28 +455,66 @@ struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
- 	return nextbuf;
- }
- 
--struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
-+/*
-+ * uvc_queue_requeue: Requeue a buffer on our internal irqqueue
-+ *
-+ * Reuse a buffer through our internal queue without the need to 'prepare'
-+ * The buffer will be returned to userspace through the uvc_buffer_queue call if
-+ * the device has been disconnected
-+ */
-+static void uvc_queue_requeue(struct uvc_video_queue *queue,
- 		struct uvc_buffer *buf)
- {
--	struct uvc_buffer *nextbuf;
--	unsigned long flags;
-+	buf->error = 0;
-+	buf->state = UVC_BUF_STATE_QUEUED;
-+	buf->bytesused = 0;
-+	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, 0);
-+
-+	uvc_buffer_queue(&buf->buf.vb2_buf);
-+}
-+
-+static void uvc_queue_buffer_complete(struct kref *ref)
-+{
-+	struct uvc_buffer *buf = container_of(ref, struct uvc_buffer, ref);
-+	struct vb2_buffer *vb = &buf->buf.vb2_buf;
-+	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
- 
- 	if ((queue->flags & UVC_QUEUE_DROP_CORRUPTED) && buf->error) {
--		buf->error = 0;
--		buf->state = UVC_BUF_STATE_QUEUED;
--		buf->bytesused = 0;
--		vb2_set_plane_payload(&buf->buf.vb2_buf, 0, 0);
--		return buf;
-+		uvc_queue_requeue(queue, buf);
-+		return;
- 	}
- 
-+	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
-+	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
-+	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
-+}
-+
-+/*
-+ * Release a reference on the buffer. Complete the buffer when the last
-+ * reference is released
-+ */
-+void uvc_queue_buffer_release(struct uvc_buffer *buf)
-+{
-+	kref_put(&buf->ref, uvc_queue_buffer_complete);
-+}
-+
-+/*
-+ * Remove this buffer from the queue. Lifetime will persist while async actions
-+ * are still running (if any), and uvc_queue_buffer_release will give the buffer
-+ * back to VB2 when all users have completed.
-+ */
-+struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
-+		struct uvc_buffer *buf)
-+{
-+	struct uvc_buffer *nextbuf;
-+	unsigned long flags;
-+
- 	spin_lock_irqsave(&queue->irqlock, flags);
- 	list_del(&buf->queue);
- 	nextbuf = __uvc_queue_get_current_buffer(queue);
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
- 
--	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
--	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
--	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
-+	uvc_queue_buffer_release(buf);
- 
- 	return nextbuf;
- }
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index ba792d91dad7..112eed49bf50 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -404,6 +404,9 @@ struct uvc_buffer {
- 	unsigned int bytesused;
- 
- 	u32 pts;
-+
-+	/* asynchronous buffer handling */
-+	struct kref ref;
- };
- 
- #define UVC_QUEUE_DISCONNECTED		(1 << 0)
-@@ -705,6 +708,7 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
- struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 					 struct uvc_buffer *buf);
- struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
-+void uvc_queue_buffer_release(struct uvc_buffer *buf);
- int uvc_queue_mmap(struct uvc_video_queue *queue,
- 		   struct vm_area_struct *vma);
- __poll_t uvc_queue_poll(struct uvc_video_queue *queue, struct file *file,
--- 
-git-series 0.9.1
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index e31fb371eaf9..a1f2ba044092 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -221,11 +221,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  		return -EPIPE;
+>  	}
+>  
+> -	/*
+> -	 * Enable the VSP1. We don't start the entities themselves right at this
+> -	 * point as there's no plane configured yet, so we can't start
+> -	 * processing buffers.
+> -	 */
+> +	/* Enable the VSP1. */
+>  	ret = vsp1_device_get(vsp1);
+>  	if (ret < 0)
+>  		return ret;
+> 
