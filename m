@@ -1,137 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:37451 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032580AbeCAQNo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2018 11:13:44 -0500
-Received: by mail-lf0-f52.google.com with SMTP id y19so9142663lfd.4
-        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2018 08:13:44 -0800 (PST)
-Date: Thu, 1 Mar 2018 17:13:38 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from osg.samsung.com ([64.30.133.232]:60594 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753385AbeC1OfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 10:35:06 -0400
+Date: Wed, 28 Mar 2018 11:34:56 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: devel@driverdev.osuosl.org,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans de Goede <hdegoede@redhat.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v5 0/2] media: v4l: Add support for the Cadence MIPI-CSI2
- TX controller
-Message-ID: <20180301161338.GA12470@bigcity.dyn.berto.se>
-References: <20180301113049.16470-1-maxime.ripard@bootlin.com>
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Avraham Shukron <avraham.shukron@gmail.com>,
+        Alan Cox <alan@linux.intel.com>
+Subject: Re: [PATCH 12/18] media: staging: atomisp: avoid a warning if 32
+ bits build
+Message-ID: <20180328113448.51421aac@vento.lan>
+In-Reply-To: <20180328141329.6nhx5qcaigqwz25d@mwanda>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+        <313cb7db7e3fc7c7c14d2e82e249ccebcbd51ff8.1522098456.git.mchehab@s-opensource.com>
+        <20180328141329.6nhx5qcaigqwz25d@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180301113049.16470-1-maxime.ripard@bootlin.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Em Wed, 28 Mar 2018 17:13:29 +0300
+Dan Carpenter <dan.carpenter@oracle.com> escreveu:
 
-Thanks for your patch-set,
+> On Mon, Mar 26, 2018 at 05:10:45PM -0400, Mauro Carvalho Chehab wrote:
+> > Checking if a size_t value is bigger than ULONG_INT only makes
+> > sense if building on 64 bits, as warned by:
+> > 	drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c:697 gmin_get_config_var() warn: impossible condition '(*out_len > (~0)) => (0-u32max > u32max)'
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c    | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+> > index be0c5e11e86b..3283c1b05d6a 100644
+> > --- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+> > +++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+> > @@ -693,9 +693,11 @@ static int gmin_get_config_var(struct device *dev, const char *var,
+> >  	for (i = 0; i < sizeof(var8) && var8[i]; i++)
+> >  		var16[i] = var8[i];
+> >  
+> > +#ifdef CONFIG_64BIT
+> >  	/* To avoid owerflows when calling the efivar API */
+> >  	if (*out_len > ULONG_MAX)
+> >  		return -EINVAL;
+> > +#endif  
+> 
+> I should just silence this particular warning in Smatch.  I feel like
+> this is a pretty common thing and the ifdefs aren't very pretty.  :(
 
-On 2018-03-01 12:30:47 +0100, Maxime Ripard wrote:
-> Hi,
-> 
-> Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
-> 
-> This IP block is able to receive 4 video streams and stream them over
-> a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
-> interfaces to controllers generating some video signals, like a camera
-> or a pattern generator.
-> 
-> It is able to map input streams to CSI2 virtual channels and datatypes
-> dynamically. The streaming devices choose their virtual channels
-> through an additional signal that is transparent to the CSI2-TX. The
-> datatypes however are yet another additional input signal, and can be
-> mapped to any CSI2 datatypes.
-> 
-> Since v4l2 doesn't really allow for that setup at the moment, this
-> preliminary version is a rather dumb one in order to start the
-> discussion on how to address this properly.
+Smatch actually warned about a real thing here: atomisp is
+doing a check in 32bits that it is always true. So, IMO,
+something is needed to prevent 32bits extra useless code somehow,
+perhaps via some EFI-var specific function that would do nothing
+on 32 bits.
 
-I'm sure you already are aware of this but in case you are not. Sakari 
-have a branch [1] which addresses much of the CSI-2 virtual channel 
-problems. It handles data types, virtual channels and format validation 
-for pipelines in IMHO good way.  I have used it for my base when 
-implementing the R-Car CSI-2 receiver which adds a proposed way on how 
-to start and stop streams using Sakaris work [2].
+That's the first time I noticed this code on media (although I might
+have missed something), so I guess this kind of checking is actually
+not that common.
 
-Would it be possible for you to try this series on-top of Sakaris branch 
-and see if it fits your needs? I would be happy if it did and we can 
-start the process of trying to get his work upstream so we can clear 
-that dependency for our hopefully shared problem :-)
-
-1. https://git.linuxtv.org/sailus/media_tree.git vc
-2. https://git.ragnatech.se/linux v4l2/mux
-
-> 
-> Let me know what you think!
-> Maxime
-> 
-> Changes from v4:
->   - After playing a bit with the pad multiplexing patches, found that it
->     was making much more sense to have the subdev notifiers for the source
->     subdev rather for the sink that might even be outside of Linux control.
->     Removed the notifier for now.
-> 
-> Changes from v3:
->   - Added a comment about entity links walk concurrency
->   - Changed the default resolution to 1280x720
->   - Changed usleep_range calls to udelay
->   - Reworked the reference counting mechanism to remove a race
->     condition by adding a mutex instead of an atomic count
->   - Changed the entity function to MEDIA_ENT_F_VID_IF_BRIDGE
->   - Changed the name of the reg variable in _get_resources to dev_cfg
->   - Removed the redundant error message in the devm_ioremap_resource
->     error path
->   - Moved the subdev s_stream call before enabling the TX bridge
->   - Changed some int types to unsigned
->   - Init'd the pad formats properly
->   - Fixed typo in the CSI2TX_LANES_MAX define name
->   - Added Sakari Acked-by
-> 
-> Changes from v2:
->   - Use SPDX license header
->   - Use the lane mapping from DT
-> 
-> Changes from v1:
->   - Add a subdev notifier and start our downstream subdevice in
->     s_stream  
->   - Based the decision to enable the stream or not on the link state
->     instead of whether a format was being set on the pad
->   - Put the controller back in reset when stopping the pipeline
->   - Clarified the enpoints number in the DT binding
->   - Added a default format for the pads
->   - Added some missing const
->   - Added more explicit comments
->   - Rebased on 4.15
-> 
-> Maxime Ripard (2):
->   dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
->   v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-> 
->  .../devicetree/bindings/media/cdns,csi2tx.txt      |  98 ++++
->  drivers/media/platform/cadence/Kconfig             |  11 +
->  drivers/media/platform/cadence/Makefile            |   1 +
->  drivers/media/platform/cadence/cdns-csi2tx.c       | 527 +++++++++++++++++++++
->  4 files changed, 637 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
->  create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
-> 
-> -- 
-> 2.14.3
-> 
-
--- 
 Regards,
-Niklas Söderlund
+Mauro
