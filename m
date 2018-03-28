@@ -1,143 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35488 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751808AbeCMODx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 10:03:53 -0400
-Subject: Re: [PATCH 02/11] media: vsp1: use kernel __packed for structures
-To: David Laight <David.Laight@ACULAB.COM>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
- <767c4c9f6aa4799a58f0979b318208f1d3e27860.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
- <b58ff7ec7f7246498325e74b31ba3664@AcuMS.aculab.com>
- <8513c264-103f-94c8-cc46-972412d13da5@ideasonboard.com>
- <554b73e9ee2d43b19ac42ee380b7d160@AcuMS.aculab.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <8ecfb374-e979-a54d-74d9-d65dfbb5c3ef@ideasonboard.com>
-Date: Tue, 13 Mar 2018 15:03:47 +0100
+Received: from ale.deltatee.com ([207.54.116.67]:40952 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753225AbeC1Tx3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 15:53:29 -0400
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>
+Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-2-christian.koenig@amd.com>
+ <20180328123830.GB25060@infradead.org>
+ <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
+ <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
+ <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
+ <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
+ <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+ <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+ <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+Date: Wed, 28 Mar 2018 13:53:25 -0600
 MIME-Version: 1.0
-In-Reply-To: <554b73e9ee2d43b19ac42ee380b7d160@AcuMS.aculab.com>
+In-Reply-To: <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
 
-On 13/03/18 13:38, David Laight wrote:
-> From: Kieran Bingham [mailto:kieran.bingham+renesas@ideasonboard.com]
->> On 13/03/18 11:20, David Laight wrote:
->>> From: Kieran Bingham
->>>> Sent: 09 March 2018 22:04
->>>> The kernel provides a __packed definition to abstract away from the
->>>> compiler specific attributes tag.
->>>>
->>>> Convert all packed structures in VSP1 to use it.
->>>>
->>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>> ---
->>>>  drivers/media/platform/vsp1/vsp1_dl.c | 6 +++---
->>>>  1 file changed, 3 insertions(+), 3 deletions(-)
->>>>
->>>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
->>>> index 37e2c984fbf3..382e45c2054e 100644
->>>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
->>>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
->>>> @@ -29,19 +29,19 @@
->>>>  struct vsp1_dl_header_list {
->>>>  	u32 num_bytes;
->>>>  	u32 addr;
->>>> -} __attribute__((__packed__));
->>>> +} __packed;
->>>>
->>>>  struct vsp1_dl_header {
->>>>  	u32 num_lists;
->>>>  	struct vsp1_dl_header_list lists[8];
->>>>  	u32 next_header;
->>>>  	u32 flags;
->>>> -} __attribute__((__packed__));
->>>> +} __packed;
->>>>
->>>>  struct vsp1_dl_entry {
->>>>  	u32 addr;
->>>>  	u32 data;
->>>> -} __attribute__((__packed__));
->>>> +} __packed;
->>>
->>> Do these structures ever actually appear in misaligned memory?
->>> If they don't then they shouldn't be marked 'packed'.
+
+On 28/03/18 01:44 PM, Christian König wrote:
+> Well, isn't that exactly what dma_map_resource() is good for? As far as 
+> I can see it makes sure IOMMU is aware of the access route and 
+> translates a CPU address into a PCI Bus address.
+
+> I'm using that with the AMD IOMMU driver and at least there it works 
+> perfectly fine.
+
+Yes, it would be nice, but no arch has implemented this yet. We are just
+lucky in the x86 case because that arch is simple and doesn't need to do
+anything for P2P (partially due to the Bus and CPU addresses being the
+same). But in the general case, you can't rely on it.
+
+>>> Yeah, but not for ours. See if you want to do real peer 2 peer you need
+>>> to keep both the operation as well as the direction into account.
+>> Not sure what you are saying here... I'm pretty sure we are doing "real"
+>> peer 2 peer...
 >>
->> I believe the declaration is to ensure that the struct definition is not altered
->> by the compiler as these structures specifically define the layout of how the
->> memory is read by the VSP1 hardware.
+>>> For example when you can do writes between A and B that doesn't mean
+>>> that writes between B and A work. And reads are generally less likely to
+>>> work than writes. etc...
+>> If both devices are behind a switch then the PCI spec guarantees that A
+>> can both read and write B and vice versa.
 > 
-> The C language and ABI define structure layouts.
-> 
->> Certainly 2 u32's sequentially stored in a struct are unlikely to be moved or
->> rearranged by the compiler (though I believe it would be free to do so if it
->> chose without this attribute), but I think the declaration shows the intent of
->> the memory structure.
-> 
-> The language requires the fields be in order and the ABI stops the compiler
-> adding 'random' padding.
-> 
->> Isn't this a common approach throughout the kernel when dealing with hardware
->> defined memory structures ?
-> 
-> Absolutely not.
-> __packed tells the compiler that the structure might be on any address boundary.
-> On many architectures this means the compiler must use byte accesses with shifts
-> and ors for every access.
-> The most a hardware defined structure will have is a compile-time assert
-> that it is the correct size (to avoid silly errors from changes).
+> Sorry to say that, but I know a whole bunch of PCI devices which 
+> horrible ignores that.
 
+Can you elaborate? As far as the device is concerned it shouldn't know
+whether a request comes from a peer or from the host. If it does do
+crazy stuff like that it's well out of spec. It's up to the switch (or
+root complex if good support exists) to route the request to the device
+and it's the root complex that tends to be what drops the load requests
+which causes the asymmetries.
 
-
-Ok - interesting, I see what you're saying - and certainly don't want the
-compiler to be performing byte accesses on the structures unnecessarily.
-
-I'm trying to distinguish the difference here. Is the single point that
- __packed
-
-causes byte-access, where as
-
-__attribute__((__packed__));
-
-does not?
-
-Looking at the GCC docs [0]: I see that  __attribute__((__packed__)) tells the
-compiler that the "structure or union is placed to minimize the memory required".
-
-However, the keil compiler docs[1] do certainly declare that __packed causes
-byte alignment.
-
-I was confused/thrown off here by the Kernel defining __packed as
-__attribute__((packed)) at [2].
-
-Do __attribute__((packed)) and __attribute__((__packed__)) differ ?
-
-In which case, from what I've read so far I wish "__packed" was "__unaligned"...
-
-
-[0]
-https://gcc.gnu.org/onlinedocs/gcc/Common-Type-Attributes.html#index-packed-type-attribute
-
-[1] http://www.keil.com/support/man/docs/armcc/armcc_chr1359124230195.htm
-
-[2]
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/compiler-gcc.h?h=v4.16-rc5#n92
-
-
-Regards
-
-Kieran
-
-
-> 	David
-> 
+Logan
