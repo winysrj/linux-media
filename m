@@ -1,207 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:32363 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754847AbeCGWGE (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:33891 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753313AbeC1Num (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:06:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 31/33] rcar-vin: enable support for r8a7795
-Date: Wed,  7 Mar 2018 23:05:09 +0100
-Message-Id: <20180307220511.9826-32-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 28 Mar 2018 09:50:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv9 PATCH 13/29] v4l2-ctrls: add core request API
+Date: Wed, 28 Mar 2018 15:50:14 +0200
+Message-Id: <20180328135030.7116-14-hverkuil@xs4all.nl>
+In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add the two core request functions:
+
+v4l2_ctrl_request_setup() applies the contents of the request
+to the current driver state.
+
+v4l2_ctrl_request_complete() marks the request complete. After
+this the contents is fixed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/rcar-vin/Kconfig     |   2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 120 ++++++++++++++++++++++++++++
- 2 files changed, 121 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 172 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-ctrls.h           |   9 ++
+ 2 files changed, 181 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
- 	select V4L2_FWNODE
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 80714c5bad8b..62f91c0f1e5f 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1781,6 +1781,14 @@ static void new_to_req(struct v4l2_ctrl_ref *ref)
+ 	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
+ }
  
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index a1c441c1a314feb7..bc116cc0181171e0 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
-+#include <linux/sys_soc.h>
++/* Copy the request value to the new value */
++static void req_to_new(struct v4l2_ctrl_ref *ref)
++{
++	if (!ref)
++		return;
++	ptr_to_ptr(ref->ctrl, ref->p_req, ref->ctrl->p_new);
++}
++
+ /* Return non-zero if one or more of the controls in the cluster has a new
+    value that differs from the current value. */
+ static int cluster_changed(struct v4l2_ctrl *master)
+@@ -2831,6 +2839,78 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
+ }
+ EXPORT_SYMBOL(v4l2_querymenu);
  
- #include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
-@@ -832,6 +833,104 @@ static const struct rvin_info rcar_info_gen2 = {
- 	.max_height = 2048,
- };
++static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
++			    const struct v4l2_ctrl_handler *from,
++			    bool (*filter)(const struct v4l2_ctrl *ctrl))
++{
++	struct v4l2_ctrl_ref *ref;
++	int err;
++
++	if (WARN_ON(!hdl || hdl == from))
++		return -EINVAL;
++
++	if (hdl->error)
++		return hdl->error;
++
++	WARN_ON(hdl->lock != &hdl->_lock);
++	v4l2_ctrl_handler_free(hdl);
++	err = v4l2_ctrl_handler_init(hdl, (from->nr_of_buckets - 1) * 8);
++	if (err)
++		return err;
++	if (!from)
++		return 0;
++
++	mutex_lock(from->lock);
++	list_for_each_entry(ref, &from->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl_ref *new_ref;
++
++		/* Skip refs inherited from other devices */
++		if (ref->from_other_dev)
++			continue;
++		/* And buttons and control classes */
++		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
++		    ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
++			continue;
++		/* Filter any unwanted controls */
++		if (filter && !filter(ctrl))
++			continue;
++		err = handler_new_ref(hdl, ctrl, &new_ref, false);
++		if (err)
++			break;
++		if (from->req_obj.req)
++			ptr_to_ptr(ctrl, ref->p_req, new_ref->p_req);
++		else
++			ptr_to_ptr(ctrl, ctrl->p_cur, new_ref->p_req);
++	}
++	mutex_unlock(from->lock);
++	return err;
++}
++
++static void v4l2_ctrl_request_release(struct media_request_object *obj)
++{
++	struct v4l2_ctrl_handler *hdl =
++		container_of(obj, struct v4l2_ctrl_handler, req_obj);
++
++	v4l2_ctrl_handler_free(hdl);
++	kfree(hdl);
++}
++
++static const struct media_request_object_ops req_ops = {
++	.release = v4l2_ctrl_request_release,
++};
++
++static int v4l2_ctrl_request_bind(struct media_request *req,
++			   struct v4l2_ctrl_handler *hdl,
++			   struct v4l2_ctrl_handler *from,
++			   bool (*filter)(const struct v4l2_ctrl *ctrl))
++{
++	int ret = v4l2_ctrl_request_clone(hdl, from, filter);
++
++	if (!ret)
++		media_request_object_bind(req, &req_ops, from, &hdl->req_obj);
++	return ret;
++}
  
-+static const struct rvin_group_route rcar_info_r8a7795_routes[] = {
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 0, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(1) | BIT(3) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 2, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) | BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI41, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
-+	{ .csi = RVIN_CSI41, .channel = 1, .vin = 4, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI41, .channel = 1, .vin = 5, .mask = BIT(1) | BIT(3) },
-+	{ .csi = RVIN_CSI41, .channel = 0, .vin = 5, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 6, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI41, .channel = 0, .vin = 6, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI41, .channel = 2, .vin = 6, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI41, .channel = 1, .vin = 7, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) | BIT(2) },
-+	{ .csi = RVIN_CSI41, .channel = 3, .vin = 7, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = rcar_info_r8a7795_routes,
-+};
-+
-+static const struct rvin_group_route rcar_info_r8a7795es1_routes[] = {
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 0, .mask = BIT(1) | BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 0, .vin = 0, .mask = BIT(2) | BIT(5) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 1, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI21, .channel = 0, .vin = 1, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 1, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 1, .vin = 1, .mask = BIT(5) },
-+	{ .csi = RVIN_CSI21, .channel = 0, .vin = 2, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 2, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 2, .vin = 2, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 2, .vin = 2, .mask = BIT(5) },
-+	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 3, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI21, .channel = 1, .vin = 3, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 3, .vin = 3, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 3, .vin = 3, .mask = BIT(5) },
-+	{ .csi = RVIN_CSI41, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 4, .mask = BIT(1) | BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 0, .vin = 4, .mask = BIT(2) | BIT(5) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 5, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI21, .channel = 0, .vin = 5, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI41, .channel = 0, .vin = 5, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI41, .channel = 1, .vin = 5, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 5, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 1, .vin = 5, .mask = BIT(5) },
-+	{ .csi = RVIN_CSI21, .channel = 0, .vin = 6, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI41, .channel = 0, .vin = 6, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI20, .channel = 0, .vin = 6, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI41, .channel = 2, .vin = 6, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 2, .vin = 6, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 2, .vin = 6, .mask = BIT(5) },
-+	{ .csi = RVIN_CSI41, .channel = 1, .vin = 7, .mask = BIT(0) },
-+	{ .csi = RVIN_CSI20, .channel = 1, .vin = 7, .mask = BIT(1) },
-+	{ .csi = RVIN_CSI21, .channel = 1, .vin = 7, .mask = BIT(2) },
-+	{ .csi = RVIN_CSI41, .channel = 3, .vin = 7, .mask = BIT(3) },
-+	{ .csi = RVIN_CSI20, .channel = 3, .vin = 7, .mask = BIT(4) },
-+	{ .csi = RVIN_CSI21, .channel = 3, .vin = 7, .mask = BIT(5) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a7795es1 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = rcar_info_r8a7795es1_routes,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
- 		.compatible = "renesas,vin-r8a7778",
-@@ -861,12 +960,25 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,rcar-gen2-vin",
- 		.data = &rcar_info_gen2,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = &rcar_info_r8a7795,
-+	},
- 	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ /* Some general notes on the atomic requirements of VIDIOC_G/TRY/S_EXT_CTRLS:
  
-+static const struct soc_device_attribute r8a7795es1[] = {
-+	{
-+		.soc_id = "r8a7795", .revision = "ES1.*",
-+		.data = &rcar_info_r8a7795es1,
-+	},
-+	{ /* Sentinel */ }
-+};
+@@ -3458,6 +3538,98 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
+ }
+ EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
+ 
++void v4l2_ctrl_request_complete(struct media_request *req,
++				struct v4l2_ctrl_handler *hdl)
++{
++	struct media_request_object *obj;
 +
- static int rcar_vin_probe(struct platform_device *pdev)
++	if (!req || !hdl)
++		return;
++
++	obj = media_request_object_find(req, &req_ops, hdl);
++	if (!obj)
++		return;
++
++	media_request_object_complete(obj);
++	media_request_object_put(obj);
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_complete);
++
++void v4l2_ctrl_request_setup(struct media_request *req,
++			     struct v4l2_ctrl_handler *hdl)
++{
++	struct media_request_object *obj;
++	struct v4l2_ctrl_ref *ref;
++
++	if (!req || !hdl)
++		return;
++
++	obj = media_request_object_find(req, &req_ops, hdl);
++	if (!obj)
++		return;
++	if (obj->completed) {
++		media_request_object_put(obj);
++		return;
++	}
++	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
++
++	mutex_lock(hdl->lock);
++
++	list_for_each_entry(ref, &hdl->ctrl_refs, node)
++		ref->done = false;
++
++	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl *master = ctrl->cluster[0];
++		int i;
++
++		/* Skip if this control was already handled by a cluster. */
++		/* Skip button controls and read-only controls. */
++		if (ref->done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
++		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
++			continue;
++
++		v4l2_ctrl_lock(master);
++		for (i = 0; i < master->ncontrols; i++) {
++			if (master->cluster[i]) {
++				struct v4l2_ctrl_ref *r =
++					find_ref(hdl, master->cluster[i]->id);
++
++				req_to_new(r);
++				master->cluster[i]->is_new = 1;
++				r->done = true;
++			}
++		}
++		/*
++		 * For volatile autoclusters that are currently in auto mode
++		 * we need to discover if it will be set to manual mode.
++		 * If so, then we have to copy the current volatile values
++		 * first since those will become the new manual values (which
++		 * may be overwritten by explicit new values from this set
++		 * of controls).
++		 */
++		if (master->is_auto && master->has_volatiles &&
++		    !is_cur_manual(master)) {
++			s32 new_auto_val = *master->p_new.p_s32;
++
++			/*
++			 * If the new value == the manual value, then copy
++			 * the current volatile values.
++			 */
++			if (new_auto_val == master->manual_mode_value)
++				update_from_auto_cluster(master);
++		}
++
++		try_or_set_cluster(NULL, master, true, 0);
++
++		v4l2_ctrl_unlock(master);
++	}
++
++	mutex_unlock(hdl->lock);
++	media_request_object_put(obj);
++}
++EXPORT_SYMBOL(v4l2_ctrl_request_setup);
++
+ void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
  {
-+	const struct soc_device_attribute *attr;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -878,6 +990,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	vin->dev = &pdev->dev;
- 	vin->info = of_device_get_match_data(&pdev->dev);
+ 	if (ctrl == NULL)
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 89a985607126..378d4f05c160 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -250,6 +250,9 @@ struct v4l2_ctrl {
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  * @from_other_dev: If true, then @ctrl was defined in another
+  *		device then the &struct v4l2_ctrl_handler.
++ * @done:	If true, then this control reference is part of a
++ *		control cluster that was already set while applying
++ *		the controls in this media request object.
+  * @p_req:	The request value. Only used if the control handler
+  *		is bound to a media request.
+  *
+@@ -263,6 +266,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
+ 	bool from_other_dev;
++	bool done;
+ 	union v4l2_ctrl_ptr p_req;
+ };
  
-+	/*
-+	 * Special care is needed on r8a7795 ES1.x since it
-+	 * uses different routing than r8a7795 ES2.0.
-+	 */
-+	attr = soc_device_match(r8a7795es1);
-+	if (attr)
-+		vin->info = attr->data;
+@@ -1059,6 +1063,11 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+  */
+ __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
+ 
++void v4l2_ctrl_request_setup(struct media_request *req,
++			     struct v4l2_ctrl_handler *hdl);
++void v4l2_ctrl_request_complete(struct media_request *req,
++				struct v4l2_ctrl_handler *hdl);
 +
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
- 		return -EINVAL;
+ /* Helpers for ioctl_ops */
+ 
+ /**
 -- 
-2.16.2
+2.16.1
