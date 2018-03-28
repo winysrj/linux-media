@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50912 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750939AbeCIL5w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 06:57:52 -0500
-Subject: Re: [PATCH v2 1/3] staging: xm2mvscale: Driver support for Xilinx M2M
- Video Scaler
-To: Greg KH <gregkh@linuxfoundation.org>,
-        Rohit Athavale <rohit.athavale@xilinx.com>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-References: <1519252996-787-1-git-send-email-rohit.athavale@xilinx.com>
- <1519252996-787-2-git-send-email-rohit.athavale@xilinx.com>
- <20180222134658.GB19182@kroah.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1315ef81-15f1-5bc9-eff9-aaa12e70738a@xs4all.nl>
-Date: Fri, 9 Mar 2018 12:57:49 +0100
+Received: from osg.samsung.com ([64.30.133.232]:39846 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751223AbeC1JZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 05:25:54 -0400
+Date: Wed, 28 Mar 2018 06:25:45 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>,
+        Aishwarya Pant <aishpant@gmail.com>,
+        Riccardo Schirone <sirmy15@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 07/18] media: staging: atomisp: fix endianess issues
+Message-ID: <20180328062545.6b30aac8@vento.lan>
+In-Reply-To: <1522148575.21176.22.camel@linux.intel.com>
+References: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
+        <cc521a255756c0241572816f96e3b97126ac16de.1522098456.git.mchehab@s-opensource.com>
+        <1522148575.21176.22.camel@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180222134658.GB19182@kroah.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/02/18 14:46, Greg KH wrote:
-> On Wed, Feb 21, 2018 at 02:43:14PM -0800, Rohit Athavale wrote:
->> This commit adds driver support for the pre-release Xilinx M2M Video
->> Scaler IP. There are three parts to this driver :
->>
->>  - The Hardware/IP layer that reads and writes register of the IP
->>    contained in the scaler_hw_xm2m.c
->>  - The set of ioctls that applications would need to know contained
->>    in ioctl_xm2mvsc.h
->>  - The char driver that consumes the IP layer in xm2m_vscale.c
->>
->> Signed-off-by: Rohit Athavale <rohit.athavale@xilinx.com>
->> ---
+Em Tue, 27 Mar 2018 14:02:55 +0300
+Andy Shevchenko <andriy.shevchenko@linux.intel.com> escreveu:
+
+> On Mon, 2018-03-26 at 17:10 -0400, Mauro Carvalho Chehab wrote:
+> > There are lots of be-related warnings there, as it doesn't properly
+> > mark what data uses bigendian.  
 > 
-> I need an ack from the linux-media maintainers before I can consider
-> this for staging, as this really looks like an "odd" video driver...
+> > @@ -107,7 +107,7 @@ mt9m114_write_reg(struct i2c_client *client, u16
+> > data_length, u16 reg, u32 val)
+> >  	int num_msg;
+> >  	struct i2c_msg msg;
+> >  	unsigned char data[6] = {0};
+> > -	u16 *wreg;
+> > +	__be16 *wreg;
+> >   
+> 
+> > +		u16 *wdata = (void *)&data[2];
+> > +
+> > +		*wdata = be16_to_cpu(*(__be16 *)&data[2]);  
+> 
+> > +		u32 *wdata = (void *)&data[2];
+> > +
+> > +		*wdata = be32_to_cpu(*(__be32 *)&data[2]);  
+> 
+> For x86 it is okay, though in general it should use get_unaligned().
+> 
 
-This should definitely use the V4L2 API. I guess it could be added
-to staging/media with a big fat TODO that this should be converted to
-the V4L2 mem2mem framework.
+Yeah, it makes sense to change those to use 
+get_unaligned_be16()/get_unaligned_be32(), but still the endianness
+issue remains, as it will still require the usage of __be casts.
 
-But it makes no sense to re-invent the V4L2 streaming API :-)
+The main goal here in this patch series is to get rid of hundreds
+of smatch/sparce warnings, as it makes very hard to identify new
+warnings, due to all polution inside atomisp.
 
-drivers/media/platform/mx2_emmaprp.c does something similar to this.
-It's a little bit outdated (not using the latest m2m helper functions)
-but it is a good starting point.
+A change to get_unaligned_foo() is meant to do a different
+thing: to make those i2c drivers more arch-independent.
 
-So for this series:
+So, feel free to submit a separate patch doing that, on the
+top of it.
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-If this was added to drivers/staging/media instead and with an updated
-TODO, then we can accept it, but we need to see some real effort afterwards
-to switch this to the right API. Otherwise it will be removed again
-after a few kernel cycles.
-
-Regards,
-
-	Hans
+Thanks,
+Mauro
