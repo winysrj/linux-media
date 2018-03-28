@@ -1,175 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:39549 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934297AbeCGUH7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 15:07:59 -0500
-Received: by mail-wr0-f194.google.com with SMTP id w77so3439131wrc.6
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 12:07:58 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 1/2] [media] ddbridge: use common DVB I2C client handling helpers
-Date: Wed,  7 Mar 2018 21:07:55 +0100
-Message-Id: <20180307200756.7078-1-d.scheller.oss@gmail.com>
+Received: from ale.deltatee.com ([207.54.116.67]:40616 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753117AbeC1S6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:58:02 -0400
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>
+Cc: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-2-christian.koenig@amd.com>
+ <20180328123830.GB25060@infradead.org>
+ <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
+ <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
+ <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
+ <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
+ <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+Date: Wed, 28 Mar 2018 12:57:57 -0600
+MIME-Version: 1.0
+In-Reply-To: <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-Instead of keeping duplicated I2C client handling construct, make use of
-the newly introduced dvb_module_*() helpers. This not only keeps things
-way cleaner and removes the need for duplicated I2C client attach code,
-but even allows to get rid of some variables that won't help in making
-things look cleaner anymore.
 
-The check on a valid ptr on port->en isn't really needed since the cxd2099
-driver will set it at a time where it is going to return successfully
-from probing.
+On 28/03/18 12:28 PM, Christian König wrote:
+> I'm just using amdgpu as blueprint because I'm the co-maintainer of it 
+> and know it mostly inside out.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
-V2:
-* pass NULL as (optional) I2C name when calling dvb_module_probe()
+Ah, I see.
 
- drivers/media/pci/ddbridge/ddbridge-ci.c   | 33 ++++++---------------------
- drivers/media/pci/ddbridge/ddbridge-core.c | 36 ++++++------------------------
- 2 files changed, 14 insertions(+), 55 deletions(-)
+> The resource addresses are translated using dma_map_resource(). As far 
+> as I know that should be sufficient to offload all the architecture 
+> specific stuff to the DMA subsystem.
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
-index 6585ef54ac22..a9dbc4ebf94f 100644
---- a/drivers/media/pci/ddbridge/ddbridge-ci.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
-@@ -324,34 +324,20 @@ static int ci_cxd2099_attach(struct ddb_port *port, u32 bitrate)
- {
- 	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
- 	struct i2c_client *client;
--	struct i2c_board_info board_info = {
--		.type = "cxd2099",
--		.addr = 0x40,
--		.platform_data = &cxd_cfg,
--	};
- 
- 	cxd_cfg.bitrate = bitrate;
- 	cxd_cfg.en = &port->en;
- 
--	request_module(board_info.type);
--
--	client = i2c_new_device(&port->i2c->adap, &board_info);
--	if (!client || !client->dev.driver)
--		goto err_ret;
--
--	if (!try_module_get(client->dev.driver->owner))
--		goto err_i2c;
--
--	if (!port->en)
--		goto err_i2c;
-+	client = dvb_module_probe("cxd2099", NULL, &port->i2c->adap,
-+				  0x40, &cxd_cfg);
-+	if (!client)
-+		goto err;
- 
- 	port->dvb[0].i2c_client[0] = client;
- 	port->en_freedata = 0;
- 	return 0;
- 
--err_i2c:
--	i2c_unregister_device(client);
--err_ret:
-+err:
- 	dev_err(port->dev->dev, "CXD2099AR attach failed\n");
- 	return -ENODEV;
- }
-@@ -385,18 +371,13 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
- 
- void ddb_ci_detach(struct ddb_port *port)
- {
--	struct i2c_client *client;
--
- 	if (port->dvb[0].dev)
- 		dvb_unregister_device(port->dvb[0].dev);
- 	if (port->en) {
- 		dvb_ca_en50221_release(port->en);
- 
--		client = port->dvb[0].i2c_client[0];
--		if (client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
--		}
-+		dvb_module_release(port->dvb[0].i2c_client[0]);
-+		port->dvb[0].i2c_client[0] = NULL;
- 
- 		/* free alloc'ed memory if needed */
- 		if (port->en_freedata)
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index f9bee36f1cad..90687eff5909 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -999,37 +999,21 @@ static int tuner_attach_tda18212(struct ddb_input *input, u32 porttype)
- 		.if_dvbt2_8 = 4000,
- 		.if_dvbc = 5000,
- 	};
--	struct i2c_board_info board_info = {
--		.type = "tda18212",
--		.platform_data = &config,
--	};
--
--	if (input->nr & 1)
--		board_info.addr = 0x63;
--	else
--		board_info.addr = 0x60;
-+	u8 addr = (input->nr & 1) ? 0x63 : 0x60;
- 
- 	/* due to a hardware quirk with the I2C gate on the stv0367+tda18212
- 	 * combo, the tda18212 must be probed by reading it's id _twice_ when
- 	 * cold started, or it very likely will fail.
- 	 */
- 	if (porttype == DDB_TUNER_DVBCT_ST)
--		tuner_tda18212_ping(input, board_info.addr);
--
--	request_module(board_info.type);
--
--	/* perform tuner init/attach */
--	client = i2c_new_device(adapter, &board_info);
--	if (!client || !client->dev.driver)
--		goto err;
-+		tuner_tda18212_ping(input, addr);
- 
--	if (!try_module_get(client->dev.driver->owner)) {
--		i2c_unregister_device(client);
-+	/* perform tuner probe/init/attach */
-+	client = dvb_module_probe("tda18212", NULL, adapter, addr, &config);
-+	if (!client)
- 		goto err;
--	}
- 
- 	dvb->i2c_client[0] = client;
--
- 	return 0;
- err:
- 	dev_err(dev, "TDA18212 tuner not found. Device is not fully operational.\n");
-@@ -1253,7 +1237,6 @@ static void dvb_input_detach(struct ddb_input *input)
- {
- 	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
- 	struct dvb_demux *dvbdemux = &dvb->demux;
--	struct i2c_client *client;
- 
- 	switch (dvb->attached) {
- 	case 0x31:
-@@ -1263,13 +1246,8 @@ static void dvb_input_detach(struct ddb_input *input)
- 			dvb_unregister_frontend(dvb->fe);
- 		/* fallthrough */
- 	case 0x30:
--		client = dvb->i2c_client[0];
--		if (client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
--			dvb->i2c_client[0] = NULL;
--			client = NULL;
--		}
-+		dvb_module_release(dvb->i2c_client[0]);
-+		dvb->i2c_client[0] = NULL;
- 
- 		if (dvb->fe2)
- 			dvb_frontend_detach(dvb->fe2);
--- 
-2.16.1
+It's not. The dma_map infrastructure currently has no concept of
+peer-to-peer mappings and is designed for system memory only. No
+architecture I'm aware of will translate PCI CPU addresses into PCI Bus
+addresses which is necessary for any transfer that doesn't go through
+the root complex (though on arches like x86 the CPU and Bus address
+happen to be the same). There's a lot of people that would like to see
+this change but it's likely going to be a long road before it does.
+
+Furthermore, one of the reasons our patch-set avoids going through the
+root complex at all is that IOMMU drivers will need to be made aware
+that it is operating on P2P memory and do arch-specific things
+accordingly. There will also need to be flags that indicate whether a
+given IOMMU driver supports this. None of this work is done or easy.
+
+> Yeah, but not for ours. See if you want to do real peer 2 peer you need 
+> to keep both the operation as well as the direction into account.
+
+Not sure what you are saying here... I'm pretty sure we are doing "real"
+peer 2 peer...
+
+> For example when you can do writes between A and B that doesn't mean 
+> that writes between B and A work. And reads are generally less likely to 
+> work than writes. etc...
+
+If both devices are behind a switch then the PCI spec guarantees that A
+can both read and write B and vice versa. Only once you involve root
+complexes do you have this problem. Ie. you have unknown support which
+may be no support, or partial support (stores but not loads); or
+sometimes bad performance; or a combination of both... and you need some
+way to figure out all this mess and that is hard. Whoever tries to
+implement a white list will have to sort all this out.
+
+Logan
