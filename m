@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57301 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751056AbeCIN7D (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:32977 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752377AbeC1TEx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 08:59:03 -0500
-Subject: Re: [PATCH v6 06/17] media: rkisp1: add ISP1 statistics driver
-To: Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        devicetree@vger.kernel.org, heiko@sntech.de,
-        Jacob Chen <jacob2.chen@rock-chips.com>,
-        Jacob Chen <cc@rock-chips.com>,
-        Allon Huang <allon.huang@rock-chips.com>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
- <20180308094807.9443-7-jacob-chen@iotwrt.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <afc8a814-be1b-39ce-73b7-a40ebc216d63@xs4all.nl>
-Date: Fri, 9 Mar 2018 14:59:00 +0100
+        Wed, 28 Mar 2018 15:04:53 -0400
+Subject: Re: [PATCH 02/15] v4l: vsp1: Remove outdated comment
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180226214516.11559-3-laurent.pinchart+renesas@ideasonboard.com>
+ <0a055333-78b0-a64b-ef97-c1706b7b56b9@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <0829c7b9-e05b-fe27-b632-005074c86de3@ideasonboard.com>
+Date: Wed, 28 Mar 2018 20:04:49 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180308094807.9443-7-jacob-chen@iotwrt.com>
+In-Reply-To: <0a055333-78b0-a64b-ef97-c1706b7b56b9@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/18 10:47, Jacob Chen wrote:
-> From: Jacob Chen <jacob2.chen@rock-chips.com>
+On 28/03/18 13:27, Kieran Bingham wrote:
+> Hi Laurent,
 > 
-> Add the capture video driver for rockchip isp1 statistics block.
+> Thank you for the patch.
 > 
-> Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
-> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> Signed-off-by: Yichong Zhong <zyc@rock-chips.com>
-> Signed-off-by: Jacob Chen <cc@rock-chips.com>
-> Signed-off-by: Eddie Cai <eddie.cai.linux@gmail.com>
-> Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
-> Signed-off-by: Allon Huang <allon.huang@rock-chips.com>
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> On 26/02/18 21:45, Laurent Pinchart wrote:
+>> The entities in the pipeline are all started when the LIF is setup.
+>> Remove the outdated comment that state otherwise.
+>>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> I'll start with the easy ones :-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+In fact, couldn't this patch be squashed into [PATCH 01/15] in this series ?
 
-Regards,
+--
+Kieran
 
-	Hans
+
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_drm.c | 6 +-----
+>>  1 file changed, 1 insertion(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+>> index e31fb371eaf9..a1f2ba044092 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+>> @@ -221,11 +221,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>>  		return -EPIPE;
+>>  	}
+>>  
+>> -	/*
+>> -	 * Enable the VSP1. We don't start the entities themselves right at this
+>> -	 * point as there's no plane configured yet, so we can't start
+>> -	 * processing buffers.
+>> -	 */
+>> +	/* Enable the VSP1. */
+>>  	ret = vsp1_device_get(vsp1);
+>>  	if (ret < 0)
+>>  		return ret;
+>>
