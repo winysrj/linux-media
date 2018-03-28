@@ -1,60 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:35218 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755339AbeCSHPL (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:46098 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752782AbeC1RBa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 03:15:11 -0400
-Date: Mon, 19 Mar 2018 10:14:35 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Ji-Hun Kim <ji_hun.kim@samsung.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        arvind.yadav.cs@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: Re: [PATCH] staging: media: davinci_vpfe: add error handling on
- kmalloc failure
-Message-ID: <20180319071435.svpg72uomxfc6hoj@mwanda>
-References: <CGME20180316045841epcas2p34dc11231c65e2032e88ac7138db2daee@epcas2p3.samsung.com>
- <1521176303-17546-1-git-send-email-ji_hun.kim@samsung.com>
- <20180316083234.yq7a4rx6w35amflu@mwanda>
- <20180319042457.GB2915@ubuntu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180319042457.GB2915@ubuntu>
+        Wed, 28 Mar 2018 13:01:30 -0400
+Received: by mail-pf0-f194.google.com with SMTP id h69so1202654pfe.13
+        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:01:30 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        crope@iki.fi
+Subject: [PATCH v4 2/5] dvb-frontends/dvb-pll: add tua6034 ISDB-T tuner used in Friio
+Date: Thu, 29 Mar 2018 02:00:58 +0900
+Message-Id: <20180328170101.29385-3-tskd08@gmail.com>
+In-Reply-To: <20180328170101.29385-1-tskd08@gmail.com>
+References: <20180328170101.29385-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 19, 2018 at 01:24:57PM +0900, Ji-Hun Kim wrote:
-> >   1294                          } else if (to && !from && size) {
-> >   1295                                  rval = module_if->set(ipipe, NULL);
-> >   1296                                  if (rval)
-> >   1297                                          goto error;
-> > 
-> > And here again goto free_params.
-> > 
-> >   1298                          }
-> >   1299                          kfree(params);
-> >   1300                  }
-> >   1301          }
-> >   1302  error:
-> >   1303          return rval;
-> > 
-> > 
-> > Change this to:
-> > 
-> > 	return 0;
-> Instead of returning rval, returning 0 would be fine? It looks that should
-> return rval in normal case.
-> 
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-In the proposed code, the errors all do a return or a goto so "rval"
-would be zero here.  Then the error path would look like:
+This driver already contains tua6034-based device settings,
+but they are not for ISDB-T and have different parameters.
 
-err_free_params:
-	kfree(params);
-	return rval;
-}
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+Changes since v3:
+- rebase on the new style of specifying pll_desc
 
-regards,
-dan carpenter
+Changes since v2:
+(patch #27927 dvb: tua6034: add a new driver for Infineon tua6034 tuner)
+- extends dvb-pll instead of creating a new driver
+
+ drivers/media/dvb-frontends/dvb-pll.c | 19 +++++++++++++++++++
+ drivers/media/dvb-frontends/dvb-pll.h |  2 ++
+ 2 files changed, 21 insertions(+)
+
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index e2a93aae04f..deb27aefb9b 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -533,6 +533,23 @@ static const struct dvb_pll_desc dvb_pll_alps_tdee4 = {
+ 	}
+ };
+ 
++/* Infineon TUA6034 ISDB-T, used in Friio */
++/* CP cur. 50uA, AGC takeover: 103dBuV, PORT3 on */
++static const struct dvb_pll_desc dvb_pll_tua6034_friio = {
++	.name   = "Infineon TUA6034 ISDB-T (Friio)",
++	.min    =  90000000,
++	.max    = 770000000,
++	.iffreq =  57000000,
++	.initdata = (u8[]){ 4, 0x9a, 0x50, 0xb2, 0x08 },
++	.sleepdata = (u8[]){ 4, 0x9a, 0x70, 0xb3, 0x0b },
++	.count = 3,
++	.entries = {
++		{ 170000000, 142857, 0xba, 0x09 },
++		{ 470000000, 142857, 0xba, 0x0a },
++		{ 770000000, 142857, 0xb2, 0x08 },
++	}
++};
++
+ /* ----------------------------------------------------------- */
+ 
+ static const struct dvb_pll_desc *pll_list[] = {
+@@ -556,6 +573,7 @@ static const struct dvb_pll_desc *pll_list[] = {
+ 	[DVB_PLL_SAMSUNG_TDTC9251DH0]    = &dvb_pll_samsung_tdtc9251dh0,
+ 	[DVB_PLL_SAMSUNG_TBDU18132]	 = &dvb_pll_samsung_tbdu18132,
+ 	[DVB_PLL_SAMSUNG_TBMU24112]      = &dvb_pll_samsung_tbmu24112,
++	[DVB_PLL_TUA6034_FRIIO]          = &dvb_pll_tua6034_friio,
+ };
+ 
+ /* ----------------------------------------------------------- */
+@@ -877,6 +895,7 @@ static const struct i2c_device_id dvb_pll_id[] = {
+ 	{DVB_PLL_SAMSUNG_TBMU24112_NAME,      DVB_PLL_SAMSUNG_TBMU24112},
+ 	{DVB_PLL_TDEE4_NAME,                  DVB_PLL_TDEE4},
+ 	{DVB_PLL_THOMSON_DTT7520X_NAME,       DVB_PLL_THOMSON_DTT7520X},
++	{DVB_PLL_TUA6034_FRIIO_NAME,          DVB_PLL_TUA6034_FRIIO},
+ 	{}
+ };
+ 
+diff --git a/drivers/media/dvb-frontends/dvb-pll.h b/drivers/media/dvb-frontends/dvb-pll.h
+index e96994bf668..c1c27c0d1b1 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.h
++++ b/drivers/media/dvb-frontends/dvb-pll.h
+@@ -29,6 +29,7 @@
+ #define DVB_PLL_SAMSUNG_TBMU24112      17
+ #define DVB_PLL_TDEE4		       18
+ #define DVB_PLL_THOMSON_DTT7520X       19
++#define DVB_PLL_TUA6034_FRIIO          20
+ 
+ #define DVB_PLL_THOMSON_DTT7579_NAME	    "dtt7579"
+ #define DVB_PLL_THOMSON_DTT759X_NAME        "dtt759x"
+@@ -49,6 +50,7 @@
+ #define DVB_PLL_SAMSUNG_TBMU24112_NAME      "tbmu24112"
+ #define DVB_PLL_TDEE4_NAME                  "tdee4"
+ #define DVB_PLL_THOMSON_DTT7520X_NAME       "dtt7520x"
++#define DVB_PLL_TUA6034_FRIIO_NAME          "tua6034_friio"
+ 
+ struct dvb_pll_config {
+ 	struct dvb_frontend *fe;
+-- 
+2.16.3
