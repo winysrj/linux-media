@@ -1,109 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:32041 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934221AbeCGWFv (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60365 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753357AbeC1OBq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:51 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 20/33] rcar-vin: add function to manipulate Gen3 chsel value
-Date: Wed,  7 Mar 2018 23:04:58 +0100
-Message-Id: <20180307220511.9826-21-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 28 Mar 2018 10:01:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 27/29] vim2m: support requests
+Date: Wed, 28 Mar 2018 16:01:38 +0200
+Message-Id: <20180328140140.42096-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
+References: <20180328140140.42096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-feature of this register is that it's only present in the VIN0 and VIN4
-instances. The register in VIN0 controls the routing for VIN0-3 and the
-register in VIN4 controls routing for VIN4-7.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-To be able to control routing from a media device this function is need
-to control runtime PM for the subgroup master (VIN0 and VIN4). The
-subgroup master must be switched on before the register is manipulated,
-once the operation is complete it's safe to switch the master off and
-the new routing will still be in effect.
+Add support for requests to vim2m.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 38 ++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
- 2 files changed, 40 insertions(+)
+ drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 483d31f07b934929..75382ee0f3fc1dde 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -16,6 +16,7 @@
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 9b18b32c255d..2dcf0ea85705 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -387,8 +387,26 @@ static void device_run(void *priv)
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
  
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
++	/* Apply request if needed */
++	if (src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++	if (dst_buf->vb2_buf.req_obj.req &&
++	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++
+ 	device_process(ctx, src_buf, dst_buf);
  
- #include <media/videobuf2-dma-contig.h>
- 
-@@ -1224,3 +1225,40 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
- 
- 	return ret;
++	/* Complete request if needed */
++	if (src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++	if (dst_buf->vb2_buf.req_obj.req &&
++	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++
+ 	/* Run a timer, which simulates a hardware irq  */
+ 	schedule_irq(dev, ctx->transtime);
  }
-+
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CHSEL manipulation
-+ */
-+
-+/*
-+ * There is no need to have locking around changing the routing
-+ * as it's only possible to do so when no VIN in the group is
-+ * streaming so nothing can race with the VNMC register.
-+ */
-+int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
-+{
-+	u32 ifmd, vnmc;
-+	int ret;
-+
-+	ret = pm_runtime_get_sync(vin->dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Make register writes take effect immediately. */
-+	vnmc = rvin_read(vin, VNMC_REG);
-+	rvin_write(vin, vnmc & ~VNMC_VUP, VNMC_REG);
-+
-+	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-+		VNCSI_IFMD_CSI_CHSEL(chsel);
-+
-+	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-+
-+	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-+
-+	/* Restore VNMC. */
-+	rvin_write(vin, vnmc, VNMC_REG);
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return ret;
-+}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 5e3ea8d401d934d1..8e20455927fe5224 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -169,4 +169,6 @@ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- /* Cropping, composing and scaling */
- void rvin_crop_scale_comp(struct rvin_dev *vin);
+@@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 		if (vbuf == NULL)
+ 			return;
++		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
++					   &ctx->hdl);
+ 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
+ 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+ 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
+@@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops = {
+ 	.job_abort	= job_abort,
+ };
  
-+int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
++static const struct media_device_ops m2m_media_ops = {
++	.req_queue = vb2_request_queue,
++};
 +
- #endif
+ static int vim2m_probe(struct platform_device *pdev)
+ {
+ 	struct vim2m_dev *dev;
+@@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	dev->mdev.dev = &pdev->dev;
+ 	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
+ 	media_device_init(&dev->mdev);
++	dev->mdev.ops = &m2m_media_ops;
+ 	dev->v4l2_dev.mdev = &dev->mdev;
+ 	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
+ 	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
 -- 
-2.16.2
+2.15.1
