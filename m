@@ -1,107 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:14654 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934574AbeCHKrC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Mar 2018 05:47:02 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Hans Verkuil" <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2] media: stm32-dcmi: rework overrun/error case
-Date: Thu, 8 Mar 2018 11:46:23 +0100
-Message-ID: <1520505983-29242-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from osg.samsung.com ([64.30.133.232]:49062 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752318AbeC1SMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:12:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sasha Levin <alexander.levin@microsoft.com>
+Subject: [PATCH for v3.18 09/18] media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+Date: Wed, 28 Mar 2018 15:12:28 -0300
+Message-Id: <39d6997be9988f81bce42a00115b062aac7b0a51.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not stop/restart dma on overrun or errors.
-Dma will be restarted on current frame transfer
-completion. Frame transfer completion is ensured
-even if overrun or error occurs by DCMI continuous
-capture mode which restarts data transfer at next
-frame sync.
-Do no warn on overrun while in irq thread, this slows down
-system and lead to more overrun errors. Use a counter
-instead and log errors at stop streaming.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+commit 273caa260035c03d89ad63d72d8cd3d9e5c5e3f1 upstream.
+
+If the device is of type VFL_TYPE_SUBDEV then vdev->ioctl_ops
+is NULL so the 'if (!ops->vidioc_query_ext_ctrl)' check would crash.
+Add a test for !ops to the condition.
+
+All sub-devices that have controls will use the control framework,
+so they do not have an equivalent to ops->vidioc_query_ext_ctrl.
+Returning false if ops is NULL is the correct thing to do here.
+
+Fixes: b8c601e8af ("v4l2-compat-ioctl32.c: fix ctrl_is_pointer")
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
 ---
-version 2:
-  - typo: remove blank line at the end of stop_streaming()
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/platform/stm32/stm32-dcmi.c | 29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-index 37d82d3..95ace0f 100644
---- a/drivers/media/platform/stm32/stm32-dcmi.c
-+++ b/drivers/media/platform/stm32/stm32-dcmi.c
-@@ -160,6 +160,7 @@ struct stm32_dcmi {
- 	dma_cookie_t			dma_cookie;
- 	u32				misr;
- 	int				errors_count;
-+	int				overrun_count;
- 	int				buffers_count;
- };
- 
-@@ -373,23 +374,9 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index c78462e79a0a..bd4890769e0b 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -600,7 +600,7 @@ static inline bool ctrl_is_pointer(struct file *file, u32 id)
+ 		return ctrl && ctrl->is_ptr;
  	}
  
- 	if ((dcmi->misr & IT_OVR) || (dcmi->misr & IT_ERR)) {
--		/*
--		 * An overflow or an error has been detected,
--		 * stop current DMA transfert & restart it
--		 */
--		dev_warn(dcmi->dev, "%s: Overflow or error detected\n",
--			 __func__);
--
- 		dcmi->errors_count++;
--		dev_dbg(dcmi->dev, "Restarting capture after DCMI error\n");
--
--		spin_unlock_irq(&dcmi->irqlock);
--		dmaengine_terminate_all(dcmi->dma_chan);
--
--		if (dcmi_start_capture(dcmi))
--			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
--				__func__);
--		return IRQ_HANDLED;
-+		if (dcmi->misr & IT_OVR)
-+			dcmi->overrun_count++;
- 	}
+-	if (!ops->vidioc_query_ext_ctrl)
++	if (!ops || !ops->vidioc_query_ext_ctrl)
+ 		return false;
  
- 	spin_unlock_irq(&dcmi->irqlock);
-@@ -572,6 +559,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	dcmi->sequence = 0;
- 	dcmi->errors_count = 0;
-+	dcmi->overrun_count = 0;
- 	dcmi->buffers_count = 0;
- 	dcmi->active = NULL;
- 
-@@ -682,8 +670,13 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
- 
- 	clk_disable(dcmi->mclk);
- 
--	dev_dbg(dcmi->dev, "Stop streaming, errors=%d buffers=%d\n",
--		dcmi->errors_count, dcmi->buffers_count);
-+	if (dcmi->errors_count)
-+		dev_warn(dcmi->dev, "Some errors found while streaming: errors=%d (overrun=%d), buffers=%d\n",
-+			 dcmi->errors_count, dcmi->overrun_count,
-+			 dcmi->buffers_count);
-+	dev_dbg(dcmi->dev, "Stop streaming, errors=%d (overrun=%d), buffers=%d\n",
-+		dcmi->errors_count, dcmi->overrun_count,
-+		dcmi->buffers_count);
- }
- 
- static const struct vb2_ops dcmi_video_qops = {
+ 	return !ops->vidioc_query_ext_ctrl(file, fh, &qec) &&
 -- 
-1.9.1
+2.14.3
