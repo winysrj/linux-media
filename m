@@ -1,69 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:46338 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752168AbeCZVqZ (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:40072 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752829AbeC1RPP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:46:25 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: [PATCH v13 02/33] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
-Date: Mon, 26 Mar 2018 23:44:25 +0200
-Message-Id: <20180326214456.6655-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 28 Mar 2018 13:15:15 -0400
+Received: by mail-pg0-f67.google.com with SMTP id g8so1173817pgv.7
+        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:15:15 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v2 0/5] dvb/pci/pt1: decompose earth-pt1 into sub drivers
+Date: Thu, 29 Mar 2018 02:14:58 +0900
+Message-Id: <20180328171503.30541-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Add compatible strings for r8a7743 and r8a7745. No driver change
-is needed as "renesas,rcar-gen2-vin" will activate the right code.
-However, it is good practice to document compatible strings for the
-specific SoC as this allows SoC specific changes to the driver if
-needed, in addition to document SoC support and therefore allow
-checkpatch.pl to validate compatible string values.
+Changes since v1:
+- use new style of specifying pll_desc of the terrestrial tuner
 
-Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Reviewed-by: Biju Das <biju.das@bp.renesas.com>
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Akihiro Tsukada (5):
+  dvb-frontends/dvb-pll: add tda6651 ISDB-T pll_desc
+  tuners: add new i2c driver for  Sharp qm1d1b0004 ISDB-S tuner
+  dvb: earth-pt1: decompose pt1 driver into sub drivers
+  dvb: earth-pt1: add support for suspend/resume
+  dvb: earth-pt1:  replace schedule_timeout with usleep_range
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index d99b6f5dee418056..4c76d82905c9d3b8 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
- 
-  - compatible: Must be one or more of the following
-+   - "renesas,vin-r8a7743" for the R8A7743 device
-+   - "renesas,vin-r8a7745" for the R8A7745 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7790" for the R8A7790 device
-@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7795" for the R8A7795 device
--   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-+   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-+     device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
- 
-    When compatible with the generic version nodes must list the
+ drivers/media/dvb-frontends/dvb-pll.c |  24 ++
+ drivers/media/dvb-frontends/dvb-pll.h |   2 +
+ drivers/media/pci/pt1/Kconfig         |   3 +
+ drivers/media/pci/pt1/Makefile        |   3 +-
+ drivers/media/pci/pt1/pt1.c           | 470 ++++++++++++++++------
+ drivers/media/pci/pt1/va1j5jf8007s.c  | 732 ----------------------------------
+ drivers/media/pci/pt1/va1j5jf8007s.h  |  42 --
+ drivers/media/pci/pt1/va1j5jf8007t.c  | 532 ------------------------
+ drivers/media/pci/pt1/va1j5jf8007t.h  |  42 --
+ drivers/media/tuners/Kconfig          |   7 +
+ drivers/media/tuners/Makefile         |   1 +
+ drivers/media/tuners/qm1d1b0004.c     | 264 ++++++++++++
+ drivers/media/tuners/qm1d1b0004.h     |  24 ++
+ 13 files changed, 677 insertions(+), 1469 deletions(-)
+ delete mode 100644 drivers/media/pci/pt1/va1j5jf8007s.c
+ delete mode 100644 drivers/media/pci/pt1/va1j5jf8007s.h
+ delete mode 100644 drivers/media/pci/pt1/va1j5jf8007t.c
+ delete mode 100644 drivers/media/pci/pt1/va1j5jf8007t.h
+ create mode 100644 drivers/media/tuners/qm1d1b0004.c
+ create mode 100644 drivers/media/tuners/qm1d1b0004.h
+
 -- 
-2.16.2
+2.16.3
