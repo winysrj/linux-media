@@ -1,118 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:40693 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932486AbeCMQLB (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58508 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752925AbeC1OZJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 12:11:01 -0400
+        Wed, 28 Mar 2018 10:25:09 -0400
+Subject: Re: [PATCH 06/15] v4l: vsp1: Share duplicated DRM pipeline
+ configuration code
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180226214516.11559-7-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <a4d25bec-b546-0aed-c0bd-506c8d53af13@ideasonboard.com>
+Date: Wed, 28 Mar 2018 15:25:04 +0100
 MIME-Version: 1.0
-In-Reply-To: <871008484.8702062.1520771930968.JavaMail.zimbra@univ-grenoble-alpes.fr>
-References: <382b6f23-d36e-696a-a536-bb5c05b10d34@univ-grenoble-alpes.fr>
- <1512989520.22920.2.camel@suse.com> <1607480650.971508.1513000904833.JavaMail.zimbra@univ-grenoble-alpes.fr>
- <1513002580.22920.15.camel@suse.com> <1599416013.1022922.1513002815596.JavaMail.zimbra@univ-grenoble-alpes.fr>
- <1513004631.22920.20.camel@suse.com> <1847654838.1115072.1513006781751.JavaMail.zimbra@univ-grenoble-alpes.fr>
- <871008484.8702062.1520771930968.JavaMail.zimbra@univ-grenoble-alpes.fr>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Tue, 13 Mar 2018 18:11:00 +0200
-Message-ID: <CAHp75Vf0EWNzn+aRrg8XRZpKvmNMq=OXmLiW5FVGx+20xTvDuw@mail.gmail.com>
-Subject: Re: Webcams not recognized on a Dell Latitude 5285 laptop
-To: =?UTF-8?Q?FR=C3=89D=C3=89RIC_PARRENIN?=
-        <frederic.parrenin@univ-grenoble-alpes.fr>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Oliver Neukum <oneukum@suse.com>,
-        linux-usb <linux-usb@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20180226214516.11559-7-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 11, 2018 at 2:38 PM, FR=C3=89D=C3=89RIC PARRENIN
-<frederic.parrenin@univ-grenoble-alpes.fr> wrote:
-> Dear Oliver and all,
->
-> So I was expecting linux-4.16 to recognize my webcams, thanks to this new=
- PCI driver Oliver mentioned.
-> Therefore I installed 4.16-rc4.
-> Unfortunately, there is still no /dev/video* device
->
-> Any idea what could be done to have these webcams working?
-
-I guess you need a driver.
-Cc: + Sakari, and thus leaving the complete message uncut.
-
->
-> Thanks,
->
-> Frederic
->
->
->> De: "FR=C3=89D=C3=89RIC PARRENIN" <frederic.parrenin@univ-grenoble-alpes=
-.fr>
->> =C3=80: "Oliver Neukum" <oneukum@suse.com>
->> Cc: "linux-usb" <linux-usb@vger.kernel.org>
->> Envoy=C3=A9: Lundi 11 D=C3=A9cembre 2017 16:39:41
->> Objet: Re: Webcams not recognized on a Dell Latitude 5285 laptop
->
->> > > > it looks like you need the experimental driver posted here
->
->> > > > https://www.spinics.net/lists/linux-media/msg123268.html
->
->> > > Thanks for the information.
->> >> So, if I understand correctly, this driver will not be included in 4.=
-15, will
->> > > it?
->> > > Any idea when this will be included in a release?
->
->> > I have no idea. Could you contact the original developers?
->> > The answer is interesting, but I have no idea.
->
->> It seems it will be included in the 4.16 release:
->
->> https://www.mail-archive.com/linux-media@vger.kernel.org/msg122619.html
->
->> Probably just a bit too late for 4.15.
->
->> Frederic
->
-> !!! WARNING!!! New email address: frederic.parrenin@univ-grenoble-alpes.f=
-r
-> http://pp.ige-grenoble.fr/pageperso/parrenif/index.html
->
-> ----- Mail original -----
->> De: "FR=C3=89D=C3=89RIC PARRENIN" <frederic.parrenin@univ-grenoble-alpes=
-.fr>
->> =C3=80: "Oliver Neukum" <oneukum@suse.com>
->> Cc: "linux-usb" <linux-usb@vger.kernel.org>
->> Envoy=C3=A9: Lundi 11 D=C3=A9cembre 2017 16:39:41
->> Objet: Re: Webcams not recognized on a Dell Latitude 5285 laptop
->
->> > > > it looks like you need the experimental driver posted here
->
->> > > > https://www.spinics.net/lists/linux-media/msg123268.html
->
->> > > Thanks for the information.
->> >> So, if I understand correctly, this driver will not be included in 4.=
-15, will
->> > > it?
->> > > Any idea when this will be included in a release?
->
->> > I have no idea. Could you contact the original developers?
->> > The answer is interesting, but I have no idea.
->
->> It seems it will be included in the 4.16 release:
->
->> https://www.mail-archive.com/linux-media@vger.kernel.org/msg122619.html
->
->> Probably just a bit too late for 4.15.
->
->> Frederic
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+On 26/02/18 21:45, Laurent Pinchart wrote:
+> Move the duplicated DRM pipeline configuration code to a function and
+> call it from vsp1_du_setup_lif() and vsp1_du_atomic_flush().
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
---=20
-With Best Regards,
-Andy Shevchenko
+LGTM.
+
+I thought I had a bit of deja-vu on this patch ... but I can't seem to find
+anything already posted.
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 95 +++++++++++++++-------------------
+>  1 file changed, 43 insertions(+), 52 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index e210917fdc3f..9a043a915c0b 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -42,6 +42,47 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+>  		drm_pipe->du_complete(drm_pipe->du_private, completed);
+>  }
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Pipeline Configuration
+> + */
+> +
+> +/* Configure all entities in the pipeline. */
+> +static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+> +{
+> +	struct vsp1_entity *entity;
+> +	struct vsp1_entity *next;
+> +	struct vsp1_dl_list *dl;
+> +
+> +	dl = vsp1_dl_list_get(pipe->output->dlm);
+> +
+> +	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+> +		/* Disconnect unused RPFs from the pipeline. */
+> +		if (entity->type == VSP1_ENTITY_RPF &&
+> +		    !pipe->inputs[entity->index]) {
+> +			vsp1_dl_list_write(dl, entity->route->reg,
+> +					   VI6_DPR_NODE_UNUSED);
+> +
+> +			entity->pipe = NULL;
+> +			list_del(&entity->list_pipe);
+> +
+> +			continue;
+> +		}
+> +
+> +		vsp1_entity_route_setup(entity, pipe, dl);
+> +
+> +		if (entity->ops->configure) {
+> +			entity->ops->configure(entity, pipe, dl,
+> +					       VSP1_ENTITY_PARAMS_INIT);
+> +			entity->ops->configure(entity, pipe, dl,
+> +					       VSP1_ENTITY_PARAMS_RUNTIME);
+> +			entity->ops->configure(entity, pipe, dl,
+> +					       VSP1_ENTITY_PARAMS_PARTITION);
+> +		}
+> +	}
+> +
+> +	vsp1_dl_list_commit(dl);
+> +}
+> +
+>  /* -----------------------------------------------------------------------------
+>   * DU Driver API
+>   */
+> @@ -85,9 +126,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	struct vsp1_drm_pipeline *drm_pipe;
+>  	struct vsp1_pipeline *pipe;
+>  	struct vsp1_bru *bru;
+> -	struct vsp1_entity *entity;
+> -	struct vsp1_entity *next;
+> -	struct vsp1_dl_list *dl;
+>  	struct v4l2_subdev_format format;
+>  	unsigned long flags;
+>  	unsigned int i;
+> @@ -239,22 +277,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+>  
+>  	/* Configure all entities in the pipeline. */
+> -	dl = vsp1_dl_list_get(pipe->output->dlm);
+> -
+> -	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+> -		vsp1_entity_route_setup(entity, pipe, dl);
+> -
+> -		if (entity->ops->configure) {
+> -			entity->ops->configure(entity, pipe, dl,
+> -					       VSP1_ENTITY_PARAMS_INIT);
+> -			entity->ops->configure(entity, pipe, dl,
+> -					       VSP1_ENTITY_PARAMS_RUNTIME);
+> -			entity->ops->configure(entity, pipe, dl,
+> -					       VSP1_ENTITY_PARAMS_PARTITION);
+> -		}
+> -	}
+> -
+> -	vsp1_dl_list_commit(dl);
+> +	vsp1_du_pipeline_configure(pipe);
+>  
+>  	/* Start the pipeline. */
+>  	spin_lock_irqsave(&pipe->irqlock, flags);
+> @@ -490,15 +513,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+>  	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+>  	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+> -	struct vsp1_entity *entity;
+> -	struct vsp1_entity *next;
+> -	struct vsp1_dl_list *dl;
+>  	unsigned int i;
+>  	int ret;
+>  
+> -	/* Prepare the display list. */
+> -	dl = vsp1_dl_list_get(pipe->output->dlm);
+> -
+>  	/* Count the number of enabled inputs and sort them by Z-order. */
+>  	pipe->num_inputs = 0;
+>  
+> @@ -557,33 +574,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  				__func__, rpf->entity.index);
+>  	}
+>  
+> -	/* Configure all entities in the pipeline. */
+> -	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
+> -		/* Disconnect unused RPFs from the pipeline. */
+> -		if (entity->type == VSP1_ENTITY_RPF &&
+> -		    !pipe->inputs[entity->index]) {
+> -			vsp1_dl_list_write(dl, entity->route->reg,
+> -					   VI6_DPR_NODE_UNUSED);
+> -
+> -			entity->pipe = NULL;
+> -			list_del(&entity->list_pipe);
+> -
+> -			continue;
+> -		}
+> -
+> -		vsp1_entity_route_setup(entity, pipe, dl);
+> -
+> -		if (entity->ops->configure) {
+> -			entity->ops->configure(entity, pipe, dl,
+> -					       VSP1_ENTITY_PARAMS_INIT);
+> -			entity->ops->configure(entity, pipe, dl,
+> -					       VSP1_ENTITY_PARAMS_RUNTIME);
+> -			entity->ops->configure(entity, pipe, dl,
+> -					       VSP1_ENTITY_PARAMS_PARTITION);
+> -		}
+> -	}
+> -
+> -	vsp1_dl_list_commit(dl);
+> +	vsp1_du_pipeline_configure(pipe);
+>  }
+>  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+>  
+> 
