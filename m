@@ -1,200 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43329 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:43875 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751151AbeCIQPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 11:15:47 -0500
+        id S1753531AbeC1SND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:13:03 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2] media: lgdt330x: add block error counts via DVBv5
-Date: Fri,  9 Mar 2018 13:15:41 -0300
-Message-Id: <64ea9b5c825696f60a703a7bb93831f072db4051.1520612137.git.mchehab@s-opensource.com>
-In-Reply-To: <9068a8d6825d63594ea8f680ef53756d55463531.1520610788.git.mchehab@s-opensource.com>
-References: <9068a8d6825d63594ea8f680ef53756d55463531.1520610788.git.mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sasha Levin <alexander.levin@microsoft.com>
+Subject: [PATCH for v3.18 11/18] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+Date: Wed, 28 Mar 2018 15:12:30 -0300
+Message-Id: <b203ca17a23bf02398ef39e8f123d30b74df3523.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Show the UCB error counts via DVBv5.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please notice that there's no scale indication at the driver.
-As we don't have the datasheet, let's assume that it is receiving
-data at a rate of 10.000 packets per second. Ideally, this should
-be read or estimated.
+commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
 
-In order to avoid flooding I2C bus with data, the maximum
-polling rate for those stats was set to 1 second.
+put_v4l2_window32() didn't copy back the clip list to userspace.
+Drivers can update the clip rectangles, so this should be done.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
 ---
- drivers/media/dvb-frontends/lgdt330x.c | 100 +++++++++++++++++++++++++--------
- 1 file changed, 76 insertions(+), 24 deletions(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 61 ++++++++++++++++++---------
+ 1 file changed, 41 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
-index b430b0500f12..927fd68e05ec 100644
---- a/drivers/media/dvb-frontends/lgdt330x.c
-+++ b/drivers/media/dvb-frontends/lgdt330x.c
-@@ -65,6 +65,8 @@ struct lgdt330x_state {
- 	/* Demodulator private data */
- 	enum fe_modulation current_modulation;
- 	u32 snr;	/* Result of last SNR calculation */
-+	u16 ucblocks;
-+	unsigned long last_stats_time;
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index fd32c9ccc2bb..8a5c93ce4348 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -50,6 +50,11 @@ struct v4l2_window32 {
  
- 	/* Tuner private data */
- 	u32 current_frequency;
-@@ -296,6 +298,11 @@ static int lgdt330x_init(struct dvb_frontend *fe)
- 
- 	p->cnr.len = 1;
- 	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_error.len = 1;
-+	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	p->block_count.len = 1;
-+	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	state->last_stats_time = 0;
- 
- 	return lgdt330x_sw_reset(state);
- }
-@@ -303,29 +310,9 @@ static int lgdt330x_init(struct dvb_frontend *fe)
- static int lgdt330x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
  {
- 	struct lgdt330x_state *state = fe->demodulator_priv;
--	int err;
--	u8 buf[2];
- 
--	*ucblocks = 0;
-+	*ucblocks = state->ucblocks;
- 
--	switch (state->config.demod_chip) {
--	case LGDT3302:
--		err = i2c_read_demod_bytes(state, LGDT3302_PACKET_ERR_COUNTER1,
--					   buf, sizeof(buf));
--		break;
--	case LGDT3303:
--		err = i2c_read_demod_bytes(state, LGDT3303_PACKET_ERR_COUNTER1,
--					   buf, sizeof(buf));
--		break;
--	default:
--		dev_warn(&state->client->dev,
--			 "Only LGDT3302 and LGDT3303 are supported chips.\n");
--		err = -ENODEV;
--	}
--	if (err < 0)
--		return err;
++	struct v4l2_clip32 __user *uclips;
++	struct v4l2_clip __user *kclips;
++	compat_caddr_t p;
++	u32 n;
++
+ 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 	    get_user(kp->field, &up->field) ||
+@@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 		return -EFAULT;
+ 	if (kp->clipcount > 2048)
+ 		return -EINVAL;
+-	if (kp->clipcount) {
+-		struct v4l2_clip32 __user *uclips;
+-		struct v4l2_clip __user *kclips;
+-		int n = kp->clipcount;
+-		compat_caddr_t p;
 -
--	*ucblocks = (buf[0] << 8) | buf[1];
- 	return 0;
- }
- 
-@@ -644,6 +631,7 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
- 	struct lgdt330x_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u8 buf[3];
-+	int err;
- 
- 	*status = 0; /* Reset status result */
- 
-@@ -698,13 +686,45 @@ static int lgdt3302_read_status(struct dvb_frontend *fe,
- 			 __func__);
- 	}
- 
--	if (*status & FE_HAS_LOCK && lgdt3302_read_snr(fe) >= 0) {
-+	if (!(*status & FE_HAS_LOCK)) {
-+		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+-		if (get_user(p, &up->clips))
+-			return -EFAULT;
+-		uclips = compat_ptr(p);
+-		kclips = compat_alloc_user_space(n * sizeof(*kclips));
+-		kp->clips = kclips;
+-		while (--n >= 0) {
+-			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+-				return -EFAULT;
+-			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
+-				return -EFAULT;
+-			uclips += 1;
+-			kclips += 1;
+-		}
+-	} else
++	if (!kp->clipcount) {
+ 		kp->clips = NULL;
 +		return 0;
 +	}
 +
-+	if (state->last_stats_time &&
-+	    time_is_after_jiffies(state->last_stats_time))
-+		return 0;
-+
-+	state->last_stats_time = jiffies + msecs_to_jiffies(1000);
-+
-+	err = lgdt3302_read_snr(fe);
-+	if (!err) {
- 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
- 		p->cnr.stat[0].svalue = (((u64)state->snr) * 1000) >> 24;
- 	} else {
- 		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	}
- 
-+	err = i2c_read_demod_bytes(state, LGDT3302_PACKET_ERR_COUNTER1,
-+					   buf, sizeof(buf));
-+	if (!err) {
-+		state->ucblocks = (buf[0] << 8) | buf[1];
-+
-+		dprintk(state, "UCB = 0x%02x\n", state->ucblocks);
-+
-+		p->block_error.stat[0].uvalue += state->ucblocks;
-+		/* FIXME: what's the basis for block count */
-+		p->block_count.stat[0].uvalue += 10000;
-+
-+		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+		p->block_count.stat[0].scale = FE_SCALE_COUNTER;
-+	} else {
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	n = kp->clipcount;
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	kclips = compat_alloc_user_space(n * sizeof(*kclips));
++	kp->clips = kclips;
++	while (n--) {
++		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
++			return -EFAULT;
++		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
++			return -EFAULT;
++		uclips++;
++		kclips++;
 +	}
-+
  	return 0;
  }
  
-@@ -713,8 +733,8 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
+ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
  {
- 	struct lgdt330x_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
--	int err;
- 	u8 buf[3];
-+	int err;
- 
- 	*status = 0; /* Reset status result */
- 
-@@ -772,13 +792,45 @@ static int lgdt3303_read_status(struct dvb_frontend *fe,
- 			 __func__);
- 	}
- 
--	if (*status & FE_HAS_LOCK && lgdt3303_read_snr(fe) >= 0) {
-+	if (!(*status & FE_HAS_LOCK)) {
-+		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return 0;
-+	}
++	struct v4l2_clip __user *kclips = kp->clips;
++	struct v4l2_clip32 __user *uclips;
++	u32 n = kp->clipcount;
++	compat_caddr_t p;
 +
-+	if (state->last_stats_time &&
-+	    time_is_after_jiffies(state->last_stats_time))
+ 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
+ 	    put_user(kp->field, &up->field) ||
+ 	    put_user(kp->chromakey, &up->chromakey) ||
+ 	    put_user(kp->clipcount, &up->clipcount) ||
+ 	    put_user(kp->global_alpha, &up->global_alpha))
+ 		return -EFAULT;
++
++	if (!kp->clipcount)
 +		return 0;
 +
-+	state->last_stats_time = jiffies + msecs_to_jiffies(1000);
-+
-+	err = lgdt3303_read_snr(fe);
-+	if (!err) {
- 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
- 		p->cnr.stat[0].svalue = (((u64)state->snr) * 1000) >> 24;
- 	} else {
- 		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	}
- 
-+	err = i2c_read_demod_bytes(state, LGDT3303_PACKET_ERR_COUNTER1,
-+					   buf, sizeof(buf));
-+	if (!err) {
-+		state->ucblocks = (buf[0] << 8) | buf[1];
-+
-+		dprintk(state, "UCB = 0x%02x\n", state->ucblocks);
-+
-+		p->block_error.stat[0].uvalue += state->ucblocks;
-+		/* FIXME: what's the basis for block count */
-+		p->block_count.stat[0].uvalue += 10000;
-+
-+		p->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+		p->block_count.stat[0].scale = FE_SCALE_COUNTER;
-+	} else {
-+		p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	if (get_user(p, &up->clips))
++		return -EFAULT;
++	uclips = compat_ptr(p);
++	while (n--) {
++		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
++			return -EFAULT;
++		uclips++;
++		kclips++;
 +	}
-+
  	return 0;
  }
  
