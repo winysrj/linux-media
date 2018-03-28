@@ -1,90 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50919 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752447AbeCZPf1 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:39204 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751096AbeC1XWS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 11:35:27 -0400
-Subject: Re: [RFC v2 00/10] Preparing the request API
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: acourbot@chromium.org
-References: <1521839864-10146-1-git-send-email-sakari.ailus@linux.intel.com>
- <bc453725-e35d-77d4-c92f-27c37e9b3b5d@xs4all.nl>
- <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
-Message-ID: <f11c24e1-599d-3248-008c-4730569cfa10@xs4all.nl>
-Date: Mon, 26 Mar 2018 17:35:18 +0200
-MIME-Version: 1.0
-In-Reply-To: <2c969629-d69c-49b6-4cfc-a00e8157b070@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 28 Mar 2018 19:22:18 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset="utf-8"
+Message-id: <5ABC23A0.20907@samsung.com>
+Date: Thu, 29 Mar 2018 08:22:08 +0900
+From: Inki Dae <inki.dae@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Brian Warner <brian.warner@samsung.com>
+Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
+ 3.18
+In-reply-to: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
+        <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/25/2018 06:17 PM, Hans Verkuil wrote:
->> So this weekend I worked on a merger of this work and the RFCv4 Request API
->> patch series, taking what I think are the best bits of both.
->>
->> It is available here:
->>
->> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv6
+Hi Mauro,
+
+2018년 03월 29일 03:12에 Mauro Carvalho Chehab 이(가) 쓴 글:
+> Hi Greg,
 > 
-> I reorganized/cleaned up the patch series. So look here instead:
+> Those are the backports meant to solve CVE-2017-13166 on Kernel 3.18.
 > 
-> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv7
+> It contains two v4l2-ctrls fixes that are required to avoid crashes
+> at the test application.
 > 
-> It's easier to follow.
+> I wrote two patches myself for Kernel 3.18 in order to solve some
+> issues specific for Kernel 3.18 with aren't needed upstream.
+> one is actually a one-line change backport. The other one makes
+> sure that both 32-bits and 64-bits version of some ioctl calls
+> will return the same value for a reserved field.
+> 
+> I noticed an extra bug while testing it, but the bug also hits upstream,
+> and should be backported all the way down all stable/LTS versions.
+> So, I'll send it the usual way, after merging upsream.
 
-Status update:
+Really thanks for doing this. :) There would be many users who use Linux-3.18 for their products yet.
 
-Current work-in-progress tree:
+Thanks,
+Inki Dae
 
-https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv8
-
-v4l2-compliance test code:
-
-https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=request
-
-I had hoped to have more tests ready, but there were loads of
-get/put errors (not surprisingly) which took a lot of time to fix.
-
-I also must remember for the next time that the list_add_tail prototype is:
-
-void list_add_tail(struct list_head *new, struct list_head *head)
-
-and not:
-
-void list_add_tail(struct list_head *head, struct list_head *new)
-
-Adding an object to a request worked much better than adding a request
-to an object :-)
-
-The v4l2-compliance tests I wrote test the basic creation/deletion
-of requests, and adding controls to a request.
-
-The main tests deal with all the various open/close combinations
-(media fd, video fd, request fd). It's now working for both vim2m and
-vivid.
-
-I will try to start on buffers and queueing tests tomorrow, but it might
-slip to Wednesday.
-
-An interesting corner case was vim2m: what to do if you allocate a request,
-add a control to it, then close the video file handle. Since the whole
-state is contained in the video file handle, the control inside the request
-is suddenly orphaned since the control refers to the control handler in the
-file handle state, which is now deleted.
-
-I have decided to remove the control from the request in that case. This means
-that closing the video file handle for such devices removes all request objects
-that are created by that file handle from any requests that they were bound to.
-
-For vim2m it is effectively equal to calling MEDIA_REQUEST_IOC_REINIT for the
-request.
-
-I think this is a sane approach for such devices.
-
-Regards,
-
-	Hans
+> 
+> Regards,
+> Mauro
+> 
+> 
+> Daniel Mentz (2):
+>   media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
+>   media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
+> 
+> Hans Verkuil (12):
+>   media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
+>   media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+>   media: v4l2-compat-ioctl32.c: fix the indentation
+>   media: v4l2-compat-ioctl32.c: move 'helper' functions to
+>     __get/put_v4l2_format32
+>   media: v4l2-compat-ioctl32.c: avoid sizeof(type)
+>   media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+>   media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+>   media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
+>   media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+>   media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+>   media: v4l2-compat-ioctl32.c: don't copy back the result for certain
+>     errors
+>   media: v4l2-ctrls: fix sparse warning
+> 
+> Mauro Carvalho Chehab (2):
+>   media: v4l2-compat-ioctl32: use compat_u64 for video standard
+>   media: v4l2-compat-ioctl32: initialize a reserved field
+> 
+> Ricardo Ribalda (2):
+>   vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+>   media: media/v4l2-ctrls: volatiles should not generate CH_VALUE
+> 
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1020 +++++++++++++++----------
+>  drivers/media/v4l2-core/v4l2-ctrls.c          |   96 ++-
+>  drivers/media/v4l2-core/v4l2-ioctl.c          |    5 +-
+>  drivers/media/v4l2-core/videobuf2-core.c      |    5 +
+>  4 files changed, 691 insertions(+), 435 deletions(-)
+> 
