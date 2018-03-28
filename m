@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50948 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751504AbeCEKEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Mar 2018 05:04:45 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Yong Deng <yong.deng@magewell.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-arm-kernel@lists.infradead.org, Chen-Yu Tsai <wens@csie.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 0/4] media: sun6i: Add support for the H3 CSI controller
-Date: Mon,  5 Mar 2018 11:04:28 +0100
-Message-Id: <20180305100432.15009-1-maxime.ripard@bootlin.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:49961 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752936AbeC1OBp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 10:01:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 19/29] videobuf2-core: embed media_request_object
+Date: Wed, 28 Mar 2018 16:01:30 +0200
+Message-Id: <20180328140140.42096-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
+References: <20180328140140.42096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The H3 and H5 have a CSI controller based on the one previously found
-in the A31, that is currently supported by the sun6i-csi driver.
+Make vb2_buffer a request object.
 
-Add the compatibles to the device tree bindings and to the driver to
-make it work properly.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-This obviously depends on the serie "Initial Allwinner V3s CSI
-Support" by Yong Deng.
-
-Let me know what you think,
-Maxime
-
-Maxime Ripard (2):
-  dt-bindings: media: sun6i: Add A31 and H3 compatibles
-  media: sun6i: Add A31 compatible
-
-Mylène Josserand (2):
-  ARM: dts: sun8i: Add the H3/H5 CSI controller
-  [DO NOT MERGE] ARM: dts: sun8i: Add CAM500B camera module to the Nano
-    Pi M1+
-
- .../devicetree/bindings/media/sun6i-csi.txt        |  5 +-
- arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts      | 85 ++++++++++++++++++++++
- arch/arm/boot/dts/sunxi-h3-h5.dtsi                 | 22 ++++++
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c |  1 +
- 4 files changed, 112 insertions(+), 1 deletion(-)
-
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 224c4820a044..3d54654c3cd4 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -17,6 +17,7 @@
+ #include <linux/poll.h>
+ #include <linux/dma-buf.h>
+ #include <linux/bitops.h>
++#include <media/media-request.h>
+ 
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+@@ -238,6 +239,7 @@ struct vb2_queue;
+  * @num_planes:		number of planes in the buffer
+  *			on an internal driver queue.
+  * @timestamp:		frame timestamp in ns.
++ * @req_obj:		used to bind this buffer to a request
+  */
+ struct vb2_buffer {
+ 	struct vb2_queue	*vb2_queue;
+@@ -246,6 +248,7 @@ struct vb2_buffer {
+ 	unsigned int		memory;
+ 	unsigned int		num_planes;
+ 	u64			timestamp;
++	struct media_request_object	req_obj;
+ 
+ 	/* private: internal use only
+ 	 *
 -- 
-2.14.3
+2.15.1
