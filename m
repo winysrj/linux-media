@@ -1,39 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:46841 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbeCGJrP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 04:47:15 -0500
-Received: by mail-qk0-f169.google.com with SMTP id 130so1842127qkd.13
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 01:47:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1980bfa67f19d628df30b9b5b76bca37c2a76dde.1520414065.git.mchehab@s-opensource.com>
-References: <1980bfa67f19d628df30b9b5b76bca37c2a76dde.1520414065.git.mchehab@s-opensource.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Wed, 7 Mar 2018 06:47:14 -0300
-Message-ID: <CAOMZO5C5jSxwKMV0hZpA1emFW9ha8GN4XsTsdTfgPU4eJ44Ctw@mail.gmail.com>
-Subject: Re: [PATCH] media: dvbdev: fix building on ia64
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:54045 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751932AbeC1Dtb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Mar 2018 23:49:31 -0400
+Message-ID: <d86ee9964ca0379ea22e5c5edf1ef22d@smtp-cloud8.xs4all.net>
+Date: Wed, 28 Mar 2018 05:49:28 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wed, Mar 7, 2018 at 6:14 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Not sure why, but, on ia64, with Linaro's gcc 7.3 compiler,
-> using #ifdef (CONFIG_I2C) is not OK.
+Results of the daily build of media_tree:
 
-Looking at the kbuild report the failure happens when CONFIG_I2C=m.
+date:			Wed Mar 28 05:00:10 CEST 2018
+media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
+media_build git hash:	40eb338395af58c910ebd1985334e259a211d2b3
+v4l-utils git hash:	098e402950fd45b5a572cccfe1d103661d418417
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-IS_ENABLED() macro takes care of both built-in and module as it will expand to:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.101-i686: WARNINGS
+linux-3.0.101-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.100-i686: WARNINGS
+linux-3.2.100-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.113-i686: WARNINGS
+linux-3.4.113-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.10-i686: WARNINGS
+linux-3.7.10-x86_64: WARNINGS
+linux-3.8.13-i686: WARNINGS
+linux-3.8.13-x86_64: WARNINGS
+linux-3.9.11-i686: WARNINGS
+linux-3.9.11-x86_64: WARNINGS
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.55-i686: WARNINGS
+linux-3.16.55-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.100-i686: WARNINGS
+linux-3.18.100-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.50-i686: WARNINGS
+linux-4.1.50-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.99-i686: OK
+linux-4.4.99-x86_64: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.87-i686: WARNINGS
+linux-4.9.87-x86_64: WARNINGS
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.27-i686: OK
+linux-4.14.27-x86_64: OK
+linux-4.15.10-i686: OK
+linux-4.15.10-x86_64: OK
+linux-4.16-rc5-i686: OK
+linux-4.16-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
+Detailed results are available here:
 
-and that's the reason why IS_ENABLE() fixes the build problem.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Regards,
+Full logs are available here:
 
-Fabio Estevam
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
