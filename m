@@ -1,151 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:40735 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1030239AbeCALbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 06:31:06 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v5 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-Date: Thu,  1 Mar 2018 12:30:48 +0100
-Message-Id: <20180301113049.16470-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180301113049.16470-1-maxime.ripard@bootlin.com>
-References: <20180301113049.16470-1-maxime.ripard@bootlin.com>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34561 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753130AbeC1Nuj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 09:50:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv9 PATCH 05/29] media-request: add request ioctls
+Date: Wed, 28 Mar 2018 15:50:06 +0200
+Message-Id: <20180328135030.7116-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
-video streams and can output on up to 4 CSI-2 lanes, depending on the
-hardware implementation.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
+ioctls.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ drivers/media/media-request.c | 80 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 78 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-new file mode 100644
-index 000000000000..459c6e332f52
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-@@ -0,0 +1,98 @@
-+Cadence MIPI-CSI2 TX controller
-+===============================
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index 8135d9d32af9..3ee3b27fd644 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -105,10 +105,86 @@ static unsigned int media_request_poll(struct file *filp,
+ 	return 0;
+ }
+ 
++static long media_request_ioctl_queue(struct media_request *req)
++{
++	struct media_device *mdev = req->mdev;
++	unsigned long flags;
++	int ret = 0;
 +
-+The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
-+4 CSI lanes in output, and up to 4 different pixel streams in input.
++	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
 +
-+Required properties:
-+  - compatible: must be set to "cdns,csi2tx"
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * esc_clk: escape mode clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
++	spin_lock_irqsave(&req->lock, flags);
++	if (req->state != MEDIA_REQUEST_STATE_IDLE) {
++		dev_dbg(mdev->dev,
++			"request: unable to queue %s, request in state %s\n",
++			req->debug_str, media_request_state_str(req->state));
++		spin_unlock_irqrestore(&req->lock, flags);
++		return -EINVAL;
++	}
++	req->state = MEDIA_REQUEST_STATE_QUEUEING;
 +
-+Optional properties
-+  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
-+  - phy-names: must contain "dphy"
++	spin_unlock_irqrestore(&req->lock, flags);
 +
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes are numbered as follows.
++	/*
++	 * Ensure the request that is validated will be the one that gets queued
++	 * next by serialising the queueing process.
++	 */
++	mutex_lock(&mdev->req_queue_mutex);
 +
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 output
-+           1    Stream 0 input
-+           2    Stream 1 input
-+           3    Stream 2 input
-+           4    Stream 3 input
++	ret = mdev->ops->req_queue(req);
++	spin_lock_irqsave(&req->lock, flags);
++	req->state = ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED;
++	spin_unlock_irqrestore(&req->lock, flags);
++	mutex_unlock(&mdev->req_queue_mutex);
 +
-+           The stream input port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design. Since there is only one endpoint per port,
-+           the endpoints are not numbered.
++	if (ret) {
++		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
++			req->debug_str, ret);
++	} else {
++		media_request_get(req);
++	}
 +
-+Example:
++	return ret;
++}
 +
-+csi2tx: csi-bridge@0d0e1000 {
-+	compatible = "cdns,csi2tx";
-+	reg = <0x0d0e1000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>,
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "p_clk", "esc_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
++static long media_request_ioctl_reinit(struct media_request *req)
++{
++	struct media_device *mdev = req->mdev;
++	unsigned long flags;
 +
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
++	spin_lock_irqsave(&req->lock, flags);
++	if (req->state != MEDIA_REQUEST_STATE_IDLE &&
++	    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
++		dev_dbg(mdev->dev,
++			"request: %s not in idle or complete state, cannot reinit\n",
++			req->debug_str);
++		spin_unlock_irqrestore(&req->lock, flags);
++		return -EINVAL;
++	}
++	req->state = MEDIA_REQUEST_STATE_CLEANING;
++	spin_unlock_irqrestore(&req->lock, flags);
 +
-+		port@0 {
-+			reg = <0>;
++	media_request_clean(req);
 +
-+			csi2tx_out: endpoint {
-+				remote-endpoint = <&remote_in>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
++	spin_lock_irqsave(&req->lock, flags);
++	req->state = MEDIA_REQUEST_STATE_IDLE;
++	spin_unlock_irqrestore(&req->lock, flags);
++	return 0;
++}
 +
-+		port@1 {
-+			reg = <1>;
+ static long media_request_ioctl(struct file *filp, unsigned int cmd,
+-				unsigned long __arg)
++				unsigned long arg)
+ {
+-	return -ENOIOCTLCMD;
++	struct media_request *req = filp->private_data;
 +
-+			csi2tx_in_stream0: endpoint {
-+				remote-endpoint = <&stream0_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2tx_in_stream1: endpoint {
-+				remote-endpoint = <&stream1_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2tx_in_stream2: endpoint {
-+				remote-endpoint = <&stream2_out>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2tx_in_stream3: endpoint {
-+				remote-endpoint = <&stream3_out>;
-+			};
-+		};
-+	};
-+};
++	switch (cmd) {
++	case MEDIA_REQUEST_IOC_QUEUE:
++		return media_request_ioctl_queue(req);
++	case MEDIA_REQUEST_IOC_REINIT:
++		return media_request_ioctl_reinit(req);
++	default:
++		return -ENOIOCTLCMD;
++	}
+ }
+ 
+ static const struct file_operations request_fops = {
 -- 
-2.14.3
+2.16.1
