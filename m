@@ -1,96 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39050 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751508AbeCUKZh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Mar 2018 06:25:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Suman Anna <s-anna@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] media: omap3isp: fix unbalanced dma_iommu_mapping
-Date: Wed, 21 Mar 2018 12:26:42 +0200
-Message-ID: <5767280.aLITpzbm0N@avalon>
-In-Reply-To: <20180314154136.16468-1-s-anna@ti.com>
-References: <20180314154136.16468-1-s-anna@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from osg.samsung.com ([64.30.133.232]:64341 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753627AbeC1SNU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:13:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Ricardo Ribalda <ricardo.ribalda@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sasha Levin <alexander.levin@microsoft.com>
+Subject: [PATCH for v3.18 02/18] vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
+Date: Wed, 28 Mar 2018 15:12:21 -0300
+Message-Id: <9afdc5aaed16638f406ea8ee062bdee5504e32a6.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Suman,
+From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
 
-Thank you for the patch.
+commit 3171cc2b4eb9831ab4df1d80d0410a945b8bc84e upstream.
 
-On Wednesday, 14 March 2018 17:41:36 EET Suman Anna wrote:
-> The OMAP3 ISP driver manages its MMU mappings through the IOMMU-aware
-> ARM DMA backend. The current code creates a dma_iommu_mapping and
-> attaches this to the ISP device, but never detaches the mapping in
-> either the probe failure paths or the driver remove path resulting
-> in an unbalanced mapping refcount and a memory leak. Fix this properly.
-> 
-> Reported-by: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+According to the doc, V4L2_BUF_FLAG_DONE is cleared after DQBUF:
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+V4L2_BUF_FLAG_DONE 0x00000004  ... After calling the VIDIOC_QBUF or
+VIDIOC_DQBUF it is always cleared ...
 
-> ---
-> v2 Changes:
->  - Dropped the error_attach label, and returned directly from the
->    first error path (comments from Sakari)
->  - Added Sakari's Acked-by
-> v1: https://patchwork.kernel.org/patch/10276759/
-> 
-> Pavel,
-> I dropped your Tested-by from v2 since I modified the patch, can you
-> recheck the new patch again? Thanks.
-> 
-> regards
-> Suman
-> 
->  drivers/media/platform/omap3isp/isp.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..f2db5128d786
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1945,6 +1945,7 @@ static int isp_initialize_modules(struct isp_device
-> *isp)
-> 
->  static void isp_detach_iommu(struct isp_device *isp)
->  {
-> +	arm_iommu_detach_device(isp->dev);
->  	arm_iommu_release_mapping(isp->mapping);
->  	isp->mapping = NULL;
->  }
-> @@ -1961,8 +1962,7 @@ static int isp_attach_iommu(struct isp_device *isp)
->  	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
->  	if (IS_ERR(mapping)) {
->  		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
-> -		ret = PTR_ERR(mapping);
-> -		goto error;
-> +		return PTR_ERR(mapping);
->  	}
-> 
->  	isp->mapping = mapping;
-> @@ -1977,7 +1977,8 @@ static int isp_attach_iommu(struct isp_device *isp)
->  	return 0;
-> 
->  error:
-> -	isp_detach_iommu(isp);
-> +	arm_iommu_release_mapping(isp->mapping);
-> +	isp->mapping = NULL;
->  	return ret;
->  }
+Unfortunately, it seems that videobuf2 keeps it set after DQBUF. This
+can be tested with vivid and dev_debug:
 
+[257604.338082] video1: VIDIOC_DQBUF: 71:33:25.00260479 index=3,
+type=vid-cap, flags=0x00002004, field=none, sequence=163,
+memory=userptr, bytesused=460800, offset/userptr=0x344b000,
+length=460800
+
+This patch forces FLAG_DONE to 0 after calling DQBUF.
+
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index d5c300150cf4..f0811b7e900d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2075,6 +2075,11 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/*
++	 * After calling the VIDIOC_DQBUF V4L2_BUF_FLAG_DONE must be
++	 * cleared.
++	 */
++	b->flags &= ~V4L2_BUF_FLAG_DONE;
+ 	return 0;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
