@@ -1,166 +1,424 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:58820 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750838AbeCFQGY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2018 11:06:24 -0500
-Date: Tue, 6 Mar 2018 13:06:15 -0300
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH v2 08/12] [media] ngene: deduplicate I2C adapter
- evaluation
-Message-ID: <20180306130615.25fd87b5@vento.lan>
-In-Reply-To: <20180225123140.19486-9-d.scheller.oss@gmail.com>
-References: <20180225123140.19486-1-d.scheller.oss@gmail.com>
-        <20180225123140.19486-9-d.scheller.oss@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58600 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752237AbeC1OnR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 10:43:17 -0400
+Subject: Re: [PATCH 07/15] v4l: vsp1: Move DRM atomic commit pipeline setup to
+ separate function
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180226214516.11559-8-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <80250bdd-dda3-5a2f-02e8-1121197949f5@ideasonboard.com>
+Date: Wed, 28 Mar 2018 15:43:13 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180226214516.11559-8-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 25 Feb 2018 13:31:36 +0100
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+Hi Laurent,
 
-> From: Daniel Scheller <d.scheller@gmx.net>
+On 26/02/18 21:45, Laurent Pinchart wrote:
+> The DRM pipeline setup code used at atomic commit time is similar to the
+> setup code used when enabling the pipeline. Move it to a separate
+> function in order to share it.
 > 
-> The I2C adapter evaluation (based on chan->number) is duplicated at
-> several places (tuner_attach_() functions, demod_attach_stv0900() and
-> cineS2_probe()). Clean this up by wrapping that construct in a separate
-> function which all users of that can pass the ngene_channel pointer and
-> get the correct I2C adapter from.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-This patch doesn't apply. 
+Assuming no hidden secret code addition in this code move that I haven't seen..
 
-Please rebase from this point at the top of the media tree.
+Only a minor nit below asking if the function should be pluralised (_inputs,
+rather than _input)
 
-PS.: Perhaps I ended by merging an older version of some of your
-patches, as I noticed that some e-mails got lost either by me or
-by patch work along those days.
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+
 > ---
->  drivers/media/pci/ngene/ngene-cards.c | 41 +++++++++++++----------------------
->  1 file changed, 15 insertions(+), 26 deletions(-)
+>  drivers/media/platform/vsp1/vsp1_drm.c | 347 +++++++++++++++++----------------
+>  1 file changed, 180 insertions(+), 167 deletions(-)
 > 
-> diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-> index 00b100660784..dff55c7c9f86 100644
-> --- a/drivers/media/pci/ngene/ngene-cards.c
-> +++ b/drivers/media/pci/ngene/ngene-cards.c
-> @@ -118,17 +118,25 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr, u8 reg, u8 *val)
->  /* Demod/tuner attachment ***************************************************/
->  /****************************************************************************/
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 9a043a915c0b..7bf697ba7969 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -46,6 +46,185 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+>   * Pipeline Configuration
+>   */
 >  
-> +static struct i2c_adapter *i2c_adapter_from_chan(struct ngene_channel *chan)
+> +/* Setup one RPF and the connected BRU sink pad. */
+> +static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
+> +				      struct vsp1_pipeline *pipe,
+> +				      struct vsp1_rwpf *rpf,
+> +				      unsigned int bru_input)
 > +{
-> +	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-> +	if (chan->number < 2)
-> +		return &chan->dev->channel[0].i2c_adapter;
+> +	struct v4l2_subdev_selection sel;
+> +	struct v4l2_subdev_format format;
+> +	const struct v4l2_rect *crop;
+> +	int ret;
 > +
-> +	return &chan->dev->channel[1].i2c_adapter;
+> +	/*
+> +	 * Configure the format on the RPF sink pad and propagate it up to the
+> +	 * BRU sink pad.
+> +	 */
+> +	crop = &vsp1->drm->inputs[rpf->entity.index].crop;
+> +
+> +	memset(&format, 0, sizeof(format));
+> +	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	format.pad = RWPF_PAD_SINK;
+> +	format.format.width = crop->width + crop->left;
+> +	format.format.height = crop->height + crop->top;
+> +	format.format.code = rpf->fmtinfo->mbus;
+> +	format.format.field = V4L2_FIELD_NONE;
+> +
+> +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev,
+> +		"%s: set format %ux%u (%x) on RPF%u sink\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code, rpf->entity.index);
+> +
+> +	memset(&sel, 0, sizeof(sel));
+> +	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	sel.pad = RWPF_PAD_SINK;
+> +	sel.target = V4L2_SEL_TGT_CROP;
+> +	sel.r = *crop;
+> +
+> +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
+> +			       &sel);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev,
+> +		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
+> +		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+> +		rpf->entity.index);
+> +
+> +	/*
+> +	 * RPF source, hardcode the format to ARGB8888 to turn on format
+> +	 * conversion if needed.
+> +	 */
+> +	format.pad = RWPF_PAD_SOURCE;
+> +
+> +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev,
+> +		"%s: got format %ux%u (%x) on RPF%u source\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code, rpf->entity.index);
+> +
+> +	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
+> +
+> +	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* BRU sink, propagate the format from the RPF source. */
+> +	format.pad = bru_input;
+> +
+> +	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code, BRU_NAME(pipe->bru), format.pad);
+> +
+> +	sel.pad = bru_input;
+> +	sel.target = V4L2_SEL_TGT_COMPOSE;
+> +	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
+> +
+> +	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_selection, NULL,
+> +			       &sel);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
+> +		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+> +		BRU_NAME(pipe->bru), sel.pad);
+> +
+> +	return 0;
 > +}
 > +
->  static int tuner_attach_stv6110(struct ngene_channel *chan)
->  {
->  	struct device *pdev = &chan->dev->pci_dev->dev;
-> -	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
->  	struct stv090x_config *feconf = (struct stv090x_config *)
->  		chan->dev->card_info->fe_config[chan->number];
->  	struct stv6110x_config *tunerconf = (struct stv6110x_config *)
->  		chan->dev->card_info->tuner_config[chan->number];
->  	const struct stv6110x_devctl *ctl;
->  
-> -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
->  	if (chan->number < 2)
->  		i2c = &chan->dev->channel[0].i2c_adapter;
->  	else
-> @@ -158,16 +166,10 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
->  static int tuner_attach_stv6111(struct ngene_channel *chan)
->  {
->  	struct device *pdev = &chan->dev->pci_dev->dev;
-> -	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
->  	struct dvb_frontend *fe;
->  	u8 adr = 4 + ((chan->number & 1) ? 0x63 : 0x60);
->  
-> -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-> -	if (chan->number < 2)
-> -		i2c = &chan->dev->channel[0].i2c_adapter;
-> -	else
-> -		i2c = &chan->dev->channel[1].i2c_adapter;
-> -
->  	fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr);
->  	if (!fe) {
->  		fe = dvb_attach(stv6111_attach, chan->fe, i2c, adr & ~4);
-> @@ -197,10 +199,9 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
->  static int tuner_attach_tda18271(struct ngene_channel *chan)
->  {
->  	struct device *pdev = &chan->dev->pci_dev->dev;
-> -	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
->  	struct dvb_frontend *fe;
->  
-> -	i2c = &chan->dev->channel[0].i2c_adapter;
->  	if (chan->fe->ops.i2c_gate_ctrl)
->  		chan->fe->ops.i2c_gate_ctrl(chan->fe, 1);
->  	fe = dvb_attach(tda18271c2dd_attach, chan->fe, i2c, 0x60);
-> @@ -240,7 +241,7 @@ static int tuner_tda18212_ping(struct ngene_channel *chan,
->  static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
->  {
->  	struct device *pdev = &chan->dev->pci_dev->dev;
-> -	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
->  	struct i2c_client *client;
->  	struct tda18212_config config = {
->  		.fe = chan->fe,
-> @@ -262,12 +263,6 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
->  	else
->  		board_info.addr = 0x60;
->  
-> -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-> -	if (chan->number < 2)
-> -		i2c = &chan->dev->channel[0].i2c_adapter;
-> -	else
-> -		i2c = &chan->dev->channel[1].i2c_adapter;
-> -
->  	/*
->  	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
->  	 * combo, the tda18212 must be probed by reading it's id _twice_ when
-> @@ -320,7 +315,7 @@ static int tuner_attach_probe(struct ngene_channel *chan)
->  static int demod_attach_stv0900(struct ngene_channel *chan)
->  {
->  	struct device *pdev = &chan->dev->pci_dev->dev;
-> -	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
->  	struct stv090x_config *feconf = (struct stv090x_config *)
->  		chan->dev->card_info->fe_config[chan->number];
->  
-> @@ -620,7 +615,7 @@ static int port_has_xo2(struct i2c_adapter *i2c, u8 *type, u8 *id)
->  static int cineS2_probe(struct ngene_channel *chan)
->  {
->  	struct device *pdev = &chan->dev->pci_dev->dev;
-> -	struct i2c_adapter *i2c;
-> +	struct i2c_adapter *i2c = i2c_adapter_from_chan(chan);
->  	struct stv090x_config *fe_conf;
->  	u8 buf[3];
->  	u8 xo2_type, xo2_id, xo2_demodtype;
-> @@ -628,12 +623,6 @@ static int cineS2_probe(struct ngene_channel *chan)
->  	struct i2c_msg i2c_msg = { .flags = 0, .buf = buf };
->  	int rc;
->  
-> -	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
-> -	if (chan->number < 2)
-> -		i2c = &chan->dev->channel[0].i2c_adapter;
-> -	else
-> -		i2c = &chan->dev->channel[1].i2c_adapter;
-> -
->  	if (port_has_xo2(i2c, &xo2_type, &xo2_id)) {
->  		xo2_id >>= 2;
->  		dev_dbg(pdev, "XO2 on channel %d (type %d, id %d)\n",
+> +static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+> +{
+> +	return vsp1->drm->inputs[rpf->entity.index].zpos;
+> +}
+> +
+> +/* Setup the input side of the pipeline (RPFs and BRU sink pads). */
+> +static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+
+Minor nit - shouldn't this be _setup_inputs(..)
+as we could have multiple inputs, and it configures them all.
 
 
-
-Thanks,
-Mauro
+> +					struct vsp1_pipeline *pipe)
+> +{
+> +	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+> +	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	/* Count the number of enabled inputs and sort them by Z-order. */
+> +	pipe->num_inputs = 0;
+> +
+> +	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+> +		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+> +		unsigned int j;
+> +
+> +		/*
+> +		 * Make sure we don't accept more inputs than the hardware can
+> +		 * handle. This is a temporary fix to avoid display stall, we
+> +		 * need to instead allocate the BRU or BRS to display pipelines
+> +		 * dynamically based on the number of planes they each use.
+> +		 */
+> +		if (pipe->num_inputs >= pipe->bru->source_pad)
+> +			pipe->inputs[i] = NULL;
+> +
+> +		if (!pipe->inputs[i])
+> +			continue;
+> +
+> +		/* Insert the RPF in the sorted RPFs array. */
+> +		for (j = pipe->num_inputs++; j > 0; --j) {
+> +			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
+> +				break;
+> +			inputs[j] = inputs[j-1];
+> +		}
+> +
+> +		inputs[j] = rpf;
+> +	}
+> +
+> +	/* Setup the RPF input pipeline for every enabled input. */
+> +	for (i = 0; i < pipe->bru->source_pad; ++i) {
+> +		struct vsp1_rwpf *rpf = inputs[i];
+> +
+> +		if (!rpf) {
+> +			bru->inputs[i].rpf = NULL;
+> +			continue;
+> +		}
+> +
+> +		if (!rpf->entity.pipe) {
+> +			rpf->entity.pipe = pipe;
+> +			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
+> +		}
+> +
+> +		bru->inputs[i].rpf = rpf;
+> +		rpf->bru_input = i;
+> +		rpf->entity.sink = pipe->bru;
+> +		rpf->entity.sink_pad = i;
+> +
+> +		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
+> +			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
+> +
+> +		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
+> +		if (ret < 0) {
+> +			dev_err(vsp1->dev,
+> +				"%s: failed to setup RPF.%u\n",
+> +				__func__, rpf->entity.index);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  /* Configure all entities in the pipeline. */
+>  static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+>  {
+> @@ -396,111 +575,6 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+>  }
+>  EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
+>  
+> -static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
+> -				  struct vsp1_pipeline *pipe,
+> -				  struct vsp1_rwpf *rpf, unsigned int bru_input)
+> -{
+> -	struct v4l2_subdev_selection sel;
+> -	struct v4l2_subdev_format format;
+> -	const struct v4l2_rect *crop;
+> -	int ret;
+> -
+> -	/*
+> -	 * Configure the format on the RPF sink pad and propagate it up to the
+> -	 * BRU sink pad.
+> -	 */
+> -	crop = &vsp1->drm->inputs[rpf->entity.index].crop;
+> -
+> -	memset(&format, 0, sizeof(format));
+> -	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	format.pad = RWPF_PAD_SINK;
+> -	format.format.width = crop->width + crop->left;
+> -	format.format.height = crop->height + crop->top;
+> -	format.format.code = rpf->fmtinfo->mbus;
+> -	format.format.field = V4L2_FIELD_NONE;
+> -
+> -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
+> -			       &format);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	dev_dbg(vsp1->dev,
+> -		"%s: set format %ux%u (%x) on RPF%u sink\n",
+> -		__func__, format.format.width, format.format.height,
+> -		format.format.code, rpf->entity.index);
+> -
+> -	memset(&sel, 0, sizeof(sel));
+> -	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	sel.pad = RWPF_PAD_SINK;
+> -	sel.target = V4L2_SEL_TGT_CROP;
+> -	sel.r = *crop;
+> -
+> -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
+> -			       &sel);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	dev_dbg(vsp1->dev,
+> -		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
+> -		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+> -		rpf->entity.index);
+> -
+> -	/*
+> -	 * RPF source, hardcode the format to ARGB8888 to turn on format
+> -	 * conversion if needed.
+> -	 */
+> -	format.pad = RWPF_PAD_SOURCE;
+> -
+> -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
+> -			       &format);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	dev_dbg(vsp1->dev,
+> -		"%s: got format %ux%u (%x) on RPF%u source\n",
+> -		__func__, format.format.width, format.format.height,
+> -		format.format.code, rpf->entity.index);
+> -
+> -	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
+> -
+> -	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
+> -			       &format);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	/* BRU sink, propagate the format from the RPF source. */
+> -	format.pad = bru_input;
+> -
+> -	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
+> -			       &format);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
+> -		__func__, format.format.width, format.format.height,
+> -		format.format.code, BRU_NAME(pipe->bru), format.pad);
+> -
+> -	sel.pad = bru_input;
+> -	sel.target = V4L2_SEL_TGT_COMPOSE;
+> -	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
+> -
+> -	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_selection, NULL,
+> -			       &sel);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
+> -		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+> -		BRU_NAME(pipe->bru), sel.pad);
+> -
+> -	return 0;
+> -}
+> -
+> -static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+> -{
+> -	return vsp1->drm->inputs[rpf->entity.index].zpos;
+> -}
+> -
+>  /**
+>   * vsp1_du_atomic_flush - Commit an atomic update
+>   * @dev: the VSP device
+> @@ -511,69 +585,8 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+>  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+>  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+> -	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+> -	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+> -	unsigned int i;
+> -	int ret;
+> -
+> -	/* Count the number of enabled inputs and sort them by Z-order. */
+> -	pipe->num_inputs = 0;
+> -
+> -	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+> -		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+> -		unsigned int j;
+> -
+> -		/*
+> -		 * Make sure we don't accept more inputs than the hardware can
+> -		 * handle. This is a temporary fix to avoid display stall, we
+> -		 * need to instead allocate the BRU or BRS to display pipelines
+> -		 * dynamically based on the number of planes they each use.
+> -		 */
+> -		if (pipe->num_inputs >= pipe->bru->source_pad)
+> -			pipe->inputs[i] = NULL;
+> -
+> -		if (!pipe->inputs[i])
+> -			continue;
+> -
+> -		/* Insert the RPF in the sorted RPFs array. */
+> -		for (j = pipe->num_inputs++; j > 0; --j) {
+> -			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
+> -				break;
+> -			inputs[j] = inputs[j-1];
+> -		}
+> -
+> -		inputs[j] = rpf;
+> -	}
+> -
+> -	/* Setup the RPF input pipeline for every enabled input. */
+> -	for (i = 0; i < pipe->bru->source_pad; ++i) {
+> -		struct vsp1_rwpf *rpf = inputs[i];
+> -
+> -		if (!rpf) {
+> -			bru->inputs[i].rpf = NULL;
+> -			continue;
+> -		}
+> -
+> -		if (!rpf->entity.pipe) {
+> -			rpf->entity.pipe = pipe;
+> -			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
+> -		}
+> -
+> -		bru->inputs[i].rpf = rpf;
+> -		rpf->bru_input = i;
+> -		rpf->entity.sink = pipe->bru;
+> -		rpf->entity.sink_pad = i;
+> -
+> -		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
+> -			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
+> -
+> -		ret = vsp1_du_setup_rpf_pipe(vsp1, pipe, rpf, i);
+> -		if (ret < 0)
+> -			dev_err(vsp1->dev,
+> -				"%s: failed to setup RPF.%u\n",
+> -				__func__, rpf->entity.index);
+> -	}
+>  
+> +	vsp1_du_pipeline_setup_input(vsp1, pipe);
+>  	vsp1_du_pipeline_configure(pipe);
+>  }
+>  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+> 
