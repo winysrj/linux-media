@@ -1,90 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41723 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751886AbeCMSFg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 14:05:36 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 00/11] R-Car DU Interlaced support through VSP1
-Date: Tue, 13 Mar 2018 19:05:16 +0100
-Message-Id: <cover.89a4a5175efbf31441ba717a99b0e3c31088179f.1520963956.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from osg.samsung.com ([64.30.133.232]:60839 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753547AbeC1SNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:13:09 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sasha Levin <alexander.levin@microsoft.com>
+Subject: [PATCH for v3.18 05/18] media: v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
+Date: Wed, 28 Mar 2018 15:12:24 -0300
+Message-Id: <eba66edbe4ca94e61e342683ee5e225f376d754c.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Gen3 R-Car DU devices make use of the VSP to handle frame processing.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In this series we implement support for handling interlaced pipelines by using
-the auto-fld feature of the VSP hardware.
+commit 486c521510c44a04cd756a9267e7d1e271c8a4ba upstream.
 
-The implementation is preceded by some cleanup work and refactoring, through
-patches 1 to 6. These are trivial and could be collected earlier and
-independently if this series requires further revisions.
+These helper functions do not really help. Move the code to the
+__get/put_v4l2_format32 functions.
 
-Patch 7 makes a key distinctive change to remove all existing support for
-headerless display lists throughout the VSP1 driver, and ensures that all
-pipelines use the same code path. This simplifies the code and reduces
-opportunity for untested code paths to exist.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 84 +++++----------------------
+ 1 file changed, 16 insertions(+), 68 deletions(-)
 
-Patches 8, 9 and 10 implement the relevant support in the VSP1 driver, before
-patch 11 finally enables the feature through the drm R-Car DU driver.
-
-This series is based upon my previous TLB optimise and body rework (v7), and is
-available from the following URL:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git
-  tags/vsp1/du/interlaced/v2
-
-ChangeLog:
-
-v2:
- - media: vsp1: use kernel __packed for structures
-    became:
-   media: vsp1: Remove packed attributes from aligned structures
-
- - media: vsp1: Add support for extended display list headers
-   - No longer declares structs __packed
-
- - media: vsp1: Provide support for extended command pools
-   - Fix spelling typo in commit message
-   - constify, and staticify the instantiation of vsp1_extended_commands
-   - s/autfld_cmds/autofld_cmds/
-   - staticify cmd pool functions (Thanks kbuild-bot)
-
- - media: vsp1: Support Interlaced display pipelines
-   - fix erroneous BIT value which enabled interlaced
-   - fix field handling at frame_end interrupt
-
-Kieran Bingham (11):
-  media: vsp1: drm: Fix minor grammar error
-  media: vsp1: Remove packed attributes from aligned structures
-  media: vsp1: Rename dl_child to dl_next
-  media: vsp1: Remove unused display list structure field
-  media: vsp1: Clean up DLM objects on error
-  media: vsp1: Provide VSP1 feature helper macro
-  media: vsp1: Use header display lists for all WPF outputs linked to the DU
-  media: vsp1: Add support for extended display list headers
-  media: vsp1: Provide support for extended command pools
-  media: vsp1: Support Interlaced display pipelines
-  drm: rcar-du: Support interlaced video output through vsp1
-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c  |   1 +-
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c   |   3 +-
- drivers/media/platform/vsp1/vsp1.h      |   3 +-
- drivers/media/platform/vsp1/vsp1_dl.c   | 406 +++++++++++++++++++------
- drivers/media/platform/vsp1/vsp1_dl.h   |  32 +-
- drivers/media/platform/vsp1/vsp1_drm.c  |  13 +-
- drivers/media/platform/vsp1/vsp1_drv.c  |  23 +-
- drivers/media/platform/vsp1/vsp1_regs.h |   6 +-
- drivers/media/platform/vsp1/vsp1_rpf.c  |  72 +++-
- drivers/media/platform/vsp1/vsp1_rwpf.h |   1 +-
- drivers/media/platform/vsp1/vsp1_wpf.c  |   6 +-
- include/media/vsp1.h                    |   1 +-
- 12 files changed, 455 insertions(+), 112 deletions(-)
-
-base-commit: 397eb3811ec096d0ceefa1dbea2d0ae68feb0587
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 866019bbf513..702757012dc7 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -89,64 +89,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 	return 0;
+ }
+ 
+-static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-					     struct v4l2_pix_format_mplane __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+-					     struct v4l2_pix_format_mplane __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+-{
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+-{
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+ struct v4l2_format32 {
+ 	__u32	type;	/* enum v4l2_buf_type */
+ 	union {
+@@ -184,20 +126,23 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	switch (kp->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
++		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
++				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+-						  &up->fmt.pix_mp);
++		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
++				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+-		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
++		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
++				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+-		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
++		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
++				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
+ 	default:
+ 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 		       kp->type);
+@@ -225,20 +170,23 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 	switch (kp->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
++		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
++				    sizeof(kp->fmt.pix)) ?  -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+-						  &up->fmt.pix_mp);
++		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
++				    sizeof(kp->fmt.pix_mp)) ?  -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+-		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
++		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
++				    sizeof(kp->fmt.vbi)) ?  -EFAULT : 0;
+ 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+ 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+-		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
++		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
++				    sizeof(kp->fmt.sliced)) ?  -EFAULT : 0;
+ 	default:
+ 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+ 		       kp->type);
 -- 
-git-series 0.9.1
+2.14.3
