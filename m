@@ -1,74 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39102 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751491AbeCWO3u (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:37921 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753287AbeC1Nul (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 10:29:50 -0400
-Date: Fri, 23 Mar 2018 16:29:48 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
+        Wed, 28 Mar 2018 09:50:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Andy Yeh <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
-        Alan Chiang <alanx.chiang@intel.com>,
-        "Lai, Jim" <jim.lai@intel.com>
-Subject: Re: [PATCH v9.1] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180323142948.texcmjflbgpk2ma7@valkosipuli.retiisi.org.uk>
-References: <1521218319-14972-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5Cbn1sqRWq6A6xYthkHtFjHaa64URDiKDMXOpDPr1r5EA@mail.gmail.com>
- <20180323135024.qxd633qccv5rtid3@paasikivi.fi.intel.com>
- <CAAFQd5ATcV-kWCw+QQfA986G-gwSw2FUZ93Ox_m=fkjixtyuQA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5ATcV-kWCw+QQfA986G-gwSw2FUZ93Ox_m=fkjixtyuQA@mail.gmail.com>
+        Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv9 PATCH 12/29] v4l2-ctrls: support g/s_ext_ctrls for requests
+Date: Wed, 28 Mar 2018 15:50:13 +0200
+Message-Id: <20180328135030.7116-13-hverkuil@xs4all.nl>
+In-Reply-To: <20180328135030.7116-1-hverkuil@xs4all.nl>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 23, 2018 at 11:08:11PM +0900, Tomasz Figa wrote:
-> On Fri, Mar 23, 2018 at 10:50 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > Hi Tomasz,
-> >
-> > On Fri, Mar 23, 2018 at 08:43:50PM +0900, Tomasz Figa wrote:
-> >> Hi Andy,
-> >>
-> >> Some issues found when reviewing cherry pick of this patch to Chrome
-> >> OS kernel. Please see inline.
-> >>
-> >> On Sat, Mar 17, 2018 at 1:38 AM, Andy Yeh <andy.yeh@intel.com> wrote:
-> >>
-> >> [snip]
-> >>
-> >> > +       case V4L2_CID_VBLANK:
-> >> > +               /*
-> >> > +                * Auto Frame Length Line Control is enabled by default.
-> >> > +                * Not need control Vblank Register.
-> >> > +                */
-> >>
-> >> What is the meaning of this control then? Should it be read-only?
-> >
-> > The read-only flag is for the uAPI; the control framework still passes
-> > through changes to the control value done using kAPI to the driver.
-> 
-> The read-only flag is not even set in current code.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ah, you're right, it's just hblank... but if the driver doesn't support
-setting this control, then it should most likely be read-only. It would
-seem like that the driver just updates the control to convey the value to
-the user.
+The v4l2_g/s_ext_ctrls functions now support control handlers that
+represent requests.
 
-> 
-> Also, I'm not sure about the control framework setting read-only
-> control. According to the code, it doesn't:
-> https://elixir.bootlin.com/linux/latest/source/drivers/media/v4l2-core/v4l2-ctrls.c#L2477
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 37 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-If you set the control using e.g. v4l2_ctrl_s_ctrl(), it should end up to
-the driver's s_ctrl callback.
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index fc13f328c6fc..80714c5bad8b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1647,6 +1647,13 @@ static int new_to_user(struct v4l2_ext_control *c,
+ 	return ptr_to_user(c, ctrl, ctrl->p_new);
+ }
+ 
++/* Helper function: copy the request value back to the caller */
++static int req_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl_ref *ref)
++{
++	return ptr_to_user(c, ref->ctrl, ref->p_req);
++}
++
+ /* Helper function: copy the initial control value back to the caller */
+ static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
+ {
+@@ -1766,6 +1773,14 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ 	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
+ }
+ 
++/* Copy the new value to the request value */
++static void new_to_req(struct v4l2_ctrl_ref *ref)
++{
++	if (!ref)
++		return;
++	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
++}
++
+ /* Return non-zero if one or more of the controls in the cluster has a new
+    value that differs from the current value. */
+ static int cluster_changed(struct v4l2_ctrl *master)
+@@ -3002,7 +3017,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 				    struct v4l2_ctrl *ctrl);
+ 		struct v4l2_ctrl *master;
+ 
+-		ctrl_to_user = def_value ? def_to_user : cur_to_user;
++		ctrl_to_user = def_value ? def_to_user :
++			       (hdl->req_obj.req ? NULL : cur_to_user);
+ 
+ 		if (helpers[i].mref == NULL)
+ 			continue;
+@@ -3028,8 +3044,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 			u32 idx = i;
+ 
+ 			do {
+-				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ref->ctrl);
++				if (ctrl_to_user)
++					ret = ctrl_to_user(cs->controls + idx,
++						helpers[idx].ref->ctrl);
++				else
++					ret = req_to_user(cs->controls + idx,
++						helpers[idx].ref);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3302,7 +3322,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		} while (!ret && idx);
+ 
+ 		if (!ret)
+-			ret = try_or_set_cluster(fh, master, set, 0);
++			ret = try_or_set_cluster(fh, master,
++						 !hdl->req_obj.req && set, 0);
++		if (!ret && hdl->req_obj.req && set) {
++			for (j = 0; j < master->ncontrols; j++) {
++				struct v4l2_ctrl_ref *ref =
++					find_ref(hdl, master->cluster[j]->id);
++
++				new_to_req(ref);
++			}
++		}
+ 
+ 		/* Copy the new values back to userspace. */
+ 		if (!ret) {
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.16.1
