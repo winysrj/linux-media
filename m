@@ -1,134 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0042.outbound.protection.outlook.com ([104.47.32.42]:27456
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752701AbeCTKyd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Mar 2018 06:54:33 -0400
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-To: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Cc: "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>
-References: <20180316132049.1748-1-christian.koenig@amd.com>
- <20180316132049.1748-2-christian.koenig@amd.com>
- <152120831102.25315.4326885184264378830@mail.alporthouse.com>
- <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
- <152147480241.18954.4556582215766884582@mail.alporthouse.com>
- <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
- <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
-Date: Tue, 20 Mar 2018 11:54:18 +0100
+Received: from mga18.intel.com ([134.134.136.126]:52157 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751976AbeC1UQP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 16:16:15 -0400
+Date: Wed, 28 Mar 2018 23:16:08 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Daniel Mentz <danielmentz@google.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        stable@vger.kernel.org
+Subject: Re: [PATCH] media: v4l2-compat-ioctl32: don't oops on overlay
+Message-ID: <20180328201607.kianc5nssi4sxxt4@kekkonen.localdomain>
+References: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.03.2018 um 08:44 schrieb Daniel Vetter:
-> On Mon, Mar 19, 2018 at 5:23 PM, Christian König
-> <ckoenig.leichtzumerken@gmail.com> wrote:
->> Am 19.03.2018 um 16:53 schrieb Chris Wilson:
->>> Quoting Christian König (2018-03-16 14:22:32)
->>> [snip, probably lost too must context]
->>>> This allows for full grown pipelining, e.g. the exporter can say I need
->>>> to move the buffer for some operation. Then let the move operation wait
->>>> for all existing fences in the reservation object and install the fence
->>>> of the move operation as exclusive fence.
->>> Ok, the situation I have in mind is the non-pipelined case: revoking
->>> dma-buf for mmu_invalidate_range or shrink_slab. I would need a
->>> completion event that can be waited on the cpu for all the invalidate
->>> callbacks. (Essentially an atomic_t counter plus struct completion; a
->>> lighter version of dma_fence, I wonder where I've seen that before ;)
->>
->> Actually that is harmless.
->>
->> When you need to unmap a DMA-buf because of mmu_invalidate_range or
->> shrink_slab you need to wait for it's reservation object anyway.
-> reservation_object only prevents adding new fences, you still have to
-> wait for all the current ones to signal. Also, we have dma-access
-> without fences in i915. "I hold the reservation_object" does not imply
-> you can just go and nuke the backing storage.
+Hi Mauro,
 
-I was not talking about taking the lock, but rather using 
-reservation_object_wait_timeout_rcu().
+On Wed, Mar 28, 2018 at 02:59:22PM -0300, Mauro Carvalho Chehab wrote:
+> At put_v4l2_window32(), it tries to access kp->clips. However,
+> kp points to an userspace pointer. So, it should be obtained
+> via get_user(), otherwise it can OOPS:
+> 
+>  vivid-000: ==================  END STATUS  ==================
+>  BUG: unable to handle kernel paging request at 00000000fffb18e0
+>  IP: [<ffffffffc05468d9>] __put_v4l2_format32+0x169/0x220 [videodev]
+>  PGD 3f5776067 PUD 3f576f067 PMD 3f5769067 PTE 800000042548f067
+>  Oops: 0001 [#1] SMP
+>  Modules linked in: vivid videobuf2_vmalloc videobuf2_memops v4l2_dv_timings videobuf2_core v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill binfmt_misc snd_hda_codec_hdmi i915 snd_hda_intel snd_hda_controller snd_hda_codec intel_rapl x86_pkg_temp_thermal snd_hwdep intel_powerclamp snd_pcm coretemp snd_seq_midi kvm_intel kvm snd_seq_midi_event snd_rawmidi i2c_algo_bit drm_kms_helper snd_seq drm crct10dif_pclmul e1000e snd_seq_device crc32_pclmul snd_timer ghash_clmulni_intel snd mei_me mei ptp pps_core soundcore lpc_ich video crc32c_intel [last unloaded: media]
+>  CPU: 2 PID: 28332 Comm: v4l2-compliance Not tainted 3.18.102+ #107
+>  Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+>  task: ffff8804293f8000 ti: ffff8803f5640000 task.ti: ffff8803f5640000
+>  RIP: 0010:[<ffffffffc05468d9>]  [<ffffffffc05468d9>] __put_v4l2_format32+0x169/0x220 [videodev]
+>  RSP: 0018:ffff8803f5643e28  EFLAGS: 00010246
+>  RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00000000fffb1ab4
+>  RDX: 00000000fffb1a68 RSI: 00000000fffb18d8 RDI: 00000000fffb1aa8
+>  RBP: ffff8803f5643e48 R08: 0000000000000001 R09: ffff8803f54b0378
+>  R10: 0000000000000000 R11: 0000000000000168 R12: 00000000fffb18c0
+>  R13: 00000000fffb1a94 R14: 00000000fffb18c8 R15: 0000000000000000
+>  FS:  0000000000000000(0000) GS:ffff880456d00000(0063) knlGS:00000000f7100980
+>  CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+>  CR2: 00000000fffb18e0 CR3: 00000003f552b000 CR4: 00000000003407e0
+>  Stack:
+>   00000000fffb1a94 00000000c0cc5640 0000000000000056 ffff8804274f3600
+>   ffff8803f5643ed0 ffffffffc0547e16 0000000000000003 ffff8803f5643eb0
+>   ffffffff81301460 ffff88009db44b01 ffff880441942520 ffff8800c0d05640
+>  Call Trace:
+>   [<ffffffffc0547e16>] v4l2_compat_ioctl32+0x12d6/0x1b1d [videodev]
+>   [<ffffffff81301460>] ? file_has_perm+0x70/0xc0
+>   [<ffffffff81252a2c>] compat_SyS_ioctl+0xec/0x1200
+>   [<ffffffff8173241a>] sysenter_dispatch+0x7/0x21
+>  Code: 00 00 48 8b 80 48 c0 ff ff 48 83 e8 38 49 39 c6 0f 87 2b ff ff ff 49 8d 45 1c e8 a3 ce e3 c0 85 c0 0f 85 1a ff ff ff 41 8d 40 ff <4d> 8b 64 24 20 41 89 d5 48 8d 44 40 03 4d 8d 34 c4 eb 15 0f 1f
+>  RIP  [<ffffffffc05468d9>] __put_v4l2_format32+0x169/0x220 [videodev]
+>  RSP <ffff8803f5643e28>
+>  CR2: 00000000fffb18e0
+> 
+> Tested with vivid driver on Kernel v3.18.102.
+> 
+> Same bug happens upstream too:
+> 
+>  BUG: KASAN: user-memory-access in __put_v4l2_format32+0x98/0x4d0 [videodev]
+>  Read of size 8 at addr 00000000ffe48400 by task v4l2-compliance/8713
+> 
+>  CPU: 0 PID: 8713 Comm: v4l2-compliance Not tainted 4.16.0-rc4+ #108
+>  Hardware name:  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+>  Call Trace:
+>   dump_stack+0x5c/0x7c
+>   kasan_report+0x164/0x380
+>   ? __put_v4l2_format32+0x98/0x4d0 [videodev]
+>   __put_v4l2_format32+0x98/0x4d0 [videodev]
+>   v4l2_compat_ioctl32+0x1aec/0x27a0 [videodev]
+>   ? __fsnotify_inode_delete+0x20/0x20
+>   ? __put_v4l2_format32+0x4d0/0x4d0 [videodev]
+>   compat_SyS_ioctl+0x646/0x14d0
+>   ? do_ioctl+0x30/0x30
+>   do_fast_syscall_32+0x191/0x3f4
+>   entry_SYSENTER_compat+0x6b/0x7a
+>  ==================================================================
+>  Disabling lock debugging due to kernel taint
+>  BUG: unable to handle kernel paging request at 00000000ffe48400
+>  IP: __put_v4l2_format32+0x98/0x4d0 [videodev]
+>  PGD 3a22fb067 P4D 3a22fb067 PUD 39b6f0067 PMD 39b6f1067 PTE 80000003256af067
+>  Oops: 0001 [#1] SMP KASAN
+>  Modules linked in: vivid videobuf2_vmalloc videobuf2_dma_contig videobuf2_memops v4l2_tpg v4l2_dv_timings videobuf2_v4l2 videobuf2_common v4l2_common videodev xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack libcrc32c tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc snd_hda_codec_hdmi intel_rapl x86_pkg_temp_thermal intel_powerclamp i915 coretemp snd_hda_intel snd_hda_codec kvm_intel snd_hwdep snd_hda_core kvm snd_pcm irqbypass crct10dif_pclmul crc32_pclmul snd_seq_midi ghash_clmulni_intel snd_seq_midi_event i2c_algo_bit intel_cstate snd_rawmidi intel_uncore snd_seq drm_kms_helper e1000e snd_seq_device snd_timer intel_rapl_perf
+>   drm ptp snd mei_me mei lpc_ich pps_core soundcore video crc32c_intel
+>  CPU: 0 PID: 8713 Comm: v4l2-compliance Tainted: G    B            4.16.0-rc4+ #108
+>  Hardware name:  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+>  RIP: 0010:__put_v4l2_format32+0x98/0x4d0 [videodev]
+>  RSP: 0018:ffff8803b9be7d30 EFLAGS: 00010282
+>  RAX: 0000000000000000 RBX: ffff8803ac983e80 RCX: ffffffff8cd929f2
+>  RDX: 1ffffffff1d0a149 RSI: 0000000000000297 RDI: 0000000000000297
+>  RBP: 00000000ffe485c0 R08: fffffbfff1cf5123 R09: ffffffff8e7a8948
+>  R10: 0000000000000001 R11: fffffbfff1cf5122 R12: 00000000ffe483e0
+>  R13: 00000000ffe485c4 R14: ffff8803ac985918 R15: 00000000ffe483e8
+>  FS:  0000000000000000(0000) GS:ffff880407400000(0063) knlGS:00000000f7a46980
+>  CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+>  CR2: 00000000ffe48400 CR3: 00000003a83f2003 CR4: 00000000003606f0
+>  Call Trace:
+>   v4l2_compat_ioctl32+0x1aec/0x27a0 [videodev]
+>   ? __fsnotify_inode_delete+0x20/0x20
+>   ? __put_v4l2_format32+0x4d0/0x4d0 [videodev]
+>   compat_SyS_ioctl+0x646/0x14d0
+>   ? do_ioctl+0x30/0x30
+>   do_fast_syscall_32+0x191/0x3f4
+>   entry_SYSENTER_compat+0x6b/0x7a
+>  Code: 4c 89 f7 4d 8d 7c 24 08 e8 e6 a4 69 cb 48 8b 83 98 1a 00 00 48 83 e8 10 49 39 c7 0f 87 9d 01 00 00 49 8d 7c 24 20 e8 c8 a4 69 cb <4d> 8b 74 24 20 4c 89 ef 4c 89 fe ba 10 00 00 00 e8 23 d9 08 cc
+>  RIP: __put_v4l2_format32+0x98/0x4d0 [videodev] RSP: ffff8803b9be7d30
+>  CR2: 00000000ffe48400
+> 
+> cc: stable@vger.kernel.org
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 5198c9eeb348..4312935f1dfc 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -101,7 +101,7 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
+>  static int put_v4l2_window32(struct v4l2_window __user *kp,
+>  			     struct v4l2_window32 __user *up)
+>  {
+> -	struct v4l2_clip __user *kclips = kp->clips;
+> +	struct v4l2_clip __user *kclips;
+>  	struct v4l2_clip32 __user *uclips;
+>  	compat_caddr_t p;
+>  	u32 clipcount;
+> @@ -116,6 +116,8 @@ static int put_v4l2_window32(struct v4l2_window __user *kp,
+>  	if (!clipcount)
+>  		return 0;
+>  
+> +	if (get_user(kclips, &kp->clips))
+> +		return -EFAULT;
+>  	if (get_user(p, &up->clips))
+>  		return -EFAULT;
+>  	uclips = compat_ptr(p);
 
-To be more precise you actually can't take the reservation object lock 
-in an mmu_invalidate_range callback and you can only trylock it in a 
-shrink_slab callback.
+Good find. I checked for similar problems elsewhere in the file but could
+not find any.
 
->> This needs to be done to make sure that the backing memory is now idle, it
->> doesn't matter if the jobs where submitted by DMA-buf importers or your own
->> driver.
->>
->> The sg tables pointing to the now released memory might live a bit longer,
->> but that is unproblematic and actually intended.
-> I think that's very problematic. One reason for an IOMMU is that you
-> have device access isolation, and a broken device can't access memory
-> it shouldn't be able to access. From that security-in-depth point of
-> view it's not cool that there's some sg tables hanging around still
-> that a broken GPU could use. And let's not pretend hw is perfect,
-> especially GPUs :-)
+Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I completely agree on that, but there is unfortunately no other way.
-
-See you simply can't take a reservation object lock in an mmu or slab 
-callback, you can only trylock them.
-
-For example it would require changing all allocations done while holding 
-any reservation lock to GFP_NOIO.
-
->> When we would try to destroy the sg tables in an mmu_invalidate_range or
->> shrink_slab callback we would run into a lockdep horror.
-> So I'm no expert on this, but I think this is exactly what we're doing
-> in i915. Kinda no other way to actually free the memory without
-> throwing all the nice isolation aspects of an IOMMU into the wind. Can
-> you please paste the lockdeps you've seen with amdgpu when trying to
-> do that?
-
-Taking a quick look at i915 I can definitely say that this is actually 
-quite buggy what you guys do here.
-
-For coherent usage you need to install some lock to prevent concurrent 
-get_user_pages(), command submission and 
-invalidate_range_start/invalidate_range_end from the MMU notifier.
-
-Otherwise you can't guarantee that you are actually accessing the right 
-page in the case of a fork() or mprotect().
-
-Felix and I hammered for quite some time on amdgpu until all of this was 
-handled correctly, see drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c.
-
-I can try to gather the lockdep splat from my mail history, but it 
-essentially took us multiple years to get rid of all of them.
-
-Regards,
-Christian.
-
-> -Daniel
->
->> Regards,
->> Christian.
->>
->>> Even so, it basically means passing a fence object down to the async
->>> callbacks for them to signal when they are complete. Just to handle the
->>> non-pipelined version. :|
->>> -Chris
->>> _______________________________________________
->>> dri-devel mailing list
->>> dri-devel@lists.freedesktop.org
->>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->>
->> _______________________________________________
->> Linaro-mm-sig mailing list
->> Linaro-mm-sig@lists.linaro.org
->> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
->
->
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
