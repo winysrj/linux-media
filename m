@@ -1,66 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:15506 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750902AbeCNCtf (ORCPT
+Received: from mx4-1.i-mecca.net ([65.39.179.63]:36580 "EHLO
+        mail17.adrlist.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751840AbeC1Ibn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 22:49:35 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 0/2] rcar-vin: always run in continues mode
-Date: Wed, 14 Mar 2018 03:49:08 +0100
-Message-Id: <20180314024910.16676-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+        Wed, 28 Mar 2018 04:31:43 -0400
+To: linux-media@vger.kernel.org
+From: Thomas Stein <info@mail17.adrlist.net>
+Subject: FW: Neue Kunden
+Date: Wed, 28 Mar 2018 04:31:43 -0400
+Message-ID: <20180328_083143_083557.info@mail17.adrlist.net>
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Sehr geehrte Damen und Herren, 
 
-This series reworks the R-Car VIN driver to only run using its continues
-capture mode. This improves performance a lot when userspace struggles
-to keep up and queue buffers as fast as the VIN driver consumes them.
-The solution to always be able to run in continues is to introduce a
-scratch buffer inside the VIN driver which it can pad the hardware
-capture buffer ring with if it have no buffer from userspace. Using this
-scratch buffer allows the driver to not need to stop capturing when it
-run out of buffers and then restart it once it have more buffers.
+nach unserem Besuch Ihrer Homepage möchten wir Ihnen ein Angebot von Produkten vorstellen, das Ihnen ermöglichen wird, den Verkauf Ihrer Produkte sowie Dienstleistungen deutlich zu erhöhen.
 
-Patch 1/2 adds the allocation of the scratch buffer. And patch 2/2 drops 
-the single capture mode in favor of always running in continues capture 
-mode and the scratch buffer.
+Ich biete Ihnen den ganz neuen Adressenkatalog der Österreicher Unternehmen an, in dem sich direkte Kontaktdaten der Firmeninhaber und Manager befinden.
 
-The series is based on top of the latest media-tree master branch and
-can be fetched from.
+Die Datenbanken der Firmen sind in für Sie interessante und relevante Zielgruppen untergliedert.
 
-git://git.ragnatech.se/linux v4l2/next/vin/mode-v2
+Die Firmenangaben beinhalten:
+Name der Firma, Ansprechpartner, E-mail Adresse, Tel. + Fax-Nr., PLZ, Ort, Straße etc.
 
-It is tested on R-Car Koelsch Gen2 board using the onboard HDMI and CVBS
-inputs. The test application v4l2-compliance pass for both inputs
-without issues or warnings. A slight adaption of these patches to the
-pending VIN Gen3 patches have been tested with great improvement in
-capture speed for buffer strained situations and no regressions in the
-vin-tests suite.
+*** 
+1. Österreich 2018 ( 104 000 ) - 149 EUR ( bis zum 28.03.2018 )
+***
 
-* Changes since v1
-- Dropped first patch in series as it removed a correct check due to my 
-  poor reading skills.
-- Corrected spelling in commit messages and comments.
-- Added review tags from Jacopo and Kieran, thanks!
+Die Verwendungsmöglichkeiten der Datenbanken sind praktisch unbegrenzt und Sie können durch Verwendung 
+der von uns entwickelten Programme des personalisierten Versendens von Angeboten u.ä. mittels
+E-mailing bzw. Fax effektive und sichere Werbekampagnen damit durchführen.
+Bitte informieren Sie sich über die weiteren Details einmal unverbindlich auf unseren Webseite:
+
+http://www.adr-list.net/?page=catalog
 
 
-Niklas Söderlund (2):
-  rcar-vin: allocate a scratch buffer at stream start
-  rcar-vin: use scratch buffer and always run in continuous mode
-
- drivers/media/platform/rcar-vin/rcar-dma.c | 206 ++++++++++-------------------
- drivers/media/platform/rcar-vin/rcar-vin.h |  10 +-
- 2 files changed, 75 insertions(+), 141 deletions(-)
-
--- 
-2.16.2
+MfG
+Thomas Stein
+http://www.adr-list.net/?page=catalog 
