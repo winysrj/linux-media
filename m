@@ -1,68 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46225 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934626AbeCPQKl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Mar 2018 12:10:41 -0400
-Date: Fri, 16 Mar 2018 18:10:12 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Rui Miguel Silva <rui.silva@linaro.org>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        mchehab@kernel.org, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Subject: Re: [PATCH v3 2/2] media: ov2680: Add Omnivision OV2680 sensor driver
-Message-ID: <20180316161011.yelt3mqkqo7qnlnn@kekkonen.localdomain>
-References: <20180313113311.8617-3-rui.silva@linaro.org>
- <201803150338.2LzbxAYM%fengguang.wu@intel.com>
- <m3a7v98z5u.fsf@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <m3a7v98z5u.fsf@linaro.org>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34964 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752876AbeC1OBp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 10:01:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 17/29] videodev2.h: Add request_fd field to v4l2_buffer
+Date: Wed, 28 Mar 2018 16:01:28 +0200
+Message-Id: <20180328140140.42096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 15, 2018 at 09:29:33AM +0000, Rui Miguel Silva wrote:
-> Hi,
-> On Wed 14 Mar 2018 at 19:39, kbuild test robot wrote:
-> > Hi Rui,
-> > 
-> > I love your patch! Yet something to improve:
-> > 
-> > [auto build test ERROR on v4.16-rc4]
-> > [cannot apply to next-20180314]
-> > [if your patch is applied to the wrong git tree, please drop us a note
-> > to help improve the system]
-> > 
-> > url: https://github.com/0day-ci/linux/commits/Rui-Miguel-Silva/media-Introduce-Omnivision-OV2680-driver/20180315-020617
-> > config: sh-allmodconfig (attached as .config)
-> > compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
-> > reproduce:
-> >         wget
-> > https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross
-> > -O ~/bin/make.cross
-> >         chmod +x ~/bin/make.cross
-> >         # save the attached .config to linux build tree
-> >         make.cross ARCH=sh
-> > 
-> > All errors (new ones prefixed by >>):
-> > 
-> >    drivers/media/i2c/ov2680.c: In function 'ov2680_set_fmt':
-> > > > drivers/media/i2c/ov2680.c:713:9: error: implicit declaration of
-> > > > function 'v4l2_find_nearest_size'; did you mean
-> > > > 'v4l2_find_nearest_format'?
-> > > > [-Werror=implicit-function-declaration]
-> >      mode = v4l2_find_nearest_size(ov2680_mode_data,
-> >             ^~~~~~~~~~~~~~~~~~~~~~
-> >             v4l2_find_nearest_format
-> 
-> As requested by maintainer this series depend on this patch [0], which
-> introduce this macro. I am not sure of the status of that patch though.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-No need to worry about that, the sensor driver will just be merged after
-the dependencies are in. Mauro said he'd handle the pull request early next
-week.
+When queuing buffers allow for passing the request that should
+be associated with this buffer.
 
+If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
+the file descriptor.
+
+If a buffer is stored in a request, but not yet queued to the
+driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+ drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
+ include/uapi/linux/videodev2.h                  | 10 +++++++++-
+ 5 files changed, 19 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 886a2d8d5c6c..4e9c77f21858 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -204,7 +204,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+ 	b->reserved2 = 0;
+-	b->reserved = 0;
++	b->request_fd = 0;
+ 
+ 	if (q->is_multiplanar) {
+ 		/*
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 99f106b13280..13aee9f67d05 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+ 	buf->reserved2 = 0;
+-	buf->reserved = 0;
++	buf->request_fd = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+ 	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 0782b3666deb..7e27d0feac94 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -387,7 +387,7 @@ struct v4l2_buffer32 {
+ 	} m;
+ 	__u32			length;
+ 	__u32			reserved2;
+-	__u32			reserved;
++	__s32			request_fd;
+ };
+ 
+ static int get_v4l2_plane32(struct v4l2_plane __user *up,
+@@ -486,6 +486,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ {
+ 	u32 type;
+ 	u32 length;
++	s32 request_fd;
+ 	enum v4l2_memory memory;
+ 	struct v4l2_plane32 __user *uplane32;
+ 	struct v4l2_plane __user *uplane;
+@@ -500,7 +501,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    get_user(memory, &up->memory) ||
+ 	    put_user(memory, &kp->memory) ||
+ 	    get_user(length, &up->length) ||
+-	    put_user(length, &kp->length))
++	    put_user(length, &kp->length) ||
++	    get_user(request_fd, &up->request_fd) ||
++	    put_user(request_fd, &kp->request_fd))
+ 		return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(type))
+@@ -605,7 +608,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+ 	    assign_in_user(&up->sequence, &kp->sequence) ||
+ 	    assign_in_user(&up->reserved2, &kp->reserved2) ||
+-	    assign_in_user(&up->reserved, &kp->reserved) ||
++	    assign_in_user(&up->request_fd, &kp->request_fd) ||
+ 	    get_user(length, &kp->length) ||
+ 	    put_user(length, &up->length))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index ceeb6df0ef19..fd31f18b0aef 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+ 	const struct v4l2_plane *plane;
+ 	int i;
+ 
+-	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+-			prt_names(p->type, v4l2_type_names),
++			prt_names(p->type, v4l2_type_names), p->request_fd,
+ 			p->flags, prt_names(p->field, v4l2_field_names),
+ 			p->sequence, prt_names(p->memory, v4l2_memory_names));
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 6f41baa53787..88e2264b68f8 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -910,6 +910,7 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
++ * @request_fd: fd of the request that this buffer should use
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -934,7 +935,10 @@ struct v4l2_buffer {
+ 	} m;
+ 	__u32			length;
+ 	__u32			reserved2;
+-	__u32			reserved;
++	union {
++		__s32		request_fd;
++		__u32		reserved;
++	};
+ };
+ 
+ /*  Flags for 'flags' field */
+@@ -952,6 +956,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_BFRAME			0x00000020
+ /* Buffer is ready, but the data contained within is corrupted. */
+ #define V4L2_BUF_FLAG_ERROR			0x00000040
++/* Buffer is added to an unqueued request */
++#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+ /* timecode field is valid */
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+ /* Buffer is prepared for queuing */
+@@ -970,6 +976,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++/* request_fd is valid */
++#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.15.1
