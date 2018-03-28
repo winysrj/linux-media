@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61745 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:61617 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754065AbeCWL5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:36 -0400
+        id S1753130AbeC1SNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 14:13:12 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+Cc: Ricardo Ribalda <ricardo.ribalda@gmail.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Antoine Jacquet <royale@zerezo.com>, linux-usb@vger.kernel.org
-Subject: [PATCH 26/30] media: zr364xx: avoid casting just to print pointer address
-Date: Fri, 23 Mar 2018 07:57:12 -0400
-Message-Id: <2be09d8d8342f775a9a6a9da6b91dded0a879718.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH for v3.18 16/18] media: media/v4l2-ctrls: volatiles should not generate CH_VALUE
+Date: Wed, 28 Mar 2018 15:12:35 -0300
+Message-Id: <1663cf48e2eb96405c5d6d874020aa9925ee217f.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of casting, just use %p.
+From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
 
+Volatile controls should not generate CH_VALUE events.
+
+Set has_changed to false to prevent this happening.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/zr364xx/zr364xx.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-index 8b7c19943d46..b8886102c5ed 100644
---- a/drivers/media/usb/zr364xx/zr364xx.c
-+++ b/drivers/media/usb/zr364xx/zr364xx.c
-@@ -517,8 +517,7 @@ static void zr364xx_fillbuff(struct zr364xx_camera *cam,
- 		printk(KERN_ERR KBUILD_MODNAME ": =======no frame\n");
- 		return;
- 	}
--	DBG("%s: Buffer 0x%08lx size= %d\n", __func__,
--		(unsigned long)vbuf, pos);
-+	DBG("%s: Buffer %p size= %d\n", __func__, vbuf, pos);
- 	/* tell v4l buffer was filled */
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 3c4e22855652..2bdb2a3512a4 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1619,6 +1619,15 @@ static int cluster_changed(struct v4l2_ctrl *master)
  
- 	buf->vb.field_count = cam->frame_count * 2;
-@@ -1277,7 +1276,7 @@ static int zr364xx_mmap(struct file *file, struct vm_area_struct *vma)
- 		DBG("%s: cam == NULL\n", __func__);
- 		return -ENODEV;
- 	}
--	DBG("mmap called, vma=0x%08lx\n", (unsigned long)vma);
-+	DBG("mmap called, vma=%p\n", vma);
- 
- 	ret = videobuf_mmap_mapper(&cam->vb_vidq, vma);
- 
+ 		if (ctrl == NULL)
+ 			continue;
++		/*
++		 * Set has_changed to false to avoid generating
++		 * the event V4L2_EVENT_CTRL_CH_VALUE
++		 */
++		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
++			ctrl->has_changed = false;
++			continue;
++		}
++
+ 		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
+ 			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
+ 				ctrl->p_cur, ctrl->p_new);
 -- 
 2.14.3
