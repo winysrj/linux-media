@@ -1,123 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:55137 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423905AbeCBKzH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2018 05:55:07 -0500
-Message-ID: <1519988099.16239.5.camel@pengutronix.de>
-Subject: Re: [PATCH] staging/imx: Fix inconsistent IS_ERR and PTR_ERR
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Date: Fri, 02 Mar 2018 11:54:59 +0100
-In-Reply-To: <CAOMZO5C93iuJSPw48vare5qCHwZiDDOva6X0bZ=xVTr1XJRPbg@mail.gmail.com>
-References: <20180301040939.GA13274@embeddedgus>
-         <CAOMZO5B_UGZ3De1UjUXzU6-wGMgRrRJVWZ8z+a+HoCpwWkeBwg@mail.gmail.com>
-         <1519921628.3034.5.camel@pengutronix.de>
-         <CAOMZO5C93iuJSPw48vare5qCHwZiDDOva6X0bZ=xVTr1XJRPbg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43877 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753100AbeC1OBq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Mar 2018 10:01:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 22/29] videobuf2-core: add vb2_core_request_has_buffers
+Date: Wed, 28 Mar 2018 16:01:33 +0200
+Message-Id: <20180328140140.42096-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180328140140.42096-1-hverkuil@xs4all.nl>
+References: <20180328140140.42096-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thu, 2018-03-01 at 13:43 -0300, Fabio Estevam wrote:
-> On Thu, Mar 1, 2018 at 1:27 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> 
-> > Oh, this only works for csi ports that have pinctrl in their csi port
-> > node, like:
-> > 
-> > &ipu1_csi0 {
-> >         pinctrl-names = "default";
-> >         pinctrl-0 = <&pinctrl_ipu1_csi0>;
-> > };
-> 
-> This is the case for imx6qdl-sabresd.dtsi and even in this case
-> devm_pinctrl_get_select_default() fails
-> 
-> > pinctrl would have to be moved out of the csi port nodes, for example
-> > into their parent ipu nodes, or maybe more correctly, into the video mux
-> > nodes in each device tree.
-> 
-> Tried it like this:
-> 
-> --- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-> +++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-> @@ -154,12 +154,9 @@
->  };
-> 
->  &ipu1_csi0_mux_from_parallel_sensor {
-> -       remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
-> -};
-> -
-> -&ipu1_csi0 {
->         pinctrl-names = "default";
->         pinctrl-0 = <&pinctrl_ipu1_csi0>;
-> +       remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
->  };
-> 
->  &mipi_csi {
-> 
-> 
-> but still get the devm_pinctrl_get_select_default() failure.
+Add a new helper function that returns true if a media_request
+contains buffers.
 
-Yes, this would still require to ignore the pinctrl error in the CSI
-driver.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/common/videobuf2/videobuf2-core.c | 12 ++++++++++++
+ include/media/videobuf2-core.h                  |  2 ++
+ 2 files changed, 14 insertions(+)
 
-I just think that this is might be more correct, since the external pins
-are directly connected to the mux input port.
-
-> I was not able to change the dts so that
-> devm_pinctrl_get_select_default() succeeds.
-> 
-> If you agree I can send the following change:
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c
-> b/drivers/staging/media/imx/imx-media-csi.c
-> index 5a195f8..c40f786 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1797,11 +1797,8 @@ static int imx_csi_probe(struct platform_device *pdev)
->          */
->         priv->dev->of_node = pdata->of_node;
->         pinctrl = devm_pinctrl_get_select_default(priv->dev);
-> -       if (IS_ERR(pinctrl)) {
-> -               ret = PTR_ERR(priv->vdev);
-> -               goto free;
-> -       }
-> -
-> +       if (IS_ERR(pinctrl))
-> +               dev_dbg(priv->dev, "pintrl_get_select_default() failed\n");
-
-I would add the error code to the debug print.
-
->         ret = v4l2_async_register_subdev(&priv->sd);
->         if (ret)
->                 goto free;
-> 
-> So that the error is ignored and we still can change the pinctrl values via dts.
-> 
-> What do you think?
-
-Maybe we should still throw the error if it is anything other than
--ENODEV (which we expect in case there is no pinctrl property in the csi
-port node):
-
-	if (IS_ERR(pinctrl)) {
-		ret = PTR_ERR(pinctrl);
-		dev_dbg(priv->dev, "pinctrl_get_select_default() failed: %d\n",
-			ret);
-		if (ret != -ENODEV)
-			goto free;
-	}
-
-regards
-Philipp
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 7499221da1c5..b9d898b116c4 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -1333,6 +1333,18 @@ static const struct media_request_object_ops vb2_core_req_ops = {
+ 	.release = vb2_req_release,
+ };
+ 
++bool vb2_core_request_has_buffers(struct media_request *req)
++{
++	struct media_request_object *obj;
++
++	list_for_each_entry(obj, &req->objects, list) {
++		if (obj->ops == &vb2_core_req_ops)
++			return true;
++	}
++	return false;
++}
++EXPORT_SYMBOL_GPL(vb2_core_request_has_buffers);
++
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
+ 			 struct media_request *req)
+ {
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 72663c2a3ba3..e23dc028aee7 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -1158,4 +1158,6 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb);
+  */
+ int vb2_verify_memory_type(struct vb2_queue *q,
+ 		enum vb2_memory memory, unsigned int type);
++
++bool vb2_core_request_has_buffers(struct media_request *req);
+ #endif /* _MEDIA_VIDEOBUF2_CORE_H */
+-- 
+2.15.1
