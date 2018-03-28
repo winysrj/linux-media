@@ -1,72 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0b-00272701.pphosted.com ([208.86.201.61]:58586 "EHLO
-        mx0b-00272701.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750725AbeCLEEQ (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:45763 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752326AbeC1RB1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Mar 2018 00:04:16 -0400
-Date: Sun, 11 Mar 2018 23:04:02 -0500
-From: Nick French <naf@ou.edu>
-To: Ian Armstrong <mail01@iarmst.co.uk>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ivtv: use arch_phys_wc_add() and require PAT disabled
-Message-ID: <20180312040401.GA4814@tivo.lan>
-References: <20180301171936.GU14069@wotan.suse.de>
- <DM5PR03MB303587F12D7E56B951730A76D3D90@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180307190205.GA14069@wotan.suse.de>
- <DM5PR03MB30352350D588A81D2D02BE93D3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
- <20180308040601.GQ14069@wotan.suse.de>
- <20180308041411.GR14069@wotan.suse.de>
- <DM5PR03MB3035CCBF9718D7E42B35357FD3DF0@DM5PR03MB3035.namprd03.prod.outlook.com>
- <MWHPR03MB30402C0F8B8F457F5F760412D3DD0@MWHPR03MB3040.namprd03.prod.outlook.com>
- <CAB=NE6VvDNbe=XsfG0tYeFcxcXzsRkHnZxVHM79-V+1t6foU5g@mail.gmail.com>
- <20180311232438.2b204c51@spike.private.network>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180311232438.2b204c51@spike.private.network>
+        Wed, 28 Mar 2018 13:01:27 -0400
+Received: by mail-pg0-f67.google.com with SMTP id y63so1149436pgy.12
+        for <linux-media@vger.kernel.org>; Wed, 28 Mar 2018 10:01:27 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        crope@iki.fi
+Subject: [PATCH v4 1/5] dvb-frontends/dvb-pll: add i2c driver support
+Date: Thu, 29 Mar 2018 02:00:57 +0900
+Message-Id: <20180328170101.29385-2-tskd08@gmail.com>
+In-Reply-To: <20180328170101.29385-1-tskd08@gmail.com>
+References: <20180328170101.29385-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 11, 2018 at 11:24:38PM +0000, Ian Armstrong wrote:
-> On Sat, 10 Mar 2018 16:57:41 +0000
-> "French, Nicholas A." <naf@ou.edu> wrote:
-> 
-> > > > No what if the framebuffer driver is just requested as a
-> > > > secondary step after firmware loading?  
-> > >
-> > > Its a possibility. The decoder firmware gets loaded at the
-> > > beginning of the decoder memory range and we know its length, so
-> > > its possible to ioremap_nocache enough room for the firmware only
-> > > on init and then ioremap the remaining non-firmware decoder memory
-> > > areas appropriately after the firmware load succeeds...  
-> > 
-> > I looked in more detail, and this would be "hard" due to the way the
-> > rest of the decoder offsets are determined by either making firmware
-> > calls or scanning the decoder memory range for magic bytes and other
-> > mess.
-> 
-> The buffers used for yuv output are fixed. They are located both before
-> and after the framebuffer. Their offset is fixed at 'base_addr +
-> IVTV_DECODER_OFFSET + yuv_offset[]'. The yuv offsets can be found in
-> 'ivtv-yuv.c'. The buffers are 622080 bytes in length.
-> 
-> The range would be from 'base_addr + 0x01000000 + 0x00029000' to
-> 'base_addr + 0x01000000 + 0x00748200 + 0x97dff'. This is larger than
-> required, but will catch the framebuffer and should not cause any
-> problems. If you wanted to render direct to the yuv buffers, you would
-> probably want this region included anyway (not that the current driver
-> supports that).
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Am I correct that you are talking about the possibility of re-ioremap()-ing
-the 'yuv-fb-yuv' area *after* loading the firmware, not of mapping ranges
-correctly on the first go-around?
+registers the module as an i2c driver,
+but keeps dvb_pll_attach() untouched for compatibility.
 
-Because unless my math is letting me down, the decoder firmware is already
-loaded from 'base_addr + 0x01000000 + 0x0' to 'base_addr + 0x01000000 + 0x3ffff'
-which overlaps the beginning of the yuv range.
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+Changes since v3:
+- use standard i2c_device_id instead of dvb_pll_config
 
-- Nick
+ drivers/media/dvb-frontends/dvb-pll.c | 67 +++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/dvb-pll.h | 24 +++++++++++++
+ 2 files changed, 91 insertions(+)
+
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index 5553b89b804..e2a93aae04f 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -827,6 +827,73 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ }
+ EXPORT_SYMBOL(dvb_pll_attach);
+ 
++
++static int
++dvb_pll_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct dvb_pll_config *cfg;
++	struct dvb_frontend *fe;
++	unsigned int desc_id;
++
++	cfg = client->dev.platform_data;
++	fe = cfg->fe;
++	i2c_set_clientdata(client, fe);
++	desc_id = (unsigned int) id->driver_data;
++
++	if (!dvb_pll_attach(fe, client->addr, client->adapter, desc_id))
++		return -ENOMEM;
++
++	dev_info(&client->dev, "DVB Simple Tuner attached.\n");
++	return 0;
++}
++
++static int dvb_pll_remove(struct i2c_client *client)
++{
++	struct dvb_frontend *fe;
++
++	fe = i2c_get_clientdata(client);
++	dvb_pll_release(fe);
++	return 0;
++}
++
++
++static const struct i2c_device_id dvb_pll_id[] = {
++	{DVB_PLL_THOMSON_DTT7579_NAME,        DVB_PLL_THOMSON_DTT7579},
++	{DVB_PLL_THOMSON_DTT759X_NAME,        DVB_PLL_THOMSON_DTT759X},
++	{DVB_PLL_LG_Z201_NAME,                DVB_PLL_LG_Z201},
++	{DVB_PLL_UNKNOWN_1_NAME,              DVB_PLL_UNKNOWN_1},
++	{DVB_PLL_TUA6010XS_NAME,              DVB_PLL_TUA6010XS},
++	{DVB_PLL_ENV57H1XD5_NAME,             DVB_PLL_ENV57H1XD5},
++	{DVB_PLL_TUA6034_NAME,                DVB_PLL_TUA6034},
++	{DVB_PLL_TDA665X_NAME,                DVB_PLL_TDA665X},
++	{DVB_PLL_TDED4_NAME,                  DVB_PLL_TDED4},
++	{DVB_PLL_TDHU2_NAME,                  DVB_PLL_TDHU2},
++	{DVB_PLL_SAMSUNG_TBMV_NAME,           DVB_PLL_SAMSUNG_TBMV},
++	{DVB_PLL_PHILIPS_SD1878_TDA8261_NAME, DVB_PLL_PHILIPS_SD1878_TDA8261},
++	{DVB_PLL_OPERA1_NAME,                 DVB_PLL_OPERA1},
++	{DVB_PLL_SAMSUNG_DTOS403IH102A_NAME,  DVB_PLL_SAMSUNG_DTOS403IH102A},
++	{DVB_PLL_SAMSUNG_TDTC9251DH0_NAME,    DVB_PLL_SAMSUNG_TDTC9251DH0},
++	{DVB_PLL_SAMSUNG_TBDU18132_NAME,      DVB_PLL_SAMSUNG_TBDU18132},
++	{DVB_PLL_SAMSUNG_TBMU24112_NAME,      DVB_PLL_SAMSUNG_TBMU24112},
++	{DVB_PLL_TDEE4_NAME,                  DVB_PLL_TDEE4},
++	{DVB_PLL_THOMSON_DTT7520X_NAME,       DVB_PLL_THOMSON_DTT7520X},
++	{}
++};
++
++
++MODULE_DEVICE_TABLE(i2c, dvb_pll_id);
++
++static struct i2c_driver dvb_pll_driver = {
++	.driver = {
++		.name = "dvb_pll",
++	},
++	.probe    = dvb_pll_probe,
++	.remove   = dvb_pll_remove,
++	.id_table = dvb_pll_id,
++};
++
++module_i2c_driver(dvb_pll_driver);
++
+ MODULE_DESCRIPTION("dvb pll library");
+ MODULE_AUTHOR("Gerd Knorr");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/dvb-pll.h b/drivers/media/dvb-frontends/dvb-pll.h
+index ca885e71d2f..e96994bf668 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.h
++++ b/drivers/media/dvb-frontends/dvb-pll.h
+@@ -30,6 +30,30 @@
+ #define DVB_PLL_TDEE4		       18
+ #define DVB_PLL_THOMSON_DTT7520X       19
+ 
++#define DVB_PLL_THOMSON_DTT7579_NAME	    "dtt7579"
++#define DVB_PLL_THOMSON_DTT759X_NAME        "dtt759x"
++#define DVB_PLL_LG_Z201_NAME                "z201"
++#define DVB_PLL_UNKNOWN_1_NAME              "unknown_1"
++#define DVB_PLL_TUA6010XS_NAME              "tua6010xs"
++#define DVB_PLL_ENV57H1XD5_NAME             "env57h1xd5"
++#define DVB_PLL_TUA6034_NAME                "tua6034"
++#define DVB_PLL_TDA665X_NAME                "tda665x"
++#define DVB_PLL_TDED4_NAME                  "tded4"
++#define DVB_PLL_TDHU2_NAME                  "tdhu2"
++#define DVB_PLL_SAMSUNG_TBMV_NAME           "tbmv"
++#define DVB_PLL_PHILIPS_SD1878_TDA8261_NAME "sd1878_tda8261"
++#define DVB_PLL_OPERA1_NAME                 "opera1"
++#define DVB_PLL_SAMSUNG_DTOS403IH102A_NAME  "dtos403ih102a"
++#define DVB_PLL_SAMSUNG_TDTC9251DH0_NAME    "tdtc9251dh0"
++#define DVB_PLL_SAMSUNG_TBDU18132_NAME      "tbdu18132"
++#define DVB_PLL_SAMSUNG_TBMU24112_NAME      "tbmu24112"
++#define DVB_PLL_TDEE4_NAME                  "tdee4"
++#define DVB_PLL_THOMSON_DTT7520X_NAME       "dtt7520x"
++
++struct dvb_pll_config {
++	struct dvb_frontend *fe;
++};
++
+ #if IS_REACHABLE(CONFIG_DVB_PLL)
+ /**
+  * Attach a dvb-pll to the supplied frontend structure.
+-- 
+2.16.3
