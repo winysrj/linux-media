@@ -1,55 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55951 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751241AbeCGS1z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 13:27:55 -0500
-Date: Wed, 7 Mar 2018 20:27:50 +0200
-From: Baruch Siach <baruch@tkos.co.il>
-To: Bjorn Pagen <bjornpagen@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils fails to build against musl libc (with patch)
-Message-ID: <20180307182749.7xgbtummngj4mxhx@tarshish>
-References: <1520442688.19980.1.camel@gmail.com>
- <CAARz7_gSDbpeNfw+etEJCDXGG6iRU9TPXSm9E7VLMjCg9S4ZSQ@mail.gmail.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38307 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750946AbeC2Oen (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 10:34:43 -0400
+Date: Thu, 29 Mar 2018 19:04:35 +0430
+From: Nasser <afshin.nasser@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability on
+ some hardware
+Message-ID: <20180329143435.GA4392@smart-ThinkPad-T410>
+References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
+ <20180326064353.187f752c@vento.lan>
+ <20180326222921.GA5373@smart-ThinkPad-T410>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAARz7_gSDbpeNfw+etEJCDXGG6iRU9TPXSm9E7VLMjCg9S4ZSQ@mail.gmail.com>
+In-Reply-To: <20180326222921.GA5373@smart-ThinkPad-T410>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bjorn,
+On Tue, Mar 27, 2018 at 02:59:21AM +0430, Nasser wrote:
+Hi Mauro,
 
-On Wed, Mar 07, 2018 at 12:14:05PM -0500, Bjorn Pagen wrote:
-> Here's the link again and it's tinyurl, since the link seems to be
-> borked because of line wraparounds:
+Thank you for taking time to review my patch.
+
+May be I should rephrase the commit message to something like:
+	Use the default register values as suggested in TVP5150AM1 datasheet
+
+As this is not a hardware-dependent issue. Am I missing something?
+
+> On Mon, Mar 26, 2018 at 06:43:53AM -0300, Mauro Carvalho Chehab wrote:
+> > Hi Nasser,
+> > 
+> > Em Mon, 26 Mar 2018 03:26:33 +0430
+> > Nasser Afshin <afshin.nasser@gmail.com> escreveu:
+> > 
+> > > According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
+> > > resistor if it's been disabled. On hardware that does not have such
+> > > resistor, we should use the default output enable value.
+> > > This prevents the color burst lock instability problem.
+> >
 > 
-> https://git.alpinelinux.org/cgit/aports/tree/community/v4l-utils/0001-ir-ctl-fixes-for-musl-compile.patch
-> https://tinyurl.com/y7gr6eju
-
-Peter Seiderer posted a fix for that to the list a few days ago.
-
-  https://www.mail-archive.com/linux-media@vger.kernel.org/msg127134.html
-
-baruch
-
-> On Wed, Mar 7, 2018 at 12:11 PM,  <bjornpagen@gmail.com> wrote:
-> > Hey all,
+> Color burst lock instability is just a side effect of not using the
+> recommended value for this bit. If we use the recommended setting, we
+> will support more hardware while not breaking anything.
+> 
+> > If this is hardware-dependent, you should instead store it at
+> > OF (for SoC) or pass via platform_data (for PCI/USB devices).
 > >
-> > v4l-utils currently fails to build against musl libc, since musl, and
-> > POSIX, both do not define TEMP_FAILURE_RETRY() or strndupa().
-> >
-> > This can be fixed with a small patch from https://git.alpinelinux.org/c
-> > git/aports/tree/community/v4l-utils/0001-ir-ctl-fixes-for-musl-compile.
-> > patch.
-> >
-> > Please email me back with any questions or concerns about the patch or
-> > musl.
-> >
+> 
+> We have used the recommended value for this bit (as the datasheet
+> suggests) while we are in tvp5150_init_enable but in tvp5150_s_stream
+> we are using the wrong value.
+> 
+> Also we have this comment at line 319:
+>     /* Default values as sugested at TVP5150AM1 datasheet */
+> But as you see, TVP5150_MISC_CTL is not set to its suggested default
+> value.
+>  
+> > > 
+> > > Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+> > > ---
+> > >  drivers/media/i2c/tvp5150.c | 5 +++--
+> > >  1 file changed, 3 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> > > index 2476d812f669..0e9713814816 100644
+> > > --- a/drivers/media/i2c/tvp5150.c
+> > > +++ b/drivers/media/i2c/tvp5150.c
+> > > @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
+> > >  		TVP5150_OP_MODE_CTL,0x00
+> > >  	},
+> > >  	{ /* 0x03 */
+> > > -		TVP5150_MISC_CTL,0x01
+> > > +		TVP5150_MISC_CTL,0x21
+> > >  	},
+> > >  	{ /* 0x06 */
+> > >  		TVP5150_COLOR_KIL_THSH_CTL,0x10
+> > > @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+> > >  		 * Enable the YCbCr and clock outputs. In discrete sync mode
+> > >  		 * (non-BT.656) additionally enable the the sync outputs.
+> > >  		 */
+> > > -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
+> > > +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
+> > > +			TVP5150_MISC_CTL_INTREQ_OE;
+> > >  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+> > >  			val |= TVP5150_MISC_CTL_SYNC_OE;
+> > >  	}
+> > 
+> > 
+> > 
 > > Thanks,
-> > Bjorn Pagen
+> > Mauro
 
--- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+Thanks,
+Nasser
