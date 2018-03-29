@@ -1,182 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f46.google.com ([209.85.213.46]:37234 "EHLO
-        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751400AbeCWPXz (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41119 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751086AbeC2HpE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 11:23:55 -0400
-Received: by mail-vk0-f46.google.com with SMTP id u200so7507162vke.4
-        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2018 08:23:55 -0700 (PDT)
-Received: from mail-vk0-f50.google.com (mail-vk0-f50.google.com. [209.85.213.50])
-        by smtp.gmail.com with ESMTPSA id a9sm1742634vke.40.2018.03.23.08.23.53
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 23 Mar 2018 08:23:53 -0700 (PDT)
-Received: by mail-vk0-f50.google.com with SMTP id w82so7503809vkd.11
-        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2018 08:23:53 -0700 (PDT)
+        Thu, 29 Mar 2018 03:45:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Daniel Mentz <danielmentz@google.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        stable@vger.kernel.org
+Subject: Re: [PATCH] media: v4l2-compat-ioctl32: don't oops on overlay
+Date: Thu, 29 Mar 2018 10:45:03 +0300
+Message-ID: <5363920.Yy6MWHNhp9@avalon>
+In-Reply-To: <20180329073548.3d3o3ls2epdu2v5i@paasikivi.fi.intel.com>
+References: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com> <7891263.ZniaiyyRG6@avalon> <20180329073548.3d3o3ls2epdu2v5i@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <7fd4debd-5537-a261-06f0-c2ab1ca3b33d@xs4all.nl>
-References: <7fd4debd-5537-a261-06f0-c2ab1ca3b33d@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Sat, 24 Mar 2018 00:23:32 +0900
-Message-ID: <CAAFQd5CijUyMcuZ_TL84p-0=xBh=fQ6AH3czOg74Ceg3Dp8A2w@mail.gmail.com>
-Subject: Re: [RFCv2] Request API
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Pawel Osciak <pawel@osciak.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sakari,
 
-On Fri, Mar 23, 2018 at 5:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> RFC Request API, version 2
-> --------------------------
->
-> This document proposes the public API for handling requests.
->
-> There has been some confusion about how to do this, so this summarizes the
-> current approach based on conversations with the various stakeholders today
-> (Sakari, Alexandre Courbot, Thomasz Figa and myself).
->
-> 1) Additions to the media API
->
->    Allocate an empty request object:
->
->    #define MEDIA_IOC_REQUEST_ALLOC _IOW('|', 0x05, __s32 *)
->
->    This will return a file descriptor representing the request or an error
->    if it can't allocate the request.
->
->    If the pointer argument is NULL, then this will just return 0 (if this ioctl
->    is implemented) or -ENOTTY otherwise. This can be used to test whether this
->    ioctl is supported or not without actually having to allocate a request.
->
-> 2) Operations on the request fd
->
->    You can queue or reinit a request by calling these ioctls on the request fd:
->
->    #define MEDIA_REQUEST_IOC_QUEUE   _IO('|',  128)
->    #define MEDIA_REQUEST_IOC_REINIT  _IO('|',  129)
->
->    With REINIT you reset the state of the request as if you had just allocated
->    it.
->
->    You can poll the request fd to wait for it to complete.
->
->    To free a request you close the request fd. Note that it may still be in
->    use internally, so the internal datastructures have to be refcounted.
->
->    For this initial implementation only buffers and controls are contained
->    in a request. This is needed to implement stateless codecs. Supporting
->    complex camera pipelines will require more work.
->
->    Requests only contain the changes to the state at request queue time
->    relative to the previously queued request(s) or the current hardware state
->    if no other requests were queued.
->
->    Once a request is completed it will retain the state at completion
->    time.
->
-> 3) To associate a v4l2 buffer with a request the 'reserved' field in struct
->    v4l2_buffer is used to store the request fd. Buffers won't be 'prepared'
->    until the request is queued since the request may contain information that
->    is needed to prepare the buffer.
->
->    To indicate that request_fd should be used this flag should be set by
->    userspace at QBUF time:
->
-> #define V4L2_BUF_FLAG_REQUEST                   0x00800000
->
->    This flag will also be returned by the driver to indicate that the buffer
->    is associated with a request.
->
->    TBD: what should vb2 return as request_fd value if this flag is set?
->    This should act the same as the fence patch series and this is still
->    being tweaked so let's wait for that to be merged first, then we can
->    finalize this.
->
-> 4) To associate v4l2 controls with a request we take the first of the
->    'reserved[2]' array elements in struct v4l2_ext_controls and use it to store
->    the request fd.
->
->    We also add a new WHICH value:
->
-> #define V4L2_CTRL_WHICH_REQUEST   0x0f010000
->
->    This tells the control framework to get/set controls from the given
->    request fd.
->
->    When querying a control value from a request it will return the newest
->    value in the list of pending requests, or the current hardware value if
->    is not set in any of the pending requests.
->
->    When a request is completed the controls will no longer change. A copy
->    will be made of volatile controls at the time of completion (actually
->    it will be up to the driver to decide when to do that).
->
->    Volatile controls and requests:
->
->    - If you set a volatile control in a request, then that will be ignored,
->      unless the V4L2_CTRL_FLAG_EXECUTE_ON_WRITE flag is set as well.
->
->    - If you get a volatile control from a request then:
->      1) If the request is completed it will return the value of the volatile
->         control at completion time.
->      2) Otherwise: if the V4L2_CTRL_FLAG_EXECUTE_ON_WRITE is set and it was
->         set in a request, then that value is returned.
->      3) Otherwise: return the current value from the hardware (i.e. normal
->         behavior).
->
->    Read-only controls and requests:
->
->    - If you get a read-only control from a request then:
->      1) If the request is completed it will return the value of the read-only
->         control at completion time.
->      2) Otherwise it will get the current value from the driver (i.e. normal
->         behavior).
->
->    Open issue: should we receive control events if a control in a request is
->    added/changed? Currently there are no plans to support control events for
->    requests. I don't see a clear use-case and neither do I see an easy way
->    of implementing this (which fd would receive those events?).
->
-> Notes:
->
-> - Earlier versions of this API had a TRY command as well to validate the
->   request. I'm not sure that is useful so I dropped it, but it can easily
->   be added if there is a good use-case for it. Traditionally within V4L the
->   TRY ioctl will also update wrong values to something that works, but that
->   is not the intention here as far as I understand it. So the validation
->   step can also be done when the request is queued and, if it fails, it will
->   just return an error.
->
-> - If due to performance reasons we will have to allocate/queue/reinit multiple
->   requests with a single ioctl, then we will have to add new ioctls to the
->   media device. At this moment in time it is not clear that this is really
->   needed and it certainly isn't needed for the stateless codec support that
->   we are looking at now.
->
-> - The behavior of VIDIOC_G_EXT_CTRLS with which == V4L2_CTRL_WHICH_CUR_VAL
->   and VIDIOC_G_CTRL remains the same (i.e. it returns the current driver/HW
->   values). However, when combined with requests the documentation should make
->   clear that this returns a snapshot only and is racy w.r.t. applying values
->   from a request.
->
-> - There is a discussion whether there should be a VIDIOC_REQUEST_ALLOC ioctl
->   for V4L2 in addition to the media ioctl. The reason is that stateless codecs
->   do not need the media controller except for allocating requests. So a V4L2
->   ioctl would avoid applications from having to deal with a media device.
->   This would also add additional hassle w.r.t. SELinux as I understand it.
->
->   Support for this can be added for now as a final patch in the Request API
->   patch series and we'll postpone the decision on this.
+On Thursday, 29 March 2018 10:35:49 EEST Sakari Ailus wrote:
+> On Thu, Mar 29, 2018 at 09:19:43AM +0300, Laurent Pinchart wrote:
+> > On Wednesday, 28 March 2018 23:16:08 EEST Sakari Ailus wrote:
+> > > On Wed, Mar 28, 2018 at 02:59:22PM -0300, Mauro Carvalho Chehab wrote:
+> > > > At put_v4l2_window32(), it tries to access kp->clips. However,
+> > > > kp points to an userspace pointer. So, it should be obtained
+> > > > 
+> > > > via get_user(), otherwise it can OOPS:
+> > > >  vivid-000: ==================  END STATUS  ==================
+> > > >  BUG: unable to handle kernel paging request at 00000000fffb18e0
+> > > >  IP: [<ffffffffc05468d9>] __put_v4l2_format32+0x169/0x220 [videodev]
+> > > >  PGD 3f5776067 PUD 3f576f067 PMD 3f5769067 PTE 800000042548f067
+> > > >  Oops: 0001 [#1] SMP
+> > > >  Modules linked in: vivid videobuf2_vmalloc videobuf2_memops
+> > > >  v4l2_dv_timings videobuf2_core v4l2_common videodev media xt_CHECKSUM
+> > > >  iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat
+> > > >  nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack
+> > > >  nf_conntrack tun bridge stp llc ebtable_filter ebtables
+> > > >  ip6table_filter
+> > > >  ip6_tables bluetooth rfkill binfmt_misc snd_hda_codec_hdmi i915
+> > > >  snd_hda_intel snd_hda_controller snd_hda_codec intel_rapl
+> > > >  x86_pkg_temp_thermal snd_hwdep intel_powerclamp snd_pcm coretemp
+> > > >  snd_seq_midi kvm_intel kvm snd_seq_midi_event snd_rawmidi
+> > > >  i2c_algo_bit
+> > > >  drm_kms_helper snd_seq drm crct10dif_pclmul e1000e snd_seq_device
+> > > >  crc32_pclmul snd_timer ghash_clmulni_intel snd mei_me mei ptp
+> > > >  pps_core
+> > > >  soundcore lpc_ich video crc32c_intel [last unloaded: media] CPU: 2
+> > > >  PID:
+> > > >  
+> > > >  28332 Comm: v4l2-compliance Not tainted 3.18.102+ #107 Hardware name:
+> > > >                /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949
+> > > >  
+> > > >  05/11/2017 task: ffff8804293f8000 ti: ffff8803f5640000 task.ti:
+> > > >  ffff8803f5640000 RIP: 0010:[<ffffffffc05468d9>]  [<ffffffffc05468d9>]
+> > > >  __put_v4l2_format32+0x169/0x220 [videodev] RSP: 0018:ffff8803f5643e28
+> > > >  EFLAGS: 00010246
+> > > >  RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00000000fffb1ab4
+> > > >  RDX: 00000000fffb1a68 RSI: 00000000fffb18d8 RDI: 00000000fffb1aa8
+> > > >  RBP: ffff8803f5643e48 R08: 0000000000000001 R09: ffff8803f54b0378
+> > > >  R10: 0000000000000000 R11: 0000000000000168 R12: 00000000fffb18c0
+> > > >  R13: 00000000fffb1a94 R14: 00000000fffb18c8 R15: 0000000000000000
+> > > >  FS:  0000000000000000(0000) GS:ffff880456d00000(0063)
+> > > >  knlGS:00000000f7100980 CS:  0010 DS: 002b ES: 002b CR0:
+> > > >  0000000080050033
+> > > >  CR2: 00000000fffb18e0 CR3: 00000003f552b000 CR4: 00000000003407e0
+> > > >  
+> > > >  Stack:
+> > > >   00000000fffb1a94 00000000c0cc5640 0000000000000056 ffff8804274f3600
+> > > >   ffff8803f5643ed0 ffffffffc0547e16 0000000000000003 ffff8803f5643eb0
+> > > >   ffffffff81301460 ffff88009db44b01 ffff880441942520 ffff8800c0d05640
+> > > >  
+> > > >  Call Trace:
+> > > >   [<ffffffffc0547e16>] v4l2_compat_ioctl32+0x12d6/0x1b1d [videodev]
+> > > >   [<ffffffff81301460>] ? file_has_perm+0x70/0xc0
+> > > >   [<ffffffff81252a2c>] compat_SyS_ioctl+0xec/0x1200
+> > > >   [<ffffffff8173241a>] sysenter_dispatch+0x7/0x21
+> > > >  
+> > > >  Code: 00 00 48 8b 80 48 c0 ff ff 48 83 e8 38 49 39 c6 0f 87 2b ff ff
+> > > >  ff
+> > > >  49 8d 45 1c e8 a3 ce e3 c0 85 c0 0f 85 1a ff ff ff 41 8d 40 ff <4d>
+> > > >  8b
+> > > >  64 24 20 41 89 d5 48 8d 44 40 03 4d 8d 34 c4 eb 15 0f 1f RIP
+> > > >  [<ffffffffc05468d9>] __put_v4l2_format32+0x169/0x220 [videodev] RSP
+> > > >  <ffff8803f5643e28>
+> > > >  CR2: 00000000fffb18e0
+> > > > 
+> > > > Tested with vivid driver on Kernel v3.18.102.
+> > > > 
+> > > > Same bug happens upstream too:
+> > > >  BUG: KASAN: user-memory-access in __put_v4l2_format32+0x98/0x4d0
+> > > >  [videodev]
+> > > >  Read of size 8 at addr 00000000ffe48400 by task v4l2-compliance/8713
+> > > >  
+> > > >  CPU: 0 PID: 8713 Comm: v4l2-compliance Not tainted 4.16.0-rc4+ #108
+> > > >  Hardware name:  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949
+> > > >  05/11/2017>
+> > > >  
+> > > >  Call Trace:
+> > > >   dump_stack+0x5c/0x7c
+> > > >   kasan_report+0x164/0x380
+> > > >   ? __put_v4l2_format32+0x98/0x4d0 [videodev]
+> > > >   __put_v4l2_format32+0x98/0x4d0 [videodev]
+> > > >   v4l2_compat_ioctl32+0x1aec/0x27a0 [videodev]
+> > > >   ? __fsnotify_inode_delete+0x20/0x20
+> > > >   ? __put_v4l2_format32+0x4d0/0x4d0 [videodev]
+> > > >   compat_SyS_ioctl+0x646/0x14d0
+> > > >   ? do_ioctl+0x30/0x30
+> > > >   do_fast_syscall_32+0x191/0x3f4
+> > > >   entry_SYSENTER_compat+0x6b/0x7a
+> > > >  
+> > > >  ==================================================================
+> > > >  Disabling lock debugging due to kernel taint
+> > > >  BUG: unable to handle kernel paging request at 00000000ffe48400
+> > > >  IP: __put_v4l2_format32+0x98/0x4d0 [videodev]
+> > > >  PGD 3a22fb067 P4D 3a22fb067 PUD 39b6f0067 PMD 39b6f1067 PTE
+> > > >  80000003256af067 Oops: 0001 [#1] SMP KASAN
+> > > >  Modules linked in: vivid videobuf2_vmalloc videobuf2_dma_contig
+> > > >  videobuf2_memops v4l2_tpg v4l2_dv_timings videobuf2_v4l2
+> > > >  videobuf2_common v4l2_common videodev xt_CHECKSUM iptable_mangle
+> > > >  ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat
+> > > >  nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack libcrc32c
+> > > >  tun
+> > > >  bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables
+> > > >  bluetooth rfkill ecdh_generic binfmt_misc snd_hda_codec_hdmi
+> > > >  intel_rapl
+> > > >  x86_pkg_temp_thermal intel_powerclamp i915 coretemp snd_hda_intel
+> > > >  snd_hda_codec kvm_intel snd_hwdep snd_hda_core kvm snd_pcm irqbypass
+> > > >  crct10dif_pclmul crc32_pclmul snd_seq_midi ghash_clmulni_intel
+> > > >  snd_seq_midi_event i2c_algo_bit intel_cstate snd_rawmidi intel_uncore
+> > > >  snd_seq drm_kms_helper e1000e snd_seq_device snd_timer
+> > > >  intel_rapl_perf>
+> > > >  
+> > > >   drm ptp snd mei_me mei lpc_ich pps_core soundcore video crc32c_intel
+> > > >  
+> > > >  CPU: 0 PID: 8713 Comm: v4l2-compliance Tainted: G    B
+> > > >  4.16.0-rc4+ #108 Hardware name:  /NUC5i7RYB, BIOS
+> > > >  RYBDWi35.86A.0364.2017.0511.0949 05/11/2017 RIP:
+> > > >  0010:__put_v4l2_format32+0x98/0x4d0 [videodev]
+> > > >  RSP: 0018:ffff8803b9be7d30 EFLAGS: 00010282
+> > > >  RAX: 0000000000000000 RBX: ffff8803ac983e80 RCX: ffffffff8cd929f2
+> > > >  RDX: 1ffffffff1d0a149 RSI: 0000000000000297 RDI: 0000000000000297
+> > > >  RBP: 00000000ffe485c0 R08: fffffbfff1cf5123 R09: ffffffff8e7a8948
+> > > >  R10: 0000000000000001 R11: fffffbfff1cf5122 R12: 00000000ffe483e0
+> > > >  R13: 00000000ffe485c4 R14: ffff8803ac985918 R15: 00000000ffe483e8
+> > > >  FS:  0000000000000000(0000) GS:ffff880407400000(0063)
+> > > >  knlGS:00000000f7a46980 CS:  0010 DS: 002b ES: 002b CR0:
+> > > >  0000000080050033
+> > > >  CR2: 00000000ffe48400 CR3: 00000003a83f2003 CR4: 00000000003606f0
+> > > >  
+> > > >  Call Trace:
+> > > >   v4l2_compat_ioctl32+0x1aec/0x27a0 [videodev]
+> > > >   ? __fsnotify_inode_delete+0x20/0x20
+> > > >   ? __put_v4l2_format32+0x4d0/0x4d0 [videodev]
+> > > >   compat_SyS_ioctl+0x646/0x14d0
+> > > >   ? do_ioctl+0x30/0x30
+> > > >   do_fast_syscall_32+0x191/0x3f4
+> > > >   entry_SYSENTER_compat+0x6b/0x7a
+> > > >  
+> > > >  Code: 4c 89 f7 4d 8d 7c 24 08 e8 e6 a4 69 cb 48 8b 83 98 1a 00 00 48
+> > > >  83
+> > > >  e8 10 49 39 c7 0f 87 9d 01 00 00 49 8d 7c 24 20 e8 c8 a4 69 cb <4d>
+> > > >  8b
+> > > >  74 24 20 4c 89 ef 4c 89 fe ba 10 00 00 00 e8 23 d9 08 cc RIP:
+> > > >  __put_v4l2_format32+0x98/0x4d0 [videodev] RSP: ffff8803b9be7d30 CR2:
+> > > >  00000000ffe48400
+> > > > 
+> > > > cc: stable@vger.kernel.org
+> > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > > > ---
+> > > > 
+> > > >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
+> > > >  1 file changed, 3 insertions(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
+> > > > 5198c9eeb348..4312935f1dfc 100644
+> > > > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > @@ -101,7 +101,7 @@ static int get_v4l2_window32(struct v4l2_window
+> > > > __user
+> > > > *kp,
+> > > > 
+> > > >  static int put_v4l2_window32(struct v4l2_window __user *kp,
+> > > >  
+> > > >  			     struct v4l2_window32 __user *up)
+> > > >  
+> > > >  {
+> > > > 
+> > > > -	struct v4l2_clip __user *kclips = kp->clips;
+> > > > +	struct v4l2_clip __user *kclips;
+> > > > 
+> > > >  	struct v4l2_clip32 __user *uclips;
+> > > >  	compat_caddr_t p;
+> > > >  	u32 clipcount;
+> > > > 
+> > > > @@ -116,6 +116,8 @@ static int put_v4l2_window32(struct v4l2_window
+> > > > __user
+> > > > *kp,
+> > > > 
+> > > >  	if (!clipcount)
+> > > >  	
+> > > >  		return 0;
+> > > > 
+> > > > +	if (get_user(kclips, &kp->clips))
+> > > > +		return -EFAULT;
+> > > > 
+> > > >  	if (get_user(p, &up->clips))
+> > > >  	
+> > > >  		return -EFAULT;
+> > > >  	
+> > > >  	uclips = compat_ptr(p);
+> > > 
+> > > Good find. I checked for similar problems elsewhere in the file but
+> > > could not find any.
+> > > 
+> > > Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Would it be useful to rename kp to something that doesn't imply the memory
+> > is kernel memory ? I was confused at first when reading this patch.
+> 
+> It's allocated by the kernel but nowadays that's done using
+> compat_alloc_user_space() so it's mapped to the user as well. The same
+> practice applies to the whole file. It's a bit confusing when you first see
+> it, I have to admit.
+> 
+> The 32-bit up comes from the user but the 64-bit is actually used by the
+> real IOCTL handler. Compat and native? They're longer though.
 
-FWIW:
+Compat and native would be clearer, or maybe _32 and _64 to make it shorter ?
 
-Acked-by: Tomasz Figa <tfiga@chromium.org>
+> Anyway that change would be a separate patch.
 
-Best regards,
-Tomasz
+Sure, I wasn't thinking otherwise.
+
+-- 
+Regards,
+
+Laurent Pinchart
