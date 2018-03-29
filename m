@@ -1,61 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:23753 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932855AbeCJAKx (ORCPT
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:35642 "EHLO
+        mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751182AbeC2OzK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 19:10:53 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 0/3] rcar-vin: always run in continues mode
-Date: Sat, 10 Mar 2018 01:09:50 +0100
-Message-Id: <20180310000953.25366-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 29 Mar 2018 10:55:10 -0400
+Received: by mail-pf0-f171.google.com with SMTP id u86so3395455pfd.2
+        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2018 07:55:10 -0700 (PDT)
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+To: slongerbeam@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: todor.tomov@linaro.org, nicolas.dechesne@linaro.org,
+        dragonboard@lists.96boards.org, loic.poulain@linaro.org,
+        daniel.thompson@linaro.org,
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Subject: [RESEND PATCH] Add pixel clock support to OV5640 camera sensor
+Date: Thu, 29 Mar 2018 20:24:59 +0530
+Message-Id: <1522335300-13467-1-git-send-email-manivannan.sadhasivam@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Some of the camera subsystems like camss in Qualcommm MSM chipsets
+require pixel clock support in camera sensor drivers for proper functioning.
+So, add a default pixel clock rate of 96MHz to OV5640 camera sensor driver.
 
-This series reworks the R-Car VIN driver to only run using its continues 
-capture mode. This improves performance a lot when userspace struggles 
-to keep up and queue buffers as fast as the VIN driver consumes them.  
-The solution to always be able to run in continues is to introduce a 
-scratch buffer inside the VIN driver which it can pad the hardware 
-capture buffer ring with if it have no buffer from userspace. Using this 
-scratch buffer allows the driver to not need to stop capturing when it 
-run out of buffers and then restart it once it have more buffers.
+According to the datasheet, 96MHz can be used as a pixel clock rate for
+most of the modes.
 
-Patch 1/3 removes a duplicated check in the VIN interrupt handler. Patch 
-2/3 adds the allocation of the scratch buffer. And finally 3/3 drops the 
-single capture mode in favor of always running in continues capture mode 
-and the scratch buffer.
+This patch has been validated on Dragonboard410c with OV5640 connected
+using D3 Camera Mezzanine.
 
-The series is based on top of the latest media-tree master branch and 
-can be fetched from.
+Manivannan Sadhasivam (1):
+  media: i2c: ov5640: Add pixel clock support
 
-git://git.ragnatech.se/linux v4l2/next/vin/mode-v1
-
-It is tested on R-Car Koelsch Gen2 board using the onboard HDMI and CVBS 
-inputs. The test application v4l2-compliance pass for both inputs 
-without issues or warnings. A slight adaption of these patches to the 
-pending VIN Gen3 patches have been tested with great improvement in 
-capture speed for buffer strained situations and no regressions in the 
-vin-tests suite.
-
-Niklas Söderlund (3):
-  rcar-vin: remove duplicated check of state in irq handler
-  rcar-vin: allocate a scratch buffer at stream start
-  rcar-vin: use scratch buffer and always run in continuous mode
-
- drivers/media/platform/rcar-vin/rcar-dma.c | 212 ++++++++++-------------------
- drivers/media/platform/rcar-vin/rcar-vin.h |  10 +-
- 2 files changed, 75 insertions(+), 147 deletions(-)
+ drivers/media/i2c/ov5640.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 -- 
-2.16.2
+2.7.4
