@@ -1,229 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51748 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750873AbeC0QqJ (ORCPT
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:38396 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751147AbeC2HuO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 12:46:09 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v4 1/6] media: uvcvideo: Refactor URB descriptors
-Date: Tue, 27 Mar 2018 17:45:58 +0100
-Message-Id: <232cb20d8301bac0480d24ce8c3caef245a7853e.1522168131.git-series.kieran.bingham@ideasonboard.com>
-In-Reply-To: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
-In-Reply-To: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+        Thu, 29 Mar 2018 03:50:14 -0400
+Received: by mail-wr0-f173.google.com with SMTP id m13so4485762wrj.5
+        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2018 00:50:13 -0700 (PDT)
+From: Todor Tomov <todor.tomov@linaro.org>
+Subject: Re: [v2,2/2] media: Add a driver for the ov7251 camera sensor
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1521778460-8717-3-git-send-email-todor.tomov@linaro.org>
+ <20180323134003.GB11499@w540>
+Message-ID: <419f6976-ee6a-f2c1-1097-a51776469ee4@linaro.org>
+Date: Thu, 29 Mar 2018 10:50:10 +0300
+MIME-Version: 1.0
+In-Reply-To: <20180323134003.GB11499@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We currently store three separate arrays for each URB reference we hold.
+Hi Jacopo,
 
-Objectify the data needed to track URBs into a single uvc_urb structure,
-allowing better object management and tracking of the URB.
+Thank you for your prompt review.
 
-All accesses to the data pointers through stream, are converted to use a
-uvc_urb pointer for consistency.
+On 23.03.2018 15:40, jacopo mondi wrote:
+> Hi Todor,
+>    thanks for the patch.
+> 
+> When running checkpatch --strict I see a few warning you can easily
+> close (braces indentation mostly, and one additional empty line at
+> line 1048).
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thank you for pointing me to the --strict mode. There are a few CHECKs for
+braces alignment for which the alignment is still better as it is now
+I think. However there were also a few reasonable points and I have
+updated the code according to them.
 
----
-v2:
- - Re-describe URB context structure
- - Re-name uvc_urb->{urb_buffer,urb_dma}{buffer,dma}
+> 
+> A few more nits below.
+> 
+> On Fri, Mar 23, 2018 at 12:14:20PM +0800, Todor Tomov wrote:
+>> The ov7251 sensor is a 1/7.5-Inch B&W VGA (640x480) CMOS Digital Image
+>> Sensor from Omnivision.
+>>
+>> The driver supports the following modes:
+>> - 640x480 30fps
+>> - 640x480 60fps
+>> - 640x480 90fps
+>>
+>> Output format is MIPI RAW 10.
+>>
+>> The driver supports configuration via user controls for:
+>> - exposure and gain;
+>> - horizontal and vertical flip;
+>> - test pattern.
+>>
+>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>> ---
+>>  drivers/media/i2c/Kconfig  |   13 +
+>>  drivers/media/i2c/Makefile |    1 +
+>>  drivers/media/i2c/ov7251.c | 1494 ++++++++++++++++++++++++++++++++++++++++++++
+>>  3 files changed, 1508 insertions(+)
+>>  create mode 100644 drivers/media/i2c/ov7251.c
+>>
+>> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+>> index 541f0d28..89aecb3 100644
+>> --- a/drivers/media/i2c/Kconfig
+>> +++ b/drivers/media/i2c/Kconfig
+>> @@ -688,6 +688,19 @@ config VIDEO_OV5695
+>>  	  To compile this driver as a module, choose M here: the
+>>  	  module will be called ov5695.
+>>
+>> +config VIDEO_OV7251
+>> +	tristate "OmniVision OV7251 sensor support"
+>> +	depends on OF
+>> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>> +	depends on MEDIA_CAMERA_SUPPORT
+>> +	select V4L2_FWNODE
+>> +	---help---
+>> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
+>> +	  OV7251 camera.
+>> +
+>> +	  To compile this driver as a module, choose M here: the
+>> +	  module will be called ov7251.
+>> +
+>>  config VIDEO_OV772X
+>>  	tristate "OmniVision OV772x sensor support"
+>>  	depends on I2C && VIDEO_V4L2
+>> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+>> index ea34aee..c8585b1 100644
+>> --- a/drivers/media/i2c/Makefile
+>> +++ b/drivers/media/i2c/Makefile
+>> @@ -70,6 +70,7 @@ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+>>  obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+>>  obj-$(CONFIG_VIDEO_OV5695) += ov5695.o
+>>  obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
+>> +obj-$(CONFIG_VIDEO_OV7251) += ov7251.o
+>>  obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+>>  obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+>>  obj-$(CONFIG_VIDEO_OV772X) += ov772x.o
+>> diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
+>> new file mode 100644
+>> index 0000000..7b401a9
+>> --- /dev/null
+>> +++ b/drivers/media/i2c/ov7251.c
+>> @@ -0,0 +1,1494 @@
 
-v3:
- - No change
+<snip>
 
-v4:
- - Rebase on top of linux-media/master (v4.16-rc4, metadata additions)
+>> +static int ov7251_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +	struct ov7251 *ov7251 = to_ov7251(sd);
+>> +	int ret = 0;
+>> +
+>> +	mutex_lock(&ov7251->power_lock);
+>> +
+>> +	/*
+>> +	 * If the power state is modified from 0 to 1 or from 1 to 0,
+>> +	 * update the power state.
+>> +	 */
+>> +	if (ov7251->power_on == !on) {
+> 
+>         if (ov7251->power_on == !!on) {
+>                 mutex_unlock(&ov7251->power_lock);
+>                 return 0;
+>         }
+> 
+> And you can save one indentation level and remove ret initialization.
+> 
 
- drivers/media/usb/uvc/uvc_video.c | 49 +++++++++++++++++++-------------
- drivers/media/usb/uvc/uvcvideo.h  | 18 ++++++++++--
- 2 files changed, 45 insertions(+), 22 deletions(-)
+Good hint, I'd rather save one indentation level by:
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index aa0082fe5833..93048fbf4e82 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1456,14 +1456,16 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
- 	unsigned int i;
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
--		if (stream->urb_buffer[i]) {
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
-+		if (uvc_urb->buffer) {
- #ifndef CONFIG_DMA_NONCOHERENT
- 			usb_free_coherent(stream->dev->udev, stream->urb_size,
--				stream->urb_buffer[i], stream->urb_dma[i]);
-+					uvc_urb->buffer, uvc_urb->dma);
- #else
--			kfree(stream->urb_buffer[i]);
-+			kfree(uvc_urb->buffer);
- #endif
--			stream->urb_buffer[i] = NULL;
-+			uvc_urb->buffer = NULL;
- 		}
- 	}
- 
-@@ -1501,16 +1503,18 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
- 	/* Retry allocations until one succeed. */
- 	for (; npackets > 1; npackets /= 2) {
- 		for (i = 0; i < UVC_URBS; ++i) {
-+			struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
- 			stream->urb_size = psize * npackets;
- #ifndef CONFIG_DMA_NONCOHERENT
--			stream->urb_buffer[i] = usb_alloc_coherent(
-+			uvc_urb->buffer = usb_alloc_coherent(
- 				stream->dev->udev, stream->urb_size,
--				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
-+				gfp_flags | __GFP_NOWARN, &uvc_urb->dma);
- #else
--			stream->urb_buffer[i] =
-+			uvc_urb->buffer =
- 			    kmalloc(stream->urb_size, gfp_flags | __GFP_NOWARN);
- #endif
--			if (!stream->urb_buffer[i]) {
-+			if (!uvc_urb->buffer) {
- 				uvc_free_urb_buffers(stream);
- 				break;
- 			}
-@@ -1540,13 +1544,15 @@ static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
- 	uvc_video_stats_stop(stream);
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
--		urb = stream->urb[i];
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
-+		urb = uvc_urb->urb;
- 		if (urb == NULL)
- 			continue;
- 
- 		usb_kill_urb(urb);
- 		usb_free_urb(urb);
--		stream->urb[i] = NULL;
-+		uvc_urb->urb = NULL;
- 	}
- 
- 	if (free_buffers)
-@@ -1601,6 +1607,8 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 	size = npackets * psize;
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
- 		urb = usb_alloc_urb(npackets, gfp_flags);
- 		if (urb == NULL) {
- 			uvc_uninit_video(stream, 1);
-@@ -1613,12 +1621,12 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 				ep->desc.bEndpointAddress);
- #ifndef CONFIG_DMA_NONCOHERENT
- 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_dma = stream->urb_dma[i];
-+		urb->transfer_dma = uvc_urb->dma;
- #else
- 		urb->transfer_flags = URB_ISO_ASAP;
- #endif
- 		urb->interval = ep->desc.bInterval;
--		urb->transfer_buffer = stream->urb_buffer[i];
-+		urb->transfer_buffer = uvc_urb->buffer;
- 		urb->complete = uvc_video_complete;
- 		urb->number_of_packets = npackets;
- 		urb->transfer_buffer_length = size;
-@@ -1628,7 +1636,7 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 			urb->iso_frame_desc[j].length = psize;
- 		}
- 
--		stream->urb[i] = urb;
-+		uvc_urb->urb = urb;
- 	}
- 
- 	return 0;
-@@ -1667,21 +1675,22 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
- 		size = 0;
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
- 		urb = usb_alloc_urb(0, gfp_flags);
- 		if (urb == NULL) {
- 			uvc_uninit_video(stream, 1);
- 			return -ENOMEM;
- 		}
- 
--		usb_fill_bulk_urb(urb, stream->dev->udev, pipe,
--			stream->urb_buffer[i], size, uvc_video_complete,
--			stream);
-+		usb_fill_bulk_urb(urb, stream->dev->udev, pipe, uvc_urb->buffer,
-+				  size, uvc_video_complete, stream);
- #ifndef CONFIG_DMA_NONCOHERENT
- 		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_dma = stream->urb_dma[i];
-+		urb->transfer_dma = uvc_urb->dma;
- #endif
- 
--		stream->urb[i] = urb;
-+		uvc_urb->urb = urb;
- 	}
- 
- 	return 0;
-@@ -1772,7 +1781,9 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
- 
- 	/* Submit the URBs. */
- 	for (i = 0; i < UVC_URBS; ++i) {
--		ret = usb_submit_urb(stream->urb[i], gfp_flags);
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
-+		ret = usb_submit_urb(uvc_urb->urb, gfp_flags);
- 		if (ret < 0) {
- 			uvc_printk(KERN_ERR, "Failed to submit URB %u "
- 					"(%d).\n", i, ret);
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index be5cf179228b..e056e5609068 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -481,6 +481,20 @@ struct uvc_stats_stream {
- 
- #define UVC_METATADA_BUF_SIZE 1024
- 
-+/**
-+ * struct uvc_urb - URB context management structure
-+ *
-+ * @urb: the URB described by this context structure
-+ * @buffer: memory storage for the URB
-+ * @dma: DMA coherent addressing for the urb_buffer
-+ */
-+struct uvc_urb {
-+	struct urb *urb;
-+
-+	char *buffer;
-+	dma_addr_t dma;
-+};
-+
- struct uvc_streaming {
- 	struct list_head list;
- 	struct uvc_device *dev;
-@@ -529,9 +543,7 @@ struct uvc_streaming {
- 		u32 max_payload_size;
- 	} bulk;
- 
--	struct urb *urb[UVC_URBS];
--	char *urb_buffer[UVC_URBS];
--	dma_addr_t urb_dma[UVC_URBS];
-+	struct uvc_urb uvc_urb[UVC_URBS];
- 	unsigned int urb_size;
- 
- 	u32 sequence;
+	if (ov7251->power_on == !!on)
+		goto exit;
+
+> 
+>> +		if (on) {
+>> +			ret = ov7251_set_power_on(ov7251);
+>> +			if (ret < 0)
+>> +				goto exit;
+>> +
+>> +			ret = ov7251_set_register_array(ov7251,
+>> +					ov7251_global_init_setting,
+>> +					ARRAY_SIZE(ov7251_global_init_setting));
+>> +			if (ret < 0) {
+>> +				dev_err(ov7251->dev,
+>> +					"could not set init registers\n");
+>> +				ov7251_set_power_off(ov7251);
+>> +				goto exit;
+>> +			}
+>> +
+>> +			ov7251->power_on = true;
+>> +		} else {
+>> +			ov7251_set_power_off(ov7251);
+>> +			ov7251->power_on = false;
+>> +		}
+>> +	}
+>> +
+>> +exit:
+>> +	mutex_unlock(&ov7251->power_lock);
+>> +
+>> +	return ret;
+>> +}
+>> +
+
+<snip>
+
+>> +
+>> +static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
+>> +				  struct v4l2_subdev_pad_config *cfg,
+>> +				  struct v4l2_subdev_frame_size_enum *fse)
+>> +{
+> 
+> Shouldn't you check for (pad != 0) in all subdev pad operations?
+> I see other driver with a single pad doing this...
+
+I looked up now and I can see that this is checked in v4l2-subdev.c
+in subdev_do_ioctl() before the driver's callback is called.
+
+> 
+> 
+>> +	if (fse->code != MEDIA_BUS_FMT_SBGGR10_1X10)
+>> +		return -EINVAL;
+>> +
+>> +	if (fse->index >= ARRAY_SIZE(ov7251_mode_info_data))
+>> +		return -EINVAL;
+>> +
+>> +	fse->min_width = ov7251_mode_info_data[fse->index].width;
+>> +	fse->max_width = ov7251_mode_info_data[fse->index].width;
+>> +	fse->min_height = ov7251_mode_info_data[fse->index].height;
+>> +	fse->max_height = ov7251_mode_info_data[fse->index].height;
+>> +
+>> +	return 0;
+>> +}
+>> +
+
+<snip>
+
+>> +
+>> +static const struct i2c_device_id ov7251_id[] = {
+>> +	{ "ov7251", 0 },
+>> +	{}
+>> +};
+>> +MODULE_DEVICE_TABLE(i2c, ov7251_id);
+>> +
+>> +static const struct of_device_id ov7251_of_match[] = {
+>> +	{ .compatible = "ovti,ov7251" },
+>> +	{ /* sentinel */ }
+>> +};
+>> +MODULE_DEVICE_TABLE(of, ov7251_of_match);
+>> +
+>> +static struct i2c_driver ov7251_i2c_driver = {
+>> +	.driver = {
+>> +		.of_match_table = of_match_ptr(ov7251_of_match),
+>> +		.name  = "ov7251",
+>> +	},
+>> +	.probe  = ov7251_probe,
+>> +	.remove = ov7251_remove,
+>> +	.id_table = ov7251_id,
+> 
+> As this driver depends on CONFIG_OF, I've been suggested to use probe_new and
+> get rid of i2c id_tables.
+
+Yes, I'll do that.
+
+> 
+> With the above nits clarified, and as you addressed my v1 comments:
+> 
+> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+
+Would you like to see the corrections or I can add the tag before sending them?
+
+> 
+> Thanks
+>    j
+> 
+>> +};
+>> +
+>> +module_i2c_driver(ov7251_i2c_driver);
+>> +
+>> +MODULE_DESCRIPTION("Omnivision OV7251 Camera Driver");
+>> +MODULE_AUTHOR("Todor Tomov <todor.tomov@linaro.org>");
+>> +MODULE_LICENSE("GPL v2");
+
 -- 
-git-series 0.9.1
+Best regards,
+Todor Tomov
