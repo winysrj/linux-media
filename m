@@ -1,130 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-03v.sys.comcast.net ([69.252.207.35]:58894 "EHLO
-        resqmta-ch2-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751000AbeCNTZX (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42725 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750716AbeC2JQr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Mar 2018 15:25:23 -0400
-Subject: [PATCH v2 0/1] media: mceusb: add IR learning support features (IR
- carrier frequency measurement and wide-band/short-range receiver)
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <20f4d234-c62f-12ab-5e15-639f7d981f56@comcast.net>
- <20180313103816.7oyjr7imb4hk7q65@gofer.mess.org>
-From: A Sun <as1033x@comcast.net>
-Message-ID: <3b3b9f4b-3573-136a-8aa7-22bb0d2a5934@comcast.net>
-Date: Wed, 14 Mar 2018 15:25:11 -0400
+        Thu, 29 Mar 2018 05:16:47 -0400
+Subject: Re: [RFCv9 PATCH 03/29] media-request: allocate media requests
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+ <20180328135030.7116-4-hverkuil@xs4all.nl>
+ <20180329084543.qjlwg3brtfsv27pf@paasikivi.fi.intel.com>
+ <f21d00cf-6b7a-ac8f-4deb-fd25c55e5747@xs4all.nl>
+ <20180329090149.xcck4om3hgn4f6yg@paasikivi.fi.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <24ff3e13-7ad6-4086-2738-1adb43599fa4@xs4all.nl>
+Date: Thu, 29 Mar 2018 11:16:45 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180313103816.7oyjr7imb4hk7q65@gofer.mess.org>
+In-Reply-To: <20180329090149.xcck4om3hgn4f6yg@paasikivi.fi.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
-Thanks again for your review and notes. I'm forwarding PATCH v2 after this note. Please also see my notes below. ..A Sun
-
-On 3/13/2018 6:38 AM, Sean Young wrote:
-> Hi,
-> 
-> On Sun, Mar 11, 2018 at 05:40:28AM -0400, A Sun wrote:
+On 29/03/18 11:01, Sakari Ailus wrote:
+> On Thu, Mar 29, 2018 at 10:57:44AM +0200, Hans Verkuil wrote:
+>> On 29/03/18 10:45, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> On Wed, Mar 28, 2018 at 03:50:04PM +0200, Hans Verkuil wrote:
+>>> ...
+>>>> @@ -88,6 +96,8 @@ struct media_device_ops {
+>>>>   * @disable_source: Disable Source Handler function pointer
+>>>>   *
+>>>>   * @ops:	Operation handler callbacks
+>>>> + * @req_lock:	Serialise access to requests
+>>>> + * @req_queue_mutex: Serialise validating and queueing requests
+>>>
+>>> s/validating and//
+>>>
+>>> As there's no more a separate validation step. Then,
 >>
-
->>
->> Add mceusb driver support to select the short range IR receiver
->> and enable pass through of its IR carrier frequency measurements.
->>
->> RC and LIRC already support these mceusb driver additions.
+>> Well, you validate before queuing. It's not a separate step, but
+>> part of the queue operation. See patch 23 where this is implemented
+>> in the vb2_request_helper function.
 > 
-> That's great, this feature has been missing for a long time. 
-> 
-> I've tested it with my four mceusb devices, and I get carrier reports with
-> all of them. Please see the notes below.
-> 
->> Test platform:
-
->> ...
->> pulse 600
->> space 600
->> pulse 1250
->> space 550
->> pulse 650
->> space 600
->> pulse 550
->> space 600
->> pulse 600
->> space 600
->> pulse 650
->> carrier 38803
-> 
-> Sony protocol remotes have a 40000Hz carrier, and I am getting lower values
-> for the carrier with other carrier frequencies as well. Any idea why?
+> Works for me. I think we'll need the validate op sooner or later anyway.
 > 
 
-I'm also seeing consistently low Hz results myself. My guess is the mceusb hardware may be under counting carrier cycles during IR pulse "on" it sees. I see the following data from the receiver for a spurious IR:
 
-[  329.602445] mceusb 1-1.2:1.0: RX carrier frequency 0 Hz (pulse count = 1, duration = 2, cycles = 0)
+There is one. Request objects have prepare, unprepare and queue ops.
 
-To see a pulse, there must exist a carrier, so the IR carrier cycle count should be > 0.
+The request req_queue op will prepare all objects, and only queue if the
+prepare (aka validate) step succeeds for all objects. If not, then the
+objects that were prepared will be rolled back with the unprepare op
+and req_queue returns an error.
 
-In patch v2, I'm assuming the mceusb hardware misses 1 carrier cycle count for every IR on pulse it sees and adjusted the carrier freq calculations accordingly. The adjustments needed may turn out to be hardware specific, so further refinements may be needed.
+Note that the object ops are not documented at the moment, it's one of
+my TODOs.
 
-Did you see low Hz values for all your four mceusb devices?
+Regards,
 
-
->> +	/*
->> +	 * cmdbuf[2] is receiver port number
->> +	 * port 1 is long range receiver
->> +	 * port 2 is short range receiver
->> +	 */
->> +	cmdbuf[2] = enable + 1;
-> 
-> You could do enable ? 2 : 1 here and do away with the check above. Enable
-> always is 0 or 1 anyway.
-> 
->> +	dev_dbg(ir->dev, "select %s-range receive sensor",
->> +		enable ? "short" : "long");
->> +	mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
->> +
->> +	return 0;
->> +}
->> +
->> +/*
->> + * Enable/disable receiver carrier frequency pass through reporting.
->> + * Frequency measurement only works with the short-range receiver.
->> + * The long-range receiver always reports no carrier frequency
->> + * (MCE_RSP_EQIRRXCFCNT, 0, 0) so we always ignore its report.
->> + */
->> +static int mceusb_set_rx_carrier_report(struct rc_dev *dev, int enable)
->> +{
->> +	struct mceusb_dev *ir = dev->priv;
->> +
->> +	if (enable != 0 && enable != 1)
->> +		return -EINVAL;
-> 
-> This is only called from lirc_dev.c, where the expression is:
-> 
-> 	ret = dev->s_carrier_report(dev, !!val);
-> 
-> There is no need to check for enable being not 0 or 1.
-> 
->> +
->> +	dev_dbg(ir->dev, "%s short-range receiver carrier reporting",
->> +		enable ? "enable" : "disable");
->> +	ir->carrier_report_enabled = (enable == 1);
-> 
-> Since enable is 0 or 1, there is no need for the enable == 1 expression.
-> 
-> Note that the other drivers that support carrier reports (winbond-cir,
-> redrat3, ene-cir) all enable the wideband receiver when carrier reports
-> are turned on. You won't get carrier reports with the narrowband
-> receiver, so if the user does:
-> 
-> ir-ctl -r -m
-> 
-> Then they will get nothing. It should really be consistent with the other
-> drivers and enable wideband implicitly.
-> 
-
-I've added to patch v2 to implicitly enable the wide-band receiver when enabling carrier reporting. Plus additional revisions from your other comments.
+	Hans
