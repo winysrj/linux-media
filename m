@@ -1,99 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:52705 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752269AbeCVHSJ (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53814 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751249AbeC2Ika (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Mar 2018 03:18:09 -0400
-Received: by mail-wm0-f67.google.com with SMTP id l9so13969978wmh.2
-        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2018 00:18:08 -0700 (PDT)
-Date: Thu, 22 Mar 2018 08:18:04 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 1/5] dma-buf: add optional
- invalidate_mappings callback v2
-Message-ID: <20180322071804.GH14155@phenom.ffwll.local>
-References: <152120831102.25315.4326885184264378830@mail.alporthouse.com>
- <21879456-db47-589c-b5e2-dfe8333d9e4c@gmail.com>
- <152147480241.18954.4556582215766884582@mail.alporthouse.com>
- <0bd85f69-c64c-70d1-a4a0-10ae0ed8b4e8@gmail.com>
- <CAKMK7uH3xNkx3UFBMdcJ415F2WsC7s_D+CDAjLAh1p-xo5RfSA@mail.gmail.com>
- <19ed21a5-805d-271f-9120-49e0c00f510f@amd.com>
- <20180320140810.GU14155@phenom.ffwll.local>
- <37ba7394-2a5c-a0bc-cc51-c8a0edc2991d@gmail.com>
- <20180321082839.GA14155@phenom.ffwll.local>
- <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
+        Thu, 29 Mar 2018 04:40:30 -0400
+Subject: Re: [PATCH] media: v4l2-compat-ioctl32: don't oops on overlay
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Daniel Mentz <danielmentz@google.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        stable@vger.kernel.org
+References: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2e9cca00-5c6d-6a22-0273-98f908a304d6@xs4all.nl>
+Date: Thu, 29 Mar 2018 10:40:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <327c4bc1-5813-16e8-62fc-4301b19a1a22@gmail.com>
+In-Reply-To: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 21, 2018 at 12:54:20PM +0100, Christian König wrote:
-> Am 21.03.2018 um 09:28 schrieb Daniel Vetter:
-> > On Tue, Mar 20, 2018 at 06:47:57PM +0100, Christian König wrote:
-> > > Am 20.03.2018 um 15:08 schrieb Daniel Vetter:
-> > > > [SNIP]
-> > > > For the in-driver reservation path (CS) having a slow-path that grabs a
-> > > > temporary reference, drops the vram lock and then locks the reservation
-> > > > normally (using the acquire context used already for the entire CS) is a
-> > > > bit tricky, but totally feasible. Ttm doesn't do that though.
-> > > That is exactly what we do in amdgpu as well, it's just not very efficient
-> > > nor reliable to retry getting the right pages for a submission over and over
-> > > again.
-> > Out of curiosity, where's that code? I did read the ttm eviction code way
-> > back, and that one definitely didn't do that. Would be interesting to
-> > update my understanding.
+Hi Mauro,
+
+On 28/03/18 19:59, Mauro Carvalho Chehab wrote:
+> At put_v4l2_window32(), it tries to access kp->clips. However,
+> kp points to an userspace pointer. So, it should be obtained
+> via get_user(), otherwise it can OOPS:
 > 
-> That is in amdgpu_cs.c. amdgpu_cs_parser_bos() does a horrible dance with
-> grabbing, releasing and regrabbing locks in a loop.
+
+<snip>
+
 > 
-> Then in amdgpu_cs_submit() we grab an lock preventing page table updates and
-> check if all pages are still the one we want to have:
-> >         amdgpu_mn_lock(p->mn);
-> >         if (p->bo_list) {
-> >                 for (i = p->bo_list->first_userptr;
-> >                      i < p->bo_list->num_entries; ++i) {
-> >                         struct amdgpu_bo *bo = p->bo_list->array[i].robj;
-> > 
-> >                         if
-> > (amdgpu_ttm_tt_userptr_needs_pages(bo->tbo.ttm)) {
-> >                                 amdgpu_mn_unlock(p->mn);
-> >                                 return -ERESTARTSYS;
-> >                         }
-> >                 }
-> >         }
+> cc: stable@vger.kernel.org
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> If anything changed on the page tables we restart the whole IOCTL using
-> -ERESTARTSYS and try again.
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 5198c9eeb348..4312935f1dfc 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -101,7 +101,7 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
+>  static int put_v4l2_window32(struct v4l2_window __user *kp,
+>  			     struct v4l2_window32 __user *up)
+>  {
+> -	struct v4l2_clip __user *kclips = kp->clips;
+> +	struct v4l2_clip __user *kclips;
+>  	struct v4l2_clip32 __user *uclips;
+>  	compat_caddr_t p;
+>  	u32 clipcount;
+> @@ -116,6 +116,8 @@ static int put_v4l2_window32(struct v4l2_window __user *kp,
+>  	if (!clipcount)
+>  		return 0;
+>  
+> +	if (get_user(kclips, &kp->clips))
+> +		return -EFAULT;
+>  	if (get_user(p, &up->clips))
+>  		return -EFAULT;
+>  	uclips = compat_ptr(p);
+> 
 
-I'm not talking about userptr here, but general bo eviction. Sorry for the
-confusion.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The reason I'm dragging all the general bo management into this
-discussions is because we do seem to have fairly fundamental difference in
-how that's done, with resulting consequences for the locking hierarchy.
+I have no idea why I didn't find this when I tested this with v4l2-compliance,
+but the code was certainly wrong.
 
-And if this invalidate_mapping stuff should work, together with userptr
-and everything else, I think we're required to agree on how this is all
-supposed to nest, and how exactly we should back off for the other side
-that needs to break the locking circle.
+Thank you for debugging this!
 
-That aside, I don't entirely understand why you need to restart so much. I
-figured that get_user_pages is ordered correctly against mmu
-invalidations, but I get the impression you think that's not the case. How
-does that happen?
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Regards,
+
+	Hans
