@@ -1,146 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:37544 "EHLO mga11.intel.com"
+Received: from ale.deltatee.com ([207.54.116.67]:46182 "EHLO ale.deltatee.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750716AbeC2KTZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 06:19:25 -0400
-Date: Thu, 29 Mar 2018 13:18:56 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv9 PATCH 05/29] media-request: add request ioctls
-Message-ID: <20180329101856.l4u62dtvi3tao45o@paasikivi.fi.intel.com>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
- <20180328135030.7116-6-hverkuil@xs4all.nl>
+        id S1751161AbeC2Ppa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 11:45:30 -0400
+To: christian.koenig@amd.com, Christoph Hellwig <hch@infradead.org>
+Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-2-christian.koenig@amd.com>
+ <20180328123830.GB25060@infradead.org>
+ <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
+ <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
+ <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
+ <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
+ <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+ <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+ <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+ <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+ <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
+Date: Thu, 29 Mar 2018 09:45:23 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180328135030.7116-6-hverkuil@xs4all.nl>
+In-Reply-To: <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-I think it'd be easier to review the code if it was a part of the previous
-patch. It's so closely related to what's being done there.
 
-On Wed, Mar 28, 2018 at 03:50:06PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 29/03/18 05:44 AM, Christian König wrote:
+> Am 28.03.2018 um 21:53 schrieb Logan Gunthorpe:
+>>
+>> On 28/03/18 01:44 PM, Christian König wrote:
+>>> Well, isn't that exactly what dma_map_resource() is good for? As far as
+>>> I can see it makes sure IOMMU is aware of the access route and
+>>> translates a CPU address into a PCI Bus address.
+>>> I'm using that with the AMD IOMMU driver and at least there it works
+>>> perfectly fine.
+>> Yes, it would be nice, but no arch has implemented this yet. We are just
+>> lucky in the x86 case because that arch is simple and doesn't need to do
+>> anything for P2P (partially due to the Bus and CPU addresses being the
+>> same). But in the general case, you can't rely on it.
 > 
-> Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
-> ioctls.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/media-request.c | 80 +++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 78 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index 8135d9d32af9..3ee3b27fd644 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -105,10 +105,86 @@ static unsigned int media_request_poll(struct file *filp,
->  	return 0;
->  }
->  
-> +static long media_request_ioctl_queue(struct media_request *req)
-> +{
-> +	struct media_device *mdev = req->mdev;
-> +	unsigned long flags;
-> +	int ret = 0;
-> +
-> +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (req->state != MEDIA_REQUEST_STATE_IDLE) {
-> +		dev_dbg(mdev->dev,
-> +			"request: unable to queue %s, request in state %s\n",
-> +			req->debug_str, media_request_state_str(req->state));
+> Well, that an arch hasn't implemented it doesn't mean that we don't have 
+> the right interface to do it.
 
-You could print the message after releasing the spinlock. Maybe store the
-request state locally first?
+Yes, but right now we don't have a performant way to check if we are
+doing P2P or not in the dma_map_X() wrappers. And this is necessary to
+check if the DMA ops in use support it or not. We can't have the
+dma_map_X() functions do the wrong thing because they don't support it yet.
 
-> +		spin_unlock_irqrestore(&req->lock, flags);
-> +		return -EINVAL;
-> +	}
-> +	req->state = MEDIA_REQUEST_STATE_QUEUEING;
-> +
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	/*
-> +	 * Ensure the request that is validated will be the one that gets queued
-> +	 * next by serialising the queueing process.
-> +	 */
-> +	mutex_lock(&mdev->req_queue_mutex);
-> +
-> +	ret = mdev->ops->req_queue(req);
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->state = ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +	mutex_unlock(&mdev->req_queue_mutex);
-> +
-> +	if (ret) {
-> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-> +			req->debug_str, ret);
-> +	} else {
-> +		media_request_get(req);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static long media_request_ioctl_reinit(struct media_request *req)
-> +{
-> +	struct media_device *mdev = req->mdev;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (req->state != MEDIA_REQUEST_STATE_IDLE &&
-> +	    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
-> +		dev_dbg(mdev->dev,
-> +			"request: %s not in idle or complete state, cannot reinit\n",
-> +			req->debug_str);
-> +		spin_unlock_irqrestore(&req->lock, flags);
-> +		return -EINVAL;
-> +	}
-> +	req->state = MEDIA_REQUEST_STATE_CLEANING;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	media_request_clean(req);
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> +	spin_unlock_irqrestore(&req->lock, flags);
+> Devices integrated in the CPU usually only "claim" to be PCIe devices. 
+> In reality their memory request path go directly through the integrated 
+> north bridge. The reason for this is simple better throughput/latency.
 
-Newline?
+These are just more reasons why our patchset restricts to devices behind
+a switch. And more mess for someone to deal with if they need to relax
+that restriction.
 
-> +	return 0;
-> +}
-> +
->  static long media_request_ioctl(struct file *filp, unsigned int cmd,
-> -				unsigned long __arg)
-> +				unsigned long arg)
-
-This belongs to the patch adding media_request_ioctl().
-
->  {
-> -	return -ENOIOCTLCMD;
-> +	struct media_request *req = filp->private_data;
-> +
-> +	switch (cmd) {
-> +	case MEDIA_REQUEST_IOC_QUEUE:
-> +		return media_request_ioctl_queue(req);
-> +	case MEDIA_REQUEST_IOC_REINIT:
-> +		return media_request_ioctl_reinit(req);
-> +	default:
-> +		return -ENOIOCTLCMD;
-> +	}
->  }
->  
->  static const struct file_operations request_fops = {
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Logan
