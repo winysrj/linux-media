@@ -1,74 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out4.electric.net ([192.162.216.181]:57801 "EHLO
-        smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752395AbeCMMhm (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:43285 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752129AbeC2OzO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 08:37:42 -0400
-From: David Laight <David.Laight@ACULAB.COM>
-To: "'kieran.bingham@ideasonboard.com'" <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH 02/11] media: vsp1: use kernel __packed for structures
-Date: Tue, 13 Mar 2018 12:38:33 +0000
-Message-ID: <554b73e9ee2d43b19ac42ee380b7d160@AcuMS.aculab.com>
-References: <cover.50cd35ac550b4477f13fb4f3fbd3ffb6bcccfc8a.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
- <767c4c9f6aa4799a58f0979b318208f1d3e27860.1520632434.git-series.kieran.bingham+renesas@ideasonboard.com>
- <b58ff7ec7f7246498325e74b31ba3664@AcuMS.aculab.com>
- <8513c264-103f-94c8-cc46-972412d13da5@ideasonboard.com>
-In-Reply-To: <8513c264-103f-94c8-cc46-972412d13da5@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Thu, 29 Mar 2018 10:55:14 -0400
+Received: by mail-pg0-f67.google.com with SMTP id i124so3207395pgc.10
+        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2018 07:55:14 -0700 (PDT)
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+To: slongerbeam@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: todor.tomov@linaro.org, nicolas.dechesne@linaro.org,
+        dragonboard@lists.96boards.org, loic.poulain@linaro.org,
+        daniel.thompson@linaro.org,
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Subject: [RESEND PATCH] media: i2c: ov5640: Add pixel clock support
+Date: Thu, 29 Mar 2018 20:25:00 +0530
+Message-Id: <1522335300-13467-2-git-send-email-manivannan.sadhasivam@linaro.org>
+In-Reply-To: <1522335300-13467-1-git-send-email-manivannan.sadhasivam@linaro.org>
+References: <1522335300-13467-1-git-send-email-manivannan.sadhasivam@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RnJvbTogS2llcmFuIEJpbmdoYW0gW21haWx0bzpraWVyYW4uYmluZ2hhbStyZW5lc2FzQGlkZWFz
-b25ib2FyZC5jb21dDQo+IE9uIDEzLzAzLzE4IDExOjIwLCBEYXZpZCBMYWlnaHQgd3JvdGU6DQo+
-ID4gRnJvbTogS2llcmFuIEJpbmdoYW0NCj4gPj4gU2VudDogMDkgTWFyY2ggMjAxOCAyMjowNA0K
-PiA+PiBUaGUga2VybmVsIHByb3ZpZGVzIGEgX19wYWNrZWQgZGVmaW5pdGlvbiB0byBhYnN0cmFj
-dCBhd2F5IGZyb20gdGhlDQo+ID4+IGNvbXBpbGVyIHNwZWNpZmljIGF0dHJpYnV0ZXMgdGFnLg0K
-PiA+Pg0KPiA+PiBDb252ZXJ0IGFsbCBwYWNrZWQgc3RydWN0dXJlcyBpbiBWU1AxIHRvIHVzZSBp
-dC4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogS2llcmFuIEJpbmdoYW0gPGtpZXJhbi5iaW5n
-aGFtK3JlbmVzYXNAaWRlYXNvbmJvYXJkLmNvbT4NCj4gPj4gLS0tDQo+ID4+ICBkcml2ZXJzL21l
-ZGlhL3BsYXRmb3JtL3ZzcDEvdnNwMV9kbC5jIHwgNiArKystLS0NCj4gPj4gIDEgZmlsZSBjaGFu
-Z2VkLCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+ID4+DQo+ID4+IGRpZmYgLS1n
-aXQgYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3ZzcDEvdnNwMV9kbC5jIGIvZHJpdmVycy9tZWRp
-YS9wbGF0Zm9ybS92c3AxL3ZzcDFfZGwuYw0KPiA+PiBpbmRleCAzN2UyYzk4NGZiZjMuLjM4MmU0
-NWMyMDU0ZSAxMDA2NDQNCj4gPj4gLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS92c3AxL3Zz
-cDFfZGwuYw0KPiA+PiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3ZzcDEvdnNwMV9kbC5j
-DQo+ID4+IEBAIC0yOSwxOSArMjksMTkgQEANCj4gPj4gIHN0cnVjdCB2c3AxX2RsX2hlYWRlcl9s
-aXN0IHsNCj4gPj4gIAl1MzIgbnVtX2J5dGVzOw0KPiA+PiAgCXUzMiBhZGRyOw0KPiA+PiAtfSBf
-X2F0dHJpYnV0ZV9fKChfX3BhY2tlZF9fKSk7DQo+ID4+ICt9IF9fcGFja2VkOw0KPiA+Pg0KPiA+
-PiAgc3RydWN0IHZzcDFfZGxfaGVhZGVyIHsNCj4gPj4gIAl1MzIgbnVtX2xpc3RzOw0KPiA+PiAg
-CXN0cnVjdCB2c3AxX2RsX2hlYWRlcl9saXN0IGxpc3RzWzhdOw0KPiA+PiAgCXUzMiBuZXh0X2hl
-YWRlcjsNCj4gPj4gIAl1MzIgZmxhZ3M7DQo+ID4+IC19IF9fYXR0cmlidXRlX18oKF9fcGFja2Vk
-X18pKTsNCj4gPj4gK30gX19wYWNrZWQ7DQo+ID4+DQo+ID4+ICBzdHJ1Y3QgdnNwMV9kbF9lbnRy
-eSB7DQo+ID4+ICAJdTMyIGFkZHI7DQo+ID4+ICAJdTMyIGRhdGE7DQo+ID4+IC19IF9fYXR0cmli
-dXRlX18oKF9fcGFja2VkX18pKTsNCj4gPj4gK30gX19wYWNrZWQ7DQo+ID4NCj4gPiBEbyB0aGVz
-ZSBzdHJ1Y3R1cmVzIGV2ZXIgYWN0dWFsbHkgYXBwZWFyIGluIG1pc2FsaWduZWQgbWVtb3J5Pw0K
-PiA+IElmIHRoZXkgZG9uJ3QgdGhlbiB0aGV5IHNob3VsZG4ndCBiZSBtYXJrZWQgJ3BhY2tlZCcu
-DQo+IA0KPiBJIGJlbGlldmUgdGhlIGRlY2xhcmF0aW9uIGlzIHRvIGVuc3VyZSB0aGF0IHRoZSBz
-dHJ1Y3QgZGVmaW5pdGlvbiBpcyBub3QgYWx0ZXJlZA0KPiBieSB0aGUgY29tcGlsZXIgYXMgdGhl
-c2Ugc3RydWN0dXJlcyBzcGVjaWZpY2FsbHkgZGVmaW5lIHRoZSBsYXlvdXQgb2YgaG93IHRoZQ0K
-PiBtZW1vcnkgaXMgcmVhZCBieSB0aGUgVlNQMSBoYXJkd2FyZS4NCg0KVGhlIEMgbGFuZ3VhZ2Ug
-YW5kIEFCSSBkZWZpbmUgc3RydWN0dXJlIGxheW91dHMuDQoNCj4gQ2VydGFpbmx5IDIgdTMyJ3Mg
-c2VxdWVudGlhbGx5IHN0b3JlZCBpbiBhIHN0cnVjdCBhcmUgdW5saWtlbHkgdG8gYmUgbW92ZWQg
-b3INCj4gcmVhcnJhbmdlZCBieSB0aGUgY29tcGlsZXIgKHRob3VnaCBJIGJlbGlldmUgaXQgd291
-bGQgYmUgZnJlZSB0byBkbyBzbyBpZiBpdA0KPiBjaG9zZSB3aXRob3V0IHRoaXMgYXR0cmlidXRl
-KSwgYnV0IEkgdGhpbmsgdGhlIGRlY2xhcmF0aW9uIHNob3dzIHRoZSBpbnRlbnQgb2YNCj4gdGhl
-IG1lbW9yeSBzdHJ1Y3R1cmUuDQoNClRoZSBsYW5ndWFnZSByZXF1aXJlcyB0aGUgZmllbGRzIGJl
-IGluIG9yZGVyIGFuZCB0aGUgQUJJIHN0b3BzIHRoZSBjb21waWxlcg0KYWRkaW5nICdyYW5kb20n
-IHBhZGRpbmcuDQoNCj4gSXNuJ3QgdGhpcyBhIGNvbW1vbiBhcHByb2FjaCB0aHJvdWdob3V0IHRo
-ZSBrZXJuZWwgd2hlbiBkZWFsaW5nIHdpdGggaGFyZHdhcmUNCj4gZGVmaW5lZCBtZW1vcnkgc3Ry
-dWN0dXJlcyA/DQoNCkFic29sdXRlbHkgbm90Lg0KX19wYWNrZWQgdGVsbHMgdGhlIGNvbXBpbGVy
-IHRoYXQgdGhlIHN0cnVjdHVyZSBtaWdodCBiZSBvbiBhbnkgYWRkcmVzcyBib3VuZGFyeS4NCk9u
-IG1hbnkgYXJjaGl0ZWN0dXJlcyB0aGlzIG1lYW5zIHRoZSBjb21waWxlciBtdXN0IHVzZSBieXRl
-IGFjY2Vzc2VzIHdpdGggc2hpZnRzDQphbmQgb3JzIGZvciBldmVyeSBhY2Nlc3MuDQpUaGUgbW9z
-dCBhIGhhcmR3YXJlIGRlZmluZWQgc3RydWN0dXJlIHdpbGwgaGF2ZSBpcyBhIGNvbXBpbGUtdGlt
-ZSBhc3NlcnQNCnRoYXQgaXQgaXMgdGhlIGNvcnJlY3Qgc2l6ZSAodG8gYXZvaWQgc2lsbHkgZXJy
-b3JzIGZyb20gY2hhbmdlcykuDQoNCglEYXZpZA0KDQo=
+Some of the camera subsystems like camss in Qualcommm MSM chipsets
+require pixel clock support in camera sensor drivers. So, this commit
+adds a default pixel clock rate of 96MHz to OV5640 camera sensor driver.
+
+According to the datasheet, 96MHz can be used as a pixel clock rate for
+most of the modes.
+
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+---
+ drivers/media/i2c/ov5640.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 39a2269..7152c84 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -162,6 +162,7 @@ struct ov5640_ctrls {
+ 		struct v4l2_ctrl *auto_gain;
+ 		struct v4l2_ctrl *gain;
+ 	};
++	struct v4l2_ctrl *pixel_clock;
+ 	struct v4l2_ctrl *brightness;
+ 	struct v4l2_ctrl *saturation;
+ 	struct v4l2_ctrl *contrast;
+@@ -2009,6 +2010,9 @@ static int ov5640_init_controls(struct ov5640_dev *sensor)
+ 	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN,
+ 					0, 1023, 1, 0);
+ 
++	/* Pixel clock (default of 96MHz) */
++	ctrls->pixel_clock = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_PIXEL_RATE,
++					1, INT_MAX, 1, 96000000);
+ 	ctrls->saturation = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION,
+ 					      0, 255, 1, 64);
+ 	ctrls->hue = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_HUE,
+-- 
+2.7.4
