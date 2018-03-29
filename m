@@ -1,163 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:31868 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752246AbeCZVq3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:46:29 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v13 04/33] rcar-vin: rename poorly named initialize and cleanup functions
-Date: Mon, 26 Mar 2018 23:44:27 +0200
-Message-Id: <20180326214456.6655-5-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga04.intel.com ([192.55.52.120]:10789 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752525AbeC2JwS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 05:52:18 -0400
+Date: Thu, 29 Mar 2018 12:52:15 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv9 PATCH 03/29] media-request: allocate media requests
+Message-ID: <20180329095214.cln6q3bqntpprzcs@paasikivi.fi.intel.com>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+ <20180328135030.7116-4-hverkuil@xs4all.nl>
+ <20180329084543.qjlwg3brtfsv27pf@paasikivi.fi.intel.com>
+ <f21d00cf-6b7a-ac8f-4deb-fd25c55e5747@xs4all.nl>
+ <20180329090149.xcck4om3hgn4f6yg@paasikivi.fi.intel.com>
+ <24ff3e13-7ad6-4086-2738-1adb43599fa4@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <24ff3e13-7ad6-4086-2738-1adb43599fa4@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions to register and unregister the hardware and video device
-where poorly named from the start. Rename them to better describe their
-intended function.
+Hi Hans,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 10 +++++-----
- drivers/media/platform/rcar-vin/rcar-dma.c  |  6 +++---
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  4 ++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |  8 ++++----
- 4 files changed, 14 insertions(+), 14 deletions(-)
+On Thu, Mar 29, 2018 at 11:16:45AM +0200, Hans Verkuil wrote:
+> On 29/03/18 11:01, Sakari Ailus wrote:
+> > On Thu, Mar 29, 2018 at 10:57:44AM +0200, Hans Verkuil wrote:
+> >> On 29/03/18 10:45, Sakari Ailus wrote:
+> >>> Hi Hans,
+> >>>
+> >>> On Wed, Mar 28, 2018 at 03:50:04PM +0200, Hans Verkuil wrote:
+> >>> ...
+> >>>> @@ -88,6 +96,8 @@ struct media_device_ops {
+> >>>>   * @disable_source: Disable Source Handler function pointer
+> >>>>   *
+> >>>>   * @ops:	Operation handler callbacks
+> >>>> + * @req_lock:	Serialise access to requests
+> >>>> + * @req_queue_mutex: Serialise validating and queueing requests
+> >>>
+> >>> s/validating and//
+> >>>
+> >>> As there's no more a separate validation step. Then,
+> >>
+> >> Well, you validate before queuing. It's not a separate step, but
+> >> part of the queue operation. See patch 23 where this is implemented
+> >> in the vb2_request_helper function.
+> > 
+> > Works for me. I think we'll need the validate op sooner or later anyway.
+> > 
+> 
+> 
+> There is one. Request objects have prepare, unprepare and queue ops.
+> 
+> The request req_queue op will prepare all objects, and only queue if the
+> prepare (aka validate) step succeeds for all objects. If not, then the
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index f1fc7978d6d1523d..2bedf20abcf3ca07 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -93,7 +93,7 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
- 
--	return rvin_v4l2_probe(vin);
-+	return rvin_v4l2_register(vin);
- }
- 
- static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
-@@ -103,7 +103,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
- 
- 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
--	rvin_v4l2_remove(vin);
-+	rvin_v4l2_unregister(vin);
- 	vin->digital->subdev = NULL;
- }
- 
-@@ -245,7 +245,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (irq < 0)
- 		return irq;
- 
--	ret = rvin_dma_probe(vin, irq);
-+	ret = rvin_dma_register(vin, irq);
- 	if (ret)
- 		return ret;
- 
-@@ -260,7 +260,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 
- 	return 0;
- error:
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
- 	return ret;
-@@ -275,7 +275,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 4a40e6ad1be7ed95..2aae3ca54eabac01 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1087,14 +1087,14 @@ static const struct vb2_ops rvin_qops = {
- 	.wait_finish		= vb2_ops_wait_finish,
- };
- 
--void rvin_dma_remove(struct rvin_dev *vin)
-+void rvin_dma_unregister(struct rvin_dev *vin)
- {
- 	mutex_destroy(&vin->lock);
- 
- 	v4l2_device_unregister(&vin->v4l2_dev);
- }
- 
--int rvin_dma_probe(struct rvin_dev *vin, int irq)
-+int rvin_dma_register(struct rvin_dev *vin, int irq)
- {
- 	struct vb2_queue *q = &vin->queue;
- 	int i, ret;
-@@ -1142,7 +1142,7 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
- 
- 	return 0;
- error:
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b479b882da12f62d..178aecc94962abe2 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -839,7 +839,7 @@ static const struct v4l2_file_operations rvin_fops = {
- 	.read		= vb2_fop_read,
- };
- 
--void rvin_v4l2_remove(struct rvin_dev *vin)
-+void rvin_v4l2_unregister(struct rvin_dev *vin)
- {
- 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
- 		  video_device_node_name(&vin->vdev));
-@@ -866,7 +866,7 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
- }
- 
--int rvin_v4l2_probe(struct rvin_dev *vin)
-+int rvin_v4l2_register(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 95897127cc410d4f..385243e3d4da130b 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -153,11 +153,11 @@ struct rvin_dev {
- #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
- #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
- 
--int rvin_dma_probe(struct rvin_dev *vin, int irq);
--void rvin_dma_remove(struct rvin_dev *vin);
-+int rvin_dma_register(struct rvin_dev *vin, int irq);
-+void rvin_dma_unregister(struct rvin_dev *vin);
- 
--int rvin_v4l2_probe(struct rvin_dev *vin);
--void rvin_v4l2_remove(struct rvin_dev *vin);
-+int rvin_v4l2_register(struct rvin_dev *vin);
-+void rvin_v4l2_unregister(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
+You can't validate the objects in a request separately from other objects
+in it, the validation needs to happen at the request level. There are two
+reasons for this:
+
+- The objects in a request must be compatible with all other objects in the
+  request and
+
+- The request must contain the required objects in order to be valid ---
+  e.g. for a device producing multiple capture buffers from one output
+  buffer, the output buffer is mandatory whereas one or more of the capture
+  buffers are not.
+
+The latter could presumably be implemented separately for each object but
+then the driver needs to go fishing for the related objects which may not
+be very efficient.
+
+What I'm proposing is to put this at the level of a request, at least for
+now.
+
 -- 
-2.16.2
+Sakari Ailus
+sakari.ailus@linux.intel.com
