@@ -1,81 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:40318 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932965AbeCMLdZ (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:40494 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750946AbeC2I5r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Mar 2018 07:33:25 -0400
-Received: by mail-wr0-f193.google.com with SMTP id m4so8830333wrb.7
-        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2018 04:33:25 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH v3 1/2] media: ov2680: dt: Add bindings for OV2680
-Date: Tue, 13 Mar 2018 11:33:10 +0000
-Message-Id: <20180313113311.8617-2-rui.silva@linaro.org>
-In-Reply-To: <20180313113311.8617-1-rui.silva@linaro.org>
-References: <20180313113311.8617-1-rui.silva@linaro.org>
+        Thu, 29 Mar 2018 04:57:47 -0400
+Subject: Re: [RFCv9 PATCH 03/29] media-request: allocate media requests
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+ <20180328135030.7116-4-hverkuil@xs4all.nl>
+ <20180329084543.qjlwg3brtfsv27pf@paasikivi.fi.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f21d00cf-6b7a-ac8f-4deb-fd25c55e5747@xs4all.nl>
+Date: Thu, 29 Mar 2018 10:57:44 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180329084543.qjlwg3brtfsv27pf@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV2680 camera sensor.
+On 29/03/18 10:45, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Wed, Mar 28, 2018 at 03:50:04PM +0200, Hans Verkuil wrote:
+> ...
+>> @@ -88,6 +96,8 @@ struct media_device_ops {
+>>   * @disable_source: Disable Source Handler function pointer
+>>   *
+>>   * @ops:	Operation handler callbacks
+>> + * @req_lock:	Serialise access to requests
+>> + * @req_queue_mutex: Serialise validating and queueing requests
+> 
+> s/validating and//
+> 
+> As there's no more a separate validation step. Then,
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-CC: devicetree@vger.kernel.org
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- .../devicetree/bindings/media/i2c/ov2680.txt       | 40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
+Well, you validate before queuing. It's not a separate step, but
+part of the queue operation. See patch 23 where this is implemented
+in the vb2_request_helper function.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-new file mode 100644
-index 000000000000..0e29f1a113c0
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-@@ -0,0 +1,40 @@
-+* Omnivision OV2680 MIPI CSI-2 sensor
-+
-+Required Properties:
-+- compatible: should be "ovti,ov2680".
-+- clocks: reference to the xvclk input clock.
-+- clock-names: should be "xvclk".
-+
-+Optional Properties:
-+- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-+		     if any. This is an active high signal to the OV2680.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, and this port must have a single endpoint in accordance with
-+ the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Endpoint node required properties for CSI-2 connection are:
-+- remote-endpoint: a phandle to the bus receiver's endpoint node.
-+- clock-lanes: should be set to <0> (clock lane on hardware lane 0).
-+- data-lanes: should be set to <1> (one CSI-2 lane supported).
-+ 
-+Example:
-+
-+&i2c2 {
-+	ov2680: camera-sensor@36 {
-+		compatible = "ovti,ov2680";
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov2680_mipi_ep: endpoint {
-+				remote-endpoint = <&mipi_sensor_ep>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
-+};
--- 
-2.16.2
+Regards,
+
+	Hans
+
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
