@@ -1,87 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:33623 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752046AbeC0PRC (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:18777 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750708AbeC2Gj5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Mar 2018 11:17:02 -0400
-Received: by mail-pl0-f67.google.com with SMTP id c11-v6so14276617plo.0
-        for <linux-media@vger.kernel.org>; Tue, 27 Mar 2018 08:17:01 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, hiranotaka@zng.info,
-        Akihiro Tsukada <tskd08@gmail.com>, kraxel@bytesex.org
-Subject: [PATCH 1/5] dvb-frontends/dvb-pll: add tda6651 ISDB-T pll_desc
-Date: Wed, 28 Mar 2018 00:15:58 +0900
-Message-Id: <20180327151602.12250-2-tskd08@gmail.com>
-In-Reply-To: <20180327151602.12250-1-tskd08@gmail.com>
-References: <20180327151602.12250-1-tskd08@gmail.com>
+        Thu, 29 Mar 2018 02:39:57 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset="UTF-8"
+Message-id: <5ABC8A3A.5030602@samsung.com>
+Date: Thu, 29 Mar 2018 15:39:54 +0900
+From: Inki Dae <inki.dae@samsung.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Brian Warner <brian.warner@samsung.com>
+Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
+ 3.18
+In-reply-to: <20180329042558.GA9003@kroah.com>
+References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
+        <cover.1522260310.git.mchehab@s-opensource.com> <5ABC23A0.20907@samsung.com>
+        <20180329042558.GA9003@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
 
-This patch adds a PLL "description" of Philips TDA6651 for ISDB-T.
-It was extracted from (the former) va1j5jf8007t.c of EarthSoft PT1,
-thus the desc might include PT1 specific configs.
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- drivers/media/dvb-frontends/dvb-pll.c | 23 +++++++++++++++++++++++
- drivers/media/dvb-frontends/dvb-pll.h |  1 +
- 2 files changed, 24 insertions(+)
+2018년 03월 29일 13:25에 Greg KH 이(가) 쓴 글:
+> On Thu, Mar 29, 2018 at 08:22:08AM +0900, Inki Dae wrote:
+>> Really thanks for doing this. :) There would be many users who use
+>> Linux-3.18 for their products yet.
+> 
+> For new products?  They really should not be.  The kernel is officially
 
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
-index 76c091b2cb1..ba1dc3d1641 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -550,6 +550,28 @@ static const struct dvb_pll_desc dvb_pll_tua6034_friio = {
- 	}
- };
- 
-+/* Philips TDA6651 ISDB-T, used in Earthsoft PT1 */
-+static const struct dvb_pll_desc dvb_pll_tda665x_earth_pt1 = {
-+	.name   = "Philips TDA6651 ISDB-T (EarthSoft PT1)",
-+	.min    =  90000000,
-+	.max    = 770000000,
-+	.iffreq =  57000000,
-+	.initdata = (u8[]){ 5, 0x0e, 0x7f, 0xc1, 0x80, 0x80 },
-+	.count = 10,
-+	.entries = {
-+		{ 140000000, 142857, 0xc1, 0x81 },
-+		{ 170000000, 142857, 0xc1, 0xa1 },
-+		{ 220000000, 142857, 0xc1, 0x62 },
-+		{ 330000000, 142857, 0xc1, 0xa2 },
-+		{ 402000000, 142857, 0xc1, 0xe2 },
-+		{ 450000000, 142857, 0xc1, 0x64 },
-+		{ 550000000, 142857, 0xc1, 0x84 },
-+		{ 600000000, 142857, 0xc1, 0xa4 },
-+		{ 700000000, 142857, 0xc1, 0xc4 },
-+		{ 770000000, 142857, 0xc1, 0xe4 },
-+	}
-+};
-+
- /* ----------------------------------------------------------- */
- 
- static const struct dvb_pll_desc *pll_list[] = {
-@@ -574,6 +596,7 @@ static const struct dvb_pll_desc *pll_list[] = {
- 	[DVB_PLL_SAMSUNG_TBDU18132]	 = &dvb_pll_samsung_tbdu18132,
- 	[DVB_PLL_SAMSUNG_TBMU24112]      = &dvb_pll_samsung_tbmu24112,
- 	[DVB_PLL_TUA6034_FRIIO]          = &dvb_pll_tua6034_friio,
-+	[DVB_PLL_TDA665X_EARTH_PT1]      = &dvb_pll_tda665x_earth_pt1,
- };
- 
- /* ----------------------------------------------------------- */
-diff --git a/drivers/media/dvb-frontends/dvb-pll.h b/drivers/media/dvb-frontends/dvb-pll.h
-index f1f3ea4c0d5..41b3df36212 100644
---- a/drivers/media/dvb-frontends/dvb-pll.h
-+++ b/drivers/media/dvb-frontends/dvb-pll.h
-@@ -30,6 +30,7 @@
- #define DVB_PLL_TDEE4		       18
- #define DVB_PLL_THOMSON_DTT7520X       19
- #define DVB_PLL_TUA6034_FRIIO          20
-+#define DVB_PLL_TDA665X_EARTH_PT1      21
- 
- struct dvb_pll_config {
- 	struct dvb_frontend *fe;
--- 
-2.16.3
+Really no. Old products would still be using Linux-3.18 kernel without kernel upgrade. For new product, most of SoC vendors will use Linux-4.x including us.
+Actually, we are preparing for kernel upgrade for some devices even some old devices (to Linux-4.14-LTS) and almost done.
+
+> end-of-life, but I'm keeping it alive for a short while longer just
+> because too many people seem to still be using it.  However, they are
+> not actually updating the kernel in their devices, so I don't think I
+> will be doing many more new 3.18.y releases.
+> 
+> It's a problem when people ask for support, and then don't use the
+> releases given to them :(
+> 
+> What is keeping you on 3.18.y and not allowing you to move to a newer
+> kernel version?
+
+We also want to move to latest kernel version. However, there is a case that we cannot upgrade the kernel.
+In case that SoC vendor never share firmwares and relevant data sheets, we cannot upgrade the kernel. However, we have to resolve the security issues for users of this device.
+
+Thanks,
+Inki Dae
+
+> 
+> thanks,
+> 
+> greg k-h
+> 
+> 
+> 
