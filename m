@@ -1,176 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:45637 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935004AbeCGUIA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2018 15:08:00 -0500
-Received: by mail-wr0-f196.google.com with SMTP id p104so3419905wrc.12
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2018 12:07:59 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 2/2] [media] ngene: use common DVB I2C client handling helpers
-Date: Wed,  7 Mar 2018 21:07:56 +0100
-Message-Id: <20180307200756.7078-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20180307200756.7078-1-d.scheller.oss@gmail.com>
-References: <20180307200756.7078-1-d.scheller.oss@gmail.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:33590 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750820AbeC2Jcr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 05:32:47 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset="utf-8"
+Message-id: <5ABCB2BC.6050408@samsung.com>
+Date: Thu, 29 Mar 2018 18:32:44 +0900
+From: Inki Dae <inki.dae@samsung.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Brian Warner <brian.warner@samsung.com>
+Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
+ 3.18
+In-reply-to: <20180329070045.GA8759@kroah.com>
+References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
+        <cover.1522260310.git.mchehab@s-opensource.com> <5ABC23A0.20907@samsung.com>
+        <20180329042558.GA9003@kroah.com> <5ABC8A3A.5030602@samsung.com>
+        <20180329070045.GA8759@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-Like in ddbridge, get rid of all duplicated I2C client handling constructs
-and rather make use of the newly added dvb_module_*() helpers. Makes
-things more clean and removes the (cosmetic) need for some variables.
 
-The check on a valid ptr on ci->en isn't really needed since the cxd2099
-driver will set	it at a	time where it is going to return successfully
-from probing.
+2018년 03월 29일 16:00에 Greg KH 이(가) 쓴 글:
+> On Thu, Mar 29, 2018 at 03:39:54PM +0900, Inki Dae wrote:
+>> 2018년 03월 29일 13:25에 Greg KH 이(가) 쓴 글:
+>>> On Thu, Mar 29, 2018 at 08:22:08AM +0900, Inki Dae wrote:
+>>>> Really thanks for doing this. :) There would be many users who use
+>>>> Linux-3.18 for their products yet.
+>>>
+>>> For new products?  They really should not be.  The kernel is officially
+>>
+>> Really no. Old products would still be using Linux-3.18 kernel without
+>> kernel upgrade. For new product, most of SoC vendors will use
+>> Linux-4.x including us.
+>> Actually, we are preparing for kernel upgrade for some devices even
+>> some old devices (to Linux-4.14-LTS) and almost done.
+> 
+> That is great to hear.
+> 
+>>> What is keeping you on 3.18.y and not allowing you to move to a newer
+>>> kernel version?
+>>
+>> We also want to move to latest kernel version. However, there is a case that we cannot upgrade the kernel.
+>> In case that SoC vendor never share firmwares and relevant data
+>> sheets, we cannot upgrade the kernel. However, we have to resolve the
+>> security issues for users of this device.
+> 
+> It sounds like you need to be getting those security updates from those
+> SoC vendors, as they are the ones you are paying for support for that
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
-V2:
-* pass NULL as (optional) I2C name when calling dvb_module_probe()
+It's true but some open source developers like me who use vendor kernel without vendor's support will never get the security updates from them.
+So if you merge CVE patches even through this kernel is already EOL then many open source developers would be glad. :)
 
- drivers/media/pci/ngene/ngene-cards.c | 25 ++++----------------
- drivers/media/pci/ngene/ngene-core.c  | 43 ++++++++---------------------------
- 2 files changed, 15 insertions(+), 53 deletions(-)
+Thanks,
+Inki Dae
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 37e9f0eb6d20..65fc8f23ad86 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -253,15 +253,7 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
- 		.if_dvbt2_8 = 4000,
- 		.if_dvbc = 5000,
- 	};
--	struct i2c_board_info board_info = {
--		.type = "tda18212",
--		.platform_data = &config,
--	};
--
--	if (chan->number & 1)
--		board_info.addr = 0x63;
--	else
--		board_info.addr = 0x60;
-+	u8 addr = (chan->number & 1) ? 0x63 : 0x60;
- 
- 	/*
- 	 * due to a hardware quirk with the I2C gate on the stv0367+tda18212
-@@ -269,20 +261,13 @@ static int tuner_attach_tda18212(struct ngene_channel *chan, u32 dmdtype)
- 	 * cold started, or it very likely will fail.
- 	 */
- 	if (dmdtype == DEMOD_TYPE_STV0367)
--		tuner_tda18212_ping(chan, i2c, board_info.addr);
--
--	request_module(board_info.type);
-+		tuner_tda18212_ping(chan, i2c, addr);
- 
--	/* perform tuner init/attach */
--	client = i2c_new_device(i2c, &board_info);
--	if (!client || !client->dev.driver)
-+	/* perform tuner probe/init/attach */
-+	client = dvb_module_probe("tda18212", NULL, i2c, addr, &config);
-+	if (!client)
- 		goto err;
- 
--	if (!try_module_get(client->dev.driver->owner)) {
--		i2c_unregister_device(client);
--		goto err;
--	}
--
- 	chan->i2c_client[0] = client;
- 	chan->i2c_client_fe = 1;
- 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index f69a8fc1ec2a..3b9a1bfaf6c0 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1408,7 +1408,6 @@ static void release_channel(struct ngene_channel *chan)
- {
- 	struct dvb_demux *dvbdemux = &chan->demux;
- 	struct ngene *dev = chan->dev;
--	struct i2c_client *client;
- 
- 	if (chan->running)
- 		set_transfer(chan, 0);
-@@ -1427,12 +1426,9 @@ static void release_channel(struct ngene_channel *chan)
- 		dvb_unregister_frontend(chan->fe);
- 
- 		/* release I2C client (tuner) if needed */
--		client = chan->i2c_client[0];
--		if (chan->i2c_client_fe && client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
-+		if (chan->i2c_client_fe) {
-+			dvb_module_release(chan->i2c_client[0]);
- 			chan->i2c_client[0] = NULL;
--			client = NULL;
- 		}
- 
- 		dvb_frontend_detach(chan->fe);
-@@ -1584,11 +1580,6 @@ static void cxd_attach(struct ngene *dev)
- 	struct ngene_ci *ci = &dev->ci;
- 	struct cxd2099_cfg cxd_cfg = cxd_cfgtmpl;
- 	struct i2c_client *client;
--	struct i2c_board_info board_info = {
--		.type = "cxd2099",
--		.addr = 0x40,
--		.platform_data = &cxd_cfg,
--	};
- 	int ret;
- 	u8 type;
- 
-@@ -1605,26 +1596,17 @@ static void cxd_attach(struct ngene *dev)
- 	}
- 
- 	cxd_cfg.en = &ci->en;
--
--	request_module(board_info.type);
--
--	client = i2c_new_device(&dev->channel[0].i2c_adapter, &board_info);
--	if (!client || !client->dev.driver)
--		goto err_ret;
--
--	if (!try_module_get(client->dev.driver->owner))
--		goto err_i2c;
--
--	if (!ci->en)
--		goto err_i2c;
-+	client = dvb_module_probe("cxd2099", NULL,
-+				  &dev->channel[0].i2c_adapter,
-+				  0x40, &cxd_cfg);
-+	if (!client)
-+		goto err;
- 
- 	ci->dev = dev;
- 	dev->channel[0].i2c_client[0] = client;
- 	return;
- 
--err_i2c:
--	i2c_unregister_device(client);
--err_ret:
-+err:
- 	dev_err(pdev, "CXD2099AR attach failed\n");
- 	return;
- }
-@@ -1632,16 +1614,11 @@ static void cxd_attach(struct ngene *dev)
- static void cxd_detach(struct ngene *dev)
- {
- 	struct ngene_ci *ci = &dev->ci;
--	struct i2c_client *client;
- 
- 	dvb_ca_en50221_release(ci->en);
- 
--	client = dev->channel[0].i2c_client[0];
--	if (client) {
--		module_put(client->dev.driver->owner);
--		i2c_unregister_device(client);
--	}
--
-+	dvb_module_release(dev->channel[0].i2c_client[0]);
-+	dev->channel[0].i2c_client[0] = NULL;
- 	ci->en = NULL;
- }
- 
--- 
-2.16.1
+> kernel version that they are forcing you to stay on.
+> 
+> good luck!
+> 
+> greg k-h
+> 
+> 
+> 
