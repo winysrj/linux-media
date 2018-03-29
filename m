@@ -1,53 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46525 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:52483 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751374AbeCZVK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 17:10:56 -0400
+        id S1750732AbeC2Oaa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 10:30:30 -0400
+Date: Thu, 29 Mar 2018 11:30:24 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 01/18] media: r820t: don't crash if attach fails
-Date: Mon, 26 Mar 2018 17:10:34 -0400
-Message-Id: <8548f74ae86b66d041e7505549453fba9fb9e63d.1522098456.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Brian Warner <brian.warner@samsung.com>
+Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
+ 3.18
+Message-ID: <20180329113024.6cc18340@vento.lan>
+In-Reply-To: <5ABC23A0.20907@samsung.com>
+References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
+        <cover.1522260310.git.mchehab@s-opensource.com>
+        <5ABC23A0.20907@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As pointed by smatch:
-	drivers/media/tuners/r820t.c:2374 r820t_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+Em Thu, 29 Mar 2018 08:22:08 +0900
+Inki Dae <inki.dae@samsung.com> escreveu:
 
-The current function with prints error assumes that the attach
-succeeds. So, don't use it in case of failures.
+> Hi Mauro,
+> 
+> 2018년 03월 29일 03:12에 Mauro Carvalho Chehab 이(가) 쓴 글:
+> > Hi Greg,
+> > 
+> > Those are the backports meant to solve CVE-2017-13166 on Kernel 3.18.
+> > 
+> > It contains two v4l2-ctrls fixes that are required to avoid crashes
+> > at the test application.
+> > 
+> > I wrote two patches myself for Kernel 3.18 in order to solve some
+> > issues specific for Kernel 3.18 with aren't needed upstream.
+> > one is actually a one-line change backport. The other one makes
+> > sure that both 32-bits and 64-bits version of some ioctl calls
+> > will return the same value for a reserved field.
+> > 
+> > I noticed an extra bug while testing it, but the bug also hits upstream,
+> > and should be backported all the way down all stable/LTS versions.
+> > So, I'll send it the usual way, after merging upsream.  
+> 
+> Really thanks for doing this. :) There would be many users who use Linux-3.18 for their products yet.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/tuners/r820t.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Anytime!
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index bc9299059f48..3e14b9e2e763 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -20,6 +20,8 @@
- //
- //	RF Gain set/get is not implemented.
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/videodev2.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-@@ -2371,7 +2373,7 @@ struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
- err_no_gate:
- 	mutex_unlock(&r820t_list_mutex);
- 
--	tuner_info("%s: failed=%d\n", __func__, rc);
-+	pr_info("%s: failed=%d\n", __func__, rc);
- 	r820t_release(fe);
- 	return NULL;
- }
--- 
-2.14.3
+Please let me know if you find any issues with those backports.
+
+Regards,
+Mauro
