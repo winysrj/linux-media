@@ -1,260 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-3.mail.aliyun.com ([115.124.20.3]:47285 "EHLO
-        out20-3.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752017AbeCFBwV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2018 20:52:21 -0500
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v9 0/2] Initial Allwinner V3s CSI Support
-Date: Tue,  6 Mar 2018 09:51:10 +0800
-Message-Id: <1520301070-48769-1-git-send-email-yong.deng@magewell.com>
+Received: from mail-wr0-f178.google.com ([209.85.128.178]:44407 "EHLO
+        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752865AbeC2LpC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 07:45:02 -0400
+Reply-To: christian.koenig@amd.com
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
+To: Logan Gunthorpe <logang@deltatee.com>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>
+Cc: linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-2-christian.koenig@amd.com>
+ <20180328123830.GB25060@infradead.org>
+ <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
+ <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
+ <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
+ <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
+ <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+ <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+ <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+ <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+Date: Thu, 29 Mar 2018 13:44:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset add initial support for Allwinner V3s CSI.
+Am 28.03.2018 um 21:53 schrieb Logan Gunthorpe:
+>
+> On 28/03/18 01:44 PM, Christian König wrote:
+>> Well, isn't that exactly what dma_map_resource() is good for? As far as
+>> I can see it makes sure IOMMU is aware of the access route and
+>> translates a CPU address into a PCI Bus address.
+>> I'm using that with the AMD IOMMU driver and at least there it works
+>> perfectly fine.
+> Yes, it would be nice, but no arch has implemented this yet. We are just
+> lucky in the x86 case because that arch is simple and doesn't need to do
+> anything for P2P (partially due to the Bus and CPU addresses being the
+> same). But in the general case, you can't rely on it.
 
-Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-interface and CSI1 is used for parallel interface. This is not
-documented in datasheet but by test and guess.
+Well, that an arch hasn't implemented it doesn't mean that we don't have 
+the right interface to do it.
 
-This patchset implement a v4l2 framework driver and add a binding 
-documentation for it. 
+>>>> Yeah, but not for ours. See if you want to do real peer 2 peer you need
+>>>> to keep both the operation as well as the direction into account.
+>>> Not sure what you are saying here... I'm pretty sure we are doing "real"
+>>> peer 2 peer...
+>>>
+>>>> For example when you can do writes between A and B that doesn't mean
+>>>> that writes between B and A work. And reads are generally less likely to
+>>>> work than writes. etc...
+>>> If both devices are behind a switch then the PCI spec guarantees that A
+>>> can both read and write B and vice versa.
+>> Sorry to say that, but I know a whole bunch of PCI devices which
+>> horrible ignores that.
+> Can you elaborate? As far as the device is concerned it shouldn't know
+> whether a request comes from a peer or from the host. If it does do
+> crazy stuff like that it's well out of spec. It's up to the switch (or
+> root complex if good support exists) to route the request to the device
+> and it's the root complex that tends to be what drops the load requests
+> which causes the asymmetries.
 
-Currently, the driver only support the parallel interface. And has been
-tested with a BT1120 signal which generating from FPGA. The following
-fetures are not support with this patchset:
-  - ISP 
-  - MIPI-CSI2
-  - Master clock for camera sensor
-  - Power regulator for the front end IC
+Devices integrated in the CPU usually only "claim" to be PCIe devices. 
+In reality their memory request path go directly through the integrated 
+north bridge. The reason for this is simple better throughput/latency.
 
-Changes in v9:
-  * Merge the patchs from Maxime:
-    a. Fill dma_pfn_offset to accomodate for the RAM offset
-    b. Reduce the error level
-    c. Pass the sun6i_csi_dev pointer to our helpers
-    d. Don't emit a warning when the configured format isn't found
-    e. Support the YUYV format properly
-    f. Invert the polaritie of all signals
-    g. Expose controls on the v4l2_device
+That is hidden from the software, for example the BIOS just allocates 
+address space for the BARs as if it's a normal PCIe device.
 
-Changes in v8:
-  * Revert to v6 and add 'hack' for PHYS_OFFSET.
+The only crux is when you then do peer2peer your request simply go into 
+nirvana and are not handled by anything because the BARs are only 
+visible from the CPU side of the northbridge.
 
-Changes in v7:
-  * Add 'depends on ARM' in Kconfig to avoid built with non-ARM arch.
+Regards,
+Christian.
 
-Changes in v6:
-  * Add Rob Herring's review tag.
-  * Fix a NULL pointer dereference by picking Maxime Ripard's patch.
-  * Add Maxime Ripard's test tag.
-
-Changes in v5:
-  * Using the new SPDX tags.
-  * Fix MODULE_LICENSE.
-  * Add many default cases and warning messages.
-  * Detail the parallel bus properties
-  * Fix some spelling and syntax mistakes.
-
-Changes in v4:
-  * Deal with the CSI 'INNER QUEUE'.
-    CSI will lookup the next dma buffer for next frame before the
-    the current frame done IRQ triggered. This is not documented
-    but reported by Ondřej Jirman.
-    The BSP code has workaround for this too. It skip to mark the
-    first buffer as frame done for VB2 and pass the second buffer
-    to CSI in the first frame done ISR call. Then in second frame
-    done ISR call, it mark the first buffer as frame done for VB2
-    and pass the third buffer to CSI. And so on. The bad thing is
-    that the first buffer will be written twice and the first frame
-    is dropped even the queued buffer is sufficient.
-    So, I make some improvement here. Pass the next buffer to CSI
-    just follow starting the CSI. In this case, the first frame
-    will be stored in first buffer, second frame in second buffer.
-    This mothed is used to avoid dropping the first frame, it
-    would also drop frame when lacking of queued buffer.
-  * Fix: using a wrong mbus_code when getting the supported formats
-  * Change all fourcc to pixformat
-  * Change some function names
-
-Changes in v3:
-  * Get rid of struct sun6i_csi_ops
-  * Move sun6i-csi to new directory drivers/media/platform/sunxi
-  * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
-  * Use generic fwnode endpoints parser
-  * Only support a single subdev to make things simple
-  * Many complaintion fix
-
-Changes in v2: 
-  * Change sunxi-csi to sun6i-csi
-  * Rebase to media_tree master branch 
-
-Following is the 'v4l2-compliance -s -f' output, I have test this
-with both interlaced and progressive signal:
-
-# ./v4l2-compliance -s -f
-v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
-
-Driver Info:
-        Driver name   : sun6i-video
-        Card type     : sun6i-csi
-        Bus info      : platform:csi
-        Driver version: 4.15.0
-        Capabilities  : 0x84200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK (Not Supported)
-        test MMAP: OK                                     
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-Stream using all formats:
-        test MMAP for Format HM12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV21, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format YU12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format YV12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV16, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-        test MMAP for Format NV61, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-        test MMAP for Format 422P, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-
-Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
-
-Yong Deng (2):
-  dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-  media: V3s: Add support for Allwinner CSI.
-
- .../devicetree/bindings/media/sun6i-csi.txt        |  59 ++
- MAINTAINERS                                        |   8 +
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
- drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 936 +++++++++++++++++++++
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 145 ++++
- .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 759 +++++++++++++++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  53 ++
- 11 files changed, 2171 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
-
--- 
-1.8.3.1
+>
+> Logan
+> _______________________________________________
+> amd-gfx mailing list
+> amd-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/amd-gfx
