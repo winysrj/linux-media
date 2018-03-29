@@ -1,51 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:40873 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751642AbeCHSVr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2018 13:21:47 -0500
-Received: by mail-pg0-f66.google.com with SMTP id g8so2530201pgv.7
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2018 10:21:47 -0800 (PST)
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-To: linux-media@vger.kernel.org
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-Subject: [PATCH v5 0/2] media: video-i2c: add video-i2c driver support
-Date: Thu,  8 Mar 2018 10:21:39 -0800
-Message-Id: <20180308182141.28997-1-matt.ranostay@konsulko.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40827 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750709AbeC2HAU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 03:00:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 05/15] v4l: vsp1: Use vsp1_entity.pipe to check if entity belongs to a pipeline
+Date: Thu, 29 Mar 2018 10:00:20 +0300
+Message-ID: <2041570.l3A1qxLKyO@avalon>
+In-Reply-To: <7198a828-35da-6080-7987-ee0370cbba3c@ideasonboard.com>
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com> <20180226214516.11559-6-laurent.pinchart+renesas@ideasonboard.com> <7198a828-35da-6080-7987-ee0370cbba3c@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for video-i2c polling driver
+Hi Kieran,
 
-Changes from v1:
-* Switch to SPDX tags versus GPLv2 license text
-* Remove unneeded zeroing of data structures
-* Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
+On Wednesday, 28 March 2018 17:10:10 EEST Kieran Bingham wrote:
+> On 26/02/18 21:45, Laurent Pinchart wrote:
+> > The DRM pipeline handling code uses the entity's pipe list head to check
+> > whether the entity is already included in a pipeline. This method is a
+> > bit fragile in the sense that it uses list_empty() on a list_head that
+> > is a list member. Replace it by a simpler check for the entity pipe
+> > pointer.
+> 
+> Yes, excellent.
+> 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> > ---
+> > 
+> >  drivers/media/platform/vsp1/vsp1_drm.c | 8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> > b/drivers/media/platform/vsp1/vsp1_drm.c index a7ad85ab0b08..e210917fdc3f
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> > @@ -119,9 +119,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
+> > pipe_index,> 
+> >  			 * Remove the RPF from the pipe and the list of BRU
+> >  			 * inputs.
+> >  			 */
+> > 
+> > -			WARN_ON(list_empty(&rpf->entity.list_pipe));
+> > +			WARN_ON(!rpf->entity.pipe);
+> 
+> Does this WARN_ON() have much value any more ?
+> 
+> I think it could probably be removed... unless there is a race between
+> potential calls through vsp1_du_atomic_flush() and vsp1_du_setup_lif() -
+> but I would be very surprised if that wasn't protected at the DRM levels.
 
-Changes from v2:
-* Add missing linux/kthread.h include that broke x86_64 build
+It should indeed be protected at the DRM level. The purpose of the WARN_ON() 
+is twofold, it catches both bugs in the VSP1 driver (but I don't expect any 
+bug here, so from that point of view the WARN_ON isn't needed), but also 
+misbehaviours in the callers. There hasn't been any so far though, so maybe we 
+could indeed remove the WARN_ON(). It just makes me feel a bit safer but 
+probably not in any rational way :-)
 
-Changes from v3:
-* Add devicetree binding documents
-* snprintf check added
-* switched to per chip support based on devicetree or i2c client id
-* add VB2_DMABUF to io_modes
-* added entry to MAINTAINERS file switched to per chip support based on devicetree or i2c client id
-
-Changes from v4:
-* convert pointer from of_device_get_match_data() to long instead of int to avoid compiler warning
-
-Matt Ranostay (2):
-  media: dt-bindings: Add bindings for panasonic,amg88xx
-  media: video-i2c: add video-i2c driver
-
- .../bindings/media/i2c/panasonic,amg88xx.txt       |  19 +
- MAINTAINERS                                        |   6 +
- drivers/media/i2c/Kconfig                          |   9 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/video-i2c.c                      | 558 +++++++++++++++++++++
- 5 files changed, 593 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
- create mode 100644 drivers/media/i2c/video-i2c.c
+>  (Removing it if chosen doesn't need to be in this patch though)
+> 
+> >  			rpf->entity.pipe = NULL;
+> > 
+> > -			list_del_init(&rpf->entity.list_pipe);
+> > +			list_del(&rpf->entity.list_pipe);
+> > 
+> >  			pipe->inputs[i] = NULL;
+> >  			
+> >  			bru->inputs[rpf->bru_input].rpf = NULL;
+> > 
+> > @@ -537,7 +537,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned
+> > int pipe_index)> 
+> >  			continue;
+> >  		
+> >  		}
+> > 
+> > -		if (list_empty(&rpf->entity.list_pipe)) {
+> > +		if (!rpf->entity.pipe) {
+> > 
+> >  			rpf->entity.pipe = pipe;
+> >  			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
+> >  		
+> >  		}
+> > 
+> > @@ -566,7 +566,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned
+> > int pipe_index)> 
+> >  					   VI6_DPR_NODE_UNUSED);
+> >  			
+> >  			entity->pipe = NULL;
+> > 
+> > -			list_del_init(&entity->list_pipe);
+> > +			list_del(&entity->list_pipe);
+> > 
+> >  			continue;
+> >  		
+> >  		}
 
 -- 
-2.14.1
+Regards,
+
+Laurent Pinchart
