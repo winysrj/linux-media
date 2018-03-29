@@ -1,156 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24500 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1163606AbeCBB7K (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:55936 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751179AbeC2TT4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:10 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 15/32] rcar-vin: break out format alignment and checking
-Date: Fri,  2 Mar 2018 02:57:34 +0100
-Message-Id: <20180302015751.25596-16-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 29 Mar 2018 15:19:56 -0400
+Date: Thu, 29 Mar 2018 16:19:46 -0300
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Nasser <afshin.nasser@gmail.com>
+Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability
+ on some hardware
+Message-ID: <20180329161946.3a8cdd0d@recife.lan>
+In-Reply-To: <20180329180757.GA27220@smart-ThinkPad-T410>
+References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
+        <20180326064353.187f752c@vento.lan>
+        <20180326222921.GA5373@smart-ThinkPad-T410>
+        <20180329143435.GA4392@smart-ThinkPad-T410>
+        <20180329120240.169a5f33@vento.lan>
+        <20180329180757.GA27220@smart-ThinkPad-T410>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to a separate function.
+Em Thu, 29 Mar 2018 22:37:57 +0430
+Nasser <afshin.nasser@gmail.com> escreveu:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 96 ++++++++++++++++-------------
- 1 file changed, 54 insertions(+), 42 deletions(-)
+> On Thu, Mar 29, 2018 at 12:02:40PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu, 29 Mar 2018 19:04:35 +0430
+> > Nasser <afshin.nasser@gmail.com> escreveu:
+> >   
+> > > On Tue, Mar 27, 2018 at 02:59:21AM +0430, Nasser wrote:
+> > > Hi Mauro,
+> > > 
+> > > Thank you for taking time to review my patch.
+> > > 
+> > > May be I should rephrase the commit message to something like:
+> > > 	Use the default register values as suggested in TVP5150AM1 datasheet
+> > > 
+> > > As this is not a hardware-dependent issue. Am I missing something?  
+> > 
+> > It is not a matter of rephasing, but, instead, to be sure that it won't
+> > cause regressions on existing hardware.
+> > 
+> > Yet, it would worth if you could describe at the patch what hardware
+> > did you test it, and if VBI was tested too.
+> >   
+> 
+> Does this means that I should resend the patch with this additional info?
+> Sorry for not being clear about that. This was a custom board based on
+> ARM. The VBI was not used.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b94ca9ffb1d3b323..3290e603b44cdf3a 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -87,6 +87,59 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
- 
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	u32 walign;
-+
-+	if (!rvin_format_from_pixel(pix->pixelformat) ||
-+	    (vin->info->model == RCAR_M1 &&
-+	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		/*
-+		 * Driver do not (yet) support outputting ALTERNATE to a
-+		 * userspace. It does support outputting INTERLACED so use
-+		 * the VIN hardware to combine the two fields.
-+		 */
-+		pix->field = V4L2_FIELD_INTERLACED;
-+		pix->height *= 2;
-+		break;
-+	default:
-+		pix->field = RVIN_DEFAULT_FIELD;
-+		break;
-+	}
-+
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
-+
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
-+
-+	if (vin->info->model == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-+		return -EINVAL;
-+	}
-+
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-+
-+	return 0;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2
-  */
-@@ -184,55 +237,14 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 			     struct v4l2_pix_format *pix,
- 			     struct rvin_source_fmt *source)
- {
--	u32 walign;
- 	int ret;
- 
--	if (!rvin_format_from_pixel(pix->pixelformat) ||
--	    (vin->info->model == RCAR_M1 &&
--	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
--		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix, source);
- 	if (ret)
- 		return ret;
- 
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	case V4L2_FIELD_ALTERNATE:
--		/*
--		 * Driver do not (yet) support outputting ALTERNATE to a
--		 * userspace. It does support outputting INTERLACED so use
--		 * the VIN hardware to combine the two fields.
--		 */
--		pix->field = V4L2_FIELD_INTERLACED;
--		pix->height *= 2;
--		break;
--	default:
--		pix->field = RVIN_DEFAULT_FIELD;
--		break;
--	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = rvin_format_bytesperline(pix);
--	pix->sizeimage = rvin_format_sizeimage(pix);
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
- }
- 
- static int rvin_querycap(struct file *file, void *priv,
--- 
-2.16.2
+That's what I suspected when you send your patch :-)
+
+The tvp5150 is used by several USB and PCI devices for analog TV and
+for video stream capture, with may have different requirements from what
+you're doing on your ARM board.
+
+Changing a register setting global wide without enough care will
+very likely break support for existing boards.
+
+That's why I said that the right thing to do is to pass a parameter to
+the driver specifying what "extra" features are needed.
+
+Without looking at tvp5150/tvp5151/tvp5150am datasheets nor testing,
+I'd risk to say that, at the specific case of your patch, touching at
+VBLK settings have a potential risk of affecting VBI handling.
+
+> > Anyway, I'll try to find some time to run some tests on the hardware
+> > I have with tvp5150 too.  
+> 
+> It sounds great.
+
+Yes, but I won't be able to do it on the next couple of weeks. We're
+approaching the merge window for Kernel 4.17.
+
+Thanks,
+Mauro
