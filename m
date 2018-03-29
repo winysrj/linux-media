@@ -1,145 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38821 "EHLO osg.samsung.com"
+Received: from mga18.intel.com ([134.134.136.126]:54017 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754007AbeCWL51 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Mar 2018 07:57:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 02/30] media: imx-media-utils: fix a warning
-Date: Fri, 23 Mar 2018 07:56:48 -0400
-Message-Id: <a23deac60a8683895543c8f335c36e475948716f.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-In-Reply-To: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-References: <39adb4e739050dcdb74c3465d261de8de5f224b7.1521806166.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1750858AbeC2InZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 04:43:25 -0400
+Date: Thu, 29 Mar 2018 11:43:22 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv9 PATCH 02/29] uapi/linux/media.h: add request API
+Message-ID: <20180329084322.owflv2667bdfspkn@paasikivi.fi.intel.com>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+ <20180328135030.7116-3-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180328135030.7116-3-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic at find_format() is a little bit confusing even for
-humans, and it tricks static code analyzers:
+On Wed, Mar 28, 2018 at 03:50:03PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Define the public request API.
+> 
+> This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+> and two ioctls that operate on a request in order to queue the
+> contents of the request to the driver and to re-initialize the
+> request.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/uapi/linux/media.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index c7e9a5cba24e..f8769e74f847 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -342,11 +342,19 @@ struct media_v2_topology {
+>  
+>  /* ioctls */
+>  
+> +struct __attribute__ ((packed)) media_request_alloc {
+> +	__s32 fd;
+> +};
+> +
+>  #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+> +#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
+> +
+> +#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
+> +#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
+>  
+>  #if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
+>  
 
-	drivers/staging/media/imx/imx-media-utils.c:259 find_format() error: buffer overflow 'array' 14 <= 20
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Rewrite the logic in a way that it makes it clearer to understand,
-while prevent static analyzers to produce false positives.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/imx/imx-media-utils.c | 81 +++++++++++++++--------------
- 1 file changed, 43 insertions(+), 38 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-index 40bcb8fb18b9..fab98fc0d6a0 100644
---- a/drivers/staging/media/imx/imx-media-utils.c
-+++ b/drivers/staging/media/imx/imx-media-utils.c
-@@ -225,58 +225,63 @@ static void init_mbus_colorimetry(struct v4l2_mbus_framefmt *mbus,
- 					      mbus->ycbcr_enc);
- }
- 
-+static const
-+struct imx_media_pixfmt *__find_format(u32 fourcc,
-+				       u32 code,
-+				       bool allow_non_mbus,
-+				       bool allow_bayer,
-+				       const struct imx_media_pixfmt *array,
-+				       u32 array_size)
-+{
-+	const struct imx_media_pixfmt *fmt;
-+	int i, j;
-+
-+	for (i = 0; i < array_size; i++) {
-+		fmt = &array[i];
-+
-+		if ((!allow_non_mbus && !fmt->codes[0]) ||
-+		    (!allow_bayer && fmt->bayer))
-+			continue;
-+
-+		if (fourcc && fmt->fourcc == fourcc)
-+			return fmt;
-+
-+		if (!code)
-+			continue;
-+
-+		for (j = 0; fmt->codes[j]; j++) {
-+			if (code == fmt->codes[j])
-+				return fmt;
-+		}
-+	}
-+	return NULL;
-+}
-+
- static const struct imx_media_pixfmt *find_format(u32 fourcc,
- 						  u32 code,
- 						  enum codespace_sel cs_sel,
- 						  bool allow_non_mbus,
- 						  bool allow_bayer)
- {
--	const struct imx_media_pixfmt *array, *fmt, *ret = NULL;
--	u32 array_size;
--	int i, j;
-+	const struct imx_media_pixfmt *ret;
- 
- 	switch (cs_sel) {
- 	case CS_SEL_YUV:
--		array_size = NUM_YUV_FORMATS;
--		array = yuv_formats;
--		break;
-+		return __find_format(fourcc, code, allow_non_mbus, allow_bayer,
-+				     yuv_formats, NUM_YUV_FORMATS);
- 	case CS_SEL_RGB:
--		array_size = NUM_RGB_FORMATS;
--		array = rgb_formats;
--		break;
-+		return __find_format(fourcc, code, allow_non_mbus, allow_bayer,
-+				     rgb_formats, NUM_RGB_FORMATS);
- 	case CS_SEL_ANY:
--		array_size = NUM_YUV_FORMATS + NUM_RGB_FORMATS;
--		array = yuv_formats;
--		break;
-+		ret = __find_format(fourcc, code, allow_non_mbus, allow_bayer,
-+				    yuv_formats, NUM_YUV_FORMATS);
-+		if (ret)
-+			return ret;
-+		return __find_format(fourcc, code, allow_non_mbus, allow_bayer,
-+				     rgb_formats, NUM_RGB_FORMATS);
- 	default:
- 		return NULL;
- 	}
--
--	for (i = 0; i < array_size; i++) {
--		if (cs_sel == CS_SEL_ANY && i >= NUM_YUV_FORMATS)
--			fmt = &rgb_formats[i - NUM_YUV_FORMATS];
--		else
--			fmt = &array[i];
--
--		if ((!allow_non_mbus && fmt->codes[0] == 0) ||
--		    (!allow_bayer && fmt->bayer))
--			continue;
--
--		if (fourcc && fmt->fourcc == fourcc) {
--			ret = fmt;
--			goto out;
--		}
--
--		for (j = 0; code && fmt->codes[j]; j++) {
--			if (code == fmt->codes[j]) {
--				ret = fmt;
--				goto out;
--			}
--		}
--	}
--
--out:
--	return ret;
- }
- 
- static int enum_format(u32 *fourcc, u32 *code, u32 index,
 -- 
-2.14.3
+Sakari Ailus
+sakari.ailus@linux.intel.com
