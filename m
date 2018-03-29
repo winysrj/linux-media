@@ -1,58 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52483 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750732AbeC2Oaa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 10:30:30 -0400
-Date: Thu, 29 Mar 2018 11:30:24 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Brian Warner <brian.warner@samsung.com>
-Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
- 3.18
-Message-ID: <20180329113024.6cc18340@vento.lan>
-In-Reply-To: <5ABC23A0.20907@samsung.com>
-References: <CGME20180328181304epcas4p2593efec8fcccbf6bf30ed30d9b5f0093@epcas4p2.samsung.com>
-        <cover.1522260310.git.mchehab@s-opensource.com>
-        <5ABC23A0.20907@samsung.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:38178 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754202AbeC2SII (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 14:08:08 -0400
+Date: Thu, 29 Mar 2018 22:37:57 +0430
+From: Nasser <afshin.nasser@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability on
+ some hardware
+Message-ID: <20180329180757.GA27220@smart-ThinkPad-T410>
+References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
+ <20180326064353.187f752c@vento.lan>
+ <20180326222921.GA5373@smart-ThinkPad-T410>
+ <20180329143435.GA4392@smart-ThinkPad-T410>
+ <20180329120240.169a5f33@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180329120240.169a5f33@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 29 Mar 2018 08:22:08 +0900
-Inki Dae <inki.dae@samsung.com> escreveu:
-
-> Hi Mauro,
+On Thu, Mar 29, 2018 at 12:02:40PM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 29 Mar 2018 19:04:35 +0430
+> Nasser <afshin.nasser@gmail.com> escreveu:
 > 
-> 2018년 03월 29일 03:12에 Mauro Carvalho Chehab 이(가) 쓴 글:
-> > Hi Greg,
+> > On Tue, Mar 27, 2018 at 02:59:21AM +0430, Nasser wrote:
+> > Hi Mauro,
 > > 
-> > Those are the backports meant to solve CVE-2017-13166 on Kernel 3.18.
+> > Thank you for taking time to review my patch.
 > > 
-> > It contains two v4l2-ctrls fixes that are required to avoid crashes
-> > at the test application.
+> > May be I should rephrase the commit message to something like:
+> > 	Use the default register values as suggested in TVP5150AM1 datasheet
 > > 
-> > I wrote two patches myself for Kernel 3.18 in order to solve some
-> > issues specific for Kernel 3.18 with aren't needed upstream.
-> > one is actually a one-line change backport. The other one makes
-> > sure that both 32-bits and 64-bits version of some ioctl calls
-> > will return the same value for a reserved field.
-> > 
-> > I noticed an extra bug while testing it, but the bug also hits upstream,
-> > and should be backported all the way down all stable/LTS versions.
-> > So, I'll send it the usual way, after merging upsream.  
+> > As this is not a hardware-dependent issue. Am I missing something?
 > 
-> Really thanks for doing this. :) There would be many users who use Linux-3.18 for their products yet.
+> It is not a matter of rephasing, but, instead, to be sure that it won't
+> cause regressions on existing hardware.
+> 
+> Yet, it would worth if you could describe at the patch what hardware
+> did you test it, and if VBI was tested too.
+> 
 
-Anytime!
+Does this means that I should resend the patch with this additional info?
+Sorry for not being clear about that. This was a custom board based on
+ARM. The VBI was not used.
 
-Please let me know if you find any issues with those backports.
+> Anyway, I'll try to find some time to run some tests on the hardware
+> I have with tvp5150 too.
 
-Regards,
-Mauro
+It sounds great.
+
+> 
+> Regards,
+> Mauro
+> 
+> > 
+> > > On Mon, Mar 26, 2018 at 06:43:53AM -0300, Mauro Carvalho Chehab wrote:  
+> > > > Hi Nasser,
+> > > > 
+> > > > Em Mon, 26 Mar 2018 03:26:33 +0430
+> > > > Nasser Afshin <afshin.nasser@gmail.com> escreveu:
+> > > >   
+> > > > > According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
+> > > > > resistor if it's been disabled. On hardware that does not have such
+> > > > > resistor, we should use the default output enable value.
+> > > > > This prevents the color burst lock instability problem.  
+> > > >  
+> > > 
+> > > Color burst lock instability is just a side effect of not using the
+> > > recommended value for this bit. If we use the recommended setting, we
+> > > will support more hardware while not breaking anything.
+> > >   
+> > > > If this is hardware-dependent, you should instead store it at
+> > > > OF (for SoC) or pass via platform_data (for PCI/USB devices).
+> > > >  
+> > > 
+> > > We have used the recommended value for this bit (as the datasheet
+> > > suggests) while we are in tvp5150_init_enable but in tvp5150_s_stream
+> > > we are using the wrong value.
+> > > 
+> > > Also we have this comment at line 319:
+> > >     /* Default values as sugested at TVP5150AM1 datasheet */
+> > > But as you see, TVP5150_MISC_CTL is not set to its suggested default
+> > > value.
+> > >    
+
+Any way the assignment to tvp5150_init_default after the above comment
+seems not to be correct according to the "3.21.4 Miscellaneous Controls
+Register" part in the datasheet. While following the same comment phrase
+on line 455, we see the correct assignment as the default values to 
+tvp5150_init_enable.
+
+Sorry this is so lengthy.
+
+Thank you,
+Nasser
+
+> > > > > 
+> > > > > Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+> > > > > ---
+> > > > >  drivers/media/i2c/tvp5150.c | 5 +++--
+> > > > >  1 file changed, 3 insertions(+), 2 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> > > > > index 2476d812f669..0e9713814816 100644
+> > > > > --- a/drivers/media/i2c/tvp5150.c
+> > > > > +++ b/drivers/media/i2c/tvp5150.c
+> > > > > @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
+> > > > >  		TVP5150_OP_MODE_CTL,0x00
+> > > > >  	},
+> > > > >  	{ /* 0x03 */
+> > > > > -		TVP5150_MISC_CTL,0x01
+> > > > > +		TVP5150_MISC_CTL,0x21
+> > > > >  	},
+> > > > >  	{ /* 0x06 */
+> > > > >  		TVP5150_COLOR_KIL_THSH_CTL,0x10
+> > > > > @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+> > > > >  		 * Enable the YCbCr and clock outputs. In discrete sync mode
+> > > > >  		 * (non-BT.656) additionally enable the the sync outputs.
+> > > > >  		 */
+> > > > > -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
+> > > > > +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
+> > > > > +			TVP5150_MISC_CTL_INTREQ_OE;
+> > > > >  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+> > > > >  			val |= TVP5150_MISC_CTL_SYNC_OE;
+> > > > >  	}  
+> > > > 
+> > > > 
+> > > > 
+> > > > Thanks,
+> > > > Mauro  
+> > 
+> > Thanks,
+> > Nasser
+> 
+> 
+> 
+> Thanks,
+> Mauro
