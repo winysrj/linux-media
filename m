@@ -1,53 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43168 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751193AbeCJRTt (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44219 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750744AbeC3IF3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Mar 2018 12:19:49 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: i2c: mt9t112: Add TODO note for frame rate control
-Date: Sat, 10 Mar 2018 18:19:35 +0100
-Message-Id: <1520702375-29671-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 30 Mar 2018 04:05:29 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Helen Koike <helen.koike@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [ANN] Added wikipage: Media Open Source Projects: Looking for
+ Volunteers
+Message-ID: <c1b78b84-6992-8887-f45f-ae8339da9c73@xs4all.nl>
+Date: Fri, 30 Mar 2018 10:05:27 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver lacks support for frame rate control, and v4l2-compliance
-complains about that. Add a TODO note to warn driver users that this is
-expected.
+Hi all,
 
-While at there, update copyright note to the year we're actually in.
+As was suggested to me during the Portland ELC I have created a wiki page listing open
+source projects in the media subsystem for which we need volunteers.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/mt9t112.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+https://www.linuxtv.org/wiki/index.php/Media_Open_Source_Projects:_Looking_for_Volunteers
 
-diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
-index 6eaf3c6..f237d85 100644
---- a/drivers/media/i2c/mt9t112.c
-+++ b/drivers/media/i2c/mt9t112.c
-@@ -2,7 +2,7 @@
- /*
-  * mt9t112 Camera Driver
-  *
-- * Copyright (C) 2017 Jacopo Mondi <jacopo+renesas@jmondi.org>
-+ * Copyright (C) 2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
-  *
-  * Copyright (C) 2009 Renesas Solutions Corp.
-  * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-@@ -14,6 +14,10 @@
-  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-  * Copyright (C) 2008 Magnus Damm
-  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-+ *
-+ * TODO: This driver lacks support for frame rate control due to missing
-+ * 	 register level documentation and suitable hardware for testing.
-+ * 	 v4l-utils compliance tools will report errors.
-  */
+These are all projects that are limited to perhaps a month of work and do not require
+in-depth media knowledge. So you won't find the Request API listed here :-)
 
- #include <linux/clk.h>
---
-2.7.4
+Projects can be for documentation, drivers, v4l-utils (or other related userspace libraries).
+
+Feel free to add new projects.
+
+Regards,
+
+	Hans
