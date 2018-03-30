@@ -1,106 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49646 "EHLO mail.bootlin.com"
+Received: from mail.kapsi.fi ([91.232.154.25]:45487 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750920AbeCIKKl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Mar 2018 05:10:41 -0500
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Cc: Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: [PATCH 0/9] Sunxi-Cedrus driver for the Allwinner Video Engine, using the V4L2 request API
-Date: Fri,  9 Mar 2018 11:09:24 +0100
-Message-Id: <20180309100933.15922-1-paul.kocialkowski@bootlin.com>
+        id S1751163AbeC3SAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Mar 2018 14:00:08 -0400
+Subject: Re: [PATCH v4] dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and
+ merge with gl861
+To: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com
+References: <20180327174730.1887-1-tskd08@gmail.com>
+ <f1ce1268-e918-a12f-959e-98644cafb2fe@iki.fi>
+ <e861a533-5517-2089-52af-ce720174e3ae@gmail.com>
+ <db8f370c-20f5-e9fe-9d2e-d12c1475dc33@iki.fi>
+ <30d0270b-852a-39df-14e5-4c12d59aeac7@gmail.com>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <25d4e91f-454f-bac7-125b-dd1ae5c77d9e@iki.fi>
+Date: Fri, 30 Mar 2018 20:59:44 +0300
+MIME-Version: 1.0
+In-Reply-To: <30d0270b-852a-39df-14e5-4c12d59aeac7@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This presents a newer version of the Sunxi-Cedrus driver, that supports
-the Video Engine found in most Allwinner SoCs, starting with the A10.
 
-The first version of this driver[0] was originally written and submitted
-by Florent Revest using a previous version of the request API, that is
-necessary to provide coherency between controls and the buffers they apply
-to. The driver was since adapted to use the latest version of the request
-API[1], as submitted by Alexandre Courbot. It is a hard requirement for
-this driver.
 
-This series also contains fixes for issues encountered with the current
-version of the request API. If accepted, these should eventually be
-squashed into the request API series.
+On 03/30/2018 04:21 PM, Akihiro TSUKADA wrote:
+>> I simply cannot see why it cannot work. Just add i2c adapter and
+>> suitable logic there. Transaction on your example is simply and there is
+>> no problem to implement that kind of logic to demod i2c adapter.
+> 
+> I might be totally wrong, but...
+> 
+> i2c transactions to a tuner must use:
+> 1. usb_control_msg(request:3) for the first half (write) of reads
+> 2. usb_control_msg(request:1) for the other writes
+> 3. usb_control_msg(request:2) for (all) reads
+> 
+> How can the demod driver control the 'request' argument of USB messages
+> that are sent to its parent (not to the demod itself),
+> when the bridge of tc90522 cannot be limited to gl861 (or even to USB) ?
 
-The driver itself currently only supports MPEG2 and more codecs will be
-added to the driver eventually. The output frames provided by the
-Video Engine are in a multi-planar 32x32-tiled YUV format, with a plane
-for luminance (Y) and a plane for chrominance (UV). A specific format is
-introduced in the V4L2 API to describe it.
+I don't understand those control message parts and it is bit too hard to 
+read i2c adapter implementation to get understanding. Could you offer 
+simple 2 sniff examples, register write to demod and register write to 
+tuner.
 
-This implementation is based on the significant work that was conducted
-by various members of the linux-sunxi community for understanding and
-documenting the Video Engine's innards.
+Anyhow, demod i2c adapter gets request from tuner and then does some 
+demod specific i2c algo stuff and then pass proper request to usb-bridge 
+i2c adapter.
 
-[0]: https://lkml.org/lkml/2016/8/25/246
-[1]: https://lkml.org/lkml/2018/2/19/872
+IIR it was somehing like
 
-Florent Revest (5):
-  v4l: Add sunxi Video Engine pixel format
-  v4l: Add MPEG2 low-level decoder API control
-  media: platform: Add Sunxi Cedrus decoder driver
-  sunxi-cedrus: Add device tree binding document
-  ARM: dts: sun5i: Use video-engine node
+write_tuner_reg(0xaa, 0xbb);
+  ==> demod i2c algo:
+  * write_demod_reg(0xfe, 0x60) // set tuner i2c addr + start i2c write
+  * write_demod_reg(0xaa, 0xbb)
 
-Icenowy Zheng (1):
-  ARM: dts: sun8i: add video engine support for A33
+so those command now goes to i2c-bridge i2c algo which uses gl861 i2c algo
 
-Paul Kocialkowski (2):
-  media: vim2m: Try to schedule a m2m device run on request submission
-  media: videobuf2-v4l2: Copy planes when needed in request qbuf
 
-Thomas van Kleef (1):
-  ARM: dts: sun7i: Add video engine support for the A20
-
- .../devicetree/bindings/media/sunxi-cedrus.txt     |  44 ++
- arch/arm/boot/dts/sun5i-a13.dtsi                   |  30 ++
- arch/arm/boot/dts/sun7i-a20.dtsi                   |  47 ++
- arch/arm/boot/dts/sun8i-a33.dtsi                   |  39 ++
- drivers/media/common/videobuf2/videobuf2-v4l2.c    |  19 +
- drivers/media/platform/Kconfig                     |  14 +
- drivers/media/platform/Makefile                    |   1 +
- drivers/media/platform/sunxi-cedrus/Makefile       |   4 +
- drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c | 313 ++++++++++++
- .../platform/sunxi-cedrus/sunxi_cedrus_common.h    | 106 ++++
- .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.c | 568 +++++++++++++++++++++
- .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.h |  33 ++
- .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.c  | 185 +++++++
- .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.h  |  36 ++
- .../platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c     | 152 ++++++
- .../platform/sunxi-cedrus/sunxi_cedrus_regs.h      | 170 ++++++
- drivers/media/platform/vim2m.c                     |  13 +-
- drivers/media/v4l2-core/v4l2-ctrls.c               |  15 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/v4l2-controls.h                 |  26 +
- include/uapi/linux/videodev2.h                     |   6 +
- 21 files changed, 1821 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
- create mode 100644 drivers/media/platform/sunxi-cedrus/Makefile
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_common.h
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.c
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.h
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.c
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.h
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c
- create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_regs.h
+regards
+Antti
 
 -- 
-2.16.2
+http://palosaari.fi/
