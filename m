@@ -1,111 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:4338 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753071AbeCFRDS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Mar 2018 12:03:18 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH] media: ov5640: fix colorspace compliance
-Date: Tue, 6 Mar 2018 18:03:07 +0100
-Message-ID: <1520355787-19861-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga02.intel.com ([134.134.136.20]:29262 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752530AbeC3CPR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 22:15:17 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
+        jian.xu.zheng@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v6 05/12] intel-ipu3: css: Add dma buff pool utility functions
+Date: Thu, 29 Mar 2018 21:14:53 -0500
+Message-Id: <1522376100-22098-6-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix format ioctl colorspace related fields.
-Detected by v4l2-compliance tool.
+The pools are used to store previous parameters set by
+user with the parameter queue. Due to pipelining,
+there needs to be multiple sets (up to four)
+of parameters which are queued in a host-to-sp queue.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/i2c/ov5640.c | 29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 131 +++++++++++++++++++++++++++
+ 1 file changed, 131 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 03940f0..676f635 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1874,7 +1874,13 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
- 		if (ov5640_formats[i].code == fmt->code)
- 			break;
- 	if (i >= ARRAY_SIZE(ov5640_formats))
--		fmt->code = ov5640_formats[0].code;
-+		i = 0;
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+new file mode 100644
+index 000000000000..84f6a7801a01
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+@@ -0,0 +1,131 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2018 Intel Corporation
 +
-+	fmt->code = ov5640_formats[i].code;
-+	fmt->colorspace = ov5640_formats[i].colorspace;
-+	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
-+	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-+	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
- 
- 	return 0;
- }
-@@ -1885,6 +1891,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- {
- 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
- 	const struct ov5640_mode_info *new_mode;
-+	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
- 	int ret;
- 
- 	if (format->pad != 0)
-@@ -1897,7 +1904,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
--	ret = ov5640_try_fmt_internal(sd, &format->format,
-+	ret = ov5640_try_fmt_internal(sd, mbus_fmt,
- 				      sensor->current_fr, &new_mode);
- 	if (ret)
- 		goto out;
-@@ -1906,12 +1913,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_mbus_framefmt *fmt =
- 			v4l2_subdev_get_try_format(sd, cfg, 0);
- 
--		*fmt = format->format;
-+		*fmt = *mbus_fmt;
- 		goto out;
- 	}
- 
- 	sensor->current_mode = new_mode;
--	sensor->fmt = format->format;
-+	sensor->fmt = *mbus_fmt;
- 	sensor->pending_mode_change = true;
- out:
- 	mutex_unlock(&sensor->lock);
-@@ -2497,16 +2504,22 @@ static int ov5640_probe(struct i2c_client *client,
- 	struct fwnode_handle *endpoint;
- 	struct ov5640_dev *sensor;
- 	int ret;
-+	struct v4l2_mbus_framefmt *fmt;
- 
- 	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
- 	if (!sensor)
- 		return -ENOMEM;
- 
- 	sensor->i2c_client = client;
--	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
--	sensor->fmt.width = 640;
--	sensor->fmt.height = 480;
--	sensor->fmt.field = V4L2_FIELD_NONE;
-+	fmt = &sensor->fmt;
-+	fmt->code = ov5640_formats[0].code;
-+	fmt->colorspace = ov5640_formats[0].colorspace;
-+	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
-+	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-+	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
-+	fmt->width = 640;
-+	fmt->height = 480;
-+	fmt->field = V4L2_FIELD_NONE;
- 	sensor->frame_interval.numerator = 1;
- 	sensor->frame_interval.denominator = ov5640_framerates[OV5640_30_FPS];
- 	sensor->current_fr = OV5640_30_FPS;
++#include <linux/device.h>
++
++#include "ipu3-css-pool.h"
++#include "ipu3-dmamap.h"
++
++int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
++			       size_t size)
++{
++	if (map->size < size && map->vaddr) {
++		dev_warn(dev, "dma buffer is resized from %zu to %zu",
++			 map->size, size);
++
++		ipu3_dmamap_free(dev, map);
++		if (!ipu3_dmamap_alloc(dev, map, size))
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
++		ipu3_dmamap_free(dev, &pool->entry[i].param);
++}
++
++int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
++		       size_t size)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
++		/*
++		 * entry[i].framenum is initialized to INT_MIN so that
++		 * ipu3_css_pool_check() can treat it as usesable slot.
++		 */
++		pool->entry[i].framenum = INT_MIN;
++
++		if (size == 0) {
++			pool->entry[i].param.vaddr = NULL;
++			continue;
++		}
++
++		if (!ipu3_dmamap_alloc(dev, &pool->entry[i].param, size))
++			goto fail;
++	}
++
++	pool->last = IPU3_CSS_POOL_SIZE;
++
++	return 0;
++
++fail:
++	ipu3_css_pool_cleanup(dev, pool);
++	return -ENOMEM;
++}
++
++/*
++ * Check that the following call to pool_get succeeds.
++ * Return negative on error.
++ */
++static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
++{
++	/* Get the oldest entry */
++	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
++	long diff = framenum - pool->entry[n].framenum;
++
++	/* if framenum wraps around and becomes smaller than entry n */
++	if (diff < 0)
++		diff += LONG_MAX;
++
++	/*
++	 * pool->entry[n].framenum stores the frame number where that
++	 * entry was allocated. If that was allocated more than POOL_SIZE
++	 * frames back, it is old enough that we know it is no more in
++	 * use by firmware.
++	 */
++	if (diff > IPU3_CSS_POOL_SIZE)
++		return n;
++
++	return -ENOSPC;
++}
++
++/*
++ * Allocate a new parameter from pool at frame number `framenum'.
++ * Release the oldest entry in the pool to make space for the new entry.
++ * Return negative on error.
++ */
++int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
++{
++	int n = ipu3_css_pool_check(pool, framenum);
++
++	if (n < 0)
++		return n;
++
++	pool->entry[n].framenum = framenum;
++	pool->last = n;
++
++	return n;
++}
++
++/*
++ * Undo, for all practical purposes, the effect of pool_get().
++ */
++void ipu3_css_pool_put(struct ipu3_css_pool *pool)
++{
++	pool->entry[pool->last].framenum = INT_MIN;
++	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
++}
++
++/*
++ * Return the nth entry from last, if that entry has no frame stored,
++ * return a null map instead to indicate frame not available for the entry.
++ */
++const struct ipu3_css_map *
++ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
++{
++	static const struct ipu3_css_map null_map = { 0 };
++	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
++
++	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
++
++	if (pool->entry[i].framenum < 0)
++		return &null_map;
++
++	return &pool->entry[i].param;
++}
 -- 
-1.9.1
+2.7.4
