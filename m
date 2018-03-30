@@ -1,78 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53814 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751249AbeC2Ika (ORCPT
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:42468 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750744AbeC3HEw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 04:40:30 -0400
-Subject: Re: [PATCH] media: v4l2-compat-ioctl32: don't oops on overlay
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        stable@vger.kernel.org
-References: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2e9cca00-5c6d-6a22-0273-98f908a304d6@xs4all.nl>
-Date: Thu, 29 Mar 2018 10:40:23 +0200
+        Fri, 30 Mar 2018 03:04:52 -0400
+Received: by mail-wr0-f181.google.com with SMTP id s18so7245431wrg.9
+        for <linux-media@vger.kernel.org>; Fri, 30 Mar 2018 00:04:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <ac21b8f306793001a86c31cf0aebb1efac748ba9.1522259957.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+From: asadpt iqroot <asadptiqroot@gmail.com>
+Date: Fri, 30 Mar 2018 12:34:50 +0530
+Message-ID: <CA+gCWtLe7oJbPPRh8Uw8eiSEDBEkY0G35oUaQ-y2aW9jNExKTw@mail.gmail.com>
+Subject: V4l2 Sensor driver and Bridge Driver
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi All,
 
-On 28/03/18 19:59, Mauro Carvalho Chehab wrote:
-> At put_v4l2_window32(), it tries to access kp->clips. However,
-> kp points to an userspace pointer. So, it should be obtained
-> via get_user(), otherwise it can OOPS:
-> 
+Need to write the Sensor driver. I have the below doubts:
 
-<snip>
+1. What are the dependencies between the bridge driver and Sensor driver?
+2. To write the sensor driver, what are the things, we need to look in
+bridge driver?
+3. What are the Sensor driver functions called from bridge driver.
+4 . What are the things the bridge driver expect from Sensor driver?
 
-> 
-> cc: stable@vger.kernel.org
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 5198c9eeb348..4312935f1dfc 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -101,7 +101,7 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
->  static int put_v4l2_window32(struct v4l2_window __user *kp,
->  			     struct v4l2_window32 __user *up)
->  {
-> -	struct v4l2_clip __user *kclips = kp->clips;
-> +	struct v4l2_clip __user *kclips;
->  	struct v4l2_clip32 __user *uclips;
->  	compat_caddr_t p;
->  	u32 clipcount;
-> @@ -116,6 +116,8 @@ static int put_v4l2_window32(struct v4l2_window __user *kp,
->  	if (!clipcount)
->  		return 0;
->  
-> +	if (get_user(kclips, &kp->clips))
-> +		return -EFAULT;
->  	if (get_user(p, &up->clips))
->  		return -EFAULT;
->  	uclips = compat_ptr(p);
-> 
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-I have no idea why I didn't find this when I tested this with v4l2-compliance,
-but the code was certainly wrong.
-
-Thank you for debugging this!
-
-Regards,
-
-	Hans
+-Thanks.
