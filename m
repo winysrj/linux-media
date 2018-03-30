@@ -1,73 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53640 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755299AbeCSM6Z (ORCPT
+Received: from mklab.ph.rhbnc.ac.uk ([134.219.128.55]:33026 "EHLO
+        mklab.ph.rhul.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752735AbeC3DqR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 08:58:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Thu, 29 Mar 2018 23:46:17 -0400
+Date: Fri, 30 Mar 2018 04:31:29 +0100 (BST)
+From: TPClmml@mklab.ph.rhul.ac.uk
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/5] subdev-formats.rst: fix incorrect types
-Date: Mon, 19 Mar 2018 13:58:17 +0100
-Message-Id: <20180319125820.31254-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180319125820.31254-1-hverkuil@xs4all.nl>
-References: <20180319125820.31254-1-hverkuil@xs4all.nl>
+cc: TPClmml@mklab.ph.rhul.ac.uk
+Subject: DVB-T2 support for TVR801 USB stick (Astrometa DVB-T2)
+Message-ID: <alpine.LNX.2.21.1803300427130.3376@mklab.ph.rhul.ac.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Could anyone clarify what is supported on this stick for me?  According to 
+https://www.linuxtv.org/wiki/index.php/Astrometa_DVB-T2 DVB-T2 has been 
+supported since kernel 4.6.  I tried using a 4.9.9 kernel about a year ago 
+and again today using 4.14.30, in both cases with the development tree 
+code from git://linuxtv.org/media_build.git.
 
-The ycbcr_enc, quantization and xfer_func fields are __u16 and not enums.
+In both cases I don't get a second adapter exposed for the MN88473 demuxer 
+just the /dev/dvb/adapter0 tree for the RTL2832 which only supports DVB-T. 
+Here http://www.mklab.rhul.ac.uk/~tom/TVR801-dmesg.txt is the full dmesg 
+O/P it got using kernel 4.14.30.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 27 +++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index 9fcabe7f9367..a3f30853f8a8 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -37,19 +37,34 @@ Media Bus Formats
-       - Image colorspace, from enum
- 	:c:type:`v4l2_colorspace`. See
- 	:ref:`colorspaces` for details.
--    * - enum :c:type:`v4l2_ycbcr_encoding`
-+    * - union {
-+      - (anonymous)
-+      -
-+    * - __u16
-       - ``ycbcr_enc``
--      - This information supplements the ``colorspace`` and must be set by
-+      - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
-+        This information supplements the ``colorspace`` and must be set by
-+	the driver for capture streams and by the application for output
-+	streams, see :ref:`colorspaces`.
-+    * - __u16
-+      - ``hsv_enc``
-+      - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
-+        This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
--    * - enum :c:type:`v4l2_quantization`
-+    * - }
-+      -
-+      -
-+    * - __u16
-       - ``quantization``
--      - This information supplements the ``colorspace`` and must be set by
-+      - Quantization range, from enum :c:type:`v4l2_quantization`.
-+        This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
--    * - enum :c:type:`v4l2_xfer_func`
-+    * - __u16
-       - ``xfer_func``
--      - This information supplements the ``colorspace`` and must be set by
-+      - Transfer function, from enum :c:type:`v4l2_xfer_func`.
-+        This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
- 	streams, see :ref:`colorspaces`.
-     * - __u16
+A year ago, for fun, I tried hacking the code a little, without really 
+knowing what I was doing but managed to get the following from dmesg,
+
+> dvbdev: DVB: registering new adapter (Astrometa DVB-T2)
+> usb 1-8: media controller created
+> dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered.
+> i2c i2c-13: Added multiplexed i2c bus 14
+> rtl2832 13-0010: Realtek RTL2832 successfully attached
+> mn88473 13-0018: Panasonic MN88473 successfully identified
+> usb 1-8: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
+> dvbdev: dvb_create_media_entity: media entity 'Realtek RTL2832 (DVB-T)' registered.
+> usb 1-8: DVB: registering adapter 0 frontend 1 (Panasonic MN88473)...
+> dvbdev: dvb_create_media_entity: media entity 'Panasonic MN88473' registered.
+
+The MN88473 interface I got was recognised by w_scan but was not usable. 
+It complained the frequency limits were missing.  Here is an example,
+
+> w_scan -X -a /dev/dvb/adapter0/frontend1
+> w_scan version 20161022 (compiled for DVB API 5.10)
+> WARNING: could not guess your country. Falling back to 'DE'
+> guessing country 'DE', use -c <country> to override
+> using settings for GERMANY
+> DVB aerial
+> DVB-T Europe
+> scan type TERRESTRIAL, channellist 4
+> output format czap/tzap/szap/xine
+> WARNING: could not guess your codepage. Falling back to 'UTF-8'
+> output charset 'UTF-8', use -C <charset> to override
+> -_-_-_-_ Getting frontend capabilities-_-_-_-_
+> Using DVB API 5.10
+> frontend 'Panasonic MN88473' supports
+> DVB-T2
+> INVERSION_AUTO
+> QAM_AUTO
+> TRANSMISSION_MODE_AUTO
+> GUARD_INTERVAL_AUTO
+> HIERARCHY_AUTO
+> FEC_AUTO
+> BANDWIDTH_AUTO not supported, trying 6/7/8 MHz.
+> This dvb driver is *buggy*: the frequency limits are undefined - please 
+> report to linuxtv.org
+> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+> Scanning DVB-T...
+> Scanning 8MHz frequencies...
+> 474000: (time: 00:00.633)
+> 482000: (time: 00:02.641)
+> 490000: (time: 00:04.650)
+> 498000: (time: 00:06.661)
+> [cut]
+> 842000: (time: 01:32.955)
+> 850000: (time: 01:34.960)
+> 858000: (time: 01:36.969)
+> Scanning DVB-T2...
+> 474000: (time: 01:38.978)
+> 482000: (time: 01:40.989)
+> 490000: (time: 01:43.000)
+> 498000: (time: 01:45.010)
+> [cut]
+> 850000: (time: 03:13.285)
+> 858000: (time: 03:15.291)
+>
+> ERROR: Sorry - i couldn't get any working frequency/transponder
+>  Nothing to scan!!
+
+
+After that I gave up.  Any thoughts?
+
+Many thanks
+Tom Crane
+
 -- 
-2.15.1
+Tom Crane, Dept. Physics, Royal Holloway, University of London, Egham Hill,
+Egham, Surrey, TW20 0EX, England.
+Email:  T.Crane@rhul.ac.uk
