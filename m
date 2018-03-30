@@ -1,183 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:44346 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751039AbeCJT67 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47500 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751313AbeC3H2M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Mar 2018 14:58:59 -0500
-Received: by mail-pl0-f67.google.com with SMTP id 9-v6so7093389ple.11
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2018 11:58:59 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 02/13] media: v4l2: async: Allow searching for asd of any type
-Date: Sat, 10 Mar 2018 11:58:31 -0800
-Message-Id: <1520711922-17338-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1520711922-17338-1-git-send-email-steve_longerbeam@mentor.com>
+        Fri, 30 Mar 2018 03:28:12 -0400
+Subject: Re: V4l2 Sensor driver and V4l2 ctrls
+To: asadpt iqroot <asadptiqroot@gmail.com>
+Cc: linux-media@vger.kernel.org
+References: <CA+gCWtL1HiZjNaZ87RRET+tHrdzSaqor=-vQUssnaGN+6iFOdg@mail.gmail.com>
+ <2c04f13c-48dc-a745-02fc-7bd8cd57e568@xs4all.nl>
+ <CA+gCWtJgw9Efhug-SveBmSfu55NC2dbaUO2KPCjZE1fVwvah3A@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7a63122c-cad6-44ee-0d2d-5ce2bd9e6f92@xs4all.nl>
+Date: Fri, 30 Mar 2018 09:28:10 +0200
+MIME-Version: 1.0
+In-Reply-To: <CA+gCWtJgw9Efhug-SveBmSfu55NC2dbaUO2KPCjZE1fVwvah3A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
-searching for any type of async subdev, not just fwnodes. Rename to
-v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
+On 30/03/18 09:23, asadpt iqroot wrote:
+> Hi Hans,
+> 
+> Thanks for the reply.
+> 
+> In HDMI receivers, when we need to use this control. What scenario?
 
-TODO: support asd compare with CUSTOM match type in asd_equal().
+https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/extended-controls.html#digital-video-control-reference
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 86 +++++++++++++++++++++++-------------
- 1 file changed, 56 insertions(+), 30 deletions(-)
+"Detects whether the receiver receives power from the source (e.g. HDMI carries 5V on one of the pins)."
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 2b08d03..c083efa 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -124,6 +124,42 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
- 
-+/* Compare two asd's for equivalence */
-+static bool asd_equal(struct v4l2_async_subdev *asd_x,
-+		      struct v4l2_async_subdev *asd_y)
-+{
-+	bool ret = false;
-+
-+	if (!asd_x || !asd_y)
-+		return false;
-+
-+	switch (asd_x->match_type) {
-+	case V4L2_ASYNC_MATCH_DEVNAME:
-+		if (asd_y->match_type == V4L2_ASYNC_MATCH_DEVNAME)
-+			ret = !strcmp(asd_x->match.device_name,
-+				      asd_y->match.device_name);
-+		break;
-+	case V4L2_ASYNC_MATCH_I2C:
-+		if (asd_y->match_type == V4L2_ASYNC_MATCH_I2C)
-+			ret = (asd_x->match.i2c.adapter_id ==
-+			       asd_y->match.i2c.adapter_id &&
-+			       asd_x->match.i2c.address ==
-+			       asd_y->match.i2c.address);
-+		break;
-+	case V4L2_ASYNC_MATCH_FWNODE:
-+		if (asd_y->match_type == V4L2_ASYNC_MATCH_FWNODE)
-+			ret = (asd_x->match.fwnode == asd_y->match.fwnode);
-+		break;
-+	case V4L2_ASYNC_MATCH_CUSTOM:
-+		/* TODO */
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
- /* Find the sub-device notifier registered by a sub-device driver. */
- static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
- 	struct v4l2_subdev *sd)
-@@ -308,18 +344,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	notifier->parent = NULL;
- }
- 
--/* See if an fwnode can be found in a notifier's lists. */
--static bool __v4l2_async_notifier_fwnode_has_async_subdev(
--	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-+/* See if an async sub-device can be found in a notifier's lists. */
-+static bool __v4l2_async_notifier_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
- {
--	struct v4l2_async_subdev *asd;
-+	struct v4l2_async_subdev *asd_y;
- 	struct v4l2_subdev *sd;
- 
--	list_for_each_entry(asd, &notifier->waiting, list) {
--		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
--			continue;
--
--		if (asd->match.fwnode == fwnode)
-+	list_for_each_entry(asd_y, &notifier->waiting, list) {
-+		if (asd_equal(asd, asd_y))
- 			return true;
- 	}
- 
-@@ -327,10 +360,7 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
- 		if (WARN_ON(!sd->asd))
- 			continue;
- 
--		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
--			continue;
--
--		if (sd->asd->match.fwnode == fwnode)
-+		if (asd_equal(asd, sd->asd))
- 			return true;
- 	}
- 
-@@ -338,33 +368,30 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
- }
- 
- /*
-- * Find out whether an async sub-device was set up for an fwnode already or
-+ * Find out whether an async sub-device was set up already or
-  * whether it exists in a given notifier before @this_index.
-  */
--static bool v4l2_async_notifier_fwnode_has_async_subdev(
--	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-+static bool v4l2_async_notifier_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
- 	unsigned int this_index)
- {
- 	unsigned int j;
- 
- 	lockdep_assert_held(&list_lock);
- 
--	/* Check that an fwnode is not being added more than once. */
-+	/* Check that an asd is not being added more than once. */
- 	for (j = 0; j < this_index; j++) {
--		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
--		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-+		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
- 
--		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
--		    asd->match.fwnode ==
--		    other_asd->match.fwnode)
-+		if (asd_equal(asd, asd_y))
- 			return true;
- 	}
- 
--	/* Check than an fwnode did not exist in other notifiers. */
--	list_for_each_entry(notifier, &notifier_list, list)
--		if (__v4l2_async_notifier_fwnode_has_async_subdev(
--			    notifier, fwnode))
-+	/* Check that an asd does not exist in other notifiers. */
-+	list_for_each_entry(notifier, &notifier_list, list) {
-+		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
- 			return true;
-+	}
- 
- 	return false;
- }
-@@ -392,12 +419,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 		case V4L2_ASYNC_MATCH_CUSTOM:
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
--			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
--			if (v4l2_async_notifier_fwnode_has_async_subdev(
--				    notifier, asd->match.fwnode, i)) {
-+			if (v4l2_async_notifier_has_async_subdev(
-+				    notifier, asd, i)) {
- 				dev_err(dev,
--					"fwnode has already been registered or in notifier's subdev list\n");
-+					"asd has already been registered or in notifier's subdev list\n");
- 				ret = -EEXIST;
- 				goto err_unlock;
- 			}
--- 
-2.7.4
+Regards,
+
+	Hans
+
+> 
+> -Thanks.
+> 
+> 
+> On 30 March 2018 at 12:13, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 30/03/18 08:16, asadpt iqroot wrote:
+>>> Hi All,
+>>>
+>>> In reference sensor drivers, they used the
+>>> V4L2_CID_DV_RX_POWER_PRESENT v4l2 ctrl.
+>>> It is a standard ctrl and created using v4l2_ctrl_new_std().
+>>>
+>>> The doubts are:
+>>>
+>>> 1. Whether in our sensor driver, we need to create this Control Id or
+>>> not. How to take the decision on this. Since this is the standard
+>>> ctrl. When we need to use these standard ctrls??
+>>
+>> No. This control is for HDMI receivers, not for sensors.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>> 2. In Sensor driver, the ctrls creation is anything depends on the
+>>> bridge driver.
+>>> Based on bridge driver, whether we need to create any ctrls in Sensor driver.
+>>>
+>>> This question belongs to design of the sensor driver.
+>>>
+>>>
+>>>
+>>> Thanks & Regards
+>>>
+>>
