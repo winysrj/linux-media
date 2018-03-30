@@ -1,209 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:24955 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1164177AbeCBB7a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Mar 2018 20:59:30 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v11 29/32] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Fri,  2 Mar 2018 02:57:48 +0100
-Message-Id: <20180302015751.25596-30-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180302015751.25596-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:43202 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751906AbeC3B67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 21:58:59 -0400
+Date: Thu, 29 Mar 2018 21:58:54 -0400
+From: Jerome Glisse <jglisse@redhat.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
+Message-ID: <20180330015854.GA3572@redhat.com>
+References: <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
+ <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
+ <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+ <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+ <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+ <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+ <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+ <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
+ <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
+ <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The procedure to start or stop streaming using the non-MC single
-subdevice and the MC graph and multiple subdevices are quite different.
-Create a new function to abstract which method is used based on which
-mode the driver is running in and add logic to start the MC graph.
+On Thu, Mar 29, 2018 at 10:25:52AM -0600, Logan Gunthorpe wrote:
+> 
+> 
+> On 29/03/18 10:10 AM, Christian König wrote:
+> > Why not? I mean the dma_map_resource() function is for P2P while other 
+> > dma_map_* functions are only for system memory.
+> 
+> Oh, hmm, I wasn't aware dma_map_resource was exclusively for mapping
+> P2P. Though it's a bit odd seeing we've been working under the
+> assumption that PCI P2P is different as it has to translate the PCI bus
+> address. Where as P2P for devices on other buses is a big unknown.
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 133 +++++++++++++++++++++++++++--
- 1 file changed, 126 insertions(+), 7 deletions(-)
+dma_map_resource() is the right API (thought its current implementation
+is fill with x86 assumptions). So i would argue that arch can decide to
+implement it or simply return dma error address which trigger fallback
+path into the caller (at least for GPU drivers). SG variant can be added
+on top.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 27d0c098f1da40f9..dd70d12ff693e500 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1087,15 +1087,136 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- }
- 
-+static int rvin_mc_validate_format(struct rvin_dev *vin, struct v4l2_subdev *sd,
-+				   struct media_pad *pad)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+
-+	fmt.pad = pad->index;
-+	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-+		return -EPIPE;
-+
-+	switch (fmt.format.code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vin->mbus_code = fmt.format.code;
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+		/* Supported natively */
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		switch (vin->format.field) {
-+		case V4L2_FIELD_TOP:
-+		case V4L2_FIELD_BOTTOM:
-+		case V4L2_FIELD_NONE:
-+			break;
-+		case V4L2_FIELD_INTERLACED_TB:
-+		case V4L2_FIELD_INTERLACED_BT:
-+		case V4L2_FIELD_INTERLACED:
-+		case V4L2_FIELD_SEQ_TB:
-+		case V4L2_FIELD_SEQ_BT:
-+			/* Use VIN hardware to combine the two fields */
-+			fmt.format.height *= 2;
-+			break;
-+		default:
-+			return -EPIPE;
-+		}
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	if (fmt.format.width != vin->format.width ||
-+	    fmt.format.height != vin->format.height ||
-+	    fmt.format.code != vin->mbus_code)
-+		return -EPIPE;
-+
-+	return 0;
-+}
-+
-+static int rvin_set_stream(struct rvin_dev *vin, int on)
-+{
-+	struct media_pipeline *pipe;
-+	struct media_device *mdev;
-+	struct v4l2_subdev *sd;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	/* No media controller used, simply pass operation to subdevice. */
-+	if (!vin->info->use_mc) {
-+		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-+				       on);
-+
-+		return ret == -ENOIOCTLCMD ? 0 : ret;
-+	}
-+
-+	pad = media_entity_remote_pad(&vin->pad);
-+	if (!pad)
-+		return -EPIPE;
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	if (!on) {
-+		media_pipeline_stop(&vin->vdev.entity);
-+		return v4l2_subdev_call(sd, video, s_stream, 0);
-+	}
-+
-+	ret = rvin_mc_validate_format(vin, sd, pad);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * The graph lock needs to be taken to protect concurrent
-+	 * starts of multiple VIN instances as they might share
-+	 * a common subdevice down the line and then should use
-+	 * the same pipe.
-+	 */
-+	mdev = vin->vdev.entity.graph_obj.mdev;
-+	mutex_lock(&mdev->graph_mutex);
-+	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-+	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
-+	mutex_unlock(&mdev->graph_mutex);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-+	if (ret == -ENOIOCTLCMD)
-+		ret = 0;
-+	if (ret)
-+		media_pipeline_stop(&vin->vdev.entity);
-+
-+	return ret;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = rvin_set_stream(vin, 1);
-+	if (ret) {
-+		spin_lock_irqsave(&vin->qlock, flags);
-+		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-+		spin_unlock_irqrestore(&vin->qlock, flags);
-+		return ret;
-+	}
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1104,7 +1225,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = rvin_capture_start(vin);
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		rvin_set_stream(vin, 0);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1115,7 +1236,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1154,8 +1274,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	rvin_set_stream(vin, 0);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
--- 
-2.16.2
+dma_map_resource() is the right API because it has all the necessary
+informations. It use the CPU physical address as the common address
+"language" with CPU physical address of PCIE bar to map to another
+device you can find the corresponding bus address from the IOMMU code
+(NOP on x86). So dma_map_resource() knows both the source device which
+export its PCIE bar and the destination devices.
+
+
+So i don't think Christian need to base his patchset on yours. This
+is orthogonal. Christian is using existing upstream API, if it is
+broken on some arch it is up to those arch to fix it, or return error
+if it is not fixable. In fact i would assume that you would need to
+base your patchset on top of dma_map_resource() too ...
+
+Moreover i doubt Christian want to have struct page for this. For
+nouveau there will be HMM struct page and this would conflict.
+
+AFAICT you need struct page because the API you are trying to expose
+to user space rely on "regular" filesystem/RDMA umem API which all
+assume struct page. GPU drivers do not have this requirement and it
+should not be impose on them.
+
+
+So from my point of view Christian patchset is good as it is. Modulo
+better commit message.
+
+
+Bottom line i think we need common PCIE helper for P2P and the current
+dma_map_resource() is the right kind from POV. What you are doing with
+struct page is specific to your sub-system and should not be impose on
+others.
+
+Cheers,
+Jérôme
