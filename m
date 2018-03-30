@@ -1,87 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0077.outbound.protection.outlook.com ([104.47.33.77]:32982
-        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751249AbeC0DcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Mar 2018 23:32:16 -0400
-From: "He, Roger" <Hongbo.He@amd.com>
-To: =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?=
-        <ckoenig.leichtzumerken@gmail.com>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>
-Subject: RE: [PATCH 2/5] drm/ttm: keep a reference to transfer pipelined BOs
-Date: Tue, 27 Mar 2018 03:32:13 +0000
-Message-ID: <MWHPR1201MB012749CB09DE5C29093C87ECFDAC0@MWHPR1201MB0127.namprd12.prod.outlook.com>
-References: <20180316132049.1748-1-christian.koenig@amd.com>
- <20180316132049.1748-3-christian.koenig@amd.com>
-In-Reply-To: <20180316132049.1748-3-christian.koenig@amd.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from ale.deltatee.com ([207.54.116.67]:53108 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752303AbeC3Sqv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Mar 2018 14:46:51 -0400
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+References: <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
+ <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
+ <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+ <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+ <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+ <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+ <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+ <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
+ <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
+ <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
+ <20180330015854.GA3572@redhat.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
+Date: Fri, 30 Mar 2018 12:46:42 -0600
 MIME-Version: 1.0
+In-Reply-To: <20180330015854.GA3572@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQpSZXZpZXdlZC1ieTogUm9nZXIgSGUgPEhvbmdiby5IZUBhbWQuY29tPg0KDQotLS0tLU9yaWdp
-bmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogYW1kLWdmeCBbbWFpbHRvOmFtZC1nZngtYm91bmNlc0Bs
-aXN0cy5mcmVlZGVza3RvcC5vcmddIE9uIEJlaGFsZiBPZiBDaHJpc3RpYW4gSz9uaWcNClNlbnQ6
-IEZyaWRheSwgTWFyY2ggMTYsIDIwMTggOToyMSBQTQ0KVG86IGxpbmFyby1tbS1zaWdAbGlzdHMu
-bGluYXJvLm9yZzsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBkcmktZGV2ZWxAbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnOyBhbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZw0KU3ViamVjdDog
-W1BBVENIIDIvNV0gZHJtL3R0bToga2VlcCBhIHJlZmVyZW5jZSB0byB0cmFuc2ZlciBwaXBlbGlu
-ZWQgQk9zDQoNCk1ha2Ugc3VyZSB0aGUgdHJhbnNmZXJlZCBCTyBpcyBuZXZlciBkZXN0cm95IGJl
-Zm9yZSB0aGUgdHJhbnNmZXIgQk8uDQoNClNpZ25lZC1vZmYtYnk6IENocmlzdGlhbiBLw7ZuaWcg
-PGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4NCi0tLQ0KIGRyaXZlcnMvZ3B1L2RybS90dG0vdHRt
-X2JvX3V0aWwuYyB8IDUwICsrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLQ0K
-IDEgZmlsZSBjaGFuZ2VkLCAzMCBpbnNlcnRpb25zKCspLCAyMCBkZWxldGlvbnMoLSkNCg0KZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS90dG0vdHRtX2JvX3V0aWwuYyBiL2RyaXZlcnMvZ3B1
-L2RybS90dG0vdHRtX2JvX3V0aWwuYw0KaW5kZXggMWY3MzBiM2YxOGU1Li4xZWUyMDU1OGVlMzEg
-MTAwNjQ0DQotLS0gYS9kcml2ZXJzL2dwdS9kcm0vdHRtL3R0bV9ib191dGlsLmMNCisrKyBiL2Ry
-aXZlcnMvZ3B1L2RybS90dG0vdHRtX2JvX3V0aWwuYw0KQEAgLTM5LDYgKzM5LDExIEBADQogI2lu
-Y2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KICNpbmNsdWRlIDxsaW51eC9yZXNlcnZhdGlvbi5oPg0K
-IA0KK3N0cnVjdCB0dG1fdHJhbnNmZXJfb2JqIHsNCisJc3RydWN0IHR0bV9idWZmZXJfb2JqZWN0
-IGJhc2U7DQorCXN0cnVjdCB0dG1fYnVmZmVyX29iamVjdCAqYm87DQorfTsNCisNCiB2b2lkIHR0
-bV9ib19mcmVlX29sZF9ub2RlKHN0cnVjdCB0dG1fYnVmZmVyX29iamVjdCAqYm8pICB7DQogCXR0
-bV9ib19tZW1fcHV0KGJvLCAmYm8tPm1lbSk7DQpAQCAtNDM1LDcgKzQ0MCwxMSBAQCBFWFBPUlRf
-U1lNQk9MKHR0bV9ib19tb3ZlX21lbWNweSk7DQogDQogc3RhdGljIHZvaWQgdHRtX3RyYW5zZmVy
-ZWRfZGVzdHJveShzdHJ1Y3QgdHRtX2J1ZmZlcl9vYmplY3QgKmJvKSAgew0KLQlrZnJlZShibyk7
-DQorCXN0cnVjdCB0dG1fdHJhbnNmZXJfb2JqICpmYm87DQorDQorCWZibyA9IGNvbnRhaW5lcl9v
-Zihibywgc3RydWN0IHR0bV90cmFuc2Zlcl9vYmosIGJhc2UpOw0KKwl0dG1fYm9fdW5yZWYoJmZi
-by0+Ym8pOw0KKwlrZnJlZShmYm8pOw0KIH0NCiANCiAvKioNCkBAIC00NTYsMTQgKzQ2NSwxNSBA
-QCBzdGF0aWMgdm9pZCB0dG1fdHJhbnNmZXJlZF9kZXN0cm95KHN0cnVjdCB0dG1fYnVmZmVyX29i
-amVjdCAqYm8pICBzdGF0aWMgaW50IHR0bV9idWZmZXJfb2JqZWN0X3RyYW5zZmVyKHN0cnVjdCB0
-dG1fYnVmZmVyX29iamVjdCAqYm8sDQogCQkJCSAgICAgIHN0cnVjdCB0dG1fYnVmZmVyX29iamVj
-dCAqKm5ld19vYmopICB7DQotCXN0cnVjdCB0dG1fYnVmZmVyX29iamVjdCAqZmJvOw0KKwlzdHJ1
-Y3QgdHRtX3RyYW5zZmVyX29iaiAqZmJvOw0KIAlpbnQgcmV0Ow0KIA0KIAlmYm8gPSBrbWFsbG9j
-KHNpemVvZigqZmJvKSwgR0ZQX0tFUk5FTCk7DQogCWlmICghZmJvKQ0KIAkJcmV0dXJuIC1FTk9N
-RU07DQogDQotCSpmYm8gPSAqYm87DQorCWZiby0+YmFzZSA9ICpibzsNCisJZmJvLT5ibyA9IHR0
-bV9ib19yZWZlcmVuY2UoYm8pOw0KIA0KIAkvKioNCiAJICogRml4IHVwIG1lbWJlcnMgdGhhdCB3
-ZSBzaG91bGRuJ3QgY29weSBkaXJlY3RseToNCkBAIC00NzEsMjUgKzQ4MSwyNSBAQCBzdGF0aWMg
-aW50IHR0bV9idWZmZXJfb2JqZWN0X3RyYW5zZmVyKHN0cnVjdCB0dG1fYnVmZmVyX29iamVjdCAq
-Ym8sDQogCSAqLw0KIA0KIAlhdG9taWNfaW5jKCZiby0+YmRldi0+Z2xvYi0+Ym9fY291bnQpOw0K
-LQlJTklUX0xJU1RfSEVBRCgmZmJvLT5kZGVzdHJveSk7DQotCUlOSVRfTElTVF9IRUFEKCZmYm8t
-PmxydSk7DQotCUlOSVRfTElTVF9IRUFEKCZmYm8tPnN3YXApOw0KLQlJTklUX0xJU1RfSEVBRCgm
-ZmJvLT5pb19yZXNlcnZlX2xydSk7DQotCW11dGV4X2luaXQoJmZiby0+d3VfbXV0ZXgpOw0KLQlm
-Ym8tPm1vdmluZyA9IE5VTEw7DQotCWRybV92bWFfbm9kZV9yZXNldCgmZmJvLT52bWFfbm9kZSk7
-DQotCWF0b21pY19zZXQoJmZiby0+Y3B1X3dyaXRlcnMsIDApOw0KLQ0KLQlrcmVmX2luaXQoJmZi
-by0+bGlzdF9rcmVmKTsNCi0Ja3JlZl9pbml0KCZmYm8tPmtyZWYpOw0KLQlmYm8tPmRlc3Ryb3kg
-PSAmdHRtX3RyYW5zZmVyZWRfZGVzdHJveTsNCi0JZmJvLT5hY2Nfc2l6ZSA9IDA7DQotCWZiby0+
-cmVzdiA9ICZmYm8tPnR0bV9yZXN2Ow0KLQlyZXNlcnZhdGlvbl9vYmplY3RfaW5pdChmYm8tPnJl
-c3YpOw0KLQlyZXQgPSByZXNlcnZhdGlvbl9vYmplY3RfdHJ5bG9jayhmYm8tPnJlc3YpOw0KKwlJ
-TklUX0xJU1RfSEVBRCgmZmJvLT5iYXNlLmRkZXN0cm95KTsNCisJSU5JVF9MSVNUX0hFQUQoJmZi
-by0+YmFzZS5scnUpOw0KKwlJTklUX0xJU1RfSEVBRCgmZmJvLT5iYXNlLnN3YXApOw0KKwlJTklU
-X0xJU1RfSEVBRCgmZmJvLT5iYXNlLmlvX3Jlc2VydmVfbHJ1KTsNCisJbXV0ZXhfaW5pdCgmZmJv
-LT5iYXNlLnd1X211dGV4KTsNCisJZmJvLT5iYXNlLm1vdmluZyA9IE5VTEw7DQorCWRybV92bWFf
-bm9kZV9yZXNldCgmZmJvLT5iYXNlLnZtYV9ub2RlKTsNCisJYXRvbWljX3NldCgmZmJvLT5iYXNl
-LmNwdV93cml0ZXJzLCAwKTsNCisNCisJa3JlZl9pbml0KCZmYm8tPmJhc2UubGlzdF9rcmVmKTsN
-CisJa3JlZl9pbml0KCZmYm8tPmJhc2Uua3JlZik7DQorCWZiby0+YmFzZS5kZXN0cm95ID0gJnR0
-bV90cmFuc2ZlcmVkX2Rlc3Ryb3k7DQorCWZiby0+YmFzZS5hY2Nfc2l6ZSA9IDA7DQorCWZiby0+
-YmFzZS5yZXN2ID0gJmZiby0+YmFzZS50dG1fcmVzdjsNCisJcmVzZXJ2YXRpb25fb2JqZWN0X2lu
-aXQoZmJvLT5iYXNlLnJlc3YpOw0KKwlyZXQgPSByZXNlcnZhdGlvbl9vYmplY3RfdHJ5bG9jayhm
-Ym8tPmJhc2UucmVzdik7DQogCVdBUk5fT04oIXJldCk7DQogDQotCSpuZXdfb2JqID0gZmJvOw0K
-KwkqbmV3X29iaiA9ICZmYm8tPmJhc2U7DQogCXJldHVybiAwOw0KIH0NCiANCi0tDQoyLjE0LjEN
-Cg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCmFtZC1n
-ZnggbWFpbGluZyBsaXN0DQphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZw0KaHR0cHM6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4DQo=
+
+
+On 29/03/18 07:58 PM, Jerome Glisse wrote:
+> On Thu, Mar 29, 2018 at 10:25:52AM -0600, Logan Gunthorpe wrote:
+>>
+>>
+>> On 29/03/18 10:10 AM, Christian König wrote:
+>>> Why not? I mean the dma_map_resource() function is for P2P while other 
+>>> dma_map_* functions are only for system memory.
+>>
+>> Oh, hmm, I wasn't aware dma_map_resource was exclusively for mapping
+>> P2P. Though it's a bit odd seeing we've been working under the
+>> assumption that PCI P2P is different as it has to translate the PCI bus
+>> address. Where as P2P for devices on other buses is a big unknown.
+> 
+> dma_map_resource() is the right API (thought its current implementation
+> is fill with x86 assumptions). So i would argue that arch can decide to
+> implement it or simply return dma error address which trigger fallback
+> path into the caller (at least for GPU drivers). SG variant can be added
+> on top.
+> 
+> dma_map_resource() is the right API because it has all the necessary
+> informations. It use the CPU physical address as the common address
+> "language" with CPU physical address of PCIE bar to map to another
+> device you can find the corresponding bus address from the IOMMU code
+> (NOP on x86). So dma_map_resource() knows both the source device which
+> export its PCIE bar and the destination devices.
+
+Well, as it is today, it doesn't look very sane to me. The default is to
+just return the physical address if the architecture doesn't support it.
+So if someone tries this on an arch that hasn't added itself to return
+an error they're very likely going to just end up DMAing to an invalid
+address and loosing the data or causing a machine check.
+
+Furthermore, the API does not have all the information it needs to do
+sane things. A phys_addr_t doesn't really tell you anything about the
+memory behind it or what needs to be done with it. For example, on some
+arm64 implementations if the physical address points to a PCI BAR and
+that BAR is behind a switch with the DMA device then the address must be
+converted to the PCI BUS address. On the other hand, if it's a physical
+address of a device in an SOC it might need to  be handled in a
+completely different way. And right now all the implementations I can
+find seem to just assume that phys_addr_t points to regular memory and
+can be treated as such.
+
+This is one of the reasons that, based on feedback, our work went from
+being general P2P with any device to being restricted to only P2P with
+PCI devices. The dream that we can just grab the physical address of any
+device and use it in a DMA request is simply not realistic.
+
+Logan
