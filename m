@@ -1,262 +1,551 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:38717 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933458AbeCSOE2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Mar 2018 10:04:28 -0400
-Received: by mail-wm0-f67.google.com with SMTP id l16so6581975wmh.3
-        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2018 07:04:27 -0700 (PDT)
-Date: Mon, 19 Mar 2018 15:04:23 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Christian =?iso-8859-1?Q?K=F6nig?=
-        <ckoenig.leichtzumerken@gmail.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org
-Subject: Re: [PATCH 1/5] dma-buf: add optional invalidate_mappings callback v2
-Message-ID: <20180319140423.GN14155@phenom.ffwll.local>
-References: <20180316132049.1748-1-christian.koenig@amd.com>
- <20180316132049.1748-2-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180316132049.1748-2-christian.koenig@amd.com>
+Received: from mga02.intel.com ([134.134.136.20]:29266 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752197AbeC3CPR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Mar 2018 22:15:17 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: tfiga@chromium.org, rajmohan.mani@intel.com,
+        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
+        jian.xu.zheng@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v6 04/12] intel-ipu3: Implement DMA mapping functions
+Date: Thu, 29 Mar 2018 21:14:52 -0500
+Message-Id: <1522376100-22098-5-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 16, 2018 at 02:20:45PM +0100, Christian König wrote:
-> Each importer can now provide an invalidate_mappings callback.
-> 
-> This allows the exporter to provide the mappings without the need to pin
-> the backing store.
-> 
-> v2: don't try to invalidate mappings when the callback is NULL,
->     lock the reservation obj while using the attachments,
->     add helper to set the callback
-> 
-> Signed-off-by: Christian König <christian.koenig@amd.com>
+From: Tomasz Figa <tfiga@chromium.org>
 
-Replying here to avoid thread split, but not entirely related.
+This driver uses IOVA space for buffer mapping through IPU3 MMU
+to transfer data between imaging pipelines and system DDR.
 
-I thought some more about the lockdep splat discussion, and specifically
-that amdgpu needs the reservations for the vm objects when doing a gpu
-reset.
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  36 ++++
+ drivers/media/pci/intel/ipu3/ipu3-dmamap.c   | 280 +++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-dmamap.h   |  22 +++
+ drivers/media/pci/intel/ipu3/ipu3.h          | 151 +++++++++++++++
+ 4 files changed, 489 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
 
-Since they're in the same ww_class as all other dma-buf reservations I'm
-pretty sure lockdep will complain, at least when cross-release lockdep and
-cross-release annotations for dma_fence are merged.
-
-And as long as there's some case where amdgpu needs both the vm object
-reservation and other reservations (CS?) then we must have them in the
-same class, and in that case the deadlock is real. It'll require an
-impressive set of circumstances most likely (the minimal number of threads
-we generally needed to actually hit the cross-release stuff was 4+ or
-something nuts like that, all doing something else), but it'll be real.
-
-Otoh I think the invalidate stuff here doesn't actually make this worse,
-so we can bang our heads against the gpu reset problem at leisure :-)
-
-This stuff here has much more potential to interact badly with core mm
-paths, and anything related to that (which ime also means all the cpu
-hotplug machinery, which includes suspend/resume, and anything related to
-the vfs because someone always manages to drag sysfs into the picture).
-
-It's going to be fun times.
-
-Cheers, Daniel
-> ---
->  drivers/dma-buf/dma-buf.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/dma-buf.h   | 38 ++++++++++++++++++++++++++++++
->  2 files changed, 98 insertions(+)
-> 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index d78d5fc173dc..ed2b3559ba25 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -572,7 +572,9 @@ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
->  		if (ret)
->  			goto err_attach;
->  	}
-> +	reservation_object_lock(dmabuf->resv, NULL);
->  	list_add(&attach->node, &dmabuf->attachments);
-> +	reservation_object_unlock(dmabuf->resv);
->  
->  	mutex_unlock(&dmabuf->lock);
->  	return attach;
-> @@ -598,7 +600,9 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
->  		return;
->  
->  	mutex_lock(&dmabuf->lock);
-> +	reservation_object_lock(dmabuf->resv, NULL);
->  	list_del(&attach->node);
-> +	reservation_object_unlock(dmabuf->resv);
->  	if (dmabuf->ops->detach)
->  		dmabuf->ops->detach(dmabuf, attach);
->  
-> @@ -632,10 +636,23 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
->  	if (WARN_ON(!attach || !attach->dmabuf))
->  		return ERR_PTR(-EINVAL);
->  
-> +	/*
-> +	 * Mapping a DMA-buf can trigger its invalidation, prevent sending this
-> +	 * event to the caller by temporary removing this attachment from the
-> +	 * list.
-> +	 */
-> +	if (attach->invalidate_mappings) {
-> +		reservation_object_assert_held(attach->dmabuf->resv);
-> +		list_del(&attach->node);
-> +	}
-> +
->  	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
->  	if (!sg_table)
->  		sg_table = ERR_PTR(-ENOMEM);
->  
-> +	if (attach->invalidate_mappings)
-> +		list_add(&attach->node, &attach->dmabuf->attachments);
-> +
->  	return sg_table;
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
-> @@ -656,6 +673,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
->  {
->  	might_sleep();
->  
-> +	if (attach->invalidate_mappings)
-> +		reservation_object_assert_held(attach->dmabuf->resv);
-> +
->  	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
->  		return;
->  
-> @@ -664,6 +684,44 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
->  
-> +/**
-> + * dma_buf_set_invalidate_callback - set the invalidate_mappings callback
-> + *
-> + * @attach:	[in]	attachment where to set the callback
-> + * @cb:		[in]	the callback to set
-> + *
-> + * Makes sure to take the appropriate locks when updating the invalidate
-> + * mappings callback.
-> + */
-> +void dma_buf_set_invalidate_callback(struct dma_buf_attachment *attach,
-> +				     void (*cb)(struct dma_buf_attachment *))
-> +{
-> +	reservation_object_lock(attach->dmabuf->resv, NULL);
-> +	attach->invalidate_mappings = cb;
-> +	reservation_object_unlock(attach->dmabuf->resv);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_set_invalidate_callback);
-> +
-> +/**
-> + * dma_buf_invalidate_mappings - invalidate all mappings of this dma_buf
-> + *
-> + * @dmabuf:	[in]	buffer which mappings should be invalidated
-> + *
-> + * Informs all attachmenst that they need to destroy and recreated all their
-> + * mappings.
-> + */
-> +void dma_buf_invalidate_mappings(struct dma_buf *dmabuf)
-> +{
-> +	struct dma_buf_attachment *attach;
-> +
-> +	reservation_object_assert_held(dmabuf->resv);
-> +
-> +	list_for_each_entry(attach, &dmabuf->attachments, node)
-> +		if (attach->invalidate_mappings)
-> +			attach->invalidate_mappings(attach);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_buf_invalidate_mappings);
-> +
->  /**
->   * DOC: cpu access
->   *
-> @@ -1121,10 +1179,12 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
->  		seq_puts(s, "\tAttached Devices:\n");
->  		attach_count = 0;
->  
-> +		reservation_object_lock(buf_obj->resv, NULL);
->  		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
->  			seq_printf(s, "\t%s\n", dev_name(attach_obj->dev));
->  			attach_count++;
->  		}
-> +		reservation_object_unlock(buf_obj->resv);
->  
->  		seq_printf(s, "Total %d devices attached\n\n",
->  				attach_count);
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index 085db2fee2d7..70c65fcfe1e3 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -91,6 +91,18 @@ struct dma_buf_ops {
->  	 */
->  	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
->  
-> +	/**
-> +	 * @supports_mapping_invalidation:
-> +	 *
-> +	 * True for exporters which supports unpinned DMA-buf operation using
-> +	 * the reservation lock.
-> +	 *
-> +	 * When attachment->invalidate_mappings is set the @map_dma_buf and
-> +	 * @unmap_dma_buf callbacks can be called with the reservation lock
-> +	 * held.
-> +	 */
-> +	bool supports_mapping_invalidation;
-> +
->  	/**
->  	 * @map_dma_buf:
->  	 *
-> @@ -326,6 +338,29 @@ struct dma_buf_attachment {
->  	struct device *dev;
->  	struct list_head node;
->  	void *priv;
-> +
-> +	/**
-> +	 * @invalidate_mappings:
-> +	 *
-> +	 * Optional callback provided by the importer of the attachment which
-> +	 * must be set before mappings are created.
-> +	 *
-> +	 * If provided the exporter can avoid pinning the backing store while
-> +	 * mappings exists.
-> +	 *
-> +	 * The function is called with the lock of the reservation object
-> +	 * associated with the dma_buf held and the mapping function must be
-> +	 * called with this lock held as well. This makes sure that no mapping
-> +	 * is created concurrently with an ongoing invalidation.
-> +	 *
-> +	 * After the callback all existing mappings are still valid until all
-> +	 * fences in the dma_bufs reservation object are signaled, but should be
-> +	 * destroyed by the importer as soon as possible.
-> +	 *
-> +	 * New mappings can be created immediately, but can't be used before the
-> +	 * exclusive fence in the dma_bufs reservation object is signaled.
-> +	 */
-> +	void (*invalidate_mappings)(struct dma_buf_attachment *attach);
->  };
->  
->  /**
-> @@ -391,6 +426,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
->  					enum dma_data_direction);
->  void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
->  				enum dma_data_direction);
-> +void dma_buf_set_invalidate_callback(struct dma_buf_attachment *attach,
-> +				     void (*cb)(struct dma_buf_attachment *));
-> +void dma_buf_invalidate_mappings(struct dma_buf *dma_buf);
->  int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
->  			     enum dma_data_direction dir);
->  int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
-> -- 
-> 2.14.1
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+new file mode 100644
+index 000000000000..4b22e0856232
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
++
++#ifndef __IPU3_UTIL_H
++#define __IPU3_UTIL_H
++
++struct device;
++
++#define IPU3_CSS_POOL_SIZE		4
++
++struct ipu3_css_map {
++	size_t size;
++	void *vaddr;
++	dma_addr_t daddr;
++	struct vm_struct *vma;
++};
++
++struct ipu3_css_pool {
++	struct {
++		struct ipu3_css_map param;
++		long framenum;
++	} entry[IPU3_CSS_POOL_SIZE];
++	unsigned int last; /* Latest entry */
++};
++
++int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
++			       size_t size);
++void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
++int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
++		       size_t size);
++int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
++void ipu3_css_pool_put(struct ipu3_css_pool *pool);
++const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
++					      unsigned int last);
++
++#endif
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.c b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+new file mode 100644
+index 000000000000..b2bc5d00debc
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+@@ -0,0 +1,280 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2018 Intel Corporation
++ * Copyright (C) 2018 Google, Inc.
++ *
++ * Author: Tomasz Figa <tfiga@chromium.org>
++ * Author: Yong Zhi <yong.zhi@intel.com>
++ */
++
++#include <linux/vmalloc.h>
++
++#include "ipu3.h"
++#include "ipu3-css-pool.h"
++#include "ipu3-mmu.h"
++
++/*
++ * Free a buffer allocated by ipu3_dmamap_alloc_buffer()
++ */
++static void ipu3_dmamap_free_buffer(struct page **pages,
++				    size_t size)
++{
++	int count = size >> PAGE_SHIFT;
++
++	while (count--)
++		__free_page(pages[count]);
++	kvfree(pages);
++}
++
++/*
++ * Based on the implementation of __iommu_dma_alloc_pages()
++ * defined in drivers/iommu/dma-iommu.c
++ */
++static struct page **ipu3_dmamap_alloc_buffer(size_t size,
++					      unsigned long order_mask,
++					      gfp_t gfp)
++{
++	struct page **pages;
++	unsigned int i = 0, count = size >> PAGE_SHIFT;
++	const gfp_t high_order_gfp = __GFP_NOWARN | __GFP_NORETRY;
++
++	/* Allocate mem for array of page ptrs */
++	pages = kvmalloc_array(count, sizeof(struct page *), GFP_KERNEL);
++
++	if (!pages)
++		return NULL;
++
++	order_mask &= (2U << MAX_ORDER) - 1;
++	if (!order_mask)
++		return NULL;
++
++	gfp |= __GFP_HIGHMEM | __GFP_ZERO;
++
++	while (count) {
++		struct page *page = NULL;
++		unsigned int order_size;
++
++		for (order_mask &= (2U << __fls(count)) - 1;
++		     order_mask; order_mask &= ~order_size) {
++			unsigned int order = __fls(order_mask);
++
++			order_size = 1U << order;
++			page = alloc_pages((order_mask - order_size) ?
++					   gfp | high_order_gfp : gfp, order);
++			if (!page)
++				continue;
++			if (!order)
++				break;
++			if (!PageCompound(page)) {
++				split_page(page, order);
++				break;
++			}
++
++			__free_pages(page, order);
++		}
++		if (!page) {
++			ipu3_dmamap_free_buffer(pages, i << PAGE_SHIFT);
++			return NULL;
++		}
++		count -= order_size;
++		while (order_size--)
++			pages[i++] = page++;
++	}
++
++	return pages;
++}
++
++/**
++ * ipu3_dmamap_alloc - allocate and map a buffer into KVA
++ * @dev: struct device pointer
++ * @map: struct to store mapping variables
++ * @len: size required
++ *
++ * Return KVA on success or NULL on failure
++ */
++void *ipu3_dmamap_alloc(struct device *dev, struct ipu3_css_map *map,
++			size_t len)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++	unsigned long shift = iova_shift(&imgu->iova_domain);
++	unsigned int alloc_sizes = imgu->mmu->pgsize_bitmap;
++	size_t size = PAGE_ALIGN(len);
++	struct page **pages;
++	dma_addr_t iovaddr;
++	struct iova *iova;
++	int i, rval;
++
++	if (WARN_ON(!dev))
++		return NULL;
++
++	dev_dbg(dev, "%s: allocating %zu\n", __func__, size);
++
++	iova = alloc_iova(&imgu->iova_domain, size >> shift,
++			  imgu->mmu->aperture_end >> shift, 0);
++	if (!iova)
++		return NULL;
++
++	pages = ipu3_dmamap_alloc_buffer(size, alloc_sizes >> PAGE_SHIFT,
++					 GFP_KERNEL);
++	if (!pages)
++		goto out_free_iova;
++
++	/* Call IOMMU driver to setup pgt */
++	iovaddr = iova_dma_addr(&imgu->iova_domain, iova);
++	for (i = 0; i < size / PAGE_SIZE; ++i) {
++		rval = ipu3_mmu_map(imgu->mmu, iovaddr,
++				    page_to_phys(pages[i]), PAGE_SIZE);
++		if (rval)
++			goto out_unmap;
++
++		iovaddr += PAGE_SIZE;
++	}
++
++	/* Now grab a virtual region */
++	map->vma = __get_vm_area(size, VM_USERMAP, VMALLOC_START, VMALLOC_END);
++	if (!map->vma)
++		goto out_unmap;
++
++	map->vma->pages = pages;
++	/* And map it in KVA */
++	if (map_vm_area(map->vma, PAGE_KERNEL, pages))
++		goto out_vunmap;
++
++	map->size = size;
++	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
++	map->vaddr = map->vma->addr;
++
++	dev_dbg(dev, "%s: allocated %zu @ IOVA %pad @ VA %p\n", __func__,
++		size, &map->daddr, map->vma->addr);
++
++	return map->vma->addr;
++
++out_vunmap:
++	vunmap(map->vma->addr);
++
++out_unmap:
++	ipu3_dmamap_free_buffer(pages, size);
++	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
++		       i * PAGE_SIZE);
++	map->vma = NULL;
++
++out_free_iova:
++	__free_iova(&imgu->iova_domain, iova);
++
++	return NULL;
++}
++
++void ipu3_dmamap_unmap(struct device *dev, struct ipu3_css_map *map)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++	struct iova *iova;
++
++	iova = find_iova(&imgu->iova_domain,
++			 iova_pfn(&imgu->iova_domain, map->daddr));
++	if (WARN_ON(!iova))
++		return;
++
++	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
++		       iova_size(iova) << iova_shift(&imgu->iova_domain));
++
++	__free_iova(&imgu->iova_domain, iova);
++}
++
++/*
++ * Counterpart of ipu3_dmamap_alloc
++ */
++void ipu3_dmamap_free(struct device *dev, struct ipu3_css_map *map)
++{
++	struct vm_struct *area = map->vma;
++
++	dev_dbg(dev, "%s: freeing %zu @ IOVA %pad @ VA %p\n",
++		__func__, map->size, &map->daddr, map->vaddr);
++
++	if (!map->vaddr)
++		return;
++
++	ipu3_dmamap_unmap(dev, map);
++
++	if (WARN_ON(!area) || WARN_ON(!area->pages))
++		return;
++
++	ipu3_dmamap_free_buffer(area->pages, map->size);
++	vunmap(map->vaddr);
++	map->vaddr = NULL;
++}
++
++int ipu3_dmamap_map_sg(struct device *dev, struct scatterlist *sglist,
++		       int nents, struct ipu3_css_map *map)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++	unsigned long shift = iova_shift(&imgu->iova_domain);
++	struct scatterlist *sg;
++	struct iova *iova;
++	size_t size = 0;
++	int i;
++
++	for_each_sg(sglist, sg, nents, i) {
++		if (sg->offset)
++			return -EINVAL;
++
++		if (i != nents - 1 && !PAGE_ALIGNED(sg->length))
++			return -EINVAL;
++
++		size += sg->length;
++	}
++
++	size = iova_align(&imgu->iova_domain, size);
++	dev_dbg(dev, "dmamap: mapping sg %d entries, %zu pages\n",
++		nents, size >> shift);
++
++	iova = alloc_iova(&imgu->iova_domain, size >> shift,
++			  imgu->mmu->aperture_end >> shift, 0);
++	if (!iova)
++		return -ENOMEM;
++
++	dev_dbg(dev, "dmamap: iova low pfn %lu, high pfn %lu\n",
++		iova->pfn_lo, iova->pfn_hi);
++
++	if (ipu3_mmu_map_sg(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
++			    sglist, nents) < size)
++		goto out_fail;
++
++	memset(map, 0, sizeof(*map));
++	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
++	map->size = size;
++
++	return 0;
++
++out_fail:
++	__free_iova(&imgu->iova_domain, iova);
++
++	return -EFAULT;
++}
++
++int ipu3_dmamap_init(struct device *dev)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++	unsigned long order, base_pfn;
++	int ret;
++
++	ret = iova_cache_get();
++	if (ret)
++		return ret;
++
++	order = __ffs(imgu->mmu->pgsize_bitmap);
++	base_pfn = max_t(unsigned long, 1,
++			 imgu->mmu->aperture_start >> order);
++
++	init_iova_domain(&imgu->iova_domain, 1UL << order, base_pfn);
++
++	return 0;
++}
++
++void ipu3_dmamap_exit(struct device *dev)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++
++	put_iova_domain(&imgu->iova_domain);
++	iova_cache_put();
++	imgu->mmu = NULL;
++}
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.h b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+new file mode 100644
+index 000000000000..217280229380
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
++/* Copyright (C) 2018 Google, Inc. */
++
++#ifndef __IPU3_DMAMAP_H
++#define __IPU3_DMAMAP_H
++
++struct imgu_device;
++struct scatterlist;
++
++void *ipu3_dmamap_alloc(struct device *dev, struct ipu3_css_map *map,
++			size_t len);
++void ipu3_dmamap_free(struct device *dev, struct ipu3_css_map *map);
++
++int ipu3_dmamap_map_sg(struct device *dev, struct scatterlist *sglist,
++		       int nents, struct ipu3_css_map *map);
++void ipu3_dmamap_unmap(struct device *dev, struct ipu3_css_map *map);
++
++int ipu3_dmamap_init(struct device *dev);
++void ipu3_dmamap_exit(struct device *dev);
++
++#endif
+diff --git a/drivers/media/pci/intel/ipu3/ipu3.h b/drivers/media/pci/intel/ipu3/ipu3.h
+new file mode 100644
+index 000000000000..2ba6fa58e41c
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3.h
+@@ -0,0 +1,151 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
++
++#ifndef __IPU3_H
++#define __IPU3_H
++
++#include <linux/iova.h>
++#include <linux/pci.h>
++
++#include <media/v4l2-device.h>
++#include <media/videobuf2-dma-sg.h>
++
++#include "ipu3-css.h"
++
++#define IMGU_NAME			"ipu3-imgu"
++
++/*
++ * The semantics of the driver is that whenever there is a buffer available in
++ * master queue, the driver queues a buffer also to all other active nodes.
++ * If user space hasn't provided a buffer to all other video nodes first,
++ * the driver gets an internal dummy buffer and queues it.
++ */
++#define IMGU_QUEUE_MASTER		IPU3_CSS_QUEUE_IN
++#define IMGU_QUEUE_FIRST_INPUT		IPU3_CSS_QUEUE_OUT
++#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
++
++#define IMGU_NODE_IN			0 /* Input RAW image */
++#define IMGU_NODE_PARAMS		1 /* Input parameters */
++#define IMGU_NODE_OUT			2 /* Main output for still or video */
++#define IMGU_NODE_VF			3 /* Preview */
++#define IMGU_NODE_PV			4 /* Postview for still capture */
++#define IMGU_NODE_STAT_3A		5 /* 3A statistics */
++#define IMGU_NODE_NUM			6
++
++#define file_to_intel_ipu3_node(__file) \
++	container_of(video_devdata(__file), struct imgu_video_device, vdev)
++
++#define IPU3_INPUT_MIN_WIDTH		0U
++#define IPU3_INPUT_MIN_HEIGHT		0U
++#define IPU3_INPUT_MAX_WIDTH		5120U
++#define IPU3_INPUT_MAX_HEIGHT		38404U
++#define IPU3_OUTPUT_MIN_WIDTH		2U
++#define IPU3_OUTPUT_MIN_HEIGHT		2U
++#define IPU3_OUTPUT_MAX_WIDTH		4480U
++#define IPU3_OUTPUT_MAX_HEIGHT		34004U
++
++struct ipu3_vb2_buffer {
++	/* Public fields */
++	struct vb2_v4l2_buffer vbb;	/* Must be the first field */
++
++	/* Private fields */
++	struct list_head list;
++};
++
++struct imgu_buffer {
++	struct ipu3_vb2_buffer vid_buf;	/* Must be the first field */
++	struct ipu3_css_buffer css_buf;
++	struct ipu3_css_map map;
++};
++
++struct imgu_node_mapping {
++	unsigned int css_queue;
++	const char *name;
++};
++
++/**
++ * struct imgu_video_device
++ * each node registers as video device and maintains its
++ * own vb2_queue.
++ */
++struct imgu_video_device {
++	const char *name;
++	bool output;		/* Frames to the driver? */
++	bool immutable;		/* Can not be enabled/disabled */
++	bool enabled;
++	int queued;		/* Buffers already queued */
++	struct v4l2_format vdev_fmt;	/* Currently set format */
++
++	/* Private fields */
++	struct video_device vdev;
++	struct media_pad vdev_pad;
++	struct v4l2_mbus_framefmt pad_fmt;
++	struct vb2_queue vbq;
++	struct list_head buffers;
++	/* Protect vb2_queue and vdev structs*/
++	struct mutex lock;
++	atomic_t sequence;
++};
++
++/*
++ * imgu_device -- ImgU (Imaging Unit) driver
++ */
++struct imgu_device {
++	struct pci_dev *pci_dev;
++	void __iomem *base;
++
++	/* Internally enabled queues */
++	struct {
++		struct ipu3_css_map dmap;
++		struct ipu3_css_buffer dummybufs[IMGU_MAX_QUEUE_DEPTH];
++	} queues[IPU3_CSS_QUEUES];
++	struct imgu_video_device nodes[IMGU_NODE_NUM];
++	bool queue_enabled[IMGU_NODE_NUM];
++
++	/* Public fields, fill before registering */
++	unsigned int buf_struct_size;
++	bool streaming;		/* Public read only */
++	struct v4l2_ctrl_handler *ctrl_handler;
++
++	/* Private fields */
++	struct v4l2_device v4l2_dev;
++	struct media_device media_dev;
++	struct media_pipeline pipeline;
++	struct v4l2_subdev subdev;
++	struct media_pad *subdev_pads;
++	struct v4l2_file_operations v4l2_file_ops;
++
++	/* MMU driver for css */
++	struct ipu3_mmu_info *mmu;
++	struct iova_domain iova_domain;
++
++	/* css - Camera Sub-System */
++	struct ipu3_css css;
++
++	/*
++	 * Coarse-grained lock to protect
++	 * vid_buf.list and css->queue
++	 */
++	struct mutex lock;
++	/* Forbit streaming and buffer queuing during system suspend. */
++	atomic_t qbuf_barrier;
++	struct {
++		struct v4l2_rect eff; /* effective resolution */
++		struct v4l2_rect bds; /* bayer-domain scaled resolution*/
++		struct v4l2_rect gdc; /* gdc output resolution */
++	} rect;
++	/* Indicate if system suspend take place while imgu is streaming. */
++	bool suspend_in_stream;
++};
++
++unsigned int imgu_node_to_queue(unsigned int node);
++unsigned int imgu_map_node(struct imgu_device *imgu, unsigned int css_queue);
++int imgu_queue_buffers(struct imgu_device *imgu, bool initial);
++
++int ipu3_v4l2_register(struct imgu_device *dev);
++int ipu3_v4l2_unregister(struct imgu_device *dev);
++void ipu3_v4l2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
++
++int imgu_s_stream(struct imgu_device *imgu, int enable);
++
++#endif
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
