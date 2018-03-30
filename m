@@ -1,101 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38307 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750946AbeC2Oen (ORCPT
+Received: from mail-wr0-f180.google.com ([209.85.128.180]:34960 "EHLO
+        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750794AbeC3HXk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Mar 2018 10:34:43 -0400
-Date: Thu, 29 Mar 2018 19:04:35 +0430
-From: Nasser <afshin.nasser@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: p.zabel@pengutronix.de, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, bparrot@ti.com, garsilva@embeddedor.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: tvp5150: fix color burst lock instability on
- some hardware
-Message-ID: <20180329143435.GA4392@smart-ThinkPad-T410>
-References: <20180325225633.5899-1-Afshin.Nasser@gmail.com>
- <20180326064353.187f752c@vento.lan>
- <20180326222921.GA5373@smart-ThinkPad-T410>
+        Fri, 30 Mar 2018 03:23:40 -0400
+Received: by mail-wr0-f180.google.com with SMTP id 80so7318703wrb.2
+        for <linux-media@vger.kernel.org>; Fri, 30 Mar 2018 00:23:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180326222921.GA5373@smart-ThinkPad-T410>
+In-Reply-To: <2c04f13c-48dc-a745-02fc-7bd8cd57e568@xs4all.nl>
+References: <CA+gCWtL1HiZjNaZ87RRET+tHrdzSaqor=-vQUssnaGN+6iFOdg@mail.gmail.com>
+ <2c04f13c-48dc-a745-02fc-7bd8cd57e568@xs4all.nl>
+From: asadpt iqroot <asadptiqroot@gmail.com>
+Date: Fri, 30 Mar 2018 12:53:38 +0530
+Message-ID: <CA+gCWtJgw9Efhug-SveBmSfu55NC2dbaUO2KPCjZE1fVwvah3A@mail.gmail.com>
+Subject: Re: V4l2 Sensor driver and V4l2 ctrls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 27, 2018 at 02:59:21AM +0430, Nasser wrote:
-Hi Mauro,
+Hi Hans,
 
-Thank you for taking time to review my patch.
+Thanks for the reply.
 
-May be I should rephrase the commit message to something like:
-	Use the default register values as suggested in TVP5150AM1 datasheet
+In HDMI receivers, when we need to use this control. What scenario?
 
-As this is not a hardware-dependent issue. Am I missing something?
+-Thanks.
 
-> On Mon, Mar 26, 2018 at 06:43:53AM -0300, Mauro Carvalho Chehab wrote:
-> > Hi Nasser,
-> > 
-> > Em Mon, 26 Mar 2018 03:26:33 +0430
-> > Nasser Afshin <afshin.nasser@gmail.com> escreveu:
-> > 
-> > > According to the datasheet, INTREQ/GPCL/VBLK should have a pull-up/down
-> > > resistor if it's been disabled. On hardware that does not have such
-> > > resistor, we should use the default output enable value.
-> > > This prevents the color burst lock instability problem.
-> >
-> 
-> Color burst lock instability is just a side effect of not using the
-> recommended value for this bit. If we use the recommended setting, we
-> will support more hardware while not breaking anything.
-> 
-> > If this is hardware-dependent, you should instead store it at
-> > OF (for SoC) or pass via platform_data (for PCI/USB devices).
-> >
-> 
-> We have used the recommended value for this bit (as the datasheet
-> suggests) while we are in tvp5150_init_enable but in tvp5150_s_stream
-> we are using the wrong value.
-> 
-> Also we have this comment at line 319:
->     /* Default values as sugested at TVP5150AM1 datasheet */
-> But as you see, TVP5150_MISC_CTL is not set to its suggested default
-> value.
->  
-> > > 
-> > > Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
-> > > ---
-> > >  drivers/media/i2c/tvp5150.c | 5 +++--
-> > >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > > index 2476d812f669..0e9713814816 100644
-> > > --- a/drivers/media/i2c/tvp5150.c
-> > > +++ b/drivers/media/i2c/tvp5150.c
-> > > @@ -328,7 +328,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
-> > >  		TVP5150_OP_MODE_CTL,0x00
-> > >  	},
-> > >  	{ /* 0x03 */
-> > > -		TVP5150_MISC_CTL,0x01
-> > > +		TVP5150_MISC_CTL,0x21
-> > >  	},
-> > >  	{ /* 0x06 */
-> > >  		TVP5150_COLOR_KIL_THSH_CTL,0x10
-> > > @@ -1072,7 +1072,8 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
-> > >  		 * Enable the YCbCr and clock outputs. In discrete sync mode
-> > >  		 * (non-BT.656) additionally enable the the sync outputs.
-> > >  		 */
-> > > -		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
-> > > +		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE |
-> > > +			TVP5150_MISC_CTL_INTREQ_OE;
-> > >  		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-> > >  			val |= TVP5150_MISC_CTL_SYNC_OE;
-> > >  	}
-> > 
-> > 
-> > 
-> > Thanks,
-> > Mauro
 
-Thanks,
-Nasser
+On 30 March 2018 at 12:13, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 30/03/18 08:16, asadpt iqroot wrote:
+>> Hi All,
+>>
+>> In reference sensor drivers, they used the
+>> V4L2_CID_DV_RX_POWER_PRESENT v4l2 ctrl.
+>> It is a standard ctrl and created using v4l2_ctrl_new_std().
+>>
+>> The doubts are:
+>>
+>> 1. Whether in our sensor driver, we need to create this Control Id or
+>> not. How to take the decision on this. Since this is the standard
+>> ctrl. When we need to use these standard ctrls??
+>
+> No. This control is for HDMI receivers, not for sensors.
+>
+> Regards,
+>
+>         Hans
+>
+>>
+>> 2. In Sensor driver, the ctrls creation is anything depends on the
+>> bridge driver.
+>> Based on bridge driver, whether we need to create any ctrls in Sensor driver.
+>>
+>> This question belongs to design of the sensor driver.
+>>
+>>
+>>
+>> Thanks & Regards
+>>
+>
