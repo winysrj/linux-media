@@ -1,69 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:39600 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752907AbeC1QZp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Mar 2018 12:25:45 -0400
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-2-christian.koenig@amd.com>
- <20180328123830.GB25060@infradead.org>
- <613a6c91-7e72-5589-77e6-587ec973d553@gmail.com>
- <c81df70d-191d-bf8e-293a-413dd633e1fc@deltatee.com>
- <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <16c7bef8-5f03-9e89-1f50-b62fb139a36f@deltatee.com>
-Date: Wed, 28 Mar 2018 10:25:43 -0600
-MIME-Version: 1.0
-In-Reply-To: <5498e9b5-8fe5-8999-a44e-f7dc483bc9ce@amd.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:41364 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752259AbeC3TpY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Mar 2018 15:45:24 -0400
+Date: Fri, 30 Mar 2018 15:45:19 -0400
+From: Jerome Glisse <jglisse@redhat.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Will Davis <wdavis@nvidia.com>, Joerg Roedel <joro@8bytes.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
+Message-ID: <20180330194519.GC3198@redhat.com>
+References: <6a5c9a10-50fe-b03d-dfc1-791d62d79f8e@amd.com>
+ <e751cd28-f115-569f-5248-d24f30dee3cb@deltatee.com>
+ <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+ <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+ <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+ <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
+ <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
+ <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
+ <20180330015854.GA3572@redhat.com>
+ <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Mar 30, 2018 at 12:46:42PM -0600, Logan Gunthorpe wrote:
+> 
+> 
+> On 29/03/18 07:58 PM, Jerome Glisse wrote:
+> > On Thu, Mar 29, 2018 at 10:25:52AM -0600, Logan Gunthorpe wrote:
+> >>
+> >>
+> >> On 29/03/18 10:10 AM, Christian König wrote:
+> >>> Why not? I mean the dma_map_resource() function is for P2P while other 
+> >>> dma_map_* functions are only for system memory.
+> >>
+> >> Oh, hmm, I wasn't aware dma_map_resource was exclusively for mapping
+> >> P2P. Though it's a bit odd seeing we've been working under the
+> >> assumption that PCI P2P is different as it has to translate the PCI bus
+> >> address. Where as P2P for devices on other buses is a big unknown.
+> > 
+> > dma_map_resource() is the right API (thought its current implementation
+> > is fill with x86 assumptions). So i would argue that arch can decide to
+> > implement it or simply return dma error address which trigger fallback
+> > path into the caller (at least for GPU drivers). SG variant can be added
+> > on top.
+> > 
+> > dma_map_resource() is the right API because it has all the necessary
+> > informations. It use the CPU physical address as the common address
+> > "language" with CPU physical address of PCIE bar to map to another
+> > device you can find the corresponding bus address from the IOMMU code
+> > (NOP on x86). So dma_map_resource() knows both the source device which
+> > export its PCIE bar and the destination devices.
+> 
+> Well, as it is today, it doesn't look very sane to me. The default is to
+> just return the physical address if the architecture doesn't support it.
+> So if someone tries this on an arch that hasn't added itself to return
+> an error they're very likely going to just end up DMAing to an invalid
+> address and loosing the data or causing a machine check.
+
+Looking at upstream code it seems that the x86 bits never made it upstream
+and thus what is now upstream is only for ARM. See [1] for x86 code. Dunno
+what happen, i was convince it got merge. So yes current code is broken on
+x86. ccing Joerg maybe he remembers what happened there.
+
+[1] https://lwn.net/Articles/646605/
+
+> 
+> Furthermore, the API does not have all the information it needs to do
+> sane things. A phys_addr_t doesn't really tell you anything about the
+> memory behind it or what needs to be done with it. For example, on some
+> arm64 implementations if the physical address points to a PCI BAR and
+> that BAR is behind a switch with the DMA device then the address must be
+> converted to the PCI BUS address. On the other hand, if it's a physical
+> address of a device in an SOC it might need to  be handled in a
+> completely different way. And right now all the implementations I can
+> find seem to just assume that phys_addr_t points to regular memory and
+> can be treated as such.
+
+Given it is currently only used by ARM folks it appear to at least work
+for them (tm) :) Note that Christian is doing this in PCIE only context
+and again dma_map_resource can easily figure that out if the address is
+a PCIE or something else. Note that the exporter export the CPU bus
+address. So again dma_map_resource has all the informations it will ever
+need, if the peer to peer is fundamentaly un-doable it can return dma
+error and it is up to the caller to handle this, just like GPU code do.
+
+Do you claim that dma_map_resource is missing any information ?
 
 
-On 28/03/18 10:02 AM, Christian KÃ¶nig wrote:
-> Yeah, that looks very similar to what I picked up from the older 
-> patches, going to read up on that after my vacation.
+> 
+> This is one of the reasons that, based on feedback, our work went from
+> being general P2P with any device to being restricted to only P2P with
+> PCI devices. The dream that we can just grab the physical address of any
+> device and use it in a DMA request is simply not realistic.
 
-Yeah, I was just reading through your patchset and there are a lot of
-similarities. Though, I'm not sure what you're trying to accomplish as I
-could not find a cover letter and it seems to only enable one driver. Is
-it meant to enable DMA transactions only between two AMD GPUs?
+I agree and understand that but for platform where such feature make sense
+this will work. For me it is PowerPC and x86 and given PowerPC has CAPI
+which has far more advance feature when it comes to peer to peer, i don't
+see something more basic not working. On x86, Intel is a bit of lone wolf,
+dunno if they gonna support this usecase pro-actively. AMD definitly will.
 
-I also don't see where you've taken into account the PCI bus address. On
-some architectures this is not the same as the CPU physical address.
+If you feel like dma_map_resource() can be interpreted too broadly, more
+strict phrasing/wording can be added to it so people better understand its
+limitation and gotcha.
 
-> Just in general why are you interested in the "distance" of the devices?
-
-We've taken a general approach where some drivers may provide p2p memory
-(ie. an NVMe card or an RDMA NIC) and other drivers make use of it (ie.
-the NVMe-of driver). The orchestrator driver needs to find the most
-applicable provider device for a transaction in a situation that may
-have multiple providers and multiple clients. So the most applicable
-provider is the one that's closest ("distance"-wise) to all the clients
-for the P2P transaction.
-
-> And BTW: At least for writes that Peer 2 Peer transactions between 
-> different root complexes work is actually more common than the other way 
-> around.
-
-Maybe on x86 with hardware made in the last few years. But on PowerPC,
-ARM64, and likely a lot more the chance of support is *much* less. Also,
-hardware that only supports P2P stores is hardly full support and is
-insufficient for our needs.
-
-> So I'm a bit torn between using a blacklist or a whitelist. A whitelist 
-> is certainly more conservative approach, but that could get a bit long.
-
-I think a whitelist approach is correct. Given old hardware and other
-architectures, a black list is going to be too long and too difficult to
-comprehensively populate.
-
-Logan
+Cheers,
+Jérôme
