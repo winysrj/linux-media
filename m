@@ -1,57 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47512 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750726AbeCOMb6 (ORCPT
+Received: from zimbra92.bcc.gov.bd ([103.48.16.92]:33772 "EHLO
+        zimbra92.bcc.gov.bd" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752821AbeCaCm1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 08:31:58 -0400
-Date: Thu, 15 Mar 2018 14:31:54 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Andy Whitcroft <apw@canonical.com>,
-        Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH] dt-bindings: media: rcar_vin: Use status "okay"
-Message-ID: <20180315123154.fl5y3kzkvtjlqvc3@valkosipuli.retiisi.org.uk>
-References: <1520588080-31264-1-git-send-email-geert+renesas@glider.be>
+        Fri, 30 Mar 2018 22:42:27 -0400
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1520588080-31264-1-git-send-email-geert+renesas@glider.be>
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Re: Donation
+To: Recipients <info@donation.com>
+From: "M. M. Fridman" <info@donation.com>
+Date: Sat, 31 Mar 2018 09:02:56 +0800
+Reply-To: mikh.fridman@gmail.com
+Message-Id: <20180331010715.1426BE67887@zimbra92.bcc.gov.bd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 09, 2018 at 10:34:40AM +0100, Geert Uytterhoeven wrote:
-> According to the Devicetree Specification, "ok" is not a valid status.
-> 
-> Fixes: 47c71bd61b772cd7 ("[media] rcar_vin: add devicetree support")
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+I Mikhail Fridman. has selected you specially as one of my beneficiaries
+for my Charitable Donation, Just as I have declared on May 23, 2016 to give
+my fortune as charity.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Check the link below for confirmation:
 
-There are a few other matches, too, it'd be nice to fix them as well:
+http://www.ibtimes.co.uk/russias-second-wealthiest-man-mikhail-fridman-plans-leaving-14-2bn-fortune-charity-1561604
 
-$ git grep 'status.*"ok"' -- Documentation/devicetree/bindings/
-Documentation/devicetree/bindings/ata/apm-xgene.txt:- status            : Shall be "ok" if enabled or "disabled" if disabled.
-Documentation/devicetree/bindings/display/hisilicon/dw-dsi.txt:         status = "ok";
-Documentation/devicetree/bindings/display/ti/ti,omap-dss.txt:   status = "ok";
-Documentation/devicetree/bindings/display/ti/ti,omap-dss.txt:   status = "ok";
-Documentation/devicetree/bindings/media/rcar_vin.txt:        status = "ok";
-Documentation/devicetree/bindings/media/rcar_vin.txt:        status = "ok";
-Documentation/devicetree/bindings/net/apm-xgene-enet.txt:- status: Should be "ok" or "disabled" for enabled/disabled. Default is "ok".
-Documentation/devicetree/bindings/net/apm-xgene-enet.txt:               status = "ok";
-Documentation/devicetree/bindings/net/apm-xgene-enet.txt:        status = "ok";
-Documentation/devicetree/bindings/pci/hisilicon-pcie.txt:- status: Either "ok" or "disabled".
-Documentation/devicetree/bindings/pci/xgene-pci.txt:- status: Either "ok" or "disabled".
-Documentation/devicetree/bindings/pci/xgene-pci.txt:            status = "ok";
-Documentation/devicetree/bindings/phy/apm-xgene-phy.txt:- status                : Shall be "ok" if enabled or "disabled" if disabled.
+Reply as soon as possible with further directives.
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Best Regards,
+Mikhail Fridman.
