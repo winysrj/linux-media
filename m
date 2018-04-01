@@ -1,33 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:39249 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752688AbeCDPtN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2018 10:49:13 -0500
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: alan@linux.intel.com
-Cc: sakari.ailus@linux.intel.com, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com,
-        Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH 0/3] staging: media: cleanup
-Date: Sun,  4 Mar 2018 21:18:24 +0530
-Message-Id: <1520178507-25141-1-git-send-email-arushisinghal19971997@gmail.com>
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:40321 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752366AbeDAA7a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 31 Mar 2018 20:59:30 -0400
+Received: by mail-pl0-f65.google.com with SMTP id x4-v6so2125576pln.7
+        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2018 17:59:30 -0700 (PDT)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Subject: [PATCH v6 0/2] media: video-i2c: add video-i2c driver support
+Date: Sat, 31 Mar 2018 17:59:24 -0700
+Message-Id: <20180401005926.18203-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Spellcheck the comments.
-Remove the repeated, consecutive words with single word.
+Add support for video-i2c polling driver
 
-Arushi Singhal (3):
-  staging: media: Replace "be be" with "be"
-  staging: media: Replace "cant" with "can't"
-  staging: media: Replace "dont" with "don't"
+Changes from v1:
+* Switch to SPDX tags versus GPLv2 license text
+* Remove unneeded zeroing of data structures
+* Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
 
- drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h | 2 +-
- drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c                | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c                    | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+Changes from v2:
+* Add missing linux/kthread.h include that broke x86_64 build
+
+Changes from v3:
+* Add devicetree binding documents
+* snprintf check added
+* switched to per chip support based on devicetree or i2c client id
+* add VB2_DMABUF to io_modes
+* added entry to MAINTAINERS file switched to per chip support based on devicetree or i2c client id
+
+Changes from v4:
+* convert pointer from of_device_get_match_data() to long instead of int to avoid compiler warning
+
+Changes from v5:
+* fix various issues with v4l2-compliance tool run
+
+Matt Ranostay (2):
+  media: dt-bindings: Add bindings for panasonic,amg88xx
+  media: video-i2c: add video-i2c driver
+
+ .../bindings/media/i2c/panasonic,amg88xx.txt       |  19 +
+ MAINTAINERS                                        |   6 +
+ drivers/media/i2c/Kconfig                          |   9 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/video-i2c.c                      | 562 +++++++++++++++++++++
+ 5 files changed, 597 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ create mode 100644 drivers/media/i2c/video-i2c.c
 
 -- 
-2.7.4
+2.14.1
