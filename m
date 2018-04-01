@@ -1,1408 +1,760 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:20928 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752384AbeCOPmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Mar 2018 11:42:51 -0400
-From: Andy Yeh <andy.yeh@intel.com>
-To: linux-media@vger.kernel.org, tfiga@chromium.org
-Cc: sakari.ailus@linux.intel.com, andy.yeh@intel.com,
-        jasonx.z.chen@intel.com, alanx.chiang@intel.com, jim.lai@intel.com
-Subject: [PATCH v9] media: imx258: Add imx258 camera sensor driver
-Date: Thu, 15 Mar 2018 23:47:58 +0800
-Message-Id: <1521128878-18689-1-git-send-email-andy.yeh@intel.com>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:37318 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752826AbeDABC2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 31 Mar 2018 21:02:28 -0400
+Received: by mail-io0-f194.google.com with SMTP id y128so14582431iod.4
+        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2018 18:02:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180401005926.18203-3-matt.ranostay@konsulko.com>
+References: <20180401005926.18203-1-matt.ranostay@konsulko.com> <20180401005926.18203-3-matt.ranostay@konsulko.com>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Sat, 31 Mar 2018 18:02:27 -0700
+Message-ID: <CAJCx=gm6os9quheqYxPvWThF76-Mhbo-3DxZuod89CXbL2g7ew@mail.gmail.com>
+Subject: Re: [PATCH v6 2/2] media: video-i2c: add video-i2c driver
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jason Chen <jasonx.z.chen@intel.com>
+On Sat, Mar 31, 2018 at 5:59 PM, Matt Ranostay
+<matt.ranostay@konsulko.com> wrote:
+> There are several thermal sensors that only have a low-speed bus
+> interface but output valid video data. This patchset enables support
+> for the AMG88xx "Grid-Eye" sensor family.
+>
+> Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> ---
 
-Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
-This is a camera sensor using the I2C bus for control and the
-CSI-2 bus for data.
 
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
----
-since v2:
--- Update the streaming function to remove SW_STANDBY in the beginning.
--- Adjust the delay time from 1ms to 12ms before set stream-on register.
-since v3:
--- fix the sd.entity to make code be compiled on the mainline kernel.
-since v4:
--- Enabled AG, DG, and Exposure time control correctly.
-since v5:
--- Sensor vendor provided a new setting to fix different CLK issue
--- Add one more resolution for 1048x780, used for VGA streaming
-since v6:
--- improved i2c read/write function to support writing 2 registers
--- modified i2c reg read/write function with a more portable way
--- utilized v4l2_find_nearest_size instead of the local find_best_fit function
--- defined an enum for the link freq entries for explicit indexing
-since v7:
--- Removed usleep due to sufficient delay implemented in coreboot
--- Added handling for VBLANK control that auto frame-line-control is enabled
-since v8:
--- Fix some error return and intents
+v4l2-compliance SHA   : 3dc9af2b54eddb531823b99e77f3f212bdcc9cca
 
- MAINTAINERS                |    7 +
- drivers/media/i2c/Kconfig  |   11 +
- drivers/media/i2c/Makefile |    1 +
- drivers/media/i2c/imx258.c | 1296 ++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 1315 insertions(+)
- create mode 100644 drivers/media/i2c/imx258.c
+Compliance test for device /dev/video0:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a339bb5..9f75510 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12646,6 +12646,13 @@ S:	Maintained
- F:	drivers/ssb/
- F:	include/linux/ssb/
- 
-+SONY IMX258 SENSOR DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/imx258.c
-+
- SONY IMX274 SENSOR DRIVER
- M:	Leon Luo <leonl@leopardimaging.com>
- L:	linux-media@vger.kernel.org
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index fd01842..bcd4bf1 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -565,6 +565,17 @@ config VIDEO_APTINA_PLL
- config VIDEO_SMIAPP_PLL
- 	tristate
- 
-+config VIDEO_IMX258
-+	tristate "Sony IMX258 sensor support"
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	depends on MEDIA_CAMERA_SUPPORT
-+	---help---
-+	  This is a Video4Linux2 sensor-level driver for the Sony
-+	  IMX258 camera.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called imx258.
-+
- config VIDEO_IMX274
- 	tristate "Sony IMX274 sensor support"
- 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 1b62639..4bf7d00 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -94,6 +94,7 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
- obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
- obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
- obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-+obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
- obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
- 
- obj-$(CONFIG_SDR_MAX2175) += max2175.o
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-new file mode 100644
-index 0000000..ba02fd5
---- /dev/null
-+++ b/drivers/media/i2c/imx258.c
-@@ -0,0 +1,1296 @@
-+// Copyright (C) 2018 Intel Corporation
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <asm/unaligned.h>
-+
-+#define IMX258_REG_VALUE_08BIT		1
-+#define IMX258_REG_VALUE_16BIT		2
-+
-+#define IMX258_REG_MODE_SELECT		0x0100
-+#define IMX258_MODE_STANDBY		0x00
-+#define IMX258_MODE_STREAMING		0x01
-+
-+/* Chip ID */
-+#define IMX258_REG_CHIP_ID		0x0016
-+#define IMX258_CHIP_ID			0x0258
-+
-+/* V_TIMING internal */
-+#define IMX258_REG_VTS			0x0340
-+#define IMX258_VTS_30FPS		0x0c98
-+#define IMX258_VTS_30FPS_2K		0x0638
-+#define IMX258_VTS_30FPS_VGA		0x034c
-+#define IMX258_VTS_MAX			0xffff
-+
-+/*Frame Length Line*/
-+#define IMX258_FLL_MIN			0x08a6
-+#define IMX258_FLL_MAX			0xffff
-+#define IMX258_FLL_STEP			1
-+#define IMX258_FLL_DEFAULT		0x0c98
-+
-+/* HBLANK control - read only */
-+#define IMX258_PPL_DEFAULT		5352
-+
-+/* Exposure control */
-+#define IMX258_REG_EXPOSURE		0x0202
-+#define IMX258_EXPOSURE_MIN		4
-+#define IMX258_EXPOSURE_STEP		1
-+#define IMX258_EXPOSURE_DEFAULT		0x640
-+#define IMX258_EXPOSURE_MAX		65535
-+
-+/* Analog gain control */
-+#define IMX258_REG_ANALOG_GAIN		0x0204
-+#define IMX258_ANA_GAIN_MIN		0
-+#define IMX258_ANA_GAIN_MAX		0x1fff
-+#define IMX258_ANA_GAIN_STEP		1
-+#define IMX258_ANA_GAIN_DEFAULT		0x0
-+
-+/* Digital gain control */
-+#define IMX258_REG_GR_DIGITAL_GAIN	0x020e
-+#define IMX258_REG_R_DIGITAL_GAIN	0x0210
-+#define IMX258_REG_B_DIGITAL_GAIN	0x0212
-+#define IMX258_REG_GB_DIGITAL_GAIN	0x0214
-+#define IMX258_DGTL_GAIN_MIN		0
-+#define IMX258_DGTL_GAIN_MAX		4096   /* Max = 0xFFF */
-+#define IMX258_DGTL_GAIN_DEFAULT	1024
-+#define IMX258_DGTL_GAIN_STEP           1
-+
-+/* Orientation */
-+#define REG_MIRROR_FLIP_CONTROL	0x0101
-+#define REG_CONFIG_MIRROR_FLIP		0x03
-+
-+struct imx258_reg {
-+	u16 address;
-+	u8 val;
-+};
-+
-+struct imx258_reg_list {
-+	u32 num_of_regs;
-+	const struct imx258_reg *regs;
-+};
-+
-+/* Link frequency config */
-+struct imx258_link_freq_config {
-+	u32 pixels_per_line;
-+
-+	/* PLL registers for this link frequency */
-+	struct imx258_reg_list reg_list;
-+};
-+
-+/* Mode : resolution and related config&values */
-+struct imx258_mode {
-+	/* Frame width */
-+	u32 width;
-+	/* Frame height */
-+	u32 height;
-+
-+	/* V-timing */
-+	u32 vts_def;
-+	u32 vts_min;
-+
-+	/* Index of Link frequency config to be used */
-+	u32 link_freq_index;
-+	/* Default register values */
-+	struct imx258_reg_list reg_list;
-+};
-+
-+/* 4208x3118 needs 1267Mbps/lane, 4 lanes */
-+static const struct imx258_reg mipi_data_rate_1267mbps[] = {
-+	{ 0x0301, 0x05 },
-+	{ 0x0303, 0x02 },
-+	{ 0x0305, 0x03 },
-+	{ 0x0306, 0x00 },
-+	{ 0x0307, 0xC6 },
-+	{ 0x0309, 0x0A },
-+	{ 0x030B, 0x01 },
-+	{ 0x030D, 0x02 },
-+	{ 0x030E, 0x00 },
-+	{ 0x030F, 0xD8 },
-+	{ 0x0310, 0x00 },
-+	{ 0x0820, 0x13 },
-+	{ 0x0821, 0x4C },
-+	{ 0x0822, 0xCC },
-+	{ 0x0823, 0xCC },
-+};
-+
-+static const struct imx258_reg mipi_data_rate_640mbps[] = {
-+	{ 0x0301, 0x05 },
-+	{ 0x0303, 0x02 },
-+	{ 0x0305, 0x03 },
-+	{ 0x0306, 0x00 },
-+	{ 0x0307, 0x64 },
-+	{ 0x0309, 0x0A },
-+	{ 0x030B, 0x01 },
-+	{ 0x030D, 0x02 },
-+	{ 0x030E, 0x00 },
-+	{ 0x030F, 0xD8 },
-+	{ 0x0310, 0x00 },
-+	{ 0x0820, 0x0A },
-+	{ 0x0821, 0x00 },
-+	{ 0x0822, 0x00 },
-+	{ 0x0823, 0x00 },
-+};
-+
-+static const struct imx258_reg mode_4208x3118_regs[] = {
-+	{ 0x0136, 0x13 },
-+	{ 0x0137, 0x33 },
-+	{ 0x3051, 0x00 },
-+	{ 0x3052, 0x00 },
-+	{ 0x4E21, 0x14 },
-+	{ 0x6B11, 0xCF },
-+	{ 0x7FF0, 0x08 },
-+	{ 0x7FF1, 0x0F },
-+	{ 0x7FF2, 0x08 },
-+	{ 0x7FF3, 0x1B },
-+	{ 0x7FF4, 0x23 },
-+	{ 0x7FF5, 0x60 },
-+	{ 0x7FF6, 0x00 },
-+	{ 0x7FF7, 0x01 },
-+	{ 0x7FF8, 0x00 },
-+	{ 0x7FF9, 0x78 },
-+	{ 0x7FFA, 0x00 },
-+	{ 0x7FFB, 0x00 },
-+	{ 0x7FFC, 0x00 },
-+	{ 0x7FFD, 0x00 },
-+	{ 0x7FFE, 0x00 },
-+	{ 0x7FFF, 0x03 },
-+	{ 0x7F76, 0x03 },
-+	{ 0x7F77, 0xFE },
-+	{ 0x7FA8, 0x03 },
-+	{ 0x7FA9, 0xFE },
-+	{ 0x7B24, 0x81 },
-+	{ 0x7B25, 0x00 },
-+	{ 0x6564, 0x07 },
-+	{ 0x6B0D, 0x41 },
-+	{ 0x653D, 0x04 },
-+	{ 0x6B05, 0x8C },
-+	{ 0x6B06, 0xF9 },
-+	{ 0x6B08, 0x65 },
-+	{ 0x6B09, 0xFC },
-+	{ 0x6B0A, 0xCF },
-+	{ 0x6B0B, 0xD2 },
-+	{ 0x6700, 0x0E },
-+	{ 0x6707, 0x0E },
-+	{ 0x9104, 0x00 },
-+	{ 0x4648, 0x7F },
-+	{ 0x7420, 0x00 },
-+	{ 0x7421, 0x1C },
-+	{ 0x7422, 0x00 },
-+	{ 0x7423, 0xD7 },
-+	{ 0x5F04, 0x00 },
-+	{ 0x5F05, 0xED },
-+	{ 0x0112, 0x0A },
-+	{ 0x0113, 0x0A },
-+	{ 0x0114, 0x03 },
-+	{ 0x0342, 0x14 },
-+	{ 0x0343, 0xE8 },
-+	{ 0x0340, 0x0C },
-+	{ 0x0341, 0x50 },
-+	{ 0x0344, 0x00 },
-+	{ 0x0345, 0x00 },
-+	{ 0x0346, 0x00 },
-+	{ 0x0347, 0x00 },
-+	{ 0x0348, 0x10 },
-+	{ 0x0349, 0x6F },
-+	{ 0x034A, 0x0C },
-+	{ 0x034B, 0x2E },
-+	{ 0x0381, 0x01 },
-+	{ 0x0383, 0x01 },
-+	{ 0x0385, 0x01 },
-+	{ 0x0387, 0x01 },
-+	{ 0x0900, 0x00 },
-+	{ 0x0901, 0x11 },
-+	{ 0x0401, 0x00 },
-+	{ 0x0404, 0x00 },
-+	{ 0x0405, 0x10 },
-+	{ 0x0408, 0x00 },
-+	{ 0x0409, 0x00 },
-+	{ 0x040A, 0x00 },
-+	{ 0x040B, 0x00 },
-+	{ 0x040C, 0x10 },
-+	{ 0x040D, 0x70 },
-+	{ 0x040E, 0x0C },
-+	{ 0x040F, 0x30 },
-+	{ 0x3038, 0x00 },
-+	{ 0x303A, 0x00 },
-+	{ 0x303B, 0x10 },
-+	{ 0x300D, 0x00 },
-+	{ 0x034C, 0x10 },
-+	{ 0x034D, 0x70 },
-+	{ 0x034E, 0x0C },
-+	{ 0x034F, 0x30 },
-+	{ 0x0350, 0x01 },
-+	{ 0x0202, 0x0C },
-+	{ 0x0203, 0x46 },
-+	{ 0x0204, 0x00 },
-+	{ 0x0205, 0x00 },
-+	{ 0x020E, 0x01 },
-+	{ 0x020F, 0x00 },
-+	{ 0x0210, 0x01 },
-+	{ 0x0211, 0x00 },
-+	{ 0x0212, 0x01 },
-+	{ 0x0213, 0x00 },
-+	{ 0x0214, 0x01 },
-+	{ 0x0215, 0x00 },
-+	{ 0x7BCD, 0x00 },
-+	{ 0x94DC, 0x20 },
-+	{ 0x94DD, 0x20 },
-+	{ 0x94DE, 0x20 },
-+	{ 0x95DC, 0x20 },
-+	{ 0x95DD, 0x20 },
-+	{ 0x95DE, 0x20 },
-+	{ 0x7FB0, 0x00 },
-+	{ 0x9010, 0x3E },
-+	{ 0x9419, 0x50 },
-+	{ 0x941B, 0x50 },
-+	{ 0x9519, 0x50 },
-+	{ 0x951B, 0x50 },
-+	{ 0x3030, 0x00 },
-+	{ 0x3032, 0x00 },
-+	{ 0x0220, 0x00 },
-+};
-+
-+static const struct imx258_reg mode_2104_1560_regs[] = {
-+	{ 0x0136, 0x13 },
-+	{ 0x0137, 0x33 },
-+	{ 0x3051, 0x00 },
-+	{ 0x3052, 0x00 },
-+	{ 0x4E21, 0x14 },
-+	{ 0x6B11, 0xCF },
-+	{ 0x7FF0, 0x08 },
-+	{ 0x7FF1, 0x0F },
-+	{ 0x7FF2, 0x08 },
-+	{ 0x7FF3, 0x1B },
-+	{ 0x7FF4, 0x23 },
-+	{ 0x7FF5, 0x60 },
-+	{ 0x7FF6, 0x00 },
-+	{ 0x7FF7, 0x01 },
-+	{ 0x7FF8, 0x00 },
-+	{ 0x7FF9, 0x78 },
-+	{ 0x7FFA, 0x00 },
-+	{ 0x7FFB, 0x00 },
-+	{ 0x7FFC, 0x00 },
-+	{ 0x7FFD, 0x00 },
-+	{ 0x7FFE, 0x00 },
-+	{ 0x7FFF, 0x03 },
-+	{ 0x7F76, 0x03 },
-+	{ 0x7F77, 0xFE },
-+	{ 0x7FA8, 0x03 },
-+	{ 0x7FA9, 0xFE },
-+	{ 0x7B24, 0x81 },
-+	{ 0x7B25, 0x00 },
-+	{ 0x6564, 0x07 },
-+	{ 0x6B0D, 0x41 },
-+	{ 0x653D, 0x04 },
-+	{ 0x6B05, 0x8C },
-+	{ 0x6B06, 0xF9 },
-+	{ 0x6B08, 0x65 },
-+	{ 0x6B09, 0xFC },
-+	{ 0x6B0A, 0xCF },
-+	{ 0x6B0B, 0xD2 },
-+	{ 0x6700, 0x0E },
-+	{ 0x6707, 0x0E },
-+	{ 0x9104, 0x00 },
-+	{ 0x4648, 0x7F },
-+	{ 0x7420, 0x00 },
-+	{ 0x7421, 0x1C },
-+	{ 0x7422, 0x00 },
-+	{ 0x7423, 0xD7 },
-+	{ 0x5F04, 0x00 },
-+	{ 0x5F05, 0xED },
-+	{ 0x0112, 0x0A },
-+	{ 0x0113, 0x0A },
-+	{ 0x0114, 0x03 },
-+	{ 0x0342, 0x14 },
-+	{ 0x0343, 0xE8 },
-+	{ 0x0340, 0x06 },
-+	{ 0x0341, 0x38 },
-+	{ 0x0344, 0x00 },
-+	{ 0x0345, 0x00 },
-+	{ 0x0346, 0x00 },
-+	{ 0x0347, 0x00 },
-+	{ 0x0348, 0x10 },
-+	{ 0x0349, 0x6F },
-+	{ 0x034A, 0x0C },
-+	{ 0x034B, 0x2E },
-+	{ 0x0381, 0x01 },
-+	{ 0x0383, 0x01 },
-+	{ 0x0385, 0x01 },
-+	{ 0x0387, 0x01 },
-+	{ 0x0900, 0x01 },
-+	{ 0x0901, 0x12 },
-+	{ 0x0401, 0x01 },
-+	{ 0x0404, 0x00 },
-+	{ 0x0405, 0x20 },
-+	{ 0x0408, 0x00 },
-+	{ 0x0409, 0x02 },
-+	{ 0x040A, 0x00 },
-+	{ 0x040B, 0x00 },
-+	{ 0x040C, 0x10 },
-+	{ 0x040D, 0x6A },
-+	{ 0x040E, 0x06 },
-+	{ 0x040F, 0x18 },
-+	{ 0x3038, 0x00 },
-+	{ 0x303A, 0x00 },
-+	{ 0x303B, 0x10 },
-+	{ 0x300D, 0x00 },
-+	{ 0x034C, 0x08 },
-+	{ 0x034D, 0x38 },
-+	{ 0x034E, 0x06 },
-+	{ 0x034F, 0x18 },
-+	{ 0x0350, 0x01 },
-+	{ 0x0202, 0x06 },
-+	{ 0x0203, 0x2E },
-+	{ 0x0204, 0x00 },
-+	{ 0x0205, 0x00 },
-+	{ 0x020E, 0x01 },
-+	{ 0x020F, 0x00 },
-+	{ 0x0210, 0x01 },
-+	{ 0x0211, 0x00 },
-+	{ 0x0212, 0x01 },
-+	{ 0x0213, 0x00 },
-+	{ 0x0214, 0x01 },
-+	{ 0x0215, 0x00 },
-+	{ 0x7BCD, 0x01 },
-+	{ 0x94DC, 0x20 },
-+	{ 0x94DD, 0x20 },
-+	{ 0x94DE, 0x20 },
-+	{ 0x95DC, 0x20 },
-+	{ 0x95DD, 0x20 },
-+	{ 0x95DE, 0x20 },
-+	{ 0x7FB0, 0x00 },
-+	{ 0x9010, 0x3E },
-+	{ 0x9419, 0x50 },
-+	{ 0x941B, 0x50 },
-+	{ 0x9519, 0x50 },
-+	{ 0x951B, 0x50 },
-+	{ 0x3030, 0x00 },
-+	{ 0x3032, 0x00 },
-+	{ 0x0220, 0x00 },
-+};
-+
-+static const struct imx258_reg mode_1048_780_regs[] = {
-+	{ 0x0136, 0x13 },
-+	{ 0x0137, 0x33 },
-+	{ 0x3051, 0x00 },
-+	{ 0x3052, 0x00 },
-+	{ 0x4E21, 0x14 },
-+	{ 0x6B11, 0xCF },
-+	{ 0x7FF0, 0x08 },
-+	{ 0x7FF1, 0x0F },
-+	{ 0x7FF2, 0x08 },
-+	{ 0x7FF3, 0x1B },
-+	{ 0x7FF4, 0x23 },
-+	{ 0x7FF5, 0x60 },
-+	{ 0x7FF6, 0x00 },
-+	{ 0x7FF7, 0x01 },
-+	{ 0x7FF8, 0x00 },
-+	{ 0x7FF9, 0x78 },
-+	{ 0x7FFA, 0x00 },
-+	{ 0x7FFB, 0x00 },
-+	{ 0x7FFC, 0x00 },
-+	{ 0x7FFD, 0x00 },
-+	{ 0x7FFE, 0x00 },
-+	{ 0x7FFF, 0x03 },
-+	{ 0x7F76, 0x03 },
-+	{ 0x7F77, 0xFE },
-+	{ 0x7FA8, 0x03 },
-+	{ 0x7FA9, 0xFE },
-+	{ 0x7B24, 0x81 },
-+	{ 0x7B25, 0x00 },
-+	{ 0x6564, 0x07 },
-+	{ 0x6B0D, 0x41 },
-+	{ 0x653D, 0x04 },
-+	{ 0x6B05, 0x8C },
-+	{ 0x6B06, 0xF9 },
-+	{ 0x6B08, 0x65 },
-+	{ 0x6B09, 0xFC },
-+	{ 0x6B0A, 0xCF },
-+	{ 0x6B0B, 0xD2 },
-+	{ 0x6700, 0x0E },
-+	{ 0x6707, 0x0E },
-+	{ 0x9104, 0x00 },
-+	{ 0x4648, 0x7F },
-+	{ 0x7420, 0x00 },
-+	{ 0x7421, 0x1C },
-+	{ 0x7422, 0x00 },
-+	{ 0x7423, 0xD7 },
-+	{ 0x5F04, 0x00 },
-+	{ 0x5F05, 0xED },
-+	{ 0x0112, 0x0A },
-+	{ 0x0113, 0x0A },
-+	{ 0x0114, 0x03 },
-+	{ 0x0342, 0x14 },
-+	{ 0x0343, 0xE8 },
-+	{ 0x0340, 0x03 },
-+	{ 0x0341, 0x4C },
-+	{ 0x0344, 0x00 },
-+	{ 0x0345, 0x00 },
-+	{ 0x0346, 0x00 },
-+	{ 0x0347, 0x00 },
-+	{ 0x0348, 0x10 },
-+	{ 0x0349, 0x6F },
-+	{ 0x034A, 0x0C },
-+	{ 0x034B, 0x2E },
-+	{ 0x0381, 0x01 },
-+	{ 0x0383, 0x01 },
-+	{ 0x0385, 0x01 },
-+	{ 0x0387, 0x01 },
-+	{ 0x0900, 0x01 },
-+	{ 0x0901, 0x14 },
-+	{ 0x0401, 0x01 },
-+	{ 0x0404, 0x00 },
-+	{ 0x0405, 0x40 },
-+	{ 0x0408, 0x00 },
-+	{ 0x0409, 0x06 },
-+	{ 0x040A, 0x00 },
-+	{ 0x040B, 0x00 },
-+	{ 0x040C, 0x10 },
-+	{ 0x040D, 0x64 },
-+	{ 0x040E, 0x03 },
-+	{ 0x040F, 0x0C },
-+	{ 0x3038, 0x00 },
-+	{ 0x303A, 0x00 },
-+	{ 0x303B, 0x10 },
-+	{ 0x300D, 0x00 },
-+	{ 0x034C, 0x04 },
-+	{ 0x034D, 0x18 },
-+	{ 0x034E, 0x03 },
-+	{ 0x034F, 0x0C },
-+	{ 0x0350, 0x01 },
-+	{ 0x0202, 0x03 },
-+	{ 0x0203, 0x42 },
-+	{ 0x0204, 0x00 },
-+	{ 0x0205, 0x00 },
-+	{ 0x020E, 0x01 },
-+	{ 0x020F, 0x00 },
-+	{ 0x0210, 0x01 },
-+	{ 0x0211, 0x00 },
-+	{ 0x0212, 0x01 },
-+	{ 0x0213, 0x00 },
-+	{ 0x0214, 0x01 },
-+	{ 0x0215, 0x00 },
-+	{ 0x7BCD, 0x00 },
-+	{ 0x94DC, 0x20 },
-+	{ 0x94DD, 0x20 },
-+	{ 0x94DE, 0x20 },
-+	{ 0x95DC, 0x20 },
-+	{ 0x95DD, 0x20 },
-+	{ 0x95DE, 0x20 },
-+	{ 0x7FB0, 0x00 },
-+	{ 0x9010, 0x3E },
-+	{ 0x9419, 0x50 },
-+	{ 0x941B, 0x50 },
-+	{ 0x9519, 0x50 },
-+	{ 0x951B, 0x50 },
-+	{ 0x3030, 0x00 },
-+	{ 0x3032, 0x00 },
-+	{ 0x0220, 0x00 },
-+};
-+
-+static const char * const imx258_test_pattern_menu[] = {
-+	"Disabled",
-+	"Vertical Color Bar Type 1",
-+	"Vertical Color Bar Type 2",
-+	"Vertical Color Bar Type 3",
-+	"Vertical Color Bar Type 4"
-+};
-+
-+/* Configurations for supported link frequencies */
-+#define IMX258_LINK_FREQ_634MHZ	633600000ULL
-+#define IMX258_LINK_FREQ_320MHZ	320000000ULL
-+
-+enum {
-+	IMX258_LINK_FREQ_1267MBPS,
-+	IMX258_LINK_FREQ_640MBPS,
-+};
-+
-+/*
-+ * pixel_rate = link_freq * data-rate * nr_of_lanes / bits_per_sample
-+ * data rate => double data rate; number of lanes => 4; bits per pixel => 10
-+ */
-+static u64 link_freq_to_pixel_rate(u64 f)
-+{
-+	f *= 2 * 4;
-+	do_div(f, 10);
-+
-+	return f;
-+}
-+
-+/* Menu items for LINK_FREQ V4L2 control */
-+static const s64 link_freq_menu_items[] = {
-+	IMX258_LINK_FREQ_634MHZ,
-+	IMX258_LINK_FREQ_320MHZ,
-+};
-+
-+/* Link frequency configs */
-+static const struct imx258_link_freq_config link_freq_configs[] = {
-+	[IMX258_LINK_FREQ_1267MBPS] = {
-+		.pixels_per_line = IMX258_PPL_DEFAULT,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mipi_data_rate_1267mbps),
-+			.regs = mipi_data_rate_1267mbps,
-+		}
-+	},
-+	[IMX258_LINK_FREQ_640MBPS] = {
-+		.pixels_per_line = IMX258_PPL_DEFAULT,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mipi_data_rate_640mbps),
-+			.regs = mipi_data_rate_640mbps,
-+		}
-+	},
-+};
-+
-+/* Mode configs */
-+static const struct imx258_mode supported_modes[] = {
-+	{
-+		.width = 4208,
-+		.height = 3118,
-+		.vts_def = IMX258_VTS_30FPS,
-+		.vts_min = IMX258_VTS_30FPS,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_4208x3118_regs),
-+			.regs = mode_4208x3118_regs,
-+		},
-+		.link_freq_index = IMX258_LINK_FREQ_1267MBPS,
-+	},
-+	{
-+		.width = 2104,
-+		.height = 1560,
-+		.vts_def = IMX258_VTS_30FPS_2K,
-+		.vts_min = IMX258_VTS_30FPS_2K,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_2104_1560_regs),
-+			.regs = mode_2104_1560_regs,
-+		},
-+		.link_freq_index = IMX258_LINK_FREQ_640MBPS,
-+	},
-+	{
-+		.width = 1048,
-+		.height = 780,
-+		.vts_def = IMX258_VTS_30FPS_VGA,
-+		.vts_min = IMX258_VTS_30FPS_VGA,
-+		.reg_list = {
-+			.num_of_regs = ARRAY_SIZE(mode_1048_780_regs),
-+			.regs = mode_1048_780_regs,
-+		},
-+		.link_freq_index = IMX258_LINK_FREQ_640MBPS,
-+	},
-+};
-+
-+struct imx258 {
-+	struct v4l2_subdev sd;
-+	struct media_pad pad;
-+
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	/* V4L2 Controls */
-+	struct v4l2_ctrl *link_freq;
-+	struct v4l2_ctrl *pixel_rate;
-+	struct v4l2_ctrl *vblank;
-+	struct v4l2_ctrl *hblank;
-+	struct v4l2_ctrl *exposure;
-+
-+	/* Current mode */
-+	const struct imx258_mode *cur_mode;
-+
-+	/*
-+	 * Mutex for serialized access:
-+	 * Protect sensor module set pad format and start/stop streaming safely.
-+	 */
-+	struct mutex mutex;
-+
-+	/* Streaming on/off */
-+	bool streaming;
-+};
-+
-+static inline struct imx258 *to_imx258(struct v4l2_subdev *_sd)
-+{
-+	return container_of(_sd, struct imx258, sd);
-+}
-+
-+/* Read registers up to 2 at a time */
-+static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	struct i2c_msg msgs[2];
-+	u8 addr_buf[2] = { reg >> 8, reg & 0xff };
-+	u8 data_buf[4] = { 0, };
-+	int ret;
-+
-+	if (len > 4)
-+		return -EINVAL;
-+
-+	/* Write register address */
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = ARRAY_SIZE(addr_buf);
-+	msgs[0].buf = addr_buf;
-+
-+	/* Read data from register */
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = len;
-+	msgs[1].buf = &data_buf[4 - len];
-+
-+	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (ret != ARRAY_SIZE(msgs))
-+		return -EIO;
-+
-+	*val = get_unaligned_be32(data_buf);
-+
-+	return 0;
-+}
-+
-+/* Write registers up to 2 at a time */
-+static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	u8 buf[6];
-+
-+	if (len > 4)
-+		return -EINVAL;
-+
-+	put_unaligned_be16(reg, buf);
-+	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
-+	if (i2c_master_send(client, buf, len + 2) != len + 2)
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+/* Write a list of registers */
-+static int imx258_write_regs(struct imx258 *imx258,
-+			      const struct imx258_reg *regs, u32 len)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	unsigned int i;
-+	int ret;
-+
-+	for (i = 0; i < len; i++) {
-+		ret = imx258_write_reg(imx258, regs[i].address, 1,
-+					regs[i].val);
-+		if (ret) {
-+			dev_err_ratelimited(
-+				&client->dev,
-+				"Failed to write reg 0x%4.4x. error = %d\n",
-+				regs[i].address, ret);
-+
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/* Open sub-device */
-+static int imx258_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *try_fmt =
-+		v4l2_subdev_get_try_format(sd, fh->pad, 0);
-+
-+	/* Initialize try_fmt */
-+	try_fmt->width = supported_modes[0].width;
-+	try_fmt->height = supported_modes[0].height;
-+	try_fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+	try_fmt->field = V4L2_FIELD_NONE;
-+
-+	return 0;
-+}
-+
-+static int imx258_update_digital_gain(struct imx258 *imx258, u32 len, u32 val)
-+{
-+	int ret;
-+
-+	ret = imx258_write_reg(imx258, IMX258_REG_GR_DIGITAL_GAIN,
-+				IMX258_REG_VALUE_16BIT,
-+				val);
-+	if (ret)
-+		return ret;
-+	ret = imx258_write_reg(imx258, IMX258_REG_GB_DIGITAL_GAIN,
-+				IMX258_REG_VALUE_16BIT,
-+				val);
-+	if (ret)
-+		return ret;
-+	ret = imx258_write_reg(imx258, IMX258_REG_R_DIGITAL_GAIN,
-+				IMX258_REG_VALUE_16BIT,
-+				val);
-+	if (ret)
-+		return ret;
-+	ret = imx258_write_reg(imx258, IMX258_REG_B_DIGITAL_GAIN,
-+				IMX258_REG_VALUE_16BIT,
-+				val);
-+	if (ret)
-+		return ret;
-+	return 0;
-+}
-+
-+static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct imx258 *imx258 =
-+		container_of(ctrl->handler, struct imx258, ctrl_handler);
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	int ret = 0;
-+
-+	/*
-+	 * Applying V4L2 control value only happens
-+	 * when power is up for streaming
-+	 */
-+	if (pm_runtime_get_if_in_use(&client->dev) == 0)
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_ANALOGUE_GAIN:
-+		ret = imx258_write_reg(imx258, IMX258_REG_ANALOG_GAIN,
-+				IMX258_REG_VALUE_16BIT,
-+				ctrl->val);
-+		break;
-+	case V4L2_CID_EXPOSURE:
-+		ret = imx258_write_reg(imx258, IMX258_REG_EXPOSURE,
-+				IMX258_REG_VALUE_16BIT,
-+				ctrl->val);
-+		break;
-+	case V4L2_CID_DIGITAL_GAIN:
-+		ret = imx258_update_digital_gain(imx258, IMX258_REG_VALUE_16BIT,
-+				ctrl->val);
-+		break;
-+	case V4L2_CID_VBLANK:
-+		/*
-+		 * Auto Frame Length Line Control is enabled by default.
-+		 * Not need control Vblank Register.
-+		 */
-+		break;
-+	default:
-+		dev_info(&client->dev,
-+			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
-+			 ctrl->id, ctrl->val);
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	pm_runtime_put(&client->dev);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops imx258_ctrl_ops = {
-+	.s_ctrl = imx258_set_ctrl,
-+};
-+
-+static int imx258_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	/* Only one bayer order(GRBG) is supported */
-+	if (code->index > 0)
-+		return -EINVAL;
-+
-+	code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+
-+	return 0;
-+}
-+
-+static int imx258_enum_frame_size(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	if (fse->index >= ARRAY_SIZE(supported_modes))
-+		return -EINVAL;
-+
-+	if (fse->code != MEDIA_BUS_FMT_SGRBG10_1X10)
-+		return -EINVAL;
-+
-+	fse->min_width = supported_modes[fse->index].width;
-+	fse->max_width = fse->min_width;
-+	fse->min_height = supported_modes[fse->index].height;
-+	fse->max_height = fse->min_height;
-+
-+	return 0;
-+}
-+
-+static void imx258_update_pad_format(const struct imx258_mode *mode,
-+				      struct v4l2_subdev_format *fmt)
-+{
-+	fmt->format.width = mode->width;
-+	fmt->format.height = mode->height;
-+	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+	fmt->format.field = V4L2_FIELD_NONE;
-+}
-+
-+static int __imx258_get_pad_format(struct imx258 *imx258,
-+				     struct v4l2_subdev_pad_config *cfg,
-+				     struct v4l2_subdev_format *fmt)
-+{
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
-+		fmt->format = *v4l2_subdev_get_try_format(&imx258->sd, cfg,
-+							  fmt->pad);
-+	else
-+		imx258_update_pad_format(imx258->cur_mode, fmt);
-+
-+	return 0;
-+}
-+
-+static int imx258_get_pad_format(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct imx258 *imx258 = to_imx258(sd);
-+	int ret;
-+
-+	mutex_lock(&imx258->mutex);
-+	ret = __imx258_get_pad_format(imx258, cfg, fmt);
-+	mutex_unlock(&imx258->mutex);
-+
-+	return ret;
-+}
-+
-+static int imx258_set_pad_format(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *fmt)
-+{
-+	struct imx258 *imx258 = to_imx258(sd);
-+	const struct imx258_mode *mode;
-+	struct v4l2_mbus_framefmt *framefmt;
-+	s32 vblank_def;
-+	s32 vblank_min;
-+	s64 h_blank;
-+	s64 pixel_rate;
-+	s64 link_freq;
-+
-+	mutex_lock(&imx258->mutex);
-+
-+	/* Only one raw bayer(GBRG) order is supported */
-+	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-+
-+	mode = v4l2_find_nearest_size(
-+		supported_modes, ARRAY_SIZE(supported_modes), width, height,
-+		fmr->format.width, fmt->format.height);
-+	imx258_update_pad_format(mode, fmt);
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-+		*framefmt = fmt->format;
-+	} else {
-+		imx258->cur_mode = mode;
-+		__v4l2_ctrl_s_ctrl(imx258->link_freq, mode->link_freq_index);
-+
-+		link_freq = link_freq_menu_items[mode->link_freq_index];
-+		pixel_rate = link_freq_to_pixel_rate(link_freq);
-+		__v4l2_ctrl_s_ctrl_int64(imx258->pixel_rate, pixel_rate);
-+		/* Update limits and set FPS to default */
-+		vblank_def = imx258->cur_mode->vts_def -
-+			     imx258->cur_mode->height;
-+		vblank_min = imx258->cur_mode->vts_min -
-+			     imx258->cur_mode->height;
-+		__v4l2_ctrl_modify_range(
-+			imx258->vblank, vblank_min,
-+			IMX258_VTS_MAX - imx258->cur_mode->height, 1,
-+			vblank_def);
-+		__v4l2_ctrl_s_ctrl(imx258->vblank, vblank_def);
-+		h_blank =
-+			link_freq_configs[mode->link_freq_index].pixels_per_line
-+			 - imx258->cur_mode->width;
-+		__v4l2_ctrl_modify_range(imx258->hblank, h_blank,
-+					 h_blank, 1, h_blank);
-+	}
-+
-+	mutex_unlock(&imx258->mutex);
-+
-+	return 0;
-+}
-+
-+/* Start streaming */
-+static int imx258_start_streaming(struct imx258 *imx258)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	const struct imx258_reg_list *reg_list;
-+	int ret, link_freq_index;
-+
-+	/* Setup PLL */
-+	link_freq_index = imx258->cur_mode->link_freq_index;
-+	reg_list = &link_freq_configs[link_freq_index].reg_list;
-+	ret = imx258_write_regs(imx258, reg_list->regs, reg_list->num_of_regs);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed to set plls\n", __func__);
-+		return ret;
-+	}
-+
-+	/* Apply default values of current mode */
-+	reg_list = &imx258->cur_mode->reg_list;
-+	ret = imx258_write_regs(imx258, reg_list->regs, reg_list->num_of_regs);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed to set mode\n", __func__);
-+		return ret;
-+	}
-+
-+	/* Set Orientation be 180 degree */
-+	ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
-+				IMX258_REG_VALUE_08BIT, REG_CONFIG_MIRROR_FLIP);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed to set orientation\n",
-+			__func__);
-+		return ret;
-+	}
-+
-+	/* Apply customized values from user */
-+	ret =  __v4l2_ctrl_handler_setup(imx258->sd.ctrl_handler);
-+	if (ret)
-+		return ret;
-+
-+	/* set stream on register */
-+	return imx258_write_reg(imx258, IMX258_REG_MODE_SELECT,
-+				IMX258_REG_VALUE_08BIT,
-+				IMX258_MODE_STREAMING);
-+}
-+
-+/* Stop streaming */
-+static int imx258_stop_streaming(struct imx258 *imx258)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	int ret;
-+
-+	/* set stream off register */
-+	ret = imx258_write_reg(imx258, IMX258_REG_MODE_SELECT,
-+		IMX258_REG_VALUE_08BIT, IMX258_MODE_STANDBY);
-+	if (ret)
-+		dev_err(&client->dev, "%s failed to set stream\n", __func__);
-+
-+	/*
-+	 * Return success even if it was an error, as there is nothing the
-+	 * caller can do about it.
-+	 */
-+	return 0;
-+}
-+
-+static int imx258_set_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct imx258 *imx258 = to_imx258(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&imx258->mutex);
-+	if (imx258->streaming == enable) {
-+		mutex_unlock(&imx258->mutex);
-+		return 0;
-+	}
-+
-+	if (enable) {
-+		ret = pm_runtime_get_sync(&client->dev);
-+		if (ret < 0) {
-+			pm_runtime_put_noidle(&client->dev);
-+			goto err_unlock;
-+		}
-+
-+		/*
-+		 * Apply default & customized values
-+		 * and then start streaming.
-+		 */
-+		ret = imx258_start_streaming(imx258);
-+		if (ret)
-+			goto err_rpm_put;
-+	} else {
-+		imx258_stop_streaming(imx258);
-+		pm_runtime_put(&client->dev);
-+	}
-+
-+	imx258->streaming = enable;
-+	mutex_unlock(&imx258->mutex);
-+
-+	return ret;
-+
-+err_rpm_put:
-+	pm_runtime_put(&client->dev);
-+err_unlock:
-+	mutex_unlock(&imx258->mutex);
-+
-+	return ret;
-+}
-+
-+static int __maybe_unused imx258_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct imx258 *imx258 = to_imx258(sd);
-+
-+	if (imx258->streaming)
-+		imx258_stop_streaming(imx258);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused imx258_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct imx258 *imx258 = to_imx258(sd);
-+	int ret;
-+
-+	if (imx258->streaming) {
-+		ret = imx258_start_streaming(imx258);
-+		if (ret)
-+			goto error;
-+	}
-+
-+	return 0;
-+
-+error:
-+	imx258_stop_streaming(imx258);
-+	imx258->streaming = 0;
-+	return ret;
-+}
-+
-+/* Verify chip ID */
-+static int imx258_identify_module(struct imx258 *imx258)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	int ret;
-+	u32 val;
-+
-+	ret = imx258_read_reg(imx258, IMX258_REG_CHIP_ID,
-+			       IMX258_REG_VALUE_16BIT, &val);
-+	if (ret) {
-+		dev_err(&client->dev, "failed to read chip id %x\n",
-+			IMX258_CHIP_ID);
-+		return ret;
-+	}
-+
-+	if (val != IMX258_CHIP_ID) {
-+		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
-+			IMX258_CHIP_ID, val);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops imx258_video_ops = {
-+	.s_stream = imx258_set_stream,
-+};
-+
-+static const struct v4l2_subdev_pad_ops imx258_pad_ops = {
-+	.enum_mbus_code = imx258_enum_mbus_code,
-+	.get_fmt = imx258_get_pad_format,
-+	.set_fmt = imx258_set_pad_format,
-+	.enum_frame_size = imx258_enum_frame_size,
-+};
-+
-+static const struct v4l2_subdev_ops imx258_subdev_ops = {
-+	.video = &imx258_video_ops,
-+	.pad = &imx258_pad_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops imx258_internal_ops = {
-+	.open = imx258_open,
-+};
-+
-+/* Initialize control handlers */
-+static int imx258_init_controls(struct imx258 *imx258)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
-+	struct v4l2_ctrl_handler *ctrl_hdlr;
-+	s64 exposure_max;
-+	s64 vblank_def;
-+	s64 vblank_min;
-+	s64 pixel_rate_min;
-+	s64 pixel_rate_max;
-+	int ret;
-+
-+	ctrl_hdlr = &imx258->ctrl_handler;
-+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
-+	if (ret)
-+		return ret;
-+
-+	mutex_init(&imx258->mutex);
-+	ctrl_hdlr->lock = &imx258->mutex;
-+	imx258->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
-+				&imx258_ctrl_ops,
-+				V4L2_CID_LINK_FREQ,
-+				ARRAY_SIZE(link_freq_menu_items) - 1,
-+				0,
-+				link_freq_menu_items);
-+
-+	if (imx258->link_freq)
-+		imx258->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+
-+	pixel_rate_max = link_freq_to_pixel_rate(link_freq_menu_items[0]);
-+	pixel_rate_min = link_freq_to_pixel_rate(link_freq_menu_items[1]);
-+	/* By default, PIXEL_RATE is read only */
-+	imx258->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops,
-+				V4L2_CID_PIXEL_RATE,
-+				pixel_rate_min, pixel_rate_max,
-+				1, pixel_rate_max);
-+
-+
-+	vblank_def = imx258->cur_mode->vts_def - imx258->cur_mode->height;
-+	vblank_min = imx258->cur_mode->vts_min - imx258->cur_mode->height;
-+	imx258->vblank = v4l2_ctrl_new_std(
-+				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_VBLANK,
-+				vblank_min,
-+				IMX258_VTS_MAX - imx258->cur_mode->height, 1,
-+				vblank_def);
-+
-+	imx258->hblank = v4l2_ctrl_new_std(
-+				ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_HBLANK,
-+				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
-+				IMX258_PPL_DEFAULT - imx258->cur_mode->width,
-+				1,
-+				IMX258_PPL_DEFAULT - imx258->cur_mode->width);
-+
-+	if (imx258->hblank)
-+		imx258->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+
-+	exposure_max = imx258->cur_mode->vts_def - 8;
-+	imx258->exposure = v4l2_ctrl_new_std(
-+				ctrl_hdlr, &imx258_ctrl_ops,
-+				V4L2_CID_EXPOSURE, IMX258_EXPOSURE_MIN,
-+				IMX258_EXPOSURE_MAX, IMX258_EXPOSURE_STEP,
-+				IMX258_EXPOSURE_DEFAULT);
-+
-+	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-+				IMX258_ANA_GAIN_MIN, IMX258_ANA_GAIN_MAX,
-+				IMX258_ANA_GAIN_STEP, IMX258_ANA_GAIN_DEFAULT);
-+
-+	v4l2_ctrl_new_std(ctrl_hdlr, &imx258_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
-+				IMX258_DGTL_GAIN_MIN, IMX258_DGTL_GAIN_MAX,
-+				IMX258_DGTL_GAIN_STEP,
-+				IMX258_DGTL_GAIN_DEFAULT);
-+
-+	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx258_ctrl_ops,
-+				V4L2_CID_TEST_PATTERN,
-+				ARRAY_SIZE(imx258_test_pattern_menu) - 1,
-+				0, 0, imx258_test_pattern_menu);
-+
-+	if (ctrl_hdlr->error) {
-+				ret = ctrl_hdlr->error;
-+				dev_err(&client->dev, "%s control init failed (%d)\n",
-+				__func__, ret);
-+				goto error;
-+	}
-+
-+	imx258->sd.ctrl_handler = ctrl_hdlr;
-+
-+	return 0;
-+
-+error:
-+	v4l2_ctrl_handler_free(ctrl_hdlr);
-+	mutex_destroy(&imx258->mutex);
-+
-+	return ret;
-+}
-+
-+static void imx258_free_controls(struct imx258 *imx258)
-+{
-+	v4l2_ctrl_handler_free(imx258->sd.ctrl_handler);
-+	mutex_destroy(&imx258->mutex);
-+}
-+
-+static int imx258_probe(struct i2c_client *client)
-+{
-+	struct imx258 *imx258;
-+	int ret;
-+	u32 val = 0;
-+
-+	device_property_read_u32(&client->dev, "clock-frequency", &val);
-+	if (val != 19200000)
-+		return -EINVAL;
-+
-+	imx258 = devm_kzalloc(&client->dev, sizeof(*imx258), GFP_KERNEL);
-+	if (!imx258)
-+		return -ENOMEM;
-+
-+	/* Initialize subdev */
-+	v4l2_i2c_subdev_init(&imx258->sd, client, &imx258_subdev_ops);
-+
-+	/* Check module identity */
-+	ret = imx258_identify_module(imx258);
-+	if (ret)
-+		return ret;
-+
-+	/* Set default mode to max resolution */
-+	imx258->cur_mode = &supported_modes[0];
-+
-+	ret = imx258_init_controls(imx258);
-+	if (ret)
-+		return ret;
-+
-+	/* Initialize subdev */
-+	imx258->sd.internal_ops = &imx258_internal_ops;
-+	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+
-+	/* Initialize source pad */
-+	imx258->pad.flags = MEDIA_PAD_FL_SOURCE;
-+
-+	ret = media_entity_pads_init(&imx258->sd.entity, 1, &imx258->pad);
-+	if (ret) {
-+		goto error_handler_free;
-+	}
-+
-+	ret = v4l2_async_register_subdev_sensor_common(&imx258->sd);
-+	if (ret < 0)
-+		goto error_media_entity;
-+
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_idle(&client->dev);
-+
-+	return 0;
-+
-+error_media_entity:
-+	media_entity_cleanup(&imx258->sd.entity);
-+
-+error_handler_free:
-+	imx258_free_controls(imx258);
-+
-+	return ret;
-+}
-+
-+static int imx258_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct imx258 *imx258 = to_imx258(sd);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	imx258_free_controls(imx258);
-+
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops imx258_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(imx258_suspend, imx258_resume)
-+};
-+
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id imx258_acpi_ids[] = {
-+	{ "SONY258A" },
-+	{ /* sentinel */ }
-+};
-+
-+MODULE_DEVICE_TABLE(acpi, imx258_acpi_ids);
-+#endif
-+
-+static struct i2c_driver imx258_i2c_driver = {
-+	.driver = {
-+		.name = "imx258",
-+		.pm = &imx258_pm_ops,
-+		.acpi_match_table = ACPI_PTR(imx258_acpi_ids),
-+	},
-+	.probe_new = imx258_probe,
-+	.remove = imx258_remove,
-+};
-+
-+module_i2c_driver(imx258_i2c_driver);
-+
-+MODULE_AUTHOR("Yeh, Andy <andy.yeh@intel.com>");
-+MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
-+MODULE_AUTHOR("Chen, Jason <jasonx.z.chen@intel.com>");
-+MODULE_DESCRIPTION("Sony IMX258 sensor driver");
-+MODULE_LICENSE("GPL v2");
--- 
-2.7.4
+Driver Info:
+Driver name      : video-i2c
+Card type        : I2C 1-105 Transport Video
+Bus info         : I2C:1-105
+Driver version   : 4.14.31
+Capabilities     : 0x85200001
+Video Capture
+Read/Write
+Streaming
+Extended Pix Format
+Device Capabilities
+Device Caps      : 0x05200001
+Video Capture
+Read/Write
+Streaming
+Extended Pix Format
+
+Required ioctls:
+test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+test second /dev/video0 open: OK
+test VIDIOC_QUERYCAP: OK
+test VIDIOC_G/S_PRIORITY: OK
+test for unlimited opens: OK
+
+Debug ioctls:
+test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+test VIDIOC_ENUMAUDIO: OK (Not Supported)
+test VIDIOC_G/S/ENUMINPUT: OK
+test VIDIOC_G/S_AUDIO: OK (Not Supported)
+Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls (Input 0):
+test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+test VIDIOC_QUERYCTRL: OK (Not Supported)
+test VIDIOC_G/S_CTRL: OK (Not Supported)
+test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+Standard Controls: 0 Private Controls: 0
+
+Format ioctls (Input 0):
+test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+test VIDIOC_G/S_PARM: OK
+test VIDIOC_G_FBUF: OK (Not Supported)
+test VIDIOC_G_FMT: OK
+test VIDIOC_TRY_FMT: OK
+test VIDIOC_S_FMT: OK
+test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+test Cropping: OK (Not Supported)
+test Composing: OK (Not Supported)
+test Scaling: OK (Not Supported)
+
+Codec ioctls (Input 0):
+test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls (Input 0):
+test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+Streaming ioctls:
+test read/write: OK
+test MMAP: OK
+test USERPTR: OK
+test DMABUF: Cannot test, specify --expbuf-device
+
+Stream using all formats:
+test MMAP for Format Y12 , Frame Size 8x8@10.00 Hz:
+Stride 16, Field None: OK
+Total: 47, Succeeded: 47, Failed: 0, Warnings: 0
+
+
+
+>  MAINTAINERS                   |   6 +
+>  drivers/media/i2c/Kconfig     |   9 +
+>  drivers/media/i2c/Makefile    |   1 +
+>  drivers/media/i2c/video-i2c.c | 562 ++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 578 insertions(+)
+>  create mode 100644 drivers/media/i2c/video-i2c.c
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 49236216a871..f0262b751d5b 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -14863,6 +14863,12 @@ L:     linux-media@vger.kernel.org
+>  S:     Maintained
+>  F:     drivers/media/platform/video-mux.c
+>
+> +VIDEO I2C POLLING DRIVER
+> +M:     Matt Ranostay <matt.ranostay@konsulko.com>
+> +L:     linux-media@vger.kernel.org
+> +S:     Maintained
+> +F:     drivers/media/i2c/video-i2c.c
+> +
+>  VIDEOBUF2 FRAMEWORK
+>  M:     Pawel Osciak <pawel@osciak.com>
+>  M:     Marek Szyprowski <m.szyprowski@samsung.com>
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 541f0d28afd8..122e5047a01e 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -974,6 +974,15 @@ config VIDEO_M52790
+>
+>          To compile this driver as a module, choose M here: the
+>          module will be called m52790.
+> +
+> +config VIDEO_I2C
+> +       tristate "I2C transport video support"
+> +       depends on VIDEO_V4L2 && I2C
+> +       select VIDEOBUF2_VMALLOC
+> +       ---help---
+> +         Enable the I2C transport video support which supports the
+> +         following:
+> +          * Panasonic AMG88xx Grid-Eye Sensors
+>  endmenu
+>
+>  menu "Sensors used on soc_camera driver"
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index ea34aee1a85a..84cc472238ef 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -96,6 +96,7 @@ obj-$(CONFIG_VIDEO_LM3646)    += lm3646.o
+>  obj-$(CONFIG_VIDEO_SMIAPP_PLL) += smiapp-pll.o
+>  obj-$(CONFIG_VIDEO_AK881X)             += ak881x.o
+>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+> +obj-$(CONFIG_VIDEO_I2C)                += video-i2c.o
+>  obj-$(CONFIG_VIDEO_ML86V7667)  += ml86v7667.o
+>  obj-$(CONFIG_VIDEO_OV2659)     += ov2659.o
+>  obj-$(CONFIG_VIDEO_TC358743)   += tc358743.o
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> new file mode 100644
+> index 000000000000..9fba8a2767c5
+> --- /dev/null
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -0,0 +1,562 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * video-i2c.c - Support for I2C transport video devices
+> + *
+> + * Copyright (C) 2018 Matt Ranostay <matt.ranostay@konsulko.com>
+> + *
+> + * Supported:
+> + * - Panasonic AMG88xx Grid-Eye Sensors
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/freezer.h>
+> +#include <linux/kthread.h>
+> +#include <linux/i2c.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/of_device.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-fh.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-v4l2.h>
+> +#include <media/videobuf2-vmalloc.h>
+> +
+> +#define VIDEO_I2C_DRIVER       "video-i2c"
+> +
+> +struct video_i2c_chip;
+> +
+> +struct video_i2c_buffer {
+> +       struct vb2_v4l2_buffer vb;
+> +       struct list_head list;
+> +};
+> +
+> +struct video_i2c_data {
+> +       struct i2c_client *client;
+> +       const struct video_i2c_chip *chip;
+> +       struct mutex lock;
+> +       spinlock_t slock;
+> +       unsigned int sequence;
+> +       struct mutex queue_lock;
+> +
+> +       struct v4l2_device v4l2_dev;
+> +       struct video_device vdev;
+> +       struct vb2_queue vb_vidq;
+> +
+> +       struct task_struct *kthread_vid_cap;
+> +       struct list_head vid_cap_active;
+> +};
+> +
+> +static struct v4l2_fmtdesc amg88xx_format = {
+> +       .pixelformat = V4L2_PIX_FMT_Y12,
+> +};
+> +
+> +static struct v4l2_frmsize_discrete amg88xx_size = {
+> +       .width = 8,
+> +       .height = 8,
+> +};
+> +
+> +struct video_i2c_chip {
+> +       /* video dimensions */
+> +       const struct v4l2_fmtdesc *format;
+> +       const struct v4l2_frmsize_discrete *size;
+> +
+> +       /* max frames per second */
+> +       unsigned int max_fps;
+> +
+> +       /* pixel buffer size */
+> +       unsigned int buffer_size;
+> +
+> +       /* pixel size in bits */
+> +       unsigned int bpp;
+> +
+> +       /* xfer function */
+> +       int (*xfer)(struct video_i2c_data *data, char *buf);
+> +};
+> +
+> +static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
+> +{
+> +       struct i2c_client *client = data->client;
+> +       struct i2c_msg msg[2];
+> +       u8 reg = 0x80;
+> +       int ret;
+> +
+> +       msg[0].addr = client->addr;
+> +       msg[0].flags = 0;
+> +       msg[0].len = 1;
+> +       msg[0].buf  = (char *) &reg;
+> +
+> +       msg[1].addr = client->addr;
+> +       msg[1].flags = I2C_M_RD;
+> +       msg[1].len = data->chip->buffer_size;
+> +       msg[1].buf = (char *) buf;
+> +
+> +       ret = i2c_transfer(client->adapter, msg, 2);
+> +
+> +       return (ret == 2) ? 0 : -EIO;
+> +}
+> +
+> +#define AMG88XX                0
+> +
+> +static const struct video_i2c_chip video_i2c_chip[] = {
+> +       [AMG88XX] = {
+> +               .size           = &amg88xx_size,
+> +               .format         = &amg88xx_format,
+> +               .max_fps        = 10,
+> +               .buffer_size    = 128,
+> +               .bpp            = 16,
+> +               .xfer           = &amg88xx_xfer,
+> +       },
+> +};
+> +
+> +static const struct v4l2_file_operations video_i2c_fops = {
+> +       .owner          = THIS_MODULE,
+> +       .open           = v4l2_fh_open,
+> +       .release        = vb2_fop_release,
+> +       .poll           = vb2_fop_poll,
+> +       .read           = vb2_fop_read,
+> +       .mmap           = vb2_fop_mmap,
+> +       .unlocked_ioctl = video_ioctl2,
+> +};
+> +
+> +static int queue_setup(struct vb2_queue *vq,
+> +                      unsigned int *nbuffers, unsigned int *nplanes,
+> +                      unsigned int sizes[], struct device *alloc_devs[])
+> +{
+> +       struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +       unsigned int size = data->chip->buffer_size;
+> +
+> +       if (vq->num_buffers + *nbuffers < 2)
+> +               *nbuffers = 2;
+> +
+> +       if (*nplanes)
+> +               return sizes[0] < size ? -EINVAL : 0;
+> +
+> +       *nplanes = 1;
+> +       sizes[0] = size;
+> +
+> +       return 0;
+> +}
+> +
+> +static int buffer_prepare(struct vb2_buffer *vb)
+> +{
+> +       struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +       struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
+> +       unsigned int size = data->chip->buffer_size;
+> +
+> +       if (vb2_plane_size(vb, 0) < size)
+> +               return -EINVAL;
+> +
+> +       vbuf->field = V4L2_FIELD_NONE;
+> +       vb2_set_plane_payload(vb, 0, size);
+> +
+> +       return 0;
+> +}
+> +
+> +static void buffer_queue(struct vb2_buffer *vb)
+> +{
+> +       struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +       struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
+> +       struct video_i2c_buffer *buf =
+> +                       container_of(vbuf, struct video_i2c_buffer, vb);
+> +
+> +       spin_lock(&data->slock);
+> +       list_add_tail(&buf->list, &data->vid_cap_active);
+> +       spin_unlock(&data->slock);
+> +}
+> +
+> +static int video_i2c_thread_vid_cap(void *priv)
+> +{
+> +       struct video_i2c_data *data = priv;
+> +
+> +       set_freezable();
+> +
+> +       do {
+> +               unsigned long start_jiffies = jiffies;
+> +               unsigned int delay = msecs_to_jiffies(1000 / data->chip->max_fps);
+> +               struct video_i2c_buffer *vid_cap_buf = NULL;
+> +               int schedule_delay;
+> +
+> +               try_to_freeze();
+> +
+> +               spin_lock(&data->slock);
+> +
+> +               if (!list_empty(&data->vid_cap_active)) {
+> +                       vid_cap_buf = list_entry(data->vid_cap_active.next,
+> +                                                struct video_i2c_buffer, list);
+> +                       list_del(&vid_cap_buf->list);
+> +               }
+> +
+> +               spin_unlock(&data->slock);
+> +
+> +               if (vid_cap_buf) {
+> +                       struct vb2_buffer *vb2_buf = &vid_cap_buf->vb.vb2_buf;
+> +                       void *vbuf = vb2_plane_vaddr(vb2_buf, 0);
+> +                       int ret = data->chip->xfer(data, vbuf);
+> +
+> +                       vb2_buf->timestamp = ktime_get_ns();
+> +                       vid_cap_buf->vb.sequence = data->sequence++;
+> +                       vb2_buffer_done(vb2_buf, ret ?
+> +                                       VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+> +               }
+> +
+> +               schedule_delay = delay - (jiffies - start_jiffies);
+> +
+> +               if (time_after(jiffies, start_jiffies + delay))
+> +                       schedule_delay = delay;
+> +
+> +               schedule_timeout_interruptible(schedule_delay);
+> +       } while (!kthread_should_stop());
+> +
+> +       return 0;
+> +}
+> +
+> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> +{
+> +       struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +       struct video_i2c_buffer *buf, *tmp;
+> +
+> +       if (data->kthread_vid_cap)
+> +               return 0;
+> +
+> +       data->sequence = 0;
+> +       data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
+> +                                           "%s-vid-cap", data->v4l2_dev.name);
+> +       if (!IS_ERR(data->kthread_vid_cap))
+> +               return 0;
+> +
+> +       spin_lock(&data->slock);
+> +
+> +       list_for_each_entry_safe(buf, tmp, &data->vid_cap_active, list) {
+> +               list_del(&buf->list);
+> +               vb2_buffer_done(&buf->vb.vb2_buf,
+> +                               VB2_BUF_STATE_QUEUED);
+> +       }
+> +
+> +       spin_unlock(&data->slock);
+> +
+> +       return PTR_ERR(data->kthread_vid_cap);
+> +}
+> +
+> +static void stop_streaming(struct vb2_queue *vq)
+> +{
+> +       struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +
+> +       if (data->kthread_vid_cap == NULL)
+> +               return;
+> +
+> +       kthread_stop(data->kthread_vid_cap);
+> +
+> +       spin_lock(&data->slock);
+> +
+> +       while (!list_empty(&data->vid_cap_active)) {
+> +               struct video_i2c_buffer *buf;
+> +
+> +               buf = list_entry(data->vid_cap_active.next,
+> +                                struct video_i2c_buffer, list);
+> +               list_del(&buf->list);
+> +               vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+> +       }
+> +       spin_unlock(&data->slock);
+> +
+> +       data->kthread_vid_cap = NULL;
+> +}
+> +
+> +static struct vb2_ops video_i2c_video_qops = {
+> +       .queue_setup            = queue_setup,
+> +       .buf_prepare            = buffer_prepare,
+> +       .buf_queue              = buffer_queue,
+> +       .start_streaming        = start_streaming,
+> +       .stop_streaming         = stop_streaming,
+> +       .wait_prepare           = vb2_ops_wait_prepare,
+> +       .wait_finish            = vb2_ops_wait_finish,
+> +};
+> +
+> +static int video_i2c_querycap(struct file *file, void  *priv,
+> +                               struct v4l2_capability *vcap)
+> +{
+> +       struct video_i2c_data *data = video_drvdata(file);
+> +       struct i2c_client *client = data->client;
+> +
+> +       strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
+> +       sprintf(vcap->card, "I2C %d-%d Transport Video",
+> +                                            client->adapter->nr, client->addr);
+> +
+> +       sprintf(vcap->bus_info, "I2C:%d-%d", client->adapter->nr, client->addr);
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_g_input(struct file *file, void *fh, unsigned int *inp)
+> +{
+> +       *inp = 0;
+> +
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_s_input(struct file *file, void *fh, unsigned int inp)
+> +{
+> +       return (inp > 0) ? -EINVAL : 0;
+> +}
+> +
+> +static int video_i2c_enum_input(struct file *file, void *fh,
+> +                                 struct v4l2_input *vin)
+> +{
+> +       if (vin->index > 0)
+> +               return -EINVAL;
+> +
+> +       strlcpy(vin->name, "Camera", sizeof(vin->name));
+> +
+> +       vin->type = V4L2_INPUT_TYPE_CAMERA;
+> +
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_enum_fmt_vid_cap(struct file *file, void *fh,
+> +                                       struct v4l2_fmtdesc *fmt)
+> +{
+> +       struct video_i2c_data *data = video_drvdata(file);
+> +       enum v4l2_buf_type type = fmt->type;
+> +
+> +       if (fmt->index > 0)
+> +               return -EINVAL;
+> +
+> +       *fmt = *data->chip->format;
+> +       fmt->type = type;
+> +
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_enum_framesizes(struct file *file, void *fh,
+> +                                      struct v4l2_frmsizeenum *fsize)
+> +{
+> +       const struct video_i2c_data *data = video_drvdata(file);
+> +       const struct v4l2_frmsize_discrete *size = data->chip->size;
+> +
+> +       /* currently only one frame size is allowed */
+> +       if (fsize->index > 0)
+> +               return -EINVAL;
+> +
+> +       if (fsize->pixel_format != data->chip->format->pixelformat)
+> +               return -EINVAL;
+> +
+> +       fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +       fsize->discrete.width = size->width;
+> +       fsize->discrete.height = size->height;
+> +
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_enum_frameintervals(struct file *file, void *priv,
+> +                                          struct v4l2_frmivalenum *fe)
+> +{
+> +       const struct video_i2c_data *data = video_drvdata(file);
+> +       const struct v4l2_frmsize_discrete *size = data->chip->size;
+> +
+> +       if (fe->index > 0)
+> +               return -EINVAL;
+> +
+> +       if (fe->width != size->width || fe->height != size->height)
+> +               return -EINVAL;
+> +
+> +       fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +       fe->discrete.numerator = 1;
+> +       fe->discrete.denominator = data->chip->max_fps;
+> +
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_try_fmt_vid_cap(struct file *file, void *fh,
+> +                                      struct v4l2_format *fmt)
+> +{
+> +       const struct video_i2c_data *data = video_drvdata(file);
+> +       const struct v4l2_frmsize_discrete *size = data->chip->size;
+> +       struct v4l2_pix_format *pix = &fmt->fmt.pix;
+> +       unsigned int bpp = data->chip->bpp / 8;
+> +
+> +       pix->width = size->width;
+> +       pix->height = size->height;
+> +       pix->pixelformat = data->chip->format->pixelformat;
+> +       pix->field = V4L2_FIELD_NONE;
+> +       pix->bytesperline = pix->width * bpp;
+> +       pix->sizeimage = pix->bytesperline * pix->height;
+> +       pix->colorspace = V4L2_COLORSPACE_RAW;
+> +
+> +       return 0;
+> +}
+> +
+> +static int video_i2c_s_fmt_vid_cap(struct file *file, void *fh,
+> +                                    struct v4l2_format *fmt)
+> +{
+> +       struct video_i2c_data *data = video_drvdata(file);
+> +
+> +       if (vb2_is_busy(&data->vb_vidq))
+> +               return -EBUSY;
+> +
+> +       return video_i2c_try_fmt_vid_cap(file, fh, fmt);
+> +}
+> +
+> +static int video_i2c_g_parm(struct file *filp, void *priv,
+> +                             struct v4l2_streamparm *parm)
+> +{
+> +       struct video_i2c_data *data = video_drvdata(filp);
+> +
+> +       if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +               return -EINVAL;
+> +
+> +       parm->parm.capture.readbuffers = 1;
+> +       parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> +       parm->parm.capture.timeperframe.numerator = 1;
+> +       parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
+> +       .vidioc_querycap                = video_i2c_querycap,
+> +       .vidioc_g_input                 = video_i2c_g_input,
+> +       .vidioc_s_input                 = video_i2c_s_input,
+> +       .vidioc_enum_input              = video_i2c_enum_input,
+> +       .vidioc_enum_fmt_vid_cap        = video_i2c_enum_fmt_vid_cap,
+> +       .vidioc_enum_framesizes         = video_i2c_enum_framesizes,
+> +       .vidioc_enum_frameintervals     = video_i2c_enum_frameintervals,
+> +       .vidioc_g_fmt_vid_cap           = video_i2c_try_fmt_vid_cap,
+> +       .vidioc_s_fmt_vid_cap           = video_i2c_s_fmt_vid_cap,
+> +       .vidioc_g_parm                  = video_i2c_g_parm,
+> +       .vidioc_s_parm                  = video_i2c_g_parm,
+> +       .vidioc_try_fmt_vid_cap         = video_i2c_try_fmt_vid_cap,
+> +       .vidioc_reqbufs                 = vb2_ioctl_reqbufs,
+> +       .vidioc_create_bufs             = vb2_ioctl_create_bufs,
+> +       .vidioc_prepare_buf             = vb2_ioctl_prepare_buf,
+> +       .vidioc_querybuf                = vb2_ioctl_querybuf,
+> +       .vidioc_qbuf                    = vb2_ioctl_qbuf,
+> +       .vidioc_dqbuf                   = vb2_ioctl_dqbuf,
+> +       .vidioc_streamon                = vb2_ioctl_streamon,
+> +       .vidioc_streamoff               = vb2_ioctl_streamoff,
+> +};
+> +
+> +static void video_i2c_release(struct video_device *vdev)
+> +{
+> +       kfree(video_get_drvdata(vdev));
+> +}
+> +
+> +static int video_i2c_probe(struct i2c_client *client,
+> +                            const struct i2c_device_id *id)
+> +{
+> +       struct video_i2c_data *data;
+> +       struct v4l2_device *v4l2_dev;
+> +       struct vb2_queue *queue;
+> +       int chip_id, ret;
+> +
+> +       data = kzalloc(sizeof(*data), GFP_KERNEL);
+> +       if (!data)
+> +               return -ENOMEM;
+> +
+> +       if (client->dev.of_node)
+> +               chip_id = (long) of_device_get_match_data(&client->dev);
+> +       else
+> +               chip_id = id->driver_data;
+> +
+> +       data->chip = &video_i2c_chip[chip_id];
+> +       data->client = client;
+> +       v4l2_dev = &data->v4l2_dev;
+> +       strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
+> +
+> +       ret = v4l2_device_register(&client->dev, v4l2_dev);
+> +       if (ret < 0)
+> +               goto error_free_device;
+> +
+> +       mutex_init(&data->lock);
+> +       mutex_init(&data->queue_lock);
+> +
+> +       queue = &data->vb_vidq;
+> +       queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +       queue->io_modes = VB2_DMABUF | VB2_MMAP | VB2_USERPTR | VB2_READ;
+> +       queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +       queue->drv_priv = data;
+> +       queue->buf_struct_size = sizeof(struct video_i2c_buffer);
+> +       queue->min_buffers_needed = 1;
+> +       queue->ops = &video_i2c_video_qops;
+> +       queue->mem_ops = &vb2_vmalloc_memops;
+> +
+> +       ret = vb2_queue_init(queue);
+> +       if (ret < 0)
+> +               goto error_unregister_device;
+> +
+> +       data->vdev.queue = queue;
+> +       data->vdev.queue->lock = &data->queue_lock;
+> +
+> +       snprintf(data->vdev.name, sizeof(data->vdev.name),
+> +                                "I2C %d-%d Transport Video",
+> +                                client->adapter->nr, client->addr);
+> +
+> +       data->vdev.v4l2_dev = v4l2_dev;
+> +       data->vdev.fops = &video_i2c_fops;
+> +       data->vdev.lock = &data->lock;
+> +       data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
+> +       data->vdev.release = video_i2c_release;
+> +       data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+> +                                V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> +
+> +       spin_lock_init(&data->slock);
+> +       INIT_LIST_HEAD(&data->vid_cap_active);
+> +
+> +       video_set_drvdata(&data->vdev, data);
+> +       i2c_set_clientdata(client, data);
+> +
+> +       ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
+> +       if (ret < 0)
+> +               goto error_unregister_device;
+> +
+> +       return 0;
+> +
+> +error_unregister_device:
+> +       v4l2_device_unregister(v4l2_dev);
+> +
+> +error_free_device:
+> +       kfree(data);
+> +
+> +       return ret;
+> +}
+> +
+> +static int video_i2c_remove(struct i2c_client *client)
+> +{
+> +       struct video_i2c_data *data = i2c_get_clientdata(client);
+> +
+> +       video_unregister_device(&data->vdev);
+> +       v4l2_device_unregister(&data->v4l2_dev);
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct i2c_device_id video_i2c_id_table[] = {
+> +       { "amg88xx", AMG88XX },
+> +       {}
+> +};
+> +MODULE_DEVICE_TABLE(i2c, video_i2c_id_table);
+> +
+> +static const struct of_device_id video_i2c_of_match[] = {
+> +       { .compatible = "panasonic,amg88xx", .data = (void *) AMG88XX },
+> +       {}
+> +};
+> +MODULE_DEVICE_TABLE(of, video_i2c_of_match);
+> +
+> +static struct i2c_driver video_i2c_driver = {
+> +       .driver = {
+> +               .name   = VIDEO_I2C_DRIVER,
+> +               .of_match_table = of_match_ptr(video_i2c_of_match),
+> +       },
+> +       .probe          = video_i2c_probe,
+> +       .remove         = video_i2c_remove,
+> +       .id_table       = video_i2c_id_table,
+> +};
+> +
+> +module_i2c_driver(video_i2c_driver);
+> +
+> +MODULE_AUTHOR("Matt Ranostay <matt.ranostay@konsulko.com>");
+> +MODULE_DESCRIPTION("I2C transport video support");
+> +MODULE_LICENSE("GPL");
+> --
+> 2.14.1
+>
