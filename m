@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32221 "EHLO
-        bin-vsp-out-02.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934258AbeCGWF6 (ORCPT
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:40323 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752849AbeDAA7b (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Mar 2018 17:05:58 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v12 26/33] rcar-vin: change name of video device
-Date: Wed,  7 Mar 2018 23:05:04 +0100
-Message-Id: <20180307220511.9826-27-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180307220511.9826-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Sat, 31 Mar 2018 20:59:31 -0400
+Received: by mail-pl0-f67.google.com with SMTP id x4-v6so2125583pln.7
+        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2018 17:59:31 -0700 (PDT)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v6 1/2] media: dt-bindings: Add bindings for panasonic,amg88xx
+Date: Sat, 31 Mar 2018 17:59:25 -0700
+Message-Id: <20180401005926.18203-2-matt.ranostay@konsulko.com>
+In-Reply-To: <20180401005926.18203-1-matt.ranostay@konsulko.com>
+References: <20180401005926.18203-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rcar-vin driver needs to be part of a media controller to support
-Gen3. Give each VIN instance a unique name so it can be referenced from
-userspace.
+Define the device tree bindings for the panasonic,amg88xx i2c
+video driver.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: devicetree@vger.kernel.org
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../bindings/media/i2c/panasonic,amg88xx.txt          | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index ea0759a645e49490..7c10557d965ea6ed 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -993,7 +993,7 @@ int rvin_v4l2_register(struct rvin_dev *vin)
- 	/* video node */
- 	vdev->v4l2_dev = &vin->v4l2_dev;
- 	vdev->queue = &vin->queue;
--	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
-+	snprintf(vdev->name, sizeof(vdev->name), "VIN%u output", vin->id);
- 	vdev->release = video_device_release_empty;
- 	vdev->lock = &vin->lock;
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+diff --git a/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+new file mode 100644
+index 000000000000..4a3181a3dd7e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+@@ -0,0 +1,19 @@
++* Panasonic AMG88xx
++
++The Panasonic family of AMG88xx Grid-Eye sensors allow recording
++8x8 10Hz video which consists of thermal datapoints
++
++Required Properties:
++ - compatible : Must be "panasonic,amg88xx"
++ - reg : i2c address of the device
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		amg88xx@69 {
++			compatible = "panasonic,amg88xx";
++			reg = <0x69>;
++		};
++		...
++	};
 -- 
-2.16.2
+2.14.1
