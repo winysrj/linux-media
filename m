@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34889 "EHLO
-        homiemail-a80.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756860AbeDZR1h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 13:27:37 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 2/7] Disable additional drivers requiring gpio/consumer.h
-Date: Thu, 26 Apr 2018 12:19:17 -0500
-Message-Id: <1524763162-4865-3-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
-References: <1524763162-4865-1-git-send-email-brad@nextdimension.cc>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:40845 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753685AbeDAPAb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2018 11:00:31 -0400
+Received: by mail-io0-f195.google.com with SMTP id e79so15557052ioi.7
+        for <linux-media@vger.kernel.org>; Sun, 01 Apr 2018 08:00:30 -0700 (PDT)
+From: Samuel Williams <sam8641@gmail.com>
+Subject: [PATCH] media: bttv: Fixed oops error when capturing at yuv410p
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Message-ID: <c8d39f5d-9daa-2673-9d47-38834c0c6edb@gmail.com>
+Date: Sun, 1 Apr 2018 10:00:27 -0500
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One driver migrated to 3.13 from 3.5
+When capturing at yuv410p, sg_next was called too many times when chroma is
+false, eventually returning NULL. This patch does fix this for my hardware.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Samuel Williams <sam8641@gmail.com>
 ---
- v4l/versions.txt | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+  drivers/media/pci/bt8xx/bttv-risc.c | 16 ++++++++--------
+  1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/v4l/versions.txt b/v4l/versions.txt
-index ae0731d..2306830 100644
---- a/v4l/versions.txt
-+++ b/v4l/versions.txt
-@@ -107,6 +107,15 @@ VIDEO_VIM2M
- [3.13.0]
- # needs gpio/consumer.h
- RADIO_SI4713
-+VIDEO_OV2685
-+VIDEO_OV5695
-+VIDEO_OV9650
-+VIDEO_MT9T112
-+SOC_CAMERA_MT9T112
-+VIDEO_OV772X
-+SOC_CAMERA_OV772X
-+VIDEO_TW9910
-+SOC_CAMERA_TW9910
- 
- [3.12.0]
- # BIN_ATTR_RW was changed
-@@ -221,7 +230,6 @@ SOC_CAMERA
- SOC_CAMERA_MT9V022
- SOC_CAMERA_MT9M001
- SOC_CAMERA_MT9T031
--SOC_CAMERA_OV772X
- SOC_CAMERA_PLATFORM
- # Needs of_match_ptr
- VIDEO_THS8200
+diff --git a/drivers/media/pci/bt8xx/bttv-risc.c b/drivers/media/pci/bt8xx/bttv-risc.c
+index 3859dde98be2..f87ac667f5fc 100644
+--- a/drivers/media/pci/bt8xx/bttv-risc.c
++++ b/drivers/media/pci/bt8xx/bttv-risc.c
+@@ -189,20 +189,20 @@ bttv_risc_planar(struct bttv *btv, struct btcx_riscmem *risc,
+  				yoffset -= sg_dma_len(ysg);
+  				ysg = sg_next(ysg);
+  			}
+-			while (uoffset && uoffset >= sg_dma_len(usg)) {
+-				uoffset -= sg_dma_len(usg);
+-				usg = sg_next(usg);
+-			}
+-			while (voffset && voffset >= sg_dma_len(vsg)) {
+-				voffset -= sg_dma_len(vsg);
+-				vsg = sg_next(vsg);
+-			}
+  
+  			/* calculate max number of bytes we can write */
+  			ylen = todo;
+  			if (yoffset + ylen > sg_dma_len(ysg))
+  				ylen = sg_dma_len(ysg) - yoffset;
+  			if (chroma) {
++				while (uoffset && uoffset >= sg_dma_len(usg)) {
++					uoffset -= sg_dma_len(usg);
++					usg = sg_next(usg);
++				}
++				while (voffset && voffset >= sg_dma_len(vsg)) {
++					voffset -= sg_dma_len(vsg);
++					vsg = sg_next(vsg);
++				}
+  				if (uoffset + (ylen>>hshift) > sg_dma_len(usg))
+  					ylen = (sg_dma_len(usg) - uoffset) << hshift;
+  				if (voffset + (ylen>>hshift) > sg_dma_len(vsg))
 -- 
-2.7.4
+2.16.3
