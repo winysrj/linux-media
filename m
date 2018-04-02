@@ -1,110 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:55460 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752691AbeDQLlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 07:41:51 -0400
-Message-ID: <d9fa6ca0e79672dc523e1c56ba19ec07c5d5259d.camel@bootlin.com>
-Subject: Re: [RFCv11 PATCH 00/29] Request API
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 17 Apr 2018 13:40:27 +0200
-In-Reply-To: <CAPBb6MVg+3JHZC1F5qz2=ZiScnHpVD7kvouYYWOEFN3CaqFPeQ@mail.gmail.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-         <CAPBb6MVLpV6gbUWBnQpYiNoWmjqdhYOhicrsetT0S5p_w28HDw@mail.gmail.com>
-         <95c7bf3a-06f0-46d6-d51f-47e851180681@xs4all.nl>
-         <CAPBb6MVg+3JHZC1F5qz2=ZiScnHpVD7kvouYYWOEFN3CaqFPeQ@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-o0t4UM39zAC2BLapVorP"
-Mime-Version: 1.0
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:47708 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752321AbeDBTQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Apr 2018 15:16:53 -0400
+Date: Mon, 2 Apr 2018 15:16:50 -0400
+From: Jerome Glisse <jglisse@redhat.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Will Davis <wdavis@nvidia.com>, Joerg Roedel <joro@8bytes.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
+Message-ID: <20180402191649.GB18231@redhat.com>
+References: <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+ <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
+ <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
+ <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
+ <20180330015854.GA3572@redhat.com>
+ <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
+ <20180330194519.GC3198@redhat.com>
+ <31266710-f6bb-99ee-c73d-6e58afe5c38c@deltatee.com>
+ <20180402172027.GA18231@redhat.com>
+ <6f796779-0ba3-d056-de33-341ee55d6b38@deltatee.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <6f796779-0ba3-d056-de33-341ee55d6b38@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Apr 02, 2018 at 11:37:07AM -0600, Logan Gunthorpe wrote:
+> 
+> 
+> On 02/04/18 11:20 AM, Jerome Glisse wrote:
+> > The point i have been trying to get accross is that you do have this
+> > information with dma_map_resource() you know the device to which you
+> > are trying to map (dev argument to dma_map_resource()) and you can
+> > easily get the device to which the memory belongs because you have the
+> > CPU physical address of the memory hence you can lookup the resource
+> > and get the device from that.
+> 
+> How do you go from a physical address to a struct device generally and
+> in a performant manner?
 
---=-o0t4UM39zAC2BLapVorP
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+There isn't good API at the moment AFAIK, closest thing would either be
+lookup_resource() or region_intersects(), but a more appropriate one can
+easily be added, code to walk down the tree is readily available. More-
+over this can be optimize like vma lookup are, even more as resource are
+seldomly added so read side (finding a resource) can be heavily favor
+over write side (adding|registering a new resource).
 
-Hi,
+> 
+> > IIRC CAPI make P2P mandatory but maybe this is with NVLink. We can ask
+> > the PowerPC folks to confirm. Note CAPI is Power8 and newer AFAICT.
+> 
+> PowerPC folks recently told us specifically that Power9 does not support
+> P2P between PCI root ports. I've said this many times. CAPI has nothing
+> to do with it.
 
-On Tue, 2018-04-17 at 06:17 +0000, Alexandre Courbot wrote:
-> On Tue, Apr 17, 2018 at 3:12 PM Hans Verkuil <hverkuil@xs4all.nl>
-> wrote:
->=20
-> > On 04/17/2018 06:33 AM, Alexandre Courbot wrote:
-> > > On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl>
-> > > wrote:
-> > >=20
-> > > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > Hi all,
-> > > > This is a cleaned up version of the v10 series (never posted to
-> > > > the list since it was messy).
-> > >=20
-> > > Hi Hans,
-> > >=20
-> > > It took me a while to test and review this, but finally have been
-> > > able
->=20
-> to
-> > > do it.
-> > >=20
-> > > First the result of the test: I have tried porting my dummy vim2m
-> > > test
-> > > program
-> > > (https://gist.github.com/Gnurou/34c35f1f8e278dad454b51578d239a42
-> > > for
-> > > reference),
-> > > and am getting a hang when trying to queue the second OUTPUT
-> > > buffer
->=20
-> (right
-> > > after
-> > > queuing the first request). If I move the calls the
-> > > VIDIOC_STREAMON
->=20
-> after
-> > > the
-> > > requests are queued, the hang seems to happen at that moment.
-> > > Probably a
-> > > deadlock, haven't looked in detail yet.
-> > >=20
-> > > I have a few other comments, will follow up per-patch.
-> > >=20
-> > I had a similar/same (?) report about this from Paul:
-> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg129177.h
-> > tml
->=20
-> I saw this and tried to move the call to STREAMON to after the
-> requests are queued in my example program, but it then hanged there.
-> So there is probably something more intricate taking place.
+I need to check CAPI, i must have confuse that with NVLink which is also
+on some powerpc arch.
 
-I figured out the issue (but forgot to report back to the list): Hans'
-version of the request API doesn't set the POLLIN bit but POLLPRI
-instead, so you need to select for expect_fds instead of read_fds in the
-select call. That's pretty much all there is to it.
+> 
+> > Mapping to userspace have nothing to do here. I am talking at hardware
+> > level. How thing are expose to userspace is a completely different
+> > problems that do not have one solution fit all. For GPU you want this
+> > to be under total control of GPU drivers. For storage like persistent
+> > memory, you might want to expose it userspace more directly ...
+> 
+> My understanding (and I worked on this a while ago) is that CAPI
+> hardware manages memory maps typically for userspace memory. When a
+> userspace program changes it's mapping, the CAPI hardware is updated so
+> that hardware is coherent with the user address space and it is safe to
+> DMA to any address without having to pin memory. (This is very similar
+> to ODP in RNICs.) This is *really* nice but doesn't solve *any* of the
+> problems we've been discussing. Moreover, many developers want to keep
+> P2P in-kernel, for the time being, where the problem of pinning memory
+> does not exist.
 
-Hope this helps,
+What you describe is the ATS(Address Translation Service)/PASID(Process
+Address Space IDentifier) part of CAPI. Which have also been available
+for years on AMD x86 platform (AMD IOMMU-v2), thought it is barely ever
+use. Interesting aspect of CAPI is its cache coherency protocol between
+devices and CPUs. This in both direction, the usual device access to
+system memory can be cache coherent with CPU access and participate in
+cache coherency protocol (bit further than PCIE snoop). But also the
+other direction the CPU access to device memory can also be cache coherent,
+which is not the case in PCIE.
 
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-o0t4UM39zAC2BLapVorP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+This cache coherency between CPU and device is what made me assume that
+CAPI must have Peer To Peer support as peer must be able to talk to each
+other for cache coherency purpose. But maybe all cache coherency
+arbritration goes through central directory allievating Peer to Peer
+requirement.
 
------BEGIN PGP SIGNATURE-----
+Anyway, like you said, this does not matter for the discussion. The
+dma_map_resource() can be just stub out on platform that do not support
+this and they would not allow it. If it get use on other platform and
+shows enough advantages that users start asking for it then maybe those
+platform will attention to the hardware requirement.
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrV3SsACgkQ3cLmz3+f
-v9E50gf+OCRAsvwGbl7O14eYbkpGeRqXyfARqqvqor9/XahSPGMnphakRAGJgCrL
-BYDplja1zlNTg7H3DD4uycbOC7nzPi1bhynQ+jqICdjb2Hc95NEzl/DqA+qIJXFR
-ZhebDRWq3Q6pXbgdvy/HjHKt6VxdI4JEMnXiWAm74c6DWT7/13wOqqe8brmY2YZQ
-GkSmnMIf22qLNuLqcgWqvn1R044hbRdORUxLW+pbJARuy42sdLPEYn5OaCW6dYWe
-bdVrEuId0k0JMtO9z/gNLicu6mDf4SqTQLiDpQDsuJ4+iuEuT/LW0ttxBnIz7JYV
-yISalEqZN8Ykvgdv6OuOe4yk97Ubdg==
-=WEhp
------END PGP SIGNATURE-----
+Note that with mmu_notifier there isn't any need to pin stuff (even
+without any special hardware capabilities), as long as you can preempt
+what is happening on your hardware to update its page table.
 
---=-o0t4UM39zAC2BLapVorP--
+Cheers,
+Jérôme
