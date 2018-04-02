@@ -1,90 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:50130 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751980AbeDXSsu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 14:48:50 -0400
-Date: Tue, 24 Apr 2018 11:48:47 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Christoph Hellwig <hch@infradead.org>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180424184847.GA3247@infradead.org>
-References: <20180403180832.GZ3881@phenom.ffwll.local>
- <20180416123937.GA9073@infradead.org>
- <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
- <20180419081657.GA16735@infradead.org>
- <20180420071312.GF31310@phenom.ffwll.local>
- <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
- <20180420101755.GA11400@infradead.org>
- <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
- <20180420124625.GA31078@infradead.org>
- <20180420152111.GR31310@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180420152111.GR31310@phenom.ffwll.local>
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:20043 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752392AbeDBO1d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:33 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 03/15] mmc: pxamci: remove the dmaengine compat need
+Date: Mon,  2 Apr 2018 16:26:44 +0200
+Message-Id: <20180402142656.26815-4-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 05:21:11PM +0200, Daniel Vetter wrote:
-> > At the very lowest level they will need to be handled differently for
-> > many architectures, the questions is at what point we'll do the
-> > branching out.
-> 
-> Having at least struct page also in that list with (dma_addr_t, lenght)
-> pairs has a bunch of benefits for drivers in unifying buffer handling
-> code. You just pass that one single list around, use the dma_addr_t side
-> for gpu access (generally bashing it into gpu ptes). And the struct page
-> (if present) for cpu access, using kmap or vm_insert_*. We generally
-> ignore virt, if we do need a full mapping then we construct a vmap for
-> that buffer of our own.
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-Well, for mapping a resource (which gets back to the start of the
-discussion) you will need an explicit virt pointer.  You also need
-an explicit virt pointer and not just page_address/kmap for users of
-dma_get_sgtable, because for many architectures you will need to flush
-the virtual address used to access the data, which might be a
-vmap/ioremap style mapping retourned from dma_alloc_address, and not
-the directly mapped kernel address.
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
-Here is another idea at the low-level dma API level:
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/mmc/host/pxamci.c | 29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
 
- - dma_get_sgtable goes away.  The replacement is a new
-   dma_alloc_remap helper that takes the virtual address returned
-   from dma_alloc_attrs/coherent and creates a dma_addr_t for the
-   given new device.  If the original allocation was a coherent
-   one no cache flushing is required either (because the arch
-   made sure it is coherent), if the original allocation used
-   DMA_ATTR_NON_CONSISTENT the new allocation will need
-   dma_cache_sync calls as well.
- - you never even try to share a mapping retourned from
-   dma_map_resource - instead each device using it creates a new
-   mapping, which makes sense as no virtual addresses are involved
-   at all.
-
-> So maybe a list of (struct page *, dma_addr_t, num_pages) would suit best,
-> with struct page * being optional (if it's a resource, or something else
-> that the kernel core mm isn't aware of). But that only has benefits if we
-> really roll it out everywhere, in all the subsystems and drivers, since if
-> we don't we've made the struct pages ** <-> sgt conversion fun only worse
-> by adding a 3 representation of gpu buffer object backing storage.
-
-I think the most important thing about such a buffer object is that
-it can distinguish the underlying mapping types.  While
-dma_alloc_coherent, dma_alloc_attrs with DMA_ATTR_NON_CONSISTENT,
-dma_map_page/dma_map_single/dma_map_sg and dma_map_resource all give
-back a dma_addr_t they are in now way interchangable.  And trying to
-stuff them all into a structure like struct scatterlist that has
-no indication what kind of mapping you are dealing with is just
-asking for trouble.
+diff --git a/drivers/mmc/host/pxamci.c b/drivers/mmc/host/pxamci.c
+index c763b404510f..6c94474e36f4 100644
+--- a/drivers/mmc/host/pxamci.c
++++ b/drivers/mmc/host/pxamci.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/dma/pxa-dma.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/mmc/host.h>
+@@ -637,10 +636,8 @@ static int pxamci_probe(struct platform_device *pdev)
+ {
+ 	struct mmc_host *mmc;
+ 	struct pxamci_host *host = NULL;
+-	struct resource *r, *dmarx, *dmatx;
+-	struct pxad_param param_rx, param_tx;
++	struct resource *r;
+ 	int ret, irq, gpio_cd = -1, gpio_ro = -1, gpio_power = -1;
+-	dma_cap_mask_t mask;
+ 
+ 	ret = pxamci_of_init(pdev);
+ 	if (ret)
+@@ -739,34 +736,14 @@ static int pxamci_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, mmc);
+ 
+-	if (!pdev->dev.of_node) {
+-		dmarx = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+-		dmatx = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+-		if (!dmarx || !dmatx) {
+-			ret = -ENXIO;
+-			goto out;
+-		}
+-		param_rx.prio = PXAD_PRIO_LOWEST;
+-		param_rx.drcmr = dmarx->start;
+-		param_tx.prio = PXAD_PRIO_LOWEST;
+-		param_tx.drcmr = dmatx->start;
+-	}
+-
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
+-
+-	host->dma_chan_rx =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param_rx, &pdev->dev, "rx");
++	host->dma_chan_rx = dma_request_slave_channel(&pdev->dev, "rx");
+ 	if (host->dma_chan_rx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request rx dma channel\n");
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+ 
+-	host->dma_chan_tx =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param_tx,  &pdev->dev, "tx");
++	host->dma_chan_tx = dma_request_slave_channel(&pdev->dev, "tx");
+ 	if (host->dma_chan_tx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request tx dma channel\n");
+ 		ret = -ENODEV;
+-- 
+2.11.0
