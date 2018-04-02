@@ -1,147 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:38734 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752427AbeDQEhP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 00:37:15 -0400
-Received: by mail-io0-f196.google.com with SMTP id h9so7188939iob.5
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:37:15 -0700 (PDT)
-Received: from mail-it0-f44.google.com (mail-it0-f44.google.com. [209.85.214.44])
-        by smtp.gmail.com with ESMTPSA id 126sm2154271iou.47.2018.04.16.21.37.14
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 16 Apr 2018 21:37:14 -0700 (PDT)
-Received: by mail-it0-f44.google.com with SMTP id m134-v6so14271861itb.3
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:37:14 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-26-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-26-hverkuil@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Tue, 17 Apr 2018 04:37:03 +0000
-Message-ID: <CAPBb6MUmN3zkwGtWcUdeMAipV+cO6UgiJsYc2HdHGZ6hN-OBLg@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 25/29] media: vim2m: add media device
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38959 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753442AbeDBSYp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:45 -0400
+Received: by mail-wr0-f195.google.com with SMTP id c24so15021022wrc.6
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:44 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 15/20] [media] ddbridge: support dummy tuners with 125MByte/s dummy data stream
+Date: Mon,  2 Apr 2018 20:24:22 +0200
+Message-Id: <20180402182427.20918-16-d.scheller.oss@gmail.com>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> From: Alexandre Courbot <acourbot@chromium.org>
+The Octopus V3 and Octopus Mini devices support set up of a dummy tuner
+mode on port 0 that will deliver a continuous data stream of 125MBytes
+per second while raising IRQs and filling the DMA buffers, which comes
+handy for some stress, PCIe link and IRQ handling testing. The dummy
+frontend is registered using dvb_dummy_fe's QAM dummy frontend. Set
+ddbridge.dummy_tuner to 1 to enable this on the supported cards.
 
-> Request API requires a media node. Add one to the vim2m driver so we can
-> use requests with it.
+Picked up from the upstream dddvb-0.9.33 release.
 
-> This probably needs a bit more work to correctly represent m2m
-> hardware in the media topology.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/Kconfig         |  1 +
+ drivers/media/pci/ddbridge/ddbridge-core.c | 36 ++++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge.h      |  1 +
+ 3 files changed, 38 insertions(+)
 
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-
-I don't remember writing this - actually IIRC you came with this patch
-initially.
-
-> ---
->   drivers/media/platform/vim2m.c | 43
-+++++++++++++++++++++++++++++++++++++-----
->   1 file changed, 38 insertions(+), 5 deletions(-)
-
-> diff --git a/drivers/media/platform/vim2m.c
-b/drivers/media/platform/vim2m.c
-> index 065483e62db4..ef970434af13 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -140,6 +140,10 @@ static struct vim2m_fmt *find_format(struct
-v4l2_format *f)
->   struct vim2m_dev {
->          struct v4l2_device      v4l2_dev;
->          struct video_device     vfd;
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       struct media_device     mdev;
-> +       struct media_pad        pad[2];
-> +#endif
-
->          atomic_t                num_inst;
->          struct mutex            dev_mutex;
-> @@ -1000,11 +1004,6 @@ static int vim2m_probe(struct platform_device
-*pdev)
->                  return -ENOMEM;
-
->          spin_lock_init(&dev->irqlock);
-> -
-> -       ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-> -       if (ret)
-> -               return ret;
-> -
->          atomic_set(&dev->num_inst, 0);
->          mutex_init(&dev->dev_mutex);
-
-> @@ -1013,6 +1012,22 @@ static int vim2m_probe(struct platform_device
-*pdev)
->          vfd->lock = &dev->dev_mutex;
->          vfd->v4l2_dev = &dev->v4l2_dev;
-
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       dev->mdev.dev = &pdev->dev;
-> +       strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-> +       media_device_init(&dev->mdev);
-> +       dev->v4l2_dev.mdev = &dev->mdev;
-> +       dev->pad[0].flags = MEDIA_PAD_FL_SINK;
-> +       dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-> +       ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
-> +       if (ret)
-> +               return ret;
-> +#endif
-> +
-> +       ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-> +       if (ret)
-> +               goto unreg_media;
-> +
->          ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
->          if (ret) {
->                  v4l2_err(&dev->v4l2_dev, "Failed to register video
-device\n");
-> @@ -1034,6 +1049,13 @@ static int vim2m_probe(struct platform_device
-*pdev)
->                  goto err_m2m;
->          }
-
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       /* Register the media device node */
-> +       ret = media_device_register(&dev->mdev);
-> +       if (ret)
-> +               goto err_m2m;
-> +#endif
-> +
->          return 0;
-
->   err_m2m:
-> @@ -1041,6 +1063,10 @@ static int vim2m_probe(struct platform_device
-*pdev)
->          video_unregister_device(&dev->vfd);
->   unreg_dev:
->          v4l2_device_unregister(&dev->v4l2_dev);
-> +unreg_media:
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       media_device_unregister(&dev->mdev);
-> +#endif
-
->          return ret;
->   }
-> @@ -1050,6 +1076,13 @@ static int vim2m_remove(struct platform_device
-*pdev)
->          struct vim2m_dev *dev = platform_get_drvdata(pdev);
-
->          v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +       if (media_devnode_is_registered(dev->mdev.devnode))
-> +               media_device_unregister(&dev->mdev);
-> +       media_device_cleanup(&dev->mdev);
-> +#endif
-> +
->          v4l2_m2m_release(dev->m2m_dev);
->          del_timer_sync(&dev->timer);
->          video_unregister_device(&dev->vfd);
-> --
-> 2.16.3
+diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
+index a422dde2f34a..16faef265e97 100644
+--- a/drivers/media/pci/ddbridge/Kconfig
++++ b/drivers/media/pci/ddbridge/Kconfig
+@@ -14,6 +14,7 @@ config DVB_DDBRIDGE
+ 	select MEDIA_TUNER_TDA18212 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_MXL5XX if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_CXD2099 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_DUMMY_FE if MEDIA_SUBDRV_AUTOSELECT
+ 	---help---
+ 	  Support for cards with the Digital Devices PCI express bridge:
+ 	  - Octopus PCIe Bridge
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 8907551b02e4..59e137516003 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -54,6 +54,7 @@
+ #include "stv6111.h"
+ #include "lnbh25.h"
+ #include "cxd2099.h"
++#include "dvb_dummy_fe.h"
+ 
+ /****************************************************************************/
+ 
+@@ -105,6 +106,11 @@ module_param(dma_buf_size, int, 0444);
+ MODULE_PARM_DESC(dma_buf_size,
+ 		 "DMA buffer size as multiple of 128*47, possible values: 1-43");
+ 
++static int dummy_tuner;
++module_param(dummy_tuner, int, 0444);
++MODULE_PARM_DESC(dummy_tuner,
++		 "attach dummy tuner to port 0 on Octopus V3 or Octopus Mini cards");
++
+ /****************************************************************************/
+ 
+ static DEFINE_MUTEX(redirect_lock);
+@@ -548,6 +554,9 @@ static void ddb_input_start(struct ddb_input *input)
+ 
+ 	ddbwritel(dev, 0x09, TS_CONTROL(input));
+ 
++	if (input->port->type == DDB_TUNER_DUMMY)
++		ddbwritel(dev, 0x000fff01, TS_CONTROL2(input));
++
+ 	if (input->dma) {
+ 		input->dma->running = 1;
+ 		spin_unlock_irq(&input->dma->lock);
+@@ -1255,6 +1264,20 @@ static int tuner_attach_stv6111(struct ddb_input *input, int type)
+ 	return 0;
+ }
+ 
++static int demod_attach_dummy(struct ddb_input *input)
++{
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
++
++	dvb->fe = dvb_attach(dvb_dummy_fe_qam_attach);
++	if (!dvb->fe) {
++		dev_err(dev, "QAM dummy attach failed!\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
+ static int start_feed(struct dvb_demux_feed *dvbdmxfeed)
+ {
+ 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
+@@ -1547,6 +1570,10 @@ static int dvb_input_attach(struct ddb_input *input)
+ 		if (tuner_attach_tda18212(input, port->type) < 0)
+ 			goto err_tuner;
+ 		break;
++	case DDB_TUNER_DUMMY:
++		if (demod_attach_dummy(input) < 0)
++			goto err_detach;
++		break;
+ 	default:
+ 		return 0;
+ 	}
+@@ -1809,6 +1836,15 @@ static void ddb_port_probe(struct ddb_port *port)
+ 
+ 	/* Handle missing ports and ports without I2C */
+ 
++	if (dummy_tuner && !port->nr &&
++	    dev->link[0].ids.device == 0x0005) {
++		port->name = "DUMMY";
++		port->class = DDB_PORT_TUNER;
++		port->type = DDB_TUNER_DUMMY;
++		port->type_name = "DUMMY";
++		return;
++	}
++
+ 	if (port->nr == ts_loop) {
+ 		port->name = "TS LOOP";
+ 		port->class = DDB_PORT_LOOP;
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 86db6f19369a..cb69021a3443 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -236,6 +236,7 @@ struct ddb_port {
+ 	char                   *name;
+ 	char                   *type_name;
+ 	u32                     type;
++#define DDB_TUNER_DUMMY          0xffffffff
+ #define DDB_TUNER_NONE           0
+ #define DDB_TUNER_DVBS_ST        1
+ #define DDB_TUNER_DVBS_ST_AA     2
+-- 
+2.16.1
