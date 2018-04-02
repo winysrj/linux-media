@@ -1,114 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54851 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752446AbeDMJGw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 05:06:52 -0400
-Date: Fri, 13 Apr 2018 06:06:46 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Patrice Chotard <patrice.chotard@st.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler
- forever
-Message-ID: <20180413060646.25b8a19d@vento.lan>
-In-Reply-To: <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
-        <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
-        <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:40955 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754457AbeDBWY5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 18:24:57 -0400
+From: Nasser Afshin <afshin.nasser@gmail.com>
+Cc: Nasser Afshin <Afshin.Nasser@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/4] media: i2c: tvp5150: Use the correct comment style
+Date: Tue,  3 Apr 2018 02:53:18 +0430
+Message-Id: <20180402222322.30385-3-Afshin.Nasser@gmail.com>
+In-Reply-To: <20180402222322.30385-1-Afshin.Nasser@gmail.com>
+References: <d5e8dbe4-b68b-ac4e-0076-a3ee995f8327@embeddedor.com>
+ <20180402222322.30385-1-Afshin.Nasser@gmail.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+This patch resolves checkpatch.pl warnings:
+    WARNING: Block comments use * on subsequent lines
+    WARNING: Block comments use a trailing */ on a separate line
 
-Em Thu, 12 Apr 2018 23:21:32 +0100
-Sean Young <sean@mess.org> escreveu:
+Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+---
+ drivers/media/i2c/tvp5150.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-> On Thu, Apr 12, 2018 at 11:24:07AM -0400, Mauro Carvalho Chehab wrote:
-> > As warned by smatch:
-> > 	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
-> > 
-> > If something goes wrong at readl(), the logic will stay there
-> > inside an IRQ code forever. This is not the nicest thing to
-> > do :-)
-> > 
-> > So, add a timeout there, preventing staying inside the IRQ
-> > for more than 10ms.  
-> 
-> If we knew how large the fifo was, then we could limit the loop to that many
-> iterations (maybe a few extra in case IR arrives while we a reading, but
-> IR is much slower than a cpu executing this loop of course).
-
-IR is slower, but this code is called at IRQ time, e. g. when the
-controller already received the IR data. Also, it reads directly
-via a memory mapped register, with should be fast. I suspect that
-10ms is a lot more time than what would be required to go though
-all the FIFO data.
-
-> 
-> Patrice is something you could help with?
-> 
-> Thanks
-> 
-> Sean
-> 
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/rc/st_rc.c | 16 ++++++++++------
-> >  1 file changed, 10 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-> > index d2efd7b2c3bc..c855b177103c 100644
-> > --- a/drivers/media/rc/st_rc.c
-> > +++ b/drivers/media/rc/st_rc.c
-> > @@ -96,19 +96,24 @@ static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
-> >  
-> >  static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
-> >  {
-> > +	unsigned long timeout;
-> >  	unsigned int symbol, mark = 0;
-> >  	struct st_rc_device *dev = data;
-> >  	int last_symbol = 0;
-> > -	u32 status;
-> > +	u32 status, int_status;
-> >  	DEFINE_IR_RAW_EVENT(ev);
-> >  
-> >  	if (dev->irq_wake)
-> >  		pm_wakeup_event(dev->dev, 0);
-> >  
-> > -	status  = readl(dev->rx_base + IRB_RX_STATUS);
-> > +	/* FIXME: is 10ms good enough ? */
-> > +	timeout = jiffies +  msecs_to_jiffies(10);
-> > +	do {
-> > +		status  = readl(dev->rx_base + IRB_RX_STATUS);
-> > +		if (!(status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)))
-> > +			break;
-> >  
-> > -	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
-> > -		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
-> > +		int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
-> >  		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
-> >  			/* discard the entire collection in case of errors!  */
-> >  			ir_raw_event_reset(dev->rdev);
-> > @@ -148,8 +153,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
-> >  
-> >  		}
-> >  		last_symbol = 0;
-> > -		status  = readl(dev->rx_base + IRB_RX_STATUS);
-> > -	}
-> > +	} while (time_is_after_jiffies(timeout));
-> >  
-> >  	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
-> >  
-> > -- 
-> > 2.14.3  
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index af56a5a6db65..fd23138cc6a3 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -502,8 +502,10 @@ struct i2c_vbi_ram_value {
+ 
+ static struct i2c_vbi_ram_value vbi_ram_default[] =
+ {
+-	/* FIXME: Current api doesn't handle all VBI types, those not
+-	   yet supported are placed under #if 0 */
++	/*
++	 * FIXME: Current api doesn't handle all VBI types, those not
++	 * yet supported are placed under #if 0
++	 */
+ #if 0
+ 	[0] = {0x010, /* Teletext, SECAM, WST System A */
+ 		{V4L2_SLICED_TELETEXT_SECAM, 6, 23, 1},
+@@ -1101,11 +1103,14 @@ static int tvp5150_s_routing(struct v4l2_subdev *sd,
+ 
+ static int tvp5150_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt)
+ {
+-	/* this is for capturing 36 raw vbi lines
+-	   if there's a way to cut off the beginning 2 vbi lines
+-	   with the tvp5150 then the vbi line count could be lowered
+-	   to 17 lines/field again, although I couldn't find a register
+-	   which could do that cropping */
++	/*
++	 * this is for capturing 36 raw vbi lines
++	 * if there's a way to cut off the beginning 2 vbi lines
++	 * with the tvp5150 then the vbi line count could be lowered
++	 * to 17 lines/field again, although I couldn't find a register
++	 * which could do that cropping
++	 */
++
+ 	if (fmt->sample_format == V4L2_PIX_FMT_GREY)
+ 		tvp5150_write(sd, TVP5150_LUMA_PROC_CTL_1, 0x70);
+ 	if (fmt->count[0] == 18 && fmt->count[1] == 18) {
+-- 
+2.15.0
