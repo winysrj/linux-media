@@ -1,50 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway21.websitewelcome.com ([192.185.45.154]:27403 "EHLO
-        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753821AbeDRNNs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 09:13:48 -0400
-Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
-        by gateway21.websitewelcome.com (Postfix) with ESMTP id 7427B400CF2ED
-        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2018 07:50:18 -0500 (CDT)
-Date: Wed, 18 Apr 2018 07:50:16 -0500
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] staging: media: davinci_vpfe: fix spin_lock/unlock imbalance
-Message-ID: <20180418125016.GA25606@embeddedor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:26853 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752584AbeDBO15 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:57 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        "yuval.shaia@oracle.com" <yuval.shaia@oracle.com>,
+        Robert Jarzmik <robert.jarzmik@renault.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 06/15] net: smc911x: remove the dmaengine compat need
+Date: Mon,  2 Apr 2018 16:26:47 +0200
+Message-Id: <20180402142656.26815-7-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It seems that this is a copy-paste error and that the proper
-variable to use in this particular case is video_out2 instead
-of video_out.
+From: Robert Jarzmik <robert.jarzmik@renault.com>
 
-Addresses-Coverity-ID: 1467961 ("Copy-paste error")
-Fixes: 45e46b3bbe18 ("[media] davinci: vpfe: dm365: resizer driver based on media framework")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
+
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- drivers/staging/media/davinci_vpfe/dm365_resizer.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/smsc/smc911x.c | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index df6d55e..2b79747 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -1060,7 +1060,7 @@ static void resizer_ss_isr(struct vpfe_resizer_device *resizer)
- 	/* If resizer B is enabled */
- 	if (pipe->output_num > 1 && resizer->resizer_b.output ==
- 	    RESIZER_OUTPUT_MEMORY) {
--		spin_lock(&video_out->dma_queue_lock);
-+		spin_lock(&video_out2->dma_queue_lock);
- 		vpfe_video_process_buffer_complete(video_out2);
- 		video_out2->state = VPFE_VIDEO_BUFFER_NOT_QUEUED;
- 		vpfe_video_schedule_next_buffer(video_out2);
+diff --git a/drivers/net/ethernet/smsc/smc911x.c b/drivers/net/ethernet/smsc/smc911x.c
+index 05157442a980..4c3713bd5caa 100644
+--- a/drivers/net/ethernet/smsc/smc911x.c
++++ b/drivers/net/ethernet/smsc/smc911x.c
+@@ -74,7 +74,6 @@ static const char version[] =
+ #include <linux/skbuff.h>
+ 
+ #include <linux/dmaengine.h>
+-#include <linux/dma/pxa-dma.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -1794,8 +1793,6 @@ static int smc911x_probe(struct net_device *dev)
+ 	unsigned long irq_flags;
+ #ifdef SMC_USE_DMA
+ 	struct dma_slave_config	config;
+-	dma_cap_mask_t mask;
+-	struct pxad_param param;
+ #endif
+ 
+ 	DBG(SMC_DEBUG_FUNC, dev, "--> %s\n", __func__);
+@@ -1969,17 +1966,8 @@ static int smc911x_probe(struct net_device *dev)
+ 
+ #ifdef SMC_USE_DMA
+ 
+-	dma_cap_zero(mask);
+-	dma_cap_set(DMA_SLAVE, mask);
+-	param.prio = PXAD_PRIO_LOWEST;
+-	param.drcmr = -1UL;
+-
+-	lp->rxdma =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param, &dev->dev, "rx");
+-	lp->txdma =
+-		dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-						 &param, &dev->dev, "tx");
++	lp->rxdma = dma_request_slave_channel(&dev->dev, "rx");
++	lp->txdma = dma_request_slave_channel(&dev->dev, "tx");
+ 	lp->rxdma_active = 0;
+ 	lp->txdma_active = 0;
+ 
 -- 
-2.7.4
+2.11.0
