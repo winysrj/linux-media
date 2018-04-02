@@ -1,126 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:58531 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752489AbeDSJbj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 05:31:39 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, airlied@linux.ie
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 6/8] drm: rcar-du: rcar-lvds: Add bridge format support
-Date: Thu, 19 Apr 2018 11:31:07 +0200
-Message-Id: <1524130269-32688-7-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:32902 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753162AbeDBRWx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 13:22:53 -0400
+Received: by mail-pl0-f68.google.com with SMTP id s10-v6so2985757plp.0
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 10:22:53 -0700 (PDT)
+Subject: Re: [PATCH v3 00/13] media: imx: Switch to subdev notifiers
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <09fa1d79-d6a8-589a-4c65-cdeb1a0baa2f@gmail.com>
+Date: Mon, 2 Apr 2018 10:22:49 -0700
+MIME-Version: 1.0
+In-Reply-To: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the introduction of static input image format enumeration in DRM
-bridges, add support to retrieve the format in rcar-lvds LVDS encoder
-from both panel or bridge, to set the desired LVDS mode.
+Hi Sakari, Hans, Mauro,
 
-Do not rely on 'DRM_BUS_FLAG_DATA_LSB_TO_MSB' flag to mirror the LVDS
-format, as it is only defined for drm connectors, but use the newly
-introduced _LE version of LVDS mbus image formats.
+What is the status on this patch-set?
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/gpu/drm/rcar-du/rcar_lvds.c | 64 +++++++++++++++++++++++++------------
- 1 file changed, 44 insertions(+), 20 deletions(-)
+Thanks,
+Steve
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_lvds.c b/drivers/gpu/drm/rcar-du/rcar_lvds.c
-index 3d2d3bb..2fa875f 100644
---- a/drivers/gpu/drm/rcar-du/rcar_lvds.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_lvds.c
-@@ -280,41 +280,65 @@ static bool rcar_lvds_mode_fixup(struct drm_bridge *bridge,
- 	return true;
- }
- 
--static void rcar_lvds_get_lvds_mode(struct rcar_lvds *lvds)
-+static int rcar_lvds_get_lvds_mode_from_connector(struct rcar_lvds *lvds,
-+						  unsigned int *bus_fmt)
- {
- 	struct drm_display_info *info = &lvds->connector.display_info;
--	enum rcar_lvds_mode mode;
--
--	/*
--	 * There is no API yet to retrieve LVDS mode from a bridge, only panels
--	 * are supported.
--	 */
--	if (!lvds->panel)
--		return;
- 
- 	if (!info->num_bus_formats || !info->bus_formats) {
- 		dev_err(lvds->dev, "no LVDS bus format reported\n");
--		return;
-+		return -EINVAL;
-+	}
-+
-+	*bus_fmt = info->bus_formats[0];
-+
-+	return 0;
-+}
-+
-+static int rcar_lvds_get_lvds_mode_from_bridge(struct rcar_lvds *lvds,
-+					       unsigned int *bus_fmt)
-+{
-+	if (!lvds->next_bridge->num_bus_formats ||
-+	    !lvds->next_bridge->bus_formats) {
-+		dev_err(lvds->dev, "no LVDS bus format reported\n");
-+		return -EINVAL;
- 	}
- 
--	switch (info->bus_formats[0]) {
-+	*bus_fmt = lvds->next_bridge->bus_formats[0];
-+
-+	return 0;
-+}
-+
-+static void rcar_lvds_get_lvds_mode(struct rcar_lvds *lvds)
-+{
-+	unsigned int bus_fmt;
-+	int ret;
-+
-+	if (lvds->panel)
-+		ret = rcar_lvds_get_lvds_mode_from_connector(lvds, &bus_fmt);
-+	else
-+		ret = rcar_lvds_get_lvds_mode_from_bridge(lvds, &bus_fmt);
-+	if (ret)
-+		return;
-+
-+	switch (bus_fmt) {
-+	case MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE:
-+	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE:
-+		lvds->mode |= RCAR_LVDS_MODE_MIRROR;
- 	case MEDIA_BUS_FMT_RGB666_1X7X3_SPWG:
- 	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA:
--		mode = RCAR_LVDS_MODE_JEIDA;
-+		lvds->mode = RCAR_LVDS_MODE_JEIDA;
- 		break;
-+
-+	case MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE:
-+		lvds->mode |= RCAR_LVDS_MODE_MIRROR;
- 	case MEDIA_BUS_FMT_RGB888_1X7X4_SPWG:
--		mode = RCAR_LVDS_MODE_VESA;
-+		lvds->mode = RCAR_LVDS_MODE_VESA;
- 		break;
- 	default:
- 		dev_err(lvds->dev, "unsupported LVDS bus format 0x%04x\n",
--			info->bus_formats[0]);
--		return;
-+			bus_fmt);
- 	}
--
--	if (info->bus_flags & DRM_BUS_FLAG_DATA_LSB_TO_MSB)
--		mode |= RCAR_LVDS_MODE_MIRROR;
--
--	lvds->mode = mode;
- }
- 
- static void rcar_lvds_mode_set(struct drm_bridge *bridge,
--- 
-2.7.4
+On 03/20/2018 05:37 PM, Steve Longerbeam wrote:
+> This patchset converts the imx-media driver and its dependent
+> subdevs to use subdev notifiers.
+>
+> There are a couple shortcomings in v4l2-core that prevented
+> subdev notifiers from working correctly in imx-media:
+>
+> 1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+>     endpoint that is not connected to a remote device as an error.
+>     But in the case of the video-mux subdev, this is not an error,
+>     it is OK if some of the mux inputs have no connection. Also,
+>     Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+>     states that the 'remote-endpoint' property is optional. So the first
+>     patch is a small modification to ignore empty endpoints in
+>     v4l2_async_notifier_fwnode_parse_endpoint() and allow
+>     __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+>     parse the remaining port endpoints of the device.
+>
+> 2. In the imx-media graph, multiple subdevs will encounter the same
+>     upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+>     v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+>     multiple times. This is treated as an error by
+>     v4l2_async_notifier_register() later.
+>
+>     To get around this problem, add an v4l2_async_notifier_add_subdev()
+>     which first verifies the provided asd does not already exist in the
+>     given notifier asd list or in other registered notifiers. If the asd
+>     exists, the function returns -EEXIST and it's up to the caller to
+>     decide if that is an error (in imx-media case it is never an error).
+>
+>     Patches 2-4 deal with adding that support.
+>
+> 3. Patch 5 adds v4l2_async_register_fwnode_subdev(), which is a
+>     convenience function for parsing a subdev's fwnode port endpoints
+>     for connected remote subdevs, registering a subdev notifier, and
+>     then registering the sub-device itself.
+>
+> The remaining patches update the subdev drivers to register a
+> subdev notifier with endpoint parsing, and the changes to imx-media
+> to support that.
+>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+>
+> History:
+> v3:
+> - code optimization in asd_equal(), and remove unneeded braces,
+>    suggested by Sakari Ailus.
+> - add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+> - fix an error-out path in v4l2_async_register_fwnode_subdev() that
+>    forgot to put device.
+>
+> v2:
+> - don't pass an empty endpoint to the parse_endpoint callback,
+>    v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+>    and returns success.
+> - Fix a couple compile warnings and errors seen in i386 and sh archs.
+>
+>
+> Steve Longerbeam (13):
+>    media: v4l2-fwnode: ignore endpoints that have no remote port parent
+>    media: v4l2: async: Allow searching for asd of any type
+>    media: v4l2: async: Add v4l2_async_notifier_add_subdev
+>    media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+>    media: v4l2-fwnode: Add a convenience function for registering subdevs
+>      with notifiers
+>    media: platform: video-mux: Register a subdev notifier
+>    media: imx: csi: Register a subdev notifier
+>    media: imx: mipi csi-2: Register a subdev notifier
+>    media: staging/imx: of: Remove recursive graph walk
+>    media: staging/imx: Loop through all registered subdevs for media
+>      links
+>    media: staging/imx: Rename root notifier
+>    media: staging/imx: Switch to v4l2_async_notifier_add_subdev
+>    media: staging/imx: TODO: Remove one assumption about OF graph parsing
+>
+>   drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  10 +-
+>   drivers/media/platform/video-mux.c                |  36 ++-
+>   drivers/media/v4l2-core/v4l2-async.c              | 268 ++++++++++++++++------
+>   drivers/media/v4l2-core/v4l2-fwnode.c             | 231 +++++++++++--------
+>   drivers/staging/media/imx/TODO                    |  29 +--
+>   drivers/staging/media/imx/imx-media-csi.c         |  11 +-
+>   drivers/staging/media/imx/imx-media-dev.c         | 134 +++--------
+>   drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+>   drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+>   drivers/staging/media/imx/imx-media.h             |   6 +-
+>   drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+>   include/media/v4l2-async.h                        |  24 +-
+>   include/media/v4l2-fwnode.h                       |  65 +++++-
+>   13 files changed, 534 insertions(+), 422 deletions(-)
+>
