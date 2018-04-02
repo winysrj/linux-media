@@ -1,211 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:16832 "EHLO
-        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750858AbeDTSss (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 14:48:48 -0400
-From: Vladislav Zhurba <vzhurba@nvidia.com>
-To: <linux-kernel@vger.kernel.org>
-CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        Jun Yan <juyan@nvidia.com>, marting <marting@nvidia.com>,
-        Daniel Fu <danifu@nvidia.com>,
-        Vladislav Zhurba <vzhurba@nvidia.com>
-Subject: [PATCH 1/1] media: rc: Add NVIDIA IR keymapping
-Date: Fri, 20 Apr 2018 11:47:47 -0700
-Message-ID: <20180420184747.29022-2-vzhurba@nvidia.com>
-In-Reply-To: <20180420184747.29022-1-vzhurba@nvidia.com>
-References: <20180420184747.29022-1-vzhurba@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34514 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753224AbeDBSYt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:49 -0400
+Received: by mail-wm0-f68.google.com with SMTP id w2so7412192wmw.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:48 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 20/20] [media] ddbridge: set driver version to 0.9.33-integrated
+Date: Mon,  2 Apr 2018 20:24:27 +0200
+Message-Id: <20180402182427.20918-21-d.scheller.oss@gmail.com>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jun Yan <juyan@nvidia.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Add keymap with NEC and SONY12 protocol for NVIDIA IR
+Set DDBRIDGE_VERSION in ddbridge.h to 0.9.33-integrated to reflect the
+updated driver.
 
-Signed-off-by: Jun Yan <juyan@nvidia.com>
-Signed-off-by: marting <marting@nvidia.com>
-Signed-off-by: Daniel Fu <danifu@nvidia.com>
-Signed-off-by: Vladislav Zhurba <vzhurba@nvidia.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/rc/keymaps/Makefile        |  2 +
- drivers/media/rc/keymaps/rc-nvidia-nec.c | 66 ++++++++++++++++++++++++
- drivers/media/rc/keymaps/rc-nvidia.c     | 66 ++++++++++++++++++++++++
- include/media/rc-map.h                   |  2 +
- 4 files changed, 136 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-nvidia-nec.c
- create mode 100644 drivers/media/rc/keymaps/rc-nvidia.c
+ drivers/media/pci/ddbridge/ddbridge.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index d6b913a3032d..1d08500462fd 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -75,6 +75,8 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-nec-terratec-cinergy-xs.o \
- 			rc-norwood.o \
- 			rc-npgtech.o \
-+			rc-nvidia.o \
-+			rc-nvidia-nec.o \
- 			rc-pctv-sedna.o \
- 			rc-pinnacle-color.o \
- 			rc-pinnacle-grey.o \
-diff --git a/drivers/media/rc/keymaps/rc-nvidia-nec.c b/drivers/media/rc/keymaps/rc-nvidia-nec.c
-new file mode 100644
-index 000000000000..c910a2a683f6
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-nvidia-nec.c
-@@ -0,0 +1,66 @@
-+/* Keytable for NVIDIA Remote Controller
-+ *
-+ * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ *
-+ */
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+static struct rc_map_table foster_table[] = {
-+	{ 0x807e12, KEY_VOLUMEUP },
-+	{ 0x807e15, KEY_VOLUMEDOWN },
-+	{ 0x807e0c, KEY_UP },
-+	{ 0x807e0e, KEY_DOWN },
-+	{ 0x807e0b, KEY_LEFT },
-+	{ 0x807e0d, KEY_RIGHT },
-+	{ 0x807e09, KEY_HOMEPAGE },
-+	{ 0x807e06, KEY_POWER },
-+	{ 0x807e03, KEY_SELECT },
-+	{ 0x807e02, KEY_BACK },
-+	{ 0x807e14, KEY_MUTE },
-+	{ 0x807e20, KEY_PLAYPAUSE },
-+	{ 0x807e11, KEY_PLAYCD },
-+	{ 0x807e08, KEY_PAUSECD },
-+	{ 0x807e07, KEY_STOP },
-+	{ 0x807e0f, KEY_FASTFORWARD },
-+	{ 0x807e0a, KEY_REWIND },
-+	{ 0x807e41, KEY_SLEEP },
-+	{ 0x807e45, KEY_WAKEUP },
-+};
-+
-+static struct rc_map_list nvidia_map = {
-+	.map = {
-+			.scan = foster_table,
-+			.size = ARRAY_SIZE(foster_table),
-+			.rc_type = RC_TYPE_NEC,
-+			.name = RC_MAP_NVIDIA_NEC,
-+	}
-+};
-+
-+static int __init init_rc_map_nvidia(void)
-+{
-+	return rc_map_register(&nvidia_map);
-+}
-+
-+static void __exit exit_rc_map_nvidia(void)
-+{
-+	rc_map_unregister(&nvidia_map);
-+}
-+
-+module_init(init_rc_map_nvidia);
-+module_exit(exit_rc_map_nvidia);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Daniel Fu <danifu@nvidia.com>");
-diff --git a/drivers/media/rc/keymaps/rc-nvidia.c b/drivers/media/rc/keymaps/rc-nvidia.c
-new file mode 100644
-index 000000000000..9767d85a6c9e
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-nvidia.c
-@@ -0,0 +1,66 @@
-+/* Keytable for NVIDIA Remote Controller
-+ *
-+ * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ *
-+ */
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+static struct rc_map_table foster_table[] = {
-+	{ 0x10009, KEY_0 },
-+	{ 0x10000, KEY_1 },
-+	{ 0x10001, KEY_2 },
-+	{ 0x10002, KEY_3 },
-+	{ 0x10003, KEY_4 },
-+	{ 0x10004, KEY_5 },
-+	{ 0x10005, KEY_6 },
-+	{ 0x10006, KEY_7 },
-+	{ 0x10007, KEY_8 },
-+	{ 0x10008, KEY_9 },
-+	{ 0x10012, KEY_VOLUMEUP },
-+	{ 0x10013, KEY_VOLUMEDOWN },
-+	{ 0x10010, KEY_CHANNELUP },
-+	{ 0x10011, KEY_CHANNELDOWN },
-+	{ 0x10074, KEY_UP },
-+	{ 0x10075, KEY_DOWN },
-+	{ 0x10034, KEY_LEFT },
-+	{ 0x10033, KEY_RIGHT },
-+	{ 0x10060, KEY_HOME },
-+};
-+
-+static struct rc_map_list nvidia_map = {
-+	.map = {
-+			.scan = foster_table,
-+			.size = ARRAY_SIZE(foster_table),
-+			.rc_type = RC_TYPE_SONY12,
-+			.name = RC_MAP_NVIDIA,
-+	}
-+};
-+
-+static int __init init_rc_map_nvidia(void)
-+{
-+	return rc_map_register(&nvidia_map);
-+}
-+
-+static void __exit exit_rc_map_nvidia(void)
-+{
-+	rc_map_unregister(&nvidia_map);
-+}
-+
-+module_init(init_rc_map_nvidia);
-+module_exit(exit_rc_map_nvidia);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jun Yan <juyan@nvidia.com>");
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index bfa3017cecba..673d16eaabdf 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -235,6 +235,8 @@ struct rc_map *rc_map_get(const char *name);
- #define RC_MAP_NEC_TERRATEC_CINERGY_XS   "rc-nec-terratec-cinergy-xs"
- #define RC_MAP_NORWOOD                   "rc-norwood"
- #define RC_MAP_NPGTECH                   "rc-npgtech"
-+#define RC_MAP_NVIDIA                    "rc-nvidia"
-+#define RC_MAP_NVIDIA_NEC                "rc-nvidia-nec"
- #define RC_MAP_PCTV_SEDNA                "rc-pctv-sedna"
- #define RC_MAP_PINNACLE_COLOR            "rc-pinnacle-color"
- #define RC_MAP_PINNACLE_GREY             "rc-pinnacle-grey"
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 72fe33cb72b9..a66b1125cc74 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -63,7 +63,7 @@
+ #include <media/dvb_ca_en50221.h>
+ #include <media/dvb_net.h>
+ 
+-#define DDBRIDGE_VERSION "0.9.32-integrated"
++#define DDBRIDGE_VERSION "0.9.33-integrated"
+ 
+ #define DDB_MAX_I2C    32
+ #define DDB_MAX_PORT   32
 -- 
-2.17.0
+2.16.1
