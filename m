@@ -1,60 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2130.oracle.com ([141.146.126.79]:47122 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754294AbeDTKJj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 06:09:39 -0400
-Date: Fri, 20 Apr 2018 13:09:27 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] media: davinci_vpfe: fix some potential overflows
-Message-ID: <20180420100927.GA30237@mwanda>
+Received: from ale.deltatee.com ([207.54.116.67]:40610 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753030AbeDBRhK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Apr 2018 13:37:10 -0400
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Will Davis <wdavis@nvidia.com>, Joerg Roedel <joro@8bytes.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+References: <73578b4e-664b-141c-3e1f-e1fae1e4db07@amd.com>
+ <1b08c13e-b4a2-08f2-6194-93e6c21b7965@deltatee.com>
+ <70adc2cc-f7aa-d4b9-7d7a-71f3ae99f16c@gmail.com>
+ <98ce6cfd-bcf3-811e-a0f1-757b60da467a@deltatee.com>
+ <8d050848-8970-b8c4-a657-429fefd31769@amd.com>
+ <d2de0c2e-4c2d-9e46-1c26-bfa40ca662ff@deltatee.com>
+ <20180330015854.GA3572@redhat.com>
+ <0234bc5e-495e-0f68-fb0a-debb17a35761@deltatee.com>
+ <20180330194519.GC3198@redhat.com>
+ <31266710-f6bb-99ee-c73d-6e58afe5c38c@deltatee.com>
+ <20180402172027.GA18231@redhat.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <6f796779-0ba3-d056-de33-341ee55d6b38@deltatee.com>
+Date: Mon, 2 Apr 2018 11:37:07 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20180402172027.GA18231@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 2/8] PCI: Add pci_find_common_upstream_dev()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We check "lutdpc->dpc_size" in ipipe_validate_lutdpc_params() but if
-it's invalid then we would have corrupted memory already when we do
-the memcpy() before calling it.
 
-We don't ever check "gamma->tbl_size" but we should since they come from
-the user.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On 02/04/18 11:20 AM, Jerome Glisse wrote:
+> The point i have been trying to get accross is that you do have this
+> information with dma_map_resource() you know the device to which you
+> are trying to map (dev argument to dma_map_resource()) and you can
+> easily get the device to which the memory belongs because you have the
+> CPU physical address of the memory hence you can lookup the resource
+> and get the device from that.
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 95942768639c..068b3333e224 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -82,6 +82,8 @@ static int ipipe_set_lutdpc_params(struct vpfe_ipipe_device *ipipe, void *param)
- 	lutdpc->en = dpc_param->en;
- 	lutdpc->repl_white = dpc_param->repl_white;
- 	lutdpc->dpc_size = dpc_param->dpc_size;
-+	if (dpc_param->dpc_size > LUT_DPC_MAX_SIZE)
-+		return -EINVAL;
- 	memcpy(&lutdpc->table, &dpc_param->table,
- 	       (dpc_param->dpc_size * sizeof(struct vpfe_ipipe_lutdpc_entry)));
- 	if (ipipe_validate_lutdpc_params(lutdpc) < 0)
-@@ -591,7 +593,7 @@ ipipe_validate_gamma_entry(struct vpfe_ipipe_gamma_entry *table, int size)
- static int
- ipipe_validate_gamma_params(struct vpfe_ipipe_gamma *gamma, struct device *dev)
- {
--	int table_size;
-+	unsigned int table_size;
- 	int err;
- 
- 	if (gamma->bypass_r > 1 ||
-@@ -603,6 +605,8 @@ ipipe_validate_gamma_params(struct vpfe_ipipe_gamma *gamma, struct device *dev)
- 		return 0;
- 
- 	table_size = gamma->tbl_size;
-+	if (table_size > VPFE_IPIPE_MAX_SIZE_GAMMA)
-+		return -EINVAL;
- 	if (!gamma->bypass_r) {
- 		err = ipipe_validate_gamma_entry(gamma->table_r, table_size);
- 		if (err) {
+How do you go from a physical address to a struct device generally and
+in a performant manner?
+
+> IIRC CAPI make P2P mandatory but maybe this is with NVLink. We can ask
+> the PowerPC folks to confirm. Note CAPI is Power8 and newer AFAICT.
+
+PowerPC folks recently told us specifically that Power9 does not support
+P2P between PCI root ports. I've said this many times. CAPI has nothing
+to do with it.
+
+> Mapping to userspace have nothing to do here. I am talking at hardware
+> level. How thing are expose to userspace is a completely different
+> problems that do not have one solution fit all. For GPU you want this
+> to be under total control of GPU drivers. For storage like persistent
+> memory, you might want to expose it userspace more directly ...
+
+My understanding (and I worked on this a while ago) is that CAPI
+hardware manages memory maps typically for userspace memory. When a
+userspace program changes it's mapping, the CAPI hardware is updated so
+that hardware is coherent with the user address space and it is safe to
+DMA to any address without having to pin memory. (This is very similar
+to ODP in RNICs.) This is *really* nice but doesn't solve *any* of the
+problems we've been discussing. Moreover, many developers want to keep
+P2P in-kernel, for the time being, where the problem of pinning memory
+does not exist.
+
+Logan
