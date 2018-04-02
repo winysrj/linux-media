@@ -1,64 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40629 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754762AbeDTNZU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:25:20 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Dmitry Osipenko <digetx@gmail.com>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.18] tegra-vde, video-i2c and usbtv patches
-Message-ID: <992fa6de-b315-2a83-d439-1c0a710743d0@xs4all.nl>
-Date: Fri, 20 Apr 2018 15:25:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:19708 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752600AbeDBO2H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:28:07 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Robert Jarzmik <robert.jarzmik@renault.com>,
+        "yuval.shaia@oracle.com" <yuval.shaia@oracle.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 07/15] net: smc91x: remove the dmaengine compat need
+Date: Mon,  2 Apr 2018 16:26:48 +0200
+Message-Id: <20180402142656.26815-8-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 1d338b86e17d87215cf57b1ad1d13b2afe582d33:
+From: Robert Jarzmik <robert.jarzmik@renault.com>
 
-  media: v4l2-compat-ioctl32: better document the code (2018-04-20 08:24:13 -0400)
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-are available in the git repository at:
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.18a
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/net/ethernet/smsc/smc91x.c | 12 +-----------
+ drivers/net/ethernet/smsc/smc91x.h |  1 -
+ 2 files changed, 1 insertion(+), 12 deletions(-)
 
-for you to fetch changes up to 548ea201716e4f81920f520e47d072f4615164d2:
-
-  usbtv: Use the constant for supported standards (2018-04-20 14:53:18 +0200)
-
-----------------------------------------------------------------
-Dmitry Osipenko (5):
-      media: staging: tegra-vde: Align bitstream size to 16K
-      media: staging: tegra-vde: Silence some of checkpatch warnings
-      media: staging: tegra-vde: Correct minimum size of U/V planes
-      media: staging: tegra-vde: Do not handle spurious interrupts
-      media: staging: tegra-vde: Correct included header
-
-Hugo Grostabussiat (6):
-      usbtv: Use same decoder sequence as Windows driver
-      usbtv: Add SECAM support
-      usbtv: Use V4L2 defines to select capture resolution
-      usbtv: Keep norm parameter specific
-      usbtv: Enforce standard for color decoding
-      usbtv: Use the constant for supported standards
-
-Matt Ranostay (2):
-      media: dt-bindings: Add bindings for panasonic,amg88xx
-      media: video-i2c: add video-i2c driver
-
- Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt |  19 ++
- MAINTAINERS                                                       |   6 +
- drivers/media/i2c/Kconfig                                         |  13 +
- drivers/media/i2c/Makefile                                        |   1 +
- drivers/media/i2c/video-i2c.c                                     | 564 ++++++++++++++++++++++++++++++++++++++++++
- drivers/media/usb/usbtv/usbtv-video.c                             | 115 +++++++--
- drivers/media/usb/usbtv/usbtv.h                                   |   2 +-
- drivers/staging/media/tegra-vde/tegra-vde.c                       |  63 ++---
- 8 files changed, 737 insertions(+), 46 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
- create mode 100644 drivers/media/i2c/video-i2c.c
+diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
+index 080428762858..4c600f430f6d 100644
+--- a/drivers/net/ethernet/smsc/smc91x.c
++++ b/drivers/net/ethernet/smsc/smc91x.c
+@@ -2018,18 +2018,8 @@ static int smc_probe(struct net_device *dev, void __iomem *ioaddr,
+ 	lp->cfg.flags |= SMC91X_USE_DMA;
+ #  endif
+ 	if (lp->cfg.flags & SMC91X_USE_DMA) {
+-		dma_cap_mask_t mask;
+-		struct pxad_param param;
+-
+-		dma_cap_zero(mask);
+-		dma_cap_set(DMA_SLAVE, mask);
+-		param.prio = PXAD_PRIO_LOWEST;
+-		param.drcmr = -1UL;
+-
+ 		lp->dma_chan =
+-			dma_request_slave_channel_compat(mask, pxad_filter_fn,
+-							 &param, &dev->dev,
+-							 "data");
++			dma_request_slave_channel(lp->device, "data");
+ 	}
+ #endif
+ 
+diff --git a/drivers/net/ethernet/smsc/smc91x.h b/drivers/net/ethernet/smsc/smc91x.h
+index 08b17adf0a65..e849b6c2fa60 100644
+--- a/drivers/net/ethernet/smsc/smc91x.h
++++ b/drivers/net/ethernet/smsc/smc91x.h
+@@ -327,7 +327,6 @@ struct smc_local {
+  * as RX which can overrun memory and lose packets.
+  */
+ #include <linux/dma-mapping.h>
+-#include <linux/dma/pxa-dma.h>
+ 
+ #ifdef SMC_insl
+ #undef SMC_insl
+-- 
+2.11.0
