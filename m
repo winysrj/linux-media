@@ -1,225 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13706 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755207AbeDWOjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 10:39:16 -0400
-Date: Mon, 23 Apr 2018 17:39:12 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Daniel Mentz <danielmentz@google.com>
-Subject: Re: [PATCH v2 1/4] media: v4l2-compat-ioctl32: fix several __user
- annotations
-Message-ID: <20180423143912.ffui2l4bza7zpey5@paasikivi.fi.intel.com>
-References: <cover.1524155425.git.mchehab@s-opensource.com>
- <308d97a3110beb5b7efea2b6eb9a271db3a1ef6c.1524155425.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <308d97a3110beb5b7efea2b6eb9a271db3a1ef6c.1524155425.git.mchehab@s-opensource.com>
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:29532 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752309AbeDBO12 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:28 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Russell King <linux@armlinux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 02/15] ARM: pxa: add dma slave map
+Date: Mon,  2 Apr 2018 16:26:43 +0200
+Message-Id: <20180402142656.26815-3-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In order to remove the specific knowledge of the dma mapping from PXA
+drivers, add a default slave map for pxa architectures.
 
-Thanks for the update. Just a few comments below...
+This is the first step, and once all drivers are converted,
+pxad_filter_fn() will be made static, and the DMA resources removed from
+device.c.
 
-On Thu, Apr 19, 2018 at 12:33:29PM -0400, Mauro Carvalho Chehab wrote:
-> Smatch report several issues with bad __user annotations:
-> 
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    expected void [noderef] <asn:1>*uptr
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    got void *<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    expected void const volatile [noderef] <asn:1>*<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    got struct v4l2_plane [noderef] <asn:1>**<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    expected void [noderef] <asn:1>*uptr
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    got void *[assigned] base
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13: warning: incorrect type in assignment (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    expected struct v4l2_ext_control [noderef] <asn:1>*kcontrols
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    got struct v4l2_ext_control *<noident>
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13: warning: incorrect type in assignment (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    expected unsigned char [usertype] *__pu_val
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    got void [noderef] <asn:1>*
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13: warning: incorrect type in argument 1 (different address spaces)
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    expected void [noderef] <asn:1>*uptr
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    got void *[assigned] edid
-> 
-> Fix them.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 51 ++++++++++++++++++---------
->  1 file changed, 35 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index d03a44d89649..51c7c5ab15ef 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -443,8 +443,8 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up,
->  			return -EFAULT;
->  		break;
->  	case V4L2_MEMORY_USERPTR:
-> -		if (get_user(p, &up->m.userptr) ||
-> -		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
-> +		if (get_user(p, &up->m.userptr)||
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-pxa/devices.c | 55 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
-Space before "||", i.e. as it was?
-
-> +		    put_user((compat_ulong_t)ptr_to_compat((void __user *)p),
->  			     &up32->m.userptr))
->  			return -EFAULT;
->  		break;
-> @@ -587,7 +587,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
->  	u32 length;
->  	enum v4l2_memory memory;
->  	struct v4l2_plane32 __user *uplane32;
-> -	struct v4l2_plane __user *uplane;
-> +	struct v4l2_plane *uplane;
->  	compat_caddr_t p;
->  	int ret;
->  
-> @@ -617,15 +617,22 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
->  
->  		if (num_planes == 0)
->  			return 0;
-> -
-> -		if (get_user(uplane, ((__force struct v4l2_plane __user **)&kp->m.planes)))
-> +		/* We need to define uplane without __user, even though
-
-/*
- * ...
-
-> +		 * it does point to data in userspace here. The reason is
-> +		 * that v4l2-ioctl.c copies it from userspace to kernelspace,
-> +		 * so its definition in videodev2.h doesn't have a
-> +		 * __user markup. Defining uplane with __user causes
-> +		 * smatch warnings, so instead declare it without __user
-> +		 * and cast it as a userspace pointer to put_v4l2_plane32().
-> +		 */
-> +		if (get_user(uplane, &kp->m.planes))
-
-This line looks much better indeed...
-
->  			return -EFAULT;
->  		if (get_user(p, &up->m.planes))
->  			return -EFAULT;
->  		uplane32 = compat_ptr(p);
->  
->  		while (num_planes--) {
-> -			ret = put_v4l2_plane32(uplane, uplane32, memory);
-> +			ret = put_v4l2_plane32((void __user *)uplane, uplane32, memory);
-
-Over 80; please wrap.
-
->  			if (ret)
->  				return ret;
->  			++uplane;
-> @@ -675,7 +682,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
->  
->  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
->  	    get_user(tmp, &up->base) ||
-> -	    put_user((__force void *)compat_ptr(tmp), &kp->base) ||
-> +	    put_user((void __force *)compat_ptr(tmp), &kp->base) ||
->  	    assign_in_user(&kp->capability, &up->capability) ||
->  	    assign_in_user(&kp->flags, &up->flags) ||
->  	    copy_in_user(&kp->fmt, &up->fmt, sizeof(kp->fmt)))
-> @@ -690,7 +697,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
->  
->  	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
->  	    get_user(base, &kp->base) ||
-> -	    put_user(ptr_to_compat(base), &up->base) ||
-> +	    put_user(ptr_to_compat((void __user *)base), &up->base) ||
->  	    assign_in_user(&up->capability, &kp->capability) ||
->  	    assign_in_user(&up->flags, &kp->flags) ||
->  	    copy_in_user(&up->fmt, &kp->fmt, sizeof(kp->fmt)))
-> @@ -857,11 +864,19 @@ static int put_v4l2_ext_controls32(struct file *file,
->  				   struct v4l2_ext_controls32 __user *up)
->  {
->  	struct v4l2_ext_control32 __user *ucontrols;
-> -	struct v4l2_ext_control __user *kcontrols;
-> +	struct v4l2_ext_control *kcontrols;
->  	u32 count;
->  	u32 n;
->  	compat_caddr_t p;
->  
-> +	/*
-> +	 * We need to define kcontrols without __user, even though it does
-> +	 * point to data in userspace here. The reason is that v4l2-ioctl.c
-> +	 * copies it from userspace to kernelspace, so its definition in
-> +	 * videodev2.h doesn't have a __user markup. Defining kcontrols
-> +	 * with __user causes smatch warnings, so instead declare it
-> +	 * without __user and cast it as a userspace pointer where needed.
-> +	 */
->  	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
->  	    assign_in_user(&up->which, &kp->which) ||
->  	    get_user(count, &kp->count) ||
-> @@ -883,10 +898,12 @@ static int put_v4l2_ext_controls32(struct file *file,
->  		unsigned int size = sizeof(*ucontrols);
->  		u32 id;
->  
-> -		if (get_user(id, &kcontrols->id) ||
-> +		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
-
-id is u32, kcontrols->id is as well. So u32?
-
->  		    put_user(id, &ucontrols->id) ||
-> -		    assign_in_user(&ucontrols->size, &kcontrols->size) ||
-> -		    copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
-> +		    assign_in_user(&ucontrols->size,
-> +				   (unsigned int __user *)&kcontrols->size) ||
-
-The same applies to size. It actually should have been u32, locally, too.
-
-> +		    copy_in_user(&ucontrols->reserved2,
-> +				 (void __user *)&kcontrols->reserved2,
->  				 sizeof(ucontrols->reserved2)))
->  			return -EFAULT;
->  
-> @@ -898,7 +915,8 @@ static int put_v4l2_ext_controls32(struct file *file,
->  		if (ctrl_is_pointer(file, id))
->  			size -= sizeof(ucontrols->value64);
->  
-> -		if (copy_in_user(ucontrols, kcontrols, size))
-> +		if (copy_in_user(ucontrols,
-> +			         (void __user *)kcontrols, size))
-
-Fits on previous line.
-
->  			return -EFAULT;
->  
->  		ucontrols++;
-> @@ -952,9 +970,10 @@ static int get_v4l2_edid32(struct v4l2_edid __user *kp,
->  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
->  	    assign_in_user(&kp->pad, &up->pad) ||
->  	    assign_in_user(&kp->start_block, &up->start_block) ||
-> -	    assign_in_user(&kp->blocks, &up->blocks) ||
-> +	    assign_in_user(&kp->blocks,
-> +			   (u32 __user *)&up->blocks) ||
-
-Fits on previous line.
-
->  	    get_user(tmp, &up->edid) ||
-> -	    put_user(compat_ptr(tmp), &kp->edid) ||
-> +	    put_user((void __force *)compat_ptr(tmp), &kp->edid) ||
->  	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
->  		return -EFAULT;
->  	return 0;
-> @@ -970,7 +989,7 @@ static int put_v4l2_edid32(struct v4l2_edid __user *kp,
->  	    assign_in_user(&up->start_block, &kp->start_block) ||
->  	    assign_in_user(&up->blocks, &kp->blocks) ||
->  	    get_user(edid, &kp->edid) ||
-> -	    put_user(ptr_to_compat(edid), &up->edid) ||
-> +	    put_user(ptr_to_compat((void __user *)edid), &up->edid) ||
->  	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)))
->  		return -EFAULT;
->  	return 0;
-
+diff --git a/arch/arm/mach-pxa/devices.c b/arch/arm/mach-pxa/devices.c
+index d7c9a8476d57..da67ebe9a7d5 100644
+--- a/arch/arm/mach-pxa/devices.c
++++ b/arch/arm/mach-pxa/devices.c
+@@ -4,6 +4,8 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
++#include <linux/dma/pxa-dma.h>
++#include <linux/dmaengine.h>
+ #include <linux/spi/pxa2xx_spi.h>
+ #include <linux/platform_data/i2c-pxa.h>
+ 
+@@ -1202,9 +1204,62 @@ void __init pxa2xx_set_spi_info(unsigned id, struct pxa2xx_spi_master *info)
+ 	platform_device_add(pd);
+ }
+ 
++#define PDMA_FILTER_PARAM(_prio, _requestor) (&(struct pxad_param) { \
++	.prio = PXAD_PRIO_##_prio, .drcmr = _requestor })
++
++static const struct dma_slave_map pxa_slave_map[] = {
++	/* PXA25x, PXA27x and PXA3xx common entries */
++	{ "pxa-pcm-audio", "ac97_mic_mono", PDMA_FILTER_PARAM(LOWEST, 8) },
++	{ "pxa-pcm-audio", "ac97_aux_mono_in", PDMA_FILTER_PARAM(LOWEST, 9) },
++	{ "pxa-pcm-audio", "ac97_aux_mono_out", PDMA_FILTER_PARAM(LOWEST, 10) },
++	{ "pxa-pcm-audio", "ac97_stereo_in", PDMA_FILTER_PARAM(LOWEST, 11) },
++	{ "pxa-pcm-audio", "ac97_stereo_out", PDMA_FILTER_PARAM(LOWEST, 12) },
++	{ "pxa-pcm-audio", "ssp1_rx", PDMA_FILTER_PARAM(LOWEST, 13) },
++	{ "pxa-pcm-audio", "ssp1_tx", PDMA_FILTER_PARAM(LOWEST, 14) },
++	{ "pxa-pcm-audio", "ssp2_rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa-pcm-audio", "ssp2_tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa2xx-ir", "rx", PDMA_FILTER_PARAM(LOWEST, 17) },
++	{ "pxa2xx-ir", "tx", PDMA_FILTER_PARAM(LOWEST, 18) },
++	{ "pxa2xx-mci.0", "rx", PDMA_FILTER_PARAM(LOWEST, 21) },
++	{ "pxa2xx-mci.0", "tx", PDMA_FILTER_PARAM(LOWEST, 22) },
++	{ "smc911x.0", "rx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc911x.0", "tx", PDMA_FILTER_PARAM(LOWEST, -1) },
++	{ "smc91x.0", "data", PDMA_FILTER_PARAM(LOWEST, -1) },
++
++	/* PXA25x specific map */
++	{ "pxa25x-ssp.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
++	{ "pxa25x-ssp.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
++	{ "pxa25x-nssp.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa25x-nssp.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa25x-nssp.2", "rx", PDMA_FILTER_PARAM(LOWEST, 23) },
++	{ "pxa25x-nssp.2", "tx", PDMA_FILTER_PARAM(LOWEST, 24) },
++	{ "pxa-pcm-audio", "nssp2_rx", PDMA_FILTER_PARAM(LOWEST, 15) },
++	{ "pxa-pcm-audio", "nssp2_tx", PDMA_FILTER_PARAM(LOWEST, 16) },
++	{ "pxa-pcm-audio", "nssp3_rx", PDMA_FILTER_PARAM(LOWEST, 23) },
++	{ "pxa-pcm-audio", "nssp3_tx", PDMA_FILTER_PARAM(LOWEST, 24) },
++
++	/* PXA27x specific map */
++	{ "pxa-pcm-audio", "ssp3_rx", PDMA_FILTER_PARAM(LOWEST, 66) },
++	{ "pxa-pcm-audio", "ssp3_tx", PDMA_FILTER_PARAM(LOWEST, 67) },
++	{ "pxa27x-camera.0", "CI_Y", PDMA_FILTER_PARAM(HIGHEST, 68) },
++	{ "pxa27x-camera.0", "CI_U", PDMA_FILTER_PARAM(HIGHEST, 69) },
++	{ "pxa27x-camera.0", "CI_V", PDMA_FILTER_PARAM(HIGHEST, 70) },
++
++	/* PXA3xx specific map */
++	{ "pxa-pcm-audio", "ssp4_rx", PDMA_FILTER_PARAM(LOWEST, 2) },
++	{ "pxa-pcm-audio", "ssp4_tx", PDMA_FILTER_PARAM(LOWEST, 3) },
++	{ "pxa2xx-mci.1", "rx", PDMA_FILTER_PARAM(LOWEST, 93) },
++	{ "pxa2xx-mci.1", "tx", PDMA_FILTER_PARAM(LOWEST, 94) },
++	{ "pxa3xx-nand", "data", PDMA_FILTER_PARAM(LOWEST, 97) },
++	{ "pxa2xx-mci.2", "rx", PDMA_FILTER_PARAM(LOWEST, 100) },
++	{ "pxa2xx-mci.2", "tx", PDMA_FILTER_PARAM(LOWEST, 101) },
++};
++
+ static struct mmp_dma_platdata pxa_dma_pdata = {
+ 	.dma_channels	= 0,
+ 	.nb_requestors	= 0,
++	.slave_map	= pxa_slave_map,
++	.slave_map_cnt	= ARRAY_SIZE(pxa_slave_map),
+ };
+ 
+ static struct resource pxa_dma_resource[] = {
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.11.0
