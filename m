@@ -1,117 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f195.google.com ([209.85.217.195]:44902 "EHLO
-        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754537AbeDTJ7R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 05:59:17 -0400
-Received: by mail-ua0-f195.google.com with SMTP id r10so265612uak.11
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 02:59:17 -0700 (PDT)
-Received: from mail-vk0-f47.google.com (mail-vk0-f47.google.com. [209.85.213.47])
-        by smtp.gmail.com with ESMTPSA id c187sm1734194vkf.46.2018.04.20.02.59.15
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 20 Apr 2018 02:59:16 -0700 (PDT)
-Received: by mail-vk0-f47.google.com with SMTP id 203so4902455vka.12
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 02:59:15 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com> <20180419154536.17846-1-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180419154536.17846-1-paul.kocialkowski@bootlin.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 20 Apr 2018 09:51:49 +0000
-Message-ID: <CAAFQd5Dq4OeshtFaoxFK2357+-_=hzh0C7W=zksTWtaDuDCiGg@mail.gmail.com>
-Subject: Re: [PATCH v2 05/10] media: v4l: Add definitions for MPEG2 frame
- format and header metadata
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36059 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753030AbeDBSYc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:32 -0400
+Received: by mail-wr0-f195.google.com with SMTP id y55so15020418wry.3
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:31 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 00/20] dddvb/ddbridge-0.9.33
+Date: Mon,  2 Apr 2018 20:24:07 +0200
+Message-Id: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Fri, Apr 20, 2018 at 12:46 AM Paul Kocialkowski <
-paul.kocialkowski@bootlin.com> wrote:
-[snip]
-> +struct v4l2_ctrl_mpeg2_frame_hdr {
-> +       __u32 slice_len;
-> +       __u32 slice_pos;
-> +       enum { MPEG1, MPEG2 } type;
+This series brings all relevant changes from the upstream dddvb-0.9.33
+driver package to the in-kernel ddbridge and stv0910, though a few changes
+were picked up and merged previously already.
 
-Is enum suitable for UAPI?
+Summary of changes:
+* stv0910: initialisation fixes and fixed CNR reporting (uvalue vs.
+  svalue)
+* ddbridge: general code move, cleanups and fixups
+* ddbridge: fixes and improvements to the IRQ setup and handling, and
+  MSI-X support
+* ddbridge: configurable DMA buffers (via modparam)
+* ddbridge: dummy tuner option, useful for debugging and stress testing
+  purposes
+* ddbridge: support for the new MCI card types, and namely the new MaxSX8
+  cards
 
-> +
-> +       __u16 width;
-> +       __u16 height;
-> +
-> +       enum { PCT_I = 1, PCT_P, PCT_B, PCT_D } picture_coding_type;
+Patches were build-tested in their order and are bisect safe. Besides the
+modparam move, everything is picked up from dddvb-0.9.33.
 
-Ditto.
+The series adds the new ddbridge-mci.[c|h] files. Here, SPDX headers were
+already put in place, but until things have been fully sorted out, the
+original GPL boiler plate is kept in place for now.
 
-> +       __u8 f_code[2][2];
-> +
-> +       __u8 intra_dc_precision;
-> +       __u8 picture_structure;
-> +       __u8 top_field_first;
-> +       __u8 frame_pred_frame_dct;
-> +       __u8 concealment_motion_vectors;
-> +       __u8 q_scale_type;
-> +       __u8 intra_vlc_format;
-> +       __u8 alternate_scan;
-> +
-> +       __u8 backward_ref_index;
-> +       __u8 forward_ref_index;
-> +};
-> +
->   #endif
-> diff --git a/include/uapi/linux/videodev2.h
-b/include/uapi/linux/videodev2.h
-> index 31b5728b56e9..4b8336f7bcf0 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -635,6 +635,7 @@ struct v4l2_pix_format {
->   #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /*
-SMPTE 421M Annex L compliant stream */
->   #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
->   #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
-> +#define V4L2_PIX_FMT_MPEG2_FRAME v4l2_fourcc('M', 'G', '2', 'F') /*
-MPEG2 frame */
+Please pick up and merge.
 
->   /*  Vendor-specific formats   */
->   #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1
-YUV */
-> @@ -1586,6 +1587,7 @@ struct v4l2_ext_control {
->                  __u8 __user *p_u8;
->                  __u16 __user *p_u16;
->                  __u32 __user *p_u32;
-> +               struct v4l2_ctrl_mpeg2_frame_hdr __user
-*p_mpeg2_frame_hdr;
->                  void __user *ptr;
->          };
->   } __attribute__ ((packed));
-> @@ -1631,6 +1633,7 @@ enum v4l2_ctrl_type {
->          V4L2_CTRL_TYPE_U8            = 0x0100,
->          V4L2_CTRL_TYPE_U16           = 0x0101,
->          V4L2_CTRL_TYPE_U32           = 0x0102,
-> +       V4L2_CTRL_TYPE_MPEG2_FRAME_HDR = 0x0109,
+Daniel Scheller (20):
+  [media] dvb-frontends/stv0910: add init values for TSINSDELM/L
+  [media] dvb-frontends/stv0910: increase parallel TS output speed
+  [media] dvb-frontends/stv0910: fix CNR reporting in read_snr()
+  [media] ddbridge: move modparams to ddbridge-core.c
+  [media] ddbridge: move ddb_wq and the wq+class initialisation to -core
+  [media] ddbridge: move MSI IRQ cleanup to a helper function
+  [media] ddbridge: request/free_irq using pci_irq_vector, enable MSI-X
+  [media] ddbridge: add helper for IRQ handler setup
+  [media] ddbridge: add macros to handle IRQs in nibble and byte blocks
+  [media] ddbridge: improve separated MSI IRQ handling
+  [media] ddbridge: use spin_lock_irqsave() in output_work()
+  [media] ddbridge: fix output buffer check
+  [media] ddbridge: set devid entry for link 0
+  [media] ddbridge: make DMA buffer count and size modparam-configurable
+  [media] ddbridge: support dummy tuners with 125MByte/s dummy data
+    stream
+  [media] ddbridge: initial support for MCI-based MaxSX8 cards
+  [media] ddbridge/max: implement MCI/MaxSX8 attach function
+  [media] ddbridge: add hardware defs and PCI IDs for MCI cards
+  [media] ddbridge: recognize and attach the MaxSX8 cards
+  [media] ddbridge: set driver version to 0.9.33-integrated
 
-Why 0x0109?
+ drivers/media/dvb-frontends/stv0910.c      |  12 +-
+ drivers/media/pci/ddbridge/Kconfig         |   1 +
+ drivers/media/pci/ddbridge/Makefile        |   2 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c | 299 +++++++++++-----
+ drivers/media/pci/ddbridge/ddbridge-hw.c   |  11 +
+ drivers/media/pci/ddbridge/ddbridge-i2c.c  |   5 +-
+ drivers/media/pci/ddbridge/ddbridge-main.c |  91 ++---
+ drivers/media/pci/ddbridge/ddbridge-max.c  |  42 +++
+ drivers/media/pci/ddbridge/ddbridge-max.h  |   1 +
+ drivers/media/pci/ddbridge/ddbridge-mci.c  | 550 +++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-mci.h  | 152 ++++++++
+ drivers/media/pci/ddbridge/ddbridge.h      |  50 +--
+ 12 files changed, 1030 insertions(+), 186 deletions(-)
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-mci.c
+ create mode 100644 drivers/media/pci/ddbridge/ddbridge-mci.h
 
-Best regards,
-Tomasz
+-- 
+2.16.1
