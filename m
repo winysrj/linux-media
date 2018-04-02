@@ -1,93 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33499 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751741AbeDGPsy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 11:48:54 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: [PATCH 5/6] media: ov772x: add device tree binding
-Date: Sun,  8 Apr 2018 00:48:09 +0900
-Message-Id: <1523116090-13101-6-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:56057 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753194AbeDBSYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:46 -0400
+Received: by mail-wm0-f67.google.com with SMTP id b127so26677655wmf.5
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:46 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 17/20] [media] ddbridge/max: implement MCI/MaxSX8 attach function
+Date: Mon,  2 Apr 2018 20:24:24 +0200
+Message-Id: <20180402182427.20918-18-d.scheller.oss@gmail.com>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a device tree binding documentation for OV7720/OV7725 sensor.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Implement frontend attachment as ddb_fe_attach_mci() into the
+ddbridge-max module. The MaxSX8 MCI cards are part of the Max card series
+and make use of the LNB controller driven by the already existing lnb
+functionality, so here's where this code belongs to.
+
+Picked up from the upstream dddvb-0.9.33 release.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- .../devicetree/bindings/media/i2c/ov772x.txt       | 36 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 37 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+ drivers/media/pci/ddbridge/ddbridge-max.c | 42 +++++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge-max.h |  1 +
+ 2 files changed, 43 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-new file mode 100644
-index 0000000..9b0df3b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-@@ -0,0 +1,36 @@
-+* Omnivision OV7720/OV7725 CMOS sensor
-+
-+Required Properties:
-+- compatible: shall be one of
-+	"ovti,ov7720"
-+	"ovti,ov7725"
-+- clocks: reference to the xclk input clock.
-+- clock-names: shall be "xclk".
-+
-+Optional Properties:
-+- rstb-gpios: reference to the GPIO connected to the RSTB pin, if any.
-+- pwdn-gpios: reference to the GPIO connected to the PWDN pin, if any.
-+
-+The device node shall contain one 'port' child node with one child 'endpoint'
-+subnode for its digital output video port, in accordance with the video
-+interface bindings defined in Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+&i2c0 {
-+	ov772x: camera@21 {
-+		compatible = "ovti,ov7725";
-+		reg = <0x21>;
-+		rstb-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
-+		pwdn-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
-+		clocks = <&xclk>;
-+		clock-names = "xclk";
-+
-+		port {
-+			ov772x_0: endpoint {
-+				remote-endpoint = <&vcap1_in0>;
-+			};
-+		};
-+	};
-+};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7e48624..3e0224a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10295,6 +10295,7 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Odd fixes
- F:	drivers/media/i2c/ov772x.c
- F:	include/media/i2c/ov772x.h
-+F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
+diff --git a/drivers/media/pci/ddbridge/ddbridge-max.c b/drivers/media/pci/ddbridge/ddbridge-max.c
+index dc6b81488746..739e4b444cf4 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-max.c
++++ b/drivers/media/pci/ddbridge/ddbridge-max.c
+@@ -33,6 +33,7 @@
+ #include "ddbridge.h"
+ #include "ddbridge-regs.h"
+ #include "ddbridge-io.h"
++#include "ddbridge-mci.h"
  
- OMNIVISION OV7740 SENSOR DRIVER
- M:	Wenyou Yang <wenyou.yang@microchip.com>
+ #include "ddbridge-max.h"
+ #include "mxl5xx.h"
+@@ -452,3 +453,44 @@ int ddb_fe_attach_mxl5xx(struct ddb_input *input)
+ 	dvb->input = tuner;
+ 	return 0;
+ }
++
++/******************************************************************************/
++/* MAX MCI related functions */
++
++int ddb_fe_attach_mci(struct ddb_input *input)
++{
++	struct ddb *dev = input->port->dev;
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct ddb_port *port = input->port;
++	struct ddb_link *link = &dev->link[port->lnr];
++	int demod, tuner;
++
++	demod = input->nr;
++	tuner = demod & 3;
++	if (fmode == 3)
++		tuner = 0;
++	dvb->fe = ddb_mci_attach(input, 0, demod, &dvb->set_input);
++	if (!dvb->fe) {
++		dev_err(dev->dev, "No MAXSX8 found!\n");
++		return -ENODEV;
++	}
++	if (!dvb->set_input) {
++		dev_err(dev->dev, "No MCI set_input function pointer!\n");
++		return -ENODEV;
++	}
++	if (input->nr < 4) {
++		lnb_command(dev, port->lnr, input->nr, LNB_CMD_INIT);
++		lnb_set_voltage(dev, port->lnr, input->nr, SEC_VOLTAGE_OFF);
++	}
++	ddb_lnb_init_fmode(dev, link, fmode);
++
++	dvb->fe->ops.set_voltage = max_set_voltage;
++	dvb->fe->ops.enable_high_lnb_voltage = max_enable_high_lnb_voltage;
++	dvb->fe->ops.set_tone = max_set_tone;
++	dvb->diseqc_send_master_cmd = dvb->fe->ops.diseqc_send_master_cmd;
++	dvb->fe->ops.diseqc_send_master_cmd = max_send_master_cmd;
++	dvb->fe->ops.diseqc_send_burst = max_send_burst;
++	dvb->fe->sec_priv = input;
++	dvb->input = tuner;
++	return 0;
++}
+diff --git a/drivers/media/pci/ddbridge/ddbridge-max.h b/drivers/media/pci/ddbridge/ddbridge-max.h
+index bf8bf38739f6..82efc53baa94 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-max.h
++++ b/drivers/media/pci/ddbridge/ddbridge-max.h
+@@ -25,5 +25,6 @@
+ 
+ int ddb_lnb_init_fmode(struct ddb *dev, struct ddb_link *link, u32 fm);
+ int ddb_fe_attach_mxl5xx(struct ddb_input *input);
++int ddb_fe_attach_mci(struct ddb_input *input);
+ 
+ #endif /* _DDBRIDGE_MAX_H */
 -- 
-2.7.4
+2.16.1
