@@ -1,124 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:46884 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757475AbeD0SPI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Apr 2018 14:15:08 -0400
-Subject: Re: [PATCH] media: Revert cleanup ktime_set() usage
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
-References: <1523662294-17971-1-git-send-email-jasmin@anw.at>
- <20180416065415.38f5ef37@vento.lan>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <bbc3d1e2-9d54-b6c4-99d9-b57d055570d4@anw.at>
-Date: Fri, 27 Apr 2018 20:15:00 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180416065415.38f5ef37@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:53951 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752275AbeDBO1Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:25 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 01/15] dmaengine: pxa: use a dma slave map
+Date: Mon,  2 Apr 2018 16:26:42 +0200
+Message-Id: <20180402142656.26815-2-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro!
+In order to remove the specific knowledge of the dma mapping from PXA
+drivers, add a default slave map for pxa architectures.
 
-> This patch looks fine, but not for the above-mentioned.
-So I shall reword the commit message?
+This won't impact MMP architecture, but is aimed only at all PXA boards.
 
-> The thing is that it is not consistent to have some places with
-> things like:
-> 	timeout = ktime_set(1, ir->polling * 1000000);
-> 
-> and others with:
-> 	timeout = ir->polling * 1000000;
-With my patch applied I can find ONLY two "ir->polling * 1000000" and both are used
-together with ktime_set.
+This is the first step, and once all drivers are converted,
+pxad_filter_fn() will be made static, and the DMA resources removed from
+device.c.
 
-$ grep -r "ir->polling" *
-media/i2c/ir-kbd-i2c.c:	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling_interval));
-media/i2c/ir-kbd-i2c.c:	ir->polling_interval = DEFAULT_POLLING_INTERVAL;
-media/i2c/ir-kbd-i2c.c:			ir->polling_interval = init_data->polling_interval;
-media/usb/em28xx/em28xx-input.c:	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-media/usb/em28xx/em28xx-input.c:	ir->polling = 100; /* ms */
-media/usb/em28xx/em28xx-input.c:		schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-media/usb/tm6000/tm6000-input.c:	if (!ir->polling)
-media/usb/tm6000/tm6000-input.c:	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-media/usb/tm6000/tm6000-input.c:		ir->polling = 50;
-media/usb/tm6000/tm6000-input.c:	if (!ir->polling)
-media/usb/au0828/au0828-input.c:	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-media/usb/au0828/au0828-input.c:	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-media/usb/au0828/au0828-input.c:	ir->polling = 100; /* ms */
-media/usb/au0828/au0828-input.c:	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-media/pci/saa7134/saa7134-input.c:	if (ir->polling) {
-media/pci/saa7134/saa7134-input.c:	if (ir->polling) {
-media/pci/saa7134/saa7134-input.c:	if (!ir->polling && !ir->raw_decode) {
-media/pci/saa7134/saa7134-input.c:	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
-media/pci/saa7134/saa7134-input.c:	if (ir->polling) {
-media/pci/saa7134/saa7134-input.c:	if (ir->polling)
-media/pci/saa7134/saa7134-input.c:	ir->polling      = polling;
-media/pci/cx88/cx88-input.c:	if (ir->polling) {
-media/pci/cx88/cx88-input.c:		   ir->polling ? "poll" : "irq",
-media/pci/cx88/cx88-input.c:				     ktime_set(0, ir->polling * 1000000));
-media/pci/cx88/cx88-input.c:	if (ir->polling) {
-media/pci/cx88/cx88-input.c:			      ktime_set(0, ir->polling * 1000000),
-media/pci/cx88/cx88-input.c:	if (ir->polling)
-media/pci/cx88/cx88-input.c:		ir->polling = 50; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 50; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 1; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 5; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 10; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 1; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 1; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 50; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling = 1; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling      = 50; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling      = 50; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling      = 50; /* ms */
-media/pci/cx88/cx88-input.c:		ir->polling      = 100; /* ms */
-media/pci/bt8xx/bttv-input.c:	if (ir->polling) {
-media/pci/bt8xx/bttv-input.c:		ir->polling               ? "poll"  : "irq",
-media/pci/bt8xx/bttv-input.c:	else if (!ir->polling)
-media/pci/bt8xx/bttv-input.c:	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
-media/pci/bt8xx/bttv-input.c:	if (ir->polling) {
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; // ms
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; // ms
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; // ms
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; // ms
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; // ms
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; // ms
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; /* ms */
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 50; /* ms */
-media/pci/bt8xx/bttv-input.c:		ir->polling      = 1; /* ms */
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/dma/pxa_dma.c                 | 10 +++++++++-
+ include/linux/platform_data/mmp_dma.h |  4 ++++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-Currently I am using the exact same patch in media-build. media-build would
-not be able to compile without error for all Kernels, if I would have
-overlook a setting of ktime_t without ktime_set.
-Please point me where I can find the "timeout = ir->polling * 1000000;"
-you mentioned.
-
-> My preference is to keep using it, as it makes it better documented.
-This is also my preference.
-
-> The fact that it makes maintainership of the media_build backport
-> tree easier is just a plus, but it makes no sense upstream.
-We fixed all those issues in the past in media-tree. All drivers which
-are able (enabled) to be compiled for Kernels older than 4.10 are using
-ktime_set.
-When you mean we shall change all drivers to use ktime_set (even the ones
-which are currently not compiled for <4.10), then I can try to find those
-and add it to the patch.
-
-Even the mentioned 8b0e195314fa commit did not fix all existing ktime_set(0, 0):
-$ grep -r ktime_set | grep "0, 0"
-drivers/scsi/ufs/ufshcd.c:	hba->lrb[task_tag].compl_time_stamp = ktime_set(0, 0);
-drivers/scsi/ufs/ufshcd.c:	hba->ufs_stats.last_hibern8_exit_tstamp = ktime_set(0, 0);
-drivers/scsi/ufs/ufshcd.c:		hba->ufs_stats.last_hibern8_exit_tstamp = ktime_set(0, 0);
-drivers/scsi/ufs/ufshcd.c:	hba->ufs_stats.last_hibern8_exit_tstamp = ktime_set(0, 0);
-drivers/ntb/test/ntb_perf.c:		pthr->duration = ktime_set(0, 0);
-drivers/net/can/usb/peak_usb/pcan_usb_core.c:		time_ref->tv_host = ktime_set(0, 0);
-drivers/thermal/thermal_sysfs.c:		stats->time_in_state[i] = ktime_set(0, 0);
-drivers/dma-buf/sync_file.c:		ktime_set(0, 0);
-drivers/staging/greybus/loopback.c:	gb->ts = ktime_set(0, 0);
-arch/mips/kvm/emulate.c:	ktime_t now = ktime_set(0, 0); /* silence bogus GCC warning */
-
-BR,
-   Jasmin
+diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
+index b53fb618bbf6..9505334f9c6e 100644
+--- a/drivers/dma/pxa_dma.c
++++ b/drivers/dma/pxa_dma.c
+@@ -179,6 +179,8 @@ static unsigned int pxad_drcmr(unsigned int line)
+ 	return 0x1000 + line * 4;
+ }
+ 
++bool pxad_filter_fn(struct dma_chan *chan, void *param);
++
+ /*
+  * Debug fs
+  */
+@@ -1396,9 +1398,10 @@ static int pxad_probe(struct platform_device *op)
+ {
+ 	struct pxad_device *pdev;
+ 	const struct of_device_id *of_id;
++	const struct dma_slave_map *slave_map = NULL;
+ 	struct mmp_dma_platdata *pdata = dev_get_platdata(&op->dev);
+ 	struct resource *iores;
+-	int ret, dma_channels = 0, nb_requestors = 0;
++	int ret, dma_channels = 0, nb_requestors = 0, slave_map_cnt = 0;
+ 	const enum dma_slave_buswidth widths =
+ 		DMA_SLAVE_BUSWIDTH_1_BYTE   | DMA_SLAVE_BUSWIDTH_2_BYTES |
+ 		DMA_SLAVE_BUSWIDTH_4_BYTES;
+@@ -1429,6 +1432,8 @@ static int pxad_probe(struct platform_device *op)
+ 	} else if (pdata && pdata->dma_channels) {
+ 		dma_channels = pdata->dma_channels;
+ 		nb_requestors = pdata->nb_requestors;
++		slave_map = pdata->slave_map;
++		slave_map_cnt = pdata->slave_map_cnt;
+ 	} else {
+ 		dma_channels = 32;	/* default 32 channel */
+ 	}
+@@ -1440,6 +1445,9 @@ static int pxad_probe(struct platform_device *op)
+ 	pdev->slave.device_prep_dma_memcpy = pxad_prep_memcpy;
+ 	pdev->slave.device_prep_slave_sg = pxad_prep_slave_sg;
+ 	pdev->slave.device_prep_dma_cyclic = pxad_prep_dma_cyclic;
++	pdev->slave.filter.map = slave_map;
++	pdev->slave.filter.mapcnt = slave_map_cnt;
++	pdev->slave.filter.fn = pxad_filter_fn;
+ 
+ 	pdev->slave.copy_align = PDMA_ALIGNMENT;
+ 	pdev->slave.src_addr_widths = widths;
+diff --git a/include/linux/platform_data/mmp_dma.h b/include/linux/platform_data/mmp_dma.h
+index d1397c8ed94e..6397b9c8149a 100644
+--- a/include/linux/platform_data/mmp_dma.h
++++ b/include/linux/platform_data/mmp_dma.h
+@@ -12,9 +12,13 @@
+ #ifndef MMP_DMA_H
+ #define MMP_DMA_H
+ 
++struct dma_slave_map;
++
+ struct mmp_dma_platdata {
+ 	int dma_channels;
+ 	int nb_requestors;
++	int slave_map_cnt;
++	const struct dma_slave_map *slave_map;
+ };
+ 
+ #endif /* MMP_DMA_H */
+-- 
+2.11.0
