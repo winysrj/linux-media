@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39157 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750980AbeDMJkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 05:40:07 -0400
-Date: Fri, 13 Apr 2018 10:40:05 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Patrice Chotard <patrice.chotard@st.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
-Message-ID: <20180413094005.wudyd2y5efaeimg3@gofer.mess.org>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
- <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
- <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
- <20180413060646.25b8a19d@vento.lan>
+Received: from gateway32.websitewelcome.com ([192.185.145.113]:24636 "EHLO
+        gateway32.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756760AbeDBUlg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Apr 2018 16:41:36 -0400
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway32.websitewelcome.com (Postfix) with ESMTP id 1E449118DEA
+        for <linux-media@vger.kernel.org>; Mon,  2 Apr 2018 15:17:39 -0500 (CDT)
+Subject: Re: [PATCH 3/3] media: i2c: tvp5150: Use parentheses for sizeof
+To: Nasser Afshin <afshin.nasser@gmail.com>, mchehab@kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20180402195907.14368-1-Afshin.Nasser@gmail.com>
+ <20180402195907.14368-4-Afshin.Nasser@gmail.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Message-ID: <d5e8dbe4-b68b-ac4e-0076-a3ee995f8327@embeddedor.com>
+Date: Mon, 2 Apr 2018 15:17:37 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180413060646.25b8a19d@vento.lan>
+In-Reply-To: <20180402195907.14368-4-Afshin.Nasser@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 13, 2018 at 06:06:46AM -0300, Mauro Carvalho Chehab wrote:
-> Hi Sean,
-> 
-> Em Thu, 12 Apr 2018 23:21:32 +0100
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > On Thu, Apr 12, 2018 at 11:24:07AM -0400, Mauro Carvalho Chehab wrote:
-> > > As warned by smatch:
-> > > 	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
-> > > 
-> > > If something goes wrong at readl(), the logic will stay there
-> > > inside an IRQ code forever. This is not the nicest thing to
-> > > do :-)
-> > > 
-> > > So, add a timeout there, preventing staying inside the IRQ
-> > > for more than 10ms.  
-> > 
-> > If we knew how large the fifo was, then we could limit the loop to that many
-> > iterations (maybe a few extra in case IR arrives while we a reading, but
-> > IR is much slower than a cpu executing this loop of course).
-> 
-> IR is slower, but this code is called at IRQ time, e. g. when the
-> controller already received the IR data. Also, it reads directly
-> via a memory mapped register, with should be fast.
+Hi,
 
-There is a chance that a new IR edge occurs whilst reading the fifo. All of
-this is academic since we don't know the size of the fifo.
+On 04/02/2018 02:59 PM, Nasser Afshin wrote:
+> This patch resolves a checkpatch.pl warning
 
-> I suspect that
-> 10ms is a lot more time than what would be required to go though
-> all the FIFO data.
+It would be nice if you explicitly mention the warning.
 
-10ms seems far too much. The serial_ir prints a warning if it loops more
-than 255 times (and breaks out of the loop). Since we don't know the size
-of the fifo, that will be more than enough. We could also limit it to 
-512 times, since the raw IR kfifo is 512 and any more than that would
-not fit in the kfifo anyway. This would exit much quicker than 10ms.
+Thanks.
+--
+Gustavo
 
-At least winbond-cir has a similar loop, there might be other drivers.
-
-Thanks
-Sean
+> Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+> ---
+>   drivers/media/i2c/tvp5150.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index d561d87d219a..d528fddbea16 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -625,7 +625,7 @@ static int tvp5150_g_sliced_vbi_cap(struct v4l2_subdev *sd,
+>   	int line, i;
+>   
+>   	dev_dbg_lvl(sd->dev, 1, debug, "g_sliced_vbi_cap\n");
+> -	memset(cap, 0, sizeof *cap);
+> +	memset(cap, 0, sizeof(*cap));
+>   
+>   	for (i = 0; i < ARRAY_SIZE(vbi_ram_default); i++) {
+>   		const struct i2c_vbi_ram_value *regs = &vbi_ram_default[i];
