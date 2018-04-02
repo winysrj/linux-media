@@ -1,84 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35073 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753393AbeDBSYl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:41 -0400
-Received: by mail-wr0-f196.google.com with SMTP id 80so15044855wrb.2
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:40 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 10/20] [media] ddbridge: improve separated MSI IRQ handling
-Date: Mon,  2 Apr 2018 20:24:17 +0200
-Message-Id: <20180402182427.20918-11-d.scheller.oss@gmail.com>
-In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
-References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:22031 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752638AbeDBO2Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:28:24 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 11/15] dmaengine: pxa: document pxad_param
+Date: Mon,  2 Apr 2018 16:26:52 +0200
+Message-Id: <20180402142656.26815-12-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Add some documentation for the pxad_param structure, and describe the
+contract behind the minimal required priority of a DMA channel.
 
-Improve IRQ handling in the separated MSG/I2C and IO/TSDATA handlers by
-applying a mask for recognized bits immediately upon reading the IRQ mask
-from the hardware, so only the bits/IRQs that actually were set will be
-acked.
-
-Picked up from the upstream dddvb-0.9.33 release.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ include/linux/dma/pxa-dma.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 5fbb0996a12c..9d91221dacc4 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -2443,16 +2443,17 @@ static void irq_handle_io(struct ddb *dev, u32 s)
- irqreturn_t ddb_irq_handler0(int irq, void *dev_id)
- {
- 	struct ddb *dev = (struct ddb *)dev_id;
--	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
-+	u32 mask = 0x8fffff00;
-+	u32 s = mask & ddbreadl(dev, INTERRUPT_STATUS);
+diff --git a/include/linux/dma/pxa-dma.h b/include/linux/dma/pxa-dma.h
+index e56ec7af4fd7..9fc594f69eff 100644
+--- a/include/linux/dma/pxa-dma.h
++++ b/include/linux/dma/pxa-dma.h
+@@ -9,6 +9,15 @@ enum pxad_chan_prio {
+ 	PXAD_PRIO_LOWEST,
+ };
  
-+	if (!s)
-+		return IRQ_NONE;
- 	do {
- 		if (s & 0x80000000)
- 			return IRQ_NONE;
--		if (!(s & 0xfffff00))
--			return IRQ_NONE;
--		ddbwritel(dev, s & 0xfffff00, INTERRUPT_ACK);
-+		ddbwritel(dev, s, INTERRUPT_ACK);
- 		irq_handle_io(dev, s);
--	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
-+	} while ((s = mask & ddbreadl(dev, INTERRUPT_STATUS)));
- 
- 	return IRQ_HANDLED;
- }
-@@ -2460,16 +2461,17 @@ irqreturn_t ddb_irq_handler0(int irq, void *dev_id)
- irqreturn_t ddb_irq_handler1(int irq, void *dev_id)
- {
- 	struct ddb *dev = (struct ddb *)dev_id;
--	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
-+	u32 mask = 0x8000000f;
-+	u32 s = mask & ddbreadl(dev, INTERRUPT_STATUS);
- 
-+	if (!s)
-+		return IRQ_NONE;
- 	do {
- 		if (s & 0x80000000)
- 			return IRQ_NONE;
--		if (!(s & 0x0000f))
--			return IRQ_NONE;
--		ddbwritel(dev, s & 0x0000f, INTERRUPT_ACK);
-+		ddbwritel(dev, s, INTERRUPT_ACK);
- 		irq_handle_msg(dev, s);
--	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
-+	} while ((s = mask & ddbreadl(dev, INTERRUPT_STATUS)));
- 
- 	return IRQ_HANDLED;
- }
++/**
++ * struct pxad_param - dma channel request parameters
++ * @drcmr: requestor line number
++ * @prio: minimal mandatory priority of the channel
++ *
++ * If a requested channel is granted, its priority will be at least @prio,
++ * ie. if PXAD_PRIO_LOW is required, the requested channel will be either
++ * PXAD_PRIO_LOW, PXAD_PRIO_NORMAL or PXAD_PRIO_HIGHEST.
++ */
+ struct pxad_param {
+ 	unsigned int drcmr;
+ 	enum pxad_chan_prio prio;
 -- 
-2.16.1
+2.11.0
