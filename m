@@ -1,110 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:46825 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752166AbeDRTGQ (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:54939 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754074AbeDBDpE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 15:06:16 -0400
-Received: by mail-wr0-f194.google.com with SMTP id d1-v6so7609944wrj.13
-        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2018 12:06:15 -0700 (PDT)
-Date: Wed, 18 Apr 2018 21:06:12 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Douglas Fischer <fischerdouglasc@gmail.com>, jasmin@anw.at
-Subject: Re: [PATCH v2 18/19] media: si470x: allow build both USB and I2C at
- the same time
-Message-ID: <20180418210612.20bb8199@lt530>
-In-Reply-To: <20180418155309.274fe735@vento.lan>
-References: <9e596fe9e1fd9d2c27ae9abaeb900b2e0cd49011.1522959716.git.mchehab@s-opensource.com>
-        <201804062347.x9zW4zaa%fengguang.wu@intel.com>
-        <20180406134603.40d8d055@vento.lan>
-        <20180418190740.092c2344@perian.wuest.de>
-        <20180418155309.274fe735@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sun, 1 Apr 2018 23:45:04 -0400
+Message-ID: <e9db3fa7b205c2e39bd0126e1b26a8d1@smtp-cloud7.xs4all.net>
+Date: Mon, 02 Apr 2018 05:45:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Wed, 18 Apr 2018 15:53:09 -0300
-schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Em Wed, 18 Apr 2018 19:07:40 +0200
-> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> 
-> > Am Fri, 6 Apr 2018 13:46:03 -0300
-> > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> >   
-> > > Em Sat, 7 Apr 2018 00:21:07 +0800
-> > > kbuild test robot <lkp@intel.com> escreveu:
-> > >     
-> > > > Hi Mauro,
-> > > > 
-> > > > I love your patch! Yet something to improve:
-> > > > [...]    
-> > > 
-> > > Fixed patch enclosed.
-> > > 
-> > > Thanks,
-> > > Mauro
-> > > 
-> > > [PATCH] media: si470x: allow build both USB and I2C at the same
-> > > time
-> > > 
-> > > Currently, either USB or I2C is built. Change it to allow
-> > > having both enabled at the same time.
-> > > 
-> > > The main reason is that COMPILE_TEST all[yes/mod]builds will
-> > > now contain all drivers under drivers/media.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab
-> > > <mchehab@s-opensource.com>    
-> > 
-> > FWIW, this patch (which seemingly is commit
-> > 58757984ca3c73284a45dd53ac66f1414057cd09 in media_tree.git) seems
-> > to break media_build in a way that on my systems only 20 drivers
-> > and modules are built now, while it should be in the 650+ modules
-> > range. Hans' automated daily testbuilds suffer from the same issue,
-> > looking at todays daily build logs (Wednesday.tar.bz2). I
-> > personally build against Kernel 4.16.2 on Gentoo.
-> > 
-> > This specific commit/patch was found using
-> > 
-> >   # git bisect good v4.17-rc1
-> >   # git bisect bad media_tree/master
-> > 
-> > And, "git revert 58767984..." makes all drivers being built again by
-> > media_build.
-> > 
-> > Not sure if there's something other for which this patch acts as the
-> > trigger of if this needs adaption in media_build, though I thought
-> > reporting this doesn't hurt.
-> > 
-> > Best regards,
-> > Daniel Scheller  
-> 
-> Please try this:
-> 
-> diff --git a/drivers/media/radio/si470x/Makefile
-> b/drivers/media/radio/si470x/Makefile index
-> 563500823e04..682b3146397e 100644 ---
-> a/drivers/media/radio/si470x/Makefile +++
-> b/drivers/media/radio/si470x/Makefile @@ -2,6 +2,6 @@
->  # Makefile for radios with Silicon Labs Si470x FM Radio Receivers
->  #
->  
-> -obj-$(CONFIG_RADIO_SI470X) := radio-si470x-common.o
-> +obj-$(CONFIG_RADIO_SI470X) += radio-si470x-common.o
->  obj-$(CONFIG_USB_SI470X) += radio-si470x-usb.o
->  obj-$(CONFIG_I2C_SI470X) += radio-si470x-i2c.o
+Results of the daily build of media_tree:
 
-That (ontop of media_tree.git HEAD) fixes it, back to 656 modules.
+date:			Mon Apr  2 05:00:11 CEST 2018
+media-tree git hash:	6ccd228e0cfce2a4f44558422d25c60fcb1a6710
+media_build git hash:	541653bb52fcf7c34b8b83a4c8cc66b09c68ac37
+v4l-utils git hash:	380fe7d4548a99bfcfc1594b6f0b3dd2369978f1
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.0-3994-g45eb2282
+smatch version:		v0.5.0-3994-g45eb2282
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-Thanks!
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: OK
 
-Best regards,
-Daniel Scheller
--- 
-https://github.com/herrnst
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
