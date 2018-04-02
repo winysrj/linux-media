@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:45756 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753443AbeDIQsN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:13 -0400
-Received: by mail-wr0-f193.google.com with SMTP id u11so10256278wri.12
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:13 -0700 (PDT)
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36209 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753393AbeDBSYn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:43 -0400
+Received: by mail-wm0-f65.google.com with SMTP id x82so29042216wmg.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:42 -0700 (PDT)
 From: Daniel Scheller <d.scheller.oss@gmail.com>
 To: linux-media@vger.kernel.org, mchehab@kernel.org,
         mchehab@s-opensource.com
-Subject: [PATCH v2 19/19] [media] ddbridge: set driver version to 0.9.33-integrated
-Date: Mon,  9 Apr 2018 18:47:52 +0200
-Message-Id: <20180409164752.641-20-d.scheller.oss@gmail.com>
-In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
-References: <20180409164752.641-1-d.scheller.oss@gmail.com>
+Subject: [PATCH 13/20] [media] ddbridge: set devid entry for link 0
+Date: Mon,  2 Apr 2018 20:24:20 +0200
+Message-Id: <20180402182427.20918-14-d.scheller.oss@gmail.com>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Daniel Scheller <d.scheller@gmx.net>
 
-Set DDBRIDGE_VERSION in ddbridge.h to 0.9.33-integrated to reflect the
-updated driver.
+Currently, /sys/class/ddbridgeX/devid always reports 0 due to devid not
+being set at all. Set the devid field alongside while storing all other
+hardware ID data.
+
+Picked up from the upstream dddvb-0.9.33 release.
 
 Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/pci/ddbridge/ddbridge.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/ddbridge/ddbridge-main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 72fe33cb72b9..a66b1125cc74 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -63,7 +63,7 @@
- #include <media/dvb_ca_en50221.h>
- #include <media/dvb_net.h>
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 008be9066814..6356b48b3874 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -198,6 +198,7 @@ static int ddb_probe(struct pci_dev *pdev,
+ 	dev->link[0].ids.device = id->device;
+ 	dev->link[0].ids.subvendor = id->subvendor;
+ 	dev->link[0].ids.subdevice = pdev->subsystem_device;
++	dev->link[0].ids.devid = (id->device << 16) | id->vendor;
  
--#define DDBRIDGE_VERSION "0.9.32-integrated"
-+#define DDBRIDGE_VERSION "0.9.33-integrated"
- 
- #define DDB_MAX_I2C    32
- #define DDB_MAX_PORT   32
+ 	dev->link[0].dev = dev;
+ 	dev->link[0].info = get_ddb_info(id->vendor, id->device,
 -- 
 2.16.1
