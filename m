@@ -1,89 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:37936 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754289AbeDVP4o (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 11:56:44 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v3 02/11] media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
-Date: Mon, 23 Apr 2018 00:56:08 +0900
-Message-Id: <1524412577-14419-3-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
-References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:39359 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753442AbeDBSYm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:42 -0400
+Received: by mail-wm0-f68.google.com with SMTP id f125so29013074wme.4
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:42 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 12/20] [media] ddbridge: fix output buffer check
+Date: Mon,  2 Apr 2018 20:24:19 +0200
+Message-Id: <20180402182427.20918-13-d.scheller.oss@gmail.com>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov772x driver only works when the i2c controller have
-I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
-support it.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
-it doesn't support repeated starts.
+A 188 byte gap has to be left between the writer and the consumer. This
+requires 2*188 bytes available to be able to write to the output buffers.
+So, change ddb_output_free() to report free bytes according to this rule.
 
-This changes the reading ov772x register method so that it doesn't
-require I2C_FUNC_PROTOCOL_MANGLING by calling two separated i2c messages.
+Picked up from the upstream dddvb-0.9.33 release.
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
-* v3
-- Remove I2C_CLIENT_SCCB flag set as it isn't needed anymore
+ drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index b62860c..2ae730f 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -542,9 +542,19 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
- 	return container_of(sd, struct ov772x_priv, subdev);
- }
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index c22537eceee5..e9c2e3e5d64b 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -587,12 +587,12 @@ static u32 ddb_output_free(struct ddb_output *output)
  
--static inline int ov772x_read(struct i2c_client *client, u8 addr)
-+static int ov772x_read(struct i2c_client *client, u8 addr)
- {
--	return i2c_smbus_read_byte_data(client, addr);
-+	int ret;
-+	u8 val;
-+
-+	ret = i2c_master_send(client, &addr, 1);
-+	if (ret < 0)
-+		return ret;
-+	ret = i2c_master_recv(client, &val, 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	return val;
- }
- 
- static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
-@@ -1255,13 +1265,11 @@ static int ov772x_probe(struct i2c_client *client,
- 		return -EINVAL;
+ 	if (output->dma->cbuf != idx) {
+ 		if ((((output->dma->cbuf + 1) % output->dma->num) == idx) &&
+-		    (output->dma->size - output->dma->coff <= 188))
++		    (output->dma->size - output->dma->coff <= (2 * 188)))
+ 			return 0;
+ 		return 188;
  	}
- 
--	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
--					      I2C_FUNC_PROTOCOL_MANGLING)) {
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&adapter->dev,
--			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
-+			"I2C-Adapter doesn't support SMBUS_BYTE_DATA\n");
- 		return -EIO;
- 	}
--	client->flags |= I2C_CLIENT_SCCB;
- 
- 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
- 	if (!priv)
+ 	diff = off - output->dma->coff;
+-	if (diff <= 0 || diff > 188)
++	if (diff <= 0 || diff > (2 * 188))
+ 		return 188;
+ 	return 0;
+ }
 -- 
-2.7.4
+2.16.1
