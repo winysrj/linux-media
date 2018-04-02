@@ -1,124 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [31.36.214.240] ([31.36.214.240]:39082 "EHLO
-        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1752944AbeDHVVG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 17:21:06 -0400
-From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-Subject: [PATCH v2 1/6] usbtv: Use same decoder sequence as Windows driver
-Date: Sun,  8 Apr 2018 23:11:56 +0200
-Message-Id: <20180408211201.27452-2-bonstra@bonstra.fr.eu.org>
-In-Reply-To: <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
-References: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
- <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
+Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:58639 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751772AbeDBO23 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:28:29 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: [PATCH 12/15] dmaengine: pxa: make the filter function internal
+Date: Mon,  2 Apr 2018 16:26:53 +0200
+Message-Id: <20180402142656.26815-13-robert.jarzmik@free.fr>
+In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Re-format the register {address, value} pairs so they follow the same
-order as the decoder configuration sequences in the Windows driver's .INF
-file.
+As the pxa architecture and all its related drivers do not rely anymore
+on the filter function, thanks to the slave map conversion, make
+pxad_filter_fn() static, and remove it from the global namespace.
 
-For instance, for PAL, the "AVPAL" sequence in the .INF file is:
-0x04,0x68,0xD3,0x72,0xA2,0xB0,0x15,0x01,0x2C,0x10,0x20,0x2e,0x08,0x02,
-0x02,0x59,0x16,0x35,0x17,0x16,0x36
-
-Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- drivers/media/usb/usbtv/usbtv-video.c | 40 +++++++++++++++++++--------
- 1 file changed, 29 insertions(+), 11 deletions(-)
+ drivers/dma/pxa_dma.c       |  5 ++---
+ include/linux/dma/pxa-dma.h | 11 -----------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 3668a04359e8..97f9790954f9 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -124,40 +124,67 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
- static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
+index 9505334f9c6e..a332ad1d7dfb 100644
+--- a/drivers/dma/pxa_dma.c
++++ b/drivers/dma/pxa_dma.c
+@@ -179,7 +179,7 @@ static unsigned int pxad_drcmr(unsigned int line)
+ 	return 0x1000 + line * 4;
+ }
+ 
+-bool pxad_filter_fn(struct dma_chan *chan, void *param);
++static bool pxad_filter_fn(struct dma_chan *chan, void *param);
+ 
+ /*
+  * Debug fs
+@@ -1496,7 +1496,7 @@ static struct platform_driver pxad_driver = {
+ 	.remove		= pxad_remove,
+ };
+ 
+-bool pxad_filter_fn(struct dma_chan *chan, void *param)
++static bool pxad_filter_fn(struct dma_chan *chan, void *param)
  {
- 	int ret;
-+	/* These are the series of register values used to configure the
-+	 * decoder for a specific standard.
-+	 * The first 21 register writes are copied from the
-+	 * Settings\DecoderDefaults registry keys present in the Windows driver
-+	 * .INF file, and control various image tuning parameters (color
-+	 * correction, sharpness, ...).
-+	 */
- 	static const u16 pal[][2] = {
-+		/* "AVPAL" tuning sequence from .INF file */
-+		{ USBTV_BASE + 0x0003, 0x0004 },
- 		{ USBTV_BASE + 0x001a, 0x0068 },
-+		{ USBTV_BASE + 0x0100, 0x00d3 },
- 		{ USBTV_BASE + 0x010e, 0x0072 },
- 		{ USBTV_BASE + 0x010f, 0x00a2 },
- 		{ USBTV_BASE + 0x0112, 0x00b0 },
-+		{ USBTV_BASE + 0x0115, 0x0015 },
- 		{ USBTV_BASE + 0x0117, 0x0001 },
- 		{ USBTV_BASE + 0x0118, 0x002c },
- 		{ USBTV_BASE + 0x012d, 0x0010 },
- 		{ USBTV_BASE + 0x012f, 0x0020 },
-+		{ USBTV_BASE + 0x0220, 0x002e },
-+		{ USBTV_BASE + 0x0225, 0x0008 },
-+		{ USBTV_BASE + 0x024e, 0x0002 },
- 		{ USBTV_BASE + 0x024f, 0x0002 },
- 		{ USBTV_BASE + 0x0254, 0x0059 },
- 		{ USBTV_BASE + 0x025a, 0x0016 },
- 		{ USBTV_BASE + 0x025b, 0x0035 },
- 		{ USBTV_BASE + 0x0263, 0x0017 },
- 		{ USBTV_BASE + 0x0266, 0x0016 },
--		{ USBTV_BASE + 0x0267, 0x0036 }
-+		{ USBTV_BASE + 0x0267, 0x0036 },
-+		/* Epilog */
-+		{ USBTV_BASE + 0x024e, 0x0002 },
-+		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
+ 	struct pxad_chan *c = to_pxad_chan(chan);
+ 	struct pxad_param *p = param;
+@@ -1509,7 +1509,6 @@ bool pxad_filter_fn(struct dma_chan *chan, void *param)
  
- 	static const u16 ntsc[][2] = {
-+		/* "AVNTSC" tuning sequence from .INF file */
-+		{ USBTV_BASE + 0x0003, 0x0004 },
- 		{ USBTV_BASE + 0x001a, 0x0079 },
-+		{ USBTV_BASE + 0x0100, 0x00d3 },
- 		{ USBTV_BASE + 0x010e, 0x0068 },
- 		{ USBTV_BASE + 0x010f, 0x009c },
- 		{ USBTV_BASE + 0x0112, 0x00f0 },
-+		{ USBTV_BASE + 0x0115, 0x0015 },
- 		{ USBTV_BASE + 0x0117, 0x0000 },
- 		{ USBTV_BASE + 0x0118, 0x00fc },
- 		{ USBTV_BASE + 0x012d, 0x0004 },
- 		{ USBTV_BASE + 0x012f, 0x0008 },
-+		{ USBTV_BASE + 0x0220, 0x002e },
-+		{ USBTV_BASE + 0x0225, 0x0008 },
-+		{ USBTV_BASE + 0x024e, 0x0002 },
- 		{ USBTV_BASE + 0x024f, 0x0001 },
- 		{ USBTV_BASE + 0x0254, 0x005f },
- 		{ USBTV_BASE + 0x025a, 0x0012 },
- 		{ USBTV_BASE + 0x025b, 0x0001 },
- 		{ USBTV_BASE + 0x0263, 0x001c },
- 		{ USBTV_BASE + 0x0266, 0x0011 },
--		{ USBTV_BASE + 0x0267, 0x0005 }
-+		{ USBTV_BASE + 0x0267, 0x0005 },
-+		/* Epilog */
-+		{ USBTV_BASE + 0x024e, 0x0002 },
-+		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
+ 	return true;
+ }
+-EXPORT_SYMBOL_GPL(pxad_filter_fn);
  
- 	ret = usbtv_configure_for_norm(usbtv, norm);
-@@ -236,15 +263,6 @@ static int usbtv_setup_capture(struct usbtv *usbtv)
- 		{ USBTV_BASE + 0x0158, 0x001f },
- 		{ USBTV_BASE + 0x0159, 0x0006 },
- 		{ USBTV_BASE + 0x015d, 0x0000 },
+ module_platform_driver(pxad_driver);
+ 
+diff --git a/include/linux/dma/pxa-dma.h b/include/linux/dma/pxa-dma.h
+index 9fc594f69eff..fceb5df07097 100644
+--- a/include/linux/dma/pxa-dma.h
++++ b/include/linux/dma/pxa-dma.h
+@@ -23,15 +23,4 @@ struct pxad_param {
+ 	enum pxad_chan_prio prio;
+ };
+ 
+-struct dma_chan;
 -
--		{ USBTV_BASE + 0x0003, 0x0004 },
--		{ USBTV_BASE + 0x0100, 0x00d3 },
--		{ USBTV_BASE + 0x0115, 0x0015 },
--		{ USBTV_BASE + 0x0220, 0x002e },
--		{ USBTV_BASE + 0x0225, 0x0008 },
--		{ USBTV_BASE + 0x024e, 0x0002 },
--		{ USBTV_BASE + 0x024e, 0x0002 },
--		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
- 
- 	ret = usbtv_set_regs(usbtv, setup, ARRAY_SIZE(setup));
+-#ifdef CONFIG_PXA_DMA
+-bool pxad_filter_fn(struct dma_chan *chan, void *param);
+-#else
+-static inline bool pxad_filter_fn(struct dma_chan *chan, void *param)
+-{
+-	return false;
+-}
+-#endif
+-
+ #endif /* _PXA_DMA_H_ */
 -- 
-2.17.0
+2.11.0
