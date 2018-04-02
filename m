@@ -1,139 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:9961 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750877AbeDIHUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 03:20:45 -0400
-Date: Mon, 9 Apr 2018 10:20:42 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Gustavo Padovan <gustavo@padovan.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv9 PATCH 07/29] media-request: add media_request_object_find
-Message-ID: <20180409072042.mf7lg4o7xg3h6wln@paasikivi.fi.intel.com>
-References: <20180328135030.7116-1-hverkuil@xs4all.nl>
- <20180328135030.7116-8-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180328135030.7116-8-hverkuil@xs4all.nl>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:38885 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753261AbeDBSYh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:37 -0400
+Received: by mail-wr0-f193.google.com with SMTP id m13so15024324wrj.5
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:37 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 06/20] [media] ddbridge: move MSI IRQ cleanup to a helper function
+Date: Mon,  2 Apr 2018 20:24:13 +0200
+Message-Id: <20180402182427.20918-7-d.scheller.oss@gmail.com>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Wed, Mar 28, 2018 at 03:50:08PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add media_request_object_find to find a request object inside a
-> request based on ops and/or priv values.
-> 
-> Objects of the same type (vb2 buffer, control handler) will have
-> the same ops value. And objects that refer to the same 'parent'
-> object (e.g. the v4l2_ctrl_handler that has the current driver
-> state) will have the same priv value.
-> 
-> The caller has to call media_request_object_put() for the returned
-> object since this function increments the refcount.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
->  include/media/media-request.h | 25 +++++++++++++++++++++++++
->  2 files changed, 51 insertions(+)
-> 
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index d54fd353d8a6..10a05dd7b571 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -309,6 +309,32 @@ static void media_request_object_release(struct kref *kref)
->  	obj->ops->release(obj);
->  }
->  
-> +struct media_request_object *
-> +media_request_object_find(struct media_request *req,
-> +			  const struct media_request_object_ops *ops,
-> +			  void *priv)
-> +{
-> +	struct media_request_object *obj;
-> +	struct media_request_object *found = NULL;
-> +	unsigned long flags;
-> +
-> +	if (!ops && !priv)
-> +		return NULL;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	list_for_each_entry(obj, &req->objects, list) {
-> +		if ((!ops || obj->ops == ops) &&
-> +		    (!priv || obj->priv == priv)) {
+Introduce the ddb_msi_exit() helper to be used for cleaning up previously
+allocated MSI IRQ vectors. Deduplicates code and makes things look
+cleaner as for all cleanup work the CONFIG_PCI_MSI ifdeffery is only
+needed in the helper now. Also, replace the call to the deprecated
+pci_disable_msi() function with pci_free_irq_vectors().
 
-Do you have a use case for having matching priv but mismatching ops?
+Picked up from the upstream dddvb-0.9.33 release.
 
-I think it'd be useful to require drivers to provide unique priv,
-considering that it's risky to let them use the same while the VB2 request
-object ops are always the same.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-main.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-> +			media_request_object_get(obj);
-> +			found = obj;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +	return found;
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_object_find);
-> +
->  void media_request_object_put(struct media_request_object *obj)
->  {
->  	kref_put(&obj->kref, media_request_object_release);
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> index c01b05570a31..570f3a205776 100644
-> --- a/include/media/media-request.h
-> +++ b/include/media/media-request.h
-> @@ -122,6 +122,23 @@ static inline void media_request_object_get(struct media_request_object *obj)
->   */
->  void media_request_object_put(struct media_request_object *obj);
->  
-> +/**
-> + * media_request_object_find - Find an object in a request
-> + *
-> + * @ops: Find an object with this ops value, may be NULL.
-> + * @priv: Find an object with this priv value, may be NULL.
-> + *
-> + * At least one of @ops and @priv must be non-NULL. If one of
-> + * these is NULL, then skip checking for that field.
-> + *
-> + * Returns NULL if not found or the object (the refcount is increased
-> + * in that case).
-> + */
-> +struct media_request_object *
-> +media_request_object_find(struct media_request *req,
-> +			  const struct media_request_object_ops *ops,
-> +			  void *priv);
-> +
->  /**
->   * media_request_object_init - Initialise a media request object
->   *
-> @@ -154,6 +171,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
->  {
->  }
->  
-> +static inline struct media_request_object *
-> +media_request_object_find(struct media_request *req,
-> +			  const struct media_request_object_ops *ops,
-> +			  void *priv)
-> +{
-> +	return NULL;
-> +}
-> +
->  static inline void media_request_object_init(struct media_request_object *obj)
->  {
->  	obj->ops = NULL;
-> -- 
-> 2.16.1
-> 
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 7088162af9d3..77089081db1f 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -65,16 +65,20 @@ static void ddb_irq_disable(struct ddb *dev)
+ 	ddbwritel(dev, 0, MSI1_ENABLE);
+ }
+ 
++static void ddb_msi_exit(struct ddb *dev)
++{
++#ifdef CONFIG_PCI_MSI
++	if (dev->msi)
++		pci_free_irq_vectors(dev->pdev);
++#endif
++}
++
+ static void ddb_irq_exit(struct ddb *dev)
+ {
+ 	ddb_irq_disable(dev);
+ 	if (dev->msi == 2)
+ 		free_irq(dev->pdev->irq + 1, dev);
+ 	free_irq(dev->pdev->irq, dev);
+-#ifdef CONFIG_PCI_MSI
+-	if (dev->msi)
+-		pci_disable_msi(dev->pdev);
+-#endif
+ }
+ 
+ static void ddb_remove(struct pci_dev *pdev)
+@@ -86,6 +90,7 @@ static void ddb_remove(struct pci_dev *pdev)
+ 	ddb_i2c_release(dev);
+ 
+ 	ddb_irq_exit(dev);
++	ddb_msi_exit(dev);
+ 	ddb_ports_release(dev);
+ 	ddb_buffers_free(dev);
+ 
+@@ -230,8 +235,7 @@ static int ddb_probe(struct pci_dev *pdev,
+ 	ddb_irq_exit(dev);
+ fail0:
+ 	dev_err(&pdev->dev, "fail0\n");
+-	if (dev->msi)
+-		pci_disable_msi(dev->pdev);
++	ddb_msi_exit(dev);
+ fail:
+ 	dev_err(&pdev->dev, "fail\n");
+ 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.16.1
