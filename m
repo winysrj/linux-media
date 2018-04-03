@@ -1,131 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46846 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752552AbeDUDov (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 23:44:51 -0400
-Message-ID: <3ef6fdfde61dfe90c128d8674b1a1338@smtp-cloud8.xs4all.net>
-Date: Sat, 21 Apr 2018 05:44:47 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:33441 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755300AbeDCM1P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 08:27:15 -0400
+Received: by mail-qk0-f193.google.com with SMTP id d206so18348116qkb.0
+        for <linux-media@vger.kernel.org>; Tue, 03 Apr 2018 05:27:15 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: raymond.mabel@yandex.com
+From: Mabel Raymond <terzsauo@gmail.com>
+Date: Tue, 3 Apr 2018 13:27:14 +0100
+Message-ID: <CAFzc9wnHHrGgEQD3VaY+0QbSmGMdZdZeG7awVsWN3QCvk3WtAw@mail.gmail.com>
+Subject: I am waiting to hear from you soon,
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From
+The international Investigation Financial Crime  Unit
 
-Results of the daily build of media_tree:
+Attention Dear!!
+We need your urgent information .
 
-date:			Sat Apr 21 05:00:22 CEST 2018
-media-tree git hash:	1d338b86e17d87215cf57b1ad1d13b2afe582d33
-media_build git hash:	4fb7a3cc8d0f56c7cddc3b5b29e35aa1159bc8d9
-v4l-utils git hash:	9a4acdbe53884e5a433c1295eead61e45b0718e7
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-2-amd64
+I am writing to inform you that I am Staff In the international
+investigation financial crime  unit and  I have discovered through our
+network E-mail  system This Week  that your  Inheritance Claim  Fund
+$6.5m usd have been trapped by Some Bank Officers and  who specialized
+in collecting money from You.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: WARNINGS: VIDEO_OMAP3 VIDEO_OMAP3_DEBUG
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+There fore I would appreciate to inform you that there	
+is hope for you to recover all what you have lost . Your  Inheritance
+Fund is $6.5m usd  Have Been Removed From That Bank And  Deposited To
+Security Financier Company This Morning In Burkina Faso.
 
-Detailed results are available here:
+You should send to us your complete  information to enable us
+Submit Them   on your behalf  To The Security And Finance Company To
+Enable The Finance Company Proceed Transferring Your Inheritance Fund
+$6.5m usd to your country!  This will be completed within the  next
+few  days .
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+1.Your complete name
 
-Full logs are available here:
+2.Your Mobile phone number
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+3. Your nationality
 
-The Media Infrastructure API from this daily build is here:
+ I am waiting to hear from you soon,
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thank you  .
+
+Mrs Raymond  Mabel
