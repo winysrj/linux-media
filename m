@@ -1,83 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30498 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753282AbeDZRWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 13:22:08 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Subject: RE: [PATCH v6 12/12] intel-ipu3: Add imgu top level pci device
- driver
-Date: Thu, 26 Apr 2018 17:22:02 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D34184D71@ORSMSX106.amr.corp.intel.com>
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
- <1522376100-22098-13-git-send-email-yong.zhi@intel.com>
- <CAAFQd5CXPk4PN2X3_cFsQgeWc4nnWTXiNVPtzd-Fsr-tBeD6yQ@mail.gmail.com>
-In-Reply-To: <CAAFQd5CXPk4PN2X3_cFsQgeWc4nnWTXiNVPtzd-Fsr-tBeD6yQ@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:36334 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752397AbeDCRGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Apr 2018 13:06:48 -0400
+Date: Tue, 3 Apr 2018 13:06:45 -0400
+From: Jerome Glisse <jglisse@redhat.com>
+To: christian.koenig@amd.com, linaro-mm-sig@lists.linaro.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        amd-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180403170645.GB5935@redhat.com>
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-4-christian.koenig@amd.com>
+ <20180329065753.GD3881@phenom.ffwll.local>
+ <8b823458-8bdc-3217-572b-509a28aae742@gmail.com>
+ <20180403090909.GN3881@phenom.ffwll.local>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180403090909.GN3881@phenom.ffwll.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciB0aGUgcmV2aWV3IGFnYWluLg0KDQo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWFzeiBGaWdhIFttYWlsdG86dGZpZ2FAY2hy
-b21pdW0ub3JnXQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwgMjYsIDIwMTggMTI6MTUgQU0NCj4g
-VG86IFpoaSwgWW9uZyA8eW9uZy56aGlAaW50ZWwuY29tPg0KPiBDYzogTGludXggTWVkaWEgTWFp
-bGluZyBMaXN0IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyBTYWthcmkgQWlsdXMNCj4g
-PHNha2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb20+OyBNYW5pLCBSYWptb2hhbg0KPiA8cmFqbW9o
-YW4ubWFuaUBpbnRlbC5jb20+OyBUb2l2b25lbiwgVHV1a2thDQo+IDx0dXVra2EudG9pdm9uZW5A
-aW50ZWwuY29tPjsgSHUsIEplcnJ5IFcgPGplcnJ5LncuaHVAaW50ZWwuY29tPjsgWmhlbmcsDQo+
-IEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENI
-IHY2IDEyLzEyXSBpbnRlbC1pcHUzOiBBZGQgaW1ndSB0b3AgbGV2ZWwgcGNpIGRldmljZQ0KPiBk
-cml2ZXINCj4gDQo+IEhpIFlvbmcsDQo+IA0KPiBPbiBGcmksIE1hciAzMCwgMjAxOCBhdCAxMTox
-NSBBTSBZb25nIFpoaSA8eW9uZy56aGlAaW50ZWwuY29tPiB3cm90ZToNCj4gW3NuaXBdDQo+ID4g
-K3N0YXRpYyBpbnQgaW1ndV92aWRlb19ub2Rlc19pbml0KHN0cnVjdCBpbWd1X2RldmljZSAqaW1n
-dSkgew0KPiA+ICsgICAgICAgc3RydWN0IHY0bDJfcGl4X2Zvcm1hdF9tcGxhbmUgKmZtdHNbSVBV
-M19DU1NfUVVFVUVTXSA9IHsgTlVMTCB9Ow0KPiA+ICsgICAgICAgc3RydWN0IHY0bDJfcmVjdCAq
-cmVjdHNbSVBVM19DU1NfUkVDVFNdID0geyBOVUxMIH07DQo+ID4gKyAgICAgICB1bnNpZ25lZCBp
-bnQgaTsNCj4gPiArICAgICAgIGludCByOw0KPiA+ICsNCj4gPiArICAgICAgIGltZ3UtPmJ1Zl9z
-dHJ1Y3Rfc2l6ZSA9IHNpemVvZihzdHJ1Y3QgaW1ndV9idWZmZXIpOw0KPiA+ICsNCj4gPiArICAg
-ICAgIGZvciAoaSA9IDA7IGkgPCBJTUdVX05PREVfTlVNOyBpKyspIHsNCj4gPiArICAgICAgICAg
-ICAgICAgaW1ndS0+bm9kZXNbaV0ubmFtZSA9IGltZ3Vfbm9kZV9tYXBbaV0ubmFtZTsNCj4gPiAr
-ICAgICAgICAgICAgICAgaW1ndS0+bm9kZXNbaV0ub3V0cHV0ID0gaSA8IElNR1VfUVVFVUVfRklS
-U1RfSU5QVVQ7DQo+ID4gKyAgICAgICAgICAgICAgIGltZ3UtPm5vZGVzW2ldLmltbXV0YWJsZSA9
-IGZhbHNlOw0KPiA+ICsgICAgICAgICAgICAgICBpbWd1LT5ub2Rlc1tpXS5lbmFibGVkID0gZmFs
-c2U7DQo+ID4gKw0KPiA+ICsgICAgICAgICAgICAgICBpZiAoaSAhPSBJTUdVX05PREVfUEFSQU1T
-ICYmIGkgIT0gSU1HVV9OT0RFX1NUQVRfM0EpDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAg
-Zm10c1tpbWd1X25vZGVfbWFwW2ldLmNzc19xdWV1ZV0gPQ0KPiA+ICsgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgJmltZ3UtPm5vZGVzW2ldLnZkZXZfZm10LmZtdC5waXhfbXA7DQo+ID4g
-KyAgICAgICAgICAgICAgIGF0b21pY19zZXQoJmltZ3UtPm5vZGVzW2ldLnNlcXVlbmNlLCAwKTsN
-Cj4gPiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICAvKiBNYXN0ZXIgcXVldWUgaXMgYWx3
-YXlzIGVuYWJsZWQgKi8NCj4gPiArICAgICAgIGltZ3UtPm5vZGVzW0lNR1VfUVVFVUVfTUFTVEVS
-XS5pbW11dGFibGUgPSB0cnVlOw0KPiA+ICsgICAgICAgaW1ndS0+bm9kZXNbSU1HVV9RVUVVRV9N
-QVNURVJdLmVuYWJsZWQgPSB0cnVlOw0KPiA+ICsNCj4gPiArICAgICAgIHIgPSBpcHUzX3Y0bDJf
-cmVnaXN0ZXIoaW1ndSk7DQo+ID4gKyAgICAgICBpZiAocikNCj4gPiArICAgICAgICAgICAgICAg
-cmV0dXJuIHI7DQo+ID4gKw0KPiA+ICsgICAgICAgLyogU2V0IGluaXRpYWwgZm9ybWF0cyBhbmQg
-aW5pdGlhbGl6ZSBmb3JtYXRzIG9mIHZpZGVvIG5vZGVzICovDQo+ID4gKyAgICAgICByZWN0c1tJ
-UFUzX0NTU19SRUNUX0VGRkVDVElWRV0gPSAmaW1ndS0+cmVjdC5lZmY7DQo+ID4gKyAgICAgICBy
-ZWN0c1tJUFUzX0NTU19SRUNUX0JEU10gPSAmaW1ndS0+cmVjdC5iZHM7DQo+ID4gKyAgICAgICBp
-cHUzX2Nzc19mbXRfc2V0KCZpbWd1LT5jc3MsIGZtdHMsIHJlY3RzKTsNCj4gPiArDQo+ID4gKyAg
-ICAgICAvKiBQcmUtYWxsb2NhdGUgZHVtbXkgYnVmZmVycyAqLw0KPiA+ICsgICAgICAgciA9IGlt
-Z3VfZHVtbXlidWZzX3ByZWFsbG9jYXRlKGltZ3UpOw0KPiA+ICsgICAgICAgaWYgKHIpIHsNCj4g
-PiArICAgICAgICAgICAgICAgZGV2X2VycigmaW1ndS0+cGNpX2Rldi0+ZGV2LA0KPiA+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICJmYWlsZWQgdG8gcHJlLWFsbG9jYXRlIGR1bW15IGJ1ZmZlcnMg
-KCVkKSIsIHIpOw0KPiA+ICsgICAgICAgICAgICAgICBpbWd1X2R1bW15YnVmc19jbGVhbnVwKGlt
-Z3UpOw0KPiANCj4gTm8gbmVlZCB0byBjYWxsIGlwdTNfdjRsMl91bnJlZ2lzdGVyKCkgaGVyZT8N
-Cj4gDQo+IChUaGF0J3Mgd2h5IEkga2VlcCBzdWdnZXN0aW5nIHVzZSBvZiBzaW5nbGUgcmV0dXJu
-IGVycm9yIHBhdGggd2l0aCBsYWJlbHMNCj4gbmFtZWQgYWZ0ZXIgdGhlIGZpcnN0IGNsZWFudXAg
-c3RlcCB0aGF0IG5lZWRzIHRvIGJlIGRvbmUsIGFzIGl0IG1ha2VzIGl0DQo+IGVhc2llciB0byBz
-cG90IHN1Y2ggbWlzdGFrZXMuKQ0KPiANCg0KR29vZCBjYXRjaCwgc3VnZ2VzdGlvbiB0YWtlbiA6
-KQ0KDQpNYXliZSBJIHNob3VsZCBtb3ZlIHRoZSBpbWd1X2R1bW15YnVmc19wcmVhbGxvY2F0ZSgp
-IG91dCBmcm9tIGltZ3VfdmlkZW9fbm9kZXNfaW5pdCgpLg0KDQo+ID4gKyAgICAgICAgICAgICAg
-IHJldHVybiByOw0KPiA+ICsgICAgICAgfQ0KPiA+ICsNCj4gPiArICAgICAgIHJldHVybiAwOw0K
-PiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgdm9pZCBpbWd1X3ZpZGVvX25vZGVzX2V4aXQoc3Ry
-dWN0IGltZ3VfZGV2aWNlICppbWd1KSB7DQo+ID4gKyAgICAgICBpbWd1X2R1bW15YnVmc19jbGVh
-bnVwKGltZ3UpOw0KPiA+ICsgICAgICAgaXB1M192NGwyX3VucmVnaXN0ZXIoaW1ndSk7DQo+ID4g
-K30NCj4gDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
+On Tue, Apr 03, 2018 at 11:09:09AM +0200, Daniel Vetter wrote:
+> On Thu, Mar 29, 2018 at 01:34:24PM +0200, Christian König wrote:
+> > Am 29.03.2018 um 08:57 schrieb Daniel Vetter:
+> > > On Sun, Mar 25, 2018 at 12:59:56PM +0200, Christian König wrote:
+> > > > Add a peer2peer flag noting that the importer can deal with device
+> > > > resources which are not backed by pages.
+> > > > 
+> > > > Signed-off-by: Christian König <christian.koenig@amd.com>
+> > > Um strictly speaking they all should, but ttm never bothered to use the
+> > > real interfaces but just hacked around the provided sg list, grabbing the
+> > > underlying struct pages, then rebuilding&remapping the sg list again.
+> > 
+> > Actually that isn't correct. TTM converts them to a dma address array
+> > because drivers need it like this (at least nouveau, radeon and amdgpu).
+> > 
+> > I've fixed radeon and amdgpu to be able to deal without it and mailed with
+> > Ben about nouveau, but the outcome is they don't really know.
+> > 
+> > TTM itself doesn't have any need for the pages on imported BOs (you can't
+> > mmap them anyway), the real underlying problem is that sg tables doesn't
+> > provide what drivers need.
+> > 
+> > I think we could rather easily fix sg tables, but that is a totally separate
+> > task.
+> 
+> Looking at patch 8, the sg table seems perfectly sufficient to convey the
+> right dma addresses to the importer. Ofcourse the exporter has to set up
+> the right kind of iommu mappings to make this work.
+> 
+> > > The entire point of using sg lists was exactly to allow this use case of
+> > > peer2peer dma (or well in general have special exporters which managed
+> > > memory/IO ranges not backed by struct page). So essentially you're having
+> > > a "I'm totally not broken flag" here.
+> > 
+> > No, independent of needed struct page pointers we need to note if the
+> > exporter can handle peer2peer stuff from the hardware side in general.
+> > 
+> > So what I've did is just to set peer2peer allowed on the importer because of
+> > the driver needs and clear it in the exporter if the hardware can't handle
+> > that.
+> 
+> The only thing the importer seems to do is call the
+> pci_peer_traffic_supported, which the exporter could call too. What am I
+> missing (since the sturct_page stuff sounds like it's fixed already by
+> you)?
+> -Daniel
+
+AFAIK Logan patchset require to register and initialize struct page
+for the device memory you want to map (export from exporter point of
+view).
+
+With GPU this isn't something we want, struct page is >~= 2^6 so for
+4GB GPU = 2^6*2^32/2^12 = 2^26 = 64MB of RAM
+8GB GPU = 2^6*2^33/2^12 = 2^27 = 128MB of RAM
+16GB GPU = 2^6*2^34/2^12 = 2^28 = 256MB of RAM
+32GB GPU = 2^6*2^34/2^12 = 2^29 = 512MB of RAM
+
+All this is mostly wasted as only a small sub-set (that can not be
+constraint to specific range) will ever be exported at any point in
+time. For GPU work load this is hardly justifiable, even for HMM i
+do not plan to register all those pages.
+
+Hence why i argue that dma_map_resource() like use by Christian is
+good enough for us. People that care about SG can fix that but i
+rather not have to depend on that and waste system memory.
+
+Cheers,
+Jérôme
