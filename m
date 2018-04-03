@@ -1,58 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35322 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752334AbeDKDX4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 23:23:56 -0400
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH 1/3] media: dvb-usb: Replace GFP_ATOMIC with GFP_KERNEL in usb_allocate_stream_buffers
-Date: Wed, 11 Apr 2018 11:23:49 +0800
-Message-Id: <1523417029-3069-1-git-send-email-baijiaju1990@gmail.com>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:44830 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754272AbeDCHNg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 03:13:36 -0400
+MIME-Version: 1.0
+In-Reply-To: <201804030025.FmWPyArN%fengguang.wu@intel.com>
+References: <20180402142656.26815-13-robert.jarzmik@free.fr> <201804030025.FmWPyArN%fengguang.wu@intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 3 Apr 2018 09:13:34 +0200
+Message-ID: <CAK8P3a0T3HV9ee4Kk7+Y16S-51SLzbn5fRBsr4bSV0ZQnthPVg@mail.gmail.com>
+Subject: Re: [PATCH 12/15] dmaengine: pxa: make the filter function internal
+To: kbuild test robot <lkp@intel.com>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>, kbuild-all@01.org,
+        Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        IDE-ML <linux-ide@vger.kernel.org>, dmaengine@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-mmc <linux-mmc@vger.kernel.org>,
+        linux-mtd <linux-mtd@lists.infradead.org>,
+        Networking <netdev@vger.kernel.org>, devel@driverdev.osuosl.org,
+        alsa-devel@alsa-project.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb_allocate_stream_buffers() is never called in atomic context.
+On Mon, Apr 2, 2018 at 6:35 PM, kbuild test robot <lkp@intel.com> wrote:
 
-The call chains ending up at usb_allocate_stream_buffers() are:
-[1] usb_allocate_stream_buffers() <- usb_bulk_urb_init() <- usb_urb_init()
-	<- dvb_usb_adapter_stream_init() <- dvb_usb_adapter_init 
-	<- dvb_usb_init() <- dvb_usb_device_init() <- xxx_probe()
-[2] usb_allocate_stream_buffers() <- usb_isoc_urb_init() <- usb_urb_init()
-	<- dvb_usb_adapter_stream_init() <- dvb_usb_adapter_init 
-	<- dvb_usb_init() <- dvb_usb_device_init() <- xxx_probe()
-xxx_probe including ttusb2_probe, vp7045_usb_probe, a800_probe, and so on.
-These xxx_probe() functions are set as ".probe" in struct usb_driver.
-And these functions are not called in atomic context.
+>
+>    drivers/mtd/nand/marvell_nand.c:2621:17: sparse: undefined identifier 'pxad_filter_fn'
+>>> drivers/mtd/nand/marvell_nand.c:2621:17: sparse: call with no type!
+>    In file included from drivers/mtd/nand/marvell_nand.c:21:0:
+>    drivers/mtd/nand/marvell_nand.c: In function 'marvell_nfc_init_dma':
+>    drivers/mtd/nand/marvell_nand.c:2621:42: error: 'pxad_filter_fn' undeclared (first use in this function); did you mean 'dma_filter_fn'?
+>       dma_request_slave_channel_compat(mask, pxad_filter_fn,
+>                                              ^
+>    include/linux/dmaengine.h:1408:46: note: in definition of macro 'dma_request_slave_channel_compat'
+>      __dma_request_slave_channel_compat(&(mask), x, y, dev, name)
+>                                                  ^
+>    drivers/mtd/nand/marvell_nand.c:2621:42: note: each undeclared identifier is reported only once for each function it appears in
+>       dma_request_slave_channel_compat(mask, pxad_filter_fn,
+>                                              ^
+>    include/linux/dmaengine.h:1408:46: note: in definition of macro 'dma_request_slave_channel_compat'
+>      __dma_request_slave_channel_compat(&(mask), x, y, dev, name)
 
-Despite never getting called from atomic context,
-usb_allocate_stream_buffers() calls usb_alloc_coherent() with GFP_ATOMIC,
-which does not sleep for allocation.
-GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
-which can sleep and improve the possibility of sucessful allocation.
+The driver is a replacement for the pxa3xx nand driver, so it now has
+to get changed as well.
 
-This is found by a static analysis tool named DCNS written by myself.
-And I also manually check it.
-
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/media/usb/dvb-usb/usb-urb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/dvb-usb/usb-urb.c b/drivers/media/usb/dvb-usb/usb-urb.c
-index 8917360..96be721 100644
---- a/drivers/media/usb/dvb-usb/usb-urb.c
-+++ b/drivers/media/usb/dvb-usb/usb-urb.c
-@@ -117,7 +117,7 @@ static int usb_allocate_stream_buffers(struct usb_data_stream *stream, int num,
- 	for (stream->buf_num = 0; stream->buf_num < num; stream->buf_num++) {
- 		deb_mem("allocating buffer %d\n",stream->buf_num);
- 		if (( stream->buf_list[stream->buf_num] =
--					usb_alloc_coherent(stream->udev, size, GFP_ATOMIC,
-+					usb_alloc_coherent(stream->udev, size, GFP_KERNEL,
- 					&stream->dma_addr[stream->buf_num]) ) == NULL) {
- 			deb_mem("not enough memory for urb-buffer allocation.\n");
- 			usb_free_stream_buffers(stream);
--- 
-1.9.1
+       Arnd
