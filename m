@@ -1,1973 +1,1016 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42923 "EHLO mail.bootlin.com"
+Received: from mga07.intel.com ([134.134.136.100]:15610 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753440AbeDSPq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 11:46:59 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: [PATCH v2 07/10] media: platform: Add Sunxi-Cedrus VPU decoder driver
-Date: Thu, 19 Apr 2018 17:45:33 +0200
-Message-Id: <20180419154536.17846-3-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+        id S1751179AbeDCVFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Apr 2018 17:05:00 -0400
+Date: Wed, 4 Apr 2018 05:04:47 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: kbuild-all@01.org, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: Re: [PATCH v4 2/2] media: ov2680: Add Omnivision OV2680 sensor driver
+Message-ID: <201804040440.lDYYK7n9%fengguang.wu@intel.com>
+References: <20180403142922.20972-3-rui.silva@linaro.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="PEIAKu/WMn1b1Hv9"
+Content-Disposition: inline
+In-Reply-To: <20180403142922.20972-3-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces the Sunxi-Cedrus VPU driver that supports the VPU found
-in Allwinner SoCs, also known as Video Engine. It is implemented through
-a v4l2 m2m decoder device and a media device (used for media requests).
-So far, it only supports MPEG2 decoding.
 
-Since this VPU is stateless, synchronization with media requests is
-required in order to ensure consistency between frame headers that
-contain metadata about the frame to process and the raw slice data that
-is used to generate the frame.
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This driver was made possible thanks to the long-standing effort
-carried out by the linux-sunxi community in the interest of reverse
-engineering, documenting and implementing support for Allwinner VPU.
+Hi Rui,
 
-Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+I love your patch! Yet something to improve:
+
+[auto build test ERROR on v4.16]
+[cannot apply to linuxtv-media/master next-20180403]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Rui-Miguel-Silva/media-Introduce-Omnivision-OV2680-driver/20180404-032903
+config: sh-allmodconfig (attached as .config)
+compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=sh 
+
+All errors (new ones prefixed by >>):
+
+   drivers/media//i2c/ov2680.c: In function 'ov2680_set_fmt':
+>> drivers/media//i2c/ov2680.c:692:9: error: implicit declaration of function 'v4l2_find_nearest_size'; did you mean 'v4l2_find_nearest_format'? [-Werror=implicit-function-declaration]
+     mode = v4l2_find_nearest_size(ov2680_mode_data,
+            ^~~~~~~~~~~~~~~~~~~~~~
+            v4l2_find_nearest_format
+>> drivers/media//i2c/ov2680.c:693:41: error: 'width' undeclared (first use in this function)
+              ARRAY_SIZE(ov2680_mode_data), width,
+                                            ^~~~~
+   drivers/media//i2c/ov2680.c:693:41: note: each undeclared identifier is reported only once for each function it appears in
+>> drivers/media//i2c/ov2680.c:694:11: error: 'height' undeclared (first use in this function); did you mean 'hweight8'?
+              height, fmt->width, fmt->height);
+              ^~~~~~
+              hweight8
+   cc1: some warnings being treated as errors
+
+vim +692 drivers/media//i2c/ov2680.c
+
+   672	
+   673	static int ov2680_set_fmt(struct v4l2_subdev *sd,
+   674				  struct v4l2_subdev_pad_config *cfg,
+   675				  struct v4l2_subdev_format *format)
+   676	{
+   677		struct ov2680_dev *sensor = to_ov2680_dev(sd);
+   678		struct v4l2_mbus_framefmt *fmt = &format->format;
+   679		const struct ov2680_mode_info *mode;
+   680		int ret = 0;
+   681	
+   682		if (format->pad != 0)
+   683			return -EINVAL;
+   684	
+   685		mutex_lock(&sensor->lock);
+   686	
+   687		if (sensor->is_streaming) {
+   688			ret = -EBUSY;
+   689			goto unlock;
+   690		}
+   691	
+ > 692		mode = v4l2_find_nearest_size(ov2680_mode_data,
+ > 693					      ARRAY_SIZE(ov2680_mode_data), width,
+ > 694					      height, fmt->width, fmt->height);
+   695		if (!mode) {
+   696			ret = -EINVAL;
+   697			goto unlock;
+   698		}
+   699	
+   700		if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+   701			fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
+   702	
+   703			*fmt = format->format;
+   704			goto unlock;
+   705		}
+   706	
+   707		fmt->width = mode->width;
+   708		fmt->height = mode->height;
+   709		fmt->code = sensor->fmt.code;
+   710		fmt->colorspace = sensor->fmt.colorspace;
+   711	
+   712		sensor->current_mode = mode;
+   713		sensor->fmt = format->format;
+   714		sensor->mode_pending_changes = true;
+   715	
+   716	unlock:
+   717		mutex_unlock(&sensor->lock);
+   718	
+   719		return ret;
+   720	}
+   721	
+
 ---
- drivers/media/platform/Kconfig                     |  15 +
- drivers/media/platform/Makefile                    |   1 +
- drivers/media/platform/sunxi/cedrus/Makefile       |   4 +
- drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c | 292 ++++++++++++
- .../platform/sunxi/cedrus/sunxi_cedrus_common.h    | 105 +++++
- .../media/platform/sunxi/cedrus/sunxi_cedrus_dec.c | 228 ++++++++++
- .../media/platform/sunxi/cedrus/sunxi_cedrus_dec.h |  36 ++
- .../media/platform/sunxi/cedrus/sunxi_cedrus_hw.c  | 201 +++++++++
- .../media/platform/sunxi/cedrus/sunxi_cedrus_hw.h  |  29 ++
- .../platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c     | 157 +++++++
- .../platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h     |  33 ++
- .../platform/sunxi/cedrus/sunxi_cedrus_regs.h      | 172 +++++++
- .../platform/sunxi/cedrus/sunxi_cedrus_video.c     | 497 +++++++++++++++++++++
- .../platform/sunxi/cedrus/sunxi_cedrus_video.h     |  31 ++
- 14 files changed, 1801 insertions(+)
- create mode 100644 drivers/media/platform/sunxi/cedrus/Makefile
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.h
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_regs.h
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
- create mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.h
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 614fbef08ddc..77d89e84ed3b 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -488,6 +488,21 @@ config VIDEO_TI_VPE
- 	  Support for the TI VPE(Video Processing Engine) block
- 	  found on DRA7XX SoC.
- 
-+config VIDEO_SUNXI_CEDRUS
-+	tristate "Sunxi-Cedrus VPU driver"
-+	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on ARCH_SUNXI
-+	depends on HAS_DMA
-+	select VIDEOBUF2_DMA_CONTIG
-+	select MEDIA_REQUEST_API
-+	select V4L2_MEM2MEM_DEV
-+	---help---
-+	  Support for the VPU found in Allwinner SoCs, also known as the Cedar
-+	  video engine.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called sunxi-cedrus.
-+
- config VIDEO_TI_VPE_DEBUG
- 	bool "VPE debug messages"
- 	depends on VIDEO_TI_VPE
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 7f3080437be6..a2be170f6dff 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -72,6 +72,7 @@ obj-$(CONFIG_VIDEO_ROCKCHIP_RGA)	+= rockchip/rga/
- obj-y	+= omap/
- 
- obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
-+obj-$(CONFIG_VIDEO_SUNXI_CEDRUS)	+= sunxi/cedrus/
- 
- obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
- 
-diff --git a/drivers/media/platform/sunxi/cedrus/Makefile b/drivers/media/platform/sunxi/cedrus/Makefile
-new file mode 100644
-index 000000000000..98f30df626a9
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/Makefile
-@@ -0,0 +1,4 @@
-+obj-$(CONFIG_VIDEO_SUNXI_CEDRUS) += sunxi-cedrus.o
-+
-+sunxi-cedrus-y = sunxi_cedrus.o sunxi_cedrus_video.o sunxi_cedrus_hw.o \
-+		 sunxi_cedrus_dec.o sunxi_cedrus_mpeg2.o
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
-new file mode 100644
-index 000000000000..364799c00703
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
-@@ -0,0 +1,292 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+
-+#include <media/videobuf2-dma-contig.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-mem2mem.h>
-+
-+#include "sunxi_cedrus_common.h"
-+#include "sunxi_cedrus_video.h"
-+#include "sunxi_cedrus_dec.h"
-+#include "sunxi_cedrus_hw.h"
-+
-+static int sunxi_cedrus_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct sunxi_cedrus_ctx *ctx =
-+		container_of(ctrl->handler, struct sunxi_cedrus_ctx, hdl);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR:
-+		/* This is kept in memory and used directly. */
-+		break;
-+	default:
-+		v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops sunxi_cedrus_ctrl_ops = {
-+	.s_ctrl = sunxi_cedrus_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config sunxi_cedrus_ctrl_mpeg2_frame_hdr = {
-+	.ops = &sunxi_cedrus_ctrl_ops,
-+	.id = V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR,
-+	.elem_size = sizeof(struct v4l2_ctrl_mpeg2_frame_hdr),
-+};
-+
-+static int sunxi_cedrus_open(struct file *file)
-+{
-+	struct sunxi_cedrus_dev *dev = video_drvdata(file);
-+	struct sunxi_cedrus_ctx *ctx = NULL;
-+	struct v4l2_ctrl_handler *hdl;
-+	int rc = 0;
-+
-+	if (mutex_lock_interruptible(&dev->dev_mutex))
-+		return -ERESTARTSYS;
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx) {
-+		rc = -ENOMEM;
-+		goto open_unlock;
-+	}
-+
-+	INIT_WORK(&ctx->run_work, sunxi_cedrus_device_work);
-+
-+	INIT_LIST_HEAD(&ctx->src_list);
-+	INIT_LIST_HEAD(&ctx->dst_list);
-+
-+	v4l2_fh_init(&ctx->fh, video_devdata(file));
-+	file->private_data = &ctx->fh;
-+	ctx->dev = dev;
-+	hdl = &ctx->hdl;
-+	v4l2_ctrl_handler_init(hdl, 2);
-+
-+	ctx->mpeg2_frame_hdr_ctrl = v4l2_ctrl_new_custom(hdl,
-+			&sunxi_cedrus_ctrl_mpeg2_frame_hdr, NULL);
-+	if (hdl->error) {
-+		rc = hdl->error;
-+		v4l2_ctrl_handler_free(hdl);
-+		goto open_unlock;
-+	}
-+
-+	ctx->fh.ctrl_handler = hdl;
-+	v4l2_ctrl_handler_setup(hdl);
-+
-+	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
-+					    &sunxi_cedrus_queue_init);
-+	if (IS_ERR(ctx->fh.m2m_ctx)) {
-+		rc = PTR_ERR(ctx->fh.m2m_ctx);
-+
-+		v4l2_ctrl_handler_free(hdl);
-+		kfree(ctx);
-+		goto open_unlock;
-+	}
-+
-+	v4l2_fh_add(&ctx->fh);
-+
-+	dev_dbg(dev->dev, "Created instance: %p, m2m_ctx: %p\n",
-+		ctx, ctx->fh.m2m_ctx);
-+
-+open_unlock:
-+	mutex_unlock(&dev->dev_mutex);
-+	return rc;
-+}
-+
-+static int sunxi_cedrus_release(struct file *file)
-+{
-+	struct sunxi_cedrus_dev *dev = video_drvdata(file);
-+	struct sunxi_cedrus_ctx *ctx = container_of(file->private_data,
-+			struct sunxi_cedrus_ctx, fh);
-+
-+	dev_dbg(dev->dev, "Releasing instance %p\n", ctx);
-+
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
-+	v4l2_ctrl_handler_free(&ctx->hdl);
-+	ctx->mpeg2_frame_hdr_ctrl = NULL;
-+	mutex_lock(&dev->dev_mutex);
-+	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
-+	mutex_unlock(&dev->dev_mutex);
-+	kfree(ctx);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_file_operations sunxi_cedrus_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= sunxi_cedrus_open,
-+	.release	= sunxi_cedrus_release,
-+	.poll		= v4l2_m2m_fop_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+	.mmap		= v4l2_m2m_fop_mmap,
-+};
-+
-+static const struct video_device sunxi_cedrus_video_device = {
-+	.name		= SUNXI_CEDRUS_NAME,
-+	.vfl_dir	= VFL_DIR_M2M,
-+	.fops		= &sunxi_cedrus_fops,
-+	.ioctl_ops	= &sunxi_cedrus_ioctl_ops,
-+	.minor		= -1,
-+	.release	= video_device_release_empty,
-+};
-+
-+static const struct v4l2_m2m_ops sunxi_cedrus_m2m_ops = {
-+	.device_run	= sunxi_cedrus_device_run,
-+	.job_abort	= sunxi_cedrus_job_abort,
-+};
-+
-+static const struct media_device_ops sunxi_cedrus_m2m_media_ops = {
-+	.req_queue = vb2_request_queue,
-+	.req_complete = sunxi_cedrus_request_complete,
-+};
-+
-+static int sunxi_cedrus_probe(struct platform_device *pdev)
-+{
-+	struct sunxi_cedrus_dev *dev;
-+	struct video_device *vfd;
-+	int ret;
-+
-+	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		return -ENOMEM;
-+
-+	dev->dev = &pdev->dev;
-+	dev->pdev = pdev;
-+
-+	ret = sunxi_cedrus_hw_probe(dev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to probe hardware\n");
-+		return ret;
-+	}
-+
-+	mutex_init(&dev->dev_mutex);
-+	spin_lock_init(&dev->irq_lock);
-+
-+	dev->vfd = sunxi_cedrus_video_device;
-+	vfd = &dev->vfd;
-+	vfd->lock = &dev->dev_mutex;
-+	vfd->v4l2_dev = &dev->v4l2_dev;
-+
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, SUNXI_CEDRUS_NAME, sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->mdev.ops = &sunxi_cedrus_m2m_media_ops;
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
-+	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret)
-+		goto unreg_media;
-+
-+	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-+		goto unreg_dev;
-+	}
-+
-+	video_set_drvdata(vfd, dev);
-+	snprintf(vfd->name, sizeof(vfd->name), "%s",
-+		 sunxi_cedrus_video_device.name);
-+	v4l2_info(&dev->v4l2_dev,
-+		  "Device registered as /dev/video%d\n", vfd->num);
-+
-+	platform_set_drvdata(pdev, dev);
-+
-+	dev->m2m_dev = v4l2_m2m_init(&sunxi_cedrus_m2m_ops);
-+	if (IS_ERR(dev->m2m_dev)) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
-+		ret = PTR_ERR(dev->m2m_dev);
-+		goto err_m2m;
-+	}
-+
-+	/* Register the media device node */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret)
-+		goto err_m2m;
-+
-+	return 0;
-+
-+err_m2m:
-+	v4l2_m2m_release(dev->m2m_dev);
-+	video_unregister_device(&dev->vfd);
-+unreg_media:
-+	media_device_unregister(&dev->mdev);
-+unreg_dev:
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+
-+	return ret;
-+}
-+
-+static int sunxi_cedrus_remove(struct platform_device *pdev)
-+{
-+	struct sunxi_cedrus_dev *dev = platform_get_drvdata(pdev);
-+
-+	v4l2_info(&dev->v4l2_dev, "Removing " SUNXI_CEDRUS_NAME);
-+
-+	if (media_devnode_is_registered(dev->mdev.devnode)) {
-+		media_device_unregister(&dev->mdev);
-+		media_device_cleanup(&dev->mdev);
-+	}
-+
-+	v4l2_m2m_release(dev->m2m_dev);
-+	video_unregister_device(&dev->vfd);
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+	sunxi_cedrus_hw_remove(dev);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id of_sunxi_cedrus_match[] = {
-+	{ .compatible = "allwinner,sun4i-a10-video-engine" },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, of_sunxi_cedrus_match);
-+#endif
-+
-+static struct platform_driver sunxi_cedrus_driver = {
-+	.probe		= sunxi_cedrus_probe,
-+	.remove		= sunxi_cedrus_remove,
-+	.driver		= {
-+		.name	= SUNXI_CEDRUS_NAME,
-+		.owner = THIS_MODULE,
-+		.of_match_table = of_match_ptr(of_sunxi_cedrus_match),
-+	},
-+};
-+module_platform_driver(sunxi_cedrus_driver);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Florent Revest <florent.revest@free-electrons.com>");
-+MODULE_DESCRIPTION("Sunxi-Cedrus VPU driver");
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-new file mode 100644
-index 000000000000..bab806c7c28d
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-@@ -0,0 +1,105 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _SUNXI_CEDRUS_COMMON_H_
-+#define _SUNXI_CEDRUS_COMMON_H_
-+
-+#include <linux/platform_device.h>
-+
-+#include <media/videobuf2-v4l2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
-+
-+#define SUNXI_CEDRUS_NAME	"sunxi-cedrus"
-+
-+struct sunxi_cedrus_dev {
-+	struct v4l2_device v4l2_dev;
-+	struct video_device vfd;
-+	struct media_device mdev;
-+	struct media_pad pad[2];
-+	struct platform_device *pdev;
-+	struct device *dev;
-+	struct v4l2_m2m_dev *m2m_dev;
-+
-+	/* Mutex for device file */
-+	struct mutex dev_mutex;
-+	/* Spinlock for interrupt */
-+	spinlock_t irq_lock;
-+
-+	struct clk *mod_clk;
-+	struct clk *ahb_clk;
-+	struct clk *ram_clk;
-+
-+	struct reset_control *rstc;
-+
-+	struct regmap *syscon;
-+
-+	char *base;
-+};
-+
-+struct sunxi_cedrus_fmt {
-+	u32 fourcc;
-+	int depth;
-+	u32 types;
-+	unsigned int num_planes;
-+};
-+
-+struct sunxi_cedrus_ctx {
-+	struct v4l2_fh fh;
-+	struct sunxi_cedrus_dev	*dev;
-+
-+	struct sunxi_cedrus_fmt *vpu_src_fmt;
-+	struct v4l2_pix_format_mplane src_fmt;
-+	struct sunxi_cedrus_fmt *vpu_dst_fmt;
-+	struct v4l2_pix_format_mplane dst_fmt;
-+
-+	struct v4l2_ctrl_handler hdl;
-+
-+	struct vb2_buffer *dst_bufs[VIDEO_MAX_FRAME];
-+
-+	struct v4l2_ctrl *mpeg2_frame_hdr_ctrl;
-+	int job_abort;
-+
-+	struct work_struct try_schedule_work;
-+	struct work_struct run_work;
-+	struct list_head src_list;
-+	struct list_head dst_list;
-+};
-+
-+struct sunxi_cedrus_buffer {
-+	struct vb2_v4l2_buffer vb;
-+	enum vb2_buffer_state state;
-+	struct list_head list;
-+};
-+
-+static inline void sunxi_cedrus_write(struct sunxi_cedrus_dev *dev,
-+				      u32 val, u32 reg)
-+{
-+	writel(val, dev->base + reg);
-+}
-+
-+static inline u32 sunxi_cedrus_read(struct sunxi_cedrus_dev *dev, u32 reg)
-+{
-+	return readl(dev->base + reg);
-+}
-+
-+#endif
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c
-new file mode 100644
-index 000000000000..64ec412c68f2
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.c
-@@ -0,0 +1,228 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <media/videobuf2-dma-contig.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-mem2mem.h>
-+
-+#include "sunxi_cedrus_common.h"
-+#include "sunxi_cedrus_mpeg2.h"
-+#include "sunxi_cedrus_dec.h"
-+#include "sunxi_cedrus_hw.h"
-+
-+void sunxi_cedrus_device_work(struct work_struct *work)
-+{
-+	struct sunxi_cedrus_ctx *ctx = container_of(work,
-+			struct sunxi_cedrus_ctx, run_work);
-+	struct sunxi_cedrus_buffer *buffer_entry;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ctx->dev->irq_lock, flags);
-+
-+	if (list_empty(&ctx->src_list) ||
-+	    list_empty(&ctx->dst_list)) {
-+		pr_err("Empty source and/or destination buffers lists\n");
-+		spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-+		return;
-+	}
-+
-+	buffer_entry = list_last_entry(&ctx->src_list, struct sunxi_cedrus_buffer, list);
-+	list_del(ctx->src_list.prev);
-+
-+	src_buf = &buffer_entry->vb;
-+	v4l2_m2m_buf_done(src_buf, buffer_entry->state);
-+
-+	buffer_entry = list_last_entry(&ctx->dst_list, struct sunxi_cedrus_buffer, list);
-+	list_del(ctx->dst_list.prev);
-+
-+	dst_buf = &buffer_entry->vb;
-+	v4l2_m2m_buf_done(dst_buf, buffer_entry->state);
-+
-+	spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-+
-+	v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
-+}
-+
-+void sunxi_cedrus_device_run(void *priv)
-+{
-+	struct sunxi_cedrus_ctx *ctx = priv;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
-+	struct media_request *src_req, *dst_req;
-+	dma_addr_t src_buf_addr, dst_luma_addr, dst_chroma_addr;
-+	unsigned long flags;
-+	struct v4l2_ctrl_mpeg2_frame_hdr *mpeg2_frame_hdr;
-+	bool mpeg1 = false;
-+
-+	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-+	if (!src_buf) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "No source buffer to prepare\n");
-+		return;
-+	}
-+
-+	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-+	if (!dst_buf) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "No destination buffer to prepare\n");
-+		return;
-+	}
-+
-+	src_buf_addr = vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
-+	dst_luma_addr = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
-+	dst_chroma_addr = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 1);
-+	if (!src_buf || !dst_luma_addr || !dst_chroma_addr) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "Acquiring kernel pointers to buffers failed\n");
-+		return;
-+	}
-+
-+	/* Apply request(s) controls if needed. */
-+
-+	src_req = src_buf->vb2_buf.req_obj.req;
-+	dst_req = dst_buf->vb2_buf.req_obj.req;
-+
-+	if (src_req) {
-+		if (src_req->state != MEDIA_REQUEST_STATE_QUEUED) {
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				 "Unexpected state for request %s\n",
-+				 src_req->debug_str);
-+			return;
-+		}
-+
-+		v4l2_ctrl_request_setup(src_req, &ctx->hdl);
-+	}
-+
-+	if (dst_req && dst_req != src_req) {
-+		if (dst_req->state != MEDIA_REQUEST_STATE_QUEUED) {
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				 "Unexpected state for request %s\n",
-+				 dst_req->debug_str);
-+			return;
-+		}
-+
-+		v4l2_ctrl_request_setup(dst_req, &ctx->hdl);
-+	}
-+
-+	dst_buf->vb2_buf.timestamp = src_buf->vb2_buf.timestamp;
-+	if (src_buf->flags & V4L2_BUF_FLAG_TIMECODE)
-+		dst_buf->timecode = src_buf->timecode;
-+	dst_buf->field = src_buf->field;
-+	dst_buf->flags = src_buf->flags & (V4L2_BUF_FLAG_TIMECODE |
-+		 V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_PFRAME |
-+		 V4L2_BUF_FLAG_BFRAME   | V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
-+
-+	ctx->job_abort = 0;
-+
-+	spin_lock_irqsave(&ctx->dev->irq_lock, flags);
-+
-+	if (ctx->vpu_src_fmt->fourcc == V4L2_PIX_FMT_MPEG2_FRAME) {
-+		if (!ctx->mpeg2_frame_hdr_ctrl) {
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				 "Invalid MPEG2 frame header control\n");
-+			ctx->job_abort = 1;
-+			goto unlock_complete;
-+		}
-+
-+		mpeg2_frame_hdr = (struct v4l2_ctrl_mpeg2_frame_hdr *)
-+				ctx->mpeg2_frame_hdr_ctrl->p_new.p;
-+
-+		sunxi_cedrus_mpeg2_setup(ctx, src_buf_addr, dst_luma_addr,
-+					 dst_chroma_addr, mpeg2_frame_hdr);
-+
-+		mpeg1 = mpeg2_frame_hdr->type == MPEG1;
-+	} else {
-+		ctx->job_abort = 1;
-+	}
-+
-+unlock_complete:
-+	spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-+
-+	/* Complete request(s) controls if needed. */
-+
-+	if (src_req)
-+		v4l2_ctrl_request_complete(src_req, &ctx->hdl);
-+
-+	if (dst_req && dst_req != src_req)
-+		v4l2_ctrl_request_complete(dst_req, &ctx->hdl);
-+
-+	spin_lock_irqsave(&ctx->dev->irq_lock, flags);
-+
-+	if (!ctx->job_abort) {
-+		if (ctx->vpu_src_fmt->fourcc == V4L2_PIX_FMT_MPEG2_FRAME)
-+			sunxi_cedrus_mpeg2_trigger(ctx, mpeg1);
-+	} else {
-+		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_ERROR);
-+		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_ERROR);
-+	}
-+
-+	spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-+
-+	if (ctx->job_abort)
-+		v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
-+}
-+
-+void sunxi_cedrus_job_abort(void *priv)
-+{
-+	struct sunxi_cedrus_ctx *ctx = priv;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
-+	unsigned long flags;
-+
-+	ctx->job_abort = 1;
-+
-+	/*
-+	 * V4L2 m2m and request API cleanup is done here while hardware state
-+	 * cleanup is done in the interrupt context. Doing all the cleanup in
-+	 * the interrupt context is a bit risky, since the job_abort call might
-+	 * originate from the release hook, where interrupts have already been
-+	 * disabled.
-+	 */
-+
-+	spin_lock_irqsave(&ctx->dev->irq_lock, flags);
-+
-+	src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+	if (src_buf)
-+		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_ERROR);
-+
-+	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-+	if (dst_buf)
-+		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_ERROR);
-+
-+	spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-+
-+	v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
-+}
-+
-+void sunxi_cedrus_request_complete(struct media_request *req)
-+{
-+	struct sunxi_cedrus_ctx *ctx;
-+
-+	ctx = (struct sunxi_cedrus_ctx *)
-+			vb2_core_request_find_buffer_priv(req);
-+	if (ctx == NULL)
-+		return;
-+
-+	v4l2_m2m_try_schedule(ctx->fh.m2m_ctx);
-+}
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.h
-new file mode 100644
-index 000000000000..a1a9e4c98850
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_dec.h
-@@ -0,0 +1,36 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _SUNXI_CEDRUS_DEC_H_
-+#define _SUNXI_CEDRUS_DEC_H_
-+
-+extern const struct v4l2_ioctl_ops sunxi_cedrus_ioctl_ops;
-+
-+void sunxi_cedrus_device_work(struct work_struct *work);
-+void sunxi_cedrus_device_run(void *priv);
-+void sunxi_cedrus_job_abort(void *priv);
-+void sunxi_cedrus_request_complete(struct media_request *req);
-+
-+int sunxi_cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
-+			    struct vb2_queue *dst_vq);
-+
-+#endif
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-new file mode 100644
-index 000000000000..1d5d1d3e8531
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.c
-@@ -0,0 +1,201 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/of_reserved_mem.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/interrupt.h>
-+#include <linux/clk.h>
-+#include <linux/regmap.h>
-+#include <linux/reset.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/v4l2-mem2mem.h>
-+
-+#include "sunxi_cedrus_common.h"
-+#include "sunxi_cedrus_regs.h"
-+
-+#define SYSCON_SRAM_CTRL_REG0	0x0
-+#define SYSCON_SRAM_C1_MAP_VE	0x7fffffff
-+
-+static irqreturn_t sunxi_cedrus_ve_irq(int irq, void *dev_id)
-+{
-+	struct sunxi_cedrus_dev *dev = dev_id;
-+	struct sunxi_cedrus_ctx *ctx;
-+	struct sunxi_cedrus_buffer *src_buffer, *dst_buffer;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
-+	unsigned long flags;
-+	unsigned int value, status;
-+
-+	spin_lock_irqsave(&dev->irq_lock, flags);
-+
-+	/* Disable MPEG interrupts and stop the MPEG engine */
-+	value = sunxi_cedrus_read(dev, VE_MPEG_CTRL);
-+	sunxi_cedrus_write(dev, value & (~0xf), VE_MPEG_CTRL);
-+
-+	status = sunxi_cedrus_read(dev, VE_MPEG_STATUS);
-+	sunxi_cedrus_write(dev, 0x0000c00f, VE_MPEG_STATUS);
-+
-+	sunxi_cedrus_write(dev, VE_CTRL_REINIT, VE_CTRL);
-+
-+	ctx = v4l2_m2m_get_curr_priv(dev->m2m_dev);
-+	if (!ctx) {
-+		pr_err("Instance released before the end of transaction\n");
-+		spin_unlock_irqrestore(&dev->irq_lock, flags);
-+
-+		return IRQ_HANDLED;
-+	}
-+
-+	src_vb = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+	dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-+
-+	if (!src_vb || !dst_vb) {
-+		pr_err("Unable to get source and/or destination buffers\n");
-+		spin_unlock_irqrestore(&dev->irq_lock, flags);
-+
-+		return IRQ_HANDLED;
-+	}
-+
-+	src_buffer = container_of(src_vb, struct sunxi_cedrus_buffer, vb);
-+	dst_buffer = container_of(dst_vb, struct sunxi_cedrus_buffer, vb);
-+
-+	/* First bit of MPEG_STATUS indicates success. */
-+	if (ctx->job_abort || !(status & 0x01))
-+		src_buffer->state = dst_buffer->state = VB2_BUF_STATE_ERROR;
-+	else
-+		src_buffer->state = dst_buffer->state = VB2_BUF_STATE_DONE;
-+
-+	list_add_tail(&src_buffer->list, &ctx->src_list);
-+	list_add_tail(&dst_buffer->list, &ctx->dst_list);
-+
-+	spin_unlock_irqrestore(&dev->irq_lock, flags);
-+
-+	schedule_work(&ctx->run_work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+int sunxi_cedrus_hw_probe(struct sunxi_cedrus_dev *dev)
-+{
-+	struct resource *res;
-+	int irq_dec;
-+	int ret;
-+
-+	irq_dec = platform_get_irq(dev->pdev, 0);
-+	if (irq_dec <= 0) {
-+		dev_err(dev->dev, "could not get ve IRQ\n");
-+		return -ENXIO;
-+	}
-+	ret = devm_request_irq(dev->dev, irq_dec, sunxi_cedrus_ve_irq, 0,
-+			       dev_name(dev->dev), dev);
-+	if (ret) {
-+		dev_err(dev->dev, "could not request ve IRQ\n");
-+		return -ENXIO;
-+	}
-+
-+	/*
-+	 * The VPU is only able to handle bus addresses so we have to subtract
-+	 * the RAM offset to the physcal addresses.
-+	 */
-+	dev->dev->dma_pfn_offset = PHYS_PFN_OFFSET;
-+
-+	ret = of_reserved_mem_device_init(dev->dev);
-+	if (ret) {
-+		dev_err(dev->dev, "could not reserve memory\n");
-+		return -ENODEV;
-+	}
-+
-+	dev->ahb_clk = devm_clk_get(dev->dev, "ahb");
-+	if (IS_ERR(dev->ahb_clk)) {
-+		dev_err(dev->dev, "failed to get ahb clock\n");
-+		return PTR_ERR(dev->ahb_clk);
-+	}
-+	dev->mod_clk = devm_clk_get(dev->dev, "mod");
-+	if (IS_ERR(dev->mod_clk)) {
-+		dev_err(dev->dev, "failed to get mod clock\n");
-+		return PTR_ERR(dev->mod_clk);
-+	}
-+	dev->ram_clk = devm_clk_get(dev->dev, "ram");
-+	if (IS_ERR(dev->ram_clk)) {
-+		dev_err(dev->dev, "failed to get ram clock\n");
-+		return PTR_ERR(dev->ram_clk);
-+	}
-+
-+	dev->rstc = devm_reset_control_get(dev->dev, NULL);
-+
-+	res = platform_get_resource(dev->pdev, IORESOURCE_MEM, 0);
-+	dev->base = devm_ioremap_resource(dev->dev, res);
-+	if (!dev->base)
-+		dev_err(dev->dev, "could not maps MACC registers\n");
-+
-+	dev->syscon = syscon_regmap_lookup_by_phandle(dev->dev->of_node,
-+						      "syscon");
-+	if (IS_ERR(dev->syscon)) {
-+		dev->syscon = NULL;
-+	} else {
-+		regmap_write_bits(dev->syscon, SYSCON_SRAM_CTRL_REG0,
-+				  SYSCON_SRAM_C1_MAP_VE,
-+				  SYSCON_SRAM_C1_MAP_VE);
-+	}
-+
-+	ret = clk_prepare_enable(dev->ahb_clk);
-+	if (ret) {
-+		dev_err(dev->dev, "could not enable ahb clock\n");
-+		return -EFAULT;
-+	}
-+	ret = clk_prepare_enable(dev->mod_clk);
-+	if (ret) {
-+		clk_disable_unprepare(dev->ahb_clk);
-+		dev_err(dev->dev, "could not enable mod clock\n");
-+		return -EFAULT;
-+	}
-+	ret = clk_prepare_enable(dev->ram_clk);
-+	if (ret) {
-+		clk_disable_unprepare(dev->mod_clk);
-+		clk_disable_unprepare(dev->ahb_clk);
-+		dev_err(dev->dev, "could not enable ram clock\n");
-+		return -EFAULT;
-+	}
-+
-+	ret = reset_control_reset(dev->rstc);
-+	if (ret) {
-+		clk_disable_unprepare(dev->ram_clk);
-+		clk_disable_unprepare(dev->mod_clk);
-+		clk_disable_unprepare(dev->ahb_clk);
-+		dev_err(dev->dev, "could not reset device\n");
-+		return -EFAULT;
-+	}
-+
-+	return 0;
-+}
-+
-+void sunxi_cedrus_hw_remove(struct sunxi_cedrus_dev *dev)
-+{
-+	reset_control_assert(dev->rstc);
-+
-+	clk_disable_unprepare(dev->ram_clk);
-+	clk_disable_unprepare(dev->mod_clk);
-+	clk_disable_unprepare(dev->ahb_clk);
-+
-+	of_reserved_mem_device_release(dev->dev);
-+}
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h
-new file mode 100644
-index 000000000000..8184d7591363
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_hw.h
-@@ -0,0 +1,29 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _SUNXI_CEDRUS_HW_H_
-+#define _SUNXI_CEDRUS_HW_H_
-+
-+int sunxi_cedrus_hw_probe(struct sunxi_cedrus_dev *dev);
-+void sunxi_cedrus_hw_remove(struct sunxi_cedrus_dev *dev);
-+
-+#endif
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
-new file mode 100644
-index 000000000000..aa86c2f9c49a
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.c
-@@ -0,0 +1,157 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <media/videobuf2-dma-contig.h>
-+
-+#include "sunxi_cedrus_common.h"
-+#include "sunxi_cedrus_regs.h"
-+
-+static const u8 mpeg_default_intra_quant[64] = {
-+	 8, 16, 16, 19, 16, 19, 22, 22,
-+	22, 22, 22, 22, 26, 24, 26, 27,
-+	27, 27, 26, 26, 26, 26, 27, 27,
-+	27, 29, 29, 29, 34, 34, 34, 29,
-+	29, 29, 27, 27, 29, 29, 32, 32,
-+	34, 34, 37, 38, 37, 35, 35, 34,
-+	35, 38, 38, 40, 40, 40, 48, 48,
-+	46, 46, 56, 56, 58, 69, 69, 83
-+};
-+
-+#define m_iq(i) (((64 + i) << 8) | mpeg_default_intra_quant[i])
-+
-+static const u8 mpeg_default_non_intra_quant[64] = {
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16,
-+	16, 16, 16, 16, 16, 16, 16, 16
-+};
-+
-+#define m_niq(i) ((i << 8) | mpeg_default_non_intra_quant[i])
-+
-+void sunxi_cedrus_mpeg2_setup(struct sunxi_cedrus_ctx *ctx,
-+			      dma_addr_t src_buf_addr,
-+			      dma_addr_t dst_luma_addr,
-+			      dma_addr_t dst_chroma_addr,
-+			      struct v4l2_ctrl_mpeg2_frame_hdr *frame_hdr)
-+{
-+	struct sunxi_cedrus_dev *dev = ctx->dev;
-+
-+	u16 width = DIV_ROUND_UP(frame_hdr->width, 16);
-+	u16 height = DIV_ROUND_UP(frame_hdr->height, 16);
-+
-+	u32 pic_header = 0;
-+	u32 vld_len = frame_hdr->slice_len - frame_hdr->slice_pos;
-+	int i;
-+
-+	struct vb2_buffer *fwd_vb2_buf, *bwd_vb2_buf;
-+	dma_addr_t fwd_luma = 0, fwd_chroma = 0, bwd_luma = 0, bwd_chroma = 0;
-+
-+
-+	fwd_vb2_buf = ctx->dst_bufs[frame_hdr->forward_ref_index];
-+	if (fwd_vb2_buf) {
-+		fwd_luma = vb2_dma_contig_plane_dma_addr(fwd_vb2_buf, 0);
-+		fwd_chroma = vb2_dma_contig_plane_dma_addr(fwd_vb2_buf, 1);
-+	}
-+
-+	bwd_vb2_buf = ctx->dst_bufs[frame_hdr->backward_ref_index];
-+	if (bwd_vb2_buf) {
-+		bwd_luma = vb2_dma_contig_plane_dma_addr(bwd_vb2_buf, 0);
-+		bwd_chroma = vb2_dma_contig_plane_dma_addr(bwd_vb2_buf, 1);
-+	}
-+
-+	/* Activate MPEG engine. */
-+	sunxi_cedrus_write(dev, VE_CTRL_MPEG, VE_CTRL);
-+
-+	/* Set quantization matrices. */
-+	for (i = 0; i < 64; i++) {
-+		sunxi_cedrus_write(dev, m_iq(i), VE_MPEG_IQ_MIN_INPUT);
-+		sunxi_cedrus_write(dev, m_niq(i), VE_MPEG_IQ_MIN_INPUT);
-+	}
-+
-+	/* Set frame dimensions. */
-+	sunxi_cedrus_write(dev, width << 8 | height, VE_MPEG_SIZE);
-+	sunxi_cedrus_write(dev, width << 20 | height << 4, VE_MPEG_FRAME_SIZE);
-+
-+	/* Set MPEG picture header. */
-+	pic_header |= (frame_hdr->picture_coding_type & 0xf) << 28;
-+	pic_header |= (frame_hdr->f_code[0][0] & 0xf) << 24;
-+	pic_header |= (frame_hdr->f_code[0][1] & 0xf) << 20;
-+	pic_header |= (frame_hdr->f_code[1][0] & 0xf) << 16;
-+	pic_header |= (frame_hdr->f_code[1][1] & 0xf) << 12;
-+	pic_header |= (frame_hdr->intra_dc_precision & 0x3) << 10;
-+	pic_header |= (frame_hdr->picture_structure & 0x3) << 8;
-+	pic_header |= (frame_hdr->top_field_first & 0x1) << 7;
-+	pic_header |= (frame_hdr->frame_pred_frame_dct & 0x1) << 6;
-+	pic_header |= (frame_hdr->concealment_motion_vectors & 0x1) << 5;
-+	pic_header |= (frame_hdr->q_scale_type & 0x1) << 4;
-+	pic_header |= (frame_hdr->intra_vlc_format & 0x1) << 3;
-+	pic_header |= (frame_hdr->alternate_scan & 0x1) << 2;
-+	sunxi_cedrus_write(dev, pic_header, VE_MPEG_PIC_HDR);
-+
-+	/* Enable interrupt and an unknown control flag. */
-+	sunxi_cedrus_write(dev, VE_MPEG_CTRL_MPEG2, VE_MPEG_CTRL);
-+
-+	/* Macroblock address. */
-+	sunxi_cedrus_write(dev, 0, VE_MPEG_MBA);
-+
-+	/* Clear previous errors. */
-+	sunxi_cedrus_write(dev, 0, VE_MPEG_ERROR);
-+
-+	/* Clear correct macroblocks register. */
-+	sunxi_cedrus_write(dev, 0, VE_MPEG_CTR_MB);
-+
-+	/* Forward and backward prediction reference buffers. */
-+	sunxi_cedrus_write(dev, fwd_luma, VE_MPEG_FWD_LUMA);
-+	sunxi_cedrus_write(dev, fwd_chroma, VE_MPEG_FWD_CHROMA);
-+	sunxi_cedrus_write(dev, bwd_luma, VE_MPEG_BACK_LUMA);
-+	sunxi_cedrus_write(dev, bwd_chroma, VE_MPEG_BACK_CHROMA);
-+
-+	/* Desination luma and chroma buffers. */
-+	sunxi_cedrus_write(dev, dst_luma_addr, VE_MPEG_REC_LUMA);
-+	sunxi_cedrus_write(dev, dst_chroma_addr, VE_MPEG_REC_CHROMA);
-+	sunxi_cedrus_write(dev, dst_luma_addr, VE_MPEG_ROT_LUMA);
-+	sunxi_cedrus_write(dev, dst_chroma_addr, VE_MPEG_ROT_CHROMA);
-+
-+	/* Source offset and length in bits. */
-+	sunxi_cedrus_write(dev, frame_hdr->slice_pos, VE_MPEG_VLD_OFFSET);
-+	sunxi_cedrus_write(dev, vld_len, VE_MPEG_VLD_LEN);
-+
-+	/* Source beginning and end addresses. */
-+	sunxi_cedrus_write(dev, VE_MPEG_VLD_ADDR_VAL(src_buf_addr),
-+			   VE_MPEG_VLD_ADDR);
-+	sunxi_cedrus_write(dev, src_buf_addr + VBV_SIZE - 1, VE_MPEG_VLD_END);
-+}
-+
-+void sunxi_cedrus_mpeg2_trigger(struct sunxi_cedrus_ctx *ctx, bool mpeg1)
-+{
-+	struct sunxi_cedrus_dev *dev = ctx->dev;
-+
-+	/* Trigger MPEG engine. */
-+	if (mpeg1)
-+		sunxi_cedrus_write(dev, VE_TRIG_MPEG1, VE_MPEG_TRIGGER);
-+	else
-+		sunxi_cedrus_write(dev, VE_TRIG_MPEG2, VE_MPEG_TRIGGER);
-+}
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h
-new file mode 100644
-index 000000000000..4ab532ff173c
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mpeg2.h
-@@ -0,0 +1,33 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _SUNXI_CEDRUS_MPEG2_H_
-+#define _SUNXI_CEDRUS_MPEG2_H_
-+
-+void sunxi_cedrus_mpeg2_setup(struct sunxi_cedrus_ctx *ctx,
-+			      dma_addr_t src_buf_addr,
-+			      dma_addr_t dst_luma_addr,
-+			      dma_addr_t dst_chroma_addr,
-+			      struct v4l2_ctrl_mpeg2_frame_hdr *frame_hdr);
-+void sunxi_cedrus_mpeg2_trigger(struct sunxi_cedrus_ctx *ctx, bool mpeg1);
-+
-+#endif
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_regs.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_regs.h
-new file mode 100644
-index 000000000000..ff5f79878ada
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_regs.h
-@@ -0,0 +1,172 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _SUNXI_CEDRUS_REGS_H_
-+#define _SUNXI_CEDRUS_REGS_H_
-+
-+/*
-+ * For more information, consult http://linux-sunxi.org/VE_Register_guide
-+ */
-+
-+/* Special registers values */
-+
-+/* VE_CTRL:
-+ * The first 3 bits indicate the engine (0 for MPEG, 1 for H264, b for AVC...)
-+ * The 16th and 17th bits indicate the memory type (3 for DDR3 32 bits)
-+ * The 20th bit is unknown but needed
-+ */
-+#define VE_CTRL_MPEG		0x130000
-+#define VE_CTRL_H264		0x130001
-+#define VE_CTRL_AVC		0x13000b
-+#define VE_CTRL_REINIT		0x130007
-+
-+/* VE_MPEG_CTRL:
-+ * The bit 3 (0x8) is used to enable IRQs
-+ * The other bits are unknown but needed
-+ */
-+#define VE_MPEG_CTRL_MPEG2	0x800001b8
-+#define VE_MPEG_CTRL_MPEG4	(0x80084118 | BIT(7))
-+#define VE_MPEG_CTRL_MPEG4_P	(VE_MPEG_CTRL_MPEG4 | BIT(12))
-+
-+/* VE_MPEG_VLD_ADDR:
-+ * The bits 27 to 4 are used for the address
-+ * The bits 31 to 28 (0x7) are used to select the MPEG or JPEG engine
-+ */
-+#define VE_MPEG_VLD_ADDR_VAL(x)	((x & 0x0ffffff0) | (x >> 28) | (0x7 << 28))
-+
-+/* VE_MPEG_TRIGGER:
-+ * The first three bits are used to trigger the engine
-+ * The bits 24 to 26 are used to select the input format (1 for MPEG1, 2 for
-+ *                           MPEG2, 4 for MPEG4)
-+ * The bit 21 (0x8) is used to disable bitstream error handling
-+ *
-+ * In MPEG4 the w*h value is somehow used for an offset, unknown but needed
-+ */
-+#define VE_TRIG_MPEG1		0x8100000f
-+#define VE_TRIG_MPEG2		0x8200000f
-+#define VE_TRIG_MPEG4(w, h)	(0x8400000d | ((w * h) << 8))
-+
-+/* VE_MPEG_SDROT_CTRL:
-+ * The bit 8 at zero is used to disable x downscaling
-+ * The bit 10 at 0 is used to disable y downscaling
-+ * The other bits are unknown but needed
-+ */
-+#define VE_NO_SDROT_CTRL	0x40620000
-+
-+/* Decent size fo video buffering verifier */
-+#define VBV_SIZE		(1024 * 1024)
-+
-+/* Registers addresses */
-+#define VE_CTRL				0x000
-+#define VE_VERSION			0x0f0
-+
-+#define VE_MPEG_PIC_HDR			0x100
-+#define VE_MPEG_VOP_HDR			0x104
-+#define VE_MPEG_SIZE			0x108
-+#define VE_MPEG_FRAME_SIZE		0x10c
-+#define VE_MPEG_MBA			0x110
-+#define VE_MPEG_CTRL			0x114
-+#define VE_MPEG_TRIGGER			0x118
-+#define VE_MPEG_STATUS			0x11c
-+#define VE_MPEG_TRBTRD_FIELD		0x120
-+#define VE_MPEG_TRBTRD_FRAME		0x124
-+#define VE_MPEG_VLD_ADDR		0x128
-+#define VE_MPEG_VLD_OFFSET		0x12c
-+#define VE_MPEG_VLD_LEN			0x130
-+#define VE_MPEG_VLD_END			0x134
-+#define VE_MPEG_MBH_ADDR		0x138
-+#define VE_MPEG_DCAC_ADDR		0x13c
-+#define VE_MPEG_NCF_ADDR		0x144
-+#define VE_MPEG_REC_LUMA		0x148
-+#define VE_MPEG_REC_CHROMA		0x14c
-+#define VE_MPEG_FWD_LUMA		0x150
-+#define VE_MPEG_FWD_CHROMA		0x154
-+#define VE_MPEG_BACK_LUMA		0x158
-+#define VE_MPEG_BACK_CHROMA		0x15c
-+#define VE_MPEG_IQ_MIN_INPUT		0x180
-+#define VE_MPEG_QP_INPUT		0x184
-+#define VE_MPEG_JPEG_SIZE		0x1b8
-+#define VE_MPEG_JPEG_RES_INT		0x1c0
-+#define VE_MPEG_ERROR			0x1c4
-+#define VE_MPEG_CTR_MB			0x1c8
-+#define VE_MPEG_ROT_LUMA		0x1cc
-+#define VE_MPEG_ROT_CHROMA		0x1d0
-+#define VE_MPEG_SDROT_CTRL		0x1d4
-+#define VE_MPEG_RAM_WRITE_PTR		0x1e0
-+#define VE_MPEG_RAM_WRITE_DATA		0x1e4
-+
-+#define VE_H264_FRAME_SIZE		0x200
-+#define VE_H264_PIC_HDR			0x204
-+#define VE_H264_SLICE_HDR		0x208
-+#define VE_H264_SLICE_HDR2		0x20c
-+#define VE_H264_PRED_WEIGHT		0x210
-+#define VE_H264_QP_PARAM		0x21c
-+#define VE_H264_CTRL			0x220
-+#define VE_H264_TRIGGER			0x224
-+#define VE_H264_STATUS			0x228
-+#define VE_H264_CUR_MB_NUM		0x22c
-+#define VE_H264_VLD_ADDR		0x230
-+#define VE_H264_VLD_OFFSET		0x234
-+#define VE_H264_VLD_LEN			0x238
-+#define VE_H264_VLD_END			0x23c
-+#define VE_H264_SDROT_CTRL		0x240
-+#define VE_H264_OUTPUT_FRAME_IDX	0x24c
-+#define VE_H264_EXTRA_BUFFER1		0x250
-+#define VE_H264_EXTRA_BUFFER2		0x254
-+#define VE_H264_BASIC_BITS		0x2dc
-+#define VE_H264_RAM_WRITE_PTR		0x2e0
-+#define VE_H264_RAM_WRITE_DATA		0x2e4
-+
-+#define VE_SRAM_H264_PRED_WEIGHT_TABLE	0x000
-+#define VE_SRAM_H264_FRAMEBUFFER_LIST	0x400
-+#define VE_SRAM_H264_REF_LIST0		0x640
-+#define VE_SRAM_H264_REF_LIST1		0x664
-+#define VE_SRAM_H264_SCALING_LISTS	0x800
-+
-+#define VE_ISP_INPUT_SIZE		0xa00
-+#define VE_ISP_INPUT_STRIDE		0xa04
-+#define VE_ISP_CTRL			0xa08
-+#define VE_ISP_INPUT_LUMA		0xa78
-+#define VE_ISP_INPUT_CHROMA		0xa7c
-+
-+#define VE_AVC_PARAM			0xb04
-+#define VE_AVC_QP			0xb08
-+#define VE_AVC_MOTION_EST		0xb10
-+#define VE_AVC_CTRL			0xb14
-+#define VE_AVC_TRIGGER			0xb18
-+#define VE_AVC_STATUS			0xb1c
-+#define VE_AVC_BASIC_BITS		0xb20
-+#define VE_AVC_UNK_BUF			0xb60
-+#define VE_AVC_VLE_ADDR			0xb80
-+#define VE_AVC_VLE_END			0xb84
-+#define VE_AVC_VLE_OFFSET		0xb88
-+#define VE_AVC_VLE_MAX			0xb8c
-+#define VE_AVC_VLE_LENGTH		0xb90
-+#define VE_AVC_REF_LUMA			0xba0
-+#define VE_AVC_REF_CHROMA		0xba4
-+#define VE_AVC_REC_LUMA			0xbb0
-+#define VE_AVC_REC_CHROMA		0xbb4
-+#define VE_AVC_REF_SLUMA		0xbb8
-+#define VE_AVC_REC_SLUMA		0xbbc
-+#define VE_AVC_MB_INFO			0xbc0
-+
-+#endif
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
-new file mode 100644
-index 000000000000..8bbec294bc91
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
-@@ -0,0 +1,497 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <media/videobuf2-dma-contig.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-mem2mem.h>
-+
-+#include "sunxi_cedrus_common.h"
-+#include "sunxi_cedrus_mpeg2.h"
-+#include "sunxi_cedrus_dec.h"
-+#include "sunxi_cedrus_hw.h"
-+
-+/* Flags that indicate a format can be used for capture/output. */
-+#define SUNXI_CEDRUS_CAPTURE	BIT(0)
-+#define SUNXI_CEDRUS_OUTPUT	BIT(1)
-+
-+#define SUNXI_CEDRUS_MIN_WIDTH	16U
-+#define SUNXI_CEDRUS_MIN_HEIGHT	16U
-+#define SUNXI_CEDRUS_MAX_WIDTH	3840U
-+#define SUNXI_CEDRUS_MAX_HEIGHT	2160U
-+
-+static struct sunxi_cedrus_fmt formats[] = {
-+	{
-+		.fourcc = V4L2_PIX_FMT_MB32_NV12,
-+		.types	= SUNXI_CEDRUS_CAPTURE,
-+		.depth = 2,
-+		.num_planes = 2,
-+	},
-+	{
-+		.fourcc = V4L2_PIX_FMT_MPEG2_FRAME,
-+		.types	= SUNXI_CEDRUS_OUTPUT,
-+		.num_planes = 1,
-+	},
-+};
-+
-+#define NUM_FORMATS ARRAY_SIZE(formats)
-+
-+static struct sunxi_cedrus_fmt *find_format(struct v4l2_format *f)
-+{
-+	struct sunxi_cedrus_fmt *fmt;
-+	unsigned int k;
-+
-+	for (k = 0; k < NUM_FORMATS; k++) {
-+		fmt = &formats[k];
-+		if (fmt->fourcc == f->fmt.pix_mp.pixelformat)
-+			break;
-+	}
-+
-+	if (k == NUM_FORMATS)
-+		return NULL;
-+
-+	return &formats[k];
-+}
-+
-+static inline struct sunxi_cedrus_ctx *file2ctx(struct file *file)
-+{
-+	return container_of(file->private_data, struct sunxi_cedrus_ctx, fh);
-+}
-+
-+static int vidioc_querycap(struct file *file, void *priv,
-+			   struct v4l2_capability *cap)
-+{
-+	strncpy(cap->driver, SUNXI_CEDRUS_NAME, sizeof(cap->driver) - 1);
-+	strncpy(cap->card, SUNXI_CEDRUS_NAME, sizeof(cap->card) - 1);
-+	snprintf(cap->bus_info, sizeof(cap->bus_info),
-+		 "platform:%s", SUNXI_CEDRUS_NAME);
-+	cap->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	return 0;
-+}
-+
-+static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
-+{
-+	struct sunxi_cedrus_fmt *fmt;
-+	int i, num = 0;
-+
-+	for (i = 0; i < NUM_FORMATS; ++i) {
-+		if (formats[i].types & type) {
-+			/* index-th format of type type found ? */
-+			if (num == f->index)
-+				break;
-+			/*
-+			 * Correct type but haven't reached our index yet,
-+			 * just increment per-type index
-+			 */
-+			++num;
-+		}
-+	}
-+
-+	if (i < NUM_FORMATS) {
-+		fmt = &formats[i];
-+		f->pixelformat = fmt->fourcc;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-+				   struct v4l2_fmtdesc *f)
-+{
-+	return enum_fmt(f, SUNXI_CEDRUS_CAPTURE);
-+}
-+
-+static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-+				   struct v4l2_fmtdesc *f)
-+{
-+	return enum_fmt(f, SUNXI_CEDRUS_OUTPUT);
-+}
-+
-+static int vidioc_g_fmt(struct sunxi_cedrus_ctx *ctx, struct v4l2_format *f)
-+{
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		f->fmt.pix_mp = ctx->dst_fmt;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		f->fmt.pix_mp = ctx->src_fmt;
-+		break;
-+	default:
-+		dev_dbg(ctx->dev->dev, "invalid buf type\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	return vidioc_g_fmt(file2ctx(file), f);
-+}
-+
-+static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	return vidioc_g_fmt(file2ctx(file), f);
-+}
-+
-+static int vidioc_try_fmt(struct v4l2_format *f, struct sunxi_cedrus_fmt *fmt)
-+{
-+	int i;
-+	__u32 bpl;
-+
-+	f->fmt.pix_mp.field = V4L2_FIELD_NONE;
-+	f->fmt.pix_mp.num_planes = fmt->num_planes;
-+
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (f->fmt.pix_mp.plane_fmt[0].sizeimage == 0)
-+			return -EINVAL;
-+
-+		f->fmt.pix_mp.plane_fmt[0].bytesperline = 0;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		/* Limit to hardware min/max. */
-+		f->fmt.pix_mp.width = clamp(f->fmt.pix_mp.width,
-+			SUNXI_CEDRUS_MIN_WIDTH, SUNXI_CEDRUS_MAX_WIDTH);
-+		f->fmt.pix_mp.height = clamp(f->fmt.pix_mp.height,
-+			SUNXI_CEDRUS_MIN_HEIGHT, SUNXI_CEDRUS_MAX_HEIGHT);
-+
-+		for (i = 0; i < f->fmt.pix_mp.num_planes; ++i) {
-+			bpl = (f->fmt.pix_mp.width * fmt->depth) >> 3;
-+			f->fmt.pix_mp.plane_fmt[i].bytesperline = bpl;
-+			f->fmt.pix_mp.plane_fmt[i].sizeimage =
-+				f->fmt.pix_mp.height * bpl;
-+		}
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-+				  struct v4l2_format *f)
-+{
-+	struct sunxi_cedrus_fmt *fmt;
-+	struct sunxi_cedrus_ctx *ctx = file2ctx(file);
-+
-+	fmt = find_format(f);
-+	if (!fmt) {
-+		f->fmt.pix_mp.pixelformat = formats[0].fourcc;
-+		fmt = find_format(f);
-+	}
-+	if (!(fmt->types & SUNXI_CEDRUS_CAPTURE)) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "Fourcc format (0x%08x) invalid.\n",
-+			 f->fmt.pix_mp.pixelformat);
-+		return -EINVAL;
-+	}
-+
-+	return vidioc_try_fmt(f, fmt);
-+}
-+
-+static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-+				  struct v4l2_format *f)
-+{
-+	struct sunxi_cedrus_fmt *fmt;
-+	struct sunxi_cedrus_ctx *ctx = file2ctx(file);
-+
-+	fmt = find_format(f);
-+	if (!fmt) {
-+		f->fmt.pix_mp.pixelformat = formats[0].fourcc;
-+		fmt = find_format(f);
-+	}
-+	if (!(fmt->types & SUNXI_CEDRUS_OUTPUT)) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "Fourcc format (0x%08x) invalid.\n",
-+			 f->fmt.pix_mp.pixelformat);
-+		return -EINVAL;
-+	}
-+
-+	return vidioc_try_fmt(f, fmt);
-+}
-+
-+static int vidioc_s_fmt(struct sunxi_cedrus_ctx *ctx, struct v4l2_format *f)
-+{
-+	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
-+	struct sunxi_cedrus_fmt *fmt;
-+	int i, ret = 0;
-+
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		ctx->vpu_src_fmt = find_format(f);
-+		ctx->src_fmt = *pix_fmt_mp;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		fmt = find_format(f);
-+		ctx->vpu_dst_fmt = fmt;
-+
-+		for (i = 0; i < fmt->num_planes; ++i) {
-+			pix_fmt_mp->plane_fmt[i].bytesperline =
-+				pix_fmt_mp->width * fmt->depth;
-+			pix_fmt_mp->plane_fmt[i].sizeimage =
-+				pix_fmt_mp->plane_fmt[i].bytesperline
-+				* pix_fmt_mp->height;
-+		}
-+		ctx->dst_fmt = *pix_fmt_mp;
-+		break;
-+	default:
-+		dev_dbg(ctx->dev->dev, "invalid buf type\n");
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	int ret;
-+
-+	ret = vidioc_try_fmt_vid_cap(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	return vidioc_s_fmt(file2ctx(file), f);
-+}
-+
-+static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	int ret;
-+
-+	ret = vidioc_try_fmt_vid_out(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	ret = vidioc_s_fmt(file2ctx(file), f);
-+	return ret;
-+}
-+
-+const struct v4l2_ioctl_ops sunxi_cedrus_ioctl_ops = {
-+	.vidioc_querycap		= vidioc_querycap,
-+
-+	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap_mplane	= vidioc_g_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap_mplane	= vidioc_try_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap_mplane	= vidioc_s_fmt_vid_cap,
-+
-+	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out,
-+	.vidioc_g_fmt_vid_out_mplane	= vidioc_g_fmt_vid_out,
-+	.vidioc_try_fmt_vid_out_mplane	= vidioc_try_fmt_vid_out,
-+	.vidioc_s_fmt_vid_out_mplane	= vidioc_s_fmt_vid_out,
-+
-+	.vidioc_reqbufs			= v4l2_m2m_ioctl_reqbufs,
-+	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
-+	.vidioc_qbuf			= v4l2_m2m_ioctl_qbuf,
-+	.vidioc_dqbuf			= v4l2_m2m_ioctl_dqbuf,
-+	.vidioc_prepare_buf		= v4l2_m2m_ioctl_prepare_buf,
-+	.vidioc_create_bufs		= v4l2_m2m_ioctl_create_bufs,
-+	.vidioc_expbuf			= v4l2_m2m_ioctl_expbuf,
-+
-+	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
-+	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
-+
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-+};
-+
-+static int sunxi_cedrus_queue_setup(struct vb2_queue *vq, unsigned int *nbufs,
-+				    unsigned int *nplanes, unsigned int sizes[],
-+				    struct device *alloc_devs[])
-+{
-+	struct sunxi_cedrus_ctx *ctx = vb2_get_drv_priv(vq);
-+
-+	if (*nbufs < 1)
-+		*nbufs = 1;
-+
-+	if (*nbufs > VIDEO_MAX_FRAME)
-+		*nbufs = VIDEO_MAX_FRAME;
-+
-+	switch (vq->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		*nplanes = ctx->vpu_src_fmt->num_planes;
-+
-+		sizes[0] = ctx->src_fmt.plane_fmt[0].sizeimage;
-+		break;
-+
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		*nplanes = ctx->vpu_dst_fmt->num_planes;
-+
-+		sizes[0] = round_up(ctx->dst_fmt.plane_fmt[0].sizeimage, 8);
-+		sizes[1] = sizes[0];
-+		break;
-+
-+	default:
-+		dev_dbg(ctx->dev->dev, "invalid queue type: %d\n", vq->type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sunxi_cedrus_buf_init(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct sunxi_cedrus_ctx *ctx = container_of(vq->drv_priv,
-+			struct sunxi_cedrus_ctx, fh);
-+
-+	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		ctx->dst_bufs[vb->index] = vb;
-+
-+	return 0;
-+}
-+
-+static void sunxi_cedrus_buf_cleanup(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	struct sunxi_cedrus_ctx *ctx = container_of(vq->drv_priv,
-+			struct sunxi_cedrus_ctx, fh);
-+
-+	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		ctx->dst_bufs[vb->index] = NULL;
-+}
-+
-+static int sunxi_cedrus_buf_prepare(struct vb2_buffer *vb)
-+{
-+	struct sunxi_cedrus_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vb2_queue *vq = vb->vb2_queue;
-+	int i;
-+
-+	dev_dbg(ctx->dev->dev, "type: %d\n", vb->vb2_queue->type);
-+
-+	switch (vq->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (vb2_plane_size(vb, 0)
-+		    < ctx->src_fmt.plane_fmt[0].sizeimage) {
-+			dev_dbg(ctx->dev->dev, "plane too small for output\n");
-+			return -EINVAL;
-+		}
-+		break;
-+
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		for (i = 0; i < ctx->vpu_dst_fmt->num_planes; ++i) {
-+			if (vb2_plane_size(vb, i)
-+			    < ctx->dst_fmt.plane_fmt[i].sizeimage) {
-+				dev_dbg(ctx->dev->dev,
-+					"plane %d too small for capture\n", i);
-+				break;
-+			}
-+		}
-+
-+		if (i != ctx->vpu_dst_fmt->num_planes)
-+			return -EINVAL;
-+		break;
-+
-+	default:
-+		dev_dbg(ctx->dev->dev, "invalid queue type: %d\n", vq->type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static void sunxi_cedrus_stop_streaming(struct vb2_queue *q)
-+{
-+	struct sunxi_cedrus_ctx *ctx = vb2_get_drv_priv(q);
-+	struct vb2_v4l2_buffer *vbuf;
-+	unsigned long flags;
-+
-+	flush_scheduled_work();
-+	for (;;) {
-+		spin_lock_irqsave(&ctx->dev->irq_lock, flags);
-+
-+		if (V4L2_TYPE_IS_OUTPUT(q->type))
-+			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+		else
-+			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-+
-+		spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-+
-+		if (vbuf == NULL)
-+			return;
-+
-+		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
-+					   &ctx->hdl);
-+		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
-+	}
-+}
-+
-+static void sunxi_cedrus_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct sunxi_cedrus_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
-+}
-+
-+static struct vb2_ops sunxi_cedrus_qops = {
-+	.queue_setup		= sunxi_cedrus_queue_setup,
-+	.buf_prepare		= sunxi_cedrus_buf_prepare,
-+	.buf_init		= sunxi_cedrus_buf_init,
-+	.buf_cleanup		= sunxi_cedrus_buf_cleanup,
-+	.buf_queue		= sunxi_cedrus_buf_queue,
-+	.stop_streaming		= sunxi_cedrus_stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
-+int sunxi_cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
-+			    struct vb2_queue *dst_vq)
-+{
-+	struct sunxi_cedrus_ctx *ctx = priv;
-+	int ret;
-+
-+	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
-+	src_vq->drv_priv = ctx;
-+	src_vq->buf_struct_size = sizeof(struct sunxi_cedrus_buffer);
-+	src_vq->allow_zero_bytesused = 1;
-+	src_vq->min_buffers_needed = 1;
-+	src_vq->ops = &sunxi_cedrus_qops;
-+	src_vq->mem_ops = &vb2_dma_contig_memops;
-+	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->lock = &ctx->dev->dev_mutex;
-+	src_vq->dev = ctx->dev->dev;
-+
-+	ret = vb2_queue_init(src_vq);
-+	if (ret)
-+		return ret;
-+
-+	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
-+	dst_vq->drv_priv = ctx;
-+	dst_vq->buf_struct_size = sizeof(struct sunxi_cedrus_buffer);
-+	dst_vq->allow_zero_bytesused = 1;
-+	dst_vq->min_buffers_needed = 1;
-+	dst_vq->ops = &sunxi_cedrus_qops;
-+	dst_vq->mem_ops = &vb2_dma_contig_memops;
-+	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->lock = &ctx->dev->dev_mutex;
-+	dst_vq->dev = ctx->dev->dev;
-+
-+	return vb2_queue_init(dst_vq);
-+}
-diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.h
-new file mode 100644
-index 000000000000..d5b7f881c386
---- /dev/null
-+++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.h
-@@ -0,0 +1,31 @@
-+/*
-+ * Sunxi-Cedrus VPU driver
-+ *
-+ * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-+ * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-+ *
-+ * Based on the vim2m driver, that is:
-+ *
-+ * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <pawel@osciak.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _SUNXI_CEDRUS_VIDEO_H_
-+#define _SUNXI_CEDRUS_VIDEO_H_
-+
-+extern const struct v4l2_ioctl_ops sunxi_cedrus_ioctl_ops;
-+
-+int sunxi_cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
-+			    struct vb2_queue *dst_vq);
-+
-+#endif
--- 
-2.16.3
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--PEIAKu/WMn1b1Hv9--
