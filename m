@@ -1,192 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38691 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752414AbeDSKTC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 06:19:02 -0400
-Received: by mail-wr0-f195.google.com with SMTP id h3-v6so12531592wrh.5
-        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:19:01 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH 12/15] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
-Date: Thu, 19 Apr 2018 11:18:09 +0100
-Message-Id: <20180419101812.30688-13-rui.silva@linaro.org>
-In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
-References: <20180419101812.30688-1-rui.silva@linaro.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42757 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753824AbeDCWLd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 18:11:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v13 17/33] rcar-vin: cache video standard
+Date: Wed, 04 Apr 2018 01:11:41 +0300
+Message-ID: <2169799.4QuVgQcVPN@avalon>
+In-Reply-To: <20180326214456.6655-18-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-18-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
-besides the graph connecting the necessary endpoints to make the media capture
-entities to work in imx7 Warp board.
+Hi Niklas,
 
-Also add the pin control related with the mipi_csi in that board.
+Thank you for the patch.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s-warp.dts | 80 ++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++
- 2 files changed, 107 insertions(+)
+On Tuesday, 27 March 2018 00:44:40 EEST Niklas S=F6derlund wrote:
+> At stream on time the driver should not query the subdevice for which
+> standard are used. Instead it should be cached when userspace sets the
+> standard and used at stream on time.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index 8a30b148534d..91d06adf7c24 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -310,6 +310,79 @@
- 	status = "okay";
- };
- 
-+&gpr {
-+	csi_mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_csi_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi_mux_to_csi: endpoint {
-+				remote-endpoint = <&csi_from_csi_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&csi {
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	port@0 {
-+		reg = <0>;
-+
-+		csi_from_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_to_csi>;
-+		};
-+	};
-+};
-+
-+&mipi_csi {
-+	clock-frequency = <166000000>;
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_from_sensor: endpoint {
-+			remote-endpoint = <&ov2680_to_mipi>;
-+			data-lanes = <1>;
-+			csis-hs-settle = <3>;
-+			csis-clk-settle = <0>;
-+			csis-wclk;
-+		};
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_from_mipi_vc0>;
-+		};
-+	};
-+};
-+
- &wdog1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_wdog>;
-@@ -357,6 +430,13 @@
- 		>;
- 	};
- 
-+	pinctrl_mipi_csi: mipi_csi {
-+		fsl,pins = <
-+			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
-+			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6	0x14
-+		>;
-+	};
-+
- 	pinctrl_sai1: sai1grp {
- 		fsl,pins = <
- 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 3027d6a62021..6b49b73053f9 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -46,6 +46,7 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- #include <dt-bindings/interrupt-controller/arm-gic.h>
-+#include <dt-bindings/reset/imx7-reset.h>
- #include "imx7d-pinfunc.h"
- 
- / {
-@@ -753,6 +754,17 @@
- 				status = "disabled";
- 			};
- 
-+			csi: csi@30710000 {
-+				compatible = "fsl,imx7-csi";
-+				reg = <0x30710000 0x10000>;
-+				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_CLK_DUMMY>,
-+						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
-+						<&clks IMX7D_CLK_DUMMY>;
-+				clock-names = "axi", "mclk", "dcic";
-+				status = "disabled";
-+			};
-+
- 			lcdif: lcdif@30730000 {
- 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
- 				reg = <0x30730000 0x10000>;
-@@ -762,6 +774,21 @@
- 				clock-names = "pix", "axi";
- 				status = "disabled";
- 			};
-+
-+			mipi_csi: mipi-csi@30750000 {
-+				compatible = "fsl,imx7-mipi-csi2";
-+				reg = <0x30750000 0x10000>;
-+				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
-+						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
-+				clock-names = "mipi", "phy";
-+				power-domains = <&pgc_mipi_phy>;
-+				phy-supply = <&reg_1p0d>;
-+				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
-+				reset-names = "mrst";
-+				bus-width = <4>;
-+				status = "disabled";
-+			};
- 		};
- 
- 		aips3: aips-bus@30800000 {
--- 
-2.17.0
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c |  6 ++++++
+>  drivers/media/platform/rcar-vin/rcar-dma.c  |  7 ++-----
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++++++--
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+>  4 files changed, 18 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
+> b/drivers/media/platform/rcar-vin/rcar-core.c index
+> be49d8968f0a0cef..8c251687e81b345b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -96,6 +96,12 @@ static int rvin_digital_subdevice_attach(struct rvin_d=
+ev
+> *vin, if (ret < 0 && ret !=3D -ENOIOCTLCMD && ret !=3D -ENODEV)
+>  		return ret;
+>=20
+> +	/* Read standard */
+> +	vin->std =3D V4L2_STD_UNKNOWN;
+> +	ret =3D v4l2_subdev_call(subdev, video, g_std, &vin->std);
+> +	if (ret < 0 && ret !=3D -ENOIOCTLCMD)
+> +		return ret;
+> +
+>  	/* Add the controls */
+>  	ret =3D v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
+>  	if (ret < 0)
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> 9233924e5b52de5f..79f4074b931b5aeb 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -592,7 +592,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  static int rvin_setup(struct rvin_dev *vin)
+>  {
+>  	u32 vnmc, dmr, dmr2, interrupts;
+> -	v4l2_std_id std;
+>  	bool progressive =3D false, output_is_yuv =3D false, input_is_yuv =3D f=
+alse;
+>=20
+>  	switch (vin->format.field) {
+> @@ -606,10 +605,8 @@ static int rvin_setup(struct rvin_dev *vin)
+>  		/* Default to TB */
+>  		vnmc =3D VNMC_IM_FULL;
+>  		/* Use BT if video standard can be read and is 60 Hz format */
+> -		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+> -			if (std & V4L2_STD_525_60)
+> -				vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> -		}
+> +		if (vin->std & V4L2_STD_525_60)
+> +			vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+>  		break;
+>  	case V4L2_FIELD_INTERLACED_TB:
+>  		vnmc =3D VNMC_IM_FULL;
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> c4be0bcb8b16f941..43370c57d4b6239a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -477,6 +477,8 @@ static int rvin_s_std(struct file *file, void *priv,
+> v4l2_std_id a) if (ret < 0)
+>  		return ret;
+>=20
+> +	vin->std =3D a;
+> +
+>  	/* Changing the standard will change the width/height */
+>  	return rvin_reset_format(vin);
+>  }
+> @@ -484,9 +486,13 @@ static int rvin_s_std(struct file *file, void *priv,
+> v4l2_std_id a) static int rvin_g_std(struct file *file, void *priv,
+> v4l2_std_id *a) {
+>  	struct rvin_dev *vin =3D video_drvdata(file);
+> -	struct v4l2_subdev *sd =3D vin_to_source(vin);
+>=20
+> -	return v4l2_subdev_call(sd, video, g_std, a);
+> +	if (v4l2_subdev_has_op(vin_to_source(vin), pad, dv_timings_cap))
+> +		return -ENOIOCTLCMD;
+> +
+> +	*a =3D vin->std;
+> +
+> +	return 0;
+>  }
+>=20
+>  static int rvin_subscribe_event(struct v4l2_fh *fh,
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> b/drivers/media/platform/rcar-vin/rcar-vin.h index
+> e940366d7e8d0e76..06cec4f8e5ffaf2b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -118,6 +118,7 @@ struct rvin_info {
+>   * @crop:		active cropping
+>   * @compose:		active composing
+>   * @source:		active size of the video source
+> + * @std:		active video standard of the video source
+>   */
+>  struct rvin_dev {
+>  	struct device *dev;
+> @@ -146,6 +147,7 @@ struct rvin_dev {
+>  	struct v4l2_rect crop;
+>  	struct v4l2_rect compose;
+>  	struct v4l2_rect source;
+> +	v4l2_std_id std;
+>  };
+>=20
+>  #define vin_to_source(vin)		((vin)->digital->subdev)
+
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
