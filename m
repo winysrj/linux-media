@@ -1,108 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33830 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754059AbeD2ROL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:14:11 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 13/14] media: ov772x: make set_fmt() return -EBUSY while streaming
-Date: Mon, 30 Apr 2018 02:13:12 +0900
-Message-Id: <1525021993-17789-14-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42666 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752813AbeDCVkO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:40:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v13 23/33] rcar-vin: force default colorspace for media centric mode
+Date: Wed, 04 Apr 2018 00:40:23 +0300
+Message-ID: <3928384.BQ7mG5EcqE@avalon>
+In-Reply-To: <20180326214456.6655-24-niklas.soderlund+renesas@ragnatech.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-24-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov772x driver is going to offer a V4L2 sub-device interface, so
-changing the output data format on this sub-device can be made anytime.
-However, the request is preferred to fail while the video stream on the
-device is active.
+Hi Niklas,
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v4
-- No changes
+Thank you for the patch.
 
- drivers/media/i2c/ov772x.c | 35 ++++++++++++++++++++++++++---------
- 1 file changed, 26 insertions(+), 9 deletions(-)
+On Tuesday, 27 March 2018 00:44:46 EEST Niklas S=F6derlund wrote:
+> The V4L2 specification clearly documents the colorspace fields as being
+> set by drivers for capture devices. Using the values supplied by
+> userspace thus wouldn't comply with the API. Until the API is updated to
+> allow for userspace to set these Hans wants the fields to be set by the
+> driver to fixed values.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index bd37169..f3c4f78 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -424,9 +424,10 @@ struct ov772x_priv {
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
- 	struct v4l2_ctrl		 *band_filter_ctrl;
- 	unsigned int			  fps;
--	/* lock to protect power_count */
-+	/* lock to protect power_count and streaming */
- 	struct mutex			  lock;
- 	int				  power_count;
-+	int				  streaming;
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_pad pad;
- #endif
-@@ -603,18 +604,28 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov772x_priv *priv = to_ov772x(sd);
-+	int ret = 0;
- 
--	if (!enable) {
--		ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
--		return 0;
--	}
-+	mutex_lock(&priv->lock);
- 
--	ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, 0);
-+	if (priv->streaming == enable)
-+		goto done;
- 
--	dev_dbg(&client->dev, "format %d, win %s\n",
--		priv->cfmt->code, priv->win->name);
-+	ret = ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE,
-+			      enable ? 0 : SOFT_SLEEP_MODE);
-+	if (ret)
-+		goto done;
- 
--	return 0;
-+	if (enable) {
-+		dev_dbg(&client->dev, "format %d, win %s\n",
-+			priv->cfmt->code, priv->win->name);
-+	}
-+	priv->streaming = enable;
-+
-+done:
-+	mutex_unlock(&priv->lock);
-+
-+	return ret;
- }
- 
- static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
-@@ -1222,6 +1233,12 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
- 	}
- 
- 	mutex_lock(&priv->lock);
-+
-+	if (priv->streaming) {
-+		ret = -EBUSY;
-+		goto error;
-+	}
-+
- 	/*
- 	 * If the device is not powered up by the host driver do
- 	 * not apply any changes to H/W at this time. Instead
--- 
-2.7.4
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++++++++++++++--
+>  1 file changed, 19 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> 2280535ca981993f..ea0759a645e49490 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -664,12 +664,29 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops =
+=3D {
+>   * V4L2 Media Controller
+>   */
+>=20
+> +static int rvin_mc_try_format(struct rvin_dev *vin, struct v4l2_pix_form=
+at
+> *pix) +{
+> +	/*
+> +	 * The V4L2 specification clearly documents the colorspace fields
+> +	 * as being set by drivers for capture devices. Using the values
+> +	 * supplied by userspace thus wouldn't comply with the API. Until
+> +	 * the API is updated force fixed vaules.
+> +	 */
+> +	pix->colorspace =3D RVIN_DEFAULT_COLORSPACE;
+> +	pix->xfer_func =3D V4L2_MAP_XFER_FUNC_DEFAULT(pix->colorspace);
+> +	pix->ycbcr_enc =3D V4L2_MAP_YCBCR_ENC_DEFAULT(pix->colorspace);
+> +	pix->quantization =3D V4L2_MAP_QUANTIZATION_DEFAULT(true, pix->colorspa=
+ce,
+> +							  pix->ycbcr_enc);
+> +
+> +	return rvin_format_align(vin, pix);
+> +}
+> +
+>  static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
+>  				   struct v4l2_format *f)
+>  {
+>  	struct rvin_dev *vin =3D video_drvdata(file);
+>=20
+> -	return rvin_format_align(vin, &f->fmt.pix);
+> +	return rvin_mc_try_format(vin, &f->fmt.pix);
+>  }
+>=20
+>  static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
+> @@ -681,7 +698,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, v=
+oid
+> *priv, if (vb2_is_busy(&vin->queue))
+>  		return -EBUSY;
+>=20
+> -	ret =3D rvin_format_align(vin, &f->fmt.pix);
+> +	ret =3D rvin_mc_try_format(vin, &f->fmt.pix);
+>  	if (ret)
+>  		return ret;
+
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
