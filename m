@@ -1,103 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50512 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754374AbeDWJSr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:18:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+Received: from mail.bootlin.com ([62.4.15.54]:50009 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751095AbeDCOZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Apr 2018 10:25:24 -0400
+Date: Tue, 3 Apr 2018 16:25:13 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v3 02/11] media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
-Date: Mon, 23 Apr 2018 12:18:58 +0300
-Message-ID: <4036479.nT1QDtF4Ij@avalon>
-In-Reply-To: <1524412577-14419-3-git-send-email-akinobu.mita@gmail.com>
-References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com> <1524412577-14419-3-git-send-email-akinobu.mita@gmail.com>
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v8 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20180403142513.435jdbs7u7nathtm@flea>
+References: <20180215133335.9335-1-maxime.ripard@bootlin.com>
+ <20180215133335.9335-3-maxime.ripard@bootlin.com>
+ <20180329133255.GD26532@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="6ghnuyaey5gm4fhd"
+Content-Disposition: inline
+In-Reply-To: <20180329133255.GD26532@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mita-san,
 
-On Sunday, 22 April 2018 18:56:08 EEST Akinobu Mita wrote:
-> The ov772x driver only works when the i2c controller have
-> I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
-> support it.
-> 
-> The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
-> it doesn't support repeated starts.
-> 
-> This changes the reading ov772x register method so that it doesn't
-> require I2C_FUNC_PROTOCOL_MANGLING by calling two separated i2c messages.
+--6ghnuyaey5gm4fhd
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As commented in a reply to v1, given that this implementation is in no way 
-specific to the ov772x driver, I'd prefer implementing the fallback in the I2C 
-core instead.
+Hi Niklas,
 
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
-> * v3
-> - Remove I2C_CLIENT_SCCB flag set as it isn't needed anymore
-> 
->  drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> index b62860c..2ae730f 100644
-> --- a/drivers/media/i2c/ov772x.c
-> +++ b/drivers/media/i2c/ov772x.c
-> @@ -542,9 +542,19 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev
-> *sd) return container_of(sd, struct ov772x_priv, subdev);
->  }
-> 
-> -static inline int ov772x_read(struct i2c_client *client, u8 addr)
-> +static int ov772x_read(struct i2c_client *client, u8 addr)
->  {
-> -	return i2c_smbus_read_byte_data(client, addr);
-> +	int ret;
-> +	u8 val;
-> +
-> +	ret = i2c_master_send(client, &addr, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +	ret = i2c_master_recv(client, &val, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return val;
->  }
-> 
->  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8
-> value) @@ -1255,13 +1265,11 @@ static int ov772x_probe(struct i2c_client
-> *client, return -EINVAL;
->  	}
-> 
-> -	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-> -					      I2C_FUNC_PROTOCOL_MANGLING)) {
-> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
->  		dev_err(&adapter->dev,
-> -			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING
-\n");
-> +			"I2C-Adapter doesn't support SMBUS_BYTE_DATA\n");
->  		return -EIO;
->  	}
-> -	client->flags |= I2C_CLIENT_SCCB;
-> 
->  	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
->  	if (!priv)
+Thanks for your review,
 
+On Thu, Mar 29, 2018 at 03:32:55PM +0200, Niklas S=F6derlund wrote:
+> > diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/pla=
+tform/cadence/Kconfig
+> > new file mode 100644
+> > index 000000000000..18f061e5cbd1
+> > --- /dev/null
+> > +++ b/drivers/media/platform/cadence/Kconfig
+> > @@ -0,0 +1,17 @@
+> > +config VIDEO_CADENCE
+> > +	bool "Cadence Video Devices"
+>=20
+> I'm no expert on Kconfig best practices so if nothing else I might learn=
+=20
+> something. There is no need to add a description to this option as it=20
+> only groups the Cadence drivers?
 
--- 
-Regards,
+You don't strictly need it, but you're right and one should be better,
+I've added it.
 
-Laurent Pinchart
+Maxime
+
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--6ghnuyaey5gm4fhd
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrDjsgACgkQ0rTAlCFN
+r3QLoQ/+Oyl6xPhBeYQjU23lTQIzC6yjPMV+l8hEv/Rr/jgwwwLoNW1iPqsCxuGa
+TNCM5BJHYovSqmaYQ3NlE+ilsMCF4vwi4md+X0IgyYsLRgw+1FblWCJBf3DSIsKG
+/oynhDw/Dw5WaQg3ncqBkmGlUZL4nDw3o+j5VZST6VoNS+4BNZPVuucdwKV7vZ8o
+aH3VkmxIIiaPMB8ncH2jXEql6EsHpuaWpbya6bdF0qIDcLSKILYMM8GUg3cGvhBk
+i5Co3MBY6YXiI8vbS5LV9wZVKuVrPqLPJjYLPqeMfLo94bFNnGuhH59xjyhCGB/C
+7fmXxicD/l46SwNL7GWaTFuAhuE29Zijtt95PY6JxmEZL/zLeSNO0PxwVtO6aO6z
+DHAtCvo2RKfxCmagGMz5HYf1aDAZDZjlpQggdJHYBSuYFGZEZCVp+c56xYTmTRm7
+8E3mt2iwD+PPgfygzRMN3YkNCUIzBQyj1n/t8c9DKfboo8WRLilI+6l6yba3gMyd
++JfHLTTdyA9XDSEjxchXIo2ZYruP5mSpOKeL5j9eWSgCaMcRuPGyTj775fnbof/E
+fPLWnl/LMb7GQxESKSXWToMjN/xIdpN9tFxOzkSS/ErAX9KWhYWeQ3HsSlTOUzPb
+N0PvwZPsjLZXV8lqzsYuSksBZ7Zk6rRsyGKZvT0IJMaG4DlkD1E=
+=rV4V
+-----END PGP SIGNATURE-----
+
+--6ghnuyaey5gm4fhd--
