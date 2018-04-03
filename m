@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:38056 "EHLO anholt.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752255AbeD3RtC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 13:49:02 -0400
-From: Eric Anholt <eric@anholt.net>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        DRI Development <dri-devel@lists.freedesktop.org>
-Cc: linaro-mm-sig@lists.linaro.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [Intel-gfx] [PATCH 01/17] dma-fence: Some kerneldoc polish for dma-fence.h
-In-Reply-To: <20180427061724.28497-2-daniel.vetter@ffwll.ch>
-References: <20180427061724.28497-1-daniel.vetter@ffwll.ch> <20180427061724.28497-2-daniel.vetter@ffwll.ch>
-Date: Mon, 30 Apr 2018 10:49:00 -0700
-Message-ID: <877eoozisz.fsf@anholt.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:46709 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753478AbeDCVQB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:16:01 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 5/5] media: docs: selection: fix misleading sentence about the CROP API
+Date: Tue,  3 Apr 2018 23:15:46 +0200
+Message-Id: <1522790146-16061-5-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
+References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
+The API limitation described here is about the CROP API, not about the
+entire V4L2.
 
-Daniel Vetter <daniel.vetter@ffwll.ch> writes:
-> +	/**
-> +	 * @fill_driver_data:
-> +	 *
-> +	 * Callback to fill in free-form debug info Returns amount of bytes
-> +	 * filled, or negative error on failure.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+---
+ Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Maybe this "Returns" should be on a new line?  Or at least a '.' in
-between.
-
-Other than that,
-
-Reviewed-by: Eric Anholt <eric@anholt.net>
-
-Thanks!
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAlrnVwwACgkQtdYpNtH8
-nujHLQ/9GWSWC/uQFB5pmZxSPU0b2w4fJcjCTLCSTRAP9sNBXYTvbAVzPL2hsiJ8
-/e+yUJRs7UEPEmNe0eLcvuvL3H15B2gSTYPBjrT1tNl0I4bi+nJ1K1F1C2ogMqEg
-Dw2upTlnqxoy/weuBTKwlDA61S5NYveNfo9vZsHGU9Lm24tXiNXfCzA+XPh+XiIB
-6W1Tj7P2pEz21fFopCyXoneNVDoLxouYS0PaO4ViEws4O2OJPZRBOOYVR8uPE23A
-6H3kAVyoNtXGY3/irJMX/Dqge089dfZJvIWDE7Hm8C+1r5zIZomyBJt/8coxDEVc
-zTwOAZSSHNu+/PC098gdUiyRXovH6pXRoJtryaJ9Pboutk7X+00XxLSVLuvuewGe
-Er3WY37ZrPFCISlPepOaUPtMdbjhtHhZyIwyoARDwbXeFg/XjsrleoNZln5LVrtj
-3LHpN3NYmm89wOXFkQYwxN8+1jlakJPJ7RYd/8TuO55c0B2o3gfoBbDLE5jUzGwj
-UgvxTo/EymJBrWwAq9TYoZNKG2FI07abZeq/4Nz0puQdnY8E1xs4F6jGcrVpBSwm
-89YFjVC6fCadZbnFsg89zVQtOLkF2+nPGVSK/Uvnf9b+Ay7RaQWfeNhpnVcDtOtw
-5jf6Fb+lj0WyLWnlkVXsz7x1Q/BD9GOxCEpe/rlr2Lueo6oIkn8=
-=pKnJ
------END PGP SIGNATURE-----
---=-=-=--
+diff --git a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
+index ba1064a244a0..e7455fb1e572 100644
+--- a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
++++ b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
+@@ -15,7 +15,7 @@ because the described operation is actually the composing. The
+ selection API makes a clear distinction between composing and cropping
+ operations by setting the appropriate targets.
+ 
+-The V4L2 API lacks any support for composing to and cropping from an
++The CROP API lacks any support for composing to and cropping from an
+ image inside a memory buffer. The application could configure a
+ capture device to fill only a part of an image by abusing V4L2
+ API. Cropping a smaller image from a larger one is achieved by setting
+-- 
+2.7.4
