@@ -1,154 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:32844 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752888AbeDPCwi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 22:52:38 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 09/10] media: ov772x: reconstruct s_frame_interval()
-Date: Mon, 16 Apr 2018 11:51:50 +0900
-Message-Id: <1523847111-12986-10-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
-References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:42296 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752246AbeDCVQA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:16:00 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/5] media: docs: selection: fix typos
+Date: Tue,  3 Apr 2018 23:15:42 +0200
+Message-Id: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This splits the s_frame_interval() in subdev video ops into selecting the
-frame interval and setting up the registers.
-
-This is a preparatory change to avoid accessing registers under power
-saving mode.
-
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
-* v2
-- New patch
+ Documentation/media/uapi/v4l/selection-api-004.rst | 2 +-
+ Documentation/media/uapi/v4l/selection.svg         | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
- drivers/media/i2c/ov772x.c | 56 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 35 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 2cd6e85..1297a21 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -617,25 +617,16 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
+diff --git a/Documentation/media/uapi/v4l/selection-api-004.rst b/Documentation/media/uapi/v4l/selection-api-004.rst
+index d782cd5b2117..0a4ddc2d71db 100644
+--- a/Documentation/media/uapi/v4l/selection-api-004.rst
++++ b/Documentation/media/uapi/v4l/selection-api-004.rst
+@@ -41,7 +41,7 @@ The driver may further adjust the requested size and/or position
+ according to hardware limitations.
  
--static int ov772x_set_frame_rate(struct ov772x_priv *priv,
--				 struct v4l2_fract *tpf,
--				 const struct ov772x_color_format *cfmt,
--				 const struct ov772x_win_size *win)
-+static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
-+				 struct v4l2_fract *tpf)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
--	unsigned long fin = clk_get_rate(priv->clk);
- 	unsigned int fps = tpf->numerator ?
- 			   tpf->denominator / tpf->numerator :
- 			   tpf->denominator;
- 	unsigned int best_diff;
--	unsigned int fsize;
--	unsigned int pclk;
- 	unsigned int diff;
- 	unsigned int idx;
- 	unsigned int i;
--	u8 clkrc = 0;
--	u8 com4 = 0;
--	int ret;
- 
- 	/* Approximate to the closest supported frame interval. */
- 	best_diff = ~0L;
-@@ -646,7 +637,25 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
- 			best_diff = diff;
- 		}
- 	}
--	fps = ov772x_frame_intervals[idx];
-+
-+	return ov772x_frame_intervals[idx];
-+}
-+
-+static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-+				 unsigned int fps,
-+				 const struct ov772x_color_format *cfmt,
-+				 const struct ov772x_win_size *win)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	unsigned long fin = clk_get_rate(priv->clk);
-+	unsigned int fsize;
-+	unsigned int pclk;
-+	unsigned int best_diff;
-+	unsigned int diff;
-+	unsigned int i;
-+	u8 clkrc = 0;
-+	u8 com4 = 0;
-+	int ret;
- 
- 	/* Use image size (with blankings) to calculate desired pixel clock. */
- 	switch (cfmt->com7 & OFMT_MASK) {
-@@ -711,10 +720,6 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		return ret;
- 
--	tpf->numerator = 1;
--	tpf->denominator = fps;
--	priv->fps = tpf->denominator;
--
- 	return 0;
- }
- 
-@@ -735,8 +740,20 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
- {
- 	struct ov772x_priv *priv = to_ov772x(sd);
- 	struct v4l2_fract *tpf = &ival->interval;
-+	unsigned int fps;
-+	int ret;
-+
-+	fps = ov772x_select_fps(priv, tpf);
-+
-+	ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
-+	if (ret)
-+		return ret;
- 
--	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
-+	tpf->numerator = 1;
-+	tpf->denominator = fps;
-+	priv->fps = fps;
-+
-+	return 0;
- }
- 
- static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
-@@ -992,7 +1009,6 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			     const struct ov772x_win_size *win)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
--	struct v4l2_fract tpf;
- 	int ret;
- 	u8  val;
- 
-@@ -1074,9 +1090,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 		goto ov772x_set_fmt_error;
- 
- 	/* COM4, CLKRC: Set pixel clock and framerate. */
--	tpf.numerator = 1;
--	tpf.denominator = priv->fps;
--	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
-+	ret = ov772x_set_frame_rate(priv, priv->fps, cfmt, win);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
+ Each capture device has a default source rectangle, given by the
+-``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall over what the
++``V4L2_SEL_TGT_CROP_DEFAULT`` target. This rectangle shall cover what the
+ driver writer considers the complete picture. Drivers shall set the
+ active crop rectangle to the default when the driver is first loaded,
+ but not later.
+diff --git a/Documentation/media/uapi/v4l/selection.svg b/Documentation/media/uapi/v4l/selection.svg
+index a93e3b59786d..911062bd2844 100644
+--- a/Documentation/media/uapi/v4l/selection.svg
++++ b/Documentation/media/uapi/v4l/selection.svg
+@@ -1128,11 +1128,11 @@
+    </text>
+   </g>
+   <text transform="matrix(.96106 0 0 1.0405 48.571 195.53)" x="2438.062" y="1368.429" enable-background="new" font-size="50" style="line-height:125%">
+-   <tspan x="2438.062" y="1368.429">COMPOSE_BONDS</tspan>
++   <tspan x="2438.062" y="1368.429">COMPOSE_BOUNDS</tspan>
+   </text>
+   <g font-size="40">
+    <text transform="translate(48.571 195.53)" x="8.082" y="1438.896" enable-background="new" style="line-height:125%">
+-    <tspan x="8.082" y="1438.896" font-size="50">CROP_BONDS</tspan>
++    <tspan x="8.082" y="1438.896" font-size="50">CROP_BOUNDS</tspan>
+    </text>
+    <text transform="translate(48.571 195.53)" x="1455.443" y="-26.808" enable-background="new" style="line-height:125%">
+     <tspan x="1455.443" y="-26.808" font-size="50">overscan area</tspan>
 -- 
 2.7.4
