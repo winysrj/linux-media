@@ -1,57 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:44745 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754617AbeDWK3k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 06:29:40 -0400
-Date: Mon, 23 Apr 2018 12:29:36 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, airlied@linux.ie,
-        daniel@ffwll.ch, peda@axentia.se,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/8] arm64: dts: renesas: eagle: Add thc63 LVDS map
-Message-ID: <20180423102936.cdll63ivb7ww5b7r@verge.net.au>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524130269-32688-5-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1524130269-32688-5-git-send-email-jacopo+renesas@jmondi.org>
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:34862 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753367AbeDCVQA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:16:00 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 3/5] media: docs: selection: rename files to something meaningful
+Date: Tue,  3 Apr 2018 23:15:44 +0200
+Message-Id: <1522790146-16061-3-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
+References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 19, 2018 at 11:31:05AM +0200, Jacopo Mondi wrote:
-> Add LVDS map mode description property to THC63LVD1024 LVDS decoder in
-> R-Car V3M-Eagle board device tree.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+These files have an automatically-generated numbering. Replaname them
+to something that suggests their meaning.
 
-Hi Jacopo,
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+---
+ .../{selection-api-004.rst => selection-api-configuration.rst} |  0
+ .../v4l/{selection-api-006.rst => selection-api-examples.rst}  |  0
+ .../v4l/{selection-api-002.rst => selection-api-intro.rst}     |  0
+ .../v4l/{selection-api-003.rst => selection-api-targets.rst}   |  0
+ .../{selection-api-005.rst => selection-api-vs-crop-api.rst}   |  0
+ Documentation/media/uapi/v4l/selection-api.rst                 | 10 +++++-----
+ 6 files changed, 5 insertions(+), 5 deletions(-)
+ rename Documentation/media/uapi/v4l/{selection-api-004.rst => selection-api-configuration.rst} (100%)
+ rename Documentation/media/uapi/v4l/{selection-api-006.rst => selection-api-examples.rst} (100%)
+ rename Documentation/media/uapi/v4l/{selection-api-002.rst => selection-api-intro.rst} (100%)
+ rename Documentation/media/uapi/v4l/{selection-api-003.rst => selection-api-targets.rst} (100%)
+ rename Documentation/media/uapi/v4l/{selection-api-005.rst => selection-api-vs-crop-api.rst} (100%)
 
-it looks like there has been a request to change this binding.
-So I have marked this as "Changes Requested". Please repost or otherwise
-ping me if that turns out not to be the case.
-
-> ---
->  arch/arm64/boot/dts/renesas/r8a77970-eagle.dts | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts b/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts
-> index ebfbb51..2609fa3 100644
-> --- a/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts
-> +++ b/arch/arm64/boot/dts/renesas/r8a77970-eagle.dts
-> @@ -56,6 +56,7 @@
->  		compatible = "thine,thc63lvd1024";
->  
->  		vcc-supply = <&d3p3>;
-> +		thine,map = <1>;
->  
->  		ports {
->  			#address-cells = <1>;
-> -- 
-> 2.7.4
-> 
+diff --git a/Documentation/media/uapi/v4l/selection-api-004.rst b/Documentation/media/uapi/v4l/selection-api-configuration.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/selection-api-004.rst
+rename to Documentation/media/uapi/v4l/selection-api-configuration.rst
+diff --git a/Documentation/media/uapi/v4l/selection-api-006.rst b/Documentation/media/uapi/v4l/selection-api-examples.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/selection-api-006.rst
+rename to Documentation/media/uapi/v4l/selection-api-examples.rst
+diff --git a/Documentation/media/uapi/v4l/selection-api-002.rst b/Documentation/media/uapi/v4l/selection-api-intro.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/selection-api-002.rst
+rename to Documentation/media/uapi/v4l/selection-api-intro.rst
+diff --git a/Documentation/media/uapi/v4l/selection-api-003.rst b/Documentation/media/uapi/v4l/selection-api-targets.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/selection-api-003.rst
+rename to Documentation/media/uapi/v4l/selection-api-targets.rst
+diff --git a/Documentation/media/uapi/v4l/selection-api-005.rst b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
+similarity index 100%
+rename from Documentation/media/uapi/v4l/selection-api-005.rst
+rename to Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
+diff --git a/Documentation/media/uapi/v4l/selection-api.rst b/Documentation/media/uapi/v4l/selection-api.rst
+index e4e623824b30..390233f704a3 100644
+--- a/Documentation/media/uapi/v4l/selection-api.rst
++++ b/Documentation/media/uapi/v4l/selection-api.rst
+@@ -9,8 +9,8 @@ Cropping, composing and scaling -- the SELECTION API
+ .. toctree::
+     :maxdepth: 1
+ 
+-    selection-api-002
+-    selection-api-003
+-    selection-api-004
+-    selection-api-005
+-    selection-api-006
++    selection-api-intro.rst
++    selection-api-targets.rst
++    selection-api-configuration.rst
++    selection-api-vs-crop-api.rst
++    selection-api-examples.rst
+-- 
+2.7.4
