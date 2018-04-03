@@ -1,115 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41587 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754987AbeDTOHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 10:07:30 -0400
-Date: Fri, 20 Apr 2018 16:07:18 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Daniel Mack <daniel@zonque.org>
-Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
-        mchehab@kernel.org
-Subject: Re: [PATCH 3/3] media: ov5640: add support for xclk frequency control
-Message-ID: <20180420140718.glvufiaau75oumgp@flea>
-References: <20180420094419.11267-1-daniel@zonque.org>
- <20180420094419.11267-3-daniel@zonque.org>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:38082 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752171AbeDCSIg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 14:08:36 -0400
+Received: by mail-wm0-f50.google.com with SMTP id i3so13134504wmf.3
+        for <linux-media@vger.kernel.org>; Tue, 03 Apr 2018 11:08:35 -0700 (PDT)
+Date: Tue, 3 Apr 2018 20:08:32 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: christian.koenig@amd.com, linaro-mm-sig@lists.linaro.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        amd-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180403180832.GZ3881@phenom.ffwll.local>
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-4-christian.koenig@amd.com>
+ <20180329065753.GD3881@phenom.ffwll.local>
+ <8b823458-8bdc-3217-572b-509a28aae742@gmail.com>
+ <20180403090909.GN3881@phenom.ffwll.local>
+ <20180403170645.GB5935@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aw6w4me2pmlkl3d6"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20180420094419.11267-3-daniel@zonque.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180403170645.GB5935@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Apr 03, 2018 at 01:06:45PM -0400, Jerome Glisse wrote:
+> On Tue, Apr 03, 2018 at 11:09:09AM +0200, Daniel Vetter wrote:
+> > On Thu, Mar 29, 2018 at 01:34:24PM +0200, Christian König wrote:
+> > > Am 29.03.2018 um 08:57 schrieb Daniel Vetter:
+> > > > On Sun, Mar 25, 2018 at 12:59:56PM +0200, Christian König wrote:
+> > > > > Add a peer2peer flag noting that the importer can deal with device
+> > > > > resources which are not backed by pages.
+> > > > > 
+> > > > > Signed-off-by: Christian König <christian.koenig@amd.com>
+> > > > Um strictly speaking they all should, but ttm never bothered to use the
+> > > > real interfaces but just hacked around the provided sg list, grabbing the
+> > > > underlying struct pages, then rebuilding&remapping the sg list again.
+> > > 
+> > > Actually that isn't correct. TTM converts them to a dma address array
+> > > because drivers need it like this (at least nouveau, radeon and amdgpu).
+> > > 
+> > > I've fixed radeon and amdgpu to be able to deal without it and mailed with
+> > > Ben about nouveau, but the outcome is they don't really know.
+> > > 
+> > > TTM itself doesn't have any need for the pages on imported BOs (you can't
+> > > mmap them anyway), the real underlying problem is that sg tables doesn't
+> > > provide what drivers need.
+> > > 
+> > > I think we could rather easily fix sg tables, but that is a totally separate
+> > > task.
+> > 
+> > Looking at patch 8, the sg table seems perfectly sufficient to convey the
+> > right dma addresses to the importer. Ofcourse the exporter has to set up
+> > the right kind of iommu mappings to make this work.
+> > 
+> > > > The entire point of using sg lists was exactly to allow this use case of
+> > > > peer2peer dma (or well in general have special exporters which managed
+> > > > memory/IO ranges not backed by struct page). So essentially you're having
+> > > > a "I'm totally not broken flag" here.
+> > > 
+> > > No, independent of needed struct page pointers we need to note if the
+> > > exporter can handle peer2peer stuff from the hardware side in general.
+> > > 
+> > > So what I've did is just to set peer2peer allowed on the importer because of
+> > > the driver needs and clear it in the exporter if the hardware can't handle
+> > > that.
+> > 
+> > The only thing the importer seems to do is call the
+> > pci_peer_traffic_supported, which the exporter could call too. What am I
+> > missing (since the sturct_page stuff sounds like it's fixed already by
+> > you)?
+> > -Daniel
+> 
+> AFAIK Logan patchset require to register and initialize struct page
+> for the device memory you want to map (export from exporter point of
+> view).
+> 
+> With GPU this isn't something we want, struct page is >~= 2^6 so for
+> 4GB GPU = 2^6*2^32/2^12 = 2^26 = 64MB of RAM
+> 8GB GPU = 2^6*2^33/2^12 = 2^27 = 128MB of RAM
+> 16GB GPU = 2^6*2^34/2^12 = 2^28 = 256MB of RAM
+> 32GB GPU = 2^6*2^34/2^12 = 2^29 = 512MB of RAM
+> 
+> All this is mostly wasted as only a small sub-set (that can not be
+> constraint to specific range) will ever be exported at any point in
+> time. For GPU work load this is hardly justifiable, even for HMM i
+> do not plan to register all those pages.
+> 
+> Hence why i argue that dma_map_resource() like use by Christian is
+> good enough for us. People that care about SG can fix that but i
+> rather not have to depend on that and waste system memory.
 
---aw6w4me2pmlkl3d6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I did not mean you should dma_map_sg/page. I just meant that using
+dma_map_resource to fill only the dma address part of the sg table seems
+perfectly sufficient. And that's exactly why the importer gets an already
+mapped sg table, so that it doesn't have to call dma_map_sg on something
+that dma_map_sg can't handle.
 
-Hi,
+Assuming you get an sg table that's been mapping by calling dma_map_sg was
+always a bit a case of bending the abstraction to avoid typing code. The
+only thing an importer ever should have done is look at the dma addresses
+in that sg table, nothing else.
 
-On Fri, Apr 20, 2018 at 11:44:19AM +0200, Daniel Mack wrote:
-> Allow setting the xclk rate via an optional 'clock-frequency' property in
-> the device tree node.
->=20
-> Signed-off-by: Daniel Mack <daniel@zonque.org>
-> ---
->  Documentation/devicetree/bindings/media/i2c/ov5640.txt |  2 ++
->  drivers/media/i2c/ov5640.c                             | 10 ++++++++++
->  2 files changed, 12 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Doc=
-umentation/devicetree/bindings/media/i2c/ov5640.txt
-> index 8e36da0d8406..584bbc944978 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-> @@ -13,6 +13,8 @@ Optional Properties:
->  	       This is an active low signal to the OV5640.
->  - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
->  		   if any. This is an active high signal to the OV5640.
-> +- clock-frequency: frequency to set on the xclk input clock. The clock
-> +		   is left untouched if this property is missing.
+And p2p seems to perfectly fit into this (surprise, it was meant to).
+That's why I suggested we annotate the broken importers who assume the sg
+table is mapped using dma_map_sg or has a struct_page backing the memory
+(but there doesn't seem to be any left it seems) instead of annotating the
+ones that aren't broken with a flag that's confusing - you could also have
+a dma-buf sgt that points at some other memory that doesn't have struct
+pages backing it.
 
-This can be done through assigned-clocks, right?
-
->  The device node must contain one 'port' child node for its digital output
->  video port, in accordance with the video interface bindings defined in
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 78669ed386cd..2d94d6dbda5d 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -2685,6 +2685,7 @@ static int ov5640_probe(struct i2c_client *client,
->  	struct fwnode_handle *endpoint;
->  	struct ov5640_dev *sensor;
->  	struct v4l2_mbus_framefmt *fmt;
-> +	u32 freq;
->  	int ret;
-> =20
->  	sensor =3D devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-> @@ -2731,6 +2732,15 @@ static int ov5640_probe(struct i2c_client *client,
->  		return PTR_ERR(sensor->xclk);
->  	}
-> =20
-> +	ret =3D of_property_read_u32(dev->of_node, "clock-frequency", &freq);
-> +	if (ret =3D=3D 0) {
-> +		ret =3D clk_set_rate(sensor->xclk, freq);
-> +		if (ret) {
-> +			dev_err(dev, "could not set xclk frequency\n");
-> +			return ret;
-> +		}
-> +	}
-> +
-
-I'm wondering what the use case for that would be. The clock rate is
-subject to various changes depending on the resolution and framerate
-used, so that's very likely to change. Wouldn't we be better off to
-simply try to change the rate at runtime, depending on those factors?
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---aw6w4me2pmlkl3d6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrZ9BUACgkQ0rTAlCFN
-r3Tb/g/8DQDJFvW9FZQotExe0fdSyTV0tNMFZc+CaVARKahlC+1YcTzlW+/HX582
-QTnR4bTiT2uuPtgLCDRb9Ulkq5GBYRcjsnoLt0A401nlkrhZcP+L+XU+V7etiBeg
-C+kVZoZ9qCXy07GaiMnrL83rDk1ws4ftUOuZQVdPwBZE2lvQyv5sl7aVJd/pZYMt
-tDjuAVX59eGg+DCJ9Fc9HUyzT+gTrl33aU4VzpS/JnuRFFGPoBl56Kc1COcXxcJs
-PlOhxnqPh0S9XCgUFmGJu5Mub47SRNBf7pUajo2FBKxARo3eT+VUIH9sNeUgGS7+
-H2MF/Ta0eA9AxrJYA9Vj17gZnk598AJjtM+sGB5wHqwZOgzPy1VcvGKrDV28EBcu
-fu+Jb8w4HvLpCL4U9cnzdZsHCsPNgKdZfYM8WpBZwuStf5dDsnT7/ZvnClDB/5ka
-OWfO1luMBO8o/yqcEdWVsKYmBzvlXC853F0/LuoTnP3Na4CLadvs0JBNhDW6ZKX4
-cOne4PCNR9xJPKssUccVh6/z7WgaNr+P8sblKpR1pnbILdYc0nSvU+WPnfmUuWge
-VWEtcdCPh3iqopZalOAfA0AWJn544QjivK49Hyxd3HU39N9JD9A3+zspxPRW9RzR
-J/DE3z0D7ClVkp/AnB4KIBmICBFZ1HdetgP1I2Zplhl1Bp25eJI=
-=VvQH
------END PGP SIGNATURE-----
-
---aw6w4me2pmlkl3d6--
+Aside: At least internally in i915 we've been using this forever for our
+own private/stolen memory. Unfortunately no other device can access that
+range of memory, which is why we don't allow it to be imported to anything
+but i915 itself. But if that hw restriction doesn't exist, it'd would
+work.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
