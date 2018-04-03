@@ -1,155 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from laurent.telenet-ops.be ([195.130.137.89]:36068 "EHLO
-        laurent.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755062AbeDTN3A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:29:00 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 2/8] dmaengine: shdmac: Change platform check to CONFIG_ARCH_RENESAS
-Date: Fri, 20 Apr 2018 15:28:28 +0200
-Message-Id: <1524230914-10175-3-git-send-email-geert+renesas@glider.be>
-In-Reply-To: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:50382 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753076AbeDCJJN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 05:09:13 -0400
+Received: by mail-wm0-f54.google.com with SMTP id t67so12052017wmt.0
+        for <linux-media@vger.kernel.org>; Tue, 03 Apr 2018 02:09:13 -0700 (PDT)
+Date: Tue, 3 Apr 2018 11:09:09 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: christian.koenig@amd.com
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180403090909.GN3881@phenom.ffwll.local>
+References: <20180325110000.2238-1-christian.koenig@amd.com>
+ <20180325110000.2238-4-christian.koenig@amd.com>
+ <20180329065753.GD3881@phenom.ffwll.local>
+ <8b823458-8bdc-3217-572b-509a28aae742@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8b823458-8bdc-3217-572b-509a28aae742@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
-is CONFIG_ARCH_RENESAS a more appropriate platform check than the legacy
-CONFIG_ARCH_SHMOBILE, hence use the former.
+On Thu, Mar 29, 2018 at 01:34:24PM +0200, Christian König wrote:
+> Am 29.03.2018 um 08:57 schrieb Daniel Vetter:
+> > On Sun, Mar 25, 2018 at 12:59:56PM +0200, Christian König wrote:
+> > > Add a peer2peer flag noting that the importer can deal with device
+> > > resources which are not backed by pages.
+> > > 
+> > > Signed-off-by: Christian König <christian.koenig@amd.com>
+> > Um strictly speaking they all should, but ttm never bothered to use the
+> > real interfaces but just hacked around the provided sg list, grabbing the
+> > underlying struct pages, then rebuilding&remapping the sg list again.
+> 
+> Actually that isn't correct. TTM converts them to a dma address array
+> because drivers need it like this (at least nouveau, radeon and amdgpu).
+> 
+> I've fixed radeon and amdgpu to be able to deal without it and mailed with
+> Ben about nouveau, but the outcome is they don't really know.
+> 
+> TTM itself doesn't have any need for the pages on imported BOs (you can't
+> mmap them anyway), the real underlying problem is that sg tables doesn't
+> provide what drivers need.
+> 
+> I think we could rather easily fix sg tables, but that is a totally separate
+> task.
 
-Renesas SuperH SH-Mobile SoCs are still covered by the CONFIG_CPU_SH4
-check, just like before support for Renesas ARM SoCs was added.
+Looking at patch 8, the sg table seems perfectly sufficient to convey the
+right dma addresses to the importer. Ofcourse the exporter has to set up
+the right kind of iommu mappings to make this work.
 
-Instead of blindly changing all the #ifdefs, switch the main code block
-in sh_dmae_probe() to IS_ENABLED(), as this allows to remove all the
-remaining #ifdefs.
+> > The entire point of using sg lists was exactly to allow this use case of
+> > peer2peer dma (or well in general have special exporters which managed
+> > memory/IO ranges not backed by struct page). So essentially you're having
+> > a "I'm totally not broken flag" here.
+> 
+> No, independent of needed struct page pointers we need to note if the
+> exporter can handle peer2peer stuff from the hardware side in general.
+> 
+> So what I've did is just to set peer2peer allowed on the importer because of
+> the driver needs and clear it in the exporter if the hardware can't handle
+> that.
 
-This will allow to drop ARCH_SHMOBILE on ARM in the near future.
+The only thing the importer seems to do is call the
+pci_peer_traffic_supported, which the exporter could call too. What am I
+missing (since the sturct_page stuff sounds like it's fixed already by
+you)?
+-Daniel
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- drivers/dma/sh/shdmac.c | 50 +++++++++++++++++++++----------------------------
- 1 file changed, 21 insertions(+), 29 deletions(-)
+> > I think a better approach would be if we add a requires_struct_page or so,
+> > and annotate the current importers accordingly. Or we just fix them up (it
+> > is all in shared ttm code after all, I think everyone else got this
+> > right).
+> 
+> I would rather not bed on that.
+> 
+> Christian.
+> 
+> > -Daniel
+> > 
+> > > ---
+> > >   drivers/dma-buf/dma-buf.c | 1 +
+> > >   include/linux/dma-buf.h   | 4 ++++
+> > >   2 files changed, 5 insertions(+)
+> > > 
+> > > diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> > > index ffaa2f9a9c2c..f420225f93c6 100644
+> > > --- a/drivers/dma-buf/dma-buf.c
+> > > +++ b/drivers/dma-buf/dma-buf.c
+> > > @@ -565,6 +565,7 @@ struct dma_buf_attachment *dma_buf_attach(const struct dma_buf_attach_info *info
+> > >   	attach->dev = info->dev;
+> > >   	attach->dmabuf = dmabuf;
+> > > +	attach->peer2peer = info->peer2peer;
+> > >   	attach->priv = info->priv;
+> > >   	attach->invalidate = info->invalidate;
+> > > diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> > > index 15dd8598bff1..1ef50bd9bc5b 100644
+> > > --- a/include/linux/dma-buf.h
+> > > +++ b/include/linux/dma-buf.h
+> > > @@ -313,6 +313,7 @@ struct dma_buf {
+> > >    * @dmabuf: buffer for this attachment.
+> > >    * @dev: device attached to the buffer.
+> > >    * @node: list of dma_buf_attachment.
+> > > + * @peer2peer: true if the importer can handle peer resources without pages.
+> > >    * @priv: exporter specific attachment data.
+> > >    *
+> > >    * This structure holds the attachment information between the dma_buf buffer
+> > > @@ -328,6 +329,7 @@ struct dma_buf_attachment {
+> > >   	struct dma_buf *dmabuf;
+> > >   	struct device *dev;
+> > >   	struct list_head node;
+> > > +	bool peer2peer;
+> > >   	void *priv;
+> > >   	/**
+> > > @@ -392,6 +394,7 @@ struct dma_buf_export_info {
+> > >    * @dmabuf:	the exported dma_buf
+> > >    * @dev:	the device which wants to import the attachment
+> > >    * @priv:	private data of importer to this attachment
+> > > + * @peer2peer:	true if the importer can handle peer resources without pages
+> > >    * @invalidate:	callback to use for invalidating mappings
+> > >    *
+> > >    * This structure holds the information required to attach to a buffer. Used
+> > > @@ -401,6 +404,7 @@ struct dma_buf_attach_info {
+> > >   	struct dma_buf *dmabuf;
+> > >   	struct device *dev;
+> > >   	void *priv;
+> > > +	bool peer2peer;
+> > >   	void (*invalidate)(struct dma_buf_attachment *attach);
+> > >   };
+> > > -- 
+> > > 2.14.1
+> > > 
+> > > _______________________________________________
+> > > dri-devel mailing list
+> > > dri-devel@lists.freedesktop.org
+> > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
-diff --git a/drivers/dma/sh/shdmac.c b/drivers/dma/sh/shdmac.c
-index 516f5487cc44cf96..8fcaae482ce0949a 100644
---- a/drivers/dma/sh/shdmac.c
-+++ b/drivers/dma/sh/shdmac.c
-@@ -440,7 +440,6 @@ static bool sh_dmae_reset(struct sh_dmae_device *shdev)
- 	return ret;
- }
- 
--#if defined(CONFIG_CPU_SH4) || defined(CONFIG_ARCH_SHMOBILE)
- static irqreturn_t sh_dmae_err(int irq, void *data)
- {
- 	struct sh_dmae_device *shdev = data;
-@@ -451,7 +450,6 @@ static irqreturn_t sh_dmae_err(int irq, void *data)
- 	sh_dmae_reset(shdev);
- 	return IRQ_HANDLED;
- }
--#endif
- 
- static bool sh_dmae_desc_completed(struct shdma_chan *schan,
- 				   struct shdma_desc *sdesc)
-@@ -683,11 +681,8 @@ static int sh_dmae_probe(struct platform_device *pdev)
- 	const struct sh_dmae_pdata *pdata;
- 	unsigned long chan_flag[SH_DMAE_MAX_CHANNELS] = {};
- 	int chan_irq[SH_DMAE_MAX_CHANNELS];
--#if defined(CONFIG_CPU_SH4) || defined(CONFIG_ARCH_SHMOBILE)
- 	unsigned long irqflags = 0;
--	int errirq;
--#endif
--	int err, i, irq_cnt = 0, irqres = 0, irq_cap = 0;
-+	int err, errirq, i, irq_cnt = 0, irqres = 0, irq_cap = 0;
- 	struct sh_dmae_device *shdev;
- 	struct dma_device *dma_dev;
- 	struct resource *chan, *dmars, *errirq_res, *chanirq_res;
-@@ -789,33 +784,32 @@ static int sh_dmae_probe(struct platform_device *pdev)
- 	if (err)
- 		goto rst_err;
- 
--#if defined(CONFIG_CPU_SH4) || defined(CONFIG_ARCH_SHMOBILE)
--	chanirq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
-+	if (IS_ENABLED(CONFIG_CPU_SH4) || IS_ENABLED(CONFIG_ARCH_RENESAS)) {
-+		chanirq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
- 
--	if (!chanirq_res)
--		chanirq_res = errirq_res;
--	else
--		irqres++;
-+		if (!chanirq_res)
-+			chanirq_res = errirq_res;
-+		else
-+			irqres++;
- 
--	if (chanirq_res == errirq_res ||
--	    (errirq_res->flags & IORESOURCE_BITS) == IORESOURCE_IRQ_SHAREABLE)
--		irqflags = IRQF_SHARED;
-+		if (chanirq_res == errirq_res ||
-+		    (errirq_res->flags & IORESOURCE_BITS) == IORESOURCE_IRQ_SHAREABLE)
-+			irqflags = IRQF_SHARED;
- 
--	errirq = errirq_res->start;
-+		errirq = errirq_res->start;
- 
--	err = devm_request_irq(&pdev->dev, errirq, sh_dmae_err, irqflags,
--			       "DMAC Address Error", shdev);
--	if (err) {
--		dev_err(&pdev->dev,
--			"DMA failed requesting irq #%d, error %d\n",
--			errirq, err);
--		goto eirq_err;
-+		err = devm_request_irq(&pdev->dev, errirq, sh_dmae_err,
-+				       irqflags, "DMAC Address Error", shdev);
-+		if (err) {
-+			dev_err(&pdev->dev,
-+				"DMA failed requesting irq #%d, error %d\n",
-+				errirq, err);
-+			goto eirq_err;
-+		}
-+	} else {
-+		chanirq_res = errirq_res;
- 	}
- 
--#else
--	chanirq_res = errirq_res;
--#endif /* CONFIG_CPU_SH4 || CONFIG_ARCH_SHMOBILE */
--
- 	if (chanirq_res->start == chanirq_res->end &&
- 	    !platform_get_resource(pdev, IORESOURCE_IRQ, 1)) {
- 		/* Special case - all multiplexed */
-@@ -881,9 +875,7 @@ static int sh_dmae_probe(struct platform_device *pdev)
- chan_probe_err:
- 	sh_dmae_chan_remove(shdev);
- 
--#if defined(CONFIG_CPU_SH4) || defined(CONFIG_ARCH_SHMOBILE)
- eirq_err:
--#endif
- rst_err:
- 	spin_lock_irq(&sh_dmae_lock);
- 	list_del_rcu(&shdev->node);
 -- 
-2.7.4
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
