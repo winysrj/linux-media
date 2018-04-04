@@ -1,80 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33252 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751602AbeDCO3h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 10:29:37 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z73so18943068wrb.0
-        for <linux-media@vger.kernel.org>; Tue, 03 Apr 2018 07:29:37 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH v4 1/2] media: ov2680: dt: Add bindings for OV2680
-Date: Tue,  3 Apr 2018 15:29:21 +0100
-Message-Id: <20180403142922.20972-2-rui.silva@linaro.org>
-In-Reply-To: <20180403142922.20972-1-rui.silva@linaro.org>
-References: <20180403142922.20972-1-rui.silva@linaro.org>
+Received: from mail.bootlin.com ([62.4.15.54]:46626 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751245AbeDDMUk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Apr 2018 08:20:40 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v8 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+Date: Wed,  4 Apr 2018 14:20:24 +0200
+Message-Id: <20180404122025.8726-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180404122025.8726-1-maxime.ripard@bootlin.com>
+References: <20180404122025.8726-1-maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV2680 camera sensor.
+The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+video streams and can output on up to 4 CSI-2 lanes, depending on the
+hardware implementation.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-CC: devicetree@vger.kernel.org
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
+
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- .../devicetree/bindings/media/i2c/ov2680.txt       | 40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
+ .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 new file mode 100644
-index 000000000000..0e29f1a113c0
+index 000000000000..459c6e332f52
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
-@@ -0,0 +1,40 @@
-+* Omnivision OV2680 MIPI CSI-2 sensor
++++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+@@ -0,0 +1,98 @@
++Cadence MIPI-CSI2 TX controller
++===============================
 +
-+Required Properties:
-+- compatible: should be "ovti,ov2680".
-+- clocks: reference to the xvclk input clock.
-+- clock-names: should be "xvclk".
++The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
++4 CSI lanes in output, and up to 4 different pixel streams in input.
 +
-+Optional Properties:
-+- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
-+		     if any. This is an active high signal to the OV2680.
++Required properties:
++  - compatible: must be set to "cdns,csi2tx"
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * esc_clk: escape mode clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
 +
-+The device node must contain one 'port' child node for its digital output
-+video port, and this port must have a single endpoint in accordance with
-+ the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
++Optional properties
++  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
++  - phy-names: must contain "dphy"
 +
-+Endpoint node required properties for CSI-2 connection are:
-+- remote-endpoint: a phandle to the bus receiver's endpoint node.
-+- clock-lanes: should be set to <0> (clock lane on hardware lane 0).
-+- data-lanes: should be set to <1> (one CSI-2 lane supported).
-+ 
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 output
++           1    Stream 0 input
++           2    Stream 1 input
++           3    Stream 2 input
++           4    Stream 3 input
++
++           The stream input port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design. Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
 +Example:
 +
-+&i2c2 {
-+	ov2680: camera-sensor@36 {
-+		compatible = "ovti,ov2680";
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
++csi2tx: csi-bridge@0d0e1000 {
++	compatible = "cdns,csi2tx";
++	reg = <0x0d0e1000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>,
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "p_clk", "esc_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
 +
-+		port {
-+			ov2680_mipi_ep: endpoint {
-+				remote-endpoint = <&mipi_sensor_ep>;
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2tx_out: endpoint {
++				remote-endpoint = <&remote_in>;
 +				clock-lanes = <0>;
-+				data-lanes = <1>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2tx_in_stream0: endpoint {
++				remote-endpoint = <&stream0_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2tx_in_stream1: endpoint {
++				remote-endpoint = <&stream1_out>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2tx_in_stream2: endpoint {
++				remote-endpoint = <&stream2_out>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2tx_in_stream3: endpoint {
++				remote-endpoint = <&stream3_out>;
 +			};
 +		};
 +	};
 +};
 -- 
-2.16.3
+2.14.3
