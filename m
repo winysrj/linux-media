@@ -1,92 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f176.google.com ([209.85.220.176]:33116 "EHLO
-        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751097AbeDEHd5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 03:33:57 -0400
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44060 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751772AbeDDPdX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:33:23 -0400
+Date: Wed, 4 Apr 2018 17:33:08 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Brian Warner <brian.warner@samsung.com>
+Subject: Re: [PATCH for v3.18 00/18] Backport CVE-2017-13166 fixes to Kernel
+ 3.18
+Message-ID: <20180404153308.GA20086@kroah.com>
+References: <cover.1522260310.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <2180075.m4Wkig6IL5@avalon>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
- <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se>
- <20180329113039.4v5whquyrtgf5yaa@flea> <2180075.m4Wkig6IL5@avalon>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 5 Apr 2018 09:33:55 +0200
-Message-ID: <CAMuHMdXoprxZNP6KuYjcYW5EYjzAAFqNn6orK24pv7k_fO+i4A@mail.gmail.com>
-Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1522260310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 4, 2018 at 5:26 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Thursday, 29 March 2018 14:30:39 EEST Maxime Ripard wrote:
->> On Tue, Feb 13, 2018 at 12:01:32AM +0100, Niklas S=C3=B6derlund wrote:
->> > +   switch (priv->lanes) {
->> > +   case 1:
->> > +           phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
->> > +           break;
->> > +   case 2:
->> > +           phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 | PHYCNT_ENA=
-BLE_0;
->> > +           break;
->> > +   case 4:
->> > +           phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 | PHYCNT_ENA=
-BLE_2 |
->> > +                   PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
->> > +           break;
->> > +   default:
->> > +           return -EINVAL;
->> > +   }
->>
->> I guess you could have a simpler construct here using this:
->>
->> phycnt =3D PHYCNT_ENABLECLK;
->>
->> switch (priv->lanes) {
->> case 4:
->>       phycnt |=3D PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2;
->> case 2:
->>       phycnt |=3D PHYCNT_ENABLE_1;
->> case 1:
->>       phycnt |=3D PHYCNT_ENABLE_0;
->>       break;
->>
->> default:
->>       return -EINVAL;
->> }
->>
->> But that's really up to you.
->
-> Wouldn't Niklas' version generate simpler code as it uses direct assignme=
-nts ?
+On Wed, Mar 28, 2018 at 03:12:19PM -0300, Mauro Carvalho Chehab wrote:
+> Hi Greg,
+> 
+> Those are the backports meant to solve CVE-2017-13166 on Kernel 3.18.
+> 
+> It contains two v4l2-ctrls fixes that are required to avoid crashes
+> at the test application.
+> 
+> I wrote two patches myself for Kernel 3.18 in order to solve some
+> issues specific for Kernel 3.18 with aren't needed upstream.
+> one is actually a one-line change backport. The other one makes
+> sure that both 32-bits and 64-bits version of some ioctl calls
+> will return the same value for a reserved field.
+> 
+> I noticed an extra bug while testing it, but the bug also hits upstream,
+> and should be backported all the way down all stable/LTS versions.
+> So, I'll send it the usual way, after merging upsream.
 
-Alternatively, you could check for a valid number of lanes, and use knowled=
-ge
-about the internal lane bits:
+I've queued these all up now, thanks.
 
-    phycnt =3D PHYCNT_ENABLECLK;
-    phycnt |=3D (1 << priv->lanes) - 1;
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+greg k-h
