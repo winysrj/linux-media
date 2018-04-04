@@ -1,335 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0056.outbound.protection.outlook.com ([104.47.34.56]:43232
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753576AbeEABf1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 21:35:27 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Jeffrey Mouroux <jmouroux@xilinx.com>,
-        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v4 04/10] Documentation: uapi: media: v4l: New pixel format
-Date: Mon, 30 Apr 2018 18:35:07 -0700
-Message-ID: <d2989772ba37bd4d788342ed3f659c4689cebcb5.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47113 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751606AbeDDQRX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 12:17:23 -0400
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH 14/15] v4l: vsp1: Add BRx dynamic assignment debugging
+ messages
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180226214516.11559-15-laurent.pinchart+renesas@ideasonboard.com>
+Message-ID: <8a014be6-d0ce-80bb-8834-741f9206ab31@ideasonboard.com>
+Date: Wed, 4 Apr 2018 17:17:19 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20180226214516.11559-15-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jeffrey Mouroux <jmouroux@xilinx.com>
+Hi Laurent,
 
-These descriptions are for YUV 420 and YUV 422 10 bit
-formats.
+On 26/02/18 21:45, Laurent Pinchart wrote:
+> Dynamic assignment of the BRU and BRS to pipelines is prone to
+> regressions, add messages to make debugging easier. Keep it as a
+> separate commit to ease removal of those messages once the code will
+> deem to be completely stable.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Jeffrey Mouroux <jmouroux@xilinx.com>
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
----
- Documentation/media/uapi/v4l/pixfmt-xv15.rst | 135 ++++++++++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-xv20.rst | 136 +++++++++++++++++++++++++++
- Documentation/media/uapi/v4l/yuv-formats.rst |   2 +
- 3 files changed, 273 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv15.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv20.rst
+Not really a review required here so much, so I'll just :
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-xv15.rst b/Documentation/media/uapi/v4l/pixfmt-xv15.rst
-new file mode 100644
-index 0000000..313d056
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-xv15.rst
-@@ -0,0 +1,135 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-XV15:
-+.. _V4L2-PIX-FMT-XV15M:
-+
-+*******************************************************
-+V4L2_PIX_FMT_XV15 ('XV15'), V4L2_PIX_FMT_XV15 ('XV15M')
-+*******************************************************
-+
-+Semi-planar YUV 420 10-bit
-+
-+
-+Description
-+===========
-+
-+This is the 10-bit version of YUV 420 semi-planar format.
-+XV15M differs from XV15 insofar as the chroma plane is not contiguous with the
-+luma plane in memory.
-+
-+Each pixel of YUV 420 contains a single luma component of 10-bits in length.
-+Three luma components are stored per word with the remaining two bits serving
-+as padding.
-+
-+The chroma plane is subsampled and is only 1/2 the size of the luma plane.  A
-+single chroma component serves two pixels on a given row and is re-used on the
-+adjacent row of luma data.
-+
-+**Data Layout of Luma Plane**
-+Each cell is one 32-bit word.
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * - word + 0:
-+      - X'\ :sub:`[31:30]`
-+      - Y'\ :sub:`02 [29:20]`
-+      - Y'\ :sub:`01 [19:10]`
-+      - Y'\ :sub:`00 [09:00]`
-+      -
-+    * - word + 1:
-+      - X'\ :sub:`[31:30]`
-+      - Y'\ :sub:`05 [29:20]`
-+      - Y'\ :sub:`04 [19:10]`
-+      - Y'\ :sub:`03 [09:00]`
-+      -
-+    * - word + 2:
-+      - X'\ :sub:`[31:30]`
-+      - Y'\ :sub:`08 [29:20]`
-+      - Y'\ :sub:`07 [19:10]`
-+      - Y'\ :sub:`06 [09:00]`
-+      -
-+
-+
-+**Data Layout of Chroma Plane**
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * - word + 0:
-+      - X'\ :sub:`[31:30]`
-+      - U'\ :sub:`02 [29:20]`
-+      - V'\ :sub:`01 [19:10]`
-+      - U'\ :sub:`00 [09:00]`
-+      -
-+    * - word + 1:
-+      - X'\ :sub:`[31:30]`
-+      - V'\ :sub:`05 [29:20]`
-+      - U'\ :sub:`04 [19:10]`
-+      - V'\ :sub:`03 [09:00]`
-+      -
-+    * - word + 2:
-+      - X'\ :sub:`[31:30]`
-+      - U'\ :sub:`08 [29:20]`
-+      - V'\ :sub:`07 [19:10]`
-+      - U'\ :sub:`06 [09:00]`
-+      -
-+
-+**Color Sample Location**
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * -
-+      - 0
-+      -
-+      - 1
-+      - 2
-+      -
-+      - 3
-+    * - 0
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-+    * -
-+      -
-+      - C
-+      -
-+      -
-+      - C
-+      -
-+    * - 1
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-+    * -
-+    * - 2
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-+    * -
-+      -
-+      - C
-+      -
-+      -
-+      - C
-+      -
-+    * - 3
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-diff --git a/Documentation/media/uapi/v4l/pixfmt-xv20.rst b/Documentation/media/uapi/v4l/pixfmt-xv20.rst
-new file mode 100644
-index 0000000..fe9dac2
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-xv20.rst
-@@ -0,0 +1,136 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-XV20:
-+.. _V4L2-PIX-FMT-XV20M:
-+
-+*******************************************************
-+V4L2_PIX_FMT_XV20 ('XV20'), V4L2_PIX_FMT_XV20 ('XV20M')
-+*******************************************************
-+
-+Semi-planar YUV422 10-bit
-+
-+
-+Description
-+===========
-+
-+This is the 10-bit version of YUV 422 semi-planar format.
-+XV20M differs from XV20 insofar as the chroma plane is not contiquous with the
-+luma plane in memory.
-+
-+
-+Each pixel of YUV 422 contains a single luma component of 10-bits in length.
-+Three luma components are stored per word with the remaining two bits serving
-+as padding.
-+
-+The chroma plane is subsampled in and is the size of the luma plane.  A single
-+chroma component (U or V) serves two pixels on a given row.
-+
-+**Data Layout of Luma Plane**
-+Each cell is one 32-bit word.
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * - word + 0:
-+      - X'\ :sub:`[31:30]`
-+      - Y'\ :sub:`02 [29:20]`
-+      - Y'\ :sub:`01 [19:10]`
-+      - Y'\ :sub:`00 [09:00]`
-+      -
-+    * - word + 1:
-+      - X'\ :sub:`[31:30]`
-+      - Y'\ :sub:`05 [29:20]`
-+      - Y'\ :sub:`04 [19:10]`
-+      - Y'\ :sub:`03 [09:00]`
-+      -
-+    * - word + 2:
-+      - X'\ :sub:`[31:30]`
-+      - Y'\ :sub:`08 [29:20]`
-+      - Y'\ :sub:`07 [19:10]`
-+      - Y'\ :sub:`06 [09:00]`
-+      -
-+
-+
-+**Data Layout of Chroma Plane**
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * - word + 0:
-+      - X'\ :sub:`[31:30]`
-+      - U'\ :sub:`02 [29:20]`
-+      - V'\ :sub:`01 [19:10]`
-+      - U'\ :sub:`00 [09:00]`
-+      -
-+    * - word + 1:
-+      - X'\ :sub:`[31:30]`
-+      - V'\ :sub:`05 [29:20]`
-+      - U'\ :sub:`04 [19:10]`
-+      - V'\ :sub:`03 [09:00]`
-+      -
-+    * - word + 2:
-+      - X'\ :sub:`[31:30]`
-+      - U'\ :sub:`08 [29:20]`
-+      - V'\ :sub:`07 [19:10]`
-+      - U'\ :sub:`06 [09:00]`
-+      -
-+
-+
-+**Color Sample Location**
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * -
-+      - 0
-+      -
-+      - 1
-+      - 2
-+      -
-+      - 3
-+    * - 0
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-+    * -
-+      -
-+      - C
-+      -
-+      -
-+      - C
-+      -
-+    * - 1
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-+    * -
-+    * - 2
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-+    * -
-+      -
-+      - C
-+      -
-+      -
-+      - C
-+      -
-+    * - 3
-+      - Y
-+      -
-+      - Y
-+      - Y
-+      -
-+      - Y
-diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
-index 3334ea4..0e6b44f 100644
---- a/Documentation/media/uapi/v4l/yuv-formats.rst
-+++ b/Documentation/media/uapi/v4l/yuv-formats.rst
-@@ -49,7 +49,9 @@ to brightness information.
-     pixfmt-nv12
-     pixfmt-nv12m
-     pixfmt-nv12mt
-+    pixfmt-xv15
-     pixfmt-nv16
-     pixfmt-nv16m
-+    pixfmt-xv20
-     pixfmt-nv24
-     pixfmt-m420
--- 
-2.1.1
+Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 87e31ba0ddf5..521bbc227110 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -190,6 +190,10 @@ static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
+>  
+>  		/* Release our BRU if we have one. */
+>  		if (pipe->bru) {
+> +			dev_dbg(vsp1->dev, "%s: pipe %u: releasing %s\n",
+> +				__func__, pipe->lif->index,
+> +				BRU_NAME(pipe->bru));
+> +
+>  			/*
+>  			 * The BRU might be acquired by the other pipeline in
+>  			 * the next step. We must thus remove it from the list
+> @@ -219,6 +223,9 @@ static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
+>  		if (bru->pipe) {
+>  			struct vsp1_drm_pipeline *owner_pipe;
+>  
+> +			dev_dbg(vsp1->dev, "%s: pipe %u: waiting for %s\n",
+> +				__func__, pipe->lif->index, BRU_NAME(bru));
+> +
+>  			owner_pipe = to_vsp1_drm_pipeline(bru->pipe);
+>  			owner_pipe->force_bru_release = true;
+>  
+> @@ -245,6 +252,9 @@ static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
+>  				      &pipe->entities);
+>  
+>  		/* Add the BRU to the pipeline. */
+> +		dev_dbg(vsp1->dev, "%s: pipe %u: acquired %s\n",
+> +			__func__, pipe->lif->index, BRU_NAME(bru));
+> +
+>  		pipe->bru = bru;
+>  		pipe->bru->pipe = pipe;
+>  		pipe->bru->sink = &pipe->output->entity;
+> @@ -549,6 +559,10 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  		drm_pipe->du_complete = NULL;
+>  		pipe->num_inputs = 0;
+>  
+> +		dev_dbg(vsp1->dev, "%s: pipe %u: releasing %s\n",
+> +			__func__, pipe->lif->index,
+> +			BRU_NAME(pipe->bru));
+> +
+>  		list_del(&pipe->bru->list_pipe);
+>  		pipe->bru->pipe = NULL;
+>  		pipe->bru = NULL;
+> 
