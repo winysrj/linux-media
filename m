@@ -1,84 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36565 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757890AbeDXMph (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:37 -0400
-Received: by mail-wm0-f66.google.com with SMTP id n10so610540wmc.1
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:37 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Received: from mail.bootlin.com ([62.4.15.54]:46609 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751179AbeDDMUk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Apr 2018 08:20:40 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH 27/28] venus: add sdm845 compatible and resource data
-Date: Tue, 24 Apr 2018 15:44:35 +0300
-Message-Id: <20180424124436.26955-28-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v8 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
+Date: Wed,  4 Apr 2018 14:20:23 +0200
+Message-Id: <20180404122025.8726-1-maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds sdm845 DT compatible string with it's resource
-data table.
+Hi,
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- .../devicetree/bindings/media/qcom,venus.txt       |  1 +
- drivers/media/platform/qcom/venus/core.c           | 22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-index 2693449daf73..00d0d1bf7647 100644
---- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -6,6 +6,7 @@
- 	Definition: Value should contain one of:
- 		- "qcom,msm8916-venus"
- 		- "qcom,msm8996-venus"
-+		- "qcom,sdm845-venus"
- - reg:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 1b72bfbb6297..13084880cc42 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -445,9 +445,31 @@ static const struct venus_resources msm8996_res = {
- 	.fwname = "qcom/venus-4.2/venus.mdt",
- };
- 
-+static const struct freq_tbl sdm845_freq_table[] = {
-+	{ 1944000, 380000000 },	/* 4k UHD @ 60 */
-+	{  972000, 320000000 },	/* 4k UHD @ 30 */
-+	{  489600, 200000000 },	/* 1080p @ 60 */
-+	{  244800, 100000000 },	/* 1080p @ 30 */
-+};
-+
-+static const struct venus_resources sdm845_res = {
-+	.freq_tbl = sdm845_freq_table,
-+	.freq_tbl_size = ARRAY_SIZE(sdm845_freq_table),
-+	.clks = {"core", "iface", "bus" },
-+	.clks_num = 3,
-+	.max_load = 2563200,
-+	.hfi_version = HFI_VERSION_4XX,
-+	.vmem_id = VIDC_RESOURCE_NONE,
-+	.vmem_size = 0,
-+	.vmem_addr = 0,
-+	.dma_mask = 0xe0000000 - 1,
-+	.fwname = "qcom/venus-5.2/venus.mdt",
-+};
-+
- static const struct of_device_id venus_dt_match[] = {
- 	{ .compatible = "qcom,msm8916-venus", .data = &msm8916_res, },
- 	{ .compatible = "qcom,msm8996-venus", .data = &msm8996_res, },
-+	{ .compatible = "qcom,sdm845-venus", .data = &sdm845_res, },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, venus_dt_match);
+This IP block is able to receive 4 video streams and stream them over
+a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
+interfaces to controllers generating some video signals, like a camera
+or a pattern generator.
+
+It is able to map input streams to CSI2 virtual channels and datatypes
+dynamically. The streaming devices choose their virtual channels
+through an additional signal that is transparent to the CSI2-TX. The
+datatypes however are yet another additional input signal, and can be
+mapped to any CSI2 datatypes.
+
+Since v4l2 doesn't really allow for that setup at the moment, this
+preliminary version is a rather dumb one in order to start the
+discussion on how to address this properly.
+
+Let me know what you think!
+Maxime
+
+Changes from v7:
+  - Removed unused headers
+  - Fixed a function prefix inconsistency
+  - Added Niklas' Reviewed-by
+
+Changes from v6:
+  - Added Niklas Reviewed-by on the bindings
+  - Added MODULE_LICENSE, MODULE_DESCRIPTION and MODULE_AUTHOR
+
+Changes from v5:
+  - Changed the return type to void for csi2tx_stop
+  - Checked for the pad index in get/set_pad_format
+  - Made a comment that the DPHY registers are for the DPHY *interface*
+    register
+
+Changes from v4:
+  - After playing a bit with the pad multiplexing patches, found that it
+    was making much more sense to have the subdev notifiers for the source
+    subdev rather for the sink that might even be outside of Linux control.
+    Removed the notifier for now.
+
+Changes from v3:
+  - Added a comment about entity links walk concurrency
+  - Changed the default resolution to 1280x720
+  - Changed usleep_range calls to udelay
+  - Reworked the reference counting mechanism to remove a race
+    condition by adding a mutex instead of an atomic count
+  - Changed the entity function to MEDIA_ENT_F_VID_IF_BRIDGE
+  - Changed the name of the reg variable in _get_resources to dev_cfg
+  - Removed the redundant error message in the devm_ioremap_resource
+    error path
+  - Moved the subdev s_stream call before enabling the TX bridge
+  - Changed some int types to unsigned
+  - Init'd the pad formats properly
+  - Fixed typo in the CSI2TX_LANES_MAX define name
+  - Added Sakari Acked-by
+
+Changes from v2:
+  - Use SPDX license header
+  - Use the lane mapping from DT
+
+Changes from v1:
+  - Add a subdev notifier and start our downstream subdevice in
+    s_stream  
+  - Based the decision to enable the stream or not on the link state
+    instead of whether a format was being set on the pad
+  - Put the controller back in reset when stopping the pipeline
+  - Clarified the enpoints number in the DT binding
+  - Added a default format for the pads
+  - Added some missing const
+  - Added more explicit comments
+  - Rebased on 4.15
+
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+
+ .../devicetree/bindings/media/cdns,csi2tx.txt      |  98 ++++
+ drivers/media/platform/cadence/Kconfig             |  11 +
+ drivers/media/platform/cadence/Makefile            |   1 +
+ drivers/media/platform/cadence/cdns-csi2tx.c       | 529 +++++++++++++++++++++
+ 4 files changed, 639 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+
 -- 
-2.14.1
+2.14.3
