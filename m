@@ -1,421 +1,408 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59378 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753172AbeD3OMp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 10:12:45 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v7 3/8] media: vsp1: Provide a body pool
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
- <9f8fb55c1811825884ab620d2956e0036147bc26.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
- <1646405.Bdlv5Bo0GY@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <a109b1f8-9d34-1559-32a2-8f8fc8ba6d5d@ideasonboard.com>
-Date: Mon, 30 Apr 2018 15:12:39 +0100
+Received: from mga06.intel.com ([134.134.136.31]:43052 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750915AbeDDMff (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Apr 2018 08:35:35 -0400
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Peter Geis <pgwipeout@gmail.com>, linux-media@vger.kernel.org,
+        linux-input@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: intel-gfx@lists.freedesktop.org
+Subject: Re: Linux 4.16 Kernel Boot Crash
+In-Reply-To: <6a0009be-cbf8-671e-9d7d-c78340e93f58@gmail.com>
+References: <6a0009be-cbf8-671e-9d7d-c78340e93f58@gmail.com>
+Date: Wed, 04 Apr 2018 15:36:22 +0300
+Message-ID: <87in97up15.fsf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1646405.Bdlv5Bo0GY@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Tue, 03 Apr 2018, Peter Geis <pgwipeout@gmail.com> wrote:
+> Good Evening,
+>
+> I have been trying to use the 4.16 kernel source since 4.16-rc3.
+> Every time it booted it crashed upon loading the video drivers.
+> Now with the 4.16 release, it is still occurring, so I felt it prudent 
+> to notify someone.
+>
+> The machine is a Lenovo Yoga 900 80UE-ISK2.
+> It has a i7-6560u CPU with Intel integrated graphics.
 
-On 06/04/18 23:33, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> Thank you for the patch.
-> 
-> On Thursday, 8 March 2018 02:05:26 EEST Kieran Bingham wrote:
->> Each display list allocates a body to store register values in a dma
->> accessible buffer from a dma_alloc_wc() allocation. Each of these
->> results in an entry in the TLB, and a large number of display list
-> 
-> I'd write it as "IOMMU TLB" to make it clear we're not concerned about CPU MMU 
-> TLB pressure.
+This doesn't seem to have anything to do with Intel graphics. Based on
+the backtraces, adding linux-media and linux-input mailing lists and
+maintainers.
 
-Yes, of course.
-
-> 
->> allocations adds pressure to this resource.
->>
->> Reduce TLB pressure on the IPMMUs by allocating multiple display list
->> bodies in a single allocation, and providing these to the display list
->> through a 'body pool'. A pool can be allocated by the display list
->> manager or entities which require their own body allocations.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> ---
->> v4:
->>  - Provide comment explaining extra allocation on body pool
->>    highlighting area for optimisation later.
->>
->> v3:
->>  - s/fragment/body/, s/fragments/bodies/
->>  - qty -> num_bodies
->>  - indentation fix
->>  - s/vsp1_dl_body_pool_{alloc,free}/vsp1_dl_body_pool_{create,destroy}/'
->>  - Add kerneldoc to non-static functions
->>
->> v2:
->>  - assign dlb->dma correctly
->>
->>  drivers/media/platform/vsp1/vsp1_dl.c | 163 +++++++++++++++++++++++++++-
->>  drivers/media/platform/vsp1/vsp1_dl.h |   8 +-
->>  2 files changed, 171 insertions(+)
->>
->> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
->> b/drivers/media/platform/vsp1/vsp1_dl.c index 67cc16c1b8e3..0208e72cb356
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_dl.c
->> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
->> @@ -45,6 +45,8 @@ struct vsp1_dl_entry {
->>  /**
->>   * struct vsp1_dl_body - Display list body
->>   * @list: entry in the display list list of bodies
->> + * @free: entry in the pool free body list
-> 
-> Could we reuse @list for this purpose ? Unless I'm mistaken, when a body is in 
-> a pool it doesn't belong to any particular display list, and when it is in a 
-> display list it isn't in the pool anymore.
-I've adapted the @list doc-string to read:
-
- * @list: entry in the display list list of bodies, or body pool free list
+BR,
+Jani.
 
 
-Actually, I think I'm tempted to leave this distinct and separate.
+>
+> I have included the kernel log, what format should I submit the vmcore 
+> dump in?
+>
+> Thanks,
+> Peter Geis
+>
+>
+> ---Begin Log---
+>
+> [   43.177394] WARNING: CPU: 1 PID: 711 at 
+> drivers/media/v4l2-core/v4l2-dev.c:945 
+> __video_register_device+0xc99/0x1090 [videodev]
+> [   43.177396] Modules linked in: hid_sensor_custom hid_sensor_als 
+> hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d 
+> hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger 
+> industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common 
+> hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops 
+> videobuf2_v4l2 videobuf2_common videodev hid_multitouch media 
+> hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 
+> snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp 
+> snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic 
+> snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel 
+> snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep 
+> intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi 
+> snd_seq_midi_event snd_rawmidi crct10dif_pclmul
+> [   43.177426]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 
+> snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd 
+> glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds 
+> serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore 
+> ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad 
+> int3400_thermal acpi_thermal_rel intel_pch_thermal 
+> processor_thermal_device mac_hid int340x_thermal_zone mei_me 
+> intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel 
+> vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd 
+> grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp 
+> hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 
+> vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea 
+> sdhci_pci sysfillrect
+> [   43.177466]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid 
+> video pinctrl_sunrisepoint pinctrl_intel
+> [   43.177474] CPU: 1 PID: 711 Comm: systemd-udevd Not tainted 4.16.0 #1
+> [   43.177475] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
+> [   43.177481] RIP: 0010:__video_register_device+0xc99/0x1090 [videodev]
+> [   43.177482] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
+> [   43.177484] RAX: 0000000000000000 RBX: 0000000000000005 RCX: 
+> 0000000000000000
+> [   43.177485] RDX: ffffffffc0c44cc0 RSI: ffffffffffffffff RDI: 
+> ffffffffc0c44cc0
+> [   43.177486] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: 
+> ffff8eda1a51f018
+> [   43.177487] R10: 0000000000000600 R11: 00000000000003b6 R12: 
+> 0000000000000000
+> [   43.177488] R13: 0000000000000005 R14: ffffffffc0c96900 R15: 
+> ffff8eda1d6d91c0
+> [   43.177489] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) 
+> knlGS:0000000000000000
+> [   43.177490] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   43.177491] CR2: 00007ffe0a6ad01c CR3: 0000000456ae2004 CR4: 
+> 00000000003606e0
+> [   43.177492] Call Trace:
+> [   43.177498]  ? devres_add+0x5f/0x70
+> [   43.177502]  rmi_f54_probe+0x437/0x470 [rmi_core]
+> [   43.177505]  rmi_function_probe+0x25/0x30 [rmi_core]
+> [   43.177507]  driver_probe_device+0x310/0x480
+> [   43.177509]  __device_attach_driver+0x86/0x100
+> [   43.177511]  ? __driver_attach+0xf0/0xf0
+> [   43.177512]  bus_for_each_drv+0x6b/0xb0
+> [   43.177514]  __device_attach+0xdd/0x160
+> [   43.177516]  device_initial_probe+0x13/0x20
+> [   43.177518]  bus_probe_device+0x95/0xa0
+> [   43.177519]  device_add+0x44b/0x680
+> [   43.177522]  rmi_register_function+0x62/0xd0 [rmi_core]
+> [   43.177525]  rmi_create_function+0x112/0x1a0 [rmi_core]
+> [   43.177527]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+> [   43.177530]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+> [   43.177535]  rmi_init_functions+0x5b/0x120 [rmi_core]
+> [   43.177537]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+> [   43.177547]  ? sysfs_create_link+0x25/0x40
+> [   43.177549]  driver_probe_device+0x310/0x480
+> [   43.177551]  __device_attach_driver+0x86/0x100
+> [   43.177553]  ? __driver_attach+0xf0/0xf0
+> [   43.177554]  bus_for_each_drv+0x6b/0xb0
+> [   43.177556]  __device_attach+0xdd/0x160
+> [   43.177558]  device_initial_probe+0x13/0x20
+> [   43.177560]  bus_probe_device+0x95/0xa0
+> [   43.177561]  device_add+0x44b/0x680
+> [   43.177564]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+> [   43.177568]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+> [   43.177571]  ? input_allocate_device+0xdf/0xf0
+> [   43.177574]  hidinput_connect+0x4a9/0x37a0 [hid]
+> [   43.177578]  hid_connect+0x326/0x3d0 [hid]
+> [   43.177581]  hid_hw_start+0x42/0x70 [hid]
+> [   43.177583]  rmi_probe+0x115/0x510 [hid_rmi]
+> [   43.177586]  hid_device_probe+0xd3/0x150 [hid]
+> [   43.177588]  ? sysfs_create_link+0x25/0x40
+> [   43.177590]  driver_probe_device+0x310/0x480
+> [   43.177592]  __driver_attach+0xbf/0xf0
+> [   43.177593]  ? driver_probe_device+0x480/0x480
+> [   43.177595]  bus_for_each_dev+0x74/0xb0
+> [   43.177597]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+> [   43.177599]  driver_attach+0x1e/0x20
+> [   43.177600]  bus_add_driver+0x167/0x260
+> [   43.177602]  ? 0xffffffffc0cbc000
+> [   43.177604]  driver_register+0x60/0xe0
+> [   43.177605]  ? 0xffffffffc0cbc000
+> [   43.177607]  __hid_register_driver+0x63/0x70 [hid]
+> [   43.177610]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+> [   43.177612]  do_one_initcall+0x52/0x191
+> [   43.177615]  ? _cond_resched+0x19/0x40
+> [   43.177617]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+> [   43.177619]  ? do_init_module+0x27/0x209
+> [   43.177621]  do_init_module+0x5f/0x209
+> [   43.177623]  load_module+0x1987/0x1f10
+>   -- MORE --  forward: <SPACE>, <ENTER> or j  backward: b or k  quit: q
+> [   43.177488] R13: 0000000000000005 R14: ffffffffc0c96900 R15: 
+> ffff8eda1d6d91c0
+> [   43.177489] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) 
+> knlGS:0000000000000000
+> [   43.177490] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   43.177491] CR2: 00007ffe0a6ad01c CR3: 0000000456ae2004 CR4: 
+> 00000000003606e0
+> [   43.177492] Call Trace:
+> [   43.177498]  ? devres_add+0x5f/0x70
+> [   43.177502]  rmi_f54_probe+0x437/0x470 [rmi_core]
+> [   43.177505]  rmi_function_probe+0x25/0x30 [rmi_core]
+> [   43.177507]  driver_probe_device+0x310/0x480
+> [   43.177509]  __device_attach_driver+0x86/0x100
+> [   43.177511]  ? __driver_attach+0xf0/0xf0
+> [   43.177512]  bus_for_each_drv+0x6b/0xb0
+> [   43.177514]  __device_attach+0xdd/0x160
+> [   43.177516]  device_initial_probe+0x13/0x20
+> [   43.177518]  bus_probe_device+0x95/0xa0
+> [   43.177519]  device_add+0x44b/0x680
+> [   43.177522]  rmi_register_function+0x62/0xd0 [rmi_core]
+> [   43.177525]  rmi_create_function+0x112/0x1a0 [rmi_core]
+> [   43.177527]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+> [   43.177530]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+> [   43.177535]  rmi_init_functions+0x5b/0x120 [rmi_core]
+> [   43.177537]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+> [   43.177547]  ? sysfs_create_link+0x25/0x40
+> [   43.177549]  driver_probe_device+0x310/0x480
+> [   43.177551]  __device_attach_driver+0x86/0x100
+> [   43.177553]  ? __driver_attach+0xf0/0xf0
+> [   43.177554]  bus_for_each_drv+0x6b/0xb0
+> [   43.177556]  __device_attach+0xdd/0x160
+> [   43.177558]  device_initial_probe+0x13/0x20
+> [   43.177560]  bus_probe_device+0x95/0xa0
+> [   43.177561]  device_add+0x44b/0x680
+> [   43.177564]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+> [   43.177568]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+> [   43.177571]  ? input_allocate_device+0xdf/0xf0
+> [   43.177574]  hidinput_connect+0x4a9/0x37a0 [hid]
+> [   43.177578]  hid_connect+0x326/0x3d0 [hid]
+> [   43.177581]  hid_hw_start+0x42/0x70 [hid]
+> [   43.177583]  rmi_probe+0x115/0x510 [hid_rmi]
+> [   43.177586]  hid_device_probe+0xd3/0x150 [hid]
+> [   43.177588]  ? sysfs_create_link+0x25/0x40
+> [   43.177590]  driver_probe_device+0x310/0x480
+> [   43.177592]  __driver_attach+0xbf/0xf0
+> [   43.177593]  ? driver_probe_device+0x480/0x480
+> [   43.177595]  bus_for_each_dev+0x74/0xb0
+> [   43.177597]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+> [   43.177599]  driver_attach+0x1e/0x20
+> [   43.177600]  bus_add_driver+0x167/0x260
+> [   43.177602]  ? 0xffffffffc0cbc000
+> [   43.177604]  driver_register+0x60/0xe0
+> [   43.177605]  ? 0xffffffffc0cbc000
+> [   43.177607]  __hid_register_driver+0x63/0x70 [hid]
+> [   43.177610]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+> [   43.177612]  do_one_initcall+0x52/0x191
+> [   43.177615]  ? _cond_resched+0x19/0x40
+> [   43.177617]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+> [   43.177619]  ? do_init_module+0x27/0x209
+> [   43.177621]  do_init_module+0x5f/0x209
+> [   43.177623]  load_module+0x1987/0x1f10
+> [   43.177626]  ? ima_post_read_file+0x96/0xa0
+> [   43.177629]  SYSC_finit_module+0xfc/0x120
+> [   43.177630]  ? SYSC_finit_module+0xfc/0x120
+> [   43.177632]  SyS_finit_module+0xe/0x10
+> [   43.177634]  do_syscall_64+0x73/0x130
+> [   43.177637]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> [   43.177638] RIP: 0033:0x7fd2d880b839
+> [   43.177639] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 
+> 0000000000000139
+> [   43.177641] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 
+> 00007fd2d880b839
+> [   43.177641] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 
+> 0000000000000016
+> [   43.177642] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 
+> 00007ffe0a6b2480
+> [   43.177643] R10: 0000000000000016 R11: 0000000000000246 R12: 
+> 0000000000000000
+> [   43.177644] R13: 000055cdd8688930 R14: 0000000000020000 R15: 
+> 000055cdd86542e0
+> [   43.177645] Code: 48 c7 c7 54 b4 c3 c0 e8 96 9d ec dd e9 d4 fb ff ff 
+> 0f 0b 41 be ea ff ff ff e9 c7 fb ff ff 0f 0b 41 be ea ff ff ff e9 ba fb 
+> ff ff <0f> 0b e9 d8 f4 ff ff 83 fa 01 0f 84 c4 02 00 00 48 83 78 68 00
+> [   43.177675] ---[ end trace d44d9bc41477c2dd ]---
+> [   43.177679] BUG: unable to handle kernel NULL pointer dereference at 
+> 0000000000000499
+> [   43.177723] IP: __video_register_device+0x1cc/0x1090 [videodev]
+> [   43.177749] PGD 0 P4D 0
+> [   43.177764] Oops: 0000 [#1] SMP PTI
+> [   43.177780] Modules linked in: hid_sensor_custom hid_sensor_als 
+> hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d 
+> hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger 
+> industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common 
+> hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops 
+> videobuf2_v4l2 videobuf2_common videodev hid_multitouch media 
+> hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 
+> snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp 
+> snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic 
+> snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel 
+> snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep 
+> intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi 
+> snd_seq_midi_event snd_rawmidi crct10dif_pclmul
+> [   43.178055]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 
+> snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd 
+> glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds 
+> serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore 
+> ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad 
+> int3400_thermal acpi_thermal_rel intel_pch_thermal 
+> processor_thermal_device mac_hid int340x_thermal_zone mei_me 
+> intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel 
+> vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd 
+> grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp 
+> hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 
+> vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea 
+> sdhci_pci sysfillrect
+> [   43.178337]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid 
+> video pinctrl_sunrisepoint pinctrl_intel
+> [   43.178380] CPU: 1 PID: 711 Comm: systemd-udevd Tainted: G        W 
+>       4.16.0 #1
+> [   43.178411] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
+> [   43.178441] RIP: 0010:__video_register_device+0x1cc/0x1090 [videodev]
+> [   43.178467] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
+> [   43.178490] RAX: ffffffffc0c44cc0 RBX: 0000000000000005 RCX: 
+> ffffffffc0c454c0
+> [   43.178519] RDX: 0000000000000001 RSI: ffff8eda1d6d9118 RDI: 
+> ffffffffc0c44cc0
+> [   43.178549] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: 
+> ffff8eda1a51f018
+> [   43.178579] R10: 0000000000000600 R11: 00000000000003b6 R12: 
+> 0000000000000000
+> [   43.178608] R13: 0000000000000005 R14: ffffffffc0c96900 R15: 
+> ffff8eda1d6d91c0
+> [   43.178636] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) 
+> knlGS:0000000000000000
+> [   43.178669] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   43.178693] CR2: 0000000000000499 CR3: 0000000456ae2004 CR4: 
+> 00000000003606e0
+> [   43.178721] Call Trace:
+> [   43.178736]  ? devres_add+0x5f/0x70
+> [   43.178755]  rmi_f54_probe+0x437/0x470 [rmi_core]
+> [   43.178779]  rmi_function_probe+0x25/0x30 [rmi_core]
+> [   43.178805]  driver_probe_device+0x310/0x480
+> [   43.178828]  __device_attach_driver+0x86/0x100
+> [   43.178851]  ? __driver_attach+0xf0/0xf0
+> [   43.178884]  bus_for_each_drv+0x6b/0xb0
+> [   43.178904]  __device_attach+0xdd/0x160
+> [   43.178925]  device_initial_probe+0x13/0x20
+> [   43.178948]  bus_probe_device+0x95/0xa0
+> [   43.178968]  device_add+0x44b/0x680
+> [   43.178987]  rmi_register_function+0x62/0xd0 [rmi_core]
+> [   43.181747]  rmi_create_function+0x112/0x1a0 [rmi_core]
+> [   43.184677]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+> [   43.187505]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+> [   43.190171]  rmi_init_functions+0x5b/0x120 [rmi_core]
+> [   43.192809]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+> [   43.195403]  ? sysfs_create_link+0x25/0x40
+> [   43.198253]  driver_probe_device+0x310/0x480
+> [   43.201083]  __device_attach_driver+0x86/0x100
+> [   43.203800]  ? __driver_attach+0xf0/0xf0
+> [   43.206503]  bus_for_each_drv+0x6b/0xb0
+> [   43.209291]  __device_attach+0xdd/0x160
+> [   43.212207]  device_initial_probe+0x13/0x20
+> [   43.215146]  bus_probe_device+0x95/0xa0
+> [   43.217885]  device_add+0x44b/0x680
+> [   43.220597]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+> [   43.223321]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+> [   43.226051]  ? input_allocate_device+0xdf/0xf0
+> [   43.228814]  hidinput_connect+0x4a9/0x37a0 [hid]
+> [   43.231701]  hid_connect+0x326/0x3d0 [hid]
+> [   43.234548]  hid_hw_start+0x42/0x70 [hid]
+> [   43.237302]  rmi_probe+0x115/0x510 [hid_rmi]
+> [   43.239862]  hid_device_probe+0xd3/0x150 [hid]
+> [   43.242558]  ? sysfs_create_link+0x25/0x40
+> [   43.242828] audit: type=1400 audit(1522795151.600:4): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/snap/core/4206/usr/lib/snapd/snap-confine" pid=1151 
+> comm="apparmor_parser"
+> [   43.244859]  driver_probe_device+0x310/0x480
+> [   43.244862]  __driver_attach+0xbf/0xf0
+> [   43.246982] audit: type=1400 audit(1522795151.600:5): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/snap/core/4206/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" 
+> pid=1151 comm="apparmor_parser"
+> [   43.249403]  ? driver_probe_device+0x480/0x480
+> [   43.249405]  bus_for_each_dev+0x74/0xb0
+> [   43.253200] audit: type=1400 audit(1522795151.600:6): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/snap/core/4206/usr/lib/snapd/snap-confine//snap_update_ns" 
+> pid=1151 comm="apparmor_parser"
+> [   43.254055]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+> [   43.256282] audit: type=1400 audit(1522795151.604:7): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/sbin/dhclient" pid=1152 comm="apparmor_parser"
+> [   43.258436]  driver_attach+0x1e/0x20
+> [   43.260875] audit: type=1400 audit(1522795151.604:8): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/usr/lib/NetworkManager/nm-dhcp-client.action" pid=1152 
+> comm="apparmor_parser"
+> [   43.263118]  bus_add_driver+0x167/0x260
+> [   43.267676] audit: type=1400 audit(1522795151.604:9): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/usr/lib/NetworkManager/nm-dhcp-helper" pid=1152 
+> comm="apparmor_parser"
+> [   43.268807]  ? 0xffffffffc0cbc000
+> [   43.268812]  driver_register+0x60/0xe0
+> [   43.271184] audit: type=1400 audit(1522795151.604:10): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/usr/lib/connman/scripts/dhclient-script" pid=1152 
+> comm="apparmor_parser"
+> [   43.274081]  ? 0xffffffffc0cbc000
+> [   43.274086]  __hid_register_driver+0x63/0x70 [hid]
+> [   43.288367]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+> [   43.291501]  do_one_initcall+0x52/0x191
+> [   43.292348] audit: type=1400 audit(1522795151.652:11): 
+> apparmor="STATUS" operation="profile_load" profile="unconfined" 
+> name="/usr/bin/man" pid=1242 comm="apparmor_parser"
+> [   43.294212]  ? _cond_resched+0x19/0x40
+> [   43.300028]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+> [   43.303475]  ? do_init_module+0x27/0x209
+> [   43.306842]  do_init_module+0x5f/0x209
+> [   43.310269]  load_module+0x1987/0x1f10
+> [   43.313704]  ? ima_post_read_file+0x96/0xa0
+> [   43.317174]  SYSC_finit_module+0xfc/0x120
+> [   43.320754]  ? SYSC_finit_module+0xfc/0x120
+> [   43.324065]  SyS_finit_module+0xe/0x10
+> [   43.327387]  do_syscall_64+0x73/0x130
+> [   43.330909]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> [   43.334305] RIP: 0033:0x7fd2d880b839
+> [   43.337810] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 
+> 0000000000000139
+> [   43.341259] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 
+> 00007fd2d880b839
+> [   43.344613] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 
+> 0000000000000016
+> [   43.347962] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 
+> 00007ffe0a6b2480
+> [   43.351456] R10: 0000000000000016 R11: 0000000000000246 R12: 
+> 0000000000000000
+> [   43.354845] R13: 000055cdd8688930 R14: 0000000000020000 R15: 
+> 000055cdd86542e0
+> [   43.358224] Code: c7 05 ad 12 02 00 00 00 00 00 48 8d 88 00 08 00 00 
+> eb 09 48 83 c0 08 48 39 c1 74 31 48 8b 10 48 85 d2 74 ef 49 8b b7 98 04 
+> 00 00 <48> 39 b2 98 04 00 00 75 df 48 63 92 f8 04 00 00 f0 48 0f ab 15
+> [   43.361764] RIP: __video_register_device+0x1cc/0x1090 [videodev] RSP: 
+> ffffa5c5c231b420
+> [   43.365281] CR2: 0000000000000499
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
-If we use the single @list field, then we have calls to vsp1_dl_body_get() which
-'might not' add that body to a display list.
-
-Consider the lut_set_table call, if it was called twice without a dl_commit() in
-between.
-
-The first call would get a dlb, and populate it with the LUT, setting it as the
-active LUT in the entitiy, but not adding it to any list.
-
-The call to vsp1_dl_body_get() *has* to remove it from the free list at that
-point. But now the list structure '@list' is poisoned.
-
-
-Now consider the general case for 'putting' the object back to the pool free
-list when it's reference count is zero:
-
-vsp1_dl_body_put() must delete the structure from any existing list and add it
-to the pool-free list.
-
-We can use list_move_tail for this:
-
-@@ -286,7 +284,7 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
-        dlb->num_entries = 0;
-
-        spin_lock_irqsave(&dlb->pool->lock, flags);
--       list_add_tail(&dlb->free, &dlb->pool->free);
-+       list_move_tail(&dlb->list, &dlb->pool->free);
-        spin_unlock_irqrestore(&dlb->pool->lock, flags);
-
-
-However - this fails in the instance above where the dlb did not make it onto a
-list, because the call to __list_del_entry() will segfault on the poisoned values.
-
-I don't believe we can expect the callers of vsp1_dl_body_put() to guarantee
-that the entity is not on a list either, as that is intrinsic to the refcounting
-associated with the object.
-
-
-I think we have the same issue with the cached body in the vsp1_video object too.
-
-So - leaving this as it is.
-
-
-> 
->> + * @pool: pool to which this body belongs
->>   * @vsp1: the VSP1 device
->>   * @entries: array of entries
->>   * @dma: DMA address of the entries
->> @@ -54,6 +56,9 @@ struct vsp1_dl_entry {
->>   */
->>  struct vsp1_dl_body {
->>  	struct list_head list;
->> +	struct list_head free;
->> +
->> +	struct vsp1_dl_body_pool *pool;
->>  	struct vsp1_device *vsp1;
->>
->>  	struct vsp1_dl_entry *entries;
->> @@ -65,6 +70,30 @@ struct vsp1_dl_body {
->>  };
->>
->>  /**
->> + * struct vsp1_dl_body_pool - display list body pool
->> + * @dma: DMA address of the entries
->> + * @size: size of the full DMA memory pool in bytes
->> + * @mem: CPU memory pointer for the pool
->> + * @bodies: Array of DLB structures for the pool
->> + * @free: List of free DLB entries
->> + * @lock: Protects the pool and free list
-> 
-> The pool and free list ? As far as I can tell the lock only protects the free 
-> list.
-
-I've removed the reference to the pool for the lock. I don't think much else
-needs protecting in the current code, so it should be fine.
-
-> 
->> + * @vsp1: the VSP1 device
->> + */
->> +struct vsp1_dl_body_pool {
->> +	/* DMA allocation */
->> +	dma_addr_t dma;
->> +	size_t size;
->> +	void *mem;
->> +
->> +	/* Body management */
->> +	struct vsp1_dl_body *bodies;
->> +	struct list_head free;
->> +	spinlock_t lock;
->> +
->> +	struct vsp1_device *vsp1;
->> +};
->> +
->> +/**
->>   * struct vsp1_dl_list - Display list
->>   * @list: entry in the display list manager lists
->>   * @dlm: the display list manager
->> @@ -105,6 +134,7 @@ enum vsp1_dl_mode {
->>   * @active: list currently being processed (loaded) by hardware
->>   * @queued: list queued to the hardware (written to the DL registers)
->>   * @pending: list waiting to be queued to the hardware
->> + * @pool: body pool for the display list bodies
->>   * @gc_work: bodies garbage collector work struct
->>   * @gc_bodies: array of display list bodies waiting to be freed
->>   */
->> @@ -120,6 +150,8 @@ struct vsp1_dl_manager {
->>  	struct vsp1_dl_list *queued;
->>  	struct vsp1_dl_list *pending;
->>
->> +	struct vsp1_dl_body_pool *pool;
->> +
->>  	struct work_struct gc_work;
->>  	struct list_head gc_bodies;
->>  };
->> @@ -128,6 +160,137 @@ struct vsp1_dl_manager {
->>   * Display List Body Management
->>   */
->>
->> +/**
->> + * vsp1_dl_body_pool_create - Create a pool of bodies from a single
->> allocation
->> + * @vsp1: The VSP1 device
->> + * @num_bodies: The quantity of bodies to allocate
-> 
-> For consistency, s/quantity/number/
-
-Done
-
-> 
->> + * @num_entries: The maximum number of entries that the body can contain
-> 
-> Maybe s/the body/a body/ ?
-
-Done
-
-> 
->> + * @extra_size: Extra allocation provided for the bodies
->> + *
->> + * Allocate a pool of display list bodies each with enough memory to
->> contain the
->> + * requested number of entries.
-> 
-> How about
-> 
-> the requested number of entries plus the @extra_size.
-
-Done
-
-> 
->> + *
->> + * Return a pointer to a pool on success or NULL if memory can't be
->> allocated.
->> + */
->> +struct vsp1_dl_body_pool *
->> +vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
->> +			 unsigned int num_entries, size_t extra_size)
->> +{
->> +	struct vsp1_dl_body_pool *pool;
->> +	size_t dlb_size;
->> +	unsigned int i;
->> +
->> +	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
->> +	if (!pool)
->> +		return NULL;
->> +
->> +	pool->vsp1 = vsp1;
->> +
->> +	/*
->> +	 * Todo: 'extra_size' is only used by vsp1_dlm_create(), to allocate
-> 
-> s/Todo/TODO/
-> 
->> +	 * extra memory for the display list header. We need only one header per
->> +	 * display list, not per display list body, thus this allocation is
->> +	 * extraneous and should be reworked in the future.
->> +	 */
-> 
-> Any plan to fix this ? :-)
-
-Sort of - The DU interlaced work brings in further need to create pool type
-memory - and creates an opportunity to further rework and separate the headers
-from the display list body.
-
-(I think something can be built on top of the DU Interlaced patches, they don't
-need to be blocked by this TODO:)
-
-But yes, this is in my mind for how to fix it.
-
-Fixed the capitalisation.
-
-> 
->> +	dlb_size = num_entries * sizeof(struct vsp1_dl_entry) + extra_size;
->> +	pool->size = dlb_size * num_bodies;
->> +
->> +	pool->bodies = kcalloc(num_bodies, sizeof(*pool->bodies), GFP_KERNEL);
->> +	if (!pool->bodies) {
->> +		kfree(pool);
->> +		return NULL;
->> +	}
->> +
->> +	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
->> +				 GFP_KERNEL);
->> +	if (!pool->mem) {
->> +		kfree(pool->bodies);
->> +		kfree(pool);
->> +		return NULL;
->> +	}
->> +
->> +	spin_lock_init(&pool->lock);
->> +	INIT_LIST_HEAD(&pool->free);
->> +
->> +	for (i = 0; i < num_bodies; ++i) {
->> +		struct vsp1_dl_body *dlb = &pool->bodies[i];
->> +
->> +		dlb->pool = pool;
->> +		dlb->max_entries = num_entries;
->> +
->> +		dlb->dma = pool->dma + i * dlb_size;
->> +		dlb->entries = pool->mem + i * dlb_size;
->> +
->> +		list_add_tail(&dlb->free, &pool->free);
->> +	}
->> +
->> +	return pool;
->> +}
->> +
->> +/**
->> + * vsp1_dl_body_pool_destroy - Release a body pool
->> + * @pool: The body pool
->> + *
->> + * Release all components of a pool allocation.
->> + */
->> +void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool)
->> +{
->> +	if (!pool)
->> +		return;
->> +
->> +	if (pool->mem)
->> +		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
->> +			    pool->dma);
->> +
->> +	kfree(pool->bodies);
->> +	kfree(pool);
->> +}
->> +
->> +/**
->> + * vsp1_dl_body_get - Obtain a body from a pool
->> + * @pool: The body pool
->> + *
->> + * Obtain a body from the pool allocation without blocking.
-> 
-> "the pool allocation" ? Did you mean just "the pool" ?
-
-That sounds better :D Done.
-
-> 
->> + *
->> + * Returns a display list body or NULL if there are none available.
->> + */
->> +struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
->> +{
->> +	struct vsp1_dl_body *dlb = NULL;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&pool->lock, flags);
->> +
->> +	if (!list_empty(&pool->free)) {
->> +		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
->> +		list_del(&dlb->free);
->> +	}
->> +
->> +	spin_unlock_irqrestore(&pool->lock, flags);
->> +
->> +	return dlb;
->> +}
->> +
->> +/**
->> + * vsp1_dl_body_put - Return a body back to its pool
->> + * @dlb: The display list body
->> + *
->> + * Return a body back to the pool, and reset the num_entries to clear the
->> list.
->> + */
->> +void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
->> +{
->> +	unsigned long flags;
->> +
->> +	if (!dlb)
->> +		return;
->> +
->> +	dlb->num_entries = 0;
->> +
->> +	spin_lock_irqsave(&dlb->pool->lock, flags);
->> +	list_add_tail(&dlb->free, &dlb->pool->free);
->> +	spin_unlock_irqrestore(&dlb->pool->lock, flags);
->> +}
->> +
->>  /*
->>   * Initialize a display list body object and allocate DMA memory for the
->> body * data. The display list body object is expected to have been
->> initialized to diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
->> b/drivers/media/platform/vsp1/vsp1_dl.h index cf57f986b69a..031032e304d2
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_dl.h
->> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
->> @@ -17,6 +17,7 @@
->>
->>  struct vsp1_device;
->>  struct vsp1_dl_body;
->> +struct vsp1_dl_body_pool;
->>  struct vsp1_dl_list;
->>  struct vsp1_dl_manager;
->>
->> @@ -34,6 +35,13 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
->>  void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
->>  void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
->>
->> +struct vsp1_dl_body_pool *
->> +vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
->> +			 unsigned int num_entries, size_t extra_size);
->> +void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
->> +struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
->> +void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
->> +
->>  struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
->>  					unsigned int num_entries);
->>  void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
-> 
-> 
+-- 
+Jani Nikula, Intel Open Source Technology Center
