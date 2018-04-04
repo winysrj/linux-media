@@ -1,103 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:52693 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752849AbeDLQvf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 12:51:35 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Luca Ceresoli <luca@lucaceresoli.net>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 11/13] imx274: simplify imx274_write_table()
-Date: Thu, 12 Apr 2018 18:51:16 +0200
-Message-Id: <1523551878-15754-12-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
-References: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43942 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752129AbeDDPdB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:33:01 -0400
+Subject: Patch "media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors" has been added to the 3.18-stable tree
+To: mchehab@s-opensource.com, alexander.levin@microsoft.com,
+        gregkh@linuxfoundation.org, hans.verkuil@cisco.com,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        mchehab@infradead.org, sakari.ailus@linux.intel.com
+Cc: <stable@vger.kernel.org>, <stable-commits@vger.kernel.org>
+From: <gregkh@linuxfoundation.org>
+Date: Wed, 04 Apr 2018 17:32:46 +0200
+In-Reply-To: <9d0bb62c2dc7caee1fd2b9199fc1a22ec8479395.1522260310.git.mchehab@s-opensource.com>
+Message-ID: <152285596621542@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-imx274_write_table() is a mere wrapper (and the only user) to
-imx274_regmap_util_write_table_8(). Remove this useless indirection by
-merging the two functions into one.
 
-Also get rid of the wait_ms_addr and end_addr parameters since it does
-not make any sense to give them any values other than
-IMX274_TABLE_WAIT_MS and IMX274_TABLE_END.
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+    media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+
+to the 3.18-stable tree which can be found at:
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+
+The filename of the patch is:
+     media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
+and it can be found in the queue-3.18 subdirectory.
+
+If you, or anyone else, feels it should not be added to the stable tree,
+please let <stable@vger.kernel.org> know about it.
+
+
+>From foo@baz Wed Apr  4 17:30:18 CEST 2018
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Date: Wed, 28 Mar 2018 15:12:32 -0300
+Subject: media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+To: Linux Media Mailing List <linux-media@vger.kernel.org>, stable@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sasha Levin <alexander.levin@microsoft.com>
+Message-ID: <9d0bb62c2dc7caee1fd2b9199fc1a22ec8479395.1522260310.git.mchehab@s-opensource.com>
+
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+commit d83a8243aaefe62ace433e4384a4f077bed86acb upstream.
+
+Some ioctls need to copy back the result even if the ioctl returned
+an error. However, don't do this for the error code -ENOTTY.
+It makes no sense in that cases.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/media/i2c/imx274.c | 28 ++++++++++------------------
- 1 file changed, 10 insertions(+), 18 deletions(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 39d548ce30c4..ebe37a087a02 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -597,20 +597,18 @@ static inline struct stimx274 *to_imx274(struct v4l2_subdev *sd)
- }
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -943,6 +943,9 @@ static long do_video_ioctl(struct file *
+ 		set_fs(old_fs);
+ 	}
  
- /*
-- * imx274_regmap_util_write_table_8 - Function for writing register table
-- * @regmap: Pointer to device reg map structure
-- * @table: Table containing register values
-- * @wait_ms_addr: Flag for performing delay
-- * @end_addr: Flag for incating end of table
-+ * Writing a register table
-+ *
-+ * @priv: Pointer to device
-+ * @table: Table containing register values (with optional delays)
-  *
-  * This is used to write register table into sensor's reg map.
-  *
-  * Return: 0 on success, errors otherwise
-  */
--static int imx274_regmap_util_write_table_8(struct regmap *regmap,
--					    const struct reg_8 table[],
--					    u16 wait_ms_addr, u16 end_addr)
-+static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
- {
-+	struct regmap *regmap = priv->regmap;
- 	int err = 0;
- 	const struct reg_8 *next;
- 	u8 val;
-@@ -622,8 +620,8 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
- 
- 	for (next = table;; next++) {
- 		if ((next->addr != range_start + range_count) ||
--		    (next->addr == end_addr) ||
--		    (next->addr == wait_ms_addr) ||
-+		    (next->addr == IMX274_TABLE_END) ||
-+		    (next->addr == IMX274_TABLE_WAIT_MS) ||
- 		    (range_count == max_range_vals)) {
- 			if (range_count == 1)
- 				err = regmap_write(regmap,
-@@ -642,10 +640,10 @@ static int imx274_regmap_util_write_table_8(struct regmap *regmap,
- 			range_count = 0;
- 
- 			/* Handle special address values */
--			if (next->addr == end_addr)
-+			if (next->addr == IMX274_TABLE_END)
- 				break;
- 
--			if (next->addr == wait_ms_addr) {
-+			if (next->addr == IMX274_TABLE_WAIT_MS) {
- 				msleep_range(next->val);
- 				continue;
- 			}
-@@ -692,12 +690,6 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
- 	return err;
- }
- 
--static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
--{
--	return imx274_regmap_util_write_table_8(priv->regmap,
--		table, IMX274_TABLE_WAIT_MS, IMX274_TABLE_END);
--}
--
- /*
-  * Set mode registers to start stream.
-  * @priv: Pointer to device structure
--- 
-2.7.4
++	if (err == -ENOTTY)
++		return err;
++
+ 	/* Special case: even after an error we need to put the
+ 	   results back for these ioctls since the error_idx will
+ 	   contain information on which control failed. */
+
+
+Patches currently in stable-queue which might be from mchehab@s-opensource.com are
+
+queue-3.18/media-v4l2-compat-ioctl32.c-copy-m.userptr-in-put_v4l2_plane32.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-avoid-sizeof-type.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-drop-pr_info-for-unknown-buffer-type.patch
+queue-3.18/media-v4l2-compat-ioctl32-use-compat_u64-for-video-standard.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-add-missing-vidioc_prepare_buf.patch
+queue-3.18/vb2-v4l2_buf_flag_done-is-set-after-dqbuf.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-refactor-compat-ioctl32-logic.patch
+queue-3.18/media-v4l2-ctrls-fix-sparse-warning.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-fix-ctrl_is_pointer.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-move-helper-functions-to-__get-put_v4l2_format32.patch
+queue-3.18/media-media-v4l2-ctrls-volatiles-should-not-generate-ch_value.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-make-ctrl_is_pointer-work-for-subdevs.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-fix-the-indentation.patch
+queue-3.18/media-v4l2-compat-ioctl32-copy-v4l2_window-global_alpha.patch
+queue-3.18/media-v4l2-ioctl.c-don-t-copy-back-the-result-for-enotty.patch
+queue-3.18/media-v4l2-compat-ioctl32.c-copy-clip-list-in-put_v4l2_window32.patch
+queue-3.18/media-v4l2-compat-ioctl32-initialize-a-reserved-field.patch
