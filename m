@@ -1,228 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:56683 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbeDIJ1w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 05:27:52 -0400
-Date: Mon, 9 Apr 2018 11:27:47 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 6/6] media: ov772x: support device tree probing
-Message-ID: <20180409092747.GY20945@w540>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
- <1523116090-13101-7-git-send-email-akinobu.mita@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:6106 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753117AbeDDBHr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Apr 2018 21:07:47 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>
+Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+Date: Wed, 4 Apr 2018 01:07:45 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5973037040@FMSMSX114.amr.corp.intel.com>
+References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+        <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
+ <20171220115744.591a12e2@vento.lan>    
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="NJ3lxSTgSwfmyg6j"
-Content-Disposition: inline
-In-Reply-To: <1523116090-13101-7-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro and all,
 
---NJ3lxSTgSwfmyg6j
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+> > Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+> >
+> > Hi Mauro,
+> >
+> > > > > Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+> > > > >
+> > > > > Hi,
+> > > > >
+> > > > > Em Fri, 17 Nov 2017 02:58:56 +0000 "Mani, Rajmohan"
+> > > > > <rajmohan.mani@intel.com> escreveu:
+> > > > >
+> > > > > > Here is an update on the IPU3 documentation that we are
+> > > > > > currently working
+> > > > > on.
+> > > > > >
+> > > > > > Image processing in IPU3 relies on the following.
+> > > > > >
+> > > > > > 1) HW configuration to enable ISP and
+> > > > > > 2) setting customer specific 3A Tuning / Algorithm Parameters
+> > > > > > to achieve
+> > > > > desired image quality.
+> > > > > >
+> > > > > > We intend to provide documentation on ImgU driver programming
+> > > > > > interface
+> > > > > to help users of this driver to configure and enable ISP HW to
+> > > > > meet their needs.  This documentation will include details on
+> > > > > complete
+> > > > > V4L2 Kernel driver interface and IO-Control parameters, except
+> > > > > for the ISP internal algorithm and its parameters (which is
+> > > > > Intel proprietary
+> > IP).
+> > > > >
+> > > > > Sakari asked me to take a look on this thread, specifically on
+> > > > > this email. I took a look on the other e-mails from this thread
+> > > > > that are discussing about this IP block.
+> > > > >
+> > > > > I understand that Intel wants to keep their internal 3A
+> > > > > algorithm protected, just like other vendors protect their own
+> > > > > algos. It was never a requirement to open whatever algorithm are
+> > > > > used inside a hardware (or firmware). The only requirement is
+> > > > > that firmwares should be licensed with redistribution
+> > > > > permission, ideally merged at linux-firmware
+> > > > git tree.
+> > > > >
+> > > > > Yet, what I don't understand is why Intel also wants to also
+> > > > > protect the interface for such 3A hardware/firmware algorithm.
+> > > > > The parameters that are passed from an userspace application to
+> > > > > Intel ISP logic doesn't contain the algorithm itself. What's the
+> > > > > issue of documenting the meaning of each parameter?
+> > > > >
+> > > >
+> > > > Thanks for looking into this.
+> > > >
+> > > > To achieve improved image quality using IPU3, 3A (Auto White
+> > > > balance, Auto Focus and Auto Exposure) Tuning parameters specific
+> > > > to a given camera sensor module, are converted to Intel ISP
+> > > > algorithm parameters in user space camera HAL using AIC (Automatic
+> > > > ISP
+> > Configuration) library.
+> > > >
+> > > > As a unique design of Intel ISP, it exposes very detailed
+> > > > algorithm parameters (~ 10000 parameters) to configure ISP's image
+> > > > processing algorithm per each image fame in runtime. Typical
+> > > > Camera SW developers (including those at
+> > > > Intel) are not expected to fully understand and directly set these
+> > > > parameters to configure the ISP algorithm blocks. Due to the
+> > > > above, a user space AIC library (in binary form) is provided to
+> > > > generate ISP Algorithm specific parameters, for a given set of 3A
+> > > > tuning parameters. It significantly reduces the efforts of SW
+> > > > development in ISP HW
+> > > configuration.
+> > > >
+> > > > On the other hand, the ISP algorithm details could be deduced
+> > > > readily through these detailed parameters by other ISP experts
+> > > > outside
+> > Intel.
+> > > > This is the reason that we want to keep these parameter
+> > > > definitions as Intel
+> > > proprietary IP.
+> > > >
+> > > > We are fully aware of your concerns on how to enable open source
+> > > > developers to use Intel ISP through up-streamed Kernel Driver.
+> > > > Internally, we are working on the license for this AIC library
+> > > > release now (as Hans said NDA license is not acceptable). We
+> > > > believe this will be more efficient way to help open source developers.
+> > > >
+> > > > This AIC library release would be a binary-only release. This AIC
+> > > > library does not use any kernel uAPIs directly. The user space
+> > > > Camera HAL that uses kernel uAPIs is available at
+> > > > https://chromium.googlesource.com/chromiumos/platform/arc-
+> > > > camera/+/master
+> > > >
+> >
+> > The AIC library (in binary form) is available here.
+> > https://storage.googleapis.com/chromeos-localmirror/distfiles/intel-3a
+> > -libs-
+> > bin-2017.09.27.tbz2
+> >
+> > Licensing information can be found in ./LICENSE.intel_3a_library file
+> > after unzipping the tar file.
+> >
+> > >
+> > > Just pinging to know your thoughts on this.
+> > >
 
-Hi Akinobu,
+To follow up further on this, we have posted the preliminary documentation on
+bnr (bayer noise reduction) parameters as below.
 
-On Sun, Apr 08, 2018 at 12:48:10AM +0900, Akinobu Mita wrote:
-> The ov772x driver currently only supports legacy platform data probe.
-> This change enables device tree probing.
->
-> Note that the platform data probe can select auto or manual edge control
-> mode, but the device tree probling can only select auto edge control mode
-> for now.
->
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  drivers/media/i2c/ov772x.c | 60 ++++++++++++++++++++++++++++++----------------
->  1 file changed, 40 insertions(+), 20 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> index 5e91fa1..e67ec37 100644
-> --- a/drivers/media/i2c/ov772x.c
-> +++ b/drivers/media/i2c/ov772x.c
-> @@ -763,13 +763,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_VFLIP:
->  		val = ctrl->val ? VFLIP_IMG : 0x00;
->  		priv->flag_vflip = ctrl->val;
-> -		if (priv->info->flags & OV772X_FLAG_VFLIP)
-> +		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
->  			val ^= VFLIP_IMG;
->  		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
->  	case V4L2_CID_HFLIP:
->  		val = ctrl->val ? HFLIP_IMG : 0x00;
->  		priv->flag_hflip = ctrl->val;
-> -		if (priv->info->flags & OV772X_FLAG_HFLIP)
-> +		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
->  			val ^= HFLIP_IMG;
->  		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
->  	case V4L2_CID_BAND_STOP_FILTER:
-> @@ -928,19 +928,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
->  	*win = ov772x_select_win(mf->width, mf->height);
->  }
->
-> -static int ov772x_set_params(struct ov772x_priv *priv,
-> -			     const struct ov772x_color_format *cfmt,
-> -			     const struct ov772x_win_size *win)
-> +static int ov772x_edgectrl(struct ov772x_priv *priv)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> -	struct v4l2_fract tpf;
->  	int ret;
-> -	u8  val;
->
-> -	/* Reset hardware. */
-> -	ov772x_reset(client);
-> +	if (!priv->info)
-> +		return 0;
->
-> -	/* Edge Ctrl. */
->  	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
->  		/*
->  		 * Manual Edge Control Mode.
-> @@ -951,19 +946,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
->
->  		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
->  		if (ret < 0)
-> -			goto ov772x_set_fmt_error;
-> +			return ret;
->
->  		ret = ov772x_mask_set(client,
->  				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
->  				      priv->info->edgectrl.threshold);
->  		if (ret < 0)
-> -			goto ov772x_set_fmt_error;
-> +			return ret;
->
->  		ret = ov772x_mask_set(client,
->  				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
->  				      priv->info->edgectrl.strength);
->  		if (ret < 0)
-> -			goto ov772x_set_fmt_error;
-> +			return ret;
->
->  	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
->  		/*
-> @@ -975,15 +970,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
->  				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
->  				      priv->info->edgectrl.upper);
->  		if (ret < 0)
-> -			goto ov772x_set_fmt_error;
-> +			return ret;
->
->  		ret = ov772x_mask_set(client,
->  				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
->  				      priv->info->edgectrl.lower);
->  		if (ret < 0)
-> -			goto ov772x_set_fmt_error;
-> +			return ret;
->  	}
->
-> +	return 0;
-> +}
-> +
-> +static int ov772x_set_params(struct ov772x_priv *priv,
-> +			     const struct ov772x_color_format *cfmt,
-> +			     const struct ov772x_win_size *win)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> +	struct v4l2_fract tpf;
-> +	int ret;
-> +	u8  val;
-> +
-> +	/* Reset hardware. */
-> +	ov772x_reset(client);
-> +
-> +	/* Edge Ctrl. */
-> +	ret =  ov772x_edgectrl(priv);
-> +	if (ret < 0)
-> +		goto ov772x_set_fmt_error;
-> +
->  	/* Format and window size. */
->  	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
->  	if (ret < 0)
-> @@ -1284,11 +1299,6 @@ static int ov772x_probe(struct i2c_client *client,
->  	struct i2c_adapter	*adapter = client->adapter;
->  	int			ret;
->
-> -	if (!client->dev.platform_data) {
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg128683.html
 
-Not sure this has to be removed completely. I'm debated, as in
-general, for mainline code, we should make sure every user of this
-driver shall provide platform_data during review, and this check is
-not requried. But in general, I still think it may have value.
-
-What about:
-        if (!client->dev.of_node && !client->dev.platform_data) {
-               dev_err(&client->dev, "Missing ov772x platform data\n");
-               return -EINVAL;
-        }
+We would like hear your early feedback and apply the same towards the
+documentation of remaining IPU3 parameters.
 
 Thanks
-   j
-
-> -		dev_err(&client->dev, "Missing ov772x platform data\n");
-> -		return -EINVAL;
-> -	}
-> -
->  	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
->  	if (!priv)
->  		return -ENOMEM;
-> @@ -1390,9 +1400,19 @@ static const struct i2c_device_id ov772x_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, ov772x_id);
->
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id ov772x_of_match[] = {
-> +	{ .compatible = "ovti,ov7725", },
-> +	{ .compatible = "ovti,ov7720", },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, ov772x_of_match);
-> +#endif
-> +
->  static struct i2c_driver ov772x_i2c_driver = {
->  	.driver = {
->  		.name = "ov772x",
-> +		.of_match_table = of_match_ptr(ov772x_of_match),
->  	},
->  	.probe    = ov772x_probe,
->  	.remove   = ov772x_remove,
-> --
-> 2.7.4
->
-
---NJ3lxSTgSwfmyg6j
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJayzITAAoJEHI0Bo8WoVY8P6YQAI1CJvcyIQCwMqShhyRCaKd9
-+C7LGtIOJzHy4cW7H2XxWDS+QyIW2X20U9BuAlKq2vZADknodRWmL7Ldt6WDiPox
-L2IbZrb4lm47V5hyFmzdmM2IOe7yEWE3xsGLUnU/QWPhFMfX8AswXYXy6/VtVhir
-ziATd4c/jIgOVx/3Wmc7uO6VQdOySI+PMhNhoXty9KR8utsb1GXswRv8yD74ztT3
-5lbFR3enrG/109DSLXuodBKvrZjph6xwf+0UjTi8G6c6Md/ntWQsfvNPsqAmBoh7
-Xhxj3Nke6EKlMTNsMYDnkmNLoadoB6OnlzJY2Ia1ez54sCnV7AKwpS7Bc3ByRnD8
-BZHk2w8WgdlJrg68dilP/80c/H6gI9XAt0J2TJIZ6D9g7sbc2BjN6VwaGk+vsIXG
-8PqTBEUZeGRIP2qixo8dYKpVKOPo/I7DpbwOkDSug4ng19n00Yc3wRmGQMQREfpS
-vdshHUGEtXsJCG0UGkf2MWDzOTO4MON/Wi8zs6t1lhtl+Zy5O+73dvLqBgnUUyyv
-HWH6mOqyIBAQkoC0aPMagFlsK0ip2xqsJ9TQOZ3NfeVBPYeDjnihc17evgGgZez1
-7WKtIOeixzyB6Sw25N3/582Vh5mDVWsm5UCEh/qcjU32Hu9IS19/TX/eYvaxzZYs
-j3DXeo4PmMJEu0mnrV9e
-=2iWj
------END PGP SIGNATURE-----
-
---NJ3lxSTgSwfmyg6j--
+Raj
