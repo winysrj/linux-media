@@ -1,610 +1,1601 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60485 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751097AbeDXJ1X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 05:27:23 -0400
-Subject: Re: [PATCH v3 5/7] drm/i2c: tda9950: add CEC driver
-To: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org
-References: <20180409121529.GA31403@n2100.armlinux.org.uk>
- <E1f5Viq-0002Lj-Ru@rmk-PC.armlinux.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <84cbd896-bc9b-a5a5-fbf2-938f31c13621@xs4all.nl>
-Date: Tue, 24 Apr 2018 11:27:09 +0200
+Received: from mga14.intel.com ([192.55.52.115]:19335 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754731AbeDDAwk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Apr 2018 20:52:40 -0400
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: rajmohan.mani@intel.com, tfiga@chromium.org,
+        hans.verkuil@cisco.com, mchehab@kernel.org, jerry.w.hu@intel.com,
+        laurent.pinchart@ideasonboard.com, Yong Zhi <yong.zhi@intel.com>,
+        Chao C Li <chao.c.li@intel.com>
+Subject: [RFC PATCH]: intel-ipu3: Add uAPI documentation
+Date: Tue,  3 Apr 2018 19:52:25 -0500
+Message-Id: <1522803145-5199-1-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <E1f5Viq-0002Lj-Ru@rmk-PC.armlinux.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/09/18 14:16, Russell King wrote:
-> Add a CEC driver for the TDA9950, which is a stand-alone I2C CEC device,
-> but is also integrated into HDMI transceivers such as the TDA9989 and
-> TDA19989.
-> 
-> The TDA9950 contains a command processor which handles retransmissions
-> and the low level bus protocol.  The driver just has to read and write
-> the messages, and handle error conditions.
-> 
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+This is a preliminary effort to add documentation for the
+following BNR(bayer noise reduction) structs:
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+ipu3_uapi_bnr_static_config_wb_gains_config
+ipu3_uapi_bnr_static_config_wb_gains_thr_config
+ipu3_uapi_bnr_static_config_thr_coeffs_config
+ipu3_uapi_bnr_static_config_thr_ctrl_shd_config
+ipu3_uapi_bnr_static_config_opt_center_sqr_config
+ipu3_uapi_bnr_static_config_bp_ctrl_config
+ipu3_uapi_bnr_static_config_dn_detect_ctrl_config
+ipu3_uapi_bnr_static_config_opt_center_sqr_config
+ipu3_uapi_bnr_static_config_green_disparity
 
-Regards,
+The feedback on this patch will be used towards the
+documentation of reset of the uAPI in intel-ipu3.h.
 
-	Hans
+Link to v6 IPU3 ImgU patchset:
 
-> ---
->  drivers/gpu/drm/i2c/Kconfig           |   5 +
->  drivers/gpu/drm/i2c/Makefile          |   1 +
->  drivers/gpu/drm/i2c/tda9950.c         | 509 ++++++++++++++++++++++++++++++++++
->  include/linux/platform_data/tda9950.h |  16 ++
->  4 files changed, 531 insertions(+)
->  create mode 100644 drivers/gpu/drm/i2c/tda9950.c
->  create mode 100644 include/linux/platform_data/tda9950.h
-> 
-> diff --git a/drivers/gpu/drm/i2c/Kconfig b/drivers/gpu/drm/i2c/Kconfig
-> index a6c92beb410a..3a232f5ff0a1 100644
-> --- a/drivers/gpu/drm/i2c/Kconfig
-> +++ b/drivers/gpu/drm/i2c/Kconfig
-> @@ -26,4 +26,9 @@ config DRM_I2C_NXP_TDA998X
->  	help
->  	  Support for NXP Semiconductors TDA998X HDMI encoders.
->  
-> +config DRM_I2C_NXP_TDA9950
-> +	tristate "NXP Semiconductors TDA9950/TDA998X HDMI CEC"
-> +	select CEC_NOTIFIER
-> +	select CEC_CORE
-> +
->  endmenu
-> diff --git a/drivers/gpu/drm/i2c/Makefile b/drivers/gpu/drm/i2c/Makefile
-> index b20100c18ffb..a962f6f08568 100644
-> --- a/drivers/gpu/drm/i2c/Makefile
-> +++ b/drivers/gpu/drm/i2c/Makefile
-> @@ -7,3 +7,4 @@ obj-$(CONFIG_DRM_I2C_SIL164) += sil164.o
->  
->  tda998x-y := tda998x_drv.o
->  obj-$(CONFIG_DRM_I2C_NXP_TDA998X) += tda998x.o
-> +obj-$(CONFIG_DRM_I2C_NXP_TDA9950) += tda9950.o
-> diff --git a/drivers/gpu/drm/i2c/tda9950.c b/drivers/gpu/drm/i2c/tda9950.c
-> new file mode 100644
-> index 000000000000..3f7396caad48
-> --- /dev/null
-> +++ b/drivers/gpu/drm/i2c/tda9950.c
-> @@ -0,0 +1,509 @@
-> +/*
-> + *  TDA9950 Consumer Electronics Control driver
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * The NXP TDA9950 implements the HDMI Consumer Electronics Control
-> + * interface.  The host interface is similar to a mailbox: the data
-> + * registers starting at REG_CDR0 are written to send a command to the
-> + * internal CPU, and replies are read from these registers.
-> + *
-> + * As the data registers represent a mailbox, they must be accessed
-> + * as a single I2C transaction.  See the TDA9950 data sheet for details.
-> + */
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_data/tda9950.h>
-> +#include <linux/slab.h>
-> +#include <drm/drm_edid.h>
-> +#include <media/cec.h>
-> +#include <media/cec-notifier.h>
-> +
-> +enum {
-> +	REG_CSR = 0x00,
-> +	CSR_BUSY = BIT(7),
-> +	CSR_INT  = BIT(6),
-> +	CSR_ERR  = BIT(5),
-> +
-> +	REG_CER = 0x01,
-> +
-> +	REG_CVR = 0x02,
-> +
-> +	REG_CCR = 0x03,
-> +	CCR_RESET = BIT(7),
-> +	CCR_ON    = BIT(6),
-> +
-> +	REG_ACKH = 0x04,
-> +	REG_ACKL = 0x05,
-> +
-> +	REG_CCONR = 0x06,
-> +	CCONR_ENABLE_ERROR = BIT(4),
-> +	CCONR_RETRY_MASK = 7,
-> +
-> +	REG_CDR0 = 0x07,
-> +
-> +	CDR1_REQ = 0x00,
-> +	CDR1_CNF = 0x01,
-> +	CDR1_IND = 0x81,
-> +	CDR1_ERR = 0x82,
-> +	CDR1_IER = 0x83,
-> +
-> +	CDR2_CNF_SUCCESS    = 0x00,
-> +	CDR2_CNF_OFF_STATE  = 0x80,
-> +	CDR2_CNF_BAD_REQ    = 0x81,
-> +	CDR2_CNF_CEC_ACCESS = 0x82,
-> +	CDR2_CNF_ARB_ERROR  = 0x83,
-> +	CDR2_CNF_BAD_TIMING = 0x84,
-> +	CDR2_CNF_NACK_ADDR  = 0x85,
-> +	CDR2_CNF_NACK_DATA  = 0x86,
-> +};
-> +
-> +struct tda9950_priv {
-> +	struct i2c_client *client;
-> +	struct device *hdmi;
-> +	struct cec_adapter *adap;
-> +	struct tda9950_glue *glue;
-> +	u16 addresses;
-> +	struct cec_msg rx_msg;
-> +	struct cec_notifier *notify;
-> +	bool open;
-> +};
-> +
-> +static int tda9950_write_range(struct i2c_client *client, u8 addr, u8 *p, int cnt)
-> +{
-> +	struct i2c_msg msg;
-> +	u8 buf[cnt + 1];
-> +	int ret;
-> +
-> +	buf[0] = addr;
-> +	memcpy(buf + 1, p, cnt);
-> +
-> +	msg.addr = client->addr;
-> +	msg.flags = 0;
-> +	msg.len = cnt + 1;
-> +	msg.buf = buf;
-> +
-> +	dev_dbg(&client->dev, "wr 0x%02x: %*ph\n", addr, cnt, p);
-> +
-> +	ret = i2c_transfer(client->adapter, &msg, 1);
-> +	if (ret < 0)
-> +		dev_err(&client->dev, "Error %d writing to cec:0x%x\n", ret, addr);
-> +	return ret < 0 ? ret : 0;
-> +}
-> +
-> +static void tda9950_write(struct i2c_client *client, u8 addr, u8 val)
-> +{
-> +	tda9950_write_range(client, addr, &val, 1);
-> +}
-> +
-> +static int tda9950_read_range(struct i2c_client *client, u8 addr, u8 *p, int cnt)
-> +{
-> +	struct i2c_msg msg[2];
-> +	int ret;
-> +
-> +	msg[0].addr = client->addr;
-> +	msg[0].flags = 0;
-> +	msg[0].len = 1;
-> +	msg[0].buf = &addr;
-> +	msg[1].addr = client->addr;
-> +	msg[1].flags = I2C_M_RD;
-> +	msg[1].len = cnt;
-> +	msg[1].buf = p;
-> +
-> +	ret = i2c_transfer(client->adapter, msg, 2);
-> +	if (ret < 0)
-> +		dev_err(&client->dev, "Error %d reading from cec:0x%x\n", ret, addr);
-> +
-> +	dev_dbg(&client->dev, "rd 0x%02x: %*ph\n", addr, cnt, p);
-> +
-> +	return ret;
-> +}
-> +
-> +static u8 tda9950_read(struct i2c_client *client, u8 addr)
-> +{
-> +	int ret;
-> +	u8 val;
-> +
-> +	ret = tda9950_read_range(client, addr, &val, 1);
-> +	if (ret < 0)
-> +		val = 0;
-> +
-> +	return val;
-> +}
-> +
-> +static irqreturn_t tda9950_irq(int irq, void *data)
-> +{
-> +	struct tda9950_priv *priv = data;
-> +	unsigned int tx_status;
-> +	u8 csr, cconr, buf[19];
-> +	u8 arb_lost_cnt, nack_cnt, err_cnt;
-> +
-> +	if (!priv->open)
-> +		return IRQ_NONE;
-> +
-> +	csr = tda9950_read(priv->client, REG_CSR);
-> +	if (!(csr & CSR_INT))
-> +		return IRQ_NONE;
-> +
-> +	cconr = tda9950_read(priv->client, REG_CCONR) & CCONR_RETRY_MASK;
-> +
-> +	tda9950_read_range(priv->client, REG_CDR0, buf, sizeof(buf));
-> +
-> +	/*
-> +	 * This should never happen: the data sheet says that there will
-> +	 * always be a valid message if the interrupt line is asserted.
-> +	 */
-> +	if (buf[0] == 0) {
-> +		dev_warn(&priv->client->dev, "interrupt pending, but no message?\n");
-> +		return IRQ_NONE;
-> +	}
-> +
-> +	switch (buf[1]) {
-> +	case CDR1_CNF: /* transmit result */
-> +		arb_lost_cnt = nack_cnt = err_cnt = 0;
-> +		switch (buf[2]) {
-> +		case CDR2_CNF_SUCCESS:
-> +			tx_status = CEC_TX_STATUS_OK;
-> +			break;
-> +
-> +		case CDR2_CNF_ARB_ERROR:
-> +			tx_status = CEC_TX_STATUS_ARB_LOST;
-> +			arb_lost_cnt = cconr;
-> +			break;
-> +
-> +		case CDR2_CNF_NACK_ADDR:
-> +			tx_status = CEC_TX_STATUS_NACK;
-> +			nack_cnt = cconr;
-> +			break;
-> +
-> +		default: /* some other error, refer to TDA9950 docs */
-> +			dev_err(&priv->client->dev, "CNF reply error 0x%02x\n",
-> +				buf[2]);
-> +			tx_status = CEC_TX_STATUS_ERROR;
-> +			err_cnt = cconr;
-> +			break;
-> +		}
-> +		/* TDA9950 executes all retries for us */
-> +		tx_status |= CEC_TX_STATUS_MAX_RETRIES;
-> +		cec_transmit_done(priv->adap, tx_status, arb_lost_cnt,
-> +				  nack_cnt, 0, err_cnt);
-> +		break;
-> +
-> +	case CDR1_IND:
-> +		priv->rx_msg.len = buf[0] - 2;
-> +		if (priv->rx_msg.len > CEC_MAX_MSG_SIZE)
-> +			priv->rx_msg.len = CEC_MAX_MSG_SIZE;
-> +
-> +		memcpy(priv->rx_msg.msg, buf + 2, priv->rx_msg.len);
-> +		cec_received_msg(priv->adap, &priv->rx_msg);
-> +		break;
-> +
-> +	default: /* unknown */
-> +		dev_err(&priv->client->dev, "unknown service id 0x%02x\n",
-> +			buf[1]);
-> +		break;
-> +	}
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int tda9950_cec_transmit(struct cec_adapter *adap, u8 attempts,
-> +				u32 signal_free_time, struct cec_msg *msg)
-> +{
-> +	struct tda9950_priv *priv = adap->priv;
-> +	u8 buf[CEC_MAX_MSG_SIZE + 2];
-> +
-> +	buf[0] = 2 + msg->len;
-> +	buf[1] = CDR1_REQ;
-> +	memcpy(buf + 2, msg->msg, msg->len);
-> +
-> +	if (attempts > 5)
-> +		attempts = 5;
-> +
-> +	tda9950_write(priv->client, REG_CCONR, attempts);
-> +
-> +	return tda9950_write_range(priv->client, REG_CDR0, buf, 2 + msg->len);
-> +}
-> +
-> +static int tda9950_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
-> +{
-> +	struct tda9950_priv *priv = adap->priv;
-> +	u16 addresses;
-> +	u8 buf[2];
-> +
-> +	if (addr == CEC_LOG_ADDR_INVALID)
-> +		addresses = priv->addresses = 0;
-> +	else
-> +		addresses = priv->addresses |= BIT(addr);
-> +
-> +	/* TDA9950 doesn't want address 15 set */
-> +	addresses &= 0x7fff;
-> +	buf[0] = addresses >> 8;
-> +	buf[1] = addresses;
-> +
-> +	return tda9950_write_range(priv->client, REG_ACKH, buf, 2);
-> +}
-> +
-> +/*
-> + * When operating as part of the TDA998x, we need additional handling
-> + * to initialise and shut down the TDA9950 part of the device.  These
-> + * two hooks are provided to allow the TDA998x code to perform those
-> + * activities.
-> + */
-> +static int tda9950_glue_open(struct tda9950_priv *priv)
-> +{
-> +	int ret = 0;
-> +
-> +	if (priv->glue && priv->glue->open)
-> +		ret = priv->glue->open(priv->glue->data);
-> +
-> +	priv->open = true;
-> +
-> +	return ret;
-> +}
-> +
-> +static void tda9950_glue_release(struct tda9950_priv *priv)
-> +{
-> +	priv->open = false;
-> +
-> +	if (priv->glue && priv->glue->release)
-> +		priv->glue->release(priv->glue->data);
-> +}
-> +
-> +static int tda9950_open(struct tda9950_priv *priv)
-> +{
-> +	struct i2c_client *client = priv->client;
-> +	int ret;
-> +
-> +	ret = tda9950_glue_open(priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Reset the TDA9950, and wait 250ms for it to recover */
-> +	tda9950_write(client, REG_CCR, CCR_RESET);
-> +	msleep(250);
-> +
-> +	tda9950_cec_adap_log_addr(priv->adap, CEC_LOG_ADDR_INVALID);
-> +
-> +	/* Start the command processor */
-> +	tda9950_write(client, REG_CCR, CCR_ON);
-> +
-> +	return 0;
-> +}
-> +
-> +static void tda9950_release(struct tda9950_priv *priv)
-> +{
-> +	struct i2c_client *client = priv->client;
-> +	int timeout = 50;
-> +	u8 csr;
-> +
-> +	/* Stop the command processor */
-> +	tda9950_write(client, REG_CCR, 0);
-> +
-> +	/* Wait up to .5s for it to signal non-busy */
-> +	do {
-> +		csr = tda9950_read(client, REG_CSR);
-> +		if (!(csr & CSR_BUSY) || --timeout)
-> +			break;
-> +		msleep(10);
-> +	} while (1);
-> +
-> +	/* Warn the user that their IRQ may die if it's shared. */
-> +	if (csr & CSR_BUSY)
-> +		dev_warn(&client->dev, "command processor failed to stop, irq%d may die (csr=0x%02x)\n",
-> +			 client->irq, csr);
-> +
-> +	tda9950_glue_release(priv);
-> +}
-> +
-> +static int tda9950_cec_adap_enable(struct cec_adapter *adap, bool enable)
-> +{
-> +	struct tda9950_priv *priv = adap->priv;
-> +
-> +	if (!enable) {
-> +		tda9950_release(priv);
-> +		return 0;
-> +	} else {
-> +		return tda9950_open(priv);
-> +	}
-> +}
-> +
-> +static const struct cec_adap_ops tda9950_cec_ops = {
-> +	.adap_enable = tda9950_cec_adap_enable,
-> +	.adap_log_addr = tda9950_cec_adap_log_addr,
-> +	.adap_transmit = tda9950_cec_transmit,
-> +};
-> +
-> +/*
-> + * When operating as part of the TDA998x, we need to claim additional
-> + * resources.  These two hooks permit the management of those resources.
-> + */
-> +static void tda9950_devm_glue_exit(void *data)
-> +{
-> +	struct tda9950_glue *glue = data;
-> +
-> +	if (glue && glue->exit)
-> +		glue->exit(glue->data);
-> +}
-> +
-> +static int tda9950_devm_glue_init(struct device *dev, struct tda9950_glue *glue)
-> +{
-> +	int ret;
-> +
-> +	if (glue && glue->init) {
-> +		ret = glue->init(glue->data);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	ret = devm_add_action(dev, tda9950_devm_glue_exit, glue);
-> +	if (ret)
-> +		tda9950_devm_glue_exit(glue);
-> +
-> +	return ret;
-> +}
-> +
-> +static void tda9950_cec_del(void *data)
-> +{
-> +	struct tda9950_priv *priv = data;
-> +
-> +	cec_delete_adapter(priv->adap);
-> +}
-> +
-> +static int tda9950_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id)
-> +{
-> +	struct tda9950_glue *glue = client->dev.platform_data;
-> +	struct device *dev = &client->dev;
-> +	struct tda9950_priv *priv;
-> +	unsigned long irqflags;
-> +	int ret;
-> +	u8 cvr;
-> +
-> +	/*
-> +	 * We must have I2C functionality: our multi-byte accesses
-> +	 * must be performed as a single contiguous transaction.
-> +	 */
-> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-> +		dev_err(&client->dev,
-> +			"adapter does not support I2C functionality\n");
-> +		return -ENXIO;
-> +	}
-> +
-> +	/* We must have an interrupt to be functional. */
-> +	if (client->irq <= 0) {
-> +		dev_err(&client->dev, "driver requires an interrupt\n");
-> +		return -ENXIO;
-> +	}
-> +
-> +	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	priv->client = client;
-> +	priv->glue = glue;
-> +
-> +	i2c_set_clientdata(client, priv);
-> +
-> +	/*
-> +	 * If we're part of a TDA998x, we want the class devices to be
-> +	 * associated with the HDMI Tx so we have a tight relationship
-> +	 * between the HDMI interface and the CEC interface.
-> +	 */
-> +	priv->hdmi = dev;
-> +	if (glue && glue->parent)
-> +		priv->hdmi = glue->parent;
-> +
-> +	priv->adap = cec_allocate_adapter(&tda9950_cec_ops, priv, "tda9950",
-> +					  CEC_CAP_DEFAULTS,
-> +					  CEC_MAX_LOG_ADDRS);
-> +	if (IS_ERR(priv->adap))
-> +		return PTR_ERR(priv->adap);
-> +
-> +	ret = devm_add_action(dev, tda9950_cec_del, priv);
-> +	if (ret) {
-> +		cec_delete_adapter(priv->adap);
-> +		return ret;
-> +	}
-> +
-> +	ret = tda9950_devm_glue_init(dev, glue);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = tda9950_glue_open(priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	cvr = tda9950_read(client, REG_CVR);
-> +
-> +	dev_info(&client->dev,
-> +		 "TDA9950 CEC interface, hardware version %u.%u\n",
-> +		 cvr >> 4, cvr & 15);
-> +
-> +	tda9950_glue_release(priv);
-> +
-> +	irqflags = IRQF_TRIGGER_FALLING;
-> +	if (glue)
-> +		irqflags = glue->irq_flags;
-> +
-> +	ret = devm_request_threaded_irq(dev, client->irq, NULL, tda9950_irq,
-> +					irqflags | IRQF_SHARED | IRQF_ONESHOT,
-> +					dev_name(&client->dev), priv);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	priv->notify = cec_notifier_get(priv->hdmi);
-> +	if (!priv->notify)
-> +		return -ENOMEM;
-> +
-> +	ret = cec_register_adapter(priv->adap, priv->hdmi);
-> +	if (ret < 0) {
-> +		cec_notifier_put(priv->notify);
-> +		return ret;
-> +	}
-> +
-> +	/*
-> +	 * CEC documentation says we must not call cec_delete_adapter
-> +	 * after a successful call to cec_register_adapter().
-> +	 */
-> +	devm_remove_action(dev, tda9950_cec_del, priv);
-> +
-> +	cec_register_cec_notifier(priv->adap, priv->notify);
-> +
-> +	return 0;
-> +}
-> +
-> +static int tda9950_remove(struct i2c_client *client)
-> +{
-> +	struct tda9950_priv *priv = i2c_get_clientdata(client);
-> +
-> +	cec_unregister_adapter(priv->adap);
-> +	cec_notifier_put(priv->notify);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct i2c_device_id tda9950_ids[] = {
-> +	{ "tda9950", 0 },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, tda9950_ids);
-> +
-> +static struct i2c_driver tda9950_driver = {
-> +	.probe = tda9950_probe,
-> +	.remove = tda9950_remove,
-> +	.driver = {
-> +		.name = "tda9950",
-> +	},
-> +	.id_table = tda9950_ids,
-> +};
-> +
-> +module_i2c_driver(tda9950_driver);
-> +
-> +MODULE_AUTHOR("Russell King <rmk+kernel@armlinux.org.uk>");
-> +MODULE_DESCRIPTION("TDA9950/TDA998x Consumer Electronics Control Driver");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/linux/platform_data/tda9950.h b/include/linux/platform_data/tda9950.h
-> new file mode 100644
-> index 000000000000..c65efd461102
-> --- /dev/null
-> +++ b/include/linux/platform_data/tda9950.h
-> @@ -0,0 +1,16 @@
-> +#ifndef LINUX_PLATFORM_DATA_TDA9950_H
-> +#define LINUX_PLATFORM_DATA_TDA9950_H
-> +
-> +struct device;
-> +
-> +struct tda9950_glue {
-> +	struct device *parent;
-> +	unsigned long irq_flags;
-> +	void *data;
-> +	int (*init)(void *);
-> +	void (*exit)(void *);
-> +	int (*open)(void *);
-> +	void (*release)(void *);
-> +};
-> +
-> +#endif
-> 
+<URL:https://patchwork.kernel.org/patch/10316725/>
+
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Chao C Li <chao.c.li@intel.com>
+---
+ Documentation/media/media_uapi.rst      |    1 +
+ Documentation/media/uapi/intel-ipu3.rst |    8 +
+ include/uapi/linux/intel-ipu3.h         | 1520 +++++++++++++++++++++++++++++++
+ 3 files changed, 1529 insertions(+)
+ create mode 100644 Documentation/media/uapi/intel-ipu3.rst
+ create mode 100644 include/uapi/linux/intel-ipu3.h
+
+diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
+index 28eb35a1f965..edfa674b49c3 100644
+--- a/Documentation/media/media_uapi.rst
++++ b/Documentation/media/media_uapi.rst
+@@ -31,3 +31,4 @@ License".
+     uapi/cec/cec-api
+     uapi/gen-errors
+     uapi/fdl-appendix
++    uapi/intel-ipu3
+diff --git a/Documentation/media/uapi/intel-ipu3.rst b/Documentation/media/uapi/intel-ipu3.rst
+new file mode 100644
+index 000000000000..d4d9b2806fe9
+--- /dev/null
++++ b/Documentation/media/uapi/intel-ipu3.rst
+@@ -0,0 +1,8 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _intel-ipu3:
++
++Intel IPU3 ImgU uAPI headers
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++.. kernel-doc:: include/uapi/linux/intel-ipu3.h
+diff --git a/include/uapi/linux/intel-ipu3.h b/include/uapi/linux/intel-ipu3.h
+new file mode 100644
+index 000000000000..34b071524beb
+--- /dev/null
++++ b/include/uapi/linux/intel-ipu3.h
+@@ -0,0 +1,1520 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
++
++#ifndef __IPU3_UAPI_H
++#define __IPU3_UAPI_H
++
++#include <linux/types.h>
++
++#define IPU3_UAPI_ISP_VEC_ELEMS				64
++
++#define IMGU_ABI_PAD	__aligned(IPU3_UAPI_ISP_WORD_BYTES)
++#define IPU3_ALIGN	__attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
++
++#define IPU3_UAPI_ISP_WORD_BYTES			32
++#define IPU3_UAPI_MAX_STRIPES				2
++
++/******************* ipu3_uapi_stats_3a *******************/
++
++#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
++
++#define IPU3_UAPI_AE_COLORS				4
++#define IPU3_UAPI_AE_BINS				256
++
++#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
++#define IPU3_UAPI_AWB_MAX_SETS				60
++#define IPU3_UAPI_AWB_SET_SIZE				0x500
++#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
++	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
++	 IPU3_UAPI_AWB_MD_ITEM_SIZE)
++#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
++	(IPU3_UAPI_AWB_MAX_SETS * \
++	 (IPU3_UAPI_AWB_SET_SIZE + IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
++
++#define IPU3_UAPI_AF_MAX_SETS				24
++#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
++#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
++	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
++	 IPU3_UAPI_AF_MD_ITEM_SIZE)
++#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			0x80
++#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
++	(IPU3_UAPI_AF_MAX_SETS * \
++	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE + IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
++	 IPU3_UAPI_MAX_STRIPES)
++
++#define IPU3_UAPI_AWB_FR_MAX_SETS			24
++#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
++#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			0x100
++#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
++	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
++	 IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
++#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
++	(IPU3_UAPI_AWB_FR_MAX_SETS * \
++	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
++	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * IPU3_UAPI_MAX_STRIPES)
++
++struct ipu3_uapi_grid_config {
++	__u8 width;				/* 6 or 7 (rgbs_grd_cfg) bits */
++	__u8 height;
++	__u16 block_width_log2:3;
++	__u16 block_height_log2:3;
++	__u16 height_per_slice:8;		/* default value 1 */
++	__u16 x_start;				/* 12 bits */
++	__u16 y_start;
++#define IPU3_UAPI_GRID_START_MASK		((1 << 12) - 1)
++#define IPU3_UAPI_GRID_Y_START_EN		(1 << 15)
++	__u16 x_end;				/* 12 bits */
++	__u16 y_end;
++} __packed;
++
++struct ipu3_uapi_awb_meta_data {
++	__u8 meta_data_buffer[IPU3_UAPI_AWB_MAX_BUFFER_SIZE];
++} __packed;
++
++struct ipu3_uapi_awb_raw_buffer {
++	struct ipu3_uapi_awb_meta_data meta_data;
++} __packed;
++
++struct IPU3_ALIGN ipu3_uapi_awb_config_s {
++	__u16 rgbs_thr_gr;
++	__u16 rgbs_thr_r;
++	__u16 rgbs_thr_gb;
++	__u16 rgbs_thr_b;
++/* controls generation of meta_data (like FF enable/disable) */
++#define IPU3_UAPI_AWB_RGBS_THR_B_EN		(1 << 14)
++#define IPU3_UAPI_AWB_RGBS_THR_B_INCL_SAT	(1 << 15)
++
++	struct ipu3_uapi_grid_config grid;
++} __packed;
++
++struct ipu3_uapi_ae_raw_buffer {
++	__u32 vals[IPU3_UAPI_AE_BINS * IPU3_UAPI_AE_COLORS];
++} __packed;
++
++struct ipu3_uapi_ae_raw_buffer_aligned {
++	struct ipu3_uapi_ae_raw_buffer buff IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_ae_grid_config {
++	__u8 width;
++	__u8 height;
++	__u8 block_width_log2:4;
++	__u8 block_height_log2:4;
++	__u8 __reserved0:5;
++	__u8 ae_en:1;
++	__u8 rst_hist_array:1;
++	__u8 done_rst_hist_array:1;
++	__u16 x_start;			/* 12 bits */
++	__u16 y_start;
++	__u16 x_end;
++	__u16 y_end;
++} __packed;
++
++struct ipu3_uapi_af_filter_config {
++	struct {
++		__u8 a1;
++		__u8 a2;
++		__u8 a3;
++		__u8 a4;
++	} y1_coeff_0;
++	struct {
++		__u8 a5;
++		__u8 a6;
++		__u8 a7;
++		__u8 a8;
++	} y1_coeff_1;
++	struct {
++		__u8 a9;
++		__u8 a10;
++		__u8 a11;
++		__u8 a12;
++	} y1_coeff_2;
++
++	__u32 y1_sign_vec;
++
++	struct {
++		__u8 a1;
++		__u8 a2;
++		__u8 a3;
++		__u8 a4;
++	} y2_coeff_0;
++	struct {
++		__u8 a5;
++		__u8 a6;
++		__u8 a7;
++		__u8 a8;
++	} y2_coeff_1;
++	struct {
++		__u8 a9;
++		__u8 a10;
++		__u8 a11;
++		__u8 a12;
++	} y2_coeff_2;
++
++	__u32 y2_sign_vec;
++
++	struct {
++		__u8 y_gen_rate_gr;	/* 6 bits */
++		__u8 y_gen_rate_r;
++		__u8 y_gen_rate_b;
++		__u8 y_gen_rate_gb;
++	} y_calc;
++
++	struct {
++		__u32 __reserved0:8;
++		__u32 y1_nf:4;
++		__u32 __reserved1:4;
++		__u32 y2_nf:4;
++		__u32 __reserved2:12;
++	} nf;
++} __packed;
++
++struct ipu3_uapi_af_meta_data {
++	__u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE] IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_af_raw_buffer {
++	struct ipu3_uapi_af_meta_data meta_data IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_af_config_s {
++	struct ipu3_uapi_af_filter_config filter_config IPU3_ALIGN;
++	__u8 padding[4];
++	struct ipu3_uapi_grid_config grid_cfg IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_awb_fr_meta_data {
++	__u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE] IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_awb_fr_raw_buffer {
++	struct ipu3_uapi_awb_fr_meta_data meta_data;
++} __packed;
++
++struct IPU3_ALIGN ipu3_uapi_awb_fr_config_s {
++	struct ipu3_uapi_grid_config grid_cfg;
++	__u8 bayer_coeff[6];
++	__u16 __reserved1;
++	__u32 bayer_sign;		/* 11 bits */
++	__u8 bayer_nf;			/* 4 bits */
++	__u8 __reserved2[3];
++} __packed;
++
++struct ipu3_uapi_4a_config {
++	struct ipu3_uapi_awb_config_s awb_config IPU3_ALIGN;
++	struct ipu3_uapi_ae_grid_config ae_grd_config;
++	__u8 padding[20];
++	struct ipu3_uapi_af_config_s af_config;
++	struct ipu3_uapi_awb_fr_config_s awb_fr_config;
++} __packed;
++
++struct ipu3_uapi_bubble_info {
++	__u32 num_of_stripes IPU3_ALIGN;
++	__u8 padding[28];
++	__u32 num_sets;
++	__u8 padding1[28];
++	__u32 size_of_set;
++	__u8 padding2[28];
++	__u32 bubble_size;
++	__u8 padding3[28];
++} __packed;
++
++struct ipu3_uapi_stats_3a_bubble_info_per_stripe {
++	struct ipu3_uapi_bubble_info awb[IPU3_UAPI_MAX_STRIPES];
++	struct ipu3_uapi_bubble_info af[IPU3_UAPI_MAX_STRIPES];
++	struct ipu3_uapi_bubble_info awb_fr[IPU3_UAPI_MAX_STRIPES];
++} __packed;
++
++struct ipu3_uapi_ff_status {
++	__u32 awb_en IPU3_ALIGN;
++	__u8 padding[28];
++	__u32 ae_en;
++	__u8 padding1[28];
++	__u32 af_en;
++	__u8 padding2[28];
++	__u32 awb_fr_en;
++	__u8 padding3[28];
++} __packed;
++
++struct ipu3_uapi_stats_3a {
++	struct ipu3_uapi_awb_raw_buffer awb_raw_buffer IPU3_ALIGN;
++	struct ipu3_uapi_ae_raw_buffer_aligned
++			ae_raw_buffer[IPU3_UAPI_MAX_STRIPES];
++	struct ipu3_uapi_af_raw_buffer af_raw_buffer;
++	struct ipu3_uapi_awb_fr_raw_buffer awb_fr_raw_buffer;
++	struct ipu3_uapi_4a_config stats_4a_config;
++	__u32 ae_join_buffers;
++	__u8 padding[28];
++	struct ipu3_uapi_stats_3a_bubble_info_per_stripe
++			stats_3a_bubble_per_stripe;
++	struct ipu3_uapi_ff_status stats_3a_status;
++} __packed;
++
++/******************* ipu3_uapi_acc_param *******************/
++
++#define IPU3_UAPI_BNR_LUT_SIZE				32
++
++/* number of elements in gamma correction LUT */
++#define IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES		256
++
++#define IPU3_UAPI_SHD_MAX_CELLS_PER_SET			146
++/* largest grid is 73x56 */
++#define IPU3_UAPI_SHD_MAX_CFG_SETS			28
++
++#define IPU3_UAPI_YUVP2_YTM_LUT_ENTRIES			256
++#define IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS		16
++#define IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS		14
++#define IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS	258
++#define IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS		24
++
++#define IPU3_UAPI_BDS_SAMPLE_PATTERN_ARRAY_SIZE		8
++#define IPU3_UAPI_BDS_PHASE_COEFFS_ARRAY_SIZE		32
++
++#define IPU3_UAPI_ANR_LUT_SIZE				26
++#define IPU3_UAPI_ANR_PYRAMID_SIZE			22
++
++#define IPU3_UAPI_AE_WEIGHTS				96
++
++/* Bayer Noise Reduction related structs */
++
++/**
++ * struct ipu3_uapi_bnr_static_config_wb_gains_config - White balance gains
++ * @gr:	white balance gain for Gr channel.
++ * @r:	white balance gain for R channel.
++ * @b:	white balance gain for B channel.
++ * @gb:	white balance gain for Gb channel.
++ */
++struct ipu3_uapi_bnr_static_config_wb_gains_config {
++	__u16 gr;
++	__u16 r;
++	__u16 b;
++	__u16 gb;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_wb_gains_thr_config - Threshold config
++ * @gr:	white balance threshold gain for Gr channel.
++ * @r: 	white balance threshold gain for R channel.
++ * @b: 	white balance threshold gain for B channel.
++ * @gb:	white balance threshold gain for Gb channel.
++ */
++struct ipu3_uapi_bnr_static_config_wb_gains_thr_config {
++	__u8 gr;
++	__u8 r;
++	__u8 b;
++	__u8 gb;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_thr_coeffs_config - Threshold coeffs
++ * @cf:	Free coefficient for threshold calculation
++ * @__reserved0:	reserved
++ * @cg:	Gain coefficient for threshold calculation
++ * @ci:	Intensity coefficient for threshold calculation
++ * @__reserved1:	reserved
++ * @r_nf:	Number of frames
++ */
++struct ipu3_uapi_bnr_static_config_thr_coeffs_config {
++	__u32 cf:13;
++	__u32 __reserved0:3;
++	__u32 cg:5;
++	__u32 ci:5;
++	__u32 __reserved1:1;
++	__u32 r_nf:5;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config - SHD config
++ * @gr:	Coefficient defines lens shading gain approximation for gr channel
++ * @r:	Coefficient defines lens shading gain approximation for r channel
++ * @b:	Coefficient defines lens shading gain approximation for b channel
++ * @gb:	Coefficient defines lens shading gain approximation for gb channel
++ */
++struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config {
++	__u8 gr;
++	__u8 r;
++	__u8 b;
++	__u8 gb;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_opt_center_config
++ * @x_reset:	Reset value of X (col start - X center) for r*r calculation
++ * @__reserved0:	reserved
++ * @y_reset:	Reset value of Y (row start - Y center) for r*r calculation
++ * @__reserved2:	reserved
++ */
++struct ipu3_uapi_bnr_static_config_opt_center_config {
++	__s32 x_reset:13;
++	__u32 __reserved0:3;
++	__s32 y_reset:13;
++	__u32 __reserved2:3;
++} __packed;
++
++struct ipu3_uapi_bnr_static_config_lut_config {
++	__u8 values[IPU3_UAPI_BNR_LUT_SIZE];
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_bp_ctrl_config
++ * @bp_thr_gain:	Defines the threshold that specifies how different a
++ *			defect pixel can be from its neighbors. Threshold is
++ *			dependent on de-noise threshold calculated by algorithm.
++ * @__reserved0:	reserved
++ * @defect_mode:	Mode of addressed defect pixels, 0 – single defect pixel
++ *			is expected, 2@ adjacent defect pixels are expected.
++ * @bp_gain:	Defines how 2nd derivation that passes through a defect pixel is
++ *	 	different from 2nd derivations that pass through neighbor pixels.
++ * @__reserved1:	reserved
++ * @w0_coeff:	Blending coefficient of defect pixel correction
++ * @__reserved2:	reserved
++ * @w1_coeff:	Blending coefficient of defect pixel correction
++ * @__reserved3:	reserved
++ */
++struct ipu3_uapi_bnr_static_config_bp_ctrl_config {
++	__u32 bp_thr_gain:5;
++	__u32 __reserved0:2;
++	__u32 defect_mode:1;
++	__u32 bp_gain:6;
++	__u32 __reserved1:18;
++	__u32 w0_coeff:4;
++	__u32 __reserved2:4;
++	__u32 w1_coeff:4;
++	__u32 __reserved3:20;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config
++ * @alpha:	Weight of central element of smoothing filter range: [0..0xF]
++ * @beta:	Weight of peripheral elements of smoothing filter in: [0..0xF]
++ * @gamma:	Weight of diagonal elements of smoothing filter range: [0..0xF]
++ * @__reserved0:	reserved
++ * @max_inf:	Maximum increase of peripheral or diagonal element influence
++ *		relative to the pre-defined value range: [0x5..0xA]
++ * @__reserved1:	reserved
++ * @gd_enable:	Green Disparity enable control, 0 - disable, 1 - enable.
++ * @bpc_enable:	Bad Pixel Correction enable control, 0 - disable, 1 - enable.
++ * @bnr_enable:	Bayer Noise Removal enable control, 0 - disable, 1 - enable.
++ * @ff_enable:	Fixed function enable control, 0 - disable, 1 - enable.
++ * @__reserved2:	reserved
++ */
++struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config {
++	__u32 alpha:4;
++	__u32 beta:4;
++	__u32 gamma:4;
++	__u32 __reserved0:4;
++	__u32 max_inf:4;
++	__u32 __reserved1:7;
++	/* aka 'green disparity enable' */
++	__u32 gd_enable:1;
++	__u32 bpc_enable:1;
++	__u32 bnr_enable:1;
++	__u32 ff_enable:1;
++	__u32 __reserved2:1;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_opt_center_sqr_config
++ * @x_sqr_reset:	Reset value X*X of  for r*r
++ * @y_sqr_reset:	Reset value of Y*Y  for r*r
++ */
++struct ipu3_uapi_bnr_static_config_opt_center_sqr_config {
++	__u32 x_sqr_reset;
++	__u32 y_sqr_reset;
++} __packed;
++
++struct ipu3_uapi_bnr_static_config {
++	struct ipu3_uapi_bnr_static_config_wb_gains_config wb_gains;
++	struct ipu3_uapi_bnr_static_config_wb_gains_thr_config wb_gains_thr;
++	struct ipu3_uapi_bnr_static_config_thr_coeffs_config thr_coeffs;
++	struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config thr_ctrl_shd;
++	struct ipu3_uapi_bnr_static_config_opt_center_config opt_center;
++	struct ipu3_uapi_bnr_static_config_lut_config lut;
++	struct ipu3_uapi_bnr_static_config_bp_ctrl_config bp_ctrl;
++	struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config dn_detect_ctrl;
++	__u32 column_size;	/* 0x44 */
++	struct ipu3_uapi_bnr_static_config_opt_center_sqr_config opt_center_sqr;
++} __packed;
++
++/**
++ * struct ipu3_uapi_bnr_static_config_green_disparity
++ * @gd_red:	Shading gain coeff for gr disparity LVL in bright red region.
++ * @__reserved0:	reserved
++ * @gd_green:	Shading gain coeff for gr disparity LVL in bright green region.
++ * @__reserved1:	reserved
++ * @gd_blue:	Shading gain coeff for gr disparity LVL in bright blue region.
++ * @__reserved2:	reserved
++ * @gd_black:	Maximal green disparity level in dark region
++ *		(stronger disparity assumed to be image detail).
++ * @__reserved3:	reserved
++ * @gd_shading:	Change maximal green disparity level according to square
++ *		distance from image center.
++ * @__reserved4:	reserved
++ * @gd_support:	Lower bound for the number of second green color pixels in
++ *		current pixel neighborhood with less than Threshold difference
++ *		from it.
++ * @__reserved5:	reserved
++* @gd_clip:	Green disparity clip on/off bit.
++ * @gd_central_weight:	Central pixel weight in 9 pixels weighted sum.
++ */
++struct ipu3_uapi_bnr_static_config_green_disparity {
++	__u32 gd_red:6;
++	__u32 __reserved0:2;
++	__u32 gd_green:6;
++	__u32 __reserved1:2;
++	__u32 gd_blue:6;
++	__u32 __reserved2:10;
++	__u32 gd_black:14;
++	__u32 __reserved3:2;
++	__u32 gd_shading:7;
++	__u32 __reserved4:1;
++	__u32 gd_support:2;
++	__u32 __reserved5:1;
++	__u32 gd_clip:1;			/* central weights variables */
++	__u32 gd_central_weight:4;
++} __packed;
++
++struct ipu3_uapi_dm_config {
++	/* DWORD0 */
++	__u32 dm_en:1;
++	__u32 ch_ar_en:1;
++	__u32 fcc_en:1;
++	__u32 __reserved0:13;
++	__u32 frame_width:16;
++
++	/* DWORD1 */
++	__u32 gamma_sc:5;
++	__u32 __reserved1:3;
++	__u32 lc_ctrl:5;
++	__u32 __reserved2:3;
++	__u32 cr_param1:5;
++	__u32 __reserved3:3;
++	__u32 cr_param2:5;
++	__u32 __reserved4:3;
++
++	/* DWORD2 */
++	__u32 coring_param:5;
++	__u32 __reserved5:27;
++} __packed;
++
++/* Color Conversion Matrix */
++struct ipu3_uapi_ccm_mat_config {
++	__s16 coeff_m11;
++	__s16 coeff_m12;
++	__s16 coeff_m13;
++	__s16 coeff_o_r;
++	__s16 coeff_m21;
++	__s16 coeff_m22;
++	__s16 coeff_m23;
++	__s16 coeff_o_g;
++	__s16 coeff_m31;
++	__s16 coeff_m32;
++	__s16 coeff_m33;
++	__s16 coeff_o_b;
++} __packed;
++
++/* Gamma correction */
++struct ipu3_uapi_gamma_corr_ctrl {
++	__u32 enable:1;
++	__u32 __reserved:31;
++} __packed;
++
++struct ipu3_uapi_gamma_corr_lut {
++	__u16 lut[IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES];
++} __packed;
++
++struct ipu3_uapi_gamma_config {
++	struct ipu3_uapi_gamma_corr_ctrl gc_ctrl IPU3_ALIGN;
++	struct ipu3_uapi_gamma_corr_lut gc_lut IPU3_ALIGN;
++} __packed;
++
++/* Color Space Conversion */
++struct ipu3_uapi_csc_mat_config {
++	__s16 coeff_c11;
++	__s16 coeff_c12;
++	__s16 coeff_c13;
++	__s16 coeff_b1;
++	__s16 coeff_c21;
++	__s16 coeff_c22;
++	__s16 coeff_c23;
++	__s16 coeff_b2;
++	__s16 coeff_c31;
++	__s16 coeff_c32;
++	__s16 coeff_c33;
++	__s16 coeff_b3;
++} __packed;
++
++/* Chroma Down Sample */
++struct ipu3_uapi_cds_params {
++	__u32 ds_c00:2;
++	__u32 ds_c01:2;
++	__u32 ds_c02:2;
++	__u32 ds_c03:2;
++	__u32 ds_c10:2;
++	__u32 ds_c11:2;
++	__u32 ds_c12:2;
++	__u32 ds_c13:2;
++	__u32 ds_nf:5;
++	__u32 __reserved0:3;
++	__u32 csc_en:1;
++	__u32 uv_bin_output:1;
++	__u32 __reserved1:6;
++} __packed;
++
++/* Bayer shading correction */
++
++struct ipu3_uapi_shd_grid_config {
++	/* reg 0 */
++	__u8 width;
++	__u8 height;
++	__u8 block_width_log2:3;
++	__u8 __reserved0:1;
++	__u8 block_height_log2:3;
++	__u8 __reserved1:1;
++	__u8 grid_height_per_slice;
++	/* reg 1 */
++	__s16 x_start;			/* 13 bits */
++	__s16 y_start;
++} __packed;
++
++struct ipu3_uapi_shd_general_config {
++	__u32 init_set_vrt_offst_ul:8;
++	__u32 shd_enable:1;
++	/* aka 'gf' */
++	__u32 gain_factor:2;
++	__u32 __reserved:21;
++} __packed;
++
++struct ipu3_uapi_shd_black_level_config {
++	__s16 bl_r;			/* 12 bits */
++	__s16 bl_gr;
++#define IPU3_UAPI_SHD_BLGR_NF_SHIFT	13	/* Normalization shift aka nf */
++#define IPU3_UAPI_SHD_BLGR_NF_MASK	0x7
++	__s16 bl_gb;			/* 12 bits */
++	__s16 bl_b;
++} __packed;
++
++struct ipu3_uapi_shd_config_static {
++	/* B0: Fixed order: one transfer to GAC */
++	struct ipu3_uapi_shd_grid_config grid;
++	struct ipu3_uapi_shd_general_config general;
++	struct ipu3_uapi_shd_black_level_config black_level;
++} __packed;
++
++struct ipu3_uapi_shd_lut {
++	struct {
++		struct {
++			__u16 r;
++			__u16 gr;
++		} r_and_gr[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
++		__u8 __reserved1[24];
++		struct {
++			__u16 gb;
++			__u16 b;
++		} gb_and_b[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
++		__u8 __reserved2[24];
++	} sets[IPU3_UAPI_SHD_MAX_CFG_SETS];
++} __packed;
++
++struct ipu3_uapi_shd_config {
++	struct ipu3_uapi_shd_config_static shd IPU3_ALIGN;
++	struct ipu3_uapi_shd_lut shd_lut IPU3_ALIGN;
++} __packed;
++
++/* Image Enhancement Filter and Denoise */
++
++struct ipu3_uapi_iefd_cux2 {
++	__u32 x0:9;
++	__u32 x1:9;
++	__u32 a01:9;
++	__u32 b01:5;				/* NOTE: hardcoded to zero */
++} __packed;
++
++struct ipu3_uapi_iefd_cux6_ed {
++	__u32 x0:9;
++	__u32 x1:9;
++	__u32 x2:9;
++	__u32 __reserved0:5;
++
++	__u32 x3:9;
++	__u32 x4:9;
++	__u32 x5:9;
++	__u32 __reserved1:5;
++
++	__u32 a01:9;
++	__u32 a12:9;
++	__u32 a23:9;
++	__u32 __reserved2:5;
++
++	__u32 a34:9;
++	__u32 a45:9;
++	__u32 __reserved3:14;
++
++	__u32 b01:9;
++	__u32 b12:9;
++	__u32 b23:9;
++	__u32 __reserved4:5;
++
++	__u32 b34:9;
++	__u32 b45:9;
++	__u32 __reserved5:14;
++} __packed;
++
++struct ipu3_uapi_iefd_cux2_1 {
++	__u32 x0:9;
++	__u32 x1:9;
++	__u32 a01:9;
++	__u32 __reserved1:5;
++
++	__u32 b01:8;
++	__u32 __reserved2:24;
++} __packed;
++
++struct ipu3_uapi_iefd_cux4 {
++	__u32 x0:9;
++	__u32 x1:9;
++	__u32 x2:9;
++	__u32 __reserved0:5;
++
++	__u32 x3:9;
++	__u32 a01:9;
++	__u32 a12:9;
++	__u32 __reserved1:5;
++
++	__u32 a23:9;
++	__u32 b01:8;
++	__u32 b12:8;
++	__u32 __reserved2:7;
++
++	__u32 b23:8;
++	__u32 __reserved3:24;
++} __packed;
++
++struct ipu3_uapi_iefd_cux6_rad {
++	__u32 x0:8;
++	__u32 x1:8;
++	__u32 x2:8;
++	__u32 x3:8;
++
++	__u32 x4:8;
++	__u32 x5:8;
++	__u32 __reserved1:16;
++
++	__u32 a01:16;
++	__u32 a12:16;
++
++	__u32 a23:16;
++	__u32 a34:16;
++
++	__u32 a45:16;
++	__u32 __reserved2:16;
++
++	__u32 b01:10;
++	__u32 b12:10;
++	__u32 b23:10;
++	__u32 __reserved4:2;
++
++	__u32 b34:10;
++	__u32 b45:10;
++	__u32 __reserved5:12;
++} __packed;
++
++/* YUV processing */
++
++struct ipu3_uapi_yuvp1_iefd_cfg_units {
++	struct ipu3_uapi_iefd_cux2 cu_1;
++	struct ipu3_uapi_iefd_cux6_ed cu_ed;
++	struct ipu3_uapi_iefd_cux2 cu_3;
++	struct ipu3_uapi_iefd_cux2_1 cu_5;
++	struct ipu3_uapi_iefd_cux4 cu_6;
++	struct ipu3_uapi_iefd_cux2 cu_7;
++	struct ipu3_uapi_iefd_cux4 cu_unsharp;
++	struct ipu3_uapi_iefd_cux6_rad cu_radial;
++	struct ipu3_uapi_iefd_cux2 cu_vssnlm;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_config_s {
++	__u32 horver_diag_coeff:7;	/* Gradiant compensation */
++	__u32 __reserved0:1;
++	__u32 clamp_stitch:6;		/* Slope to stitch edge */
++	__u32 __reserved1:2;
++	__u32 direct_metric_update:5;	/* Update coeff for direction metric */
++	__u32 __reserved2:3;
++	__u32 ed_horver_diag_coeff:7;
++	__u32 __reserved3:1;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_control {
++	__u32 iefd_en:1;		/* Enable IEFD */
++	__u32 denoise_en:1;		/* Enable denoise */
++	__u32 direct_smooth_en:1;	/* Enable directional smooth */
++	__u32 rad_en:1;			/* Enable radial update */
++	__u32 vssnlm_en:1;		/* Enable VSSNLM output filter */
++	__u32 __reserved:27;
++} __packed;
++
++struct ipu3_uapi_sharp_cfg {
++	__u32 nega_lmt_txt:13;
++	__u32 __reserved0:19;
++	__u32 posi_lmt_txt:13;
++	__u32 __reserved1:19;
++	__u32 nega_lmt_dir:13;
++	__u32 __reserved2:19;
++	__u32 posi_lmt_dir:13;
++	__u32 __reserved3:19;
++} __packed;
++
++struct ipu3_uapi_far_w {
++	__u32 dir_shrp:7;
++	__u32 __reserved0:1;
++	__u32 dir_dns:7;
++	__u32 __reserved1:1;
++	__u32 ndir_dns_powr:7;
++	__u32 __reserved2:9;
++} __packed;
++
++struct ipu3_uapi_unsharp_cfg {
++	__u32 unsharp_weight:7;
++	__u32 __reserved0:1;
++	__u32 unsharp_amount:9;
++	__u32 __reserved1:15;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_shrp_cfg {
++	struct ipu3_uapi_sharp_cfg cfg;
++	struct ipu3_uapi_far_w far_w;
++	struct ipu3_uapi_unsharp_cfg unshrp_cfg;
++} __packed;
++
++struct ipu3_uapi_unsharp_coef0 {
++	__u32 c00:9;			/* Coeff11 */
++	__u32 c01:9;			/* Coeff12 */
++	__u32 c02:9;			/* Coeff13 */
++	__u32 __reserved:5;
++} __packed;
++
++struct ipu3_uapi_unsharp_coef1 {
++	__u32 c11:9;			/* Coeff22 */
++	__u32 c12:9;			/* Coeff23 */
++	__u32 c22:9;			/* Coeff33 */
++	__u32 __reserved:5;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_unshrp_cfg {
++	struct ipu3_uapi_unsharp_coef0 unsharp_coef0;
++	struct ipu3_uapi_unsharp_coef1 unsharp_coef1;
++} __packed;
++
++struct ipu3_uapi_radial_reset_xy {
++	__s32 x:13;
++	__u32 __reserved0:3;
++	__s32 y:13;
++	__u32 __reserved1:3;
++} __packed;
++
++struct ipu3_uapi_radial_reset_x2 {
++	__u32 x2:24;
++	__u32 __reserved:8;
++} __packed;
++
++struct ipu3_uapi_radial_reset_y2 {
++	__u32 y2:24;
++	__u32 __reserved:8;
++} __packed;
++
++struct ipu3_uapi_radial_cfg {
++	__u32 rad_nf:4;
++	__u32 __reserved0:4;
++	__u32 rad_inv_r2:7;
++	__u32 __reserved1:17;
++} __packed;
++
++struct ipu3_uapi_rad_far_w {
++	__u32 rad_dir_far_sharp_w:8;
++	__u32 rad_dir_far_dns_w:8;
++	__u32 rad_ndir_far_dns_power:8;
++	__u32 __reserved:8;
++} __packed;
++
++struct ipu3_uapi_cu_cfg0 {
++	__u32 cu6_pow:7;
++	__u32 __reserved0:1;
++	__u32 cu_unsharp_pow:7;
++	__u32 __reserved1:1;
++	__u32 rad_cu6_pow:7;
++	__u32 __reserved2:1;
++	__u32 rad_cu_unsharp_pow:6;
++	__u32 __reserved3:2;
++} __packed;
++
++struct ipu3_uapi_cu_cfg1 {
++	__u32 rad_cu6_x1:9;
++	__u32 __reserved0:1;
++	__u32 rad_cu_unsharp_x1:9;
++	__u32 __reserved1:13;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_rad_cfg {
++	struct ipu3_uapi_radial_reset_xy reset_xy;
++	struct ipu3_uapi_radial_reset_x2 reset_x2;
++	struct ipu3_uapi_radial_reset_y2 reset_y2;
++	struct ipu3_uapi_radial_cfg cfg;
++	struct ipu3_uapi_rad_far_w rad_far_w;
++	struct ipu3_uapi_cu_cfg0 cu_cfg0;
++	struct ipu3_uapi_cu_cfg1 cu_cfg1;
++} __packed;
++
++struct ipu3_uapi_vss_lut_x {
++	__u32 vs_x0:8;
++	__u32 vs_x1:8;
++	__u32 vs_x2:8;
++	__u32 __reserved2:8;
++} __packed;
++
++struct ipu3_uapi_vss_lut_y {
++	__u32 vs_y1:4;
++	__u32 __reserved0:4;
++	__u32 vs_y2:4;
++	__u32 __reserved1:4;
++	__u32 vs_y3:4;
++	__u32 __reserved2:12;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_vssnlm_cfg {
++	struct ipu3_uapi_vss_lut_x vss_lut_x;
++	struct ipu3_uapi_vss_lut_y vss_lut_y;
++} __packed;
++
++struct ipu3_uapi_yuvp1_iefd_config {
++	struct ipu3_uapi_yuvp1_iefd_cfg_units units;
++	struct ipu3_uapi_yuvp1_iefd_config_s config;
++	struct ipu3_uapi_yuvp1_iefd_control control;
++	struct ipu3_uapi_yuvp1_iefd_shrp_cfg sharp;
++	struct ipu3_uapi_yuvp1_iefd_unshrp_cfg unsharp;
++	struct ipu3_uapi_yuvp1_iefd_rad_cfg rad;
++	struct ipu3_uapi_yuvp1_iefd_vssnlm_cfg vsslnm;
++} __packed;
++
++struct ipu3_uapi_yuvp1_yds_config {
++	__u32 c00:2;
++	__u32 c01:2;
++	__u32 c02:2;
++	__u32 c03:2;
++	__u32 c10:2;
++	__u32 c11:2;
++	__u32 c12:2;
++	__u32 c13:2;
++	__u32 norm_factor:5;
++	__u32 __reserved0:4;
++	__u32 bin_output:1;
++	__u32 __reserved1:6;
++} __packed;
++
++struct ipu3_uapi_yuvp1_chnr_enable_config {
++	__u32 enable:1;
++	__u32 yuv_mode:1;
++	__u32 __reserved0:14;
++	__u32 col_size:12;
++	__u32 __reserved1:4;
++} __packed;
++
++struct ipu3_uapi_yuvp1_chnr_coring_config {
++	__u32 u:13;
++	__u32 __reserved0:3;
++	__u32 v:13;
++	__u32 __reserved1:3;
++} __packed;
++
++struct ipu3_uapi_yuvp1_chnr_sense_gain_config {
++	__u32 vy:8;
++	__u32 vu:8;
++	__u32 vv:8;
++	__u32 __reserved0:8;
++
++	__u32 hy:8;
++	__u32 hu:8;
++	__u32 hv:8;
++	__u32 __reserved1:8;
++} __packed;
++
++struct ipu3_uapi_yuvp1_chnr_iir_fir_config {
++	__u32 fir_0h:6;
++	__u32 __reserved0:2;
++	__u32 fir_1h:6;
++	__u32 __reserved1:2;
++	__u32 fir_2h:6;
++	__u32 dalpha_clip_val:9;
++	__u32 __reserved2:1;
++} __packed;
++
++struct ipu3_uapi_yuvp1_chnr_config {
++	struct ipu3_uapi_yuvp1_chnr_enable_config enable;
++	struct ipu3_uapi_yuvp1_chnr_coring_config coring;
++	struct ipu3_uapi_yuvp1_chnr_sense_gain_config sense_gain;
++	struct ipu3_uapi_yuvp1_chnr_iir_fir_config iir_fir;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config {
++	__u32 a_diag:5;
++	__u32 __reserved0:3;
++	__u32 a_periph:5;
++	__u32 __reserved1:3;
++	__u32 a_cent:5;
++	__u32 __reserved2:9;
++	__u32 enable:1;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_sense_config {
++	__u32 edge_sense_0:13;
++	__u32 __reserved0:3;
++	__u32 delta_edge_sense:13;
++	__u32 __reserved1:3;
++	__u32 corner_sense_0:13;
++	__u32 __reserved2:3;
++	__u32 delta_corner_sense:13;
++	__u32 __reserved3:3;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_gain_config {
++	__u32 gain_pos_0:5;
++	__u32 __reserved0:3;
++	__u32 delta_gain_posi:5;
++	__u32 __reserved1:3;
++	__u32 gain_neg_0:5;
++	__u32 __reserved2:3;
++	__u32 delta_gain_neg:5;
++	__u32 __reserved3:3;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_clip_config {
++	__u32 clip_pos_0:5;
++	__u32 __reserved0:3;
++	__u32 delta_clip_posi:5;
++	__u32 __reserved1:3;
++	__u32 clip_neg_0:5;
++	__u32 __reserved2:3;
++	__u32 delta_clip_neg:5;
++	__u32 __reserved3:3;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_frng_config {
++	__u32 gain_exp:4;
++	__u32 __reserved0:28;
++	__u32 min_edge:13;
++	__u32 __reserved1:3;
++	__u32 lin_seg_param:4;
++	__u32 __reserved2:4;
++	__u32 t1:1;
++	__u32 t2:1;
++	__u32 __reserved3:6;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_diag_config {
++	__u32 diag_disc_g:4;
++	__u32 __reserved0:4;
++	__u32 hvw_hor:4;
++	__u32 dw_hor:4;
++	__u32 hvw_diag:4;
++	__u32 dw_diag:4;
++	__u32 __reserved1:8;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config {
++	__u32 pos_0:13;
++	__u32 __reserved0:3;
++	__u32 pos_delta:13;
++	__u32 __reserved1:3;
++	__u32 neg_0:13;
++	__u32 __reserved2:3;
++	__u32 neg_delta:13;
++	__u32 __reserved3:3;
++} __packed;
++
++struct ipu3_uapi_yuvp1_y_ee_nr_config {
++	struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config lpf;
++	struct ipu3_uapi_yuvp1_y_ee_nr_sense_config sense;
++	struct ipu3_uapi_yuvp1_y_ee_nr_gain_config gain;
++	struct ipu3_uapi_yuvp1_y_ee_nr_clip_config clip;
++	struct ipu3_uapi_yuvp1_y_ee_nr_frng_config frng;
++	struct ipu3_uapi_yuvp1_y_ee_nr_diag_config diag;
++	struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config fc_coring;
++} __packed;
++
++/* Y-tone Mapping */
++struct ipu3_uapi_yuvp2_y_tm_lut_static_config {
++	__u16 entries[IPU3_UAPI_YUVP2_YTM_LUT_ENTRIES]; /* 13 significand bits*/
++	__u32 enable;
++} __packed;
++
++/* Total Color Correction */
++struct ipu3_uapi_yuvp2_tcc_gen_control_static_config {
++	__u32 en:1;
++	__u32 blend_shift:3;
++	__u32 gain_according_to_y_only:1;
++	__u32 __reserved0:11;
++	__s32 gamma:5;
++	__u32 __reserved1:3;
++	__s32 delta:5;
++	__u32 __reserved2:3;
++} __packed;
++
++struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config {
++	__s32 a:12;
++	__u32 __reserved0:4;
++	__s32 b:12;
++	__u32 __reserved1:4;
++	__s32 c:12;
++	__u32 __reserved2:4;
++	__s32 d:12;
++	__u32 __reserved3:4;
++} __packed;
++
++struct ipu3_uapi_yuvp2_tcc_macc_table_static_config {
++	struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config
++		entries[IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS];
++} __packed;
++
++struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config {
++	__u16 entries[IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS];	/* 10 bits */
++} __packed;
++
++struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config {
++	__u16 entries[IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS];/* 12 bits */
++} __packed;
++
++struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config {
++	__s16 entries[IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS];	/* 11 bits */
++} __packed;
++
++struct ipu3_uapi_yuvp2_tcc_static_config {
++	struct ipu3_uapi_yuvp2_tcc_gen_control_static_config gen_control;
++	struct ipu3_uapi_yuvp2_tcc_macc_table_static_config macc_table;
++	struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config inv_y_lut;
++	struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config gain_pcwl;
++	struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config r_sqr_lut;
++} __packed;
++
++/* Bayer Down-Scaler */
++
++struct ipu3_uapi_bds_hor_ctrl0 {
++	__u32 sample_patrn_length:9;
++	__u32 __reserved0:3;
++	__u32 hor_ds_en:1;
++	__u32 min_clip_val:1;
++	__u32 max_clip_val:2;
++	__u32 out_frame_width:13;
++	__u32 __reserved1:3;
++} __packed;
++
++struct ipu3_uapi_bds_ptrn_arr {
++	__u32 elems[IPU3_UAPI_BDS_SAMPLE_PATTERN_ARRAY_SIZE];
++} __packed;
++
++struct ipu3_uapi_bds_phase_entry {
++	__s8 coeff_min2;
++	__s8 coeff_min1;
++	__s8 coeff_0;
++	__s8 nf;
++	__s8 coeff_pls1;
++	__s8 coeff_pls2;
++	__s8 coeff_pls3;
++	__u8 __reserved;
++} __packed;
++
++struct ipu3_uapi_bds_phase_arr {
++	struct ipu3_uapi_bds_phase_entry
++		even[IPU3_UAPI_BDS_PHASE_COEFFS_ARRAY_SIZE];
++	struct ipu3_uapi_bds_phase_entry
++		odd[IPU3_UAPI_BDS_PHASE_COEFFS_ARRAY_SIZE];
++} __packed;
++
++struct ipu3_uapi_bds_hor_ctrl1 {
++	__u32 hor_crop_start:13;
++	__u32 __reserved0:3;
++	__u32 hor_crop_end:13;
++	__u32 __reserved1:1;
++	__u32 hor_crop_en:1;
++	__u32 __reserved2:1;
++} __packed;
++
++struct ipu3_uapi_bds_hor_ctrl2 {
++	__u32 input_frame_height:13;
++	__u32 __reserved0:19;
++} __packed;
++
++struct ipu3_uapi_bds_hor {
++	struct ipu3_uapi_bds_hor_ctrl0 hor_ctrl0;
++	struct ipu3_uapi_bds_ptrn_arr hor_ptrn_arr;
++	struct ipu3_uapi_bds_phase_arr hor_phase_arr;
++	struct ipu3_uapi_bds_hor_ctrl1 hor_ctrl1;
++	struct ipu3_uapi_bds_hor_ctrl2 hor_ctrl2;
++} __packed;
++
++struct ipu3_uapi_bds_ver_ctrl0 {
++	__u32 sample_patrn_length:9;
++	__u32 __reserved0:3;
++	__u32 ver_ds_en:1;
++	__u32 min_clip_val:1;
++	__u32 max_clip_val:2;
++	__u32 __reserved1:16;
++} __packed;
++
++struct ipu3_uapi_bds_ver_ctrl1 {
++	__u32 out_frame_width:13;
++	__u32 __reserved0:3;
++	__u32 out_frame_height:13;
++	__u32 __reserved1:3;
++} __packed;
++
++struct ipu3_uapi_bds_ver {
++	struct ipu3_uapi_bds_ver_ctrl0 ver_ctrl0;
++	struct ipu3_uapi_bds_ptrn_arr ver_ptrn_arr;
++	struct ipu3_uapi_bds_phase_arr ver_phase_arr;
++	struct ipu3_uapi_bds_ver_ctrl1 ver_ctrl1;
++
++} __packed;
++
++struct ipu3_uapi_bds_config {
++	struct ipu3_uapi_bds_hor hor IPU3_ALIGN;
++	struct ipu3_uapi_bds_ver ver IPU3_ALIGN;
++	__u32 enabled;
++} __packed;
++
++/* Advanced Noise Reduction related structs */
++
++struct ipu3_uapi_anr_search_config {
++	__u32 enable;
++	__u16 frame_width;
++	__u16 frame_height;
++} __packed;
++
++struct ipu3_uapi_anr_alpha {
++	__u16 gr;					/* 9 bits */
++	__u16 r;
++	__u16 b;
++	__u16 gb;
++	__u16 dc_gr;
++	__u16 dc_r;
++	__u16 dc_b;
++	__u16 dc_gb;
++} __packed;
++
++struct ipu3_uapi_anr_beta {
++	__u16 beta_gr;					/* 11 bits */
++	__u16 beta_r;
++	__u16 beta_b;
++	__u16 beta_gb;
++} __packed;
++
++struct ipu3_uapi_anr_plain_color {
++	__u16 reg_w_gr[16];				/* 12 bits */
++	__u16 reg_w_r[16];
++	__u16 reg_w_b[16];
++	__u16 reg_w_gb[16];
++} __packed;
++
++struct ipu3_uapi_anr_transform_config {
++	__u32 enable:1;			/* 0 or 1, disabled or enabled */
++	__u32 adaptive_treshhold_en:1;	/* On IPU3, always enabled */
++
++	__u32 __reserved1:30;
++	__u8 __reserved2[40+4];
++
++	struct ipu3_uapi_anr_alpha alpha[3];
++	struct ipu3_uapi_anr_beta beta[3];
++	struct ipu3_uapi_anr_plain_color color[3];
++
++	__u16 sqrt_lut[IPU3_UAPI_ANR_LUT_SIZE];	/* 11 bits per element */
++
++	__s16 xreset:13;
++#define IPU3_UAPI_ANR_MAX_XRESET		((1 << 12) - 1)
++	__u16 __reserved3:3;
++	__s16 yreset:13;
++	__u16 __reserved4:3;
++
++	__u32 x_sqr_reset:24;
++	__u32 r_normfactor:5;
++	__u32 __reserved5:3;
++
++	__u32 y_sqr_reset:24;
++	__u32 gain_scale:8;
++} __packed;
++
++struct ipu3_uapi_anr_stitch_pyramid {
++	__u32 entry0:6;
++	__u32 entry1:6;
++	__u32 entry2:6;
++	__u32 __reserved:14;
++} __packed;
++
++struct ipu3_uapi_anr_stitch_config {
++	__u32 anr_stitch_en;
++	__u16 frame_width;
++	__u16 frame_height;
++	__u8 __reserved[40];
++	struct ipu3_uapi_anr_stitch_pyramid pyramid[IPU3_UAPI_ANR_PYRAMID_SIZE];
++} __packed;
++
++struct ipu3_uapi_anr_tile2strm_config {
++	__u32 enable;
++	__u16 frame_width;
++	__u16 frame_height;
++} __packed;
++
++struct ipu3_uapi_anr_config {
++	struct ipu3_uapi_anr_search_config search IPU3_ALIGN;
++	struct ipu3_uapi_anr_transform_config transform IPU3_ALIGN;
++	struct ipu3_uapi_anr_stitch_config stitch IPU3_ALIGN;
++	struct ipu3_uapi_anr_tile2strm_config tile2strm IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_awb_fr_config {
++	struct ipu3_uapi_awb_fr_config_s config;
++} __packed;
++
++struct ipu3_uapi_ae_weight_elem {
++	__u32 cell0:4;
++	__u32 cell1:4;
++	__u32 cell2:4;
++	__u32 cell3:4;
++	__u32 cell4:4;
++	__u32 cell5:4;
++	__u32 cell6:4;
++	__u32 cell7:4;
++} __packed;
++
++struct ipu3_uapi_ae_ccm {
++	__u16 gain_gr;			/* 11 bits */
++	__u16 gain_r;
++	__u16 gain_b;
++	__u16 gain_gb;
++	__s16 mat[16];
++} __packed;
++
++struct ipu3_uapi_ae_config {
++	struct ipu3_uapi_ae_grid_config grid_cfg IPU3_ALIGN;
++	struct ipu3_uapi_ae_weight_elem weights[IPU3_UAPI_AE_WEIGHTS]
++								IPU3_ALIGN;
++	struct ipu3_uapi_ae_ccm ae_ccm IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_af_config {
++	struct ipu3_uapi_af_config_s config;
++} __packed;
++
++struct ipu3_uapi_awb_config {
++	struct ipu3_uapi_awb_config_s config IPU3_ALIGN;
++} __packed;
++
++struct ipu3_uapi_acc_param {
++	struct ipu3_uapi_bnr_static_config bnr;
++	struct ipu3_uapi_bnr_static_config_green_disparity green_disparity
++		IPU3_ALIGN;
++	struct ipu3_uapi_dm_config dm IPU3_ALIGN;
++	struct ipu3_uapi_ccm_mat_config ccm IPU3_ALIGN;
++	struct ipu3_uapi_gamma_config gamma IPU3_ALIGN;
++	struct ipu3_uapi_csc_mat_config csc IPU3_ALIGN;
++	struct ipu3_uapi_cds_params cds IPU3_ALIGN;
++	struct ipu3_uapi_shd_config shd IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_iefd_config iefd IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_yds_config yds_c0 IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_chnr_config chnr_c0 IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_y_ee_nr_config y_ee_nr IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_yds_config yds IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_chnr_config chnr IPU3_ALIGN;
++	struct ipu3_uapi_yuvp2_y_tm_lut_static_config ytm IPU3_ALIGN;
++	struct ipu3_uapi_yuvp1_yds_config yds2 IPU3_ALIGN;
++	struct ipu3_uapi_yuvp2_tcc_static_config tcc IPU3_ALIGN;
++	struct ipu3_uapi_bds_config bds;
++	struct ipu3_uapi_anr_config anr;
++	struct ipu3_uapi_awb_fr_config awb_fr;
++	struct ipu3_uapi_ae_config ae;
++	struct ipu3_uapi_af_config af;
++	struct ipu3_uapi_awb_config awb;
++} __packed;
++
++/* Linearization parameters */
++
++#define IPU3_UAPI_LIN_LUT_SIZE			64
++
++/**
++ * struct ipu3_uapi_isp_lin_vmem_params - export of VMEM config interface
++ *
++ * @lin_lutlow_gr:	linearization look-up table for GR channel interpolation.
++ * @lin_lutlow_r:	linearization look-up table for R channel interpolation.
++ * @lin_lutlow_b:	linearization look-up table for B channel interpolation.
++ * @lin_lutlow_gb:	linearization look-up table for GB channel interpolation.
++ *			lin_lutlow_gr / lin_lutlow_gr / lin_lutlow_gr /
++ *			lin_lutlow_gr <= LIN_MAX_VALUE - 1.
++ * @lin_lutdif_gr:	lin_lutlow_gr[i+1] - lin_lutlow_gr[i].
++ * @lin_lutdif_r:	lin_lutlow_r[i+1] - lin_lutlow_r[i].
++ * @lin_lutdif_b:	lin_lutlow_b[i+1] - lin_lutlow_b[i].
++ * @lin_lutdif_gb:	lin_lutlow_gb[i+1] - lin_lutlow_gb[i].
++ *
++ * Contains data used for programming VMEM.
++ */
++struct ipu3_uapi_isp_lin_vmem_params {
++	__s16 lin_lutlow_gr[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutlow_r[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutlow_b[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutlow_gb[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutdif_gr[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutdif_r[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutdif_b[IPU3_UAPI_LIN_LUT_SIZE];
++	__s16 lin_lutdif_gb[IPU3_UAPI_LIN_LUT_SIZE];
++} __packed;
++
++/* Temporal Noise Reduction VMEM parameters */
++
++#define IPU3_UAPI_ISP_TNR3_VMEM_LEN	9
++
++struct ipu3_uapi_isp_tnr3_vmem_params {
++	__u16 slope[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
++	__u16 __reserved1[IPU3_UAPI_ISP_VEC_ELEMS
++						- IPU3_UAPI_ISP_TNR3_VMEM_LEN];
++	__u16 sigma[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
++	__u16 __reserved2[IPU3_UAPI_ISP_VEC_ELEMS
++						- IPU3_UAPI_ISP_TNR3_VMEM_LEN];
++} __packed;
++
++/* XNR3 VMEM parameters */
++
++struct ipu3_uapi_isp_xnr3_vmem_params {
++	__u16 x[IPU3_UAPI_ISP_VEC_ELEMS];
++	__u16 a[IPU3_UAPI_ISP_VEC_ELEMS];
++	__u16 b[IPU3_UAPI_ISP_VEC_ELEMS];
++	__u16 c[IPU3_UAPI_ISP_VEC_ELEMS];
++} __packed;
++
++/* TNR3 DMEM parameters */
++
++struct ipu3_uapi_isp_tnr3_params {
++	__u32 knee_y1;
++	__u32 knee_y2;
++	__u32 maxfb_y;
++	__u32 maxfb_u;
++	__u32 maxfb_v;
++	__u32 round_adj_y;
++	__u32 round_adj_u;
++	__u32 round_adj_v;
++	__u32 ref_buf_select;
++} __packed;
++
++/* XNR3 DMEM parameters */
++
++struct ipu3_uapi_xnr3_alpha_params {
++	__u32 y0;
++	__u32 u0;
++	__u32 v0;
++	__u32 ydiff;
++	__u32 udiff;
++	__u32 vdiff;
++} __packed;
++
++struct ipu3_uapi_xnr3_coring_params {
++	__u32 u0;
++	__u32 v0;
++	__u32 udiff;
++	__u32 vdiff;
++} __packed;
++
++struct ipu3_uapi_xnr3_blending_params {
++	__u32 strength;
++} __packed;
++
++struct ipu3_uapi_isp_xnr3_params {
++	struct ipu3_uapi_xnr3_alpha_params alpha;
++	struct ipu3_uapi_xnr3_coring_params coring;
++	struct ipu3_uapi_xnr3_blending_params blending;
++} __packed;
++
++/***** Obgrid (optical black level compensation) table entry *****/
++
++/** struct ipu3_uapi_obgrid_param -- obgrid parameters
++ * @gr: Grid table values for color GR
++ * @r: Grid table values for color R
++ * @b: Grid table values for color B
++ * @B: Grid table values for color GB
++ */
++struct ipu3_uapi_obgrid_param {
++	__u16 gr;
++	__u16 r;
++	__u16 b;
++	__u16 gb;
++} __packed;
++
++/******************* V4L2_META_FMT_IPU3_PARAMS *******************/
++
++/*
++ * The video queue "parameters" is of format V4L2_META_FMT_IPU3_PARAMS.
++ * This is a "single plane" v4l2_meta_format using V4L2_BUF_TYPE_META_OUTPUT.
++ *
++ * struct ipu3_uapi_params as defined below contains a lot of parameters and
++ * ipu3_uapi_flags selects which parameters to apply.
++ */
++struct ipu3_uapi_flags {
++	__u32 gdc:1;		/* Geometric Distortion Correction */
++	__u32 obgrid:1;		/* Obgrid planes */
++	__u32 __reserved1:30;
++
++	__u32 __acc_stripe:1;		/* Fields beginning with 2 underscore */
++	__u32 __acc_input_feeder:1;	/* are reserved and must be disabled */
++	__u32 acc_bnr:1;
++	__u32 acc_green_disparity:1;
++	__u32 acc_dm:1;
++	__u32 acc_ccm:1;
++	__u32 acc_gamma:1;
++	__u32 acc_csc:1;
++	__u32 acc_cds:1;
++	__u32 acc_shd:1;
++	__u32 acc_dvs_stat:1;
++	__u32 acc_lace_stat:1;	/* Local Adpative Contract Enhancement */
++	__u32 acc_iefd:1;
++	__u32 acc_yds_c0:1;
++	__u32 acc_chnr_c0:1;
++	__u32 acc_y_ee_nr:1;
++	__u32 acc_yds:1;
++	__u32 acc_chnr:1;
++	__u32 acc_ytm:1;
++	__u32 acc_yds2:1;
++	__u32 acc_tcc:1;
++	__u32 acc_dpc:1;
++	__u32 acc_bds:1;
++	__u32 acc_anr:1;
++	__u32 acc_awb_fr:1;
++	__u32 acc_ae:1;
++	__u32 acc_af:1;
++	__u32 acc_awb:1;
++	__u32 __acc_osys:1;
++	__u32 __reserved2:3;
++
++	__u32 lin_vmem_params:1;
++	__u32 tnr3_vmem_params:1;
++	__u32 xnr3_vmem_params:1;
++	__u32 tnr3_dmem_params:1;
++	__u32 xnr3_dmem_params:1;
++	__u32 __rgbir_dmem_params:1;
++	__u32 obgrid_param:1;
++	__u32 __reserved3:25;
++} __packed;
++
++struct ipu3_uapi_params {
++	/* Flags which of the settings below are to be applied */
++	struct ipu3_uapi_flags use IPU3_ALIGN;
++
++	/* Accelerator cluster parameters */
++	struct ipu3_uapi_acc_param acc_param;
++
++	/* VMEM parameters */
++	struct ipu3_uapi_isp_lin_vmem_params lin_vmem_params;
++	struct ipu3_uapi_isp_tnr3_vmem_params tnr3_vmem_params;
++	struct ipu3_uapi_isp_xnr3_vmem_params xnr3_vmem_params;
++
++	/* DMEM parameters */
++	struct ipu3_uapi_isp_tnr3_params tnr3_dmem_params;
++	struct ipu3_uapi_isp_xnr3_params xnr3_dmem_params;
++
++	struct ipu3_uapi_obgrid_param obgrid_param;
++} __packed;
++
++#endif
+-- 
+2.7.4
