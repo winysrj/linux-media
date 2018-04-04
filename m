@@ -1,104 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60240 "EHLO mga11.intel.com"
+Received: from mail.bootlin.com ([62.4.15.54]:57193 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755110AbeDVPm5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 11:42:57 -0400
-Date: Sun, 22 Apr 2018 23:41:41 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/4] media: radio: allow building ISA drivers with
- COMPILE_TEST
-Message-ID: <201804222216.QZDMUFK0%fengguang.wu@intel.com>
-References: <333f43d5373f6f821c424ccabce3b9b1fa180921.1524227382.git.mchehab@s-opensource.com>
+        id S1751399AbeDDT41 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Apr 2018 15:56:27 -0400
+Date: Wed, 4 Apr 2018 21:56:23 +0200
+From: Boris Brezillon <boris.brezillon@bootlin.com>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>,
+        Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        "linux-mmc\@vger.kernel.org" <linux-mmc@vger.kernel.org>,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        driverdevel <devel@driverdev.osuosl.org>,
+        alsa-devel@alsa-project.org
+Subject: Re: [PATCH 00/15] ARM: pxa: switch to DMA slave maps
+Message-ID: <20180404215623.2bf07406@bbrezillon>
+In-Reply-To: <874lkq4urd.fsf@belgarion.home>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+        <CAPDyKFot9dAST2jQL5s8E4U=bCHxkio=uwpqPd6S0N4FWJRB-w@mail.gmail.com>
+        <874lkq4urd.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <333f43d5373f6f821c424ccabce3b9b1fa180921.1524227382.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, 04 Apr 2018 21:49:26 +0200
+Robert Jarzmik <robert.jarzmik@free.fr> wrote:
 
-I love your patch! Perhaps something to improve:
+> Ulf Hansson <ulf.hansson@linaro.org> writes:
+> 
+> > On 2 April 2018 at 16:26, Robert Jarzmik <robert.jarzmik@free.fr> wrote:  
+> >> Hi,
+> >>
+> >> This serie is aimed at removing the dmaengine slave compat use, and transfer
+> >> knowledge of the DMA requestors into architecture code.
+> >> As this looks like a patch bomb, each maintainer expressing for his tree either
+> >> an Ack or "I want to take through my tree" will be spared in the next iterations
+> >> of this serie.  
+> >
+> > Perhaps an option is to send this hole series as PR for 3.17 rc1, that
+> > would removed some churns and make this faster/easier? Well, if you
+> > receive the needed acks of course.  
+> For 3.17-rc1 it looks a bit optimistic with the review time ... If I have all
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.17-rc1 next-20180420]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Especially since 3.17-rc1 has been released more than 3 years ago :-),
+but I guess you meant 4.17-rc1.
 
-url:    https://github.com/0day-ci/linux/commits/Mauro-Carvalho-Chehab/media-radio-allow-building-ISA-drivers-with-COMPILE_TEST/20180422-180508
-base:   git://linuxtv.org/media_tree.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
-
-
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-isa.c:108:16: sparse: expression using sizeof(void)
---
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-sf16fmi.c:123:24: sparse: expression using sizeof(void)
---
->> drivers/media/radio/radio-sf16fmr2.c:169:25: sparse: expression using sizeof(void)
-   drivers/media/radio/radio-sf16fmr2.c:171:24: sparse: expression using sizeof(void)
---
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
->> drivers/media/radio/radio-cadet.c:219:16: sparse: expression using sizeof(void)
-
-vim +108 drivers/media/radio/radio-isa.c
-
-137c579c Hans Verkuil 2012-02-03   98  
-137c579c Hans Verkuil 2012-02-03   99  static int radio_isa_s_frequency(struct file *file, void *priv,
-b530a447 Hans Verkuil 2013-03-19  100  				const struct v4l2_frequency *f)
-137c579c Hans Verkuil 2012-02-03  101  {
-137c579c Hans Verkuil 2012-02-03  102  	struct radio_isa_card *isa = video_drvdata(file);
-b530a447 Hans Verkuil 2013-03-19  103  	u32 freq = f->frequency;
-137c579c Hans Verkuil 2012-02-03  104  	int res;
-137c579c Hans Verkuil 2012-02-03  105  
-137c579c Hans Verkuil 2012-02-03  106  	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
-137c579c Hans Verkuil 2012-02-03  107  		return -EINVAL;
-b530a447 Hans Verkuil 2013-03-19 @108  	freq = clamp(freq, FREQ_LOW, FREQ_HIGH);
-b530a447 Hans Verkuil 2013-03-19  109  	res = isa->drv->ops->s_frequency(isa, freq);
-137c579c Hans Verkuil 2012-02-03  110  	if (res == 0)
-b530a447 Hans Verkuil 2013-03-19  111  		isa->freq = freq;
-137c579c Hans Verkuil 2012-02-03  112  	return res;
-137c579c Hans Verkuil 2012-02-03  113  }
-137c579c Hans Verkuil 2012-02-03  114  
-
-:::::: The code at line 108 was first introduced by commit
-:::::: b530a447bb588fdf43fdf4eb909e4ee1921d47ac [media] v4l2: add const to argument of write-only s_frequency ioctl
-
-:::::: TO: Hans Verkuil <hans.verkuil@cisco.com>
-:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> acks, I'll queue it into my pxa tree. If at least one maintainer withholds his
+> ack, the end of the serie (phase 3) won't be applied until it is sorted out.
+> 
+> Cheers.
+> 
+> --
+> Robert
