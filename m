@@ -1,143 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50432 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751420AbeDSLQE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 07:16:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46598 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751251AbeDDOtu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 10:49:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Mentz <danielmentz@google.com>
-Subject: [PATCH RESEND 6/6] media: v4l2-compat-ioctl32: simplify casts
-Date: Thu, 19 Apr 2018 07:15:51 -0400
-Message-Id: <ded5e6117f2763919d0755d594ee0cb2e2d479a4.1524136402.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524136402.git.mchehab@s-opensource.com>
-References: <cover.1524136402.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1524136402.git.mchehab@s-opensource.com>
-References: <cover.1524136402.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v13 1/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Wed, 04 Apr 2018 17:49:57 +0300
+Message-ID: <2955834.42KICI0Tpx@avalon>
+In-Reply-To: <20180212230132.5402-2-niklas.soderlund+renesas@ragnatech.se>
+References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se> <20180212230132.5402-2-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Making the cast right for get_user/put_user is not trivial, as
-it needs to ensure that the types are the correct ones.
+Hi Niklas,
 
-Improve it by using macros.
+Thank you for the patch.
 
-Tested with vivid with:
-	$ sudo modprobe vivid no_error_inj=1
-	$ v4l2-compliance-32bits -a -s10 >32bits && v4l2-compliance-64bits -a -s10 > 64bits && diff -U0 32bits 64bits
-	--- 32bits	2018-04-17 11:18:29.141240772 -0300
-	+++ 64bits	2018-04-17 11:18:40.635282341 -0300
-	@@ -1 +1 @@
-	-v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 32 bits
-	+v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 64 bits
+On Tuesday, 13 February 2018 01:01:31 EEST Niklas S=F6derlund wrote:
+> Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+> are located between the video sources (CSI-2 transmitters) and the video
+> grabbers (VIN) on Gen3 of Renesas R-Car SoC.
+>=20
+> Each CSI-2 device is connected to more than one VIN device which
+> simultaneously can receive video from the same CSI-2 device. Each VIN
+> device can also be connected to more than one CSI-2 device. The routing
+> of which links are used is controlled by the VIN devices. There are only
+> a few possible routes which are set by hardware limitations, which are
+> different for each SoC in the Gen3 family.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Acked-by: Rob Herring <robh@kernel.org>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Using the latest version of v4l-utils with this patch applied:
-	https://patchwork.linuxtv.org/patch/48746/
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 40 ++++++++++++++++++---------
- 1 file changed, 27 insertions(+), 13 deletions(-)
+> ---
+>  .../bindings/media/renesas,rcar-csi2.txt           | 99 ++++++++++++++++=
++++
+>  MAINTAINERS                                        |  1 +
+>  2 files changed, 100 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+> b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt new file
+> mode 100644
+> index 0000000000000000..6f71f997dc48eee9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+> @@ -0,0 +1,99 @@
+> +Renesas R-Car MIPI CSI-2
+> +------------------------
+> +
+> +The R-Car CSI-2 receiver device provides MIPI CSI-2 capabilities for the
+> +Renesas R-Car family of devices. It is used in conjunction with the
+> +R-Car VIN module, which provides the video capture capabilities.
+> +
+> +Mandatory properties
+> +--------------------
+> + - compatible: Must be one or more of the following
+> +   - "renesas,r8a7795-csi2" for the R8A7795 device.
+> +   - "renesas,r8a7796-csi2" for the R8A7796 device.
+> +
+> + - reg: the register base and size for the device registers
+> + - interrupts: the interrupt for the device
+> + - clocks: reference to the parent clock
+> +
+> +The device node shall contain two 'port' child nodes according to the
+> +bindings defined in Documentation/devicetree/bindings/media/
+> +video-interfaces.txt. Port 0 shall connect to the CSI-2 source. Port 1
+> +shall connect to all the R-Car VIN modules that have a hardware
+> +connection to the CSI-2 receiver.
+> +
+> +- Port 0 - Video source (mandatory)
+> +	- Endpoint 0 - sub-node describing the endpoint that is the video source
+> +
+> +- Port 1 - VIN instances (optional)
+> +	- One endpoint sub-node for every R-Car VIN instance which is connected
+> +	  to the R-Car CSI-2 receiver.
+> +
+> +Example:
+> +
+> +	csi20: csi2@fea80000 {
+> +		compatible =3D "renesas,r8a7796-csi2";
+> +		reg =3D <0 0xfea80000 0 0x10000>;
+> +		interrupts =3D <0 184 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks =3D <&cpg CPG_MOD 714>;
+> +		power-domains =3D <&sysc R8A7796_PD_ALWAYS_ON>;
+> +		resets =3D <&cpg 714>;
+> +
+> +		ports {
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <0>;
+> +
+> +			port@0 {
+> +				#address-cells =3D <1>;
+> +				#size-cells =3D <0>;
+> +
+> +				reg =3D <0>;
+> +
+> +				csi20_in: endpoint@0 {
+> +					reg =3D <0>;
+> +					clock-lanes =3D <0>;
+> +					data-lanes =3D <1>;
+> +					remote-endpoint =3D <&adv7482_txb>;
+> +				};
+> +			};
+> +
+> +			port@1 {
+> +				#address-cells =3D <1>;
+> +				#size-cells =3D <0>;
+> +
+> +				reg =3D <1>;
+> +
+> +				csi20vin0: endpoint@0 {
+> +					reg =3D <0>;
+> +					remote-endpoint =3D <&vin0csi20>;
+> +				};
+> +				csi20vin1: endpoint@1 {
+> +					reg =3D <1>;
+> +					remote-endpoint =3D <&vin1csi20>;
+> +				};
+> +				csi20vin2: endpoint@2 {
+> +					reg =3D <2>;
+> +					remote-endpoint =3D <&vin2csi20>;
+> +				};
+> +				csi20vin3: endpoint@3 {
+> +					reg =3D <3>;
+> +					remote-endpoint =3D <&vin3csi20>;
+> +				};
+> +				csi20vin4: endpoint@4 {
+> +					reg =3D <4>;
+> +					remote-endpoint =3D <&vin4csi20>;
+> +				};
+> +				csi20vin5: endpoint@5 {
+> +					reg =3D <5>;
+> +					remote-endpoint =3D <&vin5csi20>;
+> +				};
+> +				csi20vin6: endpoint@6 {
+> +					reg =3D <6>;
+> +					remote-endpoint =3D <&vin6csi20>;
+> +				};
+> +				csi20vin7: endpoint@7 {
+> +					reg =3D <7>;
+> +					remote-endpoint =3D <&vin7csi20>;
+> +				};
+> +			};
+> +		};
+> +	};
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index aee793bff977d413..a0ca030b6bf6b82c 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -8651,6 +8651,7 @@ L:	linux-media@vger.kernel.org
+>  L:	linux-renesas-soc@vger.kernel.org
+>  T:	git git://linuxtv.org/media_tree.git
+>  S:	Supported
+> +F:	Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+>  F:	Documentation/devicetree/bindings/media/rcar_vin.txt
+>  F:	drivers/media/platform/rcar-vin/
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 8c05dd9660d3..d2f0268427c2 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -30,6 +30,24 @@
- 	get_user(__assign_tmp, from) || put_user(__assign_tmp, to);	\
- })
- 
-+#define get_user_cast(__x, __ptr)					\
-+({									\
-+	get_user(__x, (typeof(*__ptr) __user *)(__ptr));		\
-+})
-+
-+#define put_user_force(__x, __ptr)					\
-+({									\
-+	put_user((typeof(*__x) __force *)(__x), __ptr);			\
-+})
-+
-+#define assign_in_user_cast(to, from)					\
-+({									\
-+	typeof(*from) __assign_tmp;					\
-+									\
-+	get_user_cast(__assign_tmp, from) || put_user(__assign_tmp, to);\
-+})
-+
-+
- static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long ret = -ENOIOCTLCMD;
-@@ -543,8 +561,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
- 			return -EFAULT;
- 
- 		uplane = aux_buf;
--		if (put_user((__force struct v4l2_plane *)uplane,
--			     &p64->m.planes))
-+		if (put_user_force(uplane, &p64->m.planes))
- 			return -EFAULT;
- 
- 		while (num_planes--) {
-@@ -682,7 +699,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *p64,
- 
- 	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
- 	    get_user(tmp, &p32->base) ||
--	    put_user((void __force *)compat_ptr(tmp), &p64->base) ||
-+	    put_user_force(compat_ptr(tmp), &p64->base) ||
- 	    assign_in_user(&p64->capability, &p32->capability) ||
- 	    assign_in_user(&p64->flags, &p32->flags) ||
- 	    copy_in_user(&p64->fmt, &p32->fmt, sizeof(p64->fmt)))
-@@ -831,8 +848,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	if (aux_space < count * sizeof(*kcontrols))
- 		return -EFAULT;
- 	kcontrols = aux_buf;
--	if (put_user((__force struct v4l2_ext_control *)kcontrols,
--		     &p64->controls))
-+	if (put_user_force(kcontrols, &p64->controls))
- 		return -EFAULT;
- 
- 	for (n = 0; n < count; n++) {
-@@ -898,12 +914,11 @@ static int put_v4l2_ext_controls32(struct file *file,
- 		unsigned int size = sizeof(*ucontrols);
- 		u32 id;
- 
--		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
-+		if (get_user_cast(id, &kcontrols->id) ||
- 		    put_user(id, &ucontrols->id) ||
--		    assign_in_user(&ucontrols->size,
--				   (unsigned int __user *)&kcontrols->size) ||
-+		    assign_in_user_cast(&ucontrols->size, &kcontrols->size) ||
- 		    copy_in_user(&ucontrols->reserved2,
--				 (unsigned int __user *)&kcontrols->reserved2,
-+				 (void __user *)&kcontrols->reserved2,
- 				 sizeof(ucontrols->reserved2)))
- 			return -EFAULT;
- 
-@@ -916,7 +931,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 			size -= sizeof(ucontrols->value64);
- 
- 		if (copy_in_user(ucontrols,
--			         (unsigned int __user *)kcontrols, size))
-+			         (void __user *)kcontrols, size))
- 			return -EFAULT;
- 
- 		ucontrols++;
-@@ -970,10 +985,9 @@ static int get_v4l2_edid32(struct v4l2_edid __user *p64,
- 	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
- 	    assign_in_user(&p64->pad, &p32->pad) ||
- 	    assign_in_user(&p64->start_block, &p32->start_block) ||
--	    assign_in_user(&p64->blocks,
--			   (unsigned char __user *)&p32->blocks) ||
-+	    assign_in_user_cast(&p64->blocks, &p32->blocks) ||
- 	    get_user(tmp, &p32->edid) ||
--	    put_user((void __force *)compat_ptr(tmp), &p64->edid) ||
-+	    put_user_force(compat_ptr(tmp), &p64->edid) ||
- 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
- 		return -EFAULT;
- 	return 0;
--- 
-2.14.3
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
