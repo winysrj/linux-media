@@ -1,238 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:37722 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757851AbeDXMpV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:21 -0400
-Received: by mail-wm0-f65.google.com with SMTP id l16so615242wmh.2
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:20 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 12/28] venus: helpers: make a commmon function for power_enable
-Date: Tue, 24 Apr 2018 15:44:20 +0300
-Message-Id: <20180424124436.26955-13-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46667 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751413AbeDDP0I (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:26:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
+Date: Wed, 04 Apr 2018 18:26:17 +0300
+Message-ID: <2180075.m4Wkig6IL5@avalon>
+In-Reply-To: <20180329113039.4v5whquyrtgf5yaa@flea>
+References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se> <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se> <20180329113039.4v5whquyrtgf5yaa@flea>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make common function which will enable power when enabling/disabling
-clocks and also covers Venus 3xx/4xx versions.
+Hi Maxime,
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/helpers.c | 51 +++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  2 ++
- drivers/media/platform/qcom/venus/vdec.c    | 25 ++++----------
- drivers/media/platform/qcom/venus/venc.c    | 25 ++++----------
- 4 files changed, 67 insertions(+), 36 deletions(-)
+On Thursday, 29 March 2018 14:30:39 EEST Maxime Ripard wrote:
+> On Tue, Feb 13, 2018 at 12:01:32AM +0100, Niklas S=F6derlund wrote:
+> > +	switch (priv->lanes) {
+> > +	case 1:
+> > +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
+> > +		break;
+> > +	case 2:
+> > +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> > +		break;
+> > +	case 4:
+> > +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2 |
+> > +			PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+>=20
+> I guess you could have a simpler construct here using this:
+>=20
+> phycnt =3D PHYCNT_ENABLECLK;
+>=20
+> switch (priv->lanes) {
+> case 4:
+> 	phycnt |=3D PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2;
+> case 2:
+> 	phycnt |=3D PHYCNT_ENABLE_1;
+> case 1:
+> 	phycnt |=3D PHYCNT_ENABLE_0;
+> 	break;
+>=20
+> default:
+> 	return -EINVAL;
+> }
+>=20
+> But that's really up to you.
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index d9065cc8a7d3..2b21f6ed7502 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -13,6 +13,7 @@
-  *
-  */
- #include <linux/clk.h>
-+#include <linux/iopoll.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/pm_runtime.h>
-@@ -24,6 +25,7 @@
- #include "core.h"
- #include "helpers.h"
- #include "hfi_helper.h"
-+#include "hfi_venus_io.h"
- 
- struct intbuf {
- 	struct list_head list;
-@@ -781,3 +783,52 @@ void venus_helper_init_instance(struct venus_inst *inst)
- 	}
- }
- EXPORT_SYMBOL_GPL(venus_helper_init_instance);
-+
-+int venus_helper_power_enable(struct venus_core *core, u32 session_type,
-+			      bool enable)
-+{
-+	void __iomem *ctrl, *stat;
-+	u32 val;
-+	int ret;
-+
-+	if (!IS_V3(core) && !IS_V4(core))
-+		return -EINVAL;
-+
-+	if (IS_V3(core)) {
-+		if (session_type == VIDC_SESSION_TYPE_DEC)
-+			ctrl = core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL;
-+		else
-+			ctrl = core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL;
-+		if (enable)
-+			writel(0, ctrl);
-+		else
-+			writel(1, ctrl);
-+
-+		return 0;
-+	}
-+
-+	if (session_type == VIDC_SESSION_TYPE_DEC) {
-+		ctrl = core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL;
-+		stat = core->base + WRAPPER_VCODEC0_MMCC_POWER_STATUS;
-+	} else {
-+		ctrl = core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL;
-+		stat = core->base + WRAPPER_VCODEC1_MMCC_POWER_STATUS;
-+	}
-+
-+	if (enable) {
-+		writel(0, ctrl);
-+
-+		ret = readl_poll_timeout(stat, val, val & BIT(1), 1, 100);
-+		if (ret)
-+			return ret;
-+	} else {
-+		writel(1, ctrl);
-+
-+		ret = readl_poll_timeout(stat, val, !(val & BIT(1)), 1, 100);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_power_enable);
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 971392be5df5..0e64aa95624a 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -43,4 +43,6 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
- void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
- void venus_helper_init_instance(struct venus_inst *inst);
-+int venus_helper_power_enable(struct venus_core *core, u32 session_type,
-+			      bool enable);
- #endif
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index cd278a695899..0ddc2c4df934 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -1131,26 +1131,21 @@ static int vdec_remove(struct platform_device *pdev)
- static __maybe_unused int vdec_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
-+	int ret;
- 
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
- 
- 	if (IS_V4(core))
- 		clk_disable_unprepare(core->core0_bus_clk);
- 
- 	clk_disable_unprepare(core->core0_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
- 
--	return 0;
-+	return ret;
- }
- 
- static __maybe_unused int vdec_runtime_resume(struct device *dev)
-@@ -1161,20 +1156,14 @@ static __maybe_unused int vdec_runtime_resume(struct device *dev)
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
- 
--	ret = clk_prepare_enable(core->core0_clk);
-+	ret |= clk_prepare_enable(core->core0_clk);
- 
- 	if (IS_V4(core))
- 		ret |= clk_prepare_enable(core->core0_bus_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index be8ea3326386..f87d891325ea 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -1267,26 +1267,21 @@ static int venc_remove(struct platform_device *pdev)
- static __maybe_unused int venc_runtime_suspend(struct device *dev)
- {
- 	struct venus_core *core = dev_get_drvdata(dev);
-+	int ret;
- 
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
- 
- 	if (IS_V4(core))
- 		clk_disable_unprepare(core->core1_bus_clk);
- 
- 	clk_disable_unprepare(core->core1_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
- 
--	return 0;
-+	return ret;
- }
- 
- static __maybe_unused int venc_runtime_resume(struct device *dev)
-@@ -1297,20 +1292,14 @@ static __maybe_unused int venc_runtime_resume(struct device *dev)
- 	if (IS_V1(core))
- 		return 0;
- 
--	if (IS_V3(core))
--		writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(0, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
- 
--	ret = clk_prepare_enable(core->core1_clk);
-+	ret |= clk_prepare_enable(core->core1_clk);
- 
- 	if (IS_V4(core))
- 		ret |= clk_prepare_enable(core->core1_bus_clk);
- 
--	if (IS_V3(core))
--		writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
--	else if (IS_V4(core))
--		writel(1, core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL);
-+	ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
- 
- 	return ret;
- }
--- 
-2.14.1
+Wouldn't Niklas' version generate simpler code as it uses direct assignment=
+s ?
+
+> > +static int rcar_csi2_probe(struct platform_device *pdev)
+> > +{
+> > +	const struct soc_device_attribute *attr;
+> > +	struct rcar_csi2 *priv;
+> > +	unsigned int i;
+> > +	int ret;
+> > +
+> > +	priv =3D devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+> > +	if (!priv)
+> > +		return -ENOMEM;
+> > +
+> > +	priv->info =3D of_device_get_match_data(&pdev->dev);
+> > +
+> > +	/* r8a7795 ES1.x behaves different then ES2.0+ but no own compat */
+> > +	attr =3D soc_device_match(r8a7795es1);
+> > +	if (attr)
+> > +		priv->info =3D attr->data;
+> > +
+> > +	priv->dev =3D &pdev->dev;
+> > +
+> > +	mutex_init(&priv->lock);
+> > +	priv->stream_count =3D 0;
+> > +
+> > +	ret =3D rcar_csi2_probe_resources(priv, pdev);
+> > +	if (ret) {
+> > +		dev_err(priv->dev, "Failed to get resources\n");
+> > +		return ret;
+> > +	}
+> > +
+> > +	platform_set_drvdata(pdev, priv);
+> > +
+> > +	ret =3D rcar_csi2_parse_dt(priv);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	priv->subdev.owner =3D THIS_MODULE;
+> > +	priv->subdev.dev =3D &pdev->dev;
+> > +	v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
+> > +	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
+> > +	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s %s",
+> > +		 KBUILD_MODNAME, dev_name(&pdev->dev));
+> > +	priv->subdev.flags =3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +
+> > +	priv->subdev.entity.function =3D MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATT=
+ER;
+> > +	priv->subdev.entity.ops =3D &rcar_csi2_entity_ops;
+> > +
+> > +	priv->pads[RCAR_CSI2_SINK].flags =3D MEDIA_PAD_FL_SINK;
+> > +	for (i =3D RCAR_CSI2_SOURCE_VC0; i < NR_OF_RCAR_CSI2_PAD; i++)
+> > +		priv->pads[i].flags =3D MEDIA_PAD_FL_SOURCE;
+> > +
+> > +	ret =3D media_entity_pads_init(&priv->subdev.entity, NR_OF_RCAR_CSI2_=
+PAD,
+> > +				     priv->pads);
+> > +	if (ret)
+> > +		goto error;
+> > +
+> > +	pm_runtime_enable(&pdev->dev);
+>=20
+> Is CONFIG_PM mandatory on Renesas SoCs? If not, you end up with the
+> device uninitialised at probe, and pm_runtime_get_sync will not
+> initialise it either if CONFIG_PM is not enabled. I guess you could
+> call your runtime_resume function unconditionally, and mark the device
+> as active in runtime_pm using pm_runtime_set_active.
+>=20
+> Looks good otherwise, once fixed (and if relevant):
+> Reviewed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
