@@ -1,118 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:38056 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751289AbeDTQkR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 12:40:17 -0400
-Received: by mail-pf0-f196.google.com with SMTP id y69so4536744pfb.5
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 09:40:17 -0700 (PDT)
-Subject: Re: [PATCH v3 06/13] media: platform: video-mux: Register a subdev
- notifier
-To: Hans Verkuil <hverkuil@xs4all.nl>, Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-7-git-send-email-steve_longerbeam@mentor.com>
- <9d85012a-bd0d-6676-9918-7c9804d9a040@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <b32ba558-60e2-3185-871c-ecc679bd6e24@gmail.com>
-Date: Fri, 20 Apr 2018 09:40:14 -0700
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:34942 "EHLO
+        mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751329AbeDEIWJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 04:22:09 -0400
+Received: by mail-vk0-f43.google.com with SMTP id h134so13986917vke.2
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 01:22:09 -0700 (PDT)
+Received: from mail-vk0-f52.google.com (mail-vk0-f52.google.com. [209.85.213.52])
+        by smtp.gmail.com with ESMTPSA id d13sm3685221uan.6.2018.04.05.01.22.07
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 05 Apr 2018 01:22:07 -0700 (PDT)
+Received: by mail-vk0-f52.google.com with SMTP id b16so13969729vka.5
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 01:22:07 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <9d85012a-bd0d-6676-9918-7c9804d9a040@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+References: <1519402422-9595-1-git-send-email-andy.yeh@intel.com>
+ <1519402422-9595-3-git-send-email-andy.yeh@intel.com> <CAL_JsqKd8dxF1eSkST1GyKCS_bkzALv2aGHC9TXHWfnrxx33SQ@mail.gmail.com>
+ <20180228133126.cusxnid64xd5uawu@paasikivi.fi.intel.com> <20180302185900.cj4hpt5qqinhyvnt@rob-hp-laptop>
+ <20180302201457.ia6egjlxa5zmuwmd@kekkonen.localdomain>
+In-Reply-To: <20180302201457.ia6egjlxa5zmuwmd@kekkonen.localdomain>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 05 Apr 2018 08:21:56 +0000
+Message-ID: <CAAFQd5AcWpkemhXDwqjvhAxKdBxK1B_XuNZmzDJvpAY_TtNuPw@mail.gmail.com>
+Subject: Re: [v5 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807
+ voice coil
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Rob Herring <robh@kernel.org>, "Yeh, Andy" <andy.yeh@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Sat, Mar 3, 2018 at 5:15 AM Sakari Ailus <sakari.ailus@linux.intel.com>
+wrote:
 
+> On Fri, Mar 02, 2018 at 12:59:00PM -0600, Rob Herring wrote:
+> > On Wed, Feb 28, 2018 at 03:31:26PM +0200, Sakari Ailus wrote:
+> > > Hi Rob,
+> > >
+> > > Thanks for the review.
+> > >
+> > > On Tue, Feb 27, 2018 at 04:10:31PM -0600, Rob Herring wrote:
+> > > > On Fri, Feb 23, 2018 at 10:13 AM, Andy Yeh <andy.yeh@intel.com>
+wrote:
+> > > > > From: Alan Chiang <alanx.chiang@intel.com>
+> > > > >
+> > > > > Dongwoon DW9807 is a voice coil lens driver.
+> > > > >
+> > > > > Also add a vendor prefix for Dongwoon for one did not exist
+previously.
+> > > >
+> > > > Where's that?
+> > >
+> > > Added by aece98a912d92444ea9da03b04269407d1308f1f . So that line isn't
+> > > relevant indeed and should be removed.
+> > >
+> > > >
+> > > > >
+> > > > > Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> > > > > ---
+> > > > >  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+| 9 +++++++++
+> > > >
+> > > > DACs generally go in bindings/iio/dac/
+> > >
+> > > We have quite a few lens voice coil drivers under bindings/media/i2c
+now. I
+> > > don't really object to putting this one to bindings/iio/dac but then
+the
+> > > rest should be moved as well.
+> > >
+> > > The camera LED flash drivers are under bindings/leds so this would
+actually
+> > > be analoguous to that. The lens voice coil drivers are perhaps still
+a bit
+> > > more bound to the domain (camera) than the LED flash drivers.
+> >
+> > The h/w is bound to that function or just the s/w?
 
-On 04/20/2018 05:28 AM, Hans Verkuil wrote:
-> On 03/21/18 01:37, Steve Longerbeam wrote:
->> Parse neighbor remote devices on the video muxes input ports, add them to a
->> subdev notifier, and register the subdev notifier for the video mux, by
->> calling v4l2_async_register_fwnode_subdev().
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->> Changes since v2:
->> - none
->> Changes since v1:
->> - add #include <linux/slab.h> for kcalloc() declaration.
->> ---
->>   drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
->>   1 file changed, 35 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
->> index ee89ad7..b93b0af 100644
->> --- a/drivers/media/platform/video-mux.c
->> +++ b/drivers/media/platform/video-mux.c
->> @@ -21,8 +21,10 @@
->>   #include <linux/of.h>
->>   #include <linux/of_graph.h>
->>   #include <linux/platform_device.h>
->> +#include <linux/slab.h>
->>   #include <media/v4l2-async.h>
->>   #include <media/v4l2-device.h>
->> +#include <media/v4l2-fwnode.h>
->>   #include <media/v4l2-subdev.h>
->>   
->>   struct video_mux {
->> @@ -193,6 +195,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
->>   	.video = &video_mux_subdev_video_ops,
->>   };
->>   
->> +static int video_mux_parse_endpoint(struct device *dev,
->> +				    struct v4l2_fwnode_endpoint *vep,
->> +				    struct v4l2_async_subdev *asd)
->> +{
->> +	/*
->> +	 * it's not an error if remote is missing on a video-mux
->> +	 * input port, return -ENOTCONN to skip this endpoint with
->> +	 * no error.
->> +	 */
->> +	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
->> +}
->> +
->> +static int video_mux_async_register(struct video_mux *vmux,
->> +				    unsigned int num_pads)
->> +{
->> +	unsigned int i, *ports;
->> +	int ret;
->> +
->> +	ports = kcalloc(num_pads - 1, sizeof(*ports), GFP_KERNEL);
->> +	if (!ports)
->> +		return -ENOMEM;
->> +	for (i = 0; i < num_pads - 1; i++)
->> +		ports[i] = i;
->> +
->> +	ret = v4l2_async_register_fwnode_subdev(
->> +		&vmux->subdev, sizeof(struct v4l2_async_subdev),
->> +		ports, num_pads - 1, video_mux_parse_endpoint);
->> +
->> +	kfree(ports);
->> +	return ret;
->> +}
->> +
->>   static int video_mux_probe(struct platform_device *pdev)
->>   {
->>   	struct device_node *np = pdev->dev.of_node;
->> @@ -258,7 +292,7 @@ static int video_mux_probe(struct platform_device *pdev)
->>   
->>   	vmux->subdev.entity.ops = &video_mux_ops;
->>   
->> -	return v4l2_async_register_subdev(&vmux->subdev);
->> +	return video_mux_async_register(vmux, num_pads);
-> I would prefer to change the last argument to 'num_pads - 1' and drop the ' - 1'
-> part in the video_mux_async_register() function. Perhaps renaming the num_pads
-> argument there to num_input_pads.
+> The hardware. I guess in principle you could use them for other purposes
+> --- most devices seem to be current sinks with configurable current ---
+but
+> I've never seen that.
 
-Yes makes sense. I will do that.
+> The datasheet (dw9714) is here:
 
-Steve
+> <URL:http://www.datasheetspdf.com/datasheet/download.php?id=840322>
+
+> >
+> > > I can send a patch if you think the existing bindings should be
+moved; let
+> > > me know.
+> >
+> > I'm okay if they are separate as long as we're not going to see the
+> > same device show up in both places. However, "i2c" is not the best
+
+> Ack. I wouldn't expect that. The datasheets of such devices clearly label
+> the devices voice coil module drivers.
+
+> > directory choice. It should be by function, so we can find common
+> > properties.
+
+> I2c devices in the media subsystem tend to be peripherals that are always
+> used with another device with access to some system bus. Camera sensors,
+lens
+> devices and tuners can be found there currently. I don't know the original
+> reasoning but it most likely is related to that.
+
+> In terms of different kinds of devices we have currently at least the
+> following:
+
+>          Camera ISPs and CSI-2 receivers
+>          Video muxes
+>          Video codecs
+>          Camera sensors
+>          Camera lens drivers (right now only voice coil modules?)
+>          Tuners (DVB, radio, analogue TV, whatever)
+>          Radio transmitters
+>          HDMI CEC
+>          Remote controllers
+>          JPEG codecs
+
+> Cc Hans, too.
+
+Any updates here?
+
+To be honest, I'm not sure there is too much to be thinking about here.
+This particular hardware block is a lens driver, specifically designed to
+be used with cameras. Quoting maker's website [1]:
+
+   "Driver ICs for automatically focus on images of mobile cameras.
+    Dongwoon Anatech's AF driver ICs are optimized mobile cameras
+    with low power, low noise, smallest package, as well as include
+    various lens position control methodology."
+
+IMHO putting its bindings under the more general purpose iio/ directory
+doesn't make much sense and would be actually confusing.
+
+[1] http://www.dwanatech.com/eng/sub/sub02_01.php?cat_no=6
+
+Best regards,
+Tomasz
