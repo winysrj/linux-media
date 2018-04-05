@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:45272 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753386AbeDSOHA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 10:07:00 -0400
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 25/61] media: platform: am437x: simplify getting .drvdata
-Date: Thu, 19 Apr 2018 16:05:55 +0200
-Message-Id: <20180419140641.27926-26-wsa+renesas@sang-engineering.com>
-In-Reply-To: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
-References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:33333 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751236AbeDEOge (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 10:36:34 -0400
+Message-ID: <1522938992.4009.14.camel@pengutronix.de>
+Subject: Re: IMX6 Media dev node not created
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>,
+        Fabio Estevam <festevam@gmail.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>
+Date: Thu, 05 Apr 2018 16:36:32 +0200
+In-Reply-To: <CAPQseg0g-64dPGoCFopiNJZPf9qjvdETOz=U-dLS_D0y+HrNHA@mail.gmail.com>
+References: <CAPQseg3c+jVBRv7nu9BZXFi2V+afrDUq+YR-0jEDGevgwa-NWw@mail.gmail.com>
+         <CAOMZO5DKPaBwHEtr2DbOWfx7VU-5j9PKS6iCzpbx8B+Fwf2Wiw@mail.gmail.com>
+         <CAPQseg0g-64dPGoCFopiNJZPf9qjvdETOz=U-dLS_D0y+HrNHA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We should get drvdata from struct device directly. Going via
-platform_device is an unneeded step back and forth.
+Hi Ibtsam,
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
+On Thu, 2018-04-05 at 16:24 +0200, Ibtsam Ul-Haq wrote:
+> Hi Fabio,
+> 
+> Thanks for your reply.
+> 
+> On Thu, Apr 5, 2018 at 3:31 PM, Fabio Estevam <festevam@gmail.com> wrote:
+> > Hi Ibtsam,
+> > 
+> > [Adding Steve and Philipp in case they can provide some suggestions]
+> > 
+> > On Thu, Apr 5, 2018 at 9:30 AM, Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com> wrote:
+> > > Greetings everyone,
+> > > 
+> > > I'm running Linux 4.14.31 on an IMX6 QuadPlus based Phytec board
+> > > (PCM-058). I have connected an mt9p031 sensor to ipu1_csi0. The
+> > > problem is that I am not seeing the /dev/media0 node.
+> > 
+> > Can you share your dts?
+> > 
+> 
+> Certainly. The dts provided by the board manufacturer was meant to
+> work with their own kernel, I tried to modify it to work with the
+> mainline kernel.
+> 
+> The sensor related nodes are:
+> 
+[...]
+>     mt9p031_1: cam1@5d {
+>         compatible = "aptina,mt9p031";
+>         reg = <0x5d>;
+>         status = "okay";
+[...]
+> I intend to use two cameras simultaneously. In my current setup
+> however only one camera is physically connected.
 
-Build tested only. buildbot is happy. Please apply individually.
+Try disabling this camera as long as it is not present, otherwise the
+imx-media driver will wait forever for it to appear before creating
+/dev/media0.
 
- drivers/media/platform/am437x/am437x-vpfe.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 601ae6487617..58ebc2220d0e 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -2662,8 +2662,7 @@ static void vpfe_save_context(struct vpfe_ccdc *ccdc)
- 
- static int vpfe_suspend(struct device *dev)
- {
--	struct platform_device *pdev = to_platform_device(dev);
--	struct vpfe_device *vpfe = platform_get_drvdata(pdev);
-+	struct vpfe_device *vpfe = dev_get_drvdata(dev);
- 	struct vpfe_ccdc *ccdc = &vpfe->ccdc;
- 
- 	/* if streaming has not started we don't care */
-@@ -2720,8 +2719,7 @@ static void vpfe_restore_context(struct vpfe_ccdc *ccdc)
- 
- static int vpfe_resume(struct device *dev)
- {
--	struct platform_device *pdev = to_platform_device(dev);
--	struct vpfe_device *vpfe = platform_get_drvdata(pdev);
-+	struct vpfe_device *vpfe = dev_get_drvdata(dev);
- 	struct vpfe_ccdc *ccdc = &vpfe->ccdc;
- 
- 	/* if streaming has not started we don't care */
--- 
-2.11.0
+regards
+Philipp
