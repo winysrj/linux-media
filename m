@@ -1,62 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:36388 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753559AbeD2RNi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:13:38 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 02/14] media: ov772x: correct setting of banding filter
-Date: Mon, 30 Apr 2018 02:13:01 +0900
-Message-Id: <1525021993-17789-3-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-ot0-f172.google.com ([74.125.82.172]:40222 "EHLO
+        mail-ot0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751461AbeDEPBO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 11:01:14 -0400
+Received: by mail-ot0-f172.google.com with SMTP id j8-v6so19972281ota.7
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 08:01:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPQseg3puHqfNth2V73_rbmQquOTuRSKiwWpRW2OXLAkpSF3qg@mail.gmail.com>
+References: <CAPQseg3c+jVBRv7nu9BZXFi2V+afrDUq+YR-0jEDGevgwa-NWw@mail.gmail.com>
+ <CAOMZO5DKPaBwHEtr2DbOWfx7VU-5j9PKS6iCzpbx8B+Fwf2Wiw@mail.gmail.com>
+ <CAPQseg0g-64dPGoCFopiNJZPf9qjvdETOz=U-dLS_D0y+HrNHA@mail.gmail.com>
+ <1522938992.4009.14.camel@pengutronix.de> <CAPQseg3puHqfNth2V73_rbmQquOTuRSKiwWpRW2OXLAkpSF3qg@mail.gmail.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Thu, 5 Apr 2018 12:01:13 -0300
+Message-ID: <CAOMZO5BrC4F_f0Cdku6qPhrteFWp=wjNCAdwZa3F98+qUJ3RqA@mail.gmail.com>
+Subject: Re: IMX6 Media dev node not created
+To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The banding filter ON/OFF is controlled via bit 5 of COM8 register.  It
-is attempted to be enabled in ov772x_set_params() by the following line.
+Hi Ibtsam,
 
-	ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
+On Thu, Apr 5, 2018 at 11:52 AM, Ibtsam Ul-Haq
+<ibtsam.haq.0x01@gmail.com> wrote:
 
-But this unexpectedly results disabling the banding filter, because the
-mask and set bits are exclusive.
+> That worked like a charm! Thanks a lot guys, I would have never thought of that!
 
-On the other hand, ov772x_s_ctrl() correctly sets the bit by:
+Excellent!
 
-	ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, BNDF_ON_OFF);
-
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v4
-- New patch
-
- drivers/media/i2c/ov772x.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index b62860c..e255070 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -1035,7 +1035,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 
- 	/* Set COM8. */
- 	if (priv->band_filter) {
--		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, 1);
-+		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, BNDF_ON_OFF);
- 		if (!ret)
- 			ret = ov772x_mask_set(client, BDBASE,
- 					      0xff, 256 - priv->band_filter);
--- 
-2.7.4
+If you have a chance, please submit the the dts patch that enables the
+camera to the linux-arm-kernel mailing list for review and inclusion
+to the mainline kernel.
