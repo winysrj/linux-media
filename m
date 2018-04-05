@@ -1,300 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:52995 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756641AbeDXIYf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 04:24:35 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Luca Ceresoli <luca@lucaceresoli.net>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2 08/13] media: imx274: consolidate per-mode data in imx274_frmfmt
-Date: Tue, 24 Apr 2018 10:24:13 +0200
-Message-Id: <1524558258-530-9-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
-References: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
+Received: from osg.samsung.com ([64.30.133.232]:34310 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751038AbeDELKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 07:10:08 -0400
+Date: Thu, 5 Apr 2018 08:09:51 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Peter Geis <pgwipeout@gmail.com>, Jaak Ristioja <jaak@ristioja.ee>,
+        =?UTF-8?B?TWljaGHFgg==?= Siemek <mihau69@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Fw: [PATCH v2] media: v4l2-core: fix size of devnode_nums[]
+ bitarray
+Message-ID: <20180405080933.6ffb86ba@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Data about the implemented readout modes is partially stored in
-imx274_formats[], the rest is scattered in several arrays. The latter
-are then accessed using the mode index, e.g.:
+Please test if this patch solves the issues for you.
 
-  min_frame_len[priv->mode_index]
+Regards,
+Mauro
 
-Consolidate all these data in imx274_formats[], and store a pointer to
-the selected mode (i.e. imx274_formats[priv->mode_index]) in the main
-device struct. This way code to use these data becomes more readable,
-e.g.:
+Forwarded message:
 
-  priv->mode->min_frame_len
+Date: Thu,  5 Apr 2018 07:13:41 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Hans Verkuil <hans.verkuil@cisco.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, stable@vger.kernel.org
+Subject: [PATCH v2] media: v4l2-core: fix size of devnode_nums[] bitarray
 
-This removes lots of scaffolding code and keeps data about each mode
-in a unique place.
 
-Also remove a parameter to imx274_mode_regs() that is now unused.
+The size of devnode_nums[] bit array is too short to store information
+for VFL_TYPE_TOUCH. That causes it to override other memory regions.
 
-While this adds the mode pointer to the device struct, it does not
-remove the mode_index from it because mode_index is still used in two
-dev_dbg() calls.  This will be handled in a follow-up commit.
+Thankfully, on recent reports, it is overriding video_device[] array,
+trigging a WARN_ON(). Yet, it just warns about the problem, but let
+the code excecuting, with generates an OOPS:
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+[   43.177394] WARNING: CPU: 1 PID: 711 at drivers/media/v4l2-core/v4l2-dev.c:945 __video_register_device+0xc99/0x1090 [videodev]
+[   43.177396] Modules linked in: hid_sensor_custom hid_sensor_als hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev hid_multitouch media hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi snd_seq_midi_event snd_rawmidi crct10dif_pclmul
+[   43.177426]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad int3400_thermal acpi_thermal_rel intel_pch_thermal processor_thermal_device mac_hid int340x_thermal_zone mei_me intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea sdhci_pci sysfillrect
+[   43.177466]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid video pinctrl_sunrisepoint pinctrl_intel
+[   43.177474] CPU: 1 PID: 711 Comm: systemd-udevd Not tainted 4.16.0 #1
+[   43.177475] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
+[   43.177481] RIP: 0010:__video_register_device+0xc99/0x1090 [videodev]
+[   43.177482] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
+[   43.177484] RAX: 0000000000000000 RBX: 0000000000000005 RCX: 0000000000000000
+[   43.177485] RDX: ffffffffc0c44cc0 RSI: ffffffffffffffff RDI: ffffffffc0c44cc0
+[   43.177486] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: ffff8eda1a51f018
+[   43.177487] R10: 0000000000000600 R11: 00000000000003b6 R12: 0000000000000000
+[   43.177488] R13: 0000000000000005 R14: ffffffffc0c96900 R15: ffff8eda1d6d91c0
+[   43.177489] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) knlGS:0000000000000000
+[   43.177490] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   43.177491] CR2: 00007ffe0a6ad01c CR3: 0000000456ae2004 CR4: 00000000003606e0
+[   43.177492] Call Trace:
+[   43.177498]  ? devres_add+0x5f/0x70
+[   43.177502]  rmi_f54_probe+0x437/0x470 [rmi_core]
+[   43.177505]  rmi_function_probe+0x25/0x30 [rmi_core]
+[   43.177507]  driver_probe_device+0x310/0x480
+[   43.177509]  __device_attach_driver+0x86/0x100
+[   43.177511]  ? __driver_attach+0xf0/0xf0
+[   43.177512]  bus_for_each_drv+0x6b/0xb0
+[   43.177514]  __device_attach+0xdd/0x160
+[   43.177516]  device_initial_probe+0x13/0x20
+[   43.177518]  bus_probe_device+0x95/0xa0
+[   43.177519]  device_add+0x44b/0x680
+[   43.177522]  rmi_register_function+0x62/0xd0 [rmi_core]
+[   43.177525]  rmi_create_function+0x112/0x1a0 [rmi_core]
+[   43.177527]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+[   43.177530]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+[   43.177535]  rmi_init_functions+0x5b/0x120 [rmi_core]
+[   43.177537]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+[   43.177547]  ? sysfs_create_link+0x25/0x40
+[   43.177549]  driver_probe_device+0x310/0x480
+[   43.177551]  __device_attach_driver+0x86/0x100
+[   43.177553]  ? __driver_attach+0xf0/0xf0
+[   43.177554]  bus_for_each_drv+0x6b/0xb0
+[   43.177556]  __device_attach+0xdd/0x160
+[   43.177558]  device_initial_probe+0x13/0x20
+[   43.177560]  bus_probe_device+0x95/0xa0
+[   43.177561]  device_add+0x44b/0x680
+[   43.177564]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+[   43.177568]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+[   43.177571]  ? input_allocate_device+0xdf/0xf0
+[   43.177574]  hidinput_connect+0x4a9/0x37a0 [hid]
+[   43.177578]  hid_connect+0x326/0x3d0 [hid]
+[   43.177581]  hid_hw_start+0x42/0x70 [hid]
+[   43.177583]  rmi_probe+0x115/0x510 [hid_rmi]
+[   43.177586]  hid_device_probe+0xd3/0x150 [hid]
+[   43.177588]  ? sysfs_create_link+0x25/0x40
+[   43.177590]  driver_probe_device+0x310/0x480
+[   43.177592]  __driver_attach+0xbf/0xf0
+[   43.177593]  ? driver_probe_device+0x480/0x480
+[   43.177595]  bus_for_each_dev+0x74/0xb0
+[   43.177597]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+[   43.177599]  driver_attach+0x1e/0x20
+[   43.177600]  bus_add_driver+0x167/0x260
+[   43.177602]  ? 0xffffffffc0cbc000
+[   43.177604]  driver_register+0x60/0xe0
+[   43.177605]  ? 0xffffffffc0cbc000
+[   43.177607]  __hid_register_driver+0x63/0x70 [hid]
+[   43.177610]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+[   43.177612]  do_one_initcall+0x52/0x191
+[   43.177615]  ? _cond_resched+0x19/0x40
+[   43.177617]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+[   43.177619]  ? do_init_module+0x27/0x209
+[   43.177621]  do_init_module+0x5f/0x209
+[   43.177623]  load_module+0x1987/0x1f10
+[   43.177626]  ? ima_post_read_file+0x96/0xa0
+[   43.177629]  SYSC_finit_module+0xfc/0x120
+[   43.177630]  ? SYSC_finit_module+0xfc/0x120
+[   43.177632]  SyS_finit_module+0xe/0x10
+[   43.177634]  do_syscall_64+0x73/0x130
+[   43.177637]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+[   43.177638] RIP: 0033:0x7fd2d880b839
+[   43.177639] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+[   43.177641] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 00007fd2d880b839
+[   43.177641] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 0000000000000016
+[   43.177642] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 00007ffe0a6b2480
+[   43.177643] R10: 0000000000000016 R11: 0000000000000246 R12: 0000000000000000
+[   43.177644] R13: 000055cdd8688930 R14: 0000000000020000 R15: 000055cdd86542e0
+[   43.177645] Code: 48 c7 c7 54 b4 c3 c0 e8 96 9d ec dd e9 d4 fb ff ff 0f 0b 41 be ea ff ff ff e9 c7 fb ff ff 0f 0b 41 be ea ff ff ff e9 ba fb ff ff <0f> 0b e9 d8 f4 ff ff 83 fa 01 0f 84 c4 02 00 00 48 83 78 68 00
+[   43.177675] ---[ end trace d44d9bc41477c2dd ]---
+[   43.177679] BUG: unable to handle kernel NULL pointer dereference at 0000000000000499
+[   43.177723] IP: __video_register_device+0x1cc/0x1090 [videodev]
+[   43.177749] PGD 0 P4D 0
+[   43.177764] Oops: 0000 [#1] SMP PTI
+[   43.177780] Modules linked in: hid_sensor_custom hid_sensor_als hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev hid_multitouch media hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi snd_seq_midi_event snd_rawmidi crct10dif_pclmul
+[   43.178055]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad int3400_thermal acpi_thermal_rel intel_pch_thermal processor_thermal_device mac_hid int340x_thermal_zone mei_me intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea sdhci_pci sysfillrect
+[   43.178337]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid video pinctrl_sunrisepoint pinctrl_intel
+[   43.178380] CPU: 1 PID: 711 Comm: systemd-udevd Tainted: G        W        4.16.0 #1
+[   43.178411] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
+[   43.178441] RIP: 0010:__video_register_device+0x1cc/0x1090 [videodev]
+[   43.178467] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
+[   43.178490] RAX: ffffffffc0c44cc0 RBX: 0000000000000005 RCX: ffffffffc0c454c0
+[   43.178519] RDX: 0000000000000001 RSI: ffff8eda1d6d9118 RDI: ffffffffc0c44cc0
+[   43.178549] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: ffff8eda1a51f018
+[   43.178579] R10: 0000000000000600 R11: 00000000000003b6 R12: 0000000000000000
+[   43.178608] R13: 0000000000000005 R14: ffffffffc0c96900 R15: ffff8eda1d6d91c0
+[   43.178636] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) knlGS:0000000000000000
+[   43.178669] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   43.178693] CR2: 0000000000000499 CR3: 0000000456ae2004 CR4: 00000000003606e0
+[   43.178721] Call Trace:
+[   43.178736]  ? devres_add+0x5f/0x70
+[   43.178755]  rmi_f54_probe+0x437/0x470 [rmi_core]
+[   43.178779]  rmi_function_probe+0x25/0x30 [rmi_core]
+[   43.178805]  driver_probe_device+0x310/0x480
+[   43.178828]  __device_attach_driver+0x86/0x100
+[   43.178851]  ? __driver_attach+0xf0/0xf0
+[   43.178884]  bus_for_each_drv+0x6b/0xb0
+[   43.178904]  __device_attach+0xdd/0x160
+[   43.178925]  device_initial_probe+0x13/0x20
+[   43.178948]  bus_probe_device+0x95/0xa0
+[   43.178968]  device_add+0x44b/0x680
+[   43.178987]  rmi_register_function+0x62/0xd0 [rmi_core]
+[   43.181747]  rmi_create_function+0x112/0x1a0 [rmi_core]
+[   43.184677]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+[   43.187505]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+[   43.190171]  rmi_init_functions+0x5b/0x120 [rmi_core]
+[   43.192809]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+[   43.195403]  ? sysfs_create_link+0x25/0x40
+[   43.198253]  driver_probe_device+0x310/0x480
+[   43.201083]  __device_attach_driver+0x86/0x100
+[   43.203800]  ? __driver_attach+0xf0/0xf0
+[   43.206503]  bus_for_each_drv+0x6b/0xb0
+[   43.209291]  __device_attach+0xdd/0x160
+[   43.212207]  device_initial_probe+0x13/0x20
+[   43.215146]  bus_probe_device+0x95/0xa0
+[   43.217885]  device_add+0x44b/0x680
+[   43.220597]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+[   43.223321]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+[   43.226051]  ? input_allocate_device+0xdf/0xf0
+[   43.228814]  hidinput_connect+0x4a9/0x37a0 [hid]
+[   43.231701]  hid_connect+0x326/0x3d0 [hid]
+[   43.234548]  hid_hw_start+0x42/0x70 [hid]
+[   43.237302]  rmi_probe+0x115/0x510 [hid_rmi]
+[   43.239862]  hid_device_probe+0xd3/0x150 [hid]
+[   43.242558]  ? sysfs_create_link+0x25/0x40
+[   43.242828] audit: type=1400 audit(1522795151.600:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine" pid=1151 comm="apparmor_parser"
+[   43.244859]  driver_probe_device+0x310/0x480
+[   43.244862]  __driver_attach+0xbf/0xf0
+[   43.246982] audit: type=1400 audit(1522795151.600:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" pid=1151 comm="apparmor_parser"
+[   43.249403]  ? driver_probe_device+0x480/0x480
+[   43.249405]  bus_for_each_dev+0x74/0xb0
+[   43.253200] audit: type=1400 audit(1522795151.600:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine//snap_update_ns" pid=1151 comm="apparmor_parser"
+[   43.254055]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+[   43.256282] audit: type=1400 audit(1522795151.604:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/sbin/dhclient" pid=1152 comm="apparmor_parser"
+[   43.258436]  driver_attach+0x1e/0x20
+[   43.260875] audit: type=1400 audit(1522795151.604:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-client.action" pid=1152 comm="apparmor_parser"
+[   43.263118]  bus_add_driver+0x167/0x260
+[   43.267676] audit: type=1400 audit(1522795151.604:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-helper" pid=1152 comm="apparmor_parser"
+[   43.268807]  ? 0xffffffffc0cbc000
+[   43.268812]  driver_register+0x60/0xe0
+[   43.271184] audit: type=1400 audit(1522795151.604:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/connman/scripts/dhclient-script" pid=1152 comm="apparmor_parser"
+[   43.274081]  ? 0xffffffffc0cbc000
+[   43.274086]  __hid_register_driver+0x63/0x70 [hid]
+[   43.288367]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+[   43.291501]  do_one_initcall+0x52/0x191
+[   43.292348] audit: type=1400 audit(1522795151.652:11): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/bin/man" pid=1242 comm="apparmor_parser"
+[   43.294212]  ? _cond_resched+0x19/0x40
+[   43.300028]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+[   43.303475]  ? do_init_module+0x27/0x209
+[   43.306842]  do_init_module+0x5f/0x209
+[   43.310269]  load_module+0x1987/0x1f10
+[   43.313704]  ? ima_post_read_file+0x96/0xa0
+[   43.317174]  SYSC_finit_module+0xfc/0x120
+[   43.320754]  ? SYSC_finit_module+0xfc/0x120
+[   43.324065]  SyS_finit_module+0xe/0x10
+[   43.327387]  do_syscall_64+0x73/0x130
+[   43.330909]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+[   43.334305] RIP: 0033:0x7fd2d880b839
+[   43.337810] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+[   43.341259] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 00007fd2d880b839
+[   43.344613] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 0000000000000016
+[   43.347962] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 00007ffe0a6b2480
+[   43.351456] R10: 0000000000000016 R11: 0000000000000246 R12: 0000000000000000
+[   43.354845] R13: 000055cdd8688930 R14: 0000000000020000 R15: 000055cdd86542e0
+[   43.358224] Code: c7 05 ad 12 02 00 00 00 00 00 48 8d 88 00 08 00 00 eb 09 48 83 c0 08 48 39 c1 74 31 48 8b 10 48 85 d2 74 ef 49 8b b7 98 04 00 00 <48> 39 b2 98 04 00 00 75 df 48 63 92 f8 04 00 00 f0 48 0f ab 15
+[   43.361764] RIP: __video_register_device+0x1cc/0x1090 [videodev] RSP: ffffa5c5c231b420
+[   43.365281] CR2: 0000000000000499
 
+This patch fixes the array size and changes the WARN_ON() to return an error,
+instead of letting the Kernel to proceed with registering.
+
+Cc: stable@vger.kernel.org
+Reported-by: Peter Geis <pgwipeout@gmail.com>
+Reported-by: Jaak Ristioja <jaak@ristioja.ee>
+Reported-by: Michał Siemek <mihau69@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Changed v1 -> v2:
- - add "media: " prefix to commit message
----
- drivers/media/i2c/imx274.c | 139 +++++++++++++++++++++------------------------
- 1 file changed, 66 insertions(+), 73 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c |  8 ++++++--
+ include/media/v4l2-dev.h           | 12 ++++++------
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 8a8a11b8d75d..2ec31ae4e60d 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -147,10 +147,28 @@ enum imx274_mode {
- };
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 0301fe426a43..1d0b2208e8fb 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -939,10 +939,14 @@ int __video_register_device(struct video_device *vdev,
+ #endif
+ 	vdev->minor = i + minor_offset;
+ 	vdev->num = nr;
+-	devnode_set(vdev);
  
- /*
-- * imx274 format related structure
-+ * Parameters for each imx274 readout mode.
-+ *
-+ * These are the values to configure the sensor in one of the
-+ * implemented modes.
-+ *
-+ * @size: recommended recording pixels
-+ * @init_regs: registers to initialize the mode
-+ * @min_frame_len: Minimum frame length for each mode (see "Frame Rate
-+ *                 Adjustment (CSI-2)" in the datasheet)
-+ * @min_SHR: Minimum SHR register value (see "Shutter Setting (CSI-2)" in the
-+ *           datasheet)
-+ * @max_fps: Maximum frames per second
-+ * @nocpiop: Number of clocks per internal offset period (see "Integration Time
-+ *           in Each Readout Drive Mode (CSI-2)" in the datasheet)
+ 	/* Should not happen since we thought this minor was free */
+-	WARN_ON(video_device[vdev->minor] != NULL);
++	if (WARN_ON(video_device[vdev->minor])) {
++		mutex_unlock(&videodev_lock);
++		printk(KERN_ERR "video_device not empty!\n");
++		return -ENFILE;
++	}
++	devnode_set(vdev);
+ 	vdev->index = get_index(vdev);
+ 	video_device[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 27634e8d2585..e59742e47501 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -33,13 +33,13 @@
   */
- struct imx274_frmfmt {
- 	struct v4l2_frmsize_discrete size;
-+	const struct reg_8 *init_regs;
-+	int min_frame_len;
-+	int min_SHR;
-+	int max_fps;
-+	int nocpiop;
+ enum vfl_devnode_type {
+ 	VFL_TYPE_GRABBER	= 0,
+-	VFL_TYPE_VBI		= 1,
+-	VFL_TYPE_RADIO		= 2,
+-	VFL_TYPE_SUBDEV		= 3,
+-	VFL_TYPE_SDR		= 4,
+-	VFL_TYPE_TOUCH		= 5,
++	VFL_TYPE_VBI,
++	VFL_TYPE_RADIO,
++	VFL_TYPE_SUBDEV,
++	VFL_TYPE_SDR,
++	VFL_TYPE_TOUCH,
++	VFL_TYPE_MAX /* Should be the last one */
  };
+-#define VFL_TYPE_MAX VFL_TYPE_TOUCH
  
- /*
-@@ -476,58 +494,35 @@ static const struct reg_8 imx274_tp_regs[] = {
- 	{IMX274_TABLE_END, 0x00}
- };
- 
--static const struct reg_8 *mode_table[] = {
--	[IMX274_MODE_3840X2160]		= imx274_mode1_3840x2160_raw10,
--	[IMX274_MODE_1920X1080]		= imx274_mode3_1920x1080_raw10,
--	[IMX274_MODE_1280X720]		= imx274_mode5_1280x720_raw10,
--};
--
--/*
-- * imx274 format related structure
-- */
-+/* nocpiop happens to be the same number for the implemented modes */
- static const struct imx274_frmfmt imx274_formats[] = {
--	{ {3840, 2160} },
--	{ {1920, 1080} },
--	{ {1280,  720} },
--};
--
--/*
-- * minimal frame length for each mode
-- * refer to datasheet section "Frame Rate Adjustment (CSI-2)"
-- */
--static const int min_frame_len[] = {
--	4550, /* mode 1, 4K */
--	2310, /* mode 3, 1080p */
--	2310 /* mode 5, 720p */
--};
--
--/*
-- * minimal numbers of SHR register
-- * refer to datasheet table "Shutter Setting (CSI-2)"
-- */
--static const int min_SHR[] = {
--	12, /* mode 1, 4K */
--	8, /* mode 3, 1080p */
--	8 /* mode 5, 720p */
--};
--
--static const int max_frame_rate[] = {
--	60, /* mode 1 , 4K */
--	120, /* mode 3, 1080p */
--	120 /* mode 5, 720p */
--};
--
--/*
-- * Number of clocks per internal offset period
-- * a constant based on mode
-- * refer to section "Integration Time in Each Readout Drive Mode (CSI-2)"
-- * in the datasheet
-- * for the implemented 3 modes, it happens to be the same number
-- */
--static const int nocpiop[] = {
--	112, /* mode 1 , 4K */
--	112, /* mode 3, 1080p */
--	112 /* mode 5, 720p */
-+	{
-+		/* mode 1, 4K */
-+		.size = {3840, 2160},
-+		.init_regs = imx274_mode1_3840x2160_raw10,
-+		.min_frame_len = 4550,
-+		.min_SHR = 12,
-+		.max_fps = 60,
-+		.nocpiop = 112,
-+	},
-+	{
-+		/* mode 3, 1080p */
-+		.size = {1920, 1080},
-+		.init_regs = imx274_mode3_1920x1080_raw10,
-+		.min_frame_len = 2310,
-+		.min_SHR = 8,
-+		.max_fps = 120,
-+		.nocpiop = 112,
-+	},
-+	{
-+		/* mode 5, 720p */
-+		.size = {1280, 720},
-+		.init_regs = imx274_mode5_1280x720_raw10,
-+		.min_frame_len = 2310,
-+		.min_SHR = 8,
-+		.max_fps = 120,
-+		.nocpiop = 112,
-+	},
- };
- 
- /*
-@@ -557,6 +552,8 @@ struct imx274_ctrls {
-  * @regmap: Pointer to regmap structure
-  * @reset_gpio: Pointer to reset gpio
-  * @lock: Mutex structure
-+ * @mode: Parameters for the selected readout mode
-+ *        (points to imx274_formats[mode_index])
-  * @mode_index: Resolution mode index
-  */
- struct stimx274 {
-@@ -569,6 +566,7 @@ struct stimx274 {
- 	struct regmap *regmap;
- 	struct gpio_desc *reset_gpio;
- 	struct mutex lock; /* mutex lock for operations */
-+	const struct imx274_frmfmt *mode;
- 	u32 mode_index;
- };
- 
-@@ -704,18 +702,12 @@ static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
- }
- 
- /*
-- * imx274_mode_regs - Function for set mode registers per mode index
-+ * Set mode registers to start stream.
-  * @priv: Pointer to device structure
-- * @mode: Mode index value
-- *
-- * This is used to start steam per mode index.
-- * mode = 0, start stream for sensor Mode 1: 4K/raw10
-- * mode = 1, start stream for sensor Mode 3: 1080p/raw10
-- * mode = 2, start stream for sensor Mode 5: 720p/raw10
-  *
-  * Return: 0 on success, errors otherwise
-  */
--static int imx274_mode_regs(struct stimx274 *priv, int mode)
-+static int imx274_mode_regs(struct stimx274 *priv)
- {
- 	int err = 0;
- 
-@@ -727,7 +719,7 @@ static int imx274_mode_regs(struct stimx274 *priv, int mode)
- 	if (err)
- 		return err;
- 
--	err = imx274_write_table(priv, mode_table[mode]);
-+	err = imx274_write_table(priv, priv->mode->init_regs);
- 
- 	return err;
- }
-@@ -889,6 +881,7 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
- 	}
- 
- 	imx274->mode_index = index;
-+	imx274->mode = &imx274_formats[index];
- 
- 	if (fmt->width > IMX274_MAX_WIDTH)
- 		fmt->width = IMX274_MAX_WIDTH;
-@@ -1042,7 +1035,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
- 
- 	if (on) {
- 		/* load mode registers */
--		ret = imx274_mode_regs(imx274, imx274->mode_index);
-+		ret = imx274_mode_regs(imx274);
- 		if (ret)
- 			goto fail;
- 
-@@ -1146,14 +1139,14 @@ static int imx274_clamp_coarse_time(struct stimx274 *priv, u32 *val,
- 	if (err)
- 		return err;
- 
--	if (*frame_length < min_frame_len[priv->mode_index])
--		*frame_length = min_frame_len[priv->mode_index];
-+	if (*frame_length < priv->mode->min_frame_len)
-+		*frame_length =  priv->mode->min_frame_len;
- 
- 	*val = *frame_length - *val; /* convert to raw shr */
- 	if (*val > *frame_length - IMX274_SHR_LIMIT_CONST)
- 		*val = *frame_length - IMX274_SHR_LIMIT_CONST;
--	else if (*val < min_SHR[priv->mode_index])
--		*val = min_SHR[priv->mode_index];
-+	else if (*val < priv->mode->min_SHR)
-+		*val = priv->mode->min_SHR;
- 
- 	return 0;
- }
-@@ -1365,7 +1358,7 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
- 	}
- 
- 	coarse_time = (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2 * val
--			- nocpiop[priv->mode_index]) / hmax;
-+			- priv->mode->nocpiop) / hmax;
- 
- 	/* step 2: convert exposure_time into SHR value */
- 
-@@ -1375,7 +1368,7 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
- 		goto fail;
- 
- 	priv->ctrls.exposure->val =
--			(coarse_time * hmax + nocpiop[priv->mode_index])
-+			(coarse_time * hmax + priv->mode->nocpiop)
- 			/ (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2);
- 
- 	dev_dbg(&priv->client->dev,
-@@ -1529,10 +1522,9 @@ static int imx274_set_frame_interval(struct stimx274 *priv,
- 				/ frame_interval.numerator);
- 
- 	/* boundary check */
--	if (req_frame_rate > max_frame_rate[priv->mode_index]) {
-+	if (req_frame_rate > priv->mode->max_fps) {
- 		frame_interval.numerator = 1;
--		frame_interval.denominator =
--					max_frame_rate[priv->mode_index];
-+		frame_interval.denominator = priv->mode->max_fps;
- 	} else if (req_frame_rate < IMX274_MIN_FRAME_RATE) {
- 		frame_interval.numerator = 1;
- 		frame_interval.denominator = IMX274_MIN_FRAME_RATE;
-@@ -1634,8 +1626,9 @@ static int imx274_probe(struct i2c_client *client,
- 
- 	/* initialize format */
- 	imx274->mode_index = IMX274_MODE_3840X2160;
--	imx274->format.width = imx274_formats[0].size.width;
--	imx274->format.height = imx274_formats[0].size.height;
-+	imx274->mode = &imx274_formats[imx274->mode_index];
-+	imx274->format.width = imx274->mode->size.width;
-+	imx274->format.height = imx274->mode->size.height;
- 	imx274->format.field = V4L2_FIELD_NONE;
- 	imx274->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
- 	imx274->format.colorspace = V4L2_COLORSPACE_SRGB;
+ /**
+  * enum  vfl_direction - Identifies if a &struct video_device corresponds
 -- 
-2.7.4
+2.14.3
+
+
+
+
+Thanks,
+Mauro
