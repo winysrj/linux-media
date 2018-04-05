@@ -1,69 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway23.websitewelcome.com ([192.185.49.219]:14765 "EHLO
-        gateway23.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932129AbeDWSDE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 14:03:04 -0400
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
-        by gateway23.websitewelcome.com (Postfix) with ESMTP id A0C953E3B
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:38:05 -0500 (CDT)
-Date: Mon, 23 Apr 2018 12:38:03 -0500
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-Message-ID: <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
-References: <cover.1524499368.git.gustavo@embeddedor.com>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:38915 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751332AbeDEVS3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 17:18:29 -0400
+Received: by mail-wm0-f50.google.com with SMTP id f125so10972595wme.4
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 14:18:28 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 5 Apr 2018 23:18:26 +0200
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v13 16/33] rcar-vin: simplify how formats are set and
+ reset
+Message-ID: <20180405211826.GF15406@bigcity.dyn.berto.se>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180326214456.6655-17-niklas.soderlund+renesas@ragnatech.se>
+ <1544952.AcMr2TBica@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <cover.1524499368.git.gustavo@embeddedor.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1544952.AcMr2TBica@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-f->index can be controlled by user-space, hence leading to a
-potential exploitation of the Spectre variant 1 vulnerability.
+Hi Laurent,
 
-Smatch warning:
-drivers/media/usb/tm6000/tm6000-video.c:879 vidioc_enum_fmt_vid_cap() warn: potential spectre issue 'format'
+Thanks for your feedback.
 
-Fix this by sanitizing f->index before using it to index
-array _format_
+I have incorporated your suggestions for the next and hopefully last 
+version of this patch-set, a few followups on your review bellow.
 
-Notice that given that speculation windows are large, the policy is
-to kill the speculation on the first load and not worry if it can be
-completed with a dependent load/store [1].
+On 2018-04-04 01:09:29 +0300, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday, 27 March 2018 00:44:39 EEST Niklas Söderlund wrote:
+> > With the recent cleanup of the format code to prepare for Gen3 it's
+> > possible to simplify the Gen2 format code path as well. Clean up the
+> > process by defining two functions to handle the set format and reset of
+> > format when the standard is changed.
+> > 
+> > While at it replace the driver local struct rvin_source_fmt with a
+> > struct v4l2_rect as all it's used for is keep track of the source
+> > dimensions.
+> 
+> I wonder whether we should introduce v4l2_size (or <insert your preferred name 
+> here>) when all we need is width and height, as v4l2_rect stores the top and 
+> left offsets too. This doesn't have to be fixed here though.
 
-[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
+Yes that would have been useful for this change. I have added this to my 
+ever growing TODO list :-)
 
-Cc: stable@vger.kernel.org
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/media/usb/tm6000/tm6000-video.c | 2 ++
- 1 file changed, 2 insertions(+)
+[snip]
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index b2399d4..d701027 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -26,6 +26,7 @@
- #include <linux/kthread.h>
- #include <linux/highmem.h>
- #include <linux/freezer.h>
-+#include <linux/nospec.h>
- 
- #include "tm6000-regs.h"
- #include "tm6000.h"
-@@ -875,6 +876,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- 	if (f->index >= ARRAY_SIZE(format))
- 		return -EINVAL;
- 
-+	f->index = array_index_nospec(f->index, ARRAY_SIZE(format));
- 	strlcpy(f->description, format[f->index].name, sizeof(f->description));
- 	f->pixelformat = format[f->index].fourcc;
- 	return 0;
+> 
+> > -	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+> > -	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
+> > +	vin->source.top = vin->crop.top = 0;
+> > +	vin->source.left = vin->crop.left = 0;
+> > +	vin->source.width = vin->crop.width = vin->format.width;
+> > +	vin->source.height = vin->crop.height = vin->format.height;
+> 
+> I find multiple assignations on the same line hard to read. How about
+> 
+> 	vin->source.top = 0;
+> 	vin->source.left = 0;
+> 	vin->source.width = vin->format.width;
+> 	vin->source.height = vin->format.height;
+> 
+> 	vin->crop = vin->source;
+> 	vin->compose = vin->source;
+
+This looks much better and I will use it, thanks !
+
+[snip]
+
+> 
+> > +	/*
+> > +	 * If source is ALTERNATE the driver will use the VIN hardware
+> > +	 * to INTERLACE it. The crop height then needs to be doubled.
+> > +	 */
+> > +	if (pix->field == V4L2_FIELD_ALTERNATE)
+> > +		crop->height *= 2;
+> 
+> You're duplicating this logic in rvin_format_align() so it makes me feel that 
+> there's still room for some simplification, but that can be done in a separate 
+> patch (or I could simply be wrong).
+
+I'm sure someone more clever then me can simplify this more. In this 
+particular case rvin_format_align() deals with the video device format 
+while here we deal with the crop rectangle. I will keep this in mind for 
+future work and see if this can be unified in simpler way.
+
+[snip]
+
+> > -	return __rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, 
+> > &f->fmt.pix,
+> > -				 &source);
+> > +	return rvin_try_format(vin, V4L2_SUBDEV_FORMAT_TRY, &f->fmt.pix, &crop,
+> > +			       &compose);
+> 
+> How about making crop and compose optional in rvin_try_format() to avoid a 
+> need for the two local variables here ?
+
+Great suggestion, I have incorporated this for the next version.
+
+> 
+> Apart from these small issues, I think this is a nice simplification,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks!
+
 -- 
-2.7.4
+Regards,
+Niklas Söderlund
