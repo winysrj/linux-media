@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46593 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:54009 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753002AbeDQOQk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 10:16:40 -0400
-Date: Tue, 17 Apr 2018 11:16:34 -0300
+        id S1751473AbeDERyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 13:54:25 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH v4l-utils] v4l2-compliance: identify if compiled with 32 or
- 64 bits
-Message-ID: <20180417111634.2e6f2cb0@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 11/16] media: davinci: allow building isif code
+Date: Thu,  5 Apr 2018 13:54:11 -0400
+Message-Id: <c58febf394be37056b5f0bd8837806990ca94d10.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we need to have a 32 bits version in order to check for
-compat32 issues, let's print if v4l2-compliance was built
-with 32 or 64 bits.
+The only reason why this driver doesn't build with COMPILE_TEST
+is because it includes mach/mux.h. It turns that none of the
+macros defined there are used.
+
+So, get rid of it, in order to allow it to build with
+COMPILE_TEST.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/davinci/Kconfig | 3 ++-
+ drivers/media/platform/davinci/isif.c  | 2 --
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-index eb1f90fd7ad8..ecfcc7716bca 100644
---- a/utils/v4l2-compliance/v4l2-compliance.cpp
-+++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-@@ -1271,9 +1271,9 @@ int main(int argc, char **argv)
- #ifdef SHA
- #define STR(x) #x
- #define STRING(x) STR(x)
--	printf("v4l2-compliance SHA   : %s\n", STRING(SHA));
-+	printf("v4l2-compliance SHA   : %s, %zd bits\n", STRING(SHA), sizeof(void *) * 8);
- #else
--	printf("v4l2-compliance SHA   : not available\n");
-+	printf("v4l2-compliance SHA   : not available, %zd bits\n", sizeof(void *) * 8);
- #endif
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index 55982e681d77..babdb4877b3f 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -67,7 +67,8 @@ config VIDEO_DM355_CCDC
  
- 	struct utsname uts;
-
-
-Thanks,
-Mauro
+ config VIDEO_DM365_ISIF
+ 	tristate "TI DM365 ISIF video capture driver"
+-	depends on VIDEO_V4L2 && ARCH_DAVINCI
++	depends on VIDEO_V4L2
++	depends on ARCH_DAVINCI || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	depends on I2C
+ 	select VIDEOBUF_DMA_CONTIG
+diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+index d5ff58494c1e..b14caadcd0df 100644
+--- a/drivers/media/platform/davinci/isif.c
++++ b/drivers/media/platform/davinci/isif.c
+@@ -31,8 +31,6 @@
+ #include <linux/err.h>
+ #include <linux/module.h>
+ 
+-#include <mach/mux.h>
+-
+ #include <media/davinci/isif.h>
+ #include <media/davinci/vpss.h>
+ 
+-- 
+2.14.3
