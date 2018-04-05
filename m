@@ -1,43 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.socionext.com ([202.248.49.38]:57727 "EHLO mx.socionext.com"
+Received: from osg.samsung.com ([64.30.133.232]:55759 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751129AbeDDISQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Apr 2018 04:18:16 -0400
-From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-Subject: [PATCH] media: dvb_frontend: fix wrong cast in compat_ioctl
-Date: Wed,  4 Apr 2018 17:17:56 +0900
-Message-Id: <20180404081756.22962-1-suzuki.katsuhiro@socionext.com>
+        id S1751365AbeDESP2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 14:15:28 -0400
+Date: Thu, 5 Apr 2018 15:15:23 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 16/16] media: omap: allow building it with COMPILE_TEST
+Message-ID: <20180405151523.1980c739@vento.lan>
+In-Reply-To: <debd2bac93a5a1cb58232d50e9d4127e547839d7.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <debd2bac93a5a1cb58232d50e9d4127e547839d7.1522949748.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FE_GET_PROPERTY has always failed as following situations:
-  - Use compatible ioctl
-  - The array of 'struct dtv_property' has 2 or more items
+Em Thu,  5 Apr 2018 13:54:16 -0400
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-This patch fixes wrong cast to a pointer 'struct dtv_property' from a
-pointer of 2nd or after item of 'struct compat_dtv_property' array.
+> Now that we have stubs for omap FB driver, let it build with
+> COMPILE_TEST.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/platform/omap/Kconfig | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
+> index e8e2db181a7a..e6b486c5ddfc 100644
+> --- a/drivers/media/platform/omap/Kconfig
+> +++ b/drivers/media/platform/omap/Kconfig
+> @@ -4,11 +4,11 @@ config VIDEO_OMAP2_VOUT_VRFB
+>  config VIDEO_OMAP2_VOUT
+>  	tristate "OMAP2/OMAP3 V4L2-Display driver"
+>  	depends on MMU
+> -	depends on ARCH_OMAP2 || ARCH_OMAP3
+> -	depends on FB_OMAP2
+> +	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
+> +	depends on FB_OMAP2 || COMPILE_TEST
+>  	select VIDEOBUF_GEN
+>  	select VIDEOBUF_DMA_CONTIG
+> -	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+> +	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
+>  	select VIDEO_OMAP2_VOUT_VRFB if VIDEO_OMAP2_VOUT && OMAP2_VRFB
+>  	select FRAME_VECTOR
+>  	default n
 
-Signed-off-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This actually produces a warning:
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 21a7d4b47e1a..e33414975065 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2089,7 +2089,7 @@ static int dvb_frontend_handle_compat_ioctl(struct file *file, unsigned int cmd,
- 		}
- 		for (i = 0; i < tvps->num; i++) {
- 			err = dtv_property_process_get(
--			    fe, &getp, (struct dtv_property *)tvp + i, file);
-+			    fe, &getp, (struct dtv_property *)(tvp + i), file);
- 			if (err < 0) {
- 				kfree(tvp);
- 				return err;
--- 
-2.16.3
+	WARNING: unmet direct dependencies detected for OMAP2_VRFB
+  Depends on [n]: HAS_IOMEM [=y] && ARCH_OMAP2PLUS
+  Selected by [y]:
+  - VIDEO_OMAP2_VOUT [=y] && MEDIA_SUPPORT [=y] && V4L_PLATFORM_DRIVERS [=y] && MMU [=y] && (FB_OMAP2 [=n] || COMPILE_TEST [=y]) && (ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST [=y])
+
+
+I'm folding this one with the enclosed change:
+
+
+diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
+index e6b486c5ddfc..ff051958d675 100644
+--- a/drivers/media/platform/omap/Kconfig
++++ b/drivers/media/platform/omap/Kconfig
+@@ -4,11 +4,10 @@ config VIDEO_OMAP2_VOUT_VRFB
+ config VIDEO_OMAP2_VOUT
+ 	tristate "OMAP2/OMAP3 V4L2-Display driver"
+ 	depends on MMU
+-	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
+-	depends on FB_OMAP2 || COMPILE_TEST
++	depends on ((ARCH_OMAP2 || ARCH_OMAP3) && FB_OMAP2) || COMPILE_TEST
+ 	select VIDEOBUF_GEN
+ 	select VIDEOBUF_DMA_CONTIG
+-	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
++	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+ 	select VIDEO_OMAP2_VOUT_VRFB if VIDEO_OMAP2_VOUT && OMAP2_VRFB
+ 	select FRAME_VECTOR
+ 	default n
+
+
+
+Thanks,
+Mauro
