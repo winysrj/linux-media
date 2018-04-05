@@ -1,92 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50009 "EHLO mail.bootlin.com"
+Received: from mga01.intel.com ([192.55.52.88]:62600 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751095AbeDCOZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Apr 2018 10:25:24 -0400
-Date: Tue, 3 Apr 2018 16:25:13 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v8 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20180403142513.435jdbs7u7nathtm@flea>
-References: <20180215133335.9335-1-maxime.ripard@bootlin.com>
- <20180215133335.9335-3-maxime.ripard@bootlin.com>
- <20180329133255.GD26532@bigcity.dyn.berto.se>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6ghnuyaey5gm4fhd"
-Content-Disposition: inline
-In-Reply-To: <20180329133255.GD26532@bigcity.dyn.berto.se>
+        id S1751178AbeDEK7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 06:59:14 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: tfiga@google.com, hverkuil@xs4all.nl
+Subject: [v4l-utils RFC 6/6] mediatext: Add vivid tests
+Date: Thu,  5 Apr 2018 13:58:19 +0300
+Message-Id: <1522925899-14073-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add two scripts for vivid tests, with and without using requests.
 
---6ghnuyaey5gm4fhd
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/tests/test-vivid-mc.bash | 86 ++++++++++++++++++++++++++++++++
+ utils/media-ctl/tests/test-vivid.bash    | 59 ++++++++++++++++++++++
+ 2 files changed, 145 insertions(+)
+ create mode 100755 utils/media-ctl/tests/test-vivid-mc.bash
+ create mode 100755 utils/media-ctl/tests/test-vivid.bash
 
-Hi Niklas,
-
-Thanks for your review,
-
-On Thu, Mar 29, 2018 at 03:32:55PM +0200, Niklas S=F6derlund wrote:
-> > diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/pla=
-tform/cadence/Kconfig
-> > new file mode 100644
-> > index 000000000000..18f061e5cbd1
-> > --- /dev/null
-> > +++ b/drivers/media/platform/cadence/Kconfig
-> > @@ -0,0 +1,17 @@
-> > +config VIDEO_CADENCE
-> > +	bool "Cadence Video Devices"
->=20
-> I'm no expert on Kconfig best practices so if nothing else I might learn=
-=20
-> something. There is no need to add a description to this option as it=20
-> only groups the Cadence drivers?
-
-You don't strictly need it, but you're right and one should be better,
-I've added it.
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---6ghnuyaey5gm4fhd
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrDjsgACgkQ0rTAlCFN
-r3QLoQ/+Oyl6xPhBeYQjU23lTQIzC6yjPMV+l8hEv/Rr/jgwwwLoNW1iPqsCxuGa
-TNCM5BJHYovSqmaYQ3NlE+ilsMCF4vwi4md+X0IgyYsLRgw+1FblWCJBf3DSIsKG
-/oynhDw/Dw5WaQg3ncqBkmGlUZL4nDw3o+j5VZST6VoNS+4BNZPVuucdwKV7vZ8o
-aH3VkmxIIiaPMB8ncH2jXEql6EsHpuaWpbya6bdF0qIDcLSKILYMM8GUg3cGvhBk
-i5Co3MBY6YXiI8vbS5LV9wZVKuVrPqLPJjYLPqeMfLo94bFNnGuhH59xjyhCGB/C
-7fmXxicD/l46SwNL7GWaTFuAhuE29Zijtt95PY6JxmEZL/zLeSNO0PxwVtO6aO6z
-DHAtCvo2RKfxCmagGMz5HYf1aDAZDZjlpQggdJHYBSuYFGZEZCVp+c56xYTmTRm7
-8E3mt2iwD+PPgfygzRMN3YkNCUIzBQyj1n/t8c9DKfboo8WRLilI+6l6yba3gMyd
-+JfHLTTdyA9XDSEjxchXIo2ZYruP5mSpOKeL5j9eWSgCaMcRuPGyTj775fnbof/E
-fPLWnl/LMb7GQxESKSXWToMjN/xIdpN9tFxOzkSS/ErAX9KWhYWeQ3HsSlTOUzPb
-N0PvwZPsjLZXV8lqzsYuSksBZ7Zk6rRsyGKZvT0IJMaG4DlkD1E=
-=rV4V
------END PGP SIGNATURE-----
-
---6ghnuyaey5gm4fhd--
+diff --git a/utils/media-ctl/tests/test-vivid-mc.bash b/utils/media-ctl/tests/test-vivid-mc.bash
+new file mode 100755
+index 0000000..40c2e7d
+--- /dev/null
++++ b/utils/media-ctl/tests/test-vivid-mc.bash
+@@ -0,0 +1,86 @@
++#!/bin/bash
++
++coproc mediatext -c 2>&1
++
++# read initialisation
++read -ru ${COPROC[0]}; eval $REPLY
++
++cat <<EOF >&${COPROC[1]}
++verbose true
++
++v4l open entity="vim2m" name=vim
++v4l fmt vdev=vim type=VIDEO_OUTPUT width=480 height=320 \
++	pixelformat=RGB565X bytesperline=0 num_planes=1
++v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=3 memory=MMAP
++v4l fmt vdev=vim type=VIDEO_CAPTURE width=480 height=320 \
++	pixelformat=RGB565X bytesperline=0 num_planes=1
++v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=3 memory=MMAP
++
++media req-create req=foo
++media req-create req=foo1
++media req-create req=foo2
++
++v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/bash
++v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/systemctl
++v4l io vdev=vim type=VIDEO_OUTPUT fname=/vmlinuz
++
++v4l qbuf vdev=vim type=VIDEO_OUTPUT req=foo
++v4l qbuf vdev=vim type=VIDEO_OUTPUT req=foo1
++v4l qbuf vdev=vim type=VIDEO_CAPTURE req=foo1
++v4l qbuf vdev=vim type=VIDEO_CAPTURE req=foo
++
++media req-queue req=foo
++
++v4l qbuf vdev=vim type=VIDEO_OUTPUT req=foo2
++v4l qbuf vdev=vim type=VIDEO_CAPTURE req=foo2
++
++v4l streamon vdev=vim type=VIDEO_CAPTURE
++v4l streamon vdev=vim type=VIDEO_OUTPUT
++
++media req-queue req=foo2
++media req-queue req=foo1
++
++EOF
++
++queued=3
++finished=0
++
++while IFS= read -ru ${COPROC[0]}; do
++	unset p; declare -A p
++	eval eval_line $REPLY
++	echo $REPLY
++	#echo ${p[event]}
++	case ${p[event]} in
++	dqbuf)
++		#echo seq ${p[seq]}
++		if [ ${p[type]} == VIDEO_CAPTURE ]; then
++			echo v4l io vdev=vim type=VIDEO_CAPTURE \
++				sequence=${p[seq]} >&${COPROC[1]}
++		fi
++	;;
++	request-complete)
++		finished=$(($finished+1));
++		if (($queued < 10)); then
++			queued=$(($queued + 1))
++			cat <<EOF >&${COPROC[1]}
++				media req-create req=${p[req]}
++				v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/tar
++				v4l qbuf vdev=vim type=VIDEO_OUTPUT req=${p[req]}
++				v4l qbuf vdev=vim type=VIDEO_CAPTURE req=${p[req]}
++				media req-queue req=${p[req]}
++EOF
++		fi
++		echo $queued requests queued, $finished finished
++		if (($finished == 10)); then
++			cat <<EOF >&${COPROC[1]}
++				v4l streamoff vdev=vim type=VIDEO_CAPTURE
++				v4l streamoff vdev=vim type=VIDEO_OUTPUT
++				v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=0 memory=MMAP
++				v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=0 memory=MMAP
++				quit
++EOF
++		exit 0
++		fi
++	;;
++	esac;
++done
+diff --git a/utils/media-ctl/tests/test-vivid.bash b/utils/media-ctl/tests/test-vivid.bash
+new file mode 100755
+index 0000000..3c9b2f4
+--- /dev/null
++++ b/utils/media-ctl/tests/test-vivid.bash
+@@ -0,0 +1,59 @@
++#!/bin/bash
++
++coproc mediatext -c 2>&1
++
++# read initialisation
++read -ru ${COPROC[0]}; eval $REPLY
++
++cat <<EOF >&${COPROC[1]}
++verbose true
++
++v4l open entity="vim2m" name=vim
++v4l fmt vdev=vim type=VIDEO_OUTPUT width=480 height=320 \
++	pixelformat=RGB565X bytesperline=0 num_planes=1
++v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=3 memory=MMAP
++v4l fmt vdev=vim type=VIDEO_CAPTURE width=480 height=320 \
++	pixelformat=RGB565X bytesperline=0 num_planes=1
++v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=3 memory=MMAP
++
++v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/bash
++v4l io vdev=vim type=VIDEO_OUTPUT fname=/bin/systemctl
++v4l io vdev=vim type=VIDEO_OUTPUT fname=/vmlinuz
++v4l qbuf vdev=vim type=VIDEO_OUTPUT
++v4l qbuf vdev=vim type=VIDEO_OUTPUT
++v4l qbuf vdev=vim type=VIDEO_CAPTURE
++v4l qbuf vdev=vim type=VIDEO_CAPTURE
++
++v4l streamon vdev=vim type=VIDEO_CAPTURE
++v4l streamon vdev=vim type=VIDEO_OUTPUT
++EOF
++
++while IFS= read -ru ${COPROC[0]} line; do
++	unset p; declare -A p
++	eval eval_line $line
++	echo $line
++	#echo ${p[event]}
++	case ${p[event]} in
++	dqbuf)
++		#echo seq ${p[seq]}
++		if [ ${p[type]} == VIDEO_CAPTURE ]; then
++			echo v4l io vdev=vim type=VIDEO_CAPTURE \
++				sequence=${p[seq]} >&${COPROC[1]}
++			echo v4l io vdev=vim type=VIDEO_OUTPUT \
++				fname=/bin/tar >&${COPROC[1]}
++			echo v4l qbuf vdev=vim type=VIDEO_OUTPUT >&${COPROC[1]}
++			echo v4l qbuf vdev=vim type=VIDEO_CAPTURE >&${COPROC[1]}
++			if ((${p[seq]} == 5)); then
++				echo <<EOF >&${COPROC[1]}
++				v4l streamoff vdev=vim type=VIDEO_CAPTURE
++				v4l streamoff vdev=vim type=VIDEO_OUTPUT
++				v4l reqbufs vdev=vim type=VIDEO_OUTPUT count=0
++				v4l reqbufs vdev=vim type=VIDEO_CAPTURE count=0
++				quit
++EOF
++				exit 0
++			fi
++		fi
++	;;
++	esac;
++done
+-- 
+2.7.4
