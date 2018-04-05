@@ -1,66 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0066.outbound.protection.outlook.com ([104.47.37.66]:59586
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752294AbeEABfY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 21:35:24 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Rohit Athavale <rathaval@xilinx.com>,
-        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v4 03/10] xilinx: v4l: dma: Update driver to allow for probe defer
-Date: Mon, 30 Apr 2018 18:35:06 -0700
-Message-ID: <6736d42d3e6b284188ebde3453050cd83cba090d.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57387 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751447AbeDESe2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 14:34:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 03/16] media: omap3isp/isp: remove an unused static var
+Date: Thu, 05 Apr 2018 21:34:26 +0300
+Message-ID: <12694711.X0Vl9KULqr@avalon>
+In-Reply-To: <12b6d82335f9b0ef03345d5ce51049f2c2bb9a2f.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com> <12b6d82335f9b0ef03345d5ce51049f2c2bb9a2f.1522949748.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rohit Athavale <rathaval@xilinx.com>
+Hi Mauro,
 
-Update xvip_dma_init() to use dma_request_chan(), enabling probe
-deferral. Also update the cleanup routine to prevent dereferencing
-an ERR_PTR().
+Thank you for the patch.
 
-Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+On Thursday, 5 April 2018 20:54:03 EEST Mauro Carvalho Chehab wrote:
+> The isp_xclk_init_data const data isn't used anywere.
+>=20
+> drivers/media/platform/omap3isp/isp.c:294:35: warning: =E2=80=98isp_xclk_=
+init_data=E2=80=99
+> defined but not used [-Wunused-const-variable=3D] static const struct
+> clk_init_data isp_xclk_init_data =3D {
+>                                    ^~~~~~~~~~~~~~~~~~
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index a5bf345..16aeb46 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -730,10 +730,13 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
- 
- 	/* ... and the DMA channel. */
- 	snprintf(name, sizeof(name), "port%u", port);
--	dma->dma = dma_request_slave_channel(dma->xdev->dev, name);
--	if (dma->dma == NULL) {
--		dev_err(dma->xdev->dev, "no VDMA channel found\n");
--		ret = -ENODEV;
-+	dma->dma = dma_request_chan(dma->xdev->dev, name);
-+	if (IS_ERR(dma->dma)) {
-+		ret = PTR_ERR(dma->dma);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(dma->xdev->dev,
-+				"No Video DMA channel found");
-+
- 		goto error;
- 	}
- 
-@@ -757,7 +760,7 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
- 	if (video_is_registered(&dma->video))
- 		video_unregister_device(&dma->video);
- 
--	if (dma->dma)
-+	if (!IS_ERR(dma->dma))
- 		dma_release_channel(dma->dma);
- 
- 	media_entity_cleanup(&dma->video.entity);
--- 
-2.1.1
+I believe you, no need for a compiler warning message to prove this :-)
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+I really wonder why my compiler has never warned me. The problem has been=20
+there from the start :-/
+
+You should add a fixes tag:
+
+=46ixes: 9b28ee3c9122 ("[media] omap3isp: Use the common clock framework")
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I think Sakari is planning a pull request for the omap3isp driver so I'll l=
+et=20
+him handle this patch.
+
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 7 -------
+>  1 file changed, 7 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 2a11a709aa4f..9e4b5fb8a8b5
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -291,13 +291,6 @@ static const struct clk_ops isp_xclk_ops =3D {
+>=20
+>  static const char *isp_xclk_parent_name =3D "cam_mclk";
+>=20
+> -static const struct clk_init_data isp_xclk_init_data =3D {
+> -	.name =3D "cam_xclk",
+> -	.ops =3D &isp_xclk_ops,
+> -	.parent_names =3D &isp_xclk_parent_name,
+> -	.num_parents =3D 1,
+> -};
+> -
+>  static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void
+> *data) {
+>  	unsigned int idx =3D clkspec->args[0];
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
