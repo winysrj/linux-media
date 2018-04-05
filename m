@@ -1,51 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54168 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751517AbeDVK2p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 06:28:45 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 2/3] v4l: rcar_fdp1: Enable compilation on Gen2 platforms
-Date: Sun, 22 Apr 2018 13:28:48 +0300
-Message-Id: <20180422102849.2481-3-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180422102849.2481-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180422102849.2481-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from osg.samsung.com ([64.30.133.232]:60361 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751540AbeDEU3x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:29:53 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 12/19] media: davinci: allow build vpbe_display with COMPILE_TEST
+Date: Thu,  5 Apr 2018 16:29:39 -0400
+Message-Id: <0538c91427253cffe4e2feee1865838a3504ce96.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 1d3897143815 ("[media] v4l: rcar_fdp1: add FCP dependency") fixed
-a compilation breakage when the optional VIDEO_RENESAS_FCP dependency is
-compiled as a module while the rcar_fdp1 driver is built in. As a side
-effect it disabled compilation on Gen2 by disallowing the valid
-combination ARCH_RENESAS && !VIDEO_RENESAS_FCP. Fix it by handling the
-dependency the same way the vsp1 driver did in commit 199946731fa4
-("[media] vsp1: clarify FCP dependency").
+Except for some includes (with doesn't seem to be used), this
+driver builds fine with COMPILE_TEST.
 
-Fixes: 1d3897143815 ("[media] v4l: rcar_fdp1: add FCP dependency")
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+So, add checks there to avoid building it if ARCH_DAVINCI
+is not selected.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/davinci/Kconfig        | 3 ++-
+ drivers/media/platform/davinci/vpbe_display.c | 3 +++
+ drivers/media/platform/davinci/vpbe_osd.c     | 2 ++
+ drivers/media/platform/davinci/vpbe_venc.c    | 3 +++
+ 4 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 621d63b2001d..81c3ab95c050 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -397,7 +397,7 @@ config VIDEO_RENESAS_FDP1
- 	tristate "Renesas Fine Display Processor"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	depends on ARCH_RENESAS || COMPILE_TEST
--	depends on (!ARCH_RENESAS && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
-+	depends on (!ARM64 && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index babdb4877b3f..b463d1726335 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -82,7 +82,8 @@ config VIDEO_DM365_ISIF
+ 
+ config VIDEO_DAVINCI_VPBE_DISPLAY
+ 	tristate "TI DaVinci VPBE V4L2-Display driver"
+-	depends on VIDEO_V4L2 && ARCH_DAVINCI
++	depends on VIDEO_V4L2
++	depends on ARCH_DAVINCI || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	depends on I2C
  	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 6aabd21fe69f..7b6cd4b3ccc4 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -26,7 +26,10 @@
+ #include <linux/slab.h>
+ 
+ #include <asm/pgtable.h>
++
++#ifdef CONFIG_ARCH_DAVINCI
+ #include <mach/cputype.h>
++#endif
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-common.h>
+diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
+index 66449791c70c..10f2bf11edf3 100644
+--- a/drivers/media/platform/davinci/vpbe_osd.c
++++ b/drivers/media/platform/davinci/vpbe_osd.c
+@@ -24,8 +24,10 @@
+ #include <linux/clk.h>
+ #include <linux/slab.h>
+ 
++#ifdef CONFIG_ARCH_DAVINCI
+ #include <mach/cputype.h>
+ #include <mach/hardware.h>
++#endif
+ 
+ #include <media/davinci/vpss.h>
+ #include <media/v4l2-device.h>
+diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
+index 3a4e78595149..add72a39ef2d 100644
+--- a/drivers/media/platform/davinci/vpbe_venc.c
++++ b/drivers/media/platform/davinci/vpbe_venc.c
+@@ -21,8 +21,11 @@
+ #include <linux/videodev2.h>
+ #include <linux/slab.h>
+ 
++#ifdef CONFIG_ARCH_DAVINCI
+ #include <mach/hardware.h>
+ #include <mach/mux.h>
++#endif
++
+ #include <linux/platform_data/i2c-davinci.h>
+ 
+ #include <linux/io.h>
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
