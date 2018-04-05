@@ -1,68 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:54233 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753695AbeDMHAD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 03:00:03 -0400
-Received: from mail-pf0-f198.google.com ([209.85.192.198])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <kai.heng.feng@canonical.com>)
-        id 1f6sgk-0002p6-Hj
-        for linux-media@vger.kernel.org; Fri, 13 Apr 2018 07:00:02 +0000
-Received: by mail-pf0-f198.google.com with SMTP id p10so4288697pfl.22
-        for <linux-media@vger.kernel.org>; Fri, 13 Apr 2018 00:00:02 -0700 (PDT)
-Content-Type: text/plain;
-        charset=us-ascii;
-        delsp=yes;
-        format=flowed
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Subject: Re: [PATCH] media: cx231xx: Add support for AverMedia DVD EZMaker 7
-From: Kai Heng Feng <kai.heng.feng@canonical.com>
-In-Reply-To: <20180326060616.5354-1-kai.heng.feng@canonical.com>
-Date: Fri, 13 Apr 2018 14:59:56 +0800
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: 7bit
-Message-Id: <BC47F34C-7BF6-4A61-9EA0-BA8C24E71F6E@canonical.com>
-References: <20180326060616.5354-1-kai.heng.feng@canonical.com>
-To: mchehab@kernel.org
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:38850 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751332AbeDEVfH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 17:35:07 -0400
+Received: by mail-qt0-f195.google.com with SMTP id z23so27854196qti.5
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 14:35:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com> <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 5 Apr 2018 23:35:06 +0200
+Message-ID: <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
+Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with COMPILE_TEST
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Geliang Tang <geliangtang@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Apr 5, 2018 at 7:54 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> There aren't many things that would be needed to allow it
+> to build with compile test.
 
-> On Mar 26, 2018, at 2:06 PM, Kai-Heng Feng <kai.heng.feng@canonical.com>  
-> wrote:
->
-> User reports AverMedia DVD EZMaker 7 can be driven by VIDEO_GRABBER.
-> Add the device to the id_table to make it work.
+> +/* Allow building this driver with COMPILE_TEST */
+> +#ifndef CONFIG_PPC_MPC512x
+> +#define NO_IRQ   0
 
-*Gentle ping*
-I am hoping this patch can get merged in v4.17.
+The NO_IRQ usage here really needs to die. The portable way to do this
+is the simpler
 
-Kai-Heng
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 200c47c69a75..707bda89b4f7 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -1407,7 +1407,7 @@ static int viu_of_probe(struct platform_device *op)
+        }
 
->
-> BugLink: https://bugs.launchpad.net/bugs/1620762
-> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> ---
->  drivers/media/usb/cx231xx/cx231xx-cards.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c  
-> b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index f9ec7fedcd5b..da01c5125acb 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -945,6 +945,9 @@ struct usb_device_id cx231xx_id_table[] = {
->  	 .driver_info = CX231XX_BOARD_CNXT_RDE_250},
->  	{USB_DEVICE(0x0572, 0x58A0),
->  	 .driver_info = CX231XX_BOARD_CNXT_RDU_250},
-> +	/* AverMedia DVD EZMaker 7 */
-> +	{USB_DEVICE(0x07ca, 0xc039),
-> +	 .driver_info = CX231XX_BOARD_CNXT_VIDEO_GRABBER},
->  	{USB_DEVICE(0x2040, 0xb110),
->  	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL},
->  	{USB_DEVICE(0x2040, 0xb111),
-> -- 
-> 2.15.1
+        viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
+-       if (viu_irq == NO_IRQ) {
++       if (!viu_irq) {
+                dev_err(&op->dev, "Error while mapping the irq\n");
+                return -EINVAL;
+        }
+
+> +#define out_be32(v, a) writel(a, v)
+> +#define in_be32(a) readl(a)
+
+This does get it to compile, but looks confusing because it mixes up the
+endianess. I'd suggest doing it like
+
+#ifndef CONFIG_PPC
+#define out_be32(v, a) iowrite32be(a, v)
+#define in_be32(a) ioread32be(a)
+#endif
+
+      Arnd
