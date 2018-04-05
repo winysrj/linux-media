@@ -1,144 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38959 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753442AbeDBSYp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:45 -0400
-Received: by mail-wr0-f195.google.com with SMTP id c24so15021022wrc.6
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:44 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 15/20] [media] ddbridge: support dummy tuners with 125MByte/s dummy data stream
-Date: Mon,  2 Apr 2018 20:24:22 +0200
-Message-Id: <20180402182427.20918-16-d.scheller.oss@gmail.com>
-In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
-References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54331 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751971AbeDEJSo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:44 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 11/15] v4l: vsp1: Add per-display list internal completion notification support
+Date: Thu,  5 Apr 2018 12:18:36 +0300
+Message-Id: <20180405091840.30728-12-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Display list completion is already reported to the frame end handler,
+but that mechanism is global to all display lists. In order to implement
+BRU and BRS reassignment in DRM pipelines we will need to commit a
+display list and wait for its completion internally, without reporting
+it to the DRM driver. Extend the display list API to support such an
+internal use of the display list.
 
-The Octopus V3 and Octopus Mini devices support set up of a dummy tuner
-mode on port 0 that will deliver a continuous data stream of 125MBytes
-per second while raising IRQs and filling the DMA buffers, which comes
-handy for some stress, PCIe link and IRQ handling testing. The dummy
-frontend is registered using dvb_dummy_fe's QAM dummy frontend. Set
-ddbridge.dummy_tuner to 1 to enable this on the supported cards.
-
-Picked up from the upstream dddvb-0.9.33 release.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/pci/ddbridge/Kconfig         |  1 +
- drivers/media/pci/ddbridge/ddbridge-core.c | 36 ++++++++++++++++++++++++++++++
- drivers/media/pci/ddbridge/ddbridge.h      |  1 +
- 3 files changed, 38 insertions(+)
+Changes since v1:
 
-diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
-index a422dde2f34a..16faef265e97 100644
---- a/drivers/media/pci/ddbridge/Kconfig
-+++ b/drivers/media/pci/ddbridge/Kconfig
-@@ -14,6 +14,7 @@ config DVB_DDBRIDGE
- 	select MEDIA_TUNER_TDA18212 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_MXL5XX if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_CXD2099 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_DUMMY_FE if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  Support for cards with the Digital Devices PCI express bridge:
- 	  - Octopus PCIe Bridge
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 8907551b02e4..59e137516003 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -54,6 +54,7 @@
- #include "stv6111.h"
- #include "lnbh25.h"
- #include "cxd2099.h"
-+#include "dvb_dummy_fe.h"
+- Use the frame end status flags to report notification
+- Rename the notify flag to internal
+---
+ drivers/media/platform/vsp1/vsp1_dl.c    | 23 ++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_dl.h    |  3 ++-
+ drivers/media/platform/vsp1/vsp1_drm.c   |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c |  2 +-
+ 4 files changed, 26 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 662fa2a347c9..30ad491605ff 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -72,6 +72,7 @@ struct vsp1_dl_body {
+  * @fragments: list of extra display list bodies
+  * @has_chain: if true, indicates that there's a partition chain
+  * @chain: entry in the display list partition chain
++ * @internal: whether the display list is used for internal purpose
+  */
+ struct vsp1_dl_list {
+ 	struct list_head list;
+@@ -85,6 +86,8 @@ struct vsp1_dl_list {
  
- /****************************************************************************/
- 
-@@ -105,6 +106,11 @@ module_param(dma_buf_size, int, 0444);
- MODULE_PARM_DESC(dma_buf_size,
- 		 "DMA buffer size as multiple of 128*47, possible values: 1-43");
- 
-+static int dummy_tuner;
-+module_param(dummy_tuner, int, 0444);
-+MODULE_PARM_DESC(dummy_tuner,
-+		 "attach dummy tuner to port 0 on Octopus V3 or Octopus Mini cards");
+ 	bool has_chain;
+ 	struct list_head chain;
 +
- /****************************************************************************/
++	bool internal;
+ };
  
- static DEFINE_MUTEX(redirect_lock);
-@@ -548,6 +554,9 @@ static void ddb_input_start(struct ddb_input *input)
- 
- 	ddbwritel(dev, 0x09, TS_CONTROL(input));
- 
-+	if (input->port->type == DDB_TUNER_DUMMY)
-+		ddbwritel(dev, 0x000fff01, TS_CONTROL2(input));
-+
- 	if (input->dma) {
- 		input->dma->running = 1;
- 		spin_unlock_irq(&input->dma->lock);
-@@ -1255,6 +1264,20 @@ static int tuner_attach_stv6111(struct ddb_input *input, int type)
- 	return 0;
+ enum vsp1_dl_mode {
+@@ -550,8 +553,16 @@ static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
+ 	 * case we can't replace the queued list by the new one, as we could
+ 	 * race with the hardware. We thus mark the update as pending, it will
+ 	 * be queued up to the hardware by the frame end interrupt handler.
++	 *
++	 * If a display list is already pending we simply drop it as the new
++	 * display list is assumed to contain a more recent configuration. It is
++	 * an error if the already pending list has the internal flag set, as
++	 * there is then a process waiting for that list to complete. This
++	 * shouldn't happen as the waiting process should perform proper
++	 * locking, but warn just in case.
+ 	 */
+ 	if (vsp1_dl_list_hw_update_pending(dlm)) {
++		WARN_ON(dlm->pending && dlm->pending->internal);
+ 		__vsp1_dl_list_put(dlm->pending);
+ 		dlm->pending = dl;
+ 		return;
+@@ -581,7 +592,7 @@ static void vsp1_dl_list_commit_singleshot(struct vsp1_dl_list *dl)
+ 	dlm->active = dl;
  }
  
-+static int demod_attach_dummy(struct ddb_input *input)
-+{
-+	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
-+	struct device *dev = input->port->dev->dev;
-+
-+	dvb->fe = dvb_attach(dvb_dummy_fe_qam_attach);
-+	if (!dvb->fe) {
-+		dev_err(dev, "QAM dummy attach failed!\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
- static int start_feed(struct dvb_demux_feed *dvbdmxfeed)
+-void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
++void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
  {
- 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
-@@ -1547,6 +1570,10 @@ static int dvb_input_attach(struct ddb_input *input)
- 		if (tuner_attach_tda18212(input, port->type) < 0)
- 			goto err_tuner;
- 		break;
-+	case DDB_TUNER_DUMMY:
-+		if (demod_attach_dummy(input) < 0)
-+			goto err_detach;
-+		break;
- 	default:
- 		return 0;
+ 	struct vsp1_dl_manager *dlm = dl->dlm;
+ 	struct vsp1_dl_list *dl_child;
+@@ -598,6 +609,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 		}
  	}
-@@ -1809,6 +1836,15 @@ static void ddb_port_probe(struct ddb_port *port)
  
- 	/* Handle missing ports and ports without I2C */
- 
-+	if (dummy_tuner && !port->nr &&
-+	    dev->link[0].ids.device == 0x0005) {
-+		port->name = "DUMMY";
-+		port->class = DDB_PORT_TUNER;
-+		port->type = DDB_TUNER_DUMMY;
-+		port->type_name = "DUMMY";
-+		return;
-+	}
++	dl->internal = internal;
 +
- 	if (port->nr == ts_loop) {
- 		port->name = "TS LOOP";
- 		port->class = DDB_PORT_LOOP;
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 86db6f19369a..cb69021a3443 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -236,6 +236,7 @@ struct ddb_port {
- 	char                   *name;
- 	char                   *type_name;
- 	u32                     type;
-+#define DDB_TUNER_DUMMY          0xffffffff
- #define DDB_TUNER_NONE           0
- #define DDB_TUNER_DVBS_ST        1
- #define DDB_TUNER_DVBS_ST_AA     2
+ 	spin_lock_irqsave(&dlm->lock, flags);
+ 
+ 	if (dlm->singleshot)
+@@ -624,6 +637,10 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+  * raced with the frame end interrupt. The function always returns with the flag
+  * set in header mode as display list processing is then not continuous and
+  * races never occur.
++ *
++ * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the previous display list
++ * has completed and had been queued with the internal notification flag.
++ * Internal notification is only supported for continuous mode.
+  */
+ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ {
+@@ -656,6 +673,10 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	 * frame end interrupt. The display list thus becomes active.
+ 	 */
+ 	if (dlm->queued) {
++		if (dlm->queued->internal)
++			flags |= VSP1_DL_FRAME_END_INTERNAL;
++		dlm->queued->internal = false;
++
+ 		__vsp1_dl_list_put(dlm->active);
+ 		dlm->active = dlm->queued;
+ 		dlm->queued = NULL;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index cbc2fc53e10b..1a5bbd5ddb7b 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -21,6 +21,7 @@ struct vsp1_dl_list;
+ struct vsp1_dl_manager;
+ 
+ #define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
++#define VSP1_DL_FRAME_END_INTERNAL		BIT(1)
+ 
+ void vsp1_dlm_setup(struct vsp1_device *vsp1);
+ 
+@@ -34,7 +35,7 @@ unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
+-void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
++void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal);
+ 
+ struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
+ 					    unsigned int num_entries);
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 541473b1df67..68b126044ea1 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -370,7 +370,7 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+ 		}
+ 	}
+ 
+-	vsp1_dl_list_commit(dl);
++	vsp1_dl_list_commit(dl, false);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 4152704c2ccb..a76a44698aff 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -437,7 +437,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ 	}
+ 
+ 	/* Complete, and commit the head display list. */
+-	vsp1_dl_list_commit(pipe->dl);
++	vsp1_dl_list_commit(pipe->dl, false);
+ 	pipe->dl = NULL;
+ 
+ 	vsp1_pipeline_run(pipe);
 -- 
-2.16.1
+Regards,
+
+Laurent Pinchart
