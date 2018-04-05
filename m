@@ -1,88 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43862 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751513AbeDDPcr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:32:47 -0400
-Subject: Patch "media: v4l2-compat-ioctl32: use compat_u64 for video standard" has been added to the 3.18-stable tree
-To: mchehab@s-opensource.com, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@infradead.org
-Cc: <stable@vger.kernel.org>, <stable-commits@vger.kernel.org>
-From: <gregkh@linuxfoundation.org>
-Date: Wed, 04 Apr 2018 17:32:41 +0200
-In-Reply-To: <2ba9505436180b463d47d6da4ce5e059b383938e.1522260310.git.mchehab@s-opensource.com>
-Message-ID: <152285596114471@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Received: from mga04.intel.com ([192.55.52.120]:52223 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751195AbeDEK7M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 06:59:12 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: tfiga@google.com, hverkuil@xs4all.nl
+Subject: [v4l-utils RFC 2/6] Make v4l-utils compile with request-related changes
+Date: Thu,  5 Apr 2018 13:58:15 +0300
+Message-Id: <1522925899-14073-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1522925899-14073-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mostly remove zero reserved field checks.
 
-This is a note to let you know that I've just added the patch titled
-
-    media: v4l2-compat-ioctl32: use compat_u64 for video standard
-
-to the 3.18-stable tree which can be found at:
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-The filename of the patch is:
-     media-v4l2-compat-ioctl32-use-compat_u64-for-video-standard.patch
-and it can be found in the queue-3.18 subdirectory.
-
-If you, or anyone else, feels it should not be added to the stable tree,
-please let <stable@vger.kernel.org> know about it.
-
-
->From foo@baz Wed Apr  4 17:30:18 CEST 2018
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date: Wed, 28 Mar 2018 15:12:36 -0300
-Subject: media: v4l2-compat-ioctl32: use compat_u64 for video standard
-To: Linux Media Mailing List <linux-media@vger.kernel.org>, stable@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Message-ID: <2ba9505436180b463d47d6da4ce5e059b383938e.1522260310.git.mchehab@s-opensource.com>
-
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Instead of using the "v4l2_std_id" typedef, use compat_u64,
-as otherwise it fails to properly handle some ioctls.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/libv4l2/libv4l2.c                        | 4 ++--
+ utils/v4l2-compliance/v4l2-test-buffers.cpp  | 2 +-
+ utils/v4l2-compliance/v4l2-test-controls.cpp | 4 ----
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -686,7 +686,7 @@ struct v4l2_input32 {
- 	__u32	     type;		/*  Type of input */
- 	__u32	     audioset;		/*  Associated audios (bitfield) */
- 	__u32        tuner;             /*  Associated tuner */
--	v4l2_std_id  std;
-+	compat_u64   std;
- 	__u32	     status;
- 	__u32	     capabilities;
- 	__u32	     reserved[3];
-
-
-Patches currently in stable-queue which might be from mchehab@s-opensource.com are
-
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-m.userptr-in-put_v4l2_plane32.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-avoid-sizeof-type.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-drop-pr_info-for-unknown-buffer-type.patch
-queue-3.18/media-v4l2-compat-ioctl32-use-compat_u64-for-video-standard.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-add-missing-vidioc_prepare_buf.patch
-queue-3.18/vb2-v4l2_buf_flag_done-is-set-after-dqbuf.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-refactor-compat-ioctl32-logic.patch
-queue-3.18/media-v4l2-ctrls-fix-sparse-warning.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-ctrl_is_pointer.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-move-helper-functions-to-__get-put_v4l2_format32.patch
-queue-3.18/media-media-v4l2-ctrls-volatiles-should-not-generate-ch_value.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-make-ctrl_is_pointer-work-for-subdevs.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-the-indentation.patch
-queue-3.18/media-v4l2-compat-ioctl32-copy-v4l2_window-global_alpha.patch
-queue-3.18/media-v4l2-ioctl.c-don-t-copy-back-the-result-for-enotty.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-clip-list-in-put_v4l2_window32.patch
-queue-3.18/media-v4l2-compat-ioctl32-initialize-a-reserved-field.patch
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index 2db25d1..47eadda 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -190,7 +190,7 @@ static int v4l2_map_buffers(int index)
+ 		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		buf.memory = V4L2_MEMORY_MMAP;
+ 		buf.index = i;
+-		buf.reserved = buf.reserved2 = 0;
++		buf.reserved = buf.request_fd = 0;
+ 		result = devices[index].dev_ops->ioctl(
+ 				devices[index].dev_ops_priv,
+ 				devices[index].fd, VIDIOC_QUERYBUF, &buf);
+@@ -579,7 +579,7 @@ static int v4l2_buffers_mapped(int index)
+ 			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 			buf.memory = V4L2_MEMORY_MMAP;
+ 			buf.index = i;
+-			buf.reserved = buf.reserved2 = 0;
++			buf.reserved = buf.request_fd = 0;
+ 			if (devices[index].dev_ops->ioctl(
+ 					devices[index].dev_ops_priv,
+ 					devices[index].fd, VIDIOC_QUERYBUF,
+diff --git a/utils/v4l2-compliance/v4l2-test-buffers.cpp b/utils/v4l2-compliance/v4l2-test-buffers.cpp
+index 9b0933e..a9e50b4 100644
+--- a/utils/v4l2-compliance/v4l2-test-buffers.cpp
++++ b/utils/v4l2-compliance/v4l2-test-buffers.cpp
+@@ -196,7 +196,7 @@ int buffer::check(unsigned type, unsigned memory, unsigned index,
+ 	fail_on_test(g_memory() != memory);
+ 	fail_on_test(g_index() >= VIDEO_MAX_FRAME);
+ 	fail_on_test(g_index() != index);
+-	fail_on_test(buf.reserved2 || buf.reserved);
++	fail_on_test(buf.request_fd || buf.reserved);
+ 	fail_on_test(timestamp != V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC &&
+ 		     timestamp != V4L2_BUF_FLAG_TIMESTAMP_COPY);
+ 	fail_on_test(timestamp_src != V4L2_BUF_FLAG_TSTAMP_SRC_SOE &&
+diff --git a/utils/v4l2-compliance/v4l2-test-controls.cpp b/utils/v4l2-compliance/v4l2-test-controls.cpp
+index 508daf0..b9a8978 100644
+--- a/utils/v4l2-compliance/v4l2-test-controls.cpp
++++ b/utils/v4l2-compliance/v4l2-test-controls.cpp
+@@ -589,8 +589,6 @@ int testExtendedControls(struct node *node)
+ 		return fail("field which changed\n");
+ 	if (ctrls.count)
+ 		return fail("field count changed\n");
+-	if (check_0(ctrls.reserved, sizeof(ctrls.reserved)))
+-		return fail("reserved not zeroed\n");
+ 
+ 	memset(&ctrls, 0, sizeof(ctrls));
+ 	ret = doioctl(node, VIDIOC_TRY_EXT_CTRLS, &ctrls);
+@@ -602,8 +600,6 @@ int testExtendedControls(struct node *node)
+ 		return fail("field which changed\n");
+ 	if (ctrls.count)
+ 		return fail("field count changed\n");
+-	if (check_0(ctrls.reserved, sizeof(ctrls.reserved)))
+-		return fail("reserved not zeroed\n");
+ 
+ 	for (iter = node->controls.begin(); iter != node->controls.end(); ++iter) {
+ 		test_query_ext_ctrl &qctrl = iter->second;
+-- 
+2.7.4
