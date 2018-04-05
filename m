@@ -1,103 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:49283 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750990AbeDSJbc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 05:31:32 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, airlied@linux.ie
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 3/8] drm: bridge: thc63lvd1024: Add support for LVDS mode map
-Date: Thu, 19 Apr 2018 11:31:04 +0200
-Message-Id: <1524130269-32688-4-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from osg.samsung.com ([64.30.133.232]:40885 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751417AbeDERy3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 13:54:29 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Kees Cook <keescook@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        linux-fbdev@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        dri-devel@lists.freedesktop.org,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 00/16] Make all drivers under drivers/media to build with COMPILE_TEST
+Date: Thu,  5 Apr 2018 13:54:00 -0400
+Message-Id: <cover.1522949748.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The THC63LVD1024 LVDS to RGB bridge supports two different LVDS mapping
-modes, selectable by means of an external pin.
 
-Add support for configurable LVDS input mapping modes, using the newly
-introduced support for bridge input image formats.
+The current media policy has been for a while to only accept new drivers 
+that compile with COMPILE_TEST.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/gpu/drm/bridge/thc63lvd1024.c | 41 +++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+However, there are still several drivers under drivers/media that 
+doesn't build with COMPILE_TEST.
 
-diff --git a/drivers/gpu/drm/bridge/thc63lvd1024.c b/drivers/gpu/drm/bridge/thc63lvd1024.c
-index 48527f8..a3071a1 100644
---- a/drivers/gpu/drm/bridge/thc63lvd1024.c
-+++ b/drivers/gpu/drm/bridge/thc63lvd1024.c
-@@ -10,9 +10,15 @@
- #include <drm/drm_panel.h>
- 
- #include <linux/gpio/consumer.h>
-+#include <linux/of.h>
- #include <linux/of_graph.h>
- #include <linux/regulator/consumer.h>
- 
-+enum thc63_lvds_mapping_mode {
-+	THC63_LVDS_MAP_MODE2,
-+	THC63_LVDS_MAP_MODE1,
-+};
-+
- enum thc63_ports {
- 	THC63_LVDS_IN0,
- 	THC63_LVDS_IN1,
-@@ -116,6 +122,37 @@ static int thc63_parse_dt(struct thc63_dev *thc63)
- 	return 0;
- }
- 
-+static int thc63_set_bus_fmt(struct thc63_dev *thc63)
-+{
-+	u32 bus_fmt;
-+	u32 map;
-+	int ret;
-+
-+	ret = of_property_read_u32(thc63->dev->of_node, "thine,map", &map);
-+	if (ret) {
-+		dev_err(thc63->dev,
-+			"Unable to parse property \"thine,map\": %d\n", ret);
-+		return ret;
-+	}
-+
-+	switch (map) {
-+	case THC63_LVDS_MAP_MODE1:
-+		bus_fmt = MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA;
-+		break;
-+	case THC63_LVDS_MAP_MODE2:
-+		bus_fmt = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG;
-+		break;
-+	default:
-+		dev_err(thc63->dev,
-+			"Invalid value for property \"thine,map\": %u\n", map);
-+		return -EINVAL;
-+	}
-+
-+	drm_bridge_set_bus_formats(&thc63->bridge, &bus_fmt, 1);
-+
-+	return 0;
-+}
-+
- static int thc63_gpio_init(struct thc63_dev *thc63)
- {
- 	thc63->oe = devm_gpiod_get_optional(thc63->dev, "oe", GPIOD_OUT_LOW);
-@@ -166,6 +203,10 @@ static int thc63_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	ret = thc63_set_bus_fmt(thc63);
-+	if (ret)
-+		return ret;
-+
- 	thc63->bridge.driver_private = thc63;
- 	thc63->bridge.of_node = pdev->dev.of_node;
- 	thc63->bridge.funcs = &thc63_bridge_func;
+So, this series makes the existing ones also compatible with it.
+
+Not building with COMPILE_TEST is a bad thing, for several reasons.
+
+The main ones is that:
+
+1) the licence the Kernel community has for Coverity only builds for 
+   x86. So, drivers that don't build on such archtecture were likely 
+   never tested by it.
+
+2) That affects my per-patch handling process, with should be quick 
+   enough to not delay my patch handling process. So, I only build for one 
+   architecture (i386).
+
+3) When appliying a patch, I always run two static code analyzers (W=1, 
+   smatch and sparse). Those drivers weren't checked by me. At the end 
+   of the day, that leads to a lower quality check for the drivers that 
+   don't build on i386.
+
+There are two situations on this patch series that proof the lower 
+quality of those drivers:
+
+- There is a case of a driver that was added broken in 2013. Only two 
+  years later, someone noticed and "fixed" it by markin it as BROKEN!
+
+- 5 patches in this series (about 1/3) are just to fix build issues on 
+  those drivers, most of them due to gcc warnings.
+
+
+Mauro Carvalho Chehab (16):
+  omap: omap-iommu.h: allow building drivers with COMPILE_TEST
+  media: omap3isp: allow it to build with COMPILE_TEST
+  media: omap3isp/isp: remove an unused static var
+  media: fsl-viu: mark static functions as such
+  media: fsl-viu: allow building it with COMPILE_TEST
+  media: cec_gpio: allow building CEC_GPIO with COMPILE_TEST
+  media: exymos4-is: allow compile test for EXYNOS FIMC-LITE
+  media: mmp-camera.h: add missing platform data
+  media: marvel-ccic: re-enable mmp-driver build
+  media: mmp-driver: make two functions static
+  media: davinci: allow building isif code
+  media: davinci: allow build vpbe_display with COMPILE_TEST
+  media: vpbe_venc: don't store return codes if they won't be used
+  media: davinci: get rid of lots of kernel-doc warnings
+  media: omapfb_dss.h: add stubs to build with COMPILE_TEST
+  media: omap: allow building it with COMPILE_TEST
+
+ drivers/media/platform/Kconfig                   | 12 +++---
+ drivers/media/platform/davinci/Kconfig           |  6 ++-
+ drivers/media/platform/davinci/isif.c            |  2 -
+ drivers/media/platform/davinci/vpbe.c            | 38 +++++++++--------
+ drivers/media/platform/davinci/vpbe_display.c    | 21 +++++----
+ drivers/media/platform/davinci/vpbe_osd.c        | 16 ++++---
+ drivers/media/platform/davinci/vpbe_venc.c       |  9 ++--
+ drivers/media/platform/exynos4-is/Kconfig        |  4 +-
+ drivers/media/platform/fsl-viu.c                 | 20 ++++++---
+ drivers/media/platform/marvell-ccic/Kconfig      |  5 ++-
+ drivers/media/platform/marvell-ccic/mmp-driver.c |  4 +-
+ drivers/media/platform/omap/Kconfig              |  6 +--
+ drivers/media/platform/omap3isp/isp.c            | 14 +++---
+ include/linux/omap-iommu.h                       |  5 +++
+ include/linux/platform_data/media/mmp-camera.h   | 19 +++++++++
+ include/video/omapfb_dss.h                       | 54 +++++++++++++++++++++++-
+ 16 files changed, 162 insertions(+), 73 deletions(-)
+
 -- 
-2.7.4
+2.14.3
