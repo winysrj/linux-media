@@ -1,95 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:56132 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751312AbeDFIkt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 04:40:49 -0400
-Received: by mail-wm0-f65.google.com with SMTP id b127so1622437wmf.5
-        for <linux-media@vger.kernel.org>; Fri, 06 Apr 2018 01:40:48 -0700 (PDT)
-Subject: Re: [PATCH] media: coda: do not try to propagate format if capture
- queue busy
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de
-References: <20180328171243.28599-1-p.zabel@pengutronix.de>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <47c0d3df-1632-c4fd-f9c0-699e89cd0d99@gmail.com>
-Date: Fri, 6 Apr 2018 09:40:45 +0100
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:43157 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751262AbeDEUpf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 16:45:35 -0400
+Received: by mail-wr0-f193.google.com with SMTP id p53so30543584wrc.10
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 13:45:35 -0700 (PDT)
+Date: Thu, 5 Apr 2018 22:45:29 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: Re: [PATCH 00/20] dddvb/ddbridge-0.9.33
+Message-ID: <20180405224529.09980e1f@lt530>
+In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180328171243.28599-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28/03/18 18:12, Philipp Zabel wrote:
-> The driver helpfully resets the capture queue format and selection
-> rectangle whenever output format is changed. This only works while
-> the capture queue is not busy.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->   drivers/media/platform/coda/coda-common.c | 28 +++++++++++++++-------------
->   1 file changed, 15 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index 04e35d70ce2e..d3e22c14fad4 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -786,9 +786,8 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
->   			      struct v4l2_format *f)
->   {
->   	struct coda_ctx *ctx = fh_to_ctx(priv);
-> -	struct coda_q_data *q_data_src;
-see below
->   	struct v4l2_format f_cap;
-> -	struct v4l2_rect r;
-> +	struct vb2_queue *dst_vq;
->   	int ret;
->   
->   	ret = coda_try_fmt_vid_out(file, priv, f);
-> @@ -804,23 +803,26 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
->   	ctx->ycbcr_enc = f->fmt.pix.ycbcr_enc;
->   	ctx->quantization = f->fmt.pix.quantization;
->   
-> +	dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +	if (!dst_vq)
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * Setting the capture queue format is not possible while the capture
-> +	 * queue is still busy. This is not an error, but the user will have to
-> +	 * make sure themselves that the capture format is set correctly before
-> +	 * starting the output queue again.
-> +	 */
-> +	if (vb2_is_busy(dst_vq))
-> +		return 0;
-> +
->   	memset(&f_cap, 0, sizeof(f_cap));
->   	f_cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->   	coda_g_fmt(file, priv, &f_cap);
->   	f_cap.fmt.pix.width = f->fmt.pix.width;
->   	f_cap.fmt.pix.height = f->fmt.pix.height;
->   
-> -	ret = coda_try_fmt_vid_cap(file, priv, &f_cap);
-> -	if (ret)
-> -		return ret;
-> -
-> -	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> -	r.left = 0;
-> -	r.top = 0;
-> -	r.width = q_data_src->width;
-> -	r.height = q_data_src->height;
-> -
-> -	return coda_s_fmt(ctx, &f_cap, &r);
-> +	return coda_s_fmt_vid_cap(file, priv, &f_cap);
+Am Mon,  2 Apr 2018 20:24:07 +0200
+schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
 
-Is this chunk (and removal of q_data_src above) part of the same patch? 
-It doesn't seem covered by the subject line.
-
-Regards,
-Ian
-
->   }
->   
->   static int coda_reqbufs(struct file *file, void *priv,
+> From: Daniel Scheller <d.scheller@gmx.net>
 > 
+> This series brings all relevant changes from the upstream dddvb-0.9.33
+> driver package to the in-kernel ddbridge and stv0910, though a few
+> changes were picked up and merged previously already.
+> 
+> Summary of changes:
+> * stv0910: initialisation fixes and fixed CNR reporting (uvalue vs.
+>   svalue)
+> * ddbridge: general code move, cleanups and fixups
+> * ddbridge: fixes and improvements to the IRQ setup and handling, and
+>   MSI-X support
+> * ddbridge: configurable DMA buffers (via modparam)
+> * ddbridge: dummy tuner option, useful for debugging and stress
+> testing purposes
+> * ddbridge: support for the new MCI card types, and namely the new
+> MaxSX8 cards
+> 
+> Patches were build-tested in their order and are bisect safe. Besides
+> the modparam move, everything is picked up from dddvb-0.9.33.
+> 
+> The series adds the new ddbridge-mci.[c|h] files. Here, SPDX headers
+> were already put in place, but until things have been fully sorted
+> out, the original GPL boiler plate is kept in place for now.
+> 
+> Please pick up and merge.
+> 
+> Daniel Scheller (20):
+>   [media] dvb-frontends/stv0910: add init values for TSINSDELM/L
+>   [media] dvb-frontends/stv0910: increase parallel TS output speed
+>   [media] dvb-frontends/stv0910: fix CNR reporting in read_snr()
+>   [media] ddbridge: move modparams to ddbridge-core.c
+>   [media] ddbridge: move ddb_wq and the wq+class initialisation to
+> -core [media] ddbridge: move MSI IRQ cleanup to a helper function
+>   [media] ddbridge: request/free_irq using pci_irq_vector, enable
+> MSI-X [media] ddbridge: add helper for IRQ handler setup
+>   [media] ddbridge: add macros to handle IRQs in nibble and byte
+> blocks [media] ddbridge: improve separated MSI IRQ handling
+>   [media] ddbridge: use spin_lock_irqsave() in output_work()
+>   [media] ddbridge: fix output buffer check
+>   [media] ddbridge: set devid entry for link 0
+>   [media] ddbridge: make DMA buffer count and size
+> modparam-configurable [media] ddbridge: support dummy tuners with
+> 125MByte/s dummy data stream
+>   [media] ddbridge: initial support for MCI-based MaxSX8 cards
+>   [media] ddbridge/max: implement MCI/MaxSX8 attach function
+>   [media] ddbridge: add hardware defs and PCI IDs for MCI cards
+>   [media] ddbridge: recognize and attach the MaxSX8 cards
+>   [media] ddbridge: set driver version to 0.9.33-integrated
+> 
+>  drivers/media/dvb-frontends/stv0910.c      |  12 +-
+>  drivers/media/pci/ddbridge/Kconfig         |   1 +
+>  drivers/media/pci/ddbridge/Makefile        |   2 +-
+>  drivers/media/pci/ddbridge/ddbridge-core.c | 299 +++++++++++-----
+>  drivers/media/pci/ddbridge/ddbridge-hw.c   |  11 +
+>  drivers/media/pci/ddbridge/ddbridge-i2c.c  |   5 +-
+>  drivers/media/pci/ddbridge/ddbridge-main.c |  91 ++---
+>  drivers/media/pci/ddbridge/ddbridge-max.c  |  42 +++
+>  drivers/media/pci/ddbridge/ddbridge-max.h  |   1 +
+>  drivers/media/pci/ddbridge/ddbridge-mci.c  | 550
+> +++++++++++++++++++++++++++++
+> drivers/media/pci/ddbridge/ddbridge-mci.h  | 152 ++++++++
+> drivers/media/pci/ddbridge/ddbridge.h      |  50 +-- 12 files
+> changed, 1030 insertions(+), 186 deletions(-) create mode 100644
+> drivers/media/pci/ddbridge/ddbridge-mci.c create mode 100644
+> drivers/media/pci/ddbridge/ddbridge-mci.h
+> 
+
+Please refrain from merging this as it is now. Recently, one issue has
+been discovered with one of the stv0910 patches which renders at least
+the CineS2 V7A cards (specifically the tuners soldered on them,
+extensions will still work fine) unusable. Upstream has this issue
+aswell. This is currently under investigation.
+
+Best regards,
+Daniel Scheller
+-- 
+https://github.com/herrnst
