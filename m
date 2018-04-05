@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:40837 "EHLO mga18.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:44934 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751298AbeDFTan (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 15:30:43 -0400
-Date: Sat, 7 Apr 2018 03:29:58 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        id S1751746AbeDEUaA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:30:00 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v2 15/19] omap2: omapfb: allow building it with
- COMPILE_TEST
-Message-ID: <201804070300.5aL1duqY%fengguang.wu@intel.com>
-References: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH v2 19/19] media: staging: davinci_vpfe: allow building with COMPILE_TEST
+Date: Thu,  5 Apr 2018 16:29:46 -0400
+Message-Id: <51b55b8a47aac8f712a5aff2fe79d20f9f7b9cf7.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is a little bit hashish, but this driver is at staging,
+so it won't become worse.
 
-I love your patch! Perhaps something to improve:
+With this small change at Makefile, we can now build it with
+COMPILE_TEST.
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.16 next-20180406]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Mauro-Carvalho-Chehab/Make-all-media-drivers-build-with-COMPILE_TEST/20180406-163048
-base:   git://linuxtv.org/media_tree.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
-
-
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
->> drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c:230:23: sparse: cast to restricted __be32
---
->> drivers/video/fbdev/omap2/omapfb/dss/dispc.c:289:9: sparse: context imbalance in 'mgr_fld_write' - different lock contexts for basic block
-
-vim +230 drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-
-f76ee892 Tomi Valkeinen 2015-12-09  222  
-f76ee892 Tomi Valkeinen 2015-12-09  223  static int panel_enabled(struct panel_drv_data *ddata)
-f76ee892 Tomi Valkeinen 2015-12-09  224  {
-f76ee892 Tomi Valkeinen 2015-12-09  225  	u32 disp_status;
-f76ee892 Tomi Valkeinen 2015-12-09  226  	int enabled;
-f76ee892 Tomi Valkeinen 2015-12-09  227  
-f76ee892 Tomi Valkeinen 2015-12-09  228  	acx565akm_read(ddata, MIPID_CMD_READ_DISP_STATUS,
-f76ee892 Tomi Valkeinen 2015-12-09  229  			(u8 *)&disp_status, 4);
-f76ee892 Tomi Valkeinen 2015-12-09 @230  	disp_status = __be32_to_cpu(disp_status);
-f76ee892 Tomi Valkeinen 2015-12-09  231  	enabled = (disp_status & (1 << 17)) && (disp_status & (1 << 10));
-f76ee892 Tomi Valkeinen 2015-12-09  232  	dev_dbg(&ddata->spi->dev,
-f76ee892 Tomi Valkeinen 2015-12-09  233  		"LCD panel %senabled by bootloader (status 0x%04x)\n",
-f76ee892 Tomi Valkeinen 2015-12-09  234  		enabled ? "" : "not ", disp_status);
-f76ee892 Tomi Valkeinen 2015-12-09  235  	return enabled;
-f76ee892 Tomi Valkeinen 2015-12-09  236  }
-f76ee892 Tomi Valkeinen 2015-12-09  237  
-
-:::::: The code at line 230 was first introduced by commit
-:::::: f76ee892a99e68b55402b8d4b8aeffcae2aff34d omapfb: copy omapdss & displays for omapfb
-
-:::::: TO: Tomi Valkeinen <tomi.valkeinen@ti.com>
-:::::: CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/staging/media/davinci_vpfe/Kconfig  | 3 ++-
+ drivers/staging/media/davinci_vpfe/Makefile | 5 +++++
+ drivers/staging/media/davinci_vpfe/TODO     | 1 +
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
+index f40a06954a92..bcba9a64c514 100644
+--- a/drivers/staging/media/davinci_vpfe/Kconfig
++++ b/drivers/staging/media/davinci_vpfe/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_DM365_VPFE
+ 	tristate "DM365 VPFE Media Controller Capture Driver"
+-	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF
++	depends on VIDEO_V4L2
++	depends on (ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF) || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	depends on VIDEO_V4L2_SUBDEV_API
+ 	depends on VIDEO_DAVINCI_VPBE_DISPLAY
+diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
+index 3019c9ecd548..9c57042c877d 100644
+--- a/drivers/staging/media/davinci_vpfe/Makefile
++++ b/drivers/staging/media/davinci_vpfe/Makefile
+@@ -3,3 +3,8 @@ obj-$(CONFIG_VIDEO_DM365_VPFE) += davinci-vfpe.o
+ davinci-vfpe-objs := \
+ 	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
+ 	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
++
++# Allow building it with COMPILE_TEST on other archs
++ifndef CONFIG_ARCH_DAVINCI
++ccflags-y += -Iarch/arm/mach-davinci/include/
++endif
+diff --git a/drivers/staging/media/davinci_vpfe/TODO b/drivers/staging/media/davinci_vpfe/TODO
+index 3e5477e8cfa5..cc8bd9306f2a 100644
+--- a/drivers/staging/media/davinci_vpfe/TODO
++++ b/drivers/staging/media/davinci_vpfe/TODO
+@@ -20,6 +20,7 @@ TODO (general):
+ - While replacing the older driver in media folder, provide a compatibility
+   layer and compatibility tests that warrants (using the libv4l's LD_PRELOAD
+   approach) there is no regression for the users using the older driver.
++- make it independent of arch-specific APIs (mach/mux.h).
+ 
+ Building of uImage and Applications:
+ ==================================
+-- 
+2.14.3
