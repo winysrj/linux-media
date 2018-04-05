@@ -1,35 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:49766 "EHLO fuzix.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752384AbeD2ASk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 20:18:40 -0400
-Received: from alans-desktop (82-70-14-226.dsl.in-addr.zen.co.uk [82.70.14.226])
-        by fuzix.org (8.15.2/8.15.2) with ESMTP id w3T0IcuW013346
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2018 01:18:38 +0100
-Date: Sun, 29 Apr 2018 01:18:37 +0100
-From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-To: linux-media@vger.kernel.org
-Subject: atomisp: drop from staging ?
-Message-ID: <20180429011837.68859797@alans-desktop>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57368 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751714AbeDESaa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 14:30:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: Re: [PATCH 02/16] media: omap3isp: allow it to build with COMPILE_TEST
+Date: Thu, 05 Apr 2018 21:30:27 +0300
+Message-ID: <2233233.yQEdpcOfql@avalon>
+In-Reply-To: <f618981fec34acc5eee211b34a0018752634af9c.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com> <f618981fec34acc5eee211b34a0018752634af9c.1522949748.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-I think this is going to be the best option. When I started cleaning up
-the atomisp code I had time to work on it. Then spectre/meltdown
-happened (which btw is why the updating suddenly and mysteriously stopped
-last summer).
+Thank you for the patch.
 
-I no longer have time to work on it and it's becoming evident that the
-world of speculative side channel is going to be mean that I am
-not going to get time in the forseeable future despite me trying to find
-space to get back into atomisp cleaning up. It sucks because we made some
-good initial progress but shit happens.
+On Thursday, 5 April 2018 20:54:02 EEST Mauro Carvalho Chehab wrote:
+> There aren't much things required for it to build with COMPILE_TEST.
+> It just needs to provide stub for an arm-dependent include.
+> 
+> Let's replicate the same solution used by ipmmu-vmsa, in order
+> to allow building omap3 with COMPILE_TEST.
+> 
+> The actual logic here came from this driver:
+> 
+>    drivers/iommu/ipmmu-vmsa.c
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/platform/Kconfig        | 8 ++++----
+>  drivers/media/platform/omap3isp/isp.c | 7 +++++++
+>  2 files changed, 11 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index c7a1cf8a1b01..03c9dfeb7781 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -62,12 +62,12 @@ config VIDEO_MUX
+> 
+>  config VIDEO_OMAP3
+>  	tristate "OMAP 3 Camera support"
+> -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+> +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+>  	depends on HAS_DMA && OF
+> -	depends on OMAP_IOMMU
+> -	select ARM_DMA_USE_IOMMU
+> +	depends on ((ARCH_OMAP3 && OMAP_IOMMU) || COMPILE_TEST)
+> +	select ARM_DMA_USE_IOMMU if OMAP_IOMMU
+>  	select VIDEOBUF2_DMA_CONTIG
+> -	select MFD_SYSCON
+> +	select MFD_SYSCON if ARCH_OMAP3
+>  	select V4L2_FWNODE
+>  	---help---
+>  	  Driver for an OMAP 3 camera controller.
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 8eb000e3d8fd..2a11a709aa4f
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -61,7 +61,14 @@
+>  #include <linux/sched.h>
+>  #include <linux/vmalloc.h>
+> 
+> +#if defined(CONFIG_ARM) && !defined(CONFIG_IOMMU_DMA)
+>  #include <asm/dma-iommu.h>
+> +#else
+> +#define arm_iommu_create_mapping(...)	NULL
+> +#define arm_iommu_attach_device(...)	-ENODEV
+> +#define arm_iommu_release_mapping(...)	do {} while (0)
+> +#define arm_iommu_detach_device(...)	do {} while (0)
+> +#endif
 
-There are at this point (unsurprisngly ;)) no other volunteers I can
-find crazy enough to take this on.
+I don't think it's the job of a driver to define those stubs, sorry. Otherwise 
+where do you stop ? If you have half of the code that is architecture-
+dependent, would you stub it ? And what if the stubs you define here generate 
+warnings in static analyzers ?
 
-Alan
+If you want to make drivers compile for all architectures, the APIs they use 
+must be defined in linux/, not in asm/. They can be stubbed there when not 
+implemented in a particular architecture, but not in the driver.
+
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-fwnode.h>
+
+-- 
+Regards,
+
+Laurent Pinchart
