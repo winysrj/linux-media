@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:50108 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755978AbeDTQHk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 12:07:40 -0400
-Date: Fri, 20 Apr 2018 17:07:31 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 5/7] drm/i2c: tda9950: add CEC driver
-Message-ID: <20180420160731.GA16141@n2100.armlinux.org.uk>
-References: <20180409121529.GA31403@n2100.armlinux.org.uk>
- <E1f5Viq-0002Lj-Ru@rmk-PC.armlinux.org.uk>
- <20180420153137.GZ16141@n2100.armlinux.org.uk>
- <bd644882-50b3-3022-de21-1f0b7fe008b7@xs4all.nl>
+Received: from mail-ot0-f181.google.com ([74.125.82.181]:40568 "EHLO
+        mail-ot0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751165AbeDEMaa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 08:30:30 -0400
+Received: by mail-ot0-f181.google.com with SMTP id j8-v6so19422536ota.7
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 05:30:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bd644882-50b3-3022-de21-1f0b7fe008b7@xs4all.nl>
+From: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
+Date: Thu, 5 Apr 2018 14:30:29 +0200
+Message-ID: <CAPQseg3c+jVBRv7nu9BZXFi2V+afrDUq+YR-0jEDGevgwa-NWw@mail.gmail.com>
+Subject: IMX6 Media dev node not created
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 05:48:12PM +0200, Hans Verkuil wrote:
-> On 04/20/2018 05:31 PM, Russell King - ARM Linux wrote:
-> > Hi Hans,
-> > 
-> > Any comments?
-> 
-> I have been traveling and haven't had time to look at this. Next week will
-> be busy as well, but I expect to be able to look at it the week after that.
+Greetings everyone,
 
-Well, that doesn't work because I won't be reading mail that week,
-and I'll probably simply ignore the excessive backlog when I do
-start reading mail again.
+I'm running Linux 4.14.31 on an IMX6 QuadPlus based Phytec board
+(PCM-058). I have connected an mt9p031 sensor to ipu1_csi0. The
+problem is that I am not seeing the /dev/media0 node.
 
-> I remember from the previous series that I couldn't test it with my BeagleBone
-> Black board (the calibration gpio had to switch from in to out but it wasn't allowed
-> since it had an associated irq). That's still a problem?
-> 
-> I didn't see any changes in that area when I did a quick scan.
+I have already read the fix mentioned in a previous discussion:
 
-Correct, and unless you wish me to do the work for you (in which case
-you can pay me) nothing is going to change on that front!  Seriously,
-please do not expect me to add support for platforms I don't have
-access to.  I'm just a volunteer for this, probably the same as you.
+https://www.spinics.net/lists/linux-media/msg121965.html
 
-I don't think we ended up with an answer for that problem.  I don't
-see that dropping the requested interrupt, using the GPIO, and then
-re-requesting the interrupt is an option - how do we handle a failure
-to re-request the interrupt?  Do we just ignore the error, or let DRM
-stop working properly?
+and that does not seem to be the problem in my case as I do get the
+"ipu1_csi0_mux" registered. Running a grep on dmesg I get:
 
-In any case, I don't have a working HDMI CEC-compliant setup anymore,
-(no TV, just a HDMI monitor now) so I would rather _not_ change the
-driver from its known-to-be-working state.
+[    3.235383] imx-media: Registered subdev ipu1_vdic
+[    3.241134] imx-media: Registered subdev ipu2_vdic
+[    3.246830] imx-media: Registered subdev ipu1_ic_prp
+[    3.252115] imx-media: Registered subdev ipu1_ic_prpenc
+[    3.266991] imx-media: Registered subdev ipu1_ic_prpvf
+[    3.280228] imx-media: Registered subdev ipu2_ic_prp
+[    3.285580] imx-media: Registered subdev ipu2_ic_prpenc
+[    3.299335] imx-media: Registered subdev ipu2_ic_prpvf
+[    3.350034] imx-media: Registered subdev ipu1_csi0
+[    3.363017] imx-media: Registered subdev ipu1_csi1
+[    3.375523] imx-media: Registered subdev ipu2_csi0
+[    3.388615] imx-media: Registered subdev ipu2_csi1
+[    3.560351] imx-media: Registered subdev ipu1_csi0_mux
+[    3.566151] imx-media: Registered subdev ipu2_csi1_mux
+[   10.525497] imx-media: Registered subdev mt9p031 0-0048
+[   10.530816] imx-media capture-subsystem: Entity type for entity
+mt9p031 0-0048 was not initialized!
+[   10.569201] mt9p031 0-0048: MT9P031 detected at address 0x48
+[   10.582895] imx-media: Registered subdev mt9p031 0-005d
+[   10.588335] imx-media capture-subsystem: Entity type for entity
+mt9p031 0-005d was not initialized!
+[   10.618795] mt9p031 0-005d: MT9P031 not detected, wrong version 0xfffffffa
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+Also my config does appear to have the required options activated;
+running "zcat /proc/config.gz | egrep 'VIDEO_MUX|MUX_MMIO|VIDEO_IMX'"
+I get:
+
+# CONFIG_MDIO_BUS_MUX_MMIOREG is not set
+CONFIG_VIDEO_MUX=y
+CONFIG_VIDEO_IMX_VDOA=m
+CONFIG_VIDEO_IMX_MEDIA=y
+CONFIG_VIDEO_IMX_CSI=y
+CONFIG_MUX_MMIO=y
+
+I would really appreciate if anyone could help me trying to find out
+what went wrong and why the /dev/media0 node is not showing up.
+
+Many thanks and best regards,
+Ibtsam Haq
