@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51362 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754637AbeDWIh0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 04:37:26 -0400
-Date: Mon, 23 Apr 2018 10:37:20 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Pravin Shedge <pravin.shedge4linux@gmail.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH 09/15] net: irda: pxaficp_ir: remove the dmaengine compat
- need
-Message-ID: <20180423083720.GA25048@kroah.com>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
- <20180402142656.26815-10-robert.jarzmik@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180402142656.26815-10-robert.jarzmik@free.fr>
+Received: from osg.samsung.com ([64.30.133.232]:46018 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751623AbeDEU35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:29:57 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: [PATCH v2 07/19] media: exymos4-is: allow compile test for EXYNOS FIMC-LITE
+Date: Thu,  5 Apr 2018 16:29:34 -0400
+Message-Id: <fb51c9ebb76438c554855cc6543651a8c1cb7aa6.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 02, 2018 at 04:26:50PM +0200, Robert Jarzmik wrote:
-> As the pxa architecture switched towards the dmaengine slave map, the
-> old compatibility mechanism to acquire the dma requestor line number and
-> priority are not needed anymore.
-> 
-> This patch simplifies the dma resource acquisition, using the more
-> generic function dma_request_slave_channel().
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/staging/irda/drivers/pxaficp_ir.c | 14 ++------------
->  1 file changed, 2 insertions(+), 12 deletions(-)
+There's nothing that prevents building this driver with
+COMPILE_TEST. So, enable it.
 
-This file is no longer in Linus's tree :)
+While here, make the Kconfig dependency cleaner by removing
+the unneeded if block.
 
-thanks,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/exynos4-is/Kconfig | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-greg k-h
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index 7b2c49e5a592..c8e5ad8f8294 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -41,11 +41,10 @@ config VIDEO_S5P_MIPI_CSIS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called s5p-csis.
+ 
+-if SOC_EXYNOS4412 || SOC_EXYNOS5250
+-
+ config VIDEO_EXYNOS_FIMC_LITE
+ 	tristate "EXYNOS FIMC-LITE camera interface driver"
+ 	depends on I2C
++	depends on SOC_EXYNOS4412 || SOC_EXYNOS5250 || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select VIDEO_EXYNOS4_IS_COMMON
+@@ -55,7 +54,6 @@ config VIDEO_EXYNOS_FIMC_LITE
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called exynos-fimc-lite.
+-endif
+ 
+ config VIDEO_EXYNOS4_FIMC_IS
+ 	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
+-- 
+2.14.3
