@@ -1,82 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:38885 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753261AbeDBSYh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:37 -0400
-Received: by mail-wr0-f193.google.com with SMTP id m13so15024324wrj.5
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:37 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 06/20] [media] ddbridge: move MSI IRQ cleanup to a helper function
-Date: Mon,  2 Apr 2018 20:24:13 +0200
-Message-Id: <20180402182427.20918-7-d.scheller.oss@gmail.com>
-In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
-References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:46609 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751530AbeDEU3w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:29:52 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v2 10/19] media: mmp-driver: make two functions static
+Date: Thu,  5 Apr 2018 16:29:37 -0400
+Message-Id: <75397414902e8e590dbdc99703dcbbf4536646ea.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Those functions are used only internally:
 
-Introduce the ddb_msi_exit() helper to be used for cleaning up previously
-allocated MSI IRQ vectors. Deduplicates code and makes things look
-cleaner as for all cleanup work the CONFIG_PCI_MSI ifdeffery is only
-needed in the helper now. Also, replace the call to the deprecated
-pci_disable_msi() function with pci_free_irq_vectors().
+  CC      drivers/media/platform/marvell-ccic/mmp-driver.o
+drivers/media/platform/marvell-ccic/mmp-driver.c:186:6: warning: no previous prototype for ‘mcam_ctlr_reset’ [-Wmissing-prototypes]
+ void mcam_ctlr_reset(struct mcam_camera *mcam)
+      ^~~~~~~~~~~~~~~
+drivers/media/platform/marvell-ccic/mmp-driver.c:217:6: warning: no previous prototype for ‘mmpcam_calc_dphy’ [-Wmissing-prototypes]
+ void mmpcam_calc_dphy(struct mcam_camera *mcam)
+      ^~~~~~~~~~~~~~~~
 
-Picked up from the upstream dddvb-0.9.33 release.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-main.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/media/platform/marvell-ccic/mmp-driver.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
-index 7088162af9d3..77089081db1f 100644
---- a/drivers/media/pci/ddbridge/ddbridge-main.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-main.c
-@@ -65,16 +65,20 @@ static void ddb_irq_disable(struct ddb *dev)
- 	ddbwritel(dev, 0, MSI1_ENABLE);
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 816f4b6a7b8e..17d79480e75c 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -183,7 +183,7 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 	mcam_clk_disable(mcam);
  }
  
-+static void ddb_msi_exit(struct ddb *dev)
-+{
-+#ifdef CONFIG_PCI_MSI
-+	if (dev->msi)
-+		pci_free_irq_vectors(dev->pdev);
-+#endif
-+}
-+
- static void ddb_irq_exit(struct ddb *dev)
+-void mcam_ctlr_reset(struct mcam_camera *mcam)
++static void mcam_ctlr_reset(struct mcam_camera *mcam)
  {
- 	ddb_irq_disable(dev);
- 	if (dev->msi == 2)
- 		free_irq(dev->pdev->irq + 1, dev);
- 	free_irq(dev->pdev->irq, dev);
--#ifdef CONFIG_PCI_MSI
--	if (dev->msi)
--		pci_disable_msi(dev->pdev);
--#endif
- }
- 
- static void ddb_remove(struct pci_dev *pdev)
-@@ -86,6 +90,7 @@ static void ddb_remove(struct pci_dev *pdev)
- 	ddb_i2c_release(dev);
- 
- 	ddb_irq_exit(dev);
-+	ddb_msi_exit(dev);
- 	ddb_ports_release(dev);
- 	ddb_buffers_free(dev);
- 
-@@ -230,8 +235,7 @@ static int ddb_probe(struct pci_dev *pdev,
- 	ddb_irq_exit(dev);
- fail0:
- 	dev_err(&pdev->dev, "fail0\n");
--	if (dev->msi)
--		pci_disable_msi(dev->pdev);
-+	ddb_msi_exit(dev);
- fail:
- 	dev_err(&pdev->dev, "fail\n");
- 
+ 	unsigned long val;
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+@@ -214,7 +214,7 @@ void mcam_ctlr_reset(struct mcam_camera *mcam)
+  * CSI2_DPHY3 and CSI2_DPHY6 can be set with a default value
+  * or be calculated dynamically
+  */
+-void mmpcam_calc_dphy(struct mcam_camera *mcam)
++static void mmpcam_calc_dphy(struct mcam_camera *mcam)
+ {
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+ 	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
 -- 
-2.16.1
+2.14.3
