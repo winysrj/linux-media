@@ -1,136 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45360 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752906AbeDKPRh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 11:17:37 -0400
-Date: Wed, 11 Apr 2018 12:17:27 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180411121727.60133066@vento.lan>
-In-Reply-To: <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-5-hverkuil@xs4all.nl>
-        <20180410073206.12d4c67d@vento.lan>
-        <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
-        <20180410115143.41178f68@vento.lan>
-        <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
-        <20180411104935.5f566f0f@vento.lan>
-        <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54322 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751928AbeDEJSe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:34 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 01/15] v4l: vsp1: Don't start/stop media pipeline for DRM
+Date: Thu,  5 Apr 2018 12:18:26 +0300
+Message-Id: <20180405091840.30728-2-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 11 Apr 2018 18:02:19 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+The DRM support code manages a pipeline of VSP entities, each backed by
+a media entity. When starting or stopping the pipeline, it starts and
+stops the media pipeline through the media API in order to store the
+pipeline pointer in every entity.
 
-> On Wed, Apr 11, 2018 at 10:49:35AM -0300, Mauro Carvalho Chehab wrote:
-> > Em Wed, 11 Apr 2018 16:21:16 +0300
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > 
-> >   
-> > > > > > Btw, this is a very good reason why you should define the ioctl to
-> > > > > > have an integer argument instead of a struct with a __s32 field
-> > > > > > on it, as per my comment to patch 02/29:
-> > > > > > 
-> > > > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> > > > > > 
-> > > > > > At 64 bit architectures, you're truncating the file descriptor!      
-> > > > > 
-> > > > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-> > > > > well.    
-> > > > 
-> > > > Hmm.. you're right. I was thinking that it could be 64 bits on some
-> > > > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
-> > > > according with:
-> > > > 
-> > > > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
-> > > > 
-> > > > This is not the case on gcc.    
-> > > 
-> > > Ok. The reasoning back then was that what "int" means varies across
-> > > compilers and languages. And the intent was to codify this to __s32 which
-> > > is what the kernel effectively uses.  
-> > 
-> > ...
-> >   
-> > > The rest of the kernel uses int rather liberally in the uAPI so I'm not
-> > > sure in the end whether something desirable was achieved. Perhaps it'd be
-> > > good to go back to the original discussion to find out for sure.
-> > > 
-> > > Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
-> > > due to that difference.
-> > > 
-> > > Well, I stop here for this begins to be off-topic. :-)  
-> > 
-> > Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
-> > about that :-)
-> >   
-> > > > > > > +	get_task_comm(comm, current);
-> > > > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > > > > > > +		 comm, fd);      
-> > > > > > 
-> > > > > > Not sure if it is a good idea to store the task that allocated
-> > > > > > the request. While it makes sense for the dev_dbg() below, it
-> > > > > > may not make sense anymore on other dev_dbg() you would be
-> > > > > > using it.      
-> > > > > 
-> > > > > The lifetime of the file handle roughly matches that of the request. It's
-> > > > > for debug only anyway.
-> > > > > 
-> > > > > Better proposals are always welcome of course. But I think we should have
-> > > > > something here that helps debugging by meaningfully making the requests
-> > > > > identifiable from logs.    
-> > > > 
-> > > > What I meant to say is that one PID could be allocating the
-> > > > request, while some other one could be actually doing Q/DQ_BUF.
-> > > > On such scenario, the debug string could provide mislead prints.    
-> > > 
-> > > Um, yes, indeed it would no longer match the process. But the request is
-> > > still the same. That's actually a positive thing since it allows you to
-> > > identify the request.
-> > > 
-> > > With a global ID space this was trivial; you could just print the request
-> > > ID and that was all that was ever needed. (I'm not proposing to consider
-> > > that though.)
-> > >   
-> > 
-> > IMO, a global ID number would work better than get_task_comm().
-> > 
-> > Just add a static int monotonic counter and use it for the debug purposes,
-> > e. g.:
-> > 
-> > {
-> > 	static unsigned int req_count = 0;
-> > 
-> > 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
-> > 		req_count++, fd);    
-> > 
-> > Ok, eventually, it will overflow, but, it will be unique within
-> > a reasonable timeframe to be good enough for debugging purposes.  
-> 
-> Yes, but you can't figure out which process allocated it anymore, making
-> associating kernel debug logs with user space process logs harder.
-> 
-> How about process id + file handle? That still doesn't tell which process
-> operated on the request though, but I'm not sure whether that's really a
-> crucial piece of information.
+The driver doesn't use the pipe pointer in media entities, neither does
+it rely on the other effects of the media_pipeline_start() and
+media_pipeline_stop() functions. Furthermore, as the media links for the
+DRM pipeline are never set up correctly, and as the pipeline can be
+modified dynamically when enabling or disabling planes, the current
+implementation is not correct. Remove the incorrect and unneeded code.
 
-You don't need that. With dev_dbg() - and other *_dbg() macros - you can
-enable process ID for all debug messages.
+While at it remove the outdated comment that states that entities are
+not started when the LIF is setup, as they now are.
 
-Basically, if the user needs the PID, all it needs is to use "+pt",
-e. g. something like:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+--
+Changes since v1:
 
-	echo "file drivers/media/* +pt" > /sys/kernel/debug/dynamic_debug/control
+- Remove outdated comment
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index b8fee1834253..a1f2ba044092 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -109,8 +109,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 		if (ret == -ETIMEDOUT)
+ 			dev_err(vsp1->dev, "DRM pipeline stop timeout\n");
+ 
+-		media_pipeline_stop(&pipe->output->entity.subdev.entity);
+-
+ 		for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
+ 			struct vsp1_rwpf *rpf = pipe->inputs[i];
+ 
+@@ -223,13 +221,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 		return -EPIPE;
+ 	}
+ 
+-	/*
+-	 * Mark the pipeline as streaming and enable the VSP1. This will store
+-	 * the pipeline pointer in all entities, which the s_stream handlers
+-	 * will need. We don't start the entities themselves right at this point
+-	 * as there's no plane configured yet, so we can't start processing
+-	 * buffers.
+-	 */
++	/* Enable the VSP1. */
+ 	ret = vsp1_device_get(vsp1);
+ 	if (ret < 0)
+ 		return ret;
+@@ -241,14 +233,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	drm_pipe->du_complete = cfg->callback;
+ 	drm_pipe->du_private = cfg->callback_data;
+ 
+-	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
+-					  &pipe->pipe);
+-	if (ret < 0) {
+-		dev_dbg(vsp1->dev, "%s: pipeline start failed\n", __func__);
+-		vsp1_device_put(vsp1);
+-		return ret;
+-	}
+-
+ 	/* Disable the display interrupts. */
+ 	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
+ 	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
+-- 
+Regards,
 
-[1] see:
-	https://www.kernel.org/doc/html/v4.11/admin-guide/dynamic-debug-howto.html
-
-Thanks,
-Mauro
+Laurent Pinchart
