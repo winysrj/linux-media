@@ -1,129 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50406 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754334AbeDWJIL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:08:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: adv748x: Fix pixel rate values
-Date: Mon, 23 Apr 2018 12:08:22 +0300
-Message-ID: <19059407.fUISklDEzf@avalon>
-In-Reply-To: <e5490bf5-38a0-4536-ed2d-c2d63edb6c39@ideasonboard.com>
-References: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com> <e5490bf5-38a0-4536-ed2d-c2d63edb6c39@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54331 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751280AbeDEJSm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:42 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2 09/15] v4l: vsp1: Move DRM pipeline output setup code to a function
+Date: Thu,  5 Apr 2018 12:18:34 +0300
+Message-Id: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+In order to make the vsp1_du_setup_lif() easier to read, and for
+symmetry with the DRM pipeline input setup, move the pipeline output
+setup code to a separate function.
 
-On Monday, 23 April 2018 11:59:04 EEST Kieran Bingham wrote:
-> On 21/04/18 13:44, Laurent Pinchart wrote:
-> > The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
-> > include both horizontal and vertical blanking. Both the AFE and HDMI
-> > receiver program it incorrectly:
-> > 
-> > - The HDMI receiver goes to the trouble of removing blanking to compute
-> > the rate of active pixels. This is easy to fix by removing the
-> > computation and returning the incoming pixel clock rate directly.
-> > 
-> > - The AFE performs similar calculation, while it should simply return
-> > the fixed pixel rate for analog sources, mandated by the ADV748x to be
-> > 28.63636 MHz.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> This looks quite reasonable, and simplifies the code. Win win.
-> 
-> I presume this will have implications on the pixel receiver side (VIN in our
-> case)... are there changes required there, or was it 'just wrong' here.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+--
+Changes since v1:
 
-No change should be required on the VIN side. This patch was prompted by a BSP 
-patch for VIN that aimed at fixing the same issue, but in the wrong location. 
-See message 2461975.rTQ0tvdgNJ@avalon in the "[periperi] 2018-04-05 Multimedia 
-group chat report" thread (Date: Sat, 21 Apr 2018 15:49:49 +0300).
+- Rename vsp1_du_pipeline_setup_input() to
+  vsp1_du_pipeline_setup_inputs()
+- Initialize format local variable to 0 in
+  vsp1_du_pipeline_setup_output()
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 114 ++++++++++++++++++---------------
+ 1 file changed, 64 insertions(+), 50 deletions(-)
 
-> Either way,
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-As you maintain the adv748x driver, could you make sure this patch gets 
-upstream ? :-)
-
-> > ---
-> > 
-> >  drivers/media/i2c/adv748x/adv748x-afe.c  | 11 +++++------
-> >  drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
-> >  2 files changed, 6 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c
-> > b/drivers/media/i2c/adv748x/adv748x-afe.c index
-> > 61514bae7e5c..3e18d5ae813b 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-afe.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-> > @@ -321,17 +321,16 @@ static const struct v4l2_subdev_video_ops
-> > adv748x_afe_video_ops = {
-> >  static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
-> >  {
-> >  	struct v4l2_subdev *tx;
-> > -	unsigned int width, height, fps;
-> > 
-> >  	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
-> >  	if (!tx)
-> >  		return -ENOLINK;
-> > 
-> > -	width = 720;
-> > -	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> > -	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
-> > -
-> > -	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
-> > +	/*
-> > +	 * The ADV748x samples analog video signals using an externally 
-supplied
-> > +	 * clock whose frequency is required to be 28.63636 MHz.
-> > +	 */
-> > +	return adv748x_csi2_set_pixelrate(tx, 28636360);
-> >  }
-> >  
-> >  static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> > b/drivers/media/i2c/adv748x/adv748x-hdmi.c index
-> > 10d229a4f088..aecc2a84dfec 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> > @@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct
-> > adv748x_hdmi *hdmi)> 
-> >  {
-> >  	struct v4l2_subdev *tx;
-> >  	struct v4l2_dv_timings timings;
-> > -	struct v4l2_bt_timings *bt = &timings.bt;
-> > -	unsigned int fps;
-> > 
-> >  	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
-> >  	if (!tx)
-> > @@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct
-> > adv748x_hdmi *hdmi)
-> >  	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
-> > 
-> > -	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
-> > -				    V4L2_DV_BT_FRAME_WIDTH(bt) *
-> > -				    V4L2_DV_BT_FRAME_HEIGHT(bt));
-> > -
-> > -	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
-> > +	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
-> >  }
-> >  
-> >  static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 00ce99bd1605..a7cccc9b05ef 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -193,8 +193,8 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+ }
+ 
+ /* Setup the input side of the pipeline (RPFs and BRU). */
+-static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+-					struct vsp1_pipeline *pipe)
++static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
++					 struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+ 	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+@@ -276,6 +276,65 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+ 	return 0;
+ }
+ 
++/* Setup the output side of the pipeline (WPF and LIF). */
++static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
++					 struct vsp1_pipeline *pipe)
++{
++	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
++	struct v4l2_subdev_format format = { 0, };
++	int ret;
++
++	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	format.pad = RWPF_PAD_SINK;
++	format.format.width = drm_pipe->width;
++	format.format.height = drm_pipe->height;
++	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
++	format.format.field = V4L2_FIELD_NONE;
++
++	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, pipe->output->entity.index);
++
++	format.pad = RWPF_PAD_SOURCE;
++	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, pipe->output->entity.index);
++
++	format.pad = LIF_PAD_SINK;
++	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, pipe->lif->index);
++
++	/*
++	 * Verify that the format at the output of the pipeline matches the
++	 * requested frame size and media bus code.
++	 */
++	if (format.format.width != drm_pipe->width ||
++	    format.format.height != drm_pipe->height ||
++	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
++		dev_dbg(vsp1->dev, "%s: format mismatch on LIF%u\n", __func__,
++			pipe->lif->index);
++		return -EPIPE;
++	}
++
++	return 0;
++}
++
+ /* Configure all entities in the pipeline. */
+ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+ {
+@@ -356,7 +415,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_drm_pipeline *drm_pipe;
+ 	struct vsp1_pipeline *pipe;
+ 	struct vsp1_bru *bru;
+-	struct v4l2_subdev_format format;
+ 	unsigned long flags;
+ 	unsigned int i;
+ 	int ret;
+@@ -413,58 +471,14 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 		__func__, pipe_index, cfg->width, cfg->height);
+ 
+ 	/* Setup formats through the pipeline. */
+-	ret = vsp1_du_pipeline_setup_input(vsp1, pipe);
+-	if (ret < 0)
+-		return ret;
+-
+-	memset(&format, 0, sizeof(format));
+-	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	format.pad = RWPF_PAD_SINK;
+-	format.format.width = cfg->width;
+-	format.format.height = cfg->height;
+-	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
+-	format.format.field = V4L2_FIELD_NONE;
+-
+-	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
+-			       &format);
+-	if (ret < 0)
+-		return ret;
+-
+-	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
+-		__func__, format.format.width, format.format.height,
+-		format.format.code, pipe->output->entity.index);
+-
+-	format.pad = RWPF_PAD_SOURCE;
+-	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
+-			       &format);
++	ret = vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
+-		__func__, format.format.width, format.format.height,
+-		format.format.code, pipe->output->entity.index);
+-
+-	format.pad = LIF_PAD_SINK;
+-	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
+-			       &format);
++	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
+-		__func__, format.format.width, format.format.height,
+-		format.format.code, pipe_index);
+-
+-	/*
+-	 * Verify that the format at the output of the pipeline matches the
+-	 * requested frame size and media bus code.
+-	 */
+-	if (format.format.width != cfg->width ||
+-	    format.format.height != cfg->height ||
+-	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
+-		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
+-		return -EPIPE;
+-	}
+-
+ 	/* Enable the VSP1. */
+ 	ret = vsp1_device_get(vsp1);
+ 	if (ret < 0)
+@@ -612,7 +626,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+ 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+ 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+ 
+-	vsp1_du_pipeline_setup_input(vsp1, pipe);
++	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+ 	vsp1_du_pipeline_configure(pipe);
+ }
+ EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
 -- 
 Regards,
 
