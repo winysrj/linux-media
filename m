@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54472 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751310AbeD1UuU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 16:50:20 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Dave Airlie <airlied@gmail.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v3 4/8] v4l: vsp1: Document the vsp1_du_atomic_config structure
-Date: Sat, 28 Apr 2018 23:50:23 +0300
-Message-Id: <20180428205027.18025-5-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180428205027.18025-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mga14.intel.com ([192.55.52.115]:57304 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751946AbeDEKBc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 06:01:32 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 1/2] Add instructions for building static binaries
+Date: Thu,  5 Apr 2018 13:00:39 +0300
+Message-Id: <1522922440-8622-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1522922440-8622-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1522922440-8622-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The structure is used in the API that the VSP1 driver exposes to the DU
-driver. Documenting it is thus important.
+Static binaries are useful e.g. when copying test binaries to other
+systems. Document how to build them.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-Changes since v2:
+ INSTALL | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-- Fixed typo
----
- include/media/vsp1.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 68a8abe4fac5..ff7ef894465d 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -41,6 +41,16 @@ struct vsp1_du_lif_config {
- int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 		      const struct vsp1_du_lif_config *cfg);
+diff --git a/INSTALL b/INSTALL
+index 765fa26..8c98a76 100644
+--- a/INSTALL
++++ b/INSTALL
+@@ -53,6 +53,22 @@ export PKG_CONFIG_LIBDIR=/path/to/cross/root/lib
+ ./configure --host=arm-linux-gnueabihf --without-jpeg
+ make
  
-+/**
-+ * struct vsp1_du_atomic_config - VSP atomic configuration parameters
-+ * @pixelformat: plane pixel format (V4L2 4CC)
-+ * @pitch: line pitch in bytes, for all planes
-+ * @mem: DMA memory address for each plane of the frame buffer
-+ * @src: source rectangle in the frame buffer (integer coordinates)
-+ * @dst: destination rectangle on the display (integer coordinates)
-+ * @alpha: alpha value (0: fully transparent, 255: fully opaque)
-+ * @zpos: Z position of the plane (from 0 to number of planes minus 1)
-+ */
- struct vsp1_du_atomic_config {
- 	u32 pixelformat;
- 	unsigned int pitch;
++Building static binaries:
++-------------------------
++
++Fully static binares can be built by setting LDFLAGS for the configure and
++using an option for disabling shared libraries:
++
++	$ LDFLAGS="--static -static" ./configure --disable-shared
++
++Note that this requires static variants of all the libraries needed for
++linking which may not be available in all systems.
++
++In order to build binaries that are not dependent on libraries contained
++in v4l-utils, simply use the --disable-shared option:
++
++	$ ./configure --disable-shared
++
+ Android Cross Compiling and Installing:
+ ----------------
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
