@@ -1,106 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:55921 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753918AbeDTHjK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 03:39:10 -0400
-Received: by mail-it0-f65.google.com with SMTP id l83-v6so1479668ita.5
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 00:39:10 -0700 (PDT)
-Received: from mail-io0-f171.google.com (mail-io0-f171.google.com. [209.85.223.171])
-        by smtp.gmail.com with ESMTPSA id d85-v6sm560823itb.23.2018.04.20.00.39.08
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 20 Apr 2018 00:39:08 -0700 (PDT)
-Received: by mail-io0-f171.google.com with SMTP id v13-v6so9554931iob.6
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 00:39:08 -0700 (PDT)
+Received: from osg.samsung.com ([64.30.133.232]:53371 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751389AbeDEU3v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:29:51 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 00/19] Make all media drivers build with COMPILE_TEST
+Date: Thu,  5 Apr 2018 16:29:27 -0400
+Message-Id: <cover.1522959716.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com> <20180419154124.17512-3-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180419154124.17512-3-paul.kocialkowski@bootlin.com>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Fri, 20 Apr 2018 07:38:57 +0000
-Message-ID: <CAPBb6MVuyN+NdCrLQaM-7Rv0SyutgQjORBU=rZvq-dKs6RDjQA@mail.gmail.com>
-Subject: Re: [PATCH v2 02/10] media-request: Add a request complete operation
- to allow m2m scheduling
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        kyungmin.park@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        p.zabel@pengutronix.de, arnd@arndb.de,
-        Tomasz Figa <tfiga@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 12:43 AM Paul Kocialkowski <
-paul.kocialkowski@bootlin.com> wrote:
+The current media policy has been for a while to only accept new drivers 
+that compile with COMPILE_TEST.
 
-> When using the request API in the context of a m2m driver, the
-> operations that come with a m2m run scheduling call in their
-> (m2m-specific) ioctl handler are delayed until the request is queued
-> (for instance, this includes queuing buffers and streamon).
+However, there are still several drivers under that  doesn't build
+with COMPILE_TEST.
 
-> Thus, the m2m run scheduling calls are not called in due time since the
-> request AP's internal plumbing will (rightfully) use the relevant core
-> functions directly instead of the ioctl handler.
+So, this series makes the existing ones also compatible with it.
 
-> This ends up in a situation where nothing happens if there is no
-> run-scheduling ioctl called after queuing the request.
+Not building with COMPILE_TEST is a bad thing, for several reasons.
 
-> In order to circumvent the issue, a new media operation is introduced,
-> called at the time of handling the media request queue ioctl. It gives
-> m2m drivers a chance to schedule a m2m device run at that time.
+The main ones is that:
 
-> The existing req_queue operation cannot be used for this purpose, since
-> it is called with the request queue mutex held, that is eventually needed
-> in the device_run call to apply relevant controls.
+1) the licence the Kernel community has for Coverity only builds for 
+   x86. So, drivers that don't build on such archtecture were likely 
+   never tested by it.
 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> ---
->   drivers/media/media-request.c | 3 +++
->   include/media/media-device.h  | 2 ++
->   2 files changed, 5 insertions(+)
+2) That affects my per-patch handling process, with should be quick 
+   enough to not delay my patch handling process. So, I only build for one 
+   architecture (i386).
 
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index 415f7e31019d..28ac5ccfe6a2 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -157,6 +157,9 @@ static long media_request_ioctl_queue(struct
-media_request *req)
->                  media_request_get(req);
->          }
+3) When appliying a patch, I always run two static code analyzers (W=1, 
+   smatch and sparse). Those drivers weren't checked by me. At the end 
+   of the day, that leads to a lower quality check for the drivers that 
+   don't build on i386.
 
-> +       if (mdev->ops->req_complete)
-> +               mdev->ops->req_complete(req);
-> +
->          return ret;
->   }
+There are two situations on this patch series that proof the lower 
+quality of those drivers:
 
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 07e323c57202..c7dcf2079cc9 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -55,6 +55,7 @@ struct media_entity_notify {
->    * @req_alloc: Allocate a request
->    * @req_free: Free a request
->    * @req_queue: Queue a request
-> + * @req_complete: Complete a request
->    */
->   struct media_device_ops {
->          int (*link_notify)(struct media_link *link, u32 flags,
-> @@ -62,6 +63,7 @@ struct media_device_ops {
->          struct media_request *(*req_alloc)(struct media_device *mdev);
->          void (*req_free)(struct media_request *req);
->          int (*req_queue)(struct media_request *req);
-> +       void (*req_complete)(struct media_request *req);
+- There is a case of a driver that was added broken in 2013. Only two 
+  years later, someone noticed and "fixed" it by markin it as BROKEN!
 
-This is called *before* the request is actually run, isn't it? In that
-case, wouldn't something like "req_schedule" be less confusing?
-req_complete implies that the request is already completed.
+- 5 patches in this series (about 1/3) are just to fix build issues on 
+  those drivers, most of them due to gcc warnings.
+
+With this patch series, all "config FOO" and "menuconfig FOO"
+symbols under media will be built with allyes config.
+
+Tested with:
+	$ make ARCH=i386 allyesconfig
+	$ for i in  $(grep "config " $(find drivers/staging/media/ -name Kconfig) $(find drivers/media/ -name Kconfig) |grep -v "\#.*Kconfig"|cut -d' ' -f 2) ; do if [ "$(grep $i .config)" == "" ]; then echo $i; fi;done
+
+v2:
+
+- did some changes as per Laurent's feedback from the past series;
+- added a patch to compile both si470x drivers at the same time;
+- added patches to also build all media staging drivers.
+
+I opted to preserve patch 03/16 (omap3isp build) as I don't see
+any strong reason why this driver should not be allowed to
+build with COMPILE_TEST.
+
+Mauro Carvalho Chehab (19):
+  omap: omap-iommu.h: allow building drivers with COMPILE_TEST
+  media: omap3isp: allow it to build with COMPILE_TEST
+  media: omap3isp/isp: remove an unused static var
+  media: fsl-viu: mark static functions as such
+  media: fsl-viu: allow building it with COMPILE_TEST
+  media: cec_gpio: allow building CEC_GPIO with COMPILE_TEST
+  media: exymos4-is: allow compile test for EXYNOS FIMC-LITE
+  media: mmp-camera.h: add missing platform data
+  media: marvel-ccic: re-enable mmp-driver build
+  media: mmp-driver: make two functions static
+  media: davinci: allow building isif code
+  media: davinci: allow build vpbe_display with COMPILE_TEST
+  media: vpbe_venc: don't store return codes if they won't be used
+  media: davinci: get rid of lots of kernel-doc warnings
+  omap2: omapfb: allow building it with COMPILE_TEST
+  media: omap: allow building it with COMPILE_TEST
+  media: omap4iss: make it build with COMPILE_TEST
+  media: si470x: allow build both USB and I2C at the same time
+  media: staging: davinci_vpfe: allow building with COMPILE_TEST
+
+ drivers/media/platform/Kconfig                   | 12 ++---
+ drivers/media/platform/davinci/Kconfig           |  6 ++-
+ drivers/media/platform/davinci/isif.c            |  2 -
+ drivers/media/platform/davinci/vpbe.c            | 38 ++++++++-------
+ drivers/media/platform/davinci/vpbe_display.c    | 21 ++++----
+ drivers/media/platform/davinci/vpbe_osd.c        | 16 ++++---
+ drivers/media/platform/davinci/vpbe_venc.c       |  9 ++--
+ drivers/media/platform/exynos4-is/Kconfig        |  4 +-
+ drivers/media/platform/fsl-viu.c                 | 20 +++++---
+ drivers/media/platform/marvell-ccic/Kconfig      |  5 +-
+ drivers/media/platform/marvell-ccic/mmp-driver.c |  4 +-
+ drivers/media/platform/omap/Kconfig              |  8 ++--
+ drivers/media/platform/omap3isp/isp.c            | 14 +++---
+ drivers/media/radio/Kconfig                      |  4 --
+ drivers/media/radio/si470x/Kconfig               | 16 ++++++-
+ drivers/media/radio/si470x/Makefile              |  8 ++--
+ drivers/media/radio/si470x/radio-si470x-common.c | 61 +++++++++++++++++-------
+ drivers/media/radio/si470x/radio-si470x-i2c.c    | 18 ++++---
+ drivers/media/radio/si470x/radio-si470x-usb.c    | 18 ++++---
+ drivers/media/radio/si470x/radio-si470x.h        | 15 +++---
+ drivers/staging/media/davinci_vpfe/Kconfig       |  3 +-
+ drivers/staging/media/davinci_vpfe/Makefile      |  5 ++
+ drivers/staging/media/davinci_vpfe/TODO          |  1 +
+ drivers/staging/media/omap4iss/Kconfig           |  3 +-
+ drivers/video/fbdev/omap2/Kconfig                |  2 +-
+ include/linux/omap-iommu.h                       |  5 ++
+ include/linux/platform_data/media/mmp-camera.h   | 19 ++++++++
+ 27 files changed, 217 insertions(+), 120 deletions(-)
+
+-- 
+2.14.3
