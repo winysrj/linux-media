@@ -1,202 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:46461 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755398AbeDWNsx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35736 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751038AbeDELQn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:48:53 -0400
-Received: by mail-wr0-f193.google.com with SMTP id d1-v6so41457281wrj.13
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:52 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v2 08/15] media: dt-bindings: add bindings for i.MX7 media driver
-Date: Mon, 23 Apr 2018 14:47:43 +0100
-Message-Id: <20180423134750.30403-9-rui.silva@linaro.org>
-In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
+        Thu, 5 Apr 2018 07:16:43 -0400
+Date: Thu, 5 Apr 2018 14:16:42 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v6 2/2] media: video-i2c: add video-i2c driver
+Message-ID: <20180405111641.qftsnhci6kr3bbyk@valkosipuli.retiisi.org.uk>
+References: <20180401005926.18203-1-matt.ranostay@konsulko.com>
+ <20180401005926.18203-3-matt.ranostay@konsulko.com>
+ <20180405073948.4ujeavrfegln6orf@valkosipuli.retiisi.org.uk>
+ <e81722cf-5b6e-7d2b-6f6e-9c5f634a2750@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e81722cf-5b6e-7d2b-6f6e-9c5f634a2750@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for i.MX7 media drivers.
+Hi Hans,
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- .../devicetree/bindings/media/imx7.txt        | 158 ++++++++++++++++++
- 1 file changed, 158 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
+On Thu, Apr 05, 2018 at 10:04:57AM +0200, Hans Verkuil wrote:
+...
+> >> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> >> +{
+> >> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> >> +	struct video_i2c_buffer *buf, *tmp;
+> >> +
+> >> +	if (data->kthread_vid_cap)
+> >> +		return 0;
+> >> +
+> >> +	data->sequence = 0;
+> >> +	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
+> >> +					    "%s-vid-cap", data->v4l2_dev.name);
+> >> +	if (!IS_ERR(data->kthread_vid_cap))
+> >> +		return 0;
+> >> +
+> >> +	spin_lock(&data->slock);
+> >> +
+> >> +	list_for_each_entry_safe(buf, tmp, &data->vid_cap_active, list) {
+> >> +		list_del(&buf->list);
+> >> +		vb2_buffer_done(&buf->vb.vb2_buf,
+> >> +				VB2_BUF_STATE_QUEUED);
+> > 
+> > What's the purpose of this?
+> 
+> This is the error path (kthread_run failed), so all buffers need to be
+> returned to vb2.
 
-diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
-new file mode 100644
-index 000000000000..7e058ea25102
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/imx7.txt
-@@ -0,0 +1,158 @@
-+Freescale i.MX7 Media Video Device
-+==================================
-+
-+Video Media Controller node
-+---------------------------
-+
-+This is the media controller node for video capture support. It is a
-+virtual device that lists the camera serial interface nodes that the
-+media device will control.
-+
-+Required properties:
-+- compatible : "fsl,imx7-capture-subsystem";
-+- ports      : Should contain a list of phandles pointing to camera
-+		sensor interface port of CSI
-+
-+example:
-+
-+capture-subsystem {
-+	compatible = "fsl,imx7-capture-subsystem";
-+	ports = <&csi>;
-+};
-+
-+
-+mipi_csi2 node
-+--------------
-+
-+This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
-+compatible with previous version of Samsung D-phy.
-+
-+Required properties:
-+
-+- compatible    : "fsl,imx7-mipi-csi2";
-+- reg           : base address and length of the register set for the device;
-+- interrupts    : should contain MIPI CSIS interrupt;
-+- clocks        : list of clock specifiers, see
-+        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
-+- clock-names   : must contain "mipi" and "phy" entries, matching entries in the
-+                  clock property;
-+- power-domains : a phandle to the power domain, see
-+          Documentation/devicetree/bindings/power/power_domain.txt for details.
-+- reset-names   : should include following entry "mrst";
-+- resets        : a list of phandle, should contain reset entry of
-+                  reset-names;
-+- phy-supply    : from the generic phy bindings, a phandle to a regulator that
-+	          provides power to VBUS;
-+- bus-width     : maximum number of data lanes supported (SoC specific);
-+
-+Optional properties:
-+
-+- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
-+		    value when this property is not specified is 166 MHz;
-+
-+port node
-+---------
-+
-+- reg		  : (required) can take the values 0 or 1, where 0 is the
-+                     related sink port and port 1 should be the source one;
-+
-+endpoint node
-+-------------
-+
-+- data-lanes    : (required) an array specifying active physical MIPI-CSI2
-+		    data input lanes and their mapping to logical lanes; the
-+		    array's content is unused, only its length is meaningful;
-+
-+- csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
-+- csis-clk-settle : (optional) D-PHY control register;
-+- csis-wclk     : CSI-2 wrapper clock selection. If this property is present
-+		  external clock from CMU will be used, or the bus clock if
-+		  if it's not specified.
-+
-+example:
-+
-+	mipi_csi: mipi-csi@30750000 {
-+                clock-frequency = <166000000>;
-+                status = "okay";
-+                #address-cells = <1>;
-+                #size-cells = <0>;
-+
-+		compatible = "fsl,imx7-mipi-csi2";
-+		reg = <0x30750000 0x10000>;
-+		interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
-+				<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
-+		clock-names = "mipi", "phy";
-+		power-domains = <&pgc_mipi_phy>;
-+		phy-supply = <&reg_1p0d>;
-+		resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
-+		reset-names = "mrst";
-+		bus-width = <4>;
-+		status = "disabled";
-+
-+                port@0 {
-+                        reg = <0>;
-+
-+                        mipi_from_sensor: endpoint {
-+                                remote-endpoint = <&ov2680_to_mipi>;
-+                                data-lanes = <1>;
-+                                csis-hs-settle = <3>;
-+                                csis-clk-settle = <0>;
-+                                csis-wclk;
-+                        };
-+                };
-+
-+                port@1 {
-+                        reg = <1>;
-+
-+                        mipi_vc0_to_csi_mux: endpoint {
-+                                remote-endpoint = <&csi_mux_from_mipi_vc0>;
-+                        };
-+                };
-+	};
-+
-+
-+csi node
-+--------
-+
-+This is device node for the CMOS Sensor Interface (CSI) which enables the chip
-+to connect directly to external CMOS image sensors.
-+
-+Required properties:
-+
-+- compatible    : "fsl,imx7-csi";
-+- reg           : base address and length of the register set for the device;
-+- interrupts    : should contain CSI interrupt;
-+- clocks        : list of clock specifiers, see
-+        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
-+- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
-+                 entries in the clock property;
-+
-+port node
-+---------
-+
-+- reg		  : (required) should be 0 for the sink port;
-+
-+example:
-+
-+		csi: csi@30710000 {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+
-+			compatible = "fsl,imx7-csi";
-+			reg = <0x30710000 0x10000>;
-+			interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&clks IMX7D_CLK_DUMMY>,
-+					<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
-+					<&clks IMX7D_CLK_DUMMY>;
-+			clock-names = "axi", "mclk", "dcic";
-+			status = "disabled";
-+
-+                        port@0 {
-+                                reg = <0>;
-+
-+                                csi_from_csi_mux: endpoint {
-+                                        remote-endpoint = <&csi_mux_to_csi>;
-+                                };
-+                        };
-+		};
+Ah, I missed that. Then, Matt, please ignore this comment and the one
+below.
+
+> 
+> > 
+> >> +	}
+> >> +
+> >> +	spin_unlock(&data->slock);
+> >> +
+> >> +	return PTR_ERR(data->kthread_vid_cap);
+> > 
+> > How about 0 instead?
+> 
+> This is the error path, so the error should be returned here. This code
+> is correct.
+> 
+> > 
+> >> +}
+> >> +
+> >> +static void stop_streaming(struct vb2_queue *vq)
+> >> +{
+> >> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> >> +
+> >> +	if (data->kthread_vid_cap == NULL)
+> >> +		return;
+> >> +
+> >> +	kthread_stop(data->kthread_vid_cap);
+> >> +
+> >> +	spin_lock(&data->slock);
+> >> +
+> >> +	while (!list_empty(&data->vid_cap_active)) {
+> >> +		struct video_i2c_buffer *buf;
+> >> +
+> >> +		buf = list_entry(data->vid_cap_active.next,
+> > 
+> > list_last_entry(&data->vid_cap_active, ...)?
+> 
+> Why? You're deleting the list, so whether you pick the first
+> or last element really doesn't matter.
+
+I rather wanted to suggest that there's no need to explicitly access the
+linked list related structs, functions such as list_last_entry() (or
+list_first_entry()) can be used instead.
+
+It'd be also nice to align the loop construct with error handling path in
+start_streaming() function above as they're doing the same things.
+
+> > 
+> >> +				 struct video_i2c_buffer, list);
+> >> +		list_del(&buf->list);
+> >> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+> >> +	}
+> >> +	spin_unlock(&data->slock);
+> >> +
+> >> +	data->kthread_vid_cap = NULL;
+
 -- 
-2.17.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
