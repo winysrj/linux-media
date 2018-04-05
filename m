@@ -1,96 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:48004 "EHLO pokefinder.org"
+Received: from osg.samsung.com ([64.30.133.232]:47125 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752153AbeDSUA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 16:00:26 -0400
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>,
-        linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-omap@vger.kernel.org,
-        linux-sh@vger.kernel.org
-Subject: [PATCH 0/7] i2c: clean up include/linux/i2c-*
-Date: Thu, 19 Apr 2018 22:00:06 +0200
-Message-Id: <20180419200015.15095-1-wsa@the-dreams.de>
+        id S1751573AbeDERyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 13:54:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH 02/16] media: omap3isp: allow it to build with COMPILE_TEST
+Date: Thu,  5 Apr 2018 13:54:02 -0400
+Message-Id: <f618981fec34acc5eee211b34a0018752634af9c.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move all plain platform_data includes to the platform_data-dir
-(except for i2c-pnx which can be moved into the driver itself).
+There aren't much things required for it to build with COMPILE_TEST.
+It just needs to provide stub for an arm-dependent include.
 
-My preference is to take these patches via the i2c tree. I can provide an
-immutable branch if needed. But we can also discuss those going in via
-arch-trees if dependencies are against us.
+Let's replicate the same solution used by ipmmu-vmsa, in order
+to allow building omap3 with COMPILE_TEST.
 
-The current branch can be found here:
+The actual logic here came from this driver:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/platform_data
+   drivers/iommu/ipmmu-vmsa.c
 
-and buildbot had no complaints.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/Kconfig        | 8 ++++----
+ drivers/media/platform/omap3isp/isp.c | 7 +++++++
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-Looking forward to comments or Acks, Revs...
-
-Kind regards,
-
-   Wolfram
-
-
-Wolfram Sang (7):
-  i2c: i2c-gpio: move header to platform_data
-  i2c: i2c-mux-gpio: move header to platform_data
-  i2c: i2c-ocores: move header to platform_data
-  i2c: i2c-omap: move header to platform_data
-  i2c: i2c-pca-platform: move header to platform_data
-  i2c: i2c-xiic: move header to platform_data
-  i2c: pnx: move header into the driver
-
- Documentation/i2c/busses/i2c-ocores                |  2 +-
- Documentation/i2c/muxes/i2c-mux-gpio               |  4 +--
- MAINTAINERS                                        |  8 ++---
- arch/arm/mach-ks8695/board-acs5k.c                 |  2 +-
- arch/arm/mach-omap1/board-htcherald.c              |  2 +-
- arch/arm/mach-omap1/common.h                       |  2 +-
- arch/arm/mach-omap1/i2c.c                          |  2 +-
- arch/arm/mach-omap2/common.h                       |  2 +-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +-
- arch/arm/mach-pxa/palmz72.c                        |  2 +-
- arch/arm/mach-pxa/viper.c                          |  2 +-
- arch/arm/mach-sa1100/simpad.c                      |  2 +-
- arch/mips/alchemy/board-gpr.c                      |  2 +-
- arch/sh/boards/board-sh7785lcr.c                   |  2 +-
- drivers/i2c/busses/i2c-gpio.c                      |  2 +-
- drivers/i2c/busses/i2c-i801.c                      |  2 +-
- drivers/i2c/busses/i2c-ocores.c                    |  2 +-
- drivers/i2c/busses/i2c-omap.c                      |  2 +-
- drivers/i2c/busses/i2c-pca-platform.c              |  2 +-
- drivers/i2c/busses/i2c-pnx.c                       | 21 +++++++++++-
- drivers/i2c/busses/i2c-xiic.c                      |  2 +-
- drivers/i2c/muxes/i2c-mux-gpio.c                   |  2 +-
- drivers/media/platform/marvell-ccic/mmp-driver.c   |  2 +-
- drivers/mfd/sm501.c                                |  2 +-
- drivers/mfd/timberdale.c                           |  4 +--
- include/linux/i2c-pnx.h                            | 38 ----------------------
- include/linux/{ => platform_data}/i2c-gpio.h       |  0
- include/linux/{ => platform_data}/i2c-mux-gpio.h   |  0
- include/linux/{ => platform_data}/i2c-ocores.h     |  0
- include/linux/{ => platform_data}/i2c-omap.h       |  0
- .../linux/{ => platform_data}/i2c-pca-platform.h   |  0
- include/linux/{ => platform_data}/i2c-xiic.h       |  0
- 38 files changed, 55 insertions(+), 74 deletions(-)
- delete mode 100644 include/linux/i2c-pnx.h
- rename include/linux/{ => platform_data}/i2c-gpio.h (100%)
- rename include/linux/{ => platform_data}/i2c-mux-gpio.h (100%)
- rename include/linux/{ => platform_data}/i2c-ocores.h (100%)
- rename include/linux/{ => platform_data}/i2c-omap.h (100%)
- rename include/linux/{ => platform_data}/i2c-pca-platform.h (100%)
- rename include/linux/{ => platform_data}/i2c-xiic.h (100%)
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index c7a1cf8a1b01..03c9dfeb7781 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -62,12 +62,12 @@ config VIDEO_MUX
+ 
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support"
+-	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	depends on HAS_DMA && OF
+-	depends on OMAP_IOMMU
+-	select ARM_DMA_USE_IOMMU
++	depends on ((ARCH_OMAP3 && OMAP_IOMMU) || COMPILE_TEST)
++	select ARM_DMA_USE_IOMMU if OMAP_IOMMU
+ 	select VIDEOBUF2_DMA_CONTIG
+-	select MFD_SYSCON
++	select MFD_SYSCON if ARCH_OMAP3
+ 	select V4L2_FWNODE
+ 	---help---
+ 	  Driver for an OMAP 3 camera controller.
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 8eb000e3d8fd..2a11a709aa4f 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -61,7 +61,14 @@
+ #include <linux/sched.h>
+ #include <linux/vmalloc.h>
+ 
++#if defined(CONFIG_ARM) && !defined(CONFIG_IOMMU_DMA)
+ #include <asm/dma-iommu.h>
++#else
++#define arm_iommu_create_mapping(...)	NULL
++#define arm_iommu_attach_device(...)	-ENODEV
++#define arm_iommu_release_mapping(...)	do {} while (0)
++#define arm_iommu_detach_device(...)	do {} while (0)
++#endif
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-fwnode.h>
 -- 
-2.11.0
+2.14.3
