@@ -1,39 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:51686 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:46573 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751946AbeDFPdZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 11:33:25 -0400
+        id S1751593AbeDEU34 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:29:56 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] media: meye: relax dependencies if COMPILE_TEST
-Date: Fri,  6 Apr 2018 11:33:19 -0400
-Message-Id: <96572680e698fc554310e18cd6a166a0fb3bf32c.1523028795.git.mchehab@s-opensource.com>
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 03/19] media: omap3isp/isp: remove an unused static var
+Date: Thu,  5 Apr 2018 16:29:30 -0400
+Message-Id: <66cc140f94014b062ab2720564405e1a24f0cd1e.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver can be built successfuly on non-x86 archs, if
-we remove SONY_LAPTOP dependency.
+The isp_xclk_init_data const data isn't used anywere.
 
+drivers/media/platform/omap3isp/isp.c:294:35: warning: ‘isp_xclk_init_data’ defined but not used [-Wunused-const-variable=]
+ static const struct clk_init_data isp_xclk_init_data = {
+                                   ^~~~~~~~~~~~~~~~~~
+
+Fixes: 9b28ee3c9122 ("[media] omap3isp: Use the common clock framework")
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/meye/Kconfig | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/isp.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/media/pci/meye/Kconfig b/drivers/media/pci/meye/Kconfig
-index b4bf848be5a0..2e60334ffef5 100644
---- a/drivers/media/pci/meye/Kconfig
-+++ b/drivers/media/pci/meye/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_MEYE
- 	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
--	depends on PCI && SONY_LAPTOP && VIDEO_V4L2
-+	depends on PCI && VIDEO_V4L2
-+	depends on SONY_LAPTOP || COMPILE_TEST
- 	---help---
- 	  This is the video4linux driver for the Motion Eye camera found
- 	  in the Vaio Picturebook laptops. Please read the material in
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 2a11a709aa4f..9e4b5fb8a8b5 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -291,13 +291,6 @@ static const struct clk_ops isp_xclk_ops = {
+ 
+ static const char *isp_xclk_parent_name = "cam_mclk";
+ 
+-static const struct clk_init_data isp_xclk_init_data = {
+-	.name = "cam_xclk",
+-	.ops = &isp_xclk_ops,
+-	.parent_names = &isp_xclk_parent_name,
+-	.num_parents = 1,
+-};
+-
+ static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
+ {
+ 	unsigned int idx = clkspec->args[0];
 -- 
 2.14.3
