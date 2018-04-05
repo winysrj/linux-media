@@ -1,96 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:45166 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752833AbeDLQvf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 12:51:35 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Luca Ceresoli <luca@lucaceresoli.net>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 09/13] imx274: get rid of mode_index
-Date: Thu, 12 Apr 2018 18:51:14 +0200
-Message-Id: <1523551878-15754-10-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
-References: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
+Received: from osg.samsung.com ([64.30.133.232]:60951 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751704AbeDEU37 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 16:29:59 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Kees Cook <keescook@chromium.org>
+Subject: [PATCH v2 05/19] media: fsl-viu: allow building it with COMPILE_TEST
+Date: Thu,  5 Apr 2018 16:29:32 -0400
+Message-Id: <c775f08a02056728cb6a8ecfa6c80b6610106a22.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After restructuring struct imx274_frmfmt, the mode_index field is
-still in use only for two dev_dbg() calls in imx274_s_stream(). Let's
-remove it and avoid duplicated information.
+There aren't many things that would be needed to allow it
+to build with compile test.
 
-Replacing the first usage requires a rather annoying but trivial
-computation. The other one can be removed entirely since it prints the
-same value anyway.
+Add the needed bits.
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/imx274.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/media/platform/Kconfig   | 2 +-
+ drivers/media/platform/fsl-viu.c | 8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 2ec31ae4e60d..25907d0817a4 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -553,8 +553,6 @@ struct imx274_ctrls {
-  * @reset_gpio: Pointer to reset gpio
-  * @lock: Mutex structure
-  * @mode: Parameters for the selected readout mode
-- *        (points to imx274_formats[mode_index])
-- * @mode_index: Resolution mode index
-  */
- struct stimx274 {
- 	struct v4l2_subdev sd;
-@@ -567,7 +565,6 @@ struct stimx274 {
- 	struct gpio_desc *reset_gpio;
- 	struct mutex lock; /* mutex lock for operations */
- 	const struct imx274_frmfmt *mode;
--	u32 mode_index;
- };
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 03c9dfeb7781..e6eb1eb776e1 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -42,7 +42,7 @@ config VIDEO_SH_VOU
  
- /*
-@@ -880,7 +877,6 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
- 		index = 0;
- 	}
+ config VIDEO_VIU
+ 	tristate "Freescale VIU Video Driver"
+-	depends on VIDEO_V4L2 && PPC_MPC512x
++	depends on VIDEO_V4L2 && (PPC_MPC512x || COMPILE_TEST)
+ 	select VIDEOBUF_DMA_CONTIG
+ 	default y
+ 	---help---
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 9abe79779659..466053e00378 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -36,6 +36,14 @@
+ #define DRV_NAME		"fsl_viu"
+ #define VIU_VERSION		"0.5.1"
  
--	imx274->mode_index = index;
- 	imx274->mode = &imx274_formats[index];
++/* Allow building this driver with COMPILE_TEST */
++#ifndef CONFIG_PPC_MPC512x
++#define NO_IRQ   0
++
++#define out_be32(v, a)	writel(a, v)
++#define in_be32(a) readl(a)
++#endif
++
+ #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
  
- 	if (fmt->width > IMX274_MAX_WIDTH)
-@@ -1028,8 +1024,9 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
- 	struct stimx274 *imx274 = to_imx274(sd);
- 	int ret = 0;
- 
--	dev_dbg(&imx274->client->dev, "%s : %s, mode index = %d\n", __func__,
--		on ? "Stream Start" : "Stream Stop", imx274->mode_index);
-+	dev_dbg(&imx274->client->dev, "%s : %s, mode index %lu\n", __func__,
-+		on ? "Stream Start" : "Stream Stop",
-+		imx274->mode - &imx274_formats[0]);
- 
- 	mutex_lock(&imx274->lock);
- 
-@@ -1068,8 +1065,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
- 	}
- 
- 	mutex_unlock(&imx274->lock);
--	dev_dbg(&imx274->client->dev,
--		"%s : Done: mode = %d\n", __func__, imx274->mode_index);
-+	dev_dbg(&imx274->client->dev, "%s : Done\n", __func__);
- 	return 0;
- 
- fail:
-@@ -1625,8 +1621,7 @@ static int imx274_probe(struct i2c_client *client,
- 	mutex_init(&imx274->lock);
- 
- 	/* initialize format */
--	imx274->mode_index = IMX274_MODE_3840X2160;
--	imx274->mode = &imx274_formats[imx274->mode_index];
-+	imx274->mode = &imx274_formats[IMX274_MODE_3840X2160];
- 	imx274->format.width = imx274->mode->size.width;
- 	imx274->format.height = imx274->mode->size.height;
- 	imx274->format.field = V4L2_FIELD_NONE;
+ #define	VIU_VID_MEM_LIMIT	4	/* Video memory limit, in Mb */
 -- 
-2.7.4
+2.14.3
