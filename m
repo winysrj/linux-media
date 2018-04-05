@@ -1,591 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:38688 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750814AbeDYULK (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45226 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751318AbeDEKQS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 16:11:10 -0400
-Received: by mail-pg0-f65.google.com with SMTP id n9so1318535pgq.5
-        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2018 13:11:10 -0700 (PDT)
+        Thu, 5 Apr 2018 06:16:18 -0400
+Subject: Re: [PATCH v2] media: v4l2-core: fix size of devnode_nums[] bitarray
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        stable@vger.kernel.org
+References: <cd8f4bdfa2f2a00aa4ddc85bc54ad66c5aba6db8.1522923217.git.mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2691db91-fa6a-0f9a-79bd-b5a552567b33@xs4all.nl>
+Date: Thu, 5 Apr 2018 12:16:13 +0200
 MIME-Version: 1.0
-In-Reply-To: <c053b011-4273-7b32-71f0-f6b6054a7be2@xs4all.nl>
-References: <20180309174920.22373-1-gustavo@padovan.org> <20180309174920.22373-10-gustavo@padovan.org>
- <c053b011-4273-7b32-71f0-f6b6054a7be2@xs4all.nl>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Wed, 25 Apr 2018 17:11:08 -0300
-Message-ID: <CAAEAJfBs2SpXxHEKvhuxq_hDQhoeNB+HysrN6KG5Qk7qanxLtw@mail.gmail.com>
-Subject: Re: [PATCH v8 09/13] [media] vb2: add in-fence support to QBUF
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Gustavo Padovan <gustavo@padovan.org>,
-        linux-media <linux-media@vger.kernel.org>, kernel@collabora.com,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <cd8f4bdfa2f2a00aa4ddc85bc54ad66c5aba6db8.1522923217.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14 March 2018 at 12:55, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 03/09/2018 09:49 AM, Gustavo Padovan wrote:
->> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->>
->> Receive in-fence from userspace and add support for waiting on them
->> before queueing the buffer to the driver. Buffers can't be queued to the
->> driver before its fences signal. And a buffer can't be queue to the driv=
-er
->
-> queue -> queued
->
->> out of the order they were queued from userspace. That means that even i=
-f
->> it fence signal it must wait all other buffers, ahead of it in the queue=
-,
->
-> it fence signal -> its fence signals
-> wait all -> wait for all
->
->> to signal first.
->>
->> If the fence for some buffer fails we do not queue it to the driver,
->> instead we mark it as error and wait until the previous buffer is done
->> to notify userspace of the error. We wait here to deliver the buffers ba=
-ck
->> to userspace in order.
->>
->> v9:   - rename fence to in_fence in many places
->>       - handle fences signalling with error better (Hans Verkuil)
->>
->> v8:   - improve comments and docs (Hans Verkuil)
->>       - fix unlocking of vb->fence_cb_lock on vb2_core_qbuf (Hans Verkui=
-l)
->>       - move in-fences code that was in the out-fences patch here (Alex)
->>
->> v8:   - improve comments about fences with errors
->
-> v9? Two v8 entries?
->
->>
->> v7:
->>       - get rid of the fence array stuff for ordering and just use
->>       get_num_buffers_ready() (Hans)
->>       - fix issue of queuing the buffer twice (Hans)
->>       - avoid the dma_fence_wait() in core_qbuf() (Alex)
->>       - merge preparation commit in
->>
->> v6:
->>       - With fences always keep the order userspace queues the buffers.
->>       - Protect in_fence manipulation with a lock (Brian Starkey)
->>       - check if fences have the same context before adding a fence arra=
-y
->>       - Fix last_fence ref unbalance in __set_in_fence() (Brian Starkey)
->>       - Clean up fence if __set_in_fence() fails (Brian Starkey)
->>       - treat -EINVAL from dma_fence_add_callback() (Brian Starkey)
->>
->> v5:   - use fence_array to keep buffers ordered in vb2 core when
->>       needed (Brian Starkey)
->>       - keep backward compat on the reserved2 field (Brian Starkey)
->>       - protect fence callback removal with lock (Brian Starkey)
->>
->> v4:
->>       - Add a comment about dma_fence_add_callback() not returning a
->>       error (Hans)
->>       - Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
->>       - select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
->>       - Move dma_fence_is_signaled() check to __enqueue_in_driver() (Han=
-s)
->>       - Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
->>       -  Remove if (vb->state !=3D VB2_BUF_STATE_QUEUED) from
->>       vb2_start_streaming() (Hans)
->>       - set IN_FENCE flags on __fill_v4l2_buffer (Hans)
->>       - Queue buffers to the driver as soon as they are ready (Hans)
->>       - call fill_user_buffer() after queuing the buffer (Hans)
->>       - add err: label to clean up fence
->>       - add dma_fence_wait() before calling vb2_start_streaming()
->>
->> v3:   - document fence parameter
->>       - remove ternary if at vb2_qbuf() return (Mauro)
->>       - do not change if conditions behaviour (Mauro)
->>
->> v2:
->>       - fix vb2_queue_or_prepare_buf() ret check
->>       - remove check for VB2_MEMORY_DMABUF only (Javier)
->>       - check num of ready buffers to start streaming
->>       - when queueing, start from the first ready buffer
->>       - handle queue cancel
->>
->> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
->> ---
->>  drivers/media/common/videobuf2/videobuf2-core.c | 197 +++++++++++++++++=
-+++----
->>  drivers/media/common/videobuf2/videobuf2-v4l2.c |  34 +++-
->>  drivers/media/v4l2-core/Kconfig                 |  33 ++++
->>  include/media/videobuf2-core.h                  |  14 +-
->>  4 files changed, 248 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/m=
-edia/common/videobuf2/videobuf2-core.c
->> index d3f7bb33a54d..5de5e35cfc40 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-core.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
->> @@ -352,6 +352,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, en=
-um vb2_memory memory,
->>               vb->index =3D q->num_buffers + buffer;
->>               vb->type =3D q->type;
->>               vb->memory =3D memory;
->> +             spin_lock_init(&vb->fence_cb_lock);
->>               for (plane =3D 0; plane < num_planes; ++plane) {
->>                       vb->planes[plane].length =3D plane_sizes[plane];
->>                       vb->planes[plane].min_length =3D plane_sizes[plane=
-];
->> @@ -891,20 +892,12 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsi=
-gned int plane_no)
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
->>
->> -void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state=
-)
->> +static void vb2_process_buffer_done(struct vb2_buffer *vb, enum vb2_buf=
-fer_state state)
->>  {
->>       struct vb2_queue *q =3D vb->vb2_queue;
->>       unsigned long flags;
->>       unsigned int plane;
->>
->> -     if (WARN_ON(vb->state !=3D VB2_BUF_STATE_ACTIVE))
->> -             return;
->> -
->> -     if (WARN_ON(state !=3D VB2_BUF_STATE_DONE &&
->> -                 state !=3D VB2_BUF_STATE_ERROR &&
->> -                 state !=3D VB2_BUF_STATE_QUEUED &&
->> -                 state !=3D VB2_BUF_STATE_REQUEUEING))
->> -             state =3D VB2_BUF_STATE_ERROR;
->>
->>  #ifdef CONFIG_VIDEO_ADV_DEBUG
->>       /*
->> @@ -921,6 +914,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2=
-_buffer_state state)
->>               call_void_memop(vb, finish, vb->planes[plane].mem_priv);
->>
->>       spin_lock_irqsave(&q->done_lock, flags);
->> +     if (vb->state =3D=3D VB2_BUF_STATE_ACTIVE)
->> +             atomic_dec(&q->owned_by_drv_count);
->> +
->>       if (state =3D=3D VB2_BUF_STATE_QUEUED ||
->>           state =3D=3D VB2_BUF_STATE_REQUEUEING) {
->>               vb->state =3D VB2_BUF_STATE_QUEUED;
->> @@ -929,7 +925,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2=
-_buffer_state state)
->>               list_add_tail(&vb->done_entry, &q->done_list);
->>               vb->state =3D state;
->>       }
->> -     atomic_dec(&q->owned_by_drv_count);
->> +
->>       spin_unlock_irqrestore(&q->done_lock, flags);
->>
->>       trace_vb2_buf_done(q, vb);
->> @@ -946,6 +942,36 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb=
-2_buffer_state state)
->>               wake_up(&q->done_wq);
->>               break;
->>       }
->> +
->> +}
->> +
->> +void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state=
-)
->> +{
->> +     if (WARN_ON(vb->state !=3D VB2_BUF_STATE_ACTIVE))
->> +             return;
->> +
->> +     if (WARN_ON(state !=3D VB2_BUF_STATE_DONE &&
->> +                 state !=3D VB2_BUF_STATE_ERROR &&
->> +                 state !=3D VB2_BUF_STATE_QUEUED &&
->> +                 state !=3D VB2_BUF_STATE_REQUEUEING))
->> +             state =3D VB2_BUF_STATE_ERROR;
->> +
->> +     vb2_process_buffer_done(vb, state);
->> +
->> +     /*
->> +      * Check if there is any buffer with error in the next position of=
- the queue,
->> +      * buffers whose in-fence signaled with error are not queued to th=
-e driver
->> +      * and kept on the queue until the buffer before them is done, so =
-to not
->> +      * delivery buffers back to userspace in the wrong order. Here we =
-process
->
-> delivery -> deliver
->
->> +      * any existing buffers with errors and wake up userspace.
->> +      */
->> +     for (;;) {
->> +             vb =3D list_next_entry(vb, queued_entry);
->> +             if (!vb || vb->state !=3D VB2_BUF_STATE_ERROR)
->> +                     break;
->> +
->> +             vb2_process_buffer_done(vb, VB2_BUF_STATE_ERROR);
->> +        }
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_buffer_done);
->>
->> @@ -1230,6 +1256,9 @@ static void __enqueue_in_driver(struct vb2_buffer =
-*vb)
->>  {
->>       struct vb2_queue *q =3D vb->vb2_queue;
->>
->> +     if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
->> +             return;
->> +
->>       vb->state =3D VB2_BUF_STATE_ACTIVE;
->>       atomic_inc(&q->owned_by_drv_count);
->>
->> @@ -1281,6 +1310,24 @@ static int __buf_prepare(struct vb2_buffer *vb, c=
-onst void *pb)
->>       return 0;
->>  }
->>
->> +static int __get_num_ready_buffers(struct vb2_queue *q)
->> +{
->> +     struct vb2_buffer *vb;
->> +     int ready_count =3D 0;
->> +     unsigned long flags;
->> +
->> +     /* count num of buffers ready in front of the queued_list */
->> +     list_for_each_entry(vb, &q->queued_list, queued_entry) {
->> +             spin_lock_irqsave(&vb->fence_cb_lock, flags);
->> +             if (vb->in_fence && !dma_fence_is_signaled(vb->in_fence))
->> +                     break;
->> +             ready_count++;
->> +             spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->> +     }
->> +
->> +     return ready_count;
->> +}
->> +
->>  int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void =
-*pb)
->>  {
->>       struct vb2_buffer *vb;
->> @@ -1369,9 +1416,43 @@ static int vb2_start_streaming(struct vb2_queue *=
-q)
->>       return ret;
->>  }
->>
->> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->> +static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb =
-*cb)
->> +{
->> +     struct vb2_buffer *vb =3D container_of(cb, struct vb2_buffer, fenc=
-e_cb);
->> +     struct vb2_queue *q =3D vb->vb2_queue;
->> +     unsigned long flags;
->> +
->> +     spin_lock_irqsave(&vb->fence_cb_lock, flags);
->> +     /*
->> +      * If the fence signals with an error we mark the buffer as such
->> +      * and avoid using it by setting it to VB2_BUF_STATE_ERROR and
->> +      * not queueing it to the driver. However we can't notify the erro=
-r
->> +      * to userspace right now because, at the time this callback run, =
-QBUF
->> +      * returned already.
->
-> returned -> has returned
->
->> +      * So we delay that to DQBUF time. See comments in vb2_buffer_done=
-()
->> +      * as well.
->> +      */
->> +     if (vb->in_fence->error)
->> +             vb->state =3D VB2_BUF_STATE_ERROR;
->> +
->> +     dma_fence_put(vb->in_fence);
->> +     vb->in_fence =3D NULL;
->> +
->> +     if (vb->state =3D=3D VB2_BUF_STATE_ERROR) {
->> +             spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->> +             return;
->> +     }
->> +
->> +     if (q->start_streaming_called)
->> +             __enqueue_in_driver(vb);
->> +     spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->> +}
->> +
->> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
->> +               struct dma_fence *in_fence)
->>  {
->>       struct vb2_buffer *vb;
->> +     unsigned long flags;
->>       int ret;
->>
->>       vb =3D q->bufs[index];
->> @@ -1380,16 +1461,18 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned =
-int index, void *pb)
->>       case VB2_BUF_STATE_DEQUEUED:
->>               ret =3D __buf_prepare(vb, pb);
->>               if (ret)
->> -                     return ret;
->> +                     goto err;
->>               break;
->>       case VB2_BUF_STATE_PREPARED:
->>               break;
->>       case VB2_BUF_STATE_PREPARING:
->>               dprintk(1, "buffer still being prepared\n");
->> -             return -EINVAL;
->> +             ret =3D -EINVAL;
->> +             goto err;
->>       default:
->>               dprintk(1, "invalid buffer state %d\n", vb->state);
->> -             return -EINVAL;
->> +             ret =3D -EINVAL;
->> +             goto err;
->>       }
->>
->>       /*
->> @@ -1400,6 +1483,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned in=
-t index, void *pb)
->>       q->queued_count++;
->>       q->waiting_for_buffers =3D false;
->>       vb->state =3D VB2_BUF_STATE_QUEUED;
->> +     vb->in_fence =3D in_fence;
->>
->>       if (pb)
->>               call_void_bufop(q, copy_timestamp, vb, pb);
->> @@ -1407,15 +1491,40 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned =
-int index, void *pb)
->>       trace_vb2_qbuf(q, vb);
->>
->>       /*
->> -      * If already streaming, give the buffer to driver for processing.
->> -      * If not, the buffer will be given to driver on next streamon.
->> +      * For explicit synchronization: If the fence didn't signal
->> +      * yet we setup a callback to queue the buffer once the fence
->> +      * signals, and then, return successfully. But if the fence
->
-> , and then, -> and then (no commas)
->
->> +      * already signaled we lose the reference we held and queue the
->> +      * buffer to the driver.
->>        */
->> -     if (q->start_streaming_called)
->> -             __enqueue_in_driver(vb);
->> +     spin_lock_irqsave(&vb->fence_cb_lock, flags);
->> +     if (vb->in_fence) {
->> +             ret =3D dma_fence_add_callback(vb->in_fence, &vb->fence_cb=
-,
->> +                                          vb2_qbuf_fence_cb);
->> +             /* is the fence signaled? */
->> +             if (ret =3D=3D -ENOENT) {
->> +                     dma_fence_put(vb->in_fence);
->> +                     vb->in_fence =3D NULL;
->> +             } else if (ret) {
->> +                     goto unlock;
->> +             }
->> +     }
->>
->> -     /* Fill buffer information for the userspace */
->> -     if (pb)
->> -             call_void_bufop(q, fill_user_buffer, vb, pb);
->> +     /*
->> +      * If already streaming and there is no fence to wait on
->> +      * give the buffer to driver for processing.
->> +      */
->> +     if (q->start_streaming_called) {
->> +             struct vb2_buffer *b;
->> +
->> +             list_for_each_entry(b, &q->queued_list, queued_entry) {
->> +                     if (b->state !=3D VB2_BUF_STATE_QUEUED)
->> +                             continue;
->> +                     if (b->in_fence)
->> +                             break;
->> +                     __enqueue_in_driver(b);
->> +             }
->> +     }
->>
->>       /*
->>        * If streamon has been called, and we haven't yet called
->> @@ -1424,14 +1533,36 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned =
-int index, void *pb)
->>        * then we can finally call start_streaming().
->>        */
->>       if (q->streaming && !q->start_streaming_called &&
->> -         q->queued_count >=3D q->min_buffers_needed) {
->> +         __get_num_ready_buffers(q) >=3D q->min_buffers_needed) {
->>               ret =3D vb2_start_streaming(q);
->>               if (ret)
->> -                     return ret;
->> +                     goto unlock;
->>       }
->>
->> +     spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->> +
->> +     /* Fill buffer information for the userspace */
->> +     if (pb)
->> +             call_void_bufop(q, fill_user_buffer, vb, pb);
->> +
->>       dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
->>       return 0;
->> +
->> +unlock:
->> +     spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->> +
->> +err:
->> +     /* Fill buffer information for the userspace */
->> +     if (pb)
->> +             call_void_bufop(q, fill_user_buffer, vb, pb);
->> +
->> +     if (vb->in_fence) {
->> +             dma_fence_put(vb->in_fence);
->> +             vb->in_fence =3D NULL;
->> +     }
->> +
->> +     return ret;
->> +
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
->>
->> @@ -1642,6 +1773,8 @@ EXPORT_SYMBOL_GPL(vb2_core_dqbuf);
->>  static void __vb2_queue_cancel(struct vb2_queue *q)
->>  {
->>       unsigned int i;
->> +     struct vb2_buffer *vb;
->> +     unsigned long flags;
->>
->>       /*
->>        * Tell driver to stop all transactions and release all queued
->> @@ -1672,6 +1805,16 @@ static void __vb2_queue_cancel(struct vb2_queue *=
-q)
->>       q->queued_count =3D 0;
->>       q->error =3D 0;
->>
->> +     list_for_each_entry(vb, &q->queued_list, queued_entry) {
->> +             spin_lock_irqsave(&vb->fence_cb_lock, flags);
->> +             if (vb->in_fence) {
->> +                     dma_fence_remove_callback(vb->in_fence, &vb->fence=
-_cb);
->> +                     dma_fence_put(vb->in_fence);
->> +                     vb->in_fence =3D NULL;
->> +             }
->> +             spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->> +     }
->> +
->>       /*
->>        * Remove all buffers from videobuf's list...
->>        */
->> @@ -1742,7 +1885,7 @@ int vb2_core_streamon(struct vb2_queue *q, unsigne=
-d int type)
->>        * Tell driver to start streaming provided sufficient buffers
->>        * are available.
->>        */
->> -     if (q->queued_count >=3D q->min_buffers_needed) {
->> +     if (__get_num_ready_buffers(q) >=3D q->min_buffers_needed) {
->>               ret =3D v4l_vb2q_enable_media_source(q);
->>               if (ret)
->>                       return ret;
->> @@ -2264,7 +2407,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, =
-int read)
->>                * Queue all buffers.
->>                */
->>               for (i =3D 0; i < q->num_buffers; i++) {
->> -                     ret =3D vb2_core_qbuf(q, i, NULL);
->> +                     ret =3D vb2_core_qbuf(q, i, NULL, NULL);
->>                       if (ret)
->>                               goto err_reqbufs;
->>                       fileio->bufs[i].queued =3D 1;
->> @@ -2443,7 +2586,7 @@ static size_t __vb2_perform_fileio(struct vb2_queu=
-e *q, char __user *data, size_
->>
->>               if (copy_timestamp)
->>                       b->timestamp =3D ktime_get_ns();
->> -             ret =3D vb2_core_qbuf(q, index, NULL);
->> +             ret =3D vb2_core_qbuf(q, index, NULL, NULL);
->>               dprintk(5, "vb2_dbuf result: %d\n", ret);
->>               if (ret)
->>                       return ret;
->> @@ -2546,7 +2689,7 @@ static int vb2_thread(void *data)
->>               if (copy_timestamp)
->>                       vb->timestamp =3D ktime_get_ns();
->>               if (!threadio->stop)
->> -                     ret =3D vb2_core_qbuf(q, vb->index, NULL);
->> +                     ret =3D vb2_core_qbuf(q, vb->index, NULL, NULL);
->>               call_void_qop(q, wait_prepare, q);
->>               if (ret || threadio->stop)
->>                       break;
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/m=
-edia/common/videobuf2/videobuf2-v4l2.c
->> index ad1e032c3bf5..1df5dd01c0cd 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -23,6 +23,7 @@
->>  #include <linux/sched.h>
->>  #include <linux/freezer.h>
->>  #include <linux/kthread.h>
->> +#include <linux/sync_file.h>
->>
->>  #include <media/v4l2-dev.h>
->>  #include <media/v4l2-fh.h>
->> @@ -178,6 +179,17 @@ static int vb2_queue_or_prepare_buf(struct vb2_queu=
-e *q, struct v4l2_buffer *b,
->>               return -EINVAL;
->>       }
->>
->> +     if ((b->fence_fd !=3D 0 && b->fence_fd !=3D -1) &&
->> +         !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
->> +             dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opn=
-ame);
->> +             return -EINVAL;
->> +     }
->> +
->> +     if (b->fence_fd < 0 && (b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
->> +             dprintk(1, "%s: IN_FENCE flag set but no fence_fd\n", opna=
-me);
->> +             return -EINVAL;
->> +     }
->> +
->>       return __verify_planes_array(q->bufs[b->index], b);
->>  }
->>
->> @@ -203,9 +215,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *v=
-b, void *pb)
->>       b->timestamp =3D ns_to_timeval(vb->timestamp);
->>       b->timecode =3D vbuf->timecode;
->>       b->sequence =3D vbuf->sequence;
->> -     b->fence_fd =3D 0;
->>       b->reserved =3D 0;
->>
->> +     b->fence_fd =3D 0;
->> +     if (vb->in_fence)
->> +             b->flags |=3D V4L2_BUF_FLAG_IN_FENCE;
->> +     else
->> +             b->flags &=3D ~V4L2_BUF_FLAG_IN_FENCE;
->> +
->
-> I was wondering: if the in-fence was already triggered this flag is not s=
-et because
-> vb->in_fence will be NULL. Would it be useful to add a vb2 flag that is s=
-et when the
-> in-fence triggered and report that here somehow? It might be useful for d=
-ebugging.
->
-> Just wondering.
->
+On 05/04/18 12:13, Mauro Carvalho Chehab wrote:
+> The size of devnode_nums[] bit array is too short to store information
+> for VFL_TYPE_TOUCH. That causes it to override other memory regions.
+> 
+> Thankfully, on recent reports, it is overriding video_device[] array,
+> trigging a WARN_ON(). Yet, it just warns about the problem, but let
+> the code excecuting, with generates an OOPS:
+> 
+> [   43.177394] WARNING: CPU: 1 PID: 711 at drivers/media/v4l2-core/v4l2-dev.c:945 __video_register_device+0xc99/0x1090 [videodev]
+> [   43.177396] Modules linked in: hid_sensor_custom hid_sensor_als hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev hid_multitouch media hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi snd_seq_midi_event snd_rawmidi crct10dif_pclmul
+> [   43.177426]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad int3400_thermal acpi_thermal_rel intel_pch_thermal processor_thermal_device mac_hid int340x_thermal_zone mei_me intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea sdhci_pci sysfillrect
+> [   43.177466]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid video pinctrl_sunrisepoint pinctrl_intel
+> [   43.177474] CPU: 1 PID: 711 Comm: systemd-udevd Not tainted 4.16.0 #1
+> [   43.177475] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
+> [   43.177481] RIP: 0010:__video_register_device+0xc99/0x1090 [videodev]
+> [   43.177482] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
+> [   43.177484] RAX: 0000000000000000 RBX: 0000000000000005 RCX: 0000000000000000
+> [   43.177485] RDX: ffffffffc0c44cc0 RSI: ffffffffffffffff RDI: ffffffffc0c44cc0
+> [   43.177486] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: ffff8eda1a51f018
+> [   43.177487] R10: 0000000000000600 R11: 00000000000003b6 R12: 0000000000000000
+> [   43.177488] R13: 0000000000000005 R14: ffffffffc0c96900 R15: ffff8eda1d6d91c0
+> [   43.177489] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) knlGS:0000000000000000
+> [   43.177490] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   43.177491] CR2: 00007ffe0a6ad01c CR3: 0000000456ae2004 CR4: 00000000003606e0
+> [   43.177492] Call Trace:
+> [   43.177498]  ? devres_add+0x5f/0x70
+> [   43.177502]  rmi_f54_probe+0x437/0x470 [rmi_core]
+> [   43.177505]  rmi_function_probe+0x25/0x30 [rmi_core]
+> [   43.177507]  driver_probe_device+0x310/0x480
+> [   43.177509]  __device_attach_driver+0x86/0x100
+> [   43.177511]  ? __driver_attach+0xf0/0xf0
+> [   43.177512]  bus_for_each_drv+0x6b/0xb0
+> [   43.177514]  __device_attach+0xdd/0x160
+> [   43.177516]  device_initial_probe+0x13/0x20
+> [   43.177518]  bus_probe_device+0x95/0xa0
+> [   43.177519]  device_add+0x44b/0x680
+> [   43.177522]  rmi_register_function+0x62/0xd0 [rmi_core]
+> [   43.177525]  rmi_create_function+0x112/0x1a0 [rmi_core]
+> [   43.177527]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+> [   43.177530]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+> [   43.177535]  rmi_init_functions+0x5b/0x120 [rmi_core]
+> [   43.177537]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+> [   43.177547]  ? sysfs_create_link+0x25/0x40
+> [   43.177549]  driver_probe_device+0x310/0x480
+> [   43.177551]  __device_attach_driver+0x86/0x100
+> [   43.177553]  ? __driver_attach+0xf0/0xf0
+> [   43.177554]  bus_for_each_drv+0x6b/0xb0
+> [   43.177556]  __device_attach+0xdd/0x160
+> [   43.177558]  device_initial_probe+0x13/0x20
+> [   43.177560]  bus_probe_device+0x95/0xa0
+> [   43.177561]  device_add+0x44b/0x680
+> [   43.177564]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+> [   43.177568]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+> [   43.177571]  ? input_allocate_device+0xdf/0xf0
+> [   43.177574]  hidinput_connect+0x4a9/0x37a0 [hid]
+> [   43.177578]  hid_connect+0x326/0x3d0 [hid]
+> [   43.177581]  hid_hw_start+0x42/0x70 [hid]
+> [   43.177583]  rmi_probe+0x115/0x510 [hid_rmi]
+> [   43.177586]  hid_device_probe+0xd3/0x150 [hid]
+> [   43.177588]  ? sysfs_create_link+0x25/0x40
+> [   43.177590]  driver_probe_device+0x310/0x480
+> [   43.177592]  __driver_attach+0xbf/0xf0
+> [   43.177593]  ? driver_probe_device+0x480/0x480
+> [   43.177595]  bus_for_each_dev+0x74/0xb0
+> [   43.177597]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+> [   43.177599]  driver_attach+0x1e/0x20
+> [   43.177600]  bus_add_driver+0x167/0x260
+> [   43.177602]  ? 0xffffffffc0cbc000
+> [   43.177604]  driver_register+0x60/0xe0
+> [   43.177605]  ? 0xffffffffc0cbc000
+> [   43.177607]  __hid_register_driver+0x63/0x70 [hid]
+> [   43.177610]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+> [   43.177612]  do_one_initcall+0x52/0x191
+> [   43.177615]  ? _cond_resched+0x19/0x40
+> [   43.177617]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+> [   43.177619]  ? do_init_module+0x27/0x209
+> [   43.177621]  do_init_module+0x5f/0x209
+> [   43.177623]  load_module+0x1987/0x1f10
+> [   43.177626]  ? ima_post_read_file+0x96/0xa0
+> [   43.177629]  SYSC_finit_module+0xfc/0x120
+> [   43.177630]  ? SYSC_finit_module+0xfc/0x120
+> [   43.177632]  SyS_finit_module+0xe/0x10
+> [   43.177634]  do_syscall_64+0x73/0x130
+> [   43.177637]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> [   43.177638] RIP: 0033:0x7fd2d880b839
+> [   43.177639] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+> [   43.177641] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 00007fd2d880b839
+> [   43.177641] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 0000000000000016
+> [   43.177642] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 00007ffe0a6b2480
+> [   43.177643] R10: 0000000000000016 R11: 0000000000000246 R12: 0000000000000000
+> [   43.177644] R13: 000055cdd8688930 R14: 0000000000020000 R15: 000055cdd86542e0
+> [   43.177645] Code: 48 c7 c7 54 b4 c3 c0 e8 96 9d ec dd e9 d4 fb ff ff 0f 0b 41 be ea ff ff ff e9 c7 fb ff ff 0f 0b 41 be ea ff ff ff e9 ba fb ff ff <0f> 0b e9 d8 f4 ff ff 83 fa 01 0f 84 c4 02 00 00 48 83 78 68 00
+> [   43.177675] ---[ end trace d44d9bc41477c2dd ]---
+> [   43.177679] BUG: unable to handle kernel NULL pointer dereference at 0000000000000499
+> [   43.177723] IP: __video_register_device+0x1cc/0x1090 [videodev]
+> [   43.177749] PGD 0 P4D 0
+> [   43.177764] Oops: 0000 [#1] SMP PTI
+> [   43.177780] Modules linked in: hid_sensor_custom hid_sensor_als hid_sensor_incl_3d hid_sensor_rotation hid_sensor_magn_3d hid_sensor_accel_3d hid_sensor_gyro_3d hid_sensor_trigger industrialio_triggered_buffer kfifo_buf joydev hid_sensor_iio_common hid_rmi(+) rmi_core industrialio videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev hid_multitouch media hid_sensor_hub binfmt_misc nls_iso8859_1 snd_hda_codec_hdmi arc4 snd_soc_skl snd_soc_skl_ipc snd_hda_ext_core snd_soc_sst_dsp snd_soc_sst_ipc snd_hda_codec_realtek snd_soc_acpi snd_hda_codec_generic snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel snd_hda_codec intel_rapl snd_hda_core x86_pkg_temp_thermal snd_hwdep intel_powerclamp coretemp snd_pcm kvm_intel snd_seq_midi snd_seq_midi_event snd_rawmidi crct10dif_pclmul
+> [   43.178055]  crc32_pclmul ghash_clmulni_intel iwlmvm pcbc mac80211 snd_seq aesni_intel iwlwifi aes_x86_64 snd_seq_device crypto_simd glue_helper cryptd snd_timer intel_cstate intel_rapl_perf input_leds serio_raw intel_wmi_thunderbolt snd wmi_bmof cfg80211 soundcore ideapad_laptop sparse_keymap idma64 virt_dma tpm_crb acpi_pad int3400_thermal acpi_thermal_rel intel_pch_thermal processor_thermal_device mac_hid int340x_thermal_zone mei_me intel_soc_dts_iosf mei intel_lpss_pci shpchp intel_lpss sch_fq_codel vfio_pci nfsd vfio_virqfd parport_pc ppdev auth_rpcgss nfs_acl lockd grace lp parport sunrpc ip_tables x_tables autofs4 hid_logitech_hidpp hid_logitech_dj hid_generic usbhid kvmgt vfio_mdev mdev vfio_iommu_type1 vfio kvm irqbypass i915 i2c_algo_bit drm_kms_helper syscopyarea sdhci_pci sysfillrect
+> [   43.178337]  sysimgblt cqhci fb_sys_fops sdhci drm i2c_hid wmi hid video pinctrl_sunrisepoint pinctrl_intel
+> [   43.178380] CPU: 1 PID: 711 Comm: systemd-udevd Tainted: G        W        4.16.0 #1
+> [   43.178411] Hardware name: LENOVO 80UE/VIUU4, BIOS 2UCN10T 10/14/2016
+> [   43.178441] RIP: 0010:__video_register_device+0x1cc/0x1090 [videodev]
+> [   43.178467] RSP: 0000:ffffa5c5c231b420 EFLAGS: 00010202
+> [   43.178490] RAX: ffffffffc0c44cc0 RBX: 0000000000000005 RCX: ffffffffc0c454c0
+> [   43.178519] RDX: 0000000000000001 RSI: ffff8eda1d6d9118 RDI: ffffffffc0c44cc0
+> [   43.178549] RBP: ffffa5c5c231b478 R08: ffffffffc0c96900 R09: ffff8eda1a51f018
+> [   43.178579] R10: 0000000000000600 R11: 00000000000003b6 R12: 0000000000000000
+> [   43.178608] R13: 0000000000000005 R14: ffffffffc0c96900 R15: ffff8eda1d6d91c0
+> [   43.178636] FS:  00007fd2d8ef2480(0000) GS:ffff8eda33480000(0000) knlGS:0000000000000000
+> [   43.178669] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   43.178693] CR2: 0000000000000499 CR3: 0000000456ae2004 CR4: 00000000003606e0
+> [   43.178721] Call Trace:
+> [   43.178736]  ? devres_add+0x5f/0x70
+> [   43.178755]  rmi_f54_probe+0x437/0x470 [rmi_core]
+> [   43.178779]  rmi_function_probe+0x25/0x30 [rmi_core]
+> [   43.178805]  driver_probe_device+0x310/0x480
+> [   43.178828]  __device_attach_driver+0x86/0x100
+> [   43.178851]  ? __driver_attach+0xf0/0xf0
+> [   43.178884]  bus_for_each_drv+0x6b/0xb0
+> [   43.178904]  __device_attach+0xdd/0x160
+> [   43.178925]  device_initial_probe+0x13/0x20
+> [   43.178948]  bus_probe_device+0x95/0xa0
+> [   43.178968]  device_add+0x44b/0x680
+> [   43.178987]  rmi_register_function+0x62/0xd0 [rmi_core]
+> [   43.181747]  rmi_create_function+0x112/0x1a0 [rmi_core]
+> [   43.184677]  ? rmi_driver_clear_irq_bits+0xc0/0xc0 [rmi_core]
+> [   43.187505]  rmi_scan_pdt+0xca/0x1a0 [rmi_core]
+> [   43.190171]  rmi_init_functions+0x5b/0x120 [rmi_core]
+> [   43.192809]  rmi_driver_probe+0x152/0x3c0 [rmi_core]
+> [   43.195403]  ? sysfs_create_link+0x25/0x40
+> [   43.198253]  driver_probe_device+0x310/0x480
+> [   43.201083]  __device_attach_driver+0x86/0x100
+> [   43.203800]  ? __driver_attach+0xf0/0xf0
+> [   43.206503]  bus_for_each_drv+0x6b/0xb0
+> [   43.209291]  __device_attach+0xdd/0x160
+> [   43.212207]  device_initial_probe+0x13/0x20
+> [   43.215146]  bus_probe_device+0x95/0xa0
+> [   43.217885]  device_add+0x44b/0x680
+> [   43.220597]  rmi_register_transport_device+0x84/0x100 [rmi_core]
+> [   43.223321]  rmi_input_configured+0xbf/0x1a0 [hid_rmi]
+> [   43.226051]  ? input_allocate_device+0xdf/0xf0
+> [   43.228814]  hidinput_connect+0x4a9/0x37a0 [hid]
+> [   43.231701]  hid_connect+0x326/0x3d0 [hid]
+> [   43.234548]  hid_hw_start+0x42/0x70 [hid]
+> [   43.237302]  rmi_probe+0x115/0x510 [hid_rmi]
+> [   43.239862]  hid_device_probe+0xd3/0x150 [hid]
+> [   43.242558]  ? sysfs_create_link+0x25/0x40
+> [   43.242828] audit: type=1400 audit(1522795151.600:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine" pid=1151 comm="apparmor_parser"
+> [   43.244859]  driver_probe_device+0x310/0x480
+> [   43.244862]  __driver_attach+0xbf/0xf0
+> [   43.246982] audit: type=1400 audit(1522795151.600:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" pid=1151 comm="apparmor_parser"
+> [   43.249403]  ? driver_probe_device+0x480/0x480
+> [   43.249405]  bus_for_each_dev+0x74/0xb0
+> [   43.253200] audit: type=1400 audit(1522795151.600:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/core/4206/usr/lib/snapd/snap-confine//snap_update_ns" pid=1151 comm="apparmor_parser"
+> [   43.254055]  ? kmem_cache_alloc_trace+0x1a6/0x1c0
+> [   43.256282] audit: type=1400 audit(1522795151.604:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/sbin/dhclient" pid=1152 comm="apparmor_parser"
+> [   43.258436]  driver_attach+0x1e/0x20
+> [   43.260875] audit: type=1400 audit(1522795151.604:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-client.action" pid=1152 comm="apparmor_parser"
+> [   43.263118]  bus_add_driver+0x167/0x260
+> [   43.267676] audit: type=1400 audit(1522795151.604:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/NetworkManager/nm-dhcp-helper" pid=1152 comm="apparmor_parser"
+> [   43.268807]  ? 0xffffffffc0cbc000
+> [   43.268812]  driver_register+0x60/0xe0
+> [   43.271184] audit: type=1400 audit(1522795151.604:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/lib/connman/scripts/dhclient-script" pid=1152 comm="apparmor_parser"
+> [   43.274081]  ? 0xffffffffc0cbc000
+> [   43.274086]  __hid_register_driver+0x63/0x70 [hid]
+> [   43.288367]  rmi_driver_init+0x23/0x1000 [hid_rmi]
+> [   43.291501]  do_one_initcall+0x52/0x191
+> [   43.292348] audit: type=1400 audit(1522795151.652:11): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/bin/man" pid=1242 comm="apparmor_parser"
+> [   43.294212]  ? _cond_resched+0x19/0x40
+> [   43.300028]  ? kmem_cache_alloc_trace+0xa2/0x1c0
+> [   43.303475]  ? do_init_module+0x27/0x209
+> [   43.306842]  do_init_module+0x5f/0x209
+> [   43.310269]  load_module+0x1987/0x1f10
+> [   43.313704]  ? ima_post_read_file+0x96/0xa0
+> [   43.317174]  SYSC_finit_module+0xfc/0x120
+> [   43.320754]  ? SYSC_finit_module+0xfc/0x120
+> [   43.324065]  SyS_finit_module+0xe/0x10
+> [   43.327387]  do_syscall_64+0x73/0x130
+> [   43.330909]  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+> [   43.334305] RIP: 0033:0x7fd2d880b839
+> [   43.337810] RSP: 002b:00007ffe0a6b2368 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+> [   43.341259] RAX: ffffffffffffffda RBX: 000055cdd86542e0 RCX: 00007fd2d880b839
+> [   43.344613] RDX: 0000000000000000 RSI: 00007fd2d84ea0e5 RDI: 0000000000000016
+> [   43.347962] RBP: 00007fd2d84ea0e5 R08: 0000000000000000 R09: 00007ffe0a6b2480
+> [   43.351456] R10: 0000000000000016 R11: 0000000000000246 R12: 0000000000000000
+> [   43.354845] R13: 000055cdd8688930 R14: 0000000000020000 R15: 000055cdd86542e0
+> [   43.358224] Code: c7 05 ad 12 02 00 00 00 00 00 48 8d 88 00 08 00 00 eb 09 48 83 c0 08 48 39 c1 74 31 48 8b 10 48 85 d2 74 ef 49 8b b7 98 04 00 00 <48> 39 b2 98 04 00 00 75 df 48 63 92 f8 04 00 00 f0 48 0f ab 15
+> [   43.361764] RIP: __video_register_device+0x1cc/0x1090 [videodev] RSP: ffffa5c5c231b420
+> [   43.365281] CR2: 0000000000000499
+> 
+> This patch fixes the array size and changes the WARN_ON() to return an error,
+> instead of letting the Kernel to proceed with registering.
+> 
+> Cc: stable@vger.kernel.org
+> Reported-by: Peter Geis <pgwipeout@gmail.com>
+> Reported-by: Jaak Ristioja <jaak@ristioja.ee>
+> Reported-by: Michał Siemek <mihau69@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c |  8 ++++++--
+>  include/media/v4l2-dev.h           | 12 ++++++------
+>  2 files changed, 12 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 0301fe426a43..1d0b2208e8fb 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -939,10 +939,14 @@ int __video_register_device(struct video_device *vdev,
+>  #endif
+>  	vdev->minor = i + minor_offset;
+>  	vdev->num = nr;
+> -	devnode_set(vdev);
+>  
+>  	/* Should not happen since we thought this minor was free */
+> -	WARN_ON(video_device[vdev->minor] != NULL);
+> +	if (WARN_ON(video_device[vdev->minor])) {
+> +		mutex_unlock(&videodev_lock);
+> +		printk(KERN_ERR "video_device not empty!\n");
 
-I'm also wondering :-) ... does it make sense to use a flag for this?
+Use pr_err.
 
-#define V4L2_BUF_FLAG_IN_FENCE                  0x00200000
-#define V4L2_BUF_FLAG_OUT_FENCE                 0x00400000
-#define V4L2_BUF_FLAG_IN_FENCE_SIGNALED         0x00800000
+With that change:
 
-Aren't we using a very limited resource? Is it worry?
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks,
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+Regards,
+
+	Hans
+
+
+> +		return -ENFILE;
+> +	}
+> +	devnode_set(vdev);
+>  	vdev->index = get_index(vdev);
+>  	video_device[vdev->minor] = vdev;
+>  	mutex_unlock(&videodev_lock);
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index 27634e8d2585..e59742e47501 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -33,13 +33,13 @@
+>   */
+>  enum vfl_devnode_type {
+>  	VFL_TYPE_GRABBER	= 0,
+> -	VFL_TYPE_VBI		= 1,
+> -	VFL_TYPE_RADIO		= 2,
+> -	VFL_TYPE_SUBDEV		= 3,
+> -	VFL_TYPE_SDR		= 4,
+> -	VFL_TYPE_TOUCH		= 5,
+> +	VFL_TYPE_VBI,
+> +	VFL_TYPE_RADIO,
+> +	VFL_TYPE_SUBDEV,
+> +	VFL_TYPE_SDR,
+> +	VFL_TYPE_TOUCH,
+> +	VFL_TYPE_MAX /* Should be the last one */
+>  };
+> -#define VFL_TYPE_MAX VFL_TYPE_TOUCH
+>  
+>  /**
+>   * enum  vfl_direction - Identifies if a &struct video_device corresponds
+> 
