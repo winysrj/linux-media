@@ -1,127 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [31.36.214.240] ([31.36.214.240]:43600 "EHLO
-        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1752487AbeDIXNR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 19:13:17 -0400
-From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-Subject: [PATCH v3] usbtv: Enforce standard for color decoding
-Date: Tue, 10 Apr 2018 01:13:01 +0200
-Message-Id: <20180409231301.14759-1-bonstra@bonstra.fr.eu.org>
-In-Reply-To: <201804091218.GkcgM7OY%fengguang.wu@intel.com>
-References: <201804091218.GkcgM7OY%fengguang.wu@intel.com>
+Received: from osg.samsung.com ([64.30.133.232]:34659 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751417AbeDERyW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 13:54:22 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 08/16] media: mmp-camera.h: add missing platform data
+Date: Thu,  5 Apr 2018 13:54:08 -0400
+Message-Id: <74a49040af24a1632e094e367f1b9f8fe42faf56.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Depending on the chosen standard, configure the decoder to use the
-appropriate color encoding standard (PAL-like, NTSC-like or SECAM).
+Those definitions used to be part of the original patch:
+	https://patchwork.kernel.org/patch/2815221/
 
-Until now, the decoder was not configured for a specific color standard,
-making it autodetect the color encoding.
+But, somehow, nobody ever noticed until today. Years later,
+Arnd discovered that mmp-camera driver doesn't build and make
+it depend on BROKEN.
 
-While this may sound fine, it potentially causes the wrong image tuning
-parameters to be applied (e.g. tuning parameters for NTSC are applied to
-a PAL source), and may confuse users about what the actual standard is
-in use.
+Add the missing bits here, in order to remove BROKEN dependency.
 
-This commit explicitly configures the color standard the decoder will
-use, making it visually obvious if a wrong standard was chosen.
-
-Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/usbtv/usbtv-video.c | 45 ++++++++++++++++++++++++---
- 1 file changed, 40 insertions(+), 5 deletions(-)
+ include/linux/platform_data/media/mmp-camera.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 6cad50d1e5f8..767fab1cc5cf 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -121,6 +121,25 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
- 	return ret;
- }
+diff --git a/include/linux/platform_data/media/mmp-camera.h b/include/linux/platform_data/media/mmp-camera.h
+index 83804028115c..d2d3a443eedf 100644
+--- a/include/linux/platform_data/media/mmp-camera.h
++++ b/include/linux/platform_data/media/mmp-camera.h
+@@ -3,8 +3,27 @@
+  * Information for the Marvell Armada MMP camera
+  */
  
-+static uint16_t usbtv_norm_to_16f_reg(v4l2_std_id norm)
-+{
-+	/* NTSC M/M-JP/M-KR */
-+	if (norm & V4L2_STD_NTSC)
-+		return 0x00b8;
-+	/* PAL BG/DK/H/I */
-+	if (norm & V4L2_STD_PAL)
-+		return 0x00ee;
-+	/* SECAM B/D/G/H/K/K1/L/Lc */
-+	if (norm & V4L2_STD_SECAM)
-+		return 0x00ff;
-+	if (norm & V4L2_STD_NTSC_443)
-+		return 0x00a8;
-+	if (norm & (V4L2_STD_PAL_M | V4L2_STD_PAL_60))
-+		return 0x00bc;
-+	/* Fallback to automatic detection for other standards */
-+	return 0x0000;
-+}
++#include <media/v4l2-mediabus.h>
 +
- static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- {
- 	int ret;
-@@ -154,7 +173,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 		{ USBTV_BASE + 0x0263, 0x0017 },
- 		{ USBTV_BASE + 0x0266, 0x0016 },
- 		{ USBTV_BASE + 0x0267, 0x0036 },
--		/* Epilog */
-+		/* End image tuning */
- 		{ USBTV_BASE + 0x024e, 0x0002 },
- 		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
-@@ -182,7 +201,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 		{ USBTV_BASE + 0x0263, 0x001c },
- 		{ USBTV_BASE + 0x0266, 0x0011 },
- 		{ USBTV_BASE + 0x0267, 0x0005 },
--		/* Epilog */
-+		/* End image tuning */
- 		{ USBTV_BASE + 0x024e, 0x0002 },
- 		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
-@@ -210,7 +229,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 		{ USBTV_BASE + 0x0263, 0x0021 },
- 		{ USBTV_BASE + 0x0266, 0x0016 },
- 		{ USBTV_BASE + 0x0267, 0x0036 },
--		/* Epilog */
-+		/* End image tuning */
- 		{ USBTV_BASE + 0x024e, 0x0002 },
- 		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
-@@ -218,12 +237,28 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 	ret = usbtv_configure_for_norm(usbtv, norm);
- 
- 	if (!ret) {
--		if (norm & V4L2_STD_525_60)
-+		/* Masks for norms using a NTSC or PAL color encoding. */
-+		static const v4l2_std_id ntsc_mask =
-+			V4L2_STD_NTSC | V4L2_STD_NTSC_443;
-+		static const v4l2_std_id pal_mask =
-+			V4L2_STD_PAL | V4L2_STD_PAL_60 | V4L2_STD_PAL_M;
++enum dphy3_algo {
++	DPHY3_ALGO_DEFAULT = 0,
++	DPHY3_ALGO_PXA910,
++	DPHY3_ALGO_PXA2128
++};
 +
-+		if (norm & ntsc_mask)
- 			ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
--		else if (norm & V4L2_STD_PAL)
-+		else if (norm & pal_mask)
- 			ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
- 		else if (norm & V4L2_STD_SECAM)
- 			ret = usbtv_set_regs(usbtv, secam, ARRAY_SIZE(secam));
-+		else
-+			ret = -EINVAL;
-+	}
-+
-+	if (!ret) {
-+		/* Configure the decoder for the color standard */
-+		const u16 cfg[][2] = {
-+			{ USBTV_BASE + 0x016f, usbtv_norm_to_16f_reg(norm) }
-+		};
-+		ret = usbtv_set_regs(usbtv, cfg, ARRAY_SIZE(cfg));
- 	}
- 
- 	return ret;
+ struct mmp_camera_platform_data {
+ 	struct platform_device *i2c_device;
+ 	int sensor_power_gpio;
+ 	int sensor_reset_gpio;
++	enum v4l2_mbus_type bus_type;
++	int mclk_min;	/* The minimal value of MCLK */
++	int mclk_src;	/* which clock source the MCLK derives from */
++	int mclk_div;	/* Clock Divider Value for MCLK */
++	/*
++	 * MIPI support
++	 */
++	int dphy[3];		/* DPHY: CSI2_DPHY3, CSI2_DPHY5, CSI2_DPHY6 */
++	enum dphy3_algo dphy3_algo;	/* algos for calculate CSI2_DPHY3 */
++	int lane;		/* ccic used lane number; 0 means DVP mode */
++	int lane_clk;
+ };
 -- 
-2.17.0
+2.14.3
