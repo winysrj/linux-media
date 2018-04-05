@@ -1,37 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f172.google.com ([74.125.82.172]:40222 "EHLO
-        mail-ot0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751461AbeDEPBO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 11:01:14 -0400
-Received: by mail-ot0-f172.google.com with SMTP id j8-v6so19972281ota.7
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 08:01:14 -0700 (PDT)
+Received: from osg.samsung.com ([64.30.133.232]:37726 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751473AbeDERy1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Apr 2018 13:54:27 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 10/16] media: mmp-driver: make two functions static
+Date: Thu,  5 Apr 2018 13:54:10 -0400
+Message-Id: <aaac5957ee592ef9fcb91100f4556b2df12eec59.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPQseg3puHqfNth2V73_rbmQquOTuRSKiwWpRW2OXLAkpSF3qg@mail.gmail.com>
-References: <CAPQseg3c+jVBRv7nu9BZXFi2V+afrDUq+YR-0jEDGevgwa-NWw@mail.gmail.com>
- <CAOMZO5DKPaBwHEtr2DbOWfx7VU-5j9PKS6iCzpbx8B+Fwf2Wiw@mail.gmail.com>
- <CAPQseg0g-64dPGoCFopiNJZPf9qjvdETOz=U-dLS_D0y+HrNHA@mail.gmail.com>
- <1522938992.4009.14.camel@pengutronix.de> <CAPQseg3puHqfNth2V73_rbmQquOTuRSKiwWpRW2OXLAkpSF3qg@mail.gmail.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Thu, 5 Apr 2018 12:01:13 -0300
-Message-ID: <CAOMZO5BrC4F_f0Cdku6qPhrteFWp=wjNCAdwZa3F98+qUJ3RqA@mail.gmail.com>
-Subject: Re: IMX6 Media dev node not created
-To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ibtsam,
+Those functions are used only internally:
 
-On Thu, Apr 5, 2018 at 11:52 AM, Ibtsam Ul-Haq
-<ibtsam.haq.0x01@gmail.com> wrote:
+  CC      drivers/media/platform/marvell-ccic/mmp-driver.o
+drivers/media/platform/marvell-ccic/mmp-driver.c:186:6: warning: no previous prototype for ‘mcam_ctlr_reset’ [-Wmissing-prototypes]
+ void mcam_ctlr_reset(struct mcam_camera *mcam)
+      ^~~~~~~~~~~~~~~
+drivers/media/platform/marvell-ccic/mmp-driver.c:217:6: warning: no previous prototype for ‘mmpcam_calc_dphy’ [-Wmissing-prototypes]
+ void mmpcam_calc_dphy(struct mcam_camera *mcam)
+      ^~~~~~~~~~~~~~~~
 
-> That worked like a charm! Thanks a lot guys, I would have never thought of that!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/marvell-ccic/mmp-driver.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Excellent!
-
-If you have a chance, please submit the the dts patch that enables the
-camera to the linux-arm-kernel mailing list for review and inclusion
-to the mainline kernel.
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 816f4b6a7b8e..17d79480e75c 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -183,7 +183,7 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 	mcam_clk_disable(mcam);
+ }
+ 
+-void mcam_ctlr_reset(struct mcam_camera *mcam)
++static void mcam_ctlr_reset(struct mcam_camera *mcam)
+ {
+ 	unsigned long val;
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+@@ -214,7 +214,7 @@ void mcam_ctlr_reset(struct mcam_camera *mcam)
+  * CSI2_DPHY3 and CSI2_DPHY6 can be set with a default value
+  * or be calculated dynamically
+  */
+-void mmpcam_calc_dphy(struct mcam_camera *mcam)
++static void mmpcam_calc_dphy(struct mcam_camera *mcam)
+ {
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+ 	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
+-- 
+2.14.3
