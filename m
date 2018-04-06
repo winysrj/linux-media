@@ -1,75 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44934 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751746AbeDEUaA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 16:30:00 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v2 19/19] media: staging: davinci_vpfe: allow building with COMPILE_TEST
-Date: Thu,  5 Apr 2018 16:29:46 -0400
-Message-Id: <51b55b8a47aac8f712a5aff2fe79d20f9f7b9cf7.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35424 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751749AbeDFQQh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 12:16:37 -0400
+Subject: Re: [PATCH v2 10/15] v4l: vsp1: Turn frame end completion status into
+ a bitfield
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180405091840.30728-11-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <15e7405d-e27a-9b98-a98b-76c0fc9052a8@ideasonboard.com>
+Date: Fri, 6 Apr 2018 17:16:33 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180405091840.30728-11-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a little bit hashish, but this driver is at staging,
-so it won't become worse.
+Hi Laurent,
 
-With this small change at Makefile, we can now build it with
-COMPILE_TEST.
+Thanks for this enhancement.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/davinci_vpfe/Kconfig  | 3 ++-
- drivers/staging/media/davinci_vpfe/Makefile | 5 +++++
- drivers/staging/media/davinci_vpfe/TODO     | 1 +
- 3 files changed, 8 insertions(+), 1 deletion(-)
+On 05/04/18 10:18, Laurent Pinchart wrote:
+> We will soon need to return more than a boolean completion status from
+> the vsp1_dlm_irq_frame_end() IRQ handler. Turn the return value into a
+> bitfield to prepare for that. No functional change is introduced here.
 
-diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
-index f40a06954a92..bcba9a64c514 100644
---- a/drivers/staging/media/davinci_vpfe/Kconfig
-+++ b/drivers/staging/media/davinci_vpfe/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_DM365_VPFE
- 	tristate "DM365 VPFE Media Controller Capture Driver"
--	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF
-+	depends on VIDEO_V4L2
-+	depends on (ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF) || COMPILE_TEST
- 	depends on HAS_DMA
- 	depends on VIDEO_V4L2_SUBDEV_API
- 	depends on VIDEO_DAVINCI_VPBE_DISPLAY
-diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
-index 3019c9ecd548..9c57042c877d 100644
---- a/drivers/staging/media/davinci_vpfe/Makefile
-+++ b/drivers/staging/media/davinci_vpfe/Makefile
-@@ -3,3 +3,8 @@ obj-$(CONFIG_VIDEO_DM365_VPFE) += davinci-vfpe.o
- davinci-vfpe-objs := \
- 	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
- 	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
-+
-+# Allow building it with COMPILE_TEST on other archs
-+ifndef CONFIG_ARCH_DAVINCI
-+ccflags-y += -Iarch/arm/mach-davinci/include/
-+endif
-diff --git a/drivers/staging/media/davinci_vpfe/TODO b/drivers/staging/media/davinci_vpfe/TODO
-index 3e5477e8cfa5..cc8bd9306f2a 100644
---- a/drivers/staging/media/davinci_vpfe/TODO
-+++ b/drivers/staging/media/davinci_vpfe/TODO
-@@ -20,6 +20,7 @@ TODO (general):
- - While replacing the older driver in media folder, provide a compatibility
-   layer and compatibility tests that warrants (using the libv4l's LD_PRELOAD
-   approach) there is no regression for the users using the older driver.
-+- make it independent of arch-specific APIs (mach/mux.h).
- 
- Building of uImage and Applications:
- ==================================
--- 
-2.14.3
+I think this is a good solution!
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_dl.c    | 22 +++++++++++++---------
+>  drivers/media/platform/vsp1/vsp1_dl.h    |  4 +++-
+>  drivers/media/platform/vsp1/vsp1_drm.c   |  5 +++--
+>  drivers/media/platform/vsp1/vsp1_pipe.c  |  8 ++++----
+>  drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
+>  drivers/media/platform/vsp1/vsp1_video.c |  4 ++--
+>  6 files changed, 26 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+> index 0b86ed01e85d..662fa2a347c9 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -616,14 +616,18 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+>   * vsp1_dlm_irq_frame_end - Display list handler for the frame end interrupt
+>   * @dlm: the display list manager
+>   *
+> - * Return true if the previous display list has completed at frame end, or false
+> - * if it has been delayed by one frame because the display list commit raced
+> - * with the frame end interrupt. The function always returns true in header mode
+> - * as display list processing is then not continuous and races never occur.
+> + * Return a set of flags that indicates display list completion status.
+> + *
+> + * The VSP1_DL_FRAME_END_COMPLETED flag indicates that the previous display list
+> + * has completed at frame end. If the flag is not returned display list
+> + * completion has been delayed by one frame because the display list commit
+> + * raced with the frame end interrupt. The function always returns with the flag
+> + * set in header mode as display list processing is then not continuous and
+> + * races never occur.
+>   */
+> -bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+> +unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  {
+> -	bool completed = false;
+> +	unsigned int flags = 0;
+>  
+>  	spin_lock(&dlm->lock);
+>  
+> @@ -634,7 +638,7 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  	if (dlm->singleshot) {
+>  		__vsp1_dl_list_put(dlm->active);
+>  		dlm->active = NULL;
+> -		completed = true;
+> +		flags |= VSP1_DL_FRAME_END_COMPLETED;
+>  		goto done;
+>  	}
+>  
+> @@ -655,7 +659,7 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  		__vsp1_dl_list_put(dlm->active);
+>  		dlm->active = dlm->queued;
+>  		dlm->queued = NULL;
+> -		completed = true;
+> +		flags |= VSP1_DL_FRAME_END_COMPLETED;
+>  	}
+>  
+>  	/*
+> @@ -672,7 +676,7 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  done:
+>  	spin_unlock(&dlm->lock);
+>  
+> -	return completed;
+> +	return flags;
+>  }
+>  
+>  /* Hardware Setup */
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+> index ee3508172f0a..cbc2fc53e10b 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> @@ -20,6 +20,8 @@ struct vsp1_dl_fragment;
+>  struct vsp1_dl_list;
+>  struct vsp1_dl_manager;
+>  
+> +#define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
+> +
+>  void vsp1_dlm_setup(struct vsp1_device *vsp1);
+>  
+>  struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+> @@ -27,7 +29,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+>  					unsigned int prealloc);
+>  void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+>  void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+> -bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+> +unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+>  
+>  struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+>  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index a7cccc9b05ef..541473b1df67 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -34,12 +34,13 @@
+>   */
+>  
+>  static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+> -				       bool completed)
+> +				       unsigned int completion)
+>  {
+>  	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+>  
+>  	if (drm_pipe->du_complete)
+> -		drm_pipe->du_complete(drm_pipe->du_private, completed);
+> +		drm_pipe->du_complete(drm_pipe->du_private,
+> +				      completion & VSP1_DL_FRAME_END_COMPLETED);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+> index 99ccbac3256a..1134f14ed4aa 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+> @@ -315,17 +315,17 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
+>  
+>  void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+>  {
+> -	bool completed;
+> +	unsigned int flags;
+>  
+>  	if (pipe == NULL)
+>  		return;
+>  
+>  	/*
+>  	 * If the DL commit raced with the frame end interrupt, the commit ends
+> -	 * up being postponed by one frame. @completed represents whether the
+> +	 * up being postponed by one frame. The returned flags tell whether the
+>  	 * active frame was finished or postponed.
+>  	 */
+> -	completed = vsp1_dlm_irq_frame_end(pipe->output->dlm);
+> +	flags = vsp1_dlm_irq_frame_end(pipe->output->dlm);
+>  
+>  	if (pipe->hgo)
+>  		vsp1_hgo_frame_end(pipe->hgo);
+> @@ -338,7 +338,7 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+>  	 * frame_end to account for vblank events.
+>  	 */
+>  	if (pipe->frame_end)
+> -		pipe->frame_end(pipe, completed);
+> +		pipe->frame_end(pipe, flags);
+>  
+>  	pipe->sequence++;
+>  }
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+> index dfff9b5685fe..412da67527c0 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -118,7 +118,7 @@ struct vsp1_pipeline {
+>  	enum vsp1_pipeline_state state;
+>  	wait_queue_head_t wq;
+>  
+> -	void (*frame_end)(struct vsp1_pipeline *pipe, bool completed);
+> +	void (*frame_end)(struct vsp1_pipeline *pipe, unsigned int completion);
+>  
+>  	struct mutex lock;
+>  	struct kref kref;
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index cdd53d6cc408..4152704c2ccb 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -444,7 +444,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+>  }
+>  
+>  static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe,
+> -					  bool completed)
+> +					  unsigned int completion)
+>  {
+>  	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+>  	enum vsp1_pipeline_state state;
+> @@ -452,7 +452,7 @@ static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe,
+>  	unsigned int i;
+>  
+>  	/* M2M Pipelines should never call here with an incomplete frame. */
+> -	WARN_ON_ONCE(!completed);
+> +	WARN_ON_ONCE(!(completion & VSP1_DL_FRAME_END_COMPLETED));
+>  
+>  	spin_lock_irqsave(&pipe->irqlock, flags);
+>  
+> 
