@@ -1,167 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54331 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751926AbeDEJSj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:39 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 05/15] v4l: vsp1: Share duplicated DRM pipeline configuration code
-Date: Thu,  5 Apr 2018 12:18:30 +0300
-Message-Id: <20180405091840.30728-6-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from osg.samsung.com ([64.30.133.232]:51915 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755698AbeDFOsK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 10:48:10 -0400
+Date: Fri, 6 Apr 2018 11:47:58 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Geliang Tang <geliangtang@gmail.com>
+Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with
+ COMPILE_TEST
+Message-ID: <20180406114758.7d765ebe@vento.lan>
+In-Reply-To: <CAK8P3a2hehE7iPwF_ps8LYk+zRUmdm+1Oqci7PazQnE_HfmkyA@mail.gmail.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
+        <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
+        <20180406064718.2cdb69ea@vento.lan>
+        <CAK8P3a2FQapAqxOMJNe9oBs8kBXsd7TCdsNon5Gvab3Y8LLKSA@mail.gmail.com>
+        <20180406111537.04375bdf@vento.lan>
+        <CAK8P3a1aO99P7RWErJRS22QQdJ6wJNgZptHOaTFx7_2NvQ1vvA@mail.gmail.com>
+        <20180406112640.1441ca9f@vento.lan>
+        <CAK8P3a2hehE7iPwF_ps8LYk+zRUmdm+1Oqci7PazQnE_HfmkyA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the duplicated DRM pipeline configuration code to a function and
-call it from vsp1_du_setup_lif() and vsp1_du_atomic_flush().
+Em Fri, 6 Apr 2018 16:37:15 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 95 +++++++++++++++-------------------
- 1 file changed, 43 insertions(+), 52 deletions(-)
+> On Fri, Apr 6, 2018 at 4:26 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> > Em Fri, 6 Apr 2018 16:16:46 +0200
+> > Arnd Bergmann <arnd@arndb.de> escreveu:
+> >  
+> >> On Fri, Apr 6, 2018 at 4:15 PM, Mauro Carvalho Chehab
+> >> <mchehab@s-opensource.com> wrote:  
+> >> > Em Fri, 6 Apr 2018 11:51:16 +0200
+> >> > Arnd Bergmann <arnd@arndb.de> escreveu:
+> >> >  
+> >> >> On Fri, Apr 6, 2018 at 11:47 AM, Mauro Carvalho Chehab
+> >> >> <mchehab@s-opensource.com> wrote:
+> >> >>  
+> >> >> > [PATCH] media: fsl-viu: allow building it with COMPILE_TEST
+> >> >> >
+> >> >> > There aren't many things that would be needed to allow it
+> >> >> > to build with compile test.
+> >> >> >
+> >> >> > Add the needed bits.
+> >> >> >
+> >> >> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> >> >>
+> >> >> Reviewed-by: Arnd Bergmann <arnd@arndb.de>  
+> >> >
+> >> > Actually, in order to avoid warnings with smatch, the COMPILE_TEST
+> >> > macros should be declared as:
+> >> >
+> >> > +#define out_be32(v, a) iowrite32be(a, (void __iomem *)v)
+> >> > +#define in_be32(a)     ioread32be((void __iomem *)a)  
+> >>
+> >> I would just add the correct annotations, I think they've always been missing.
+> >> 2 patches coming in a few minutes.  
+> >
+> > I corrected the annotations too. Now, it gives the same results
+> > building for both arm and x86.
+> >
+> > If you want to double check, the full tree is at:
+> >
+> >         https://git.linuxtv.org/mchehab/experimental.git/log/?h=compile_test  
+> 
+> The __iomem annotations look good, my other patch is still needed to
+> get a clean build with "make C=1" but doesn't apply cleanly on top of your
+> version. I assume you'll just fix it up accordingly.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index e210917fdc3f..9a043a915c0b 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -42,6 +42,47 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
- 		drm_pipe->du_complete(drm_pipe->du_private, completed);
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Pipeline Configuration
-+ */
-+
-+/* Configure all entities in the pipeline. */
-+static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_entity *entity;
-+	struct vsp1_entity *next;
-+	struct vsp1_dl_list *dl;
-+
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
-+
-+	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
-+		/* Disconnect unused RPFs from the pipeline. */
-+		if (entity->type == VSP1_ENTITY_RPF &&
-+		    !pipe->inputs[entity->index]) {
-+			vsp1_dl_list_write(dl, entity->route->reg,
-+					   VI6_DPR_NODE_UNUSED);
-+
-+			entity->pipe = NULL;
-+			list_del(&entity->list_pipe);
-+
-+			continue;
-+		}
-+
-+		vsp1_entity_route_setup(entity, pipe, dl);
-+
-+		if (entity->ops->configure) {
-+			entity->ops->configure(entity, pipe, dl,
-+					       VSP1_ENTITY_PARAMS_INIT);
-+			entity->ops->configure(entity, pipe, dl,
-+					       VSP1_ENTITY_PARAMS_RUNTIME);
-+			entity->ops->configure(entity, pipe, dl,
-+					       VSP1_ENTITY_PARAMS_PARTITION);
-+		}
-+	}
-+
-+	vsp1_dl_list_commit(dl);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * DU Driver API
-  */
-@@ -85,9 +126,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	struct vsp1_drm_pipeline *drm_pipe;
- 	struct vsp1_pipeline *pipe;
- 	struct vsp1_bru *bru;
--	struct vsp1_entity *entity;
--	struct vsp1_entity *next;
--	struct vsp1_dl_list *dl;
- 	struct v4l2_subdev_format format;
- 	unsigned long flags;
- 	unsigned int i;
-@@ -239,22 +277,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
- 
- 	/* Configure all entities in the pipeline. */
--	dl = vsp1_dl_list_get(pipe->output->dlm);
--
--	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dl);
--
--		if (entity->ops->configure) {
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_INIT);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_RUNTIME);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_PARTITION);
--		}
--	}
--
--	vsp1_dl_list_commit(dl);
-+	vsp1_du_pipeline_configure(pipe);
- 
- 	/* Start the pipeline. */
- 	spin_lock_irqsave(&pipe->irqlock, flags);
-@@ -490,15 +513,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
- 	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
--	struct vsp1_entity *entity;
--	struct vsp1_entity *next;
--	struct vsp1_dl_list *dl;
- 	unsigned int i;
- 	int ret;
- 
--	/* Prepare the display list. */
--	dl = vsp1_dl_list_get(pipe->output->dlm);
--
- 	/* Count the number of enabled inputs and sort them by Z-order. */
- 	pipe->num_inputs = 0;
- 
-@@ -557,33 +574,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 				__func__, rpf->entity.index);
- 	}
- 
--	/* Configure all entities in the pipeline. */
--	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
--		/* Disconnect unused RPFs from the pipeline. */
--		if (entity->type == VSP1_ENTITY_RPF &&
--		    !pipe->inputs[entity->index]) {
--			vsp1_dl_list_write(dl, entity->route->reg,
--					   VI6_DPR_NODE_UNUSED);
--
--			entity->pipe = NULL;
--			list_del(&entity->list_pipe);
--
--			continue;
--		}
--
--		vsp1_entity_route_setup(entity, pipe, dl);
--
--		if (entity->ops->configure) {
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_INIT);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_RUNTIME);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_PARTITION);
--		}
--	}
--
--	vsp1_dl_list_commit(dl);
-+	vsp1_du_pipeline_configure(pipe);
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
- 
--- 
-Regards,
+Heh, another duplicated patch:
 
-Laurent Pinchart
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=compile_test&id=687520dc31a88c82c694492423c5d9c503cbdebb
+
+That's why it didn't apply cleanly:
+
+$ patch -p1 -i /tmp/media\:\ platform\:\ fsl-viu\:\ mark\ local\ functions\ \'static\'.patch --merge
+patching file drivers/media/platform/fsl-viu.c
+Hunk #1 already applied at 238.
+Hunk #2 already applied at 251.
+Hunk #3 already applied at 262.
+Hunk #4 already applied at 806.
+Hunk #5 already applied at 817.
+Hunk #6 already applied at 1305.
+
+Great minds think alike :-)
+
+Thanks,
+Mauro
