@@ -1,119 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54319 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36171 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751414AbeDEJSe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:34 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        with ESMTP id S1751842AbeDFXie (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 19:38:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 00/15] R-Car VSP1: Dynamically assign blend units to display pipelines
-Date: Thu,  5 Apr 2018 12:18:25 +0300
-Message-Id: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Subject: Re: [PATCH v7 6/8] media: vsp1: Refactor display list configure operations
+Date: Sat, 07 Apr 2018 02:38:33 +0300
+Message-ID: <2941184.iUo9Gmn1JQ@avalon>
+In-Reply-To: <e033c9432b2e86c764f7b1e44da10ba66ea4e030.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com> <e033c9432b2e86c764f7b1e44da10ba66ea4e030.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Kieran,
 
-On R-Car H3 ES2.0+ and M3-N SoCs, two display pipelines are served by the same
-VSP instance (named VSPDL). The VSPDL includes two blending units named BRU
-and BRS, unlike the other display-related VSPD that serves a single display
-channel with a single blending unit.
+Thank you for the patch.
 
-The VSPDL has five inputs and can freely assign them at runtime to two display
-pipelines, using the BRU and BRS to blend multiple inputs. The BRU supports
-blending up to five inputs, while the BRS is limited to two inputs.
+On Thursday, 8 March 2018 02:05:29 EEST Kieran Bingham wrote:
+> The entities provide a single .configure operation which configures the
+> object into the target display list, based on the vsp1_entity_params
+> selection.
+> 
+> This restricts us to a single function prototype for both static
+> configuration (the pre-stream INIT stage) and the dynamic runtime stages
+> for both each frame - and each partition therein.
+> 
+> Split the configure function into two parts, '.configure_stream()' and
+> '.configure_frame()', merging both the VSP1_ENTITY_PARAMS_RUNTIME and
+> VSP1_ENTITY_PARAMS_PARTITION stages into a single call through the
+> .configure_frame(). The configuration for individual partitions is
+> handled by passing the partition number to the configure call, and
+> processing any runtime stage actions on the first partition only.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> ---
+> v7
+>  - Fix formatting and white space
+>  - s/prepare/configure_stream/
+>  - s/configure/configure_frame/
+> 
+>  drivers/media/platform/vsp1/vsp1_bru.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_clu.c    |  50 +---
+>  drivers/media/platform/vsp1/vsp1_dl.h     |   1 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c    |  21 +--
+>  drivers/media/platform/vsp1/vsp1_entity.c |  17 +-
+>  drivers/media/platform/vsp1/vsp1_entity.h |  33 +--
+>  drivers/media/platform/vsp1/vsp1_hgo.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_hgt.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_hsit.c   |  12 +-
+>  drivers/media/platform/vsp1/vsp1_lif.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_lut.c    |  32 +-
+>  drivers/media/platform/vsp1/vsp1_rpf.c    | 164 ++++++-------
+>  drivers/media/platform/vsp1/vsp1_sru.c    |  12 +-
+>  drivers/media/platform/vsp1/vsp1_uds.c    |  57 ++--
+>  drivers/media/platform/vsp1/vsp1_video.c  |  24 +--
+>  drivers/media/platform/vsp1/vsp1_wpf.c    | 299 ++++++++++++-----------
+>  16 files changed, 378 insertions(+), 392 deletions(-)
 
-Each display pipeline requires a blending unit, and the BRU and BRS are
-currently assigned statically to the first and second pipeline respectively.
-This artificially limits the number of inputs for the second pipeline to two.
-To overcome that limitation, the BRU and BRS need to be dynamically assigned
-to the display pipelines, which is what this patch series does.
+[snip]
 
-Patches 01/15 to 10/15 perform small cleanups and refactoring to prepare for
-the rest of the series. Patches 11/15 and 12/15 implement new internal
-features for the same purpose, and patch 13/15 performs the bulk of the work
-by implementing dynamic BRU and BRS assignment to pipelines.
+> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c
+> b/drivers/media/platform/vsp1/vsp1_clu.c index b2a39a6ef7e4..b8d8af6d4910
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_clu.c
+> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
+> @@ -213,37 +213,36 @@ static const struct v4l2_subdev_ops clu_ops = {
+>  /*
+> ---------------------------------------------------------------------------
+> -- * VSP1 Entity Operations
+>   */
+> +static void clu_configure_stream(struct vsp1_entity *entity,
+> +				 struct vsp1_pipeline *pipe,
+> +				 struct vsp1_dl_list *dl)
+> +{
+> +	struct vsp1_clu *clu = to_clu(&entity->subdev);
+> +
+> +	/*
+> +	 * The yuv_mode can't be changed during streaming. Cache it internally
+> +	 * for future runtime configuration calls.
+> +	 */
 
-Reassigning the BRU and BRS when two pipelines are running results in flicker
-as one pipeline has to first release its blending unit. Synchronization
-between the two pipelines also require locking that effectively serializes
-page flips for the two pipelines, even when not interacting with each other.
-This is currently believed to be unavoidable due to the hardware design, but
-please feel free to prove me wrong (ideally with a patch - one can always
-dream).
+I'd move this comment right before the vsp1_entity_get_pad_format() call to 
+keep all variable declarations together.
 
-Patch 14/15 then adds messages useful for debugging this new feature. I have
-kept it separate from 13/15 to make it easier to remove those messages once
-dynamic assignment of blending units will be deemed perfectly stable, but I
-won't oppose squashing it with 13/15 if that is preferred.
+> +	struct v4l2_mbus_framefmt *format;
+> +
+> +	format = vsp1_entity_get_pad_format(&clu->entity,
+> +					    clu->entity.config,
+> +					    CLU_PAD_SINK);
+> +	clu->yuv_mode = format->code == MEDIA_BUS_FMT_AYUV8_1X32;
+> +}
 
-Patch 15/15 finally rename BRU to BRx to avoid confusion between the BRU terms
-that refer to the BRU in particular, and the ones that refer to any of the BRU
-or BRS. As this might be a bit controversial I've put the patch last in the
-series in case it needs to be dropped.
+[snip]
 
-I have decided to CC the dri-devel mailing list even though the code doesn't
-touch the R-Car DU driver and will be merged through the Linux media tree as
-the display is involved and the series could benefit from the expertise of the
-DRM/KMS community from that point of view.
 
-The patches are based on top of the latest Linux media master branch. For
-convenience their are available from
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
+> b/drivers/media/platform/vsp1/vsp1_dl.h index 7e820ac6865a..f45083251644
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> @@ -41,7 +41,6 @@ vsp1_dl_body_pool_create(struct vsp1_device *vsp1,
+> unsigned int num_bodies, void vsp1_dl_body_pool_destroy(struct
+> vsp1_dl_body_pool *pool);
+>  struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
+>  void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
+> -
 
-	git://linuxtv.org/pinchartl/media.git v4l2-vsp1-bru-brs-v2-20180405
+This is an unrelated change.
 
-The series passes the DU test suite with the new BRx dynamic assignment
-test available from
+>  void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
+>  int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body
+> *dlb);
+>  int vsp1_dl_list_add_chain(struct vsp1_dl_list *head, struct vsp1_dl_list
+>  *dl);
 
-	git://git.ideasonboard.com/renesas/kms-tests.git bru-brs
+[snip]
 
-The VSP test suite also runs without any noticed regression.
+> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h
+> b/drivers/media/platform/vsp1/vsp1_entity.h index
+> 408602ebeb97..b44ed5414fc3 100644
+> --- a/drivers/media/platform/vsp1/vsp1_entity.h
+> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
 
-Since v1, patch 10/15 has been added an the v1 02/15 patch merged with
-01/15. Other small changes are documented in individual changelogs.
+[snip]
 
-Laurent Pinchart (15):
-  v4l: vsp1: Don't start/stop media pipeline for DRM
-  v4l: vsp1: Remove unused field from vsp1_drm_pipeline structure
-  v4l: vsp1: Store pipeline pointer in vsp1_entity
-  v4l: vsp1: Use vsp1_entity.pipe to check if entity belongs to a
-    pipeline
-  v4l: vsp1: Share duplicated DRM pipeline configuration code
-  v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
-  v4l: vsp1: Setup BRU at atomic commit time
-  v4l: vsp1: Replace manual DRM pipeline input setup in
-    vsp1_du_setup_lif
-  v4l: vsp1: Move DRM pipeline output setup code to a function
-  v4l: vsp1: Turn frame end completion status into a bitfield
-  v4l: vsp1: Add per-display list internal completion notification
-    support
-  v4l: vsp1: Generalize detection of entity removal from DRM pipeline
-  v4l: vsp1: Assign BRU and BRS to pipelines dynamically
-  v4l: vsp1: Add BRx dynamic assignment debugging messages
-  v4l: vsp1: Rename BRU to BRx
+> @@ -80,8 +68,10 @@ struct vsp1_route {
+>  /**
+>   * struct vsp1_entity_operations - Entity operations
+>   * @destroy:	Destroy the entity.
+> - * @configure:	Setup the hardware based on the entity state (pipeline,
+> formats,
+> - *		selection rectangles, ...)
+> + * @configure_stream:	Setup the initial hardware parameters for the 
+stream
+> + *			(pipeline, formats)
 
- drivers/media/platform/vsp1/Makefile               |   2 +-
- drivers/media/platform/vsp1/vsp1.h                 |   6 +-
- .../media/platform/vsp1/{vsp1_bru.c => vsp1_brx.c} | 202 ++---
- .../media/platform/vsp1/{vsp1_bru.h => vsp1_brx.h} |  18 +-
- drivers/media/platform/vsp1/vsp1_dl.c              |  45 +-
- drivers/media/platform/vsp1/vsp1_dl.h              |   7 +-
- drivers/media/platform/vsp1/vsp1_drm.c             | 828 ++++++++++++---------
- drivers/media/platform/vsp1/vsp1_drm.h             |  16 +-
- drivers/media/platform/vsp1/vsp1_drv.c             |   8 +-
- drivers/media/platform/vsp1/vsp1_entity.h          |   2 +
- drivers/media/platform/vsp1/vsp1_histo.c           |   2 +-
- drivers/media/platform/vsp1/vsp1_histo.h           |   3 -
- drivers/media/platform/vsp1/vsp1_pipe.c            |  53 +-
- drivers/media/platform/vsp1/vsp1_pipe.h            |   6 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |  12 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  39 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |   8 +-
- 18 files changed, 718 insertions(+), 543 deletions(-)
- rename drivers/media/platform/vsp1/{vsp1_bru.c => vsp1_brx.c} (63%)
- rename drivers/media/platform/vsp1/{vsp1_bru.h => vsp1_brx.h} (66%)
+Instead of initial I would say "Setup hardware parameters that stay constant 
+for the whole stream (pipeline, formats)", or possible "that don't vary 
+between frames" instead.
+
+> + * @configure_frame:	Configure the runtime parameters for each partition
+> + *			(rectangles, buffer addresses, ...)
+
+Maybe "for each frame and each partition thereof" ?
+
+I think we mentioned, when discussing naming, the option of also having a 
+configure_partition() operation. Do you think that would make sense ? The 
+fact that the partition parameter to the .configure_frame() operation is used 
+for the sole purpose of checking whether to configure frame-related parameters 
+when partition == 0 makes me think that having two separate operations could 
+make sense.
+
+>   * @max_width:	Return the max supported width of data that the entity can
+>   *		process in a single operation.
+>   * @partition:	Process the partition construction based on this entity's
+
+[snip]
 
 -- 
 Regards,
