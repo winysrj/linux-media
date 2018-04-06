@@ -1,171 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43906 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751971AbeDDPc4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:32:56 -0400
-Subject: Patch "media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32" has been added to the 3.18-stable tree
-To: mchehab@s-opensource.com, alexander.levin@microsoft.com,
-        gregkh@linuxfoundation.org, hans.verkuil@cisco.com,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@infradead.org, sakari.ailus@linux.intel.com
-Cc: <stable@vger.kernel.org>, <stable-commits@vger.kernel.org>
-From: <gregkh@linuxfoundation.org>
-Date: Wed, 04 Apr 2018 17:32:44 +0200
-In-Reply-To: <b203ca17a23bf02398ef39e8f123d30b74df3523.1522260310.git.mchehab@s-opensource.com>
-Message-ID: <1522855964761@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:54367 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756614AbeDFOXa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 10:23:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 10/21] media: davinci_vpfe: fix __user annotations
+Date: Fri,  6 Apr 2018 10:23:11 -0400
+Message-Id: <ade06504215107ab328675fbf4df011280e08ae0.1523024380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
+References: <cover.1523024380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
+References: <cover.1523024380.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The __user annotations on this driver are wrong, causing lots
+of warnings:
 
-This is a note to let you know that I've just added the patch titled
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:1269:22: warning: incorrect type in assignment (different address spaces)
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:1269:22:    expected void [noderef] <asn:1>*from
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:1269:22:    got void *[noderef] <asn:1><noident>
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:1313:20: warning: incorrect type in assignment (different address spaces)
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:1313:20:    expected void [noderef] <asn:1>*to
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:1313:20:    got void *[noderef] <asn:1><noident>
+    drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:424:41: warning: incorrect type in initializer (different address spaces)
+    drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:424:41:    expected struct ipipeif_params *config
+    drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:424:41:    got void [noderef] <asn:1>*arg
+    drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:474:46: warning: incorrect type in argument 2 (different address spaces)
+    drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:474:46:    expected void [noderef] <asn:1>*arg
+    drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:474:46:    got void *arg
+    drivers/staging/media/davinci_vpfe/dm365_resizer.c:922:32: warning: incorrect type in argument 2 (different address spaces)
+    drivers/staging/media/davinci_vpfe/dm365_resizer.c:922:32:    expected void const [noderef] <asn:1>*from
+    drivers/staging/media/davinci_vpfe/dm365_resizer.c:922:32:    got struct vpfe_rsz_config_params *config
+    drivers/staging/media/davinci_vpfe/dm365_resizer.c:945:27: warning: incorrect type in argument 1 (different address spaces)
+    drivers/staging/media/davinci_vpfe/dm365_resizer.c:945:27:    expected void [noderef] <asn:1>*to
+    drivers/staging/media/davinci_vpfe/dm365_resizer.c:945:27:    got void *<noident>
 
-    media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-
-to the 3.18-stable tree which can be found at:
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-The filename of the patch is:
-     media-v4l2-compat-ioctl32.c-copy-clip-list-in-put_v4l2_window32.patch
-and it can be found in the queue-3.18 subdirectory.
-
-If you, or anyone else, feels it should not be added to the stable tree,
-please let <stable@vger.kernel.org> know about it.
-
-
->From foo@baz Wed Apr  4 17:30:18 CEST 2018
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date: Wed, 28 Mar 2018 15:12:30 -0300
-Subject: media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-To: Linux Media Mailing List <linux-media@vger.kernel.org>, stable@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sasha Levin <alexander.levin@microsoft.com>
-Message-ID: <b203ca17a23bf02398ef39e8f123d30b74df3523.1522260310.git.mchehab@s-opensource.com>
-
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
-
-put_v4l2_window32() didn't copy back the clip list to userspace.
-Drivers can update the clip rectangles, so this should be done.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   59 +++++++++++++++++---------
- 1 file changed, 40 insertions(+), 19 deletions(-)
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   | 15 ++++++---------
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |  9 +++++----
+ 3 files changed, 12 insertions(+), 14 deletions(-)
 
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -50,6 +50,11 @@ struct v4l2_window32 {
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index a7043865cf06..4373e1ea81e6 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1258,16 +1258,14 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ 	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
+ 		const struct ipipe_module_if *module_if;
+ 		struct ipipe_module_params *params;
+-		void __user *from;
++		void *from, *to;
+ 		size_t size;
+-		void *to;
  
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ 		if (!(cfg->flag & BIT(i)))
+ 			continue;
+ 
+ 		module_if = &ipipe_modules[i];
+-		from = *(void * __user *)
+-			((void *)cfg + module_if->config_offset);
++		from = *(void **)((void *)cfg + module_if->config_offset);
+ 
+ 		params = kmalloc(sizeof(struct ipipe_module_params),
+ 					GFP_KERNEL);
+@@ -1275,7 +1273,7 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ 		size = module_if->param_size;
+ 
+ 		if (to && from && size) {
+-			if (copy_from_user(to, from, size)) {
++			if (copy_from_user(to, (void __user *)from, size)) {
+ 				rval = -EFAULT;
+ 				break;
+ 			}
+@@ -1302,15 +1300,14 @@ static int ipipe_g_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ 	for (i = 1; i < ARRAY_SIZE(ipipe_modules); i++) {
+ 		const struct ipipe_module_if *module_if;
+ 		struct ipipe_module_params *params;
+-		void __user *to;
++		void *from, *to;
+ 		size_t size;
+-		void *from;
+ 
+ 		if (!(cfg->flag & BIT(i)))
+ 			continue;
+ 
+ 		module_if = &ipipe_modules[i];
+-		to = *(void * __user *)((void *)cfg + module_if->config_offset);
++		to = *(void **)((void *)cfg + module_if->config_offset);
+ 
+ 		params =  kmalloc(sizeof(struct ipipe_module_params),
+ 					GFP_KERNEL);
+@@ -1321,7 +1318,7 @@ static int ipipe_g_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
+ 			rval = module_if->get(ipipe, from);
+ 			if (rval)
+ 				goto error;
+-			if (copy_to_user(to, from, size)) {
++			if (copy_to_user((void __user *)to, from, size)) {
+ 				rval = -EFAULT;
+ 				break;
+ 			}
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index cf91f8842d35..11c9edfbdbe3 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -418,7 +418,7 @@ ipipeif_set_config(struct v4l2_subdev *sd, struct ipipeif_params *config)
+ }
+ 
+ static int
+-ipipeif_get_config(struct v4l2_subdev *sd, void __user *arg)
++ipipeif_get_config(struct v4l2_subdev *sd, void *arg)
  {
-+	struct v4l2_clip32 __user *uclips;
-+	struct v4l2_clip __user *kclips;
-+	compat_caddr_t p;
-+	u32 n;
-+
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
-@@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
--	if (kp->clipcount) {
--		struct v4l2_clip32 __user *uclips;
--		struct v4l2_clip __user *kclips;
--		int n = kp->clipcount;
--		compat_caddr_t p;
-+	if (!kp->clipcount) {
-+		kp->clips = NULL;
-+		return 0;
-+	}
- 
--		if (get_user(p, &up->clips))
-+	n = kp->clipcount;
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-+	kp->clips = kclips;
-+	while (n--) {
-+		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+ 	struct vpfe_ipipeif_device *ipipeif = v4l2_get_subdevdata(sd);
+ 	struct ipipeif_params *config = arg;
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 1e478755fe2f..df6d55e9554d 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -919,7 +919,8 @@ resizer_set_configuration(struct vpfe_resizer_device *resizer,
+ 		resizer_set_default_configuration(resizer);
+ 	else
+ 		if (copy_from_user(&resizer->config.user_config,
+-		    chan_config->config, sizeof(struct vpfe_rsz_config_params)))
++				   (void __user *)chan_config->config,
++				   sizeof(struct vpfe_rsz_config_params)))
  			return -EFAULT;
--		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(*kclips));
--		kp->clips = kclips;
--		while (--n >= 0) {
--			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
--				return -EFAULT;
--			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
--				return -EFAULT;
--			uclips += 1;
--			kclips += 1;
--		}
--	} else
--		kp->clips = NULL;
-+		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
  
- static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip __user *kclips = kp->clips;
-+	struct v4l2_clip32 __user *uclips;
-+	u32 n = kp->clipcount;
-+	compat_caddr_t p;
-+
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
- 	    put_user(kp->clipcount, &up->clipcount) ||
- 	    put_user(kp->global_alpha, &up->global_alpha))
+ 	return 0;
+@@ -942,9 +943,9 @@ resizer_get_configuration(struct vpfe_resizer_device *resizer,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (copy_to_user((void *)chan_config->config,
+-	   (void *)&resizer->config.user_config,
+-	   sizeof(struct vpfe_rsz_config_params))) {
++	if (copy_to_user((void __user *)chan_config->config,
++			 (void *)&resizer->config.user_config,
++			 sizeof(struct vpfe_rsz_config_params))) {
+ 		dev_err(dev, "resizer_get_configuration: Error in copy to user\n");
  		return -EFAULT;
-+
-+	if (!kp->clipcount)
-+		return 0;
-+
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	while (n--) {
-+		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
-
-
-Patches currently in stable-queue which might be from mchehab@s-opensource.com are
-
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-m.userptr-in-put_v4l2_plane32.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-avoid-sizeof-type.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-drop-pr_info-for-unknown-buffer-type.patch
-queue-3.18/media-v4l2-compat-ioctl32-use-compat_u64-for-video-standard.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-add-missing-vidioc_prepare_buf.patch
-queue-3.18/vb2-v4l2_buf_flag_done-is-set-after-dqbuf.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-refactor-compat-ioctl32-logic.patch
-queue-3.18/media-v4l2-ctrls-fix-sparse-warning.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-ctrl_is_pointer.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-move-helper-functions-to-__get-put_v4l2_format32.patch
-queue-3.18/media-media-v4l2-ctrls-volatiles-should-not-generate-ch_value.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-make-ctrl_is_pointer-work-for-subdevs.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-the-indentation.patch
-queue-3.18/media-v4l2-compat-ioctl32-copy-v4l2_window-global_alpha.patch
-queue-3.18/media-v4l2-ioctl.c-don-t-copy-back-the-result-for-enotty.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-clip-list-in-put_v4l2_window32.patch
-queue-3.18/media-v4l2-compat-ioctl32-initialize-a-reserved-field.patch
+ 	}
+-- 
+2.14.3
