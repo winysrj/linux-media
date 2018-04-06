@@ -1,89 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:37775 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753963AbeD2RNo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:13:44 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from osg.samsung.com ([64.30.133.232]:46145 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752461AbeDFO0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 10:26:50 -0400
+Date: Fri, 6 Apr 2018 11:26:40 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 04/14] media: ov772x: add checks for register read errors
-Date: Mon, 30 Apr 2018 02:13:03 +0900
-Message-Id: <1525021993-17789-5-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Geliang Tang <geliangtang@gmail.com>
+Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with
+ COMPILE_TEST
+Message-ID: <20180406112640.1441ca9f@vento.lan>
+In-Reply-To: <CAK8P3a1aO99P7RWErJRS22QQdJ6wJNgZptHOaTFx7_2NvQ1vvA@mail.gmail.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
+        <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
+        <20180406064718.2cdb69ea@vento.lan>
+        <CAK8P3a2FQapAqxOMJNe9oBs8kBXsd7TCdsNon5Gvab3Y8LLKSA@mail.gmail.com>
+        <20180406111537.04375bdf@vento.lan>
+        <CAK8P3a1aO99P7RWErJRS22QQdJ6wJNgZptHOaTFx7_2NvQ1vvA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change adds checks for register read errors and returns correct
-error code.
+Em Fri, 6 Apr 2018 16:16:46 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v4
-- No changes
+> On Fri, Apr 6, 2018 at 4:15 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> > Em Fri, 6 Apr 2018 11:51:16 +0200
+> > Arnd Bergmann <arnd@arndb.de> escreveu:
+> >  
+> >> On Fri, Apr 6, 2018 at 11:47 AM, Mauro Carvalho Chehab
+> >> <mchehab@s-opensource.com> wrote:
+> >>  
+> >> > [PATCH] media: fsl-viu: allow building it with COMPILE_TEST
+> >> >
+> >> > There aren't many things that would be needed to allow it
+> >> > to build with compile test.
+> >> >
+> >> > Add the needed bits.
+> >> >
+> >> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> >>
+> >> Reviewed-by: Arnd Bergmann <arnd@arndb.de>  
+> >
+> > Actually, in order to avoid warnings with smatch, the COMPILE_TEST
+> > macros should be declared as:
+> >
+> > +#define out_be32(v, a) iowrite32be(a, (void __iomem *)v)
+> > +#define in_be32(a)     ioread32be((void __iomem *)a)  
+> 
+> I would just add the correct annotations, I think they've always been missing.
+> 2 patches coming in a few minutes.
 
- drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+I corrected the annotations too. Now, it gives the same results
+building for both arm and x86.
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index b6223bf..3fdbe64 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -1146,7 +1146,7 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
- static int ov772x_video_probe(struct ov772x_priv *priv)
- {
- 	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
--	u8                  pid, ver;
-+	int		    pid, ver, midh, midl;
- 	const char         *devname;
- 	int		    ret;
- 
-@@ -1156,7 +1156,11 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 
- 	/* Check and show product ID and manufacturer ID. */
- 	pid = ov772x_read(client, PID);
-+	if (pid < 0)
-+		return pid;
- 	ver = ov772x_read(client, VER);
-+	if (ver < 0)
-+		return ver;
- 
- 	switch (VERSION(pid, ver)) {
- 	case OV7720:
-@@ -1172,13 +1176,17 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 		goto done;
- 	}
- 
-+	midh = ov772x_read(client, MIDH);
-+	if (midh < 0)
-+		return midh;
-+	midl = ov772x_read(client, MIDL);
-+	if (midl < 0)
-+		return midl;
-+
- 	dev_info(&client->dev,
- 		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
--		 devname,
--		 pid,
--		 ver,
--		 ov772x_read(client, MIDH),
--		 ov772x_read(client, MIDL));
-+		 devname, pid, ver, midh, midl);
-+
- 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
- 
- done:
--- 
-2.7.4
+If you want to double check, the full tree is at:
+
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=compile_test
+
+
+> 
+>       Arnd
+
+
+
+Thanks,
+Mauro
