@@ -1,86 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44640 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932875AbeDXIeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 04:34:07 -0400
-Subject: Re: [PATCH] sound, isapnp: allow building more drivers with
- COMPILE_TEST
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org
-References: <082977bdb133dc0570f690d3f3a120207f1d63f1.1524229123.git.mchehab@s-opensource.com>
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Message-ID: <d6007528-98a3-492a-e1d3-d43c23bf3a09@intel.com>
-Date: Tue, 24 Apr 2018 10:34:04 +0200
-MIME-Version: 1.0
-In-Reply-To: <082977bdb133dc0570f690d3f3a120207f1d63f1.1524229123.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35891 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751842AbeDFUCZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 16:02:25 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2.1 09/15] v4l: vsp1: Move DRM pipeline output setup code to a function
+Date: Fri,  6 Apr 2018 23:00:55 +0300
+Message-Id: <20180406200055.12280-1-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
+References: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4/20/2018 2:58 PM, Mauro Carvalho Chehab wrote:
-> Drivers that depend on ISAPNP currently can't be built with
-> COMPILE_TEST. However, looking at isapnp.h, there are already
-> stubs there to allow drivers to include it even when isa
-> PNP is not supported.
->
-> So, remove such dependencies when COMPILE_TEST.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->   drivers/pnp/isapnp/Kconfig | 2 +-
->   sound/isa/Kconfig          | 6 +++---
->   2 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/pnp/isapnp/Kconfig b/drivers/pnp/isapnp/Kconfig
-> index f1ef36673ad4..a1af146d2d90 100644
-> --- a/drivers/pnp/isapnp/Kconfig
-> +++ b/drivers/pnp/isapnp/Kconfig
-> @@ -3,7 +3,7 @@
->   #
->   config ISAPNP
->   	bool "ISA Plug and Play support"
-> -	depends on ISA
-> +	depends on ISA || COMPILE_TEST
->   	help
->   	  Say Y here if you would like support for ISA Plug and Play devices.
->   	  Some information is in <file:Documentation/isapnp.txt>.
-> diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
-> index d2a6cdd0395c..43b35a873d78 100644
-> --- a/sound/isa/Kconfig
-> +++ b/sound/isa/Kconfig
-> @@ -39,7 +39,7 @@ config SND_ADLIB
->   
->   config SND_AD1816A
->   	tristate "Analog Devices SoundPort AD1816A"
-> -	depends on PNP && ISA
-> +	depends on PNP
->   	select ISAPNP
->   	select SND_OPL3_LIB
->   	select SND_MPU401_UART
-> @@ -67,7 +67,7 @@ config SND_AD1848
->   
->   config SND_ALS100
->   	tristate "Diamond Tech. DT-019x and Avance Logic ALSxxx"
-> -	depends on PNP && ISA
-> +	depends on PNP
->   	select ISAPNP
->   	select SND_OPL3_LIB
->   	select SND_MPU401_UART
-> @@ -108,7 +108,7 @@ config SND_AZT2316
->   
->   config SND_AZT2320
->   	tristate "Aztech Systems AZT2320"
-> -	depends on PNP && ISA
-> +	depends on PNP
->   	select ISAPNP
->   	select SND_OPL3_LIB
->   	select SND_MPU401_UART
+In order to make the vsp1_du_setup_lif() easier to read, and for
+symmetry with the DRM pipeline input setup, move the pipeline output
+setup code to a separate function.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+--
+Changes since v2:
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+- Moved vsp1_du_pipeline_setup_input() rename to earlier patch
+
+Changes since v1:
+
+- Rename vsp1_du_pipeline_setup_input() to
+  vsp1_du_pipeline_setup_inputs()
+- Initialize format local variable to 0 in
+  vsp1_du_pipeline_setup_output()
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 106 +++++++++++++++++++--------------
+ 1 file changed, 60 insertions(+), 46 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 4a628bbf7e47..a7cccc9b05ef 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -276,6 +276,65 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+ 	return 0;
+ }
+ 
++/* Setup the output side of the pipeline (WPF and LIF). */
++static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
++					 struct vsp1_pipeline *pipe)
++{
++	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
++	struct v4l2_subdev_format format = { 0, };
++	int ret;
++
++	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	format.pad = RWPF_PAD_SINK;
++	format.format.width = drm_pipe->width;
++	format.format.height = drm_pipe->height;
++	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
++	format.format.field = V4L2_FIELD_NONE;
++
++	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, pipe->output->entity.index);
++
++	format.pad = RWPF_PAD_SOURCE;
++	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, pipe->output->entity.index);
++
++	format.pad = LIF_PAD_SINK;
++	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
++			       &format);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
++		__func__, format.format.width, format.format.height,
++		format.format.code, pipe->lif->index);
++
++	/*
++	 * Verify that the format at the output of the pipeline matches the
++	 * requested frame size and media bus code.
++	 */
++	if (format.format.width != drm_pipe->width ||
++	    format.format.height != drm_pipe->height ||
++	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
++		dev_dbg(vsp1->dev, "%s: format mismatch on LIF%u\n", __func__,
++			pipe->lif->index);
++		return -EPIPE;
++	}
++
++	return 0;
++}
++
+ /* Configure all entities in the pipeline. */
+ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+ {
+@@ -356,7 +415,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	struct vsp1_drm_pipeline *drm_pipe;
+ 	struct vsp1_pipeline *pipe;
+ 	struct vsp1_bru *bru;
+-	struct v4l2_subdev_format format;
+ 	unsigned long flags;
+ 	unsigned int i;
+ 	int ret;
+@@ -417,54 +475,10 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	memset(&format, 0, sizeof(format));
+-	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	format.pad = RWPF_PAD_SINK;
+-	format.format.width = cfg->width;
+-	format.format.height = cfg->height;
+-	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
+-	format.format.field = V4L2_FIELD_NONE;
+-
+-	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
+-			       &format);
+-	if (ret < 0)
+-		return ret;
+-
+-	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
+-		__func__, format.format.width, format.format.height,
+-		format.format.code, pipe->output->entity.index);
+-
+-	format.pad = RWPF_PAD_SOURCE;
+-	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
+-			       &format);
+-	if (ret < 0)
+-		return ret;
+-
+-	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
+-		__func__, format.format.width, format.format.height,
+-		format.format.code, pipe->output->entity.index);
+-
+-	format.pad = LIF_PAD_SINK;
+-	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
+-			       &format);
++	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
+-		__func__, format.format.width, format.format.height,
+-		format.format.code, pipe_index);
+-
+-	/*
+-	 * Verify that the format at the output of the pipeline matches the
+-	 * requested frame size and media bus code.
+-	 */
+-	if (format.format.width != cfg->width ||
+-	    format.format.height != cfg->height ||
+-	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
+-		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
+-		return -EPIPE;
+-	}
+-
+ 	/* Enable the VSP1. */
+ 	ret = vsp1_device_get(vsp1);
+ 	if (ret < 0)
+-- 
+Regards,
+
+Laurent Pinchart
