@@ -1,99 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:54911 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753539AbeDTHX3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 03:23:29 -0400
-Date: Fri, 20 Apr 2018 09:23:16 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH v2 01/10] media: v4l2-ctrls: Add missing v4l2 ctrl unlock
-Message-ID: <20180420072316.sifritx54mppgwz3@flea>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
- <20180419154124.17512-2-paul.kocialkowski@bootlin.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yqpvzbuk2a5n4355"
-Content-Disposition: inline
-In-Reply-To: <20180419154124.17512-2-paul.kocialkowski@bootlin.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:37474 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752663AbeDFWwy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 18:52:54 -0400
+Received: by mail-pf0-f193.google.com with SMTP id x16so1755747pfm.4
+        for <linux-media@vger.kernel.org>; Fri, 06 Apr 2018 15:52:53 -0700 (PDT)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Subject: [PATCH v8 0/2] media: video-i2c: add video-i2c driver support
+Date: Fri,  6 Apr 2018 15:52:29 -0700
+Message-Id: <20180406225231.13831-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add support for video-i2c polling driver
 
---yqpvzbuk2a5n4355
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Changes from v1:
+* Switch to SPDX tags versus GPLv2 license text
+* Remove unneeded zeroing of data structures
+* Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
 
-On Thu, Apr 19, 2018 at 05:41:15PM +0200, Paul Kocialkowski wrote:
-> This adds a missing v4l2_ctrl_unlock call that is required to avoid
-> deadlocks.
+Changes from v2:
+* Add missing linux/kthread.h include that broke x86_64 build
 
-Maybe you can explain what the deadlock scenario is?
+Changes from v3:
+* Add devicetree binding documents
+* snprintf check added
+* switched to per chip support based on devicetree or i2c client id
+* add VB2_DMABUF to io_modes
+* added entry to MAINTAINERS file switched to per chip support based on devicetree or i2c client id
 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-co=
-re/v4l2-ctrls.c
-> index f67e9f5531fa..ba05a8b9a095 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -3614,10 +3614,12 @@ void v4l2_ctrl_request_complete(struct media_requ=
-est *req,
->  			continue;
-> =20
->  		v4l2_ctrl_lock(ctrl);
-> +
->  		if (ref->req)
->  			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
->  		else
->  			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
-> +
+Changes from v4:
+* convert pointer from of_device_get_match_data() to long instead of int to avoid compiler warning
 
-I'm not sure that this is relevant in this patch.
+Changes from v5:
+* fix various issues with v4l2-compliance tool run
 
-Maxime
+Changes from v6:
+* fixed minor coding issues on spacing
+* changed device tree table pointers to chip struct data
+* add more verbose Kconfig documentation
+* destroy mutexes on error path and module removal
+* fixed MODULE_LICENSE from GPL to GPLv2
+* changes some calls to list_last_entry() to avoid touching next pointer
+* moved common code to a function from start/stop_streaming()
 
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+Changes from v7:
+* add const to several structs
+* corrected a few over 80 column lines 
+* change DT check to generic dev_fwnode() call
 
---yqpvzbuk2a5n4355
-Content-Type: application/pgp-signature; name="signature.asc"
+Matt Ranostay (2):
+  media: dt-bindings: Add bindings for panasonic,amg88xx
+  media: video-i2c: add video-i2c driver
 
------BEGIN PGP SIGNATURE-----
+ .../bindings/media/i2c/panasonic,amg88xx.txt       |  19 +
+ MAINTAINERS                                        |   6 +
+ drivers/media/i2c/Kconfig                          |  13 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/video-i2c.c                      | 563 +++++++++++++++++++++
+ 5 files changed, 602 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ create mode 100644 drivers/media/i2c/video-i2c.c
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrZlVcACgkQ0rTAlCFN
-r3Ta5g//U10D/ucGkinLguIgg52ZcwICCeHZjAnqkWjobQv9c6ehmRQoSvUadY+I
-7tr4APQa1bOeBfXDheWw2GicNmefCYOFAHxXjdRsIoTJeTJRvLYlSqGVfP4rF9mP
-6s69+J2zbTLiSGSDajNV6akt4te9JB3ribKl1ayzRnXmWgA79yNXNDcfBDVZZYMB
-xMtoKrsR9sheG2AYdFNHo7+BLzpJsp9kCOguwTUbDXy6mcC9APrpWMUmFRRPeTtk
-ZBZJopxNGlSQixq5b8a4CTx4abQoWj+ccSTY0JwHUsaV6XuMqhPVE56KM70m0MlF
-xS41Qn9y6p2hTSmXDIsB4pqF6Ii+OOJtZXAqj0OPBTSxKDNNy6JegNCvJOuZxVRI
-lDDTpXbABTt4BM/3wpd3Zn59Mn4t72NlGQI2uJoj99nnE/0vCr+fGVCNLqMyZ89n
-tNZhp5vDWp6pxjj64m3Me9Qf0GKjJaHUuWDqLmhnIBUTyFoi/f/tJLza6diehJXD
-2lMyWwE4m/NL7RO2Y9835nhdNvPTy2/Pc15HMOd3ZNlhHWQUbTNZUdN4fIyfbOKc
-xwQg5lMf5Gn2RFxXLC9+/jjNsQ0APbr9e/Qw6Vive2foe63mF0DXSBGLPRk7tgID
-lAy2ty+JVhKVRXrbvQxgf5WaAwXTu28tiqz1qAP8Nk3eNZO/X1s=
-=UQpD
------END PGP SIGNATURE-----
-
---yqpvzbuk2a5n4355--
+-- 
+2.14.1
