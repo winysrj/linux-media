@@ -1,74 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:44609 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754209AbeDWJEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:04:22 -0400
-Date: Mon, 23 Apr 2018 10:04:20 +0100
-From: Sean Young <sean@mess.org>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org
-Subject: Re: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken
- reference counting
-Message-ID: <20180423090420.tvb6danodfbc55m2@gofer.mess.org>
-References: <cover.1523785117.git.sean@mess.org>
- <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
- <20180416075228.GB2121@kroah.com>
- <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
- <20180416085015.GA2598@kroah.com>
- <20180416091527.ryx7vdekzjwcrpxo@gofer.mess.org>
- <20180422094751.GC26895@kroah.com>
+Received: from mail-eopbgr30045.outbound.protection.outlook.com ([40.107.3.45]:37114
+        "EHLO EUR03-AM5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750807AbeDFG4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 02:56:06 -0400
+Subject: Re: [RfC PATCH] Add udmabuf misc device
+To: Matt Roper <matthew.d.roper@intel.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Cc: Gerd Hoffmann <kraxel@redhat.com>,
+        Dongwon Kim <dongwon.kim@intel.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        David Airlie <airlied@linux.ie>,
+        open list <linux-kernel@vger.kernel.org>,
+        qemu-devel@nongnu.org,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+References: <20180313154826.20436-1-kraxel@redhat.com>
+ <20180313161035.GL4788@phenom.ffwll.local>
+ <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
+ <CAKMK7uGG6Z6XLc6GuKv7-3grCNg+EK2Lh6XWpavjsbZWF_L5Wg@mail.gmail.com>
+ <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <2411d2c1-33c0-2ba5-67ea-3bb9af5d5ec9@epam.com>
+Date: Fri, 6 Apr 2018 09:55:56 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180422094751.GC26895@kroah.com>
+In-Reply-To: <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 22, 2018 at 11:47:51AM +0200, Greg KH wrote:
-> On Mon, Apr 16, 2018 at 10:15:28AM +0100, Sean Young wrote:
-> > On Mon, Apr 16, 2018 at 10:50:15AM +0200, Greg KH wrote:
-> > > On Mon, Apr 16, 2018 at 09:43:45AM +0100, Sean Young wrote:
-> > > > On Mon, Apr 16, 2018 at 09:52:28AM +0200, Greg KH wrote:
-> > > > > What is the git commit id of this patch, and the other patches in this
-> > > > > series and the 4.14 patch series that you sent out?
-> > > > 
-> > > > lirc_zilog was dropped in v4.16, so this can't be patched upstream.
-> > > 
-> > > Ah you are right, should we just ditch them here as well as they
-> > > obviously do not work? :)
-> > > 
-> > > > > Please read:
-> > > > >     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-> > > > > for how to do this in a way that I can pick them up.
-> > > > 
-> > > > These patches have been tested with different types of hardware. Is there
-> > > > anything else I can do to get these patches included?
-> > > 
-> > > When submitting patches to stable, you need to be explicit as to why
-> > > they are needed, and if they are not upstream, why not.
-> > > 
-> > > In this case, for obviously broken code that is not used anymore (as
-> > > it is gone in 4.16), why don't we just take the patch that removed the
-> > > driver to the stable trees as well?
-> > 
-> > Well in v4.16 the ir-kbd-i2c.c driver can do what the lirc_zilog does in
-> > v4.15 (and earlier), so it wasn't ditched as such. It's a case of replaced
-> > by mainline.
-> > 
-> > Since I was getting bug reports on it, there must be users of the lirc_zilog
-> > driver.
-> > 
-> > That being said, the old lirc_dev and lirc_zilog is pretty awful code.
-> 
-> Ok, I've queued these up for 4.14.y now.  4.15 is end-of-life, so I
-> can't apply these patches there, sorry.
+On 04/06/2018 03:11 AM, Matt Roper wrote:
+> On Thu, Apr 05, 2018 at 10:32:04PM +0200, Daniel Vetter wrote:
+>> Pulling this out of the shadows again.
+>>
+>> We now also have xen-zcopy from Oleksandr and the hyper dmabuf stuff
+>> from Matt and Dongwong.
+>>
+>> At least from the intel side there seems to be the idea to just have 1
+>> special device that can handle cross-gues/host sharing for all kinds
+>> of hypervisors, so I guess you all need to work together :-)
+>>
+>> Or we throw out the idea that hyper dmabuf will be cross-hypervisor
+>> (not sure how useful/reasonable that is, someone please convince me
+>> one way or the other).
+>>
+>> Cheers, Daniel
+> Dongwon (DW) is the one doing all the real work on hyper_dmabuf, but I'm
+> familiar with the use cases he's trying to address, and I think there
+> are a couple high-level goals of his work that are worth calling out as
+> we discuss the various options for sharing buffers produced in one VM
+> with a consumer running in another VM:
+>
+>   * We should try to keep the interface/usage separate from the
+>     underlying hypervisor implementation details.  I.e., in DW's design
+>     the sink/source drivers that handle the actual buffer passing in the
+>     two VM's should provide a generic interface that does not depend on a
+>     specific hypervisor.
+This is what we did for display, sound and multi-touch on Xen:
+we have implemented generic protocols which are OS agnostic.
+Have you started prototyping such a protocol for hyper-dmabuf yet?
 
-Ok, thanks.
+>   Behind the scenes there could be various
+>     implementations for specific hypervisors (Xen, KVM, ACRN, etc.), and
+>     some of those backends may have additional restrictions, but it would
+>     be best if userspace didn't have to know the specific hypervisor
+>     running on the system and could just query the general capabilities
+>     available to it.  We've already got projects in flight that are
+>     wanting this functionality on Xen and ACRN today.
+Should we add corresponding communities into discussion then?
 
-I wonder why Ubuntu picked 4.15 as the kernel for their upcoming 18.04 LTS
-release.
+>
+>   * The general interface should be able to express sharing from any
+>     guest:guest, not just guest:host.  Arbitrary G:G sharing might be
+>     something some hypervisors simply aren't able to support, but the
+>     userspace API itself shouldn't make assumptions or restrict that.  I
+>     think ideally the sharing API would include some kind of
+>     query_targets interface that would return a list of VM's that your
+>     current OS is allowed to share with; that list would be depend on the
+>     policy established by the system integrator, but obviously wouldn't
+>     include targets that the hypervisor itself wouldn't be capable of
+>     handling.
+Can you give a use-case for this? I mean that the system integrator
+is the one who defines which guests/hosts talk to each other,
+but querying means that it is possible that VMs have some sort
+of discovery mechanism, so they can decide on their own whom
+to connect to.
+>     
+>   * A lot of the initial use cases are in the realm of graphics, but this
+>     shouldn't be a graphics-specific API.  Buffers might contain other
+>     types of content as well (e.g., audio).  Really the content producer
+>     could potentially be any driver (or userspace) running in the VM that
+>     knows how to import/export dma_buf's (or maybe just import given
+>     danvet's suggestion that we should make the sink driver do all the
+>     actual memory allocation for any buffers that may be shared).
+>
+>   * We need to be able to handle cross-VM coordination of buffer usage as
+>     well, so I think we'd want to include fence forwarding support in the
+>     API as well to signal back and forth about production/consumption
+>     completion.  And of course document really well what should happen
+>     if, for example, the entire VM you're sharing with/from dies.
+>
+>   * The sharing API could be used to share multiple kinds of content in a
+>     single system.  The sharing sink driver running in the content
+>     producer's VM should accept some additional metadata that will be
+>     passed over to the target VM as well.  The sharing source driver
+>     running in the content consumer's VM would then be able to use this
+>     metadata to determine the purpose of a new buffer that arrives and
+>     filter/dispatch it to the appropriate consumer.
+>
+>
+> For reference, the terminology I'm using is
+>
+>   /----------\  dma_buf   /------\ HV /--------\  dma_buf   /----------\
+>   | Producer |----------->| Sink | HV | Source |----------->| Consumer |
+>   \----------/   ioctls   \------/ HV \--------/  uevents   \----------/
+>
+>
+>
+> In the realm of graphics, "Producer" could potentially be something like
+> an EGL client that sends the buffer at context setup and then signals
+> with fences on each SwapBuffers.  "Consumer" could be a Wayland client
+> that proxies the buffers into surfaces or dispatches them to other
+> userspace software that's waiting for buffers.
+>
+> With the hyper_dmabuf approach, there's a lot of ABI details that need
+> to be worked out and really clearly documented before we worry too much
+> about the backend hypervisor-specific stuff.
+>
+> I'm not super familiar with xen-zcopy
+
+Let me describe the rationale and some implementation details of the Xen
+zero-copy driver I posted recently [1].
+
+The main requirement for us to implement such a helper driver was an ability
+to avoid memory copying for large buffers in display use-cases. This is why
+we only focused on DRM use-cases, not trying to implement something
+generic. This is why the driver is somewhat coupled with Xen 
+para-virtualized
+DRM driver [2] by Xen para-virtual display protocol [3] grant references
+sharing mechanism, e.g. backend receives an array of Xen grant references to
+frontend's buffer pages. These grant references are then used to construct a
+PRIME buffer. The same mechanism is used when backend shares a buffer 
+with the
+frontend, but in the other direction. More details on UAPI of the driver are
+available at [1].
+
+So, when discussing a possibility to share dma-bufs in a generic way I would
+also like to have the following considered:
+
+1. We are targeting ARM and one of the major requirements for the buffer
+sharing is the ability to allocate physically contiguous buffers, which gets
+even more complicated for systems not backed with an IOMMU. So, for some
+use-cases it is enough to make the buffers contiguous in terms of IPA and
+sometimes those need to be contiguous in terms of PA.
+(The use-case is that you use Wayland-DRM/KMS or share the buffer with
+the driver implemented with DRM CMA helpers).
+
+2. For Xen we would love to see UAPI to create a dma-buf from grant 
+references
+provided, so we can use this generic solution to implement zero-copying 
+without
+breaking the existing Xen protocols. This can probably be extended to other
+hypervizors as well.
+
+Thank you,
+Oleksandr Andrushchenko
 
 
-Sean
+>   and udmabuf, but it sounds like
+> they're approaching similar problems from slightly different directions,
+> so we should make sure we can come up with something that satisfies
+> everyone's requirements.
+>
+>
+> Matt
+>
+>> On Wed, Mar 14, 2018 at 9:03 AM, Gerd Hoffmann <kraxel@redhat.com> wrote:
+>>>    Hi,
+>>>
+>>>> Either mlock account (because it's mlocked defacto), and get_user_pages
+>>>> won't do that for you.
+>>>>
+>>>> Or you write the full-blown userptr implementation, including mmu_notifier
+>>>> support (see i915 or amdgpu), but that also requires Christian Königs
+>>>> latest ->invalidate_mapping RFC for dma-buf (since atm exporting userptr
+>>>> buffers is a no-go).
+>>> I guess I'll look at mlock accounting for starters then.  Easier for
+>>> now, and leaves the door open to switch to userptr later as this should
+>>> be transparent to userspace.
+>>>
+>>>>> Known issue:  Driver API isn't complete yet.  Need add some flags, for
+>>>>> example to support read-only buffers.
+>>>> dma-buf has no concept of read-only. I don't think we can even enforce
+>>>> that (not many iommus can enforce this iirc), so pretty much need to
+>>>> require r/w memory.
+>>> Ah, ok.  Just saw the 'write' arg for get_user_pages_fast and figured we
+>>> might support that, but if iommus can't handle that anyway it's
+>>> pointless indeed.
+>>>
+>>>>> Cc: David Airlie <airlied@linux.ie>
+>>>>> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>>>>> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+>>>> btw there's also the hyperdmabuf stuff from the xen folks, but imo their
+>>>> solution of forwarding the entire dma-buf api is over the top. This here
+>>>> looks _much_ better, pls cc all the hyperdmabuf people on your next
+>>>> version.
+>>> Fun fact: googling for "hyperdmabuf" found me your mail and nothing else :-o
+>>> (Trying "hyper dmabuf" instead worked better then).
+>>>
+>>> Yes, will cc them on the next version.  Not sure it'll help much on xen
+>>> though due to the memory management being very different.  Basically xen
+>>> owns the memory, not the kernel of the control domain (dom0), so
+>>> creating dmabufs for guest memory chunks isn't that simple ...
+>>>
+>>> Also it's not clear whenever they really need guest -> guest exports or
+>>> guest -> dom0 exports.
+>>>
+>>>> Overall I like the idea, but too lazy to review.
+>>> Cool.  General comments on the idea was all I was looking for for the
+>>> moment.  Spare yor review cycles for the next version ;)
+>>>
+>>>> Oh, some kselftests for this stuff would be lovely.
+>>> I'll look into it.
+>>>
+>>> thanks,
+>>>    Gerd
+>>>
+>>> _______________________________________________
+>>> dri-devel mailing list
+>>> dri-devel@lists.freedesktop.org
+>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>
+>>
+>> -- 
+>> Daniel Vetter
+>> Software Engineer, Intel Corporation
+>> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+[1] https://patchwork.freedesktop.org/series/40880/
+[2] 
+https://cgit.freedesktop.org/drm/drm-misc/commit/?id=c575b7eeb89f94356997abd62d6d5a0590e259b7
+[3] 
+https://elixir.bootlin.com/linux/v4.16-rc7/source/include/xen/interface/io/displif.h
