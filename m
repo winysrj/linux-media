@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:43789 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753904AbeDYLPe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 07:15:34 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: geert@linux-m68k.org, horms@verge.net.au, robh+dt@kernel.org,
-        mark.rutland@arm.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 0/2] renesas: ceu: Add R-Mobile A1
-Date: Wed, 25 Apr 2018 13:15:18 +0200
-Message-Id: <1524654920-18749-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36497 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751329AbeDFFPI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 01:15:08 -0400
+Received: by mail-pf0-f195.google.com with SMTP id g14so10147973pfh.3
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 22:15:08 -0700 (PDT)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v7 1/2] media: dt-bindings: Add bindings for panasonic,amg88xx
+Date: Thu,  5 Apr 2018 22:14:48 -0700
+Message-Id: <20180406051449.32157-2-matt.ranostay@konsulko.com>
+In-Reply-To: <20180406051449.32157-1-matt.ranostay@konsulko.com>
+References: <20180406051449.32157-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   this small series add R-Mobile A1 R8A7740 to the list of CEU supported
-SoCs, and adds the CEU node to r8a7740.dtsi.
+Define the device tree bindings for the panasonic,amg88xx i2c
+video driver.
 
-All the information on CEU clocks, power domains and memory regions have been
-deducted from the now-deleted board file:
-arch/arm/mach-shmobile/board-armadillo800eva.c
+Cc: devicetree@vger.kernel.org
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+---
+ .../bindings/media/i2c/panasonic,amg88xx.txt          | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
 
-Thanks
-   j
-
-Jacopo Mondi (2):
-  dt-bindings: media: renesas-ceu: Add R-Mobile R8A7740
-  ARM: dts: r8a7740: Enable CEU0
-
- Documentation/devicetree/bindings/media/renesas,ceu.txt |  7 ++++---
- arch/arm/boot/dts/r8a7740.dtsi                          | 10 ++++++++++
- drivers/media/platform/renesas-ceu.c                    |  1 +
- 3 files changed, 15 insertions(+), 3 deletions(-)
-
---
-2.7.4
+diff --git a/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+new file mode 100644
+index 000000000000..4a3181a3dd7e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+@@ -0,0 +1,19 @@
++* Panasonic AMG88xx
++
++The Panasonic family of AMG88xx Grid-Eye sensors allow recording
++8x8 10Hz video which consists of thermal datapoints
++
++Required Properties:
++ - compatible : Must be "panasonic,amg88xx"
++ - reg : i2c address of the device
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		amg88xx@69 {
++			compatible = "panasonic,amg88xx";
++			reg = <0x69>;
++		};
++		...
++	};
+-- 
+2.14.1
