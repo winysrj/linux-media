@@ -1,456 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:58509 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759686AbeD1JvJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 05:51:09 -0400
-Date: Sat, 28 Apr 2018 11:50:48 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v2 2/8] v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad
- operation code
-Message-ID: <20180428095048.GA18201@w540>
-References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
- <20180422223430.16407-3-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:36107 "EHLO
+        mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751494AbeDFLRN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 07:17:13 -0400
+Subject: Re: [RfC PATCH] Add udmabuf misc device
+To: Gerd Hoffmann <kraxel@redhat.com>,
+        Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Cc: Dongwon Kim <dongwon.kim@intel.com>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        David Airlie <airlied@linux.ie>,
+        open list <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        qemu-devel@nongnu.org,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+References: <20180313154826.20436-1-kraxel@redhat.com>
+ <20180313161035.GL4788@phenom.ffwll.local>
+ <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
+ <CAKMK7uGG6Z6XLc6GuKv7-3grCNg+EK2Lh6XWpavjsbZWF_L5Wg@mail.gmail.com>
+ <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
+ <2411d2c1-33c0-2ba5-67ea-3bb9af5d5ec9@epam.com>
+ <20180406090747.gwiegu22z4noj23i@sirius.home.kraxel.org>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <9a085854-3758-1500-9971-806c611cb54f@gmail.com>
+Date: Fri, 6 Apr 2018 14:17:04 +0300
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
-Content-Disposition: inline
-In-Reply-To: <20180422223430.16407-3-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180406090747.gwiegu22z4noj23i@sirius.home.kraxel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-
-Hi Laurent,
-   very minor comments below
-
-On Mon, Apr 23, 2018 at 01:34:24AM +0300, Laurent Pinchart wrote:
-> The implementation of the set_fmt pad operation is identical in the
-> three modules. Move it to a generic helper function.
+On 04/06/2018 12:07 PM, Gerd Hoffmann wrote:
+> I'm not sure we can create something which works on both kvm and xen.
+> The memory management model is quite different ...
 >
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_clu.c    | 65 +++++----------------------
->  drivers/media/platform/vsp1/vsp1_entity.c | 75 +++++++++++++++++++++++++++++++
->  drivers/media/platform/vsp1/vsp1_entity.h |  6 +++
->  drivers/media/platform/vsp1/vsp1_lif.c    | 65 +++++----------------------
->  drivers/media/platform/vsp1/vsp1_lut.c    | 65 +++++----------------------
->  5 files changed, 116 insertions(+), 160 deletions(-)
 >
-> diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-> index 9626b6308585..96a448e1504c 100644
-> --- a/drivers/media/platform/vsp1/vsp1_clu.c
-> +++ b/drivers/media/platform/vsp1/vsp1_clu.c
-> @@ -114,18 +114,18 @@ static const struct v4l2_ctrl_config clu_mode_control = {
->   * V4L2 Subdevice Pad Operations
->   */
+> On xen the hypervisor manages all memory.  Guests can allow other guests
+> to access specific pages (using grant tables).  In theory any guest <=>
+> guest communication is possible.  In practice is mostly guest <=> dom0
+> because guests access their virtual hardware that way.  dom0 is the
+> priviledged guest which owns any hardware not managed by xen itself.
 >
-> +static const unsigned int clu_codes[] = {
-> +	MEDIA_BUS_FMT_ARGB8888_1X32,
-> +	MEDIA_BUS_FMT_AHSV8888_1X32,
-> +	MEDIA_BUS_FMT_AYUV8_1X32,
-> +};
-> +
->  static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_mbus_code_enum *code)
->  {
-> -	static const unsigned int codes[] = {
-> -		MEDIA_BUS_FMT_ARGB8888_1X32,
-> -		MEDIA_BUS_FMT_AHSV8888_1X32,
-> -		MEDIA_BUS_FMT_AYUV8_1X32,
-> -	};
-> -
-> -	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-> -					  ARRAY_SIZE(codes));
-> +	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, clu_codes,
-> +					  ARRAY_SIZE(clu_codes));
->  }
+> Xen guests can ask the hypervisor to update the mapping of guest
+> physical pages.  They can ballon down (unmap and free pages).  They can
+> ballon up (ask the hypervisor to map fresh pages).  They can map pages
+> exported by other guests using grant tables.  xen-zcopy makes heavy use
+> of this.  It balloons down, to make room in the guest physical address
+> space, then goes map the exported pages there, finally composes a
+> dma-buf.
 >
->  static int clu_enum_frame_size(struct v4l2_subdev *subdev,
-> @@ -141,51 +141,10 @@ static int clu_set_format(struct v4l2_subdev *subdev,
->  			  struct v4l2_subdev_pad_config *cfg,
->  			  struct v4l2_subdev_format *fmt)
->  {
-> -	struct vsp1_clu *clu = to_clu(subdev);
-> -	struct v4l2_subdev_pad_config *config;
-> -	struct v4l2_mbus_framefmt *format;
-> -	int ret = 0;
-> -
-> -	mutex_lock(&clu->entity.lock);
-> -
-> -	config = vsp1_entity_get_pad_config(&clu->entity, cfg, fmt->which);
-> -	if (!config) {
-> -		ret = -EINVAL;
-> -		goto done;
-> -	}
-> -
-> -	/* Default to YUV if the requested format is not supported. */
-> -	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
-> -	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
-> -	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
-> -		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
-
-The newly implemented vsp1_subdev_set_pad_format defaults to the first
-clu_codes[] member (ARGB888_1x32), while here the code chose the AYUV8_1x32
-format. Is it ok? Should you revers the clu_codes[] order?
-
-> -
-> -	format = vsp1_entity_get_pad_format(&clu->entity, config, fmt->pad);
-> -
-> -	if (fmt->pad == CLU_PAD_SOURCE) {
-> -		/* The CLU output format can't be modified. */
-> -		fmt->format = *format;
-> -		goto done;
-> -	}
-> -
-> -	format->code = fmt->format.code;
-> -	format->width = clamp_t(unsigned int, fmt->format.width,
-> -				CLU_MIN_SIZE, CLU_MAX_SIZE);
-> -	format->height = clamp_t(unsigned int, fmt->format.height,
-> -				 CLU_MIN_SIZE, CLU_MAX_SIZE);
-> -	format->field = V4L2_FIELD_NONE;
-> -	format->colorspace = V4L2_COLORSPACE_SRGB;
-> -
-> -	fmt->format = *format;
-> -
-> -	/* Propagate the format to the source pad. */
-> -	format = vsp1_entity_get_pad_format(&clu->entity, config,
-> -					    CLU_PAD_SOURCE);
-> -	*format = fmt->format;
-> -
-> -done:
-> -	mutex_unlock(&clu->entity.lock);
-> -	return ret;
-> +	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, clu_codes,
-> +					  ARRAY_SIZE(clu_codes),
-> +					  CLU_MIN_SIZE, CLU_MIN_SIZE,
-> +					  CLU_MAX_SIZE, CLU_MAX_SIZE);
->  }
 >
->  /* -----------------------------------------------------------------------------
-> diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-> index 72354caf5746..239df047efd0 100644
-> --- a/drivers/media/platform/vsp1/vsp1_entity.c
-> +++ b/drivers/media/platform/vsp1/vsp1_entity.c
-> @@ -307,6 +307,81 @@ int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
->  	return ret;
->  }
+> On kvm qemu manages all guest memory.  qemu also has all guest memory
+> mapped, so a grant-table like mechanism isn't needed to implement
+> virtual devices.  qemu can decide how it backs memory for the guest.
+> qemu propagates the guest memory map to the kvm driver in the linux
+> kernel.  kvm guests have some control over the guest memory map, for
+> example they can map pci bars wherever they want in their guest physical
+> address space by programming the base registers accordingly, but unlike
+> xen guests they can't ask the host to remap individual pages.
 >
-> +/*
-> + * vsp1_subdev_set_pad_format - Subdev pad set_fmt handler
-> + * @subdev: V4L2 subdevice
-> + * @cfg: V4L2 subdev pad configuration
-> + * @fmt: V4L2 subdev format
-> + * @codes: Array of supported media bus codes
-> + * @ncodes: Number of supported media bus codes
-> + * @min_width: Minimum image width
-> + * @min_height: Minimum image height
-> + * @max_width: Maximum image width
-> + * @max_height: Maximum image height
-> + *
-> + * This function implements the subdev set_fmt pad operation for entities that
-> + * do not support scaling or cropping. It defaults to the first supplied media
-> + * bus code if the requested code isn't supported, clamps the size to the
-> + * supplied minimum and maximum, and propagates the sink pad format to the
-> + * source pad.
-> + */
-> +int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
-> +			       struct v4l2_subdev_pad_config *cfg,
-> +			       struct v4l2_subdev_format *fmt,
-> +			       const unsigned int *codes, unsigned int ncodes,
-> +			       unsigned int min_width, unsigned int min_height,
-> +			       unsigned int max_width, unsigned int max_height)
-> +{
-> +	struct vsp1_entity *entity = to_vsp1_entity(subdev);
-> +	struct v4l2_subdev_pad_config *config;
-> +	struct v4l2_mbus_framefmt *format;
-> +	unsigned int i;
-> +	int ret = 0;
-> +
-> +	mutex_lock(&entity->lock);
-> +
-> +	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
-> +	if (!config) {
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	format = vsp1_entity_get_pad_format(entity, config, fmt->pad);
-> +
-> +	if (fmt->pad != 0) {
-
-This assumes the SINK pad is always 0, which indeed is the case for
-CLU, LIF and LUT entities.
-
-> +		/* The output format can't be modified. */
-> +		fmt->format = *format;
-> +		goto done;
-> +	}
-> +
-> +	/*
-> +	 * Default to the first media bus code if the requested format is not
-> +	 * supported.
-> +	 */
-> +	for (i = 0; i < ncodes; ++i) {
-> +		if (fmt->format.code == codes[i])
-> +			break;
-> +	}
-
-Braces not needed?
-
-> +
-> +	format->code = i < ncodes ? codes[i] : codes[0];
-> +	format->width = clamp_t(unsigned int, fmt->format.width,
-> +				min_width, max_width);
-> +	format->height = clamp_t(unsigned int, fmt->format.height,
-> +				 min_height, max_height);
-> +	format->field = V4L2_FIELD_NONE;
-> +	format->colorspace = V4L2_COLORSPACE_SRGB;
-> +
-> +	fmt->format = *format;
-> +
-> +	/* Propagate the format to the source pad. */
-> +	format = vsp1_entity_get_pad_format(entity, config, 1);
-> +	*format = fmt->format;
-> +
-> +done:
-> +	mutex_unlock(&entity->lock);
-> +	return ret;
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * Media Operations
->   */
-> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-> index fb20a1578f3b..0839a62cfa71 100644
-> --- a/drivers/media/platform/vsp1/vsp1_entity.h
-> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
-> @@ -160,6 +160,12 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
->  int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
->  			       struct v4l2_subdev_pad_config *cfg,
->  			       struct v4l2_subdev_format *fmt);
-> +int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
-> +			       struct v4l2_subdev_pad_config *cfg,
-> +			       struct v4l2_subdev_format *fmt,
-> +			       const unsigned int *codes, unsigned int ncodes,
-> +			       unsigned int min_width, unsigned int min_height,
-> +			       unsigned int max_width, unsigned int max_height);
->  int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
->  			       struct v4l2_subdev_pad_config *cfg,
->  			       struct v4l2_subdev_mbus_code_enum *code,
-> diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-> index b20b842f06ba..fbdd5715f829 100644
-> --- a/drivers/media/platform/vsp1/vsp1_lif.c
-> +++ b/drivers/media/platform/vsp1/vsp1_lif.c
-> @@ -33,17 +33,17 @@ static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
->   * V4L2 Subdevice Operations
->   */
+> Due to qemu having all guest memory mapped virtual devices are typically
+> designed to have the guest allocate resources, then notify the host
+> where they are located.  This is where the udmabuf idea comes from:
+> Guest tells the host (qemu) where the gem object is, and qemu then can
+> create a dmabuf backed by those pages to pass it on to other processes
+> such as the wayland display server.  Possibly even without the guest
+> explicitly asking for it, i.e. export the framebuffer placed by the
+> guest in the (virtual) vga pci memory bar as dma-buf.  And I can imagine
+> that this is useful outsize virtualization too.
 >
-> +static const unsigned int lif_codes[] = {
-> +	MEDIA_BUS_FMT_ARGB8888_1X32,
-> +	MEDIA_BUS_FMT_AYUV8_1X32,
-> +};
-> +
->  static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_mbus_code_enum *code)
->  {
-> -	static const unsigned int codes[] = {
-> -		MEDIA_BUS_FMT_ARGB8888_1X32,
-> -		MEDIA_BUS_FMT_AYUV8_1X32,
-> -	};
-> -
-> -	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-> -					  ARRAY_SIZE(codes));
-> +	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lif_codes,
-> +					  ARRAY_SIZE(lif_codes));
->  }
 >
->  static int lif_enum_frame_size(struct v4l2_subdev *subdev,
-> @@ -59,53 +59,10 @@ static int lif_set_format(struct v4l2_subdev *subdev,
->  			  struct v4l2_subdev_pad_config *cfg,
->  			  struct v4l2_subdev_format *fmt)
->  {
-> -	struct vsp1_lif *lif = to_lif(subdev);
-> -	struct v4l2_subdev_pad_config *config;
-> -	struct v4l2_mbus_framefmt *format;
-> -	int ret = 0;
-> -
-> -	mutex_lock(&lif->entity.lock);
-> -
-> -	config = vsp1_entity_get_pad_config(&lif->entity, cfg, fmt->which);
-> -	if (!config) {
-> -		ret = -EINVAL;
-> -		goto done;
-> -	}
-> -
-> -	/* Default to YUV if the requested format is not supported. */
-> -	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
-> -	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
-> -		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+> I fail to see any common ground for xen-zcopy and udmabuf ...
+Does the above mean you can assume that xen-zcopy and udmabuf
+can co-exist as two different solutions?
+And what about hyper-dmabuf?
 
-Same here and below
-
-Thanks
-   j
-
-> -
-> -	format = vsp1_entity_get_pad_format(&lif->entity, config, fmt->pad);
-> -
-> -	if (fmt->pad == LIF_PAD_SOURCE) {
-> -		/*
-> -		 * The LIF source format is always identical to its sink
-> -		 * format.
-> -		 */
-> -		fmt->format = *format;
-> -		goto done;
-> -	}
-> -
-> -	format->code = fmt->format.code;
-> -	format->width = clamp_t(unsigned int, fmt->format.width,
-> -				LIF_MIN_SIZE, LIF_MAX_SIZE);
-> -	format->height = clamp_t(unsigned int, fmt->format.height,
-> -				 LIF_MIN_SIZE, LIF_MAX_SIZE);
-> -	format->field = V4L2_FIELD_NONE;
-> -	format->colorspace = V4L2_COLORSPACE_SRGB;
-> -
-> -	fmt->format = *format;
-> -
-> -	/* Propagate the format to the source pad. */
-> -	format = vsp1_entity_get_pad_format(&lif->entity, config,
-> -					    LIF_PAD_SOURCE);
-> -	*format = fmt->format;
-> -
-> -done:
-> -	mutex_unlock(&lif->entity.lock);
-> -	return ret;
-> +	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lif_codes,
-> +					  ARRAY_SIZE(lif_codes),
-> +					  LIF_MIN_SIZE, LIF_MIN_SIZE,
-> +					  LIF_MAX_SIZE, LIF_MAX_SIZE);
->  }
->
->  static const struct v4l2_subdev_pad_ops lif_pad_ops = {
-> diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-> index 7bdabb311c6c..f2e48a02ca7d 100644
-> --- a/drivers/media/platform/vsp1/vsp1_lut.c
-> +++ b/drivers/media/platform/vsp1/vsp1_lut.c
-> @@ -90,18 +90,18 @@ static const struct v4l2_ctrl_config lut_table_control = {
->   * V4L2 Subdevice Pad Operations
->   */
->
-> +static const unsigned int lut_codes[] = {
-> +	MEDIA_BUS_FMT_ARGB8888_1X32,
-> +	MEDIA_BUS_FMT_AHSV8888_1X32,
-> +	MEDIA_BUS_FMT_AYUV8_1X32,
-> +};
-> +
->  static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_mbus_code_enum *code)
->  {
-> -	static const unsigned int codes[] = {
-> -		MEDIA_BUS_FMT_ARGB8888_1X32,
-> -		MEDIA_BUS_FMT_AHSV8888_1X32,
-> -		MEDIA_BUS_FMT_AYUV8_1X32,
-> -	};
-> -
-> -	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-> -					  ARRAY_SIZE(codes));
-> +	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lut_codes,
-> +					  ARRAY_SIZE(lut_codes));
->  }
->
->  static int lut_enum_frame_size(struct v4l2_subdev *subdev,
-> @@ -117,51 +117,10 @@ static int lut_set_format(struct v4l2_subdev *subdev,
->  			  struct v4l2_subdev_pad_config *cfg,
->  			  struct v4l2_subdev_format *fmt)
->  {
-> -	struct vsp1_lut *lut = to_lut(subdev);
-> -	struct v4l2_subdev_pad_config *config;
-> -	struct v4l2_mbus_framefmt *format;
-> -	int ret = 0;
-> -
-> -	mutex_lock(&lut->entity.lock);
-> -
-> -	config = vsp1_entity_get_pad_config(&lut->entity, cfg, fmt->which);
-> -	if (!config) {
-> -		ret = -EINVAL;
-> -		goto done;
-> -	}
-> -
-> -	/* Default to YUV if the requested format is not supported. */
-> -	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
-> -	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
-> -	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
-> -		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
-> -
-> -	format = vsp1_entity_get_pad_format(&lut->entity, config, fmt->pad);
-> -
-> -	if (fmt->pad == LUT_PAD_SOURCE) {
-> -		/* The LUT output format can't be modified. */
-> -		fmt->format = *format;
-> -		goto done;
-> -	}
-> -
-> -	format->code = fmt->format.code;
-> -	format->width = clamp_t(unsigned int, fmt->format.width,
-> -				LUT_MIN_SIZE, LUT_MAX_SIZE);
-> -	format->height = clamp_t(unsigned int, fmt->format.height,
-> -				 LUT_MIN_SIZE, LUT_MAX_SIZE);
-> -	format->field = V4L2_FIELD_NONE;
-> -	format->colorspace = V4L2_COLORSPACE_SRGB;
-> -
-> -	fmt->format = *format;
-> -
-> -	/* Propagate the format to the source pad. */
-> -	format = vsp1_entity_get_pad_format(&lut->entity, config,
-> -					    LUT_PAD_SOURCE);
-> -	*format = fmt->format;
-> -
-> -done:
-> -	mutex_unlock(&lut->entity.lock);
-> -	return ret;
-> +	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lut_codes,
-> +					  ARRAY_SIZE(lut_codes),
-> +					  LUT_MIN_SIZE, LUT_MIN_SIZE,
-> +					  LUT_MAX_SIZE, LUT_MAX_SIZE);
->  }
->
->  /* -----------------------------------------------------------------------------
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
---7JfCtLOvnd9MIVvH
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa5EP4AAoJEHI0Bo8WoVY8qR8P/iozKWvLMTm+HgscT0eaxhQi
-Yo2t9qs6tzK5KbX0WcQqpfouArNZTl9lbiDvbl9bpfWKn8bjBiW+sMMtmV+YhdNc
-PJPz240PPfXiFlk/x0RcBuziNXmn+fmkBzhwm2cnVCuOxV0JdOSaKAakkjgwX7l3
-Zic7ZHTTkuvR69lreqgHc+mRfiaWD3YvoacXX6gWKIGvcy3HgTK6sek21UTmCtPn
-BVjnSuO6s42DG40YCtQhtRrTEVK152OTtPxdOm9TAAz7Np3y9jEXP9zGCI8DpKte
-+9nRGzdHTKgGUa5fKjrHVGMUxAuohbXTgO46zvwj4ODodMIODWEeIH7tik0NEiRG
-iQs3ALNrUxUvjfs4lfdMplM9edNEpbfdOvd+1z0HHmg87GzrRQU9m+TNKWTkhxit
-4nKAtwe6d8YDV1UdaPrreip3ORVAYoLL87Z3SOIOe+f6CaNYgQ02pEYJ+EwZ8qA4
-Nq0y1pZ3vZRY/FDSS9mc5yssgE49aVINN5GwngFguFjrSY7mSHQQSPQeeVxce6bd
-VS/RXBZ1UHP9fpjIkSORNF2vM0n2w+EgGNQKP146nxsBk/XAk7/u/lqRMYh5l7MP
-4JOo8MWLtzanw5aG+vmj1w7SJxDNIMvAyYyHfOv4WWHgtjGJoWg31DDr+Jf/Hn7O
-ZqzJwUzuLLdX7GnmpXUG
-=XXNg
------END PGP SIGNATURE-----
-
---7JfCtLOvnd9MIVvH--
+Thank you,
+Oleksandr
