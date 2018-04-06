@@ -1,88 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0134.outbound.protection.outlook.com ([104.47.38.134]:10082
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751508AbeDZGe6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 02:34:58 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
-        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
-        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH 1/3] [media] cxd2880-spi: Modified how to declare structure
-Date: Thu, 26 Apr 2018 15:39:17 +0900
-Message-ID: <20180426063917.32068-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20180426063635.31923-1-Yasunari.Takiguchi@sony.com>
-References: <20180426063635.31923-1-Yasunari.Takiguchi@sony.com>
+Received: from osg.samsung.com ([64.30.133.232]:34414 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755792AbeDFOPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 10:15:45 -0400
+Date: Fri, 6 Apr 2018 11:15:37 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Geliang Tang <geliangtang@gmail.com>
+Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with
+ COMPILE_TEST
+Message-ID: <20180406111537.04375bdf@vento.lan>
+In-Reply-To: <CAK8P3a2FQapAqxOMJNe9oBs8kBXsd7TCdsNon5Gvab3Y8LLKSA@mail.gmail.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
+        <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
+        <20180406064718.2cdb69ea@vento.lan>
+        <CAK8P3a2FQapAqxOMJNe9oBs8kBXsd7TCdsNon5Gvab3Y8LLKSA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Em Fri, 6 Apr 2018 11:51:16 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-This is the modification of structure declaration for spi_transfer. 
+> On Fri, Apr 6, 2018 at 11:47 AM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> 
+> > [PATCH] media: fsl-viu: allow building it with COMPILE_TEST
+> >
+> > There aren't many things that would be needed to allow it
+> > to build with compile test.
+> >
+> > Add the needed bits.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> 
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
-[Change list]
-   drivers/media/spi/cxd2880-spi.c
-      -modified how to declare spi_transfer structure
+Actually, in order to avoid warnings with smatch, the COMPILE_TEST
+macros should be declared as:
 
- drivers/media/spi/cxd2880-spi.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
++#define out_be32(v, a)	iowrite32be(a, (void __iomem *)v)
++#define in_be32(a)	ioread32be((void __iomem *)a)
 
-diff --git a/drivers/media/spi/cxd2880-spi.c b/drivers/media/spi/cxd2880-spi.c
-index 4df3bd312f48..754940f7e964 100644
---- a/drivers/media/spi/cxd2880-spi.c
-+++ b/drivers/media/spi/cxd2880-spi.c
-@@ -60,14 +60,13 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- static int cxd2880_write_spi(struct spi_device *spi, u8 *data, u32 size)
- {
- 	struct spi_message msg;
--	struct spi_transfer tx;
-+	struct spi_transfer tx = {};
+Thanks,
+Mauro
+
+[PATCH] media: fsl-viu: allow building it with COMPILE_TEST
+
+There aren't many things that would be needed to allow it
+to build with compile test.
+
+Add the needed bits.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 03c9dfeb7781..e6eb1eb776e1 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -42,7 +42,7 @@ config VIDEO_SH_VOU
  
- 	if (!spi || !data) {
- 		pr_err("invalid arg\n");
- 		return -EINVAL;
+ config VIDEO_VIU
+ 	tristate "Freescale VIU Video Driver"
+-	depends on VIDEO_V4L2 && PPC_MPC512x
++	depends on VIDEO_V4L2 && (PPC_MPC512x || COMPILE_TEST)
+ 	select VIDEOBUF_DMA_CONTIG
+ 	default y
+ 	---help---
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 9abe79779659..6fd1c8f66047 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -36,6 +36,12 @@
+ #define DRV_NAME		"fsl_viu"
+ #define VIU_VERSION		"0.5.1"
+ 
++/* Allow building this driver with COMPILE_TEST */
++#ifndef CONFIG_PPC
++#define out_be32(v, a)	iowrite32be(a, (void __iomem *)v)
++#define in_be32(a)	ioread32be((void __iomem *)a)
++#endif
++
+ #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
+ 
+ #define	VIU_VID_MEM_LIMIT	4	/* Video memory limit, in Mb */
+@@ -1407,7 +1413,7 @@ static int viu_of_probe(struct platform_device *op)
  	}
  
--	memset(&tx, 0, sizeof(tx));
- 	tx.tx_buf = data;
- 	tx.len = size;
- 
-@@ -130,7 +129,7 @@ static int cxd2880_spi_read_ts(struct spi_device *spi,
- 	int ret;
- 	u8 data[3];
- 	struct spi_message message;
--	struct spi_transfer transfer[2];
-+	struct spi_transfer transfer[2] = {};
- 
- 	if (!spi || !read_data || !packet_num) {
- 		pr_err("invalid arg\n");
-@@ -146,7 +145,6 @@ static int cxd2880_spi_read_ts(struct spi_device *spi,
- 	data[2] = packet_num;
- 
- 	spi_message_init(&message);
--	memset(transfer, 0, sizeof(transfer));
- 
- 	transfer[0].len = 3;
- 	transfer[0].tx_buf = data;
-@@ -383,7 +381,7 @@ static int cxd2880_start_feed(struct dvb_demux_feed *feed)
- 			}
- 		}
- 		if (i == CXD2880_MAX_FILTER_SIZE) {
--			pr_err("PID filter is full. Assumed bug.\n");
-+			pr_err("PID filter is full.\n");
- 			return -EINVAL;
- 		}
- 		if (!dvb_spi->all_pid_feed_count)
--- 
-2.15.1
+ 	viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
+-	if (viu_irq == NO_IRQ) {
++	if (!viu_irq) {
+ 		dev_err(&op->dev, "Error while mapping the irq\n");
+ 		return -EINVAL;
+ 	}
