@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34144 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758029AbeDXNTf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 09:19:35 -0400
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Daniel Scheller <d.scheller.oss@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] media: mxl5xx: fix get_algo()'s return type
-Date: Tue, 24 Apr 2018 15:19:31 +0200
-Message-Id: <20180424131932.6170-1-luc.vanoostenryck@gmail.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:46617 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750739AbeDFFPH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 01:15:07 -0400
+Received: by mail-pf0-f193.google.com with SMTP id h69so10135290pfe.13
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 22:15:07 -0700 (PDT)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Subject: [PATCH v7 0/2] media: video-i2c: add video-i2c driver support
+Date: Thu,  5 Apr 2018 22:14:47 -0700
+Message-Id: <20180406051449.32157-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The method dvb_frontend_ops::get_frontend_algo() is defined as
-returning an 'enum dvbfe_algo', but the implementation in this
-driver returns an 'int'.
+Add support for video-i2c polling driver
 
-Fix this by returning 'enum dvbfe_algo' in this driver too.
+Changes from v1:
+* Switch to SPDX tags versus GPLv2 license text
+* Remove unneeded zeroing of data structures
+* Add video_i2c_try_fmt_vid_cap call in video_i2c_s_fmt_vid_cap function
 
-Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
----
- drivers/media/dvb-frontends/mxl5xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes from v2:
+* Add missing linux/kthread.h include that broke x86_64 build
 
-diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
-index 483ee7d61..274d8fca0 100644
---- a/drivers/media/dvb-frontends/mxl5xx.c
-+++ b/drivers/media/dvb-frontends/mxl5xx.c
-@@ -375,7 +375,7 @@ static void release(struct dvb_frontend *fe)
- 	kfree(state);
- }
- 
--static int get_algo(struct dvb_frontend *fe)
-+static enum dvbfe_algo get_algo(struct dvb_frontend *fe)
- {
- 	return DVBFE_ALGO_HW;
- }
+Changes from v3:
+* Add devicetree binding documents
+* snprintf check added
+* switched to per chip support based on devicetree or i2c client id
+* add VB2_DMABUF to io_modes
+* added entry to MAINTAINERS file switched to per chip support based on devicetree or i2c client id
+
+Changes from v4:
+* convert pointer from of_device_get_match_data() to long instead of int to avoid compiler warning
+
+Changes from v5:
+* fix various issues with v4l2-compliance tool run
+
+Changes from v6:
+* fixed minor coding issues on spacing
+* changed device tree table pointers to chip struct data
+* add more verbose Kconfig documentation
+* destroy mutexes on error path and module removal
+* fixed MODULE_LICENSE from GPL to GPLv2
+* changes some calls to list_last_entry() to avoid touching next pointer
+* moved common code to a function from start/stop_streaming()
+
+Matt Ranostay (2):
+  media: dt-bindings: Add bindings for panasonic,amg88xx
+  media: video-i2c: add video-i2c driver
+
+ .../bindings/media/i2c/panasonic,amg88xx.txt       |  19 +
+ MAINTAINERS                                        |   6 +
+ drivers/media/i2c/Kconfig                          |  13 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/video-i2c.c                      | 560 +++++++++++++++++++++
+ 5 files changed, 599 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ create mode 100644 drivers/media/i2c/video-i2c.c
+
 -- 
-2.17.0
+2.14.1
