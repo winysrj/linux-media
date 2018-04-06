@@ -1,146 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:41255 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932373AbeD0S7a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Apr 2018 14:59:30 -0400
-Received: by mail-pg0-f65.google.com with SMTP id m21-v6so2206004pgv.8
-        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2018 11:59:30 -0700 (PDT)
-From: Sami Tolvanen <samitolvanen@google.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Sami Tolvanen <samitolvanen@google.com>
-Subject: [PATCH] media: v4l2-ioctl: fix function types for IOCTL_INFO_STD
-Date: Fri, 27 Apr 2018 11:59:25 -0700
-Message-Id: <20180427185925.222682-1-samitolvanen@google.com>
+Received: from osg.samsung.com ([64.30.133.232]:53251 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751434AbeDFJr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 05:47:26 -0400
+Date: Fri, 6 Apr 2018 06:47:18 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Geliang Tang <geliangtang@gmail.com>
+Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with
+ COMPILE_TEST
+Message-ID: <20180406064718.2cdb69ea@vento.lan>
+In-Reply-To: <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
+        <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change fixes indirect call mismatches with Control-Flow Integrity
-checking, which are caused by calling standard ioctls using a function
-pointer that doesn't match the type of the actual function.
+Em Thu, 5 Apr 2018 23:35:06 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Signed-off-by: Sami Tolvanen <samitolvanen@google.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 72 ++++++++++++++++++----------
- 1 file changed, 46 insertions(+), 26 deletions(-)
+> On Thu, Apr 5, 2018 at 7:54 PM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> > There aren't many things that would be needed to allow it
+> > to build with compile test.  
+> 
+> > +/* Allow building this driver with COMPILE_TEST */
+> > +#ifndef CONFIG_PPC_MPC512x
+> > +#define NO_IRQ   0  
+> 
+> The NO_IRQ usage here really needs to die. The portable way to do this
+> is the simpler
+> 
+> diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+> index 200c47c69a75..707bda89b4f7 100644
+> --- a/drivers/media/platform/fsl-viu.c
+> +++ b/drivers/media/platform/fsl-viu.c
+> @@ -1407,7 +1407,7 @@ static int viu_of_probe(struct platform_device *op)
+>         }
+> 
+>         viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
+> -       if (viu_irq == NO_IRQ) {
+> +       if (!viu_irq) {
+>                 dev_err(&op->dev, "Error while mapping the irq\n");
+>                 return -EINVAL;
+>         }
+> 
+> > +#define out_be32(v, a) writel(a, v)
+> > +#define in_be32(a) readl(a)  
+> 
+> This does get it to compile, but looks confusing because it mixes up the
+> endianess. I'd suggest doing it like
+> 
+> #ifndef CONFIG_PPC
+> #define out_be32(v, a) iowrite32be(a, v)
+> #define in_be32(a) ioread32be(a)
+> #endif
+> 
+>       Arnd
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index f48c505550e0..d50a06ab3509 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2489,11 +2489,8 @@ struct v4l2_ioctl_info {
- 	unsigned int ioctl;
- 	u32 flags;
- 	const char * const name;
--	union {
--		u32 offset;
--		int (*func)(const struct v4l2_ioctl_ops *ops,
--				struct file *file, void *fh, void *p);
--	} u;
-+	int (*func)(const struct v4l2_ioctl_ops *ops, struct file *file,
-+		    void *fh, void *p);
- 	void (*debug)(const void *arg, bool write_only);
- };
+Thanks for the review. Yeah, that looks better. Patch enclosed.
+
+Thanks,
+Mauro
+
+[PATCH] media: fsl-viu: allow building it with COMPILE_TEST
+
+There aren't many things that would be needed to allow it
+to build with compile test.
+
+Add the needed bits.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 03c9dfeb7781..e6eb1eb776e1 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -42,7 +42,7 @@ config VIDEO_SH_VOU
  
-@@ -2501,27 +2498,24 @@ struct v4l2_ioctl_info {
- #define INFO_FL_PRIO		(1 << 0)
- /* This control can be valid if the filehandle passes a control handler. */
- #define INFO_FL_CTRL		(1 << 1)
--/* This is a standard ioctl, no need for special code */
--#define INFO_FL_STD		(1 << 2)
- /* This is ioctl has its own function */
--#define INFO_FL_FUNC		(1 << 3)
-+#define INFO_FL_FUNC		(1 << 2)
- /* Queuing ioctl */
--#define INFO_FL_QUEUE		(1 << 4)
-+#define INFO_FL_QUEUE		(1 << 3)
- /* Always copy back result, even on error */
--#define INFO_FL_ALWAYS_COPY	(1 << 5)
-+#define INFO_FL_ALWAYS_COPY	(1 << 4)
- /* Zero struct from after the field to the end */
- #define INFO_FL_CLEAR(v4l2_struct, field)			\
- 	((offsetof(struct v4l2_struct, field) +			\
- 	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
- #define INFO_FL_CLEAR_MASK	(_IOC_SIZEMASK << 16)
+ config VIDEO_VIU
+ 	tristate "Freescale VIU Video Driver"
+-	depends on VIDEO_V4L2 && PPC_MPC512x
++	depends on VIDEO_V4L2 && (PPC_MPC512x || COMPILE_TEST)
+ 	select VIDEOBUF_DMA_CONTIG
+ 	default y
+ 	---help---
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 9abe79779659..f54592c431d3 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -36,6 +36,12 @@
+ #define DRV_NAME		"fsl_viu"
+ #define VIU_VERSION		"0.5.1"
  
--#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
--	[_IOC_NR(_ioctl)] = {						\
--		.ioctl = _ioctl,					\
--		.flags = _flags | INFO_FL_STD,				\
--		.name = #_ioctl,					\
--		.u.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
--		.debug = _debug,					\
-+#define DEFINE_IOCTL_STD_FNC(_vidioc)				\
-+	static int __v4l_ ## _vidioc ## _fnc(			\
-+			const struct v4l2_ioctl_ops *ops,	\
-+			struct file *file, void *fh, void *p)	\
-+	{							\
-+		return ops->_vidioc(file, fh, p);		\
- 	}
- 
- #define IOCTL_INFO_FNC(_ioctl, _func, _debug, _flags)			\
-@@ -2529,10 +2523,42 @@ struct v4l2_ioctl_info {
- 		.ioctl = _ioctl,					\
- 		.flags = _flags | INFO_FL_FUNC,				\
- 		.name = #_ioctl,					\
--		.u.func = _func,					\
-+		.func = _func,						\
- 		.debug = _debug,					\
- 	}
- 
-+#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)	\
-+	IOCTL_INFO_FNC(_ioctl, __v4l_ ## _vidioc ## _fnc, _debug, _flags)
++/* Allow building this driver with COMPILE_TEST */
++#ifndef CONFIG_PPC
++#define out_be32(v, a)	iowrite32be(a, v)
++#define in_be32(a)	ioread32be(a)
++#endif
 +
-+DEFINE_IOCTL_STD_FNC(vidioc_g_fbuf)
-+DEFINE_IOCTL_STD_FNC(vidioc_s_fbuf)
-+DEFINE_IOCTL_STD_FNC(vidioc_expbuf)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_std)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_audio)
-+DEFINE_IOCTL_STD_FNC(vidioc_s_audio)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_input)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_edid)
-+DEFINE_IOCTL_STD_FNC(vidioc_s_edid)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_output)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_audout)
-+DEFINE_IOCTL_STD_FNC(vidioc_s_audout)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_jpegcomp)
-+DEFINE_IOCTL_STD_FNC(vidioc_s_jpegcomp)
-+DEFINE_IOCTL_STD_FNC(vidioc_enumaudio)
-+DEFINE_IOCTL_STD_FNC(vidioc_enumaudout)
-+DEFINE_IOCTL_STD_FNC(vidioc_enum_framesizes)
-+DEFINE_IOCTL_STD_FNC(vidioc_enum_frameintervals)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_enc_index)
-+DEFINE_IOCTL_STD_FNC(vidioc_encoder_cmd)
-+DEFINE_IOCTL_STD_FNC(vidioc_try_encoder_cmd)
-+DEFINE_IOCTL_STD_FNC(vidioc_decoder_cmd)
-+DEFINE_IOCTL_STD_FNC(vidioc_try_decoder_cmd)
-+DEFINE_IOCTL_STD_FNC(vidioc_s_dv_timings)
-+DEFINE_IOCTL_STD_FNC(vidioc_g_dv_timings)
-+DEFINE_IOCTL_STD_FNC(vidioc_enum_dv_timings)
-+DEFINE_IOCTL_STD_FNC(vidioc_query_dv_timings)
-+DEFINE_IOCTL_STD_FNC(vidioc_dv_timings_cap)
-+
- static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
-@@ -2717,14 +2743,8 @@ static long __video_do_ioctl(struct file *file,
+ #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
+ 
+ #define	VIU_VID_MEM_LIMIT	4	/* Video memory limit, in Mb */
+@@ -1407,7 +1413,7 @@ static int viu_of_probe(struct platform_device *op)
  	}
  
- 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
--	if (info->flags & INFO_FL_STD) {
--		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
--		const void *p = vfd->ioctl_ops;
--		const vidioc_op *vidioc = p + info->u.offset;
--
--		ret = (*vidioc)(file, fh, arg);
--	} else if (info->flags & INFO_FL_FUNC) {
--		ret = info->u.func(ops, file, fh, arg);
-+	if (info->flags & INFO_FL_FUNC) {
-+		ret = info->func(ops, file, fh, arg);
- 	} else if (!ops->vidioc_default) {
- 		ret = -ENOTTY;
- 	} else {
--- 
-2.17.0.441.gb46fe60e1d-goog
+ 	viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
+-	if (viu_irq == NO_IRQ) {
++	if (!viu_irq) {
+ 		dev_err(&op->dev, "Error while mapping the irq\n");
+ 		return -EINVAL;
+ 	}
