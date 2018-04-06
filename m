@@ -1,86 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52586 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754845AbeDWMvz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 08:51:55 -0400
-Subject: Re: [RFCv11 PATCH 22/29] videobuf2-v4l2: add vb2_request_queue helper
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-23-hverkuil@xs4all.nl>
- <CAAFQd5Ckqhb2qEBdsBfG2iKTE4G76PFPep5KhEDJA=1m4wFA5Q@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0c57a039-a732-b70f-7e10-1dfaf697a20d@xs4all.nl>
-Date: Mon, 23 Apr 2018 14:51:50 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5Ckqhb2qEBdsBfG2iKTE4G76PFPep5KhEDJA=1m4wFA5Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:34124 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756352AbeDFOX2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 10:23:28 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 04/21] media: davinci_vpfe: mark __iomem as such
+Date: Fri,  6 Apr 2018 10:23:05 -0400
+Message-Id: <12cab2f1324273f1db53b812fc78c7c54248b041.1523024380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
+References: <cover.1523024380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
+References: <cover.1523024380.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/12/2018 10:29 AM, Tomasz Figa wrote:
-> On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> Generic helper function that checks if there are buffers in
->> the request and if so, prepares and queues all objects in the
->> request.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/common/videobuf2/videobuf2-v4l2.c | 39
-> +++++++++++++++++++++++++
->>   include/media/videobuf2-v4l2.h                  |  3 ++
->>   2 files changed, 42 insertions(+)
-> 
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index 73c1fd4da58a..3d0c74bb4220 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -1061,6 +1061,45 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
-> 
->> +int vb2_request_queue(struct media_request *req)
->> +{
->> +       struct media_request_object *obj;
->> +       struct media_request_object *failed_obj = NULL;
->> +       int ret = 0;
->> +
->> +       if (!vb2_core_request_has_buffers(req))
->> +               return -ENOENT;
->> +
->> +       list_for_each_entry(obj, &req->objects, list) {
->> +               if (!obj->ops->prepare)
->> +                       continue;
->> +
->> +               ret = obj->ops->prepare(obj);
->> +
->> +               if (ret) {
->> +                       failed_obj = obj;
->> +                       break;
->> +               }
->> +       }
->> +
->> +       if (ret) {
->> +               list_for_each_entry(obj, &req->objects, list) {
->> +                       if (obj == failed_obj)
->> +                               break;
-> 
-> nit: If we use list_for_each_entry_continue_reverse() here, we wouldn't
-> need failed_obj.
+There are several usages of an __iomem memory that aren't
+marked as such, causing those warnings:
 
-True. Done.
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:201:27: warning: incorrect type in assignment (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:201:27:    expected void *ipipeif_base_addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:201:27:    got void [noderef] <asn:2>*ipipeif_base_addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27: warning: incorrect type in argument 1 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27:    expected void const volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27: warning: incorrect type in argument 1 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27:    expected void const volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:510:42: warning: incorrect type in initializer (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:510:42:    expected void *ipipeif_base_addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:510:42:    got void [noderef] <asn:2>*ipipeif_base_addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27: warning: incorrect type in argument 1 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27:    expected void const volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:71:27:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:797:42: warning: incorrect type in initializer (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:797:42:    expected void *ipipeif_base_addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:797:42:    got void [noderef] <asn:2>*ipipeif_base_addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26: warning: incorrect type in argument 2 (different address spaces)
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    expected void volatile [noderef] <asn:2>*addr
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:76:26:    got void *
 
-	Hans
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> 
-> Best regards,
-> Tomasz
-> 
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index 46fd2c7f69c3..cf91f8842d35 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -66,17 +66,17 @@ ipipeif_get_pack_mode(u32 in_pix_fmt)
+ 	}
+ }
+ 
+-static inline u32 ipipeif_read(void *addr, u32 offset)
++static inline u32 ipipeif_read(void __iomem *addr, u32 offset)
+ {
+ 	return readl(addr + offset);
+ }
+ 
+-static inline void ipipeif_write(u32 val, void *addr, u32 offset)
++static inline void ipipeif_write(u32 val, void __iomem *addr, u32 offset)
+ {
+ 	writel(val, addr + offset);
+ }
+ 
+-static void ipipeif_config_dpc(void *addr, struct ipipeif_dpc *dpc)
++static void ipipeif_config_dpc(void __iomem *addr, struct ipipeif_dpc *dpc)
+ {
+ 	u32 val = 0;
+ 
+@@ -191,7 +191,7 @@ static int ipipeif_hw_setup(struct v4l2_subdev *sd)
+ 	struct ipipeif_params params = ipipeif->config;
+ 	enum ipipeif_input_source ipipeif_source;
+ 	u32 isif_port_if;
+-	void *ipipeif_base_addr;
++	void __iomem *ipipeif_base_addr;
+ 	unsigned int val;
+ 	int data_shift;
+ 	int pack_mode;
+@@ -507,7 +507,7 @@ static int ipipeif_s_ctrl(struct v4l2_ctrl *ctrl)
+ void vpfe_ipipeif_enable(struct vpfe_device *vpfe_dev)
+ {
+ 	struct vpfe_ipipeif_device *ipipeif = &vpfe_dev->vpfe_ipipeif;
+-	void *ipipeif_base_addr = ipipeif->ipipeif_base_addr;
++	void __iomem *ipipeif_base_addr = ipipeif->ipipeif_base_addr;
+ 	unsigned char val;
+ 
+ 	if (ipipeif->input != IPIPEIF_INPUT_MEMORY)
+@@ -794,7 +794,7 @@ static int
+ ipipeif_video_in_queue(struct vpfe_device *vpfe_dev, unsigned long addr)
+ {
+ 	struct vpfe_ipipeif_device *ipipeif = &vpfe_dev->vpfe_ipipeif;
+-	void *ipipeif_base_addr = ipipeif->ipipeif_base_addr;
++	void __iomem *ipipeif_base_addr = ipipeif->ipipeif_base_addr;
+ 	unsigned int adofs;
+ 	u32 val;
+ 
+-- 
+2.14.3
