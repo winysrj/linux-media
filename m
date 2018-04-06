@@ -1,350 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41498 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:32782 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751714AbeDEUaA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 16:30:00 -0400
+        id S1756616AbeDFOXc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Apr 2018 10:23:32 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 14/19] media: davinci: get rid of lots of kernel-doc warnings
-Date: Thu,  5 Apr 2018 16:29:41 -0400
-Message-Id: <409eaab1b74ddd1385319b4083056323bb895584.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 01/21] media: davinci_vpfe: remove useless checks from ipipe
+Date: Fri,  6 Apr 2018 10:23:02 -0400
+Message-Id: <1a0bbeca38f41f0063c83a83858b09a4d4baeb66.1523024380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
+References: <cover.1523024380.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
+References: <cover.1523024380.git.mchehab@s-opensource.com>
 To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver build produce lots of warnings due to wrong kernel-doc markups:
+The dm365_ipipe_hw.c and dm365_ipipe.c file check if several table
+pointers, declared at davinci_vpfe_user.h, are filled before using
+them.
 
-    drivers/media/platform/davinci/vpbe.c:60: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_current_encoder_info'
-    drivers/media/platform/davinci/vpbe.c:78: warning: Function parameter or member 'cfg' not described in 'vpbe_find_encoder_sd_index'
-    drivers/media/platform/davinci/vpbe.c:78: warning: Function parameter or member 'index' not described in 'vpbe_find_encoder_sd_index'
-    drivers/media/platform/davinci/vpbe.c:105: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_g_cropcap'
-    drivers/media/platform/davinci/vpbe.c:105: warning: Function parameter or member 'cropcap' not described in 'vpbe_g_cropcap'
-    drivers/media/platform/davinci/vpbe.c:127: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_enum_outputs'
-    drivers/media/platform/davinci/vpbe.c:127: warning: Function parameter or member 'output' not described in 'vpbe_enum_outputs'
-    drivers/media/platform/davinci/vpbe.c:221: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_set_output'
-    drivers/media/platform/davinci/vpbe.c:221: warning: Function parameter or member 'index' not described in 'vpbe_set_output'
-    drivers/media/platform/davinci/vpbe.c:316: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_get_output'
-    drivers/media/platform/davinci/vpbe.c:328: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_s_dv_timings'
-    drivers/media/platform/davinci/vpbe.c:328: warning: Function parameter or member 'dv_timings' not described in 'vpbe_s_dv_timings'
-    drivers/media/platform/davinci/vpbe.c:380: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_g_dv_timings'
-    drivers/media/platform/davinci/vpbe.c:380: warning: Function parameter or member 'dv_timings' not described in 'vpbe_g_dv_timings'
-    drivers/media/platform/davinci/vpbe.c:405: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_enum_dv_timings'
-    drivers/media/platform/davinci/vpbe.c:405: warning: Function parameter or member 'timings' not described in 'vpbe_enum_dv_timings'
-    drivers/media/platform/davinci/vpbe.c:436: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_s_std'
-    drivers/media/platform/davinci/vpbe.c:436: warning: Function parameter or member 'std_id' not described in 'vpbe_s_std'
-    drivers/media/platform/davinci/vpbe.c:475: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_g_std'
-    drivers/media/platform/davinci/vpbe.c:475: warning: Function parameter or member 'std_id' not described in 'vpbe_g_std'
-    drivers/media/platform/davinci/vpbe.c:500: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_set_mode'
-    drivers/media/platform/davinci/vpbe.c:500: warning: Function parameter or member 'mode_info' not described in 'vpbe_set_mode'
-    drivers/media/platform/davinci/vpbe.c:585: warning: Function parameter or member 'dev' not described in 'vpbe_initialize'
-    drivers/media/platform/davinci/vpbe.c:585: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_initialize'
-    drivers/media/platform/davinci/vpbe.c:779: warning: Function parameter or member 'dev' not described in 'vpbe_deinitialize'
-    drivers/media/platform/davinci/vpbe.c:779: warning: Function parameter or member 'vpbe_dev' not described in 'vpbe_deinitialize'
-    drivers/media/platform/davinci/vpbe_osd.c:144: warning: Function parameter or member 'sd' not described in '_osd_dm6446_vid0_pingpong'
-    drivers/media/platform/davinci/vpbe_osd.c:144: warning: Function parameter or member 'field_inversion' not described in '_osd_dm6446_vid0_pingpong'
-    drivers/media/platform/davinci/vpbe_osd.c:144: warning: Function parameter or member 'fb_base_phys' not described in '_osd_dm6446_vid0_pingpong'
-    drivers/media/platform/davinci/vpbe_osd.c:144: warning: Function parameter or member 'lconfig' not described in '_osd_dm6446_vid0_pingpong'
-    drivers/media/platform/davinci/vpbe_osd.c:799: warning: Function parameter or member 'sd' not described in 'try_layer_config'
-    drivers/media/platform/davinci/vpbe_osd.c:799: warning: Function parameter or member 'layer' not described in 'try_layer_config'
-    drivers/media/platform/davinci/vpbe_osd.c:799: warning: Function parameter or member 'lconfig' not described in 'try_layer_config'
-    drivers/media/platform/davinci/vpbe_display.c:578: warning: Function parameter or member 'disp_dev' not described in 'vpbe_try_format'
-    drivers/media/platform/davinci/vpbe_display.c:578: warning: Function parameter or member 'pixfmt' not described in 'vpbe_try_format'
-    drivers/media/platform/davinci/vpbe_display.c:578: warning: Function parameter or member 'check' not described in 'vpbe_try_format'
-    drivers/media/platform/davinci/vpbe_display.c:943: warning: Function parameter or member 'file' not described in 'vpbe_display_s_std'
-    drivers/media/platform/davinci/vpbe_display.c:943: warning: Function parameter or member 'priv' not described in 'vpbe_display_s_std'
-    drivers/media/platform/davinci/vpbe_display.c:943: warning: Function parameter or member 'std_id' not described in 'vpbe_display_s_std'
-    drivers/media/platform/davinci/vpbe_display.c:975: warning: Function parameter or member 'file' not described in 'vpbe_display_g_std'
-    drivers/media/platform/davinci/vpbe_display.c:975: warning: Function parameter or member 'priv' not described in 'vpbe_display_g_std'
-    drivers/media/platform/davinci/vpbe_display.c:975: warning: Function parameter or member 'std_id' not described in 'vpbe_display_g_std'
-    drivers/media/platform/davinci/vpbe_display.c:998: warning: Function parameter or member 'file' not described in 'vpbe_display_enum_output'
-    drivers/media/platform/davinci/vpbe_display.c:998: warning: Function parameter or member 'priv' not described in 'vpbe_display_enum_output'
-    drivers/media/platform/davinci/vpbe_display.c:998: warning: Function parameter or member 'output' not described in 'vpbe_display_enum_output'
-    drivers/media/platform/davinci/vpbe_display.c:1025: warning: Function parameter or member 'file' not described in 'vpbe_display_s_output'
-    drivers/media/platform/davinci/vpbe_display.c:1025: warning: Function parameter or member 'priv' not described in 'vpbe_display_s_output'
-    drivers/media/platform/davinci/vpbe_display.c:1025: warning: Function parameter or member 'i' not described in 'vpbe_display_s_output'
-    drivers/media/platform/davinci/vpbe_display.c:1054: warning: Function parameter or member 'file' not described in 'vpbe_display_g_output'
-    drivers/media/platform/davinci/vpbe_display.c:1054: warning: Function parameter or member 'priv' not described in 'vpbe_display_g_output'
-    drivers/media/platform/davinci/vpbe_display.c:1054: warning: Function parameter or member 'i' not described in 'vpbe_display_g_output'
-    drivers/media/platform/davinci/vpbe_display.c:1074: warning: Function parameter or member 'file' not described in 'vpbe_display_enum_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1074: warning: Function parameter or member 'priv' not described in 'vpbe_display_enum_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1074: warning: Function parameter or member 'timings' not described in 'vpbe_display_enum_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1104: warning: Function parameter or member 'file' not described in 'vpbe_display_s_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1104: warning: Function parameter or member 'priv' not described in 'vpbe_display_s_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1104: warning: Function parameter or member 'timings' not described in 'vpbe_display_s_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1137: warning: Function parameter or member 'file' not described in 'vpbe_display_g_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1137: warning: Function parameter or member 'priv' not described in 'vpbe_display_g_dv_timings'
-    drivers/media/platform/davinci/vpbe_display.c:1137: warning: Function parameter or member 'dv_timings' not described in 'vpbe_display_g_dv_timings'
+The problem is that those pointers come from struct declarations
+like:
+
+	struct vpfe_ipipe_yee {
+	...
+	short table[VPFE_IPIPE_MAX_SIZE_YEE_LUT];
+	};
+
+So, they can't be NULL! Solve those warnings:
+
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:433 ipipe_set_lutdpc_regs() warn: this array is probably non-NULL. 'dpc->table'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:763 ipipe_set_gamma_regs() warn: this array is probably non-NULL. 'gamma->table_r'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:766 ipipe_set_gamma_regs() warn: this array is probably non-NULL. 'gamma->table_b'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:769 ipipe_set_gamma_regs() warn: this array is probably non-NULL. 'gamma->table_g'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:791 ipipe_set_3d_lut_regs() warn: this array is probably non-NULL. 'lut_3d->table'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:903 ipipe_set_gbce_regs() warn: this array is probably non-NULL. 'gbce->table'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:946 ipipe_set_ee_regs() warn: this array is probably non-NULL. 'ee->table'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:59 ipipe_validate_lutdpc_params() warn: this array is probably non-NULL. 'lutdpc->table'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:697 ipipe_get_gamma_params() warn: this array is probably non-NULL. 'gamma_param->table_r'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:705 ipipe_get_gamma_params() warn: this array is probably non-NULL. 'gamma_param->table_g'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:712 ipipe_get_gamma_params() warn: this array is probably non-NULL. 'gamma_param->table_b'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:745 ipipe_get_3d_lut_params() warn: this array is probably non-NULL. 'lut_param->table'
+    drivers/staging/media/davinci_vpfe/dm365_ipipe.c:926 ipipe_get_gbce_params() warn: this array is probably non-NULL. 'gbce_param->table'
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/davinci/vpbe.c         | 38 ++++++++++++++-------------
- drivers/media/platform/davinci/vpbe_display.c | 18 ++++++-------
- drivers/media/platform/davinci/vpbe_osd.c     | 14 +++++-----
- 3 files changed, 36 insertions(+), 34 deletions(-)
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c    | 18 ++++--------------
+ drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 19 +++----------------
+ 2 files changed, 7 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 7f6462562579..18c035ef84cf 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -51,7 +51,7 @@ MODULE_AUTHOR("Texas Instruments");
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index 6a3434cebd79..31b9e3011415 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -56,7 +56,7 @@ static int ipipe_validate_lutdpc_params(struct vpfe_ipipe_lutdpc *lutdpc)
+ 	    lutdpc->dpc_size > LUT_DPC_MAX_SIZE)
+ 		return -EINVAL;
  
- /**
-  * vpbe_current_encoder_info - Get config info for current encoder
-- * @vpbe_dev - vpbe device ptr
-+ * @vpbe_dev: vpbe device ptr
-  *
-  * Return ptr to current encoder config info
-  */
-@@ -68,8 +68,8 @@ vpbe_current_encoder_info(struct vpbe_device *vpbe_dev)
- /**
-  * vpbe_find_encoder_sd_index - Given a name find encoder sd index
-  *
-- * @vpbe_config - ptr to vpbe cfg
-- * @output_index - index used by application
-+ * @cfg: ptr to vpbe cfg
-+ * @index: index used by application
-  *
-  * Return sd index of the encoder
-  */
-@@ -94,8 +94,8 @@ static int vpbe_find_encoder_sd_index(struct vpbe_config *cfg,
+-	if (lutdpc->en && !lutdpc->table)
++	if (lutdpc->en)
+ 		return -EINVAL;
  
- /**
-  * vpbe_g_cropcap - Get crop capabilities of the display
-- * @vpbe_dev - vpbe device ptr
-- * @cropcap - cropcap is a ptr to struct v4l2_cropcap
-+ * @vpbe_dev: vpbe device ptr
-+ * @cropcap: cropcap is a ptr to struct v4l2_cropcap
-  *
-  * Update the crop capabilities in crop cap for current
-  * mode
-@@ -116,8 +116,8 @@ static int vpbe_g_cropcap(struct vpbe_device *vpbe_dev,
+ 	for (i = 0; i < lutdpc->dpc_size; i++)
+@@ -694,7 +694,7 @@ static int ipipe_get_gamma_params(struct vpfe_ipipe_device *ipipe, void *param)
  
- /**
-  * vpbe_enum_outputs - enumerate outputs
-- * @vpbe_dev - vpbe device ptr
-- * @output - ptr to v4l2_output structure
-+ * @vpbe_dev: vpbe device ptr
-+ * @output: ptr to v4l2_output structure
-  *
-  * Enumerates the outputs available at the vpbe display
-  * returns the status, -EINVAL if end of output list
-@@ -212,8 +212,8 @@ static int vpbe_get_std_info_by_name(struct vpbe_device *vpbe_dev,
+ 	table_size = gamma->tbl_size;
  
- /**
-  * vpbe_set_output - Set output
-- * @vpbe_dev - vpbe device ptr
-- * @index - index of output
-+ * @vpbe_dev: vpbe device ptr
-+ * @index: index of output
-  *
-  * Set vpbe output to the output specified by the index
-  */
-@@ -308,7 +308,7 @@ static int vpbe_set_default_output(struct vpbe_device *vpbe_dev)
+-	if (!gamma->bypass_r && !gamma_param->table_r) {
++	if (!gamma->bypass_r) {
+ 		dev_err(dev,
+ 			"ipipe_get_gamma_params: table ptr empty for R\n");
+ 		return -EINVAL;
+@@ -702,14 +702,14 @@ static int ipipe_get_gamma_params(struct vpfe_ipipe_device *ipipe, void *param)
+ 	memcpy(gamma_param->table_r, gamma->table_r,
+ 	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
  
- /**
-  * vpbe_get_output - Get output
-- * @vpbe_dev - vpbe device ptr
-+ * @vpbe_dev: vpbe device ptr
-  *
-  * return current vpbe output to the the index
-  */
-@@ -317,7 +317,7 @@ static unsigned int vpbe_get_output(struct vpbe_device *vpbe_dev)
- 	return vpbe_dev->current_out_index;
+-	if (!gamma->bypass_g && !gamma_param->table_g) {
++	if (!gamma->bypass_g) {
+ 		dev_err(dev, "ipipe_get_gamma_params: table ptr empty for G\n");
+ 		return -EINVAL;
+ 	}
+ 	memcpy(gamma_param->table_g, gamma->table_g,
+ 	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+ 
+-	if (!gamma->bypass_b && !gamma_param->table_b) {
++	if (!gamma->bypass_b) {
+ 		dev_err(dev, "ipipe_get_gamma_params: table ptr empty for B\n");
+ 		return -EINVAL;
+ 	}
+@@ -739,13 +739,8 @@ static int ipipe_get_3d_lut_params(struct vpfe_ipipe_device *ipipe, void *param)
+ {
+ 	struct vpfe_ipipe_3d_lut *lut_param = param;
+ 	struct vpfe_ipipe_3d_lut *lut = &ipipe->config.lut;
+-	struct device *dev = ipipe->subdev.v4l2_dev->dev;
+ 
+ 	lut_param->en = lut->en;
+-	if (!lut_param->table) {
+-		dev_err(dev, "ipipe_get_3d_lut_params: Invalid table ptr\n");
+-		return -EINVAL;
+-	}
+ 
+ 	memcpy(lut_param->table, &lut->table,
+ 	       (VPFE_IPIPE_MAX_SIZE_3D_LUT *
+@@ -919,14 +914,9 @@ static int ipipe_get_gbce_params(struct vpfe_ipipe_device *ipipe, void *param)
+ {
+ 	struct vpfe_ipipe_gbce *gbce_param = param;
+ 	struct vpfe_ipipe_gbce *gbce = &ipipe->config.gbce;
+-	struct device *dev = ipipe->subdev.v4l2_dev->dev;
+ 
+ 	gbce_param->en = gbce->en;
+ 	gbce_param->type = gbce->type;
+-	if (!gbce_param->table) {
+-		dev_err(dev, "ipipe_get_gbce_params: Invalid table ptr\n");
+-		return -EINVAL;
+-	}
+ 
+ 	memcpy(gbce_param->table, gbce->table,
+ 		(VPFE_IPIPE_MAX_SIZE_GBCE_LUT * sizeof(unsigned short)));
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+index a893072d0f04..dbb7ddc70bef 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+@@ -430,9 +430,6 @@ ipipe_set_lutdpc_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
+ 	regw_ip(base_addr, LUT_DPC_START_ADDR, DPC_LUT_ADR);
+ 	regw_ip(base_addr, dpc->dpc_size, DPC_LUT_SIZ & LUT_DPC_SIZE_MASK);
+ 
+-	if (dpc->table == NULL)
+-		return;
+-
+ 	for (count = 0; count < dpc->dpc_size; count++) {
+ 		if (count >= max_tbl_size)
+ 			lut_start_addr = DPC_TB1_START_ADDR;
+@@ -760,13 +757,13 @@ ipipe_set_gamma_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
+ 
+ 	table_size = gamma->tbl_size;
+ 
+-	if (!gamma->bypass_r && gamma->table_r != NULL)
++	if (!gamma->bypass_r)
+ 		ipipe_update_gamma_tbl(isp5_base_addr, gamma->table_r,
+ 			table_size, GAMMA_R_START_ADDR);
+-	if (!gamma->bypass_b && gamma->table_b != NULL)
++	if (!gamma->bypass_b)
+ 		ipipe_update_gamma_tbl(isp5_base_addr, gamma->table_b,
+ 			table_size, GAMMA_B_START_ADDR);
+-	if (!gamma->bypass_g && gamma->table_g != NULL)
++	if (!gamma->bypass_g)
+ 		ipipe_update_gamma_tbl(isp5_base_addr, gamma->table_g,
+ 			table_size, GAMMA_G_START_ADDR);
  }
+@@ -787,10 +784,6 @@ ipipe_set_3d_lut_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
+ 	if (!lut_3d->en)
+ 		return;
  
--/**
-+/*
-  * vpbe_s_dv_timings - Set the given preset timings in the encoder
-  *
-  * Sets the timings if supported by the current encoder. Return the status.
-@@ -369,7 +369,7 @@ static int vpbe_s_dv_timings(struct vpbe_device *vpbe_dev,
- 	return ret;
- }
+-	/* lut_3d enabled */
+-	if (!lut_3d->table)
+-		return;
+-
+ 	/* valied table */
+ 	tbl = lut_3d->table;
+ 	for (i = 0; i < VPFE_IPIPE_MAX_SIZE_3D_LUT; i++) {
+@@ -900,9 +893,6 @@ ipipe_set_gbce_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
  
--/**
-+/*
-  * vpbe_g_dv_timings - Get the timings in the current encoder
-  *
-  * Get the timings in the current encoder. Return the status. 0 - success
-@@ -394,7 +394,7 @@ static int vpbe_g_dv_timings(struct vpbe_device *vpbe_dev,
- 	return -EINVAL;
- }
+ 	regw_ip(base_addr, gbce->type, GBCE_TYP);
  
--/**
-+/*
-  * vpbe_enum_dv_timings - Enumerate the dv timings in the current encoder
-  *
-  * Get the timings in the current encoder. Return the status. 0 - success
-@@ -426,7 +426,7 @@ static int vpbe_enum_dv_timings(struct vpbe_device *vpbe_dev,
- 	return 0;
- }
+-	if (!gbce->table)
+-		return;
+-
+ 	for (count = 0; count < VPFE_IPIPE_MAX_SIZE_GBCE_LUT; count += 2)
+ 		w_ip_table(isp5_base_addr, ((gbce->table[count + 1] & mask) <<
+ 		GBCE_ENTRY_SHIFT) | (gbce->table[count] & mask),
+@@ -943,9 +933,6 @@ ipipe_set_ee_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
+ 	regw_ip(base_addr, ee->es_gain_grad & YEE_THR_MASK, YEE_G_GAN);
+ 	regw_ip(base_addr, ee->es_ofst_grad & YEE_THR_MASK, YEE_G_OFT);
  
--/**
-+/*
-  * vpbe_s_std - Set the given standard in the encoder
-  *
-  * Sets the standard if supported by the current encoder. Return the status.
-@@ -465,7 +465,7 @@ static int vpbe_s_std(struct vpbe_device *vpbe_dev, v4l2_std_id std_id)
- 	return ret;
- }
- 
--/**
-+/*
-  * vpbe_g_std - Get the standard in the current encoder
-  *
-  * Get the standard in the current encoder. Return the status. 0 - success
-@@ -488,7 +488,7 @@ static int vpbe_g_std(struct vpbe_device *vpbe_dev, v4l2_std_id *std_id)
- 	return -EINVAL;
- }
- 
--/**
-+/*
-  * vpbe_set_mode - Set mode in the current encoder using mode info
-  *
-  * Use the mode string to decide what timings to set in the encoder
-@@ -572,7 +572,8 @@ static int platform_device_get(struct device *dev, void *data)
- 
- /**
-  * vpbe_initialize() - Initialize the vpbe display controller
-- * @vpbe_dev - vpbe device ptr
-+ * @dev: Master and slave device ptr
-+ * @vpbe_dev: vpbe device ptr
-  *
-  * Master frame buffer device drivers calls this to initialize vpbe
-  * display controller. This will then registers v4l2 device and the sub
-@@ -769,7 +770,8 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 
- /**
-  * vpbe_deinitialize() - de-initialize the vpbe display controller
-- * @dev - Master and slave device ptr
-+ * @dev: Master and slave device ptr
-+ * @vpbe_dev: vpbe device ptr
-  *
-  * vpbe_master and slave frame buffer devices calls this to de-initialize
-  * the display controller. It is called when master and slave device
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 7b6cd4b3ccc4..9849e4405a6a 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -567,7 +567,7 @@ static void vpbe_disp_check_window_params(struct vpbe_display *disp_dev,
- 
- }
- 
--/**
-+/*
-  * vpbe_try_format()
-  * If user application provides width and height, and have bytesperline set
-  * to zero, driver calculates bytesperline and sizeimage based on hardware
-@@ -932,7 +932,7 @@ static int vpbe_display_try_fmt(struct file *file, void *priv,
- 
- }
- 
--/**
-+/*
-  * vpbe_display_s_std - Set the given standard in the encoder
-  *
-  * Sets the standard if supported by the current encoder. Return the status.
-@@ -964,7 +964,7 @@ static int vpbe_display_s_std(struct file *file, void *priv,
- 	return 0;
- }
- 
--/**
-+/*
-  * vpbe_display_g_std - Get the standard in the current encoder
-  *
-  * Get the standard in the current encoder. Return the status. 0 - success
-@@ -987,7 +987,7 @@ static int vpbe_display_g_std(struct file *file, void *priv,
- 	return -EINVAL;
- }
- 
--/**
-+/*
-  * vpbe_display_enum_output - enumerate outputs
-  *
-  * Enumerates the outputs available at the vpbe display
-@@ -1016,7 +1016,7 @@ static int vpbe_display_enum_output(struct file *file, void *priv,
- 	return 0;
- }
- 
--/**
-+/*
-  * vpbe_display_s_output - Set output to
-  * the output specified by the index
-  */
-@@ -1045,7 +1045,7 @@ static int vpbe_display_s_output(struct file *file, void *priv,
- 	return 0;
- }
- 
--/**
-+/*
-  * vpbe_display_g_output - Get output from subdevice
-  * for a given by the index
-  */
-@@ -1062,7 +1062,7 @@ static int vpbe_display_g_output(struct file *file, void *priv,
- 	return 0;
- }
- 
--/**
-+/*
-  * vpbe_display_enum_dv_timings - Enumerate the dv timings
-  *
-  * enum the timings in the current encoder. Return the status. 0 - success
-@@ -1092,7 +1092,7 @@ vpbe_display_enum_dv_timings(struct file *file, void *priv,
- 	return 0;
- }
- 
--/**
-+/*
-  * vpbe_display_s_dv_timings - Set the dv timings
-  *
-  * Set the timings in the current encoder. Return the status. 0 - success
-@@ -1125,7 +1125,7 @@ vpbe_display_s_dv_timings(struct file *file, void *priv,
- 	return 0;
- }
- 
--/**
-+/*
-  * vpbe_display_g_dv_timings - Set the dv timings
-  *
-  * Get the timings in the current encoder. Return the status. 0 - success
-diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-index 10f2bf11edf3..99a4ec183ba9 100644
---- a/drivers/media/platform/davinci/vpbe_osd.c
-+++ b/drivers/media/platform/davinci/vpbe_osd.c
-@@ -124,10 +124,10 @@ static inline u32 osd_modify(struct osd_state *sd, u32 mask, u32 val,
- 
- /**
-  * _osd_dm6446_vid0_pingpong() - field inversion fix for DM6446
-- * @sd - ptr to struct osd_state
-- * @field_inversion - inversion flag
-- * @fb_base_phys - frame buffer address
-- * @lconfig - ptr to layer config
-+ * @sd: ptr to struct osd_state
-+ * @field_inversion: inversion flag
-+ * @fb_base_phys: frame buffer address
-+ * @lconfig: ptr to layer config
-  *
-  * This routine implements a workaround for the field signal inversion silicon
-  * erratum described in Advisory 1.3.8 for the DM6446.  The fb_base_phys and
-@@ -784,9 +784,9 @@ static void osd_get_layer_config(struct osd_state *sd, enum osd_layer layer,
- 
- /**
-  * try_layer_config() - Try a specific configuration for the layer
-- * @sd  - ptr to struct osd_state
-- * @layer - layer to configure
-- * @lconfig - layer configuration to try
-+ * @sd: ptr to struct osd_state
-+ * @layer: layer to configure
-+ * @lconfig: layer configuration to try
-  *
-  * If the requested lconfig is completely rejected and the value of lconfig on
-  * exit is the current lconfig, then try_layer_config() returns 1.  Otherwise,
+-	if (ee->table == NULL)
+-		return;
+-
+ 	for (count = 0; count < VPFE_IPIPE_MAX_SIZE_YEE_LUT; count += 2)
+ 		w_ip_table(isp5_base_addr, ((ee->table[count + 1] &
+ 		YEE_ENTRY_MASK) << YEE_ENTRY_SHIFT) |
 -- 
 2.14.3
