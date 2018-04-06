@@ -1,131 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:40115 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752396AbeDHRWR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:22:17 -0400
-Received: by mail-pf0-f196.google.com with SMTP id y66so4321469pfi.7
-        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:22:16 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
-        crope@iki.fi
-Subject: [PATCH v5 1/5] dvb-frontends/dvb-pll: add i2c driver support
-Date: Mon,  9 Apr 2018 02:21:34 +0900
-Message-Id: <20180408172138.9974-2-tskd08@gmail.com>
-In-Reply-To: <20180408172138.9974-1-tskd08@gmail.com>
-References: <20180408172138.9974-1-tskd08@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35414 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751598AbeDFQQW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 12:16:22 -0400
+Subject: Re: [PATCH v2 09/15] v4l: vsp1: Move DRM pipeline output setup code
+ to a function
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <00180617-deed-677b-8976-401316df791c@ideasonboard.com>
+Date: Fri, 6 Apr 2018 17:16:16 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Hi Laurent,
 
-registers the module as an i2c driver,
-but keeps dvb_pll_attach() untouched for compatibility.
+Thanks for the updates
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
-Changes since v4:
-- do not #define chip name constants
+On 05/04/18 10:18, Laurent Pinchart wrote:
+> In order to make the vsp1_du_setup_lif() easier to read, and for
+> symmetry with the DRM pipeline input setup, move the pipeline output
+> setup code to a separate function.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> --
+> Changes since v1:
+> 
+> - Rename vsp1_du_pipeline_setup_input() to
+>   vsp1_du_pipeline_setup_inputs()
 
-Changes since v3:
-- use standard i2c_device_id instead of dvb_pll_config
+Hrm ... I perhaps would have expected this to happen in
 
- drivers/media/dvb-frontends/dvb-pll.c | 67 +++++++++++++++++++++++++++
- drivers/media/dvb-frontends/dvb-pll.h |  4 ++
- 2 files changed, 71 insertions(+)
+[PATCH 06/15] v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
 
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
-index 5553b89b804..ff0f477276a 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -827,6 +827,73 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
- }
- EXPORT_SYMBOL(dvb_pll_attach);
- 
-+
-+static int
-+dvb_pll_probe(struct i2c_client *client, const struct i2c_device_id *id)
-+{
-+	struct dvb_pll_config *cfg;
-+	struct dvb_frontend *fe;
-+	unsigned int desc_id;
-+
-+	cfg = client->dev.platform_data;
-+	fe = cfg->fe;
-+	i2c_set_clientdata(client, fe);
-+	desc_id = (unsigned int) id->driver_data;
-+
-+	if (!dvb_pll_attach(fe, client->addr, client->adapter, desc_id))
-+		return -ENOMEM;
-+
-+	dev_info(&client->dev, "DVB Simple Tuner attached.\n");
-+	return 0;
-+}
-+
-+static int dvb_pll_remove(struct i2c_client *client)
-+{
-+	struct dvb_frontend *fe;
-+
-+	fe = i2c_get_clientdata(client);
-+	dvb_pll_release(fe);
-+	return 0;
-+}
-+
-+
-+static const struct i2c_device_id dvb_pll_id[] = {
-+	{"dtt7579",		DVB_PLL_THOMSON_DTT7579},
-+	{"dtt759x",		DVB_PLL_THOMSON_DTT759X},
-+	{"z201",		DVB_PLL_LG_Z201},
-+	{"unknown_1",		DVB_PLL_UNKNOWN_1},
-+	{"tua6010xs",		DVB_PLL_TUA6010XS},
-+	{"env57h1xd5",		DVB_PLL_ENV57H1XD5},
-+	{"tua6034",		DVB_PLL_TUA6034},
-+	{"tda665x",		DVB_PLL_TDA665X},
-+	{"tded4",		DVB_PLL_TDED4},
-+	{"tdhu2",		DVB_PLL_TDHU2},
-+	{"tbmv",		DVB_PLL_SAMSUNG_TBMV},
-+	{"sd1878_tda8261",	DVB_PLL_PHILIPS_SD1878_TDA8261},
-+	{"opera1",		DVB_PLL_OPERA1},
-+	{"dtos403ih102a",	DVB_PLL_SAMSUNG_DTOS403IH102A},
-+	{"tdtc9251dh0",		DVB_PLL_SAMSUNG_TDTC9251DH0},
-+	{"tbdu18132",		DVB_PLL_SAMSUNG_TBDU18132},
-+	{"tbmu24112",		DVB_PLL_SAMSUNG_TBMU24112},
-+	{"tdee4",		DVB_PLL_TDEE4},
-+	{"dtt7520x",		DVB_PLL_THOMSON_DTT7520X},
-+	{}
-+};
-+
-+
-+MODULE_DEVICE_TABLE(i2c, dvb_pll_id);
-+
-+static struct i2c_driver dvb_pll_driver = {
-+	.driver = {
-+		.name = "dvb_pll",
-+	},
-+	.probe    = dvb_pll_probe,
-+	.remove   = dvb_pll_remove,
-+	.id_table = dvb_pll_id,
-+};
-+
-+module_i2c_driver(dvb_pll_driver);
-+
- MODULE_DESCRIPTION("dvb pll library");
- MODULE_AUTHOR("Gerd Knorr");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/dvb-pll.h b/drivers/media/dvb-frontends/dvb-pll.h
-index ca885e71d2f..101537ae4ef 100644
---- a/drivers/media/dvb-frontends/dvb-pll.h
-+++ b/drivers/media/dvb-frontends/dvb-pll.h
-@@ -30,6 +30,10 @@
- #define DVB_PLL_TDEE4		       18
- #define DVB_PLL_THOMSON_DTT7520X       19
- 
-+struct dvb_pll_config {
-+	struct dvb_frontend *fe;
-+};
-+
- #if IS_REACHABLE(CONFIG_DVB_PLL)
- /**
-  * Attach a dvb-pll to the supplied frontend structure.
--- 
-2.17.0
+But I think that's being quite pedantic - so unless you have a need to respin, I
+wouldn't worry about it.
+
+--
+Kieran
+
+
+> - Initialize format local variable to 0 in
+>   vsp1_du_pipeline_setup_output()
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.c | 114 ++++++++++++++++++---------------
+>  1 file changed, 64 insertions(+), 50 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> index 00ce99bd1605..a7cccc9b05ef 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -193,8 +193,8 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+>  }
+>  
+>  /* Setup the input side of the pipeline (RPFs and BRU). */
+> -static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+> -					struct vsp1_pipeline *pipe)
+> +static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
+> +					 struct vsp1_pipeline *pipe)
+>  {
+>  	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
+>  	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+> @@ -276,6 +276,65 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
+>  	return 0;
+>  }
+>  
+> +/* Setup the output side of the pipeline (WPF and LIF). */
+> +static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
+> +					 struct vsp1_pipeline *pipe)
+> +{
+> +	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+> +	struct v4l2_subdev_format format = { 0, };
+> +	int ret;
+> +
+> +	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	format.pad = RWPF_PAD_SINK;
+> +	format.format.width = drm_pipe->width;
+> +	format.format.height = drm_pipe->height;
+> +	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
+> +	format.format.field = V4L2_FIELD_NONE;
+> +
+> +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code, pipe->output->entity.index);
+> +
+> +	format.pad = RWPF_PAD_SOURCE;
+> +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code, pipe->output->entity.index);
+> +
+> +	format.pad = LIF_PAD_SINK;
+> +	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
+> +			       &format);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
+> +		__func__, format.format.width, format.format.height,
+> +		format.format.code, pipe->lif->index);
+> +
+> +	/*
+> +	 * Verify that the format at the output of the pipeline matches the
+> +	 * requested frame size and media bus code.
+> +	 */
+> +	if (format.format.width != drm_pipe->width ||
+> +	    format.format.height != drm_pipe->height ||
+> +	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
+> +		dev_dbg(vsp1->dev, "%s: format mismatch on LIF%u\n", __func__,
+> +			pipe->lif->index);
+> +		return -EPIPE;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  /* Configure all entities in the pipeline. */
+>  static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
+>  {
+> @@ -356,7 +415,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  	struct vsp1_drm_pipeline *drm_pipe;
+>  	struct vsp1_pipeline *pipe;
+>  	struct vsp1_bru *bru;
+> -	struct v4l2_subdev_format format;
+>  	unsigned long flags;
+>  	unsigned int i;
+>  	int ret;
+> @@ -413,58 +471,14 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+>  		__func__, pipe_index, cfg->width, cfg->height);
+>  
+>  	/* Setup formats through the pipeline. */
+> -	ret = vsp1_du_pipeline_setup_input(vsp1, pipe);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	memset(&format, 0, sizeof(format));
+> -	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	format.pad = RWPF_PAD_SINK;
+> -	format.format.width = cfg->width;
+> -	format.format.height = cfg->height;
+> -	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
+> -	format.format.field = V4L2_FIELD_NONE;
+> -
+> -	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
+> -			       &format);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
+> -		__func__, format.format.width, format.format.height,
+> -		format.format.code, pipe->output->entity.index);
+> -
+> -	format.pad = RWPF_PAD_SOURCE;
+> -	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
+> -			       &format);
+> +	ret = vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
+> -		__func__, format.format.width, format.format.height,
+> -		format.format.code, pipe->output->entity.index);
+> -
+> -	format.pad = LIF_PAD_SINK;
+> -	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
+> -			       &format);
+> +	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
+> -		__func__, format.format.width, format.format.height,
+> -		format.format.code, pipe_index);
+> -
+> -	/*
+> -	 * Verify that the format at the output of the pipeline matches the
+> -	 * requested frame size and media bus code.
+> -	 */
+> -	if (format.format.width != cfg->width ||
+> -	    format.format.height != cfg->height ||
+> -	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
+> -		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
+> -		return -EPIPE;
+> -	}
+> -
+>  	/* Enable the VSP1. */
+>  	ret = vsp1_device_get(vsp1);
+>  	if (ret < 0)
+> @@ -612,7 +626,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
+>  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+>  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
+>  
+> -	vsp1_du_pipeline_setup_input(vsp1, pipe);
+> +	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
+>  	vsp1_du_pipeline_configure(pipe);
+>  }
+>  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+> 
