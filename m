@@ -1,71 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:51164 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751152AbeDNMAP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:00:15 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 14/33] rcar-vin: align pixelformat check
-Date: Sat, 14 Apr 2018 13:57:07 +0200
-Message-Id: <20180414115726.5075-15-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33285 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752663AbeDFWwz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 18:52:55 -0400
+Received: by mail-pf0-f195.google.com with SMTP id f15so1762326pfn.0
+        for <linux-media@vger.kernel.org>; Fri, 06 Apr 2018 15:52:54 -0700 (PDT)
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+To: linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v8 1/2] media: dt-bindings: Add bindings for panasonic,amg88xx
+Date: Fri,  6 Apr 2018 15:52:30 -0700
+Message-Id: <20180406225231.13831-2-matt.ranostay@konsulko.com>
+In-Reply-To: <20180406225231.13831-1-matt.ranostay@konsulko.com>
+References: <20180406225231.13831-1-matt.ranostay@konsulko.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the pixelformat is not supported it should not fail but be set to
-something that works. While we are at it move the two different
-checks of the pixelformat to the same statement.
+Define the device tree bindings for the panasonic,amg88xx i2c
+video driver.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: devicetree@vger.kernel.org
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ .../bindings/media/i2c/panasonic,amg88xx.txt          | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 907322e1eeb5f6a0..d9231a074aa2c29d 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -189,12 +189,10 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	u32 walign;
- 	int ret;
- 
--	/* If requested format is not supported fallback to the default */
--	if (!rvin_format_from_pixel(pix->pixelformat)) {
--		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
--			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+	if (!rvin_format_from_pixel(pix->pixelformat) ||
-+	    (vin->info->model == RCAR_M1 &&
-+	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
- 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--	}
- 
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix, source);
-@@ -233,12 +231,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->bytesperline = rvin_format_bytesperline(pix);
- 	pix->sizeimage = rvin_format_sizeimage(pix);
- 
--	if (vin->info->model == RCAR_M1 &&
--	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
--		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
--		return -EINVAL;
--	}
--
- 	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
- 		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
- 
+diff --git a/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+new file mode 100644
+index 000000000000..4a3181a3dd7e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+@@ -0,0 +1,19 @@
++* Panasonic AMG88xx
++
++The Panasonic family of AMG88xx Grid-Eye sensors allow recording
++8x8 10Hz video which consists of thermal datapoints
++
++Required Properties:
++ - compatible : Must be "panasonic,amg88xx"
++ - reg : i2c address of the device
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		amg88xx@69 {
++			compatible = "panasonic,amg88xx";
++			reg = <0x69>;
++		};
++		...
++	};
 -- 
-2.16.2
+2.14.1
