@@ -1,51 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:51800 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753745AbeDPMjj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 08:39:39 -0400
-Date: Mon, 16 Apr 2018 05:39:37 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Jerome Glisse <jglisse@redhat.com>, christian.koenig@amd.com,
-        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180416123937.GA9073@infradead.org>
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-4-christian.koenig@amd.com>
- <20180329065753.GD3881@phenom.ffwll.local>
- <8b823458-8bdc-3217-572b-509a28aae742@gmail.com>
- <20180403090909.GN3881@phenom.ffwll.local>
- <20180403170645.GB5935@redhat.com>
- <20180403180832.GZ3881@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180403180832.GZ3881@phenom.ffwll.local>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34815 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751558AbeDGPsj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 11:48:39 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH 0/6] media: ov772x: support media controller, device tree probing, etc.
+Date: Sun,  8 Apr 2018 00:48:04 +0900
+Message-Id: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 03, 2018 at 08:08:32PM +0200, Daniel Vetter wrote:
-> I did not mean you should dma_map_sg/page. I just meant that using
-> dma_map_resource to fill only the dma address part of the sg table seems
-> perfectly sufficient.
+This patchset includes support media controller, device tree probing and
+other miscellanuous changes for ov772x driver.
 
-But that is not how the interface work, especially facing sg_dma_len.
+Akinobu Mita (6):
+  media: ov772x: allow i2c controllers without
+    I2C_FUNC_PROTOCOL_MANGLING
+  media: ov772x: add checks for register read errors
+  media: ov772x: create subdevice device node
+  media: ov772x: add media controller support
+  media: ov772x: add device tree binding
+  media: ov772x: support device tree probing
 
-> Assuming you get an sg table that's been mapping by calling dma_map_sg was
-> always a bit a case of bending the abstraction to avoid typing code. The
-> only thing an importer ever should have done is look at the dma addresses
-> in that sg table, nothing else.
+ .../devicetree/bindings/media/i2c/ov772x.txt       |  36 ++++++
+ MAINTAINERS                                        |   1 +
+ drivers/media/i2c/ov772x.c                         | 136 ++++++++++++++++-----
+ 3 files changed, 140 insertions(+), 33 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
 
-The scatterlist is not a very good abstraction unfortunately, but it
-it is spread all over the kernel.  And we do expect that anyone who
-gets passed a scatterlist can use sg_page() or sg_virt() (which calls
-sg_page()) on it.  Your changes would break that, and will cause major
-trouble because of that.
-
-If you want to expose p2p memory returned from dma_map_resource in
-dmabuf do not use scatterlists for this please, but with a new interface
-that explicitly passes a virtual address, a dma address and a length
-and make it very clear that virt_to_page will not work on the virtual
-address.
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+-- 
+2.7.4
