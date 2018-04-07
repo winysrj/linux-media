@@ -1,129 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41887 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752210AbeDKDrK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 23:47:10 -0400
-Message-ID: <37f7761e18c32ba2c1f18185d126d09a@smtp-cloud7.xs4all.net>
-Date: Wed, 11 Apr 2018 05:47:08 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from osg.samsung.com ([64.30.133.232]:43267 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751447AbeDGNRC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 7 Apr 2018 09:17:02 -0400
+Date: Sat, 7 Apr 2018 10:16:57 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] v4l: omap3isp: Enable driver compilation on ARM with
+ COMPILE_TEST
+Message-ID: <20180407101657.5537b596@vento.lan>
+In-Reply-To: <20180407114008.6707-1-laurent.pinchart@ideasonboard.com>
+References: <20180407114008.6707-1-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sat,  7 Apr 2018 14:40:08 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Results of the daily build of media_tree:
+> The omap3isp driver can't be compiled on non-ARM platforms but has no
+> compile-time dependency on OMAP. It however requires common clock
+> framework support, which isn't provided by all ARM platforms.
+> 
+> Drop the OMAP dependency when COMPILE_TEST is set and add ARM and
+> COMMON_CLK dependencies.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/Kconfig | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> Hi Mauro,
+> 
+> While we continue the discussions on whether the ARM IOMMU functions should be
+> stubbed in the omap3isp driver itself or not, I propose already merging this
+> patch that will extend build coverage for the omap3isp driver. Extending
+> compilation to non-ARM platforms can then be added on top, depending on the
+> result of the discussion.
+> 
+> You might have noticed the 0-day build bot report reporting that the driver
+> depends on the common clock framework (build failure on openrisc). The issue
+> affects ARM as well as not all ARM platforms use the common clock framework.
+> I've thus also added a dependency on COMMON_CLK. Note that this dependency can
+> prevent compilation on x86 platforms. If you want to fix that, the
+> definition of struct clk_hw in include/linux/clk-provider.h will need to be
+> exposed even when CONFIG_COMMON_CLK isn't selected. I'll let you propose a fix
+> for that issue to the clock maintainers if you think it should be addressed.
 
-date:			Wed Apr 11 05:00:13 CEST 2018
-media-tree git hash:	17dec0a949153d9ac00760ba2f5b78cb583e995f
-media_build git hash:	541653bb52fcf7c34b8b83a4c8cc66b09c68ac37
-v4l-utils git hash:	47d43b130dc6e9e0edc900759fb37649208371e4
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.2-rc1
-smatch version:		v0.5.0-4419-g3b5bf5c9
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Weird, it built/linked fine on x86 without COMMON_CLK. Perhaps there are
+some stubs there that aren't working properly for openrisc arch. I'll
+take a look on it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index c7a1cf8a1b01..58aa233d3cf9 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -62,7 +62,10 @@ config VIDEO_MUX
+>  
+>  config VIDEO_OMAP3
+>  	tristate "OMAP 3 Camera support"
+> -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+> +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+> +	depends on ARCH_OMAP3 || COMPILE_TEST
+> +	depends on ARM
+> +	depends on COMMON_CLK
+>  	depends on HAS_DMA && OF
+>  	depends on OMAP_IOMMU
+>  	select ARM_DMA_USE_IOMMU
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Mauro
