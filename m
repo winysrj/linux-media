@@ -1,336 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36107 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751711AbeDFWdl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 18:33:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v7 3/8] media: vsp1: Provide a body pool
-Date: Sat, 07 Apr 2018 01:33:40 +0300
-Message-ID: <1646405.Bdlv5Bo0GY@avalon>
-In-Reply-To: <9f8fb55c1811825884ab620d2956e0036147bc26.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com> <9f8fb55c1811825884ab620d2956e0036147bc26.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-out.m-online.net ([212.18.0.9]:35148 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751532AbeDGNFS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 09:05:18 -0400
+From: Marek Vasut <marex@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Marek Vasut <marex@denx.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH] media: staging/imx: Handle CSI->VDIC->PRPVF pipeline
+Date: Sat,  7 Apr 2018 15:05:13 +0200
+Message-Id: <20180407130513.24936-1-marex@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+In case the PRPVF is not connected directly to CSI, the PRPVF subdev
+driver won't find the CSI subdev and will not configure the CSI input
+mux. This is not noticable on the IPU1-CSI0 interface with parallel
+camera, since the mux is set "correctly" by default and the parallel
+camera will work just fine. This is however noticable on IPU2-CSI1,
+where the mux is not set to the correct position by default and the
+pipeline will fail.
 
-Thank you for the patch.
+Add similar code to what is in PRPVF to VDIC driver, so that the VDIC
+can locate the CSI subdev and configure the mux correctly if the CSI
+is connected to the VDIC. Make the PRPVF driver configure the CSI mux
+only in case it's connected directly to CSI and not in case it is
+connected to VDIC.
 
-On Thursday, 8 March 2018 02:05:26 EEST Kieran Bingham wrote:
-> Each display list allocates a body to store register values in a dma
-> accessible buffer from a dma_alloc_wc() allocation. Each of these
-> results in an entry in the TLB, and a large number of display list
+Signed-off-by: Marek Vasut <marex@denx.de>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-ic-prp.c     |  6 ++----
+ drivers/staging/media/imx/imx-media-vdic.c | 24 ++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 4 deletions(-)
 
-I'd write it as "IOMMU TLB" to make it clear we're not concerned about CPU MMU 
-TLB pressure.
-
-> allocations adds pressure to this resource.
-> 
-> Reduce TLB pressure on the IPMMUs by allocating multiple display list
-> bodies in a single allocation, and providing these to the display list
-> through a 'body pool'. A pool can be allocated by the display list
-> manager or entities which require their own body allocations.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> ---
-> v4:
->  - Provide comment explaining extra allocation on body pool
->    highlighting area for optimisation later.
-> 
-> v3:
->  - s/fragment/body/, s/fragments/bodies/
->  - qty -> num_bodies
->  - indentation fix
->  - s/vsp1_dl_body_pool_{alloc,free}/vsp1_dl_body_pool_{create,destroy}/'
->  - Add kerneldoc to non-static functions
-> 
-> v2:
->  - assign dlb->dma correctly
-> 
->  drivers/media/platform/vsp1/vsp1_dl.c | 163 +++++++++++++++++++++++++++-
->  drivers/media/platform/vsp1/vsp1_dl.h |   8 +-
->  2 files changed, 171 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index 67cc16c1b8e3..0208e72cb356
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -45,6 +45,8 @@ struct vsp1_dl_entry {
->  /**
->   * struct vsp1_dl_body - Display list body
->   * @list: entry in the display list list of bodies
-> + * @free: entry in the pool free body list
-
-Could we reuse @list for this purpose ? Unless I'm mistaken, when a body is in 
-a pool it doesn't belong to any particular display list, and when it is in a 
-display list it isn't in the pool anymore.
-
-> + * @pool: pool to which this body belongs
->   * @vsp1: the VSP1 device
->   * @entries: array of entries
->   * @dma: DMA address of the entries
-> @@ -54,6 +56,9 @@ struct vsp1_dl_entry {
->   */
->  struct vsp1_dl_body {
->  	struct list_head list;
-> +	struct list_head free;
-> +
-> +	struct vsp1_dl_body_pool *pool;
->  	struct vsp1_device *vsp1;
-> 
->  	struct vsp1_dl_entry *entries;
-> @@ -65,6 +70,30 @@ struct vsp1_dl_body {
->  };
-> 
->  /**
-> + * struct vsp1_dl_body_pool - display list body pool
-> + * @dma: DMA address of the entries
-> + * @size: size of the full DMA memory pool in bytes
-> + * @mem: CPU memory pointer for the pool
-> + * @bodies: Array of DLB structures for the pool
-> + * @free: List of free DLB entries
-> + * @lock: Protects the pool and free list
-
-The pool and free list ? As far as I can tell the lock only protects the free 
-list.
-
-> + * @vsp1: the VSP1 device
-> + */
-> +struct vsp1_dl_body_pool {
-> +	/* DMA allocation */
-> +	dma_addr_t dma;
-> +	size_t size;
-> +	void *mem;
-> +
-> +	/* Body management */
-> +	struct vsp1_dl_body *bodies;
-> +	struct list_head free;
-> +	spinlock_t lock;
-> +
-> +	struct vsp1_device *vsp1;
-> +};
-> +
-> +/**
->   * struct vsp1_dl_list - Display list
->   * @list: entry in the display list manager lists
->   * @dlm: the display list manager
-> @@ -105,6 +134,7 @@ enum vsp1_dl_mode {
->   * @active: list currently being processed (loaded) by hardware
->   * @queued: list queued to the hardware (written to the DL registers)
->   * @pending: list waiting to be queued to the hardware
-> + * @pool: body pool for the display list bodies
->   * @gc_work: bodies garbage collector work struct
->   * @gc_bodies: array of display list bodies waiting to be freed
->   */
-> @@ -120,6 +150,8 @@ struct vsp1_dl_manager {
->  	struct vsp1_dl_list *queued;
->  	struct vsp1_dl_list *pending;
-> 
-> +	struct vsp1_dl_body_pool *pool;
-> +
->  	struct work_struct gc_work;
->  	struct list_head gc_bodies;
->  };
-> @@ -128,6 +160,137 @@ struct vsp1_dl_manager {
->   * Display List Body Management
->   */
-> 
-> +/**
-> + * vsp1_dl_body_pool_create - Create a pool of bodies from a single
-> allocation
-> + * @vsp1: The VSP1 device
-> + * @num_bodies: The quantity of bodies to allocate
-
-For consistency, s/quantity/number/
-
-> + * @num_entries: The maximum number of entries that the body can contain
-
-Maybe s/the body/a body/ ?
-
-> + * @extra_size: Extra allocation provided for the bodies
-> + *
-> + * Allocate a pool of display list bodies each with enough memory to
-> contain the
-> + * requested number of entries.
-
-How about
-
-the requested number of entries plus the @extra_size.
-
-> + *
-> + * Return a pointer to a pool on success or NULL if memory can't be
-> allocated.
-> + */
-> +struct vsp1_dl_body_pool *
-> +vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-> +			 unsigned int num_entries, size_t extra_size)
-> +{
-> +	struct vsp1_dl_body_pool *pool;
-> +	size_t dlb_size;
-> +	unsigned int i;
-> +
-> +	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-> +	if (!pool)
-> +		return NULL;
-> +
-> +	pool->vsp1 = vsp1;
-> +
-> +	/*
-> +	 * Todo: 'extra_size' is only used by vsp1_dlm_create(), to allocate
-
-s/Todo/TODO/
-
-> +	 * extra memory for the display list header. We need only one header per
-> +	 * display list, not per display list body, thus this allocation is
-> +	 * extraneous and should be reworked in the future.
-> +	 */
-
-Any plan to fix this ? :-)
-
-> +	dlb_size = num_entries * sizeof(struct vsp1_dl_entry) + extra_size;
-> +	pool->size = dlb_size * num_bodies;
-> +
-> +	pool->bodies = kcalloc(num_bodies, sizeof(*pool->bodies), GFP_KERNEL);
-> +	if (!pool->bodies) {
-> +		kfree(pool);
-> +		return NULL;
-> +	}
-> +
-> +	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
-> +				 GFP_KERNEL);
-> +	if (!pool->mem) {
-> +		kfree(pool->bodies);
-> +		kfree(pool);
-> +		return NULL;
-> +	}
-> +
-> +	spin_lock_init(&pool->lock);
-> +	INIT_LIST_HEAD(&pool->free);
-> +
-> +	for (i = 0; i < num_bodies; ++i) {
-> +		struct vsp1_dl_body *dlb = &pool->bodies[i];
-> +
-> +		dlb->pool = pool;
-> +		dlb->max_entries = num_entries;
-> +
-> +		dlb->dma = pool->dma + i * dlb_size;
-> +		dlb->entries = pool->mem + i * dlb_size;
-> +
-> +		list_add_tail(&dlb->free, &pool->free);
-> +	}
-> +
-> +	return pool;
-> +}
-> +
-> +/**
-> + * vsp1_dl_body_pool_destroy - Release a body pool
-> + * @pool: The body pool
-> + *
-> + * Release all components of a pool allocation.
-> + */
-> +void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool)
-> +{
-> +	if (!pool)
-> +		return;
-> +
-> +	if (pool->mem)
-> +		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
-> +			    pool->dma);
-> +
-> +	kfree(pool->bodies);
-> +	kfree(pool);
-> +}
-> +
-> +/**
-> + * vsp1_dl_body_get - Obtain a body from a pool
-> + * @pool: The body pool
-> + *
-> + * Obtain a body from the pool allocation without blocking.
-
-"the pool allocation" ? Did you mean just "the pool" ?
-
-> + *
-> + * Returns a display list body or NULL if there are none available.
-> + */
-> +struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
-> +{
-> +	struct vsp1_dl_body *dlb = NULL;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&pool->lock, flags);
-> +
-> +	if (!list_empty(&pool->free)) {
-> +		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
-> +		list_del(&dlb->free);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&pool->lock, flags);
-> +
-> +	return dlb;
-> +}
-> +
-> +/**
-> + * vsp1_dl_body_put - Return a body back to its pool
-> + * @dlb: The display list body
-> + *
-> + * Return a body back to the pool, and reset the num_entries to clear the
-> list.
-> + */
-> +void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
-> +{
-> +	unsigned long flags;
-> +
-> +	if (!dlb)
-> +		return;
-> +
-> +	dlb->num_entries = 0;
-> +
-> +	spin_lock_irqsave(&dlb->pool->lock, flags);
-> +	list_add_tail(&dlb->free, &dlb->pool->free);
-> +	spin_unlock_irqrestore(&dlb->pool->lock, flags);
-> +}
-> +
->  /*
->   * Initialize a display list body object and allocate DMA memory for the
-> body * data. The display list body object is expected to have been
-> initialized to diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
-> b/drivers/media/platform/vsp1/vsp1_dl.h index cf57f986b69a..031032e304d2
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.h
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
-> @@ -17,6 +17,7 @@
-> 
->  struct vsp1_device;
->  struct vsp1_dl_body;
-> +struct vsp1_dl_body_pool;
->  struct vsp1_dl_list;
->  struct vsp1_dl_manager;
-> 
-> @@ -34,6 +35,13 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
->  void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
->  void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
-> 
-> +struct vsp1_dl_body_pool *
-> +vsp1_dl_body_pool_create(struct vsp1_device *vsp1, unsigned int num_bodies,
-> +			 unsigned int num_entries, size_t extra_size);
-> +void vsp1_dl_body_pool_destroy(struct vsp1_dl_body_pool *pool);
-> +struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool);
-> +void vsp1_dl_body_put(struct vsp1_dl_body *dlb);
-> +
->  struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
->  					unsigned int num_entries);
->  void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
-
-
+diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
+index 98923fc844ce..84fa66dae21a 100644
+--- a/drivers/staging/media/imx/imx-ic-prp.c
++++ b/drivers/staging/media/imx/imx-ic-prp.c
+@@ -72,14 +72,12 @@ static inline struct prp_priv *sd_to_priv(struct v4l2_subdev *sd)
+ static int prp_start(struct prp_priv *priv)
+ {
+ 	struct imx_ic_priv *ic_priv = priv->ic_priv;
+-	bool src_is_vdic;
+ 
+ 	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
+ 
+ 	/* set IC to receive from CSI or VDI depending on source */
+-	src_is_vdic = !!(priv->src_sd->grp_id & IMX_MEDIA_GRP_ID_VDIC);
+-
+-	ipu_set_ic_src_mux(priv->ipu, priv->csi_id, src_is_vdic);
++	if (!(priv->src_sd->grp_id & IMX_MEDIA_GRP_ID_VDIC))
++		ipu_set_ic_src_mux(priv->ipu, priv->csi_id, false);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index b538bbebedc5..e660911e7024 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -117,6 +117,9 @@ struct vdic_priv {
+ 
+ 	bool csi_direct;  /* using direct CSI->VDIC->IC pipeline */
+ 
++	/* the CSI id at link validate */
++	int csi_id;
++
+ 	/* motion select control */
+ 	struct v4l2_ctrl_handler ctrl_hdlr;
+ 	enum ipu_motion_sel motion;
+@@ -388,6 +391,9 @@ static int vdic_start(struct vdic_priv *priv)
+ 	if (ret)
+ 		return ret;
+ 
++	/* set IC to receive from CSI or VDI depending on source */
++	ipu_set_ic_src_mux(priv->ipu, priv->csi_id, true);
++
+ 	/*
+ 	 * init the VDIC.
+ 	 *
+@@ -778,6 +784,7 @@ static int vdic_link_validate(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_format *sink_fmt)
+ {
+ 	struct vdic_priv *priv = v4l2_get_subdevdata(sd);
++	struct imx_media_subdev *csi;
+ 	int ret;
+ 
+ 	ret = v4l2_subdev_link_validate_default(sd, link,
+@@ -785,6 +792,23 @@ static int vdic_link_validate(struct v4l2_subdev *sd,
+ 	if (ret)
+ 		return ret;
+ 
++	csi = imx_media_find_upstream_subdev(priv->md, priv->src,
++					     IMX_MEDIA_GRP_ID_CSI);
++	if (!IS_ERR(csi)) {
++		switch (csi->sd->grp_id) {
++		case IMX_MEDIA_GRP_ID_CSI0:
++			priv->csi_id = 0;
++			break;
++		case IMX_MEDIA_GRP_ID_CSI1:
++			priv->csi_id = 1;
++			break;
++		default:
++			ret = -EINVAL;
++		}
++	} else {
++		priv->csi_id = 0;
++	}
++
+ 	mutex_lock(&priv->lock);
+ 
+ 	if (priv->csi_direct && priv->motion != HIGH_MOTION) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.16.2
