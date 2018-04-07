@@ -1,54 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f45.google.com ([209.85.214.45]:37140 "EHLO
-        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752665AbeDQEeL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 00:34:11 -0400
-Received: by mail-it0-f45.google.com with SMTP id 71-v6so14512850ith.2
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:34:10 -0700 (PDT)
-Received: from mail-io0-f179.google.com (mail-io0-f179.google.com. [209.85.223.179])
-        by smtp.gmail.com with ESMTPSA id j197sm2505598ioj.45.2018.04.16.21.34.07
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 16 Apr 2018 21:34:07 -0700 (PDT)
-Received: by mail-io0-f179.google.com with SMTP id y128so20755889iod.4
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:34:07 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Tue, 17 Apr 2018 04:33:56 +0000
-Message-ID: <CAPBb6MVLpV6gbUWBnQpYiNoWmjqdhYOhicrsetT0S5p_w28HDw@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 00/29] Request API
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:41757 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751741AbeDGPs5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 11:48:57 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 6/6] media: ov772x: support device tree probing
+Date: Sun,  8 Apr 2018 00:48:10 +0900
+Message-Id: <1523116090-13101-7-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+The ov772x driver currently only supports legacy platform data probe.
+This change enables device tree probing.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Note that the platform data probe can select auto or manual edge control
+mode, but the device tree probling can only select auto edge control mode
+for now.
 
-> Hi all,
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/media/i2c/ov772x.c | 60 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 40 insertions(+), 20 deletions(-)
 
-> This is a cleaned up version of the v10 series (never posted to
-> the list since it was messy).
-
-Hi Hans,
-
-It took me a while to test and review this, but finally have been able to
-do it.
-
-First the result of the test: I have tried porting my dummy vim2m test
-program
-(https://gist.github.com/Gnurou/34c35f1f8e278dad454b51578d239a42 for
-reference),
-and am getting a hang when trying to queue the second OUTPUT buffer (right
-after
-queuing the first request). If I move the calls the VIDIOC_STREAMON after
-the
-requests are queued, the hang seems to happen at that moment. Probably a
-deadlock, haven't looked in detail yet.
-
-I have a few other comments, will follow up per-patch.
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 5e91fa1..e67ec37 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -763,13 +763,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_VFLIP:
+ 		val = ctrl->val ? VFLIP_IMG : 0x00;
+ 		priv->flag_vflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_VFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+ 			val ^= VFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+ 	case V4L2_CID_HFLIP:
+ 		val = ctrl->val ? HFLIP_IMG : 0x00;
+ 		priv->flag_hflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_HFLIP)
++		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+ 			val ^= HFLIP_IMG;
+ 		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+ 	case V4L2_CID_BAND_STOP_FILTER:
+@@ -928,19 +928,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+ 	*win = ov772x_select_win(mf->width, mf->height);
+ }
+ 
+-static int ov772x_set_params(struct ov772x_priv *priv,
+-			     const struct ov772x_color_format *cfmt,
+-			     const struct ov772x_win_size *win)
++static int ov772x_edgectrl(struct ov772x_priv *priv)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	struct v4l2_fract tpf;
+ 	int ret;
+-	u8  val;
+ 
+-	/* Reset hardware. */
+-	ov772x_reset(client);
++	if (!priv->info)
++		return 0;
+ 
+-	/* Edge Ctrl. */
+ 	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+ 		/*
+ 		 * Manual Edge Control Mode.
+@@ -951,19 +946,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 
+ 		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+ 				      priv->info->edgectrl.threshold);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+ 				      priv->info->edgectrl.strength);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+ 		/*
+@@ -975,15 +970,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+ 				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+ 				      priv->info->edgectrl.upper);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 
+ 		ret = ov772x_mask_set(client,
+ 				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+ 				      priv->info->edgectrl.lower);
+ 		if (ret < 0)
+-			goto ov772x_set_fmt_error;
++			return ret;
+ 	}
+ 
++	return 0;
++}
++
++static int ov772x_set_params(struct ov772x_priv *priv,
++			     const struct ov772x_color_format *cfmt,
++			     const struct ov772x_win_size *win)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	struct v4l2_fract tpf;
++	int ret;
++	u8  val;
++
++	/* Reset hardware. */
++	ov772x_reset(client);
++
++	/* Edge Ctrl. */
++	ret =  ov772x_edgectrl(priv);
++	if (ret < 0)
++		goto ov772x_set_fmt_error;
++
+ 	/* Format and window size. */
+ 	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+ 	if (ret < 0)
+@@ -1284,11 +1299,6 @@ static int ov772x_probe(struct i2c_client *client,
+ 	struct i2c_adapter	*adapter = client->adapter;
+ 	int			ret;
+ 
+-	if (!client->dev.platform_data) {
+-		dev_err(&client->dev, "Missing ov772x platform data\n");
+-		return -EINVAL;
+-	}
+-
+ 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+ 		return -ENOMEM;
+@@ -1390,9 +1400,19 @@ static const struct i2c_device_id ov772x_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ov772x_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov772x_of_match[] = {
++	{ .compatible = "ovti,ov7725", },
++	{ .compatible = "ovti,ov7720", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov772x_of_match);
++#endif
++
+ static struct i2c_driver ov772x_i2c_driver = {
+ 	.driver = {
+ 		.name = "ov772x",
++		.of_match_table = of_match_ptr(ov772x_of_match),
+ 	},
+ 	.probe    = ov772x_probe,
+ 	.remove   = ov772x_remove,
+-- 
+2.7.4
