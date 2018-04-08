@@ -1,75 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:52452 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753105AbeDPNi6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 09:38:58 -0400
-Received: by mail-it0-f67.google.com with SMTP id f6-v6so11386630ita.2
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 06:38:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180416123937.GA9073@infradead.org>
-References: <20180325110000.2238-1-christian.koenig@amd.com>
- <20180325110000.2238-4-christian.koenig@amd.com> <20180329065753.GD3881@phenom.ffwll.local>
- <8b823458-8bdc-3217-572b-509a28aae742@gmail.com> <20180403090909.GN3881@phenom.ffwll.local>
- <20180403170645.GB5935@redhat.com> <20180403180832.GZ3881@phenom.ffwll.local> <20180416123937.GA9073@infradead.org>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Mon, 16 Apr 2018 15:38:56 +0200
-Message-ID: <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
-Subject: Re: [PATCH 4/8] dma-buf: add peer2peer flag
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Jerome Glisse <jglisse@redhat.com>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:34313 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752688AbeDHRka (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:40:30 -0400
+Received: by mail-pl0-f67.google.com with SMTP id y12-v6so3625121plt.1
+        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:40:29 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        hiranotaka@zng.info
+Subject: [PATCH v3 4/5] dvb: earth-pt1: add support for suspend/resume
+Date: Mon,  9 Apr 2018 02:39:52 +0900
+Message-Id: <20180408173953.11076-5-tskd08@gmail.com>
+In-Reply-To: <20180408173953.11076-1-tskd08@gmail.com>
+References: <20180408173953.11076-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 16, 2018 at 2:39 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> On Tue, Apr 03, 2018 at 08:08:32PM +0200, Daniel Vetter wrote:
->> I did not mean you should dma_map_sg/page. I just meant that using
->> dma_map_resource to fill only the dma address part of the sg table seems
->> perfectly sufficient.
->
-> But that is not how the interface work, especially facing sg_dma_len.
->
->> Assuming you get an sg table that's been mapping by calling dma_map_sg was
->> always a bit a case of bending the abstraction to avoid typing code. The
->> only thing an importer ever should have done is look at the dma addresses
->> in that sg table, nothing else.
->
-> The scatterlist is not a very good abstraction unfortunately, but it
-> it is spread all over the kernel.  And we do expect that anyone who
-> gets passed a scatterlist can use sg_page() or sg_virt() (which calls
-> sg_page()) on it.  Your changes would break that, and will cause major
-> trouble because of that.
->
-> If you want to expose p2p memory returned from dma_map_resource in
-> dmabuf do not use scatterlists for this please, but with a new interface
-> that explicitly passes a virtual address, a dma address and a length
-> and make it very clear that virt_to_page will not work on the virtual
-> address.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-We've broken that assumption in i915 years ago. Not struct page backed
-gpu memory is very real.
+Without this patch, re-loading of the module was required after resume.
 
-Of course we'll never feed such a strange sg table to a driver which
-doesn't understand it, but allowing sg_page == NULL works perfectly
-fine. At least for gpu drivers.
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+Changes since v2:
+- none
 
-If that's not acceptable then I guess we could go over the entire tree
-and frob all the gpu related code to switch over to a new struct
-sg_table_might_not_be_struct_page_backed, including all the other
-functions we added over the past few years to iterate over sg tables.
-But seems slightly silly, given that sg tables seem to do exactly what
-we need.
--Daniel
+Changes since v1:
+- none
+
+ drivers/media/pci/pt1/pt1.c | 107 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 105 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
+index 40b6c0ac342..b169175d85e 100644
+--- a/drivers/media/pci/pt1/pt1.c
++++ b/drivers/media/pci/pt1/pt1.c
+@@ -461,12 +461,18 @@ static int pt1_thread(void *data)
+ {
+ 	struct pt1 *pt1;
+ 	struct pt1_buffer_page *page;
++	bool was_frozen;
+ 
+ 	pt1 = data;
+ 	set_freezable();
+ 
+-	while (!kthread_should_stop()) {
+-		try_to_freeze();
++	while (!kthread_freezable_should_stop(&was_frozen)) {
++		if (was_frozen) {
++			int i;
++
++			for (i = 0; i < PT1_NR_ADAPS; i++)
++				pt1_set_stream(pt1, i, !!pt1->adaps[i]->users);
++		}
+ 
+ 		page = pt1->tables[pt1->table_index].bufs[pt1->buf_index].page;
+ 		if (!pt1_filter(pt1, page)) {
+@@ -1165,6 +1171,98 @@ static void pt1_i2c_init(struct pt1 *pt1)
+ 		pt1_i2c_emit(pt1, i, 0, 0, 1, 1, 0);
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++
++static int pt1_suspend(struct device *dev)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	struct pt1 *pt1 = pci_get_drvdata(pdev);
++
++	pt1_init_streams(pt1);
++	pt1_disable_ram(pt1);
++	pt1->power = 0;
++	pt1->reset = 1;
++	pt1_update_power(pt1);
++	return 0;
++}
++
++static int pt1_resume(struct device *dev)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	struct pt1 *pt1 = pci_get_drvdata(pdev);
++	int ret;
++	int i;
++
++	pt1->power = 0;
++	pt1->reset = 1;
++	pt1_update_power(pt1);
++
++	pt1_i2c_init(pt1);
++	pt1_i2c_wait(pt1);
++
++	ret = pt1_sync(pt1);
++	if (ret < 0)
++		goto resume_err;
++
++	pt1_identify(pt1);
++
++	ret = pt1_unlock(pt1);
++	if (ret < 0)
++		goto resume_err;
++
++	ret = pt1_reset_pci(pt1);
++	if (ret < 0)
++		goto resume_err;
++
++	ret = pt1_reset_ram(pt1);
++	if (ret < 0)
++		goto resume_err;
++
++	ret = pt1_enable_ram(pt1);
++	if (ret < 0)
++		goto resume_err;
++
++	pt1_init_streams(pt1);
++
++	pt1->power = 1;
++	pt1_update_power(pt1);
++	msleep(20);
++
++	pt1->reset = 0;
++	pt1_update_power(pt1);
++	usleep_range(1000, 2000);
++
++	for (i = 0; i < PT1_NR_ADAPS; i++)
++		dvb_frontend_reinitialise(pt1->adaps[i]->fe);
++
++	pt1_init_table_count(pt1);
++	for (i = 0; i < pt1_nr_tables; i++) {
++		int j;
++
++		for (j = 0; j < PT1_NR_BUFS; j++)
++			pt1->tables[i].bufs[j].page->upackets[PT1_NR_UPACKETS-1]
++				= 0;
++		pt1_increment_table_count(pt1);
++	}
++	pt1_register_tables(pt1, pt1->tables[0].addr >> PT1_PAGE_SHIFT);
++
++	pt1->table_index = 0;
++	pt1->buf_index = 0;
++	for (i = 0; i < PT1_NR_ADAPS; i++) {
++		pt1->adaps[i]->upacket_count = 0;
++		pt1->adaps[i]->packet_count = 0;
++		pt1->adaps[i]->st_count = -1;
++	}
++
++	return 0;
++
++resume_err:
++	dev_info(&pt1->pdev->dev, "failed to resume PT1/PT2.");
++	return 0;	/* resume anyway */
++}
++
++#endif /* CONFIG_PM_SLEEP */
++
+ static void pt1_remove(struct pci_dev *pdev)
+ {
+ 	struct pt1 *pt1;
+@@ -1325,11 +1423,16 @@ static const struct pci_device_id pt1_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(pci, pt1_id_table);
+ 
++static SIMPLE_DEV_PM_OPS(pt1_pm_ops, pt1_suspend, pt1_resume);
++
+ static struct pci_driver pt1_driver = {
+ 	.name		= DRIVER_NAME,
+ 	.probe		= pt1_probe,
+ 	.remove		= pt1_remove,
+ 	.id_table	= pt1_id_table,
++#if CONFIG_PM_SLEEP
++	.driver.pm	= &pt1_pm_ops,
++#endif
+ };
+ 
+ module_pci_driver(pt1_driver);
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+2.17.0
