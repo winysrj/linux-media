@@ -1,78 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:37115 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752244AbeDOJwl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 05:52:41 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org,
-        #@mess.org
-Subject: [PATCH stable v4.14 2/2] media: staging: lirc_zilog: incorrect reference counting
-Date: Sun, 15 Apr 2018 10:51:51 +0100
-Message-Id: <8e2f2296b7f6fed6eea4b6fc24ab2b1966780d04.1523785758.git.sean@mess.org>
-In-Reply-To: <cover.1523785758.git.sean@mess.org>
-References: <cover.1523785758.git.sean@mess.org>
-In-Reply-To: <cover.1523785758.git.sean@mess.org>
-References: <cover.1523785758.git.sean@mess.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:42564 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752412AbeDHRWb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:22:31 -0400
+Received: by mail-pf0-f194.google.com with SMTP id o16so4310243pfk.9
+        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:22:31 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        crope@iki.fi
+Subject: [PATCH v5 5/5] dvb-usb-v2/gl861: ensure  USB message buffers DMA'able
+Date: Mon,  9 Apr 2018 02:21:38 +0900
+Message-Id: <20180408172138.9974-6-tskd08@gmail.com>
+In-Reply-To: <20180408172138.9974-1-tskd08@gmail.com>
+References: <20180408172138.9974-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Whenever poll is called, the reference count is increased but never
-decreased. This means that on rmmod, the lirc_thread is not stopped,
-and will trample over freed memory.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Zilog/Hauppauge IR driver unloaded
-BUG: unable to handle kernel paging request at ffffffffc17ba640
-Oops: 0010 [#1] SMP
-CPU: 1 PID: 667 Comm: zilog-rx-i2c-1 Tainted: P         C OE   4.13.16-302.fc27.x86_64 #1
-Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
-task: ffff964eb452ca00 task.stack: ffffb254414dc000
-RIP: 0010:0xffffffffc17ba640
-RSP: 0018:ffffb254414dfe78 EFLAGS: 00010286
-RAX: 0000000000000000 RBX: ffff964ec1b35890 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
-RBP: ffffb254414dff00 R08: 000000000000036e R09: ffff964ecfc8dfd0
-R10: ffffb254414dfe78 R11: 00000000000f4240 R12: ffff964ec2bf28a0
-R13: ffff964ec1b358a8 R14: ffff964ec1b358d0 R15: ffff964ec1b35800
-FS:  0000000000000000(0000) GS:ffff964ecfc80000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffffffc17ba640 CR3: 000000023058c000 CR4: 00000000000006e0
-Call Trace:
- kthread+0x125/0x140
- ? kthread_park+0x60/0x60
- ? do_syscall_64+0x67/0x140
- ret_from_fork+0x25/0x30
-Code:  Bad RIP value.
-RIP: 0xffffffffc17ba640 RSP: ffffb254414dfe78
-CR2: ffffffffc17ba640
+i2c message buf might be on stack.
 
-Note that zilog-rx-i2c-1 should have exited by now, but hasn't due to
-the missing put in poll().
-
-This code has been replaced completely in kernel v4.16 by a new driver,
-see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
-commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
-
-Cc: stable@vger.kernel.org # v4.15- (all up to and including v4.15)
-Reported-by: Warren Sturm <warren.sturm@gmail.com>
-Tested-by: Warren Sturm <warren.sturm@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/staging/media/lirc/lirc_zilog.c | 1 +
- 1 file changed, 1 insertion(+)
+Changes since v4:
+- none
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 26dd32d5b5b2..e35e1b2160e3 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -1228,6 +1228,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ drivers/media/usb/dvb-usb-v2/gl861.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/gl861.c b/drivers/media/usb/dvb-usb-v2/gl861.c
+index cdd7bfcb883..47b614da807 100644
+--- a/drivers/media/usb/dvb-usb-v2/gl861.c
++++ b/drivers/media/usb/dvb-usb-v2/gl861.c
+@@ -22,6 +22,8 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 	u16 value = addr << (8 + 1);
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 	u8 req, type;
++	u8 *buf;
++	int ret;
  
- 	dev_dbg(ir->l.dev, "%s result = %s\n", __func__,
- 		ret ? "POLLIN|POLLRDNORM" : "none");
-+	put_ir_rx(rx, false);
- 	return ret;
+ 	if (wo) {
+ 		req = GL861_REQ_I2C_WRITE;
+@@ -44,11 +46,23 @@ static int gl861_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 				KBUILD_MODNAME, wlen);
+ 		return -EINVAL;
+ 	}
+-
++	buf = NULL;
++	if (rlen > 0) {
++		buf = kmalloc(rlen, GFP_KERNEL);
++		if (!buf)
++			return -ENOMEM;
++	}
+ 	usleep_range(1000, 2000); /* avoid I2C errors */
+ 
+-	return usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
+-			       value, index, rbuf, rlen, 2000);
++	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), req, type,
++			      value, index, buf, rlen, 2000);
++	if (rlen > 0) {
++		if (ret > 0)
++			memcpy(rbuf, buf, rlen);
++		kfree(buf);
++	}
++
++	return ret;
  }
  
+ /* Friio specific I2C read/write */
 -- 
-2.14.3
+2.17.0
