@@ -1,46 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34815 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751558AbeDGPsj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 11:48:39 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: [PATCH 0/6] media: ov772x: support media controller, device tree probing, etc.
-Date: Sun,  8 Apr 2018 00:48:04 +0900
-Message-Id: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:20181 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752282AbeDHQMr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 12:12:47 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] media: entity: fix spelling for media_entity_get_fwnode_pad()
+Date: Sun,  8 Apr 2018 18:11:52 +0200
+Message-Id: <20180408161152.11667-1-niklas.soderlund@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset includes support media controller, device tree probing and
-other miscellanuous changes for ov772x driver.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Akinobu Mita (6):
-  media: ov772x: allow i2c controllers without
-    I2C_FUNC_PROTOCOL_MANGLING
-  media: ov772x: add checks for register read errors
-  media: ov772x: create subdevice device node
-  media: ov772x: add media controller support
-  media: ov772x: add device tree binding
-  media: ov772x: support device tree probing
+s/dose/does/
 
- .../devicetree/bindings/media/i2c/ov772x.txt       |  36 ++++++
- MAINTAINERS                                        |   1 +
- drivers/media/i2c/ov772x.c                         | 136 ++++++++++++++++-----
- 3 files changed, 140 insertions(+), 33 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+Fixes: d295c6a460cd2ac6 ("[media] media: entity: Add media_entity_get_fwnode_pad() function")
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ include/media/media-entity.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Rob Herring <robh+dt@kernel.org>
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index a732af1dbba099d4..3aa3d58d1d586dc2 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -842,7 +842,7 @@ struct media_entity *media_entity_get(struct media_entity *entity);
+  * a fwnode. This is useful for devices which use more complex
+  * mappings of media pads.
+  *
+- * If the entity dose not implement the get_fwnode_pad() operation
++ * If the entity does not implement the get_fwnode_pad() operation
+  * then this function searches the entity for the first pad that
+  * matches the @direction_flags.
+  *
 -- 
-2.7.4
+2.16.3
