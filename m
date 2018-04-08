@@ -1,87 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40464 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751097AbeDEJa6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 05:30:58 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jaedon Shin <jaedon.shin@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        stable@vger.kernel.org
-Subject: [PATCH] dvb_frontend: fix locking issues at dvb_frontend_get_event()
-Date: Thu,  5 Apr 2018 05:30:52 -0400
-Message-Id: <74ce3446c5a43d9c698c5c0614ab0e7d24706723.1522920647.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from [31.36.214.240] ([31.36.214.240]:39082 "EHLO
+        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1752944AbeDHVVG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 17:21:06 -0400
+From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+Subject: [PATCH v2 1/6] usbtv: Use same decoder sequence as Windows driver
+Date: Sun,  8 Apr 2018 23:11:56 +0200
+Message-Id: <20180408211201.27452-2-bonstra@bonstra.fr.eu.org>
+In-Reply-To: <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
+References: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
+ <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/dvb-core/dvb_frontend.c:314 dvb_frontend_get_event() warn: inconsistent returns 'sem:&fepriv->sem'.
-	  Locked on:   line 288
-	               line 295
-	               line 306
-	               line 314
-	  Unlocked on: line 303
+Re-format the register {address, value} pairs so they follow the same
+order as the decoder configuration sequences in the Windows driver's .INF
+file.
 
-The lock implementation for get event is wrong, as, if an
-interrupt occurs, down_interruptible() will fail, and the
-routine will call up() twice when userspace calls the ioctl
-again.
+For instance, for PAL, the "AVPAL" sequence in the .INF file is:
+0x04,0x68,0xD3,0x72,0xA2,0xB0,0x15,0x01,0x2C,0x10,0x20,0x2e,0x08,0x02,
+0x02,0x59,0x16,0x35,0x17,0x16,0x36
 
-The bad code is there since when Linux migrated to git, in
-2005.
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ drivers/media/usb/usbtv/usbtv-video.c | 40 +++++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index e33414975065..a4ada1ccf0df 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -275,8 +275,20 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
- 	wake_up_interruptible (&events->wait_queue);
- }
- 
-+static int dvb_frontend_test_event(struct dvb_frontend_private *fepriv,
-+				   struct dvb_fe_events *events)
-+{
-+	int ret;
-+
-+	up(&fepriv->sem);
-+	ret = events->eventw != events->eventr;
-+	down(&fepriv->sem);
-+
-+	return ret;
-+}
-+
- static int dvb_frontend_get_event(struct dvb_frontend *fe,
--			    struct dvb_frontend_event *event, int flags)
-+			          struct dvb_frontend_event *event, int flags)
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 3668a04359e8..97f9790954f9 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -124,40 +124,67 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
+ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
  {
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dvb_fe_events *events = &fepriv->events;
-@@ -294,13 +306,8 @@ static int dvb_frontend_get_event(struct dvb_frontend *fe,
- 		if (flags & O_NONBLOCK)
- 			return -EWOULDBLOCK;
+ 	int ret;
++	/* These are the series of register values used to configure the
++	 * decoder for a specific standard.
++	 * The first 21 register writes are copied from the
++	 * Settings\DecoderDefaults registry keys present in the Windows driver
++	 * .INF file, and control various image tuning parameters (color
++	 * correction, sharpness, ...).
++	 */
+ 	static const u16 pal[][2] = {
++		/* "AVPAL" tuning sequence from .INF file */
++		{ USBTV_BASE + 0x0003, 0x0004 },
+ 		{ USBTV_BASE + 0x001a, 0x0068 },
++		{ USBTV_BASE + 0x0100, 0x00d3 },
+ 		{ USBTV_BASE + 0x010e, 0x0072 },
+ 		{ USBTV_BASE + 0x010f, 0x00a2 },
+ 		{ USBTV_BASE + 0x0112, 0x00b0 },
++		{ USBTV_BASE + 0x0115, 0x0015 },
+ 		{ USBTV_BASE + 0x0117, 0x0001 },
+ 		{ USBTV_BASE + 0x0118, 0x002c },
+ 		{ USBTV_BASE + 0x012d, 0x0010 },
+ 		{ USBTV_BASE + 0x012f, 0x0020 },
++		{ USBTV_BASE + 0x0220, 0x002e },
++		{ USBTV_BASE + 0x0225, 0x0008 },
++		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 		{ USBTV_BASE + 0x0254, 0x0059 },
+ 		{ USBTV_BASE + 0x025a, 0x0016 },
+ 		{ USBTV_BASE + 0x025b, 0x0035 },
+ 		{ USBTV_BASE + 0x0263, 0x0017 },
+ 		{ USBTV_BASE + 0x0266, 0x0016 },
+-		{ USBTV_BASE + 0x0267, 0x0036 }
++		{ USBTV_BASE + 0x0267, 0x0036 },
++		/* Epilog */
++		{ USBTV_BASE + 0x024e, 0x0002 },
++		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
  
--		up(&fepriv->sem);
--
--		ret = wait_event_interruptible (events->wait_queue,
--						events->eventw != events->eventr);
--
--		if (down_interruptible (&fepriv->sem))
--			return -ERESTARTSYS;
-+		ret = wait_event_interruptible(events->wait_queue,
-+					       dvb_frontend_test_event(fepriv, events));
+ 	static const u16 ntsc[][2] = {
++		/* "AVNTSC" tuning sequence from .INF file */
++		{ USBTV_BASE + 0x0003, 0x0004 },
+ 		{ USBTV_BASE + 0x001a, 0x0079 },
++		{ USBTV_BASE + 0x0100, 0x00d3 },
+ 		{ USBTV_BASE + 0x010e, 0x0068 },
+ 		{ USBTV_BASE + 0x010f, 0x009c },
+ 		{ USBTV_BASE + 0x0112, 0x00f0 },
++		{ USBTV_BASE + 0x0115, 0x0015 },
+ 		{ USBTV_BASE + 0x0117, 0x0000 },
+ 		{ USBTV_BASE + 0x0118, 0x00fc },
+ 		{ USBTV_BASE + 0x012d, 0x0004 },
+ 		{ USBTV_BASE + 0x012f, 0x0008 },
++		{ USBTV_BASE + 0x0220, 0x002e },
++		{ USBTV_BASE + 0x0225, 0x0008 },
++		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0001 },
+ 		{ USBTV_BASE + 0x0254, 0x005f },
+ 		{ USBTV_BASE + 0x025a, 0x0012 },
+ 		{ USBTV_BASE + 0x025b, 0x0001 },
+ 		{ USBTV_BASE + 0x0263, 0x001c },
+ 		{ USBTV_BASE + 0x0266, 0x0011 },
+-		{ USBTV_BASE + 0x0267, 0x0005 }
++		{ USBTV_BASE + 0x0267, 0x0005 },
++		/* Epilog */
++		{ USBTV_BASE + 0x024e, 0x0002 },
++		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
  
- 		if (ret < 0)
- 			return ret;
+ 	ret = usbtv_configure_for_norm(usbtv, norm);
+@@ -236,15 +263,6 @@ static int usbtv_setup_capture(struct usbtv *usbtv)
+ 		{ USBTV_BASE + 0x0158, 0x001f },
+ 		{ USBTV_BASE + 0x0159, 0x0006 },
+ 		{ USBTV_BASE + 0x015d, 0x0000 },
+-
+-		{ USBTV_BASE + 0x0003, 0x0004 },
+-		{ USBTV_BASE + 0x0100, 0x00d3 },
+-		{ USBTV_BASE + 0x0115, 0x0015 },
+-		{ USBTV_BASE + 0x0220, 0x002e },
+-		{ USBTV_BASE + 0x0225, 0x0008 },
+-		{ USBTV_BASE + 0x024e, 0x0002 },
+-		{ USBTV_BASE + 0x024e, 0x0002 },
+-		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+ 
+ 	ret = usbtv_set_regs(usbtv, setup, ARRAY_SIZE(setup));
 -- 
-2.14.3
+2.17.0
