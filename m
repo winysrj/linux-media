@@ -1,111 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43500 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750949AbeDYHQN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 03:16:13 -0400
-Subject: Re: [PATCH v4 2/5] dt-bindings: adv7511: Extend bindings to allow
- specifying slave map addresses
-To: Kieran Bingham <kbingham@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
- <1518544137-2742-3-git-send-email-kbingham@kernel.org>
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <aeef36f9-cd59-2b83-829e-8b0c3127b838@codeaurora.org>
-Date: Wed, 25 Apr 2018 12:46:04 +0530
-MIME-Version: 1.0
-In-Reply-To: <1518544137-2742-3-git-send-email-kbingham@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from [31.36.214.240] ([31.36.214.240]:39096 "EHLO
+        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1752295AbeDHVVI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 17:21:08 -0400
+From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+Subject: [PATCH v2 5/6] usbtv: Enforce standard for color decoding
+Date: Sun,  8 Apr 2018 23:12:00 +0200
+Message-Id: <20180408211201.27452-6-bonstra@bonstra.fr.eu.org>
+In-Reply-To: <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
+References: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
+ <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Depending on the chosen standard, configure the decoder to use the
+appropriate color encoding standard (PAL-like, NTSC-like or SECAM).
 
+Until now, the decoder was not configured for a specific color standard,
+making it autodetect the color encoding.
 
-On Tuesday 13 February 2018 11:18 PM, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> The ADV7511 has four 256-byte maps that can be accessed via the main I2C
-> ports. Each map has it own I2C address and acts as a standard slave
-> device on the I2C bus.
-> 
-> Extend the device tree node bindings to be able to override the default
-> addresses so that address conflicts with other devices on the same bus
-> may be resolved at the board description level.
-> 
+While this may sound fine, it potentially causes the wrong image tuning
+parameters to be applied (e.g. tuning parameters for NTSC are applied to
+a PAL source), and may confuse users about what the actual standard is
+in use.
 
-Queued to drm-misc-next
+This commit explicitly configures the color standard the decoder will
+use, making it visually obvious if a wrong standard was chosen.
 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
-> v2:
->   - Fixed up reg: property description to account for multiple optional
->     addresses.
->   - Minor reword to commit message to account for DT only change
->   - Collected Robs RB tag
-> 
-> v3:
->   - Split map register addresses into individual declarations.
-> 
-> v4:
->   - Update commit title
->   - Collect Laurent's RB tag
->   - Fix nitpickings
->   - Normalise I2C usage (I²C is harder to grep for)
-> 
->   .../devicetree/bindings/display/bridge/adi,adv7511.txt | 18 ++++++++++++++++--
->   1 file changed, 16 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> index 0047b1394c70..2c887536258c 100644
-> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> @@ -14,7 +14,13 @@ Required properties:
->   		"adi,adv7513"
->   		"adi,adv7533"
->   
-> -- reg: I2C slave address
-> +- reg: I2C slave addresses
-> +  The ADV7511 internal registers are split into four pages exposed through
-> +  different I2C addresses, creating four register maps. Each map has it own
-> +  I2C address and acts as a standard slave device on the I2C bus. The main
-> +  address is mandatory, others are optional and revert to defaults if not
-> +  specified.
-> +
->   
->   The ADV7511 supports a large number of input data formats that differ by their
->   color depth, color format, clock mode, bit justification and random
-> @@ -70,6 +76,9 @@ Optional properties:
->     rather than generate its own timings for HDMI output.
->   - clocks: from common clock binding: reference to the CEC clock.
->   - clock-names: from common clock binding: must be "cec".
-> +- reg-names : Names of maps with programmable addresses.
-> +	It can contain any map needing a non-default address.
-> +	Possible maps names are : "main", "edid", "cec", "packet"
->   
->   Required nodes:
->   
-> @@ -88,7 +97,12 @@ Example
->   
->   	adv7511w: hdmi@39 {
->   		compatible = "adi,adv7511w";
-> -		reg = <39>;
-> +		/*
-> +		 * The EDID page will be accessible on address 0x66 on the I2C
-> +		 * bus. All other maps continue to use their default addresses.
-> +		 */
-> +		reg = <0x39>, <0x66>;
-> +		reg-names = "main", "edid";
->   		interrupt-parent = <&gpio3>;
->   		interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
->   		clocks = <&cec_clock>;
-> 
+Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+---
+ drivers/media/usb/usbtv/usbtv-video.c | 45 ++++++++++++++++++++++++---
+ 1 file changed, 40 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 6cad50d1e5f8..d0bf5eb217b1 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -121,6 +121,25 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
+ 	return ret;
+ }
+ 
++static uint16_t usbtv_norm_to_16f_reg(v4l2_std_id norm)
++{
++	/* NTSC M/M-JP/M-KR */
++	if (norm & V4L2_STD_NTSC)
++		return 0x00b8;
++	/* PAL BG/DK/H/I */
++	if (norm & V4L2_STD_PAL)
++		return 0x00ee;
++	/* SECAM B/D/G/H/K/K1/L/Lc */
++	if (norm & V4L2_STD_SECAM)
++		return 0x00ff;
++	if (norm & V4L2_STD_NTSC_443)
++		return 0x00a8;
++	if (norm & (V4L2_STD_PAL_M | V4L2_STD_PAL_60))
++		return 0x00bc;
++	/* Fallback to automatic detection for other standards */
++	return 0x0000;
++}
++
+ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ {
+ 	int ret;
+@@ -154,7 +173,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 		{ USBTV_BASE + 0x0263, 0x0017 },
+ 		{ USBTV_BASE + 0x0266, 0x0016 },
+ 		{ USBTV_BASE + 0x0267, 0x0036 },
+-		/* Epilog */
++		/* End image tuning */
+ 		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+@@ -182,7 +201,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 		{ USBTV_BASE + 0x0263, 0x001c },
+ 		{ USBTV_BASE + 0x0266, 0x0011 },
+ 		{ USBTV_BASE + 0x0267, 0x0005 },
+-		/* Epilog */
++		/* End image tuning */
+ 		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+@@ -210,7 +229,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 		{ USBTV_BASE + 0x0263, 0x0021 },
+ 		{ USBTV_BASE + 0x0266, 0x0016 },
+ 		{ USBTV_BASE + 0x0267, 0x0036 },
+-		/* Epilog */
++		/* End image tuning */
+ 		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+@@ -218,12 +237,28 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 	ret = usbtv_configure_for_norm(usbtv, norm);
+ 
+ 	if (!ret) {
+-		if (norm & V4L2_STD_525_60)
++		/* Masks for norms using a NTSC or PAL color encoding. */
++		static const v4l2_std_id ntsc_mask =
++			V4L2_STD_NTSC | V4L2_STD_NTSC_443;
++		static const v4l2_std_id pal_mask =
++			V4L2_STD_PAL | V4L2_STD_PAL_60 | V4L2_STD_PAL_M;
++
++		if (norm & ntsc_mask)
+ 			ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
+-		else if (norm & V4L2_STD_PAL)
++		else if (norm & pal_mask)
+ 			ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
+ 		else if (norm & V4L2_STD_SECAM)
+ 			ret = usbtv_set_regs(usbtv, secam, ARRAY_SIZE(secam));
++		else
++			ret = -EINVAL;
++	}
++
++	if (!ret) {
++		/* Configure the decoder for the color standard */
++		u16 cfg[][2] = {
++			{ USBTV_BASE + 0x016f, usbtv_norm_to_16f_reg(norm) }
++		};
++		ret = usbtv_set_regs(usbtv, cfg, ARRAY_SIZE(cfg));
+ 	}
+ 
+ 	return ret;
+-- 
+2.17.0
