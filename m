@@ -1,168 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43303 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752274AbeDIOUf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36871 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752469AbeDHRkT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:40:19 -0400
+Received: by mail-pf0-f196.google.com with SMTP id p6so774193pfn.4
+        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:40:19 -0700 (PDT)
+From: tskd08@gmail.com
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 16/29] videodev2.h: Add request_fd field to v4l2_buffer
-Date: Mon,  9 Apr 2018 16:20:13 +0200
-Message-Id: <20180409142026.19369-17-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        hiranotaka@zng.info
+Subject: [PATCH v3 1/5] dvb-frontends/dvb-pll: add tda6651 ISDB-T pll_desc
+Date: Mon,  9 Apr 2018 02:39:49 +0900
+Message-Id: <20180408173953.11076-2-tskd08@gmail.com>
+In-Reply-To: <20180408173953.11076-1-tskd08@gmail.com>
+References: <20180408173953.11076-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-When queuing buffers allow for passing the request that should
-be associated with this buffer.
+This patch adds a PLL "description" of Philips TDA6651 for ISDB-T.
+It was extracted from (the former) va1j5jf8007t.c of EarthSoft PT1,
+thus the desc might include PT1 specific configs.
 
-If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
-the file descriptor.
-
-If a buffer is stored in a request, but not yet queued to the
-driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
- include/uapi/linux/videodev2.h                  | 10 +++++++++-
- 5 files changed, 19 insertions(+), 8 deletions(-)
+Changes since v2:
+- do not #define chip name constant
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..4e9c77f21858 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -204,7 +204,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
- 	b->reserved2 = 0;
--	b->reserved = 0;
-+	b->request_fd = 0;
- 
- 	if (q->is_multiplanar) {
- 		/*
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 99f106b13280..13aee9f67d05 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
- 	buf->reserved2 = 0;
--	buf->reserved = 0;
-+	buf->request_fd = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
- 	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 0782b3666deb..7e27d0feac94 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -387,7 +387,7 @@ struct v4l2_buffer32 {
- 	} m;
- 	__u32			length;
- 	__u32			reserved2;
--	__u32			reserved;
-+	__s32			request_fd;
+Changes since v1:
+- use new style of specifying pll_desc of the tuner
+
+ drivers/media/dvb-frontends/dvb-pll.c | 24 ++++++++++++++++++++++++
+ drivers/media/dvb-frontends/dvb-pll.h |  1 +
+ 2 files changed, 25 insertions(+)
+
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index f7d444d09cf..e3894ff403d 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -550,6 +550,28 @@ static const struct dvb_pll_desc dvb_pll_tua6034_friio = {
+ 	}
  };
  
- static int get_v4l2_plane32(struct v4l2_plane __user *up,
-@@ -486,6 +486,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
- {
- 	u32 type;
- 	u32 length;
-+	s32 request_fd;
- 	enum v4l2_memory memory;
- 	struct v4l2_plane32 __user *uplane32;
- 	struct v4l2_plane __user *uplane;
-@@ -500,7 +501,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	    get_user(memory, &up->memory) ||
- 	    put_user(memory, &kp->memory) ||
- 	    get_user(length, &up->length) ||
--	    put_user(length, &kp->length))
-+	    put_user(length, &kp->length) ||
-+	    get_user(request_fd, &up->request_fd) ||
-+	    put_user(request_fd, &kp->request_fd))
- 		return -EFAULT;
++/* Philips TDA6651 ISDB-T, used in Earthsoft PT1 */
++static const struct dvb_pll_desc dvb_pll_tda665x_earth_pt1 = {
++	.name   = "Philips TDA6651 ISDB-T (EarthSoft PT1)",
++	.min    =  90000000,
++	.max    = 770000000,
++	.iffreq =  57000000,
++	.initdata = (u8[]){ 5, 0x0e, 0x7f, 0xc1, 0x80, 0x80 },
++	.count = 10,
++	.entries = {
++		{ 140000000, 142857, 0xc1, 0x81 },
++		{ 170000000, 142857, 0xc1, 0xa1 },
++		{ 220000000, 142857, 0xc1, 0x62 },
++		{ 330000000, 142857, 0xc1, 0xa2 },
++		{ 402000000, 142857, 0xc1, 0xe2 },
++		{ 450000000, 142857, 0xc1, 0x64 },
++		{ 550000000, 142857, 0xc1, 0x84 },
++		{ 600000000, 142857, 0xc1, 0xa4 },
++		{ 700000000, 142857, 0xc1, 0xc4 },
++		{ 770000000, 142857, 0xc1, 0xe4 },
++	}
++};
++
+ /* ----------------------------------------------------------- */
  
- 	if (V4L2_TYPE_IS_OUTPUT(type))
-@@ -605,7 +608,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
- 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
- 	    assign_in_user(&up->sequence, &kp->sequence) ||
- 	    assign_in_user(&up->reserved2, &kp->reserved2) ||
--	    assign_in_user(&up->reserved, &kp->reserved) ||
-+	    assign_in_user(&up->request_fd, &kp->request_fd) ||
- 	    get_user(length, &kp->length) ||
- 	    put_user(length, &up->length))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 56741c4a48fc..561a1fe3160b 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 	const struct v4l2_plane *plane;
- 	int i;
- 
--	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
-+	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
--			prt_names(p->type, v4l2_type_names),
-+			prt_names(p->type, v4l2_type_names), p->request_fd,
- 			p->flags, prt_names(p->field, v4l2_field_names),
- 			p->sequence, prt_names(p->memory, v4l2_memory_names));
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index d6e5c245bdcf..9c65d890a5f2 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -910,6 +910,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @request_fd: fd of the request that this buffer should use
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -934,7 +935,10 @@ struct v4l2_buffer {
- 	} m;
- 	__u32			length;
- 	__u32			reserved2;
--	__u32			reserved;
-+	union {
-+		__s32		request_fd;
-+		__u32		reserved;
-+	};
+ static const struct dvb_pll_desc *pll_list[] = {
+@@ -574,6 +596,7 @@ static const struct dvb_pll_desc *pll_list[] = {
+ 	[DVB_PLL_SAMSUNG_TBDU18132]	 = &dvb_pll_samsung_tbdu18132,
+ 	[DVB_PLL_SAMSUNG_TBMU24112]      = &dvb_pll_samsung_tbmu24112,
+ 	[DVB_PLL_TUA6034_FRIIO]          = &dvb_pll_tua6034_friio,
++	[DVB_PLL_TDA665X_EARTH_PT1]      = &dvb_pll_tda665x_earth_pt1,
  };
  
- /*  Flags for 'flags' field */
-@@ -952,6 +956,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_BFRAME			0x00000020
- /* Buffer is ready, but the data contained within is corrupted. */
- #define V4L2_BUF_FLAG_ERROR			0x00000040
-+/* Buffer is added to an unqueued request */
-+#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
- /* timecode field is valid */
- #define V4L2_BUF_FLAG_TIMECODE			0x00000100
- /* Buffer is prepared for queuing */
-@@ -970,6 +976,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
- /* mem2mem encoder/decoder */
- #define V4L2_BUF_FLAG_LAST			0x00100000
-+/* request_fd is valid */
-+#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+ /* ----------------------------------------------------------- */
+@@ -896,6 +919,7 @@ static const struct i2c_device_id dvb_pll_id[] = {
+ 	{"tdee4",		DVB_PLL_TDEE4},
+ 	{"dtt7520x",		DVB_PLL_THOMSON_DTT7520X},
+ 	{"tua6034_friio",	DVB_PLL_TUA6034_FRIIO},
++	{"tda665x_earthpt1",	DVB_PLL_TDA665X_EARTH_PT1},
+ 	{}
+ };
  
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+diff --git a/drivers/media/dvb-frontends/dvb-pll.h b/drivers/media/dvb-frontends/dvb-pll.h
+index 7555407c2cc..973a66a82e2 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.h
++++ b/drivers/media/dvb-frontends/dvb-pll.h
+@@ -30,6 +30,7 @@
+ #define DVB_PLL_TDEE4		       18
+ #define DVB_PLL_THOMSON_DTT7520X       19
+ #define DVB_PLL_TUA6034_FRIIO          20
++#define DVB_PLL_TDA665X_EARTH_PT1      21
+ 
+ struct dvb_pll_config {
+ 	struct dvb_frontend *fe;
 -- 
-2.16.3
+2.17.0
