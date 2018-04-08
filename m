@@ -1,93 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26338 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751952AbeDEN0i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 09:26:38 -0400
-Date: Thu, 5 Apr 2018 16:25:59 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: Re: [PATCH] media: v4l2-dev: use pr_foo() for printing messages
-Message-ID: <20180405132559.bj5z3kwpkgmdl52a@paasikivi.fi.intel.com>
-References: <3cead57d0a484bf589f4da3b86f4470cde6a1480.1522924475.git.mchehab@s-opensource.com>
- <20180405111210.5jh77oke35uyg3yj@valkosipuli.retiisi.org.uk>
- <20180405085202.0fd39f0b@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180405085202.0fd39f0b@vento.lan>
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:40773 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752208AbeDHRWH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:22:07 -0400
+Received: by mail-pl0-f65.google.com with SMTP id x4-v6so3707283pln.7
+        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:22:07 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, Akihiro Tsukada <tskd08@gmail.com>,
+        crope@iki.fi
+Subject: [PATCH v5 0/5] dvb-usb-friio: decompose friio and merge with gl861
+Date: Mon,  9 Apr 2018 02:21:33 +0900
+Message-Id: <20180408172138.9974-1-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-On Thu, Apr 05, 2018 at 08:52:02AM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 5 Apr 2018 14:12:10 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On Thu, Apr 05, 2018 at 07:34:39AM -0300, Mauro Carvalho Chehab wrote:
-> > > Instead of using printk() directly, use the pr_foo()
-> > > macros.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > ---
-> > >  drivers/media/v4l2-core/v4l2-dev.c | 45 ++++++++++++++++++++++----------------
-> > >  1 file changed, 26 insertions(+), 19 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> > > index 1d0b2208e8fb..530db8e482fb 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > > @@ -16,6 +16,8 @@
-> > >   *		- Added procfs support
-> > >   */
-> > >  
-> > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > > +
-> > >  #include <linux/module.h>
-> > >  #include <linux/types.h>
-> > >  #include <linux/kernel.h>
-> > > @@ -34,6 +36,12 @@
-> > >  #define VIDEO_NUM_DEVICES	256
-> > >  #define VIDEO_NAME              "video4linux"
-> > >  
-> > > +#define dprintk(fmt, arg...) do {					\
-> > > +		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
-> > > +		       __func__, ##arg);				\
-> > > +} while (0)  
-> > 
-> > Any particular reason for introducing a new macro rather than using
-> > pr_debug()? I know it's adding the name of the function without requiring
-> > to explicitly add that below, but pr_debug("%s: ...", __func__); would be
-> > easier to read IMO.
-> 
-> Yes, there is. Nowadays, most systems are built with CONFIG_DYNAMIC_DEBUG,
-> as it is default on most distros.
-> 
-> It means that, in order to enable a debug message, one has to
-> explicitly enable the debug messages via /sys/kernel/debug/dynamic_debug.
-> 
-> In the case of videodev core, the debug messages are enabled, instead,
-> via vdev->dev_debug. It is really messy to have both mechanisms at the
-> same time to enable a debug message. We need to use either one or the
-> other.
-> 
-> Also, a change from vdev->dev_debug approach to dynamic_debug approach
-> is something that should happen at the entire subsystem.
-> 
-> Even if this is a good idea (I'm not convinced), this should be
-> done on a separate patch series.
+This series decomposes dvb-usb-friio into sub drivers
+and merge the bridge driver with dvb-usb-gl861.
+As to the demod & tuner drivers, existing drivers are re-used.
 
-Fair enough. Please add:
+Changes since v4:
+- dvb-pll,gl861: do not #define chip name constants
+- i2c algo of gl861 is not (yet?) changed as proposed by Antti,
+  (which is to move the special case handling to demod driver),
+  since I do not yet understand
+  whether it should/can be really moved or not.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Changes since v3:
+- dvb-pll,gl681: use i2c_device_id/i2c_board_info to specify pll_desc
+
+Changes since v2:
+- used the new i2c binding helpers instead of my own one
+- extends dvb-pll instead of creating a new tuner driver
+- merged gl861-friio.c with gl861.c
+- improved module counting
+- made i2c communications on USB robust (regarding DMA)
+
+Replaces:
+patch #27927, dvb: tua6034: add a new driver for Infineon tua6034 tuner
+patch #27928, dvb-usb-friio: split and merge into dvb-usbv2-gl861
+
+Akihiro Tsukada (5):
+  dvb-frontends/dvb-pll: add i2c driver support
+  dvb-frontends/dvb-pll: add tua6034 ISDB-T tuner used in Friio
+  dvb-usb/friio, dvb-usb-v2/gl861: decompose friio and merge with gl861
+  dvb-usb-v2/gl861: use usleep_range() for short delay
+  dvb-usb-v2/gl861: ensure  USB message buffers DMA'able
+
+ drivers/media/dvb-frontends/dvb-pll.c |  86 +++++
+ drivers/media/dvb-frontends/dvb-pll.h |   5 +
+ drivers/media/usb/dvb-usb-v2/Kconfig  |   5 +-
+ drivers/media/usb/dvb-usb-v2/gl861.c  | 485 +++++++++++++++++++++++-
+ drivers/media/usb/dvb-usb-v2/gl861.h  |   1 +
+ drivers/media/usb/dvb-usb/Kconfig     |   6 -
+ drivers/media/usb/dvb-usb/Makefile    |   3 -
+ drivers/media/usb/dvb-usb/friio-fe.c  | 441 ----------------------
+ drivers/media/usb/dvb-usb/friio.c     | 522 --------------------------
+ drivers/media/usb/dvb-usb/friio.h     |  99 -----
+ 10 files changed, 570 insertions(+), 1083 deletions(-)
+ delete mode 100644 drivers/media/usb/dvb-usb/friio-fe.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio.h
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.17.0
