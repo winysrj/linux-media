@@ -1,75 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33590 "EHLO osg.samsung.com"
+Received: from smtp.gentoo.org ([140.211.166.183]:55536 "EHLO smtp.gentoo.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751447AbeDERy1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 13:54:27 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Geliang Tang <geliangtang@gmail.com>
-Subject: [PATCH 05/16] media: fsl-viu: allow building it with COMPILE_TEST
-Date: Thu,  5 Apr 2018 13:54:05 -0400
-Message-Id: <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
+        id S1751704AbeDHKMW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Apr 2018 06:12:22 -0400
+Subject: Re: [PATCH 01/16] omap: omap-iommu.h: allow building drivers with
+ COMPILE_TEST
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
 References: <cover.1522949748.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+ <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <d732ddf4-db42-3549-15d1-90bfc8546a48@gentoo.org>
+Date: Sun, 8 Apr 2018 12:12:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There aren't many things that would be needed to allow it
-to build with compile test.
+Am 05.04.2018 um 19:54 schrieb Mauro Carvalho Chehab:
+> Drivers that depend on omap-iommu.h (currently, just omap3isp)
+> need a stub implementation in order to be built with COMPILE_TEST.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/linux/omap-iommu.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
+> index c1aede46718b..0c21fc5b002e 100644
+> --- a/include/linux/omap-iommu.h
+> +++ b/include/linux/omap-iommu.h
+> @@ -13,7 +13,12 @@
+>  #ifndef _OMAP_IOMMU_H_
+>  #define _OMAP_IOMMU_H_
+>  
+> +#ifdef CONFIG_OMAP_IOMMU
+>  extern void omap_iommu_save_ctx(struct device *dev);
+>  extern void omap_iommu_restore_ctx(struct device *dev);
+> +#else
+> +static inline void omap_iommu_save_ctx(struct device *dev) {};
+> +static inline void omap_iommu_restore_ctx(struct device *dev) {};
 
-Add the needed bits.
+The semicolons at end of line are unnecessary.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/Kconfig   | 2 +-
- drivers/media/platform/fsl-viu.c | 8 ++++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+> +#endif
+>  
+>  #endif
+> 
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 03c9dfeb7781..e6eb1eb776e1 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -42,7 +42,7 @@ config VIDEO_SH_VOU
- 
- config VIDEO_VIU
- 	tristate "Freescale VIU Video Driver"
--	depends on VIDEO_V4L2 && PPC_MPC512x
-+	depends on VIDEO_V4L2 && (PPC_MPC512x || COMPILE_TEST)
- 	select VIDEOBUF_DMA_CONTIG
- 	default y
- 	---help---
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 9abe79779659..466053e00378 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -36,6 +36,14 @@
- #define DRV_NAME		"fsl_viu"
- #define VIU_VERSION		"0.5.1"
- 
-+/* Allow building this driver with COMPILE_TEST */
-+#ifndef CONFIG_PPC_MPC512x
-+#define NO_IRQ   0
-+
-+#define out_be32(v, a)	writel(a, v)
-+#define in_be32(a) readl(a)
-+#endif
-+
- #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
- 
- #define	VIU_VID_MEM_LIMIT	4	/* Video memory limit, in Mb */
--- 
-2.14.3
+Regards
+Matthias
