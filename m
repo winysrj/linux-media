@@ -1,72 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:44037 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753328AbeDIQsM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:12 -0400
-Received: by mail-wr0-f196.google.com with SMTP id u46so10240650wrc.11
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:12 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 18/19] [media] ddbridge: recognize and attach the MaxSX8 cards
-Date: Mon,  9 Apr 2018 18:47:51 +0200
-Message-Id: <20180409164752.641-19-d.scheller.oss@gmail.com>
-In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
-References: <20180409164752.641-1-d.scheller.oss@gmail.com>
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:46964 "EHLO
+        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751552AbeDHRoT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 13:44:19 -0400
+Received: by mail-qk0-f172.google.com with SMTP id p67so6798429qke.13
+        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:44:19 -0700 (PDT)
+Received: from mail-qt0-f178.google.com (mail-qt0-f178.google.com. [209.85.216.178])
+        by smtp.gmail.com with ESMTPSA id v84sm11899757qkv.15.2018.04.08.10.44.18
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 08 Apr 2018 10:44:18 -0700 (PDT)
+Received: by mail-qt0-f178.google.com with SMTP id s2so6708220qti.2
+        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2018 10:44:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
+References: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
+From: Olli Salonen <olli.salonen@iki.fi>
+Date: Sun, 8 Apr 2018 20:44:17 +0300
+Message-ID: <CAAZRmGwrPXTOAs8ygwPfQLLSvurikEiThxZTVHhKgw9bNSKi3Q@mail.gmail.com>
+Subject: Re: Regression: DVBSky S960 USB tuner doesn't work in 4.10 or newer
+To: Nibble Max <nibble.max@gmail.com>, peterz@infradead.org
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+I created a report of the issue in Bugzilla:
+https://bugzilla.kernel.org/show_bug.cgi?id=199323
 
-Add needed logic into dvb_input_attach(), ddb_port_probe() and
-ddb_ports_init() to initialize and support these new cards.
+I'd be grateful for any tips on how to debug this further.
 
-Picked up from the upstream dddvb-0.9.33 release.
+Cheers,
+-olli
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 59e137516003..4a2819d3e225 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1574,6 +1574,10 @@ static int dvb_input_attach(struct ddb_input *input)
- 		if (demod_attach_dummy(input) < 0)
- 			goto err_detach;
- 		break;
-+	case DDB_TUNER_MCI:
-+		if (ddb_fe_attach_mci(input) < 0)
-+			goto err_detach;
-+		break;
- 	default:
- 		return 0;
- 	}
-@@ -1869,6 +1873,16 @@ static void ddb_port_probe(struct ddb_port *port)
- 		return;
- 	}
- 
-+	if (dev->link[l].info->type == DDB_OCTOPUS_MCI) {
-+		if (port->nr >= dev->link[l].info->mci)
-+			return;
-+		port->name = "DUAL MCI";
-+		port->type_name = "MCI";
-+		port->class = DDB_PORT_TUNER;
-+		port->type = DDB_TUNER_MCI;
-+		return;
-+	}
-+
- 	if (port->nr > 1 && dev->link[l].info->type == DDB_OCTOPUS_CI) {
- 		port->name = "CI internal";
- 		port->type_name = "INTERNAL";
-@@ -2411,6 +2425,7 @@ void ddb_ports_init(struct ddb *dev)
- 				break;
- 			case DDB_OCTOPUS_MAX:
- 			case DDB_OCTOPUS_MAX_CT:
-+			case DDB_OCTOPUS_MCI:
- 				ddb_input_init(port, 2 * i, 0, 2 * p);
- 				ddb_input_init(port, 2 * i + 1, 1, 2 * p + 1);
- 				break;
--- 
-2.16.1
+On 4 April 2018 at 14:41, Olli Salonen <olli.salonen@iki.fi> wrote:
+> Hello Peter and Max,
+>
+> I noticed that when using kernel 4.10 or newer my DVBSky S960 and
+> S960CI satellite USB TV tuners stopped working properly. Basically,
+> they will fail at one point when tuning to a channel. This typically
+> takes less than 100 tuning attempts. For perspective, when performing
+> a full channel scan on my system, the tuner tunes at least 500 times.
+> After the tuner fails, I need to reboot the PC (probably unloading the
+> driver and loading it again would do).
+>
+> 2018-04-04 10:17:36.756 [   INFO] mpegts: 12149H in 4.8E - tuning on
+> Montage Technology M88DS3103 : DVB-S #0
+> 2018-04-04 10:17:37.159 [  ERROR] diseqc: failed to send diseqc cmd
+> (e=Connection timed out)
+> 2018-04-04 10:17:37.160 [   INFO] mpegts: 12265H in 4.8E - tuning on
+> Montage Technology M88DS3103 : DVB-S #0
+> 2018-04-04 10:17:37.535 [  ERROR] diseqc: failed to send diseqc cmd
+> (e=Connection timed out)
+>
+> I did a kernel bisect between 4.9 and 4.10. It seems the commit that
+> breaks my tuner is the following one:
+>
+> 9d659ae14b545c4296e812c70493bfdc999b5c1c is the first bad commit
+> commit 9d659ae14b545c4296e812c70493bfdc999b5c1c
+> Author: Peter Zijlstra <peterz@infradead.org>
+> Date:   Tue Aug 23 14:40:16 2016 +0200
+>
+>     locking/mutex: Add lock handoff to avoid starvation
+>
+> I couldn't easily revert that commit only. I can see that the
+> drivers/media/usb/dvb-usb-v2/dvbsky.c driver does use mutex_lock() and
+> mutex_lock_interruptible() in a few places.
+>
+> Do you guys see anything that's obviously wrong in the way the mutexes
+> are used in dvbsky.c or anything in that particular patch that could
+> cause this issue?
+>
+> Thanks and best regards,
+> -olli
