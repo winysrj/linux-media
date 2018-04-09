@@ -1,147 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6106 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753117AbeDDBHr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Apr 2018 21:07:47 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
-        "robin.murphy@arm.com" <robin.murphy@arm.com>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>
-Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Date: Wed, 4 Apr 2018 01:07:45 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5973037040@FMSMSX114.amr.corp.intel.com>
-References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
-        <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
- <20171220115744.591a12e2@vento.lan>    
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:39604 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752064AbeDIMQS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 08:16:18 -0400
+In-Reply-To: <20180409121529.GA31403@n2100.armlinux.org.uk>
+References: <20180409121529.GA31403@n2100.armlinux.org.uk>
+From: Russell King <rmk+kernel@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v3 1/7] drm/i2c: tda998x: move mutex/waitqueue/timer/work init
+ early
 MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1f5ViW-0002LF-BQ@rmk-PC.armlinux.org.uk>
+Date: Mon, 09 Apr 2018 13:16:12 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and all,
+Move the mutex, waitqueue, timer and detect work initialisation early
+in the driver's initialisation, rather than being after we've registered
+the CEC device.
 
-> > Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-> >
-> > Hi Mauro,
-> >
-> > > > > Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-> > > > >
-> > > > > Hi,
-> > > > >
-> > > > > Em Fri, 17 Nov 2017 02:58:56 +0000 "Mani, Rajmohan"
-> > > > > <rajmohan.mani@intel.com> escreveu:
-> > > > >
-> > > > > > Here is an update on the IPU3 documentation that we are
-> > > > > > currently working
-> > > > > on.
-> > > > > >
-> > > > > > Image processing in IPU3 relies on the following.
-> > > > > >
-> > > > > > 1) HW configuration to enable ISP and
-> > > > > > 2) setting customer specific 3A Tuning / Algorithm Parameters
-> > > > > > to achieve
-> > > > > desired image quality.
-> > > > > >
-> > > > > > We intend to provide documentation on ImgU driver programming
-> > > > > > interface
-> > > > > to help users of this driver to configure and enable ISP HW to
-> > > > > meet their needs.  This documentation will include details on
-> > > > > complete
-> > > > > V4L2 Kernel driver interface and IO-Control parameters, except
-> > > > > for the ISP internal algorithm and its parameters (which is
-> > > > > Intel proprietary
-> > IP).
-> > > > >
-> > > > > Sakari asked me to take a look on this thread, specifically on
-> > > > > this email. I took a look on the other e-mails from this thread
-> > > > > that are discussing about this IP block.
-> > > > >
-> > > > > I understand that Intel wants to keep their internal 3A
-> > > > > algorithm protected, just like other vendors protect their own
-> > > > > algos. It was never a requirement to open whatever algorithm are
-> > > > > used inside a hardware (or firmware). The only requirement is
-> > > > > that firmwares should be licensed with redistribution
-> > > > > permission, ideally merged at linux-firmware
-> > > > git tree.
-> > > > >
-> > > > > Yet, what I don't understand is why Intel also wants to also
-> > > > > protect the interface for such 3A hardware/firmware algorithm.
-> > > > > The parameters that are passed from an userspace application to
-> > > > > Intel ISP logic doesn't contain the algorithm itself. What's the
-> > > > > issue of documenting the meaning of each parameter?
-> > > > >
-> > > >
-> > > > Thanks for looking into this.
-> > > >
-> > > > To achieve improved image quality using IPU3, 3A (Auto White
-> > > > balance, Auto Focus and Auto Exposure) Tuning parameters specific
-> > > > to a given camera sensor module, are converted to Intel ISP
-> > > > algorithm parameters in user space camera HAL using AIC (Automatic
-> > > > ISP
-> > Configuration) library.
-> > > >
-> > > > As a unique design of Intel ISP, it exposes very detailed
-> > > > algorithm parameters (~ 10000 parameters) to configure ISP's image
-> > > > processing algorithm per each image fame in runtime. Typical
-> > > > Camera SW developers (including those at
-> > > > Intel) are not expected to fully understand and directly set these
-> > > > parameters to configure the ISP algorithm blocks. Due to the
-> > > > above, a user space AIC library (in binary form) is provided to
-> > > > generate ISP Algorithm specific parameters, for a given set of 3A
-> > > > tuning parameters. It significantly reduces the efforts of SW
-> > > > development in ISP HW
-> > > configuration.
-> > > >
-> > > > On the other hand, the ISP algorithm details could be deduced
-> > > > readily through these detailed parameters by other ISP experts
-> > > > outside
-> > Intel.
-> > > > This is the reason that we want to keep these parameter
-> > > > definitions as Intel
-> > > proprietary IP.
-> > > >
-> > > > We are fully aware of your concerns on how to enable open source
-> > > > developers to use Intel ISP through up-streamed Kernel Driver.
-> > > > Internally, we are working on the license for this AIC library
-> > > > release now (as Hans said NDA license is not acceptable). We
-> > > > believe this will be more efficient way to help open source developers.
-> > > >
-> > > > This AIC library release would be a binary-only release. This AIC
-> > > > library does not use any kernel uAPIs directly. The user space
-> > > > Camera HAL that uses kernel uAPIs is available at
-> > > > https://chromium.googlesource.com/chromiumos/platform/arc-
-> > > > camera/+/master
-> > > >
-> >
-> > The AIC library (in binary form) is available here.
-> > https://storage.googleapis.com/chromeos-localmirror/distfiles/intel-3a
-> > -libs-
-> > bin-2017.09.27.tbz2
-> >
-> > Licensing information can be found in ./LICENSE.intel_3a_library file
-> > after unzipping the tar file.
-> >
-> > >
-> > > Just pinging to know your thoughts on this.
-> > >
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ drivers/gpu/drm/i2c/tda998x_drv.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-To follow up further on this, we have posted the preliminary documentation on
-bnr (bayer noise reduction) parameters as below.
-
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg128683.html
-
-We would like hear your early feedback and apply the same towards the
-documentation of remaining IPU3 parameters.
-
-Thanks
-Raj
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+index cd3f0873bbdd..83407159e957 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -1475,7 +1475,11 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+ 	u32 video;
+ 	int rev_lo, rev_hi, ret;
+ 
+-	mutex_init(&priv->audio_mutex); /* Protect access from audio thread */
++	mutex_init(&priv->mutex);	/* protect the page access */
++	mutex_init(&priv->audio_mutex); /* protect access from audio thread */
++	init_waitqueue_head(&priv->edid_delay_waitq);
++	timer_setup(&priv->edid_delay_timer, tda998x_edid_delay_done, 0);
++	INIT_WORK(&priv->detect_work, tda998x_detect_work);
+ 
+ 	priv->vip_cntrl_0 = VIP_CNTRL_0_SWAP_A(2) | VIP_CNTRL_0_SWAP_B(3);
+ 	priv->vip_cntrl_1 = VIP_CNTRL_1_SWAP_C(0) | VIP_CNTRL_1_SWAP_D(1);
+@@ -1489,11 +1493,6 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+ 	if (!priv->cec)
+ 		return -ENODEV;
+ 
+-	mutex_init(&priv->mutex);	/* protect the page access */
+-	init_waitqueue_head(&priv->edid_delay_waitq);
+-	timer_setup(&priv->edid_delay_timer, tda998x_edid_delay_done, 0);
+-	INIT_WORK(&priv->detect_work, tda998x_detect_work);
+-
+ 	/* wake up the device: */
+ 	cec_write(priv, REG_CEC_ENAMODS,
+ 			CEC_ENAMODS_EN_RXSENS | CEC_ENAMODS_EN_HDMI);
+-- 
+2.7.4
