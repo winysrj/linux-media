@@ -1,127 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:53251 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751434AbeDFJr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 05:47:26 -0400
-Date: Fri, 6 Apr 2018 06:47:18 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Geliang Tang <geliangtang@gmail.com>
-Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with
- COMPILE_TEST
-Message-ID: <20180406064718.2cdb69ea@vento.lan>
-In-Reply-To: <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-        <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
-        <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:46411 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753198AbeDIQr6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:47:58 -0400
+Received: by mail-wr0-f194.google.com with SMTP id d1so10239197wrj.13
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:47:58 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 02/19] [media] dvb-frontends/stv0910: fix CNR reporting in read_snr()
+Date: Mon,  9 Apr 2018 18:47:35 +0200
+Message-Id: <20180409164752.641-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 5 Apr 2018 23:35:06 +0200
-Arnd Bergmann <arnd@arndb.de> escreveu:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> On Thu, Apr 5, 2018 at 7:54 PM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> > There aren't many things that would be needed to allow it
-> > to build with compile test.  
-> 
-> > +/* Allow building this driver with COMPILE_TEST */
-> > +#ifndef CONFIG_PPC_MPC512x
-> > +#define NO_IRQ   0  
-> 
-> The NO_IRQ usage here really needs to die. The portable way to do this
-> is the simpler
-> 
-> diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-> index 200c47c69a75..707bda89b4f7 100644
-> --- a/drivers/media/platform/fsl-viu.c
-> +++ b/drivers/media/platform/fsl-viu.c
-> @@ -1407,7 +1407,7 @@ static int viu_of_probe(struct platform_device *op)
->         }
-> 
->         viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
-> -       if (viu_irq == NO_IRQ) {
-> +       if (!viu_irq) {
->                 dev_err(&op->dev, "Error while mapping the irq\n");
->                 return -EINVAL;
->         }
-> 
-> > +#define out_be32(v, a) writel(a, v)
-> > +#define in_be32(a) readl(a)  
-> 
-> This does get it to compile, but looks confusing because it mixes up the
-> endianess. I'd suggest doing it like
-> 
-> #ifndef CONFIG_PPC
-> #define out_be32(v, a) iowrite32be(a, v)
-> #define in_be32(a) ioread32be(a)
-> #endif
-> 
->       Arnd
+The CNR value determined in read_snr() is reported via the wrong variable.
+It uses FE_SCALE_DECIBEL, which implies the value to be reported in svalue
+instead of uvalue. Fix this accordingly.
 
-Thanks for the review. Yeah, that looks better. Patch enclosed.
+Picked up from the upstream dddvb-0.9.33 release.
 
-Thanks,
-Mauro
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0910.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[PATCH] media: fsl-viu: allow building it with COMPILE_TEST
-
-There aren't many things that would be needed to allow it
-to build with compile test.
-
-Add the needed bits.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 03c9dfeb7781..e6eb1eb776e1 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -42,7 +42,7 @@ config VIDEO_SH_VOU
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index f5b5ce971c0c..1d96ae9f9f6e 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1326,7 +1326,7 @@ static int read_snr(struct dvb_frontend *fe)
  
- config VIDEO_VIU
- 	tristate "Freescale VIU Video Driver"
--	depends on VIDEO_V4L2 && PPC_MPC512x
-+	depends on VIDEO_V4L2 && (PPC_MPC512x || COMPILE_TEST)
- 	select VIDEOBUF_DMA_CONTIG
- 	default y
- 	---help---
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 9abe79779659..f54592c431d3 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -36,6 +36,12 @@
- #define DRV_NAME		"fsl_viu"
- #define VIU_VERSION		"0.5.1"
- 
-+/* Allow building this driver with COMPILE_TEST */
-+#ifndef CONFIG_PPC
-+#define out_be32(v, a)	iowrite32be(a, v)
-+#define in_be32(a)	ioread32be(a)
-+#endif
-+
- #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
- 
- #define	VIU_VID_MEM_LIMIT	4	/* Video memory limit, in Mb */
-@@ -1407,7 +1413,7 @@ static int viu_of_probe(struct platform_device *op)
+ 	if (!get_signal_to_noise(state, &snrval)) {
+ 		p->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+-		p->cnr.stat[0].uvalue = 100 * snrval; /* fix scale */
++		p->cnr.stat[0].svalue = 100 * snrval; /* fix scale */
+ 	} else {
+ 		p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
  	}
- 
- 	viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
--	if (viu_irq == NO_IRQ) {
-+	if (!viu_irq) {
- 		dev_err(&op->dev, "Error while mapping the irq\n");
- 		return -EINVAL;
- 	}
+-- 
+2.16.1
