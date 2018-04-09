@@ -1,131 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:57241 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753934AbeDWDo0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 23:44:26 -0400
-Message-ID: <cfde3ae86c3b879850e77771678b1d42@smtp-cloud9.xs4all.net>
-Date: Mon, 23 Apr 2018 05:44:23 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40726 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753391AbeDIQsG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:06 -0400
+Received: by mail-wr0-f193.google.com with SMTP id n2so10254286wrj.7
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:06 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 11/19] [media] ddbridge: fix output buffer check
+Date: Mon,  9 Apr 2018 18:47:44 +0200
+Message-Id: <20180409164752.641-12-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Results of the daily build of media_tree:
+A 188 byte gap has to be left between the writer and the consumer. This
+requires 2*188 bytes available to be able to write to the output buffers.
+So, change ddb_output_free() to report free bytes according to this rule.
 
-date:			Mon Apr 23 05:00:10 CEST 2018
-media-tree git hash:	1d338b86e17d87215cf57b1ad1d13b2afe582d33
-media_build git hash:	4fb7a3cc8d0f56c7cddc3b5b29e35aa1159bc8d9
-v4l-utils git hash:	9a4acdbe53884e5a433c1295eead61e45b0718e7
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-2-amd64
+Picked up from the upstream dddvb-0.9.33 release.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: WARNINGS: VIDEO_OMAP3 VIDEO_OMAP3_DEBUG
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index c22537eceee5..e9c2e3e5d64b 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -587,12 +587,12 @@ static u32 ddb_output_free(struct ddb_output *output)
+ 
+ 	if (output->dma->cbuf != idx) {
+ 		if ((((output->dma->cbuf + 1) % output->dma->num) == idx) &&
+-		    (output->dma->size - output->dma->coff <= 188))
++		    (output->dma->size - output->dma->coff <= (2 * 188)))
+ 			return 0;
+ 		return 188;
+ 	}
+ 	diff = off - output->dma->coff;
+-	if (diff <= 0 || diff > 188)
++	if (diff <= 0 || diff > (2 * 188))
+ 		return 188;
+ 	return 0;
+ }
+-- 
+2.16.1
