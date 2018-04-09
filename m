@@ -1,51 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f169.google.com ([209.85.217.169]:39411 "EHLO
-        mail-ua0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752359AbeDQNFU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 09:05:20 -0400
-Received: by mail-ua0-f169.google.com with SMTP id g10so12440740ual.6
-        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 06:05:20 -0700 (PDT)
+Received: from mail-it0-f74.google.com ([209.85.214.74]:38607 "EHLO
+        mail-it0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752283AbeDITrv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 15:47:51 -0400
+Received: by mail-it0-f74.google.com with SMTP id r129-v6so8807713itc.3
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 12:47:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180417045300.GA7723@minime.bse>
-References: <CAGoCfiw_oD6PLOoot55zkNBVaujeG7ReNQORiqUbLuh-=iwcyw@mail.gmail.com>
- <20180417045300.GA7723@minime.bse>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Tue, 17 Apr 2018 09:05:19 -0400
-Message-ID: <CAGoCfiwwCtp0entUfK74PhJDAubxAQeuAYgf6Jotw_EOT7+hSw@mail.gmail.com>
-Subject: Re: cx88 invalid video opcodes when VBI enabled
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon,  9 Apr 2018 15:47:38 -0400
+Message-Id: <20180409194738.186758-1-sque@chromium.org>
+Subject: [PATCH] [media] v4l2-core: Rename array 'video_driver' to 'video_drivers'
+From: Simon Que <sque@chromium.org>
+To: mchehab@kernel.org, viro@zeniv.linux.org.uk,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org, sque@chromium.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, Simon Que <sque@chromium.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Improves code clarity in two ways:
+1. The plural name makes it more clear that it is an array.
+2. The name of the array is now no longer identical to the struct type
+name, so it is easier to find in the code.
 
-Thanks for the feedback.
+Signed-off-by: Simon Que <sque@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-On Tue, Apr 17, 2018 at 12:53 AM, Daniel Gl=C3=B6ckner <daniel-gl@gmx.net> =
-wrote:
-
->> [   54.427224] cx88[0]: irq vid [0x10088] vbi_risc1* vbi_risc2* opc_err*
->> [   54.427232] cx88[0]/0: video risc op code error
->> [   54.427238] cx88[0]: video y / packed - dma channel status dump
->
-> Since the video IRQ status register has vbi_risc2 set, which we never
-> generate with our RISC programs, I assume it is the VBI RISC engine
-> that is executing garbage. So the dump of the video y/packed RISC engine
-> does not help us here. Can you add a call to cx88_sram_channel_dump for
-> SRAM_CH24 next to the existing one in cx8800_vid_irq?
-
-Doh, I actually already did that a few days ago but didn't save the
-log (and in fact, it was the VBI RISC queue that had garbage on it).
-I'll dig up the log later today (or just add the line back in and
-recreate it).
-
-Devin
-
---=20
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 0301fe426a43..8d5f7cfe1695 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -91,7 +91,7 @@ ATTRIBUTE_GROUPS(video_device);
+ /*
+  *	Active devices
+  */
+-static struct video_device *video_device[VIDEO_NUM_DEVICES];
++static struct video_device *video_devices[VIDEO_NUM_DEVICES];
+ static DEFINE_MUTEX(videodev_lock);
+ static DECLARE_BITMAP(devnode_nums[VFL_TYPE_MAX], VIDEO_NUM_DEVICES);
+ 
+@@ -173,14 +173,14 @@ static void v4l2_device_release(struct device *cd)
+ 	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
+ 
+ 	mutex_lock(&videodev_lock);
+-	if (WARN_ON(video_device[vdev->minor] != vdev)) {
++	if (WARN_ON(video_devices[vdev->minor] != vdev)) {
+ 		/* should not happen */
+ 		mutex_unlock(&videodev_lock);
+ 		return;
+ 	}
+ 
+ 	/* Free up this device for reuse */
+-	video_device[vdev->minor] = NULL;
++	video_devices[vdev->minor] = NULL;
+ 
+ 	/* Delete the cdev on this minor as well */
+ 	cdev_del(vdev->cdev);
+@@ -229,7 +229,7 @@ static struct class video_class = {
+ 
+ struct video_device *video_devdata(struct file *file)
+ {
+-	return video_device[iminor(file_inode(file))];
++	return video_devices[iminor(file_inode(file))];
+ }
+ EXPORT_SYMBOL(video_devdata);
+ 
+@@ -493,9 +493,9 @@ static int get_index(struct video_device *vdev)
+ 	bitmap_zero(used, VIDEO_NUM_DEVICES);
+ 
+ 	for (i = 0; i < VIDEO_NUM_DEVICES; i++) {
+-		if (video_device[i] != NULL &&
+-		    video_device[i]->v4l2_dev == vdev->v4l2_dev) {
+-			set_bit(video_device[i]->index, used);
++		if (video_devices[i] != NULL &&
++		    video_devices[i]->v4l2_dev == vdev->v4l2_dev) {
++			set_bit(video_devices[i]->index, used);
+ 		}
+ 	}
+ 
+@@ -929,7 +929,7 @@ int __video_register_device(struct video_device *vdev,
+ 	/* The device node number and minor numbers are independent, so
+ 	   we just find the first free minor number. */
+ 	for (i = 0; i < VIDEO_NUM_DEVICES; i++)
+-		if (video_device[i] == NULL)
++		if (video_devices[i] == NULL)
+ 			break;
+ 	if (i == VIDEO_NUM_DEVICES) {
+ 		mutex_unlock(&videodev_lock);
+@@ -942,9 +942,9 @@ int __video_register_device(struct video_device *vdev,
+ 	devnode_set(vdev);
+ 
+ 	/* Should not happen since we thought this minor was free */
+-	WARN_ON(video_device[vdev->minor] != NULL);
++	WARN_ON(video_devices[vdev->minor] != NULL);
+ 	vdev->index = get_index(vdev);
+-	video_device[vdev->minor] = vdev;
++	video_devices[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
+ 
+ 	if (vdev->ioctl_ops)
+@@ -999,7 +999,7 @@ int __video_register_device(struct video_device *vdev,
+ 	mutex_lock(&videodev_lock);
+ 	if (vdev->cdev)
+ 		cdev_del(vdev->cdev);
+-	video_device[vdev->minor] = NULL;
++	video_devices[vdev->minor] = NULL;
+ 	devnode_clear(vdev);
+ 	mutex_unlock(&videodev_lock);
+ 	/* Mark this video device as never having been registered. */
+-- 
+2.17.0.484.g0c8726318c-goog
