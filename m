@@ -1,155 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43168 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753780AbeDZJJt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 05:09:49 -0400
-Date: Thu, 26 Apr 2018 02:09:42 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Christoph Hellwig <hch@infradead.org>,
-        Thierry Reding <treding@nvidia.com>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>, iommu@lists.linux-foundation.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>
-Subject: Re: noveau vs arm dma ops
-Message-ID: <20180426090942.GA18811@infradead.org>
-References: <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
- <20180425054855.GA17038@infradead.org>
- <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
- <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
- <20180425064335.GB28100@infradead.org>
- <20180425074151.GA2271@ulmo>
- <20180425085439.GA29996@infradead.org>
- <20180425100429.GR25142@phenom.ffwll.local>
- <20180425153312.GD27076@infradead.org>
- <CAKMK7uH14qupTYDa1pr8UC434Vs+97eUXj+fYi=+2uijCLayMA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAKMK7uH14qupTYDa1pr8UC434Vs+97eUXj+fYi=+2uijCLayMA@mail.gmail.com>
+Received: from [31.36.214.240] ([31.36.214.240]:43600 "EHLO
+        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1752487AbeDIXNR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 19:13:17 -0400
+From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+Subject: [PATCH v3] usbtv: Enforce standard for color decoding
+Date: Tue, 10 Apr 2018 01:13:01 +0200
+Message-Id: <20180409231301.14759-1-bonstra@bonstra.fr.eu.org>
+In-Reply-To: <201804091218.GkcgM7OY%fengguang.wu@intel.com>
+References: <201804091218.GkcgM7OY%fengguang.wu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 11:35:13PM +0200, Daniel Vetter wrote:
-> > get_required_mask() is supposed to tell you if you are safe.  However
-> > we are missing lots of implementations of it for iommus so you might get
-> > some false negatives, improvements welcome.  It's been on my list of
-> > things to fix in the DMA API, but it is nowhere near the top.
-> 
-> I hasn't come up in a while in some fireworks, so I honestly don't
-> remember exactly what the issues have been. But
-> 
-> commit d766ef53006c2c38a7fe2bef0904105a793383f2
-> Author: Chris Wilson <chris@chris-wilson.co.uk>
-> Date:   Mon Dec 19 12:43:45 2016 +0000
-> 
->     drm/i915: Fallback to single PAGE_SIZE segments for DMA remapping
-> 
-> and the various bits of code that a
-> 
-> $ git grep SWIOTLB -- drivers/gpu
-> 
-> turns up is what we're doing to hack around that stuff. And in general
-> (there's some exceptions) gpus should be able to address everything,
-> so I never fully understood where that's even coming from.
+Depending on the chosen standard, configure the decoder to use the
+appropriate color encoding standard (PAL-like, NTSC-like or SECAM).
 
-I'm pretty sure I've seen some oddly low dma masks in GPU drivers.  E.g.
-duplicated in various AMD files:
+Until now, the decoder was not configured for a specific color standard,
+making it autodetect the color encoding.
 
-	adev->need_dma32 = false;
-        dma_bits = adev->need_dma32 ? 32 : 40;
-        r = pci_set_dma_mask(adev->pdev, DMA_BIT_MASK(dma_bits));
-        if (r) {
-                adev->need_dma32 = true;
-                dma_bits = 32;
-                dev_warn(adev->dev, "amdgpu: No suitable DMA available.\n");
-        }
+While this may sound fine, it potentially causes the wrong image tuning
+parameters to be applied (e.g. tuning parameters for NTSC are applied to
+a PAL source), and may confuse users about what the actual standard is
+in use.
 
-synopsis:
+This commit explicitly configures the color standard the decoder will
+use, making it visually obvious if a wrong standard was chosen.
 
-drivers/gpu/drm/bridge/synopsys/dw-hdmi-i2s-audio.c:    pdevinfo.dma_mask       = DMA_BIT_MASK(32);
-drivers/gpu/drm/bridge/synopsys/dw-hdmi.c:              pdevinfo.dma_mask = DMA_BIT_MASK(32);
-drivers/gpu/drm/bridge/synopsys/dw-hdmi.c:              pdevinfo.dma_mask = DMA_BIT_MASK(32);
+Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+---
+ drivers/media/usb/usbtv/usbtv-video.c | 45 ++++++++++++++++++++++++---
+ 1 file changed, 40 insertions(+), 5 deletions(-)
 
-etnaviv gets it right:
-
-drivers/gpu/drm/etnaviv/etnaviv_gpu.c:          u32 dma_mask = (u32)dma_get_required_mask(gpu->dev);
-
-
-But yes, the swiotlb hackery really irks me.  I just have some more
-important and bigger fires to fight first, but I plan to get back to the
-root cause of that eventually.
-
-> 
-> >> - dma api hides the cache flushing requirements from us. GPUs love
-> >>   non-snooped access, and worse give userspace control over that. We want
-> >>   a strict separation between mapping stuff and flushing stuff. With the
-> >>   IOMMU api we mostly have the former, but for the later arch maintainers
-> >>   regularly tells they won't allow that. So we have drm_clflush.c.
-> >
-> > The problem is that a cache flushing API entirely separate is hard. That
-> > being said if you look at my generic dma-noncoherent API series it tries
-> > to move that way.  So far it is in early stages and apparently rather
-> > buggy unfortunately.
-> 
-> I'm assuming this stuff here?
-> 
-> https://lkml.org/lkml/2018/4/20/146
-> 
-> Anyway got lost in all that work a bit, looks really nice.
-
-That url doesn't seem to work currently.  But I am talking about the
-thread titled '[RFC] common non-cache coherent direct dma mapping ops'
-
-> Yeah the above is pretty much what we do on x86. dma-api believes
-> everything is coherent, so dma_map_sg does the mapping we want and
-> nothing else (minus swiotlb fun). Cache flushing, allocations, all
-> done by the driver.
-
-Which sounds like the right thing to do to me.
-
-> On arm that doesn't work. The iommu api seems like a good fit, except
-> the dma-api tends to get in the way a bit (drm/msm apparently has
-> similar problems like tegra), and if you need contiguous memory
-> dma_alloc_coherent is the only way to get at contiguous memory. There
-> was a huge discussion years ago about that, and direct cma access was
-> shot down because it would have exposed too much of the caching
-> attribute mangling required (most arm platforms need wc-pages to not
-> be in the kernel's linear map apparently).
-
-Simple cma_alloc() doesn't do anything about cache handling, it
-just is a very dumb allocator for large contiguous regions inside
-a big pool.
-
-I'm not the CMA maintainer, but in general I'd love to see an
-EXPORT_SYMBOL_GPL slapped onto cma_alloc/release and drivers use
-that were needed.  Using that plus dma_map*/dma_unmap* sounds like
-a much saner interface than dma_alloc_attrs + DMA_ATTR_NON_CONSISTENT
-or DMA_ATTR_NO_KERNEL_MAPPING.
-
-You don't happen to have a pointer to that previous discussion?
-
-> Anything that separate these 3 things more (allocation pools, mapping
-> through IOMMUs and flushing cpu caches) sounds like the right
-> direction to me. Even if that throws some portability across platforms
-> away - drivers who want to control things in this much detail aren't
-> really portable (without some serious work) anyway.
-
-As long as we stay away from the dma coherent allocations separating
-them is fine, and I'm working towards it.  dma coherent allocations on
-the other hand are very hairy beasts, and provide by very different
-implementations depending on the architecture, or often even depending
-on the specifics of individual implementations inside the architecture.
-
-So for your GPU/media case it seems like you'd better stay away from
-them as much as you can.
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 6cad50d1e5f8..767fab1cc5cf 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -121,6 +121,25 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
+ 	return ret;
+ }
+ 
++static uint16_t usbtv_norm_to_16f_reg(v4l2_std_id norm)
++{
++	/* NTSC M/M-JP/M-KR */
++	if (norm & V4L2_STD_NTSC)
++		return 0x00b8;
++	/* PAL BG/DK/H/I */
++	if (norm & V4L2_STD_PAL)
++		return 0x00ee;
++	/* SECAM B/D/G/H/K/K1/L/Lc */
++	if (norm & V4L2_STD_SECAM)
++		return 0x00ff;
++	if (norm & V4L2_STD_NTSC_443)
++		return 0x00a8;
++	if (norm & (V4L2_STD_PAL_M | V4L2_STD_PAL_60))
++		return 0x00bc;
++	/* Fallback to automatic detection for other standards */
++	return 0x0000;
++}
++
+ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ {
+ 	int ret;
+@@ -154,7 +173,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 		{ USBTV_BASE + 0x0263, 0x0017 },
+ 		{ USBTV_BASE + 0x0266, 0x0016 },
+ 		{ USBTV_BASE + 0x0267, 0x0036 },
+-		/* Epilog */
++		/* End image tuning */
+ 		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+@@ -182,7 +201,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 		{ USBTV_BASE + 0x0263, 0x001c },
+ 		{ USBTV_BASE + 0x0266, 0x0011 },
+ 		{ USBTV_BASE + 0x0267, 0x0005 },
+-		/* Epilog */
++		/* End image tuning */
+ 		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+@@ -210,7 +229,7 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 		{ USBTV_BASE + 0x0263, 0x0021 },
+ 		{ USBTV_BASE + 0x0266, 0x0016 },
+ 		{ USBTV_BASE + 0x0267, 0x0036 },
+-		/* Epilog */
++		/* End image tuning */
+ 		{ USBTV_BASE + 0x024e, 0x0002 },
+ 		{ USBTV_BASE + 0x024f, 0x0002 },
+ 	};
+@@ -218,12 +237,28 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
+ 	ret = usbtv_configure_for_norm(usbtv, norm);
+ 
+ 	if (!ret) {
+-		if (norm & V4L2_STD_525_60)
++		/* Masks for norms using a NTSC or PAL color encoding. */
++		static const v4l2_std_id ntsc_mask =
++			V4L2_STD_NTSC | V4L2_STD_NTSC_443;
++		static const v4l2_std_id pal_mask =
++			V4L2_STD_PAL | V4L2_STD_PAL_60 | V4L2_STD_PAL_M;
++
++		if (norm & ntsc_mask)
+ 			ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
+-		else if (norm & V4L2_STD_PAL)
++		else if (norm & pal_mask)
+ 			ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
+ 		else if (norm & V4L2_STD_SECAM)
+ 			ret = usbtv_set_regs(usbtv, secam, ARRAY_SIZE(secam));
++		else
++			ret = -EINVAL;
++	}
++
++	if (!ret) {
++		/* Configure the decoder for the color standard */
++		const u16 cfg[][2] = {
++			{ USBTV_BASE + 0x016f, usbtv_norm_to_16f_reg(norm) }
++		};
++		ret = usbtv_set_regs(usbtv, cfg, ARRAY_SIZE(cfg));
+ 	}
+ 
+ 	return ret;
+-- 
+2.17.0
