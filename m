@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59385 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754255AbeDMNUy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 09:20:54 -0400
-Date: Fri, 13 Apr 2018 14:20:52 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Patrice Chotard <patrice.chotard@st.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
-Message-ID: <20180413132052.37fudkaxltvwc46v@gofer.mess.org>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
- <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
- <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
- <20180413060646.25b8a19d@vento.lan>
- <20180413094005.wudyd2y5efaeimg3@gofer.mess.org>
- <20180413070050.10d0de84@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180413070050.10d0de84@vento.lan>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:45743 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753387AbeDIQsG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:06 -0400
+Received: by mail-wr0-f196.google.com with SMTP id u11so10255915wri.12
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:05 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 10/19] [media] ddbridge: use spin_lock_irqsave() in output_work()
+Date: Mon,  9 Apr 2018 18:47:43 +0200
+Message-Id: <20180409164752.641-11-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 13, 2018 at 07:00:50AM -0300, Mauro Carvalho Chehab wrote:
-> Yeah, we could limit it to run only 512 times (or some other reasonable
-> quantity), but in order to do that, we need to be sure that, on each read(),
-> the FIFO will shift - e. g. no risk of needing to do more than one read
-> to get the next element. That would work if the FIFO is implemented via
-> flip-flops. But if it is implemented via some slow memory, or if the
-> shift logic is implemented via some software on a micro-controller, it
-> may need a few interactions to get the next value.
-> 
-> Without knowing about the hardware implementation, I'd say that setting
-> a max time for the whole FIFO interaction is safer.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Ok. If the 10ms timeout is reached, there really is a problem; should we
-report an error in this case?
+Make sure to save IRQ states before taking the dma lock, as already done
+in it's input_work() counterpart.
 
-Thanks
+Picked up from the upstream dddvb-0.9.33 release.
 
-Sean
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 9d91221dacc4..c22537eceee5 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2132,18 +2132,18 @@ static void output_work(struct work_struct *work)
+ 	struct ddb_dma *dma = container_of(work, struct ddb_dma, work);
+ 	struct ddb_output *output = (struct ddb_output *)dma->io;
+ 	struct ddb *dev = output->port->dev;
++	unsigned long flags;
+ 
+-	spin_lock(&dma->lock);
+-	if (!dma->running) {
+-		spin_unlock(&dma->lock);
+-		return;
+-	}
++	spin_lock_irqsave(&dma->lock, flags);
++	if (!dma->running)
++		goto unlock_exit;
+ 	dma->stat = ddbreadl(dev, DMA_BUFFER_CURRENT(dma));
+ 	dma->ctrl = ddbreadl(dev, DMA_BUFFER_CONTROL(dma));
+ 	if (output->redi)
+ 		output_ack_input(output, output->redi);
+ 	wake_up(&dma->wq);
+-	spin_unlock(&dma->lock);
++unlock_exit:
++	spin_unlock_irqrestore(&dma->lock, flags);
+ }
+ 
+ static void output_handler(void *data)
+-- 
+2.16.1
