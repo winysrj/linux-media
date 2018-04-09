@@ -1,67 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49197 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751012AbeDTTAh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 15:00:37 -0400
-Date: Fri, 20 Apr 2018 21:00:35 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Daniel Mack <daniel@zonque.org>
-Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
-        mchehab@kernel.org
-Subject: Re: [PATCH 2/3] media: ov5640: add PIXEL_RATE and LINK_FREQ controls
-Message-ID: <20180420190035.bahliwck7rplqvtc@flea>
-References: <20180420094419.11267-1-daniel@zonque.org>
- <20180420094419.11267-2-daniel@zonque.org>
- <20180420141528.ethp34p6czomokpi@flea>
- <5d51bdb7-936a-3a6c-bc6d-168cd5221e4d@zonque.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <5d51bdb7-936a-3a6c-bc6d-168cd5221e4d@zonque.org>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:34048 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753437AbeDIQsM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:12 -0400
+Received: by mail-wr0-f195.google.com with SMTP id d19so6348771wre.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:11 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 17/19] [media] ddbridge: add hardware defs and PCI IDs for MCI cards
+Date: Mon,  9 Apr 2018 18:47:50 +0200
+Message-Id: <20180409164752.641-18-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 04:29:42PM +0200, Daniel Mack wrote:
-> Hi,
-> 
-> On Friday, April 20, 2018 04:15 PM, Maxime Ripard wrote:
-> > On Fri, Apr 20, 2018 at 11:44:18AM +0200, Daniel Mack wrote:
-> 
-> >>  struct ov5640_ctrls {
-> >>  	struct v4l2_ctrl_handler handler;
-> >> +	struct {
-> >> +		struct v4l2_ctrl *link_freq;
-> >> +		struct v4l2_ctrl *pixel_rate;
-> >> +	};
-> >>  	struct {
-> >>  		struct v4l2_ctrl *auto_exp;
-> >>  		struct v4l2_ctrl *exposure;
-> >> @@ -732,6 +752,8 @@ static const struct ov5640_mode_info ov5640_mode_init_data = {
-> >>  	.dn_mode	= SUBSAMPLING,
-> >>  	.width		= 640,
-> >>  	.height		= 480,
-> >> +	.pixel_rate	= 27766666,
-> >> +	.link_freq_idx	= OV5640_LINK_FREQ_111,
-> > 
-> > I'm not sure where this is coming from, but on a parallel sensor I
-> > have a quite different pixel rate.
-> 
-> Ah, interesting. What exactly do you mean by 'parallel'? What kind of
-> module is that, and what are your pixel rates?
+From: Daniel Scheller <d.scheller@gmx.net>
 
-An RGB bus, or MIPI-DPI, or basically a pixel clock + 1 line for each
-bit. The sensor can operate using both that bus and a MIPI-CSI2 one.
+Add PCI IDs and ddb_info for the new MCI-based MaxSX8 cards. Also add
+needed defines so the cards can be hooked up into ddbridge's probe and
+attach handling.
 
-You have the list of pixel rates in the patch I've linked before:
-https://patchwork.linuxtv.org/patch/48710/
+Picked up from the upstream dddvb-0.9.33 release.
 
-There's one pixel sent per clock cycle, so the pixel rate is the same
-than the clock rate.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-hw.c   | 11 +++++++++++
+ drivers/media/pci/ddbridge/ddbridge-main.c |  1 +
+ drivers/media/pci/ddbridge/ddbridge.h      | 11 +++++++----
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-Maxime
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-hw.c b/drivers/media/pci/ddbridge/ddbridge-hw.c
+index c6d14925e2fc..1d3ee6accdd5 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-hw.c
++++ b/drivers/media/pci/ddbridge/ddbridge-hw.c
+@@ -311,6 +311,16 @@ static const struct ddb_info ddb_s2_48 = {
+ 	.tempmon_irq = 24,
+ };
+ 
++static const struct ddb_info ddb_s2x_48 = {
++	.type     = DDB_OCTOPUS_MCI,
++	.name     = "Digital Devices MAX SX8",
++	.regmap   = &octopus_map,
++	.port_num = 4,
++	.i2c_mask = 0x00,
++	.tempmon_irq = 24,
++	.mci      = 4
++};
++
+ /****************************************************************************/
+ /****************************************************************************/
+ /****************************************************************************/
+@@ -346,6 +356,7 @@ static const struct ddb_device_id ddb_device_ids[] = {
+ 	DDB_DEVID(0x0008, 0x0036, ddb_isdbt_8),
+ 	DDB_DEVID(0x0008, 0x0037, ddb_c2t2i_v0_8),
+ 	DDB_DEVID(0x0008, 0x0038, ddb_c2t2i_8),
++	DDB_DEVID(0x0009, 0x0025, ddb_s2x_48),
+ 	DDB_DEVID(0x0006, 0x0039, ddb_ctv7),
+ 	DDB_DEVID(0x0011, 0x0040, ddb_ci),
+ 	DDB_DEVID(0x0011, 0x0041, ddb_cis),
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 6356b48b3874..f4748cfd904b 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -264,6 +264,7 @@ static const struct pci_device_id ddb_id_table[] = {
+ 	DDB_DEVICE_ANY(0x0006),
+ 	DDB_DEVICE_ANY(0x0007),
+ 	DDB_DEVICE_ANY(0x0008),
++	DDB_DEVICE_ANY(0x0009),
+ 	DDB_DEVICE_ANY(0x0011),
+ 	DDB_DEVICE_ANY(0x0012),
+ 	DDB_DEVICE_ANY(0x0013),
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index cb69021a3443..72fe33cb72b9 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -112,11 +112,12 @@ struct ddb_ids {
+ 
+ struct ddb_info {
+ 	int   type;
+-#define DDB_NONE         0
+-#define DDB_OCTOPUS      1
+-#define DDB_OCTOPUS_CI   2
+-#define DDB_OCTOPUS_MAX  5
++#define DDB_NONE            0
++#define DDB_OCTOPUS         1
++#define DDB_OCTOPUS_CI      2
++#define DDB_OCTOPUS_MAX     5
+ #define DDB_OCTOPUS_MAX_CT  6
++#define DDB_OCTOPUS_MCI     9
+ 	char *name;
+ 	u32   i2c_mask;
+ 	u8    port_num;
+@@ -133,6 +134,7 @@ struct ddb_info {
+ #define TS_QUIRK_REVERSED 2
+ #define TS_QUIRK_ALT_OSC  8
+ 	u32   tempmon_irq;
++	u8    mci;
+ 	const struct ddb_regmap *regmap;
+ };
+ 
+@@ -253,6 +255,7 @@ struct ddb_port {
+ #define DDB_CI_EXTERNAL_XO2_B    13
+ #define DDB_TUNER_DVBS_STV0910_PR 14
+ #define DDB_TUNER_DVBC2T2I_SONY_P 15
++#define DDB_TUNER_MCI            16
+ 
+ #define DDB_TUNER_XO2            32
+ #define DDB_TUNER_DVBS_STV0910   (DDB_TUNER_XO2 + 0)
 -- 
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+2.16.1
