@@ -1,191 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f177.google.com ([74.125.82.177]:39267 "EHLO
-        mail-ot0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751249AbeDEOYP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 10:24:15 -0400
-Received: by mail-ot0-f177.google.com with SMTP id a14-v6so9203343otf.6
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 07:24:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOMZO5DKPaBwHEtr2DbOWfx7VU-5j9PKS6iCzpbx8B+Fwf2Wiw@mail.gmail.com>
-References: <CAPQseg3c+jVBRv7nu9BZXFi2V+afrDUq+YR-0jEDGevgwa-NWw@mail.gmail.com>
- <CAOMZO5DKPaBwHEtr2DbOWfx7VU-5j9PKS6iCzpbx8B+Fwf2Wiw@mail.gmail.com>
-From: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
-Date: Thu, 5 Apr 2018 16:24:14 +0200
-Message-ID: <CAPQseg0g-64dPGoCFopiNJZPf9qjvdETOz=U-dLS_D0y+HrNHA@mail.gmail.com>
-Subject: Re: IMX6 Media dev node not created
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52552 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752064AbeDIOUd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 10:20:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv11 PATCH 08/29] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Mon,  9 Apr 2018 16:20:05 +0200
+Message-Id: <20180409142026.19369-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+From: Alexandre Courbot <acourbot@chromium.org>
 
-Thanks for your reply.
+If which is V4L2_CTRL_WHICH_REQUEST, then the request_fd field can be
+used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
 
-On Thu, Apr 5, 2018 at 3:31 PM, Fabio Estevam <festevam@gmail.com> wrote:
-> Hi Ibtsam,
->
-> [Adding Steve and Philipp in case they can provide some suggestions]
->
-> On Thu, Apr 5, 2018 at 9:30 AM, Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com> wrote:
->> Greetings everyone,
->>
->> I'm running Linux 4.14.31 on an IMX6 QuadPlus based Phytec board
->> (PCM-058). I have connected an mt9p031 sensor to ipu1_csi0. The
->> problem is that I am not seeing the /dev/media0 node.
->
-> Can you share your dts?
->
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-Certainly. The dts provided by the board manufacturer was meant to
-work with their own kernel, I tried to modify it to work with the
-mainline kernel.
-
-The sensor related nodes are:
-
-&i2c1 {
-    pinctrl-names = "default";
-    pinctrl-0 = <&pinctrl_i2c1>;
-    clock-frequency = <100000>;
-    status = "okay";
-
-    mt9p031_0: cam0@48 {
-        compatible = "aptina,mt9p031";
-        reg = <0x48>;
-        status = "okay";
-        vdd-supply = <&reg_cam2v8>;
-        vdd_io-supply = <&reg_cam2v8>;
-        vaa-supply = <&reg_cam2v8>;
-
-        clocks = <&sensor_camclk>;
-
-        port {
-            mt9p031_ep0: endpoint {
-                input-clock-frequency = <27000000>;
-                pixel-clock-frequency = <54000000>;
-                pclk-sample = <1>;
-                remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-            };
-        };
-    };
-
-    mt9p031_1: cam1@5d {
-        compatible = "aptina,mt9p031";
-        reg = <0x5d>;
-        status = "okay";
-        vdd-supply = <&reg_cam2v8>;
-        vdd_io-supply = <&reg_cam2v8>;
-        vaa-supply = <&reg_cam2v8>;
-
-        clocks = <&sensor_camclk>;
-
-        port {
-            mt9p031_ep1: endpoint {
-                input-clock-frequency = <27000000>;
-                pixel-clock-frequency = <54000000>;
-                bus-width = <12>;
-                pclk-sample = <1>;
-                remote-endpoint = <&ipu2_csi1_mux_from_parallel_sensor>;
-            };
-        };
-    };
-};
-
-
-And the IPU related stuff:
-
-&ipu1_csi0_from_ipu1_csi0_mux {
-    bus-width = <8>;
-    data-shift = <12>; /* Lines 19:12 used */
-    hsync-active = <1>;
-    vsync-active = <1>;
-};
-
-&ipu1_csi0_mux_from_parallel_sensor {
-    remote-endpoint = <&mt9p031_ep0>;
-};
-
-&ipu1_csi0 {
-    pinctrl-names = "default";
-    pinctrl-0 = <
-        &pinctrl_sensor_cam0_data
-        &pinctrl_sensor_cam0_ctrl
-    >;
-};
-
-&ipu2_csi1_from_ipu2_csi1_mux {
-    bus-width = <8>;
-    data-shift = <12>; /* Lines 19:12 used */
-    hsync-active = <1>;
-    vsync-active = <1>;
-};
-
-&ipu2_csi1_mux_from_parallel_sensor {
-    remote-endpoint = <&mt9p031_ep1>;
-};
-
-&ipu2_csi1 {
-    pinctrl-names = "default";
-    pinctrl-0 = <
-        &pinctrl_sensor_cam1_data
-        &pinctrl_sensor_cam1_ctrl
-    >;
-};
-
-
->> I have already read the fix mentioned in a previous discussion:
->>
->> https://www.spinics.net/lists/linux-media/msg121965.html
->>
->> and that does not seem to be the problem in my case as I do get the
->> "ipu1_csi0_mux" registered. Running a grep on dmesg I get:
->>
->> [    3.235383] imx-media: Registered subdev ipu1_vdic
->> [    3.241134] imx-media: Registered subdev ipu2_vdic
->> [    3.246830] imx-media: Registered subdev ipu1_ic_prp
->> [    3.252115] imx-media: Registered subdev ipu1_ic_prpenc
->> [    3.266991] imx-media: Registered subdev ipu1_ic_prpvf
->> [    3.280228] imx-media: Registered subdev ipu2_ic_prp
->> [    3.285580] imx-media: Registered subdev ipu2_ic_prpenc
->> [    3.299335] imx-media: Registered subdev ipu2_ic_prpvf
->> [    3.350034] imx-media: Registered subdev ipu1_csi0
->> [    3.363017] imx-media: Registered subdev ipu1_csi1
->> [    3.375523] imx-media: Registered subdev ipu2_csi0
->> [    3.388615] imx-media: Registered subdev ipu2_csi1
->> [    3.560351] imx-media: Registered subdev ipu1_csi0_mux
->> [    3.566151] imx-media: Registered subdev ipu2_csi1_mux
->> [   10.525497] imx-media: Registered subdev mt9p031 0-0048
->> [   10.530816] imx-media capture-subsystem: Entity type for entity
->> mt9p031 0-0048 was not initialized!
->> [   10.569201] mt9p031 0-0048: MT9P031 detected at address 0x48
->> [   10.582895] imx-media: Registered subdev mt9p031 0-005d
->> [   10.588335] imx-media capture-subsystem: Entity type for entity
->> mt9p031 0-005d was not initialized!
->> [   10.618795] mt9p031 0-005d: MT9P031 not detected, wrong version 0xfffffffa
->
-> Why do you have the camera in two I2C addresses: 0x48 and 0x5d?
->
-
-I intend to use two cameras simultaneously. In my current setup
-however only one camera is physically connected.
-
-
->> Also my config does appear to have the required options activated;
->> running "zcat /proc/config.gz | egrep 'VIDEO_MUX|MUX_MMIO|VIDEO_IMX'"
->> I get:
->>
->> # CONFIG_MDIO_BUS_MUX_MMIOREG is not set
->> CONFIG_VIDEO_MUX=y
->> CONFIG_VIDEO_IMX_VDOA=m
->> CONFIG_VIDEO_IMX_MEDIA=y
->> CONFIG_VIDEO_IMX_CSI=y
->> CONFIG_MUX_MMIO=y
->>
->> I would really appreciate if anyone could help me trying to find out
->> what went wrong and why the /dev/media0 node is not showing up.
->>
->> Many thanks and best regards,
->> Ibtsam Haq
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 5198c9eeb348..0782b3666deb 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -732,7 +732,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+ };
+ 
+@@ -807,6 +808,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &up->count) ||
+ 	    put_user(count, &kp->count) ||
+ 	    assign_in_user(&kp->error_idx, &up->error_idx) ||
++	    assign_in_user(&kp->request_fd, &up->request_fd) ||
+ 	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+ 		return -EFAULT;
+ 
+@@ -865,6 +867,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &kp->count) ||
+ 	    put_user(count, &up->count) ||
+ 	    assign_in_user(&up->error_idx, &kp->error_idx) ||
++	    assign_in_user(&up->request_fd, &kp->request_fd) ||
+ 	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)) ||
+ 	    get_user(kcontrols, &kp->controls))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index f48c505550e0..9ce23e23c5bf 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	const struct v4l2_ext_controls *p = arg;
+ 	int i;
+ 
+-	pr_cont("which=0x%x, count=%d, error_idx=%d",
+-			p->which, p->count, p->error_idx);
++	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
++			p->which, p->count, p->error_idx, p->request_fd);
+ 	for (i = 0; i < p->count; i++) {
+ 		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
+ 
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877be5c22..6f41baa53787 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
+ 
+@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_MAX_DIMS	  (4)
+ #define V4L2_CTRL_WHICH_CUR_VAL   0
+ #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
++#define V4L2_CTRL_WHICH_REQUEST   0x0f010000
+ 
+ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_INTEGER	     = 1,
+-- 
+2.16.3
