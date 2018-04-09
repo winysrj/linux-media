@@ -1,38 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f182.google.com ([209.85.217.182]:40121 "EHLO
-        mail-ua0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752475AbeDCKNd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 06:13:33 -0400
-Received: by mail-ua0-f182.google.com with SMTP id n20so10633768ual.7
-        for <linux-media@vger.kernel.org>; Tue, 03 Apr 2018 03:13:33 -0700 (PDT)
+Received: from kirsty.vergenet.net ([202.4.237.240]:56195 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751522AbeDIMZg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 08:25:36 -0400
+Date: Mon, 9 Apr 2018 14:25:33 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH] media: entity: fix spelling for
+ media_entity_get_fwnode_pad()
+Message-ID: <20180409122532.pwmx5p65kgyhdcf3@verge.net.au>
+References: <20180408161152.11667-1-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
-References: <20180328171243.28599-1-p.zabel@pengutronix.de>
-In-Reply-To: <20180328171243.28599-1-p.zabel@pengutronix.de>
-From: Tomasz Figa <tfiga@google.com>
-Date: Tue, 03 Apr 2018 10:13:21 +0000
-Message-ID: <CAAFQd5DAm4G23H32OsbNQxZGLKSTaEw2gt4bM6G0cmJ6NMyKkw@mail.gmail.com>
-Subject: Re: [PATCH] media: coda: do not try to propagate format if capture
- queue busy
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sasha Hauer <kernel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180408161152.11667-1-niklas.soderlund@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On Sun, Apr 08, 2018 at 06:11:52PM +0200, Niklas Söderlund wrote:
+> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> s/dose/does/
+> 
+> Fixes: d295c6a460cd2ac6 ("[media] media: entity: Add media_entity_get_fwnode_pad() function")
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-On Thu, Mar 29, 2018 at 2:12 AM Philipp Zabel <p.zabel@pengutronix.de>
-wrote:
-
-> The driver helpfully resets the capture queue format and selection
-> rectangle whenever output format is changed. This only works while
-> the capture queue is not busy.
-
-Is the code in question used only for decoder case? For encoder, CAPTURE
-queue determines the codec and so things should work the other way around,
-i.e. setting CAPTURE format should reset OUTPUT format and it should be
-allowed only if OUTPUT queue is not busy.
-
-Best regards,
-Tomasz
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
