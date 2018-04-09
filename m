@@ -1,211 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:53796 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754936AbeDTNJL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:09:11 -0400
-Date: Fri, 20 Apr 2018 10:09:05 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: <alsa-devel@alsa-project.org>,
-        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-        "Jaroslav Kysela" <perex@perex.cz>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/4] sound, media: allow building ISA drivers it with
- COMPILE_TEST
-Message-ID: <20180420100905.51e04e82@vento.lan>
-In-Reply-To: <s5h36zqvxug.wl-tiwai@suse.de>
-References: <cover.1524227382.git.mchehab@s-opensource.com>
-        <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
-        <s5h7ep2vysl.wl-tiwai@suse.de>
-        <20180420095129.2b7d004d@vento.lan>
-        <s5h36zqvxug.wl-tiwai@suse.de>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:35633 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750877AbeDIIuP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 04:50:15 -0400
+Received: by mail-qt0-f194.google.com with SMTP id s2so8297478qti.2
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 01:50:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180407101455.214bf849@vento.lan>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+ <2233233.yQEdpcOfql@avalon> <20180405164444.441033be@vento.lan>
+ <4086814.xXeFl5mgbc@avalon> <20180407101455.214bf849@vento.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 9 Apr 2018 10:50:13 +0200
+Message-ID: <CAK8P3a0_AQaYFyUog0sV9hjq6yOzohnCbD9=AK-HGxWt-P_hEA@mail.gmail.com>
+Subject: Re: [PATCH 02/16] media: omap3isp: allow it to build with COMPILE_TEST
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 20 Apr 2018 14:58:15 +0200
-Takashi Iwai <tiwai@suse.de> escreveu:
+On Sat, Apr 7, 2018 at 3:14 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Sat, 07 Apr 2018 14:56:59 +0300
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+>> On Thursday, 5 April 2018 22:44:44 EEST Mauro Carvalho Chehab wrote:
+>> > Em Thu, 05 Apr 2018 21:30:27 +0300 Laurent Pinchart escreveu:
 
-> On Fri, 20 Apr 2018 14:51:29 +0200,
-> Mauro Carvalho Chehab wrote:
-> > 
-> > Em Fri, 20 Apr 2018 14:37:46 +0200
-> > Takashi Iwai <tiwai@suse.de> escreveu:
-> >   
-> > > On Fri, 20 Apr 2018 14:32:15 +0200,
-> > > Mauro Carvalho Chehab wrote:  
-> > > > 
-> > > > All sound drivers that don't depend on PNP can be safelly
-> > > > build with COMPILE_TEST, as ISA provides function stubs to
-> > > > be used for such purposes.
-> > > > 
-> > > > As a side effect, with this change, the radio-miropcm20
-> > > > can now be built outside i386 with COMPILE_TEST.
-> > > > 
-> > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > > ---
-> > > >  drivers/media/radio/Kconfig | 3 ++-
-> > > >  sound/isa/Kconfig           | 9 +++++----
-> > > >  2 files changed, 7 insertions(+), 5 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> > > > index d363726e9eb1..8fa403c7149e 100644
-> > > > --- a/drivers/media/radio/Kconfig
-> > > > +++ b/drivers/media/radio/Kconfig
-> > > > @@ -372,7 +372,8 @@ config RADIO_GEMTEK_PROBE
-> > > >  
-> > > >  config RADIO_MIROPCM20
-> > > >  	tristate "miroSOUND PCM20 radio"
-> > > > -	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
-> > > > +	depends on ISA || COMPILE_TEST
-> > > > +	depends on ISA_DMA_API && VIDEO_V4L2 && SND
-> > > >  	select SND_ISA
-> > > >  	select SND_MIRO
-> > > >  	---help---
-> > > > diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
-> > > > index cb54d9c0a77f..d2a6cdd0395c 100644
-> > > > --- a/sound/isa/Kconfig
-> > > > +++ b/sound/isa/Kconfig
-> > > > @@ -20,7 +20,8 @@ config SND_SB16_DSP
-> > > >  
-> > > >  menuconfig SND_ISA
-> > > >  	bool "ISA sound devices"
-> > > > -	depends on ISA && ISA_DMA_API
-> > > > +	depends on ISA || COMPILE_TEST
-> > > > +	depends on ISA_DMA_API
-> > > >  	default y
-> > > >  	help
-> > > >  	  Support for sound devices connected via the ISA bus.
-> > > > @@ -38,7 +39,7 @@ config SND_ADLIB
-> > > >  
-> > > >  config SND_AD1816A
-> > > >  	tristate "Analog Devices SoundPort AD1816A"
-> > > > -	depends on PNP
-> > > > +	depends on PNP && ISA
-> > > >  	select ISAPNP
-> > > >  	select SND_OPL3_LIB
-> > > >  	select SND_MPU401_UART    
-> > > 
-> > > Just from curiosity: what's the reason for this explicit CONFIG_ISA
-> > > dependency?  What error did you get?  
-> > 
-> > Kconfig complains with "select ISAPNP":
-> > 
-> > WARNING: unmet direct dependencies detected for ISAPNP
-> >   Depends on [n]: PNP [=y] && ISA [=n]
-> >   Selected by [y]:
-> >   - SND_AD1816A [=y] && SOUND [=y] && !UML && SND [=y] && SND_ISA [=y] && PNP [=y]
-> > 
-> > Because it is declared as:
-> > 
-> > config ISAPNP
-> > 	bool "ISA Plug and Play support"
-> >         depends on ISA  
-> 
-> I see.  Then it'd be better to put this explanations in the changelog
-> as well.
+>> > > If you want to make drivers compile for all architectures, the APIs they
+>> > > use must be defined in linux/, not in asm/. They can be stubbed there
+>> > > when not implemented in a particular architecture, but not in the driver.
+>> >
+>> > In this specific case, the same approach taken here is already needed
+>> > by the Renesas VMSA-compatible IPMMU driver, with, btw, is inside
+>> > drivers/iommu:
+>> >
+>> >     drivers/iommu/ipmmu-vmsa.c
+>>
+>> The reason there is different, the driver is shared by ARM32 and ARM64
+>> platforms. Furthermore, there's an effort (or at least there was) to move away
+>> from those APIs in the driver, but I think it has stalled.
+>
+> Anyway, the approach sticks at the driver. As this was accepted even
+> inside drivers/iommu, I fail to see why not doing the same on media,
+> specially since it really helps us to find bugs at omap3isp driver.
+>
+> Even without pushing upstream (where Coverity would analyze it),
+> we got lots of problems by simply letting omap3isp to use the
+> usual tools we use for all other drivers.
+>
+>> > Also, this API is used only by 3 drivers [1]:
+>> >
+>> >     drivers/iommu/ipmmu-vmsa.c
+>> >     drivers/iommu/mtk_iommu_v1.c
+>> >     drivers/media/platform/omap3isp/isp.c
+>> >
+>> > [1] as blamed by
+>> >     git grep -l arm_iommu_create_mapping
+>>
+>> The exynos driver also uses it.
+>>
+>> > That hardly seems to be an arch-specific iommu solution, but, instead, some
+>> > hack used by only three drivers or some legacy iommu binding.
+>>
+>> It's more complex than that. There are multiple IOMMU-related APIs on ARM, so
+>> more recent than others, with different feature sets. While I agree that
+>> drivers should move away from arm_iommu_create_mapping(), doing so requires
+>> coordination between the IOMMU driver and the bus master driver (for instance
+>> the omap3isp driver). It's not a trivial matter, but I'd love if someone
+>> submitted patches :-)
+>
+> If someone steps up to do that, it would be really helpful, but we
+> should not trust that this will happen. OMAP3 is an old hardware,
+> and not many developers are working on improving its support.
 
-Added. See enclosed.
+Considering its age, I still see a lot of changes on the arch/arm side of
+it, so I wouldn't give up the hope yet.
 
-> 
-> > I could have tried to change ISAPNP to depends on ISA || COMPILE_TEST,
-> > but I suspect that would touch on yet another subsystem and has
-> > the potential to point to other things that need changes, as
-> > a lot more drivers will be selected.
-> > 
-> > Anyway, after a quick look at include/linux/isapnp.h, I suspect
-> > that this can work.
-> > 
-> > I'll run some tests here.  
-> 
-> At least a dumb stub is there, so let's hope we can widen the test
-> coverage :)
+>> > The omap3isp is, btw, the only driver outside drivers/iommu that needs it.
+>> >
+>> > So, it sounds that other driver uses some other approach, but hardly
+>> > it would be worth to change this driver to use something else.
+>> >
+>> > So, better to stick with the same solution the Renesas driver used.
+>>
+>> I'm not responsible for that solution and I didn't think it was a good one at
+>> the time it was introduced, but in any case it is not meant at all to support
+>> COMPILE_TEST. I still don't think the omap3isp driver should declare stubs for
+>> these functions for the purpose of supporting compile-testing on x86.
+>
+> Well, there is another alternative. We could do add this to its Makefile:
+>
+> ifndef CONFIG_ARCH_ARM
+> ccflags-y += -I./arch/arm/include/
+> endif
+>
+> And add those stubs to arch/arm/include/asm/dma-iommu.h,
+> in order to be used when CONFIG_IOMMU_DMA isn't defined:
+>
+> #define arm_iommu_create_mapping(...)   NULL
+> #define arm_iommu_attach_device(...)    -ENODEV
+> #define arm_iommu_release_mapping(...)  do {} while (0)
+> #define arm_iommu_detach_device(...)    do {} while (0)
+>
+> If done right, such solution could also be used to remove
+> the #ifdef inside drivers/iommu/ipmmu-vmsa.c.
+>
+> Yet, I think that the approach I proposed before is better,
+> but maybe arm maintainers may have a different opinion.
+>
+> Arnd,
+>
+> What do you think?
 
-Yes, that's the idea :-)
+I think including a foreign architecture header is worse than your
+earlier patch, I'd rather see a local hack in the driver.
 
-Right now, for every patch I receive, I build media drivers for i386
-(I just made all of them build on i386), but I'm considering doing such
-builds on x86_64 instead, as it also enables compat32 code.
+I haven't tried it, but how about something simpler like what
+I have below.
 
-Thanks,
-Mauro
+      Arnd
 
-[PATCH v2] sound, media: allow building ISA drivers it with COMPILE_TEST
+(in case it works and you want to pick it up with a proper
+changelog):
 
-All sound drivers that don't depend on PNP can be safelly
-build with COMPILE_TEST, as ISA provides function stubs to
-be used for such purposes.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-As a side effect, with this change, the radio-miropcm20
-can now be built outside i386 with COMPILE_TEST.
+diff --git a/drivers/media/platform/omap3isp/isp.c
+b/drivers/media/platform/omap3isp/isp.c
+index 8eb000e3d8fd..625f2e407929 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1945,12 +1945,15 @@ static int isp_initialize_modules(struct
+isp_device *isp)
 
-It should be noticed that ISAPNP currently depends on ISA.
-So, on drivers that depend on it, we need to add an
-explicit dependency on ISA, at least until another patch
-removes it.
+ static void isp_detach_iommu(struct isp_device *isp)
+ {
++#ifdef CONFIG_ARM
+        arm_iommu_release_mapping(isp->mapping);
+        isp->mapping = NULL;
++#endif
+ }
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+ static int isp_attach_iommu(struct isp_device *isp)
+ {
++#ifdef CONFIG_ARM
+        struct dma_iommu_mapping *mapping;
+        int ret;
 
----
+@@ -1979,6 +1982,9 @@ static int isp_attach_iommu(struct isp_device *isp)
+ error:
+        isp_detach_iommu(isp);
+        return ret;
++#else
++       return -ENODEV;
++#endif
+ }
 
-v2: only patch description changed, with the addition of a note
-about ISA explicit dependency on 3 drivers.
-
-
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index d363726e9eb1..8fa403c7149e 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -372,7 +372,8 @@ config RADIO_GEMTEK_PROBE
- 
- config RADIO_MIROPCM20
- 	tristate "miroSOUND PCM20 radio"
--	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
-+	depends on ISA || COMPILE_TEST
-+	depends on ISA_DMA_API && VIDEO_V4L2 && SND
- 	select SND_ISA
- 	select SND_MIRO
- 	---help---
-diff --git a/sound/isa/Kconfig b/sound/isa/Kconfig
-index cb54d9c0a77f..d2a6cdd0395c 100644
---- a/sound/isa/Kconfig
-+++ b/sound/isa/Kconfig
-@@ -20,7 +20,8 @@ config SND_SB16_DSP
- 
- menuconfig SND_ISA
- 	bool "ISA sound devices"
--	depends on ISA && ISA_DMA_API
-+	depends on ISA || COMPILE_TEST
-+	depends on ISA_DMA_API
- 	default y
- 	help
- 	  Support for sound devices connected via the ISA bus.
-@@ -38,7 +39,7 @@ config SND_ADLIB
- 
- config SND_AD1816A
- 	tristate "Analog Devices SoundPort AD1816A"
--	depends on PNP
-+	depends on PNP && ISA
- 	select ISAPNP
- 	select SND_OPL3_LIB
- 	select SND_MPU401_UART
-@@ -66,7 +67,7 @@ config SND_AD1848
- 
- config SND_ALS100
- 	tristate "Diamond Tech. DT-019x and Avance Logic ALSxxx"
--	depends on PNP
-+	depends on PNP && ISA
- 	select ISAPNP
- 	select SND_OPL3_LIB
- 	select SND_MPU401_UART
-@@ -107,7 +108,7 @@ config SND_AZT2316
- 
- config SND_AZT2320
- 	tristate "Aztech Systems AZT2320"
--	depends on PNP
-+	depends on PNP && ISA
- 	select ISAPNP
- 	select SND_OPL3_LIB
- 	select SND_MPU401_UART
+ /*
