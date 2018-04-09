@@ -1,181 +1,489 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:33063 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751269AbeDZSlI (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53214 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752121AbeDIOUe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 14:41:08 -0400
-Date: Thu, 26 Apr 2018 20:40:56 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
-        a.hajda@samsung.com, airlied@linux.ie, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/8] drm: bridge: Add support for static image formats
-Message-ID: <20180426184056.GQ4235@w540>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524130269-32688-2-git-send-email-jacopo+renesas@jmondi.org>
- <3108314.q4SV6s3NXE@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XjbSsFHOHxvQpKib"
-Content-Disposition: inline
-In-Reply-To: <3108314.q4SV6s3NXE@avalon>
+        Mon, 9 Apr 2018 10:20:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv11 PATCH 10/29] v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+Date: Mon,  9 Apr 2018 16:20:07 +0200
+Message-Id: <20180409142026.19369-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---XjbSsFHOHxvQpKib
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Add a 'bool from_other_dev' argument: set to true if the two
+handlers refer to different devices (e.g. it is true when
+inheriting controls from a subdev into a main v4l2 bridge
+driver).
 
-Hi Laurent,
+This will be used later when implementing support for the
+request API since we need to skip such controls.
 
-On Mon, Apr 23, 2018 at 12:27:39PM +0300, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Thursday, 19 April 2018 12:31:02 EEST Jacopo Mondi wrote:
-> > Add support for storing image format information in DRM bridges with
-> > associated helper function.
-> >
-> > This patch replicates for bridges what 'drm_display_info_set_bus_formats()'
-> > is for connectors.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/gpu/drm/drm_bridge.c | 30 ++++++++++++++++++++++++++++++
-> >  include/drm/drm_bridge.h     |  8 ++++++++
-> >  2 files changed, 38 insertions(+)
-> >
-> > diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
-> > index 1638bfe..e2ad098 100644
-> > --- a/drivers/gpu/drm/drm_bridge.c
-> > +++ b/drivers/gpu/drm/drm_bridge.c
-> > @@ -157,6 +157,36 @@ void drm_bridge_detach(struct drm_bridge *bridge)
-> >  }
-> >
-> >  /**
-> > + * drm_bridge_set_bus_formats() - set bridge supported image formats
-> > + * @bridge: the bridge to set image formats in
-> > + * @formats: array of MEDIA_BUS_FMT\_ supported image formats
->
-> Why the \ (here and below) ?
+TODO: check drivers/staging/media/imx/imx-media-fim.c change.
 
-mmm, I can't tell where I made that up from... Will change with
-MEDIA_BUS_FMT_*
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/dvb-frontends/rtl2832_sdr.c        |  5 +--
+ drivers/media/pci/bt8xx/bttv-driver.c            |  2 +-
+ drivers/media/pci/cx23885/cx23885-417.c          |  2 +-
+ drivers/media/pci/cx88/cx88-blackbird.c          |  2 +-
+ drivers/media/pci/cx88/cx88-video.c              |  2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c      |  4 +--
+ drivers/media/pci/saa7134/saa7134-video.c        |  2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c |  2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c      |  3 +-
+ drivers/media/platform/rcar_drif.c               |  2 +-
+ drivers/media/platform/soc_camera/soc_camera.c   |  3 +-
+ drivers/media/platform/vivid/vivid-ctrls.c       | 46 ++++++++++++------------
+ drivers/media/usb/cx231xx/cx231xx-417.c          |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c        |  4 +--
+ drivers/media/usb/msi2500/msi2500.c              |  2 +-
+ drivers/media/usb/tm6000/tm6000-video.c          |  2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c             | 11 +++---
+ drivers/media/v4l2-core/v4l2-device.c            |  3 +-
+ drivers/staging/media/imx/imx-media-dev.c        |  2 +-
+ drivers/staging/media/imx/imx-media-fim.c        |  2 +-
+ include/media/v4l2-ctrls.h                       |  8 ++++-
+ 21 files changed, 62 insertions(+), 49 deletions(-)
 
->
-> > + * @num_formats: number of elements in the @formats array
-> > + *
-> > + * Store a list of supported image formats in a bridge.
-> > + * See MEDIA_BUS_FMT_* definitions in include/uapi/linux/media-bus-format.h
-> > for
-> > + * a full list of available formats.
-> > + */
-> > +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32
-> > *formats,
-> > +			       unsigned int num_formats)
-> > +{
-> > +	u32 *fmts;
-> > +
-> > +	if (!formats || !num_formats)
-> > +		return -EINVAL;
-> > +
-> > +	fmts = kmemdup(formats, sizeof(*formats) * num_formats, GFP_KERNEL);
->
-> This memory will be leaked when the bridge is destroyed.
-
-Right. I'm afraid this may open a pandora box, but, ehm, where is the
-bridge objects lifetime managed? The best I can think of is to use the
-resource managed version of kmemdup, associating that memory to
-the drm_device device object. That means the memory will be freed at
-DRM pipeline teardown time only if I'm not wrong. Can a bridge be
-destroyed before that?
-
-Thanks
-   j
-
->
-> > +	if (!fmts)
-> > +		return -ENOMEM;
-> > +
-> > +	kfree(bridge->bus_formats);
-> > +	bridge->bus_formats = fmts;
-> > +	bridge->num_bus_formats = num_formats;
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL(drm_bridge_set_bus_formats);
-> > +
-> > +/**
-> >   * DOC: bridge callbacks
-> >   *
-> >   * The &drm_bridge_funcs ops are populated by the bridge driver. The DRM
-> > diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
-> > index 3270fec..6b3648c 100644
-> > --- a/include/drm/drm_bridge.h
-> > +++ b/include/drm/drm_bridge.h
-> > @@ -258,6 +258,9 @@ struct drm_bridge_timings {
-> >   * @encoder: encoder to which this bridge is connected
-> >   * @next: the next bridge in the encoder chain
-> >   * @of_node: device node pointer to the bridge
-> > + * @bus_formats: wire image formats. Array of @num_bus_formats
-> > MEDIA_BUS_FMT\_
-> > + * elements
-> > + * @num_bus_formats: size of @bus_formats array
-> >   * @list: to keep track of all added bridges
-> >   * @timings: the timing specification for the bridge, if any (may
-> >   * be NULL)
-> > @@ -271,6 +274,9 @@ struct drm_bridge {
-> >  #ifdef CONFIG_OF
-> >  	struct device_node *of_node;
-> >  #endif
-> > +	const u32 *bus_formats;
-> > +	unsigned int num_bus_formats;
-> > +
-> >  	struct list_head list;
-> >  	const struct drm_bridge_timings *timings;
-> >
-> > @@ -296,6 +302,8 @@ void drm_bridge_mode_set(struct drm_bridge *bridge,
-> >  			struct drm_display_mode *adjusted_mode);
-> >  void drm_bridge_pre_enable(struct drm_bridge *bridge);
-> >  void drm_bridge_enable(struct drm_bridge *bridge);
-> > +int drm_bridge_set_bus_formats(struct drm_bridge *bridge, const u32 *fmts,
-> > +			       unsigned int num_fmts);
-> >
-> >  #ifdef CONFIG_DRM_PANEL_BRIDGE
-> >  struct drm_bridge *drm_panel_bridge_add(struct drm_panel *panel,
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
-
---XjbSsFHOHxvQpKib
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa4h03AAoJEHI0Bo8WoVY8q+wP/0ttfJ3DbbFi82FZvilz9zPE
-4fzTqr/SQyP7SixvfX8/P/f5bK2VB62pmUbDnUIO9PChMWYcaz0PYnVXKgnCpcpW
-TYPk5CKtnXLSbCC3B7Jl1/39Qy2I6ACgXuhDMtYe3z099mGDVImuSEB3ibMYrwCR
-GkcnC9Eqk9E9hPDsJTL3C4pzDlUxCLR+KXt21SnMlgy1jTuntjD56AeXl6FRDMnT
-+mmWw8Cd9DXoSmDoVrxIACTzGlQypeDY+3YhTJXY0PlJ0LoG01YZDpjShq0qzFlU
-jcTbVItr5Sxe5SNIMEKyf6qVhd8d0oyax8HA4mp8YE63TCrqQY0EBbdvlacmCyMt
-IAS65gwn50NsgDoCU2cMRQ14TyYsi4zL7XVd1c/dznOYM05QrS5mb/AJhjTbGC90
-F1yxvZe3umv85HUGmTXN/OG4XIsyENtGY9cV6UT6eRXykdNx+cVWQb6qOdDV6n4p
-rDYKNq2S9df8NowfTsOFKB4BIQ243HvB8CklqxZhNHJX4rWuT1DEVDAZtCSkYhw7
-p6KCm7ohjphurt2ni15xdDTNnCdn9Ae86GI4u6Z4Og8cYlXgi/fCmfgGpb567Jia
-mWkwqV1c9CQSnQFl5g0T71kR9hiqBlZ5myhi7EUsY8BTjFew+PsrjUyPyzgEVbla
-GrTNopn4sckxVWJ1GAng
-=F88E
------END PGP SIGNATURE-----
-
---XjbSsFHOHxvQpKib--
+diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
+index c6e78d870ccd..6064d28224e8 100644
+--- a/drivers/media/dvb-frontends/rtl2832_sdr.c
++++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
+@@ -1394,7 +1394,8 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
+ 	case RTL2832_SDR_TUNER_E4000:
+ 		v4l2_ctrl_handler_init(&dev->hdl, 9);
+ 		if (subdev)
+-			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler, NULL);
++			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
++					      NULL, true);
+ 		break;
+ 	case RTL2832_SDR_TUNER_R820T:
+ 	case RTL2832_SDR_TUNER_R828D:
+@@ -1423,7 +1424,7 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
+ 		v4l2_ctrl_handler_init(&dev->hdl, 2);
+ 		if (subdev)
+ 			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
+-					      NULL);
++					      NULL, true);
+ 		break;
+ 	default:
+ 		v4l2_ctrl_handler_init(&dev->hdl, 0);
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index f697698fe38d..cdcb36d8c5c3 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -4211,7 +4211,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+ 	/* register video4linux + input */
+ 	if (!bttv_tvcards[btv->c.type].no_video) {
+ 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
+-				v4l2_ctrl_radio_filter);
++				v4l2_ctrl_radio_filter, false);
+ 		if (btv->radio_ctrl_handler.error) {
+ 			result = btv->radio_ctrl_handler.error;
+ 			goto fail2;
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index a71f3c7569ce..762823871c78 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -1527,7 +1527,7 @@ int cx23885_417_register(struct cx23885_dev *dev)
+ 	dev->cxhdl.priv = dev;
+ 	dev->cxhdl.func = cx23885_api_func;
+ 	cx2341x_handler_set_50hz(&dev->cxhdl, tsport->height == 576);
+-	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL);
++	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL, false);
+ 
+ 	/* Allocate and initialize V4L video device */
+ 	dev->v4l_device = cx23885_video_dev_alloc(tsport,
+diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
+index 0e0952e60795..39f69d89a663 100644
+--- a/drivers/media/pci/cx88/cx88-blackbird.c
++++ b/drivers/media/pci/cx88/cx88-blackbird.c
+@@ -1183,7 +1183,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
+ 	err = cx2341x_handler_init(&dev->cxhdl, 36);
+ 	if (err)
+ 		goto fail_core;
+-	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL);
++	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL, false);
+ 
+ 	/* blackbird stuff */
+ 	pr_info("cx23416 based mpeg encoder (blackbird reference design)\n");
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 9be682cdb644..e35bfa03a1e2 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1378,7 +1378,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 		if (vc->id == V4L2_CID_CHROMA_AGC)
+ 			core->chroma_agc = vc;
+ 	}
+-	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
++	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL, false);
+ 
+ 	/* load and configure helper modules */
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 66acfd35ffc6..fc75ce00dbf8 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -265,9 +265,9 @@ static int empress_init(struct saa7134_dev *dev)
+ 		 "%s empress (%s)", dev->name,
+ 		 saa7134_boards[dev->board].name);
+ 	v4l2_ctrl_handler_init(hdl, 21);
+-	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter);
++	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter, false);
+ 	if (dev->empress_sd)
+-		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL);
++		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL, true);
+ 	if (hdl->error) {
+ 		video_device_release(dev->empress_dev);
+ 		return hdl->error;
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 4f1091a11e91..d478c470b975 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2136,7 +2136,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 		hdl = &dev->radio_ctrl_handler;
+ 		v4l2_ctrl_handler_init(hdl, 2);
+ 		v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler,
+-				v4l2_ctrl_radio_filter);
++				v4l2_ctrl_radio_filter, false);
+ 		if (hdl->error)
+ 			return hdl->error;
+ 	}
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index a3cdac188190..2164375f0ee0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -1424,7 +1424,7 @@ static int fimc_link_setup(struct media_entity *entity,
+ 		return 0;
+ 
+ 	return v4l2_ctrl_add_handler(&vc->ctx->ctrls.handler,
+-				     sensor->ctrl_handler, NULL);
++				     sensor->ctrl_handler, NULL, true);
+ }
+ 
+ static const struct media_entity_operations fimc_sd_media_ops = {
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index b479b882da12..90246113fa03 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -900,7 +900,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
++	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler,
++				    NULL, true);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+index dc7e280c91b4..159c7d2c2066 100644
+--- a/drivers/media/platform/rcar_drif.c
++++ b/drivers/media/platform/rcar_drif.c
+@@ -1168,7 +1168,7 @@ static int rcar_drif_notify_complete(struct v4l2_async_notifier *notifier)
+ 	}
+ 
+ 	ret = v4l2_ctrl_add_handler(&sdr->ctrl_hdl,
+-				    sdr->ep.subdev->ctrl_handler, NULL);
++				    sdr->ep.subdev->ctrl_handler, NULL, true);
+ 	if (ret) {
+ 		rdrif_err(sdr, "failed: ctrl add hdlr ret %d\n", ret);
+ 		goto error;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 69f0d8e80bd8..e6787abc34ae 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1180,7 +1180,8 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 
+ 	v4l2_subdev_call(sd, video, g_tvnorms, &icd->vdev->tvnorms);
+ 
+-	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler, NULL);
++	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler,
++				    NULL, true);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 6b0bfa091592..f369b94ad7ff 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -1662,59 +1662,59 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
+ 
+ 	if (dev->has_vid_cap) {
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL, false);
+ 		if (hdl_vid_cap->error)
+ 			return hdl_vid_cap->error;
+ 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
+ 	}
+ 	if (dev->has_vid_out) {
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL, false);
+ 		if (hdl_vid_out->error)
+ 			return hdl_vid_out->error;
+ 		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
+ 	}
+ 	if (dev->has_vbi_cap) {
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL, false);
+ 		if (hdl_vbi_cap->error)
+ 			return hdl_vbi_cap->error;
+ 		dev->vbi_cap_dev.ctrl_handler = hdl_vbi_cap;
+ 	}
+ 	if (dev->has_vbi_out) {
+-		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL);
++		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL, false);
+ 		if (hdl_vbi_out->error)
+ 			return hdl_vbi_out->error;
+ 		dev->vbi_out_dev.ctrl_handler = hdl_vbi_out;
+ 	}
+ 	if (dev->has_radio_rx) {
+-		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL);
++		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL, false);
+ 		if (hdl_radio_rx->error)
+ 			return hdl_radio_rx->error;
+ 		dev->radio_rx_dev.ctrl_handler = hdl_radio_rx;
+ 	}
+ 	if (dev->has_radio_tx) {
+-		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL);
++		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL, false);
+ 		if (hdl_radio_tx->error)
+ 			return hdl_radio_tx->error;
+ 		dev->radio_tx_dev.ctrl_handler = hdl_radio_tx;
+ 	}
+ 	if (dev->has_sdr_cap) {
+-		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL);
++		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL, false);
+ 		if (hdl_sdr_cap->error)
+ 			return hdl_sdr_cap->error;
+ 		dev->sdr_cap_dev.ctrl_handler = hdl_sdr_cap;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index b80e6857e2eb..fca16cf8b3bf 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1991,7 +1991,7 @@ int cx231xx_417_register(struct cx231xx *dev)
+ 	dev->mpeg_ctrl_handler.ops = &cx231xx_ops;
+ 	if (dev->sd_cx25840)
+ 		v4l2_ctrl_add_handler(&dev->mpeg_ctrl_handler.hdl,
+-				dev->sd_cx25840->ctrl_handler, NULL);
++				dev->sd_cx25840->ctrl_handler, NULL, false);
+ 	if (dev->mpeg_ctrl_handler.hdl.error) {
+ 		err = dev->mpeg_ctrl_handler.hdl.error;
+ 		dprintk(3, "%s: can't add cx25840 controls\n", dev->name);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index f7fcd733a2ca..2dedb18f63a0 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2204,10 +2204,10 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 
+ 	if (dev->sd_cx25840) {
+ 		v4l2_ctrl_add_handler(&dev->ctrl_handler,
+-				dev->sd_cx25840->ctrl_handler, NULL);
++				dev->sd_cx25840->ctrl_handler, NULL, true);
+ 		v4l2_ctrl_add_handler(&dev->radio_ctrl_handler,
+ 				dev->sd_cx25840->ctrl_handler,
+-				v4l2_ctrl_radio_filter);
++				v4l2_ctrl_radio_filter, true);
+ 	}
+ 
+ 	if (dev->ctrl_handler.error)
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 65ef755adfdc..4aacd77a5d58 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -1278,7 +1278,7 @@ static int msi2500_probe(struct usb_interface *intf,
+ 	}
+ 
+ 	/* currently all controls are from subdev */
+-	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL);
++	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL, true);
+ 
+ 	dev->v4l2_dev.ctrl_handler = &dev->hdl;
+ 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index b2399d4266da..99d6b0da8b3d 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1622,7 +1622,7 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
+ 	v4l2_ctrl_new_std(&dev->ctrl_handler, &tm6000_ctrl_ops,
+ 			V4L2_CID_HUE, -128, 127, 1, 0);
+ 	v4l2_ctrl_add_handler(&dev->ctrl_handler,
+-			&dev->radio_ctrl_handler, NULL);
++			&dev->radio_ctrl_handler, NULL, false);
+ 
+ 	if (dev->radio_ctrl_handler.error)
+ 		ret = dev->radio_ctrl_handler.error;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d29e45516eb7..aa1dd2015e84 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1995,7 +1995,8 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+ 
+ /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+-			   struct v4l2_ctrl *ctrl)
++			   struct v4l2_ctrl *ctrl,
++			   bool from_other_dev)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	struct v4l2_ctrl_ref *new_ref;
+@@ -2019,6 +2020,7 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	if (!new_ref)
+ 		return handler_set_err(hdl, -ENOMEM);
+ 	new_ref->ctrl = ctrl;
++	new_ref->from_other_dev = from_other_dev;
+ 	if (ctrl->handler == hdl) {
+ 		/* By default each control starts in a cluster of its own.
+ 		   new_ref->ctrl is basically a cluster array with one
+@@ -2199,7 +2201,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+ 	}
+ 
+-	if (handler_new_ref(hdl, ctrl)) {
++	if (handler_new_ref(hdl, ctrl, false)) {
+ 		kvfree(ctrl);
+ 		return NULL;
+ 	}
+@@ -2368,7 +2370,8 @@ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+ /* Add the controls from another handler to our own. */
+ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 			  struct v4l2_ctrl_handler *add,
+-			  bool (*filter)(const struct v4l2_ctrl *ctrl))
++			  bool (*filter)(const struct v4l2_ctrl *ctrl),
++			  bool from_other_dev)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	int ret = 0;
+@@ -2391,7 +2394,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 		/* Filter any unwanted controls */
+ 		if (filter && !filter(ctrl))
+ 			continue;
+-		ret = handler_new_ref(hdl, ctrl);
++		ret = handler_new_ref(hdl, ctrl, from_other_dev);
+ 		if (ret)
+ 			break;
+ 	}
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 937c6de85606..8391a7f0895b 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -178,7 +178,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 
+ 	sd->v4l2_dev = v4l2_dev;
+ 	/* This just returns 0 if either of the two args is NULL */
+-	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
++	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler,
++				    NULL, true);
+ 	if (err)
+ 		goto error_module;
+ 
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 289d775c4820..08799beaea42 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -391,7 +391,7 @@ static int imx_media_inherit_controls(struct imx_media_dev *imxmd,
+ 
+ 		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
+ 					    sd->ctrl_handler,
+-					    NULL);
++					    NULL, true);
+ 		if (ret)
+ 			return ret;
+ 	}
+diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
+index 6df189135db8..8cf773eef9da 100644
+--- a/drivers/staging/media/imx/imx-media-fim.c
++++ b/drivers/staging/media/imx/imx-media-fim.c
+@@ -463,7 +463,7 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim)
+ {
+ 	/* add the FIM controls to the calling subdev ctrl handler */
+ 	return v4l2_ctrl_add_handler(fim->sd->ctrl_handler,
+-				     &fim->ctrl_handler, NULL);
++				     &fim->ctrl_handler, NULL, false);
+ }
+ EXPORT_SYMBOL_GPL(imx_media_fim_add_controls);
+ 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5b445b5654f7..f8faa54b5e7e 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -247,6 +247,8 @@ struct v4l2_ctrl {
+  * @ctrl:	The actual control information.
+  * @helper:	Pointer to helper struct. Used internally in
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
++ * @from_other_dev: If true, then @ctrl was defined in another
++ *		device then the &struct v4l2_ctrl_handler.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+@@ -257,6 +259,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl_ref *next;
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
++	bool from_other_dev;
+ };
+ 
+ /**
+@@ -633,6 +636,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
+  * @add:	The control handler whose controls you want to add to
+  *		the @hdl control handler.
+  * @filter:	This function will filter which controls should be added.
++ * @from_other_dev: If true, then the controls in @add were defined in another
++ *		device then @hdl.
+  *
+  * Does nothing if either of the two handlers is a NULL pointer.
+  * If @filter is NULL, then all controls are added. Otherwise only those
+@@ -642,7 +647,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
+  */
+ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 			  struct v4l2_ctrl_handler *add,
+-			  v4l2_ctrl_filter filter);
++			  v4l2_ctrl_filter filter,
++			  bool from_other_dev);
+ 
+ /**
+  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
+-- 
+2.16.3
