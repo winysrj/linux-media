@@ -1,96 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43942 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752129AbeDDPdB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:33:01 -0400
-Subject: Patch "media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors" has been added to the 3.18-stable tree
-To: mchehab@s-opensource.com, alexander.levin@microsoft.com,
-        gregkh@linuxfoundation.org, hans.verkuil@cisco.com,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@infradead.org, sakari.ailus@linux.intel.com
-Cc: <stable@vger.kernel.org>, <stable-commits@vger.kernel.org>
-From: <gregkh@linuxfoundation.org>
-Date: Wed, 04 Apr 2018 17:32:46 +0200
-In-Reply-To: <9d0bb62c2dc7caee1fd2b9199fc1a22ec8479395.1522260310.git.mchehab@s-opensource.com>
-Message-ID: <152285596621542@kroah.com>
+Received: from mga14.intel.com ([192.55.52.115]:41034 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751416AbeDIIT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 04:19:28 -0400
+Date: Mon, 9 Apr 2018 11:19:24 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Gustavo Padovan <gustavo@padovan.org>
+Subject: Re: [RFCv9 PATCH 15/29] videodev2.h: add request_fd field to
+ v4l2_ext_controls
+Message-ID: <20180409081924.b4eocuikeu3kvqgv@paasikivi.fi.intel.com>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+ <20180328135030.7116-16-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180328135030.7116-16-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-This is a note to let you know that I've just added the patch titled
+On Wed, Mar 28, 2018 at 03:50:16PM +0200, Hans Verkuil wrote:
+> From: Alexandre Courbot <acourbot@chromium.org>
+> 
+> If which is V4L2_CTRL_WHICH_REQUEST, then the request_fd field can be
+> used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+> 
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+>  drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+>  include/uapi/linux/videodev2.h                | 4 +++-
+>  3 files changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 5198c9eeb348..0782b3666deb 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -732,7 +732,8 @@ struct v4l2_ext_controls32 {
+>  	__u32 which;
+>  	__u32 count;
+>  	__u32 error_idx;
+> -	__u32 reserved[2];
+> +	__s32 request_fd;
+> +	__u32 reserved[1];
 
-    media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+No need for an array anymore.
 
-to the 3.18-stable tree which can be found at:
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+>  	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+>  };
+>  
+> @@ -807,6 +808,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+>  	    get_user(count, &up->count) ||
+>  	    put_user(count, &kp->count) ||
+>  	    assign_in_user(&kp->error_idx, &up->error_idx) ||
+> +	    assign_in_user(&kp->request_fd, &up->request_fd) ||
+>  	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
 
-The filename of the patch is:
-     media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
-and it can be found in the queue-3.18 subdirectory.
+And this can be assign_in_user().
 
-If you, or anyone else, feels it should not be added to the stable tree,
-please let <stable@vger.kernel.org> know about it.
+>  		return -EFAULT;
+>  
+> @@ -865,6 +867,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+>  	    get_user(count, &kp->count) ||
+>  	    put_user(count, &up->count) ||
+>  	    assign_in_user(&up->error_idx, &kp->error_idx) ||
+> +	    assign_in_user(&up->request_fd, &kp->request_fd) ||
 
+Ditto.
 
->From foo@baz Wed Apr  4 17:30:18 CEST 2018
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date: Wed, 28 Mar 2018 15:12:32 -0300
-Subject: media: v4l2-compat-ioctl32.c: don't copy back the result for certain errors
-To: Linux Media Mailing List <linux-media@vger.kernel.org>, stable@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sasha Levin <alexander.levin@microsoft.com>
-Message-ID: <9d0bb62c2dc7caee1fd2b9199fc1a22ec8479395.1522260310.git.mchehab@s-opensource.com>
+>  	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)) ||
+>  	    get_user(kcontrols, &kp->controls))
+>  		return -EFAULT;
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index a5dab16ff2d2..2c623da33155 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+>  	const struct v4l2_ext_controls *p = arg;
+>  	int i;
+>  
+> -	pr_cont("which=0x%x, count=%d, error_idx=%d",
+> -			p->which, p->count, p->error_idx);
+> +	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
+> +			p->which, p->count, p->error_idx, p->request_fd);
+>  	for (i = 0; i < p->count; i++) {
+>  		if (!p->controls[i].size)
+>  			pr_cont(", id/val=0x%x/0x%x",
+> @@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+>  	__u32 i;
+>  
+>  	/* zero the reserved fields */
+> -	c->reserved[0] = c->reserved[1] = 0;
+> +	c->reserved[0] = 0;
+>  	for (i = 0; i < c->count; i++)
+>  		c->controls[i].reserved2[0] = 0;
+>  
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 600877be5c22..6f41baa53787 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+>  	};
+>  	__u32 count;
+>  	__u32 error_idx;
+> -	__u32 reserved[2];
+> +	__s32 request_fd;
+> +	__u32 reserved[1];
+>  	struct v4l2_ext_control *controls;
+>  };
+>  
+> @@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_MAX_DIMS	  (4)
+>  #define V4L2_CTRL_WHICH_CUR_VAL   0
+>  #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
+> +#define V4L2_CTRL_WHICH_REQUEST   0x0f010000
+>  
+>  enum v4l2_ctrl_type {
+>  	V4L2_CTRL_TYPE_INTEGER	     = 1,
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-commit d83a8243aaefe62ace433e4384a4f077bed86acb upstream.
-
-Some ioctls need to copy back the result even if the ioctl returned
-an error. However, don't do this for the error code -ENOTTY.
-It makes no sense in that cases.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
- 1 file changed, 3 insertions(+)
-
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -943,6 +943,9 @@ static long do_video_ioctl(struct file *
- 		set_fs(old_fs);
- 	}
- 
-+	if (err == -ENOTTY)
-+		return err;
-+
- 	/* Special case: even after an error we need to put the
- 	   results back for these ioctls since the error_idx will
- 	   contain information on which control failed. */
-
-
-Patches currently in stable-queue which might be from mchehab@s-opensource.com are
-
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-m.userptr-in-put_v4l2_plane32.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-avoid-sizeof-type.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-drop-pr_info-for-unknown-buffer-type.patch
-queue-3.18/media-v4l2-compat-ioctl32-use-compat_u64-for-video-standard.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-add-missing-vidioc_prepare_buf.patch
-queue-3.18/vb2-v4l2_buf_flag_done-is-set-after-dqbuf.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-refactor-compat-ioctl32-logic.patch
-queue-3.18/media-v4l2-ctrls-fix-sparse-warning.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-ctrl_is_pointer.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-move-helper-functions-to-__get-put_v4l2_format32.patch
-queue-3.18/media-media-v4l2-ctrls-volatiles-should-not-generate-ch_value.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-make-ctrl_is_pointer-work-for-subdevs.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-the-indentation.patch
-queue-3.18/media-v4l2-compat-ioctl32-copy-v4l2_window-global_alpha.patch
-queue-3.18/media-v4l2-ioctl.c-don-t-copy-back-the-result-for-enotty.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-clip-list-in-put_v4l2_window32.patch
-queue-3.18/media-v4l2-compat-ioctl32-initialize-a-reserved-field.patch
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
