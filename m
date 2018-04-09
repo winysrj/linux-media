@@ -1,66 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from laurent.telenet-ops.be ([195.130.137.89]:35986 "EHLO
-        laurent.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755054AbeDTN3A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:29:00 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 3/8] [media] v4l: rcar_fdp1: Change platform dependency to ARCH_RENESAS
-Date: Fri, 20 Apr 2018 15:28:29 +0200
-Message-Id: <1524230914-10175-4-git-send-email-geert+renesas@glider.be>
-In-Reply-To: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:32836 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753267AbeDIQr5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:47:57 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z73so10279289wrb.0
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:47:57 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 01/19] [media] dvb-frontends/stv0910: add init values for TSINSDELM/L
+Date: Mon,  9 Apr 2018 18:47:34 +0200
+Message-Id: <20180409164752.641-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Renesas Fine Display Processor driver is used on Renesas R-Car SoCs
-only.  Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce
-ARCH_RENESAS") is ARCH_RENESAS a more appropriate platform dependency
-than the legacy ARCH_SHMOBILE, hence use the former.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-This will allow to drop ARCH_SHMOBILE on ARM and ARM64 in the near
-future.
+The TSINSDEL registers were lacking initialisation in the stv0910 demod
+driver. Initialise them (both demods) in the probe() function.
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Picked up from the upstream dddvb-0.9.33 release.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-frontends/stv0910.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index f9235e8f8e962d2e..7ad4725f9d1f9627 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -396,7 +396,7 @@ config VIDEO_SH_VEU
- config VIDEO_RENESAS_FDP1
- 	tristate "Renesas Fine Display Processor"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
--	depends on ARCH_SHMOBILE || COMPILE_TEST
-+	depends on ARCH_RENESAS || COMPILE_TEST
- 	depends on (!ARCH_RENESAS && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index 52355c14fd64..f5b5ce971c0c 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1220,6 +1220,12 @@ static int probe(struct stv *state)
+ 	write_reg(state, RSTV0910_P1_I2CRPT, state->i2crpt);
+ 	write_reg(state, RSTV0910_P2_I2CRPT, state->i2crpt);
+ 
++	write_reg(state, RSTV0910_P1_TSINSDELM, 0x17);
++	write_reg(state, RSTV0910_P1_TSINSDELL, 0xff);
++
++	write_reg(state, RSTV0910_P2_TSINSDELM, 0x17);
++	write_reg(state, RSTV0910_P2_TSINSDELL, 0xff);
++
+ 	init_diseqc(state);
+ 	return 0;
+ }
 -- 
-2.7.4
+2.16.1
