@@ -1,83 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:57575 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753677AbeDZJ2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 05:28:46 -0400
-Date: Thu, 26 Apr 2018 11:28:42 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v7 1/2] uvcvideo: send a control event when a Control
- Change interrupt arrives
-In-Reply-To: <alpine.DEB.2.20.1804100848040.29394@axis700.grange>
-Message-ID: <alpine.DEB.2.20.1804261124480.13154@axis700.grange>
-References: <20180323092401.12162-1-laurent.pinchart@ideasonboard.com> <20180323092401.12162-2-laurent.pinchart@ideasonboard.com> <2079648.niC1Apbgeu@avalon> <alpine.DEB.2.20.1804100848040.29394@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36772 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753328AbeDIQsA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:00 -0400
+Received: by mail-wr0-f195.google.com with SMTP id y55so10273215wry.3
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:00 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 04/19] [media] ddbridge: move ddb_wq and the wq+class initialisation to -core
+Date: Mon,  9 Apr 2018 18:47:37 +0200
+Message-Id: <20180409164752.641-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Tue, 10 Apr 2018, Guennadi Liakhovetski wrote:
+Move the ddbridge module initialisation and cleanup code to ddbridge-core
+and set up the ddb_wq workqueue there, and create and destroy the ddb
+device class there aswell. Due to this, the prototypes for ddb_wq,
+ddb_class_create() and ddb_class_destroy() aren't required in ddbridge.h
+anymore, so remove them. Also, declare ddb_wq and the ddb_class_*()
+functions static.
 
-[snip]
+Picked up from the upstream dddvb-0.9.33 release.
 
-> > > @@ -1488,6 +1591,25 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
-> > >  		return -EINVAL;
-> > >  	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
-> > >  		return -EACCES;
-> > > +	if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS) {
-> > > +		if (ctrl->handle)
-> > > +			/*
-> > > +			 * We have already sent this control to the camera
-> > > +			 * recently and are currently waiting for a completion
-> > > +			 * notification. The camera might already have completed
-> > > +			 * its processing and is ready to accept a new control
-> > > +			 * or it's still busy processing. If we send a new
-> > > +			 * instance of this control now, in the former case the
-> > > +			 * camera will process this one too and we'll get
-> > > +			 * completions for both, but we will only deliver an
-> > > +			 * event for one of them back to the user. In the latter
-> > > +			 * case the camera will reply with a STALL. It's easier
-> > > +			 * and more reliable to return an error now and let the
-> > > +			 * user retry.
-> > > +			 */
-> > > +			return -EBUSY;
-> > > +		ctrl->handle = handle;
-> > 
-> > This part worries me. If the control change event isn't received for any 
-> > reason (such as a buggy device for instance, or uvc_ctrl_status_event() being 
-> > called with the previous event not processed yet), the control will stay busy 
-> > forever.
-> > 
-> > I see two approaches to fix this. One would be to forward all received control 
-> > change events to all file handles unconditionally and remove the handle field 
-> > from the uvc_control structure.
-> 
-> How is this a solution? A case of senging a repeated control to the camera 
-> and causing a STALL would still be possible. If you prefer STALLs, you 
-> could just remove this check here.
-> 
-> > Another one would be to add a timeout, storing 
-> > the time at which the control has been set in the uvc_control structure, and 
-> > checking whether the time difference exceeds a fixed timeout here. We could 
-> > also combine the two, replacing the handle field with a timestamp field.
-> 
-> Don't think you can remove the handle field, there are a couple of things, 
-> that need it, also you'll have to send events to all listeners, including 
-> the thread, that has sent the control, which contradicts the API? Assuming 
-> it hasn't set the V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK flag.
-> 
-> I can add a timeout, even though that doesn't seem to be very clean to me. 
-> According to the UVC standard some controls can take a while to complete, 
-> possibly seconds. How long would you propose that timeout to be?
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 32 +++++++++++++++++++++++++++---
+ drivers/media/pci/ddbridge/ddbridge-main.c | 21 +++++++-------------
+ drivers/media/pci/ddbridge/ddbridge.h      |  7 ++-----
+ 3 files changed, 38 insertions(+), 22 deletions(-)
 
-How about just not checking when setting control and letting the camera 
-decide? That's what the STALL mechanism is there for. The only advantage 
-of using this is to provide a short-cut when we're "sure," that the 
-hardware isn't ready to take a new request yet, but if implementing such a 
-shortcut becomes too cumbersome, we can give control back to the hardware.
-
-Thanks
-Guennadi
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 933046d03db5..fb9a2cb758e6 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -100,7 +100,7 @@ MODULE_PARM_DESC(stv0910_single, "use stv0910 cards as single demods");
+ 
+ static DEFINE_MUTEX(redirect_lock);
+ 
+-struct workqueue_struct *ddb_wq;
++static struct workqueue_struct *ddb_wq;
+ 
+ static struct ddb *ddbs[DDB_MAX_ADAPTER];
+ 
+@@ -3055,7 +3055,7 @@ static struct class ddb_class = {
+ 	.devnode        = ddb_devnode,
+ };
+ 
+-int ddb_class_create(void)
++static int ddb_class_create(void)
+ {
+ 	ddb_major = register_chrdev(0, DDB_NAME, &ddb_fops);
+ 	if (ddb_major < 0)
+@@ -3065,7 +3065,7 @@ int ddb_class_create(void)
+ 	return 0;
+ }
+ 
+-void ddb_class_destroy(void)
++static void ddb_class_destroy(void)
+ {
+ 	class_unregister(&ddb_class);
+ 	unregister_chrdev(ddb_major, DDB_NAME);
+@@ -3337,3 +3337,29 @@ void ddb_unmap(struct ddb *dev)
+ 		iounmap(dev->regs);
+ 	vfree(dev);
+ }
++
++int ddb_exit_ddbridge(int stage, int error)
++{
++	switch (stage) {
++	default:
++	case 2:
++		destroy_workqueue(ddb_wq);
++		/* fall-through */
++	case 1:
++		ddb_class_destroy();
++		break;
++	}
++
++	return error;
++}
++
++int ddb_init_ddbridge(void)
++{
++	if (ddb_class_create() < 0)
++		return -1;
++	ddb_wq = alloc_workqueue("ddbridge", 0, 0);
++	if (!ddb_wq)
++		return ddb_exit_ddbridge(1, -1);
++
++	return 0;
++}
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index bde04dc39080..7088162af9d3 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -282,32 +282,25 @@ static struct pci_driver ddb_pci_driver = {
+ 
+ static __init int module_init_ddbridge(void)
+ {
+-	int stat = -1;
++	int stat;
+ 
+ 	pr_info("Digital Devices PCIE bridge driver "
+ 		DDBRIDGE_VERSION
+ 		", Copyright (C) 2010-17 Digital Devices GmbH\n");
+-	if (ddb_class_create() < 0)
+-		return -1;
+-	ddb_wq = create_workqueue("ddbridge");
+-	if (!ddb_wq)
+-		goto exit1;
++	stat = ddb_init_ddbridge();
++	if (stat < 0)
++		return stat;
+ 	stat = pci_register_driver(&ddb_pci_driver);
+ 	if (stat < 0)
+-		goto exit2;
+-	return stat;
+-exit2:
+-	destroy_workqueue(ddb_wq);
+-exit1:
+-	ddb_class_destroy();
++		ddb_exit_ddbridge(0, stat);
++
+ 	return stat;
+ }
+ 
+ static __exit void module_exit_ddbridge(void)
+ {
+ 	pci_unregister_driver(&ddb_pci_driver);
+-	destroy_workqueue(ddb_wq);
+-	ddb_class_destroy();
++	ddb_exit_ddbridge(0, 0);
+ }
+ 
+ module_init(module_init_ddbridge);
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index e22e67d7e0fe..dbd5f551ce76 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -368,9 +368,6 @@ int ddbridge_flashread(struct ddb *dev, u32 link, u8 *buf, u32 addr, u32 len);
+ 
+ /****************************************************************************/
+ 
+-/* ddbridge-main.c (modparams) */
+-extern struct workqueue_struct *ddb_wq;
+-
+ /* ddbridge-core.c */
+ void ddb_ports_detach(struct ddb *dev);
+ void ddb_ports_release(struct ddb *dev);
+@@ -383,9 +380,9 @@ void ddb_ports_init(struct ddb *dev);
+ int ddb_buffers_alloc(struct ddb *dev);
+ int ddb_ports_attach(struct ddb *dev);
+ int ddb_device_create(struct ddb *dev);
+-int ddb_class_create(void);
+-void ddb_class_destroy(void);
+ int ddb_init(struct ddb *dev);
+ void ddb_unmap(struct ddb *dev);
++int ddb_exit_ddbridge(int stage, int error);
++int ddb_init_ddbridge(void);
+ 
+ #endif /* DDBRIDGE_H */
+-- 
+2.16.1
