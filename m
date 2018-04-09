@@ -1,70 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:7964 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757099AbeDZQzq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 12:55:46 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Subject: RE: [PATCH v6 10/12] intel-ipu3: Add css pipeline programming
-Date: Thu, 26 Apr 2018 16:55:41 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D34183CD4@ORSMSX106.amr.corp.intel.com>
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
- <1522376100-22098-11-git-send-email-yong.zhi@intel.com>
- <CAAFQd5CGjFsc1Py78_Lmbav0rPqgQOuN-7KXhQB2_MJKAkX55A@mail.gmail.com>
-In-Reply-To: <CAAFQd5CGjFsc1Py78_Lmbav0rPqgQOuN-7KXhQB2_MJKAkX55A@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57233 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752376AbeDIOUi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 10:20:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 27/29] vim2m: support requests
+Date: Mon,  9 Apr 2018 16:20:24 +0200
+Message-Id: <20180409142026.19369-28-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciB0aGUgY29kZSByZXZpZXcuDQoNCj4gLS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tYXN6IEZpZ2EgW21haWx0bzp0ZmlnYUBjaHJv
-bWl1bS5vcmddDQo+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAyNiwgMjAxOCAxMjoxMiBBTQ0KPiBU
-bzogWmhpLCBZb25nIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+IENjOiBMaW51eCBNZWRpYSBNYWls
-aW5nIExpc3QgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cw0KPiA8
-c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT47IE1hbmksIFJham1vaGFuDQo+IDxyYWptb2hh
-bi5tYW5pQGludGVsLmNvbT47IFRvaXZvbmVuLCBUdXVra2ENCj4gPHR1dWtrYS50b2l2b25lbkBp
-bnRlbC5jb20+OyBIdSwgSmVycnkgVyA8amVycnkudy5odUBpbnRlbC5jb20+OyBaaGVuZywNCj4g
-SmlhbiBYdSA8amlhbi54dS56aGVuZ0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
-djYgMTAvMTJdIGludGVsLWlwdTM6IEFkZCBjc3MgcGlwZWxpbmUgcHJvZ3JhbW1pbmcNCj4gDQo+
-IEhpIFlvbmcsDQo+IA0KPiBPbiBGcmksIE1hciAzMCwgMjAxOCBhdCAxMToxNSBBTSBZb25nIFpo
-aSA8eW9uZy56aGlAaW50ZWwuY29tPiB3cm90ZToNCj4gW3NuaXBdDQo+ID4gK2ludCBpcHUzX2Nz
-c19pbml0KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGlwdTNfY3NzICpjc3MsDQo+ID4gKyAg
-ICAgICAgICAgICAgICAgdm9pZCBfX2lvbWVtICpiYXNlLCBpbnQgbGVuZ3RoKSB7DQo+ID4gKyAg
-ICAgICBpbnQgciwgcCwgcSwgaTsNCj4gPiArDQo+ID4gKyAgICAgICAvKiBJbml0aWFsaXplIG1h
-aW4gZGF0YSBzdHJ1Y3R1cmUgKi8NCj4gPiArICAgICAgIGNzcy0+ZGV2ID0gZGV2Ow0KPiA+ICsg
-ICAgICAgY3NzLT5iYXNlID0gYmFzZTsNCj4gPiArICAgICAgIGNzcy0+aW9tZW1fbGVuZ3RoID0g
-bGVuZ3RoOw0KPiA+ICsgICAgICAgY3NzLT5jdXJyZW50X2JpbmFyeSA9IElQVTNfQ1NTX0RFRkFV
-TFRfQklOQVJZOw0KPiA+ICsgICAgICAgY3NzLT5waXBlX2lkID0gSVBVM19DU1NfUElQRV9JRF9O
-VU07DQo+ID4gKyAgICAgICBjc3MtPnZmX291dHB1dF9lbiA9IElQVTNfTk9ERV9WRl9ESVNBQkxF
-RDsNCj4gPiArICAgICAgIHNwaW5fbG9ja19pbml0KCZjc3MtPnFsb2NrKTsNCj4gPiArDQo+ID4g
-KyAgICAgICBmb3IgKHEgPSAwOyBxIDwgSVBVM19DU1NfUVVFVUVTOyBxKyspIHsNCj4gPiArICAg
-ICAgICAgICAgICAgciA9IGlwdTNfY3NzX3F1ZXVlX2luaXQoJmNzcy0+cXVldWVbcV0sIE5VTEws
-IDApOw0KPiA+ICsgICAgICAgICAgICAgICBpZiAocikNCj4gPiArICAgICAgICAgICAgICAgICAg
-ICAgICByZXR1cm4gcjsNCj4gPiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICByID0gaXB1
-M19jc3NfZndfaW5pdChjc3MpOw0KPiA+ICsgICAgICAgaWYgKHIpDQo+ID4gKyAgICAgICAgICAg
-ICAgIHJldHVybiByOw0KPiA+ICsNCj4gPiArICAgICAgIC8qIEFsbG9jYXRlIGFuZCBtYXAgY29t
-bW9uIHN0cnVjdHVyZXMgd2l0aCBpbWd1IGhhcmR3YXJlICovDQo+ID4gKw0KPiA+ICsgICAgICAg
-Zm9yIChwID0gMDsgcCA8IElQVTNfQ1NTX1BJUEVfSURfTlVNOyBwKyspDQo+ID4gKyAgICAgICAg
-ICAgICAgIGZvciAoaSA9IDA7IGkgPCBJTUdVX0FCSV9NQVhfU1RBR0VTOyBpKyspIHsNCj4gPiAr
-ICAgICAgICAgICAgICAgICAgICAgICBpZiAoIWlwdTNfZG1hbWFwX2FsbG9jKGRldiwNCj4gPiAr
-DQo+ICAgJmNzcy0+eG1lbV9zcF9zdGFnZV9wdHJzW3BdW2ldLA0KPiA+ICsgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6ZW9mKHN0cnVjdA0KPiBpbWd1X2Fi
-aV9zcF9zdGFnZSkpKQ0KPiANCj4gY2hlY2twYXRjaCByZXBvcnRzIGxpbmUgb3ZlciA4MCBjaGFy
-YWN0ZXJzIGhlcmUuDQoNCkFjaywgSSBvcHRlZCBmb3IgYWxpZ25tZW50IG92ZXIgbGluZSBsaW1p
-dCBoZXJlICwgd2lsbCBmaXggaW4gdjcuDQo+IA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgZ290byBlcnJvcl9ub19tZW1vcnk7DQo+ID4gKyAgICAgICAgICAgICAgICAgICAg
-ICAgaWYgKCFpcHUzX2RtYW1hcF9hbGxvYyhkZXYsDQo+ID4gKw0KPiAgICZjc3MtPnhtZW1faXNw
-X3N0YWdlX3B0cnNbcF1baV0sDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBzaXplb2Yoc3RydWN0DQo+IGltZ3VfYWJpX2lzcF9zdGFnZSkpKQ0KPiAN
-Cj4gRGl0dG8uDQoNClN1cmUsIHRoYW5rcyEhDQo+IA0KPiA+ICsgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgZ290byBlcnJvcl9ub19tZW1vcnk7DQo+ID4gKyAgICAgICAgICAgICAgIH0N
-Cj4gDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+Add support for requests to vim2m.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 9b18b32c255d..2dcf0ea85705 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -387,8 +387,26 @@ static void device_run(void *priv)
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 
++	/* Apply request if needed */
++	if (src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++	if (dst_buf->vb2_buf.req_obj.req &&
++	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++
+ 	device_process(ctx, src_buf, dst_buf);
+ 
++	/* Complete request if needed */
++	if (src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++	if (dst_buf->vb2_buf.req_obj.req &&
++	    dst_buf->vb2_buf.req_obj.req != src_buf->vb2_buf.req_obj.req)
++		v4l2_ctrl_request_complete(dst_buf->vb2_buf.req_obj.req,
++					&ctx->hdl);
++
+ 	/* Run a timer, which simulates a hardware irq  */
+ 	schedule_irq(dev, ctx->transtime);
+ }
+@@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 		if (vbuf == NULL)
+ 			return;
++		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
++					   &ctx->hdl);
+ 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
+ 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+ 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
+@@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops = {
+ 	.job_abort	= job_abort,
+ };
+ 
++static const struct media_device_ops m2m_media_ops = {
++	.req_queue = vb2_request_queue,
++};
++
+ static int vim2m_probe(struct platform_device *pdev)
+ {
+ 	struct vim2m_dev *dev;
+@@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	dev->mdev.dev = &pdev->dev;
+ 	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
+ 	media_device_init(&dev->mdev);
++	dev->mdev.ops = &m2m_media_ops;
+ 	dev->v4l2_dev.mdev = &dev->mdev;
+ 	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
+ 	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
+-- 
+2.16.3
