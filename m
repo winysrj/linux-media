@@ -1,88 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:42313 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751908AbeDQH0o (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36735 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752373AbeDIOUh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 03:26:44 -0400
-Received: by mail-qt0-f193.google.com with SMTP id j3so18126886qtn.9
-        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 00:26:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1523871020.5918.4.camel@pengutronix.de>
-References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
- <1523629085.3396.10.camel@pengutronix.de> <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
- <1523871020.5918.4.camel@pengutronix.de>
-From: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
-Date: Tue, 17 Apr 2018 09:26:42 +0200
-Message-ID: <CAPQseg3qXkgU=1yvUXdh73XnGT-kcFWsBF6nDx6AMa+OV7w3nQ@mail.gmail.com>
-Subject: Re: imx-media: MT9P031 Capture issues on IMX6
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 9 Apr 2018 10:20:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 26/29] vim2m: use workqueue
+Date: Mon,  9 Apr 2018 16:20:23 +0200
+Message-Id: <20180409142026.19369-27-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 16, 2018 at 11:30 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> On Mon, 2018-04-16 at 09:54 +0200, Ibtsam Ul-Haq wrote:
-> [...]
->> This indeed looks the case. But then, is 'GR16' the FourCC for 'SGRBG16'?
->
-> Yes, see Documentation/media/uapi/v4l/pixfmt-srggb16.rst:
-> https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-srggb16.html
->
->> To be honest, I had not seen GR16 as FourCC before.
->> And the Gstreamer debug logs (I used GST_DEBUG=5) also say that they
->> do not know this FourCC:
->> v4l2 gstv4l2object.c:1541:gst_v4l2_object_v4l2fourcc_to_bare_struct: [00m
->> Unsupported fourcc 0x36315247 GR16
->
-> The GStreamer V4L2 elements currently only support 8-bit per component
-> Bayer formats.
->
->> Is there a way we can get by this?
->
-> There's two ways to handle this correctly, IMHO. One would be adding
-> SGRBG8_1X8 support to the mt9p031 driver. This is the correct way if the
-> device tree is configured for 8-bit parallel and there are only 8 data
-> lines connected between camera and SoC. As a quick hack, I think you
-> could just:
->
->   sed "s/MEDIA_BUS_FMT_SGRBG12_1X12/MEDIA_BUS_FMT_SGRBG8_1X8/" -i drivers/media/i2c/mt9p031.c
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+interrupt context. Switch to a workqueue instead.
 
-I tried that and it works well for my case. All pads in the pipeline
-now report their format as SGRBG8_1X8.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vim2m.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-However, now I am getting a Broken Pipe error from STREAMON when I try
-to run the pipeline:
-v4l2bufferpool gstv4l2bufferpool.c:677:gst_v4l2_buffer_pool_streamon:<v4l2src0:pool:src>
-[00m
-error with STREAMON 32 (Broken pipe)
-
-I also get a corresponding error on the dmesg:
-[ 1398.723524] ipu1_csi0: pipeline start failed with -32
-
-The pipeline I intend to use is:
-gst-launch-1.0 v4l2src io-mode=dmabuf device=/dev/video4 ! bayer2rgb !
-videoconvert ! v4l2h264enc output-io-mode=dmabuf-import ! rtph264pay !
-udpsink
-
-
-> The other would be to connect all 12 data lines, configure the device
-> tree with 12 bit data width, and extend the imx-media CSI subdevice
-> driver to allow setting SGRBG12_1X12 on the sink pad and SGRBG8_1X8 on
-> the source pad at the same time (and then just internally configuring
-> the hardware to 8-bit, ignoring the 4 LSB). That would be a bit more
-> involved.
->
-> Another possiblity would be to replace v4l2_subdev_link_validate() in
-> drivers/media/v4l2-core/v4l2-subdev.c with a variant that allows
-> source_fmt->format.code != sink_fmt->format.code in case the source
-> format can be turned into the sink format by just dropping LSB for one
-> of the links.
->
-> regards
-> Philipp
-
-Best regards,
-Ibtsam Haq
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index ef970434af13..9b18b32c255d 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -150,6 +150,7 @@ struct vim2m_dev {
+ 	spinlock_t		irqlock;
+ 
+ 	struct timer_list	timer;
++	struct work_struct	work_run;
+ 
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ };
+@@ -392,9 +393,10 @@ static void device_run(void *priv)
+ 	schedule_irq(dev, ctx->transtime);
+ }
+ 
+-static void device_isr(struct timer_list *t)
++static void device_work(struct work_struct *w)
+ {
+-	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++	struct vim2m_dev *vim2m_dev =
++		container_of(w, struct vim2m_dev, work_run);
+ 	struct vim2m_ctx *curr_ctx;
+ 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+ 	unsigned long flags;
+@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
+ 	}
+ }
+ 
++static void device_isr(struct timer_list *t)
++{
++	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++
++	schedule_work(&vim2m_dev->work_run);
++}
++
+ /*
+  * video ioctls
+  */
+@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
+ 
++	flush_scheduled_work();
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	vfd = &dev->vfd;
+ 	vfd->lock = &dev->dev_mutex;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++	INIT_WORK(&dev->work_run, device_work);
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	dev->mdev.dev = &pdev->dev;
+-- 
+2.16.3
