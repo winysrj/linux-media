@@ -1,225 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:61103 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750942AbeDNMC5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:02:57 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 30/33] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Sat, 14 Apr 2018 13:57:23 +0200
-Message-Id: <20180414115726.5075-31-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:37500 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751140AbeDIIAz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 04:00:55 -0400
+Received: by mail-wm0-f44.google.com with SMTP id r131so14591326wmb.2
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 01:00:54 -0700 (PDT)
+Date: Mon, 9 Apr 2018 10:00:51 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Daniel Stone <daniel@fooishbar.org>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        David Airlie <airlied@linux.ie>, qemu-devel@nongnu.org,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [RfC PATCH] Add udmabuf misc device
+Message-ID: <20180409080051.GD31310@phenom.ffwll.local>
+References: <20180313154826.20436-1-kraxel@redhat.com>
+ <20180313161035.GL4788@phenom.ffwll.local>
+ <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
+ <CAPj87rPKtuQ4SZePYDUesWY9VSSGR=1p-LO=yByY_6Q8=BfoyA@mail.gmail.com>
+ <20180406105422.6tewkkciwerud3tm@sirius.home.kraxel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180406105422.6tewkkciwerud3tm@sirius.home.kraxel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The procedure to start or stop streaming using the non-MC single
-subdevice and the MC graph and multiple subdevices are quite different.
-Create a new function to abstract which method is used based on which
-mode the driver is running in and add logic to start the MC graph.
+On Fri, Apr 06, 2018 at 12:54:22PM +0200, Gerd Hoffmann wrote:
+> On Fri, Apr 06, 2018 at 10:52:21AM +0100, Daniel Stone wrote:
+> > Hi Gerd,
+> > 
+> > On 14 March 2018 at 08:03, Gerd Hoffmann <kraxel@redhat.com> wrote:
+> > >> Either mlock account (because it's mlocked defacto), and get_user_pages
+> > >> won't do that for you.
+> > >>
+> > >> Or you write the full-blown userptr implementation, including mmu_notifier
+> > >> support (see i915 or amdgpu), but that also requires Christian Königs
+> > >> latest ->invalidate_mapping RFC for dma-buf (since atm exporting userptr
+> > >> buffers is a no-go).
+> > >
+> > > I guess I'll look at mlock accounting for starters then.  Easier for
+> > > now, and leaves the door open to switch to userptr later as this should
+> > > be transparent to userspace.
+> > 
+> > Out of interest, do you have usecases for full userptr support? Maybe
+> > another way would be to allow creation of dmabufs from memfds.
+> 
+> I have two things in mind.
+> 
+> One is vga emulation.  I have virtual pci memory bar for the virtual
+> vga.  qemu backs vga memory with anonymous pages right now, switching
+> that to shmem should be easy though if that makes things easier.  Guest
+> places the framebuffer somewhere in the pci bar, and I want export the
+> chunk which represents the framebuffer as dma-buf to display it on the
+> host without copying around data.  Framebuffer is linear in guest
+> physical memory, so a single block only.  That is the simpler case.
+> 
+> The more difficuilt one is virtio-gpu ressources.  virtio-gpu resources
+> live in host memory (guest has no direct access).  The guest can
+> optionally specify guest memory pages as backing storage for the
+> resource.  Guest backing storage is allowed to be scattered.  Commands
+> exist to copy both ways between host storage and guest backing.
+> 
+> With virgl (opengl acceleration) enabled the guest will send rendering
+> commands to fill the framebuffer ressource, so there is no need to copy
+> content to the framebuffer ressource.  The guest may fill other
+> resources such as textures used for rendering with copy commands.
+> 
+> Without acceleration the guest does software-rendering to the backing
+> storage, then sends a command to copy the framebuffer content from guest
+> backing storage to host ressource.
+> 
+> Now it would be useful to allow a shared mapping, so no copying between
+> guest backing storage and host resource is needed, especially for the
+> software rendering case (i.e. dumb gem buffers).  Being able to export
+> guest dumb buffers to other host processes would be useful too, for
+> example to display guest windows seamlessly on the host wayland server.
+> 
+> So getting a dma-buf for the guest backing storage via udmabuf looked
+> like a useful approach.  We can export the guest gem buffers to other
+> host processes that way.  qemu itself could map it too, to get a linear
+> representation of the scattered guest backing storage.
+> 
+> The other obvious approach would be to do it the other way around and
+> allow the guest map the host resource somehow.  On the host side qemu
+> could use vgem to allocate resource memory, so it'll be a gem object
+> already.  Mapping that into the guest isn't that straight-forward
+> though.  The guest manages its physical address space, so the guest
+> would need to find a free spot and ask the host to place the resource
+> there.  Then the guest needs page structs covering the mapped resource,
+> so it can work with it.  Didn't investigate how difficuilt that is.  Use
+> memory hotplug maybe?  Can we easily unmap the resource then?  Also I
+> think updating the guests physical memory layout (which we would need to
+> do on every resource map/unmap) isn't an exactly cheap operation ...
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
----
-
-* Changes since v12
-- Rebase to latest media-tree/master changed a 'return ret' to a 'goto
-  out' in rvin_start_streaming().
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 135 +++++++++++++++++++++++++++--
- 1 file changed, 127 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index d70a689d9dd3713f..4a3a195e7f59047c 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -996,10 +996,126 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- }
- 
-+static int rvin_mc_validate_format(struct rvin_dev *vin, struct v4l2_subdev *sd,
-+				   struct media_pad *pad)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+
-+	fmt.pad = pad->index;
-+	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-+		return -EPIPE;
-+
-+	switch (fmt.format.code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vin->mbus_code = fmt.format.code;
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+		/* Supported natively */
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		switch (vin->format.field) {
-+		case V4L2_FIELD_TOP:
-+		case V4L2_FIELD_BOTTOM:
-+		case V4L2_FIELD_NONE:
-+			break;
-+		case V4L2_FIELD_INTERLACED_TB:
-+		case V4L2_FIELD_INTERLACED_BT:
-+		case V4L2_FIELD_INTERLACED:
-+		case V4L2_FIELD_SEQ_TB:
-+		case V4L2_FIELD_SEQ_BT:
-+			/* Use VIN hardware to combine the two fields */
-+			fmt.format.height *= 2;
-+			break;
-+		default:
-+			return -EPIPE;
-+		}
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	if (fmt.format.width != vin->format.width ||
-+	    fmt.format.height != vin->format.height ||
-+	    fmt.format.code != vin->mbus_code)
-+		return -EPIPE;
-+
-+	return 0;
-+}
-+
-+static int rvin_set_stream(struct rvin_dev *vin, int on)
-+{
-+	struct media_pipeline *pipe;
-+	struct media_device *mdev;
-+	struct v4l2_subdev *sd;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	/* No media controller used, simply pass operation to subdevice. */
-+	if (!vin->info->use_mc) {
-+		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-+				       on);
-+
-+		return ret == -ENOIOCTLCMD ? 0 : ret;
-+	}
-+
-+	pad = media_entity_remote_pad(&vin->pad);
-+	if (!pad)
-+		return -EPIPE;
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	if (!on) {
-+		media_pipeline_stop(&vin->vdev.entity);
-+		return v4l2_subdev_call(sd, video, s_stream, 0);
-+	}
-+
-+	ret = rvin_mc_validate_format(vin, sd, pad);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * The graph lock needs to be taken to protect concurrent
-+	 * starts of multiple VIN instances as they might share
-+	 * a common subdevice down the line and then should use
-+	 * the same pipe.
-+	 */
-+	mdev = vin->vdev.entity.graph_obj.mdev;
-+	mutex_lock(&mdev->graph_mutex);
-+	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-+	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
-+	mutex_unlock(&mdev->graph_mutex);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-+	if (ret == -ENOIOCTLCMD)
-+		ret = 0;
-+	if (ret)
-+		media_pipeline_stop(&vin->vdev.entity);
-+
-+	return ret;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -1014,8 +1130,13 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		return -ENOMEM;
- 	}
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = rvin_set_stream(vin, 1);
-+	if (ret) {
-+		spin_lock_irqsave(&vin->qlock, flags);
-+		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-+		spin_unlock_irqrestore(&vin->qlock, flags);
-+		goto out;
-+	}
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1024,11 +1145,11 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = rvin_capture_start(vin);
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		rvin_set_stream(vin, 0);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
--
-+out:
- 	if (ret)
- 		dma_free_coherent(vin->dev, vin->format.sizeimage, vin->scratch,
- 				  vin->scratch_phys);
-@@ -1039,7 +1160,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1078,8 +1198,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	rvin_set_stream(vin, 0);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
+Generally we try to cache mappings as much as possible. And wrt finding a
+slot: Create a sufficiently sized BAR on the virgl device, just for that?
+-Daniel
 -- 
-2.16.2
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
