@@ -1,227 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36555 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751237AbeDBMfs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 08:35:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 10/15] v4l: vsp1: Move DRM pipeline output setup code to a function
-Date: Mon, 02 Apr 2018 15:35:54 +0300
-Message-ID: <3938270.yYcQyIxAEm@avalon>
-In-Reply-To: <daa6e220-0e20-d8cc-717a-dc9083ca8baf@ideasonboard.com>
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com> <20180226214516.11559-11-laurent.pinchart+renesas@ideasonboard.com> <daa6e220-0e20-d8cc-717a-dc9083ca8baf@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52530 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751609AbeDIOUc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 10:20:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 03/29] media-request: allocate media requests
+Date: Mon,  9 Apr 2018 16:20:00 +0200
+Message-Id: <20180409142026.19369-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thursday, 29 March 2018 14:49:12 EEST Kieran Bingham wrote:
-> Hi Laurent,
-> 
-> Thank you for another patch :D
+Add support for allocating a new request. This is only supported
+if mdev->ops->req_queue is set, i.e. the driver indicates that it
+supports queueing requests.
 
-You're welcome, there will be more ;-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/Makefile        |  3 ++-
+ drivers/media/media-device.c  | 14 ++++++++++++++
+ drivers/media/media-request.c | 23 +++++++++++++++++++++++
+ include/media/media-device.h  | 13 +++++++++++++
+ include/media/media-request.h | 22 ++++++++++++++++++++++
+ 5 files changed, 74 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/media-request.c
+ create mode 100644 include/media/media-request.h
 
-> On 26/02/18 21:45, Laurent Pinchart wrote:
-> > In order to make the vsp1_du_setup_lif() easier to read, and for
-> > symmetry with the DRM pipeline input setup, move the pipeline output
-> > setup code to a separate function.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> Just an easy code move. And I agree it improves things.
-> 
-> Small question below, but otherwise:
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> > ---
-> > 
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 107 ++++++++++++++++------------
-> >  1 file changed, 61 insertions(+), 46 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > b/drivers/media/platform/vsp1/vsp1_drm.c index 00ce99bd1605..1c8adda47440
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -276,6 +276,66 @@ static int vsp1_du_pipeline_setup_input(struct
-> > vsp1_device *vsp1,
-> >  	return 0;
-> >  
-> >  }
-> > 
-> > +/* Setup the output side of the pipeline (WPF and LIF). */
-> > +static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
-> > +					 struct vsp1_pipeline *pipe)
-> > +{
-> > +	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
-> > +	struct v4l2_subdev_format format = {
-> > +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> 
-> Why do you initialise this .which here, but all the other member variables
-> below.
-> 
-> Wouldn't it make more sense to group all of this initialisation together? or
-> is there a distinction in keeping the .which separate.
-> 
-> (Perhaps this is just a way to initialise the rest of the structure to 0,
-> without using the memset?)
-
-The initialization of the .which field is indeed there to avoid the memset, 
-but other than that there's no particular reason. I find it clearer to keep 
-the initialization of the structure close to the code that makes use of it 
-(the next v4l2_subdev_call in this case).
-
-As initializing all members when declaring the variable doesn't make a change 
-in code size (gcc 6.4.0) but increases .rodata by 18 bytes and decreases 
-__modver by the same amount, I'm tempted to leave it as-is unless you think it 
-should be changed.
-
-> > +	};
-> > +	int ret;
-> > +
-> > +	format.pad = RWPF_PAD_SINK;
-> > +	format.format.width = drm_pipe->width;
-> > +	format.format.height = drm_pipe->height;
-> > +	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> > +	format.format.field = V4L2_FIELD_NONE;
-> > +
-> > +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, 
-NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
-> > +		__func__, format.format.width, format.format.height,
-> > +		format.format.code, pipe->output->entity.index);
-> > +
-> > +	format.pad = RWPF_PAD_SOURCE;
-> > +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, 
-NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
-> > +		__func__, format.format.width, format.format.height,
-> > +		format.format.code, pipe->output->entity.index);
-> > +
-> > +	format.pad = LIF_PAD_SINK;
-> > +	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
-> > +			       &format);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
-> > +		__func__, format.format.width, format.format.height,
-> > +		format.format.code, pipe->lif->index);
-> > +
-> > +	/*
-> > +	 * Verify that the format at the output of the pipeline matches the
-> > +	 * requested frame size and media bus code.
-> > +	 */
-> > +	if (format.format.width != drm_pipe->width ||
-> > +	    format.format.height != drm_pipe->height ||
-> > +	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
-> > +		dev_dbg(vsp1->dev, "%s: format mismatch on LIF%u\n", __func__,
-> > +			pipe->lif->index);
-> > +		return -EPIPE;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > 
-> >  /* Configure all entities in the pipeline. */
-> >  static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
-> >  {
-> > 
-> > @@ -356,7 +416,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
-> > pipe_index,> 
-> >  	struct vsp1_drm_pipeline *drm_pipe;
-> >  	struct vsp1_pipeline *pipe;
-> >  	struct vsp1_bru *bru;
-> > 
-> > -	struct v4l2_subdev_format format;
-> > 
-> >  	unsigned long flags;
-> >  	unsigned int i;
-> >  	int ret;
-> > 
-> > @@ -417,54 +476,10 @@ int vsp1_du_setup_lif(struct device *dev, unsigned
-> > int pipe_index,> 
-> >  	if (ret < 0)
-> >  	
-> >  		return ret;
-> > 
-> > -	memset(&format, 0, sizeof(format));
-> > -	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > -	format.pad = RWPF_PAD_SINK;
-> > -	format.format.width = cfg->width;
-> > -	format.format.height = cfg->height;
-> > -	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> > -	format.format.field = V4L2_FIELD_NONE;
-> > -
-> > -	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, 
-NULL,
-> > -			       &format);
-> > +	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
-> > 
-> >  	if (ret < 0)
-> >  	
-> >  		return ret;
-> > 
-> > -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
-> > -		__func__, format.format.width, format.format.height,
-> > -		format.format.code, pipe->output->entity.index);
-> > -
-> > -	format.pad = RWPF_PAD_SOURCE;
-> > -	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, 
-NULL,
-> > -			       &format);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
-> > -		__func__, format.format.width, format.format.height,
-> > -		format.format.code, pipe->output->entity.index);
-> > -
-> > -	format.pad = LIF_PAD_SINK;
-> > -	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
-> > -			       &format);
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> > -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
-> > -		__func__, format.format.width, format.format.height,
-> > -		format.format.code, pipe_index);
-> > -
-> > -	/*
-> > -	 * Verify that the format at the output of the pipeline matches the
-> > -	 * requested frame size and media bus code.
-> > -	 */
-> > -	if (format.format.width != cfg->width ||
-> > -	    format.format.height != cfg->height ||
-> > -	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
-> > -		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
-> > -		return -EPIPE;
-> > -	}
-> > -
-> > 
-> >  	/* Enable the VSP1. */
-> >  	ret = vsp1_device_get(vsp1);
-> >  	if (ret < 0)
-
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 594b462ddf0e..985d35ec6b29 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -3,7 +3,8 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
+ 
+-media-objs	:= media-device.o media-devnode.o media-entity.o
++media-objs	:= media-device.o media-devnode.o media-entity.o \
++		   media-request.o
+ 
+ #
+ # I2C drivers should come before other drivers, otherwise they'll fail
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 35e81f7c0d2f..acb583c0eacd 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -32,6 +32,7 @@
+ #include <media/media-device.h>
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
++#include <media/media-request.h>
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 
+@@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
+ 	return ret;
+ }
+ 
++static long media_device_request_alloc(struct media_device *mdev,
++				       struct media_request_alloc *alloc)
++{
++	if (!mdev->ops || !mdev->ops->req_queue)
++		return -ENOTTY;
++
++	return media_request_alloc(mdev, alloc);
++}
++
+ static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+ {
+ 	/* All media IOCTLs are _IOWR() */
+@@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
+ 	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
+ };
+ 
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+@@ -686,6 +697,9 @@ void media_device_init(struct media_device *mdev)
+ 	INIT_LIST_HEAD(&mdev->pads);
+ 	INIT_LIST_HEAD(&mdev->links);
+ 	INIT_LIST_HEAD(&mdev->entity_notify);
++
++	spin_lock_init(&mdev->req_lock);
++	mutex_init(&mdev->req_queue_mutex);
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+ 
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+new file mode 100644
+index 000000000000..ead78613fdbe
+--- /dev/null
++++ b/drivers/media/media-request.c
+@@ -0,0 +1,23 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Media device request objects
++ *
++ * Copyright (C) 2018 Intel Corporation
++ * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
++ *
++ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++ */
++
++#include <linux/anon_inodes.h>
++#include <linux/file.h>
++#include <linux/mm.h>
++#include <linux/string.h>
++
++#include <media/media-device.h>
++#include <media/media-request.h>
++
++int media_request_alloc(struct media_device *mdev,
++			struct media_request_alloc *alloc)
++{
++	return -ENOMEM;
++}
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index bcc6ec434f1f..07e323c57202 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -19,6 +19,7 @@
+ #ifndef _MEDIA_DEVICE_H
+ #define _MEDIA_DEVICE_H
+ 
++#include <linux/anon_inodes.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ 
+@@ -27,6 +28,7 @@
+ 
+ struct ida;
+ struct device;
++struct media_device;
+ 
+ /**
+  * struct media_entity_notify - Media Entity Notify
+@@ -50,10 +52,16 @@ struct media_entity_notify {
+  * struct media_device_ops - Media device operations
+  * @link_notify: Link state change notification callback. This callback is
+  *		 called with the graph_mutex held.
++ * @req_alloc: Allocate a request
++ * @req_free: Free a request
++ * @req_queue: Queue a request
+  */
+ struct media_device_ops {
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
++	struct media_request *(*req_alloc)(struct media_device *mdev);
++	void (*req_free)(struct media_request *req);
++	int (*req_queue)(struct media_request *req);
+ };
+ 
+ /**
+@@ -88,6 +96,8 @@ struct media_device_ops {
+  * @disable_source: Disable Source Handler function pointer
+  *
+  * @ops:	Operation handler callbacks
++ * @req_lock:	Serialise access to requests
++ * @req_queue_mutex: Serialise validating and queueing requests
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -158,6 +168,9 @@ struct media_device {
+ 	void (*disable_source)(struct media_entity *entity);
+ 
+ 	const struct media_device_ops *ops;
++
++	spinlock_t req_lock;
++	struct mutex req_queue_mutex;
+ };
+ 
+ /* We don't need to include pci.h or usb.h here */
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+new file mode 100644
+index 000000000000..dae3eccd9aa7
+--- /dev/null
++++ b/include/media/media-request.h
+@@ -0,0 +1,22 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Media device request objects
++ *
++ * Copyright (C) 2018 Intel Corporation
++ *
++ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++ */
++
++#ifndef MEDIA_REQUEST_H
++#define MEDIA_REQUEST_H
++
++#include <linux/list.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++
++#include <media/media-device.h>
++
++int media_request_alloc(struct media_device *mdev,
++			struct media_request_alloc *alloc);
++
++#endif
 -- 
-Regards,
-
-Laurent Pinchart
+2.16.3
