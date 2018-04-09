@@ -1,73 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34295 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751299AbeDRRHo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 13:07:44 -0400
-Received: by mail-wr0-f196.google.com with SMTP id d19-v6so6805425wre.1
-        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2018 10:07:44 -0700 (PDT)
-Date: Wed, 18 Apr 2018 19:07:40 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from osg.samsung.com ([64.30.133.232]:40278 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751367AbeDIJsJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 05:48:09 -0400
+Date: Mon, 9 Apr 2018 06:48:01 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Douglas Fischer <fischerdouglasc@gmail.com>, jasmin@anw.at
-Subject: Re: [PATCH v2 18/19] media: si470x: allow build both USB and I2C at
- the same time
-Message-ID: <20180418190740.092c2344@perian.wuest.de>
-In-Reply-To: <20180406134603.40d8d055@vento.lan>
-References: <9e596fe9e1fd9d2c27ae9abaeb900b2e0cd49011.1522959716.git.mchehab@s-opensource.com>
-        <201804062347.x9zW4zaa%fengguang.wu@intel.com>
-        <20180406134603.40d8d055@vento.lan>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: Re: [PATCH 02/16] media: omap3isp: allow it to build with
+ COMPILE_TEST
+Message-ID: <20180409064801.335def4f@vento.lan>
+In-Reply-To: <CAK8P3a0_AQaYFyUog0sV9hjq6yOzohnCbD9=AK-HGxWt-P_hEA@mail.gmail.com>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <2233233.yQEdpcOfql@avalon>
+        <20180405164444.441033be@vento.lan>
+        <4086814.xXeFl5mgbc@avalon>
+        <20180407101455.214bf849@vento.lan>
+        <CAK8P3a0_AQaYFyUog0sV9hjq6yOzohnCbD9=AK-HGxWt-P_hEA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Fri, 6 Apr 2018 13:46:03 -0300
-schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+HI Arnd,
 
-> Em Sat, 7 Apr 2018 00:21:07 +0800
-> kbuild test robot <lkp@intel.com> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > I love your patch! Yet something to improve:
-> > [...]
-> 
-> Fixed patch enclosed.
-> 
-> Thanks,
-> Mauro
-> 
-> [PATCH] media: si470x: allow build both USB and I2C at the same time
-> 
-> Currently, either USB or I2C is built. Change it to allow
-> having both enabled at the same time.
-> 
-> The main reason is that COMPILE_TEST all[yes/mod]builds will
-> now contain all drivers under drivers/media.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Em Mon, 9 Apr 2018 10:50:13 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-FWIW, this patch (which seemingly is commit
-58757984ca3c73284a45dd53ac66f1414057cd09 in media_tree.git) seems to break media_build in a way that on my systems only 20 drivers and modules are built now, while it should be in the 650+ modules range. Hans' automated daily testbuilds suffer from the same issue, looking at todays daily build logs (Wednesday.tar.bz2). I personally build against Kernel 4.16.2 on Gentoo.
+> >> > That hardly seems to be an arch-specific iommu solution, but, instead, some
+> >> > hack used by only three drivers or some legacy iommu binding.  
+> >>
+> >> It's more complex than that. There are multiple IOMMU-related APIs on ARM, so
+> >> more recent than others, with different feature sets. While I agree that
+> >> drivers should move away from arm_iommu_create_mapping(), doing so requires
+> >> coordination between the IOMMU driver and the bus master driver (for instance
+> >> the omap3isp driver). It's not a trivial matter, but I'd love if someone
+> >> submitted patches :-)  
+> >
+> > If someone steps up to do that, it would be really helpful, but we
+> > should not trust that this will happen. OMAP3 is an old hardware,
+> > and not many developers are working on improving its support.  
+> 
+> Considering its age, I still see a lot of changes on the arch/arm side of
+> it, so I wouldn't give up the hope yet.
 
-This specific commit/patch was found using
+Yeah, someone might still work on such fix.
 
-  # git bisect good v4.17-rc1
-  # git bisect bad media_tree/master
+> > Arnd,
+> >
+> > What do you think?  
+> 
+> I think including a foreign architecture header is worse than your
+> earlier patch, I'd rather see a local hack in the driver.
+> 
+> I haven't tried it, but how about something simpler like what
+> I have below.
 
-And, "git revert 58767984..." makes all drivers being built again by
-media_build.
+Actually, another #ifdef was needed, before include arch-specifi
+header :-)
+> 
+>       Arnd
+> 
+> (in case it works and you want to pick it up with a proper
+> changelog):
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Not sure if there's something other for which this patch acts as the
-trigger of if this needs adaption in media_build, though I thought
-reporting this doesn't hurt.
+Sounds a reasonable approach. Instead of using CONFIG_ARM, I would,
+instead check for CONFIG_ARM_DMA_USE_IOMMU, with is the actual
+dependency for such code, as otherwise it could cause some
+compilation breakages on ARM with COMPILE_TEST and some randconfig.
 
-Best regards,
-Daniel Scheller
--- 
-https://github.com/herrnst
+An advantage is that it properly annotates the part of the code
+that depends on ARM_DMA_USE_IOMMU.
+
+Thanks,
+Mauro
+
+From: Arnd Bergmann <arnd@arndb.de>
+
+media: omap3isp: allow it to build with COMPILE_TEST
+ 
+There aren't much things required for it to build with COMPILE_TEST.
+It just needs to not compile the code that depends on arm-specific
+iommu implementation.
+
+Co-developed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 1ee915b794c0..2757b621091c 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -63,12 +63,10 @@ config VIDEO_MUX
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+-	depends on ARCH_OMAP3 || COMPILE_TEST
+-	depends on ARM
++	depends on ((ARCH_OMAP3 && OMAP_IOMMU) || COMPILE_TEST)
+ 	depends on COMMON_CLK
+ 	depends on HAS_DMA && OF
+-	depends on OMAP_IOMMU
+-	select ARM_DMA_USE_IOMMU
++	select ARM_DMA_USE_IOMMU if OMAP_IOMMU
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select MFD_SYSCON
+ 	select V4L2_FWNODE
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 16c50099cccd..b8c8761a76b6 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -61,7 +61,9 @@
+ #include <linux/sched.h>
+ #include <linux/vmalloc.h>
+ 
++#ifdef CONFIG_ARM_DMA_USE_IOMMU
+ #include <asm/dma-iommu.h>
++#endif
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-fwnode.h>
+@@ -1938,12 +1940,15 @@ static int isp_initialize_modules(struct isp_device *isp)
+ 
+ static void isp_detach_iommu(struct isp_device *isp)
+ {
++#ifdef CONFIG_ARM_DMA_USE_IOMMU
+ 	arm_iommu_release_mapping(isp->mapping);
+ 	isp->mapping = NULL;
++#endif
+ }
+ 
+ static int isp_attach_iommu(struct isp_device *isp)
+ {
++#ifdef CONFIG_ARM_DMA_USE_IOMMU
+ 	struct dma_iommu_mapping *mapping;
+ 	int ret;
+ 
+@@ -1972,6 +1977,9 @@ static int isp_attach_iommu(struct isp_device *isp)
+ error:
+ 	isp_detach_iommu(isp);
+ 	return ret;
++#else
++	return -ENODEV;
++#endif
+ }
+ 
+ /*
