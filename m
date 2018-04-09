@@ -1,100 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43812 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751593AbeDDPcj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:32:39 -0400
-Subject: Patch "media: media/v4l2-ctrls: volatiles should not generate CH_VALUE" has been added to the 3.18-stable tree
-To: mchehab@s-opensource.com, gregkh@linuxfoundation.org,
-        hans.verkuil@cisco.com, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, mchehab@infradead.org,
-        mchehab@osg.samsung.com, ricardo.ribalda@gmail.com
-Cc: <stable@vger.kernel.org>, <stable-commits@vger.kernel.org>
-From: <gregkh@linuxfoundation.org>
-Date: Wed, 04 Apr 2018 17:32:38 +0200
-In-Reply-To: <1663cf48e2eb96405c5d6d874020aa9925ee217f.1522260310.git.mchehab@s-opensource.com>
-Message-ID: <15228559581742@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:60360 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752372AbeDIOUh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 10:20:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 28/29] vivid: add mc
+Date: Mon,  9 Apr 2018 16:20:25 +0200
+Message-Id: <20180409142026.19369-29-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is a note to let you know that I've just added the patch titled
+Add support for the media_device to vivid. This is a prerequisite
+for request support.
 
-    media: media/v4l2-ctrls: volatiles should not generate CH_VALUE
-
-to the 3.18-stable tree which can be found at:
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-The filename of the patch is:
-     media-media-v4l2-ctrls-volatiles-should-not-generate-ch_value.patch
-and it can be found in the queue-3.18 subdirectory.
-
-If you, or anyone else, feels it should not be added to the stable tree,
-please let <stable@vger.kernel.org> know about it.
-
-
->From foo@baz Wed Apr  4 17:30:18 CEST 2018
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date: Wed, 28 Mar 2018 15:12:35 -0300
-Subject: media: media/v4l2-ctrls: volatiles should not generate CH_VALUE
-To: Linux Media Mailing List <linux-media@vger.kernel.org>, stable@vger.kernel.org
-Cc: Ricardo Ribalda <ricardo.ribalda@gmail.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Message-ID: <1663cf48e2eb96405c5d6d874020aa9925ee217f.1522260310.git.mchehab@s-opensource.com>
-
-From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-
-Volatile controls should not generate CH_VALUE events.
-
-Set has_changed to false to prevent this happening.
-
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/platform/vivid/vivid-core.c | 61 +++++++++++++++++++++++++++++++
+ drivers/media/platform/vivid/vivid-core.h |  8 ++++
+ 2 files changed, 69 insertions(+)
 
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1619,6 +1619,15 @@ static int cluster_changed(struct v4l2_c
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 82ec216f2ad8..69386b26d5dd 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -657,6 +657,15 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
  
- 		if (ctrl == NULL)
- 			continue;
-+		/*
-+		 * Set has_changed to false to avoid generating
-+		 * the event V4L2_EVENT_CTRL_CH_VALUE
-+		 */
-+		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
-+			ctrl->has_changed = false;
-+			continue;
-+		}
+ 	dev->inst = inst;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->v4l2_dev.mdev = &dev->mdev;
 +
- 		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
- 			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
- 				ctrl->p_cur, ctrl->p_new);
-
-
-Patches currently in stable-queue which might be from mchehab@s-opensource.com are
-
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-m.userptr-in-put_v4l2_plane32.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-avoid-sizeof-type.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-drop-pr_info-for-unknown-buffer-type.patch
-queue-3.18/media-v4l2-compat-ioctl32-use-compat_u64-for-video-standard.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-add-missing-vidioc_prepare_buf.patch
-queue-3.18/vb2-v4l2_buf_flag_done-is-set-after-dqbuf.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-refactor-compat-ioctl32-logic.patch
-queue-3.18/media-v4l2-ctrls-fix-sparse-warning.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-ctrl_is_pointer.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-move-helper-functions-to-__get-put_v4l2_format32.patch
-queue-3.18/media-media-v4l2-ctrls-volatiles-should-not-generate-ch_value.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-don-t-copy-back-the-result-for-certain-errors.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-make-ctrl_is_pointer-work-for-subdevs.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-fix-the-indentation.patch
-queue-3.18/media-v4l2-compat-ioctl32-copy-v4l2_window-global_alpha.patch
-queue-3.18/media-v4l2-ioctl.c-don-t-copy-back-the-result-for-enotty.patch
-queue-3.18/media-v4l2-compat-ioctl32.c-copy-clip-list-in-put_v4l2_window32.patch
-queue-3.18/media-v4l2-compat-ioctl32-initialize-a-reserved-field.patch
++	/* Initialize media device */
++	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
++	dev->mdev.dev = &pdev->dev;
++	media_device_init(&dev->mdev);
++#endif
++
+ 	/* register v4l2_device */
+ 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
+ 			"%s-%03d", VIVID_MODULE_NAME, inst);
+@@ -1173,6 +1182,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vid_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ #ifdef CONFIG_VIDEO_VIVID_CEC
+ 		if (in_type_counter[HDMI]) {
+ 			struct cec_adapter *adap;
+@@ -1225,6 +1241,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vid_out_pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_out_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ #ifdef CONFIG_VIDEO_VIVID_CEC
+ 		for (i = 0; i < dev->num_outputs; i++) {
+ 			struct cec_adapter *adap;
+@@ -1274,6 +1297,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->tvnorms = tvnorms_cap;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vbi_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_cap_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1299,6 +1329,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->tvnorms = tvnorms_out;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vbi_out_pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_out_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_out_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1322,6 +1359,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->sdr_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->sdr_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_SDR, sdr_cap_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1368,12 +1412,25 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 					  video_device_node_name(vfd));
+ 	}
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* Register the media device */
++	ret = media_device_register(&dev->mdev);
++	if (ret) {
++		dev_err(dev->mdev.dev,
++			"media device register failed (err=%d)\n", ret);
++		goto unreg_dev;
++	}
++#endif
++
+ 	/* Now that everything is fine, let's add it to device list */
+ 	vivid_devs[inst] = dev;
+ 
+ 	return 0;
+ 
+ unreg_dev:
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_device_unregister(&dev->mdev);
++#endif
+ 	video_unregister_device(&dev->radio_tx_dev);
+ 	video_unregister_device(&dev->radio_rx_dev);
+ 	video_unregister_device(&dev->sdr_cap_dev);
+@@ -1444,6 +1501,10 @@ static int vivid_remove(struct platform_device *pdev)
+ 		if (!dev)
+ 			continue;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		media_device_unregister(&dev->mdev);
++#endif
++
+ 		if (dev->has_vid_cap) {
+ 			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
+ 				video_device_node_name(&dev->vid_cap_dev));
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 477c80a4d44c..6ccd1f5c1d91 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -136,6 +136,14 @@ struct vivid_cec_work {
+ struct vivid_dev {
+ 	unsigned			inst;
+ 	struct v4l2_device		v4l2_dev;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device		mdev;
++	struct media_pad		vid_cap_pad;
++	struct media_pad		vid_out_pad;
++	struct media_pad		vbi_cap_pad;
++	struct media_pad		vbi_out_pad;
++	struct media_pad		sdr_cap_pad;
++#endif
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_vid;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_aud;
+-- 
+2.16.3
