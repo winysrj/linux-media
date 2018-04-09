@@ -1,63 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54009 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751473AbeDERyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 13:54:25 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 11/16] media: davinci: allow building isif code
-Date: Thu,  5 Apr 2018 13:54:11 -0400
-Message-Id: <c58febf394be37056b5f0bd8837806990ca94d10.1522949748.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522949748.git.mchehab@s-opensource.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48815 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754322AbeDIDq6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Apr 2018 23:46:58 -0400
+Message-ID: <4cdafb68944b89b84a557b8ed99d03c0@smtp-cloud8.xs4all.net>
+Date: Mon, 09 Apr 2018 05:46:56 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The only reason why this driver doesn't build with COMPILE_TEST
-is because it includes mach/mux.h. It turns that none of the
-macros defined there are used.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So, get rid of it, in order to allow it to build with
-COMPILE_TEST.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/davinci/Kconfig | 3 ++-
- drivers/media/platform/davinci/isif.c  | 2 --
- 2 files changed, 2 insertions(+), 3 deletions(-)
+date:			Mon Apr  9 05:00:11 CEST 2018
+media-tree git hash:	17dec0a949153d9ac00760ba2f5b78cb583e995f
+media_build git hash:	541653bb52fcf7c34b8b83a4c8cc66b09c68ac37
+v4l-utils git hash:	47d43b130dc6e9e0edc900759fb37649208371e4
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.2-rc1
+smatch version:		v0.5.0-4419-g3b5bf5c9
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
-index 55982e681d77..babdb4877b3f 100644
---- a/drivers/media/platform/davinci/Kconfig
-+++ b/drivers/media/platform/davinci/Kconfig
-@@ -67,7 +67,8 @@ config VIDEO_DM355_CCDC
- 
- config VIDEO_DM365_ISIF
- 	tristate "TI DM365 ISIF video capture driver"
--	depends on VIDEO_V4L2 && ARCH_DAVINCI
-+	depends on VIDEO_V4L2
-+	depends on ARCH_DAVINCI || COMPILE_TEST
- 	depends on HAS_DMA
- 	depends on I2C
- 	select VIDEOBUF_DMA_CONTIG
-diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
-index d5ff58494c1e..b14caadcd0df 100644
---- a/drivers/media/platform/davinci/isif.c
-+++ b/drivers/media/platform/davinci/isif.c
-@@ -31,8 +31,6 @@
- #include <linux/err.h>
- #include <linux/module.h>
- 
--#include <mach/mux.h>
--
- #include <media/davinci/isif.h>
- #include <media/davinci/vpss.h>
- 
--- 
-2.14.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16-i686: OK
+linux-4.16-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
