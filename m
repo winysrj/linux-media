@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:41129 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752554AbeDOSux (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 14:50:53 -0400
-Received: by mail-lf0-f68.google.com with SMTP id m202-v6so1715820lfe.8
-        for <linux-media@vger.kernel.org>; Sun, 15 Apr 2018 11:50:53 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Sun, 15 Apr 2018 20:50:51 +0200
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: kieran.bingham@ideasonboard.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver
- driver
-Message-ID: <20180415185051.GC20093@bigcity.dyn.berto.se>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
- <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se>
- <eb0b92de-cb09-9d72-8d46-80a0359184f2@ideasonboard.com>
- <3087271.YPSegSqyCH@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3087271.YPSegSqyCH@avalon>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35249 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753384AbeDIQsF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:05 -0400
+Received: by mail-wm0-f67.google.com with SMTP id r82so18180769wme.0
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:04 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 09/19] [media] ddbridge: improve separated MSI IRQ handling
+Date: Mon,  9 Apr 2018 18:47:42 +0200
+Message-Id: <20180409164752.641-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Thanks for your feedback.
+Improve IRQ handling in the separated MSG/I2C and IO/TSDATA handlers by
+applying a mask for recognized bits immediately upon reading the IRQ mask
+from the hardware, so only the bits/IRQs that actually were set will be
+acked.
 
-On 2018-04-04 18:25:23 +0300, Laurent Pinchart wrote:
+Picked up from the upstream dddvb-0.9.33 release.
 
-[snip]
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-> > > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > > b/drivers/media/platform/rcar-vin/rcar-csi2.c new file mode 100644
-> > > index 0000000000000000..c0c2a763151bc928
-> > > --- /dev/null
-> > > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > > @@ -0,0 +1,884 @@
-> > > +// SPDX-License-Identifier: GPL-2.0+
-> 
-> Do you intend making it GPL-2.0+ or did you mean GPL-2.0 ?
-
-Wops I intended to make it GPL-2.0 thanks for catching this.
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 5fbb0996a12c..9d91221dacc4 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2443,16 +2443,17 @@ static void irq_handle_io(struct ddb *dev, u32 s)
+ irqreturn_t ddb_irq_handler0(int irq, void *dev_id)
+ {
+ 	struct ddb *dev = (struct ddb *)dev_id;
+-	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
++	u32 mask = 0x8fffff00;
++	u32 s = mask & ddbreadl(dev, INTERRUPT_STATUS);
+ 
++	if (!s)
++		return IRQ_NONE;
+ 	do {
+ 		if (s & 0x80000000)
+ 			return IRQ_NONE;
+-		if (!(s & 0xfffff00))
+-			return IRQ_NONE;
+-		ddbwritel(dev, s & 0xfffff00, INTERRUPT_ACK);
++		ddbwritel(dev, s, INTERRUPT_ACK);
+ 		irq_handle_io(dev, s);
+-	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
++	} while ((s = mask & ddbreadl(dev, INTERRUPT_STATUS)));
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -2460,16 +2461,17 @@ irqreturn_t ddb_irq_handler0(int irq, void *dev_id)
+ irqreturn_t ddb_irq_handler1(int irq, void *dev_id)
+ {
+ 	struct ddb *dev = (struct ddb *)dev_id;
+-	u32 s = ddbreadl(dev, INTERRUPT_STATUS);
++	u32 mask = 0x8000000f;
++	u32 s = mask & ddbreadl(dev, INTERRUPT_STATUS);
+ 
++	if (!s)
++		return IRQ_NONE;
+ 	do {
+ 		if (s & 0x80000000)
+ 			return IRQ_NONE;
+-		if (!(s & 0x0000f))
+-			return IRQ_NONE;
+-		ddbwritel(dev, s & 0x0000f, INTERRUPT_ACK);
++		ddbwritel(dev, s, INTERRUPT_ACK);
+ 		irq_handle_msg(dev, s);
+-	} while ((s = ddbreadl(dev, INTERRUPT_STATUS)));
++	} while ((s = mask & ddbreadl(dev, INTERRUPT_STATUS)));
+ 
+ 	return IRQ_HANDLED;
+ }
 -- 
-Regards,
-Niklas Söderlund
+2.16.1
