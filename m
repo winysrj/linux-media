@@ -1,66 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:40180 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755381AbeDWNst (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43903 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751609AbeDIOUh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:48:49 -0400
-Received: by mail-wr0-f195.google.com with SMTP id v60-v6so41477113wrc.7
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:49 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v2 07/15] ARM: dts: increase default cma size to 40MB
-Date: Mon, 23 Apr 2018 14:47:42 +0100
-Message-Id: <20180423134750.30403-8-rui.silva@linaro.org>
-In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
+        Mon, 9 Apr 2018 10:20:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 23/29] videobuf2-v4l2: export request_fd
+Date: Mon,  9 Apr 2018 16:20:20 +0200
+Message-Id: <20180409142026.19369-24-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To support camera in i.MX7 the cma heap is used to allocate frame buffers. The
-default size of CMA is 16MB which is not enough for higher resolutions (ex:
-1600x1200).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So, increase the default CMA size to 40MB.
+Requested by Sakari
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- arch/arm/boot/dts/imx7s.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/media/common/videobuf2/videobuf2-v4l2.c | 6 ++++--
+ include/media/videobuf2-v4l2.h                  | 2 ++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 4d42335c0dee..142ea709d296 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -182,6 +182,20 @@
- 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
- 	};
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 3d0c74bb4220..7b79149b7fae 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -184,6 +184,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
+ 		return -EINVAL;
+ 	}
+ 	vbuf->sequence = 0;
++	vbuf->request_fd = -1;
  
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		/* global autoconfigured region for contiguous allocations */
-+		linux,cma {
-+			compatible = "shared-dma-pool";
-+			reusable;
-+			size = <0x2800000>;
-+			linux,cma-default;
-+		};
-+	};
-+
- 	soc {
- 		#address-cells = <1>;
- 		#size-cells = <1>;
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+ 		switch (b->memory) {
+@@ -391,6 +392,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
+ 	}
+ 
+ 	*p_req = req;
++	vbuf->request_fd = b->request_fd;
+ 
+ 	return 0;
+ }
+@@ -496,9 +498,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+-	if (vb->req_obj.req) {
++	if (vbuf->request_fd >= 0) {
+ 		b->flags |= V4L2_BUF_FLAG_REQUEST_FD;
+-		b->request_fd = -1;
++		b->request_fd = vbuf->request_fd;
+ 	}
+ 
+ 	if (!q->is_output &&
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 0baa3023d7ad..d3ee1f28e197 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -32,6 +32,7 @@
+  *		&enum v4l2_field.
+  * @timecode:	frame timecode.
+  * @sequence:	sequence count of this frame.
++ * @request_fd:	the request_fd associated with this buffer
+  * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
+  *
+  * Should contain enough information to be able to cover all the fields
+@@ -44,6 +45,7 @@ struct vb2_v4l2_buffer {
+ 	__u32			field;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
++	__s32			request_fd;
+ 	struct vb2_plane	planes[VB2_MAX_PLANES];
+ };
+ 
 -- 
-2.17.0
+2.16.3
