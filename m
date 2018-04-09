@@ -1,52 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:39359 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753442AbeDBSYm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 14:24:42 -0400
-Received: by mail-wm0-f68.google.com with SMTP id f125so29013074wme.4
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2018 11:24:42 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 12/20] [media] ddbridge: fix output buffer check
-Date: Mon,  2 Apr 2018 20:24:19 +0200
-Message-Id: <20180402182427.20918-13-d.scheller.oss@gmail.com>
-In-Reply-To: <20180402182427.20918-1-d.scheller.oss@gmail.com>
-References: <20180402182427.20918-1-d.scheller.oss@gmail.com>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43303 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752274AbeDIOUf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 10:20:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 16/29] videodev2.h: Add request_fd field to v4l2_buffer
+Date: Mon,  9 Apr 2018 16:20:13 +0200
+Message-Id: <20180409142026.19369-17-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-A 188 byte gap has to be left between the writer and the consumer. This
-requires 2*188 bytes available to be able to write to the output buffers.
-So, change ddb_output_free() to report free bytes according to this rule.
+When queuing buffers allow for passing the request that should
+be associated with this buffer.
 
-Picked up from the upstream dddvb-0.9.33 release.
+If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
+the file descriptor.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+If a buffer is stored in a request, but not yet queued to the
+driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+ drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
+ include/uapi/linux/videodev2.h                  | 10 +++++++++-
+ 5 files changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index c22537eceee5..e9c2e3e5d64b 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -587,12 +587,12 @@ static u32 ddb_output_free(struct ddb_output *output)
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 886a2d8d5c6c..4e9c77f21858 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -204,7 +204,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+ 	b->reserved2 = 0;
+-	b->reserved = 0;
++	b->request_fd = 0;
  
- 	if (output->dma->cbuf != idx) {
- 		if ((((output->dma->cbuf + 1) % output->dma->num) == idx) &&
--		    (output->dma->size - output->dma->coff <= 188))
-+		    (output->dma->size - output->dma->coff <= (2 * 188)))
- 			return 0;
- 		return 188;
- 	}
- 	diff = off - output->dma->coff;
--	if (diff <= 0 || diff > 188)
-+	if (diff <= 0 || diff > (2 * 188))
- 		return 188;
- 	return 0;
- }
+ 	if (q->is_multiplanar) {
+ 		/*
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 99f106b13280..13aee9f67d05 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+ 	buf->reserved2 = 0;
+-	buf->reserved = 0;
++	buf->request_fd = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+ 	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 0782b3666deb..7e27d0feac94 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -387,7 +387,7 @@ struct v4l2_buffer32 {
+ 	} m;
+ 	__u32			length;
+ 	__u32			reserved2;
+-	__u32			reserved;
++	__s32			request_fd;
+ };
+ 
+ static int get_v4l2_plane32(struct v4l2_plane __user *up,
+@@ -486,6 +486,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ {
+ 	u32 type;
+ 	u32 length;
++	s32 request_fd;
+ 	enum v4l2_memory memory;
+ 	struct v4l2_plane32 __user *uplane32;
+ 	struct v4l2_plane __user *uplane;
+@@ -500,7 +501,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    get_user(memory, &up->memory) ||
+ 	    put_user(memory, &kp->memory) ||
+ 	    get_user(length, &up->length) ||
+-	    put_user(length, &kp->length))
++	    put_user(length, &kp->length) ||
++	    get_user(request_fd, &up->request_fd) ||
++	    put_user(request_fd, &kp->request_fd))
+ 		return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(type))
+@@ -605,7 +608,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	    copy_in_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+ 	    assign_in_user(&up->sequence, &kp->sequence) ||
+ 	    assign_in_user(&up->reserved2, &kp->reserved2) ||
+-	    assign_in_user(&up->reserved, &kp->reserved) ||
++	    assign_in_user(&up->request_fd, &kp->request_fd) ||
+ 	    get_user(length, &kp->length) ||
+ 	    put_user(length, &up->length))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 56741c4a48fc..561a1fe3160b 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+ 	const struct v4l2_plane *plane;
+ 	int i;
+ 
+-	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+-			prt_names(p->type, v4l2_type_names),
++			prt_names(p->type, v4l2_type_names), p->request_fd,
+ 			p->flags, prt_names(p->field, v4l2_field_names),
+ 			p->sequence, prt_names(p->memory, v4l2_memory_names));
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d6e5c245bdcf..9c65d890a5f2 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -910,6 +910,7 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
++ * @request_fd: fd of the request that this buffer should use
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -934,7 +935,10 @@ struct v4l2_buffer {
+ 	} m;
+ 	__u32			length;
+ 	__u32			reserved2;
+-	__u32			reserved;
++	union {
++		__s32		request_fd;
++		__u32		reserved;
++	};
+ };
+ 
+ /*  Flags for 'flags' field */
+@@ -952,6 +956,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_BFRAME			0x00000020
+ /* Buffer is ready, but the data contained within is corrupted. */
+ #define V4L2_BUF_FLAG_ERROR			0x00000040
++/* Buffer is added to an unqueued request */
++#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+ /* timecode field is valid */
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+ /* Buffer is prepared for queuing */
+@@ -970,6 +976,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++/* request_fd is valid */
++#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 -- 
-2.16.1
+2.16.3
