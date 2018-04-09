@@ -1,86 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:42442 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754574AbeDVP4i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 11:56:38 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: [PATCH v3 00/11] media: ov772x: support media controller, device tree probing, etc.
-Date: Mon, 23 Apr 2018 00:56:06 +0900
-Message-Id: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:37810 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753306AbeDIQsE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:04 -0400
+Received: by mail-wm0-f67.google.com with SMTP id r131so18033071wmb.2
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:03 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 08/19] [media] ddbridge: add macros to handle IRQs in nibble and byte blocks
+Date: Mon,  9 Apr 2018 18:47:41 +0200
+Message-Id: <20180409164752.641-9-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset includes support media controller, sub-device interface,
-device tree probing and other miscellanuous changes for ov772x driver.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-* v3 (thanks to Sakari Ailus and Jacopo Mondi)
-- Reorder the patches
-- Add Reviewed-by: lines
-- Remove I2C_CLIENT_SCCB flag set as it isn't needed anymore
-- Fix typo in the commit log
-- Return without resetting if ov772x_edgectrl() failed
-- Update the error message for missing platform data
-- Rename mutex name from power_lock to lock
-- Add warning for duplicated s_power call
-- Add newlines before labels
-- Remove __v4l2_ctrl_handler_setup in s_power() as it causes duplicated
-  register settings
-- Make set_fmt() return -EBUSY while streaming (New)
+Currently, each IRQ requires one IRQ_HANDLE() line to call each IRQ
+handler that was set up. Add a IRQ_HANDLE_NIBBLE() and IRQ_HANDLE_BYTE()
+macro to call all handlers in blocks of four (_NIBBLE) or eight (_BYTE)
+handlers at a time, to make this construct more compact.
 
-* v2 (thanks to Jacopo Mondi)
-- Replace the implementation of ov772x_read() instead of adding an
-  alternative method
-- Assign the ov772x_read() return value to pid and ver directly
-- Do the same for MIDH and MIDL
-- Move video_probe() before the entity initialization and remove the #ifdef
-  around the media_entity_cleanup()
-- Use generic names for reset and powerdown gpios (New)
-- Add "dt-bindings:" in the subject
-- Add a brief description of the sensor
-- Update the GPIO names
-- Indicate the GPIO active level
-- Add missing NULL checks for priv->info
-- Leave the check for the missing platform data if legacy platform data
-  probe is used.
-- Handle nested s_power() calls (New)
-- Reconstruct s_frame_interval() (New)
-- Avoid accessing registers
+Picked up from the upstream dddvb-0.9.33 release.
 
-Akinobu Mita (11):
-  media: dt-bindings: ov772x: add device tree binding
-  media: ov772x: allow i2c controllers without
-    I2C_FUNC_PROTOCOL_MANGLING
-  media: ov772x: add checks for register read errors
-  media: ov772x: add media controller support
-  media: ov772x: use generic names for reset and powerdown gpios
-  media: ov772x: support device tree probing
-  media: ov772x: handle nested s_power() calls
-  media: ov772x: reconstruct s_frame_interval()
-  media: ov772x: avoid accessing registers under power saving mode
-  media: ov772x: make set_fmt() return -EBUSY while streaming
-  media: ov772x: create subdevice device node
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 67 ++++++++++++------------------
+ 1 file changed, 27 insertions(+), 40 deletions(-)
 
- .../devicetree/bindings/media/i2c/ov772x.txt       |  42 +++
- MAINTAINERS                                        |   1 +
- arch/sh/boards/mach-migor/setup.c                  |   5 +-
- drivers/media/i2c/ov772x.c                         | 313 ++++++++++++++++-----
- 4 files changed, 284 insertions(+), 77 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
-
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Rob Herring <robh+dt@kernel.org>
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index be6935bd0cb5..5fbb0996a12c 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -2403,54 +2403,41 @@ void ddb_ports_release(struct ddb *dev)
+ 		dev->link[0].irq[_nr].handler(dev->link[0].irq[_nr].data); } \
+ 	while (0)
+ 
++#define IRQ_HANDLE_NIBBLE(_shift) {		     \
++	if (s & (0x0000000f << ((_shift) & 0x1f))) { \
++		IRQ_HANDLE(0 + (_shift));	     \
++		IRQ_HANDLE(1 + (_shift));	     \
++		IRQ_HANDLE(2 + (_shift));	     \
++		IRQ_HANDLE(3 + (_shift));	     \
++	}					     \
++}
++
++#define IRQ_HANDLE_BYTE(_shift) {		     \
++	if (s & (0x000000ff << ((_shift) & 0x1f))) { \
++		IRQ_HANDLE(0 + (_shift));	     \
++		IRQ_HANDLE(1 + (_shift));	     \
++		IRQ_HANDLE(2 + (_shift));	     \
++		IRQ_HANDLE(3 + (_shift));	     \
++		IRQ_HANDLE(4 + (_shift));	     \
++		IRQ_HANDLE(5 + (_shift));	     \
++		IRQ_HANDLE(6 + (_shift));	     \
++		IRQ_HANDLE(7 + (_shift));	     \
++	}					     \
++}
++
+ static void irq_handle_msg(struct ddb *dev, u32 s)
+ {
+ 	dev->i2c_irq++;
+-	IRQ_HANDLE(0);
+-	IRQ_HANDLE(1);
+-	IRQ_HANDLE(2);
+-	IRQ_HANDLE(3);
++	IRQ_HANDLE_NIBBLE(0);
+ }
+ 
+ static void irq_handle_io(struct ddb *dev, u32 s)
+ {
+ 	dev->ts_irq++;
+-	if ((s & 0x000000f0)) {
+-		IRQ_HANDLE(4);
+-		IRQ_HANDLE(5);
+-		IRQ_HANDLE(6);
+-		IRQ_HANDLE(7);
+-	}
+-	if ((s & 0x0000ff00)) {
+-		IRQ_HANDLE(8);
+-		IRQ_HANDLE(9);
+-		IRQ_HANDLE(10);
+-		IRQ_HANDLE(11);
+-		IRQ_HANDLE(12);
+-		IRQ_HANDLE(13);
+-		IRQ_HANDLE(14);
+-		IRQ_HANDLE(15);
+-	}
+-	if ((s & 0x00ff0000)) {
+-		IRQ_HANDLE(16);
+-		IRQ_HANDLE(17);
+-		IRQ_HANDLE(18);
+-		IRQ_HANDLE(19);
+-		IRQ_HANDLE(20);
+-		IRQ_HANDLE(21);
+-		IRQ_HANDLE(22);
+-		IRQ_HANDLE(23);
+-	}
+-	if ((s & 0xff000000)) {
+-		IRQ_HANDLE(24);
+-		IRQ_HANDLE(25);
+-		IRQ_HANDLE(26);
+-		IRQ_HANDLE(27);
+-		IRQ_HANDLE(28);
+-		IRQ_HANDLE(29);
+-		IRQ_HANDLE(30);
+-		IRQ_HANDLE(31);
+-	}
++	IRQ_HANDLE_NIBBLE(4);
++	IRQ_HANDLE_BYTE(8);
++	IRQ_HANDLE_BYTE(16);
++	IRQ_HANDLE_BYTE(24);
+ }
+ 
+ irqreturn_t ddb_irq_handler0(int irq, void *dev_id)
 -- 
-2.7.4
+2.16.1
