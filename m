@@ -1,114 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:31745 "EHLO mga05.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:9961 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756144AbeDXI2i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 04:28:38 -0400
-Date: Tue, 24 Apr 2018 11:28:32 +0300
+        id S1750877AbeDIHUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 03:20:45 -0400
+Date: Mon, 9 Apr 2018 10:20:42 +0300
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@google.com>,
         Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH v2 02/10] media-request: Add a request complete operation
- to allow m2m scheduling
-Message-ID: <20180424082831.zfgzuvnop6md4iyf@paasikivi.fi.intel.com>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
- <20180419154124.17512-3-paul.kocialkowski@bootlin.com>
+        Gustavo Padovan <gustavo@padovan.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv9 PATCH 07/29] media-request: add media_request_object_find
+Message-ID: <20180409072042.mf7lg4o7xg3h6wln@paasikivi.fi.intel.com>
+References: <20180328135030.7116-1-hverkuil@xs4all.nl>
+ <20180328135030.7116-8-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180419154124.17512-3-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180328135030.7116-8-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+Hi Hans,
 
-On Thu, Apr 19, 2018 at 05:41:16PM +0200, Paul Kocialkowski wrote:
-> When using the request API in the context of a m2m driver, the
-> operations that come with a m2m run scheduling call in their
-> (m2m-specific) ioctl handler are delayed until the request is queued
-> (for instance, this includes queuing buffers and streamon).
+On Wed, Mar 28, 2018 at 03:50:08PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Thus, the m2m run scheduling calls are not called in due time since the
-> request AP's internal plumbing will (rightfully) use the relevant core
-> functions directly instead of the ioctl handler.
+> Add media_request_object_find to find a request object inside a
+> request based on ops and/or priv values.
 > 
-> This ends up in a situation where nothing happens if there is no
-> run-scheduling ioctl called after queuing the request.
+> Objects of the same type (vb2 buffer, control handler) will have
+> the same ops value. And objects that refer to the same 'parent'
+> object (e.g. the v4l2_ctrl_handler that has the current driver
+> state) will have the same priv value.
 > 
-> In order to circumvent the issue, a new media operation is introduced,
-> called at the time of handling the media request queue ioctl. It gives
-> m2m drivers a chance to schedule a m2m device run at that time.
+> The caller has to call media_request_object_put() for the returned
+> object since this function increments the refcount.
 > 
-> The existing req_queue operation cannot be used for this purpose, since
-> it is called with the request queue mutex held, that is eventually needed
-> in the device_run call to apply relevant controls.
-
-Based on the description I'm not entirely sure what's the intent here.
-
-What would be the purpose for acquiring the request queue mutex during
-the execution of the request? It is only intended for serialising access to
-the request objects while the request is being validated and queued.
-
-If a driver does a significant amount of processing that is not related to
-managing the request as such, then one option could be to add a work queue
-for it.
-
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  drivers/media/media-request.c | 3 +++
->  include/media/media-device.h  | 2 ++
->  2 files changed, 5 insertions(+)
+>  drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
+>  include/media/media-request.h | 25 +++++++++++++++++++++++++
+>  2 files changed, 51 insertions(+)
 > 
 > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index 415f7e31019d..28ac5ccfe6a2 100644
+> index d54fd353d8a6..10a05dd7b571 100644
 > --- a/drivers/media/media-request.c
 > +++ b/drivers/media/media-request.c
-> @@ -157,6 +157,9 @@ static long media_request_ioctl_queue(struct media_request *req)
->  		media_request_get(req);
->  	}
->  
-> +	if (mdev->ops->req_complete)
-> +		mdev->ops->req_complete(req);
-> +
->  	return ret;
+> @@ -309,6 +309,32 @@ static void media_request_object_release(struct kref *kref)
+>  	obj->ops->release(obj);
 >  }
 >  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 07e323c57202..c7dcf2079cc9 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -55,6 +55,7 @@ struct media_entity_notify {
->   * @req_alloc: Allocate a request
->   * @req_free: Free a request
->   * @req_queue: Queue a request
-> + * @req_complete: Complete a request
+> +struct media_request_object *
+> +media_request_object_find(struct media_request *req,
+> +			  const struct media_request_object_ops *ops,
+> +			  void *priv)
+> +{
+> +	struct media_request_object *obj;
+> +	struct media_request_object *found = NULL;
+> +	unsigned long flags;
+> +
+> +	if (!ops && !priv)
+> +		return NULL;
+> +
+> +	spin_lock_irqsave(&req->lock, flags);
+> +	list_for_each_entry(obj, &req->objects, list) {
+> +		if ((!ops || obj->ops == ops) &&
+> +		    (!priv || obj->priv == priv)) {
+
+Do you have a use case for having matching priv but mismatching ops?
+
+I think it'd be useful to require drivers to provide unique priv,
+considering that it's risky to let them use the same while the VB2 request
+object ops are always the same.
+
+> +			media_request_object_get(obj);
+> +			found = obj;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock_irqrestore(&req->lock, flags);
+> +	return found;
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_object_find);
+> +
+>  void media_request_object_put(struct media_request_object *obj)
+>  {
+>  	kref_put(&obj->kref, media_request_object_release);
+> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> index c01b05570a31..570f3a205776 100644
+> --- a/include/media/media-request.h
+> +++ b/include/media/media-request.h
+> @@ -122,6 +122,23 @@ static inline void media_request_object_get(struct media_request_object *obj)
 >   */
->  struct media_device_ops {
->  	int (*link_notify)(struct media_link *link, u32 flags,
-> @@ -62,6 +63,7 @@ struct media_device_ops {
->  	struct media_request *(*req_alloc)(struct media_device *mdev);
->  	void (*req_free)(struct media_request *req);
->  	int (*req_queue)(struct media_request *req);
-> +	void (*req_complete)(struct media_request *req);
->  };
+>  void media_request_object_put(struct media_request_object *obj);
 >  
+> +/**
+> + * media_request_object_find - Find an object in a request
+> + *
+> + * @ops: Find an object with this ops value, may be NULL.
+> + * @priv: Find an object with this priv value, may be NULL.
+> + *
+> + * At least one of @ops and @priv must be non-NULL. If one of
+> + * these is NULL, then skip checking for that field.
+> + *
+> + * Returns NULL if not found or the object (the refcount is increased
+> + * in that case).
+> + */
+> +struct media_request_object *
+> +media_request_object_find(struct media_request *req,
+> +			  const struct media_request_object_ops *ops,
+> +			  void *priv);
+> +
 >  /**
+>   * media_request_object_init - Initialise a media request object
+>   *
+> @@ -154,6 +171,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
+>  {
+>  }
+>  
+> +static inline struct media_request_object *
+> +media_request_object_find(struct media_request *req,
+> +			  const struct media_request_object_ops *ops,
+> +			  void *priv)
+> +{
+> +	return NULL;
+> +}
+> +
+>  static inline void media_request_object_init(struct media_request_object *obj)
+>  {
+>  	obj->ops = NULL;
 > -- 
-> 2.16.3
+> 2.16.1
 > 
 
 -- 
