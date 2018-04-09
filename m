@@ -1,68 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:38850 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751332AbeDEVfH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 17:35:07 -0400
-Received: by mail-qt0-f195.google.com with SMTP id z23so27854196qti.5
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 14:35:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
-References: <cover.1522949748.git.mchehab@s-opensource.com> <24a526280e4eb319147908ccab786e2ebc8f8076.1522949748.git.mchehab@s-opensource.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 5 Apr 2018 23:35:06 +0200
-Message-ID: <CAK8P3a1a7r1FNhpRHJfyzRNHgNHOzcK1wkerYb+BR_RjWNkOUQ@mail.gmail.com>
-Subject: Re: [PATCH 05/16] media: fsl-viu: allow building it with COMPILE_TEST
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Geliang Tang <geliangtang@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43303 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751270AbeDIOUc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Apr 2018 10:20:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv11 PATCH 00/29] Request API
+Date: Mon,  9 Apr 2018 16:19:57 +0200
+Message-Id: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 5, 2018 at 7:54 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> There aren't many things that would be needed to allow it
-> to build with compile test.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> +/* Allow building this driver with COMPILE_TEST */
-> +#ifndef CONFIG_PPC_MPC512x
-> +#define NO_IRQ   0
+Hi all,
 
-The NO_IRQ usage here really needs to die. The portable way to do this
-is the simpler
+This is a cleaned up version of the v10 series (never posted to
+the list since it was messy).
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 200c47c69a75..707bda89b4f7 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -1407,7 +1407,7 @@ static int viu_of_probe(struct platform_device *op)
-        }
+The main changes compared to v9 are in the control framework which
+is (hopefully!) now in sync with the RFC. Specifically, when queueing
+a request it will 'chain' itself correctly with the previously queued
+request. Control values that were not explicitly set in the request
+will get the value from the first request in the queue that sets it,
+or the hardware value if no request in the queue ever touches it.
 
-        viu_irq = irq_of_parse_and_map(op->dev.of_node, 0);
--       if (viu_irq == NO_IRQ) {
-+       if (!viu_irq) {
-                dev_err(&op->dev, "Error while mapping the irq\n");
-                return -EINVAL;
-        }
+However, I have not yet had the opportunity to test this in
+v4l2-compliance!
 
-> +#define out_be32(v, a) writel(a, v)
-> +#define in_be32(a) readl(a)
+Sakari: I did not have the time to incorporate your comments. I'll
+probably wait until I have more feedback and then post a new series
+next week.
 
-This does get it to compile, but looks confusing because it mixes up the
-endianess. I'd suggest doing it like
+Other changes:
 
-#ifndef CONFIG_PPC
-#define out_be32(v, a) iowrite32be(a, v)
-#define in_be32(a) ioread32be(a)
-#endif
+- various request state checks were missing (i.e. you could set
+  a control in a queued request).
 
-      Arnd
+- a new cancel op was added to handle the corner case where a
+  request was queued but never reached the driver since STREAMOFF
+  was called before the buffers were ever queued in the driver.
+
+- various random fixes.
+
+- added the patch "videobuf2-v4l2: export request_fd" as requested
+  by Sakari.
+
+- changed some inconsistent error codes.
+
+This has been tested with vim2m and vivid using v4l2-compliance.
+The v4l-utils repo supporting requests is here:
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=request
+
+TODO/Remarks:
+
+1) missing prototype documentation in media-requests.c/h. Some
+   is documented, but not everything.
+
+2) No VIDIOC_REQUEST_ALLOC 'shortcut' ioctl. Sorry, I just ran out
+   of time. Alexandre, Tomasz, feel free to add it back (it should
+   be quite easy to do) and post a patch. I'll add it to my patch
+   series. As mentioned before: whether or not we actually want this
+   has not been decided yet.
+
+3) vim2m: the media topology is a bit bogus, this needs to be fixed
+   (i.e. a proper HW entity should be added). But for now it is
+   good enough for testing.
+
+4) I think this should slide in fairly easy after the fence support
+   is merged. I made sure the request API changes in public headers
+   did not clash with the changes made by the fence API.
+
+5) I did not verify the Request API documentation patch. I did update
+   it with the new buffer flags and 'which' value, but it probably is
+   out of date in places.
+
+6) More testing. I think I have fairly good coverage in v4l2-compliance,
+   but no doubt I've missed a few test cases.
+
+7) debugfs: it would be really useful to expose the number of request
+   and request objects in debugfs to simplify debugging. Esp. to make
+   sure everything is freed correctly.
+
+8) Review copyright/authorship lines. I'm not sure if everything is
+   correct. Alexandre, Sakari, if you see something that is not
+   right in this respect, just let me know!
+
+9) The req_queue op should likely be split into a req_validate and
+   a req_queue op (based on a discussion on the ML with Sakari).
+   That avoids a race condition.
+
+Everything seemed to slip nicely into place while working on this,
+so I hope this is finally an implementation that we can proceed to
+upstream and build upon for complex camera pipelines in the future.
+
+This patch series is also available here:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv11
+
+Regards,
+
+	Hans
+
+
+Alexandre Courbot (3):
+  videodev2.h: add request_fd field to v4l2_ext_controls
+  Documentation: v4l: document request API
+  media: vim2m: add media device
+
+Hans Verkuil (26):
+  v4l2-device.h: always expose mdev
+  uapi/linux/media.h: add request API
+  media-request: allocate media requests
+  media-request: core request support
+  media-request: add request ioctls
+  media-request: add media_request_find
+  media-request: add media_request_object_find
+  videodev2.h: add V4L2_CTRL_FLAG_IN_REQUEST
+  v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+  v4l2-ctrls: prepare internal structs for request API
+  v4l2-ctrls: alloc memory for p_req
+  v4l2-ctrls: use ref in helper instead of ctrl
+  v4l2-ctrls: add core request support
+  v4l2-ctrls: support g/s_ext_ctrls for requests
+  videodev2.h: Add request_fd field to v4l2_buffer
+  vb2: store userspace data in vb2_v4l2_buffer
+  videobuf2-core: embed media_request_object
+  videobuf2-core: integrate with media requests
+  videobuf2-v4l2: integrate with media requests
+  videobuf2-core: add vb2_core_request_has_buffers
+  videobuf2-v4l2: add vb2_request_queue helper
+  videobuf2-v4l2: export request_fd
+  vim2m: use workqueue
+  vim2m: support requests
+  vivid: add mc
+  vivid: add request support
+
+ Documentation/media/uapi/v4l/buffer.rst            |  19 +-
+ Documentation/media/uapi/v4l/common.rst            |   1 +
+ Documentation/media/uapi/v4l/request-api.rst       | 199 +++++++++
+ Documentation/media/uapi/v4l/user-func.rst         |   1 +
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |  22 +-
+ .../media/uapi/v4l/vidioc-new-request.rst          |  64 +++
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |   8 +
+ drivers/media/Makefile                             |   3 +-
+ drivers/media/common/videobuf2/videobuf2-core.c    | 152 +++++--
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    | 449 ++++++++++++-------
+ drivers/media/dvb-core/dvb_vb2.c                   |   5 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |   5 +-
+ drivers/media/media-device.c                       |  14 +
+ drivers/media/media-request.c                      | 454 +++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv-driver.c              |   2 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |   2 +-
+ drivers/media/pci/cx88/cx88-blackbird.c            |   2 +-
+ drivers/media/pci/cx88/cx88-video.c                |   2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c        |   4 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   2 +-
+ drivers/media/platform/omap3isp/ispvideo.c         |   4 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |   3 +-
+ drivers/media/platform/rcar_drif.c                 |   2 +-
+ drivers/media/platform/s3c-camif/camif-capture.c   |   4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   4 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |   7 +-
+ drivers/media/platform/vim2m.c                     |  83 +++-
+ drivers/media/platform/vivid/vivid-core.c          |  68 +++
+ drivers/media/platform/vivid/vivid-core.h          |   8 +
+ drivers/media/platform/vivid/vivid-ctrls.c         |  46 +-
+ drivers/media/platform/vivid/vivid-kthread-cap.c   |  12 +
+ drivers/media/platform/vivid/vivid-kthread-out.c   |  12 +
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |   8 +
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |   2 +
+ drivers/media/platform/vivid/vivid-vbi-out.c       |   2 +
+ drivers/media/platform/vivid/vivid-vid-cap.c       |   2 +
+ drivers/media/platform/vivid/vivid-vid-out.c       |   2 +
+ drivers/media/usb/cpia2/cpia2_v4l.c                |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c            |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |   4 +-
+ drivers/media/usb/msi2500/msi2500.c                |   2 +-
+ drivers/media/usb/tm6000/tm6000-video.c            |   2 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |   5 +-
+ drivers/media/usb/uvc/uvc_v4l2.c                   |   3 +-
+ drivers/media/usb/uvc/uvcvideo.h                   |   1 +
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  14 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 480 +++++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-device.c              |   3 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  22 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   7 +-
+ drivers/media/v4l2-core/v4l2-subdev.c              |   9 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |   3 +-
+ drivers/staging/media/imx/imx-media-dev.c          |   2 +-
+ drivers/staging/media/imx/imx-media-fim.c          |   2 +-
+ drivers/staging/media/omap4iss/iss_video.c         |   3 +-
+ drivers/usb/gadget/function/uvc_queue.c            |   2 +-
+ include/media/media-device.h                       |  13 +
+ include/media/media-request.h                      | 213 +++++++++
+ include/media/v4l2-ctrls.h                         |  45 +-
+ include/media/v4l2-device.h                        |   4 +-
+ include/media/videobuf2-core.h                     |  25 +-
+ include/media/videobuf2-v4l2.h                     |  19 +-
+ include/uapi/linux/media.h                         |   8 +
+ include/uapi/linux/videodev2.h                     |  15 +-
+ 66 files changed, 2277 insertions(+), 318 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/request-api.rst
+ create mode 100644 Documentation/media/uapi/v4l/vidioc-new-request.rst
+ create mode 100644 drivers/media/media-request.c
+ create mode 100644 include/media/media-request.h
+
+-- 
+2.16.3
