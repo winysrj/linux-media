@@ -1,168 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:40623 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752192AbeDSO7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 10:59:33 -0400
-Message-ID: <d2df04bd29b040001577d3bb905c81b3aff8f594.camel@bootlin.com>
-Subject: Re: [PATCH 5/9] media: platform: Add Sunxi Cedrus decoder driver
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
-        Florent Revest <revestflo@gmail.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas van Kleef <thomas@vitsch.nl>,
-        "Signed-off-by : Bob Ham" <rah@settrans.net>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>
-Date: Thu, 19 Apr 2018 16:58:18 +0200
-In-Reply-To: <20180309135702.pk4webt7xnj7lrza@flea>
-References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
-         <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
-         <20180309135702.pk4webt7xnj7lrza@flea>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-lYPRh0T5wzpLHC3is229"
-Mime-Version: 1.0
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:37801 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753333AbeDIQsC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:02 -0400
+Received: by mail-wm0-f66.google.com with SMTP id r131so18032868wmb.2
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:01 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 06/19] [media] ddbridge: request/free_irq using pci_irq_vector, enable MSI-X
+Date: Mon,  9 Apr 2018 18:47:39 +0200
+Message-Id: <20180409164752.641-7-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Scheller <d.scheller@gmx.net>
 
---=-lYPRh0T5wzpLHC3is229
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Instead of trying to manage IRQ numbers on itself, utilise the
+pci_irq_vector() function to do this, which will take care of correct IRQ
+numbering for MSI and non-MSI IRQs. While at it, request and enable MSI-X
+interrupts for hardware (boards and cards) that support this.
 
-Hi and thanks for the review,
+Picked up from the upstream dddvb-0.9.33 release.
 
-On Fri, 2018-03-09 at 14:57 +0100, Maxime Ripard wrote:
-> On Fri, Mar 09, 2018 at 11:14:41AM +0100, Paul Kocialkowski wrote:
-> > +/*
-> > + * mem2mem callbacks
-> > + */
-> > +
-> > +void job_abort(void *priv)
-> > +{}
->=20
-> Is that still needed?
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-main.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-v2 contains a proper implementation of job abortion, so yes :)
-
-> > +/*
-> > + * device_run() - prepares and starts processing
-> > + */
-> > +void device_run(void *priv)
-> > +{
->=20
-> This function (and the one above) should probably made static. Or at
-> least if you can't, they should have a much more specific name in
-> order not to conflict with anything from the core.
-
-Agreed, will fix in v2.
-
-> > +	/*
-> > +	 * The VPU is only able to handle bus addresses so we have
-> > to subtract
-> > +	 * the RAM offset to the physcal addresses
-> > +	 */
-> > +	in_buf     -=3D PHYS_OFFSET;
-> > +	out_luma   -=3D PHYS_OFFSET;
-> > +	out_chroma -=3D PHYS_OFFSET;
->=20
-> You should take care of that by putting it in the dma_pfn_offset field
-> of the struct device (at least before we come up with something
-> better).
->=20
-> You'll then be able to use the dma_addr_t directly without modifying
-> it.
-
-Ditto.
-
-> > +	vpu->syscon =3D syscon_regmap_lookup_by_phandle(vpu->dev-
-> > >of_node,
-> > +						      "syscon");
-> > +	if (IS_ERR(vpu->syscon)) {
-> > +		vpu->syscon =3D NULL;
-> > +	} else {
-> > +		regmap_write_bits(vpu->syscon,
-> > SYSCON_SRAM_CTRL_REG0,
-> > +				  SYSCON_SRAM_C1_MAP_VE,
-> > +				  SYSCON_SRAM_C1_MAP_VE);
-> > +	}
->=20
-> This should be using our SRAM controller driver (and API), see
-> Documentation/devicetree/bindings/sram/sunxi-sram.txt
-> include/linux/soc/sunxi/sunxi_sram.h
-
-This will require adding support for the VE (and the A33 along the way)
-in the SRAM driver, so a dedicated patch series will be sent in this
-direction eventually.
-
-> > +	ret =3D clk_prepare_enable(vpu->ahb_clk);
-> > +	if (ret) {
-> > +		dev_err(vpu->dev, "could not enable ahb clock\n");
-> > +		return -EFAULT;
-> > +	}
-> > +	ret =3D clk_prepare_enable(vpu->mod_clk);
-> > +	if (ret) {
-> > +		clk_disable_unprepare(vpu->ahb_clk);
-> > +		dev_err(vpu->dev, "could not enable mod clock\n");
-> > +		return -EFAULT;
-> > +	}
-> > +	ret =3D clk_prepare_enable(vpu->ram_clk);
-> > +	if (ret) {
-> > +		clk_disable_unprepare(vpu->mod_clk);
-> > +		clk_disable_unprepare(vpu->ahb_clk);
-> > +		dev_err(vpu->dev, "could not enable ram clock\n");
-> > +		return -EFAULT;
-> > +	}
->=20
-> Ideally, this should be using runtime_pm to manage the device power
-> state, and disable it when not used.
->=20
-> > +	reset_control_assert(vpu->rstc);
-> > +	reset_control_deassert(vpu->rstc);
->=20
-> You can use reset_control_reset here
-
-Will do in v2.
-
-> > +	return 0;
-> > +}
-> > +
-> > +void sunxi_cedrus_hw_remove(struct sunxi_cedrus_dev *vpu)
-> > +{
-> > +	clk_disable_unprepare(vpu->ram_clk);
-> > +	clk_disable_unprepare(vpu->mod_clk);
-> > +	clk_disable_unprepare(vpu->ahb_clk);
->=20
-> The device is not put back into reset here
-
-Good catch!
-
-Cheers,
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-lYPRh0T5wzpLHC3is229
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrYrooACgkQ3cLmz3+f
-v9GPlwf5ATGUchrf3ZZN5vIYJiuJ+FEu4zhjGo33RJhpVGFWjQSf4Cag0M4O1S84
-AjWbFRdTrLglMRlxkqwybucQtLYMSXnm5AdMvXtkecKwCgmV6KzvSCVqUlxMIm/l
-R+dPM84HSzoB43q2M6OY7cfr4TGvofsd272AFW9c9F/FIicHGwFHie45g/6bX6zK
-dvw65KJY6vnpfI7OJ3d1xnleDfykU/IQfAt7qxtdHhEN8ZvG1QPsuDY9Jf7YXDB+
-0kDEjraPqG8w2j3rrj51vQj48Bqp0KqBv8SHGdCMch5vFMIlbfQTZkoW4Bz9Cqlo
-PxORRTZKwHG1/c2G76/2aAePKQYKzQ==
-=xvrY
------END PGP SIGNATURE-----
-
---=-lYPRh0T5wzpLHC3is229--
+diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbridge/ddbridge-main.c
+index 77089081db1f..008be9066814 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-main.c
++++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+@@ -77,8 +77,8 @@ static void ddb_irq_exit(struct ddb *dev)
+ {
+ 	ddb_irq_disable(dev);
+ 	if (dev->msi == 2)
+-		free_irq(dev->pdev->irq + 1, dev);
+-	free_irq(dev->pdev->irq, dev);
++		free_irq(pci_irq_vector(dev->pdev, 1), dev);
++	free_irq(pci_irq_vector(dev->pdev, 0), dev);
+ }
+ 
+ static void ddb_remove(struct pci_dev *pdev)
+@@ -105,7 +105,8 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
+ 	int stat;
+ 
+ 	if (msi && pci_msi_enabled()) {
+-		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr, PCI_IRQ_MSI);
++		stat = pci_alloc_irq_vectors(dev->pdev, 1, nr,
++					     PCI_IRQ_MSI | PCI_IRQ_MSIX);
+ 		if (stat >= 1) {
+ 			dev->msi = stat;
+ 			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
+@@ -137,21 +138,24 @@ static int ddb_irq_init(struct ddb *dev)
+ 	if (dev->msi)
+ 		irq_flag = 0;
+ 	if (dev->msi == 2) {
+-		stat = request_irq(dev->pdev->irq, ddb_irq_handler0,
+-				   irq_flag, "ddbridge", (void *)dev);
++		stat = request_irq(pci_irq_vector(dev->pdev, 0),
++				   ddb_irq_handler0, irq_flag, "ddbridge",
++				   (void *)dev);
+ 		if (stat < 0)
+ 			return stat;
+-		stat = request_irq(dev->pdev->irq + 1, ddb_irq_handler1,
+-				   irq_flag, "ddbridge", (void *)dev);
++		stat = request_irq(pci_irq_vector(dev->pdev, 1),
++				   ddb_irq_handler1, irq_flag, "ddbridge",
++				   (void *)dev);
+ 		if (stat < 0) {
+-			free_irq(dev->pdev->irq, dev);
++			free_irq(pci_irq_vector(dev->pdev, 0), dev);
+ 			return stat;
+ 		}
+ 	} else
+ #endif
+ 	{
+-		stat = request_irq(dev->pdev->irq, ddb_irq_handler,
+-				   irq_flag, "ddbridge", (void *)dev);
++		stat = request_irq(pci_irq_vector(dev->pdev, 0),
++				   ddb_irq_handler, irq_flag, "ddbridge",
++				   (void *)dev);
+ 		if (stat < 0)
+ 			return stat;
+ 	}
+-- 
+2.16.1
