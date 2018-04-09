@@ -1,88 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-p5.oit.umn.edu ([134.84.196.205]:40438 "EHLO
-        mta-p5.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751788AbeD1XMB (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:42866 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752235AbeDIOUe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Apr 2018 19:12:01 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by mta-p5.oit.umn.edu (Postfix) with ESMTP id 093FB9A2
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2018 23:03:05 +0000 (UTC)
-Received: from mta-p5.oit.umn.edu ([127.0.0.1])
-        by localhost (mta-p5.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id xiPL8b-3ag44 for <linux-media@vger.kernel.org>;
-        Sat, 28 Apr 2018 18:03:04 -0500 (CDT)
-Received: from mail-it0-f72.google.com (mail-it0-f72.google.com [209.85.214.72])
-        (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mta-p5.oit.umn.edu (Postfix) with ESMTPS id D0DD895D
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2018 18:03:04 -0500 (CDT)
-Received: by mail-it0-f72.google.com with SMTP id r188-v6so4597188ith.2
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2018 16:03:04 -0700 (PDT)
-From: Wenwen Wang <wang6495@umn.edu>
-To: Wenwen Wang <wang6495@umn.edu>
-Cc: Kangjie Lu <kjlu@umn.edu>, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org (open list:STAGING - ATOMISP DRIVER),
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] media: staging: atomisp: fix a potential missing-check bug
-Date: Sat, 28 Apr 2018 18:02:31 -0500
-Message-Id: <1524956553-20678-1-git-send-email-wang6495@umn.edu>
+        Mon, 9 Apr 2018 10:20:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv11 PATCH 11/29] v4l2-ctrls: prepare internal structs for request API
+Date: Mon,  9 Apr 2018 16:20:08 +0200
+Message-Id: <20180409142026.19369-12-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At the end of atomisp_subdev_set_selection(), the function
-atomisp_subdev_get_rect() is invoked to get the pointer to v4l2_rect. Since
-this function may return a NULL pointer, it is firstly invoked to check
-the returned pointer. If the returned pointer is not NULL, then the
-function is invoked again to obtain the pointer and the memory content
-at the location of the returned pointer is copied to the memory location of
-r. In most cases, the pointers returned by the two invocations are same.
-However, given that the pointer returned by the function
-atomisp_subdev_get_rect() is not a constant, it is possible that the two
-invocations return two different pointers. For example, another thread may
-race to modify the related pointers during the two invocations. In that
-case, even if the first returned pointer is not null, the second returned
-pointer might be null, which will cause issues such as null pointer
-dereference.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch saves the pointer returned by the first invocation and removes
-the second invocation. If the returned pointer is not NULL, the memory
-content is copied according to the original code.
+Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
 
-Signed-off-by: Wenwen Wang <wang6495@umn.edu>
+Add a p_req field to struct v4l2_ctrl_ref that will store the
+request value.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
+ include/media/v4l2-ctrls.h           | 7 +++++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-index 49a9973..d5fa513 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_subdev.c
-@@ -366,6 +366,7 @@ int atomisp_subdev_set_selection(struct v4l2_subdev *sd,
- 	unsigned int i;
- 	unsigned int padding_w = pad_w;
- 	unsigned int padding_h = pad_h;
-+	struct v4l2_rect *p;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index aa1dd2015e84..d09f49530d9e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1880,6 +1880,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 				      sizeof(hdl->buckets[0]),
+ 				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
++	media_request_object_init(&hdl->req_obj);
+ 	return hdl->error;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index f8faa54b5e7e..89a985607126 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -20,6 +20,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
++#include <media/media-request.h>
  
- 	stream_id = atomisp_source_pad_to_stream_id(isp_sd, vdev_pad);
+ /* forward references */
+ struct file;
+@@ -249,6 +250,8 @@ struct v4l2_ctrl {
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+  * @from_other_dev: If true, then @ctrl was defined in another
+  *		device then the &struct v4l2_ctrl_handler.
++ * @p_req:	The request value. Only used if the control handler
++ *		is bound to a media request.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+@@ -260,6 +263,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
+ 	bool from_other_dev;
++	union v4l2_ctrl_ptr p_req;
+ };
  
-@@ -536,9 +537,10 @@ int atomisp_subdev_set_selection(struct v4l2_subdev *sd,
- 		ffmt[pad]->height = comp[pad]->height;
- 	}
+ /**
+@@ -283,6 +287,8 @@ struct v4l2_ctrl_ref {
+  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+  * @nr_of_buckets: Total number of buckets in the array.
+  * @error:	The error code of the first failed control addition.
++ * @req_obj:	The &struct media_request_object, used to link into a
++ *		&struct media_request.
+  */
+ struct v4l2_ctrl_handler {
+ 	struct mutex _lock;
+@@ -295,6 +301,7 @@ struct v4l2_ctrl_handler {
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
+ 	int error;
++	struct media_request_object req_obj;
+ };
  
--	if (!atomisp_subdev_get_rect(sd, cfg, which, pad, target))
-+	p = atomisp_subdev_get_rect(sd, cfg, which, pad, target);
-+	if (!p)
- 		return -EINVAL;
--	*r = *atomisp_subdev_get_rect(sd, cfg, which, pad, target);
-+	*r = *p;
- 
- 	dev_dbg(isp->dev, "sel actual: l %d t %d w %d h %d\n",
- 		r->left, r->top, r->width, r->height);
+ /**
 -- 
-2.7.4
+2.16.3
