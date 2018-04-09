@@ -1,115 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35736 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751038AbeDELQn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 07:16:43 -0400
-Date: Thu, 5 Apr 2018 14:16:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v6 2/2] media: video-i2c: add video-i2c driver
-Message-ID: <20180405111641.qftsnhci6kr3bbyk@valkosipuli.retiisi.org.uk>
-References: <20180401005926.18203-1-matt.ranostay@konsulko.com>
- <20180401005926.18203-3-matt.ranostay@konsulko.com>
- <20180405073948.4ujeavrfegln6orf@valkosipuli.retiisi.org.uk>
- <e81722cf-5b6e-7d2b-6f6e-9c5f634a2750@xs4all.nl>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36206 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751416AbeDIIMb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 04:12:31 -0400
+Received: by mail-wm0-f50.google.com with SMTP id x82so14690785wmg.1
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 01:12:30 -0700 (PDT)
+Date: Mon, 9 Apr 2018 10:12:27 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Matt Roper <matthew.d.roper@intel.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, Gerd Hoffmann <kraxel@redhat.com>,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
+        Dongwon Kim <dongwon.kim@intel.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        David Airlie <airlied@linux.ie>,
+        open list <linux-kernel@vger.kernel.org>,
+        qemu-devel@nongnu.org,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [RfC PATCH] Add udmabuf misc device
+Message-ID: <20180409081226.GE31310@phenom.ffwll.local>
+References: <20180313154826.20436-1-kraxel@redhat.com>
+ <20180313161035.GL4788@phenom.ffwll.local>
+ <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
+ <CAKMK7uGG6Z6XLc6GuKv7-3grCNg+EK2Lh6XWpavjsbZWF_L5Wg@mail.gmail.com>
+ <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <e81722cf-5b6e-7d2b-6f6e-9c5f634a2750@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Thu, Apr 05, 2018 at 10:04:57AM +0200, Hans Verkuil wrote:
-...
-> >> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
-> >> +{
-> >> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
-> >> +	struct video_i2c_buffer *buf, *tmp;
-> >> +
-> >> +	if (data->kthread_vid_cap)
-> >> +		return 0;
-> >> +
-> >> +	data->sequence = 0;
-> >> +	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
-> >> +					    "%s-vid-cap", data->v4l2_dev.name);
-> >> +	if (!IS_ERR(data->kthread_vid_cap))
-> >> +		return 0;
-> >> +
-> >> +	spin_lock(&data->slock);
-> >> +
-> >> +	list_for_each_entry_safe(buf, tmp, &data->vid_cap_active, list) {
-> >> +		list_del(&buf->list);
-> >> +		vb2_buffer_done(&buf->vb.vb2_buf,
-> >> +				VB2_BUF_STATE_QUEUED);
+On Thu, Apr 05, 2018 at 05:11:17PM -0700, Matt Roper wrote:
+> On Thu, Apr 05, 2018 at 10:32:04PM +0200, Daniel Vetter wrote:
+> > Pulling this out of the shadows again.
 > > 
-> > What's the purpose of this?
+> > We now also have xen-zcopy from Oleksandr and the hyper dmabuf stuff
+> > from Matt and Dongwong.
+> > 
+> > At least from the intel side there seems to be the idea to just have 1
+> > special device that can handle cross-gues/host sharing for all kinds
+> > of hypervisors, so I guess you all need to work together :-)
+> > 
+> > Or we throw out the idea that hyper dmabuf will be cross-hypervisor
+> > (not sure how useful/reasonable that is, someone please convince me
+> > one way or the other).
+> > 
+> > Cheers, Daniel
 > 
-> This is the error path (kthread_run failed), so all buffers need to be
-> returned to vb2.
+> Dongwon (DW) is the one doing all the real work on hyper_dmabuf, but I'm
+> familiar with the use cases he's trying to address, and I think there
+> are a couple high-level goals of his work that are worth calling out as
+> we discuss the various options for sharing buffers produced in one VM
+> with a consumer running in another VM:
+> 
+>  * We should try to keep the interface/usage separate from the
+>    underlying hypervisor implementation details.  I.e., in DW's design
+>    the sink/source drivers that handle the actual buffer passing in the
+>    two VM's should provide a generic interface that does not depend on a
+>    specific hypervisor.  Behind the scenes there could be various
+>    implementations for specific hypervisors (Xen, KVM, ACRN, etc.), and
+>    some of those backends may have additional restrictions, but it would
+>    be best if userspace didn't have to know the specific hypervisor
+>    running on the system and could just query the general capabilities
+>    available to it.  We've already got projects in flight that are
+>    wanting this functionality on Xen and ACRN today.
 
-Ah, I missed that. Then, Matt, please ignore this comment and the one
-below.
+Two comments on this:
+
+- Just because it's in drivers/gpu doesn't mean you can't use it for
+  anything else. E.g. the xen-zcopy driver can very much be used for any
+  dma-buf, there's nothing gpu specific with it - well besides that it
+  resuses some useful DRM ioctls, but if that annoys you just do a #define
+  TOTALLY_GENERIC DRM and be done :-)
+
+- Especially the kvm memory and hypervisor model seems totally different
+  from other hypervisors, e.g. no real use for guest-guest sharing (which
+  doesn't go through the host) and other cases. So trying to make
+  something 100% generic seems like a bad idea.
+
+  Wrt making it generic: Just use generic interfaces - if you can somehow
+  use xen-front for the display sharing, then a) no need for hyper-dmabuf
+  and b) already fully generic since it looks like a normal drm device to
+  the guest userspace.
+
+>  * The general interface should be able to express sharing from any
+>    guest:guest, not just guest:host.  Arbitrary G:G sharing might be
+>    something some hypervisors simply aren't able to support, but the
+>    userspace API itself shouldn't make assumptions or restrict that.  I
+>    think ideally the sharing API would include some kind of
+>    query_targets interface that would return a list of VM's that your
+>    current OS is allowed to share with; that list would be depend on the
+>    policy established by the system integrator, but obviously wouldn't
+>    include targets that the hypervisor itself wouldn't be capable of
+>    handling.
+
+Uh ... has a proper security architect analyzed this idea?
+
+>  * A lot of the initial use cases are in the realm of graphics, but this
+>    shouldn't be a graphics-specific API.  Buffers might contain other
+>    types of content as well (e.g., audio).  Really the content producer
+>    could potentially be any driver (or userspace) running in the VM that
+>    knows how to import/export dma_buf's (or maybe just import given
+>    danvet's suggestion that we should make the sink driver do all the
+>    actual memory allocation for any buffers that may be shared).
+
+See above, just because it uses drm ioctls doesn't make it gfx specific.
+
+Otoh making it even more graphics specific might be even better, i.e. just
+sharing the backend tech (grant tables or whatever), but having dedicated
+front-ents for each use-case so there's less code to type.
+
+>  * We need to be able to handle cross-VM coordination of buffer usage as
+>    well, so I think we'd want to include fence forwarding support in the
+>    API as well to signal back and forth about production/consumption
+>    completion.  And of course document really well what should happen
+>    if, for example, the entire VM you're sharing with/from dies.
+
+Implicit fencing has been proven to be a bad idea. Please do explicit
+passing of dma_fences (plus assorted protocol).
+
+>  * The sharing API could be used to share multiple kinds of content in a
+>    single system.  The sharing sink driver running in the content
+>    producer's VM should accept some additional metadata that will be
+>    passed over to the target VM as well.  The sharing source driver
+>    running in the content consumer's VM would then be able to use this
+>    metadata to determine the purpose of a new buffer that arrives and
+>    filter/dispatch it to the appropriate consumer.
+
+If you want metadata, why not use xen-front or something similar to have a
+well-defined means to transfer everything? One of the key design decisions
+of dma-buf was to _not_ have metadata, just buffer sharing.
+-Daniel
 
 > 
-> > 
-> >> +	}
-> >> +
-> >> +	spin_unlock(&data->slock);
-> >> +
-> >> +	return PTR_ERR(data->kthread_vid_cap);
-> > 
-> > How about 0 instead?
 > 
-> This is the error path, so the error should be returned here. This code
-> is correct.
+> For reference, the terminology I'm using is
+> 
+>  /----------\  dma_buf   /------\ HV /--------\  dma_buf   /----------\
+>  | Producer |----------->| Sink | HV | Source |----------->| Consumer |
+>  \----------/   ioctls   \------/ HV \--------/  uevents   \----------/
+> 
+> 
+> 
+> In the realm of graphics, "Producer" could potentially be something like
+> an EGL client that sends the buffer at context setup and then signals
+> with fences on each SwapBuffers.  "Consumer" could be a Wayland client
+> that proxies the buffers into surfaces or dispatches them to other
+> userspace software that's waiting for buffers.
+> 
+> With the hyper_dmabuf approach, there's a lot of ABI details that need
+> to be worked out and really clearly documented before we worry too much
+> about the backend hypervisor-specific stuff.
+> 
+> I'm not super familiar with xen-zcopy and udmabuf, but it sounds like
+> they're approaching similar problems from slightly different directions,
+> so we should make sure we can come up with something that satisfies
+> everyone's requirements. 
+> 
+> 
+> Matt
 > 
 > > 
-> >> +}
-> >> +
-> >> +static void stop_streaming(struct vb2_queue *vq)
-> >> +{
-> >> +	struct video_i2c_data *data = vb2_get_drv_priv(vq);
-> >> +
-> >> +	if (data->kthread_vid_cap == NULL)
-> >> +		return;
-> >> +
-> >> +	kthread_stop(data->kthread_vid_cap);
-> >> +
-> >> +	spin_lock(&data->slock);
-> >> +
-> >> +	while (!list_empty(&data->vid_cap_active)) {
-> >> +		struct video_i2c_buffer *buf;
-> >> +
-> >> +		buf = list_entry(data->vid_cap_active.next,
+> > On Wed, Mar 14, 2018 at 9:03 AM, Gerd Hoffmann <kraxel@redhat.com> wrote:
+> > >   Hi,
+> > >
+> > >> Either mlock account (because it's mlocked defacto), and get_user_pages
+> > >> won't do that for you.
+> > >>
+> > >> Or you write the full-blown userptr implementation, including mmu_notifier
+> > >> support (see i915 or amdgpu), but that also requires Christian Königs
+> > >> latest ->invalidate_mapping RFC for dma-buf (since atm exporting userptr
+> > >> buffers is a no-go).
+> > >
+> > > I guess I'll look at mlock accounting for starters then.  Easier for
+> > > now, and leaves the door open to switch to userptr later as this should
+> > > be transparent to userspace.
+> > >
+> > >> > Known issue:  Driver API isn't complete yet.  Need add some flags, for
+> > >> > example to support read-only buffers.
+> > >>
+> > >> dma-buf has no concept of read-only. I don't think we can even enforce
+> > >> that (not many iommus can enforce this iirc), so pretty much need to
+> > >> require r/w memory.
+> > >
+> > > Ah, ok.  Just saw the 'write' arg for get_user_pages_fast and figured we
+> > > might support that, but if iommus can't handle that anyway it's
+> > > pointless indeed.
+> > >
+> > >> > Cc: David Airlie <airlied@linux.ie>
+> > >> > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> > >> > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> > >>
+> > >> btw there's also the hyperdmabuf stuff from the xen folks, but imo their
+> > >> solution of forwarding the entire dma-buf api is over the top. This here
+> > >> looks _much_ better, pls cc all the hyperdmabuf people on your next
+> > >> version.
+> > >
+> > > Fun fact: googling for "hyperdmabuf" found me your mail and nothing else :-o
+> > > (Trying "hyper dmabuf" instead worked better then).
+> > >
+> > > Yes, will cc them on the next version.  Not sure it'll help much on xen
+> > > though due to the memory management being very different.  Basically xen
+> > > owns the memory, not the kernel of the control domain (dom0), so
+> > > creating dmabufs for guest memory chunks isn't that simple ...
+> > >
+> > > Also it's not clear whenever they really need guest -> guest exports or
+> > > guest -> dom0 exports.
+> > >
+> > >> Overall I like the idea, but too lazy to review.
+> > >
+> > > Cool.  General comments on the idea was all I was looking for for the
+> > > moment.  Spare yor review cycles for the next version ;)
+> > >
+> > >> Oh, some kselftests for this stuff would be lovely.
+> > >
+> > > I'll look into it.
+> > >
+> > > thanks,
+> > >   Gerd
+> > >
+> > > _______________________________________________
+> > > dri-devel mailing list
+> > > dri-devel@lists.freedesktop.org
+> > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
 > > 
-> > list_last_entry(&data->vid_cap_active, ...)?
+> > 
+> > 
+> > -- 
+> > Daniel Vetter
+> > Software Engineer, Intel Corporation
+> > +41 (0) 79 365 57 48 - http://blog.ffwll.ch
 > 
-> Why? You're deleting the list, so whether you pick the first
-> or last element really doesn't matter.
-
-I rather wanted to suggest that there's no need to explicitly access the
-linked list related structs, functions such as list_last_entry() (or
-list_first_entry()) can be used instead.
-
-It'd be also nice to align the loop construct with error handling path in
-start_streaming() function above as they're doing the same things.
-
-> > 
-> >> +				 struct video_i2c_buffer, list);
-> >> +		list_del(&buf->list);
-> >> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
-> >> +	}
-> >> +	spin_unlock(&data->slock);
-> >> +
-> >> +	data->kthread_vid_cap = NULL;
+> -- 
+> Matt Roper
+> Graphics Software Engineer
+> IoTG Platform Enabling & Development
+> Intel Corporation
+> (916) 356-2795
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
