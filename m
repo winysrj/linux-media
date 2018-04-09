@@ -1,34 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:14219 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbeDTSsf (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45099 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752291AbeDIOUf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 14:48:35 -0400
-From: Vladislav Zhurba <vzhurba@nvidia.com>
-To: <linux-kernel@vger.kernel.org>
-CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        Vladislav Zhurba <vzhurba@nvidia.com>
-Subject: [PATCH 0/1] Add two IR keymaps for NVIDIA devices
-Date: Fri, 20 Apr 2018 11:47:46 -0700
-Message-ID: <20180420184747.29022-1-vzhurba@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Mon, 9 Apr 2018 10:20:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv11 PATCH 18/29] videobuf2-core: embed media_request_object
+Date: Mon,  9 Apr 2018 16:20:15 +0200
+Message-Id: <20180409142026.19369-19-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds two IR keymaps for NVIDIA devices.
-The RC types are SONY12 and NEC.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Jun Yan (1):
-  media: rc: Add NVIDIA IR keymapping
+Make vb2_buffer a request object.
 
- drivers/media/rc/keymaps/Makefile        |  2 +
- drivers/media/rc/keymaps/rc-nvidia-nec.c | 66 ++++++++++++++++++++++++
- drivers/media/rc/keymaps/rc-nvidia.c     | 66 ++++++++++++++++++++++++
- include/media/rc-map.h                   |  2 +
- 4 files changed, 136 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-nvidia-nec.c
- create mode 100644 drivers/media/rc/keymaps/rc-nvidia.c
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 224c4820a044..3d54654c3cd4 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -17,6 +17,7 @@
+ #include <linux/poll.h>
+ #include <linux/dma-buf.h>
+ #include <linux/bitops.h>
++#include <media/media-request.h>
+ 
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+@@ -238,6 +239,7 @@ struct vb2_queue;
+  * @num_planes:		number of planes in the buffer
+  *			on an internal driver queue.
+  * @timestamp:		frame timestamp in ns.
++ * @req_obj:		used to bind this buffer to a request
+  */
+ struct vb2_buffer {
+ 	struct vb2_queue	*vb2_queue;
+@@ -246,6 +248,7 @@ struct vb2_buffer {
+ 	unsigned int		memory;
+ 	unsigned int		num_planes;
+ 	u64			timestamp;
++	struct media_request_object	req_obj;
+ 
+ 	/* private: internal use only
+ 	 *
 -- 
-2.17.0
+2.16.3
