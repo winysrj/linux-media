@@ -1,185 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xavier.telenet-ops.be ([195.130.132.52]:59882 "EHLO
-        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752747AbeDQSQH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 14:16:07 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v3 00/20] Allow compile-testing NO_DMA (drivers)
-Date: Tue, 17 Apr 2018 19:49:00 +0200
-Message-Id: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:36485 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751367AbeDIG6T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 02:58:19 -0400
+Date: Mon, 9 Apr 2018 08:58:12 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH 1/6] media: ov772x: allow i2c controllers without
+ I2C_FUNC_PROTOCOL_MANGLING
+Message-ID: <20180409065812.GT20945@w540>
+References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+ <1523116090-13101-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="R9dSeJxMIUBTi9Do"
+Content-Disposition: inline
+In-Reply-To: <1523116090-13101-2-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-        Hi all,
 
-As of v4.17-rc1, patch series "[PATCH v2 0/5] Allow compile-testing
-NO_DMA (core)" (https://lkml.org/lkml/2018/3/16/435) has been included
-upstream, and drivers using the DMA API can be compile-tested on
-platforms selecting NO_DMA.
+--R9dSeJxMIUBTi9Do
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-This follow-up patch series removes dependencies on HAS_DMA for symbols
-that already have platform dependencies implying HAS_DMA, which increases
-compile-coverage.
+Hello Akinobu,
+    thank you for the patch.
 
-Please apply to your tree if appropriate.
+On which platform have you tested the series (just curious) ?
 
-Changes compared to v2:
-  - Add Acked-by,
-  - Rebased to v4.17-rc1, dropping applied patch for scsi/hisi_sas,
-  - Handle new VIDEO_RENESAS_CEU symbol,
-  - Drop obsolete note about FSL_FMAN.
+On Sun, Apr 08, 2018 at 12:48:05AM +0900, Akinobu Mita wrote:
+> The ov772x driver only works when the i2c controller have
+> I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
+> support it.
+>
+> The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
+> it doesn't support repeated starts.
+>
+> This change adds an alternative method for reading from ov772x register
+> which uses two separated i2c messages for the i2c controllers without
+> I2C_FUNC_PROTOCOL_MANGLING.
 
-Changes compared to v1:
-  - Add Reviewed-by, Acked-by,
-  - Drop dependency of SND_SOC_LPASS_IPQ806X on HAS_DMA,
-  - Drop dependency of VIDEOBUF{,2}_DMA_{CONTIG,SG} on HAS_DMA,
-  - Drop new dependencies of VIDEO_IPU3_CIO2, DVB_C8SECTPFE, and
-    MTD_NAND_MARVELL on HAS_DMA,
-  - Split in per-subsystem patches,
-  - Split-off the core part in a separate series.
+Actually, and please correct me if I'm wrong, what I see here is that
+an i2c_master_send+i2c_master_recv sequence is equivalent to a mangled
+smbus transaction:
 
-This series is against v4.17-rc1. It can also be found at
-https://git.kernel.org/pub/scm/linux/kernel/git/geert/linux-m68k.git/log/?h=no-dma-compile-testing-v3
+i2c_smbus_read_byte_data | I2C_CLIENT_SCCB:
+S Addr Wr [A] Comm [A] P S Addr Rd [A] [Data] NA P
 
-It has been compile-tested with allmodconfig and allyesconfig for
-m68k/sun3, and has received attention from the kbuild test robot.
+i2c_master_send() + i2c_master_recv():
+S Addr Wr [A] Data [A] P
+S Addr Rd [A] [Data] NA P
 
-Thanks for applying!
+I wonder if it is not worth to ditch the existing read() function in
+favour of your new proposed one completely.
 
-Geert Uytterhoeven (20):
-  ASoC: Remove depends on HAS_DMA in case of platform dependency
-  ata: Remove depends on HAS_DMA in case of platform dependency
-  crypto: Remove depends on HAS_DMA in case of platform dependency
-  fbdev: Remove depends on HAS_DMA in case of platform dependency
-  firewire: Remove depends on HAS_DMA in case of platform dependency
-  fpga: Remove depends on HAS_DMA in case of platform dependency
-  i2c: Remove depends on HAS_DMA in case of platform dependency
-  iio: adc: Remove depends on HAS_DMA in case of platform dependency
-  iommu: Remove depends on HAS_DMA in case of platform dependency
-  lightnvm: Remove depends on HAS_DMA in case of platform dependency
-  mailbox: Remove depends on HAS_DMA in case of platform dependency
-  media: Remove depends on HAS_DMA in case of platform dependency
-  mmc: Remove depends on HAS_DMA in case of platform dependency
-  mtd: Remove depends on HAS_DMA in case of platform dependency
-  net: Remove depends on HAS_DMA in case of platform dependency
-  remoteproc: Remove depends on HAS_DMA in case of platform dependency
-  serial: Remove depends on HAS_DMA in case of platform dependency
-  spi: Remove depends on HAS_DMA in case of platform dependency
-  staging: vc04_services: Remove depends on HAS_DMA in case of platform
-    dependency
-  usb: Remove depends on HAS_DMA in case of platform dependency
+I have tested it on the Migo-R board where I have an ov772x installed
+and it works fine.
 
- drivers/ata/Kconfig                             |  2 --
- drivers/crypto/Kconfig                          | 14 +++------
- drivers/firewire/Kconfig                        |  1 -
- drivers/fpga/Kconfig                            |  1 -
- drivers/i2c/busses/Kconfig                      |  3 --
- drivers/iio/adc/Kconfig                         |  2 --
- drivers/iommu/Kconfig                           |  5 ++-
- drivers/lightnvm/Kconfig                        |  2 +-
- drivers/mailbox/Kconfig                         |  2 --
- drivers/media/common/videobuf2/Kconfig          |  2 --
- drivers/media/pci/dt3155/Kconfig                |  1 -
- drivers/media/pci/intel/ipu3/Kconfig            |  1 -
- drivers/media/pci/solo6x10/Kconfig              |  1 -
- drivers/media/pci/sta2x11/Kconfig               |  1 -
- drivers/media/pci/tw5864/Kconfig                |  1 -
- drivers/media/pci/tw686x/Kconfig                |  1 -
- drivers/media/platform/Kconfig                  | 42 +++++++++----------------
- drivers/media/platform/am437x/Kconfig           |  2 +-
- drivers/media/platform/atmel/Kconfig            |  4 +--
- drivers/media/platform/davinci/Kconfig          |  6 ----
- drivers/media/platform/marvell-ccic/Kconfig     |  3 +-
- drivers/media/platform/rcar-vin/Kconfig         |  2 +-
- drivers/media/platform/soc_camera/Kconfig       |  3 +-
- drivers/media/platform/sti/c8sectpfe/Kconfig    |  2 +-
- drivers/media/v4l2-core/Kconfig                 |  2 --
- drivers/mmc/host/Kconfig                        | 10 ++----
- drivers/mtd/nand/raw/Kconfig                    |  8 ++---
- drivers/mtd/spi-nor/Kconfig                     |  2 +-
- drivers/net/ethernet/amd/Kconfig                |  2 +-
- drivers/net/ethernet/apm/xgene-v2/Kconfig       |  1 -
- drivers/net/ethernet/apm/xgene/Kconfig          |  1 -
- drivers/net/ethernet/arc/Kconfig                |  6 ++--
- drivers/net/ethernet/broadcom/Kconfig           |  2 --
- drivers/net/ethernet/calxeda/Kconfig            |  2 +-
- drivers/net/ethernet/hisilicon/Kconfig          |  2 +-
- drivers/net/ethernet/marvell/Kconfig            |  8 ++---
- drivers/net/ethernet/mellanox/mlxsw/Kconfig     |  2 +-
- drivers/net/ethernet/renesas/Kconfig            |  2 --
- drivers/net/wireless/broadcom/brcm80211/Kconfig |  1 -
- drivers/net/wireless/quantenna/qtnfmac/Kconfig  |  2 +-
- drivers/remoteproc/Kconfig                      |  1 -
- drivers/spi/Kconfig                             | 12 ++-----
- drivers/staging/media/davinci_vpfe/Kconfig      |  1 -
- drivers/staging/media/omap4iss/Kconfig          |  1 -
- drivers/staging/vc04_services/Kconfig           |  1 -
- drivers/tty/serial/Kconfig                      |  4 ---
- drivers/usb/gadget/udc/Kconfig                  |  4 +--
- drivers/usb/mtu3/Kconfig                        |  2 +-
- drivers/video/fbdev/Kconfig                     |  3 +-
- sound/soc/bcm/Kconfig                           |  3 +-
- sound/soc/kirkwood/Kconfig                      |  1 -
- sound/soc/pxa/Kconfig                           |  1 -
- sound/soc/qcom/Kconfig                          |  7 ++---
- 53 files changed, 56 insertions(+), 142 deletions(-)
+Although I would like to have a confirmation this is fine by people
+how has seen more i2c adapters in action than me :)
 
--- 
-2.7.4
+Thanks
+   j
 
-Gr{oetje,eeting}s,
+>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+>  drivers/media/i2c/ov772x.c | 42 +++++++++++++++++++++++++++++++++---------
+>  1 file changed, 33 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> index b62860c..283ae2c 100644
+> --- a/drivers/media/i2c/ov772x.c
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -424,6 +424,7 @@ struct ov772x_priv {
+>  	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+>  	unsigned short                    band_filter;
+>  	unsigned int			  fps;
+> +	int (*reg_read)(struct i2c_client *client, u8 addr);
+>  };
+>
+>  /*
+> @@ -542,11 +543,34 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
+>  	return container_of(sd, struct ov772x_priv, subdev);
+>  }
+>
+> -static inline int ov772x_read(struct i2c_client *client, u8 addr)
+> +static int ov772x_read(struct i2c_client *client, u8 addr)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct ov772x_priv *priv = to_ov772x(sd);
+> +
+> +	return priv->reg_read(client, addr);
+> +}
+> +
+> +static int ov772x_reg_read(struct i2c_client *client, u8 addr)
+>  {
+>  	return i2c_smbus_read_byte_data(client, addr);
+>  }
+>
+> +static int ov772x_reg_read_fallback(struct i2c_client *client, u8 addr)
+> +{
+> +	int ret;
+> +	u8 val;
+> +
+> +	ret = i2c_master_send(client, &addr, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = i2c_master_recv(client, &val, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return val;
+> +}
+> +
+>  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
+>  {
+>  	return i2c_smbus_write_byte_data(client, addr, value);
+> @@ -1255,20 +1279,20 @@ static int ov772x_probe(struct i2c_client *client,
+>  		return -EINVAL;
+>  	}
+>
+> -	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+> -					      I2C_FUNC_PROTOCOL_MANGLING)) {
+> -		dev_err(&adapter->dev,
+> -			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
+> -		return -EIO;
+> -	}
+> -	client->flags |= I2C_CLIENT_SCCB;
+> -
+>  	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+>  	if (!priv)
+>  		return -ENOMEM;
+>
+>  	priv->info = client->dev.platform_data;
+>
+> +	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+> +					     I2C_FUNC_PROTOCOL_MANGLING))
+> +		priv->reg_read = ov772x_reg_read;
+> +	else
+> +		priv->reg_read = ov772x_reg_read_fallback;
+> +
+> +	client->flags |= I2C_CLIENT_SCCB;
+> +
+>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+>  	v4l2_ctrl_handler_init(&priv->hdl, 3);
+>  	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+> --
+> 2.7.4
+>
 
-						Geert
+--R9dSeJxMIUBTi9Do
+Content-Type: application/pgp-signature; name="signature.asc"
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+iQIcBAEBAgAGBQJayw8EAAoJEHI0Bo8WoVY8fWkP/jLN1Zp/qa2iOGQes3Z2Pw/I
+LaioXOdf4wLNq0Jo27AljU7deMBvHAggAg1YHDE0dpwI9Yf0LD7Libli7Kjdhifp
+HNb+S1NNaBNZMYYTE0sPNbbFxPc9ce82QSYs4b1wiQH8kn0mL9itMf0K9rnPMmnb
+zSZV7mbpqoS4iFcEQvxSpUnnh61vz+VfdnahViclSovYFWG/qWEKQnXJDU2EXehh
+8zTyTJZ3WhMxWBx7r5rdmZqOhQYGg4rFxXRqZ0GF/6BJq4I+ckGe/VCrb6YIWYAk
+mqY80WbPLM+2ALOvB8HXURP848/R4T+hrYR4W/RfWMkcusSaUiUjkE1pwgb97Cix
+kSdpBKcB8QGi8xSK6w5Kq6uFeuibray1xGqGIpy4tkAKlWkTK/2ydQnhzp8aXQzA
+ziE7Re0StzyopK5hvvQTXs5xmeDP80bnWglJveaViRDhDM9PM6vXIowVxe9wGArm
+w/Vp458bkExeRwdsvZq8AMdub6xXfI1WhLjueT1cx4uzTqqcsGNoOttxJMQu2R8T
+bCrtCoQ6Y1q4zFAaeH0GqJ/ItYOhVQTMGpPEKO0UBOwTYvQ2e2RROead1W70UDfy
+plzMqz/t6qBMOJ6G3G4RW7xjBqN9/C1+kVeDsWBg6ZikIOZs8VqDw1BB5Mh7193D
+w41qX/pt6VoYL4naalP2
+=Rk4Z
+-----END PGP SIGNATURE-----
+
+--R9dSeJxMIUBTi9Do--
