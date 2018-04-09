@@ -1,129 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:41663 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752069AbeDGDru (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 23:47:50 -0400
-Message-ID: <5099a85f32b9ef9cb75f0d99d396cf59@smtp-cloud8.xs4all.net>
-Date: Sat, 07 Apr 2018 05:47:48 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:43613 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753328AbeDIQsJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:09 -0400
+Received: by mail-wr0-f195.google.com with SMTP id p53so10258612wrc.10
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:08 -0700 (PDT)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH v2 14/19] [media] ddbridge: support dummy tuners with 125MByte/s dummy data stream
+Date: Mon,  9 Apr 2018 18:47:47 +0200
+Message-Id: <20180409164752.641-15-d.scheller.oss@gmail.com>
+In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
+References: <20180409164752.641-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Results of the daily build of media_tree:
+The Octopus V3 and Octopus Mini devices support set up of a dummy tuner
+mode on port 0 that will deliver a continuous data stream of 125MBytes
+per second while raising IRQs and filling the DMA buffers, which comes
+handy for some stress, PCIe link and IRQ handling testing. The dummy
+frontend is registered using dvb_dummy_fe's QAM dummy frontend. Set
+ddbridge.dummy_tuner to 1 to enable this on the supported cards.
 
-date:			Sat Apr  7 05:00:16 CEST 2018
-media-tree git hash:	17dec0a949153d9ac00760ba2f5b78cb583e995f
-media_build git hash:	541653bb52fcf7c34b8b83a4c8cc66b09c68ac37
-v4l-utils git hash:	47d43b130dc6e9e0edc900759fb37649208371e4
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.2-rc1
-smatch version:		v0.5.0-4419-g3b5bf5c9
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Picked up from the upstream dddvb-0.9.33 release.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/Kconfig         |  1 +
+ drivers/media/pci/ddbridge/ddbridge-core.c | 36 ++++++++++++++++++++++++++++++
+ drivers/media/pci/ddbridge/ddbridge.h      |  1 +
+ 3 files changed, 38 insertions(+)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/pci/ddbridge/Kconfig b/drivers/media/pci/ddbridge/Kconfig
+index a422dde2f34a..16faef265e97 100644
+--- a/drivers/media/pci/ddbridge/Kconfig
++++ b/drivers/media/pci/ddbridge/Kconfig
+@@ -14,6 +14,7 @@ config DVB_DDBRIDGE
+ 	select MEDIA_TUNER_TDA18212 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_MXL5XX if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_CXD2099 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_DUMMY_FE if MEDIA_SUBDRV_AUTOSELECT
+ 	---help---
+ 	  Support for cards with the Digital Devices PCI express bridge:
+ 	  - Octopus PCIe Bridge
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 8907551b02e4..59e137516003 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -54,6 +54,7 @@
+ #include "stv6111.h"
+ #include "lnbh25.h"
+ #include "cxd2099.h"
++#include "dvb_dummy_fe.h"
+ 
+ /****************************************************************************/
+ 
+@@ -105,6 +106,11 @@ module_param(dma_buf_size, int, 0444);
+ MODULE_PARM_DESC(dma_buf_size,
+ 		 "DMA buffer size as multiple of 128*47, possible values: 1-43");
+ 
++static int dummy_tuner;
++module_param(dummy_tuner, int, 0444);
++MODULE_PARM_DESC(dummy_tuner,
++		 "attach dummy tuner to port 0 on Octopus V3 or Octopus Mini cards");
++
+ /****************************************************************************/
+ 
+ static DEFINE_MUTEX(redirect_lock);
+@@ -548,6 +554,9 @@ static void ddb_input_start(struct ddb_input *input)
+ 
+ 	ddbwritel(dev, 0x09, TS_CONTROL(input));
+ 
++	if (input->port->type == DDB_TUNER_DUMMY)
++		ddbwritel(dev, 0x000fff01, TS_CONTROL2(input));
++
+ 	if (input->dma) {
+ 		input->dma->running = 1;
+ 		spin_unlock_irq(&input->dma->lock);
+@@ -1255,6 +1264,20 @@ static int tuner_attach_stv6111(struct ddb_input *input, int type)
+ 	return 0;
+ }
+ 
++static int demod_attach_dummy(struct ddb_input *input)
++{
++	struct ddb_dvb *dvb = &input->port->dvb[input->nr & 1];
++	struct device *dev = input->port->dev->dev;
++
++	dvb->fe = dvb_attach(dvb_dummy_fe_qam_attach);
++	if (!dvb->fe) {
++		dev_err(dev, "QAM dummy attach failed!\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
+ static int start_feed(struct dvb_demux_feed *dvbdmxfeed)
+ {
+ 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
+@@ -1547,6 +1570,10 @@ static int dvb_input_attach(struct ddb_input *input)
+ 		if (tuner_attach_tda18212(input, port->type) < 0)
+ 			goto err_tuner;
+ 		break;
++	case DDB_TUNER_DUMMY:
++		if (demod_attach_dummy(input) < 0)
++			goto err_detach;
++		break;
+ 	default:
+ 		return 0;
+ 	}
+@@ -1809,6 +1836,15 @@ static void ddb_port_probe(struct ddb_port *port)
+ 
+ 	/* Handle missing ports and ports without I2C */
+ 
++	if (dummy_tuner && !port->nr &&
++	    dev->link[0].ids.device == 0x0005) {
++		port->name = "DUMMY";
++		port->class = DDB_PORT_TUNER;
++		port->type = DDB_TUNER_DUMMY;
++		port->type_name = "DUMMY";
++		return;
++	}
++
+ 	if (port->nr == ts_loop) {
+ 		port->name = "TS LOOP";
+ 		port->class = DDB_PORT_LOOP;
+diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
+index 86db6f19369a..cb69021a3443 100644
+--- a/drivers/media/pci/ddbridge/ddbridge.h
++++ b/drivers/media/pci/ddbridge/ddbridge.h
+@@ -236,6 +236,7 @@ struct ddb_port {
+ 	char                   *name;
+ 	char                   *type_name;
+ 	u32                     type;
++#define DDB_TUNER_DUMMY          0xffffffff
+ #define DDB_TUNER_NONE           0
+ #define DDB_TUNER_DVBS_ST        1
+ #define DDB_TUNER_DVBS_ST_AA     2
+-- 
+2.16.1
