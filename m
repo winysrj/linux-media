@@ -1,137 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54655 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754624AbeDWLeq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38206 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752194AbeDJLOc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 07:34:46 -0400
-Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tue, 10 Apr 2018 07:14:32 -0400
+Date: Tue, 10 Apr 2018 14:14:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
+Message-ID: <20180410111430.iuacaxpleiwfpzok@valkosipuli.retiisi.org.uk>
 References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-6-hverkuil@xs4all.nl>
- <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6a5b852b-6a9d-7290-bdfa-1fcbef407b6d@xs4all.nl>
-Date: Mon, 23 Apr 2018 13:34:41 +0200
+ <20180409142026.19369-4-hverkuil@xs4all.nl>
+ <20180410065239.7e1036d0@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180410065239.7e1036d0@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2018 10:59 AM, Tomasz Figa wrote:
-> Hi Hans,
-> 
-> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
->> ioctls.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/media-request.c | 80
-> +++++++++++++++++++++++++++++++++++++++++--
->>   1 file changed, 78 insertions(+), 2 deletions(-)
-> 
->> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
->> index dffc290e4ada..27739ff7cb09 100644
->> --- a/drivers/media/media-request.c
->> +++ b/drivers/media/media-request.c
->> @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file
-> *filp,
->>          return 0;
->>   }
-> 
->> +static long media_request_ioctl_queue(struct media_request *req)
->> +{
->> +       struct media_device *mdev = req->mdev;
->> +       unsigned long flags;
->> +       int ret = 0;
->> +
->> +       dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
->> +
->> +       spin_lock_irqsave(&req->lock, flags);
->> +       if (req->state != MEDIA_REQUEST_STATE_IDLE) {
->> +               dev_dbg(mdev->dev,
->> +                       "request: unable to queue %s, request in state
-> %s\n",
->> +                       req->debug_str,
-> media_request_state_str(req->state));
->> +               spin_unlock_irqrestore(&req->lock, flags);
->> +               return -EINVAL;
-> 
-> nit: Perhaps -EBUSY? (vb2 returns -EINVAL, though, but IMHO it doesn't
-> really represent the real error too closely.)
+Hi Mauro and Hans,
 
-I agree, also in reinit.
+On Tue, Apr 10, 2018 at 06:52:39AM -0300, Mauro Carvalho Chehab wrote:
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index bcc6ec434f1f..07e323c57202 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -19,6 +19,7 @@
+> >  #ifndef _MEDIA_DEVICE_H
+> >  #define _MEDIA_DEVICE_H
+> >  
+> > +#include <linux/anon_inodes.h>
+> 
+> Why do you need it? I don't see anything below needing it.
+
+This should be on the 4th patch actually. The .c file should suffice.
 
 > 
->> +       }
->> +       req->state = MEDIA_REQUEST_STATE_QUEUEING;
->> +
->> +       spin_unlock_irqrestore(&req->lock, flags);
->> +
->> +       /*
->> +        * Ensure the request that is validated will be the one that gets
-> queued
->> +        * next by serialising the queueing process.
->> +        */
->> +       mutex_lock(&mdev->req_queue_mutex);
->> +
->> +       ret = mdev->ops->req_queue(req);
->> +       spin_lock_irqsave(&req->lock, flags);
->> +       req->state = ret ? MEDIA_REQUEST_STATE_IDLE :
-> MEDIA_REQUEST_STATE_QUEUED;
->> +       spin_unlock_irqrestore(&req->lock, flags);
->> +       mutex_unlock(&mdev->req_queue_mutex);
->> +
->> +       if (ret) {
->> +               dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
->> +                       req->debug_str, ret);
->> +       } else {
->> +               media_request_get(req);
+> >  #include <linux/list.h>
+> >  #include <linux/mutex.h>
+> >  
+> > @@ -27,6 +28,7 @@
+> >  
+> >  struct ida;
+> >  struct device;
+> > +struct media_device;
+> >  
+> >  /**
+> >   * struct media_entity_notify - Media Entity Notify
+> > @@ -50,10 +52,16 @@ struct media_entity_notify {
+> >   * struct media_device_ops - Media device operations
+> >   * @link_notify: Link state change notification callback. This callback is
+> >   *		 called with the graph_mutex held.
+> > + * @req_alloc: Allocate a request
+> > + * @req_free: Free a request
+> > + * @req_queue: Queue a request
+> >   */
+> >  struct media_device_ops {
+> >  	int (*link_notify)(struct media_link *link, u32 flags,
+> >  			   unsigned int notification);
+> > +	struct media_request *(*req_alloc)(struct media_device *mdev);
+> > +	void (*req_free)(struct media_request *req);
+> > +	int (*req_queue)(struct media_request *req);
+> >  };
+> >  
+> >  /**
+> > @@ -88,6 +96,8 @@ struct media_device_ops {
+> >   * @disable_source: Disable Source Handler function pointer
+> >   *
+> >   * @ops:	Operation handler callbacks
+> > + * @req_lock:	Serialise access to requests
+> > + * @req_queue_mutex: Serialise validating and queueing requests
 > 
-> I'm not convinced that this is the right place to take a reference. IMHO
-> whoever saves a pointer to the request in its own internal data (the
-> ->req_queue() callback?), should also grab a reference before doing so. Not
-> a strong objection, though, if we clearly document this, so that whoever
-> implements ->req_queue() callback can do the right thing.
-No, it belongs here. The reason is that request_put is also called here when
-the request is completed. And it makes no sense to move the put to drivers as
-well since it is only called when the whole request is completed.
+> IMHO, this would better describe it:
+> 	Serialise validate and queue requests
+> 
+> Yet, IMO, it doesn't let it clear when the spin lock should be
+> used and when the mutex should be used.
+> 
+> I mean, what of them protect what variable?
 
-Regards,
+It might not be obvious, but the purpose of this mutex is to prevent
+queueing multiple requests simultaneously in order to serialise access to
+the top of the queue. How about this instead:
 
-	Hans
+	Serialise access to accessing device state on the tail of the
+	request queue.
 
-> 
->> +       }
->> +
->> +       return ret;
->> +}
->> +
->> +static long media_request_ioctl_reinit(struct media_request *req)
->> +{
->> +       struct media_device *mdev = req->mdev;
->> +       unsigned long flags;
->> +
->> +       spin_lock_irqsave(&req->lock, flags);
->> +       if (req->state != MEDIA_REQUEST_STATE_IDLE &&
->> +           req->state != MEDIA_REQUEST_STATE_COMPLETE) {
->> +               dev_dbg(mdev->dev,
->> +                       "request: %s not in idle or complete state,
-> cannot reinit\n",
->> +                       req->debug_str);
->> +               spin_unlock_irqrestore(&req->lock, flags);
->> +               return -EINVAL;
-> 
-> nit: Perhaps -EBUSY? (Again vb2 would return -EINVAL...)
-> 
-> Best regards,
-> Tomasz
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
