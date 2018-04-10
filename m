@@ -1,327 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48943 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:36929 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752781AbeDJNAS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 09:00:18 -0400
-Date: Tue, 10 Apr 2018 10:00:07 -0300
+        id S1753097AbeDJO6U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 10:58:20 -0400
+Date: Tue, 10 Apr 2018 11:58:15 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 15/29] v4l2-ctrls: support g/s_ext_ctrls for
- requests
-Message-ID: <20180410100007.4cfc88c7@vento.lan>
-In-Reply-To: <20180409142026.19369-16-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-16-hverkuil@xs4all.nl>
+To: Josef Wolf <jw@raven.inka.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Confusion about API: please clarify
+Message-ID: <20180410115815.51ac801b@vento.lan>
+In-Reply-To: <20180410104327.GA28895@raven.inka.de>
+References: <20180410104327.GA28895@raven.inka.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:20:12 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Tue, 10 Apr 2018 12:43:27 +0200
+Josef Wolf <jw@raven.inka.de> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Hello,
 > 
-> The v4l2_g/s_ext_ctrls functions now support control handlers that
-> represent requests.
+> The linuxtv wiki pages state that the current v5 API (also called S2API) is
+> tag/value based:
 > 
-> The v4l2_ctrls_find_req_obj() function is responsible for finding the
-> request from the fd.
+>   https://www.linuxtv.org/wiki/index.php/Development:_Linux_DVB_API_history_and_future
+>   https://www.linuxtv.org/wiki/index.php/S2API
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/omap3isp/ispvideo.c |   2 +-
->  drivers/media/v4l2-core/v4l2-ctrls.c       | 113 +++++++++++++++++++++++++++--
->  drivers/media/v4l2-core/v4l2-ioctl.c       |  12 +--
->  drivers/media/v4l2-core/v4l2-subdev.c      |   9 ++-
->  include/media/v4l2-ctrls.h                 |   7 +-
->  5 files changed, 124 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index a751c89a3ea8..bd564c2e767f 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -1028,7 +1028,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->  	ctrls.count = 1;
->  	ctrls.controls = &ctrl;
->  
-> -	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-> +	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, NULL, &ctrls);
->  	if (ret < 0) {
->  		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
->  			 pipe->external->name);
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 6e2c5e24734f..317a374b6ea6 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -3122,7 +3122,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
->  }
->  
->  /* Get extended controls. Allocates the helpers array if needed. */
-> -int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-> +int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-> +		       struct v4l2_ext_controls *cs)
->  {
->  	struct v4l2_ctrl_helper helper[4];
->  	struct v4l2_ctrl_helper *helpers = helper;
-> @@ -3202,6 +3203,73 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  		kvfree(helpers);
->  	return ret;
->  }
-> +
-> +static struct media_request_object *
-> +v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
-> +			struct media_device *mdev, s32 fd, bool set)
-> +{
-> +	struct media_request *req = media_request_find(mdev, fd);
-> +	struct media_request_object *obj;
-> +	struct v4l2_ctrl_handler *new_hdl;
-> +	int ret;
-> +
-> +	if (IS_ERR(req))
-> +		return ERR_CAST(req);
-> +
-> +	if (set && req->state != MEDIA_REQUEST_STATE_IDLE) {
-> +		media_request_put(req);
-> +		return ERR_PTR(-EBUSY);
-> +	}
-> +
-> +	obj = media_request_object_find(req, &req_ops, hdl);
-> +	if (obj) {
-> +		media_request_put(req);
-> +		return obj;
-> +	}
+> But in the API documentation (version 5.10), I can't find anything that looks
+> like tag/value.
 
-This routine has lock issues: it access state directly and
-doesn't use mutex_lock().
+That refers basically to DVB frontend API. Please see:
+	https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/dvb/dvbproperty.html
 
-> +
-> +	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
-> +	if (!new_hdl) {
-> +		ret = -ENOMEM;
-> +		goto put;
-> +	}
-> +	obj = &new_hdl->req_obj;
-> +	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
-> +	if (!ret)
-> +		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
-> +	if (!ret) {
-> +		media_request_object_get(obj);
-> +		media_request_put(req);
-> +		return obj;
-> +	}
-> +	kfree(new_hdl);
-> +
-> +put:
-> +	media_request_put(req);
-> +	return ERR_PTR(ret);
-> +}
-> +
-> +int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-> +		     struct v4l2_ext_controls *cs)
-> +{
-> +	struct media_request_object *obj = NULL;
-> +	int ret;
-> +
-> +	if (cs->which == V4L2_CTRL_WHICH_REQUEST) {
-> +		if (!mdev || cs->request_fd < 0)
-> +			return -EINVAL;
-> +		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, false);
-> +		if (IS_ERR(obj))
-> +			return PTR_ERR(obj);
-> +		hdl = container_of(obj, struct v4l2_ctrl_handler,
-> +				   req_obj);
-> +	}
-> +
-> +	ret = __v4l2_g_ext_ctrls(hdl, cs);
-> +
-> +	if (obj)
-> +		media_request_object_put(obj);
-> +	return ret;
-> +}
->  EXPORT_SYMBOL(v4l2_g_ext_ctrls);
->  
->  /* Helper function to get a single control */
-> @@ -3377,9 +3445,9 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
->  }
->  
->  /* Try or try-and-set controls */
-> -static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-> -			     struct v4l2_ext_controls *cs,
-> -			     bool set)
-> +static int __try_set_ext_ctrls(struct v4l2_fh *fh,
-> +			       struct v4l2_ctrl_handler *hdl,
-> +			       struct v4l2_ext_controls *cs, bool set)
->  {
->  	struct v4l2_ctrl_helper helper[4];
->  	struct v4l2_ctrl_helper *helpers = helper;
-> @@ -3492,16 +3560,45 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  	return ret;
->  }
->  
-> -int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-> +static int try_set_ext_ctrls(struct v4l2_fh *fh,
-> +			     struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-> +			     struct v4l2_ext_controls *cs, bool set)
-> +{
-> +	struct media_request_object *obj = NULL;
-> +	int ret;
-> +
-> +	if (cs->which == V4L2_CTRL_WHICH_REQUEST) {
-> +		if (!mdev || cs->request_fd < 0)
-> +			return -EINVAL;
-> +		obj = v4l2_ctrls_find_req_obj(hdl, mdev, cs->request_fd, true);
-> +		if (IS_ERR(obj))
-> +			return PTR_ERR(obj);
-> +		if (obj->req->state != MEDIA_REQUEST_STATE_IDLE) {
-> +			media_request_object_put(obj);
-> +			return -EBUSY;
-> +		}
-> +		hdl = container_of(obj, struct v4l2_ctrl_handler,
-> +				   req_obj);
-> +	}
-> +
-> +	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
-> +
-> +	if (obj)
-> +		media_request_object_put(obj);
-> +	return ret;
-> +}
-> +
-> +int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-> +		       struct v4l2_ext_controls *cs)
->  {
-> -	return try_set_ext_ctrls(NULL, hdl, cs, false);
-> +	return try_set_ext_ctrls(NULL, hdl, mdev, cs, false);
->  }
->  EXPORT_SYMBOL(v4l2_try_ext_ctrls);
->  
->  int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-> -					struct v4l2_ext_controls *cs)
-> +		     struct media_device *mdev, struct v4l2_ext_controls *cs)
->  {
-> -	return try_set_ext_ctrls(fh, hdl, cs, true);
-> +	return try_set_ext_ctrls(fh, hdl, mdev, cs, true);
->  }
->  EXPORT_SYMBOL(v4l2_s_ext_ctrls);
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 9ce23e23c5bf..56741c4a48fc 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2079,9 +2079,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
->  
->  	p->error_idx = p->count;
->  	if (vfh && vfh->ctrl_handler)
-> -		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
-> +		return v4l2_g_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
->  	if (vfd->ctrl_handler)
-> -		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
-> +		return v4l2_g_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
->  	if (ops->vidioc_g_ext_ctrls == NULL)
->  		return -ENOTTY;
->  	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
-> @@ -2098,9 +2098,9 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
->  
->  	p->error_idx = p->count;
->  	if (vfh && vfh->ctrl_handler)
-> -		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
-> +		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
->  	if (vfd->ctrl_handler)
-> -		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
-> +		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
->  	if (ops->vidioc_s_ext_ctrls == NULL)
->  		return -ENOTTY;
->  	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
-> @@ -2117,9 +2117,9 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
->  
->  	p->error_idx = p->count;
->  	if (vfh && vfh->ctrl_handler)
-> -		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
-> +		return v4l2_try_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
->  	if (vfd->ctrl_handler)
-> -		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
-> +		return v4l2_try_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
->  	if (ops->vidioc_try_ext_ctrls == NULL)
->  		return -ENOTTY;
->  	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index f9eed938d348..ce8c133e0ccd 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -222,17 +222,20 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  	case VIDIOC_G_EXT_CTRLS:
->  		if (!vfh->ctrl_handler)
->  			return -ENOTTY;
-> -		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
-> +		return v4l2_g_ext_ctrls(vfh->ctrl_handler,
-> +					sd->v4l2_dev->mdev, arg);
->  
->  	case VIDIOC_S_EXT_CTRLS:
->  		if (!vfh->ctrl_handler)
->  			return -ENOTTY;
-> -		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
-> +		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler,
-> +					sd->v4l2_dev->mdev, arg);
->  
->  	case VIDIOC_TRY_EXT_CTRLS:
->  		if (!vfh->ctrl_handler)
->  			return -ENOTTY;
-> -		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
-> +		return v4l2_try_ext_ctrls(vfh->ctrl_handler,
-> +					  sd->v4l2_dev->mdev, arg);
->  
->  	case VIDIOC_DQEVENT:
->  		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 9499846aa1d1..be27835334a2 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -1148,11 +1148,12 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->   *	:ref:`VIDIOC_G_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
->   *
->   * @hdl: pointer to &struct v4l2_ctrl_handler
-> + * @mdev: pointer to &struct media_device
->   * @c: pointer to &struct v4l2_ext_controls
->   *
->   * If hdl == NULL then they will all return -EINVAL.
->   */
-> -int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-> +int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
->  		     struct v4l2_ext_controls *c);
->  
->  /**
-> @@ -1160,11 +1161,13 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->   *	:ref:`VIDIOC_TRY_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
->   *
->   * @hdl: pointer to &struct v4l2_ctrl_handler
-> + * @mdev: pointer to &struct media_device
->   * @c: pointer to &struct v4l2_ext_controls
->   *
->   * If hdl == NULL then they will all return -EINVAL.
->   */
->  int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-> +		       struct media_device *mdev,
->  		       struct v4l2_ext_controls *c);
->  
->  /**
-> @@ -1173,11 +1176,13 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->   *
->   * @fh: pointer to &struct v4l2_fh
->   * @hdl: pointer to &struct v4l2_ctrl_handler
-> + * @mdev: pointer to &struct media_device
->   * @c: pointer to &struct v4l2_ext_controls
->   *
->   * If hdl == NULL then they will all return -EINVAL.
->   */
->  int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-> +		     struct media_device *mdev,
->  		     struct v4l2_ext_controls *c);
->  
->  /**
+> Can anyone clarify, what the current state of the API is and where to find
+> up-to-date documentation?
 
+The updated documentation for all media APIs we maintain are always at:
+
+		https://www.linuxtv.org/downloads/v4l-dvb-apis-new/
+
+It is updated daily as new features are added at the source code.
 
 
 Thanks,
