@@ -1,126 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45099 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751996AbeDIOUd (ORCPT
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:40632 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751272AbeDJQhY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 06/29] media-request: add media_request_find
-Date: Mon,  9 Apr 2018 16:20:03 +0200
-Message-Id: <20180409142026.19369-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        Tue, 10 Apr 2018 12:37:24 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180409065812.GT20945@w540>
+References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+ <1523116090-13101-2-git-send-email-akinobu.mita@gmail.com> <20180409065812.GT20945@w540>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Wed, 11 Apr 2018 01:37:03 +0900
+Message-ID: <CAC5umyjUpMUoT+7ms0WjWmtd7NF-jbAQBHwahR8YnsQxrWfBFg@mail.gmail.com>
+Subject: Re: [PATCH 1/6] media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2018-04-09 15:58 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
+> Hello Akinobu,
+>     thank you for the patch.
+>
+> On which platform have you tested the series (just curious) ?
 
-Add media_request_find() to find a request based on the file
-descriptor.
+I use Zynq-7000 development board with Xilinx Video IP driver and
+custom video pipeline design based on the example reference project.
 
-The caller has to call media_request_put() for the returned
-request since this function increments the refcount.
+> On Sun, Apr 08, 2018 at 12:48:05AM +0900, Akinobu Mita wrote:
+>> The ov772x driver only works when the i2c controller have
+>> I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
+>> support it.
+>>
+>> The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
+>> it doesn't support repeated starts.
+>>
+>> This change adds an alternative method for reading from ov772x register
+>> which uses two separated i2c messages for the i2c controllers without
+>> I2C_FUNC_PROTOCOL_MANGLING.
+>
+> Actually, and please correct me if I'm wrong, what I see here is that
+> an i2c_master_send+i2c_master_recv sequence is equivalent to a mangled
+> smbus transaction:
+>
+> i2c_smbus_read_byte_data | I2C_CLIENT_SCCB:
+> S Addr Wr [A] Comm [A] P S Addr Rd [A] [Data] NA P
+>
+> i2c_master_send() + i2c_master_recv():
+> S Addr Wr [A] Data [A] P
+> S Addr Rd [A] [Data] NA P
+>
+> I wonder if it is not worth to ditch the existing read() function in
+> favour of your new proposed one completely.
+>
+> I have tested it on the Migo-R board where I have an ov772x installed
+> and it works fine.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/media-request.c | 47 +++++++++++++++++++++++++++++++++++++++++++
- include/media/media-request.h | 10 +++++++++
- 2 files changed, 57 insertions(+)
+I'll replace the read() function to the new implementation in the next
+version of this patchset. Although handling in the I2C core is fascinating,
+I feel the area of influence is a bit large.
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 27739ff7cb09..02b620c81de5 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -207,6 +207,53 @@ static const struct file_operations request_fops = {
- 	.release = media_request_close,
- };
- 
-+/**
-+ * media_request_find - Find a request based on the file descriptor
-+ * @mdev: The media device
-+ * @request: The request file handle
-+ *
-+ * Find and return the request associated with the given file descriptor, or
-+ * an error if no such request exists.
-+ *
-+ * When the function returns a request it increases its reference count. The
-+ * caller is responsible for releasing the reference by calling
-+ * media_request_put() on the request.
-+ */
-+struct media_request *
-+media_request_find(struct media_device *mdev, int request_fd)
-+{
-+	struct file *filp;
-+	struct media_request *req;
-+
-+	if (!mdev || !mdev->ops || !mdev->ops->req_queue)
-+		return ERR_PTR(-EPERM);
-+
-+	filp = fget(request_fd);
-+	if (!filp)
-+		return ERR_PTR(-ENOENT);
-+
-+	if (filp->f_op != &request_fops)
-+		goto err_fput;
-+	req = filp->private_data;
-+	media_request_get(req);
-+
-+	if (req->mdev != mdev)
-+		goto err_kref_put;
-+
-+	fput(filp);
-+
-+	return req;
-+
-+err_kref_put:
-+	media_request_put(req);
-+
-+err_fput:
-+	fput(filp);
-+
-+	return ERR_PTR(-ENOENT);
-+}
-+EXPORT_SYMBOL_GPL(media_request_find);
-+
- int media_request_alloc(struct media_device *mdev,
- 			struct media_request_alloc *alloc)
- {
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index 082c3cae04ac..033697d493cd 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -59,6 +59,9 @@ static inline void media_request_get(struct media_request *req)
- void media_request_put(struct media_request *req);
- void media_request_cancel(struct media_request *req);
- 
-+struct media_request *
-+media_request_find(struct media_device *mdev, int request_fd);
-+
- int media_request_alloc(struct media_device *mdev,
- 			struct media_request_alloc *alloc);
- #else
-@@ -74,6 +77,12 @@ static inline void media_request_cancel(struct media_request *req)
- {
- }
- 
-+static inline struct media_request *
-+media_request_find(struct media_device *mdev, int request_fd)
-+{
-+	return ERR_PTR(-ENOENT);
-+}
-+
- #endif
- 
- struct media_request_object_ops {
-@@ -173,6 +182,7 @@ static inline void media_request_object_unbind(struct media_request_object *obj)
- static inline void media_request_object_complete(struct media_request_object *obj)
- {
- }
-+
- #endif
- 
- #endif
--- 
-2.16.3
+> Although I would like to have a confirmation this is fine by people
+> how has seen more i2c adapters in action than me :)
+>
+> Thanks
+>    j
+>
+>>
+>> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+>> ---
+>>  drivers/media/i2c/ov772x.c | 42 +++++++++++++++++++++++++++++++++---------
+>>  1 file changed, 33 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+>> index b62860c..283ae2c 100644
+>> --- a/drivers/media/i2c/ov772x.c
+>> +++ b/drivers/media/i2c/ov772x.c
+>> @@ -424,6 +424,7 @@ struct ov772x_priv {
+>>       /* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+>>       unsigned short                    band_filter;
+>>       unsigned int                      fps;
+>> +     int (*reg_read)(struct i2c_client *client, u8 addr);
+>>  };
+>>
+>>  /*
+>> @@ -542,11 +543,34 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
+>>       return container_of(sd, struct ov772x_priv, subdev);
+>>  }
+>>
+>> -static inline int ov772x_read(struct i2c_client *client, u8 addr)
+>> +static int ov772x_read(struct i2c_client *client, u8 addr)
+>> +{
+>> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>> +     struct ov772x_priv *priv = to_ov772x(sd);
+>> +
+>> +     return priv->reg_read(client, addr);
+>> +}
+>> +
+>> +static int ov772x_reg_read(struct i2c_client *client, u8 addr)
+>>  {
+>>       return i2c_smbus_read_byte_data(client, addr);
+>>  }
+>>
+>> +static int ov772x_reg_read_fallback(struct i2c_client *client, u8 addr)
+>> +{
+>> +     int ret;
+>> +     u8 val;
+>> +
+>> +     ret = i2c_master_send(client, &addr, 1);
+>> +     if (ret < 0)
+>> +             return ret;
+>> +     ret = i2c_master_recv(client, &val, 1);
+>> +     if (ret < 0)
+>> +             return ret;
+>> +
+>> +     return val;
+>> +}
+>> +
+>>  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
+>>  {
+>>       return i2c_smbus_write_byte_data(client, addr, value);
+>> @@ -1255,20 +1279,20 @@ static int ov772x_probe(struct i2c_client *client,
+>>               return -EINVAL;
+>>       }
+>>
+>> -     if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+>> -                                           I2C_FUNC_PROTOCOL_MANGLING)) {
+>> -             dev_err(&adapter->dev,
+>> -                     "I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
+>> -             return -EIO;
+>> -     }
+>> -     client->flags |= I2C_CLIENT_SCCB;
+>> -
+>>       priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+>>       if (!priv)
+>>               return -ENOMEM;
+>>
+>>       priv->info = client->dev.platform_data;
+>>
+>> +     if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+>> +                                          I2C_FUNC_PROTOCOL_MANGLING))
+>> +             priv->reg_read = ov772x_reg_read;
+>> +     else
+>> +             priv->reg_read = ov772x_reg_read_fallback;
+>> +
+>> +     client->flags |= I2C_CLIENT_SCCB;
+>> +
+>>       v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+>>       v4l2_ctrl_handler_init(&priv->hdl, 3);
+>>       v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+>> --
+>> 2.7.4
+>>
