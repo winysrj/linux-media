@@ -1,42 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f44.google.com ([209.85.215.44]:45474 "EHLO
-        mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750861AbeDRLOA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 07:14:00 -0400
+Received: from osg.samsung.com ([64.30.133.232]:65128 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752274AbeDJJjC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 05:39:02 -0400
+Date: Tue, 10 Apr 2018 06:38:56 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 02/29] uapi/linux/media.h: add request API
+Message-ID: <20180410063856.32e44ce9@vento.lan>
+In-Reply-To: <20180409142026.19369-3-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        <20180409142026.19369-3-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180418090801.uydntb4ruc7r472z@valkosipuli.retiisi.org.uk>
-References: <20180417144305.GA31337@jordon-HP-15-Notebook-PC> <20180418090801.uydntb4ruc7r472z@valkosipuli.retiisi.org.uk>
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Date: Wed, 18 Apr 2018 16:43:58 +0530
-Message-ID: <CAFqt6zYqLjhd=c62SL=dGxmdr8dyTRzfLcZ8D8z+he5hZCy82Q@mail.gmail.com>
-Subject: Re: [PATCH] media: v4l2-core: Change return type to vm_fault_t
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: mchehab@kernel.org, jack@suse.cz,
-        Dan Williams <dan.j.williams@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Matthew Wilcox <willy@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 18, 2018 at 2:38 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Tue, Apr 17, 2018 at 08:13:06PM +0530, Souptick Joarder wrote:
->> Use new return type vm_fault_t for fault handler. For
->> now, this is just documenting that the function returns
->> a VM_FAULT value rather than an errno. Once all instances
->> are converted, vm_fault_t will become a distinct type.
->>
->> Reference id -> 1c8f422059ae ("mm: change return type to
->> vm_fault_t")
->>
->> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
->
-> Subject should mention "videobuf"; videobuf is not part of V4L2 core
-> (albeit the directory structure would certainly seem to suggest that). With
-> that,
->
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Em Mon,  9 Apr 2018 16:19:59 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thanks. I will update the subject and send v2.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Define the public request API.
+> 
+> This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+> and two ioctls that operate on a request in order to queue the
+> contents of the request to the driver and to re-initialize the
+> request.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/uapi/linux/media.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index c7e9a5cba24e..f8769e74f847 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -342,11 +342,19 @@ struct media_v2_topology {
+>  
+>  /* ioctls */
+>  
+> +struct __attribute__ ((packed)) media_request_alloc {
+> +	__s32 fd;
+> +};
+> +
+>  #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+> +#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
+> +
+
+Why use a struct here? Just declare it as:
+
+	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
+
+> +#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
+> +#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
+>  
+>  #if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
+>  
+
+Thanks,
+Mauro
