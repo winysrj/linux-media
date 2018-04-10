@@ -1,96 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51828 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751750AbeDYWjy (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:14185 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751945AbeDJLKc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 18:39:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH v3 01/11] media: dt-bindings: ov772x: add device tree binding
-Date: Thu, 26 Apr 2018 01:40:07 +0300
-Message-ID: <2085532.oxbmo4GB4v@avalon>
-In-Reply-To: <CAC5umyj1m18UgKjWYfhFhz0mj0N2_koATU3bev81FiOYgk6AZQ@mail.gmail.com>
-References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com> <CAC5umyiG+=nFyj31XQBNnwH_Ts130xWymH-kCinEoRDu3iFbWQ@mail.gmail.com> <CAC5umyj1m18UgKjWYfhFhz0mj0N2_koATU3bev81FiOYgk6AZQ@mail.gmail.com>
+        Tue, 10 Apr 2018 07:10:32 -0400
+Subject: Re: [RFCv11 PATCH 07/29] media-request: add media_request_object_find
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-8-hverkuil@xs4all.nl>
+ <20180410080727.59e8fd7c@vento.lan>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <87616da3-0ab4-eae0-d0a8-7720e5da0ca5@cisco.com>
+Date: Tue, 10 Apr 2018 13:10:29 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180410080727.59e8fd7c@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mita-san,
-
-On Wednesday, 25 April 2018 19:19:11 EEST Akinobu Mita wrote:
-> 2018-04-24 0:54 GMT+09:00 Akinobu Mita <akinobu.mita@gmail.com>:
-> > 2018-04-23 18:17 GMT+09:00 Laurent Pinchart:
-> >> On Sunday, 22 April 2018 18:56:07 EEST Akinobu Mita wrote:
-> >>> This adds a device tree binding documentation for OV7720/OV7725 sensor.
-> >>> 
-> >>> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> >>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> >>> Cc: Rob Herring <robh+dt@kernel.org>
-> >>> Reviewed-by: Rob Herring <robh@kernel.org>
-> >>> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-> >>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> >>> ---
-> >>> * v3
-> >>> - Add Reviewed-by: lines
-> >>> 
-> >>>  .../devicetree/bindings/media/i2c/ov772x.txt       | 42 +++++++++++++++
-> >>>  MAINTAINERS                                        |  1 +
-> >>>  2 files changed, 43 insertions(+)
-> >>>  create mode 100644
-> >>>  Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> >>> 
-> >>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> >>> b/Documentation/devicetree/bindings/media/i2c/ov772x.txt new file mode
-> >>> 100644
-> >>> index 0000000..b045503
-> >>> --- /dev/null
-> >>> +++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> >>> @@ -0,0 +1,42 @@
-> >>> +* Omnivision OV7720/OV7725 CMOS sensor
-> >>> +
-> >>> +The Omnivision OV7720/OV7725 sensor supports multiple resolutions
-> >>> output,
-> >>> +such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also
-> >>> can +support the YUV422, RGB565/555/444, GRB422 or raw RGB output
-> >>> formats. +
-> >>> +Required Properties:
-> >>> +- compatible: shall be one of
-> >>> +     "ovti,ov7720"
-> >>> +     "ovti,ov7725"
-> >>> +- clocks: reference to the xclk input clock.
-> >>> +- clock-names: shall be "xclk".
-> >> 
-> >> As there's a single clock we could omit clock-names, couldn't we ?
-> > 
-> > Sounds good.
-> > 
-> > I'll prepare another patch that replaces the clock consumer ID argument
-> > of clk_get() from "xclk" to NULL, and remove the above line in this
-> > bindings.
+On 04/10/18 13:07, Mauro Carvalho Chehab wrote:
+> Em Mon,  9 Apr 2018 16:20:04 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> I thought it's easy to do.  However, there is a non-DT user
-> (arch/sh/boards/mach-migor/setup.c) that defines a clock with "xclk" ID.
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add media_request_object_find to find a request object inside a
+>> request based on ops and/or priv values.
+>>
+>> Objects of the same type (vb2 buffer, control handler) will have
+>> the same ops value. And objects that refer to the same 'parent'
+>> object (e.g. the v4l2_ctrl_handler that has the current driver
+>> state) will have the same priv value.
+>>
+>> The caller has to call media_request_object_put() for the returned
+>> object since this function increments the refcount.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
+>>  include/media/media-request.h | 25 +++++++++++++++++++++++++
+>>  2 files changed, 51 insertions(+)
+>>
+>> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+>> index 02b620c81de5..415f7e31019d 100644
+>> --- a/drivers/media/media-request.c
+>> +++ b/drivers/media/media-request.c
+>> @@ -322,6 +322,32 @@ static void media_request_object_release(struct kref *kref)
+>>  	obj->ops->release(obj);
+>>  }
+>>  
+>> +struct media_request_object *
+>> +media_request_object_find(struct media_request *req,
+>> +			  const struct media_request_object_ops *ops,
+>> +			  void *priv)
+>> +{
+>> +	struct media_request_object *obj;
+>> +	struct media_request_object *found = NULL;
+>> +	unsigned long flags;
+>> +
+>> +	if (!ops && !priv)
+>> +		return NULL;
+>> +
+>> +	spin_lock_irqsave(&req->lock, flags);
+>> +	list_for_each_entry(obj, &req->objects, list) {
+>> +		if ((!ops || obj->ops == ops) &&
+>> +		    (!priv || obj->priv == priv)) {
+>> +			media_request_object_get(obj);
+>> +			found = obj;
+>> +			break;
+>> +		}
+>> +	}
+>> +	spin_unlock_irqrestore(&req->lock, flags);
 > 
-> This can be resolved by retrying clk_get() with NULL if no entry
-> with "xclk".  But should we do so or leave as is?
+> Huh? The spin lock were used before only to protect the req->state,
+> while the mutex is the one that protects the request itself.
+> 
+> So, here, it should be doing mutex_lock/unlock() instead.
 
-How about patching the board code to register the clock alias with
+The mutex only serializes the actual queuing operation where you queue a
+request (and will likely have to sleep etc.). The spinlock is for the the
+other fields of the media_request struct.
 
-	clk_add_alias(NULL, "0-0021", "video_clk", NULL);
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+>> +	return found;
+>> +}
+>> +EXPORT_SYMBOL_GPL(media_request_object_find);
+>> +
+>>  void media_request_object_put(struct media_request_object *obj)
+>>  {
+>>  	kref_put(&obj->kref, media_request_object_release);
+>> diff --git a/include/media/media-request.h b/include/media/media-request.h
+>> index 033697d493cd..ea990c8f76bc 100644
+>> --- a/include/media/media-request.h
+>> +++ b/include/media/media-request.h
+>> @@ -130,6 +130,23 @@ static inline void media_request_object_get(struct media_request_object *obj)
+>>   */
+>>  void media_request_object_put(struct media_request_object *obj);
+>>  
+>> +/**
+>> + * media_request_object_find - Find an object in a request
+>> + *
+>> + * @ops: Find an object with this ops value, may be NULL.
+>> + * @priv: Find an object with this priv value, may be NULL.
+> 
+> @req ?
+> 
+>> + *
+>> + * At least one of @ops and @priv must be non-NULL. If one of
+>> + * these is NULL, then skip checking for that field.
+>> + *
+>> + * Returns NULL if not found or the object (the refcount is increased
+>> + * in that case).
+>> + */
+>> +struct media_request_object *
+>> +media_request_object_find(struct media_request *req,
+>> +			  const struct media_request_object_ops *ops,
+>> +			  void *priv);
+>> +
+>>  /**
+>>   * media_request_object_init - Initialise a media request object
+>>   *
+>> @@ -162,6 +179,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
+>>  {
+>>  }
+>>  
+>> +static inline struct media_request_object *
+>> +media_request_object_find(struct media_request *req,
+>> +			  const struct media_request_object_ops *ops,
+>> +			  void *priv)
+>> +{
+>> +	return NULL;
+>> +}
+>> +
+>>  static inline void media_request_object_init(struct media_request_object *obj)
+>>  {
+>>  	obj->ops = NULL;
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
