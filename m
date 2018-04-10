@@ -1,121 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:49728 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752370AbeDIOUh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from quechua.inka.de ([193.197.184.2]:60444 "EHLO mail.inka.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752458AbeDJTUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 15:20:16 -0400
+Date: Tue, 10 Apr 2018 21:14:23 +0200
+From: Josef Wolf <jw@raven.inka.de>
 To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv11 PATCH 25/29] media: vim2m: add media device
-Date: Mon,  9 Apr 2018 16:20:22 +0200
-Message-Id: <20180409142026.19369-26-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+Subject: Re: Confusion about API: please clarify
+Message-ID: <20180410191423.GB28895@raven.inka.de>
+References: <20180410104327.GA28895@raven.inka.de>
+ <20180410115815.51ac801b@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180410115815.51ac801b@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+On Di, Apr 10, 2018 at 11:58:15 -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 10 Apr 2018 12:43:27 +0200
+> Josef Wolf <jw@raven.inka.de> escreveu:
+> > 
+> > The linuxtv wiki pages state that the current v5 API (also called S2API) is
+> > tag/value based:
+> > 
+> >   https://www.linuxtv.org/wiki/index.php/Development:_Linux_DVB_API_history_and_future
+> >   https://www.linuxtv.org/wiki/index.php/S2API
+> > 
+> > But in the API documentation (version 5.10), I can't find anything that looks
+> > like tag/value.
+> 
+> That refers basically to DVB frontend API. Please see:
+> 	https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/dvb/dvbproperty.html
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
+Thanks for the clarification, Mauro!
 
-This probably needs a bit more work to correctly represent m2m
-hardware in the media topology.
+So all the other "subsystems" (like demux device etc/pp) still use the struct
+based API?
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/platform/vim2m.c | 43 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 38 insertions(+), 5 deletions(-)
+What about DiSEqC? struct dvb_diseqc_master_cmd seems to still be limited to 6
+bytes. With Unicable/JESS longer sequences are needed. Especially for configuring
+multiswitches, sequences of up to 16 bytes are needed. How would this be done
+with the limitation to 6 bytes?
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..ef970434af13 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,10 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
-+	struct media_pad	pad[2];
-+#endif
- 
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1000,11 +1004,6 @@ static int vim2m_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&dev->irqlock);
--
--	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
--	if (ret)
--		return ret;
--
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
- 
-@@ -1013,6 +1012,22 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+	dev->pad[0].flags = MEDIA_PAD_FL_SINK;
-+	dev->pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_pads_init(&vfd->entity, 2, dev->pad);
-+	if (ret)
-+		return ret;
-+#endif
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret)
-+		goto unreg_media;
-+
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-@@ -1034,6 +1049,13 @@ static int vim2m_probe(struct platform_device *pdev)
- 		goto err_m2m;
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	/* Register the media device node */
-+	ret = media_device_register(&dev->mdev);
-+	if (ret)
-+		goto err_m2m;
-+#endif
-+
- 	return 0;
- 
- err_m2m:
-@@ -1041,6 +1063,10 @@ static int vim2m_probe(struct platform_device *pdev)
- 	video_unregister_device(&dev->vfd);
- unreg_dev:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+unreg_media:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+#endif
- 
- 	return ret;
- }
-@@ -1050,6 +1076,13 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (media_devnode_is_registered(dev->mdev.devnode))
-+		media_device_unregister(&dev->mdev);
-+	media_device_cleanup(&dev->mdev);
-+#endif
-+
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
+Thanks,
+
 -- 
-2.16.3
+Josef Wolf
+jw@raven.inka.de
