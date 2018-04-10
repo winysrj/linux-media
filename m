@@ -1,109 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64674 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:33159 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752351AbeDKKNW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 06:13:22 -0400
-Date: Wed, 11 Apr 2018 07:13:15 -0300
+        id S1751744AbeDJLEP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 07:04:15 -0400
+Date: Tue, 10 Apr 2018 08:04:09 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
-Message-ID: <20180411071315.0c21c4f8@vento.lan>
-In-Reply-To: <20180410111430.iuacaxpleiwfpzok@valkosipuli.retiisi.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 06/29] media-request: add media_request_find
+Message-ID: <20180410080409.76a0c638@vento.lan>
+In-Reply-To: <20180409142026.19369-7-hverkuil@xs4all.nl>
 References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-4-hverkuil@xs4all.nl>
-        <20180410065239.7e1036d0@vento.lan>
-        <20180410111430.iuacaxpleiwfpzok@valkosipuli.retiisi.org.uk>
+        <20180409142026.19369-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Apr 2018 14:14:30 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Em Mon,  9 Apr 2018 16:20:03 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> > >  /**
-> > > @@ -88,6 +96,8 @@ struct media_device_ops {
-> > >   * @disable_source: Disable Source Handler function pointer
-> > >   *
-> > >   * @ops:	Operation handler callbacks
-> > > + * @req_lock:	Serialise access to requests
-> > > + * @req_queue_mutex: Serialise validating and queueing requests  
-> > 
-> > IMHO, this would better describe it:
-> > 	Serialise validate and queue requests
-> > 
-> > Yet, IMO, it doesn't let it clear when the spin lock should be
-> > used and when the mutex should be used.
-> > 
-> > I mean, what of them protect what variable?  
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> It might not be obvious, but the purpose of this mutex is to prevent
-> queueing multiple requests simultaneously in order to serialise access to
-> the top of the queue.
-
-It is not obvious at all. The purpose of a lock is to prevent
-multiple acesses to the content of a data structure.
-
->From what I see, here we have a single structure with two locks.
-To make it worse, you're introducing first the lock and then,
-on patch 04/29, the actual structs to be protected.
-
-Well, a house with two doors is only closed if both doors are
-closed. The same happens with a data structure protected by
-two locks. It is only locked if both locks are locked.
-
-So, every time I see two locks meant to protect the same struct, it
-sounds poorly designed or wrong. 
-
-There's one exception, though: if you have an independent
-guest house and a main house, you could have two locks at the
-same place, one for the main house and another one for the
-guest house, but in this case, you should clearly tag with lock
-protects each house.
-
-So, in this case, two new locks that are being proposed to be added
-at for struct media_device. So, I would be expecting a comment
-like:
-
-	@req_lock: serialize access to &struct media_request 
-	@req_queue_mutex: serialize access to &struct media_request_object
-
-Clearly stating what data structures each lock protects.
-
-That was my concern when I pointed it. After looking at the entire
-patchset, what I saw was a non-consistent locking model.
-
-It sounded to me that the original design to be:
-
-1) req_queue_mutex was designed to protect struct media_request
-   instances;
-
-2) req_lock was designed to protect just one field inside
-   struct media_request (the state field).
-
-There is a big issue on that:
-
-As state is part of media_request, assuming that the data struct
-won't disappear while in use (with is warranted by kref), before
-changing its value and touching other fields at req, the code should 
-be locking both req_queue_mutex and req_lock, but I didn't see that
-behavior on several places.
-
-Also, I noticed several locking inconsistencies, as, on several places,
-the content of a media_request instance and/or its state was 
-accessed/altered without either locks.
-
-> How about this instead:
+> Add media_request_find() to find a request based on the file
+> descriptor.
 > 
-> 	Serialise access to accessing device state on the tail of the
-> 	request queue.
+> The caller has to call media_request_put() for the returned
+> request since this function increments the refcount.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/media-request.c | 47 +++++++++++++++++++++++++++++++++++++++++++
+>  include/media/media-request.h | 10 +++++++++
+>  2 files changed, 57 insertions(+)
+> 
+> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> index 27739ff7cb09..02b620c81de5 100644
+> --- a/drivers/media/media-request.c
+> +++ b/drivers/media/media-request.c
+> @@ -207,6 +207,53 @@ static const struct file_operations request_fops = {
+>  	.release = media_request_close,
+>  };
+>  
+> +/**
+> + * media_request_find - Find a request based on the file descriptor
+> + * @mdev: The media device
+> + * @request: The request file handle
 
-It still doesn't mention what struct each of the new locks protect.
-IMHO, this patch should either be bound with patch 04/29 or come after
-that, and explicitly mention what data is protected by each lock.
+request_id.
+
+> + *
+> + * Find and return the request associated with the given file descriptor, or
+> + * an error if no such request exists.
+> + *
+> + * When the function returns a request it increases its reference count. The
+> + * caller is responsible for releasing the reference by calling
+> + * media_request_put() on the request.
+
+IMHO, this can only be called with mutex held. Please add such note
+here.
+
+> + */
+> +struct media_request *
+> +media_request_find(struct media_device *mdev, int request_fd)
+> +{
+> +	struct file *filp;
+> +	struct media_request *req;
+> +
+> +	if (!mdev || !mdev->ops || !mdev->ops->req_queue)
+> +		return ERR_PTR(-EPERM);
+> +
+> +	filp = fget(request_fd);
+> +	if (!filp)
+> +		return ERR_PTR(-ENOENT);
+> +
+> +	if (filp->f_op != &request_fops)
+> +		goto err_fput;
+> +	req = filp->private_data;
+> +	media_request_get(req);
+> +
+> +	if (req->mdev != mdev)
+> +		goto err_kref_put;
+> +
+> +	fput(filp);
+> +
+> +	return req;
+> +
+> +err_kref_put:
+> +	media_request_put(req);
+> +
+> +err_fput:
+> +	fput(filp);
+> +
+> +	return ERR_PTR(-ENOENT);
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_find);
+> +
+>  int media_request_alloc(struct media_device *mdev,
+>  			struct media_request_alloc *alloc)
+>  {
+> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> index 082c3cae04ac..033697d493cd 100644
+> --- a/include/media/media-request.h
+> +++ b/include/media/media-request.h
+> @@ -59,6 +59,9 @@ static inline void media_request_get(struct media_request *req)
+>  void media_request_put(struct media_request *req);
+>  void media_request_cancel(struct media_request *req);
+>  
+> +struct media_request *
+> +media_request_find(struct media_device *mdev, int request_fd);
+> +
+>  int media_request_alloc(struct media_device *mdev,
+>  			struct media_request_alloc *alloc);
+>  #else
+> @@ -74,6 +77,12 @@ static inline void media_request_cancel(struct media_request *req)
+>  {
+>  }
+>  
+> +static inline struct media_request *
+> +media_request_find(struct media_device *mdev, int request_fd)
+> +{
+> +	return ERR_PTR(-ENOENT);
+> +}
+> +
+>  #endif
+>  
+>  struct media_request_object_ops {
+> @@ -173,6 +182,7 @@ static inline void media_request_object_unbind(struct media_request_object *obj)
+>  static inline void media_request_object_complete(struct media_request_object *obj)
+>  {
+>  }
+> +
+>  #endif
+>  
+>  #endif
+
+
 
 Thanks,
 Mauro
