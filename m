@@ -1,175 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4718 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751968AbeDIFSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 01:18:13 -0400
-Date: Mon, 9 Apr 2018 13:17:38 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-Cc: kbuild-all@01.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-Subject: Re: [PATCH v2 5/6] usbtv: Enforce standard for color decoding
-Message-ID: <201804091218.GkcgM7OY%fengguang.wu@intel.com>
-References: <20180408211201.27452-6-bonstra@bonstra.fr.eu.org>
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:34016 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752389AbeDJI7f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 04:59:35 -0400
+Received: by mail-ua0-f194.google.com with SMTP id l21so6834830uak.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2018 01:59:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180408211201.27452-6-bonstra@bonstra.fr.eu.org>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-6-hverkuil@xs4all.nl>
+From: Tomasz Figa <tfiga@google.com>
+Date: Tue, 10 Apr 2018 08:59:23 +0000
+Message-ID: <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
+Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugo,
+Hi Hans,
 
-Thank you for the patch! Perhaps something to improve:
+On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.16 next-20180406]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 
-url:    https://github.com/0day-ci/linux/commits/Hugo-Grostabussiat/usbtv-Add-SECAM-support-and-fix-color-encoding-selection/20180409-054206
-base:   git://linuxtv.org/media_tree.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+> Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
+> ioctls.
 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>   drivers/media/media-request.c | 80
++++++++++++++++++++++++++++++++++++++++++--
+>   1 file changed, 78 insertions(+), 2 deletions(-)
 
-sparse warnings: (new ones prefixed by >>)
+> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> index dffc290e4ada..27739ff7cb09 100644
+> --- a/drivers/media/media-request.c
+> +++ b/drivers/media/media-request.c
+> @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file
+*filp,
+>          return 0;
+>   }
 
->> drivers/media/usb/usbtv/usbtv-video.c:261:45: sparse: incorrect type in argument 2 (different modifiers) @@    expected unsigned short const [usertype] ( *regs )[2] @@    got ed short const [usertype] ( *regs )[2] @@
-   drivers/media/usb/usbtv/usbtv-video.c:261:45:    expected unsigned short const [usertype] ( *regs )[2]
-   drivers/media/usb/usbtv/usbtv-video.c:261:45:    got unsigned short [usertype] ( *<noident> )[2]
+> +static long media_request_ioctl_queue(struct media_request *req)
+> +{
+> +       struct media_device *mdev = req->mdev;
+> +       unsigned long flags;
+> +       int ret = 0;
+> +
+> +       dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+> +
+> +       spin_lock_irqsave(&req->lock, flags);
+> +       if (req->state != MEDIA_REQUEST_STATE_IDLE) {
+> +               dev_dbg(mdev->dev,
+> +                       "request: unable to queue %s, request in state
+%s\n",
+> +                       req->debug_str,
+media_request_state_str(req->state));
+> +               spin_unlock_irqrestore(&req->lock, flags);
+> +               return -EINVAL;
 
-vim +261 drivers/media/usb/usbtv/usbtv-video.c
+nit: Perhaps -EBUSY? (vb2 returns -EINVAL, though, but IMHO it doesn't
+really represent the real error too closely.)
 
-   142	
-   143	static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
-   144	{
-   145		int ret;
-   146		/* These are the series of register values used to configure the
-   147		 * decoder for a specific standard.
-   148		 * The first 21 register writes are copied from the
-   149		 * Settings\DecoderDefaults registry keys present in the Windows driver
-   150		 * .INF file, and control various image tuning parameters (color
-   151		 * correction, sharpness, ...).
-   152		 */
-   153		static const u16 pal[][2] = {
-   154			/* "AVPAL" tuning sequence from .INF file */
-   155			{ USBTV_BASE + 0x0003, 0x0004 },
-   156			{ USBTV_BASE + 0x001a, 0x0068 },
-   157			{ USBTV_BASE + 0x0100, 0x00d3 },
-   158			{ USBTV_BASE + 0x010e, 0x0072 },
-   159			{ USBTV_BASE + 0x010f, 0x00a2 },
-   160			{ USBTV_BASE + 0x0112, 0x00b0 },
-   161			{ USBTV_BASE + 0x0115, 0x0015 },
-   162			{ USBTV_BASE + 0x0117, 0x0001 },
-   163			{ USBTV_BASE + 0x0118, 0x002c },
-   164			{ USBTV_BASE + 0x012d, 0x0010 },
-   165			{ USBTV_BASE + 0x012f, 0x0020 },
-   166			{ USBTV_BASE + 0x0220, 0x002e },
-   167			{ USBTV_BASE + 0x0225, 0x0008 },
-   168			{ USBTV_BASE + 0x024e, 0x0002 },
-   169			{ USBTV_BASE + 0x024f, 0x0002 },
-   170			{ USBTV_BASE + 0x0254, 0x0059 },
-   171			{ USBTV_BASE + 0x025a, 0x0016 },
-   172			{ USBTV_BASE + 0x025b, 0x0035 },
-   173			{ USBTV_BASE + 0x0263, 0x0017 },
-   174			{ USBTV_BASE + 0x0266, 0x0016 },
-   175			{ USBTV_BASE + 0x0267, 0x0036 },
-   176			/* End image tuning */
-   177			{ USBTV_BASE + 0x024e, 0x0002 },
-   178			{ USBTV_BASE + 0x024f, 0x0002 },
-   179		};
-   180	
-   181		static const u16 ntsc[][2] = {
-   182			/* "AVNTSC" tuning sequence from .INF file */
-   183			{ USBTV_BASE + 0x0003, 0x0004 },
-   184			{ USBTV_BASE + 0x001a, 0x0079 },
-   185			{ USBTV_BASE + 0x0100, 0x00d3 },
-   186			{ USBTV_BASE + 0x010e, 0x0068 },
-   187			{ USBTV_BASE + 0x010f, 0x009c },
-   188			{ USBTV_BASE + 0x0112, 0x00f0 },
-   189			{ USBTV_BASE + 0x0115, 0x0015 },
-   190			{ USBTV_BASE + 0x0117, 0x0000 },
-   191			{ USBTV_BASE + 0x0118, 0x00fc },
-   192			{ USBTV_BASE + 0x012d, 0x0004 },
-   193			{ USBTV_BASE + 0x012f, 0x0008 },
-   194			{ USBTV_BASE + 0x0220, 0x002e },
-   195			{ USBTV_BASE + 0x0225, 0x0008 },
-   196			{ USBTV_BASE + 0x024e, 0x0002 },
-   197			{ USBTV_BASE + 0x024f, 0x0001 },
-   198			{ USBTV_BASE + 0x0254, 0x005f },
-   199			{ USBTV_BASE + 0x025a, 0x0012 },
-   200			{ USBTV_BASE + 0x025b, 0x0001 },
-   201			{ USBTV_BASE + 0x0263, 0x001c },
-   202			{ USBTV_BASE + 0x0266, 0x0011 },
-   203			{ USBTV_BASE + 0x0267, 0x0005 },
-   204			/* End image tuning */
-   205			{ USBTV_BASE + 0x024e, 0x0002 },
-   206			{ USBTV_BASE + 0x024f, 0x0002 },
-   207		};
-   208	
-   209		static const u16 secam[][2] = {
-   210			/* "AVSECAM" tuning sequence from .INF file */
-   211			{ USBTV_BASE + 0x0003, 0x0004 },
-   212			{ USBTV_BASE + 0x001a, 0x0073 },
-   213			{ USBTV_BASE + 0x0100, 0x00dc },
-   214			{ USBTV_BASE + 0x010e, 0x0072 },
-   215			{ USBTV_BASE + 0x010f, 0x00a2 },
-   216			{ USBTV_BASE + 0x0112, 0x0090 },
-   217			{ USBTV_BASE + 0x0115, 0x0035 },
-   218			{ USBTV_BASE + 0x0117, 0x0001 },
-   219			{ USBTV_BASE + 0x0118, 0x0030 },
-   220			{ USBTV_BASE + 0x012d, 0x0004 },
-   221			{ USBTV_BASE + 0x012f, 0x0008 },
-   222			{ USBTV_BASE + 0x0220, 0x002d },
-   223			{ USBTV_BASE + 0x0225, 0x0028 },
-   224			{ USBTV_BASE + 0x024e, 0x0008 },
-   225			{ USBTV_BASE + 0x024f, 0x0002 },
-   226			{ USBTV_BASE + 0x0254, 0x0069 },
-   227			{ USBTV_BASE + 0x025a, 0x0016 },
-   228			{ USBTV_BASE + 0x025b, 0x0035 },
-   229			{ USBTV_BASE + 0x0263, 0x0021 },
-   230			{ USBTV_BASE + 0x0266, 0x0016 },
-   231			{ USBTV_BASE + 0x0267, 0x0036 },
-   232			/* End image tuning */
-   233			{ USBTV_BASE + 0x024e, 0x0002 },
-   234			{ USBTV_BASE + 0x024f, 0x0002 },
-   235		};
-   236	
-   237		ret = usbtv_configure_for_norm(usbtv, norm);
-   238	
-   239		if (!ret) {
-   240			/* Masks for norms using a NTSC or PAL color encoding. */
-   241			static const v4l2_std_id ntsc_mask =
-   242				V4L2_STD_NTSC | V4L2_STD_NTSC_443;
-   243			static const v4l2_std_id pal_mask =
-   244				V4L2_STD_PAL | V4L2_STD_PAL_60 | V4L2_STD_PAL_M;
-   245	
-   246			if (norm & ntsc_mask)
-   247				ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
-   248			else if (norm & pal_mask)
-   249				ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
-   250			else if (norm & V4L2_STD_SECAM)
-   251				ret = usbtv_set_regs(usbtv, secam, ARRAY_SIZE(secam));
-   252			else
-   253				ret = -EINVAL;
-   254		}
-   255	
-   256		if (!ret) {
-   257			/* Configure the decoder for the color standard */
-   258			u16 cfg[][2] = {
-   259				{ USBTV_BASE + 0x016f, usbtv_norm_to_16f_reg(norm) }
-   260			};
- > 261			ret = usbtv_set_regs(usbtv, cfg, ARRAY_SIZE(cfg));
-   262		}
-   263	
-   264		return ret;
-   265	}
-   266	
+> +       }
+> +       req->state = MEDIA_REQUEST_STATE_QUEUEING;
+> +
+> +       spin_unlock_irqrestore(&req->lock, flags);
+> +
+> +       /*
+> +        * Ensure the request that is validated will be the one that gets
+queued
+> +        * next by serialising the queueing process.
+> +        */
+> +       mutex_lock(&mdev->req_queue_mutex);
+> +
+> +       ret = mdev->ops->req_queue(req);
+> +       spin_lock_irqsave(&req->lock, flags);
+> +       req->state = ret ? MEDIA_REQUEST_STATE_IDLE :
+MEDIA_REQUEST_STATE_QUEUED;
+> +       spin_unlock_irqrestore(&req->lock, flags);
+> +       mutex_unlock(&mdev->req_queue_mutex);
+> +
+> +       if (ret) {
+> +               dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
+> +                       req->debug_str, ret);
+> +       } else {
+> +               media_request_get(req);
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+I'm not convinced that this is the right place to take a reference. IMHO
+whoever saves a pointer to the request in its own internal data (the
+->req_queue() callback?), should also grab a reference before doing so. Not
+a strong objection, though, if we clearly document this, so that whoever
+implements ->req_queue() callback can do the right thing.
+
+> +       }
+> +
+> +       return ret;
+> +}
+> +
+> +static long media_request_ioctl_reinit(struct media_request *req)
+> +{
+> +       struct media_device *mdev = req->mdev;
+> +       unsigned long flags;
+> +
+> +       spin_lock_irqsave(&req->lock, flags);
+> +       if (req->state != MEDIA_REQUEST_STATE_IDLE &&
+> +           req->state != MEDIA_REQUEST_STATE_COMPLETE) {
+> +               dev_dbg(mdev->dev,
+> +                       "request: %s not in idle or complete state,
+cannot reinit\n",
+> +                       req->debug_str);
+> +               spin_unlock_irqrestore(&req->lock, flags);
+> +               return -EINVAL;
+
+nit: Perhaps -EBUSY? (Again vb2 would return -EINVAL...)
+
+Best regards,
+Tomasz
