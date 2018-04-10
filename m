@@ -1,72 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:43671 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751582AbeDCHGs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 03:06:48 -0400
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34132 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752016AbeDJQfG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 12:35:06 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180402142656.26815-15-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr> <20180402142656.26815-15-robert.jarzmik@free.fr>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 3 Apr 2018 09:06:46 +0200
-Message-ID: <CAK8P3a2hYWO2eweg3zpR7iJoqtH4uxJLAxJAno7L96G7nA2HxQ@mail.gmail.com>
-Subject: Re: [PATCH 14/15] ARM: pxa: change SSP devices allocation
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        IDE-ML <linux-ide@vger.kernel.org>, dmaengine@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mmc <linux-mmc@vger.kernel.org>,
-        linux-mtd <linux-mtd@lists.infradead.org>,
-        Networking <netdev@vger.kernel.org>, devel@driverdev.osuosl.org,
-        alsa-devel@alsa-project.org
+In-Reply-To: <20180409092747.GY20945@w540>
+References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
+ <1523116090-13101-7-git-send-email-akinobu.mita@gmail.com> <20180409092747.GY20945@w540>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Wed, 11 Apr 2018 01:34:45 +0900
+Message-ID: <CAC5umyg=o8F5nDRQBuNOg1DeuiKzPdwNy=tPEAGABjeF6oqfBQ@mail.gmail.com>
+Subject: Re: [PATCH 6/6] media: ov772x: support device tree probing
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 2, 2018 at 4:26 PM, Robert Jarzmik <robert.jarzmik@free.fr> wrote:
-
+2018-04-09 18:27 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
+> Hi Akinobu,
 >
-> +static struct pxa_ssp_info pxa_ssp_infos[] = {
-> +       { .dma_chan_rx_name = "ssp1_rx", .dma_chan_tx_name = "ssp1_tx", },
-> +       { .dma_chan_rx_name = "ssp1_rx", .dma_chan_tx_name = "ssp1_tx", },
-> +       { .dma_chan_rx_name = "ssp2_rx", .dma_chan_tx_name = "ssp2_tx", },
-> +       { .dma_chan_rx_name = "ssp2_rx", .dma_chan_tx_name = "ssp2_tx", },
-> +       { .dma_chan_rx_name = "ssp3_rx", .dma_chan_tx_name = "ssp3_tx", },
-> +       { .dma_chan_rx_name = "ssp3_rx", .dma_chan_tx_name = "ssp3_tx", },
-> +       { .dma_chan_rx_name = "ssp4_rx", .dma_chan_tx_name = "ssp4_tx", },
-> +       { .dma_chan_rx_name = "ssp4_rx", .dma_chan_tx_name = "ssp4_tx", },
-> +};
+> On Sun, Apr 08, 2018 at 12:48:10AM +0900, Akinobu Mita wrote:
+>> The ov772x driver currently only supports legacy platform data probe.
+>> This change enables device tree probing.
+>>
+>> Note that the platform data probe can select auto or manual edge control
+>> mode, but the device tree probling can only select auto edge control mode
+>> for now.
+>>
+>> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+>> ---
+>>  drivers/media/i2c/ov772x.c | 60 ++++++++++++++++++++++++++++++----------------
+>>  1 file changed, 40 insertions(+), 20 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+>> index 5e91fa1..e67ec37 100644
+>> --- a/drivers/media/i2c/ov772x.c
+>> +++ b/drivers/media/i2c/ov772x.c
+>> @@ -763,13 +763,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+>>       case V4L2_CID_VFLIP:
+>>               val = ctrl->val ? VFLIP_IMG : 0x00;
+>>               priv->flag_vflip = ctrl->val;
+>> -             if (priv->info->flags & OV772X_FLAG_VFLIP)
+>> +             if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+>>                       val ^= VFLIP_IMG;
+>>               return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+>>       case V4L2_CID_HFLIP:
+>>               val = ctrl->val ? HFLIP_IMG : 0x00;
+>>               priv->flag_hflip = ctrl->val;
+>> -             if (priv->info->flags & OV772X_FLAG_HFLIP)
+>> +             if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+>>                       val ^= HFLIP_IMG;
+>>               return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+>>       case V4L2_CID_BAND_STOP_FILTER:
+>> @@ -928,19 +928,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+>>       *win = ov772x_select_win(mf->width, mf->height);
+>>  }
+>>
+>> -static int ov772x_set_params(struct ov772x_priv *priv,
+>> -                          const struct ov772x_color_format *cfmt,
+>> -                          const struct ov772x_win_size *win)
+>> +static int ov772x_edgectrl(struct ov772x_priv *priv)
+>>  {
+>>       struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+>> -     struct v4l2_fract tpf;
+>>       int ret;
+>> -     u8  val;
+>>
+>> -     /* Reset hardware. */
+>> -     ov772x_reset(client);
+>> +     if (!priv->info)
+>> +             return 0;
+>>
+>> -     /* Edge Ctrl. */
+>>       if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+>>               /*
+>>                * Manual Edge Control Mode.
+>> @@ -951,19 +946,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+>>
+>>               ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+>>               if (ret < 0)
+>> -                     goto ov772x_set_fmt_error;
+>> +                     return ret;
+>>
+>>               ret = ov772x_mask_set(client,
+>>                                     EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+>>                                     priv->info->edgectrl.threshold);
+>>               if (ret < 0)
+>> -                     goto ov772x_set_fmt_error;
+>> +                     return ret;
+>>
+>>               ret = ov772x_mask_set(client,
+>>                                     EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+>>                                     priv->info->edgectrl.strength);
+>>               if (ret < 0)
+>> -                     goto ov772x_set_fmt_error;
+>> +                     return ret;
+>>
+>>       } else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+>>               /*
+>> @@ -975,15 +970,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+>>                                     EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+>>                                     priv->info->edgectrl.upper);
+>>               if (ret < 0)
+>> -                     goto ov772x_set_fmt_error;
+>> +                     return ret;
+>>
+>>               ret = ov772x_mask_set(client,
+>>                                     EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+>>                                     priv->info->edgectrl.lower);
+>>               if (ret < 0)
+>> -                     goto ov772x_set_fmt_error;
+>> +                     return ret;
+>>       }
+>>
+>> +     return 0;
+>> +}
+>> +
+>> +static int ov772x_set_params(struct ov772x_priv *priv,
+>> +                          const struct ov772x_color_format *cfmt,
+>> +                          const struct ov772x_win_size *win)
+>> +{
+>> +     struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+>> +     struct v4l2_fract tpf;
+>> +     int ret;
+>> +     u8  val;
+>> +
+>> +     /* Reset hardware. */
+>> +     ov772x_reset(client);
+>> +
+>> +     /* Edge Ctrl. */
+>> +     ret =  ov772x_edgectrl(priv);
+>> +     if (ret < 0)
+>> +             goto ov772x_set_fmt_error;
+>> +
+>>       /* Format and window size. */
+>>       ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+>>       if (ret < 0)
+>> @@ -1284,11 +1299,6 @@ static int ov772x_probe(struct i2c_client *client,
+>>       struct i2c_adapter      *adapter = client->adapter;
+>>       int                     ret;
+>>
+>> -     if (!client->dev.platform_data) {
+>
+> Not sure this has to be removed completely. I'm debated, as in
+> general, for mainline code, we should make sure every user of this
+> driver shall provide platform_data during review, and this check is
+> not requried. But in general, I still think it may have value.
+>
+> What about:
+>         if (!client->dev.of_node && !client->dev.platform_data) {
+>                dev_err(&client->dev, "Missing ov772x platform data\n");
+>                return -EINVAL;
+>         }
 
-This part looks odd to me, you're adding an extra level of indirection to
-do two stages of lookups in some form of platform data.
-
-Why can't you just always use "rx" and "tx" as the names here?
-
-(also, I don't see why each line is duplicated, but I'm sure there's
-an easy answer for that).
-
-       Arnd
+OK. I'll take this.
