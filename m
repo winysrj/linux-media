@@ -1,107 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52552 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752064AbeDIOUd (ORCPT
+Received: from relmlor2.renesas.com ([210.160.252.172]:38790 "EHLO
+        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752646AbeDJLFH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv11 PATCH 08/29] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Mon,  9 Apr 2018 16:20:05 +0200
-Message-Id: <20180409142026.19369-9-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        Tue, 10 Apr 2018 07:05:07 -0400
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Pawel Moll <pawel.moll@arm.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Ian Campbell <ijc+devicetree@hellion.org.uk>,
+        Kumar Gala <galak@codeaurora.org>,
+        "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>,
+        TOMOHARU FUKAWA <tomoharu.fukawa.eb@renesas.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Simon Horman <horms@verge.net.au>,
+        "Geert Uytterhoeven" <geert+renesas@glider.be>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Subject: RE: [PATCH v13 02/33] dt-bindings: media: rcar_vin: add device tree
+ support for r8a774[35]
+Date: Tue, 10 Apr 2018 11:04:58 +0000
+Message-ID: <TY1PR01MB1770CD1189E70C5BC7A73F15C0BE0@TY1PR01MB1770.jpnprd01.prod.outlook.com>
+References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180326214456.6655-3-niklas.soderlund+renesas@ragnatech.se>
+ <TY1PR01MB17703A92A8B0DF3758D00F1BC0BE0@TY1PR01MB1770.jpnprd01.prod.outlook.com>
+ <20180410101736.GQ12256@bigcity.dyn.berto.se>
+In-Reply-To: <20180410101736.GQ12256@bigcity.dyn.berto.se>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+Hello Niklas,
 
-If which is V4L2_CTRL_WHICH_REQUEST, then the request_fd field can be
-used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+> Subject: Re: [PATCH v13 02/33] dt-bindings: media: rcar_vin: add device t=
+ree support for r8a774[35]
+>
+> Hi Fabrizio,
+>
+> On 2018-04-10 09:55:29 +0000, Fabrizio Castro wrote:
+> > Dear All,
+> >
+> > this patch was originally sent on the 16/11/2017, and reposted a few ti=
+mes, does anybody know who is supposed to take it?
+>
+> Hans have indicated he will take this a respin of this whole patch-set
+> sometime next week.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
- drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
- include/uapi/linux/videodev2.h                | 4 +++-
- 3 files changed, 10 insertions(+), 5 deletions(-)
+fantastic, thanks a lot for the information.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 5198c9eeb348..0782b3666deb 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -732,7 +732,8 @@ struct v4l2_ext_controls32 {
- 	__u32 which;
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
- };
- 
-@@ -807,6 +808,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &up->count) ||
- 	    put_user(count, &kp->count) ||
- 	    assign_in_user(&kp->error_idx, &up->error_idx) ||
-+	    assign_in_user(&kp->request_fd, &up->request_fd) ||
- 	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 
-@@ -865,6 +867,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &kp->count) ||
- 	    put_user(count, &up->count) ||
- 	    assign_in_user(&up->error_idx, &kp->error_idx) ||
-+	    assign_in_user(&up->request_fd, &kp->request_fd) ||
- 	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)) ||
- 	    get_user(kcontrols, &kp->controls))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index f48c505550e0..9ce23e23c5bf 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -553,8 +553,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	const struct v4l2_ext_controls *p = arg;
- 	int i;
- 
--	pr_cont("which=0x%x, count=%d, error_idx=%d",
--			p->which, p->count, p->error_idx);
-+	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
-+			p->which, p->count, p->error_idx, p->request_fd);
- 	for (i = 0; i < p->count; i++) {
- 		if (!p->controls[i].size)
- 			pr_cont(", id/val=0x%x/0x%x",
-@@ -870,7 +870,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
- 
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved[0] = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 600877be5c22..6f41baa53787 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	struct v4l2_ext_control *controls;
- };
- 
-@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_MAX_DIMS	  (4)
- #define V4L2_CTRL_WHICH_CUR_VAL   0
- #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
-+#define V4L2_CTRL_WHICH_REQUEST   0x0f010000
- 
- enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER	     = 1,
--- 
-2.16.3
+Cheers,
+Fab
+
+>
+> >
+> > Thanks,
+> > Fab
+> >
+> > > -----Original Message-----
+> > > From: Niklas S=F6derlund [mailto:niklas.soderlund+renesas@ragnatech.s=
+e]
+> > > Sent: 26 March 2018 22:44
+> > > To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>; Hans Verkui=
+l <hverkuil@xs4all.nl>; linux-media@vger.kernel.org
+> > > Cc: linux-renesas-soc@vger.kernel.org; TOMOHARU FUKAWA <tomoharu.fuka=
+wa.eb@renesas.com>; Kieran Bingham
+> > > <kieran.bingham@ideasonboard.com>; Fabrizio Castro <fabrizio.castro@b=
+p.renesas.com>
+> > > Subject: [PATCH v13 02/33] dt-bindings: media: rcar_vin: add device t=
+ree support for r8a774[35]
+> > >
+> > > From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> > >
+> > > Add compatible strings for r8a7743 and r8a7745. No driver change
+> > > is needed as "renesas,rcar-gen2-vin" will activate the right code.
+> > > However, it is good practice to document compatible strings for the
+> > > specific SoC as this allows SoC specific changes to the driver if
+> > > needed, in addition to document SoC support and therefore allow
+> > > checkpatch.pl to validate compatible string values.
+> > >
+> > > Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> > > Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+> > > Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+> > > Acked-by: Rob Herring <robh@kernel.org>
+> > > Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > > Acked-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > >  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+> > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/D=
+ocumentation/devicetree/bindings/media/rcar_vin.txt
+> > > index d99b6f5dee418056..4c76d82905c9d3b8 100644
+> > > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > > @@ -6,6 +6,8 @@ family of devices. The current blocks are always slav=
+es and suppot one input
+> > >  channel which can be either RGB, YUYV or BT656.
+> > >
+> > >   - compatible: Must be one or more of the following
+> > > +   - "renesas,vin-r8a7743" for the R8A7743 device
+> > > +   - "renesas,vin-r8a7745" for the R8A7745 device
+> > >     - "renesas,vin-r8a7778" for the R8A7778 device
+> > >     - "renesas,vin-r8a7779" for the R8A7779 device
+> > >     - "renesas,vin-r8a7790" for the R8A7790 device
+> > > @@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+> > >     - "renesas,vin-r8a7793" for the R8A7793 device
+> > >     - "renesas,vin-r8a7794" for the R8A7794 device
+> > >     - "renesas,vin-r8a7795" for the R8A7795 device
+> > > -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible dev=
+ice.
+> > > +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compa=
+tible
+> > > +     device.
+> > >     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible dev=
+ice.
+> > >
+> > >     When compatible with the generic version nodes must list the
+> > > --
+> > > 2.16.2
+> >
+> >
+> >
+> >
+> > Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne En=
+d, Buckinghamshire, SL8 5FH, UK. Registered in England
+> & Wales under Registered No. 04586709.
+>
+> --
+> Regards,
+> Niklas S=F6derlund
+
+
+
+Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
+uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
+ No. 04586709.
