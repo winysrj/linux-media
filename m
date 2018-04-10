@@ -1,192 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:43389 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755407AbeDWNtB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38086 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751774AbeDJLAS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:49:01 -0400
-Received: by mail-wr0-f194.google.com with SMTP id v15-v6so23390272wrm.10
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:49:00 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v2 11/15] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
-Date: Mon, 23 Apr 2018 14:47:46 +0100
-Message-Id: <20180423134750.30403-12-rui.silva@linaro.org>
-In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
+        Tue, 10 Apr 2018 07:00:18 -0400
+Date: Tue, 10 Apr 2018 14:00:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 02/29] uapi/linux/media.h: add request API
+Message-ID: <20180410110016.p7dabvuzxazggytn@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-3-hverkuil@xs4all.nl>
+ <20180410063856.32e44ce9@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180410063856.32e44ce9@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
-besides the graph connecting the necessary endpoints to make the media capture
-entities to work in imx7 Warp board.
+On Tue, Apr 10, 2018 at 06:38:56AM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon,  9 Apr 2018 16:19:59 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Define the public request API.
+> > 
+> > This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+> > and two ioctls that operate on a request in order to queue the
+> > contents of the request to the driver and to re-initialize the
+> > request.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  include/uapi/linux/media.h | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index c7e9a5cba24e..f8769e74f847 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -342,11 +342,19 @@ struct media_v2_topology {
+> >  
+> >  /* ioctls */
+> >  
+> > +struct __attribute__ ((packed)) media_request_alloc {
+> > +	__s32 fd;
+> > +};
+> > +
+> >  #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+> >  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+> >  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+> >  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+> >  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+> > +#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
+> > +
+> 
+> Why use a struct here? Just declare it as:
+> 
+> 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
 
-Also add the pin control related with the mipi_csi in that board.
+I'd say it's easier to extend it if it's a struct. All other IOCTLs also
+have a struct as an argument. As a struct member, the parameter (fd) also
+has a name; this is a plus.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s-warp.dts | 80 ++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++
- 2 files changed, 107 insertions(+)
+> 
+> > +#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
+> > +#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
+> >  
+> >  #if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
+> >  
+> 
+> Thanks,
+> Mauro
 
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index 8a30b148534d..91d06adf7c24 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -310,6 +310,79 @@
- 	status = "okay";
- };
- 
-+&gpr {
-+	csi_mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_csi_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi_mux_to_csi: endpoint {
-+				remote-endpoint = <&csi_from_csi_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&csi {
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	port@0 {
-+		reg = <0>;
-+
-+		csi_from_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_to_csi>;
-+		};
-+	};
-+};
-+
-+&mipi_csi {
-+	clock-frequency = <166000000>;
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_from_sensor: endpoint {
-+			remote-endpoint = <&ov2680_to_mipi>;
-+			data-lanes = <1>;
-+			csis-hs-settle = <3>;
-+			csis-clk-settle = <0>;
-+			csis-wclk;
-+		};
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_from_mipi_vc0>;
-+		};
-+	};
-+};
-+
- &wdog1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_wdog>;
-@@ -357,6 +430,13 @@
- 		>;
- 	};
- 
-+	pinctrl_mipi_csi: mipi_csi {
-+		fsl,pins = <
-+			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
-+			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6	0x14
-+		>;
-+	};
-+
- 	pinctrl_sai1: sai1grp {
- 		fsl,pins = <
- 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 3027d6a62021..6b49b73053f9 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -46,6 +46,7 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- #include <dt-bindings/interrupt-controller/arm-gic.h>
-+#include <dt-bindings/reset/imx7-reset.h>
- #include "imx7d-pinfunc.h"
- 
- / {
-@@ -753,6 +754,17 @@
- 				status = "disabled";
- 			};
- 
-+			csi: csi@30710000 {
-+				compatible = "fsl,imx7-csi";
-+				reg = <0x30710000 0x10000>;
-+				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_CLK_DUMMY>,
-+						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
-+						<&clks IMX7D_CLK_DUMMY>;
-+				clock-names = "axi", "mclk", "dcic";
-+				status = "disabled";
-+			};
-+
- 			lcdif: lcdif@30730000 {
- 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
- 				reg = <0x30730000 0x10000>;
-@@ -762,6 +774,21 @@
- 				clock-names = "pix", "axi";
- 				status = "disabled";
- 			};
-+
-+			mipi_csi: mipi-csi@30750000 {
-+				compatible = "fsl,imx7-mipi-csi2";
-+				reg = <0x30750000 0x10000>;
-+				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
-+						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
-+				clock-names = "mipi", "phy";
-+				power-domains = <&pgc_mipi_phy>;
-+				phy-supply = <&reg_1p0d>;
-+				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
-+				reset-names = "mrst";
-+				bus-width = <4>;
-+				status = "disabled";
-+			};
- 		};
- 
- 		aips3: aips-bus@30800000 {
 -- 
-2.17.0
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
