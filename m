@@ -1,46 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33254 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750969AbeDYI4D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 04:56:03 -0400
-Date: Wed, 25 Apr 2018 01:55:59 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Thierry Reding <treding@nvidia.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-Message-ID: <20180425085559.GB29996@infradead.org>
-References: <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com>
- <20180425054855.GA17038@infradead.org>
- <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
- <CAKMK7uFx=KB1vup=WhPCyfUFairKQcRR4BEd7aXaX1Pj-vj3Cw@mail.gmail.com>
- <20180425064335.GB28100@infradead.org>
- <CAKMK7uGF7p5ko=i6zL4dn0qR-5TVRKMi6xaCGSao_vyfJU+dWQ@mail.gmail.com>
- <20180425070905.GA24827@infradead.org>
- <20180425073039.GO25142@phenom.ffwll.local>
- <20180425075643.GC2271@ulmo>
+Received: from osg.samsung.com ([64.30.133.232]:48657 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752389AbeDJJwv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Apr 2018 05:52:51 -0400
+Date: Tue, 10 Apr 2018 06:52:39 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
+Message-ID: <20180410065239.7e1036d0@vento.lan>
+In-Reply-To: <20180409142026.19369-4-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        <20180409142026.19369-4-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180425075643.GC2271@ulmo>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 09:56:43AM +0200, Thierry Reding wrote:
-> And to add to the confusion, none of this seems to be an issue on 64-bit
-> ARM where the generic DMA/IOMMU code from drivers/iommu/dma-iommu.c is
-> used.
+Em Mon,  9 Apr 2018 16:20:00 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-In the long term I want everyone to use that code.  Help welcome!
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Add support for allocating a new request. This is only supported
+> if mdev->ops->req_queue is set, i.e. the driver indicates that it
+> supports queueing requests.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/Makefile        |  3 ++-
+>  drivers/media/media-device.c  | 14 ++++++++++++++
+>  drivers/media/media-request.c | 23 +++++++++++++++++++++++
+>  include/media/media-device.h  | 13 +++++++++++++
+>  include/media/media-request.h | 22 ++++++++++++++++++++++
+>  5 files changed, 74 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/media-request.c
+>  create mode 100644 include/media/media-request.h
+> 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index 594b462ddf0e..985d35ec6b29 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -3,7 +3,8 @@
+>  # Makefile for the kernel multimedia device drivers.
+>  #
+>  
+> -media-objs	:= media-device.o media-devnode.o media-entity.o
+> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+> +		   media-request.o
+>  
+>  #
+>  # I2C drivers should come before other drivers, otherwise they'll fail
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 35e81f7c0d2f..acb583c0eacd 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -32,6 +32,7 @@
+>  #include <media/media-device.h>
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+> +#include <media/media-request.h>
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  
+> @@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
+>  	return ret;
+>  }
+>  
+> +static long media_device_request_alloc(struct media_device *mdev,
+> +				       struct media_request_alloc *alloc)
+> +{
+> +	if (!mdev->ops || !mdev->ops->req_queue)
+> +		return -ENOTTY;
+> +
+> +	return media_request_alloc(mdev, alloc);
+> +}
+> +
+>  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+>  {
+>  	/* All media IOCTLs are _IOWR() */
+> @@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
+>  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+>  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+>  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+> +	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
+>  };
+>  
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> @@ -686,6 +697,9 @@ void media_device_init(struct media_device *mdev)
+>  	INIT_LIST_HEAD(&mdev->pads);
+>  	INIT_LIST_HEAD(&mdev->links);
+>  	INIT_LIST_HEAD(&mdev->entity_notify);
+> +
+> +	spin_lock_init(&mdev->req_lock);
+> +	mutex_init(&mdev->req_queue_mutex);
+>  	mutex_init(&mdev->graph_mutex);
+>  	ida_init(&mdev->entity_internal_idx);
+>  
+> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> new file mode 100644
+> index 000000000000..ead78613fdbe
+> --- /dev/null
+> +++ b/drivers/media/media-request.c
+> @@ -0,0 +1,23 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Media device request objects
+> + *
+> + * Copyright (C) 2018 Intel Corporation
+> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
+> + *
+> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+> + */
+> +
+> +#include <linux/anon_inodes.h>
+
+Not needed. You already included it at media_device.h.
+
+> +#include <linux/file.h>
+> +#include <linux/mm.h>
+> +#include <linux/string.h>
+
+Why do you need so many includes for a stub function?
+
+> +
+> +#include <media/media-device.h>
+> +#include <media/media-request.h>
+> +
+> +int media_request_alloc(struct media_device *mdev,
+> +			struct media_request_alloc *alloc)
+> +{
+> +	return -ENOMEM;
+> +}
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index bcc6ec434f1f..07e323c57202 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -19,6 +19,7 @@
+>  #ifndef _MEDIA_DEVICE_H
+>  #define _MEDIA_DEVICE_H
+>  
+> +#include <linux/anon_inodes.h>
+
+Why do you need it? I don't see anything below needing it.
+
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+>  
+> @@ -27,6 +28,7 @@
+>  
+>  struct ida;
+>  struct device;
+> +struct media_device;
+>  
+>  /**
+>   * struct media_entity_notify - Media Entity Notify
+> @@ -50,10 +52,16 @@ struct media_entity_notify {
+>   * struct media_device_ops - Media device operations
+>   * @link_notify: Link state change notification callback. This callback is
+>   *		 called with the graph_mutex held.
+> + * @req_alloc: Allocate a request
+> + * @req_free: Free a request
+> + * @req_queue: Queue a request
+>   */
+>  struct media_device_ops {
+>  	int (*link_notify)(struct media_link *link, u32 flags,
+>  			   unsigned int notification);
+> +	struct media_request *(*req_alloc)(struct media_device *mdev);
+> +	void (*req_free)(struct media_request *req);
+> +	int (*req_queue)(struct media_request *req);
+>  };
+>  
+>  /**
+> @@ -88,6 +96,8 @@ struct media_device_ops {
+>   * @disable_source: Disable Source Handler function pointer
+>   *
+>   * @ops:	Operation handler callbacks
+> + * @req_lock:	Serialise access to requests
+> + * @req_queue_mutex: Serialise validating and queueing requests
+
+IMHO, this would better describe it:
+	Serialise validate and queue requests
+
+Yet, IMO, it doesn't let it clear when the spin lock should be
+used and when the mutex should be used.
+
+I mean, what of them protect what variable?
+
+>   *
+>   * This structure represents an abstract high-level media device. It allows easy
+>   * access to entities and provides basic media device-level support. The
+> @@ -158,6 +168,9 @@ struct media_device {
+>  	void (*disable_source)(struct media_entity *entity);
+>  
+>  	const struct media_device_ops *ops;
+> +
+> +	spinlock_t req_lock;
+> +	struct mutex req_queue_mutex;
+>  };
+>  
+>  /* We don't need to include pci.h or usb.h here */
+> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> new file mode 100644
+> index 000000000000..dae3eccd9aa7
+> --- /dev/null
+> +++ b/include/media/media-request.h
+> @@ -0,0 +1,22 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Media device request objects
+> + *
+> + * Copyright (C) 2018 Intel Corporation
+> + *
+> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+> + */
+> +
+> +#ifndef MEDIA_REQUEST_H
+> +#define MEDIA_REQUEST_H
+> +
+> +#include <linux/list.h>
+> +#include <linux/slab.h>
+> +#include <linux/spinlock.h>
+
+Why those includes are needed?
+
+> +
+> +#include <media/media-device.h>
+> +
+> +int media_request_alloc(struct media_device *mdev,
+> +			struct media_request_alloc *alloc);
+> +
+> +#endif
+
+
+
+Thanks,
+Mauro
