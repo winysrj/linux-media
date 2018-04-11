@@ -1,99 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:58600 "EHLO mga07.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:55573 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754381AbeDPJuD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 05:50:03 -0400
-Date: Mon, 16 Apr 2018 12:49:59 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: jacopo@jmondi.org, "Yeh, Andy" <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>
-Subject: Re: [RESEND PATCH v7 2/2] media: dw9807: Add dw9807 vcm driver
-Message-ID: <20180416094959.izqxmwecnffunmb4@paasikivi.fi.intel.com>
-References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
- <1523375324-27856-3-git-send-email-andy.yeh@intel.com>
- <20180412085701.GJ20945@w540>
- <20180412095710.tqcpyix6sn772siw@paasikivi.fi.intel.com>
- <CAAFQd5Dm6tNoC2VskAK6DDdm4WrRSe71XckmCtX7zFMpoTn_UQ@mail.gmail.com>
+        id S1752990AbeDKNtm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 09:49:42 -0400
+Date: Wed, 11 Apr 2018 10:49:35 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
+Message-ID: <20180411104935.5f566f0f@vento.lan>
+In-Reply-To: <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        <20180409142026.19369-5-hverkuil@xs4all.nl>
+        <20180410073206.12d4c67d@vento.lan>
+        <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
+        <20180410115143.41178f68@vento.lan>
+        <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5Dm6tNoC2VskAK6DDdm4WrRSe71XckmCtX7zFMpoTn_UQ@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 16, 2018 at 04:30:46AM +0000, Tomasz Figa wrote:
-> On Thu, Apr 12, 2018 at 6:57 PM Sakari Ailus <sakari.ailus@linux.intel.com>
-> wrote:
-> 
-> > Hi Jacopo,
-> 
-> > On Thu, Apr 12, 2018 at 10:57:01AM +0200, jacopo mondi wrote:
-> > ...
-> > > > +           if (MAX_RETRY == ++retry) {
-> > > > +                   dev_err(&client->dev,
-> > > > +                           "Cannot do the write operation because
-> VCM is busy\n");
-> > >
-> > > Nit: this is over 80 cols, it's fine, but I think you can really
-> > > shorten the error messag without losing context.
-> 
-> > dev_warn() or dev_info() might be more appropriate actually. Or even
-> > dev_dbg(). This isn't a grave problem; just a sign the user space is
-> trying
-> > to move the lens before it has reached its previous target position.
-> 
-> On the other hand, we print this only if we reach MAX_RETRY, which probably
-> means that the lens is stuck or some other unexpected failure.
+Em Wed, 11 Apr 2018 16:21:16 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-MAX_RETRY is only ten, so I'd expect you could hit this if you're tring to
-move the lens again very quickly. It usually takes several ms (but could
-well be more than 10 ms) to reach the target position. This depends on the
-lens and the driver, too, and I don't know the properties of this driver
-(nor the lens).
 
+> > > > Btw, this is a very good reason why you should define the ioctl to
+> > > > have an integer argument instead of a struct with a __s32 field
+> > > > on it, as per my comment to patch 02/29:
+> > > > 
+> > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
+> > > > 
+> > > > At 64 bit architectures, you're truncating the file descriptor!    
+> > > 
+> > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
+> > > well.  
+> > 
+> > Hmm.. you're right. I was thinking that it could be 64 bits on some
+> > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
+> > according with:
+> > 
+> > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
+> > 
+> > This is not the case on gcc.  
 > 
+> Ok. The reasoning back then was that what "int" means varies across
+> compilers and languages. And the intent was to codify this to __s32 which
+> is what the kernel effectively uses.
+
+...
+
+> The rest of the kernel uses int rather liberally in the uAPI so I'm not
+> sure in the end whether something desirable was achieved. Perhaps it'd be
+> good to go back to the original discussion to find out for sure.
 > 
-> > >
-> > > > +                   return -EIO;
-> > > > +           }
-> > > > +           usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US +
-> 10);
-> > >
-> > > mmm, I wonder if a sleep range of 10usecs is really a strict
-> > > requirement. Have a look at Documentation/timers/timers-howto.txt.
-> > > With such a small range you're likely fire some unrequired interrupt.
+> Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
+> due to that difference.
 > 
-> > If the user is trying to tell where to move the lens next, no time should
-> > be wasted on waiting. It'd perhaps rather make sense to return an error
-> > (-EBUSY): the user application (as well as the application developer)
-> would
-> > know about the attempt to move the lens too fast and could take an
-> informed
-> > decision on what to do next. This could include changing the target
-> > position, waiting more or changing the program to adjust the 3A loop
-> > behaviour.
+> Well, I stop here for this begins to be off-topic. :-)
+
+Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
+about that :-)
+
+> > > > > +	get_task_comm(comm, current);
+> > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+> > > > > +		 comm, fd);    
+> > > > 
+> > > > Not sure if it is a good idea to store the task that allocated
+> > > > the request. While it makes sense for the dev_dbg() below, it
+> > > > may not make sense anymore on other dev_dbg() you would be
+> > > > using it.    
+> > > 
+> > > The lifetime of the file handle roughly matches that of the request. It's
+> > > for debug only anyway.
+> > > 
+> > > Better proposals are always welcome of course. But I think we should have
+> > > something here that helps debugging by meaningfully making the requests
+> > > identifiable from logs.  
+> > 
+> > What I meant to say is that one PID could be allocating the
+> > request, while some other one could be actually doing Q/DQ_BUF.
+> > On such scenario, the debug string could provide mislead prints.  
 > 
-> Actually, shouldn't we wait for the lens to finish moving after we set the
-> position? If we don't do it, we risk the userspace requesting a capture
-> with the lens still moving.
-
-For that purpose I'd add a new control. The user process shouldn't wait in
-the kernel for just the sake of this. In order to meaningfully control the
-focussing process, the user space would have to know some properties of the
-lens anyway, so this information would primarily be useful for checking
-things are working out as expected.
-
+> Um, yes, indeed it would no longer match the process. But the request is
+> still the same. That's actually a positive thing since it allows you to
+> identify the request.
 > 
-> If "time wasted on waiting" is a concern here, userspace could as well just
-> have a separate thread for controlling the lens (as something that is
-> expected to take time due to physical limitations).
+> With a global ID space this was trivial; you could just print the request
+> ID and that was all that was ever needed. (I'm not proposing to consider
+> that though.)
+> 
 
-That's up to the user space implementation.
+IMO, a global ID number would work better than get_task_comm().
 
--- 
-Regards,
+Just add a static int monotonic counter and use it for the debug purposes,
+e. g.:
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+{
+	static unsigned int req_count = 0;
+
+	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
+		req_count++, fd);    
+
+Ok, eventually, it will overflow, but, it will be unique within
+a reasonable timeframe to be good enough for debugging purposes.
+
+
+Thanks,
+Mauro
