@@ -1,129 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51012 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752012AbeDHDrf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 7 Apr 2018 23:47:35 -0400
-Message-ID: <6ceef43777d46b96c7c0e89fb857831e@smtp-cloud8.xs4all.net>
-Date: Sun, 08 Apr 2018 05:47:32 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from osg.samsung.com ([64.30.133.232]:57060 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751797AbeDKMDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 08:03:48 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Daniel Scheller <d.scheller.oss@gmail.com>
+Subject: [PATCH] media: ddbridge: better handle optional spin locks at the code
+Date: Wed, 11 Apr 2018 08:03:37 -0400
+Message-Id: <5156a3b987ae3698ff4c650a6395997f93ba093e.1523448215.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Currently, ddbridge produces 4 warnings on sparse:
+	drivers/media/pci/ddbridge/ddbridge-core.c:495:9: warning: context imbalance in 'ddb_output_start' - different lock contexts for basic block
+	drivers/media/pci/ddbridge/ddbridge-core.c:510:9: warning: context imbalance in 'ddb_output_stop' - different lock contexts for basic block
+	drivers/media/pci/ddbridge/ddbridge-core.c:525:9: warning: context imbalance in 'ddb_input_stop' - different lock contexts for basic block
+	drivers/media/pci/ddbridge/ddbridge-core.c:560:9: warning: context imbalance in 'ddb_input_start' - different lock contexts for basic block
 
-Results of the daily build of media_tree:
+Those are all false positives, but they result from the fact that
+there could potentially have some troubles at the locking schema,
+because the lock depends on a var (output->dma).
 
-date:			Sun Apr  8 05:00:13 CEST 2018
-media-tree git hash:	17dec0a949153d9ac00760ba2f5b78cb583e995f
-media_build git hash:	541653bb52fcf7c34b8b83a4c8cc66b09c68ac37
-v4l-utils git hash:	47d43b130dc6e9e0edc900759fb37649208371e4
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.2-rc1
-smatch version:		v0.5.0-4419-g3b5bf5c9
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+I discussed that in priv with Sparse author and with the current
+maintainer. Both believe that sparse is doing the right thing, and
+that the proper fix would be to change the code to make it clearer
+that, when spin_lock_irq() is called, spin_unlock_irq() will be
+also called.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+That help not only static analyzers to better understand the code,
+but also humans that could need to take a look at the code.
 
-Detailed results are available here:
+It was also pointed that gcc would likely be smart enough to
+optimize the code and produce the same result. I double
+checked: indeed, the size of the driver didn't change after
+this patch.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/ddbridge/ddbridge-core.c | 43 ++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 14 deletions(-)
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 4a2819d3e225..080e2189ca7f 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -458,13 +458,12 @@ static void calc_con(struct ddb_output *output, u32 *con, u32 *con2, u32 flags)
+ 	*con2 = (nco << 16) | gap;
+ }
+ 
+-static void ddb_output_start(struct ddb_output *output)
++static void __ddb_output_start(struct ddb_output *output)
+ {
+ 	struct ddb *dev = output->port->dev;
+ 	u32 con = 0x11c, con2 = 0;
+ 
+ 	if (output->dma) {
+-		spin_lock_irq(&output->dma->lock);
+ 		output->dma->cbuf = 0;
+ 		output->dma->coff = 0;
+ 		output->dma->stat = 0;
+@@ -492,9 +491,18 @@ static void ddb_output_start(struct ddb_output *output)
+ 
+ 	ddbwritel(dev, con | 1, TS_CONTROL(output));
+ 
+-	if (output->dma) {
++	if (output->dma)
+ 		output->dma->running = 1;
++}
++
++static void ddb_output_start(struct ddb_output *output)
++{
++	if (output->dma) {
++		spin_lock_irq(&output->dma->lock);
++		__ddb_output_start(output);
+ 		spin_unlock_irq(&output->dma->lock);
++	} else {
++		__ddb_output_start(output);
+ 	}
+ }
+ 
+@@ -502,15 +510,13 @@ static void ddb_output_stop(struct ddb_output *output)
+ {
+ 	struct ddb *dev = output->port->dev;
+ 
+-	if (output->dma)
+-		spin_lock_irq(&output->dma->lock);
+-
+-	ddbwritel(dev, 0, TS_CONTROL(output));
+-
+ 	if (output->dma) {
++		spin_lock_irq(&output->dma->lock);
+ 		ddbwritel(dev, 0, DMA_BUFFER_CONTROL(output->dma));
+ 		output->dma->running = 0;
+ 		spin_unlock_irq(&output->dma->lock);
++	} else {
++		ddbwritel(dev, 0, TS_CONTROL(output));
+ 	}
+ }
+ 
+@@ -519,22 +525,21 @@ static void ddb_input_stop(struct ddb_input *input)
+ 	struct ddb *dev = input->port->dev;
+ 	u32 tag = DDB_LINK_TAG(input->port->lnr);
+ 
+-	if (input->dma)
+-		spin_lock_irq(&input->dma->lock);
+-	ddbwritel(dev, 0, tag | TS_CONTROL(input));
+ 	if (input->dma) {
++		spin_lock_irq(&input->dma->lock);
+ 		ddbwritel(dev, 0, DMA_BUFFER_CONTROL(input->dma));
+ 		input->dma->running = 0;
+ 		spin_unlock_irq(&input->dma->lock);
++	} else {
++		ddbwritel(dev, 0, tag | TS_CONTROL(input));
+ 	}
+ }
+ 
+-static void ddb_input_start(struct ddb_input *input)
++static void __ddb_input_start(struct ddb_input *input)
+ {
+ 	struct ddb *dev = input->port->dev;
+ 
+ 	if (input->dma) {
+-		spin_lock_irq(&input->dma->lock);
+ 		input->dma->cbuf = 0;
+ 		input->dma->coff = 0;
+ 		input->dma->stat = 0;
+@@ -557,9 +562,19 @@ static void ddb_input_start(struct ddb_input *input)
+ 	if (input->port->type == DDB_TUNER_DUMMY)
+ 		ddbwritel(dev, 0x000fff01, TS_CONTROL2(input));
+ 
+-	if (input->dma) {
++	if (input->dma)
+ 		input->dma->running = 1;
++}
++
++static void ddb_input_start(struct ddb_input *input)
++{
++
++	if (input->dma) {
++		spin_lock_irq(&input->dma->lock);
++		__ddb_input_start(input);
+ 		spin_unlock_irq(&input->dma->lock);
++	} else {
++		__ddb_input_start(input);
+ 	}
+ }
+ 
+-- 
+2.14.3
