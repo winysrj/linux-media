@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45349 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbeDGLkM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 07:40:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH] v4l: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
-Date: Sat,  7 Apr 2018 14:40:08 +0300
-Message-Id: <20180407114008.6707-1-laurent.pinchart@ideasonboard.com>
+Received: from mout.gmx.net ([212.227.17.21]:53165 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757269AbeDKTdz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 15:33:55 -0400
+Date: Wed, 11 Apr 2018 21:33:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Edgar Thier <info@edgarthier.net>
+Subject: Re: a 4.16 kernel with Debian 9.4 "stretch" causes a log explosion
+In-Reply-To: <2838ba6c-7425-f45f-d121-e519093ab842@ideasonboard.com>
+Message-ID: <alpine.DEB.2.20.1804112130030.25028@axis700.grange>
+References: <alpine.DEB.2.20.1804110911021.18053@axis700.grange> <e79738af-8d6d-a6b1-2539-d2dbdb07bb53@ideasonboard.com> <b33d611d-99ea-b350-9351-f5b8986e3fe9@ideasonboard.com> <alpine.DEB.2.20.1804111848320.25028@axis700.grange>
+ <2838ba6c-7425-f45f-d121-e519093ab842@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The omap3isp driver can't be compiled on non-ARM platforms but has no
-compile-time dependency on OMAP. It however requires common clock
-framework support, which isn't provided by all ARM platforms.
+On Wed, 11 Apr 2018, Kieran Bingham wrote:
 
-Drop the OMAP dependency when COMPILE_TEST is set and add ARM and
-COMMON_CLK dependencies.
+> Hi Guennadi,
+> 
+> On 11/04/18 18:06, Guennadi Liakhovetski wrote:
+> 
+>  <snip>
+> 
+> >>>>
+> >>>> Just figured out this commit
+> >>>>
+> >>>> From: Edgar Thier <info@edgarthier.net>
+> >>>> Date: Thu, 12 Oct 2017 03:54:17 -0400
+> >>>> Subject: [PATCH] media: uvcvideo: Apply flags from device to actual properties
+> >>>>
+> >>>> as the culprit. Without it everything is back to normal.
+> >>>
+> >>> I've already investigated and fixed this:
+> >>>
+> >>> Please apply:
+> >>> 	https://patchwork.kernel.org/patch/10299735/
+> > 
+> > Great, thanks! That seems to fix my problem.
+> 
+> Fantastic. I'm glad it helped.
+> 
+>  - Can I call that a Tested-by: ? :-D
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/Kconfig | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Now you officially can - I replied to the patch.
 
-Hi Mauro,
+Thanks
+Guennadi
 
-While we continue the discussions on whether the ARM IOMMU functions should be
-stubbed in the omap3isp driver itself or not, I propose already merging this
-patch that will extend build coverage for the omap3isp driver. Extending
-compilation to non-ARM platforms can then be added on top, depending on the
-result of the discussion.
-
-You might have noticed the 0-day build bot report reporting that the driver
-depends on the common clock framework (build failure on openrisc). The issue
-affects ARM as well as not all ARM platforms use the common clock framework.
-I've thus also added a dependency on COMMON_CLK. Note that this dependency can
-prevent compilation on x86 platforms. If you want to fix that, the
-definition of struct clk_hw in include/linux/clk-provider.h will need to be
-exposed even when CONFIG_COMMON_CLK isn't selected. I'll let you propose a fix
-for that issue to the clock maintainers if you think it should be addressed.
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index c7a1cf8a1b01..58aa233d3cf9 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -62,7 +62,10 @@ config VIDEO_MUX
- 
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on ARCH_OMAP3 || COMPILE_TEST
-+	depends on ARM
-+	depends on COMMON_CLK
- 	depends on HAS_DMA && OF
- 	depends on OMAP_IOMMU
- 	select ARM_DMA_USE_IOMMU
--- 
-Regards,
-
-Laurent Pinchart
+> 
+> Regards
+> 
+> Kieran
+> 
