@@ -1,84 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36735 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752373AbeDIOUh (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41399 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752211AbeDKQRu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 26/29] vim2m: use workqueue
-Date: Mon,  9 Apr 2018 16:20:23 +0200
-Message-Id: <20180409142026.19369-27-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        Wed, 11 Apr 2018 12:17:50 -0400
+Subject: Re: a 4.16 kernel with Debian 9.4 "stretch" causes a log explosion
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Edgar Thier <info@edgarthier.net>
+References: <alpine.DEB.2.20.1804110911021.18053@axis700.grange>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <e79738af-8d6d-a6b1-2539-d2dbdb07bb53@ideasonboard.com>
+Date: Wed, 11 Apr 2018 17:17:45 +0100
+MIME-Version: 1.0
+In-Reply-To: <alpine.DEB.2.20.1804110911021.18053@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Guennadi,
 
-v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-interrupt context. Switch to a workqueue instead.
+On 11/04/18 10:56, Guennadi Liakhovetski wrote:
+> Hi Laurent,
+> 
+> Not sure whether that's a kernel or a user-space problem, but UVC related 
+> anyway. I've got a UVC 1.5 (!) Logitech camera, that used to work fine 
+> with earlier kernels. I now installed "media 4.16" and saw, that the 
+> kernel log was filling with messages like
+> 
+> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp. 1).
+> 
+> The expected /dev/video[01] nodes were not created correctly, and the 
+> hard-drive was getting full very quickly. The latter was happening because 
+> the the /var/log/uvcdynctrl-udev.log file was growing. A truncated sample 
+> is attached. At its bottom you see messages
+> 
+> [libwebcam] Warning: The driver behind device video0 has a slightly buggy implementation
+>   of the V4L2_CTRL_FLAG_NEXT_CTRL flag. It does not return the next higher
+>   control ID if a control query fails. A workaround has been enabled.
+> 
+> repeating, which continues even if the camera is unplugged. The kernel is 
+> the head of the master branch of git://linuxtv.org/media_tree.git
+> 
+> Just figured out this commit
+> 
+> From: Edgar Thier <info@edgarthier.net>
+> Date: Thu, 12 Oct 2017 03:54:17 -0400
+> Subject: [PATCH] media: uvcvideo: Apply flags from device to actual properties
+> 
+> as the culprit. Without it everything is back to normal.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+I've already investigated and fixed this:
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index ef970434af13..9b18b32c255d 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -150,6 +150,7 @@ struct vim2m_dev {
- 	spinlock_t		irqlock;
- 
- 	struct timer_list	timer;
-+	struct work_struct	work_run;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
- };
-@@ -392,9 +393,10 @@ static void device_run(void *priv)
- 	schedule_irq(dev, ctx->transtime);
- }
- 
--static void device_isr(struct timer_list *t)
-+static void device_work(struct work_struct *w)
- {
--	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+	struct vim2m_dev *vim2m_dev =
-+		container_of(w, struct vim2m_dev, work_run);
- 	struct vim2m_ctx *curr_ctx;
- 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
-@@ -426,6 +428,13 @@ static void device_isr(struct timer_list *t)
- 	}
- }
- 
-+static void device_isr(struct timer_list *t)
-+{
-+	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+
-+	schedule_work(&vim2m_dev->work_run);
-+}
-+
- /*
-  * video ioctls
-  */
-@@ -806,6 +815,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long flags;
- 
-+	flush_scheduled_work();
- 	for (;;) {
- 		if (V4L2_TYPE_IS_OUTPUT(q->type))
- 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-@@ -1011,6 +1021,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd = &dev->vfd;
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	INIT_WORK(&dev->work_run, device_work);
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	dev->mdev.dev = &pdev->dev;
--- 
-2.16.3
+Please apply:
+	https://patchwork.kernel.org/patch/10299735/
+
+You stated that this is showing up on a v4.16 kernel ... but as far as I'm aware
+- this feature shouldn't make it in until v4.17. Are you using linux-next or a
+media/master or such ?
+
+Regards
+
+Kieran
+
+> Thanks
+> Guennadi
+> 
