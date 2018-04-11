@@ -1,92 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48364 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751749AbeDDVFI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 17:05:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mout.gmx.net ([212.227.15.15]:55327 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753751AbeDKRGo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 13:06:44 -0400
+Date: Wed, 11 Apr 2018 19:06:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 10/15] v4l: vsp1: Move DRM pipeline output setup code to a function
-Date: Thu, 05 Apr 2018 00:05:17 +0300
-Message-ID: <2064092.kPXj3Peec5@avalon>
-In-Reply-To: <4a4f5fd1-4345-5f74-2a10-dadd0e1ba130@ideasonboard.com>
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com> <3938270.yYcQyIxAEm@avalon> <4a4f5fd1-4345-5f74-2a10-dadd0e1ba130@ideasonboard.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Edgar Thier <info@edgarthier.net>
+Subject: Re: a 4.16 kernel with Debian 9.4 "stretch" causes a log explosion
+In-Reply-To: <b33d611d-99ea-b350-9351-f5b8986e3fe9@ideasonboard.com>
+Message-ID: <alpine.DEB.2.20.1804111848320.25028@axis700.grange>
+References: <alpine.DEB.2.20.1804110911021.18053@axis700.grange> <e79738af-8d6d-a6b1-2539-d2dbdb07bb53@ideasonboard.com> <b33d611d-99ea-b350-9351-f5b8986e3fe9@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Kieran,
 
-On Wednesday, 4 April 2018 19:15:19 EEST Kieran Bingham wrote:
-> On 02/04/18 13:35, Laurent Pinchart wrote:
-> 
-> <snip>
-> 
-> >>> +/* Setup the output side of the pipeline (WPF and LIF). */
-> >>> +static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
-> >>> +					 struct vsp1_pipeline *pipe)
-> >>> +{
-> >>> +	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
-> >>> +	struct v4l2_subdev_format format = {
-> >>> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> >> 
-> >> Why do you initialise this .which here, but all the other member
-> >> variables below.
-> >> 
-> >> Wouldn't it make more sense to group all of this initialisation together?
-> >> or is there a distinction in keeping the .which separate.
-> >> 
-> >> (Perhaps this is just a way to initialise the rest of the structure to 0,
-> >> without using the memset?)
-> > 
-> > The initialization of the .which field is indeed there to avoid the
-> > memset, but other than that there's no particular reason. I find it
-> > clearer to keep the initialization of the structure close to the code that
-> > makes use of it (the next v4l2_subdev_call in this case).
-> > 
-> > As initializing all members when declaring the variable doesn't make a
-> > change in code size (gcc 6.4.0) but increases .rodata by 18 bytes and
-> > decreases __modver by the same amount, I'm tempted to leave it as-is
-> > unless you think it should be changed.
-> 
-> I'm happy to leave it as is - the query was as much to understand why the
-> change was the way it was :D
-> 
-> But on that logic (reducing .rodata, or rather not increasing it) what's the
-> benefit of initialising with one (random/psuedo random) member variable
-> over initialising to all zero, then initialising the .which alongside the
-> rest of them? Wouldn't the compiler just use the zero page or such to
-> initialise then?
+On Wed, 11 Apr 2018, Kieran Bingham wrote:
 
-I've just tested that, and it seems to generate the exact same code. I'll 
-initialize the structure to 0 when declaring it and move the which field 
-initialization with the other fields.
-
-> This way is fine if you are happy with how it reads :D
+> Hi Guennadi,
 > 
-> >>> +	};
-> >>> +	int ret;
-> >>> +
-> >>> +	format.pad = RWPF_PAD_SINK;
-> >>> +	format.format.width = drm_pipe->width;
-> >>> +	format.format.height = drm_pipe->height;
-> >>> +	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> >>> +	format.format.field = V4L2_FIELD_NONE;
-> >>> +
-> >>> +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt,
+> On 11/04/18 17:17, Kieran Bingham wrote:
+> > Hi Guennadi,
 > > 
-> > NULL,
+> > On 11/04/18 10:56, Guennadi Liakhovetski wrote:
+> >> Hi Laurent,
+> >>
+> >> Not sure whether that's a kernel or a user-space problem, but UVC related 
+> >> anyway. I've got a UVC 1.5 (!) Logitech camera, that used to work fine 
+> >> with earlier kernels. I now installed "media 4.16" and saw, that the 
+> >> kernel log was filling with messages like
+> >>
+> >> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp. 1).
+> >>
+> >> The expected /dev/video[01] nodes were not created correctly, and the 
+> >> hard-drive was getting full very quickly. The latter was happening because 
+> >> the the /var/log/uvcdynctrl-udev.log file was growing. A truncated sample 
+> >> is attached. At its bottom you see messages
+> >>
+> >> [libwebcam] Warning: The driver behind device video0 has a slightly buggy implementation
+> >>   of the V4L2_CTRL_FLAG_NEXT_CTRL flag. It does not return the next higher
+> >>   control ID if a control query fails. A workaround has been enabled.
+> >>
+> >> repeating, which continues even if the camera is unplugged. The kernel is 
+> >> the head of the master branch of git://linuxtv.org/media_tree.git
+> >>
+> >> Just figured out this commit
+> >>
+> >> From: Edgar Thier <info@edgarthier.net>
+> >> Date: Thu, 12 Oct 2017 03:54:17 -0400
+> >> Subject: [PATCH] media: uvcvideo: Apply flags from device to actual properties
+> >>
+> >> as the culprit. Without it everything is back to normal.
 > > 
-> >>> +			       &format);
-> >>> +	if (ret < 0)
-> >>> +		return ret;
-> >>> +
+> > I've already investigated and fixed this:
+> > 
+> > Please apply:
+> > 	https://patchwork.kernel.org/patch/10299735/
 
--- 
-Regards,
+Great, thanks! That seems to fix my problem.
 
-Laurent Pinchart
+Regards
+Guennadi
+
+> > 
+> > You stated that this is showing up on a v4.16 kernel ... but as far as I'm aware
+> > - this feature shouldn't make it in until v4.17. Are you using linux-next or a
+> > media/master or such ?
+> 
+> Aha - never mind - I just re-read your message.
+> 
+> I expect the fix to make it into the media mainline when Mauro pulls from
+> Laurent? So I'm sure it will find its way soon.
+> 
+> --
+> Cheers
+> 
+> Kieran
+> 
+> 
+> > 
+> > Regards
+> > 
+> > Kieran
+> > 
+> >> Thanks
+> >> Guennadi
+> >>
+> 
