@@ -1,49 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:38596 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751463AbeDYKCm (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47162 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752755AbeDKKcb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 06:02:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
-Date: Wed, 25 Apr 2018 13:02:51 +0300
-Message-ID: <10529104.rM2F4eJv5O@avalon>
-In-Reply-To: <dce06ad8-0035-81e6-9ec9-15009d13e374@ti.com>
-References: <cover.1524245455.git.mchehab@s-opensource.com> <1818588.4EAHIaV2gL@avalon> <dce06ad8-0035-81e6-9ec9-15009d13e374@ti.com>
+        Wed, 11 Apr 2018 06:32:31 -0400
+Date: Wed, 11 Apr 2018 13:32:28 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: asadpt iqroot <asadptiqroot@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: sensor driver - v4l2 - MEDIA_BUS_FMT
+Message-ID: <20180411103228.oic7hq2be2atfl6l@valkosipuli.retiisi.org.uk>
+References: <CA+gCWtKWYE4+F8gHEYYjvNrkCV7G0VNjGq11SC2MRSqP9N8Yog@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+gCWtKWYE4+F8gHEYYjvNrkCV7G0VNjGq11SC2MRSqP9N8Yog@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
-
-On Wednesday, 25 April 2018 12:33:53 EEST Tomi Valkeinen wrote:
-> On 25/04/18 12:03, Laurent Pinchart wrote:
-> > Could we trim down omapfb to remove support for the devices supported by
-> > omapdrm ?
+On Wed, Apr 11, 2018 at 03:33:50PM +0530, asadpt iqroot wrote:
+> Hi All,
 > 
-> I was thinking about just that. But, of course, it's not quite
-> straightforward either.
+> We are trying develop a sensor driver code for hdmi2csi adapter.
+> Reguired data format is RGB888. But in media format header file, we
+> could see three macros related to RGB888. Hardware connection is mipi
+> csi2.
 > 
-> We've got DSI manual update functionality in OMAP3-OMAP5 SoCs, which
-> covers a lot of devices.
+> #define MEDIA_BUS_FMT_RGB888_1X24 0x100a
+> #define MEDIA_BUS_FMT_RGB888_2X12_BE 0x100b
+> #define MEDIA_BUS_FMT_RGB888_2X12_LE 0x100c
+> 
+> How to decide whether we go for RGB888_1X24 or RGB888_2X12 macros.
 
-Sebastian is working on getting that feature in omapdrm, isn't he ?
-
-> And VRFB on OMAP2/3.
-
-And that's something I'd really like to have in omapdrm too.
-
-> Those need omapfb.
+Originally when support was added for serial busses, we did not create new
+formats for these busses but instead re-used the ones intended for parallel
+busses. Please use the single-sample variant of the format.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
