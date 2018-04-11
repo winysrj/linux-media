@@ -1,66 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:38173 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754393AbeDTIFX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 04:05:23 -0400
-Received: by mail-wr0-f194.google.com with SMTP id h3-v6so20506747wrh.5
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 01:05:21 -0700 (PDT)
-Date: Fri, 20 Apr 2018 09:05:16 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, Greg Ungerer <gerg@uclinux.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        Sergey Lapin <slapin@ossfans.org>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        James Hogan <jhogan@kernel.org>,
-        Haavard Skinnemoen <hskinnemoen@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org, linux-mips@linux-mips.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/7] i2c: i2c-gpio: move header to platform_data
-Message-ID: <20180420080516.hoa2wlubrnpnkl5z@dell>
-References: <20180419200015.15095-1-wsa@the-dreams.de>
- <20180419200015.15095-2-wsa@the-dreams.de>
+Received: from osg.samsung.com ([64.30.133.232]:45360 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752906AbeDKPRh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 11:17:37 -0400
+Date: Wed, 11 Apr 2018 12:17:27 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
+Message-ID: <20180411121727.60133066@vento.lan>
+In-Reply-To: <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        <20180409142026.19369-5-hverkuil@xs4all.nl>
+        <20180410073206.12d4c67d@vento.lan>
+        <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
+        <20180410115143.41178f68@vento.lan>
+        <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
+        <20180411104935.5f566f0f@vento.lan>
+        <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180419200015.15095-2-wsa@the-dreams.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Apr 2018, Wolfram Sang wrote:
+Em Wed, 11 Apr 2018 18:02:19 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-> This header only contains platform_data. Move it to the proper directory.
+> On Wed, Apr 11, 2018 at 10:49:35AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Wed, 11 Apr 2018 16:21:16 +0300
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > 
+> >   
+> > > > > > Btw, this is a very good reason why you should define the ioctl to
+> > > > > > have an integer argument instead of a struct with a __s32 field
+> > > > > > on it, as per my comment to patch 02/29:
+> > > > > > 
+> > > > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
+> > > > > > 
+> > > > > > At 64 bit architectures, you're truncating the file descriptor!      
+> > > > > 
+> > > > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
+> > > > > well.    
+> > > > 
+> > > > Hmm.. you're right. I was thinking that it could be 64 bits on some
+> > > > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
+> > > > according with:
+> > > > 
+> > > > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
+> > > > 
+> > > > This is not the case on gcc.    
+> > > 
+> > > Ok. The reasoning back then was that what "int" means varies across
+> > > compilers and languages. And the intent was to codify this to __s32 which
+> > > is what the kernel effectively uses.  
+> > 
+> > ...
+> >   
+> > > The rest of the kernel uses int rather liberally in the uAPI so I'm not
+> > > sure in the end whether something desirable was achieved. Perhaps it'd be
+> > > good to go back to the original discussion to find out for sure.
+> > > 
+> > > Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
+> > > due to that difference.
+> > > 
+> > > Well, I stop here for this begins to be off-topic. :-)  
+> > 
+> > Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
+> > about that :-)
+> >   
+> > > > > > > +	get_task_comm(comm, current);
+> > > > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+> > > > > > > +		 comm, fd);      
+> > > > > > 
+> > > > > > Not sure if it is a good idea to store the task that allocated
+> > > > > > the request. While it makes sense for the dev_dbg() below, it
+> > > > > > may not make sense anymore on other dev_dbg() you would be
+> > > > > > using it.      
+> > > > > 
+> > > > > The lifetime of the file handle roughly matches that of the request. It's
+> > > > > for debug only anyway.
+> > > > > 
+> > > > > Better proposals are always welcome of course. But I think we should have
+> > > > > something here that helps debugging by meaningfully making the requests
+> > > > > identifiable from logs.    
+> > > > 
+> > > > What I meant to say is that one PID could be allocating the
+> > > > request, while some other one could be actually doing Q/DQ_BUF.
+> > > > On such scenario, the debug string could provide mislead prints.    
+> > > 
+> > > Um, yes, indeed it would no longer match the process. But the request is
+> > > still the same. That's actually a positive thing since it allows you to
+> > > identify the request.
+> > > 
+> > > With a global ID space this was trivial; you could just print the request
+> > > ID and that was all that was ever needed. (I'm not proposing to consider
+> > > that though.)
+> > >   
+> > 
+> > IMO, a global ID number would work better than get_task_comm().
+> > 
+> > Just add a static int monotonic counter and use it for the debug purposes,
+> > e. g.:
+> > 
+> > {
+> > 	static unsigned int req_count = 0;
+> > 
+> > 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
+> > 		req_count++, fd);    
+> > 
+> > Ok, eventually, it will overflow, but, it will be unique within
+> > a reasonable timeframe to be good enough for debugging purposes.  
 > 
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> ---
->  MAINTAINERS                                      | 2 +-
->  arch/arm/mach-ks8695/board-acs5k.c               | 2 +-
->  arch/arm/mach-omap1/board-htcherald.c            | 2 +-
->  arch/arm/mach-pxa/palmz72.c                      | 2 +-
->  arch/arm/mach-pxa/viper.c                        | 2 +-
->  arch/arm/mach-sa1100/simpad.c                    | 2 +-
->  arch/mips/alchemy/board-gpr.c                    | 2 +-
->  drivers/i2c/busses/i2c-gpio.c                    | 2 +-
->  drivers/media/platform/marvell-ccic/mmp-driver.c | 2 +-
->  drivers/mfd/sm501.c                              | 2 +-
->  include/linux/{ => platform_data}/i2c-gpio.h     | 0
->  11 files changed, 10 insertions(+), 10 deletions(-)
->  rename include/linux/{ => platform_data}/i2c-gpio.h (100%)
+> Yes, but you can't figure out which process allocated it anymore, making
+> associating kernel debug logs with user space process logs harder.
+> 
+> How about process id + file handle? That still doesn't tell which process
+> operated on the request though, but I'm not sure whether that's really a
+> crucial piece of information.
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
+You don't need that. With dev_dbg() - and other *_dbg() macros - you can
+enable process ID for all debug messages.
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Basically, if the user needs the PID, all it needs is to use "+pt",
+e. g. something like:
+
+	echo "file drivers/media/* +pt" > /sys/kernel/debug/dynamic_debug/control
+
+
+[1] see:
+	https://www.kernel.org/doc/html/v4.11/admin-guide/dynamic-debug-howto.html
+
+Thanks,
+Mauro
