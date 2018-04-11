@@ -1,99 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xavier.telenet-ops.be ([195.130.132.52]:41564 "EHLO
-        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752570AbeDQSxp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 14:53:45 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v3 06/20] fpga: Remove depends on HAS_DMA in case of platform dependency
-Date: Tue, 17 Apr 2018 19:49:06 +0200
-Message-Id: <1523987360-18760-7-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
-References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+Received: from mail.bootlin.com ([62.4.15.54]:51843 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751668AbeDKODI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 10:03:08 -0400
+Message-ID: <7985c22782a0ab8bdbf0b8c0b7ca98a80ee77ddf.camel@bootlin.com>
+Subject: Re: [RFCv11 PATCH 27/29] vim2m: support requests
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Wed, 11 Apr 2018 16:01:46 +0200
+In-Reply-To: <20180409142026.19369-28-hverkuil@xs4all.nl>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+         <20180409142026.19369-28-hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-qxQKOyLcvrefIEqo5pz4"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
+--=-qxQKOyLcvrefIEqo5pz4
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This simplifies the dependencies, and allows to improve compile-testing.
+Hi,
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-Acked-by: Alan Tull <atull@kernel.org>
----
-v3:
-  - Add Acked-by,
-  - Rebase to v4.17-rc1,
+On Mon, 2018-04-09 at 16:20 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> Add support for requests to vim2m.
 
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/fpga/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+Depending on where STREAMON happens in the sequence, there is a
+possibility that v4l2_m2m_try_schedule is never called and thus that
+device_run never runs when submitting the request.
 
-diff --git a/drivers/fpga/Kconfig b/drivers/fpga/Kconfig
-index f47ef848bcd056d5..fd539132542e30ee 100644
---- a/drivers/fpga/Kconfig
-+++ b/drivers/fpga/Kconfig
-@@ -53,7 +53,6 @@ config FPGA_MGR_ALTERA_CVP
- config FPGA_MGR_ZYNQ_FPGA
- 	tristate "Xilinx Zynq FPGA"
- 	depends on ARCH_ZYNQ || COMPILE_TEST
--	depends on HAS_DMA
- 	help
- 	  FPGA manager driver support for Xilinx Zynq FPGAs.
- 
--- 
-2.7.4
+More specifically, the m2m fashion of the STREAMON ioctl handler will
+normally call v4l2_m2m_try_schedule. Hence, there is no issue if it's
+called after submitting the request. On the other hand, if the request
+was not submitted when calling STREAMON (which is a valid use case),
+buffers are not available and v4l2_m2m_try_schedule won't schedule
+anything. Once the request is submitted, the internal plumbing will
+detect that STREAMON was requested but did not take effect, so it will
+call vb2_streamon. And of course, vb2_streamon has no provision for
+trying to schedule a m2m device run.
+
+One way to fix this is to call v4l2_m2m_try_schedule from a workqueue
+triggered in the driver's start_streaming qop. The same is also probably
+necessary in buf_queue and buf_prepare since those qops are not called
+from the m2m ioctl handler either.
+
+What do you think?
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>=20
+> diff --git a/drivers/media/platform/vim2m.c
+> b/drivers/media/platform/vim2m.c
+> index 9b18b32c255d..2dcf0ea85705 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -387,8 +387,26 @@ static void device_run(void *priv)
+>  	src_buf =3D v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+>  	dst_buf =3D v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> =20
+> +	/* Apply request if needed */
+> +	if (src_buf->vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +	if (dst_buf->vb2_buf.req_obj.req &&
+> +	    dst_buf->vb2_buf.req_obj.req !=3D src_buf-
+> >vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +
+>  	device_process(ctx, src_buf, dst_buf);
+> =20
+> +	/* Complete request if needed */
+> +	if (src_buf->vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_complete(src_buf-
+> >vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +	if (dst_buf->vb2_buf.req_obj.req &&
+> +	    dst_buf->vb2_buf.req_obj.req !=3D src_buf-
+> >vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_complete(dst_buf-
+> >vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +
+>  	/* Run a timer, which simulates a hardware irq  */
+>  	schedule_irq(dev, ctx->transtime);
+>  }
+> @@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue
+> *q)
+>  			vbuf =3D v4l2_m2m_dst_buf_remove(ctx-
+> >fh.m2m_ctx);
+>  		if (vbuf =3D=3D NULL)
+>  			return;
+> +		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
+> +					   &ctx->hdl);
+>  		spin_lock_irqsave(&ctx->dev->irqlock, flags);
+>  		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>  		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
+> @@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops =3D {
+>  	.job_abort	=3D job_abort,
+>  };
+> =20
+> +static const struct media_device_ops m2m_media_ops =3D {
+> +	.req_queue =3D vb2_request_queue,
+> +};
+> +
+>  static int vim2m_probe(struct platform_device *pdev)
+>  {
+>  	struct vim2m_dev *dev;
+> @@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device
+> *pdev)
+>  	dev->mdev.dev =3D &pdev->dev;
+>  	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
+>  	media_device_init(&dev->mdev);
+> +	dev->mdev.ops =3D &m2m_media_ops;
+>  	dev->v4l2_dev.mdev =3D &dev->mdev;
+>  	dev->pad[0].flags =3D MEDIA_PAD_FL_SINK;
+>  	dev->pad[1].flags =3D MEDIA_PAD_FL_SOURCE;
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-qxQKOyLcvrefIEqo5pz4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrOFUoACgkQ3cLmz3+f
+v9GS0gf+OoZ2qZTv21sum5vY+poxZ/krJ4b/Bc6XQj4Z2jrarCYfgcl/M7B3y6ah
+xzlWaezRogxbo+gzjjBqIX3tAVy6WjX1LB4fJeBTEvd3Xe86rkp6wi+vfGCaIape
+C0fIgGyCJ+Jinz2I77BkiZQycQahLiXPd5nMWxVm4cNzD7d+BZFFi/fM7JmAmQva
+Ru8K/IZ47lJqvsLCcuZDcfOgD2R879F6SsQvrAVVLKaIFIWJsbd7U2jOYJ0mQL11
+S55+H8DKxsWElzKx2f+KCDTCOQST4a6W85k+CR1TPj9eN+uYY9r5bJkoKm0syk6G
+aPbnZWI1f+9n7j5BDN83C3/A1M8uTw==
+=W83j
+-----END PGP SIGNATURE-----
+
+--=-qxQKOyLcvrefIEqo5pz4--
