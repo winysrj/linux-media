@@ -1,239 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48657 "EHLO osg.samsung.com"
+Received: from mga18.intel.com ([134.134.136.126]:55247 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752389AbeDJJwv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 05:52:51 -0400
-Date: Tue, 10 Apr 2018 06:52:39 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
-Message-ID: <20180410065239.7e1036d0@vento.lan>
-In-Reply-To: <20180409142026.19369-4-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-4-hverkuil@xs4all.nl>
+        id S1754247AbeDKVPP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Apr 2018 17:15:15 -0400
+Date: Thu, 12 Apr 2018 05:14:39 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Ryder Lee <ryder.lee@mediatek.com>
+Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        linux-media@vger.kernel.org,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1087:1-3: WARNING:
+ PTR_ERR_OR_ZERO can be used
+Message-ID: <201804120528.xhFwZKle%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:20:00 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add support for allocating a new request. This is only supported
-> if mdev->ops->req_queue is set, i.e. the driver indicates that it
-> supports queueing requests.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/Makefile        |  3 ++-
->  drivers/media/media-device.c  | 14 ++++++++++++++
->  drivers/media/media-request.c | 23 +++++++++++++++++++++++
->  include/media/media-device.h  | 13 +++++++++++++
->  include/media/media-request.h | 22 ++++++++++++++++++++++
->  5 files changed, 74 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/media-request.c
->  create mode 100644 include/media/media-request.h
-> 
-> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-> index 594b462ddf0e..985d35ec6b29 100644
-> --- a/drivers/media/Makefile
-> +++ b/drivers/media/Makefile
-> @@ -3,7 +3,8 @@
->  # Makefile for the kernel multimedia device drivers.
->  #
->  
-> -media-objs	:= media-device.o media-devnode.o media-entity.o
-> +media-objs	:= media-device.o media-devnode.o media-entity.o \
-> +		   media-request.o
->  
->  #
->  # I2C drivers should come before other drivers, otherwise they'll fail
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 35e81f7c0d2f..acb583c0eacd 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -32,6 +32,7 @@
->  #include <media/media-device.h>
->  #include <media/media-devnode.h>
->  #include <media/media-entity.h>
-> +#include <media/media-request.h>
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  
-> @@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
->  	return ret;
->  }
->  
-> +static long media_device_request_alloc(struct media_device *mdev,
-> +				       struct media_request_alloc *alloc)
-> +{
-> +	if (!mdev->ops || !mdev->ops->req_queue)
-> +		return -ENOTTY;
-> +
-> +	return media_request_alloc(mdev, alloc);
-> +}
-> +
->  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
->  {
->  	/* All media IOCTLs are _IOWR() */
-> @@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
->  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
->  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
->  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
-> +	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
->  };
->  
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> @@ -686,6 +697,9 @@ void media_device_init(struct media_device *mdev)
->  	INIT_LIST_HEAD(&mdev->pads);
->  	INIT_LIST_HEAD(&mdev->links);
->  	INIT_LIST_HEAD(&mdev->entity_notify);
-> +
-> +	spin_lock_init(&mdev->req_lock);
-> +	mutex_init(&mdev->req_queue_mutex);
->  	mutex_init(&mdev->graph_mutex);
->  	ida_init(&mdev->entity_internal_idx);
->  
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> new file mode 100644
-> index 000000000000..ead78613fdbe
-> --- /dev/null
-> +++ b/drivers/media/media-request.c
-> @@ -0,0 +1,23 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Media device request objects
-> + *
-> + * Copyright (C) 2018 Intel Corporation
-> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-> + *
-> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> + */
-> +
-> +#include <linux/anon_inodes.h>
-
-Not needed. You already included it at media_device.h.
-
-> +#include <linux/file.h>
-> +#include <linux/mm.h>
-> +#include <linux/string.h>
-
-Why do you need so many includes for a stub function?
-
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-request.h>
-> +
-> +int media_request_alloc(struct media_device *mdev,
-> +			struct media_request_alloc *alloc)
-> +{
-> +	return -ENOMEM;
-> +}
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index bcc6ec434f1f..07e323c57202 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -19,6 +19,7 @@
->  #ifndef _MEDIA_DEVICE_H
->  #define _MEDIA_DEVICE_H
->  
-> +#include <linux/anon_inodes.h>
-
-Why do you need it? I don't see anything below needing it.
-
->  #include <linux/list.h>
->  #include <linux/mutex.h>
->  
-> @@ -27,6 +28,7 @@
->  
->  struct ida;
->  struct device;
-> +struct media_device;
->  
->  /**
->   * struct media_entity_notify - Media Entity Notify
-> @@ -50,10 +52,16 @@ struct media_entity_notify {
->   * struct media_device_ops - Media device operations
->   * @link_notify: Link state change notification callback. This callback is
->   *		 called with the graph_mutex held.
-> + * @req_alloc: Allocate a request
-> + * @req_free: Free a request
-> + * @req_queue: Queue a request
->   */
->  struct media_device_ops {
->  	int (*link_notify)(struct media_link *link, u32 flags,
->  			   unsigned int notification);
-> +	struct media_request *(*req_alloc)(struct media_device *mdev);
-> +	void (*req_free)(struct media_request *req);
-> +	int (*req_queue)(struct media_request *req);
->  };
->  
->  /**
-> @@ -88,6 +96,8 @@ struct media_device_ops {
->   * @disable_source: Disable Source Handler function pointer
->   *
->   * @ops:	Operation handler callbacks
-> + * @req_lock:	Serialise access to requests
-> + * @req_queue_mutex: Serialise validating and queueing requests
-
-IMHO, this would better describe it:
-	Serialise validate and queue requests
-
-Yet, IMO, it doesn't let it clear when the spin lock should be
-used and when the mutex should be used.
-
-I mean, what of them protect what variable?
-
->   *
->   * This structure represents an abstract high-level media device. It allows easy
->   * access to entities and provides basic media device-level support. The
-> @@ -158,6 +168,9 @@ struct media_device {
->  	void (*disable_source)(struct media_entity *entity);
->  
->  	const struct media_device_ops *ops;
-> +
-> +	spinlock_t req_lock;
-> +	struct mutex req_queue_mutex;
->  };
->  
->  /* We don't need to include pci.h or usb.h here */
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> new file mode 100644
-> index 000000000000..dae3eccd9aa7
-> --- /dev/null
-> +++ b/include/media/media-request.h
-> @@ -0,0 +1,22 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Media device request objects
-> + *
-> + * Copyright (C) 2018 Intel Corporation
-> + *
-> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> + */
-> +
-> +#ifndef MEDIA_REQUEST_H
-> +#define MEDIA_REQUEST_H
-> +
-> +#include <linux/list.h>
-> +#include <linux/slab.h>
-> +#include <linux/spinlock.h>
-
-Why those includes are needed?
-
-> +
-> +#include <media/media-device.h>
-> +
-> +int media_request_alloc(struct media_device *mdev,
-> +			struct media_request_alloc *alloc);
-> +
-> +#endif
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+head:   8837c70d531a1788f975c366c254a5cb973a5291
+commit: 648a9576932a26e1c6a157b4c9345204de975957 media: vcodec: fix error return value from mtk_jpeg_clk_init()
+date:   7 days ago
 
 
+coccinelle warnings: (new ones prefixed by >>)
 
-Thanks,
-Mauro
+>> drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1087:1-3: WARNING: PTR_ERR_OR_ZERO can be used
+
+Please review and possibly fold the followup patch.
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
