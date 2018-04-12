@@ -1,135 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:58139 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751566AbeD0Lla (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Apr 2018 07:41:30 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH 1/2] media: v4l: Add new 2X8 10-bit grayscale media bus code
-Date: Fri, 27 Apr 2018 14:40:38 +0300
-Message-Id: <1524829239-4664-2-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
-References: <1524829239-4664-1-git-send-email-todor.tomov@linaro.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55048 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750730AbeDLHLx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 03:11:53 -0400
+Date: Thu, 12 Apr 2018 10:11:50 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
+Message-ID: <20180412071150.aibatuvvdcv7belo@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-5-hverkuil@xs4all.nl>
+ <20180410073206.12d4c67d@vento.lan>
+ <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
+ <20180410115143.41178f68@vento.lan>
+ <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
+ <20180411104935.5f566f0f@vento.lan>
+ <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
+ <20180411121727.60133066@vento.lan>
+ <20180411153513.5r6foyfpzuipjfxw@valkosipuli.retiisi.org.uk>
+ <20180411131344.67b782a2@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180411131344.67b782a2@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code will be called MEDIA_BUS_FMT_Y10_2X8_PADHI_LE.
-It is similar to MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE
-but MEDIA_BUS_FMT_Y10_2X8_PADHI_LE describes grayscale
-data.
+On Wed, Apr 11, 2018 at 01:13:44PM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 11 Apr 2018 18:35:14 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > On Wed, Apr 11, 2018 at 12:17:27PM -0300, Mauro Carvalho Chehab wrote:
+> > > Em Wed, 11 Apr 2018 18:02:19 +0300
+> > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > >   
+> > > > On Wed, Apr 11, 2018 at 10:49:35AM -0300, Mauro Carvalho Chehab wrote:  
+> > > > > Em Wed, 11 Apr 2018 16:21:16 +0300
+> > > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > > > > 
+> > > > >     
+> > > > > > > > > Btw, this is a very good reason why you should define the ioctl to
+> > > > > > > > > have an integer argument instead of a struct with a __s32 field
+> > > > > > > > > on it, as per my comment to patch 02/29:
+> > > > > > > > > 
+> > > > > > > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
+> > > > > > > > > 
+> > > > > > > > > At 64 bit architectures, you're truncating the file descriptor!        
+> > > > > > > > 
+> > > > > > > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
+> > > > > > > > well.      
+> > > > > > > 
+> > > > > > > Hmm.. you're right. I was thinking that it could be 64 bits on some
+> > > > > > > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
+> > > > > > > according with:
+> > > > > > > 
+> > > > > > > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
+> > > > > > > 
+> > > > > > > This is not the case on gcc.      
+> > > > > > 
+> > > > > > Ok. The reasoning back then was that what "int" means varies across
+> > > > > > compilers and languages. And the intent was to codify this to __s32 which
+> > > > > > is what the kernel effectively uses.    
+> > > > > 
+> > > > > ...
+> > > > >     
+> > > > > > The rest of the kernel uses int rather liberally in the uAPI so I'm not
+> > > > > > sure in the end whether something desirable was achieved. Perhaps it'd be
+> > > > > > good to go back to the original discussion to find out for sure.
+> > > > > > 
+> > > > > > Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
+> > > > > > due to that difference.
+> > > > > > 
+> > > > > > Well, I stop here for this begins to be off-topic. :-)    
+> > > > > 
+> > > > > Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
+> > > > > about that :-)
+> > > > >     
+> > > > > > > > > > +	get_task_comm(comm, current);
+> > > > > > > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+> > > > > > > > > > +		 comm, fd);        
+> > > > > > > > > 
+> > > > > > > > > Not sure if it is a good idea to store the task that allocated
+> > > > > > > > > the request. While it makes sense for the dev_dbg() below, it
+> > > > > > > > > may not make sense anymore on other dev_dbg() you would be
+> > > > > > > > > using it.        
+> > > > > > > > 
+> > > > > > > > The lifetime of the file handle roughly matches that of the request. It's
+> > > > > > > > for debug only anyway.
+> > > > > > > > 
+> > > > > > > > Better proposals are always welcome of course. But I think we should have
+> > > > > > > > something here that helps debugging by meaningfully making the requests
+> > > > > > > > identifiable from logs.      
+> > > > > > > 
+> > > > > > > What I meant to say is that one PID could be allocating the
+> > > > > > > request, while some other one could be actually doing Q/DQ_BUF.
+> > > > > > > On such scenario, the debug string could provide mislead prints.      
+> > > > > > 
+> > > > > > Um, yes, indeed it would no longer match the process. But the request is
+> > > > > > still the same. That's actually a positive thing since it allows you to
+> > > > > > identify the request.
+> > > > > > 
+> > > > > > With a global ID space this was trivial; you could just print the request
+> > > > > > ID and that was all that was ever needed. (I'm not proposing to consider
+> > > > > > that though.)
+> > > > > >     
+> > > > > 
+> > > > > IMO, a global ID number would work better than get_task_comm().
+> > > > > 
+> > > > > Just add a static int monotonic counter and use it for the debug purposes,
+> > > > > e. g.:
+> > > > > 
+> > > > > {
+> > > > > 	static unsigned int req_count = 0;
+> > > > > 
+> > > > > 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
+> > > > > 		req_count++, fd);    
+> > > > > 
+> > > > > Ok, eventually, it will overflow, but, it will be unique within
+> > > > > a reasonable timeframe to be good enough for debugging purposes.    
+> > > > 
+> > > > Yes, but you can't figure out which process allocated it anymore, making
+> > > > associating kernel debug logs with user space process logs harder.
+> > > > 
+> > > > How about process id + file handle? That still doesn't tell which process
+> > > > operated on the request though, but I'm not sure whether that's really a
+> > > > crucial piece of information.  
+> > > 
+> > > You don't need that. With dev_dbg() - and other *_dbg() macros - you can
+> > > enable process ID for all debug messages.  
+> > 
+> > With this, the problem again is that it does not uniquely identify the
+> > request: the request is the same request independently of which process
+> > would operate on it. Or whether it is being processed in an interrupt
+> > context.
+> > 
+> > AFAICT, the allocator PID (or process name) + file handle are both required
+> > to match a request between user and kernel space logs.
+> 
+> Sorry, I was unable to understand what you're saying.
+> 
+> If you set the debug string with:
+> 
+> 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d", req_count++, fd);  
+> 
+> With the remaining stuff at patch 04/29, e. g. those two printks:
+> 
+> 	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
+> 	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
+> 
+> And use "+pt" to enable those debug messages, for the request #1 with fd #45, 
+> created by PID 16613 you would have a log like:
+> 
+> 	[  269.021116] [16613] request: allocated 1:45
+> 	[  269.024118] [16613] request: release 1:45
+> 
+> (assuming that the same PID would create and release)
+> 
+> The "1:45" is an unique global ID that would allow tracking it, even
+> if Q/DQ_BUF is done by some other PID.
+> 
+> E. g. if a PID#16618 were responsible for Q/DQ_BUF, you would have
+> something like:
+> 
+> 	[  269.021116] [16613] request: allocated 1:45
+> 	[  269.021117] [16618] request: Q_BUF 1:45
+> 	[  269.021118] [16618] request: DQ_BUF 1:45
+> 	[  269.024118] [16613] request: release 1:45
+> 
+> (assuming that you would have a Q_BUF/DQ_BUF similar dev_dbg())
+> 
+> That seems good enough to track it.
+> 
+> Yet, in order to make easier to track, I would actually change the
+> dev_dbg() parameter order everywhere to something like:
+> 
+> 	dev_dbg(mdev->dev, "request#%s: allocated\n", req->debug_str)
+> 	dev_dbg(mdev->dev, "request#%s: release\n", req->debug_str);
+> 
+> In order to print something like:
+> 
+> 	[  269.021116] [16613] request#1:45: allocated 
+> 	[  269.021117] [16618] request#1:45: Q_BUF
+> 	[  269.021118] [16618] request#1:45: DQ_BUF
+> 	[  269.024118] [16613] request#1:45: release
+> 
+> Then, getting everything related to the first request would be as simple as:
+> 
+> 	$ dmesg|grep request#1:
+> 
+> That will provide the PID for both processes: the one that
+> created/released and the one that queued/dequeued.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- Documentation/media/uapi/v4l/subdev-formats.rst | 72 +++++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h           |  3 +-
- 2 files changed, 74 insertions(+), 1 deletion(-)
+Ah, right; yes, then you can. It's still a bit more complicated as you have
+one more piece of information to follow (the ID) vs. just PID and FD. For
+instance, you can't grep for requests created by a given process. Note that
+you can still print the PID of the process that operates on the request
+through dyndbg.
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index 9fcabe7..c4fb0bf 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -4315,6 +4315,78 @@ the following codes.
-       - y\ :sub:`2`
-       - y\ :sub:`1`
-       - y\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-Y10-2X8-PADHI_LE:
-+
-+      - MEDIA_BUS_FMT_Y10_2X8_PADHI_LE
-+      - 0x202c
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - y\ :sub:`7`
-+      - y\ :sub:`6`
-+      - y\ :sub:`5`
-+      - y\ :sub:`4`
-+      - y\ :sub:`3`
-+      - y\ :sub:`2`
-+      - y\ :sub:`1`
-+      - y\ :sub:`0`
-+    * -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      -
-+      - 0
-+      - 0
-+      - 0
-+      - 0
-+      - 0
-+      - 0
-+      - y\ :sub:`9`
-+      - y\ :sub:`8`
-     * .. _MEDIA-BUS-FMT-UYVY10-2X10:
- 
-       - MEDIA_BUS_FMT_UYVY10_2X10
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 9e35117..d6a5a3b 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -62,7 +62,7 @@
- #define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
- #define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
- 
--/* YUV (including grey) - next is	0x202c */
-+/* YUV (including grey) - next is	0x202d */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -74,6 +74,7 @@
- #define MEDIA_BUS_FMT_YUYV8_2X8			0x2008
- #define MEDIA_BUS_FMT_YVYU8_2X8			0x2009
- #define MEDIA_BUS_FMT_Y10_1X10			0x200a
-+#define MEDIA_BUS_FMT_Y10_2X8_PADHI_LE		0x202c
- #define MEDIA_BUS_FMT_UYVY10_2X10		0x2018
- #define MEDIA_BUS_FMT_VYUY10_2X10		0x2019
- #define MEDIA_BUS_FMT_YUYV10_2X10		0x200b
+I'd like to hear what Hans thinks.
+
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
