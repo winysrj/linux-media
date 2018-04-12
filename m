@@ -1,47 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0064.outbound.protection.outlook.com ([104.47.34.64]:14611
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752056AbeEABfY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 21:35:24 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Rohit Athavale <rathaval@xilinx.com>,
-        Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v4 07/10] media: Add new dt-bindings/vf_codes for supported formats
-Date: Mon, 30 Apr 2018 18:35:10 -0700
-Message-ID: <17a5f753d3a580971e6802775a237e501597ddbc.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-In-Reply-To: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-References: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from osg.samsung.com ([64.30.133.232]:59748 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753210AbeDLPY3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 11:24:29 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
+Date: Thu, 12 Apr 2018 11:24:07 -0400
+Message-Id: <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rohit Athavale <rathaval@xilinx.com>
+As warned by smatch:
+	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
 
-This commit adds new entries to the exisiting vf_codes that are used
-to describe the media bus formats in the DT bindings. The newly added
-8-bit and 10-bit color depth related formats will need these updates.
+If something goes wrong at readl(), the logic will stay there
+inside an IRQ code forever. This is not the nicest thing to
+do :-)
 
-Signed-off-by: Rohit Athavale <rathaval@xilinx.com>
-Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+So, add a timeout there, preventing staying inside the IRQ
+for more than 10ms.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/dt-bindings/media/xilinx-vip.h | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/rc/st_rc.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/include/dt-bindings/media/xilinx-vip.h b/include/dt-bindings/media/xilinx-vip.h
-index 6298fec..fcd34d7 100644
---- a/include/dt-bindings/media/xilinx-vip.h
-+++ b/include/dt-bindings/media/xilinx-vip.h
-@@ -35,5 +35,7 @@
- #define XVIP_VF_CUSTOM2			13
- #define XVIP_VF_CUSTOM3			14
- #define XVIP_VF_CUSTOM4			15
-+#define XVIP_VF_VUY_422			16
-+#define XVIP_VF_XBGR			17
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+index d2efd7b2c3bc..c855b177103c 100644
+--- a/drivers/media/rc/st_rc.c
++++ b/drivers/media/rc/st_rc.c
+@@ -96,19 +96,24 @@ static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
  
- #endif /* __DT_BINDINGS_MEDIA_XILINX_VIP_H__ */
+ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+ {
++	unsigned long timeout;
+ 	unsigned int symbol, mark = 0;
+ 	struct st_rc_device *dev = data;
+ 	int last_symbol = 0;
+-	u32 status;
++	u32 status, int_status;
+ 	DEFINE_IR_RAW_EVENT(ev);
+ 
+ 	if (dev->irq_wake)
+ 		pm_wakeup_event(dev->dev, 0);
+ 
+-	status  = readl(dev->rx_base + IRB_RX_STATUS);
++	/* FIXME: is 10ms good enough ? */
++	timeout = jiffies +  msecs_to_jiffies(10);
++	do {
++		status  = readl(dev->rx_base + IRB_RX_STATUS);
++		if (!(status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)))
++			break;
+ 
+-	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+-		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
++		int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+ 		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+ 			/* discard the entire collection in case of errors!  */
+ 			ir_raw_event_reset(dev->rdev);
+@@ -148,8 +153,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+ 
+ 		}
+ 		last_symbol = 0;
+-		status  = readl(dev->rx_base + IRB_RX_STATUS);
+-	}
++	} while (time_is_after_jiffies(timeout));
+ 
+ 	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
+ 
 -- 
-2.1.1
+2.14.3
