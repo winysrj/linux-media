@@ -1,86 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0114.outbound.protection.outlook.com ([104.47.32.114]:20288
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751508AbeDZGgz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Apr 2018 02:36:55 -0400
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
-        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
-        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH 2/3] [media] cxd2880:Optimized spi drive current and BER/PER set/get condition
-Date: Thu, 26 Apr 2018 15:41:29 +0900
-Message-ID: <20180426064129.32161-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20180426063635.31923-1-Yasunari.Takiguchi@sony.com>
-References: <20180426063635.31923-1-Yasunari.Takiguchi@sony.com>
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:35778 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752840AbeDLP1f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 11:27:35 -0400
+Date: Thu, 12 Apr 2018 16:26:32 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH 08/15] ASoC: pxa: remove the dmaengine compat need
+Message-ID: <20180412152632.GG9929@sirena.org.uk>
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+ <20180402142656.26815-9-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="fCcDWlUEdh43YKr8"
+Content-Disposition: inline
+In-Reply-To: <20180402142656.26815-9-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-This is the optimization for SPI drive current and 
-signal lock condition check part for BER/PER measure
-to ensure BER/PER are stable
+--fCcDWlUEdh43YKr8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
+On Mon, Apr 02, 2018 at 04:26:49PM +0200, Robert Jarzmik wrote:
+> As the pxa architecture switched towards the dmaengine slave map, the
+> old compatibility mechanism to acquire the dma requestor line number and
+> priority are not needed anymore.
 
-[Change list]
-   drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-      -reduced the SPI output drive current
-      -optimized signal lock condition check part for BER/PER measure
-       to ensure BER/PER are stable
+Acked-by: Mark Brown <broonie@kernel.org>
 
- drivers/media/dvb-frontends/cxd2880/cxd2880_top.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+If there's no dependency I'm happy to take this for 4.18.
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-index d474dc1b05da..bd9101e246d5 100644
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_top.c
-@@ -520,6 +520,15 @@ static int cxd2880_init(struct dvb_frontend *fe)
- 		pr_err("cxd2880 integ init failed %d\n", ret);
- 		return ret;
- 	}
-+
-+	ret = cxd2880_tnrdmd_set_cfg(&priv->tnrdmd,
-+				     CXD2880_TNRDMD_CFG_TSPIN_CURRENT,
-+				     0x00);
-+	if (ret) {
-+		mutex_unlock(priv->spi_mutex);
-+		pr_err("cxd2880 set config failed %d\n", ret);
-+		return ret;
-+	}
- 	mutex_unlock(priv->spi_mutex);
- 
- 	pr_debug("OK.\n");
-@@ -1126,7 +1135,7 @@ static int cxd2880_get_stats(struct dvb_frontend *fe,
- 	priv = fe->demodulator_priv;
- 	c = &fe->dtv_property_cache;
- 
--	if (!(status & FE_HAS_LOCK)) {
-+	if (!(status & FE_HAS_LOCK) || !(status & FE_HAS_CARRIER)) {
- 		c->pre_bit_error.len = 1;
- 		c->pre_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 		c->pre_bit_count.len = 1;
-@@ -1345,7 +1354,8 @@ static int cxd2880_read_status(struct dvb_frontend *fe,
- 
- 	pr_debug("status %d\n", *status);
- 
--	if (priv->s == 0 && (*status & FE_HAS_LOCK)) {
-+	if (priv->s == 0 && (*status & FE_HAS_LOCK) &&
-+	    (*status & FE_HAS_CARRIER)) {
- 		mutex_lock(priv->spi_mutex);
- 		if (c->delivery_system == SYS_DVBT) {
- 			ret = cxd2880_set_ber_per_period_t(fe);
--- 
-2.15.1
+--fCcDWlUEdh43YKr8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlrPeqcACgkQJNaLcl1U
+h9BSZAf/TjOZQziPXrBJ727QgQKnwF8+6GXuQPc3HlwShDoJ9qAWnzcOSwzJ8fkE
+dcG2858Zo0M7NCqcoOokOhM4wKUOn3aCE78wDsjEPX/PohKdI3uHZXBLbSrFaSF8
+y1TYjHDRCKqYTTfaG4bNfONcAb+ymbxjGD4ZOsrkV82pl8tCA+zCT5g6C8PrqshL
+GwwmmJQHGK0CU477p0+QN/EsW/B9VNLNsqpeFS9WAlZcTuA004mW/3YYf8hwpk0i
+pFqD2AXnmrDVsynBm78eKaAtqMRUkd0I/iWRWqFf7DtVVx6Foo8877fCdcVLYgYI
+mArYZJIh+YC/f25ftES/xWmAqIokOQ==
+=INfO
+-----END PGP SIGNATURE-----
+
+--fCcDWlUEdh43YKr8--
