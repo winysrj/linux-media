@@ -1,177 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46598 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751251AbeDDOtu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 10:49:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v13 1/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
-Date: Wed, 04 Apr 2018 17:49:57 +0300
-Message-ID: <2955834.42KICI0Tpx@avalon>
-In-Reply-To: <20180212230132.5402-2-niklas.soderlund+renesas@ragnatech.se>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se> <20180212230132.5402-2-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:42776 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752810AbeDLQvd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 12:51:33 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 06/13] imx274: remove non-indexed pointers from mode_table
+Date: Thu, 12 Apr 2018 18:51:11 +0200
+Message-Id: <1523551878-15754-7-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
+References: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+mode_table[] has 3 members that are accessed based on their index, which
+makes worth using an array.
 
-Thank you for the patch.
+The other members are always accessed with a constant index. This added
+indirection gives no improvement and only makes code more verbose.
 
-On Tuesday, 13 February 2018 01:01:31 EEST Niklas S=F6derlund wrote:
-> Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
-> are located between the video sources (CSI-2 transmitters) and the video
-> grabbers (VIN) on Gen3 of Renesas R-Car SoC.
->=20
-> Each CSI-2 device is connected to more than one VIN device which
-> simultaneously can receive video from the same CSI-2 device. Each VIN
-> device can also be connected to more than one CSI-2 device. The routing
-> of which links are used is controlled by the VIN devices. There are only
-> a few possible routes which are set by hardware limitations, which are
-> different for each SoC in the Gen3 family.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Rob Herring <robh@kernel.org>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Remove these pointers from the array and access them directly.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+---
+ drivers/media/i2c/imx274.c | 25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-> ---
->  .../bindings/media/renesas,rcar-csi2.txt           | 99 ++++++++++++++++=
-+++
->  MAINTAINERS                                        |  1 +
->  2 files changed, 100 insertions(+)
->  create mode 100644
-> Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
->=20
-> diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-> b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt new file
-> mode 100644
-> index 0000000000000000..6f71f997dc48eee9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
-> @@ -0,0 +1,99 @@
-> +Renesas R-Car MIPI CSI-2
-> +------------------------
-> +
-> +The R-Car CSI-2 receiver device provides MIPI CSI-2 capabilities for the
-> +Renesas R-Car family of devices. It is used in conjunction with the
-> +R-Car VIN module, which provides the video capture capabilities.
-> +
-> +Mandatory properties
-> +--------------------
-> + - compatible: Must be one or more of the following
-> +   - "renesas,r8a7795-csi2" for the R8A7795 device.
-> +   - "renesas,r8a7796-csi2" for the R8A7796 device.
-> +
-> + - reg: the register base and size for the device registers
-> + - interrupts: the interrupt for the device
-> + - clocks: reference to the parent clock
-> +
-> +The device node shall contain two 'port' child nodes according to the
-> +bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt. Port 0 shall connect to the CSI-2 source. Port 1
-> +shall connect to all the R-Car VIN modules that have a hardware
-> +connection to the CSI-2 receiver.
-> +
-> +- Port 0 - Video source (mandatory)
-> +	- Endpoint 0 - sub-node describing the endpoint that is the video source
-> +
-> +- Port 1 - VIN instances (optional)
-> +	- One endpoint sub-node for every R-Car VIN instance which is connected
-> +	  to the R-Car CSI-2 receiver.
-> +
-> +Example:
-> +
-> +	csi20: csi2@fea80000 {
-> +		compatible =3D "renesas,r8a7796-csi2";
-> +		reg =3D <0 0xfea80000 0 0x10000>;
-> +		interrupts =3D <0 184 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks =3D <&cpg CPG_MOD 714>;
-> +		power-domains =3D <&sysc R8A7796_PD_ALWAYS_ON>;
-> +		resets =3D <&cpg 714>;
-> +
-> +		ports {
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <0>;
-> +
-> +			port@0 {
-> +				#address-cells =3D <1>;
-> +				#size-cells =3D <0>;
-> +
-> +				reg =3D <0>;
-> +
-> +				csi20_in: endpoint@0 {
-> +					reg =3D <0>;
-> +					clock-lanes =3D <0>;
-> +					data-lanes =3D <1>;
-> +					remote-endpoint =3D <&adv7482_txb>;
-> +				};
-> +			};
-> +
-> +			port@1 {
-> +				#address-cells =3D <1>;
-> +				#size-cells =3D <0>;
-> +
-> +				reg =3D <1>;
-> +
-> +				csi20vin0: endpoint@0 {
-> +					reg =3D <0>;
-> +					remote-endpoint =3D <&vin0csi20>;
-> +				};
-> +				csi20vin1: endpoint@1 {
-> +					reg =3D <1>;
-> +					remote-endpoint =3D <&vin1csi20>;
-> +				};
-> +				csi20vin2: endpoint@2 {
-> +					reg =3D <2>;
-> +					remote-endpoint =3D <&vin2csi20>;
-> +				};
-> +				csi20vin3: endpoint@3 {
-> +					reg =3D <3>;
-> +					remote-endpoint =3D <&vin3csi20>;
-> +				};
-> +				csi20vin4: endpoint@4 {
-> +					reg =3D <4>;
-> +					remote-endpoint =3D <&vin4csi20>;
-> +				};
-> +				csi20vin5: endpoint@5 {
-> +					reg =3D <5>;
-> +					remote-endpoint =3D <&vin5csi20>;
-> +				};
-> +				csi20vin6: endpoint@6 {
-> +					reg =3D <6>;
-> +					remote-endpoint =3D <&vin6csi20>;
-> +				};
-> +				csi20vin7: endpoint@7 {
-> +					reg =3D <7>;
-> +					remote-endpoint =3D <&vin7csi20>;
-> +				};
-> +			};
-> +		};
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index aee793bff977d413..a0ca030b6bf6b82c 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8651,6 +8651,7 @@ L:	linux-media@vger.kernel.org
->  L:	linux-renesas-soc@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
->  S:	Supported
-> +F:	Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
->  F:	Documentation/devicetree/bindings/media/rcar_vin.txt
->  F:	drivers/media/platform/rcar-vin/
-
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 62a0d7af0e51..63fb94e7da37 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -144,12 +144,6 @@ enum imx274_mode {
+ 	IMX274_MODE_3840X2160,
+ 	IMX274_MODE_1920X1080,
+ 	IMX274_MODE_1280X720,
+-
+-	IMX274_MODE_START_STREAM_1,
+-	IMX274_MODE_START_STREAM_2,
+-	IMX274_MODE_START_STREAM_3,
+-	IMX274_MODE_START_STREAM_4,
+-	IMX274_MODE_STOP_STREAM
+ };
+ 
+ /*
+@@ -486,12 +480,6 @@ static const struct reg_8 *mode_table[] = {
+ 	[IMX274_MODE_3840X2160]		= imx274_mode1_3840x2160_raw10,
+ 	[IMX274_MODE_1920X1080]		= imx274_mode3_1920x1080_raw10,
+ 	[IMX274_MODE_1280X720]		= imx274_mode5_1280x720_raw10,
+-
+-	[IMX274_MODE_START_STREAM_1]	= imx274_start_1,
+-	[IMX274_MODE_START_STREAM_2]	= imx274_start_2,
+-	[IMX274_MODE_START_STREAM_3]	= imx274_start_3,
+-	[IMX274_MODE_START_STREAM_4]	= imx274_start_4,
+-	[IMX274_MODE_STOP_STREAM]	= imx274_stop,
+ };
+ 
+ /*
+@@ -731,11 +719,11 @@ static int imx274_mode_regs(struct stimx274 *priv, int mode)
+ {
+ 	int err = 0;
+ 
+-	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_1]);
++	err = imx274_write_table(priv, imx274_start_1);
+ 	if (err)
+ 		return err;
+ 
+-	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_2]);
++	err = imx274_write_table(priv, imx274_start_2);
+ 	if (err)
+ 		return err;
+ 
+@@ -760,7 +748,7 @@ static int imx274_start_stream(struct stimx274 *priv)
+ 	 * give it 1 extra ms for margin
+ 	 */
+ 	msleep_range(11);
+-	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_3]);
++	err = imx274_write_table(priv, imx274_start_3);
+ 	if (err)
+ 		return err;
+ 
+@@ -770,7 +758,7 @@ static int imx274_start_stream(struct stimx274 *priv)
+ 	 * give it 1 extra ms for margin
+ 	 */
+ 	msleep_range(8);
+-	err = imx274_write_table(priv, mode_table[IMX274_MODE_START_STREAM_4]);
++	err = imx274_write_table(priv, imx274_start_4);
+ 	if (err)
+ 		return err;
+ 
+@@ -1081,8 +1069,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
+ 			goto fail;
+ 	} else {
+ 		/* stop stream */
+-		ret = imx274_write_table(imx274,
+-					 mode_table[IMX274_MODE_STOP_STREAM]);
++		ret = imx274_write_table(imx274, imx274_stop);
+ 		if (ret)
+ 			goto fail;
+ 	}
+@@ -1779,7 +1766,7 @@ static int imx274_remove(struct i2c_client *client)
+ 	struct stimx274 *imx274 = to_imx274(sd);
+ 
+ 	/* stop stream */
+-	imx274_write_table(imx274, mode_table[IMX274_MODE_STOP_STREAM]);
++	imx274_write_table(imx274, imx274_stop);
+ 
+ 	v4l2_async_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&imx274->ctrls.handler);
+-- 
+2.7.4
