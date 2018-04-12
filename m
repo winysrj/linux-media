@@ -1,56 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:45710 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751555AbeDXRVQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55222 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750730AbeDLHfG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 13:21:16 -0400
-Date: Tue, 24 Apr 2018 19:21:13 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: mxl5xx: fix get_algo()'s return type
-Message-ID: <20180424192113.57f38207@lt530>
-In-Reply-To: <20180424131932.6170-1-luc.vanoostenryck@gmail.com>
-References: <20180424131932.6170-1-luc.vanoostenryck@gmail.com>
+        Thu, 12 Apr 2018 03:35:06 -0400
+Date: Thu, 12 Apr 2018 10:35:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Figa <tfiga@google.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
+Message-ID: <20180412073504.5mggdps4os3vqv6r@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-6-hverkuil@xs4all.nl>
+ <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Tue, 24 Apr 2018 15:19:31 +0200
-schrieb Luc Van Oostenryck <luc.vanoostenryck@gmail.com>:
+Hi Tomasz,
 
-> The method dvb_frontend_ops::get_frontend_algo() is defined as
-> returning an 'enum dvbfe_algo', but the implementation in this
-> driver returns an 'int'.
+On Tue, Apr 10, 2018 at 08:59:23AM +0000, Tomasz Figa wrote:
+> Hi Hans,
 > 
-> Fix this by returning 'enum dvbfe_algo' in this driver too.
+> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
 > 
-> Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-> ---
->  drivers/media/dvb-frontends/mxl5xx.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
-> index 483ee7d61..274d8fca0 100644
-> --- a/drivers/media/dvb-frontends/mxl5xx.c
-> +++ b/drivers/media/dvb-frontends/mxl5xx.c
-> @@ -375,7 +375,7 @@ static void release(struct dvb_frontend *fe)
->  	kfree(state);
->  }
->  
-> -static int get_algo(struct dvb_frontend *fe)
-> +static enum dvbfe_algo get_algo(struct dvb_frontend *fe)
->  {
->  	return DVBFE_ALGO_HW;
->  }
+> > Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
+> > ioctls.
+> 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >   drivers/media/media-request.c | 80
+> +++++++++++++++++++++++++++++++++++++++++--
+> >   1 file changed, 78 insertions(+), 2 deletions(-)
+> 
+> > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> > index dffc290e4ada..27739ff7cb09 100644
+> > --- a/drivers/media/media-request.c
+> > +++ b/drivers/media/media-request.c
+> > @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file
+> *filp,
+> >          return 0;
+> >   }
+> 
+> > +static long media_request_ioctl_queue(struct media_request *req)
+> > +{
+> > +       struct media_device *mdev = req->mdev;
+> > +       unsigned long flags;
+> > +       int ret = 0;
+> > +
+> > +       dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+> > +
+> > +       spin_lock_irqsave(&req->lock, flags);
+> > +       if (req->state != MEDIA_REQUEST_STATE_IDLE) {
+> > +               dev_dbg(mdev->dev,
+> > +                       "request: unable to queue %s, request in state
+> %s\n",
+> > +                       req->debug_str,
+> media_request_state_str(req->state));
+> > +               spin_unlock_irqrestore(&req->lock, flags);
+> > +               return -EINVAL;
+> 
+> nit: Perhaps -EBUSY? (vb2 returns -EINVAL, though, but IMHO it doesn't
+> really represent the real error too closely.)
+> 
+> > +       }
+> > +       req->state = MEDIA_REQUEST_STATE_QUEUEING;
+> > +
+> > +       spin_unlock_irqrestore(&req->lock, flags);
+> > +
+> > +       /*
+> > +        * Ensure the request that is validated will be the one that gets
+> queued
+> > +        * next by serialising the queueing process.
+> > +        */
+> > +       mutex_lock(&mdev->req_queue_mutex);
+> > +
+> > +       ret = mdev->ops->req_queue(req);
+> > +       spin_lock_irqsave(&req->lock, flags);
+> > +       req->state = ret ? MEDIA_REQUEST_STATE_IDLE :
+> MEDIA_REQUEST_STATE_QUEUED;
+> > +       spin_unlock_irqrestore(&req->lock, flags);
+> > +       mutex_unlock(&mdev->req_queue_mutex);
+> > +
+> > +       if (ret) {
+> > +               dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
+> > +                       req->debug_str, ret);
+> > +       } else {
+> > +               media_request_get(req);
+> 
+> I'm not convinced that this is the right place to take a reference. IMHO
+> whoever saves a pointer to the request in its own internal data (the
+> ->req_queue() callback?), should also grab a reference before doing so. Not
+> a strong objection, though, if we clearly document this, so that whoever
+> implements ->req_queue() callback can do the right thing.
 
-Acked-by: Daniel Scheller <d.scheller@gmx.net>
+The framework will also release that reference once the request is
+complete. In my opinion it's perfectly reasonable to do this in the
+framework; moving things to frameworks that do not need to be done in
+drivers generally reduces bugs and makes drivers more maintainable. Albeit
+this is a minor matter in this respect.
 
-Best regards,
-Daniel Scheller
+Hans: the reference must be taken before the request is queued: otherwise
+it is possible that the driver completes the request before the reference
+is taken here. That would mean the request might have been already released
+by the time of getting a refenrece to it.
+
+> 
+> > +       }
+> > +
+> > +       return ret;
+> > +}
+> > +
+> > +static long media_request_ioctl_reinit(struct media_request *req)
+> > +{
+> > +       struct media_device *mdev = req->mdev;
+> > +       unsigned long flags;
+> > +
+> > +       spin_lock_irqsave(&req->lock, flags);
+> > +       if (req->state != MEDIA_REQUEST_STATE_IDLE &&
+> > +           req->state != MEDIA_REQUEST_STATE_COMPLETE) {
+> > +               dev_dbg(mdev->dev,
+> > +                       "request: %s not in idle or complete state,
+> cannot reinit\n",
+> > +                       req->debug_str);
+> > +               spin_unlock_irqrestore(&req->lock, flags);
+> > +               return -EINVAL;
+> 
+> nit: Perhaps -EBUSY? (Again vb2 would return -EINVAL...)
+
+I agree on both return values.
+
 -- 
-https://github.com/herrnst
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
