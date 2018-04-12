@@ -1,47 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:53759 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756742AbeDFOXi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 10:23:38 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 18/21] media: isppreview: fix __user annotations
-Date: Fri,  6 Apr 2018 10:23:19 -0400
-Message-Id: <de3b0b55d826e597f2be27f79e6e8177c0022e6a.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56222 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751870AbeDLKaw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 06:30:52 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v1.1 3/4] ov7740: Fix control handler error at the end of control init
+Date: Thu, 12 Apr 2018 13:30:50 +0300
+Message-Id: <20180412103050.8001-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180412102150.29997-4-sakari.ailus@linux.intel.com>
+References: <20180412102150.29997-4-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That prevent those warnings:
-   drivers/media/platform/omap3isp/isppreview.c:893:45: warning: incorrect type in initializer (different address spaces)
-   drivers/media/platform/omap3isp/isppreview.c:893:45:    expected void [noderef] <asn:1>*from
-   drivers/media/platform/omap3isp/isppreview.c:893:45:    got void *[noderef] <asn:1><noident>
-   drivers/media/platform/omap3isp/isppreview.c:893:47: warning: dereference of noderef expression
+Check that no error happened during adding controls to the driver's
+control handler. Print an error message and bail out if there was one.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/omap3isp/isppreview.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+since v1:
 
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index ac30a0f83780..c2ef5870b231 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -890,7 +890,7 @@ static int preview_config(struct isp_prev_device *prev,
- 		params = &prev->params.params[!!(active & bit)];
+- Move error checking after clustering. While clustering won't cause an
+  error now, it's better to check for errors only when everything has been
+  done.
+
+ drivers/media/i2c/ov7740.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+index cbfa5a3327f6..3dad33c6180f 100644
+--- a/drivers/media/i2c/ov7740.c
++++ b/drivers/media/i2c/ov7740.c
+@@ -1006,6 +1006,13 @@ static int ov7740_init_controls(struct ov7740 *ov7740)
+ 			       V4L2_EXPOSURE_MANUAL, false);
+ 	v4l2_ctrl_cluster(2, &ov7740->hflip);
  
- 		if (cfg->flag & bit) {
--			void __user *from = *(void * __user *)
-+			void __user *from = *(void __user **)
- 				((void *)cfg + attr->config_offset);
- 			void *to = (void *)params + attr->param_offset;
- 			size_t size = attr->param_size;
++	if (ctrl_hdlr->error) {
++		ret = ctrl_hdlr->error;
++		dev_err(&client->dev, "controls initialisation failed (%d)\n",
++			ret);
++		goto error;
++	}
++
+ 	ret = v4l2_ctrl_handler_setup(ctrl_hdlr);
+ 	if (ret) {
+ 		dev_err(&client->dev, "%s control init failed (%d)\n",
 -- 
-2.14.3
+2.11.0
