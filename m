@@ -1,120 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:46722 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750779AbeDXXgp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 19:36:45 -0400
-Received: by mail-lf0-f68.google.com with SMTP id v85-v6so1233488lfa.13
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 16:36:44 -0700 (PDT)
-Date: Wed, 25 Apr 2018 01:36:42 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: adv748x: Fix pixel rate values
-Message-ID: <20180424233642.GB3315@bigcity.dyn.berto.se>
-References: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from gofer.mess.org ([88.97.38.141]:44645 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752178AbeDLWVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 18:21:34 -0400
+Date: Thu, 12 Apr 2018 23:21:32 +0100
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
+Message-ID: <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+ <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180421124444.1652-1-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Thanks for your patch.
-
-On 2018-04-21 15:44:44 +0300, Laurent Pinchart wrote:
-> The pixel rate, as reported by the V4L2_CID_PIXEL_RATE control, must
-> include both horizontal and vertical blanking. Both the AFE and HDMI
-> receiver program it incorrectly:
+On Thu, Apr 12, 2018 at 11:24:07AM -0400, Mauro Carvalho Chehab wrote:
+> As warned by smatch:
+> 	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
 > 
-> - The HDMI receiver goes to the trouble of removing blanking to compute
-> the rate of active pixels. This is easy to fix by removing the
-> computation and returning the incoming pixel clock rate directly.
+> If something goes wrong at readl(), the logic will stay there
+> inside an IRQ code forever. This is not the nicest thing to
+> do :-)
 > 
-> - The AFE performs similar calculation, while it should simply return
-> the fixed pixel rate for analog sources, mandated by the ADV748x to be
-> 28.63636 MHz.
+> So, add a timeout there, preventing staying inside the IRQ
+> for more than 10ms.
+
+If we knew how large the fifo was, then we could limit the loop to that many
+iterations (maybe a few extra in case IR arrives while we a reading, but
+IR is much slower than a cpu executing this loop of course).
+
+Patrice is something you could help with?
+
+Thanks
+
+Sean
+
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-This patch uncovered a calculation error in rcar-csi2 which compensated 
-for the removing of the blanking in the adv748x, thanks for that! Good 
-thing that it's not merged yet, will include the fix in the next version 
-of the CSI-2 driver.
-
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  drivers/media/i2c/adv748x/adv748x-afe.c  | 11 +++++------
->  drivers/media/i2c/adv748x/adv748x-hdmi.c |  8 +-------
->  2 files changed, 6 insertions(+), 13 deletions(-)
+>  drivers/media/rc/st_rc.c | 16 ++++++++++------
+>  1 file changed, 10 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
-> index 61514bae7e5c..3e18d5ae813b 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-> @@ -321,17 +321,16 @@ static const struct v4l2_subdev_video_ops adv748x_afe_video_ops = {
->  static int adv748x_afe_propagate_pixelrate(struct adv748x_afe *afe)
+> diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+> index d2efd7b2c3bc..c855b177103c 100644
+> --- a/drivers/media/rc/st_rc.c
+> +++ b/drivers/media/rc/st_rc.c
+> @@ -96,19 +96,24 @@ static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
+>  
+>  static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
 >  {
->  	struct v4l2_subdev *tx;
-> -	unsigned int width, height, fps;
+> +	unsigned long timeout;
+>  	unsigned int symbol, mark = 0;
+>  	struct st_rc_device *dev = data;
+>  	int last_symbol = 0;
+> -	u32 status;
+> +	u32 status, int_status;
+>  	DEFINE_IR_RAW_EVENT(ev);
 >  
->  	tx = adv748x_get_remote_sd(&afe->pads[ADV748X_AFE_SOURCE]);
->  	if (!tx)
->  		return -ENOLINK;
+>  	if (dev->irq_wake)
+>  		pm_wakeup_event(dev->dev, 0);
 >  
-> -	width = 720;
-> -	height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> -	fps = afe->curr_norm & V4L2_STD_525_60 ? 30 : 25;
-> -
-> -	return adv748x_csi2_set_pixelrate(tx, width * height * fps);
-> +	/*
-> +	 * The ADV748x samples analog video signals using an externally supplied
-> +	 * clock whose frequency is required to be 28.63636 MHz.
-> +	 */
-> +	return adv748x_csi2_set_pixelrate(tx, 28636360);
->  }
+> -	status  = readl(dev->rx_base + IRB_RX_STATUS);
+> +	/* FIXME: is 10ms good enough ? */
+> +	timeout = jiffies +  msecs_to_jiffies(10);
+> +	do {
+> +		status  = readl(dev->rx_base + IRB_RX_STATUS);
+> +		if (!(status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)))
+> +			break;
 >  
->  static int adv748x_afe_enum_mbus_code(struct v4l2_subdev *sd,
-> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> index 10d229a4f088..aecc2a84dfec 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> @@ -402,8 +402,6 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
->  {
->  	struct v4l2_subdev *tx;
->  	struct v4l2_dv_timings timings;
-> -	struct v4l2_bt_timings *bt = &timings.bt;
-> -	unsigned int fps;
+> -	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+> -		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+> +		int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+>  		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+>  			/* discard the entire collection in case of errors!  */
+>  			ir_raw_event_reset(dev->rdev);
+> @@ -148,8 +153,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
 >  
->  	tx = adv748x_get_remote_sd(&hdmi->pads[ADV748X_HDMI_SOURCE]);
->  	if (!tx)
-> @@ -411,11 +409,7 @@ static int adv748x_hdmi_propagate_pixelrate(struct adv748x_hdmi *hdmi)
+>  		}
+>  		last_symbol = 0;
+> -		status  = readl(dev->rx_base + IRB_RX_STATUS);
+> -	}
+> +	} while (time_is_after_jiffies(timeout));
 >  
->  	adv748x_hdmi_query_dv_timings(&hdmi->sd, &timings);
+>  	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
 >  
-> -	fps = DIV_ROUND_CLOSEST_ULL(bt->pixelclock,
-> -				    V4L2_DV_BT_FRAME_WIDTH(bt) *
-> -				    V4L2_DV_BT_FRAME_HEIGHT(bt));
-> -
-> -	return adv748x_csi2_set_pixelrate(tx, bt->width * bt->height * fps);
-> +	return adv748x_csi2_set_pixelrate(tx, timings.bt.pixelclock);
->  }
->  
->  static int adv748x_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
 > -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
--- 
-Regards,
-Niklas Söderlund
+> 2.14.3
