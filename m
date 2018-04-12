@@ -1,120 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:39958 "EHLO
-        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751031AbeDYGNZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56258 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752125AbeDLKk5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 02:13:25 -0400
-Received: by mail-io0-f170.google.com with SMTP id t123-v6so25552189iof.7
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 23:13:25 -0700 (PDT)
+        Thu, 12 Apr 2018 06:40:57 -0400
+Date: Thu, 12 Apr 2018 13:40:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
+Message-ID: <20180412104055.cusncz3d6llpwblp@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-6-hverkuil@xs4all.nl>
+ <20180410075756.3975ed22@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20180425054855.GA17038@infradead.org>
-References: <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
- <20180419081657.GA16735@infradead.org> <20180420071312.GF31310@phenom.ffwll.local>
- <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com> <20180420101755.GA11400@infradead.org>
- <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com> <20180420124625.GA31078@infradead.org>
- <20180420152111.GR31310@phenom.ffwll.local> <20180424184847.GA3247@infradead.org>
- <CAKMK7uFL68pu+-9LODTgz+GQYvxpnXOGhxfz9zorJ_JKsPVw2g@mail.gmail.com> <20180425054855.GA17038@infradead.org>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Wed, 25 Apr 2018 08:13:24 +0200
-Message-ID: <CAKMK7uEFitkNQrD6cLX5Txe11XhVO=LC4YKJXH=VNdq+CY=DjQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
-To: Christoph Hellwig <hch@infradead.org>
-Cc: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180410075756.3975ed22@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2018 at 7:48 AM, Christoph Hellwig <hch@infradead.org> wrot=
-e:
-> On Tue, Apr 24, 2018 at 09:32:20PM +0200, Daniel Vetter wrote:
->> Out of curiosity, how much virtual flushing stuff is there still out
->> there? At least in drm we've pretty much ignore this, and seem to be
->> getting away without a huge uproar (at least from driver developers
->> and users, core folks are less amused about that).
->
-> As I've just been wading through the code, the following architectures
-> have non-coherent dma that flushes by virtual address for at least some
-> platforms:
->
->  - arm [1], arm64, hexagon, nds32, nios2, parisc, sh, xtensa, mips,
->    powerpc
->
-> These have non-coherent dma ops that flush by physical address:
->
->  - arc, arm [1], c6x, m68k, microblaze, openrisc, sparc
->
-> And these do not have non-coherent dma ops at all:
->
->  - alpha, h8300, riscv, unicore32, x86
->
-> [1] arm =D1=95eems to do both virtually and physically based ops, further
-> audit needed.
->
-> Note that using virtual addresses in the cache flushing interface
-> doesn't mean that the cache actually is virtually indexed, but it at
-> least allows for the possibility.
->
->> > I think the most important thing about such a buffer object is that
->> > it can distinguish the underlying mapping types.  While
->> > dma_alloc_coherent, dma_alloc_attrs with DMA_ATTR_NON_CONSISTENT,
->> > dma_map_page/dma_map_single/dma_map_sg and dma_map_resource all give
->> > back a dma_addr_t they are in now way interchangable.  And trying to
->> > stuff them all into a structure like struct scatterlist that has
->> > no indication what kind of mapping you are dealing with is just
->> > asking for trouble.
->>
->> Well the idea was to have 1 interface to allow all drivers to share
->> buffers with anything else, no matter how exactly they're allocated.
->
-> Isn't that interface supposed to be dmabuf?  Currently dma_map leaks
-> a scatterlist through the sg_table in dma_buf_map_attachment /
-> ->map_dma_buf, but looking at a few of the callers it seems like they
-> really do not even want a scatterlist to start with, but check that
-> is contains a physically contiguous range first.  So kicking the
-> scatterlist our there will probably improve the interface in general.
+Hi Mauro,
 
-I think by number most drm drivers require contiguous memory (or an
-iommu that makes it look contiguous). But there's plenty others who
-have another set of pagetables on the gpu itself and can
-scatter-gather. Usually it's the former for display/video blocks, and
-the latter for rendering.
+On Tue, Apr 10, 2018 at 07:57:56AM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon,  9 Apr 2018 16:20:02 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
+> > ioctls.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/media-request.c | 80 +++++++++++++++++++++++++++++++++++++++++--
+> >  1 file changed, 78 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> > index dffc290e4ada..27739ff7cb09 100644
+> > --- a/drivers/media/media-request.c
+> > +++ b/drivers/media/media-request.c
+> > @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file *filp,
+> >  	return 0;
+> >  }
+> >  
+> > +static long media_request_ioctl_queue(struct media_request *req)
+> > +{
+> > +	struct media_device *mdev = req->mdev;
+> > +	unsigned long flags;
+> > +	int ret = 0;
+> > +
+> > +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	if (req->state != MEDIA_REQUEST_STATE_IDLE) {
+> > +		dev_dbg(mdev->dev,
+> > +			"request: unable to queue %s, request in state %s\n",
+> > +			req->debug_str, media_request_state_str(req->state));
+> > +		spin_unlock_irqrestore(&req->lock, flags);
+> > +		return -EINVAL;
+> > +	}
+> > +	req->state = MEDIA_REQUEST_STATE_QUEUEING;
+> > +
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +
+> > +	/*
+> > +	 * Ensure the request that is validated will be the one that gets queued
+> > +	 * next by serialising the queueing process.
+> > +	 */
+> > +	mutex_lock(&mdev->req_queue_mutex);
+> 
+> The locking here seems really weird. IMHO, it should lock before
+> touching state, as otherwise race conditions may happen.
+> 
+> As I suggested before, I would use an atomic type for state, and get rid
+> of the spin lock (as it seems that it is meant to be used just
+> for state).
 
->> dma-buf has all the functions for flushing, so you can have coherent
->> mappings, non-coherent mappings and pretty much anything else. Or well
->> could, because in practice people hack up layering violations until it
->> works for the 2-3 drivers they care about. On top of that there's the
->> small issue that x86 insists that dma is coherent (and that's true for
->> most devices, including v4l drivers you might want to share stuff
->> with), and gpus really, really really do want to make almost
->> everything incoherent.
->
-> How do discrete GPUs manage to be incoherent when attached over PCIe?
+The new request state depends on the old state; I don't think you can
+meaningfully do that using the atomic API.
 
-It has a non-coherent transaction mode (which the chipset can opt to
-not implement and still flush), to make sure the AGP horror show
-doesn't happen again and GPU folks are happy with PCIe. That's at
-least my understanding from digging around in amd the last time we had
-coherency issues between intel and amd gpus. GPUs have some bits
-somewhere (in the pagetables, or in the buffer object description
-table created by userspace) to control that stuff.
+> 
+> > +
+> > +	ret = mdev->ops->req_queue(req);
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	req->state = ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED;
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +	mutex_unlock(&mdev->req_queue_mutex);
+> > +
+> 
+> Here, you have both mutex and spin locked. This is a strong indication
+> that locks are not well designed, are you're using two different locks
+> to protect the same data.
 
-For anything on the SoC it's presented as pci device, but that's
-extremely fake, and we can definitely do non-snooped transactions on
-drm/i915. Again, controlled by a mix of pagetables and
-userspace-provided buffer object description tables.
--Daniel
---=20
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Not the same, it's different data. What is no longer visible in this
+patchset is how request objects are referenced in a request. Effectively
+that part is missing altogether. It will be needed when adding support for
+objects that are not managed through the V4L2 framework such as pixel
+formats or selection rectangles.
+
+You could move the serialisation of queueing requests to drivers altogether
+but I don't think that'd be a wise choice: the device state at request
+queue head will need to be maintained so that queued requests can be
+validated against it (right now validation is embedded in queueing).
+Failing validation will result into restoring the previous state.
+
+I had an implementation of that in my previous request set here:
+
+<URL:https://www.spinics.net/lists/linux-media/msg130994.html>
+
+We'll implement it but not yet: right now there's just a need for buffers
+and controls. Still, knowing where we're going I'd keep the mutex where it
+is.
+
+> > +static long media_request_ioctl_reinit(struct media_request *req)
+> > +{
+> > +	struct media_device *mdev = req->mdev;
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	if (req->state != MEDIA_REQUEST_STATE_IDLE &&
+> > +	    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
+> > +		dev_dbg(mdev->dev,
+> > +			"request: %s not in idle or complete state, cannot reinit\n",
+> > +			req->debug_str);
+> > +		spin_unlock_irqrestore(&req->lock, flags);
+> > +		return -EINVAL;
+> > +	}
+> > +	req->state = MEDIA_REQUEST_STATE_CLEANING;
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> > +
+> > +	media_request_clean(req);
+> > +
+> > +	spin_lock_irqsave(&req->lock, flags);
+> > +	req->state = MEDIA_REQUEST_STATE_IDLE;
+> > +	spin_unlock_irqrestore(&req->lock, flags);
+> 
+> This code should be called with the mutex hold.
+
+That's not necessary. A request which is being re-initialised was in an
+idle or complete state; nothing of that request is bound to the current
+device state in any way. Therefore the objects in that request can be
+simply thrown out.
+
+The state change to CLEANING is there to prevent the request being e.g.
+queued during the cleaning.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
