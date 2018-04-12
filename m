@@ -1,57 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36497 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751329AbeDFFPI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 01:15:08 -0400
-Received: by mail-pf0-f195.google.com with SMTP id g14so10147973pfh.3
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 22:15:08 -0700 (PDT)
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-To: linux-media@vger.kernel.org
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCH v7 1/2] media: dt-bindings: Add bindings for panasonic,amg88xx
-Date: Thu,  5 Apr 2018 22:14:48 -0700
-Message-Id: <20180406051449.32157-2-matt.ranostay@konsulko.com>
-In-Reply-To: <20180406051449.32157-1-matt.ranostay@konsulko.com>
-References: <20180406051449.32157-1-matt.ranostay@konsulko.com>
+Received: from osg.samsung.com ([64.30.133.232]:34295 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753954AbeDLPYa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 11:24:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 09/17] media: platform: fix some 64-bits warnings
+Date: Thu, 12 Apr 2018 11:24:01 -0400
+Message-Id: <04fe60ef9cdd0c046a7d0dab0ac4e1caeec33895.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define the device tree bindings for the panasonic,amg88xx i2c
-video driver.
+The omap/omap3 and viu drivers are for 32 bit platforms only.
+There, a pointer has 32 bits. Now that those drivers build
+for 64 bits with COMPILE_TEST, they produce the following
+warnings:
 
-Cc: devicetree@vger.kernel.org
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+drivers/media/platform/omap/omap_vout_vrfb.c: In function 'omap_vout_allocate_vrfb_buffers':
+drivers/media/platform/omap/omap_vout_vrfb.c:57:10: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   memset((void *) vout->smsshado_virt_addr[i], 0,
+          ^
+drivers/media/platform/fsl-viu.c: In function 'viu_setup_preview':
+drivers/media/platform/fsl-viu.c:753:28: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+  reg_val.field_base_addr = (u32)dev->ovbuf.base;
+                            ^
+drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_get_userptr':
+drivers/media/platform/omap/omap_vout.c:209:25: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   *physp = virt_to_phys((void *)virtp);
+                         ^
+drivers/media/platform/omap3isp/ispccdc.c: In function 'ccdc_config':
+drivers/media/platform/omap3isp/ispccdc.c:738:9: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+         (__force void __user *)fpc.fpcaddr,
+         ^
+
+Add some typecasts to remove those warnings when building for
+64 bits.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../bindings/media/i2c/panasonic,amg88xx.txt          | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ drivers/media/platform/fsl-viu.c             | 2 +-
+ drivers/media/platform/omap/omap_vout.c      | 2 +-
+ drivers/media/platform/omap/omap_vout_vrfb.c | 4 ++--
+ drivers/media/platform/omap3isp/ispccdc.c    | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
-new file mode 100644
-index 000000000000..4a3181a3dd7e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
-@@ -0,0 +1,19 @@
-+* Panasonic AMG88xx
-+
-+The Panasonic family of AMG88xx Grid-Eye sensors allow recording
-+8x8 10Hz video which consists of thermal datapoints
-+
-+Required Properties:
-+ - compatible : Must be "panasonic,amg88xx"
-+ - reg : i2c address of the device
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		amg88xx@69 {
-+			compatible = "panasonic,amg88xx";
-+			reg = <0x69>;
-+		};
-+		...
-+	};
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 5b6bfcafc2a4..e41510ce69a4 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -750,7 +750,7 @@ static int viu_setup_preview(struct viu_dev *dev, struct viu_fh *fh)
+ 	reg_val.status_cfg |= DMA_ACT | INT_DMA_END_EN | INT_FIELD_EN;
+ 
+ 	/* setup the base address of the overlay buffer */
+-	reg_val.field_base_addr = (u32)dev->ovbuf.base;
++	reg_val.field_base_addr = (u32)(long)dev->ovbuf.base;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index e2723fedac8d..5700b7818621 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -198,7 +198,7 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
+  * omap_vout_get_userptr: Convert user space virtual address to physical
+  * address.
+  */
+-static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
++static int omap_vout_get_userptr(struct videobuf_buffer *vb, long virtp,
+ 				 u32 *physp)
+ {
+ 	struct frame_vector *vec;
+diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
+index 1d8508237220..29e3f5da59c1 100644
+--- a/drivers/media/platform/omap/omap_vout_vrfb.c
++++ b/drivers/media/platform/omap/omap_vout_vrfb.c
+@@ -54,8 +54,8 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+ 			*count = 0;
+ 			return -ENOMEM;
+ 		}
+-		memset((void *) vout->smsshado_virt_addr[i], 0,
+-				vout->smsshado_size);
++		memset((void *)(long)vout->smsshado_virt_addr[i], 0,
++		       vout->smsshado_size);
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index b66276ab5765..77b73e27a274 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -735,7 +735,7 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
+ 				return -ENOMEM;
+ 
+ 			if (copy_from_user(fpc_new.addr,
+-					   (__force void __user *)fpc.fpcaddr,
++					   (__force void __user *)(long)fpc.fpcaddr,
+ 					   size)) {
+ 				dma_free_coherent(isp->dev, size, fpc_new.addr,
+ 						  fpc_new.dma);
 -- 
-2.14.1
+2.14.3
