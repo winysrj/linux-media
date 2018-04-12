@@ -1,97 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34964 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751490AbeDJQe3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 12:34:29 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180409090649.GX20945@w540>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
- <1523116090-13101-6-git-send-email-akinobu.mita@gmail.com> <20180409090649.GX20945@w540>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Wed, 11 Apr 2018 01:34:08 +0900
-Message-ID: <CAC5umyherpizqmFCK-mwMkHMVvjEABSMG3ktLfgS74irN2Of0w@mail.gmail.com>
-Subject: Re: [PATCH 5/6] media: ov772x: add device tree binding
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from osg.samsung.com ([64.30.133.232]:62220 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753413AbeDLPYY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 11:24:24 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH 06/17] media: v4l2-fwnode: simplify v4l2_fwnode_reference_parse_int_props()
+Date: Thu, 12 Apr 2018 11:23:58 -0400
+Message-Id: <facdc5c67cc17e162f9e4ead3f0794c7d02464d2.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-04-09 18:06 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
-> Hi Akinobu,
->
-> On Sun, Apr 08, 2018 at 12:48:09AM +0900, Akinobu Mita wrote:
->> This adds a device tree binding documentation for OV7720/OV7725 sensor.
->
-> Please use as patch subject
-> media: dt-bindings:
+The logic at v4l2_fwnode_reference_parse_int_props() is somewhat
+complex and violates Linux coding style, as it does multiple
+statements on a single line. That makes static analyzers to
+be confused, as warned by smatch:
 
-OK.
+	drivers/media/v4l2-core/v4l2-fwnode.c:832 v4l2_fwnode_reference_parse_int_props() warn: passing zero to 'PTR_ERR'
 
->>
->> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> ---
->>  .../devicetree/bindings/media/i2c/ov772x.txt       | 36 ++++++++++++++++++++++
->>  MAINTAINERS                                        |  1 +
->>  2 files changed, 37 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
->> new file mode 100644
->> index 0000000..9b0df3b
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
->> @@ -0,0 +1,36 @@
->> +* Omnivision OV7720/OV7725 CMOS sensor
->> +
->
-> Could you please provide a brief description of the sensor (supported
-> resolution and formats is ok)
+Simplify the logic, in order to make clearer about what happens
+when v4l2_fwnode_reference_get_int_prop() returns an error.
 
-OK.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
->> +Required Properties:
->> +- compatible: shall be one of
->> +     "ovti,ov7720"
->> +     "ovti,ov7725"
->> +- clocks: reference to the xclk input clock.
->> +- clock-names: shall be "xclk".
->> +
->> +Optional Properties:
->> +- rstb-gpios: reference to the GPIO connected to the RSTB pin, if any.
->> +- pwdn-gpios: reference to the GPIO connected to the PWDN pin, if any.
->
-> As a general note:
-> This is debated, and I'm not enforcing it, but please consider using
-> generic names for GPIOs with common functions. In this case
-> "reset-gpios" and "powerdown-gpios". Also please indicate the GPIO
-> active level in bindings description.
->
-> For this specific driver:
-> The probe routine already looks for a GPIO named 'pwdn', so I guess
-> the DT bindings should use the same name. Unless you're willing to
-> change it in the board files that register it (Migo-R only in mainline) and
-> use the generic 'powerdown' name for both. Either is fine with me.
-
-I'll prepare anothre patch that renames the GPIO names to generic one in
-this driver and Mingo-R board file.
-
-> There is no support for the reset GPIO in the driver code, it
-> supports soft reset only. Either ditch it from bindings or add support
-> for it in driver's code.
-
-Doesn't that reset GPIO exist in current ov772x driver code, does it?
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index d630640642ee..3f77aa318035 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -819,17 +819,25 @@ static int v4l2_fwnode_reference_parse_int_props(
+ 	unsigned int index;
+ 	int ret;
+ 
+-	for (index = 0; !IS_ERR((fwnode = v4l2_fwnode_reference_get_int_prop(
+-					 dev_fwnode(dev), prop, index, props,
+-					 nprops))); index++)
++	index = 0;
++	do {
++		fwnode = v4l2_fwnode_reference_get_int_prop(dev_fwnode(dev),
++							    prop, index,
++							    props, nprops);
++		if (IS_ERR(fwnode)) {
++			/*
++			 * Note that right now both -ENODATA and -ENOENT may
++			 * signal out-of-bounds access. Return the error in
++			 * cases other than that.
++			 */
++			if (PTR_ERR(fwnode) != -ENOENT &&
++			    PTR_ERR(fwnode) != -ENODATA)
++				return PTR_ERR(fwnode);
++			break;
++		}
+ 		fwnode_handle_put(fwnode);
+-
+-	/*
+-	 * Note that right now both -ENODATA and -ENOENT may signal
+-	 * out-of-bounds access. Return the error in cases other than that.
+-	 */
+-	if (PTR_ERR(fwnode) != -ENOENT && PTR_ERR(fwnode) != -ENODATA)
+-		return PTR_ERR(fwnode);
++		index++;
++	} while (1);
+ 
+ 	ret = v4l2_async_notifier_realloc(notifier,
+ 					  notifier->num_subdevs + index);
+-- 
+2.14.3
