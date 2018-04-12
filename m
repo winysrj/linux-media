@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:42300 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752084AbeD3HkV (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:42091 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753032AbeDLQzr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 03:40:21 -0400
-Date: Mon, 30 Apr 2018 09:40:17 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: geert@linux-m68k.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] dt-bindings: media: renesas-ceu: Add R-Mobile
- R8A7740
-Message-ID: <20180430074017.sl2uav7hxc4rjsqe@verge.net.au>
-References: <1524767083-19862-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524767083-19862-2-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 12 Apr 2018 12:55:47 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mark Brown <broonie@kernel.org>
+Cc: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH 08/15] ASoC: pxa: remove the dmaengine compat need
+References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+        <20180402142656.26815-9-robert.jarzmik@free.fr>
+        <20180412152632.GG9929@sirena.org.uk>
+Date: Thu, 12 Apr 2018 18:55:28 +0200
+In-Reply-To: <20180412152632.GG9929@sirena.org.uk> (Mark Brown's message of
+        "Thu, 12 Apr 2018 16:26:32 +0100")
+Message-ID: <87a7u82wlb.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1524767083-19862-2-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 26, 2018 at 08:24:42PM +0200, Jacopo Mondi wrote:
-> Add R-Mobile A1 R8A7740 SoC to the list of compatible values for the CEU
-> unit.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Mark Brown <broonie@kernel.org> writes:
 
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+> On Mon, Apr 02, 2018 at 04:26:49PM +0200, Robert Jarzmik wrote:
+>> As the pxa architecture switched towards the dmaengine slave map, the
+>> old compatibility mechanism to acquire the dma requestor line number and
+>> priority are not needed anymore.
+>
+> Acked-by: Mark Brown <broonie@kernel.org>
+>
+> If there's no dependency I'm happy to take this for 4.18.
+Thanks for the ack.
 
-> ---
->  Documentation/devicetree/bindings/media/renesas,ceu.txt | 7 ++++---
->  drivers/media/platform/renesas-ceu.c                    | 1 +
->  2 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> index 3fc66df..8a7a616 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> @@ -2,14 +2,15 @@ Renesas Capture Engine Unit (CEU)
->  ----------------------------------------------
->  
->  The Capture Engine Unit is the image capture interface found in the Renesas
-> -SH Mobile and RZ SoCs.
-> +SH Mobile, R-Mobile and RZ SoCs.
->  
->  The interface supports a single parallel input with data bus width of 8 or 16
->  bits.
->  
->  Required properties:
-> -- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1H
-> -  and RZ/A1M SoCs.
-> +- compatible: Shall be one of the following values:
-> +	"renesas,r7s72100-ceu" for CEU units found in RZ/A1H and RZ/A1M SoCs
-> +	"renesas,r8a7740-ceu" for CEU units found in R-Mobile A1 R8A7740 SoCs
+The patches 1 and 2 are the dependency here, so I'd rather push it through my
+tree once the review is complete.
 
-Nit: I think you can drop R8A7740 as I believe that by adding it to
-R-Mobile A1 you have constructed a tautology (I mean "R-Mobile A1" =
-"R8A7740" as far as I know).
+Cheers.
 
->  - reg: Registers address base and size.
->  - interrupts: The interrupt specifier.
->  
-> diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
-> index 6599dba..c964a56 100644
-> --- a/drivers/media/platform/renesas-ceu.c
-> +++ b/drivers/media/platform/renesas-ceu.c
-> @@ -1545,6 +1545,7 @@ static const struct ceu_data ceu_data_sh4 = {
->  #if IS_ENABLED(CONFIG_OF)
->  static const struct of_device_id ceu_of_match[] = {
->  	{ .compatible = "renesas,r7s72100-ceu", .data = &ceu_data_rz },
-> +	{ .compatible = "renesas,r8a7740-ceu", .data = &ceu_data_rz },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(of, ceu_of_match);
-> -- 
-> 2.7.4
-> 
+-- 
+Robert
