@@ -1,558 +1,565 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38498 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752586AbeDJMRZ (ORCPT
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:60931 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751835AbeDLI5H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 08:17:25 -0400
-Date: Tue, 10 Apr 2018 15:17:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180410121722.zmcsmf4xushetmre@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-5-hverkuil@xs4all.nl>
+        Thu, 12 Apr 2018 04:57:07 -0400
+Date: Thu, 12 Apr 2018 10:57:01 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        devicetree@vger.kernel.org, tfiga@chromium.org,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [RESEND PATCH v7 2/2] media: dw9807: Add dw9807 vcm driver
+Message-ID: <20180412085701.GJ20945@w540>
+References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
+ <1523375324-27856-3-git-send-email-andy.yeh@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="T3X/gqwmxfK0WLE8"
 Content-Disposition: inline
-In-Reply-To: <20180409142026.19369-5-hverkuil@xs4all.nl>
+In-Reply-To: <1523375324-27856-3-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thanks for the update.
+--T3X/gqwmxfK0WLE8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On Mon, Apr 09, 2018 at 04:20:01PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Implement the core of the media request processing.
-> 
-> Drivers can bind request objects to a request. These objects
-> can then be marked completed if the driver finished using them,
-> or just be unbound if the results do not need to be kept (e.g.
-> in the case of buffers).
-> 
-> Once all objects that were added are either unbound or completed,
-> the request is marked 'complete' and a POLLPRI signal is sent
-> via poll.
-> 
-> Both requests and request objects are refcounted.
-> 
-> While a request is queued its refcount is incremented (since it
-> is in use by a driver). Once it is completed the refcount is
-> decremented. When the user closes the request file descriptor
-> the refcount is also decremented. Once it reaches 0 all request
-> objects in the request are unbound and put() and the request
-> itself is freed.
+HI Andy,
+   thanks for addressing my comments on v6.
+Some more questions below.
 
-I think this would be also good for kAPI documentation.
-
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Apr 10, 2018 at 11:48:44PM +0800, Andy Yeh wrote:
+> From: Alan Chiang <alanx.chiang@intel.com>
+>
+> DW9807 is a 10 bit DAC from Dongwoon, designed for linear
+> control of voice coil motor.
+>
+> This driver creates a V4L2 subdevice and
+> provides control to set the desired focus.
+>
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
 > ---
->  drivers/media/media-request.c | 284 +++++++++++++++++++++++++++++++++++++++++-
->  include/media/media-request.h | 156 +++++++++++++++++++++++
->  2 files changed, 439 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index ead78613fdbe..dffc290e4ada 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -16,8 +16,290 @@
->  #include <media/media-device.h>
->  #include <media/media-request.h>
->  
-> +static const char * const request_state[] = {
-> +	"idle",
-> +	"queueing",
-> +	"queued",
-> +	"complete",
-> +	"cleaning",
+> since v1:
+> - changed author.
+> since v2:
+> - addressed outstanding comments.
+> - enabled sequential write to update 2 registers in a single transaction.
+> since v3:
+> - addressed comments for v3.
+> - Remove redundant codes and declare some variables as constant variable.
+> - separate DT binding to another patch
+> since v4:
+> - sent patchset included DT binding with cover page
+> since v6:
+> - change the return code of i2c_check
+> - fix long cols exceed 80 chars
+> - remove #define DW9807_NAME since only used once
+>
+>  MAINTAINERS                |   7 +
+>  drivers/media/i2c/Kconfig  |  10 ++
+>  drivers/media/i2c/Makefile |   1 +
+>  drivers/media/i2c/dw9807.c | 335 +++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 353 insertions(+)
+>  create mode 100644 drivers/media/i2c/dw9807.c
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 845fc25..a339bb5 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4385,6 +4385,13 @@ T:	git git://linuxtv.org/media_tree.git
+>  S:	Maintained
+>  F:	drivers/media/i2c/dw9714.c
+>
+> +DONGWOON DW9807 LENS VOICE COIL DRIVER
+> +M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+> +L:	linux-media@vger.kernel.org
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Maintained
+> +F:	drivers/media/i2c/dw9807.c
+> +
+>  DOUBLETALK DRIVER
+>  M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
+>  L:	blinux-list@redhat.com
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index cb5d7ff..fd01842 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -325,6 +325,16 @@ config VIDEO_DW9714
+>  	  capability. This is designed for linear control of
+>  	  voice coil motors, controlled via I2C serial interface.
+>
+> +config VIDEO_DW9807
+> +	tristate "DW9807 lens voice coil support"
+> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+> +	depends on VIDEO_V4L2_SUBDEV_API
+> +	---help---
+
+iirc checkpatch warned me multiple times to prefer 'help' on
+'---help---' for newly introduced symbols. Could you check please
+(maybe with using the --strict option?)
+
+> +	  This is a driver for the DW9807 camera lens voice coil.
+> +	  DW9807 is a 10 bit DAC with 100mA output current sink
+> +	  capability. This is designed for linear control of
+> +	  voice coil motors, controlled via I2C serial interface.
+> +
+>  config VIDEO_SAA7110
+>  	tristate "Philips SAA7110 video decoder"
+>  	depends on VIDEO_V4L2 && I2C
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index 548a9ef..1b62639 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+>  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+>  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
+>  obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
+> +obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
+>  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+>  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+>  obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+> diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
+> new file mode 100644
+> index 0000000..062c30f
+> --- /dev/null
+> +++ b/drivers/media/i2c/dw9807.c
+> @@ -0,0 +1,335 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// Copyright (C) 2018 Intel Corporation
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/delay.h>
+> +#include <linux/i2c.h>
+> +#include <linux/module.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +
+> +#define DW9807_MAX_FOCUS_POS	1023
+> +/*
+> + * This sets the minimum granularity for the focus positions.
+> + * A value of 1 gives maximum accuracy for a desired focus position.
+> + */
+> +#define DW9807_FOCUS_STEPS	1
+> +/*
+> + * This acts as the minimum granularity of lens movement.
+> + * Keep this value power of 2, so the control steps can be
+> + * uniformly adjusted for gradual lens movement, with desired
+> + * number of control steps.
+> + */
+> +#define DW9807_CTRL_STEPS	16
+> +#define DW9807_CTRL_DELAY_US	1000
+> +
+> +#define DW9807_CTL_ADDR		0x02
+> +/*
+> + * DW9807 separates two registers to control the VCM position.
+> + * One for MSB value, another is LSB value.
+> + */
+> +#define DW9807_MSB_ADDR		0x03
+> +#define DW9807_LSB_ADDR		0x04
+> +#define DW9807_STATUS_ADDR	0x05
+> +#define DW9807_MODE_ADDR	0x06
+> +#define DW9807_RESONANCE_ADDR	0x07
+> +
+> +#define MAX_RETRY		10
+> +
+> +struct dw9807_device {
+> +	struct v4l2_ctrl_handler ctrls_vcm;
+> +	struct v4l2_subdev sd;
+> +	u16 current_val;
 > +};
 > +
-> +static const char *
-> +media_request_state_str(enum media_request_state state)
+> +static inline struct dw9807_device *sd_to_dw9807_vcm(
+> +					struct v4l2_subdev *subdev)
 > +{
-> +	if (WARN_ON(state >= ARRAY_SIZE(request_state)))
-> +		return "unknown";
-> +	return request_state[state];
+> +	return container_of(subdev, struct dw9807_device, sd);
 > +}
 > +
-> +static void media_request_clean(struct media_request *req)
+> +static int dw9807_i2c_check(struct i2c_client *client)
 > +{
-> +	struct media_request_object *obj, *obj_safe;
-> +
-> +	WARN_ON(req->state != MEDIA_REQUEST_STATE_CLEANING);
-> +
-> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
-> +		media_request_object_unbind(obj);
-> +		media_request_object_put(obj);
-> +	}
-> +
-> +	req->num_incomplete_objects = 0;
-> +	wake_up_interruptible(&req->poll_wait);
-
-What's the purpose to wake up poll here?
-
-The request must have been in an IDLE state (REINIT) or in CLEANING state
-if it is being released. Neither could have been polled.
-
-> +}
-> +
-> +static void media_request_release(struct kref *kref)
-> +{
-> +	struct media_request *req =
-> +		container_of(kref, struct media_request, kref);
-> +	struct media_device *mdev = req->mdev;
-> +	unsigned long flags;
-> +
-> +	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->state = MEDIA_REQUEST_STATE_CLEANING;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	media_request_clean(req);
-> +
-> +	if (mdev->ops->req_free)
-> +		mdev->ops->req_free(req);
-> +	else
-> +		kfree(req);
-> +}
-> +
-> +void media_request_put(struct media_request *req)
-> +{
-> +	kref_put(&req->kref, media_request_release);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_put);
-> +
-> +void media_request_cancel(struct media_request *req)
-> +{
-> +	struct media_request_object *obj, *obj_safe;
-> +
-> +	if (req->state != MEDIA_REQUEST_STATE_QUEUED)
-> +		return;
-> +
-> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
-> +		if (obj->ops->cancel)
-> +			obj->ops->cancel(obj);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_cancel);
-> +
-> +static int media_request_close(struct inode *inode, struct file *filp)
-> +{
-> +	struct media_request *req = filp->private_data;
-> +
-> +	media_request_put(req);
-
-Newline?
-
-> +	return 0;
-> +}
-> +
-> +static unsigned int media_request_poll(struct file *filp,
-> +				       struct poll_table_struct *wait)
-> +{
-> +	struct media_request *req = filp->private_data;
-> +	unsigned long flags;
-> +	enum media_request_state state;
-> +
-> +	if (!(poll_requested_events(wait) & POLLPRI))
-> +		return 0;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	state = req->state;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	if (state == MEDIA_REQUEST_STATE_COMPLETE)
-> +		return POLLPRI;
-> +	if (state == MEDIA_REQUEST_STATE_IDLE)
-> +		return POLLERR;
-> +
-> +	poll_wait(filp, &req->poll_wait, wait);
-
-Newline.
-
-> +	return 0;
-> +}
-> +
-> +static long media_request_ioctl(struct file *filp, unsigned int cmd,
-> +				unsigned long __arg)
-> +{
-> +	return -ENOIOCTLCMD;
-> +}
-> +
-> +static const struct file_operations request_fops = {
-> +	.owner = THIS_MODULE,
-> +	.poll = media_request_poll,
-> +	.unlocked_ioctl = media_request_ioctl,
-> +	.release = media_request_close,
-> +};
-> +
->  int media_request_alloc(struct media_device *mdev,
->  			struct media_request_alloc *alloc)
->  {
-> -	return -ENOMEM;
-> +	struct media_request *req;
-> +	struct file *filp;
-> +	char comm[TASK_COMM_LEN];
-> +	int fd;
+> +	const char status_addr = DW9807_STATUS_ADDR;
+> +	char status_result;
 > +	int ret;
 > +
-> +	fd = get_unused_fd_flags(O_CLOEXEC);
-> +	if (fd < 0)
-> +		return fd;
-> +
-> +	filp = anon_inode_getfile("request", &request_fops, NULL, O_CLOEXEC);
-> +	if (IS_ERR(filp)) {
-> +		ret = PTR_ERR(filp);
-> +		goto err_put_fd;
+> +	ret = i2c_master_send(client, (const char *)&status_addr,
+> +		sizeof(status_addr));
+
+As reported by checkpatch, please fix alignement to the first open
+brace, and as per Tomasz comment remove the cast
+
+
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
+> +			ret);
+> +		return ret;
 > +	}
 > +
-> +	if (mdev->ops->req_alloc)
-> +		req = mdev->ops->req_alloc(mdev);
-> +	else
-> +		req = kzalloc(sizeof(*req), GFP_KERNEL);
-> +	if (!req) {
-> +		ret = -ENOMEM;
-> +		goto err_fput;
+> +	ret = i2c_master_recv(client, (char *)&status_result,
+> +		sizeof(status_result));
+
+Align the last argument to the first open brace.
+
+	ret = i2c_master_recv(client, (char *)&status_result,
+		              sizeof(status_result));
+
+> +	if (ret != sizeof(status_result)) {
+
+My comment on i2c functions return values applies to i2c_master_recv()
+as well. Please just check for (ret < 0) here
+
+> +		dev_err(&client->dev, "I2C read STATUS value fail ret=%d\n",
+
+The previous errror message has spaces in between 'ret','=' and '%d'.
+Please be consistent.
+
+> +			ret);
+> +		return ret;
 > +	}
 > +
-> +	filp->private_data = req;
-> +	req->mdev = mdev;
-> +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> +	req->num_incomplete_objects = 0;
-> +	kref_init(&req->kref);
-> +	INIT_LIST_HEAD(&req->objects);
-> +	spin_lock_init(&req->lock);
-> +	init_waitqueue_head(&req->poll_wait);
+> +	return status_result;
+> +}
 > +
-> +	alloc->fd = fd;
+> +static int dw9807_set_dac(struct i2c_client *client, u16 data)
+> +{
+> +	const char tx_data[3] = {
+> +		DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xff)
+> +	};
+> +	int ret, retry = 0;
 > +
-> +	get_task_comm(comm, current);
-> +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> +		 comm, fd);
-> +	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
+> +	/*
+> +	 * According to the datasheet, need to check the bus status before we
+> +	 * write VCM position. This ensure that we really write the value
+> +	 * into the register
+> +	 */
+> +	while ((ret = dw9807_i2c_check(client)) != 0) {
+> +		if (ret < 0)
+> +			return ret;
 > +
-> +	fd_install(fd, filp);
+> +		if (MAX_RETRY == ++retry) {
+> +			dev_err(&client->dev,
+> +				"Cannot do the write operation because VCM is busy\n");
+
+Nit: this is over 80 cols, it's fine, but I think you can really
+shorten the error messag without losing context.
+
+> +			return -EIO;
+> +		}
+> +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
+
+mmm, I wonder if a sleep range of 10usecs is really a strict
+requirement. Have a look at Documentation/timers/timers-howto.txt.
+With such a small range you're likely fire some unrequired interrupt.
+
+If I got this right, here you're just polling a register every
+1msec-ish (usleep_range(1000, 1010)). I think you can enlarge the
+range safely (maybe lowering the number of retries if you wish to) and
+give more space to coalesce your wakeup with others.
+
+What is a good range? Good question. How effective is this to have
+your wakeup coalesced with others? I think this greatly depends on the
+system you're running on and its load at this specific time. So I
+would reply to both questions with "not sure", but I let you consider
+if you could enlarge your range to say 1000-1500 usec at least.
+
+
+> +	}
+> +
+> +	/* Write VCM position to registers */
+> +	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
+> +	if (ret != sizeof(tx_data)) {
+
+As per previous comments, check for ret < 0
+
+> +		if (ret < 0) {
+> +			dev_err(&client->dev,
+> +				"I2C write MSB fail ret=%d\n", ret);
+> +			return ret;
+> +		} else {
+
+There cannot be any else case here as i2c_master_send returns < 0  or
+sizeof(tx_data) only.
+
+> +			dev_err(&client->dev, "I2C write MSB fail, transmission size is not equal the size expected\n");
+> +			return -EIO;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct dw9807_device *dev_vcm = container_of(ctrl->handler,
+> +		struct dw9807_device, ctrls_vcm);
+> +
+> +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
+> +		struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
+> +
+> +		dev_vcm->current_val = ctrl->val;
+> +		return dw9807_set_dac(client, ctrl->val);
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
+> +	.s_ctrl = dw9807_set_ctrl,
+> +};
+> +
+> +static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	int rval;
+> +
+> +	rval = pm_runtime_get_sync(sd->dev);
+> +	if (rval < 0) {
+> +		pm_runtime_put_noidle(sd->dev);
+> +		return rval;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	pm_runtime_put(sd->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
+> +	.open = dw9807_open,
+> +	.close = dw9807_close,
+> +};
+> +
+> +static const struct v4l2_subdev_ops dw9807_ops = { };
+> +
+> +static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
+> +{
+> +	v4l2_async_unregister_subdev(&dw9807_dev->sd);
+> +	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
+> +	media_entity_cleanup(&dw9807_dev->sd.entity);
+> +}
+> +
+> +static int dw9807_init_controls(struct dw9807_device *dev_vcm)
+> +{
+> +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
+> +	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
+> +	struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
+> +
+> +	v4l2_ctrl_handler_init(hdl, 1);
+> +
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
+> +			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
+> +
+> +	dev_vcm->sd.ctrl_handler = hdl;
+> +	if (hdl->error) {
+> +		dev_err(&client->dev, "%s fail error: 0x%x\n",
+> +			__func__, hdl->error);
+> +		return hdl->error;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int dw9807_probe(struct i2c_client *client)
+> +{
+> +	struct dw9807_device *dw9807_dev;
+> +	int rval;
+> +
+> +	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
+> +				  GFP_KERNEL);
+> +	if (!dw9807_dev)
+> +		return -ENOMEM;
+> +
+> +	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
+> +	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
+> +
+> +	rval = dw9807_init_controls(dw9807_dev);
+> +	if (rval)
+> +		goto err_cleanup;
+> +
+> +	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
+> +	if (rval < 0)
+> +		goto err_cleanup;
+> +
+> +	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
+
+Not super sure here, Sakari may confirm or not, but you don't have
+pads, you don't have pad operations, why are initializing entity pads
+and depend on MEDIA_CONTROLLER in Kconfig? I -think- you can remove
+these lines above here.
+
+> +
+> +	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
+> +	if (rval < 0)
+> +		goto err_cleanup;
+> +
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_idle(&client->dev);
 > +
 > +	return 0;
 > +
-> +err_fput:
-> +	fput(filp);
+> +err_cleanup:
+> +	dw9807_subdev_cleanup(dw9807_dev);
 > +
-> +err_put_fd:
-> +	put_unused_fd(fd);
-> +
-> +	return ret;
+> +	return rval;
 > +}
 > +
-> +static void media_request_object_release(struct kref *kref)
+> +static int dw9807_remove(struct i2c_client *client)
 > +{
-> +	struct media_request_object *obj =
-> +		container_of(kref, struct media_request_object, kref);
-> +	struct media_request *req = obj->req;
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
 > +
-> +	if (req)
-> +		media_request_object_unbind(obj);
-> +	obj->ops->release(obj);
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +
+> +	dw9807_subdev_cleanup(dw9807_dev);
+> +
+> +	return 0;
 > +}
 > +
-> +void media_request_object_put(struct media_request_object *obj)
+> +/*
+> + * This function sets the vcm position, so it consumes least current
+> + * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
+> + * to make the movements smoothly.
+> + */
+> +static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
 > +{
-> +	kref_put(&obj->kref, media_request_object_release);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_object_put);
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
+> +	const char tx_data[2] = { DW9807_CTL_ADDR, 0x01 };
+> +	int ret, val;
 > +
-> +void media_request_object_init(struct media_request_object *obj)
-> +{
-> +	obj->ops = NULL;
-> +	obj->req = NULL;
-> +	obj->priv = NULL;
-> +	obj->completed = false;
-> +	INIT_LIST_HEAD(&obj->list);
-> +	kref_init(&obj->kref);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_object_init);
-> +
-> +void media_request_object_bind(struct media_request *req,
-> +			       const struct media_request_object_ops *ops,
-> +			       void *priv,
-> +			       struct media_request_object *obj)
-> +{
-> +	unsigned long flags;
-> +
-> +	if (WARN_ON(!ops->release || !ops->cancel))
-> +		return;
-> +
-> +	obj->req = req;
-> +	obj->ops = ops;
-> +	obj->priv = priv;
+> +	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
+> +	     val >= 0; val -= DW9807_CTRL_STEPS) {
+> +		ret = dw9807_set_dac(client, val);
+> +		if (ret)
+> +			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
+> +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
 
-What would be the purpose of setting ops and priv fields here rather than
-in object init above? They're not supposed to change during a lifetime of
-an object, are they?
+ditto
 
-The fact that releasing the object is done through the release callback in
-ops suggests that setting ops (as well as priv) belongs to object init.
-
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_IDLE))
-> +		goto unlock;
-> +	list_add_tail(&obj->list, &req->objects);
-> +	req->num_incomplete_objects++;
-> +unlock:
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_object_bind);
-> +
-> +void media_request_object_unbind(struct media_request_object *obj)
-> +{
-> +	struct media_request *req = obj->req;
-> +	unsigned long flags;
-> +	bool completed = false;
-> +
-> +	if (!req)
-> +		return;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	list_del(&obj->list);
-> +	obj->req = NULL;
-> +
-> +	if (req->state == MEDIA_REQUEST_STATE_COMPLETE ||
-> +	    req->state == MEDIA_REQUEST_STATE_CLEANING)
-> +		goto unlock;
-> +
-> +	if (WARN_ON(req->state == MEDIA_REQUEST_STATE_QUEUEING))
-> +		goto unlock;
-> +
-> +	if (WARN_ON(!req->num_incomplete_objects))
-> +		goto unlock;
-> +
-> +	req->num_incomplete_objects--;
-> +	if (req->state == MEDIA_REQUEST_STATE_QUEUED &&
-> +	    !req->num_incomplete_objects) {
-> +		req->state = MEDIA_REQUEST_STATE_COMPLETE;
-> +		completed = true;
-> +		wake_up_interruptible(&req->poll_wait);
 > +	}
+> +
+> +	/* Power down */
+> +	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
+> +
 
-Newline?
+ditch this empty line please
 
-> +unlock:
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +	if (obj->ops->unbind)
-> +		obj->ops->unbind(obj);
-> +	if (completed)
-> +		media_request_put(req);
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_object_unbind);
-> +
-> +void media_request_object_complete(struct media_request_object *obj)
-> +{
-> +	struct media_request *req = obj->req;
-> +	unsigned long flags;
-> +	bool completed = false;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (obj->completed)
-> +		goto unlock;
-> +	obj->completed = true;
-> +	if (WARN_ON(!req->num_incomplete_objects) ||
-> +	    WARN_ON(req->state != MEDIA_REQUEST_STATE_QUEUED))
-> +		goto unlock;
-> +
-> +	if (!--req->num_incomplete_objects) {
-> +		req->state = MEDIA_REQUEST_STATE_COMPLETE;
-> +		wake_up_interruptible(&req->poll_wait);
-> +		completed = true;
+> +	if (ret != sizeof(tx_data)) {
+
+ditto, check for ret < 0
+
+> +		dev_err(&client->dev, "I2C write CTL fail\n");
+> +		return -EIO;
+
+consider returning ret to propagate i2c error
+
 > +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * This function sets the vcm position to the value set by the user
+> + * through v4l2_ctrl_ops s_ctrl handler
+> + * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
+> + * to make the movements smoothly.
+> + */
+> +static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
+> +	const char tx_data[2] = { DW9807_CTL_ADDR, 0x00 };
+> +	int ret, val;
+> +
+> +	/* Power on */
+> +	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
+> +	if (ret != sizeof(tx_data)) {
 
-Newline.
+ditto, check for ret < 0
 
-> +unlock:
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +	if (completed)
-> +		media_request_put(req);
->  }
-> +EXPORT_SYMBOL_GPL(media_request_object_complete);
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> index dae3eccd9aa7..082c3cae04ac 100644
-> --- a/include/media/media-request.h
-> +++ b/include/media/media-request.h
-> @@ -16,7 +16,163 @@
->  
->  #include <media/media-device.h>
->  
-> +enum media_request_state {
-> +	MEDIA_REQUEST_STATE_IDLE,
-> +	MEDIA_REQUEST_STATE_QUEUEING,
-> +	MEDIA_REQUEST_STATE_QUEUED,
-> +	MEDIA_REQUEST_STATE_COMPLETE,
-> +	MEDIA_REQUEST_STATE_CLEANING,
+> +		dev_err(&client->dev, "I2C write CTL fail\n");
+> +		return -EIO;
+
+consider returning ret to propagate i2c error
+
+
+> +	}
+> +
+> +	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
+> +	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
+> +	     val += DW9807_CTRL_STEPS) {
+> +		ret = dw9807_set_dac(client, val);
+> +		if (ret)
+> +			dev_err_ratelimited(dev, "%s I2C failure: %d",
+> +						__func__, ret);
+> +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
+
+ditto
+
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id dw9807_of_table[] = {
+> +	{ .compatible = "dongwoon,dw9807" },
+> +	{ { 0 } }
+> +};
+> +MODULE_DEVICE_TABLE(of, dw9807_of_table);
+> +
+> +static const struct dev_pm_ops dw9807_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
+> +	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
 > +};
 > +
-> +struct media_request_object;
-> +
-> +/**
-> + * struct media_request - Media device request
-> + * @mdev: Media device this request belongs to
-> + * @kref: Reference count
-> + * @debug_prefix: Prefix for debug messages (process name:fd)
-> + * @state: The state of the request
-> + * @objects: List of @struct media_request_object request objects
-> + * @num_objects: The number objects in the request
-> + * @num_completed_objects: The number of completed objects in the request
-> + * @poll_wait: Wait queue for poll
-> + * @lock: Serializes access to this struct
-> + */
-> +struct media_request {
-> +	struct media_device *mdev;
-> +	struct kref kref;
-> +	char debug_str[TASK_COMM_LEN + 11];
-> +	enum media_request_state state;
-> +	struct list_head objects;
-> +	unsigned int num_incomplete_objects;
-> +	struct wait_queue_head poll_wait;
-> +	spinlock_t lock;
+> +static struct i2c_driver dw9807_i2c_driver = {
+> +	.driver = {
+> +		.name = "dw9807",
+> +		.pm = &dw9807_pm_ops,
+> +		.of_match_table = dw9807_of_table,
+> +	},
+> +	.probe_new = dw9807_probe,
+> +	.remove = dw9807_remove,
 > +};
 > +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +module_i2c_driver(dw9807_i2c_driver);
 > +
-> +static inline void media_request_get(struct media_request *req)
-> +{
-> +	kref_get(&req->kref);
-> +}
-> +
-> +void media_request_put(struct media_request *req);
-> +void media_request_cancel(struct media_request *req);
-> +
->  int media_request_alloc(struct media_device *mdev,
->  			struct media_request_alloc *alloc);
-> +#else
-> +static inline void media_request_get(struct media_request *req)
-> +{
-> +}
-> +
-> +static inline void media_request_put(struct media_request *req)
-> +{
-> +}
-> +
-> +static inline void media_request_cancel(struct media_request *req)
-> +{
-> +}
-> +
-> +#endif
-> +
+> +MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
+> +MODULE_DESCRIPTION("DW9807 VCM driver");
+> +MODULE_LICENSE("GPL v2");
+> --
+> 2.7.4
+>
 
-Some documentation would be nice.
+--T3X/gqwmxfK0WLE8
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> +struct media_request_object_ops {
-> +	int (*prepare)(struct media_request_object *object);
-> +	void (*unprepare)(struct media_request_object *object);
-> +	void (*queue)(struct media_request_object *object);
-> +	void (*unbind)(struct media_request_object *object);
-> +	void (*cancel)(struct media_request_object *object);
-> +	void (*release)(struct media_request_object *object);
-> +};
-> +
-> +/**
-> + * struct media_request_object - An opaque object that belongs to a media
-> + *				 request
-> + *
-> + * @priv: object's priv pointer
-> + * @list: List entry of the object for @struct media_request
-> + * @kref: Reference count of the object, acquire before releasing req->lock
-> + *
-> + * An object related to the request. This struct is embedded in the
-> + * larger object data.
-> + */
-> +struct media_request_object {
-> +	const struct media_request_object_ops *ops;
-> +	void *priv;
-> +	struct media_request *req;
-> +	struct list_head list;
-> +	struct kref kref;
-> +	bool completed;
-> +};
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +static inline void media_request_object_get(struct media_request_object *obj)
-> +{
-> +	kref_get(&obj->kref);
-> +}
-> +
-> +/**
-> + * media_request_object_put - Put a media request object
-> + *
-> + * @obj: The object
-> + *
-> + * Put a media request object. Once all references are gone, the
-> + * object's memory is released.
-> + */
-> +void media_request_object_put(struct media_request_object *obj);
-> +
-> +/**
-> + * media_request_object_init - Initialise a media request object
-> + *
-> + * Initialise a media request object. The object will be released using the
-> + * release callback of the ops once it has no references (this function
-> + * initialises references to one).
-> + */
-> +void media_request_object_init(struct media_request_object *obj);
-> +
-> +/**
-> + * media_request_object_bind - Bind a media request object to a request
-> + */
-> +void media_request_object_bind(struct media_request *req,
-> +			       const struct media_request_object_ops *ops,
-> +			       void *priv,
-> +			       struct media_request_object *obj);
-> +
-> +void media_request_object_unbind(struct media_request_object *obj);
-> +
-> +/**
-> + * media_request_object_complete - Mark the media request object as complete
-> + */
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-I think we'll need to document bind, unbind and complete very well; exactly
-when can they be used and for what purpose.
+iQIcBAEBAgAGBQJazx9cAAoJEHI0Bo8WoVY89fkP+gNH1QHXWTb+zgpKL0KvVNdg
+6V2W1H0sS37VrEb6g0LD86onf4qtx8mpfQ/xlV83gv0llWZGO37VJ319PEdqyoA9
+65uR7ykBzPkhq+mlO8v0pFZqS/qVoJZMMODD5tRMHpVkmOSxb3Zn9u9pPPGhxoGV
+7GDbTQRhrPIEB729ndnyCG1aGP9nSy+2quaynqMuH59fGDWiHehwAnh6JdH0akjs
++5X/6LqXI2YNMVolqlBtHPmanvqWmCpGjrz+cE9YX+HbMqaL8M6YmjX0ZX2DEXZv
+W6gOnrnya+9YyRvXSiAh40iGTU0zYs8mXB+v1p2zZSQNXE26gget11Uf+/E5t6bp
+TS+WbCaOhKfNGUMX31214NH0kwtr3pd9M3A2i8bN4KbHej/IcbnGvVh2LjVvg1vH
+ZpM90lCaqfXe91RZ1Ei+Keidnt9rOL+bRb68iEtVjRq8foxd8a9+j0BoYg114CC+
+OAFXwcbrZgn67RzrxgFdSeVc84qkWX90zehHG3OclT1x8pU77DzI9/EvkJUORNcn
+zhYSd5RLEPwjor33+08bJYDpgurh/utXR3+HSsMhtibFDQCZAAOfRyfuN3EySqAB
+wLHRVvrFkcWqakJEDnD0OLLrZmHjKlkvsPE4MTT4Z9JR78LJFmKjr8+GjE8ilRgQ
+AOzNeiZC88OmHdJtuAyx
+=t/L9
+-----END PGP SIGNATURE-----
 
-> +void media_request_object_complete(struct media_request_object *obj);
-> +#else
-> +static inline void media_request_object_get(struct media_request_object *obj)
-> +{
-> +}
-> +
-> +static inline void media_request_object_put(struct media_request_object *obj)
-> +{
-> +}
-> +
-> +static inline void media_request_object_init(struct media_request_object *obj)
-> +{
-> +	obj->ops = NULL;
-> +	obj->req = NULL;
-> +}
-> +
-> +static inline void media_request_object_bind(struct media_request *req,
-> +			       const struct media_request_object_ops *ops,
-> +			       void *priv,
-> +			       struct media_request_object *obj)
-> +{
-> +}
-> +
-> +static inline void media_request_object_unbind(struct media_request_object *obj)
-> +{
-> +}
-> +
-> +static inline void media_request_object_complete(struct media_request_object *obj)
-> +{
-> +}
-> +#endif
->  
->  #endif
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+--T3X/gqwmxfK0WLE8--
