@@ -1,117 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [31.36.214.240] ([31.36.214.240]:39098 "EHLO
-        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1752907AbeDHVVI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2018 17:21:08 -0400
-From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-Subject: [PATCH v2 2/6] usbtv: Add SECAM support
-Date: Sun,  8 Apr 2018 23:11:57 +0200
-Message-Id: <20180408211201.27452-3-bonstra@bonstra.fr.eu.org>
-In-Reply-To: <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
-References: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
- <20180408211201.27452-1-bonstra@bonstra.fr.eu.org>
+Received: from osg.samsung.com ([64.30.133.232]:57740 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753210AbeDLPYZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 11:24:25 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 11/17] media: atomisp: compat32: use get_user() before referencing user data
+Date: Thu, 12 Apr 2018 11:24:03 -0400
+Message-Id: <9ad203c73bd9664cb5fa11a5cc49a435b2d47dfe.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the SECAM norm, using the "AVSECAM" decoder configuration
-sequence found in Windows driver's .INF file.
+The logic at get_atomisp_parameters32() is broken, as pointed by
+smatch:
 
-For reference, the "AVSECAM" sequence in the .INF file is:
-0x04,0x73,0xDC,0x72,0xA2,0x90,0x35,0x01,0x30,0x04,0x08,0x2D,0x28,0x08,
-0x02,0x69,0x16,0x35,0x21,0x16,0x36
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:737:21: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:744:60: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:763:21: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:770:60: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:788:21: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:795:60: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:812:21: warning: dereference of noderef expression
+	drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c:819:60: warning: dereference of noderef expression
 
-Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+It tries to access userspace data directly, without calling
+get_user(). That should generate OOPS. Thankfully, the right
+logic is already there (although commented out).
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/usbtv/usbtv-video.c | 38 ++++++++++++++++++++++++++-
- drivers/media/usb/usbtv/usbtv.h       |  2 +-
- 2 files changed, 38 insertions(+), 2 deletions(-)
+ .../atomisp/pci/atomisp2/atomisp_compat_ioctl32.c  | 38 ----------------------
+ 1 file changed, 38 deletions(-)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 97f9790954f9..6b0a10173388 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -57,6 +57,11 @@ static struct usbtv_norm_params norm_params[] = {
- 		.norm = V4L2_STD_PAL,
- 		.cap_width = 720,
- 		.cap_height = 576,
-+	},
-+	{
-+		.norm = V4L2_STD_SECAM,
-+		.cap_width = 720,
-+		.cap_height = 576,
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c
+index 44c21813a06e..d7c0ef1f9584 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_ioctl32.c
+@@ -691,10 +691,8 @@ static int get_atomisp_parameters32(struct atomisp_parameters *kp,
+ 				sizeof(compat_uptr_t);
+ 	unsigned int size, offset = 0;
+ 	void  __user *user_ptr;
+-#ifdef ISP2401
+ 	unsigned int stp, mtp, dcp, dscp = 0;
+ 
+-#endif
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct atomisp_parameters32)))
+ 			return -EFAULT;
+ 
+@@ -707,15 +705,11 @@ static int get_atomisp_parameters32(struct atomisp_parameters *kp,
+ 		n--;
  	}
- };
+ 	if (get_user(kp->isp_config_id, &up->isp_config_id) ||
+-#ifndef ISP2401
+-	    get_user(kp->per_frame_setting, &up->per_frame_setting))
+-#else
+ 	    get_user(kp->per_frame_setting, &up->per_frame_setting) ||
+ 	    get_user(stp, &up->shading_table) ||
+ 	    get_user(mtp, &up->morph_table) ||
+ 	    get_user(dcp, &up->dvs2_coefs) ||
+ 	    get_user(dscp, &up->dvs_6axis_config))
+-#endif
+ 		return -EFAULT;
  
-@@ -187,6 +192,34 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 		{ USBTV_BASE + 0x024f, 0x0002 },
- 	};
+ 	{
+@@ -733,18 +727,10 @@ static int get_atomisp_parameters32(struct atomisp_parameters *kp,
+ 		user_ptr = compat_alloc_user_space(size);
  
-+	static const u16 secam[][2] = {
-+		/* "AVSECAM" tuning sequence from .INF file */
-+		{ USBTV_BASE + 0x0003, 0x0004 },
-+		{ USBTV_BASE + 0x001a, 0x0073 },
-+		{ USBTV_BASE + 0x0100, 0x00dc },
-+		{ USBTV_BASE + 0x010e, 0x0072 },
-+		{ USBTV_BASE + 0x010f, 0x00a2 },
-+		{ USBTV_BASE + 0x0112, 0x0090 },
-+		{ USBTV_BASE + 0x0115, 0x0035 },
-+		{ USBTV_BASE + 0x0117, 0x0001 },
-+		{ USBTV_BASE + 0x0118, 0x0030 },
-+		{ USBTV_BASE + 0x012d, 0x0004 },
-+		{ USBTV_BASE + 0x012f, 0x0008 },
-+		{ USBTV_BASE + 0x0220, 0x002d },
-+		{ USBTV_BASE + 0x0225, 0x0028 },
-+		{ USBTV_BASE + 0x024e, 0x0008 },
-+		{ USBTV_BASE + 0x024f, 0x0002 },
-+		{ USBTV_BASE + 0x0254, 0x0069 },
-+		{ USBTV_BASE + 0x025a, 0x0016 },
-+		{ USBTV_BASE + 0x025b, 0x0035 },
-+		{ USBTV_BASE + 0x0263, 0x0021 },
-+		{ USBTV_BASE + 0x0266, 0x0016 },
-+		{ USBTV_BASE + 0x0267, 0x0036 },
-+		/* Epilog */
-+		{ USBTV_BASE + 0x024e, 0x0002 },
-+		{ USBTV_BASE + 0x024f, 0x0002 },
-+	};
-+
- 	ret = usbtv_configure_for_norm(usbtv, norm);
+ 		/* handle shading table */
+-#ifndef ISP2401
+-		if (up->shading_table != 0) {
+-#else
+ 		if (stp != 0) {
+-#endif
+ 			if (get_atomisp_shading_table32(&karg.shading_table,
+ 				(struct atomisp_shading_table32 __user *)
+-#ifndef ISP2401
+-						(uintptr_t)up->shading_table))
+-#else
+ 						(uintptr_t)stp))
+-#endif
+ 				return -EFAULT;
  
- 	if (!ret) {
-@@ -194,6 +227,8 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 			ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
- 		else if (norm & V4L2_STD_PAL)
- 			ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
-+		else if (norm & V4L2_STD_SECAM)
-+			ret = usbtv_set_regs(usbtv, secam, ARRAY_SIZE(secam));
- 	}
+ 			kp->shading_table = user_ptr + offset;
+@@ -759,18 +745,10 @@ static int get_atomisp_parameters32(struct atomisp_parameters *kp,
+ 		}
  
- 	return ret;
-@@ -605,7 +640,8 @@ static int usbtv_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	int ret = -EINVAL;
- 	struct usbtv *usbtv = video_drvdata(file);
+ 		/* handle morph table */
+-#ifndef ISP2401
+-		if (up->morph_table != 0) {
+-#else
+ 		if (mtp != 0) {
+-#endif
+ 			if (get_atomisp_morph_table32(&karg.morph_table,
+ 					(struct atomisp_morph_table32 __user *)
+-#ifndef ISP2401
+-						(uintptr_t)up->morph_table))
+-#else
+ 						(uintptr_t)mtp))
+-#endif
+ 				return -EFAULT;
  
--	if ((norm & V4L2_STD_525_60) || (norm & V4L2_STD_PAL))
-+	if ((norm & V4L2_STD_525_60) || (norm & V4L2_STD_PAL) ||
-+			(norm & V4L2_STD_SECAM))
- 		ret = usbtv_select_norm(usbtv, norm);
+ 			kp->morph_table = user_ptr + offset;
+@@ -784,18 +762,10 @@ static int get_atomisp_parameters32(struct atomisp_parameters *kp,
+ 		}
  
- 	return ret;
-diff --git a/drivers/media/usb/usbtv/usbtv.h b/drivers/media/usb/usbtv/usbtv.h
-index 0231e449877e..77a368e90fd0 100644
---- a/drivers/media/usb/usbtv/usbtv.h
-+++ b/drivers/media/usb/usbtv/usbtv.h
-@@ -68,7 +68,7 @@
- #define USBTV_ODD(chunk)	((be32_to_cpu(chunk[0]) & 0x0000f000) >> 15)
- #define USBTV_CHUNK_NO(chunk)	(be32_to_cpu(chunk[0]) & 0x00000fff)
+ 		/* handle dvs2 coefficients */
+-#ifndef ISP2401
+-		if (up->dvs2_coefs != 0) {
+-#else
+ 		if (dcp != 0) {
+-#endif
+ 			if (get_atomisp_dis_coefficients32(&karg.dvs2_coefs,
+ 				(struct atomisp_dis_coefficients32 __user *)
+-#ifndef ISP2401
+-						(uintptr_t)up->dvs2_coefs))
+-#else
+ 						(uintptr_t)dcp))
+-#endif
+ 				return -EFAULT;
  
--#define USBTV_TV_STD  (V4L2_STD_525_60 | V4L2_STD_PAL)
-+#define USBTV_TV_STD  (V4L2_STD_525_60 | V4L2_STD_PAL | V4L2_STD_SECAM)
+ 			kp->dvs2_coefs = user_ptr + offset;
+@@ -808,18 +778,10 @@ static int get_atomisp_parameters32(struct atomisp_parameters *kp,
+ 				return -EFAULT;
+ 		}
+ 		/* handle dvs 6axis configuration */
+-#ifndef ISP2401
+-		if (up->dvs_6axis_config != 0) {
+-#else
+ 		if (dscp != 0) {
+-#endif
+ 			if (get_atomisp_dvs_6axis_config32(&karg.dvs_6axis_config,
+ 				(struct atomisp_dvs_6axis_config32 __user *)
+-#ifndef ISP2401
+-						(uintptr_t)up->dvs_6axis_config))
+-#else
+ 						(uintptr_t)dscp))
+-#endif
+ 				return -EFAULT;
  
- /* parameters for supported TV norms */
- struct usbtv_norm_params {
+ 			kp->dvs_6axis_config = user_ptr + offset;
 -- 
-2.17.0
+2.14.3
