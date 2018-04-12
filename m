@@ -1,63 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([46.23.86.59]:33596 "EHLO mail.bugwerft.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754968AbeDTO3p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 10:29:45 -0400
-Subject: Re: [PATCH 2/3] media: ov5640: add PIXEL_RATE and LINK_FREQ controls
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
-        mchehab@kernel.org
-References: <20180420094419.11267-1-daniel@zonque.org>
- <20180420094419.11267-2-daniel@zonque.org>
- <20180420141528.ethp34p6czomokpi@flea>
-From: Daniel Mack <daniel@zonque.org>
-Message-ID: <5d51bdb7-936a-3a6c-bc6d-168cd5221e4d@zonque.org>
-Date: Fri, 20 Apr 2018 16:29:42 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180420141528.ethp34p6czomokpi@flea>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:40083 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752866AbeDLQvf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 12:51:35 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 12/13] imx274: add helper function to fill a reg_8 table chunk
+Date: Thu, 12 Apr 2018 18:51:17 +0200
+Message-Id: <1523551878-15754-13-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
+References: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Tables of struct reg_8 are used to simplify multi-byte register
+assignment. However filling these snippets with values computed at
+runtime is currently implemented by very similar functions doing the
+needed shift & mask manipulation.
 
-On Friday, April 20, 2018 04:15 PM, Maxime Ripard wrote:
-> On Fri, Apr 20, 2018 at 11:44:18AM +0200, Daniel Mack wrote:
+Replace all those functions with a unique helper function to fill
+reg_8 tables in a simple and clean way.
 
->>  struct ov5640_ctrls {
->>  	struct v4l2_ctrl_handler handler;
->> +	struct {
->> +		struct v4l2_ctrl *link_freq;
->> +		struct v4l2_ctrl *pixel_rate;
->> +	};
->>  	struct {
->>  		struct v4l2_ctrl *auto_exp;
->>  		struct v4l2_ctrl *exposure;
->> @@ -732,6 +752,8 @@ static const struct ov5640_mode_info ov5640_mode_init_data = {
->>  	.dn_mode	= SUBSAMPLING,
->>  	.width		= 640,
->>  	.height		= 480,
->> +	.pixel_rate	= 27766666,
->> +	.link_freq_idx	= OV5640_LINK_FREQ_111,
-> 
-> I'm not sure where this is coming from, but on a parallel sensor I
-> have a quite different pixel rate.
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+---
+ drivers/media/i2c/imx274.c | 90 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 55 insertions(+), 35 deletions(-)
 
-Ah, interesting. What exactly do you mean by 'parallel'? What kind of
-module is that, and what are your pixel rates?
-
-> I have a serie ongoing that tries to deal with this, hopefully in
-> order to get rid of all the clock setup done in the initialiasation
-> array.
-> 
-> See https://patchwork.linuxtv.org/patch/48710/ for the patch and
-> https://www.spinics.net/lists/linux-media/msg132201.html for a
-> discussion on what the clock tree might look like on a MIPI-CSI bus.
-
-Okay, nice. Even better if this patch isn't needed in the end.
-
-
-Thanks!
-Daniel
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index ebe37a087a02..0b3183afdd7b 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -597,6 +597,58 @@ static inline struct stimx274 *to_imx274(struct v4l2_subdev *sd)
+ }
+ 
+ /*
++ * Fill consecutive reg_8 items in order to set a multibyte register.
++ *
++ * The sensor has many 2-bytes registers and a 3-byte register. This
++ * simplifies code to set them by filling consecutive entries of a
++ * struct reg_8 table with the data to set a register.
++ *
++ * The number of table entries that is filled is the minimum needed
++ * for the given number of bits (i.e. nbits / 8, rounded up). If nbits
++ * is not a multiple of 8, extra bits in the most significant byte are
++ * zeroed.
++ *
++ * Example:
++ *   Calling prepare_reg(&regs[10], 0x3000, 0xcafe, 12) will set:
++ *   regs[10] = { .addr = 0x3000, .val = 0xfe }
++ *   regs[11] = { .addr = 0x3001, .val = 0x0a }
++ *
++ * @table_base: Pointer to the first reg_8 struct to be filled.  The
++ *              following entries will also be set, make sure they are
++ *              properly allocated!
++ * @addr_lsb: Address of the LSB register.  Other registers must be
++ *             consecutive, least-to-most significant.
++ * @value: Value to be written to the register.
++ * @nbits: Number of bits to write (range: [1..24])
++ */
++static void prepare_reg(struct reg_8 *table_base,
++			u16 addr_lsb,
++			u32 value,
++			size_t nbits)
++{
++	struct reg_8 *cmd = table_base;
++	u16 addr = addr_lsb;
++	size_t bits; /* how many bits at this round */
++
++	WARN_ON(nbits > 24);
++
++	if (nbits > 24)
++		nbits = 24;
++
++	while (nbits > 0) {
++		bits = min_t(size_t, 8, nbits);
++
++		cmd->addr = addr;
++		cmd->val = value & ((1 << bits) - 1);
++
++		nbits -= bits;
++		value >>= 8;
++		addr++;
++		cmd++;
++	}
++}
++
++/*
+  * Writing a register table
+  *
+  * @priv: Pointer to device
+@@ -1163,15 +1215,6 @@ static int imx274_set_digital_gain(struct stimx274 *priv, u32 dgain)
+ 				reg_val & IMX274_MASK_LSB_4_BITS);
+ }
+ 
+-static inline void imx274_calculate_gain_regs(struct reg_8 regs[2], u16 gain)
+-{
+-	regs->addr = IMX274_ANALOG_GAIN_ADDR_MSB;
+-	regs->val = (gain >> IMX274_SHIFT_8_BITS) & IMX274_MASK_LSB_3_BITS;
+-
+-	(regs + 1)->addr = IMX274_ANALOG_GAIN_ADDR_LSB;
+-	(regs + 1)->val = (gain) & IMX274_MASK_LSB_8_BITS;
+-}
+-
+ /*
+  * imx274_set_gain - Function called when setting gain
+  * @priv: Pointer to device structure
+@@ -1229,7 +1272,7 @@ static int imx274_set_gain(struct stimx274 *priv, struct v4l2_ctrl *ctrl)
+ 	if (gain_reg > IMX274_GAIN_REG_MAX)
+ 		gain_reg = IMX274_GAIN_REG_MAX;
+ 
+-	imx274_calculate_gain_regs(reg_list, (u16)gain_reg);
++	prepare_reg(reg_list, IMX274_ANALOG_GAIN_ADDR_LSB, gain_reg, 11);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
+ 		err = imx274_write_reg(priv, reg_list[i].addr,
+@@ -1258,16 +1301,6 @@ static int imx274_set_gain(struct stimx274 *priv, struct v4l2_ctrl *ctrl)
+ 	return err;
+ }
+ 
+-static inline void imx274_calculate_coarse_time_regs(struct reg_8 regs[2],
+-						     u32 coarse_time)
+-{
+-	regs->addr = IMX274_SHR_REG_MSB;
+-	regs->val = (coarse_time >> IMX274_SHIFT_8_BITS)
+-			& IMX274_MASK_LSB_8_BITS;
+-	(regs + 1)->addr = IMX274_SHR_REG_LSB;
+-	(regs + 1)->val = (coarse_time) & IMX274_MASK_LSB_8_BITS;
+-}
+-
+ /*
+  * imx274_set_coarse_time - Function called when setting SHR value
+  * @priv: Pointer to device structure
+@@ -1292,7 +1325,7 @@ static int imx274_set_coarse_time(struct stimx274 *priv, u32 *val)
+ 		goto fail;
+ 
+ 	/* prepare SHR registers */
+-	imx274_calculate_coarse_time_regs(reg_list, coarse_time);
++	prepare_reg(reg_list, IMX274_SHR_REG_LSB, coarse_time, 16);
+ 
+ 	/* write to SHR registers */
+ 	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
+@@ -1429,19 +1462,6 @@ static int imx274_set_test_pattern(struct stimx274 *priv, int val)
+ 	return err;
+ }
+ 
+-static inline void imx274_calculate_frame_length_regs(struct reg_8 regs[3],
+-						      u32 frame_length)
+-{
+-	regs->addr = IMX274_VMAX_REG_1;
+-	regs->val = (frame_length >> IMX274_SHIFT_16_BITS)
+-			& IMX274_MASK_LSB_4_BITS;
+-	(regs + 1)->addr = IMX274_VMAX_REG_2;
+-	(regs + 1)->val = (frame_length >> IMX274_SHIFT_8_BITS)
+-			& IMX274_MASK_LSB_8_BITS;
+-	(regs + 2)->addr = IMX274_VMAX_REG_3;
+-	(regs + 2)->val = (frame_length) & IMX274_MASK_LSB_8_BITS;
+-}
+-
+ /*
+  * imx274_set_frame_length - Function called when setting frame length
+  * @priv: Pointer to device structure
+@@ -1463,7 +1483,7 @@ static int imx274_set_frame_length(struct stimx274 *priv, u32 val)
+ 
+ 	frame_length = (u32)val;
+ 
+-	imx274_calculate_frame_length_regs(reg_list, frame_length);
++	prepare_reg(reg_list, IMX274_VMAX_REG_3, frame_length, 20);
+ 	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
+ 		err = imx274_write_reg(priv, reg_list[i].addr,
+ 				       reg_list[i].val);
+-- 
+2.7.4
