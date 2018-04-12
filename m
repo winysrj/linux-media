@@ -1,51 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:51540 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752925AbeDJOWS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 10:22:18 -0400
-Date: Tue, 10 Apr 2018 16:22:12 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: Daniel Stone <daniel@fooishbar.org>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        David Airlie <airlied@linux.ie>, qemu-devel@nongnu.org,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [RfC PATCH] Add udmabuf misc device
-Message-ID: <20180410142212.f3mudidizexxvnys@sirius.home.kraxel.org>
-References: <20180313154826.20436-1-kraxel@redhat.com>
- <20180313161035.GL4788@phenom.ffwll.local>
- <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
- <CAPj87rPKtuQ4SZePYDUesWY9VSSGR=1p-LO=yByY_6Q8=BfoyA@mail.gmail.com>
- <20180406105422.6tewkkciwerud3tm@sirius.home.kraxel.org>
- <20180409080051.GD31310@phenom.ffwll.local>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57368 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752396AbeDLNfx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 09:35:53 -0400
+Date: Thu, 12 Apr 2018 16:35:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: Re: [RFCv11 PATCH 10/29] v4l2-ctrls: v4l2_ctrl_add_handler: add
+ from_other_dev
+Message-ID: <20180412133551.cohylcdimkrhuhrm@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-11-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180409080051.GD31310@phenom.ffwll.local>
+In-Reply-To: <20180409142026.19369-11-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi,
+Hi Hans,
 
-> Generally we try to cache mappings as much as possible. And wrt finding a
-> slot: Create a sufficiently sized BAR on the virgl device, just for that?
+I don't really have an opinion on the patch yet; a few trivial comments
+below.
 
-Well.  virtio has no concept of "bars" ...
+On Mon, Apr 09, 2018 at 04:20:07PM +0200, Hans Verkuil wrote:
+...
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 5b445b5654f7..f8faa54b5e7e 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -247,6 +247,8 @@ struct v4l2_ctrl {
+>   * @ctrl:	The actual control information.
+>   * @helper:	Pointer to helper struct. Used internally in
+>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+> + * @from_other_dev: If true, then @ctrl was defined in another
+> + *		device then the &struct v4l2_ctrl_handler.
 
-The most common virtio transport layer happens to be pci, which actually
-has bars.  But we also have virtio-mmio (largely unused since arm got
-pci) and virtio-ccw (used on s390x).
+s/then/than/
 
-In any case it would be a layering violation.
+>   *
+>   * Each control handler has a list of these refs. The list_head is used to
+>   * keep a sorted-by-control-ID list of all controls, while the next pointer
+> @@ -257,6 +259,7 @@ struct v4l2_ctrl_ref {
+>  	struct v4l2_ctrl_ref *next;
+>  	struct v4l2_ctrl *ctrl;
+>  	struct v4l2_ctrl_helper *helper;
+> +	bool from_other_dev;
+>  };
+>  
+>  /**
+> @@ -633,6 +636,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
+>   * @add:	The control handler whose controls you want to add to
+>   *		the @hdl control handler.
+>   * @filter:	This function will filter which controls should be added.
+> + * @from_other_dev: If true, then the controls in @add were defined in another
+> + *		device then @hdl.
 
-Figured meanwhile qemu got memfd support recently, i.e. it can be
-configured to back guest memory with memfd.  Which makes the memfd route
-quite attractive.  Guess I try switch udmabuf to require memfd storage
-as proof-of-concept.
+s/then/than/
 
-cheers,
-  Gerd
+>   *
+>   * Does nothing if either of the two handlers is a NULL pointer.
+>   * If @filter is NULL, then all controls are added. Otherwise only those
+> @@ -642,7 +647,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
+>   */
+>  int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+>  			  struct v4l2_ctrl_handler *add,
+> -			  v4l2_ctrl_filter filter);
+> +			  v4l2_ctrl_filter filter,
+> +			  bool from_other_dev);
+>  
+>  /**
+>   * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
+> -- 
+> 2.16.3
+> 
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
