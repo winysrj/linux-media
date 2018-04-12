@@ -1,111 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:41703 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751744AbeD3HKo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56752 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751832AbeDLMID (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 03:10:44 -0400
-Date: Mon, 30 Apr 2018 09:10:40 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] rcar-vin: fix null pointer dereference in
- rvin_group_get()
-Message-ID: <20180430071039.stmiv2zjqckt6nwz@verge.net.au>
-References: <20180424234506.22630-1-niklas.soderlund+renesas@ragnatech.se>
- <20180425071851.tcytzfkpofsbkxgm@verge.net.au>
- <20180426152005.GE3315@bigcity.dyn.berto.se>
+        Thu, 12 Apr 2018 08:08:03 -0400
+Date: Thu, 12 Apr 2018 15:08:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv11 PATCH 06/29] media-request: add media_request_find
+Message-ID: <20180412120800.bdwtagklz6rqopvn@valkosipuli.retiisi.org.uk>
+References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+ <20180409142026.19369-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180426152005.GE3315@bigcity.dyn.berto.se>
+In-Reply-To: <20180409142026.19369-7-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 26, 2018 at 05:20:05PM +0200, Niklas Söderlund wrote:
-> Hi Simon,
-> 
-> Thanks for your feedback.
-> 
-> On 2018-04-25 09:18:51 +0200, Simon Horman wrote:
-> > On Wed, Apr 25, 2018 at 01:45:06AM +0200, Niklas Söderlund wrote:
-> > > Store the group pointer before disassociating the VIN from the group.
-> > > 
-> > > Fixes: 3bb4c3bc85bf77a7 ("media: rcar-vin: add group allocator functions")
-> > > Reported-by: Colin Ian King <colin.king@canonical.com>
-> > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > ---
-> > >  drivers/media/platform/rcar-vin/rcar-core.c | 12 +++++++-----
-> > >  1 file changed, 7 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > index 7bc2774a11232362..d3072e166a1ca24f 100644
-> > > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > @@ -338,19 +338,21 @@ static int rvin_group_get(struct rvin_dev *vin)
-> > >  
-> > >  static void rvin_group_put(struct rvin_dev *vin)
-> > >  {
-> > > -	mutex_lock(&vin->group->lock);
-> > > +	struct rvin_group *group = vin->group;
-> > > +
-> > > +	mutex_lock(&group->lock);
-> > 
-> > Hi Niklas, its not clear to me why moving the lock is safe.
-> > Could you explain the locking scheme a little?
-> 
-> The lock here protects the members of the group struct and not any of 
-> the members of the vin struct. The intent of the rvin_group_put() 
-> function is:
-> 
-> 1. Disassociate the vin struct from the group struct. This is done by 
->    removing the pointer to the vin from the group->vin array and 
->    removing the pointer from vin->group to the group struct. Here the 
->    lock is needed to protect access to the group->vin array.
-> 
-> 2. Decrease the refcount of the struct group and if we are the last one 
->    out release the group.
-> 
-> The problem with the original code is that I first disassociate group 
-> from the vin 'vin->group = NULL' but still use the pointer stored in the 
-> vin struct when I try to disassociate the vin from the group 
-> 'vin->group->vin[vin->id]'.
-> 
-> AFIK can tell the locking here is fine, the problem was that I pulled 
-> the rug from under my own feet in how I access the lock in order to not 
-> having to declare a variable to store the pointer in ;-)
-> 
-> Do this explanation help put you at ease?
+Hi Hans,
 
-Thanks, I am completely relaxed now :)
-
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-
-> > >  	vin->group = NULL;
-> > >  	vin->v4l2_dev.mdev = NULL;
-> > >  
-> > > -	if (WARN_ON(vin->group->vin[vin->id] != vin))
-> > > +	if (WARN_ON(group->vin[vin->id] != vin))
-> > >  		goto out;
-> > >  
-> > > -	vin->group->vin[vin->id] = NULL;
-> > > +	group->vin[vin->id] = NULL;
-> > >  out:
-> > > -	mutex_unlock(&vin->group->lock);
-> > > +	mutex_unlock(&group->lock);
-> > >  
-> > > -	kref_put(&vin->group->refcount, rvin_group_release);
-> > > +	kref_put(&group->refcount, rvin_group_release);
-> > >  }
-> > >  
-> > >  /* -----------------------------------------------------------------------------
-> > > -- 
-> > > 2.17.0
-> > > 
+On Mon, Apr 09, 2018 at 04:20:03PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> -- 
-> Regards,
-> Niklas Söderlund
+> Add media_request_find() to find a request based on the file
+> descriptor.
 > 
+> The caller has to call media_request_put() for the returned
+> request since this function increments the refcount.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/media-request.c | 47 +++++++++++++++++++++++++++++++++++++++++++
+>  include/media/media-request.h | 10 +++++++++
+>  2 files changed, 57 insertions(+)
+> 
+> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> index 27739ff7cb09..02b620c81de5 100644
+> --- a/drivers/media/media-request.c
+> +++ b/drivers/media/media-request.c
+> @@ -207,6 +207,53 @@ static const struct file_operations request_fops = {
+>  	.release = media_request_close,
+>  };
+>  
+> +/**
+> + * media_request_find - Find a request based on the file descriptor
+> + * @mdev: The media device
+> + * @request: The request file handle
+> + *
+> + * Find and return the request associated with the given file descriptor, or
+> + * an error if no such request exists.
+> + *
+> + * When the function returns a request it increases its reference count. The
+> + * caller is responsible for releasing the reference by calling
+> + * media_request_put() on the request.
+> + */
+> +struct media_request *
+> +media_request_find(struct media_device *mdev, int request_fd)
+> +{
+> +	struct file *filp;
+> +	struct media_request *req;
+> +
+> +	if (!mdev || !mdev->ops || !mdev->ops->req_queue)
+> +		return ERR_PTR(-EPERM);
+> +
+> +	filp = fget(request_fd);
+> +	if (!filp)
+> +		return ERR_PTR(-ENOENT);
+> +
+> +	if (filp->f_op != &request_fops)
+> +		goto err_fput;
+> +	req = filp->private_data;
+> +	media_request_get(req);
+
+As you're holding a reference to filp, you also indirectly have reference
+to ref --- you otherwise couldn't access file->private_data either.
+
+Therefore you could move the check for the right mdev before getting a
+reference to req, thus simplifying error handling as a result.
+
+> +
+> +	if (req->mdev != mdev)
+> +		goto err_kref_put;
+> +
+> +	fput(filp);
+> +
+> +	return req;
+> +
+> +err_kref_put:
+> +	media_request_put(req);
+> +
+> +err_fput:
+> +	fput(filp);
+> +
+> +	return ERR_PTR(-ENOENT);
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_find);
+> +
+>  int media_request_alloc(struct media_device *mdev,
+>  			struct media_request_alloc *alloc)
+>  {
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
