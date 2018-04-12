@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:38709 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754955AbeDPNV1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Apr 2018 09:21:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/9] v4l2-mediabus.h: add hsv_enc
-Date: Mon, 16 Apr 2018 15:21:13 +0200
-Message-Id: <20180416132121.46205-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180416132121.46205-1-hverkuil@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:58569 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753955AbeDLPYb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 11:24:31 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 16/17] media: mantis: prevent staying forever in a loop at IRQ
+Date: Thu, 12 Apr 2018 11:24:08 -0400
+Message-Id: <95f98d2a03ff97d82672f5e7d6d2e358e4dd6d17.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As warned by smatch:
+	drivers/media/pci/mantis/mantis_uart.c:105 mantis_uart_work() warn: this loop depends on readl() succeeding
 
-Just like struct v4l2_pix_format add a hsv_enc field to describe
-the HSV encoding. It is in a union with the ycbcr_enc, since it
-is one or the other.
+If something goes wrong at readl(), the logic will stay there
+inside an IRQ code forever. This is not the nicest thing to
+do :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+So, add a timeout there, preventing staying inside the IRQ
+for more than 10ms.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/uapi/linux/v4l2-mediabus.h | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/media/pci/mantis/mantis_uart.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 123a231001a8..52fd6cc9d491 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -24,6 +24,7 @@
-  * @field:	used interlacing type (from enum v4l2_field)
-  * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-  * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
-+ * @hsv_enc:	HSV encoding of the data (from enum v4l2_hsv_encoding)
-  * @quantization: quantization of the data (from enum v4l2_quantization)
-  * @xfer_func:  transfer function of the data (from enum v4l2_xfer_func)
-  */
-@@ -33,7 +34,12 @@ struct v4l2_mbus_framefmt {
- 	__u32			code;
- 	__u32			field;
- 	__u32			colorspace;
--	__u16			ycbcr_enc;
-+	union {
-+		/* enum v4l2_ycbcr_encoding */
-+		__u16		ycbcr_enc;
-+		/* enum v4l2_hsv_encoding */
-+		__u16		hsv_enc;
-+	};
- 	__u16			quantization;
- 	__u16			xfer_func;
- 	__u16			reserved[11];
+diff --git a/drivers/media/pci/mantis/mantis_uart.c b/drivers/media/pci/mantis/mantis_uart.c
+index 18f81c135996..b7765687e0c3 100644
+--- a/drivers/media/pci/mantis/mantis_uart.c
++++ b/drivers/media/pci/mantis/mantis_uart.c
+@@ -92,6 +92,7 @@ static void mantis_uart_work(struct work_struct *work)
+ {
+ 	struct mantis_pci *mantis = container_of(work, struct mantis_pci, uart_work);
+ 	u32 stat;
++	unsigned long timeout;
+ 
+ 	stat = mmread(MANTIS_UART_STAT);
+ 
+@@ -102,9 +103,15 @@ static void mantis_uart_work(struct work_struct *work)
+ 	 * MANTIS_UART_RXFIFO_DATA is only set if at least
+ 	 * config->bytes + 1 bytes are in the FIFO.
+ 	 */
++
++	/* FIXME: is 10ms good enough ? */
++	timeout = jiffies +  msecs_to_jiffies(10);
+ 	while (stat & MANTIS_UART_RXFIFO_DATA) {
+ 		mantis_uart_read(mantis);
+ 		stat = mmread(MANTIS_UART_STAT);
++
++		if (!time_is_after_jiffies(timeout))
++			break;
+ 	}
+ 
+ 	/* re-enable UART (RX) interrupt */
 -- 
-2.15.1
+2.14.3
