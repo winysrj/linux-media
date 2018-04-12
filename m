@@ -1,121 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50470 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754462AbeDWJQ6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:16:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH v3 01/11] media: dt-bindings: ov772x: add device tree binding
-Date: Mon, 23 Apr 2018 12:17:09 +0300
-Message-ID: <6602935.FYsd3sRonc@avalon>
-In-Reply-To: <1524412577-14419-2-git-send-email-akinobu.mita@gmail.com>
-References: <1524412577-14419-1-git-send-email-akinobu.mita@gmail.com> <1524412577-14419-2-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga17.intel.com ([192.55.52.151]:35721 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751819AbeDLM6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 08:58:34 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, hverkuil@xs4all.nl
+Subject: [PATCH 1/1] videodev2: Mark all user pointers as such
+Date: Thu, 12 Apr 2018 15:58:24 +0300
+Message-Id: <20180412125824.5667-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mita-san,
+A number of uAPI structs have pointers but some lack the __user modifier. 
+Add this to the pointers that do not have it.
 
-On Sunday, 22 April 2018 18:56:07 EEST Akinobu Mita wrote:
-> This adds a device tree binding documentation for OV7720/OV7725 sensor.
-> 
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
-> * v3
-> - Add Reviewed-by: lines
-> 
->  .../devicetree/bindings/media/i2c/ov772x.txt       | 42 +++++++++++++++++++
->  MAINTAINERS                                        |  1 +
->  2 files changed, 43 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> b/Documentation/devicetree/bindings/media/i2c/ov772x.txt new file mode
-> 100644
-> index 0000000..b045503
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> @@ -0,0 +1,42 @@
-> +* Omnivision OV7720/OV7725 CMOS sensor
-> +
-> +The Omnivision OV7720/OV7725 sensor supports multiple resolutions output,
-> +such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also can
-> +support the YUV422, RGB565/555/444, GRB422 or raw RGB output formats.
-> +
-> +Required Properties:
-> +- compatible: shall be one of
-> +	"ovti,ov7720"
-> +	"ovti,ov7725"
-> +- clocks: reference to the xclk input clock.
-> +- clock-names: shall be "xclk".
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Mauro,
 
-As there's a single clock we could omit clock-names, couldn't we ?
+I wonder if this would fix some smatch errors or would allow also cleaning
+up the casts in the compat code. Either way, this would still be the correct
+thing todo.
 
-The rest of the patch looks good to me.
+ include/uapi/linux/videodev2.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the RSTB pin which is
-> +  active low, if any.
-> +- powerdown-gpios: reference to the GPIO connected to the PWDN pin which is
-> +  active high, if any.
-> +
-> +The device node shall contain one 'port' child node with one child
-> 'endpoint'
-> +subnode for its digital output video port, in accordance with the video
-> +interface bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt.
-> +
-> +Example:
-> +
-> +&i2c0 {
-> +	ov772x: camera@21 {
-> +		compatible = "ovti,ov7725";
-> +		reg = <0x21>;
-> +		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
-> +		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
-> +		clocks = <&xclk>;
-> +		clock-names = "xclk";
-> +
-> +		port {
-> +			ov772x_0: endpoint {
-> +				remote-endpoint = <&vcap1_in0>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 5ae51d0..1cc5fb1 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -10353,6 +10353,7 @@ T:	git git://linuxtv.org/media_tree.git
->  S:	Odd fixes
->  F:	drivers/media/i2c/ov772x.c
->  F:	include/media/i2c/ov772x.h
-> +F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
-> 
->  OMNIVISION OV7740 SENSOR DRIVER
->  M:	Wenyou Yang <wenyou.yang@microchip.com>
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 9c65d890a5f2d..a2252d0d7051d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -930,7 +930,7 @@ struct v4l2_buffer {
+ 	union {
+ 		__u32           offset;
+ 		unsigned long   userptr;
+-		struct v4l2_plane *planes;
++		struct v4l2_plane __user *planes;
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+@@ -1014,7 +1014,7 @@ struct v4l2_framebuffer {
+ 	__u32			flags;
+ /* FIXME: in theory we should pass something like PCI device + memory
+  * region + offset instead of some physical address */
+-	void                    *base;
++	void __user		*base;
+ 	struct {
+ 		__u32		width;
+ 		__u32		height;
+@@ -1602,7 +1602,7 @@ struct v4l2_ext_controls {
+ 	__u32 error_idx;
+ 	__s32 request_fd;
+ 	__u32 reserved[1];
+-	struct v4l2_ext_control *controls;
++	struct v4l2_ext_control __user *controls;
+ };
+ 
+ #define V4L2_CTRL_ID_MASK	  (0x0fffffff)
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
