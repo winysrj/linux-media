@@ -1,135 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40346 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755165AbeDWUWl (ORCPT
+Received: from mail-vk0-f48.google.com ([209.85.213.48]:43307 "EHLO
+        mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752093AbeDLJC1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 16:22:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
-Date: Mon, 23 Apr 2018 23:22:53 +0300
-Message-ID: <7127377.9mMUc3FlgS@avalon>
-In-Reply-To: <20180423170955.13421017@vento.lan>
-References: <cover.1524245455.git.mchehab@s-opensource.com> <2458408.nymfr4Soza@avalon> <20180423170955.13421017@vento.lan>
+        Thu, 12 Apr 2018 05:02:27 -0400
+Received: by mail-vk0-f48.google.com with SMTP id v134so2793606vkd.10
+        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 02:02:26 -0700 (PDT)
+Received: from mail-vk0-f43.google.com (mail-vk0-f43.google.com. [209.85.213.43])
+        by smtp.gmail.com with ESMTPSA id m19sm1664975vkf.31.2018.04.12.02.02.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 12 Apr 2018 02:02:25 -0700 (PDT)
+Received: by mail-vk0-f43.google.com with SMTP id r19so2800592vkf.4
+        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 02:02:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-27-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-27-hverkuil@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 12 Apr 2018 09:02:14 +0000
+Message-ID: <CAAFQd5CjKys=gPetj8fJE8=rVDjMh4bQdT1Pf+NHfBWCmj+rjQ@mail.gmail.com>
+Subject: Re: [RFCv11 PATCH 26/29] vim2m: use workqueue
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, 23 April 2018 23:09:55 EEST Mauro Carvalho Chehab wrote:
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > On Monday, 23 April 2018 17:22:27 EEST Mauro Carvalho Chehab wrote:
-> > > Em Mon, 23 Apr 2018 15:56:53 +0200 Bartlomiej Zolnierkiewicz escreveu:
-> > > > On Monday, April 23, 2018 02:47:28 PM Bartlomiej Zolnierkiewicz wrote:
-> > > >> On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:
-> > > >>> Add stubs for omapfb_dss.h, in the case it is included by
-> > > >>> some driver when CONFIG_FB_OMAP2 is not defined, with can
-> > > >>> happen on ARM when DRM_OMAP is not 'n'.
-> > > >>> 
-> > > >>> That allows building such driver(s) with COMPILE_TEST.
-> > > >>> 
-> > > >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > >> 
-> > > >> This patch should be dropped (together with patch #6/7) as it was
-> > > >> superseded by a better solution suggested by Laurent:
-> > > >> 
-> > > >> https://patchwork.kernel.org/patch/10325193/
-> > > >> 
-> > > >> ACK-ed by Tomi:
-> > > >> 
-> > > >> https://www.spinics.net/lists/dri-devel/msg171918.html
-> > > >> 
-> > > >> and already merged by you (commit 7378f1149884 "media: omap2:
-> > > >> omapfb: allow building it with COMPILE_TEST")..
-> > > > 
-> > > > Hmm, I see now while this patch is still included:
-> > > > 
-> > > > menuconfig FB_OMAP2
-> > > > 
-> > > >         tristate "OMAP2+ frame buffer support"
-> > > >         depends on FB
-> > > >         depends on DRM_OMAP = n
-> > > > 
-> > > > Ideally we should be able to build both drivers in the same kernel
-> > > > (especially as modules).
-> > > > 
-> > > > I was hoping that it could be fixed easily but then I discovered
-> > > > the root source of the problem:
-> > > > 
-> > > > drivers/gpu/drm/omapdrm/dss/display.o: In function
-> > > > `omapdss_unregister_display': display.c:(.text+0x2c): multiple
-> > > > definition
-> > > > of `omapdss_unregister_display'
-> > > > drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198)
-> > > > :
-> > > > first defined here ...
-> > > 
-> > > Yes, and declared on two different places:
-> > > 
-> > > drivers/gpu/drm/omapdrm/dss/omapdss.h:void
-> > > omapdss_unregister_display(struct omap_dss_device *dssdev);
-> > > include/video/omapfb_dss.h:void
-> > > omapdss_unregister_display(struct omap_dss_device *dssdev);
-> > > 
-> > > one alternative would be to give different names to it, and a common
-> > > header for both.
-> > > 
-> > > At such header, it could be doing something like:
-> > > 
-> > > static inline void omapdss_unregister_display(struct omap_dss_device
-> > > *dssdev) {
-> > > #if enabled(CONFIG_DRM_OMAP)
-> > > 
-> > > 	omapdss_unregister_display_drm(struct omap_dss_device *dssdev);
-> > > 
-> > > #else
-> > > 
-> > > 	omapdss_unregister_display_fb(struct omap_dss_device *dssdev);
-> > > 
-> > > ##endif
-> > > }
-> > > 
-> > > Yet, after a very quick check, it seems that nowadays only the
-> > > media omap driver uses the symbols at FB_OMAP:
-> > > 
-> > > $ git grep omapfb_dss.h
-> > > drivers/media/platform/omap/omap_vout.c:#include <video/omapfb_dss.h>
-> > > drivers/media/platform/omap/omap_voutdef.h:#include <video/omapfb_dss.h>
-> > > drivers/media/platform/omap/omap_voutlib.c:#include <video/omapfb_dss.h>
-> > > 
-> > > So, perhaps just renaming the common symbols and changing FB_OMAP2 to:
-> > > 	menuconfig FB_OMAP2
-> > > 	
-> > > 	         tristate "OMAP2+ frame buffer support"
-> > > 	         depends on FB
-> > > 	         depends on (DRM_OMAP = n) || COMPILE_TEST
-> > > 
-> > > would be enough to allow to build both on ARM.
-> > 
-> > I don't think it's worth it renaming the common symbols. They will change
-> > over time as omapdrm is under heavy rework, and it's painful enough
-> > without having to handle cross-tree changes.
-> 
-> It could just rename the namespace-conflicting FB_OMAP2 functions,
-> keeping the DRM ones as-is.
-> 
-> > Let's just live with the fact that both drivers
-> > can't be compiled at the same time, given that omapfb is deprecated.
-> 
-> IMO, a driver that it is deprecated, being in a state where it
-> conflicts with a non-deprecated driver that is under heavy rework
-> is a very good candidate to go to drivers/staging or even to /dev/null.
+Hi Hans,
 
-It's on its way, but slowly as we need to take userspace into account. Tomi 
-should have more insight on a possible schedule for removal of omapfb.
+On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
--- 
-Regards,
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Laurent Pinchart
+> v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+> interrupt context. Switch to a workqueue instead.
+
+Could it make more sense to just replace the old (non-hr) timer used in
+this driver with delayed work?
+
+Best regards,
+Tomasz
