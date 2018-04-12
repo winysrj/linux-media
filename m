@@ -1,206 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55048 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750730AbeDLHLx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 03:11:53 -0400
-Date: Thu, 12 Apr 2018 10:11:50 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180412071150.aibatuvvdcv7belo@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-5-hverkuil@xs4all.nl>
- <20180410073206.12d4c67d@vento.lan>
- <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
- <20180410115143.41178f68@vento.lan>
- <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
- <20180411104935.5f566f0f@vento.lan>
- <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
- <20180411121727.60133066@vento.lan>
- <20180411153513.5r6foyfpzuipjfxw@valkosipuli.retiisi.org.uk>
- <20180411131344.67b782a2@vento.lan>
+Received: from mga11.intel.com ([192.55.52.93]:54175 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751719AbeDLJ5i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 05:57:38 -0400
+Date: Thu, 12 Apr 2018 12:57:10 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Andy Yeh <andy.yeh@intel.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, tfiga@chromium.org,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [RESEND PATCH v7 2/2] media: dw9807: Add dw9807 vcm driver
+Message-ID: <20180412095710.tqcpyix6sn772siw@paasikivi.fi.intel.com>
+References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
+ <1523375324-27856-3-git-send-email-andy.yeh@intel.com>
+ <20180412085701.GJ20945@w540>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180411131344.67b782a2@vento.lan>
+In-Reply-To: <20180412085701.GJ20945@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 11, 2018 at 01:13:44PM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 11 Apr 2018 18:35:14 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > On Wed, Apr 11, 2018 at 12:17:27PM -0300, Mauro Carvalho Chehab wrote:
-> > > Em Wed, 11 Apr 2018 18:02:19 +0300
-> > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > >   
-> > > > On Wed, Apr 11, 2018 at 10:49:35AM -0300, Mauro Carvalho Chehab wrote:  
-> > > > > Em Wed, 11 Apr 2018 16:21:16 +0300
-> > > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > > > > 
-> > > > >     
-> > > > > > > > > Btw, this is a very good reason why you should define the ioctl to
-> > > > > > > > > have an integer argument instead of a struct with a __s32 field
-> > > > > > > > > on it, as per my comment to patch 02/29:
-> > > > > > > > > 
-> > > > > > > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> > > > > > > > > 
-> > > > > > > > > At 64 bit architectures, you're truncating the file descriptor!        
-> > > > > > > > 
-> > > > > > > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-> > > > > > > > well.      
-> > > > > > > 
-> > > > > > > Hmm.. you're right. I was thinking that it could be 64 bits on some
-> > > > > > > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
-> > > > > > > according with:
-> > > > > > > 
-> > > > > > > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
-> > > > > > > 
-> > > > > > > This is not the case on gcc.      
-> > > > > > 
-> > > > > > Ok. The reasoning back then was that what "int" means varies across
-> > > > > > compilers and languages. And the intent was to codify this to __s32 which
-> > > > > > is what the kernel effectively uses.    
-> > > > > 
-> > > > > ...
-> > > > >     
-> > > > > > The rest of the kernel uses int rather liberally in the uAPI so I'm not
-> > > > > > sure in the end whether something desirable was achieved. Perhaps it'd be
-> > > > > > good to go back to the original discussion to find out for sure.
-> > > > > > 
-> > > > > > Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
-> > > > > > due to that difference.
-> > > > > > 
-> > > > > > Well, I stop here for this begins to be off-topic. :-)    
-> > > > > 
-> > > > > Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
-> > > > > about that :-)
-> > > > >     
-> > > > > > > > > > +	get_task_comm(comm, current);
-> > > > > > > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > > > > > > > > > +		 comm, fd);        
-> > > > > > > > > 
-> > > > > > > > > Not sure if it is a good idea to store the task that allocated
-> > > > > > > > > the request. While it makes sense for the dev_dbg() below, it
-> > > > > > > > > may not make sense anymore on other dev_dbg() you would be
-> > > > > > > > > using it.        
-> > > > > > > > 
-> > > > > > > > The lifetime of the file handle roughly matches that of the request. It's
-> > > > > > > > for debug only anyway.
-> > > > > > > > 
-> > > > > > > > Better proposals are always welcome of course. But I think we should have
-> > > > > > > > something here that helps debugging by meaningfully making the requests
-> > > > > > > > identifiable from logs.      
-> > > > > > > 
-> > > > > > > What I meant to say is that one PID could be allocating the
-> > > > > > > request, while some other one could be actually doing Q/DQ_BUF.
-> > > > > > > On such scenario, the debug string could provide mislead prints.      
-> > > > > > 
-> > > > > > Um, yes, indeed it would no longer match the process. But the request is
-> > > > > > still the same. That's actually a positive thing since it allows you to
-> > > > > > identify the request.
-> > > > > > 
-> > > > > > With a global ID space this was trivial; you could just print the request
-> > > > > > ID and that was all that was ever needed. (I'm not proposing to consider
-> > > > > > that though.)
-> > > > > >     
-> > > > > 
-> > > > > IMO, a global ID number would work better than get_task_comm().
-> > > > > 
-> > > > > Just add a static int monotonic counter and use it for the debug purposes,
-> > > > > e. g.:
-> > > > > 
-> > > > > {
-> > > > > 	static unsigned int req_count = 0;
-> > > > > 
-> > > > > 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
-> > > > > 		req_count++, fd);    
-> > > > > 
-> > > > > Ok, eventually, it will overflow, but, it will be unique within
-> > > > > a reasonable timeframe to be good enough for debugging purposes.    
-> > > > 
-> > > > Yes, but you can't figure out which process allocated it anymore, making
-> > > > associating kernel debug logs with user space process logs harder.
-> > > > 
-> > > > How about process id + file handle? That still doesn't tell which process
-> > > > operated on the request though, but I'm not sure whether that's really a
-> > > > crucial piece of information.  
-> > > 
-> > > You don't need that. With dev_dbg() - and other *_dbg() macros - you can
-> > > enable process ID for all debug messages.  
-> > 
-> > With this, the problem again is that it does not uniquely identify the
-> > request: the request is the same request independently of which process
-> > would operate on it. Or whether it is being processed in an interrupt
-> > context.
-> > 
-> > AFAICT, the allocator PID (or process name) + file handle are both required
-> > to match a request between user and kernel space logs.
-> 
-> Sorry, I was unable to understand what you're saying.
-> 
-> If you set the debug string with:
-> 
-> 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d", req_count++, fd);  
-> 
-> With the remaining stuff at patch 04/29, e. g. those two printks:
-> 
-> 	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
-> 	dev_dbg(mdev->dev, "request: release %s\n", req->debug_str);
-> 
-> And use "+pt" to enable those debug messages, for the request #1 with fd #45, 
-> created by PID 16613 you would have a log like:
-> 
-> 	[  269.021116] [16613] request: allocated 1:45
-> 	[  269.024118] [16613] request: release 1:45
-> 
-> (assuming that the same PID would create and release)
-> 
-> The "1:45" is an unique global ID that would allow tracking it, even
-> if Q/DQ_BUF is done by some other PID.
-> 
-> E. g. if a PID#16618 were responsible for Q/DQ_BUF, you would have
-> something like:
-> 
-> 	[  269.021116] [16613] request: allocated 1:45
-> 	[  269.021117] [16618] request: Q_BUF 1:45
-> 	[  269.021118] [16618] request: DQ_BUF 1:45
-> 	[  269.024118] [16613] request: release 1:45
-> 
-> (assuming that you would have a Q_BUF/DQ_BUF similar dev_dbg())
-> 
-> That seems good enough to track it.
-> 
-> Yet, in order to make easier to track, I would actually change the
-> dev_dbg() parameter order everywhere to something like:
-> 
-> 	dev_dbg(mdev->dev, "request#%s: allocated\n", req->debug_str)
-> 	dev_dbg(mdev->dev, "request#%s: release\n", req->debug_str);
-> 
-> In order to print something like:
-> 
-> 	[  269.021116] [16613] request#1:45: allocated 
-> 	[  269.021117] [16618] request#1:45: Q_BUF
-> 	[  269.021118] [16618] request#1:45: DQ_BUF
-> 	[  269.024118] [16613] request#1:45: release
-> 
-> Then, getting everything related to the first request would be as simple as:
-> 
-> 	$ dmesg|grep request#1:
-> 
-> That will provide the PID for both processes: the one that
-> created/released and the one that queued/dequeued.
+Hi Jacopo,
 
-Ah, right; yes, then you can. It's still a bit more complicated as you have
-one more piece of information to follow (the ID) vs. just PID and FD. For
-instance, you can't grep for requests created by a given process. Note that
-you can still print the PID of the process that operates on the request
-through dyndbg.
+On Thu, Apr 12, 2018 at 10:57:01AM +0200, jacopo mondi wrote:
+...
+> > +		if (MAX_RETRY == ++retry) {
+> > +			dev_err(&client->dev,
+> > +				"Cannot do the write operation because VCM is busy\n");
+> 
+> Nit: this is over 80 cols, it's fine, but I think you can really
+> shorten the error messag without losing context.
 
-I'd like to hear what Hans thinks.
+dev_warn() or dev_info() might be more appropriate actually. Or even
+dev_dbg(). This isn't a grave problem; just a sign the user space is trying
+to move the lens before it has reached its previous target position.
+
+> 
+> > +			return -EIO;
+> > +		}
+> > +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
+> 
+> mmm, I wonder if a sleep range of 10usecs is really a strict
+> requirement. Have a look at Documentation/timers/timers-howto.txt.
+> With such a small range you're likely fire some unrequired interrupt.
+
+If the user is trying to tell where to move the lens next, no time should
+be wasted on waiting. It'd perhaps rather make sense to return an error
+(-EBUSY): the user application (as well as the application developer) would
+know about the attempt to move the lens too fast and could take an informed
+decision on what to do next. This could include changing the target
+position, waiting more or changing the program to adjust the 3A loop
+behaviour.
+
+...
+
+> > +static int dw9807_probe(struct i2c_client *client)
+> > +{
+> > +	struct dw9807_device *dw9807_dev;
+> > +	int rval;
+> > +
+> > +	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
+> > +				  GFP_KERNEL);
+> > +	if (!dw9807_dev)
+> > +		return -ENOMEM;
+> > +
+> > +	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
+> > +	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
+> > +
+> > +	rval = dw9807_init_controls(dw9807_dev);
+> > +	if (rval)
+> > +		goto err_cleanup;
+> > +
+> > +	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
+> > +	if (rval < 0)
+> > +		goto err_cleanup;
+> > +
+> > +	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
+> 
+> Not super sure here, Sakari may confirm or not, but you don't have
+> pads, you don't have pad operations, why are initializing entity pads
+> and depend on MEDIA_CONTROLLER in Kconfig? I -think- you can remove
+> these lines above here.
+
+You could omit media_entity_pads_init() but not setting the entity
+function. The function un-doing what media_entity_pads_init() does is
+media_entity_cleanup() which is currently empty; it wasn't always that way:
+the idea is that there would be work to be done to clean up an entity going
+forward.
 
 -- 
+Regards,
+
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
