@@ -1,67 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54331 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751414AbeDEJSh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:37 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:44031 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752700AbeDLQvd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 12:51:33 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 04/15] v4l: vsp1: Use vsp1_entity.pipe to check if entity belongs to a pipeline
-Date: Thu,  5 Apr 2018 12:18:29 +0300
-Message-Id: <20180405091840.30728-5-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 02/13] imx274: fix typo in comment
+Date: Thu, 12 Apr 2018 18:51:07 +0200
+Message-Id: <1523551878-15754-3-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
+References: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DRM pipeline handling code uses the entity's pipe list head to check
-whether the entity is already included in a pipeline. This method is a
-bit fragile in the sense that it uses list_empty() on a list_head that
-is a list member. Replace it by a simpler check for the entity pipe
-pointer.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/i2c/imx274.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index a7ad85ab0b08..e210917fdc3f 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -119,9 +119,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 			 * Remove the RPF from the pipe and the list of BRU
- 			 * inputs.
- 			 */
--			WARN_ON(list_empty(&rpf->entity.list_pipe));
-+			WARN_ON(!rpf->entity.pipe);
- 			rpf->entity.pipe = NULL;
--			list_del_init(&rpf->entity.list_pipe);
-+			list_del(&rpf->entity.list_pipe);
- 			pipe->inputs[i] = NULL;
- 
- 			bru->inputs[rpf->bru_input].rpf = NULL;
-@@ -537,7 +537,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 			continue;
- 		}
- 
--		if (list_empty(&rpf->entity.list_pipe)) {
-+		if (!rpf->entity.pipe) {
- 			rpf->entity.pipe = pipe;
- 			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
- 		}
-@@ -566,7 +566,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 					   VI6_DPR_NODE_UNUSED);
- 
- 			entity->pipe = NULL;
--			list_del_init(&entity->list_pipe);
-+			list_del(&entity->list_pipe);
- 
- 			continue;
- 		}
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 5e425db9204d..dfd04edcdd48 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -971,7 +971,7 @@ static int imx274_s_frame_interval(struct v4l2_subdev *sd,
+ 	if (!ret) {
+ 		/*
+ 		 * exposure time range is decided by frame interval
+-		 * need to update it after frame interal changes
++		 * need to update it after frame interval changes
+ 		 */
+ 		min = IMX274_MIN_EXPOSURE_TIME;
+ 		max = fi->interval.numerator * 1000000
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
