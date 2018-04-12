@@ -1,203 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:45266 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752689AbeDTQhY (ORCPT
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:34810 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752831AbeDLQvd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 12:37:24 -0400
-Received: by mail-pl0-f67.google.com with SMTP id w22-v6so979532pll.12
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 09:37:24 -0700 (PDT)
-Subject: Re: [PATCH v3 02/13] media: v4l2: async: Allow searching for asd of
- any type
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thu, 12 Apr 2018 12:51:33 -0400
+From: Luca Ceresoli <luca@lucaceresoli.net>
+To: linux-media@vger.kernel.org
+Cc: Luca Ceresoli <luca@lucaceresoli.net>,
+        Leon Luo <leonl@leopardimaging.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-3-git-send-email-steve_longerbeam@mentor.com>
- <7956036d-c59c-e12c-b380-a38858306f8e@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <11e32de4-075d-e2fd-fd08-eb8b8ad46eeb@gmail.com>
-Date: Fri, 20 Apr 2018 09:37:08 -0700
-MIME-Version: 1.0
-In-Reply-To: <7956036d-c59c-e12c-b380-a38858306f8e@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 08/13] imx274: consolidate per-mode data in imx274_frmfmt
+Date: Thu, 12 Apr 2018 18:51:13 +0200
+Message-Id: <1523551878-15754-9-git-send-email-luca@lucaceresoli.net>
+In-Reply-To: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
+References: <1523551878-15754-1-git-send-email-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Data about for the implemented readout modes is partially stored in
+imx274_formats[], the rest is scattered in several arrays. The latter
+are then accessed using the mode index, e.g.:
 
+  min_frame_len[priv->mode_index]
 
-On 04/20/2018 05:22 AM, Hans Verkuil wrote:
-> On 03/21/18 01:37, Steve Longerbeam wrote:
->> Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
->> searching for any type of async subdev, not just fwnodes. Rename to
->> v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
->>
->> TODO: support asd compare with CUSTOM match type in asd_equal().
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->> Changes since v2:
->> - code optimization in asd_equal(), and remove unneeded braces,
->>    suggested by Sakari Ailus.
->> Changes since v1:
->> - none
->> ---
->>   drivers/media/v4l2-core/v4l2-async.c | 76 ++++++++++++++++++++++--------------
->>   1 file changed, 46 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
->> index 2b08d03..b59bbac 100644
->> --- a/drivers/media/v4l2-core/v4l2-async.c
->> +++ b/drivers/media/v4l2-core/v4l2-async.c
->> @@ -124,6 +124,34 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
->>   	return NULL;
->>   }
->>   
->> +/* Compare two asd's for equivalence */
->> +static bool asd_equal(struct v4l2_async_subdev *asd_x,
->> +		      struct v4l2_async_subdev *asd_y)
->> +{
->> +	if (asd_x->match_type != asd_y->match_type)
->> +		return false;
->> +
->> +	switch (asd_x->match_type) {
->> +	case V4L2_ASYNC_MATCH_DEVNAME:
->> +		return strcmp(asd_x->match.device_name,
->> +			      asd_y->match.device_name) == 0;
->> +	case V4L2_ASYNC_MATCH_I2C:
->> +		return asd_x->match.i2c.adapter_id ==
->> +			asd_y->match.i2c.adapter_id &&
->> +			asd_x->match.i2c.address ==
->> +			asd_y->match.i2c.address;
->> +	case V4L2_ASYNC_MATCH_FWNODE:
->> +		return asd_x->match.fwnode == asd_y->match.fwnode;
->> +	case V4L2_ASYNC_MATCH_CUSTOM:
->> +		/* TODO */
-> This TODO suggests that this is needed for some driver(s) and that it
-> will be implemented later, but it seems more that nobody actually needs
-> this. If that's the case, then I'd just drop this case altogether.
->
-> Or do I misunderstand this comment?
+Consolidate all these data in imx274_formats[], and store a pointer to
+the selected mode (i.e. imx274_formats[priv->mode_index]) in the main
+device struct. This way code to use these data becomes more readable,
+e.g.:
 
-No you are correct, I thought maybe this could be implemented
-later. There are no platforms that make use of V4L2_ASYNC_MATCH_CUSTOM.
-If you don't think there ever will be, I will just drop this.
+  priv->mode->min_frame_len
 
+This removes lots of scaffolding code and keeps data about each mode
+in a unique place.
 
-Steve
+Also remove a parameter to imx274_mode_regs() that becomes unused.
 
->> +		return false;
->> +	default:
->> +		break;
->> +	}
->> +
->> +	return false;
->> +}
->> +
->>   /* Find the sub-device notifier registered by a sub-device driver. */
->>   static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
->>   	struct v4l2_subdev *sd)
->> @@ -308,29 +336,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
->>   	notifier->parent = NULL;
->>   }
->>   
->> -/* See if an fwnode can be found in a notifier's lists. */
->> -static bool __v4l2_async_notifier_fwnode_has_async_subdev(
->> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
->> +/* See if an async sub-device can be found in a notifier's lists. */
->> +static bool __v4l2_async_notifier_has_async_subdev(
->> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
->>   {
->> -	struct v4l2_async_subdev *asd;
->> +	struct v4l2_async_subdev *asd_y;
->>   	struct v4l2_subdev *sd;
->>   
->> -	list_for_each_entry(asd, &notifier->waiting, list) {
->> -		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
->> -			continue;
->> -
->> -		if (asd->match.fwnode == fwnode)
->> +	list_for_each_entry(asd_y, &notifier->waiting, list)
->> +		if (asd_equal(asd, asd_y))
->>   			return true;
->> -	}
->>   
->>   	list_for_each_entry(sd, &notifier->done, async_list) {
->>   		if (WARN_ON(!sd->asd))
->>   			continue;
->>   
->> -		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
->> -			continue;
->> -
->> -		if (sd->asd->match.fwnode == fwnode)
->> +		if (asd_equal(asd, sd->asd))
->>   			return true;
->>   	}
->>   
->> @@ -338,32 +359,28 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
->>   }
->>   
->>   /*
->> - * Find out whether an async sub-device was set up for an fwnode already or
->> + * Find out whether an async sub-device was set up already or
->>    * whether it exists in a given notifier before @this_index.
->>    */
->> -static bool v4l2_async_notifier_fwnode_has_async_subdev(
->> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
->> +static bool v4l2_async_notifier_has_async_subdev(
->> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
->>   	unsigned int this_index)
->>   {
->>   	unsigned int j;
->>   
->>   	lockdep_assert_held(&list_lock);
->>   
->> -	/* Check that an fwnode is not being added more than once. */
->> +	/* Check that an asd is not being added more than once. */
->>   	for (j = 0; j < this_index; j++) {
->> -		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
->> -		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
->> +		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
->>   
->> -		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
->> -		    asd->match.fwnode ==
->> -		    other_asd->match.fwnode)
->> +		if (asd_equal(asd, asd_y))
->>   			return true;
->>   	}
->>   
->> -	/* Check than an fwnode did not exist in other notifiers. */
->> +	/* Check that an asd does not exist in other notifiers. */
->>   	list_for_each_entry(notifier, &notifier_list, list)
->> -		if (__v4l2_async_notifier_fwnode_has_async_subdev(
->> -			    notifier, fwnode))
->> +		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
->>   			return true;
->>   
->>   	return false;
->> @@ -392,12 +409,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->>   		case V4L2_ASYNC_MATCH_CUSTOM:
->>   		case V4L2_ASYNC_MATCH_DEVNAME:
->>   		case V4L2_ASYNC_MATCH_I2C:
->> -			break;
->>   		case V4L2_ASYNC_MATCH_FWNODE:
->> -			if (v4l2_async_notifier_fwnode_has_async_subdev(
->> -				    notifier, asd->match.fwnode, i)) {
->> +			if (v4l2_async_notifier_has_async_subdev(
->> +				    notifier, asd, i)) {
->>   				dev_err(dev,
->> -					"fwnode has already been registered or in notifier's subdev list\n");
->> +					"asd has already been registered or in notifier's subdev list\n");
->>   				ret = -EEXIST;
->>   				goto err_unlock;
->>   			}
->>
+While this adds the mode pointer to the device struct, it does not
+remove the mode_index from it because mode_index is still used in two
+dev_dbg() calls.  This will be handled in a follow-up commit.
+
+Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+---
+ drivers/media/i2c/imx274.c | 139 +++++++++++++++++++++------------------------
+ 1 file changed, 66 insertions(+), 73 deletions(-)
+
+diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
+index 8a8a11b8d75d..2ec31ae4e60d 100644
+--- a/drivers/media/i2c/imx274.c
++++ b/drivers/media/i2c/imx274.c
+@@ -147,10 +147,28 @@ enum imx274_mode {
+ };
+ 
+ /*
+- * imx274 format related structure
++ * Parameters for each imx274 readout mode.
++ *
++ * These are the values to configure the sensor in one of the
++ * implemented modes.
++ *
++ * @size: recommended recording pixels
++ * @init_regs: registers to initialize the mode
++ * @min_frame_len: Minimum frame length for each mode (see "Frame Rate
++ *                 Adjustment (CSI-2)" in the datasheet)
++ * @min_SHR: Minimum SHR register value (see "Shutter Setting (CSI-2)" in the
++ *           datasheet)
++ * @max_fps: Maximum frames per second
++ * @nocpiop: Number of clocks per internal offset period (see "Integration Time
++ *           in Each Readout Drive Mode (CSI-2)" in the datasheet)
+  */
+ struct imx274_frmfmt {
+ 	struct v4l2_frmsize_discrete size;
++	const struct reg_8 *init_regs;
++	int min_frame_len;
++	int min_SHR;
++	int max_fps;
++	int nocpiop;
+ };
+ 
+ /*
+@@ -476,58 +494,35 @@ static const struct reg_8 imx274_tp_regs[] = {
+ 	{IMX274_TABLE_END, 0x00}
+ };
+ 
+-static const struct reg_8 *mode_table[] = {
+-	[IMX274_MODE_3840X2160]		= imx274_mode1_3840x2160_raw10,
+-	[IMX274_MODE_1920X1080]		= imx274_mode3_1920x1080_raw10,
+-	[IMX274_MODE_1280X720]		= imx274_mode5_1280x720_raw10,
+-};
+-
+-/*
+- * imx274 format related structure
+- */
++/* nocpiop happens to be the same number for the implemented modes */
+ static const struct imx274_frmfmt imx274_formats[] = {
+-	{ {3840, 2160} },
+-	{ {1920, 1080} },
+-	{ {1280,  720} },
+-};
+-
+-/*
+- * minimal frame length for each mode
+- * refer to datasheet section "Frame Rate Adjustment (CSI-2)"
+- */
+-static const int min_frame_len[] = {
+-	4550, /* mode 1, 4K */
+-	2310, /* mode 3, 1080p */
+-	2310 /* mode 5, 720p */
+-};
+-
+-/*
+- * minimal numbers of SHR register
+- * refer to datasheet table "Shutter Setting (CSI-2)"
+- */
+-static const int min_SHR[] = {
+-	12, /* mode 1, 4K */
+-	8, /* mode 3, 1080p */
+-	8 /* mode 5, 720p */
+-};
+-
+-static const int max_frame_rate[] = {
+-	60, /* mode 1 , 4K */
+-	120, /* mode 3, 1080p */
+-	120 /* mode 5, 720p */
+-};
+-
+-/*
+- * Number of clocks per internal offset period
+- * a constant based on mode
+- * refer to section "Integration Time in Each Readout Drive Mode (CSI-2)"
+- * in the datasheet
+- * for the implemented 3 modes, it happens to be the same number
+- */
+-static const int nocpiop[] = {
+-	112, /* mode 1 , 4K */
+-	112, /* mode 3, 1080p */
+-	112 /* mode 5, 720p */
++	{
++		/* mode 1, 4K */
++		.size = {3840, 2160},
++		.init_regs = imx274_mode1_3840x2160_raw10,
++		.min_frame_len = 4550,
++		.min_SHR = 12,
++		.max_fps = 60,
++		.nocpiop = 112,
++	},
++	{
++		/* mode 3, 1080p */
++		.size = {1920, 1080},
++		.init_regs = imx274_mode3_1920x1080_raw10,
++		.min_frame_len = 2310,
++		.min_SHR = 8,
++		.max_fps = 120,
++		.nocpiop = 112,
++	},
++	{
++		/* mode 5, 720p */
++		.size = {1280, 720},
++		.init_regs = imx274_mode5_1280x720_raw10,
++		.min_frame_len = 2310,
++		.min_SHR = 8,
++		.max_fps = 120,
++		.nocpiop = 112,
++	},
+ };
+ 
+ /*
+@@ -557,6 +552,8 @@ struct imx274_ctrls {
+  * @regmap: Pointer to regmap structure
+  * @reset_gpio: Pointer to reset gpio
+  * @lock: Mutex structure
++ * @mode: Parameters for the selected readout mode
++ *        (points to imx274_formats[mode_index])
+  * @mode_index: Resolution mode index
+  */
+ struct stimx274 {
+@@ -569,6 +566,7 @@ struct stimx274 {
+ 	struct regmap *regmap;
+ 	struct gpio_desc *reset_gpio;
+ 	struct mutex lock; /* mutex lock for operations */
++	const struct imx274_frmfmt *mode;
+ 	u32 mode_index;
+ };
+ 
+@@ -704,18 +702,12 @@ static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
+ }
+ 
+ /*
+- * imx274_mode_regs - Function for set mode registers per mode index
++ * Set mode registers to start stream.
+  * @priv: Pointer to device structure
+- * @mode: Mode index value
+- *
+- * This is used to start steam per mode index.
+- * mode = 0, start stream for sensor Mode 1: 4K/raw10
+- * mode = 1, start stream for sensor Mode 3: 1080p/raw10
+- * mode = 2, start stream for sensor Mode 5: 720p/raw10
+  *
+  * Return: 0 on success, errors otherwise
+  */
+-static int imx274_mode_regs(struct stimx274 *priv, int mode)
++static int imx274_mode_regs(struct stimx274 *priv)
+ {
+ 	int err = 0;
+ 
+@@ -727,7 +719,7 @@ static int imx274_mode_regs(struct stimx274 *priv, int mode)
+ 	if (err)
+ 		return err;
+ 
+-	err = imx274_write_table(priv, mode_table[mode]);
++	err = imx274_write_table(priv, priv->mode->init_regs);
+ 
+ 	return err;
+ }
+@@ -889,6 +881,7 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
+ 	}
+ 
+ 	imx274->mode_index = index;
++	imx274->mode = &imx274_formats[index];
+ 
+ 	if (fmt->width > IMX274_MAX_WIDTH)
+ 		fmt->width = IMX274_MAX_WIDTH;
+@@ -1042,7 +1035,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
+ 
+ 	if (on) {
+ 		/* load mode registers */
+-		ret = imx274_mode_regs(imx274, imx274->mode_index);
++		ret = imx274_mode_regs(imx274);
+ 		if (ret)
+ 			goto fail;
+ 
+@@ -1146,14 +1139,14 @@ static int imx274_clamp_coarse_time(struct stimx274 *priv, u32 *val,
+ 	if (err)
+ 		return err;
+ 
+-	if (*frame_length < min_frame_len[priv->mode_index])
+-		*frame_length = min_frame_len[priv->mode_index];
++	if (*frame_length < priv->mode->min_frame_len)
++		*frame_length =  priv->mode->min_frame_len;
+ 
+ 	*val = *frame_length - *val; /* convert to raw shr */
+ 	if (*val > *frame_length - IMX274_SHR_LIMIT_CONST)
+ 		*val = *frame_length - IMX274_SHR_LIMIT_CONST;
+-	else if (*val < min_SHR[priv->mode_index])
+-		*val = min_SHR[priv->mode_index];
++	else if (*val < priv->mode->min_SHR)
++		*val = priv->mode->min_SHR;
+ 
+ 	return 0;
+ }
+@@ -1365,7 +1358,7 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
+ 	}
+ 
+ 	coarse_time = (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2 * val
+-			- nocpiop[priv->mode_index]) / hmax;
++			- priv->mode->nocpiop) / hmax;
+ 
+ 	/* step 2: convert exposure_time into SHR value */
+ 
+@@ -1375,7 +1368,7 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
+ 		goto fail;
+ 
+ 	priv->ctrls.exposure->val =
+-			(coarse_time * hmax + nocpiop[priv->mode_index])
++			(coarse_time * hmax + priv->mode->nocpiop)
+ 			/ (IMX274_PIXCLK_CONST1 / IMX274_PIXCLK_CONST2);
+ 
+ 	dev_dbg(&priv->client->dev,
+@@ -1529,10 +1522,9 @@ static int imx274_set_frame_interval(struct stimx274 *priv,
+ 				/ frame_interval.numerator);
+ 
+ 	/* boundary check */
+-	if (req_frame_rate > max_frame_rate[priv->mode_index]) {
++	if (req_frame_rate > priv->mode->max_fps) {
+ 		frame_interval.numerator = 1;
+-		frame_interval.denominator =
+-					max_frame_rate[priv->mode_index];
++		frame_interval.denominator = priv->mode->max_fps;
+ 	} else if (req_frame_rate < IMX274_MIN_FRAME_RATE) {
+ 		frame_interval.numerator = 1;
+ 		frame_interval.denominator = IMX274_MIN_FRAME_RATE;
+@@ -1634,8 +1626,9 @@ static int imx274_probe(struct i2c_client *client,
+ 
+ 	/* initialize format */
+ 	imx274->mode_index = IMX274_MODE_3840X2160;
+-	imx274->format.width = imx274_formats[0].size.width;
+-	imx274->format.height = imx274_formats[0].size.height;
++	imx274->mode = &imx274_formats[imx274->mode_index];
++	imx274->format.width = imx274->mode->size.width;
++	imx274->format.height = imx274->mode->size.height;
+ 	imx274->format.field = V4L2_FIELD_NONE;
+ 	imx274->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
+ 	imx274->format.colorspace = V4L2_COLORSPACE_SRGB;
+-- 
+2.7.4
