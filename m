@@ -1,202 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay11.mail.gandi.net ([217.70.178.231]:50303 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754013AbeDYLAb (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39073 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750955AbeDMHct (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 07:00:31 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hans.verkuil@cisco.com, mchehab@kernel.org, robh+dt@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] media: i2c: mt9t112: Add device tree support
-Date: Wed, 25 Apr 2018 13:00:14 +0200
-Message-Id: <1524654014-17852-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524654014-17852-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 13 Apr 2018 03:32:49 -0400
+From: Patrice CHOTARD <patrice.chotard@st.com>
+To: Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
+Date: Fri, 13 Apr 2018 07:32:08 +0000
+Message-ID: <eb6ed8db-2805-63f2-acb0-a262b07c76b7@st.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+ <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+ <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
+In-Reply-To: <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <F24C0CB8B70ED3498AE099DDC014DB9B@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for OF systems to mt9t112 image sensor driver.
-
-As the devicetree bindings use standard name for 'powerdown' gpio, and while
-at there, update the existing mt9t112 users to use the new name.
-
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- arch/sh/boards/mach-ecovec24/setup.c |  4 +-
- drivers/media/i2c/mt9t112.c          | 87 +++++++++++++++++++++++++++++++-----
- 2 files changed, 77 insertions(+), 14 deletions(-)
-
-diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
-index adc61d1..16de9ec 100644
---- a/arch/sh/boards/mach-ecovec24/setup.c
-+++ b/arch/sh/boards/mach-ecovec24/setup.c
-@@ -480,7 +480,7 @@ static struct gpiod_lookup_table tw9910_gpios = {
- static struct gpiod_lookup_table mt9t112_0_gpios = {
- 	.dev_id		= "0-003c",
- 	.table		= {
--		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA3, "standby",
-+		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA3, "powerdown",
- 			    GPIO_ACTIVE_HIGH),
- 	},
- };
-@@ -488,7 +488,7 @@ static struct gpiod_lookup_table mt9t112_0_gpios = {
- static struct gpiod_lookup_table mt9t112_1_gpios = {
- 	.dev_id		= "1-003c",
- 	.table		= {
--		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA4, "standby",
-+		GPIO_LOOKUP("sh7724_pfc", GPIO_PTA4, "powerdown",
- 			    GPIO_ACTIVE_HIGH),
- 	},
- };
-diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
-index af8cca9..704e7fb 100644
---- a/drivers/media/i2c/mt9t112.c
-+++ b/drivers/media/i2c/mt9t112.c
-@@ -32,6 +32,7 @@
-
- #include <media/i2c/mt9t112.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-image-sizes.h>
- #include <media/v4l2-subdev.h>
-
-@@ -77,6 +78,15 @@
- #define VAR(id, offset)  _VAR(id, offset, 0x0000)
- #define VAR8(id, offset) _VAR(id, offset, 0x8000)
-
-+/*
-+ * Default PLL configuration for 24MHz input clock
-+ */
-+static struct mt9t112_platform_data mt9t112_default_pdata_24MHz = {
-+	.divider	= {
-+		0x49, 0x6, 0, 6, 0, 9, 9, 6, 0,
-+	},
-+};
-+
- /************************************************************************
-  *			struct
-  ***********************************************************************/
-@@ -88,6 +98,7 @@ struct mt9t112_format {
- };
-
- struct mt9t112_priv {
-+	struct device			*dev;
- 	struct v4l2_subdev		 subdev;
- 	struct mt9t112_platform_data	*info;
- 	struct i2c_client		*client;
-@@ -1066,13 +1077,39 @@ static int mt9t112_camera_probe(struct i2c_client *client)
- 	return ret;
- }
-
-+static int mt9t112_parse_dt(struct mt9t112_priv *priv)
-+{
-+	struct fwnode_handle *fwnode = dev_fwnode(priv->dev);
-+	struct fwnode_handle *ep;
-+	struct v4l2_fwnode_endpoint vep;
-+	int ret;
-+
-+	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
-+	if (IS_ERR_OR_NULL(ep)) {
-+		dev_err(priv->dev, "No endpoint registered\n");
-+		return PTR_ERR(ep);
-+	}
-+
-+	ret = v4l2_fwnode_endpoint_parse(ep, &vep);
-+	fwnode_handle_put(ep);
-+	if (ret) {
-+		dev_err(priv->dev, "Unable to parse endpoint: %d\n", ret);
-+		return ret;
-+	}
-+
-+	if (vep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		priv->info->flags = MT9T112_FLAG_PCLK_RISING_EDGE;
-+
-+	return 0;
-+}
-+
- static int mt9t112_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *did)
- {
- 	struct mt9t112_priv *priv;
- 	int ret;
-
--	if (!client->dev.platform_data) {
-+	if (!client->dev.of_node && !client->dev.platform_data) {
- 		dev_err(&client->dev, "mt9t112: missing platform data!\n");
- 		return -EINVAL;
- 	}
-@@ -1081,23 +1118,39 @@ static int mt9t112_probe(struct i2c_client *client,
- 	if (!priv)
- 		return -ENOMEM;
-
--	priv->info = client->dev.platform_data;
- 	priv->init_done = false;
--
--	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
--
--	priv->clk = devm_clk_get(&client->dev, "extclk");
--	if (PTR_ERR(priv->clk) == -ENOENT) {
-+	priv->dev = &client->dev;
-+
-+	if (client->dev.platform_data) {
-+		priv->info = client->dev.platform_data;
-+
-+		priv->clk = devm_clk_get(&client->dev, "extclk");
-+		if (PTR_ERR(priv->clk) == -ENOENT) {
-+			priv->clk = NULL;
-+		} else if (IS_ERR(priv->clk)) {
-+			dev_err(&client->dev,
-+				"Unable to get clock \"extclk\"\n");
-+			return PTR_ERR(priv->clk);
-+		}
-+	} else {
-+		/*
-+		 * External clock frequencies != 24MHz are only supported
-+		 * for non-OF systems.
-+		 */
- 		priv->clk = NULL;
--	} else if (IS_ERR(priv->clk)) {
--		dev_err(&client->dev, "Unable to get clock \"extclk\"\n");
--		return PTR_ERR(priv->clk);
-+		priv->info = &mt9t112_default_pdata_24MHz;
-+
-+		ret = mt9t112_parse_dt(priv);
-+		if (ret)
-+			return ret;
- 	}
-
--	priv->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
-+	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
-+
-+	priv->standby_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
- 						     GPIOD_OUT_HIGH);
- 	if (IS_ERR(priv->standby_gpio)) {
--		dev_err(&client->dev, "Unable to get gpio \"standby\"\n");
-+		dev_err(&client->dev, "Unable to get gpio \"powerdown\"\n");
- 		return PTR_ERR(priv->standby_gpio);
- 	}
-
-@@ -1124,9 +1177,19 @@ static const struct i2c_device_id mt9t112_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, mt9t112_id);
-
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id mt9t112_of_match[] = {
-+	{ .compatible = "micron,mt9t111", },
-+	{ .compatible = "micron,mt9t112", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, mt9t112_of_match);
-+#endif
-+
- static struct i2c_driver mt9t112_i2c_driver = {
- 	.driver = {
- 		.name = "mt9t112",
-+		.of_match_table = of_match_ptr(mt9t112_of_match),
- 	},
- 	.probe    = mt9t112_probe,
- 	.remove   = mt9t112_remove,
---
-2.7.4
+SGkgTWF1cm8sIFNlYW4NCg0KT24gMDQvMTMvMjAxOCAxMjoyMSBBTSwgU2VhbiBZb3VuZyB3cm90
+ZToNCj4gT24gVGh1LCBBcHIgMTIsIDIwMTggYXQgMTE6MjQ6MDdBTSAtMDQwMCwgTWF1cm8gQ2Fy
+dmFsaG8gQ2hlaGFiIHdyb3RlOg0KPj4gQXMgd2FybmVkIGJ5IHNtYXRjaDoNCj4+IAlkcml2ZXJz
+L21lZGlhL3JjL3N0X3JjLmM6MTEwIHN0X3JjX3J4X2ludGVycnVwdCgpIHdhcm46IHRoaXMgbG9v
+cCBkZXBlbmRzIG9uIHJlYWRsKCkgc3VjY2VlZGluZw0KPj4NCj4+IElmIHNvbWV0aGluZyBnb2Vz
+IHdyb25nIGF0IHJlYWRsKCksIHRoZSBsb2dpYyB3aWxsIHN0YXkgdGhlcmUNCj4+IGluc2lkZSBh
+biBJUlEgY29kZSBmb3JldmVyLiBUaGlzIGlzIG5vdCB0aGUgbmljZXN0IHRoaW5nIHRvDQo+PiBk
+byA6LSkNCj4+DQo+PiBTbywgYWRkIGEgdGltZW91dCB0aGVyZSwgcHJldmVudGluZyBzdGF5aW5n
+IGluc2lkZSB0aGUgSVJRDQo+PiBmb3IgbW9yZSB0aGFuIDEwbXMuDQo+IA0KPiBJZiB3ZSBrbmV3
+IGhvdyBsYXJnZSB0aGUgZmlmbyB3YXMsIHRoZW4gd2UgY291bGQgbGltaXQgdGhlIGxvb3AgdG8g
+dGhhdCBtYW55DQo+IGl0ZXJhdGlvbnMgKG1heWJlIGEgZmV3IGV4dHJhIGluIGNhc2UgSVIgYXJy
+aXZlcyB3aGlsZSB3ZSBhIHJlYWRpbmcsIGJ1dA0KPiBJUiBpcyBtdWNoIHNsb3dlciB0aGFuIGEg
+Y3B1IGV4ZWN1dGluZyB0aGlzIGxvb3Agb2YgY291cnNlKS4NCj4gDQo+IFBhdHJpY2UgaXMgc29t
+ZXRoaW5nIHlvdSBjb3VsZCBoZWxwIHdpdGg/DQoNClVuZm9ydHVuYXRlbHksIGkgd2lsbCBub3Qg
+YmUgYWJsZSB0byBnaXZlIHlvdSBhbiBhbnN3ZXIgcmVnYXJkaW5nIHRoZSBSeCANCmZpZm8gc2l6
+ZS4NCg0KRm9yIGluZm9ybWF0aW9uLCBjdXJyZW50bHksIG5vbmUgb2YgdXBzdHJlYW1lZCBTVCBi
+b2FyZHMgYXJlIHVzaW5nIHRoaXMgDQpkcml2ZXIuIEl0IHdhcyB1c2VkIGluIHRoZSBwYXN0IGlu
+dGVybmFsbHkgYW5kIGJ5IGN1c3RvbWVycy4NCg0KUmVnYXJkcw0KDQo+IA0KPiBUaGFua3MNCj4g
+DQo+IFNlYW4NCj4gDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
+IDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5jb20+DQo+PiAtLS0NCj4+ICAgZHJpdmVycy9tZWRpYS9y
+Yy9zdF9yYy5jIHwgMTYgKysrKysrKysrKy0tLS0tLQ0KPj4gICAxIGZpbGUgY2hhbmdlZCwgMTAg
+aW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9tZWRpYS9yYy9zdF9yYy5jIGIvZHJpdmVycy9tZWRpYS9yYy9zdF9yYy5jDQo+PiBpbmRleCBk
+MmVmZDdiMmMzYmMuLmM4NTViMTc3MTAzYyAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEv
+cmMvc3RfcmMuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9yYy9zdF9yYy5jDQo+PiBAQCAtOTYs
+MTkgKzk2LDI0IEBAIHN0YXRpYyB2b2lkIHN0X3JjX3NlbmRfbGlyY190aW1lb3V0KHN0cnVjdCBy
+Y19kZXYgKnJkZXYpDQo+PiAgIA0KPj4gICBzdGF0aWMgaXJxcmV0dXJuX3Qgc3RfcmNfcnhfaW50
+ZXJydXB0KGludCBpcnEsIHZvaWQgKmRhdGEpDQo+PiAgIHsNCj4+ICsJdW5zaWduZWQgbG9uZyB0
+aW1lb3V0Ow0KPj4gICAJdW5zaWduZWQgaW50IHN5bWJvbCwgbWFyayA9IDA7DQo+PiAgIAlzdHJ1
+Y3Qgc3RfcmNfZGV2aWNlICpkZXYgPSBkYXRhOw0KPj4gICAJaW50IGxhc3Rfc3ltYm9sID0gMDsN
+Cj4+IC0JdTMyIHN0YXR1czsNCj4+ICsJdTMyIHN0YXR1cywgaW50X3N0YXR1czsNCj4+ICAgCURF
+RklORV9JUl9SQVdfRVZFTlQoZXYpOw0KPj4gICANCj4+ICAgCWlmIChkZXYtPmlycV93YWtlKQ0K
+Pj4gICAJCXBtX3dha2V1cF9ldmVudChkZXYtPmRldiwgMCk7DQo+PiAgIA0KPj4gLQlzdGF0dXMg
+ID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX1NUQVRVUyk7DQo+PiArCS8qIEZJWE1FOiBp
+cyAxMG1zIGdvb2QgZW5vdWdoID8gKi8NCj4+ICsJdGltZW91dCA9IGppZmZpZXMgKyAgbXNlY3Nf
+dG9famlmZmllcygxMCk7DQo+PiArCWRvIHsNCj4+ICsJCXN0YXR1cyAgPSByZWFkbChkZXYtPnJ4
+X2Jhc2UgKyBJUkJfUlhfU1RBVFVTKTsNCj4+ICsJCWlmICghKHN0YXR1cyAmIChJUkJfRklGT19O
+T1RfRU1QVFkgfCBJUkJfT1ZFUkZMT1cpKSkNCj4+ICsJCQlicmVhazsNCj4+ICAgDQo+PiAtCXdo
+aWxlIChzdGF0dXMgJiAoSVJCX0ZJRk9fTk9UX0VNUFRZIHwgSVJCX09WRVJGTE9XKSkgew0KPj4g
+LQkJdTMyIGludF9zdGF0dXMgPSByZWFkbChkZXYtPnJ4X2Jhc2UgKyBJUkJfUlhfSU5UX1NUQVRV
+Uyk7DQo+PiArCQlpbnRfc3RhdHVzID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX0lOVF9T
+VEFUVVMpOw0KPj4gICAJCWlmICh1bmxpa2VseShpbnRfc3RhdHVzICYgSVJCX1JYX09WRVJSVU5f
+SU5UKSkgew0KPj4gICAJCQkvKiBkaXNjYXJkIHRoZSBlbnRpcmUgY29sbGVjdGlvbiBpbiBjYXNl
+IG9mIGVycm9ycyEgICovDQo+PiAgIAkJCWlyX3Jhd19ldmVudF9yZXNldChkZXYtPnJkZXYpOw0K
+Pj4gQEAgLTE0OCw4ICsxNTMsNyBAQCBzdGF0aWMgaXJxcmV0dXJuX3Qgc3RfcmNfcnhfaW50ZXJy
+dXB0KGludCBpcnEsIHZvaWQgKmRhdGEpDQo+PiAgIA0KPj4gICAJCX0NCj4+ICAgCQlsYXN0X3N5
+bWJvbCA9IDA7DQo+PiAtCQlzdGF0dXMgID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX1NU
+QVRVUyk7DQo+PiAtCX0NCj4+ICsJfSB3aGlsZSAodGltZV9pc19hZnRlcl9qaWZmaWVzKHRpbWVv
+dXQpKTsNCj4+ICAgDQo+PiAgIAl3cml0ZWwoSVJCX1JYX0lOVFMsIGRldi0+cnhfYmFzZSArIElS
+Ql9SWF9JTlRfQ0xFQVIpOw0KPj4gICANCj4+IC0tIA0KPj4gMi4xNC4z
