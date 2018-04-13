@@ -1,76 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0056.outbound.protection.outlook.com ([104.47.33.56]:14968
-        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752673AbeEABfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Apr 2018 21:35:25 -0400
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-Subject: [PATCH v4 00/10] Add support for multi-planar formats and 10 bit formats 
-Date: Mon, 30 Apr 2018 18:35:03 -0700
-Message-ID: <cover.1524955156.git.satish.nagireddy.nagireddy@xilinx.com>
+Received: from mklab.rhul.ac.uk ([134.219.128.55]:49236 "EHLO
+        mklab.ph.rhul.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751775AbeDMBYo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Apr 2018 21:24:44 -0400
+Date: Fri, 13 Apr 2018 02:24:23 +0100 (BST)
+From: TPClmml@mklab.ph.rhul.ac.uk
+To: linux-media@vger.kernel.org
+cc: TPClmml@mklab.ph.rhul.ac.uk, crope@iki.fi
+Subject: Re: DVB-T2 support for TVR801 USB stick (Astrometa DVB-T2)
+In-Reply-To: <alpine.LNX.2.21.1803300427130.3376@mklab.ph.rhul.ac.uk>
+Message-ID: <alpine.LNX.2.21.1804130202400.6494@mklab.ph.rhul.ac.uk>
+References: <alpine.LNX.2.21.1803300427130.3376@mklab.ph.rhul.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- The patches are for xilinx v4l. The patcheset enable support to handle multiplanar
- formats and 10 bit formats. The implemenation has handling of single plane formats
- too for backward compatibility of some existing applications.
+On Fri, 30 Mar 2018, TPClmml@mklab.ph.rhul.ac.uk wrote:
 
-Changes in v4 (Thanks to Sakari Ailus, Hyun Kwon and Ian Arkver):
- - rst documentation is moved to 24 bit yuv formats group
- - Single plane implementation is removed as multi-plane supports both
- - num_buffers and bpl_factor parameters are removed to have clean
-   implementation
- - macropixel concept is used to calculate number of bytes in a row
-   for 10 bit formats
- - Video format descriptor table updated with 10 bit format information
+> Could anyone clarify what is supported on this stick for me?  According to 
+> https://www.linuxtv.org/wiki/index.php/Astrometa_DVB-T2 DVB-T2 has been 
+> supported since kernel 4.6.  I tried using a 4.9.9 kernel about a year ago 
+> and again today using 4.14.30, in both cases with the development tree code 
+> from git://linuxtv.org/media_build.git.
+>
+[details cut]
 
-Changes in v3:
- - Fixed table alignment issue in rst file. Ensured the output is proper uisng
-   'make pdfdocs'
+I have had no responses to my request above for information about support 
+for this DVB-T2 USB stick, posted a fortnight ago.  I know the developers 
+are busy people but I really would appreciate some feedback here! I am 
+very willing to help the developers with testing etc. or even try editing 
+the driver code again myself but I really can't know where to start 
+without knowing what the drivers are supposed to support/not support on 
+this device.
 
-Changes in v2:
- - Added rst documentation for MEDIA_BUS_FMT_VYYUYY8_1X24
+CCing Antti Palosaari <crope@iki.fi>, who developed the driver for 
+the MN88473 demodulator.
 
-Jeffrey Mouroux (2):
-  Documentation: uapi: media: v4l: New pixel format
-  uapi: media: New fourcc codes needed by Xilinx Video IP
-
-Laurent Pinchart (1):
-  xilinx: v4l: dma: Use the dmaengine_terminate_all() wrapper
-
-Radhey Shyam Pandey (1):
-  v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
-
-Rohit Athavale (2):
-  xilinx: v4l: dma: Update driver to allow for probe defer
-  media: Add new dt-bindings/vf_codes for supported formats
-
-Satish Kumar Nagireddy (4):
-  media-bus: uapi: Add YCrCb 420 media bus format
-  v4l: xilinx: dma: Update video format descriptor
-  v4l: xilinx: dma: Add multi-planar support
-  v4l: xilinx: dma: Add support for 10 bit formats
-
- Documentation/media/uapi/v4l/pixfmt-xv15.rst    | 135 ++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-xv20.rst    | 136 ++++++++++++++++++
- Documentation/media/uapi/v4l/subdev-formats.rst |  38 ++++-
- Documentation/media/uapi/v4l/yuv-formats.rst    |   2 +
- drivers/media/platform/xilinx/xilinx-dma.c      | 177 +++++++++++++++---------
- drivers/media/platform/xilinx/xilinx-dma.h      |   4 +-
- drivers/media/platform/xilinx/xilinx-vip.c      |  45 ++++--
- drivers/media/platform/xilinx/xilinx-vip.h      |  13 +-
- drivers/media/platform/xilinx/xilinx-vipp.c     |  16 +--
- include/dt-bindings/media/xilinx-vip.h          |   2 +
- include/uapi/linux/media-bus-format.h           |   3 +-
- include/uapi/linux/videodev2.h                  |   4 +
- 12 files changed, 488 insertions(+), 87 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv15.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-xv20.rst
+Many thanks
+Tom Crane
 
 -- 
-2.1.1
+Tom Crane, Dept. Physics, Royal Holloway, University of London, Egham Hill,
+Egham, Surrey, TW20 0EX, England.
+Email:  T.Crane@rhul.ac.uk
