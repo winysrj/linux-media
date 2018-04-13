@@ -1,97 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:34558 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751490AbeDJQ2x (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 12:28:53 -0400
+Received: from osg.samsung.com ([64.30.133.232]:42767 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753254AbeDMOIK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Apr 2018 10:08:10 -0400
+Date: Fri, 13 Apr 2018 11:08:03 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sean Young <sean@mess.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler
+ forever
+Message-ID: <20180413110803.0599eb2a@vento.lan>
+In-Reply-To: <20180413132052.37fudkaxltvwc46v@gofer.mess.org>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+        <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+        <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
+        <20180413060646.25b8a19d@vento.lan>
+        <20180413094005.wudyd2y5efaeimg3@gofer.mess.org>
+        <20180413070050.10d0de84@vento.lan>
+        <20180413132052.37fudkaxltvwc46v@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20180409073614.GV20945@w540>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
- <1523116090-13101-3-git-send-email-akinobu.mita@gmail.com> <20180409073614.GV20945@w540>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Wed, 11 Apr 2018 01:28:32 +0900
-Message-ID: <CAC5umyhDRPK8Y1CLDZpQpij-AfL+k3WmX+Wm02GbBCih1k8PQQ@mail.gmail.com>
-Subject: Re: [PATCH 2/6] media: ov772x: add checks for register read errors
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-04-09 16:36 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
-> Hi Akinobu,
->
-> On Sun, Apr 08, 2018 at 12:48:06AM +0900, Akinobu Mita wrote:
->> This change adds checks for register read errors and returns correct
->> error code.
->>
->
-> I feel like error conditions are anyway captured by the switch()
-> default case, but I understand there may be merits in returning the
-> actual error code.
->
->> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> ---
->>  drivers/media/i2c/ov772x.c | 11 +++++++++--
->>  1 file changed, 9 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
->> index 283ae2c..c56f910 100644
->> --- a/drivers/media/i2c/ov772x.c
->> +++ b/drivers/media/i2c/ov772x.c
->> @@ -1169,8 +1169,15 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
->>               return ret;
->>
->>       /* Check and show product ID and manufacturer ID. */
->> -     pid = ov772x_read(client, PID);
->> -     ver = ov772x_read(client, VER);
->> +     ret = ov772x_read(client, PID);
->> +     if (ret < 0)
->> +             return ret;
->> +     pid = ret;
->> +
->> +     ret = ov772x_read(client, VER);
->> +     if (ret < 0)
->> +             return ret;
->> +     ver = ret;
->
-> You can assign the ov772x_read() return value to pid and ver directly
-> and save two assignments.
+Em Fri, 13 Apr 2018 14:20:52 +0100
+Sean Young <sean@mess.org> escreveu:
 
-OK. This needs to change the data types of pid and ver from 'u8' to 'int'.
+> On Fri, Apr 13, 2018 at 07:00:50AM -0300, Mauro Carvalho Chehab wrote:
+> > Yeah, we could limit it to run only 512 times (or some other reasonable
+> > quantity), but in order to do that, we need to be sure that, on each read(),
+> > the FIFO will shift - e. g. no risk of needing to do more than one read
+> > to get the next element. That would work if the FIFO is implemented via
+> > flip-flops. But if it is implemented via some slow memory, or if the
+> > shift logic is implemented via some software on a micro-controller, it
+> > may need a few interactions to get the next value.
+> > 
+> > Without knowing about the hardware implementation, I'd say that setting
+> > a max time for the whole FIFO interaction is safer.  
+> 
+> Ok. If the 10ms timeout is reached, there really is a problem; should we
+> report an error in this case?
 
->>
->>       switch (VERSION(pid, ver)) {
->>       case OV7720:
->
-> If we want to check for return values here, which is always a good
-> thing, could you do the same for MIDH and MIDL below?
+Maybe, but then it should likely warn only once.
 
-Sounds good.
 
-> Nit: You can also fix the dev_info() parameters alignment to span to
-> the whole line length while at there. Ie.
->
->         dev_info(&client->dev,
->                  "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
->                  devname, pid, ver, ov772x_read(client, MIDH),
->                  ov772x_read(client, MIDL));
->
-> Thanks
->    j
->
->
->> --
->> 2.7.4
->>
+Thanks,
+Mauro
