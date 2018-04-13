@@ -1,69 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62327 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:35907 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751200AbeDQKW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 06:22:29 -0400
-Date: Tue, 17 Apr 2018 07:22:21 -0300
+        id S1752223AbeDMJw0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Apr 2018 05:52:26 -0400
+Date: Fri, 13 Apr 2018 06:52:19 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Daniel Mentz <danielmentz@google.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: Re: [PATCH 0/5] Remaining COMPILE_TEST and smatch cleanups
-Message-ID: <20180417072221.04decc50@vento.lan>
-In-Reply-To: <cover.1523960171.git.mchehab@s-opensource.com>
-References: <cover.1523960171.git.mchehab@s-opensource.com>
+To: Mason <slash.tmp@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler
+ forever
+Message-ID: <20180413065219.36e18418@vento.lan>
+In-Reply-To: <a83f5846-b93c-b3c5-31fa-a694df54b6b0@free.fr>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+        <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+        <37713022-870c-829b-bec9-18a62a39782c@free.fr>
+        <20180413062558.2285a039@vento.lan>
+        <a83f5846-b93c-b3c5-31fa-a694df54b6b0@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 17 Apr 2018 06:20:10 -0400
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Em Fri, 13 Apr 2018 11:36:56 +0200
+Mason <slash.tmp@free.fr> escreveu:
 
-> There were several interactions at the COMPILE_TEST and smatch
-> patch series. While I applied most of them, there are 5 patches that
-> I kept out of it. The omap3 patch that were in my tree was the old
-> one. So, I'm re-posting it.
+> On 13/04/2018 11:25, Mauro Carvalho Chehab wrote:
+> > Em Fri, 13 Apr 2018 11:15:16 +0200
+> > Mason <slash.tmp@free.fr> escreveu:
+> >   
+> >> On 12/04/2018 17:24, Mauro Carvalho Chehab wrote:
+> >>  
+> >>> As warned by smatch:
+> >>> 	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
+> >>>
+> >>> If something goes wrong at readl(), the logic will stay there
+> >>> inside an IRQ code forever. This is not the nicest thing to
+> >>> do :-)
+> >>>
+> >>> So, add a timeout there, preventing staying inside the IRQ
+> >>> for more than 10ms.
+> >>>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >>> ---
+> >>>  drivers/media/rc/st_rc.c | 16 ++++++++++------
+> >>>  1 file changed, 10 insertions(+), 6 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+> >>> index d2efd7b2c3bc..c855b177103c 100644
+> >>> --- a/drivers/media/rc/st_rc.c
+> >>> +++ b/drivers/media/rc/st_rc.c
+> >>> @@ -96,19 +96,24 @@ static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
+> >>>  
+> >>>  static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+> >>>  {
+> >>> +	unsigned long timeout;
+> >>>  	unsigned int symbol, mark = 0;
+> >>>  	struct st_rc_device *dev = data;
+> >>>  	int last_symbol = 0;
+> >>> -	u32 status;
+> >>> +	u32 status, int_status;
+> >>>  	DEFINE_IR_RAW_EVENT(ev);
+> >>>  
+> >>>  	if (dev->irq_wake)
+> >>>  		pm_wakeup_event(dev->dev, 0);
+> >>>  
+> >>> -	status  = readl(dev->rx_base + IRB_RX_STATUS);
+> >>> +	/* FIXME: is 10ms good enough ? */
+> >>> +	timeout = jiffies +  msecs_to_jiffies(10);
+> >>> +	do {
+> >>> +		status  = readl(dev->rx_base + IRB_RX_STATUS);
+> >>> +		if (!(status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)))
+> >>> +			break;
+> >>>  
+> >>> -	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+> >>> -		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+> >>> +		int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+> >>>  		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+> >>>  			/* discard the entire collection in case of errors!  */
+> >>>  			ir_raw_event_reset(dev->rdev);
+> >>> @@ -148,8 +153,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+> >>>  
+> >>>  		}
+> >>>  		last_symbol = 0;
+> >>> -		status  = readl(dev->rx_base + IRB_RX_STATUS);
+> >>> -	}
+> >>> +	} while (time_is_after_jiffies(timeout));
+> >>>  
+> >>>  	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
+> >>>      
+> >>
+> >> Isn't this a place where the iopoll.h helpers might be useful?
+> >>
+> >> e.g. readl_poll_timeout()
+> >>
+> >> https://elixir.bootlin.com/linux/latest/source/include/linux/iopoll.h#L114  
+> > 
+> > That won't work. Internally[1], readx_poll_timeout() calls
+> > usleep_range().
+> > 
+> > [1] https://elixir.bootlin.com/linux/latest/source/include/linux/iopoll.h#L43
+> > 
+> > It can't be called here, as this loop happens at the irq
+> > handler.  
 > 
-> The ioctl32 patches are the latest version. Let's repost it to get some
-> acks, as this patch touches at V4L2 core, so a careful review is
-> always a good idea.
+> Sorry, I meant readl_poll_timeout_atomic()
 
-Forgot to mention. If anyone wants to test, the patches are at:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=compile_test_v6b
+Ah, ok!
 
-> 
-> Arnd Bergmann (1):
->   media: omap3isp: allow it to build with COMPILE_TEST
-> 
-> Laurent Pinchart (1):
->   media: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
-> 
-> Mauro Carvalho Chehab (3):
->   omap: omap-iommu.h: allow building drivers with COMPILE_TEST
->   media: v4l2-compat-ioctl32: fix several __user annotations
->   media: v4l2-compat-ioctl32: better name userspace pointers
-> 
->  drivers/media/platform/Kconfig                |   7 +-
->  drivers/media/platform/omap3isp/isp.c         |   8 +
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 623 +++++++++++++-------------
->  include/linux/omap-iommu.h                    |   5 +
->  4 files changed, 338 insertions(+), 305 deletions(-)
-> 
+> But it might have to be open-coded because of the check for overruns.
 
+Yeah, readl_poll_timeout_atomic() works fine if we wanted to read just
+one value, but in this case, we need a loop to read from a FIFO, and
+we want to ensure that the total time spent there won't be bigger than
+a reasonable limit. So, we would need to open-code it, with is what the
+patch I proposed actually did (except that it uses jiffies instead of
+the high-res clock).
 
+If we take Sean's suggestion of limiting the loop by the FIFO size,
+then readl_poll_timeout_atomic() could indeed be an interesting
+alternative.
 
 Thanks,
 Mauro
