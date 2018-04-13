@@ -1,53 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:56773 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751683AbeDVSFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 14:05:09 -0400
-Date: Mon, 23 Apr 2018 02:05:03 +0800
-From: kbuild test robot <lkp@intel.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:11925 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751109AbeDMIDs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Apr 2018 04:03:48 -0400
+From: Patrice CHOTARD <patrice.chotard@st.com>
 To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org
-Subject: [RFC PATCH] sound, media: array_find() can be static
-Message-ID: <20180422180503.GA27818@lkp-sb04.lkp.intel.com>
-References: <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
+Date: Fri, 13 Apr 2018 08:03:16 +0000
+Message-ID: <c9a405b9-4d69-37f0-61a4-b23c0faba033@st.com>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+ <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+In-Reply-To: <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <2E570707D35A5346A415B7938517832E@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3f4d8ae83a91c765581d9cbbd1e436b6871368fa.1524227382.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Fixes: dbd775375e7d ("sound, media: allow building ISA drivers it with COMPILE_TEST")
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
- cmi8328.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/sound/isa/cmi8328.c b/sound/isa/cmi8328.c
-index d09e456..de6ef1b 100644
---- a/sound/isa/cmi8328.c
-+++ b/sound/isa/cmi8328.c
-@@ -192,7 +192,7 @@ static int snd_cmi8328_mixer(struct snd_wss *chip)
- }
- 
- /* find index of an item in "-1"-ended array */
--int array_find(int array[], int item)
-+static int array_find(int array[], int item)
- {
- 	int i;
- 
-@@ -203,7 +203,7 @@ int array_find(int array[], int item)
- 	return -1;
- }
- /* the same for long */
--int array_find_l(long array[], long item)
-+static int array_find_l(long array[], long item)
- {
- 	int i;
- 
+SGkgTWF1cm8NCg0KT24gMDQvMTIvMjAxOCAwNToyNCBQTSwgTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
+IHdyb3RlOg0KPiBBcyB3YXJuZWQgYnkgc21hdGNoOg0KPiAJZHJpdmVycy9tZWRpYS9yYy9zdF9y
+Yy5jOjExMCBzdF9yY19yeF9pbnRlcnJ1cHQoKSB3YXJuOiB0aGlzIGxvb3AgZGVwZW5kcyBvbiBy
+ZWFkbCgpIHN1Y2NlZWRpbmcNCj4gDQo+IElmIHNvbWV0aGluZyBnb2VzIHdyb25nIGF0IHJlYWRs
+KCksIHRoZSBsb2dpYyB3aWxsIHN0YXkgdGhlcmUNCj4gaW5zaWRlIGFuIElSUSBjb2RlIGZvcmV2
+ZXIuIFRoaXMgaXMgbm90IHRoZSBuaWNlc3QgdGhpbmcgdG8NCj4gZG8gOi0pDQo+IA0KPiBTbywg
+YWRkIGEgdGltZW91dCB0aGVyZSwgcHJldmVudGluZyBzdGF5aW5nIGluc2lkZSB0aGUgSVJRDQo+
+IGZvciBtb3JlIHRoYW4gMTBtcy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IE1hdXJvIENhcnZhbGhv
+IENoZWhhYiA8bWNoZWhhYkBzLW9wZW5zb3VyY2UuY29tPg0KPiAtLS0NCj4gICBkcml2ZXJzL21l
+ZGlhL3JjL3N0X3JjLmMgfCAxNiArKysrKysrKysrLS0tLS0tDQo+ICAgMSBmaWxlIGNoYW5nZWQs
+IDEwIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9tZWRpYS9yYy9zdF9yYy5jIGIvZHJpdmVycy9tZWRpYS9yYy9zdF9yYy5jDQo+IGluZGV4
+IGQyZWZkN2IyYzNiYy4uYzg1NWIxNzcxMDNjIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL21lZGlh
+L3JjL3N0X3JjLmMNCj4gKysrIGIvZHJpdmVycy9tZWRpYS9yYy9zdF9yYy5jDQo+IEBAIC05Niwx
+OSArOTYsMjQgQEAgc3RhdGljIHZvaWQgc3RfcmNfc2VuZF9saXJjX3RpbWVvdXQoc3RydWN0IHJj
+X2RldiAqcmRldikNCj4gICANCj4gICBzdGF0aWMgaXJxcmV0dXJuX3Qgc3RfcmNfcnhfaW50ZXJy
+dXB0KGludCBpcnEsIHZvaWQgKmRhdGEpDQo+ICAgew0KPiArCXVuc2lnbmVkIGxvbmcgdGltZW91
+dDsNCj4gICAJdW5zaWduZWQgaW50IHN5bWJvbCwgbWFyayA9IDA7DQo+ICAgCXN0cnVjdCBzdF9y
+Y19kZXZpY2UgKmRldiA9IGRhdGE7DQo+ICAgCWludCBsYXN0X3N5bWJvbCA9IDA7DQo+IC0JdTMy
+IHN0YXR1czsNCj4gKwl1MzIgc3RhdHVzLCBpbnRfc3RhdHVzOw0KPiAgIAlERUZJTkVfSVJfUkFX
+X0VWRU5UKGV2KTsNCj4gICANCj4gICAJaWYgKGRldi0+aXJxX3dha2UpDQo+ICAgCQlwbV93YWtl
+dXBfZXZlbnQoZGV2LT5kZXYsIDApOw0KPiAgIA0KPiAtCXN0YXR1cyAgPSByZWFkbChkZXYtPnJ4
+X2Jhc2UgKyBJUkJfUlhfU1RBVFVTKTsNCj4gKwkvKiBGSVhNRTogaXMgMTBtcyBnb29kIGVub3Vn
+aCA/ICovDQo+ICsJdGltZW91dCA9IGppZmZpZXMgKyAgbXNlY3NfdG9famlmZmllcygxMCk7DQo+
+ICsJZG8gew0KPiArCQlzdGF0dXMgID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX1NUQVRV
+Uyk7DQo+ICsJCWlmICghKHN0YXR1cyAmIChJUkJfRklGT19OT1RfRU1QVFkgfCBJUkJfT1ZFUkZM
+T1cpKSkNCj4gKwkJCWJyZWFrOw0KPiAgIA0KPiAtCXdoaWxlIChzdGF0dXMgJiAoSVJCX0ZJRk9f
+Tk9UX0VNUFRZIHwgSVJCX09WRVJGTE9XKSkgew0KPiAtCQl1MzIgaW50X3N0YXR1cyA9IHJlYWRs
+KGRldi0+cnhfYmFzZSArIElSQl9SWF9JTlRfU1RBVFVTKTsNCj4gKwkJaW50X3N0YXR1cyA9IHJl
+YWRsKGRldi0+cnhfYmFzZSArIElSQl9SWF9JTlRfU1RBVFVTKTsNCj4gICAJCWlmICh1bmxpa2Vs
+eShpbnRfc3RhdHVzICYgSVJCX1JYX09WRVJSVU5fSU5UKSkgew0KPiAgIAkJCS8qIGRpc2NhcmQg
+dGhlIGVudGlyZSBjb2xsZWN0aW9uIGluIGNhc2Ugb2YgZXJyb3JzISAgKi8NCj4gICAJCQlpcl9y
+YXdfZXZlbnRfcmVzZXQoZGV2LT5yZGV2KTsNCj4gQEAgLTE0OCw4ICsxNTMsNyBAQCBzdGF0aWMg
+aXJxcmV0dXJuX3Qgc3RfcmNfcnhfaW50ZXJydXB0KGludCBpcnEsIHZvaWQgKmRhdGEpDQo+ICAg
+DQo+ICAgCQl9DQo+ICAgCQlsYXN0X3N5bWJvbCA9IDA7DQo+IC0JCXN0YXR1cyAgPSByZWFkbChk
+ZXYtPnJ4X2Jhc2UgKyBJUkJfUlhfU1RBVFVTKTsNCj4gLQl9DQo+ICsJfSB3aGlsZSAodGltZV9p
+c19hZnRlcl9qaWZmaWVzKHRpbWVvdXQpKTsNCj4gICANCj4gICAJd3JpdGVsKElSQl9SWF9JTlRT
+LCBkZXYtPnJ4X2Jhc2UgKyBJUkJfUlhfSU5UX0NMRUFSKTsNCj4gICANCj4gDQoNCkFja2VkLWJ5
+OiBQYXRyaWNlIENob3RhcmQgPHBhdHJpY2UuY2hvdGFyZEBzdC5jb20+DQoNClRoYW5rcw0KDQpQ
+YXRyaWNl
