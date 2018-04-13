@@ -1,51 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:45695 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751365AbeDYTdZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 15:33:25 -0400
-Subject: Re: [PATCH/RFC 1/4] drm: Add colorkey properties
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>
-References: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171217001724.1348-2-laurent.pinchart+renesas@ideasonboard.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <2cf83ece-fc42-02ee-9234-10645eec1cb1@gmail.com>
-Date: Wed, 25 Apr 2018 22:33:21 +0300
+Received: from smtp5-g21.free.fr ([212.27.42.5]:36314 "EHLO smtp5-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751109AbeDMJhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Apr 2018 05:37:09 -0400
+Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>
+References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
+ <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
+ <37713022-870c-829b-bec9-18a62a39782c@free.fr>
+ <20180413062558.2285a039@vento.lan>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <a83f5846-b93c-b3c5-31fa-a694df54b6b0@free.fr>
+Date: Fri, 13 Apr 2018 11:36:56 +0200
 MIME-Version: 1.0
-In-Reply-To: <20171217001724.1348-2-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20180413062558.2285a039@vento.lan>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.12.2017 03:17, Laurent Pinchart wrote:
-> Color keying is the action of replacing pixels matching a given color
-> (or range of colors) with transparent pixels in an overlay when
-> performing blitting. Depending on the hardware capabilities, the
-> matching pixel can either become fully transparent, or gain a
-> programmable alpha value.
+On 13/04/2018 11:25, Mauro Carvalho Chehab wrote:
+> Em Fri, 13 Apr 2018 11:15:16 +0200
+> Mason <slash.tmp@free.fr> escreveu:
 > 
-> Color keying is found in a large number of devices whose capabilities
-> often differ, but they still have enough common features in range to
-> standardize color key properties. This commit adds four properties
-> related to color keying named colorkey.min, colorkey.max, colorkey.alpha
-> and colorkey.mode. Additional properties can be defined by drivers to
-> expose device-specific features.
+>> On 12/04/2018 17:24, Mauro Carvalho Chehab wrote:
+>>
+>>> As warned by smatch:
+>>> 	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
+>>>
+>>> If something goes wrong at readl(), the logic will stay there
+>>> inside an IRQ code forever. This is not the nicest thing to
+>>> do :-)
+>>>
+>>> So, add a timeout there, preventing staying inside the IRQ
+>>> for more than 10ms.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>>> ---
+>>>  drivers/media/rc/st_rc.c | 16 ++++++++++------
+>>>  1 file changed, 10 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+>>> index d2efd7b2c3bc..c855b177103c 100644
+>>> --- a/drivers/media/rc/st_rc.c
+>>> +++ b/drivers/media/rc/st_rc.c
+>>> @@ -96,19 +96,24 @@ static void st_rc_send_lirc_timeout(struct rc_dev *rdev)
+>>>  
+>>>  static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+>>>  {
+>>> +	unsigned long timeout;
+>>>  	unsigned int symbol, mark = 0;
+>>>  	struct st_rc_device *dev = data;
+>>>  	int last_symbol = 0;
+>>> -	u32 status;
+>>> +	u32 status, int_status;
+>>>  	DEFINE_IR_RAW_EVENT(ev);
+>>>  
+>>>  	if (dev->irq_wake)
+>>>  		pm_wakeup_event(dev->dev, 0);
+>>>  
+>>> -	status  = readl(dev->rx_base + IRB_RX_STATUS);
+>>> +	/* FIXME: is 10ms good enough ? */
+>>> +	timeout = jiffies +  msecs_to_jiffies(10);
+>>> +	do {
+>>> +		status  = readl(dev->rx_base + IRB_RX_STATUS);
+>>> +		if (!(status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)))
+>>> +			break;
+>>>  
+>>> -	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+>>> -		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+>>> +		int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+>>>  		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+>>>  			/* discard the entire collection in case of errors!  */
+>>>  			ir_raw_event_reset(dev->rdev);
+>>> @@ -148,8 +153,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+>>>  
+>>>  		}
+>>>  		last_symbol = 0;
+>>> -		status  = readl(dev->rx_base + IRB_RX_STATUS);
+>>> -	}
+>>> +	} while (time_is_after_jiffies(timeout));
+>>>  
+>>>  	writel(IRB_RX_INTS, dev->rx_base + IRB_RX_INT_CLEAR);
+>>>    
+>>
+>> Isn't this a place where the iopoll.h helpers might be useful?
+>>
+>> e.g. readl_poll_timeout()
+>>
+>> https://elixir.bootlin.com/linux/latest/source/include/linux/iopoll.h#L114
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> That won't work. Internally[1], readx_poll_timeout() calls
+> usleep_range().
+> 
+> [1] https://elixir.bootlin.com/linux/latest/source/include/linux/iopoll.h#L43
+> 
+> It can't be called here, as this loop happens at the irq
+> handler.
 
-Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
-Tested-by: Dmitry Osipenko <digetx@gmail.com>
+Sorry, I meant readl_poll_timeout_atomic()
 
-Note that this patch needs to be rebased now.
+But it might have to be open-coded because of the check for overruns.
+
+Regards.
