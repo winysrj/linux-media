@@ -1,157 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:27569 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750807AbeDFS5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 14:57:42 -0400
-Date: Fri, 6 Apr 2018 11:57:46 -0700
-From: Dongwon Kim <dongwon.kim@intel.com>
-To: Oleksandr Andrushchenko <andr2000@gmail.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-        Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        David Airlie <airlied@linux.ie>,
-        open list <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        qemu-devel@nongnu.org,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        Matt Roper <matthew.d.roper@intel.com>
-Subject: Re: [RfC PATCH] Add udmabuf misc device
-Message-ID: <20180406185746.GA4983@downor-Z87X-UD5H>
-References: <20180313154826.20436-1-kraxel@redhat.com>
- <20180313161035.GL4788@phenom.ffwll.local>
- <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
- <CAKMK7uGG6Z6XLc6GuKv7-3grCNg+EK2Lh6XWpavjsbZWF_L5Wg@mail.gmail.com>
- <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
- <2411d2c1-33c0-2ba5-67ea-3bb9af5d5ec9@epam.com>
- <20180406090747.gwiegu22z4noj23i@sirius.home.kraxel.org>
- <9a085854-3758-1500-9971-806c611cb54f@gmail.com>
- <20180406115730.jtwcbz5okrphlxli@sirius.home.kraxel.org>
- <7ef89a29-6584-d23c-efd1-f30d9b767a24@gmail.com>
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:26594 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751067AbeDNL7E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Apr 2018 07:59:04 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v14 03/33] rcar-vin: add Gen3 devicetree bindings documentation
+Date: Sat, 14 Apr 2018 13:56:56 +0200
+Message-Id: <20180414115726.5075-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7ef89a29-6584-d23c-efd1-f30d9b767a24@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 06, 2018 at 03:36:03PM +0300, Oleksandr Andrushchenko wrote:
-> On 04/06/2018 02:57 PM, Gerd Hoffmann wrote:
-> >   Hi,
-> >
-> >>>I fail to see any common ground for xen-zcopy and udmabuf ...
-> >>Does the above mean you can assume that xen-zcopy and udmabuf
-> >>can co-exist as two different solutions?
-> >Well, udmabuf route isn't fully clear yet, but yes.
-> >
-> >See also gvt (intel vgpu), where the hypervisor interface is abstracted
-> >away into a separate kernel modules even though most of the actual vgpu
-> >emulation code is common.
-> Thank you for your input, I'm just trying to figure out
-> which of the three z-copy solutions intersect and how much
-> >>And what about hyper-dmabuf?
+Document the devicetree bindings for the CSI-2 inputs available on Gen3.
 
-xen z-copy solution is pretty similar fundamentally to hyper_dmabuf
-in terms of these core sharing feature:
+There is a need to add a custom property 'renesas,id' and to define
+which CSI-2 input is described in which endpoint under the port@1 node.
+This information is needed since there are a set of predefined routes
+between each VIN and CSI-2 block. This routing table will be kept
+inside the driver but in order for it to act on it it must know which
+VIN and CSI-2 is which.
 
-1. the sharing process - import prime/dmabuf from the producer -> extract
-underlying pages and get those shared -> return references for shared pages
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../devicetree/bindings/media/rcar_vin.txt         | 118 ++++++++++++++++++---
+ 1 file changed, 106 insertions(+), 12 deletions(-)
 
-2. the page sharing mechanism - it uses Xen-grant-table.
-
-And to give you a quick summary of differences as far as I understand
-between two implementations (please correct me if I am wrong, Oleksandr.)
-
-1. xen-zcopy is DRM specific - can import only DRM prime buffer
-while hyper_dmabuf can export any dmabuf regardless of originator
-
-2. xen-zcopy doesn't seem to have dma-buf synchronization between two VMs
-while (as danvet called it as remote dmabuf api sharing) hyper_dmabuf sends
-out synchronization message to the exporting VM for synchronization.
-
-3. 1-level references - when using grant-table for sharing pages, there will
-be same # of refs (each 8 byte) as # of shared pages, which is passed to
-the userspace to be shared with importing VM in case of xen-zcopy. Compared
-to this, hyper_dmabuf does multiple level addressing to generate only one
-reference id that represents all shared pages.
-
-4. inter VM messaging (hype_dmabuf only) - hyper_dmabuf has inter-vm msg
-communication defined for dmabuf synchronization and private data (meta
-info that Matt Roper mentioned) exchange.
-
-5. driver-to-driver notification (hyper_dmabuf only) - importing VM gets
-notified when newdmabuf is exported from other VM - uevent can be optionally
-generated when this happens.
-
-6. structure - hyper_dmabuf is targetting to provide a generic solution for
-inter-domain dmabuf sharing for most hypervisors, which is why it has two
-layers as mattrope mentioned, front-end that contains standard API and backend
-that is specific to hypervisor.
-
-> >No idea, didn't look at it in detail.
-> >
-> >Looks pretty complex from a distant view.  Maybe because it tries to
-> >build a communication framework using dma-bufs instead of a simple
-> >dma-buf passing mechanism.
-
-we started with simple dma-buf sharing but realized there are many
-things we need to consider in real use-case, so we added communication
-, notification and dma-buf synchronization then re-structured it to 
-front-end and back-end (this made things more compicated..) since Xen
-was not our only target. Also, we thought passing the reference for the
-buffer (hyper_dmabuf_id) is not secure so added uvent mechanism later.
-
-> Yes, I am looking at it now, trying to figure out the full story
-> and its implementation. BTW, Intel guys were about to share some
-> test application for hyper-dmabuf, maybe I have missed one.
-> It could probably better explain the use-cases and the complexity
-> they have in hyper-dmabuf.
-
-One example is actually in github. If you want take a look at it, please
-visit:
-
-https://github.com/downor/linux_hyper_dmabuf_test/tree/xen/simple_export
-
-> >
-> >Like xen-zcopy it seems to depend on the idea that the hypervisor
-> >manages all memory it is easy for guests to share pages with the help of
-> >the hypervisor.
-> So, for xen-zcopy we were not trying to make it generic,
-> it just solves display (dumb) zero-copying use-cases for Xen.
-> We implemented it as a DRM helper driver because we can't see any
-> other use-cases as of now.
-> For example, we also have Xen para-virtualized sound driver, but
-> its buffer memory usage is not comparable to what display wants
-> and it works somewhat differently (e.g. there is no "frame done"
-> event, so one can't tell when the sound buffer can be "flipped").
-> At the same time, we do not use virtio-gpu, so this could probably
-> be one more candidate for shared dma-bufs some day.
-> >   Which simply isn't the case on kvm.
-> >
-> >hyper-dmabuf and xen-zcopy could maybe share code, or hyper-dmabuf build
-> >on top of xen-zcopy.
-> Hm, I can imagine that: xen-zcopy could be a library code for hyper-dmabuf
-> in terms of implementing all that page sharing fun in multiple directions,
-> e.g. Host->Guest, Guest->Host, Guest<->Guest.
-> But I'll let Matt and Dongwon to comment on that.
-
-I think we can definitely collaborate. Especially, maybe we are using some
-outdated sharing mechanism/grant-table mechanism in our Xen backend (thanks
-for bringing that up Oleksandr). However, the question is once we collaborate
-somehow, can xen-zcopy's usecase use the standard API that hyper_dmabuf
-provides? I don't think we need different IOCTLs that do the same in the final
-solution.
-
-> 
-> >
-> >cheers,
-> >   Gerd
-> >
-> Thank you,
-> Oleksandr
-> 
-> P.S. Sorry for making your original mail thread to discuss things much
-> broader than your RFC...
-> 
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 4c76d82905c9d3b8..ba31431d4b1fbdbb 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
+ -------------------------------------------
+ 
+ The rcar_vin device provides video input capabilities for the Renesas R-Car
+-family of devices. The current blocks are always slaves and suppot one input
+-channel which can be either RGB, YUYV or BT656.
++family of devices.
++
++Each VIN instance has a single parallel input that supports RGB and YUV video,
++with both external synchronization and BT.656 synchronization for the latter.
++Depending on the instance the VIN input is connected to external SoC pins, or
++on Gen3 platforms to a CSI-2 receiver.
+ 
+  - compatible: Must be one or more of the following
+    - "renesas,vin-r8a7743" for the R8A7743 device
+@@ -16,6 +20,8 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
++   - "renesas,vin-r8a7796" for the R8A7796 device
++   - "renesas,vin-r8a77970" for the R8A77970 device
+    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+      device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+@@ -31,21 +37,38 @@ channel which can be either RGB, YUYV or BT656.
+ Additionally, an alias named vinX will need to be created to specify
+ which video input device this is.
+ 
+-The per-board settings:
++The per-board settings Gen2 platforms:
+  - port sub-node describing a single endpoint connected to the vin
+    as described in video-interfaces.txt[1]. Only the first one will
+    be considered as each vin interface has one input port.
+ 
+-   These settings are used to work out video input format and widths
+-   into the system.
++The per-board settings Gen3 platforms:
+ 
++Gen3 platforms can support both a single connected parallel input source
++from external SoC pins (port0) and/or multiple parallel input sources
++from local SoC CSI-2 receivers (port1) depending on SoC.
+ 
+-Device node example
+--------------------
++- renesas,id - ID number of the VIN, VINx in the documentation.
++- ports
++    - port 0 - sub-node describing a single endpoint connected to the VIN
++      from external SoC pins described in video-interfaces.txt[1].
++      Describing more then one endpoint in port 0 is invalid. Only VIN
++      instances that are connected to external pins should have port 0.
++    - port 1 - sub-nodes describing one or more endpoints connected to
++      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
++      use the following schema.
+ 
+-	aliases {
+-	       vin0 = &vin0;
+-	};
++        - Endpoint 0 - sub-node describing the endpoint connected to CSI20
++        - Endpoint 1 - sub-node describing the endpoint connected to CSI21
++        - Endpoint 2 - sub-node describing the endpoint connected to CSI40
++        - Endpoint 3 - sub-node describing the endpoint connected to CSI41
++
++Device node example for Gen2 platforms
++--------------------------------------
++
++        aliases {
++                vin0 = &vin0;
++        };
+ 
+         vin0: vin@e6ef0000 {
+                 compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
+@@ -55,8 +78,8 @@ Device node example
+                 status = "disabled";
+         };
+ 
+-Board setup example (vin1 composite video input)
+-------------------------------------------------
++Board setup example for Gen2 platforms (vin1 composite video input)
++-------------------------------------------------------------------
+ 
+ &i2c2   {
+         status = "okay";
+@@ -95,6 +118,77 @@ Board setup example (vin1 composite video input)
+         };
+ };
+ 
++Device node example for Gen3 platforms
++--------------------------------------
+ 
++        vin0: video@e6ef0000 {
++                compatible = "renesas,vin-r8a7795";
++                reg = <0 0xe6ef0000 0 0x1000>;
++                interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 811>;
++                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++                resets = <&cpg 811>;
++                renesas,id = <0>;
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                vin0csi20: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint= <&csi20vin0>;
++                                };
++                                vin0csi21: endpoint@1 {
++                                        reg = <1>;
++                                        remote-endpoint= <&csi21vin0>;
++                                };
++                                vin0csi40: endpoint@2 {
++                                        reg = <2>;
++                                        remote-endpoint= <&csi40vin0>;
++                                };
++                        };
++                };
++        };
++
++        csi20: csi2@fea80000 {
++                compatible = "renesas,r8a7795-csi2";
++                reg = <0 0xfea80000 0 0x10000>;
++                interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 714>;
++                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++                resets = <&cpg 714>;
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@0 {
++                                reg = <0>;
++                                csi20_in: endpoint {
++                                        clock-lanes = <0>;
++                                        data-lanes = <1>;
++                                        remote-endpoint = <&adv7482_txb>;
++                                };
++                        };
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                csi20vin0: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint = <&vin0csi20>;
++                                };
++                        };
++                };
++        };
+ 
+ [1] video-interfaces.txt common video media interface
+-- 
+2.16.2
