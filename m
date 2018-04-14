@@ -1,66 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:56741 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751353AbeDYKLJ (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:64853 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750947AbeDNMCS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 06:11:09 -0400
-Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
- COMPILE_TEST && DRM_OMAP
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        <dri-devel@lists.freedesktop.org>, <linux-fbdev@vger.kernel.org>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
- <1818588.4EAHIaV2gL@avalon> <dce06ad8-0035-81e6-9ec9-15009d13e374@ti.com>
- <10529104.rM2F4eJv5O@avalon>
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <7644bb92-e7b2-db27-061b-e0808c7264cd@ti.com>
-Date: Wed, 25 Apr 2018 13:10:43 +0300
+        Sat, 14 Apr 2018 08:02:18 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v14 26/33] rcar-vin: change name of video device
+Date: Sat, 14 Apr 2018 13:57:19 +0200
+Message-Id: <20180414115726.5075-27-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <10529104.rM2F4eJv5O@avalon>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/04/18 13:02, Laurent Pinchart wrote:
-> Hi Tomi,
-> 
-> On Wednesday, 25 April 2018 12:33:53 EEST Tomi Valkeinen wrote:
->> On 25/04/18 12:03, Laurent Pinchart wrote:
->>> Could we trim down omapfb to remove support for the devices supported by
->>> omapdrm ?
->>
->> I was thinking about just that. But, of course, it's not quite
->> straightforward either.
->>
->> We've got DSI manual update functionality in OMAP3-OMAP5 SoCs, which
->> covers a lot of devices.
-> 
-> Sebastian is working on getting that feature in omapdrm, isn't he ?
+The rcar-vin driver needs to be part of a media controller to support
+Gen3. Give each VIN instance a unique name so it can be referenced from
+userspace.
 
-Yes, and I keep pushing it forward because of the restructuring you're
-doing =) (feel free to comment on that thread). But agreed, it's getting
-better. When we have manual update support, I think the biggest missing
-feature is then in omapdrm.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->> And VRFB on OMAP2/3.
-> 
-> And that's something I'd really like to have in omapdrm too.
-
-Considering how much headache TILER has given, I'm not exactly looking
-forward to it ;).
-
-If we get manual update and VRFB, I think we are more or less covered on
-the supported HW features. It'll still break userspace apps which use
-omapfb, though. Unless we also port the omapfb specific IOCTLs and the
-sysfs files, which I believe we should not.
-
- Tomi
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 2c28daf1c725e64c..09d584d8e839b868 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -991,7 +991,7 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	/* video node */
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+-	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
++	snprintf(vdev->name, sizeof(vdev->name), "VIN%u output", vin->id);
+ 	vdev->release = video_device_release_empty;
+ 	vdev->lock = &vin->lock;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
 -- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.16.2
