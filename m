@@ -1,120 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:53805 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750861AbeDRMMN (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:43013 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750942AbeDNL67 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 08:12:13 -0400
-Date: Wed, 18 Apr 2018 14:12:04 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v2 01/10] media: ov772x: allow i2c controllers without
- I2C_FUNC_PROTOCOL_MANGLING
-Message-ID: <20180418121204.GE20486@w540>
-References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
- <1523847111-12986-2-git-send-email-akinobu.mita@gmail.com>
- <20180418100549.GA17088@w540>
- <20180418104154.lyqj4qipa3d44jb4@valkosipuli.retiisi.org.uk>
+        Sat, 14 Apr 2018 07:58:59 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Subject: [PATCH v14 02/33] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+Date: Sat, 14 Apr 2018 13:56:55 +0200
+Message-Id: <20180414115726.5075-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ryJZkp9/svQ58syV"
-Content-Disposition: inline
-In-Reply-To: <20180418104154.lyqj4qipa3d44jb4@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 
---ryJZkp9/svQ58syV
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add compatible strings for r8a7743 and r8a7745. No driver change
+is needed as "renesas,rcar-gen2-vin" will activate the right code.
+However, it is good practice to document compatible strings for the
+specific SoC as this allows SoC specific changes to the driver if
+needed, in addition to document SoC support and therefore allow
+checkpatch.pl to validate compatible string values.
 
-Hi Sakari,
+Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Acked-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-On Wed, Apr 18, 2018 at 01:41:54PM +0300, Sakari Ailus wrote:
-> On Wed, Apr 18, 2018 at 12:05:49PM +0200, jacopo mondi wrote:
-> > Hi Akinobu,
-> >
-> > On Mon, Apr 16, 2018 at 11:51:42AM +0900, Akinobu Mita wrote:
-> > > The ov772x driver only works when the i2c controller have
-> > > I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don=
-'t
-> > > support it.
-> > >
-> > > The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
-> > > it doesn't support repeated starts.
-> > >
-> > > This changes the reading ov772x register method so that it doesn't
-> > > require I2C_FUNC_PROTOCOL_MANGLING by calling two separated i2c messa=
-ges.
-> > >
-> > > Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > > ---
-> > > * v2
-> > > - Replace the implementation of ov772x_read() instead of adding an
-> > >   alternative method
-> >
-> > I now wonder if my initial reply to this patch was wrong, and where
-> > possible we should try to use smbus operations...
-> >
-> > From Documentation/i2c/smbus-protocol
-> > "If you write a driver for some I2C device, please try to use the SMBus
-> > commands if at all possible... " and that's because, according to
-> > documentation, most I2c adapters support smbus protocol but may not
-> > support the full i2c command set.
-> >
-> > The fact this driver then restricts the supported adapters to the ones
-> > that support protocol mangling makes me think your change is fine,
-> > but as it often happens, I would scale this to more knowledgable
-> > people...
->
-> Do you actually need to use this on SMBus adapters? A lot of sensor drive=
-rs
-> just use I=C2=B2C; if SMBus support is really needed it can be always add=
-ed back
-> later on...
-
-That was actually my question, sorry for not being clear.
-
-As the documentation says that SMBus has to be preferred when
-possible, I was wondering if ditching it completely in favour of plain
-I2c was wrong or not... I assume from your answer it is fine.
-
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
-
---ryJZkp9/svQ58syV
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa1zYUAAoJEHI0Bo8WoVY8n2AP/16QmYlwEWjp5F5aKXSSzurN
-GhG1+mZP000rGB8CLkE4xkdXRGXV59bQ0lk5PlJDuTs+kPwvf4Cm4mPgP7ZejcI1
-eE/Y9Q+2GMKlFauyH3uxM0RiRjTlG95J6hwTQfW2pfpA6cTfKu+lHcuP5gIR6wmL
-jmrw5rGu3LiHNW6kJ2DbNknNX64NRZRbiLA0UY9h5K5Aoq3C9k/uHW+Bf1IxXPk7
-j9cTiLl2xIUh2eqdUlbvivyk2HuxMA/tOYJTS0kzVfQS3wv2oSV5ipD1QaaATsdx
-PryemyQ5lR/IMaFvhcAtetWTCEJukv5NSi1IMrp2ltj3kWflyoT+Hg+rdtESBky0
-0WPBrgcmoOOkXqsxoAihb6QMNRUqOFWNJRwzAFmAohZ9314AWJu4uwFZq1oAkRkt
-iT/PKrzTfaGD8PPG5QKfoIK6tC471olzU+8pBo8XlvHmnVxpgO+zzwj38YYGV6zj
-JlXwzm0z5v3yH9QqObn7t+fN6B1XKCVrrqGEok8KCY9TXq2Nf48ZPUqRJ3BOLkTF
-KyaqPSIGUeb4AIablhbe5WSrWDTaBCMRUkl+oR9ZsQ67VQdXmSeQTI6Sf4TERz+b
-lE6v2JLykfayaZasxkTUMHJZqAITbqZ2UIrJ/Hl2a17sYFvoGsIcTD2GXUhy2qo/
-HfDb1cGuziLtBg+BXrbt
-=uqTw
------END PGP SIGNATURE-----
-
---ryJZkp9/svQ58syV--
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index d99b6f5dee418056..4c76d82905c9d3b8 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
+ 
+  - compatible: Must be one or more of the following
++   - "renesas,vin-r8a7743" for the R8A7743 device
++   - "renesas,vin-r8a7745" for the R8A7745 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7790" for the R8A7790 device
+@@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
+-   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
++   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
++     device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+ 
+    When compatible with the generic version nodes must list the
+-- 
+2.16.2
