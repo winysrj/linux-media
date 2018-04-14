@@ -1,96 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42666 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752813AbeDCVkO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:40:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:62910 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750936AbeDNMCY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Apr 2018 08:02:24 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v13 23/33] rcar-vin: force default colorspace for media centric mode
-Date: Wed, 04 Apr 2018 00:40:23 +0300
-Message-ID: <3928384.BQ7mG5EcqE@avalon>
-In-Reply-To: <20180326214456.6655-24-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-24-niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v14 27/33] rcar-vin: add chsel information to rvin_info
+Date: Sat, 14 Apr 2018 13:57:20 +0200
+Message-Id: <20180414115726.5075-28-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Each Gen3 SoC has a limited set of predefined routing possibilities for
+which CSI-2 device and channel can be routed to which VIN instance.
+Prepare to store this information in the struct rvin_info.
 
-Thank you for the patch.
-
-On Tuesday, 27 March 2018 00:44:46 EEST Niklas S=F6derlund wrote:
-> The V4L2 specification clearly documents the colorspace fields as being
-> set by drivers for capture devices. Using the values supplied by
-> userspace thus wouldn't comply with the API. Until the API is updated to
-> allow for userspace to set these Hans wants the fields to be set by the
-> driver to fixed values.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++++++++++++++--
->  1 file changed, 19 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 2280535ca981993f..ea0759a645e49490 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -664,12 +664,29 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops =
-=3D {
->   * V4L2 Media Controller
->   */
->=20
-> +static int rvin_mc_try_format(struct rvin_dev *vin, struct v4l2_pix_form=
-at
-> *pix) +{
-> +	/*
-> +	 * The V4L2 specification clearly documents the colorspace fields
-> +	 * as being set by drivers for capture devices. Using the values
-> +	 * supplied by userspace thus wouldn't comply with the API. Until
-> +	 * the API is updated force fixed vaules.
-> +	 */
-> +	pix->colorspace =3D RVIN_DEFAULT_COLORSPACE;
-> +	pix->xfer_func =3D V4L2_MAP_XFER_FUNC_DEFAULT(pix->colorspace);
-> +	pix->ycbcr_enc =3D V4L2_MAP_YCBCR_ENC_DEFAULT(pix->colorspace);
-> +	pix->quantization =3D V4L2_MAP_QUANTIZATION_DEFAULT(true, pix->colorspa=
-ce,
-> +							  pix->ycbcr_enc);
-> +
-> +	return rvin_format_align(vin, pix);
-> +}
-> +
->  static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
->  				   struct v4l2_format *f)
->  {
->  	struct rvin_dev *vin =3D video_drvdata(file);
->=20
-> -	return rvin_format_align(vin, &f->fmt.pix);
-> +	return rvin_mc_try_format(vin, &f->fmt.pix);
->  }
->=20
->  static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
-> @@ -681,7 +698,7 @@ static int rvin_mc_s_fmt_vid_cap(struct file *file, v=
-oid
-> *priv, if (vb2_is_busy(&vin->queue))
->  		return -EBUSY;
->=20
-> -	ret =3D rvin_format_align(vin, &f->fmt.pix);
-> +	ret =3D rvin_mc_try_format(vin, &f->fmt.pix);
->  	if (ret)
->  		return ret;
+---
 
+* Changes since v13
+- Add review by Laurent.
 
-=2D-=20
-Regards,
+* Changes since v11
+- Fixed spelling.
+- Reorderd filed order in struct rvin_group_route.
+- Renamed chan to channel in struct rvin_group_route.
+---
+ drivers/media/platform/rcar-vin/rcar-vin.h | 42 ++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-Laurent Pinchart
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index cf5c467d45e10847..93eb40856b866117 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -43,6 +43,14 @@ enum model_id {
+ 	RCAR_GEN3,
+ };
+ 
++enum rvin_csi_id {
++	RVIN_CSI20,
++	RVIN_CSI21,
++	RVIN_CSI40,
++	RVIN_CSI41,
++	RVIN_CSI_MAX,
++};
++
+ /**
+  * STOPPED  - No operation in progress
+  * RUNNING  - Operation in progress have buffers
+@@ -79,12 +87,45 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++/**
++ * struct rvin_group_route - describes a route from a channel of a
++ *	CSI-2 receiver to a VIN
++ *
++ * @csi:	CSI-2 receiver ID.
++ * @channel:	Output channel of the CSI-2 receiver.
++ * @vin:	VIN ID.
++ * @mask:	Bitmask of the different CHSEL register values that
++ *		allow for a route from @csi + @chan to @vin.
++ *
++ * .. note::
++ *	Each R-Car CSI-2 receiver has four output channels facing the VIN
++ *	devices, each channel can carry one CSI-2 Virtual Channel (VC).
++ *	There is no correlation between channel number and CSI-2 VC. It's
++ *	up to the CSI-2 receiver driver to configure which VC is output
++ *	on which channel, the VIN devices only care about output channels.
++ *
++ *	There are in some cases multiple CHSEL register settings which would
++ *	allow for the same route from @csi + @channel to @vin. For example
++ *	on R-Car H3 both the CHSEL values 0 and 3 allow for a route from
++ *	CSI40/VC0 to VIN0. All possible CHSEL values for a route need to be
++ *	recorded as a bitmask in @mask, in this example bit 0 and 3 should
++ *	be set.
++ */
++struct rvin_group_route {
++	enum rvin_csi_id csi;
++	unsigned int channel;
++	unsigned int vin;
++	unsigned int mask;
++};
++
+ /**
+  * struct rvin_info - Information about the particular VIN implementation
+  * @model:		VIN model
+  * @use_mc:		use media controller instead of controlling subdevice
+  * @max_width:		max input width the VIN supports
+  * @max_height:		max input height the VIN supports
++ * @routes:		list of possible routes from the CSI-2 recivers to
++ *			all VINs. The list mush be NULL terminated.
+  */
+ struct rvin_info {
+ 	enum model_id model;
+@@ -92,6 +133,7 @@ struct rvin_info {
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
++	const struct rvin_group_route *routes;
+ };
+ 
+ /**
+-- 
+2.16.2
