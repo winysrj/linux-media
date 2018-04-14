@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54335 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751967AbeDEJSo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:44 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 12/15] v4l: vsp1: Generalize detection of entity removal from DRM pipeline
-Date: Thu,  5 Apr 2018 12:18:37 +0300
-Message-Id: <20180405091840.30728-13-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from osg.samsung.com ([64.30.133.232]:48675 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751133AbeDNJqz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Apr 2018 05:46:55 -0400
+Date: Sat, 14 Apr 2018 06:46:48 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: "Jasmin J." <jasmin@anw.at>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        LMML <linux-media@vger.kernel.org>
+Subject: Re: Smatch and sparse errors
+Message-ID: <20180414064648.0ad264fa@vento.lan>
+In-Reply-To: <fc6e68a3-817b-8caf-ba4f-dd2ed76d2a52@anw.at>
+References: <20180411122728.52e6fa9a@vento.lan>
+        <fc6e68a3-817b-8caf-ba4f-dd2ed76d2a52@anw.at>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When disabling a DRM plane, the corresponding RPF is only marked as
-removed from the pipeline in the atomic update handler, with the actual
-removal happening when configuring the pipeline at atomic commit time.
-This is required as the RPF has to be disabled in the hardware, which
-can't be done from the atomic update handler.
+Em Sat, 14 Apr 2018 03:18:20 +0200
+"Jasmin J." <jasmin@anw.at> escreveu:
 
-The current implementation is RPF-specific. Make it independent of the
-entity type by using the entity's pipe pointer to mark removal from the
-pipeline. This will allow using the mechanism to remove BRU instances.
+> Hello Mauro/Hans!
+> 
+> > There is already an upstream patch for hidding it:  
+> The patch from https://patchwork.kernel.org/patch/10334353 will not
+> apply at the smatch tree.
+> 
+> Attached is an updated version for smatch.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+Then you're probably not using the right version (or Dan applied some
+other stuff yesterday).
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 68b126044ea1..a9c53892a9ea 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -346,13 +346,12 @@ static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
- 	dl = vsp1_dl_list_get(pipe->output->dlm);
- 
- 	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
--		/* Disconnect unused RPFs from the pipeline. */
--		if (entity->type == VSP1_ENTITY_RPF &&
--		    !pipe->inputs[entity->index]) {
-+		/* Disconnect unused entities from the pipeline. */
-+		if (!entity->pipe) {
- 			vsp1_dl_list_write(dl, entity->route->reg,
- 					   VI6_DPR_NODE_UNUSED);
- 
--			entity->pipe = NULL;
-+			entity->sink = NULL;
- 			list_del(&entity->list_pipe);
- 
- 			continue;
-@@ -569,10 +568,11 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
- 			rpf_index);
- 
- 		/*
--		 * Remove the RPF from the pipe's inputs. The atomic flush
--		 * handler will disable the input and remove the entity from the
--		 * pipe's entities list.
-+		 * Remove the RPF from the pipeline's inputs. Keep it in the
-+		 * pipeline's entity list to let vsp1_du_pipeline_configure()
-+		 * remove it from the hardware pipeline.
- 		 */
-+		rpf->entity.pipe = NULL;
- 		drm_pipe->pipe.inputs[rpf_index] = NULL;
- 		return 0;
- 	}
--- 
-Regards,
+Yesterday, I added both trees I'm using here at:
 
-Laurent Pinchart
+	https://git.linuxtv.org/mchehab/sparse.git/
+	https://git.linuxtv.org/mchehab/smatch.git/
+
+My sparse tree has just one extra patch over upstream.
+That's needed after a change at max()/min() macros upstream.
+
+At smatch, my tree has 4 extra patches:
+	https://git.linuxtv.org/mchehab/smatch.git/
+
+They basically do:
+	1) rise the execution time/memory usage of sparse;
+	2) mask errors like "missing break", as gcc checks it already;
+	3) the same patch for sparse is needed on smatch;
+	4) disable this warning:
+			drivers/media/platform/sti/bdisp/bdisp-debug.c:594 bdisp_dbg_perf() debug: sval_binop_signed: invalid divide LLONG_MIN/-1
+	   with is produced every time do_div64() & friends are called.
+
+IMHO, all 4 patches are disabling false-positive only warnings,
+although the 4th patch might have something useful, if fixed to
+properly handle the 64-bit compat macros.
+
+Thanks,
+Mauro
