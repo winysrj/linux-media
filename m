@@ -1,54 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:43686 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754437AbeDWJ3X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 05:29:23 -0400
-Date: Mon, 23 Apr 2018 11:29:18 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH/RFC 7/8] ARM: shmobile: Remove the ARCH_SHMOBILE Kconfig
- symbol
-Message-ID: <20180423092917.h24b2gem6j24uhnk@verge.net.au>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
- <1524230914-10175-8-git-send-email-geert+renesas@glider.be>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1524230914-10175-8-git-send-email-geert+renesas@glider.be>
+Received: from gofer.mess.org ([88.97.38.141]:35261 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752046AbeDNVpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Apr 2018 17:45:33 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Matthias Reichl <hias@horus.com>
+Subject: [PATCH 1/2] media: rc: mce_kbd decoder: remove superfluous call to input_sync
+Date: Sat, 14 Apr 2018 22:45:30 +0100
+Message-Id: <20180414214531.1450-1-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 03:28:33PM +0200, Geert Uytterhoeven wrote:
-> All drivers for Renesas ARM SoCs have gained proper ARCH_RENESAS
-> platform dependencies.  Hence finish the conversion from ARCH_SHMOBILE
-> to ARCH_RENESAS for Renesas 32-bit ARM SoCs, as started by commit
-> 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS").
-> 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
-> This depends on the previous patches in this series, hence the RFC.
+There is nothing to sync in this code path.
 
-Thanks, I have marked this and the following patch as deferred.
-Please repost or otherwise ping me once the dependencies are in place.
+Reported-by: Matthias Reichl <hias@horus.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-mce_kbd-decoder.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index 002b8323ae69..2fc78710a724 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -362,7 +362,6 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	dev_dbg(&dev->dev, "failed at state %i (%uus %s)\n",
+ 		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
+ 	data->state = STATE_INACTIVE;
+-	input_sync(data->idev);
+ 	return -EINVAL;
+ }
+ 
+-- 
+2.14.3
