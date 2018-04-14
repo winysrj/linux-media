@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:42984 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756614AbeDFOXg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 10:23:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Douglas Fischer <fischerdouglasc@gmail.com>
-Subject: [PATCH 11/21] media: si470x: fix __be16 annotations
-Date: Fri,  6 Apr 2018 10:23:12 -0400
-Message-Id: <fb726fa1be204240b4eee355a5843a087af137b0.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:42710 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750917AbeDNKfy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Apr 2018 06:35:54 -0400
+Subject: Re: [PATCH] gpio: Add a reference to CEC on GPIO
+To: Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+References: <20180414094458.5700-1-linus.walleij@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cec332d3-847d-63e7-ace2-7c6525f9dfcf@xs4all.nl>
+Date: Sat, 14 Apr 2018 03:35:47 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180414094458.5700-1-linus.walleij@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The annotations there are wrong as warned:
-   drivers/media/radio/si470x/radio-si470x-i2c.c:107:35: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:107:35: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:107:35: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:107:35: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:129:24: warning: incorrect type in assignment (different base types)
-   drivers/media/radio/si470x/radio-si470x-i2c.c:129:24:    expected unsigned short [unsigned] [short] <noident>
-   drivers/media/radio/si470x/radio-si470x-i2c.c:129:24:    got restricted __be16 [usertype] <noident>
-   drivers/media/radio/si470x/radio-si470x-i2c.c:163:39: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:163:39: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:163:39: warning: cast to restricted __be16
-   drivers/media/radio/si470x/radio-si470x-i2c.c:163:39: warning: cast to restricted __be16
+On 04/14/2018 02:44 AM, Linus Walleij wrote:
+> This adds a pointer to the CEC GPIO driver from the GPIO list of
+> examples of drivers on top of GPIO.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/radio/si470x/radio-si470x-i2c.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 1b3720b1e737..e3b3ecd14a4d 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -91,7 +91,7 @@ MODULE_PARM_DESC(max_rds_errors, "RDS maximum block errors: *1*");
-  */
- static int si470x_get_register(struct si470x_device *radio, int regnr)
- {
--	u16 buf[READ_REG_NUM];
-+	__be16 buf[READ_REG_NUM];
- 	struct i2c_msg msgs[1] = {
- 		{
- 			.addr = radio->client->addr,
-@@ -116,7 +116,7 @@ static int si470x_get_register(struct si470x_device *radio, int regnr)
- static int si470x_set_register(struct si470x_device *radio, int regnr)
- {
- 	int i;
--	u16 buf[WRITE_REG_NUM];
-+	__be16 buf[WRITE_REG_NUM];
- 	struct i2c_msg msgs[1] = {
- 		{
- 			.addr = radio->client->addr,
-@@ -146,7 +146,7 @@ static int si470x_set_register(struct si470x_device *radio, int regnr)
- static int si470x_get_all_registers(struct si470x_device *radio)
- {
- 	int i;
--	u16 buf[READ_REG_NUM];
-+	__be16 buf[READ_REG_NUM];
- 	struct i2c_msg msgs[1] = {
- 		{
- 			.addr = radio->client->addr,
--- 
-2.14.3
+Thanks!
+
+	Hans
+
+> ---
+>  Documentation/driver-api/gpio/drivers-on-gpio.rst | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/driver-api/gpio/drivers-on-gpio.rst b/Documentation/driver-api/gpio/drivers-on-gpio.rst
+> index 7da0c1dd1f7a..f3a189320e11 100644
+> --- a/Documentation/driver-api/gpio/drivers-on-gpio.rst
+> +++ b/Documentation/driver-api/gpio/drivers-on-gpio.rst
+> @@ -85,6 +85,10 @@ hardware descriptions such as device tree or ACPI:
+>    any other serio bus to the system and makes it possible to connect drivers
+>    for e.g. keyboards and other PS/2 protocol based devices.
+>  
+> +- cec-gpio: drivers/media/platform/cec-gpio/ is used to interact with a CEC
+> +  Consumer Electronics Control bus using only GPIO. It is used to communicate
+> +  with devices on the HDMI bus.
+> +
+>  Apart from this there are special GPIO drivers in subsystems like MMC/SD to
+>  read card detect and write protect GPIO lines, and in the TTY serial subsystem
+>  to emulate MCTRL (modem control) signals CTS/RTS by using two GPIO lines. The
+> 
