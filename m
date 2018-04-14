@@ -1,122 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48750 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753786AbeDKPCW (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:60153 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751141AbeDNMA1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 11:02:22 -0400
-Date: Wed, 11 Apr 2018 18:02:19 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-5-hverkuil@xs4all.nl>
- <20180410073206.12d4c67d@vento.lan>
- <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
- <20180410115143.41178f68@vento.lan>
- <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
- <20180411104935.5f566f0f@vento.lan>
+        Sat, 14 Apr 2018 08:00:27 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v14 15/33] rcar-vin: break out format alignment and checking
+Date: Sat, 14 Apr 2018 13:57:08 +0200
+Message-Id: <20180414115726.5075-16-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180411104935.5f566f0f@vento.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 11, 2018 at 10:49:35AM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 11 Apr 2018 16:21:16 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> 
-> > > > > Btw, this is a very good reason why you should define the ioctl to
-> > > > > have an integer argument instead of a struct with a __s32 field
-> > > > > on it, as per my comment to patch 02/29:
-> > > > > 
-> > > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> > > > > 
-> > > > > At 64 bit architectures, you're truncating the file descriptor!    
-> > > > 
-> > > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-> > > > well.  
-> > > 
-> > > Hmm.. you're right. I was thinking that it could be 64 bits on some
-> > > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
-> > > according with:
-> > > 
-> > > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
-> > > 
-> > > This is not the case on gcc.  
-> > 
-> > Ok. The reasoning back then was that what "int" means varies across
-> > compilers and languages. And the intent was to codify this to __s32 which
-> > is what the kernel effectively uses.
-> 
-> ...
-> 
-> > The rest of the kernel uses int rather liberally in the uAPI so I'm not
-> > sure in the end whether something desirable was achieved. Perhaps it'd be
-> > good to go back to the original discussion to find out for sure.
-> > 
-> > Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
-> > due to that difference.
-> > 
-> > Well, I stop here for this begins to be off-topic. :-)
-> 
-> Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
-> about that :-)
-> 
-> > > > > > +	get_task_comm(comm, current);
-> > > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > > > > > +		 comm, fd);    
-> > > > > 
-> > > > > Not sure if it is a good idea to store the task that allocated
-> > > > > the request. While it makes sense for the dev_dbg() below, it
-> > > > > may not make sense anymore on other dev_dbg() you would be
-> > > > > using it.    
-> > > > 
-> > > > The lifetime of the file handle roughly matches that of the request. It's
-> > > > for debug only anyway.
-> > > > 
-> > > > Better proposals are always welcome of course. But I think we should have
-> > > > something here that helps debugging by meaningfully making the requests
-> > > > identifiable from logs.  
-> > > 
-> > > What I meant to say is that one PID could be allocating the
-> > > request, while some other one could be actually doing Q/DQ_BUF.
-> > > On such scenario, the debug string could provide mislead prints.  
-> > 
-> > Um, yes, indeed it would no longer match the process. But the request is
-> > still the same. That's actually a positive thing since it allows you to
-> > identify the request.
-> > 
-> > With a global ID space this was trivial; you could just print the request
-> > ID and that was all that was ever needed. (I'm not proposing to consider
-> > that though.)
-> > 
-> 
-> IMO, a global ID number would work better than get_task_comm().
-> 
-> Just add a static int monotonic counter and use it for the debug purposes,
-> e. g.:
-> 
-> {
-> 	static unsigned int req_count = 0;
-> 
-> 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
-> 		req_count++, fd);    
-> 
-> Ok, eventually, it will overflow, but, it will be unique within
-> a reasonable timeframe to be good enough for debugging purposes.
+Part of the format alignment and checking can be shared with the Gen3
+format handling. Break that part out to a separate function.
 
-Yes, but you can't figure out which process allocated it anymore, making
-associating kernel debug logs with user space process logs harder.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 85 ++++++++++++++++-------------
+ 1 file changed, 48 insertions(+), 37 deletions(-)
 
-How about process id + file handle? That still doesn't tell which process
-operated on the request though, but I'm not sure whether that's really a
-crucial piece of information.
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index d9231a074aa2c29d..f3a0310c43a9877f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -87,6 +87,53 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+ 	return pix->bytesperline * pix->height;
+ }
+ 
++static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	u32 walign;
++
++	if (!rvin_format_from_pixel(pix->pixelformat) ||
++	    (vin->info->model == RCAR_M1 &&
++	     pix->pixelformat == V4L2_PIX_FMT_XBGR32))
++		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++
++	switch (pix->field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	case V4L2_FIELD_ALTERNATE:
++		/*
++		 * Driver does not (yet) support outputting ALTERNATE to a
++		 * userspace. It does support outputting INTERLACED so use
++		 * the VIN hardware to combine the two fields.
++		 */
++		pix->field = V4L2_FIELD_INTERLACED;
++		pix->height *= 2;
++		break;
++	default:
++		pix->field = RVIN_DEFAULT_FIELD;
++		break;
++	}
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
++
++	pix->bytesperline = rvin_format_bytesperline(pix);
++	pix->sizeimage = rvin_format_sizeimage(pix);
++
++	vin_dbg(vin, "Format %ux%u bpl: %u size: %u\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2
+  */
+@@ -186,7 +233,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     struct v4l2_pix_format *pix,
+ 			     struct rvin_source_fmt *source)
+ {
+-	u32 walign;
+ 	int ret;
+ 
+ 	if (!rvin_format_from_pixel(pix->pixelformat) ||
+@@ -199,42 +245,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	if (ret)
+ 		return ret;
+ 
+-	switch (pix->field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	case V4L2_FIELD_ALTERNATE:
+-		/*
+-		 * Driver does not (yet) support outputting ALTERNATE to a
+-		 * userspace. It does support outputting INTERLACED so use
+-		 * the VIN hardware to combine the two fields.
+-		 */
+-		pix->field = V4L2_FIELD_INTERLACED;
+-		pix->height *= 2;
+-		break;
+-	default:
+-		pix->field = RVIN_DEFAULT_FIELD;
+-		break;
+-	}
+-
+-	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+-	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+-
+-	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+-			      &pix->height, 4, vin->info->max_height, 2, 0);
+-
+-	pix->bytesperline = rvin_format_bytesperline(pix);
+-	pix->sizeimage = rvin_format_sizeimage(pix);
+-
+-	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+-		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+-
+-	return 0;
++	return rvin_format_align(vin, pix);
+ }
+ 
+ static int rvin_querycap(struct file *file, void *priv,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.16.2
