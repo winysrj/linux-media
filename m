@@ -1,165 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36574 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756352AbeDFOXa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 10:23:30 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 09/21] media: davinci_vpfe: cleanup ipipe_[g|s]_config logic
-Date: Fri,  6 Apr 2018 10:23:10 -0400
-Message-Id: <3200bc234f8732c14a5e31d44b8e9f3262df4fb4.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:28116 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750936AbeDNMAt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 14 Apr 2018 08:00:49 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v14 17/33] rcar-vin: cache video standard
+Date: Sat, 14 Apr 2018 13:57:10 +0200
+Message-Id: <20180414115726.5075-18-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reduce one ident level inside those functions and use BIT()
-macro.
+At stream on time the driver should not query the subdevice for which
+standard are used. Instead it should be cached when userspace sets the
+standard and used at stream on time.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 98 ++++++++++++------------
- 1 file changed, 50 insertions(+), 48 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c |  6 ++++++
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  7 ++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++++++--
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+ 4 files changed, 18 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index b3a193ddd778..a7043865cf06 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -27,6 +27,7 @@
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index be49d8968f0a0cef..8c251687e81b345b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -96,6 +96,12 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
+ 	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+ 		return ret;
+ 
++	/* Read standard */
++	vin->std = V4L2_STD_UNKNOWN;
++	ret = v4l2_subdev_call(subdev, video, g_std, &vin->std);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		return ret;
++
+ 	/* Add the controls */
+ 	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 9233924e5b52de5f..79f4074b931b5aeb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -592,7 +592,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ static int rvin_setup(struct rvin_dev *vin)
+ {
+ 	u32 vnmc, dmr, dmr2, interrupts;
+-	v4l2_std_id std;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+ 
+ 	switch (vin->format.field) {
+@@ -606,10 +605,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+-			if (std & V4L2_STD_525_60)
+-				vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		}
++		if (vin->std & V4L2_STD_525_60)
++			vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		break;
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 		vnmc = VNMC_IM_FULL;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 9eddc2d95ea7d341..ee8044992eca1a35 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -475,6 +475,8 @@ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	vin->std = a;
++
+ 	/* Changing the standard will change the width/height */
+ 	return rvin_reset_format(vin);
+ }
+@@ -482,9 +484,13 @@ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
+ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 
+-	return v4l2_subdev_call(sd, video, g_std, a);
++	if (v4l2_subdev_has_op(vin_to_source(vin), pad, dv_timings_cap))
++		return -ENOIOCTLCMD;
++
++	*a = vin->std;
++
++	return 0;
+ }
+ 
+ static int rvin_subscribe_event(struct v4l2_fh *fh,
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index e940366d7e8d0e76..06cec4f8e5ffaf2b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -118,6 +118,7 @@ struct rvin_info {
+  * @crop:		active cropping
+  * @compose:		active composing
+  * @source:		active size of the video source
++ * @std:		active video standard of the video source
   */
+ struct rvin_dev {
+ 	struct device *dev;
+@@ -146,6 +147,7 @@ struct rvin_dev {
+ 	struct v4l2_rect crop;
+ 	struct v4l2_rect compose;
+ 	struct v4l2_rect source;
++	v4l2_std_id std;
+ };
  
- #include <linux/slab.h>
-+#include <linux/bitops.h>
- 
- #include "dm365_ipipe.h"
- #include "dm365_ipipe_hw.h"
-@@ -1255,37 +1256,38 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
- 	int rval = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
--		unsigned int bit = 1 << i;
-+		const struct ipipe_module_if *module_if;
-+		struct ipipe_module_params *params;
-+		void __user *from;
-+		size_t size;
-+		void *to;
- 
--		if (cfg->flag & bit) {
--			const struct ipipe_module_if *module_if =
--						&ipipe_modules[i];
--			struct ipipe_module_params *params;
--			void __user *from = *(void * __user *)
--				((void *)cfg + module_if->config_offset);
--			size_t size;
--			void *to;
-+		if (!(cfg->flag & BIT(i)))
-+			continue;
- 
--			params = kmalloc(sizeof(struct ipipe_module_params),
--					 GFP_KERNEL);
--			to = (void *)params + module_if->param_offset;
--			size = module_if->param_size;
-+		module_if = &ipipe_modules[i];
-+		from = *(void * __user *)
-+			((void *)cfg + module_if->config_offset);
- 
--			if (to && from && size) {
--				if (copy_from_user(to, from, size)) {
--					rval = -EFAULT;
--					break;
--				}
--				rval = module_if->set(ipipe, to);
--				if (rval)
--					goto error;
--			} else if (to && !from && size) {
--				rval = module_if->set(ipipe, NULL);
--				if (rval)
--					goto error;
-+		params = kmalloc(sizeof(struct ipipe_module_params),
-+					GFP_KERNEL);
-+		to = (void *)params + module_if->param_offset;
-+		size = module_if->param_size;
-+
-+		if (to && from && size) {
-+			if (copy_from_user(to, from, size)) {
-+				rval = -EFAULT;
-+				break;
- 			}
--			kfree(params);
-+			rval = module_if->set(ipipe, to);
-+			if (rval)
-+				goto error;
-+		} else if (to && !from && size) {
-+			rval = module_if->set(ipipe, NULL);
-+			if (rval)
-+				goto error;
- 		}
-+		kfree(params);
- 	}
- error:
- 	return rval;
-@@ -1298,33 +1300,33 @@ static int ipipe_g_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
- 	int rval = 0;
- 
- 	for (i = 1; i < ARRAY_SIZE(ipipe_modules); i++) {
--		unsigned int bit = 1 << i;
-+		const struct ipipe_module_if *module_if;
-+		struct ipipe_module_params *params;
-+		void __user *to;
-+		size_t size;
-+		void *from;
- 
--		if (cfg->flag & bit) {
--			const struct ipipe_module_if *module_if =
--						&ipipe_modules[i];
--			struct ipipe_module_params *params;
--			void __user *to = *(void * __user *)
--				((void *)cfg + module_if->config_offset);
--			size_t size;
--			void *from;
-+		if (!(cfg->flag & BIT(i)))
-+			continue;
- 
--			params =  kmalloc(sizeof(struct ipipe_module_params),
--						GFP_KERNEL);
--			from = (void *)params + module_if->param_offset;
--			size = module_if->param_size;
-+		module_if = &ipipe_modules[i];
-+		to = *(void * __user *)((void *)cfg + module_if->config_offset);
- 
--			if (to && from && size) {
--				rval = module_if->get(ipipe, from);
--				if (rval)
--					goto error;
--				if (copy_to_user(to, from, size)) {
--					rval = -EFAULT;
--					break;
--				}
-+		params =  kmalloc(sizeof(struct ipipe_module_params),
-+					GFP_KERNEL);
-+		from = (void *)params + module_if->param_offset;
-+		size = module_if->param_size;
-+
-+		if (to && from && size) {
-+			rval = module_if->get(ipipe, from);
-+			if (rval)
-+				goto error;
-+			if (copy_to_user(to, from, size)) {
-+				rval = -EFAULT;
-+				break;
- 			}
--			kfree(params);
- 		}
-+		kfree(params);
- 	}
- error:
- 	return rval;
+ #define vin_to_source(vin)		((vin)->digital->subdev)
 -- 
-2.14.3
+2.16.2
