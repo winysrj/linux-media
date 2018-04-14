@@ -1,92 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:32890 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753989AbeD2RNu (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:38502 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750898AbeDNMD3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:13:50 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 06/14] media: ov772x: use generic names for reset and powerdown gpios
-Date: Mon, 30 Apr 2018 02:13:05 +0900
-Message-Id: <1525021993-17789-7-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+        Sat, 14 Apr 2018 08:03:29 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v14 33/33] rcar-vin: enable support for r8a77970
+Date: Sat, 14 Apr 2018 13:57:26 +0200
+Message-Id: <20180414115726.5075-34-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov772x driver uses "rstb-gpios" and "pwdn-gpios" for reset and
-powerdown pins.  However, using generic names for these gpios is
-preferred.  ("reset-gpios" and "powerdown-gpios" respectively)
+Add the SoC specific information for Renesas r8a77970.
 
-There is only one mainline user for these gpios, so rename to generic
-names.
-
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-* v4
-- No changes
+ drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
- arch/sh/boards/mach-migor/setup.c | 5 +++--
- drivers/media/i2c/ov772x.c        | 8 ++++----
- 2 files changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 271dfc2..73b9ee4 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -351,8 +351,9 @@ static struct platform_device migor_ceu_device = {
- static struct gpiod_lookup_table ov7725_gpios = {
- 	.dev_id		= "0-0021",
- 	.table		= {
--		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
--		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "powerdown",
-+			    GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "reset", GPIO_ACTIVE_LOW),
- 	},
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 81c82793b1312aae..55b745ac86a5884d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -971,6 +971,25 @@ static const struct rvin_info rcar_info_r8a7796 = {
+ 	.routes = rcar_info_r8a7796_routes,
  };
  
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index bb5327f..97a65ce 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -837,10 +837,10 @@ static int ov772x_power_on(struct ov772x_priv *priv)
- 	 * available to handle this cleanly, request the GPIO temporarily
- 	 * to avoid conflicts.
- 	 */
--	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
-+	priv->rstb_gpio = gpiod_get_optional(&client->dev, "reset",
- 					     GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->rstb_gpio)) {
--		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
-+		dev_info(&client->dev, "Unable to get GPIO \"reset\"");
- 		return PTR_ERR(priv->rstb_gpio);
- 	}
- 
-@@ -1307,10 +1307,10 @@ static int ov772x_probe(struct i2c_client *client,
- 		goto error_ctrl_free;
- 	}
- 
--	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
-+	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "powerdown",
- 					     GPIOD_OUT_LOW);
- 	if (IS_ERR(priv->pwdn_gpio)) {
--		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
-+		dev_info(&client->dev, "Unable to get GPIO \"powerdown\"");
- 		ret = PTR_ERR(priv->pwdn_gpio);
- 		goto error_clk_put;
- 	}
++static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 0, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 1, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 1, .mask = BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 2, .mask = BIT(1) },
++	{ .csi = RVIN_CSI40, .channel = 2, .vin = 2, .mask = BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 3, .mask = BIT(0) },
++	{ .csi = RVIN_CSI40, .channel = 3, .vin = 3, .mask = BIT(3) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a77970 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = _rcar_info_r8a77970_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -1008,6 +1027,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a7796",
+ 		.data = &rcar_info_r8a7796,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a77970",
++		.data = &rcar_info_r8a77970,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
 -- 
-2.7.4
+2.16.2
