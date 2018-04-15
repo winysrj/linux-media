@@ -1,154 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:42375 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754033AbeD2ROC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Apr 2018 13:14:02 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from gofer.mess.org ([88.97.38.141]:37115 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752244AbeDOJwl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Apr 2018 05:52:41 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v4 10/14] media: ov772x: reconstruct s_frame_interval()
-Date: Mon, 30 Apr 2018 02:13:09 +0900
-Message-Id: <1525021993-17789-11-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
-References: <1525021993-17789-1-git-send-email-akinobu.mita@gmail.com>
+Cc: Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org,
+        #@mess.org
+Subject: [PATCH stable v4.14 2/2] media: staging: lirc_zilog: incorrect reference counting
+Date: Sun, 15 Apr 2018 10:51:51 +0100
+Message-Id: <8e2f2296b7f6fed6eea4b6fc24ab2b1966780d04.1523785758.git.sean@mess.org>
+In-Reply-To: <cover.1523785758.git.sean@mess.org>
+References: <cover.1523785758.git.sean@mess.org>
+In-Reply-To: <cover.1523785758.git.sean@mess.org>
+References: <cover.1523785758.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This splits the s_frame_interval() in subdev video ops into selecting the
-frame interval and setting up the registers.
+Whenever poll is called, the reference count is increased but never
+decreased. This means that on rmmod, the lirc_thread is not stopped,
+and will trample over freed memory.
 
-This is a preparatory change to avoid accessing registers under power
-saving mode.
+Zilog/Hauppauge IR driver unloaded
+BUG: unable to handle kernel paging request at ffffffffc17ba640
+Oops: 0010 [#1] SMP
+CPU: 1 PID: 667 Comm: zilog-rx-i2c-1 Tainted: P         C OE   4.13.16-302.fc27.x86_64 #1
+Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
+task: ffff964eb452ca00 task.stack: ffffb254414dc000
+RIP: 0010:0xffffffffc17ba640
+RSP: 0018:ffffb254414dfe78 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: ffff964ec1b35890 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
+RBP: ffffb254414dff00 R08: 000000000000036e R09: ffff964ecfc8dfd0
+R10: ffffb254414dfe78 R11: 00000000000f4240 R12: ffff964ec2bf28a0
+R13: ffff964ec1b358a8 R14: ffff964ec1b358d0 R15: ffff964ec1b35800
+FS:  0000000000000000(0000) GS:ffff964ecfc80000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffc17ba640 CR3: 000000023058c000 CR4: 00000000000006e0
+Call Trace:
+ kthread+0x125/0x140
+ ? kthread_park+0x60/0x60
+ ? do_syscall_64+0x67/0x140
+ ret_from_fork+0x25/0x30
+Code:  Bad RIP value.
+RIP: 0xffffffffc17ba640 RSP: ffffb254414dfe78
+CR2: ffffffffc17ba640
 
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Note that zilog-rx-i2c-1 should have exited by now, but hasn't due to
+the missing put in poll().
+
+This code has been replaced completely in kernel v4.16 by a new driver,
+see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
+commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
+
+Cc: stable@vger.kernel.org # v4.15- (all up to and including v4.15)
+Reported-by: Warren Sturm <warren.sturm@gmail.com>
+Tested-by: Warren Sturm <warren.sturm@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
-* v4
-- No changes
+ drivers/staging/media/lirc/lirc_zilog.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/media/i2c/ov772x.c | 56 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 35 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index edc013d..7ea157e 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -617,25 +617,16 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 26dd32d5b5b2..e35e1b2160e3 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1228,6 +1228,7 @@ static unsigned int poll(struct file *filep, poll_table *wait)
+ 
+ 	dev_dbg(ir->l.dev, "%s result = %s\n", __func__,
+ 		ret ? "POLLIN|POLLRDNORM" : "none");
++	put_ir_rx(rx, false);
+ 	return ret;
  }
- 
--static int ov772x_set_frame_rate(struct ov772x_priv *priv,
--				 struct v4l2_fract *tpf,
--				 const struct ov772x_color_format *cfmt,
--				 const struct ov772x_win_size *win)
-+static unsigned int ov772x_select_fps(struct ov772x_priv *priv,
-+				 struct v4l2_fract *tpf)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
--	unsigned long fin = clk_get_rate(priv->clk);
- 	unsigned int fps = tpf->numerator ?
- 			   tpf->denominator / tpf->numerator :
- 			   tpf->denominator;
- 	unsigned int best_diff;
--	unsigned int fsize;
--	unsigned int pclk;
- 	unsigned int diff;
- 	unsigned int idx;
- 	unsigned int i;
--	u8 clkrc = 0;
--	u8 com4 = 0;
--	int ret;
- 
- 	/* Approximate to the closest supported frame interval. */
- 	best_diff = ~0L;
-@@ -646,7 +637,25 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
- 			best_diff = diff;
- 		}
- 	}
--	fps = ov772x_frame_intervals[idx];
-+
-+	return ov772x_frame_intervals[idx];
-+}
-+
-+static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-+				 unsigned int fps,
-+				 const struct ov772x_color_format *cfmt,
-+				 const struct ov772x_win_size *win)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	unsigned long fin = clk_get_rate(priv->clk);
-+	unsigned int fsize;
-+	unsigned int pclk;
-+	unsigned int best_diff;
-+	unsigned int diff;
-+	unsigned int i;
-+	u8 clkrc = 0;
-+	u8 com4 = 0;
-+	int ret;
- 
- 	/* Use image size (with blankings) to calculate desired pixel clock. */
- 	switch (cfmt->com7 & OFMT_MASK) {
-@@ -711,10 +720,6 @@ static int ov772x_set_frame_rate(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		return ret;
- 
--	tpf->numerator = 1;
--	tpf->denominator = fps;
--	priv->fps = tpf->denominator;
--
- 	return 0;
- }
- 
-@@ -735,8 +740,20 @@ static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
- {
- 	struct ov772x_priv *priv = to_ov772x(sd);
- 	struct v4l2_fract *tpf = &ival->interval;
-+	unsigned int fps;
-+	int ret;
-+
-+	fps = ov772x_select_fps(priv, tpf);
-+
-+	ret = ov772x_set_frame_rate(priv, fps, priv->cfmt, priv->win);
-+	if (ret)
-+		return ret;
- 
--	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
-+	tpf->numerator = 1;
-+	tpf->denominator = fps;
-+	priv->fps = fps;
-+
-+	return 0;
- }
- 
- static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
-@@ -993,7 +1010,6 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			     const struct ov772x_win_size *win)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
--	struct v4l2_fract tpf;
- 	int ret;
- 	u8  val;
- 
-@@ -1075,9 +1091,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 		goto ov772x_set_fmt_error;
- 
- 	/* COM4, CLKRC: Set pixel clock and framerate. */
--	tpf.numerator = 1;
--	tpf.denominator = priv->fps;
--	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
-+	ret = ov772x_set_frame_rate(priv, priv->fps, cfmt, win);
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
  
 -- 
-2.7.4
+2.14.3
