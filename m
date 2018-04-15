@@ -1,116 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:60385 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755830AbeDXHWj (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52559 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752157AbeDODrQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 03:22:39 -0400
-Date: Tue, 24 Apr 2018 09:22:33 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, architt@codeaurora.org,
-        a.hajda@samsung.com, airlied@linux.ie, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 8/8] drm: connector: Remove DRM_BUS_FLAG_DATA_* flags
-Message-ID: <20180424072233.GF17088@w540>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
- <1524130269-32688-9-git-send-email-jacopo+renesas@jmondi.org>
- <5371494.OmLzBJ8YyX@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="OzxllxdKGCiKxUZM"
-Content-Disposition: inline
-In-Reply-To: <5371494.OmLzBJ8YyX@avalon>
+        Sat, 14 Apr 2018 23:47:16 -0400
+Message-ID: <bae0071d0ada563441ce29ece914fcff@smtp-cloud7.xs4all.net>
+Date: Sun, 15 Apr 2018 05:47:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---OzxllxdKGCiKxUZM
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-Hi Laurent,
+date:			Sun Apr 15 05:00:11 CEST 2018
+media-tree git hash:	b284d4d5a6785f8cd07eda2646a95782373cd01e
+media_build git hash:	78d6ded165a133942a9615a80ca8e0d48749c592
+v4l-utils git hash:	47d43b130dc6e9e0edc900759fb37649208371e4
+gcc version:		i686-linux-gcc (GCC) 7.3.0
+sparse version:		v0.5.2-rc1
+smatch version:		v0.5.0-4419-g3b5bf5c9
+host hardware:		x86_64
+host os:		4.14.0-3-amd64
 
-On Tue, Apr 24, 2018 at 12:03:04AM +0300, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Thursday, 19 April 2018 12:31:09 EEST Jacopo Mondi wrote:
-> > DRM_BUS_FLAG_DATA_* flags, defined in drm_connector.h header file are
-> > used to swap ordering of LVDS RGB format to accommodate DRM objects
-> > that need to handle LVDS components ordering.
-> >
-> > Now that the only 2 users of DRM_BUS_FLAG_DATA_* flags have been ported
-> > to use the newly introduced MEDIA_BUS_FMT_RGB888_1X7X*_LE media bus
-> > formats, remove them.
->
-> I'm not opposed to this (despite my review of patch 5/8), but I think the _LE
-> suffix isn't the right name for the new formats. _BE and _LE relate to byte
-> swapping, while here you really need to describe full mirroring. Maybe a
-> _MIRROR variant would be more appropriate ?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.14.31-i686: OK
+linux-4.14.31-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16-i686: OK
+linux-4.16-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-As I anticipated in the cover letter, I agree the BE/LE distinction
-does not apply well for LVDS formats. I chose to use _LE anyhow as
-there are no other format variants defined in media-bus-format.h
+Detailed results are available here:
 
-I'm open to use either of those suffixes btw, what presses me is to
-get rid of those flags only defined in drm_connector.h
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-thanks
-   j
+Full logs are available here:
 
->
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  include/drm/drm_connector.h | 4 ----
-> >  1 file changed, 4 deletions(-)
-> >
-> > diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
-> > index 675cc3f..9e0d6d5 100644
-> > --- a/include/drm/drm_connector.h
-> > +++ b/include/drm/drm_connector.h
-> > @@ -286,10 +286,6 @@ struct drm_display_info {
-> >  #define DRM_BUS_FLAG_PIXDATA_POSEDGE	(1<<2)
-> >  /* drive data on neg. edge */
-> >  #define DRM_BUS_FLAG_PIXDATA_NEGEDGE	(1<<3)
-> > -/* data is transmitted MSB to LSB on the bus */
-> > -#define DRM_BUS_FLAG_DATA_MSB_TO_LSB	(1<<4)
-> > -/* data is transmitted LSB to MSB on the bus */
-> > -#define DRM_BUS_FLAG_DATA_LSB_TO_MSB	(1<<5)
-> >
-> >  	/**
-> >  	 * @bus_flags: Additional information (like pixel signal polarity) for
->
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
---OzxllxdKGCiKxUZM
-Content-Type: application/pgp-signature; name="signature.asc"
+The Media Infrastructure API from this daily build is here:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa3ts5AAoJEHI0Bo8WoVY8e6wP/i3mBdoLOwLGpDd7AVbkXrVD
-HUOOShP69QB+Gy409hFucRoVkICR08o5FPiXn1EvcgCjaEuxDBG1q1dOl/BQz5QD
-7GwZs3jTKhg+kaZjM+vUE3KnX6ZcXQsjLE5v0SBs1W314dzx/CIE9lGk3S/GycfP
-4d0Yp2cv0fXJdwc0CeUlRjjmQuhShO4weztnkk78PpFo+dcxMpRSedjSLzfLasoV
-/+94eh+6tmKu7jUE0LbWIGI6qh6vUEXBCZmY7alxlQrDZtQq9+WLTRyeLPQEdEiM
-EjNA1454FSvxSL5oniOH5WRIL9otFjtxcCH8wpgH5NxKGeiUKy589POhpBpv+wBw
-/r0r8WilKEmkxwRkq/WDcnyUMdeIo0FlUni1hM6uCrvn+OjrODQ1lAjhHj+iH/Q6
-ROgoRYsa6VwE7ImPr2MS0qB1V+hnCOxgzbhdgMD/KvfBffKlJPUlGSXhaChITPXg
-va9alUyeG5lh1kXeoOgEiVI89ytRTi17I3Kks728tjuuBhap25SE20jUJk0qS8IO
-W7x4Y+Ds/rfSV9aENRiJqkA+bNL1kZyJ2cfKek5hBRG/ceyyiyPCoM4ra6eYDgNS
-3zBhoEPpyhs5aXRpAzyuiFPap5JYEteg7UIj+3/zQ4oHQV3RpL1X/3Ly7ZiJD+aH
-ilMDR29l1OSllarOxXQm
-=gMHJ
------END PGP SIGNATURE-----
-
---OzxllxdKGCiKxUZM--
+http://www.xs4all.nl/~hverkuil/spec/index.html
