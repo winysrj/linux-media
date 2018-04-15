@@ -1,60 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:44259 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754857AbeDWMrf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 08:47:35 -0400
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20180423124733euoutp01a1da1e47e1bc4adcb89f5da44b7e85d5~oEXGXFSFd1394213942euoutp01c
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 12:47:33 +0000 (GMT)
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
- COMPILE_TEST && DRM_OMAP
-Date: Mon, 23 Apr 2018 14:47:28 +0200
-Message-ID: <2542100.cElVns0SR0@amdc3058>
-In-Reply-To: <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-        <CGME20180420174303epcas3p14e08a828d2547e3365085f43b165d34b@epcas3p1.samsung.com>
-        <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([88.97.38.141]:56529 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752297AbeDOJyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Apr 2018 05:54:25 -0400
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org,
+        #@mess.org, v4.15@mess.org
+Subject: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken reference counting
+Date: Sun, 15 Apr 2018 10:54:20 +0100
+Message-Id: <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
+In-Reply-To: <cover.1523785117.git.sean@mess.org>
+References: <cover.1523785117.git.sean@mess.org>
+In-Reply-To: <cover.1523785117.git.sean@mess.org>
+References: <cover.1523785117.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:
-> Add stubs for omapfb_dss.h, in the case it is included by
-> some driver when CONFIG_FB_OMAP2 is not defined, with can
-> happen on ARM when DRM_OMAP is not 'n'.
-> 
-> That allows building such driver(s) with COMPILE_TEST.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+commit 615cd3fe6ccc ("[media] media: lirc_dev: make better use of
+file->private_data") removed the reference get from open, so on the first
+close the reference count hits zero and the lirc device is freed.
 
-This patch should be dropped (together with patch #6/7) as it was
-superseded by a better solution suggested by Laurent:
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
+IP: lirc_thread+0x94/0x520 [lirc_zilog]
+PGD 22d69c067 P4D 22d69c067 PUD 22d69d067 PMD 0
+Oops: 0000 [#1] SMP NOPTI
+CPU: 2 PID: 701 Comm: zilog-rx-i2c-7 Tainted: P         C OE    4.15.14-300.fc27.x86_64 #1
+Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
+RIP: 0010:lirc_thread+0x94/0x520 [lirc_zilog]
+RSP: 0018:ffffb482c131be98 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff8fdabf056000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
+RBP: ffff8fdab740af00 R08: ffff8fdacfd214a0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000040 R12: ffffb482c10dba48
+R13: ffff8fdabea89e00 R14: ffff8fdab740af00 R15: ffffffffc0b5e500
+FS:  0000000000000000(0000) GS:ffff8fdacfd00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000040 CR3: 00000002124c0000 CR4: 00000000000006e0
+Call Trace:
+ ? __schedule+0x247/0x880
+ ? get_ir_tx+0x40/0x40 [lirc_zilog]
+ kthread+0x113/0x130
+ ? kthread_create_worker_on_cpu+0x70/0x70
+ ? do_syscall_64+0x74/0x180
+ ? SyS_exit_group+0x10/0x10
+ ret_from_fork+0x22/0x40
+Code: 20 8b 85 80 00 00 00 85 c0 0f 84 a6 00 00 00 bf 04 01 00 00 e8 ee 34 d4 d7 e8 69 88 56 d7 84 c0 75 69 48 8b 45 18 c6 44 24 37 00 <48> 8b 58 40 4c 8d 6b 18 4c 89 ef e8 fc 4d d4 d7 4c 89 ef 48 89
+RIP: lirc_thread+0x94/0x520 [lirc_zilog] RSP: ffffb482c131be98
+CR2: 0000000000000040
+This code has been replaced completely in kernel v4.16 by a new driver,
+see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
+commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
 
-https://patchwork.kernel.org/patch/10325193/
+Fixes: 615cd3fe6ccc ("[media] media: lirc_dev: make better use of file->private_data")
 
-ACK-ed by Tomi:
+Cc: stable@vger.kernel.org # v4.15
+Reported-by: Warren Sturm <warren.sturm@gmail.com>
+Tested-by: Warren Sturm <warren.sturm@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-https://www.spinics.net/lists/dri-devel/msg171918.html
-
-and already merged by you (commit 7378f1149884 "media: omap2:
-omapfb: allow building it with COMPILE_TEST")..
-
-> ---
->  include/video/omapfb_dss.h | 54 ++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 52 insertions(+), 2 deletions(-)
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 6bd0717bf76e..bf6869e48a0f 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1291,6 +1291,7 @@ static int open(struct inode *node, struct file *filep)
+ 
+ 	lirc_init_pdata(node, filep);
+ 	ir = lirc_get_pdata(filep);
++	get_ir_device(ir, false);
+ 
+ 	atomic_inc(&ir->open_count);
+ 
+-- 
+2.14.3
