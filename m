@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34121 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751027AbeDYCbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 22:31:31 -0400
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Rob Herring <robh@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "jacopo@jmondi.org" <jacopo@jmondi.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: RE: [RESEND PATCH v7 1/2] media: dt-bindings: Add bindings for
- Dongwoon DW9807 voice coil
-Date: Wed, 25 Apr 2018 02:31:26 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D572C15@PGSMSX111.gar.corp.intel.com>
-References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
- <1523375324-27856-2-git-send-email-andy.yeh@intel.com>
- <20180413151042.lqovgxupubjbgrey@rob-hp-laptop>
-In-Reply-To: <20180413151042.lqovgxupubjbgrey@rob-hp-laptop>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:37463 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752493AbeDOUfw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Apr 2018 16:35:52 -0400
+Received: by mail-lf0-f53.google.com with SMTP id b23-v6so233110lfg.4
+        for <linux-media@vger.kernel.org>; Sun, 15 Apr 2018 13:35:51 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Sun, 15 Apr 2018 22:35:49 +0200
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Fukawa <tomoharu.fukawa.eb@renesas.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver
+ driver
+Message-ID: <20180415203549.GE20093@bigcity.dyn.berto.se>
+References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se>
+ <2180075.m4Wkig6IL5@avalon>
+ <CAMuHMdXoprxZNP6KuYjcYW5EYjzAAFqNn6orK24pv7k_fO+i4A@mail.gmail.com>
+ <1571834.H8Xd6h4YlB@avalon>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1571834.H8Xd6h4YlB@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hi Geert and Laurent,
 
-Apologize missed your comment before sent out v8. I will definitely add acks/reviewed-bys in next version.
+Thanks for the feedback.
 
-Regards, Andy
+On 2018-04-05 11:26:45 +0300, Laurent Pinchart wrote:
 
------Original Message-----
-From: Rob Herring [mailto:robh@kernel.org] 
-Sent: Friday, April 13, 2018 11:11 PM
-To: Yeh, Andy <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com; devicetree@vger.kernel.org; tfiga@chromium.org; jacopo@jmondi.org; Chiang, AlanX <alanx.chiang@intel.com>
-Subject: Re: [RESEND PATCH v7 1/2] media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
+[snip]
 
-On Tue, Apr 10, 2018 at 11:48:43PM +0800, Andy Yeh wrote:
-> From: Alan Chiang <alanx.chiang@intel.com>
+> > Alternatively, you could check for a valid number of lanes, and use
+> > knowledge about the internal lane bits:
+> > 
+> >     phycnt = PHYCNT_ENABLECLK;
+> >     phycnt |= (1 << priv->lanes) - 1;
 > 
-> Dongwoon DW9807 is a voice coil lens driver.
-> 
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
->  1 file changed, 9 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> If Niklas is fine with that, I like it too.
 
-Please add acks/reviewed-bys when posting new versions.
+I'm fine what that thanks for the suggestion Geert!
 
-Rob
+-- 
+Regards,
+Niklas Söderlund
