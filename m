@@ -1,71 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:43242 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932400AbeDBUAh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 16:00:37 -0400
-From: Nasser Afshin <afshin.nasser@gmail.com>
-To: mchehab@kernel.org
-Cc: Nasser Afshin <Afshin.Nasser@gmail.com>,
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:35313 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752630AbeDPCwS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Apr 2018 22:52:18 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3] media: i2c: tvp5150: Use the correct comment style
-Date: Tue,  3 Apr 2018 00:29:04 +0430
-Message-Id: <20180402195907.14368-3-Afshin.Nasser@gmail.com>
-In-Reply-To: <20180402195907.14368-1-Afshin.Nasser@gmail.com>
-References: <20180402195907.14368-1-Afshin.Nasser@gmail.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 02/10] media: ov772x: add checks for register read errors
+Date: Mon, 16 Apr 2018 11:51:43 +0900
+Message-Id: <1523847111-12986-3-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch resolves some checkpatch.pl warnings about comments.
+This change adds checks for register read errors and returns correct
+error code.
 
-Signed-off-by: Nasser Afshin <Afshin.Nasser@gmail.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/i2c/tvp5150.c | 23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+* v2
+- Assign the ov772x_read() return value to pid and ver directly
+- Do the same for MIDH and MIDL
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index af56a5a6db65..d561d87d219a 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -500,10 +500,12 @@ struct i2c_vbi_ram_value {
-  * and so on. There are 16 possible locations from 0 to 15.
-  */
- 
--static struct i2c_vbi_ram_value vbi_ram_default[] =
--{
--	/* FIXME: Current api doesn't handle all VBI types, those not
--	   yet supported are placed under #if 0 */
-+static struct i2c_vbi_ram_value vbi_ram_default[] = {
-+
-+	/*
-+	 * FIXME: Current api doesn't handle all VBI types, those not
-+	 * yet supported are placed under #if 0
-+	 */
- #if 0
- 	[0] = {0x010, /* Teletext, SECAM, WST System A */
- 		{V4L2_SLICED_TELETEXT_SECAM, 6, 23, 1},
-@@ -1101,11 +1103,14 @@ static int tvp5150_s_routing(struct v4l2_subdev *sd,
- 
- static int tvp5150_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt)
+ drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 7e79da0..8badd6f 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1146,7 +1146,7 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ static int ov772x_video_probe(struct ov772x_priv *priv)
  {
--	/* this is for capturing 36 raw vbi lines
--	   if there's a way to cut off the beginning 2 vbi lines
--	   with the tvp5150 then the vbi line count could be lowered
--	   to 17 lines/field again, although I couldn't find a register
--	   which could do that cropping */
-+	/*
-+	 * this is for capturing 36 raw vbi lines
-+	 * if there's a way to cut off the beginning 2 vbi lines
-+	 * with the tvp5150 then the vbi line count could be lowered
-+	 * to 17 lines/field again, although I couldn't find a register
-+	 * which could do that cropping
-+	 */
+ 	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
+-	u8                  pid, ver;
++	int		    pid, ver, midh, midl;
+ 	const char         *devname;
+ 	int		    ret;
+ 
+@@ -1156,7 +1156,11 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+ 
+ 	/* Check and show product ID and manufacturer ID. */
+ 	pid = ov772x_read(client, PID);
++	if (pid < 0)
++		return pid;
+ 	ver = ov772x_read(client, VER);
++	if (ver < 0)
++		return ver;
+ 
+ 	switch (VERSION(pid, ver)) {
+ 	case OV7720:
+@@ -1172,13 +1176,17 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+ 		goto done;
+ 	}
+ 
++	midh = ov772x_read(client, MIDH);
++	if (midh < 0)
++		return midh;
++	midl = ov772x_read(client, MIDL);
++	if (midl < 0)
++		return midl;
 +
- 	if (fmt->sample_format == V4L2_PIX_FMT_GREY)
- 		tvp5150_write(sd, TVP5150_LUMA_PROC_CTL_1, 0x70);
- 	if (fmt->count[0] == 18 && fmt->count[1] == 18) {
+ 	dev_info(&client->dev,
+ 		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
+-		 devname,
+-		 pid,
+-		 ver,
+-		 ov772x_read(client, MIDH),
+-		 ov772x_read(client, MIDL));
++		 devname, pid, ver, midh, midl);
++
+ 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
+ 
+ done:
 -- 
-2.15.0
+2.7.4
