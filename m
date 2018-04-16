@@ -1,79 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56529 "EHLO gofer.mess.org"
+Received: from mail.bootlin.com ([62.4.15.54]:53135 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752297AbeDOJyZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 05:54:25 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org,
-        #@mess.org, v4.15@mess.org
-Subject: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken reference counting
-Date: Sun, 15 Apr 2018 10:54:20 +0100
-Message-Id: <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
-In-Reply-To: <cover.1523785117.git.sean@mess.org>
-References: <cover.1523785117.git.sean@mess.org>
-In-Reply-To: <cover.1523785117.git.sean@mess.org>
-References: <cover.1523785117.git.sean@mess.org>
+        id S1752511AbeDPMhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 08:37:15 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v2 01/12] media: ov5640: Add auto-focus feature
+Date: Mon, 16 Apr 2018 14:36:50 +0200
+Message-Id: <20180416123701.15901-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit 615cd3fe6ccc ("[media] media: lirc_dev: make better use of
-file->private_data") removed the reference get from open, so on the first
-close the reference count hits zero and the lirc device is freed.
+From: Mylène Josserand <mylene.josserand@bootlin.com>
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
-IP: lirc_thread+0x94/0x520 [lirc_zilog]
-PGD 22d69c067 P4D 22d69c067 PUD 22d69d067 PMD 0
-Oops: 0000 [#1] SMP NOPTI
-CPU: 2 PID: 701 Comm: zilog-rx-i2c-7 Tainted: P         C OE    4.15.14-300.fc27.x86_64 #1
-Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
-RIP: 0010:lirc_thread+0x94/0x520 [lirc_zilog]
-RSP: 0018:ffffb482c131be98 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: ffff8fdabf056000 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
-RBP: ffff8fdab740af00 R08: ffff8fdacfd214a0 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000040 R12: ffffb482c10dba48
-R13: ffff8fdabea89e00 R14: ffff8fdab740af00 R15: ffffffffc0b5e500
-FS:  0000000000000000(0000) GS:ffff8fdacfd00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000040 CR3: 00000002124c0000 CR4: 00000000000006e0
-Call Trace:
- ? __schedule+0x247/0x880
- ? get_ir_tx+0x40/0x40 [lirc_zilog]
- kthread+0x113/0x130
- ? kthread_create_worker_on_cpu+0x70/0x70
- ? do_syscall_64+0x74/0x180
- ? SyS_exit_group+0x10/0x10
- ret_from_fork+0x22/0x40
-Code: 20 8b 85 80 00 00 00 85 c0 0f 84 a6 00 00 00 bf 04 01 00 00 e8 ee 34 d4 d7 e8 69 88 56 d7 84 c0 75 69 48 8b 45 18 c6 44 24 37 00 <48> 8b 58 40 4c 8d 6b 18 4c 89 ef e8 fc 4d d4 d7 4c 89 ef 48 89
-RIP: lirc_thread+0x94/0x520 [lirc_zilog] RSP: ffffb482c131be98
-CR2: 0000000000000040
-This code has been replaced completely in kernel v4.16 by a new driver,
-see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
-commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
+Add the auto-focus ENABLE/DISABLE feature as V4L2 control.
+Disabled by default.
 
-Fixes: 615cd3fe6ccc ("[media] media: lirc_dev: make better use of file->private_data")
-
-Cc: stable@vger.kernel.org # v4.15
-Reported-by: Warren Sturm <warren.sturm@gmail.com>
-Tested-by: Warren Sturm <warren.sturm@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Mylène Josserand <mylene.josserand@bootlin.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/staging/media/lirc/lirc_zilog.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/ov5640.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 6bd0717bf76e..bf6869e48a0f 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -1291,6 +1291,7 @@ static int open(struct inode *node, struct file *filep)
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 852026baa2e7..a33e45f8e2b0 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -82,8 +82,9 @@
+ #define OV5640_REG_POLARITY_CTRL00	0x4740
+ #define OV5640_REG_MIPI_CTRL00		0x4800
+ #define OV5640_REG_DEBUG_MODE		0x4814
+-#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
++#define OV5640_REG_ISP_CTRL03		0x5003
+ #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
++#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
+ #define OV5640_REG_SDE_CTRL0		0x5580
+ #define OV5640_REG_SDE_CTRL1		0x5581
+ #define OV5640_REG_SDE_CTRL3		0x5583
+@@ -186,6 +187,7 @@ struct ov5640_ctrls {
+ 		struct v4l2_ctrl *auto_gain;
+ 		struct v4l2_ctrl *gain;
+ 	};
++	struct v4l2_ctrl *auto_focus;
+ 	struct v4l2_ctrl *brightness;
+ 	struct v4l2_ctrl *saturation;
+ 	struct v4l2_ctrl *contrast;
+@@ -2155,6 +2157,12 @@ static int ov5640_set_ctrl_test_pattern(struct ov5640_dev *sensor, int value)
+ 			      0xa4, value ? 0xa4 : 0);
+ }
  
- 	lirc_init_pdata(node, filep);
- 	ir = lirc_get_pdata(filep);
-+	get_ir_device(ir, false);
++static int ov5640_set_ctrl_focus(struct ov5640_dev *sensor, int value)
++{
++	return ov5640_mod_reg(sensor, OV5640_REG_ISP_CTRL03,
++			      BIT(1), value ? BIT(1) : 0);
++}
++
+ static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
+@@ -2223,6 +2231,9 @@ static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_TEST_PATTERN:
+ 		ret = ov5640_set_ctrl_test_pattern(sensor, ctrl->val);
+ 		break;
++	case V4L2_CID_FOCUS_AUTO:
++		ret = ov5640_set_ctrl_focus(sensor, ctrl->val);
++		break;
+ 	default:
+ 		ret = -EINVAL;
+ 		break;
+@@ -2285,6 +2296,9 @@ static int ov5640_init_controls(struct ov5640_dev *sensor)
+ 					     ARRAY_SIZE(test_pattern_menu) - 1,
+ 					     0, 0, test_pattern_menu);
  
- 	atomic_inc(&ir->open_count);
- 
++	ctrls->auto_focus = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_AUTO,
++					      0, 1, 1, 0);
++
+ 	if (hdl->error) {
+ 		ret = hdl->error;
+ 		goto free_ctrls;
 -- 
-2.14.3
+2.17.0
