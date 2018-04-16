@@ -1,384 +1,408 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:43505 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750766AbeDXUmR (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:34225 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752604AbeDPIWK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 16:42:17 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: zoran: move to dma-mapping interface
-Date: Tue, 24 Apr 2018 22:40:45 +0200
-Message-Id: <20180424204158.2764095-1-arnd@arndb.de>
+        Mon, 16 Apr 2018 04:22:10 -0400
+Subject: Re: [RfC PATCH] Add udmabuf misc device
+To: Dongwon Kim <dongwon.kim@intel.com>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        David Airlie <airlied@linux.ie>,
+        open list <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        qemu-devel@nongnu.org,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Gerd Hoffmann <kraxel@redhat.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>
+References: <20180406090747.gwiegu22z4noj23i@sirius.home.kraxel.org>
+ <9a085854-3758-1500-9971-806c611cb54f@gmail.com>
+ <20180406115730.jtwcbz5okrphlxli@sirius.home.kraxel.org>
+ <7ef89a29-6584-d23c-efd1-f30d9b767a24@gmail.com>
+ <20180406185746.GA4983@downor-Z87X-UD5H>
+ <c5923162-4144-56ef-ac81-eb1ab3eb5e8f@gmail.com>
+ <20180410172605.GA26472@downor-Z87X-UD5H>
+ <e4be9524-53d8-640c-e242-8ed3bfd05541@gmail.com>
+ <20180413153708.GW31310@phenom.ffwll.local>
+ <ced31540-9e93-6a24-ea60-20a1bddf2d39@gmail.com>
+ <20180416074302.GG31310@phenom.ffwll.local>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <d7d0fb50-0407-b51d-fb20-7275d17db47b@gmail.com>
+Date: Mon, 16 Apr 2018 11:22:06 +0300
+MIME-Version: 1.0
+In-Reply-To: <20180416074302.GG31310@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No drivers should use virt_to_bus() any more. This converts
-one of the few remaining ones to the DMA mapping interface.
+On 04/16/2018 10:43 AM, Daniel Vetter wrote:
+> On Mon, Apr 16, 2018 at 10:16:31AM +0300, Oleksandr Andrushchenko wrote:
+>> On 04/13/2018 06:37 PM, Daniel Vetter wrote:
+>>> On Wed, Apr 11, 2018 at 08:59:32AM +0300, Oleksandr Andrushchenko wrote:
+>>>> On 04/10/2018 08:26 PM, Dongwon Kim wrote:
+>>>>> On Tue, Apr 10, 2018 at 09:37:53AM +0300, Oleksandr Andrushchenko wrote:
+>>>>>> On 04/06/2018 09:57 PM, Dongwon Kim wrote:
+>>>>>>> On Fri, Apr 06, 2018 at 03:36:03PM +0300, Oleksandr Andrushchenko wrote:
+>>>>>>>> On 04/06/2018 02:57 PM, Gerd Hoffmann wrote:
+>>>>>>>>>      Hi,
+>>>>>>>>>
+>>>>>>>>>>> I fail to see any common ground for xen-zcopy and udmabuf ...
+>>>>>>>>>> Does the above mean you can assume that xen-zcopy and udmabuf
+>>>>>>>>>> can co-exist as two different solutions?
+>>>>>>>>> Well, udmabuf route isn't fully clear yet, but yes.
+>>>>>>>>>
+>>>>>>>>> See also gvt (intel vgpu), where the hypervisor interface is abstracted
+>>>>>>>>> away into a separate kernel modules even though most of the actual vgpu
+>>>>>>>>> emulation code is common.
+>>>>>>>> Thank you for your input, I'm just trying to figure out
+>>>>>>>> which of the three z-copy solutions intersect and how much
+>>>>>>>>>> And what about hyper-dmabuf?
+>>>>>>> xen z-copy solution is pretty similar fundamentally to hyper_dmabuf
+>>>>>>> in terms of these core sharing feature:
+>>>>>>>
+>>>>>>> 1. the sharing process - import prime/dmabuf from the producer -> extract
+>>>>>>> underlying pages and get those shared -> return references for shared pages
+>>>>> Another thing is danvet was kind of against to the idea of importing existing
+>>>>> dmabuf/prime buffer and forward it to the other domain due to synchronization
+>>>>> issues. He proposed to make hyper_dmabuf only work as an exporter so that it
+>>>>> can have a full control over the buffer. I think we need to talk about this
+>>>>> further as well.
+>>>> Yes, I saw this. But this limits the use-cases so much.
+>>>> For instance, running Android as a Guest (which uses ION to allocate
+>>>> buffers) means that finally HW composer will import dma-buf into
+>>>> the DRM driver. Then, in case of xen-front for example, it needs to be
+>>>> shared with the backend (Host side). Of course, we can change user-space
+>>>> to make xen-front allocate the buffers (make it exporter), but what we try
+>>>> to avoid is to change user-space which in normal world would have remain
+>>>> unchanged otherwise.
+>>>> So, I do think we have to support this use-case and just have to understand
+>>>> the complexity.
+>>> Erm, why do you need importer capability for this use-case?
+>>>
+>>> guest1 -> ION -> xen-front -> hypervisor -> guest 2 -> xen-zcopy exposes
+>>> that dma-buf -> import to the real display hw
+>>>
+>>> No where in this chain do you need xen-zcopy to be able to import a
+>>> dma-buf (within linux, it needs to import a bunch of pages from the
+>>> hypervisor).
+>>>
+>>> Now if your plan is to use xen-zcopy in the guest1 instead of xen-front,
+>>> then you indeed need to import.
+>> This is the exact use-case I was referring to while saying
+>> we need to import on Guest1 side. If hyper-dmabuf is so
+>> generic that there is no xen-front in the picture, then
+>> it needs to import a dma-buf, so it can be exported at Guest2 side.
+>>>    But that imo doesn't make sense:
+>>> - xen-front gives you clearly defined flip events you can forward to the
+>>>     hypervisor. xen-zcopy would need to add that again.
+>> xen-zcopy is a helper driver which doesn't handle page flips
+>> and is not a KMS driver as one might think of: the DRM UAPI it uses is
+>> just to export a dma-buf as a PRIME buffer, but that's it.
+>> Flipping etc. is done by the backend [1], not xen-zcopy.
+>>>    Same for
+>>>     hyperdmabuf (and really we're not going to shuffle struct dma_fence over
+>>>     the wire in a generic fashion between hypervisor guests).
+>>>
+>>> - xen-front already has the idea of pixel format for the buffer (and any
+>>>     other metadata). Again, xen-zcopy and hyperdmabuf lack that, would need
+>>>     to add it shoehorned in somehow.
+>> Again, here you are talking of something which is implemented in
+>> Xen display backend, not xen-zcopy, e.g. display backend can
+>> implement para-virtual display w/o xen-zcopy at all, but in this case
+>> there is a memory copying for each frame. With the help of xen-zcopy
+>> the backend feeds xen-front's buffers directly into Guest2 DRM/KMS or
+>> Weston or whatever as xen-zcopy exports remote buffers as PRIME buffers,
+>> thus no buffer copying is required.
+> Why do you need to copy on every frame for xen-front? In the above
+> pipeline, using xen-front I see 0 architectural reasons to have a copy
+> anywhere.
+>
+> This seems to be the core of the confusion we're having here.
+Ok, so I'll try to explain:
+1. xen-front - produces a display buffer to be shown at Guest2
+by the backend, shares its grant references with the backend
+2. xen-front sends page flip event to the backend specifying the
+buffer in question
+3. Backend takes the shared buffer (which is only a buffer mapped into
+backend's memory, it is not a dma-buf/PRIME one) and makes memcpy from
+it to a local dumb/surface
+4. Backend flips that local dumb buffer/surface
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/pci/zoran/Kconfig        |  2 +-
- drivers/media/pci/zoran/zoran.h        | 10 +++++--
- drivers/media/pci/zoran/zoran_card.c   | 10 +++++--
- drivers/media/pci/zoran/zoran_device.c | 16 +++++-----
- drivers/media/pci/zoran/zoran_driver.c | 54 +++++++++++++++++++++++++---------
- 5 files changed, 63 insertions(+), 29 deletions(-)
+If I have a xen-zcopy helper driver then I can avoid doing step 3):
+1) 2) remain the same as above
+3) Initially for a new display buffer, backend calls xen-zcopy to create
+a local PRIME buffer from the grant references provided by the xen-front
+via displif protocol [1]: we now have handle_zcopy
+4) Backend exports this PRIME with HANDLE_TO_FD from xen-zcopy and imports
+it into Weston-KMS/DRM or real HW DRM driver with FD_TO_HANDLE: we now have
+handle_local
+5) On page flip event backend flips local PRIME: uses handle_local for flips
+>
+>>> Ofc you won't be able to shovel sound or media stream data over to another
+>>> guest like this, but that's what you have xen-v4l and xen-sound or
+>>> whatever else for. Trying to make a new uapi, which means userspace must
+>>> be changed for all the different use-case, instead of reusing standard
+>>> linux driver uapi (which just happens to send the data to another
+>>> hypervisor guest instead of real hw) imo just doesn't make much sense.
+>>>
+>>> Also, at least for the gpu subsystem: Any new uapi must have full
+>>> userspace available for it, see:
+>>>
+>>> https://dri.freedesktop.org/docs/drm/gpu/drm-uapi.html#open-source-userspace-requirements
+>>>
+>>> Adding more uapi is definitely the most painful way to fix a use-case.
+>>> Personally I'd go as far and also change the xen-zcopy side on the
+>>> receiving guest to use some standard linux uapi. E.g. you could write an
+>>> output v4l driver to receive the frames from guest1.
+>> So, we now know that xen-zcopy was not meant to handle page flips,
+>> but to implement new UAPI to let user-space create buffers either
+>> from Guest2 grant references (so it can be exported to Guest1) or
+>> other way round, e.g. create (from Guest1 grant references to export to
+>> Guest 2). For that reason it adds 2 IOCTLs: create buffer from grefs
+>> or produce grefs for the buffer given.
+>> One additional IOCTL is to wait for the buffer to be released by
+>> Guest2 user-space.
+>> That being said, I don't quite see how v4l can be used here to implement
+>> UAPI I need.
+> Under the assumption that you can make xen-front to zerocopy for the
+> kernel->hypervisor path, v4l could be made to work for the
+> hypervisor->kernel side of the pipeline.
+>
+> But it sounds like we have a confusion already on why or why not xen-front
+> can or cannot do zerocopy.
+xen-front provides an array of grant references to Guest2 (backend).
+It's up to backend what it does with those grant references
+which at Guest2 side are not PRIME or dma-buf, but just a set of pages.
+This is xen-zcopy which turns these pages into a PRIME. When this is done
+backend can now tell DRM drivers to use the buffer in DRM terms.
+>>>>> danvet, can you comment on this topic?
+>>>>>
+>>>>>>> 2. the page sharing mechanism - it uses Xen-grant-table.
+>>>>>>>
+>>>>>>> And to give you a quick summary of differences as far as I understand
+>>>>>>> between two implementations (please correct me if I am wrong, Oleksandr.)
+>>>>>>>
+>>>>>>> 1. xen-zcopy is DRM specific - can import only DRM prime buffer
+>>>>>>> while hyper_dmabuf can export any dmabuf regardless of originator
+>>>>>> Well, this is true. And at the same time this is just a matter
+>>>>>> of extending the API: xen-zcopy is a helper driver designed for
+>>>>>> xen-front/back use-case, so this is why it only has DRM PRIME API
+>>>>>>> 2. xen-zcopy doesn't seem to have dma-buf synchronization between two VMs
+>>>>>>> while (as danvet called it as remote dmabuf api sharing) hyper_dmabuf sends
+>>>>>>> out synchronization message to the exporting VM for synchronization.
+>>>>>> This is true. Again, this is because of the use-cases it covers.
+>>>>>> But having synchronization for a generic solution seems to be a good idea.
+>>>>> Yeah, understood xen-zcopy works ok with your use case. But I am just curious
+>>>>> if it is ok not to have any inter-domain synchronization in this sharing model.
+>>>> The synchronization is done with displif protocol [1]
+>>>>> The buffer being shared is technically dma-buf and originator needs to be able
+>>>>> to keep track of it.
+>>>> As I am working in DRM terms the tracking is done by the DRM core
+>>>> for me for free. (This might be one of the reasons Daniel sees DRM
+>>>> based implementation fit very good from code-reuse POV).
+>>> Hm, not sure what tracking you refer to here all ... I got lost in all the
+>>> replies while catching up.
+>>>
+>> I was just referring to accounting stuff already implemented in the DRM
+>> core,
+>> so I don't have to worry about doing the same for buffers to understand
+>> when they are released etc.
+>>>>>>> 3. 1-level references - when using grant-table for sharing pages, there will
+>>>>>>> be same # of refs (each 8 byte)
+>>>>>> To be precise, grant ref is 4 bytes
+>>>>> You are right. Thanks for correction.;)
+>>>>>
+>>>>>>> as # of shared pages, which is passed to
+>>>>>>> the userspace to be shared with importing VM in case of xen-zcopy.
+>>>>>> The reason for that is that xen-zcopy is a helper driver, e.g.
+>>>>>> the grant references come from the display backend [1], which implements
+>>>>>> Xen display protocol [2]. So, effectively the backend extracts references
+>>>>>> from frontend's requests and passes those to xen-zcopy as an array
+>>>>>> of refs.
+>>>>>>>     Compared
+>>>>>>> to this, hyper_dmabuf does multiple level addressing to generate only one
+>>>>>>> reference id that represents all shared pages.
+>>>>>> In the protocol [2] only one reference to the gref directory is passed
+>>>>>> between VMs
+>>>>>> (and the gref directory is a single-linked list of shared pages containing
+>>>>>> all
+>>>>>> of the grefs of the buffer).
+>>>>> ok, good to know. I will look into its implementation in more details but is
+>>>>> this gref directory (chained grefs) something that can be used for any general
+>>>>> memory sharing use case or is it jsut for xen-display (in current code base)?
+>>>> Not to mislead you: one grant ref is passed via displif protocol,
+>>>> but the page it's referencing contains the rest of the grant refs.
+>>>>
+>>>> As to if this can be used for any memory: yes. It is the same for
+>>>> sndif and displif Xen protocols, but defined twice as strictly speaking
+>>>> sndif and displif are two separate protocols.
+>>>>
+>>>> While reviewing your RFC v2 one of the comments I had [2] was that if we
+>>>> can start from defining such a generic protocol for hyper-dmabuf.
+>>>> It can be a header file, which not only has the description part
+>>>> (which then become a part of Documentation/...rst file), but also defines
+>>>> all the required constants for requests, responses, defines message formats,
+>>>> state diagrams etc. all at one place. Of course this protocol must not be
+>>>> Xen specific, but be OS/hypervisor agnostic.
+>>>> Having that will trigger a new round of discussion, so we have it all
+>>>> designed
+>>>> and discussed before we start implementing.
+>>>>
+>>>> Besides the protocol we have to design UAPI part as well and make sure
+>>>> the hyper-dmabuf is not only accessible from user-space, but there will be
+>>>> number
+>>>> of kernel-space users as well.
+>>> Again, why do you want to create new uapi for this? Given the very strict
+>>> requirements we have for new uapi (see above link), it's the toughest way
+>>> to get any kind of support in.
+>> I do understand that adding new UAPI is not good for many reasons.
+>> But here I was meaning that current hyper-dmabuf design is
+>> only user-space oriented, e.g. it provides number of IOCTLs to do all
+>> the work. But I need a way to access the same from the kernel, so, for
+>> example,
+>> some other para-virtual driver can export/import dma-buf, not only
+>> user-space.
+> If you need an import-export helper library, just merge it. Do not attach
+> any uapi to it, just the internal helpers.
+>
+> Much, much, much easier to land.
+This can be done, but again, I will need some entity which
+backend may use to convert xen-front's grant references into
+a PRIME buffer, hence there is UAPI for that. In other words,
+I'll need a thiner xen-zcopy which will implement the same UAPI
+and use that library for Xen related stuff.
 
-diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
-index 39ec35bd21a5..26f40e124a32 100644
---- a/drivers/media/pci/zoran/Kconfig
-+++ b/drivers/media/pci/zoran/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_ZORAN
- 	tristate "Zoran ZR36057/36067 Video For Linux"
--	depends on PCI && I2C_ALGOBIT && VIDEO_V4L2 && VIRT_TO_BUS
-+	depends on PCI && I2C_ALGOBIT && VIDEO_V4L2
- 	depends on !ALPHA
- 	help
- 	  Say Y for support for MJPEG capture cards based on the Zoran
-diff --git a/drivers/media/pci/zoran/zoran.h b/drivers/media/pci/zoran/zoran.h
-index 9bb3c21aa275..9ff3a9acb60a 100644
---- a/drivers/media/pci/zoran/zoran.h
-+++ b/drivers/media/pci/zoran/zoran.h
-@@ -183,13 +183,14 @@ struct zoran_buffer {
- 	struct zoran_sync bs;		/* DONE: info to return to application */
- 	union {
- 		struct {
--			__le32 *frag_tab;	/* addresses of frag table */
--			u32 frag_tab_bus;	/* same value cached to save time in ISR */
-+			__le32 *frag_tab;	/* DMA addresses of frag table */
-+			void **frag_virt_tab;	/* virtual addresses of frag table */
-+			dma_addr_t frag_tab_dma;/* same value cached to save time in ISR */
- 		} jpg;
- 		struct {
- 			char *fbuffer;		/* virtual address of frame buffer */
- 			unsigned long fbuffer_phys;/* physical address of frame buffer */
--			unsigned long fbuffer_bus;/* bus address of frame buffer */
-+			dma_addr_t fbuffer_dma;/* bus address of frame buffer */
- 		} v4l;
- 	};
- };
-@@ -221,6 +222,7 @@ struct zoran_fh {
- 
- 	struct zoran_overlay_settings overlay_settings;
- 	u32 *overlay_mask;			/* overlay mask */
-+	dma_addr_t overlay_mask_dma;
- 	enum zoran_lock_activity overlay_active;/* feature currently in use? */
- 
- 	struct zoran_buffer_col buffers;	/* buffers' info */
-@@ -307,6 +309,7 @@ struct zoran {
- 
- 	struct zoran_overlay_settings overlay_settings;
- 	u32 *overlay_mask;	/* overlay mask */
-+	dma_addr_t overlay_mask_dma;
- 	enum zoran_lock_activity overlay_active;	/* feature currently in use? */
- 
- 	wait_queue_head_t v4l_capq;
-@@ -346,6 +349,7 @@ struct zoran {
- 
- 	/* zr36057's code buffer table */
- 	__le32 *stat_com;		/* stat_com[i] is indexed by dma_head/tail & BUZ_MASK_STAT_COM */
-+	dma_addr_t stat_com_dma;
- 
- 	/* (value & BUZ_MASK_FRAME) corresponds to index in pend[] queue */
- 	int jpg_pend[BUZ_MAX_FRAME];
-diff --git a/drivers/media/pci/zoran/zoran_card.c b/drivers/media/pci/zoran/zoran_card.c
-index a6b9ebd20263..dabd8bf77472 100644
---- a/drivers/media/pci/zoran/zoran_card.c
-+++ b/drivers/media/pci/zoran/zoran_card.c
-@@ -890,6 +890,7 @@ zoran_open_init_params (struct zoran *zr)
- 	/* User must explicitly set a window */
- 	zr->overlay_settings.is_set = 0;
- 	zr->overlay_mask = NULL;
-+	zr->overlay_mask_dma = 0;
- 	zr->overlay_active = ZORAN_FREE;
- 
- 	zr->v4l_memgrab_active = 0;
-@@ -1028,7 +1029,8 @@ static int zr36057_init (struct zoran *zr)
- 
- 	/* allocate memory *before* doing anything to the hardware
- 	 * in case allocation fails */
--	zr->stat_com = kzalloc(BUZ_NUM_STAT_COM * 4, GFP_KERNEL);
-+	zr->stat_com = dma_alloc_coherent(&zr->pci_dev->dev,
-+				BUZ_NUM_STAT_COM * 4, &zr->stat_com_dma, GFP_KERNEL);
- 	zr->video_dev = video_device_alloc();
- 	if (!zr->stat_com || !zr->video_dev) {
- 		dprintk(1,
-@@ -1072,7 +1074,8 @@ static int zr36057_init (struct zoran *zr)
- 	return 0;
- 
- exit_free:
--	kfree(zr->stat_com);
-+	dma_free_coherent(&zr->pci_dev->dev, BUZ_NUM_STAT_COM * 4,
-+			  zr->stat_com, zr->stat_com_dma);
- 	kfree(zr->video_dev);
- 	return err;
- }
-@@ -1107,7 +1110,8 @@ static void zoran_remove(struct pci_dev *pdev)
- 	btwrite(0, ZR36057_SPGPPCR);
- 	free_irq(zr->pci_dev->irq, zr);
- 	/* unmap and free memory */
--	kfree(zr->stat_com);
-+	dma_free_coherent(&zr->pci_dev->dev, BUZ_NUM_STAT_COM * 4,
-+			  zr->stat_com, zr->stat_com_dma);
- 	zoran_proc_cleanup(zr);
- 	iounmap(zr->zr36057_mem);
- 	pci_disable_device(zr->pci_dev);
-diff --git a/drivers/media/pci/zoran/zoran_device.c b/drivers/media/pci/zoran/zoran_device.c
-index 40adceebca7e..1ac7810ddd25 100644
---- a/drivers/media/pci/zoran/zoran_device.c
-+++ b/drivers/media/pci/zoran/zoran_device.c
-@@ -430,9 +430,9 @@ zr36057_set_vfe (struct zoran              *zr,
- 		 * zr->overlay_settings.width instead of video_width */
- 
- 		mask_line_size = (BUZ_MAX_WIDTH + 31) / 32;
--		reg = virt_to_bus(zr->overlay_mask);
-+		reg = zr->overlay_mask_dma;
- 		btwrite(reg, ZR36057_MMTR);
--		reg = virt_to_bus(zr->overlay_mask + mask_line_size);
-+		reg = zr->overlay_mask_dma + mask_line_size;
- 		btwrite(reg, ZR36057_MMBR);
- 		reg =
- 		    mask_line_size - (zr->overlay_settings.width +
-@@ -775,7 +775,7 @@ zr36057_set_jpg (struct zoran          *zr,
- 	//btor(ZR36057_VFESPFR_VCLKPol, ZR36057_VFESPFR);
- 
- 	/* code base address */
--	reg = virt_to_bus(zr->stat_com);
-+	reg = zr->stat_com_dma;
- 	btwrite(reg, ZR36057_JCBA);
- 
- 	/* FIFO threshold (FIFO is 160. double words) */
-@@ -1097,7 +1097,7 @@ zoran_feed_stat_com (struct zoran *zr)
- 			if (!(zr->stat_com[i] & cpu_to_le32(1)))
- 				break;
- 			zr->stat_com[i] =
--			    cpu_to_le32(zr->jpg_buffers.buffer[frame].jpg.frag_tab_bus);
-+			    cpu_to_le32(zr->jpg_buffers.buffer[frame].jpg.frag_tab_dma);
- 		} else {
- 			/* fill 2 stat_com entries */
- 			i = ((zr->jpg_dma_head -
-@@ -1105,9 +1105,9 @@ zoran_feed_stat_com (struct zoran *zr)
- 			if (!(zr->stat_com[i] & cpu_to_le32(1)))
- 				break;
- 			zr->stat_com[i] =
--			    cpu_to_le32(zr->jpg_buffers.buffer[frame].jpg.frag_tab_bus);
-+			    cpu_to_le32(zr->jpg_buffers.buffer[frame].jpg.frag_tab_dma);
- 			zr->stat_com[i + 1] =
--			    cpu_to_le32(zr->jpg_buffers.buffer[frame].jpg.frag_tab_bus);
-+			    cpu_to_le32(zr->jpg_buffers.buffer[frame].jpg.frag_tab_dma);
- 		}
- 		zr->jpg_buffers.buffer[frame].state = BUZ_STATE_DMA;
- 		zr->jpg_dma_head++;
-@@ -1272,7 +1272,7 @@ error_handler (struct zoran *zr,
- 		printk(KERN_INFO "stat_com frames:");
- 		for (j = 0; j < BUZ_NUM_STAT_COM; j++) {
- 			for (i = 0; i < zr->jpg_buffers.num_buffers; i++) {
--				if (le32_to_cpu(zr->stat_com[j]) == zr->jpg_buffers.buffer[i].jpg.frag_tab_bus)
-+				if (le32_to_cpu(zr->stat_com[j]) == zr->jpg_buffers.buffer[i].jpg.frag_tab_dma)
- 					printk(KERN_CONT "% d->%d", j, i);
- 			}
- 		}
-@@ -1411,7 +1411,7 @@ zoran_irq (int             irq,
- 
- 					/* Buffer address */
- 
--					reg = zr->v4l_buffers.buffer[frame].v4l.fbuffer_bus;
-+					reg = zr->v4l_buffers.buffer[frame].v4l.fbuffer_dma;
- 					btwrite(reg, ZR36057_VDTR);
- 					if (zr->v4l_settings.height > BUZ_MAX_HEIGHT / 2)
- 						reg += zr->v4l_settings.bytesperline;
-diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-index 4b6466961b41..dad1fb02ced2 100644
---- a/drivers/media/pci/zoran/zoran_driver.c
-+++ b/drivers/media/pci/zoran/zoran_driver.c
-@@ -235,15 +235,20 @@ static int v4l_fbuffer_alloc(struct zoran_fh *fh)
- 		}
- 		fh->buffers.buffer[i].v4l.fbuffer = mem;
- 		fh->buffers.buffer[i].v4l.fbuffer_phys = virt_to_phys(mem);
--		fh->buffers.buffer[i].v4l.fbuffer_bus = virt_to_bus(mem);
-+		fh->buffers.buffer[i].v4l.fbuffer_dma =
-+			dma_map_single(&zr->pci_dev->dev, mem,
-+				       fh->buffers.buffer_size,
-+				       DMA_FROM_DEVICE);
-+		if (!fh->buffers.buffer[i].v4l.fbuffer_dma)
-+			return -ENXIO;
- 		for (off = 0; off < fh->buffers.buffer_size;
- 		     off += PAGE_SIZE)
- 			SetPageReserved(virt_to_page(mem + off));
- 		dprintk(4,
- 			KERN_INFO
--			"%s: %s - V4L frame %d mem %p (bus: 0x%llx)\n",
-+			"%s: %s - V4L frame %d mem %p (bus: %pad)\n",
- 			ZR_DEVNAME(zr), __func__, i, mem,
--			(unsigned long long)virt_to_bus(mem));
-+			&fh->buffers.buffer[i].v4l.fbuffer_dma);
- 	}
- 
- 	fh->buffers.allocated = 1;
-@@ -308,6 +313,7 @@ static int jpg_fbuffer_alloc(struct zoran_fh *fh)
- 	struct zoran *zr = fh->zr;
- 	int i, j, off;
- 	u8 *mem;
-+	void **virt_tab;
- 
- 	for (i = 0; i < fh->buffers.num_buffers; i++) {
- 		if (fh->buffers.buffer[i].jpg.frag_tab)
-@@ -319,16 +325,19 @@ static int jpg_fbuffer_alloc(struct zoran_fh *fh)
- 		/* Allocate fragment table for this buffer */
- 
- 		mem = (void *)get_zeroed_page(GFP_KERNEL);
--		if (!mem) {
-+		virt_tab = (void *)get_zeroed_page(GFP_KERNEL);
-+		if (!mem || !virt_tab) {
- 			dprintk(1,
- 				KERN_ERR
- 				"%s: %s - get_zeroed_page (frag_tab) failed for buffer %d\n",
- 				ZR_DEVNAME(zr), __func__, i);
-+			kfree(mem);
-+			kfree(virt_tab);
- 			jpg_fbuffer_free(fh);
- 			return -ENOBUFS;
- 		}
- 		fh->buffers.buffer[i].jpg.frag_tab = (__le32 *)mem;
--		fh->buffers.buffer[i].jpg.frag_tab_bus = virt_to_bus(mem);
-+		fh->buffers.buffer[i].jpg.frag_virt_tab = virt_tab;
- 
- 		if (fh->buffers.need_contiguous) {
- 			mem = kmalloc(fh->buffers.buffer_size, GFP_KERNEL);
-@@ -340,8 +349,9 @@ static int jpg_fbuffer_alloc(struct zoran_fh *fh)
- 				jpg_fbuffer_free(fh);
- 				return -ENOBUFS;
- 			}
-+			fh->buffers.buffer[i].jpg.frag_virt_tab[0] = mem;
- 			fh->buffers.buffer[i].jpg.frag_tab[0] =
--				cpu_to_le32(virt_to_bus(mem));
-+				cpu_to_le32(dma_map_single(&zr->pci_dev->dev, mem, fh->buffers.buffer_size, DMA_FROM_DEVICE));
- 			fh->buffers.buffer[i].jpg.frag_tab[1] =
- 				cpu_to_le32((fh->buffers.buffer_size >> 1) | 1);
- 			for (off = 0; off < fh->buffers.buffer_size; off += PAGE_SIZE)
-@@ -359,8 +369,9 @@ static int jpg_fbuffer_alloc(struct zoran_fh *fh)
- 					return -ENOBUFS;
- 				}
- 
-+				fh->buffers.buffer[i].jpg.frag_virt_tab[j] = mem;
- 				fh->buffers.buffer[i].jpg.frag_tab[2 * j] =
--					cpu_to_le32(virt_to_bus(mem));
-+					cpu_to_le32(dma_map_single(&zr->pci_dev->dev, mem, fh->buffers.buffer_size, DMA_FROM_DEVICE));
- 				fh->buffers.buffer[i].jpg.frag_tab[2 * j + 1] =
- 					cpu_to_le32((PAGE_SIZE >> 2) << 1);
- 				SetPageReserved(virt_to_page(mem));
-@@ -368,6 +379,8 @@ static int jpg_fbuffer_alloc(struct zoran_fh *fh)
- 
- 			fh->buffers.buffer[i].jpg.frag_tab[2 * j - 1] |= cpu_to_le32(1);
- 		}
-+
-+		fh->buffers.buffer[i].jpg.frag_tab_dma = dma_map_single(&zr->pci_dev->dev, mem, PAGE_SIZE, DMA_TO_DEVICE);
- 	}
- 
- 	dprintk(4,
-@@ -400,9 +413,10 @@ static void jpg_fbuffer_free(struct zoran_fh *fh)
- 			frag_tab = buffer->jpg.frag_tab[0];
- 
- 			if (frag_tab) {
--				mem = bus_to_virt(le32_to_cpu(frag_tab));
-+				mem = buffer->jpg.frag_virt_tab[0];
- 				for (off = 0; off < fh->buffers.buffer_size; off += PAGE_SIZE)
- 					ClearPageReserved(virt_to_page(mem + off));
-+				dma_unmap_single(&zr->pci_dev->dev, frag_tab, PAGE_SIZE, DMA_FROM_DEVICE);
- 				kfree(mem);
- 				buffer->jpg.frag_tab[0] = 0;
- 				buffer->jpg.frag_tab[1] = 0;
-@@ -413,14 +427,19 @@ static void jpg_fbuffer_free(struct zoran_fh *fh)
- 
- 				if (!frag_tab)
- 					break;
--				ClearPageReserved(virt_to_page(bus_to_virt(le32_to_cpu(frag_tab))));
--				free_page((unsigned long)bus_to_virt(le32_to_cpu(frag_tab)));
-+				ClearPageReserved(virt_to_page(buffer->jpg.frag_virt_tab[j]));
-+				dma_unmap_single(&zr->pci_dev->dev, le32_to_cpu(frag_tab), PAGE_SIZE, DMA_FROM_DEVICE);
-+				free_page((unsigned long)buffer->jpg.frag_virt_tab[j]);
-+				buffer->jpg.frag_virt_tab[j] = NULL;
- 				buffer->jpg.frag_tab[2 * j] = 0;
- 				buffer->jpg.frag_tab[2 * j + 1] = 0;
- 			}
- 		}
- 
-+		dma_unmap_single(&zr->pci_dev->dev, buffer->jpg.frag_tab_dma, PAGE_SIZE, DMA_TO_DEVICE);
- 		free_page((unsigned long)buffer->jpg.frag_tab);
-+		free_page((unsigned long)buffer->jpg.frag_virt_tab);
-+		buffer->jpg.frag_virt_tab = NULL;
- 		buffer->jpg.frag_tab = NULL;
- 	}
- 
-@@ -873,6 +892,7 @@ static void zoran_close_end_session(struct zoran_fh *fh)
- 		if (!zr->v4l_memgrab_active)
- 			zr36057_overlay(zr, 0);
- 		zr->overlay_mask = NULL;
-+		zr->overlay_mask_dma = 0;
- 	}
- 
- 	if (fh->map_mode == ZORAN_MAP_MODE_RAW) {
-@@ -940,8 +960,10 @@ static int zoran_open(struct file *file)
- 
- 	/* used to be BUZ_MAX_WIDTH/HEIGHT, but that gives overflows
- 	 * on norm-change! */
--	fh->overlay_mask =
--	    kmalloc(((768 + 31) / 32) * 576 * 4, GFP_KERNEL);
-+	fh->overlay_mask = dma_alloc_wc(&zr->pci_dev->dev,
-+					((768 + 31) / 32) * 576 * 4,
-+					&fh->overlay_mask_dma,
-+					GFP_KERNEL);
- 	if (!fh->overlay_mask) {
- 		dprintk(1,
- 			KERN_ERR
-@@ -1016,6 +1038,7 @@ zoran_close(struct file  *file)
- 		zr->v4l_overlay_active = 0;
- 		zr36057_overlay(zr, 0);
- 		zr->overlay_mask = NULL;
-+		zr->overlay_mask_dma = 0;
- 
- 		/* capture off */
- 		wake_up_interruptible(&zr->v4l_capq);
-@@ -1033,7 +1056,8 @@ zoran_close(struct file  *file)
- 
- 	v4l2_fh_del(&fh->fh);
- 	v4l2_fh_exit(&fh->fh);
--	kfree(fh->overlay_mask);
-+	dma_free_wc(&zr->pci_dev->dev, ((768 + 31) / 32) * 576 * 4,
-+		    fh->overlay_mask, fh->overlay_mask_dma);
- 	kfree(fh);
- 
- 	dprintk(4, KERN_INFO "%s: %s done\n", ZR_DEVNAME(zr), __func__);
-@@ -1284,6 +1308,7 @@ static int setup_overlay(struct zoran_fh *fh, int on)
- 		if (!zr->v4l_memgrab_active)
- 			zr36057_overlay(zr, 0);
- 		zr->overlay_mask = NULL;
-+		zr->overlay_mask_dma = 0;
- 	} else {
- 		if (!zr->vbuf_base || !fh->overlay_settings.is_set) {
- 			dprintk(1,
-@@ -1302,6 +1327,7 @@ static int setup_overlay(struct zoran_fh *fh, int on)
- 		zr->overlay_active = fh->overlay_active = ZORAN_LOCKED;
- 		zr->v4l_overlay_active = 1;
- 		zr->overlay_mask = fh->overlay_mask;
-+		zr->overlay_mask_dma = fh->overlay_mask_dma;
- 		zr->overlay_settings = fh->overlay_settings;
- 		if (!zr->v4l_memgrab_active)
- 			zr36057_overlay(zr, 1);
-@@ -2763,7 +2789,7 @@ zoran_mmap (struct file           *file,
- 				    le32_to_cpu(fh->buffers.
- 				    buffer[i].jpg.frag_tab[2 * j]);
- 				/* should just be pos on i386 */
--				page = virt_to_phys(bus_to_virt(pos))
-+				page = virt_to_phys(fh->buffers.buffer[i].jpg.frag_virt_tab[j])
- 								>> PAGE_SHIFT;
- 				if (remap_pfn_range(vma, start, page,
- 							todo, PAGE_SHARED)) {
--- 
-2.9.0
+The confusion may also come from the fact that the backend is
+a user-space application, not a kernel module (we have 2 modes
+of its operation as of now: DRM master or Weston client), so
+it needs a way to talk to the kernel.
+>>> That's why I had essentially zero big questions for xen-front (except some
+>>> implementation improvements, and stuff to make sure xen-front actually
+>>> implements the real uapi semantics instead of its own), and why I'm asking
+>>> much more questions on this stuff here.
+>>>
+>>>>>>> 4. inter VM messaging (hype_dmabuf only) - hyper_dmabuf has inter-vm msg
+>>>>>>> communication defined for dmabuf synchronization and private data (meta
+>>>>>>> info that Matt Roper mentioned) exchange.
+>>>>>> This is true, xen-zcopy has no means for inter VM sync and meta-data,
+>>>>>> simply because it doesn't have any code for inter VM exchange in it,
+>>>>>> e.g. the inter VM protocol is handled by the backend [1].
+>>>>>>> 5. driver-to-driver notification (hyper_dmabuf only) - importing VM gets
+>>>>>>> notified when newdmabuf is exported from other VM - uevent can be optionally
+>>>>>>> generated when this happens.
+>>>>>>>
+>>>>>>> 6. structure - hyper_dmabuf is targetting to provide a generic solution for
+>>>>>>> inter-domain dmabuf sharing for most hypervisors, which is why it has two
+>>>>>>> layers as mattrope mentioned, front-end that contains standard API and backend
+>>>>>>> that is specific to hypervisor.
+>>>>>> Again, xen-zcopy is decoupled from inter VM communication
+>>>>>>>>> No idea, didn't look at it in detail.
+>>>>>>>>>
+>>>>>>>>> Looks pretty complex from a distant view.  Maybe because it tries to
+>>>>>>>>> build a communication framework using dma-bufs instead of a simple
+>>>>>>>>> dma-buf passing mechanism.
+>>>>>>> we started with simple dma-buf sharing but realized there are many
+>>>>>>> things we need to consider in real use-case, so we added communication
+>>>>>>> , notification and dma-buf synchronization then re-structured it to
+>>>>>>> front-end and back-end (this made things more compicated..) since Xen
+>>>>>>> was not our only target. Also, we thought passing the reference for the
+>>>>>>> buffer (hyper_dmabuf_id) is not secure so added uvent mechanism later.
+>>>>>>>
+>>>>>>>> Yes, I am looking at it now, trying to figure out the full story
+>>>>>>>> and its implementation. BTW, Intel guys were about to share some
+>>>>>>>> test application for hyper-dmabuf, maybe I have missed one.
+>>>>>>>> It could probably better explain the use-cases and the complexity
+>>>>>>>> they have in hyper-dmabuf.
+>>>>>>> One example is actually in github. If you want take a look at it, please
+>>>>>>> visit:
+>>>>>>>
+>>>>>>> https://github.com/downor/linux_hyper_dmabuf_test/tree/xen/simple_export
+>>>>>> Thank you, I'll have a look
+>>>>>>>>> Like xen-zcopy it seems to depend on the idea that the hypervisor
+>>>>>>>>> manages all memory it is easy for guests to share pages with the help of
+>>>>>>>>> the hypervisor.
+>>>>>>>> So, for xen-zcopy we were not trying to make it generic,
+>>>>>>>> it just solves display (dumb) zero-copying use-cases for Xen.
+>>>>>>>> We implemented it as a DRM helper driver because we can't see any
+>>>>>>>> other use-cases as of now.
+>>>>>>>> For example, we also have Xen para-virtualized sound driver, but
+>>>>>>>> its buffer memory usage is not comparable to what display wants
+>>>>>>>> and it works somewhat differently (e.g. there is no "frame done"
+>>>>>>>> event, so one can't tell when the sound buffer can be "flipped").
+>>>>>>>> At the same time, we do not use virtio-gpu, so this could probably
+>>>>>>>> be one more candidate for shared dma-bufs some day.
+>>>>>>>>>      Which simply isn't the case on kvm.
+>>>>>>>>>
+>>>>>>>>> hyper-dmabuf and xen-zcopy could maybe share code, or hyper-dmabuf build
+>>>>>>>>> on top of xen-zcopy.
+>>>>>>>> Hm, I can imagine that: xen-zcopy could be a library code for hyper-dmabuf
+>>>>>>>> in terms of implementing all that page sharing fun in multiple directions,
+>>>>>>>> e.g. Host->Guest, Guest->Host, Guest<->Guest.
+>>>>>>>> But I'll let Matt and Dongwon to comment on that.
+>>>>>>> I think we can definitely collaborate. Especially, maybe we are using some
+>>>>>>> outdated sharing mechanism/grant-table mechanism in our Xen backend (thanks
+>>>>>>> for bringing that up Oleksandr). However, the question is once we collaborate
+>>>>>>> somehow, can xen-zcopy's usecase use the standard API that hyper_dmabuf
+>>>>>>> provides? I don't think we need different IOCTLs that do the same in the final
+>>>>>>> solution.
+>>>>>>>
+>>>>>> If you think of xen-zcopy as a library (which implements Xen
+>>>>>> grant references mangling) and DRM PRIME wrapper on top of that
+>>>>>> library, we can probably define proper API for that library,
+>>>>>> so both xen-zcopy and hyper-dmabuf can use it. What is more, I am
+>>>>>> about to start upstreaming Xen para-virtualized sound device driver soon,
+>>>>>> which also uses similar code and gref passing mechanism [3].
+>>>>>> (Actually, I was about to upstream drm/xen-front, drm/xen-zcopy and
+>>>>>> snd/xen-front and then propose a Xen helper library for sharing big buffers,
+>>>>>> so common code of the above drivers can use the same code w/o code
+>>>>>> duplication)
+>>>>> I think it is possible to use your functions for memory sharing part in
+>>>>> hyper_dmabuf's backend (this 'backend' means the layer that does page sharing
+>>>>> and inter-vm communication with xen-specific way.), so why don't we work on
+>>>>> "Xen helper library for sharing big buffers" first while we continue our
+>>>>> discussion on the common API layer that can cover any dmabuf sharing cases.
+>>>>>
+>>>> Well, I would love we reuse the code that I have, but I also
+>>>> understand that it was limited by my use-cases. So, I do not
+>>>> insist we have to ;)
+>>>> If we start designing and discussing hyper-dmabuf protocol we of course
+>>>> can work on this helper library in parallel.
+>>> Imo code reuse is overrated. Adding new uapi is what freaks me out here
+>>> :-)
+>>>
+>>> If we end up with duplicated implementations, even in upstream, meh, not
+>>> great, but also ok. New uapi, and in a similar way, new hypervisor api
+>>> like the dma-buf forwarding that hyperdmabuf does is the kind of thing
+>>> that will lock us in for 10+ years (if we make a mistake).
+>>>
+>>>>>> Thank you,
+>>>>>> Oleksandr
+>>>>>>
+>>>>>> P.S. All, is it a good idea to move this out of udmabuf thread into a
+>>>>>> dedicated one?
+>>>>> Either way is fine with me.
+>>>> So, if you can start designing the protocol we may have a dedicated mail
+>>>> thread for that. I will try to help with the protocol as much as I can
+>>> Please don't start with the protocol. Instead start with the concrete
+>>> use-cases, and then figure out why exactly you need new uapi. Once we have
+>>> that answered, we can start thinking about fleshing out the details.
+>> On my side there are only 2 use-cases, Guest2 only:
+>> 1. Create a PRIME (dma-buf) from grant references
+>> 2. Create grant references from PRIME (dma-buf)
+> So these grant references, are those userspace visible things?
+Yes, the user-space backend receives those from xen-front via [1]
+
+> I thought
+> the grant references was just the kernel/hypervisor internal magic to make
+> this all work?
+So, I can map the grant references from user-space, but I won't
+be able to turn those into a PRIME buffer. So, the only use of those
+w/o xen-zcopy is to map grant refs and copy into real HW dumb on every 
+page flip.
+> -Daniel
+[1] 
+https://elixir.bootlin.com/linux/v4.17-rc1/source/include/xen/interface/io/displif.h#L484
