@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48948 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756699AbeDFOXf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 10:23:35 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+Received: from mail-ua0-f175.google.com ([209.85.217.175]:42730 "EHLO
+        mail-ua0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751151AbeDPEa7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 00:30:59 -0400
+Received: by mail-ua0-f175.google.com with SMTP id o34so9255741uae.9
+        for <linux-media@vger.kernel.org>; Sun, 15 Apr 2018 21:30:59 -0700 (PDT)
+Received: from mail-ua0-f169.google.com (mail-ua0-f169.google.com. [209.85.217.169])
+        by smtp.gmail.com with ESMTPSA id x56sm2687755uax.8.2018.04.15.21.30.57
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 15 Apr 2018 21:30:57 -0700 (PDT)
+Received: by mail-ua0-f169.google.com with SMTP id u4so9249538uaf.10
+        for <linux-media@vger.kernel.org>; Sun, 15 Apr 2018 21:30:57 -0700 (PDT)
+MIME-Version: 1.0
+References: <1523375324-27856-1-git-send-email-andy.yeh@intel.com>
+ <1523375324-27856-3-git-send-email-andy.yeh@intel.com> <20180412085701.GJ20945@w540>
+ <20180412095710.tqcpyix6sn772siw@paasikivi.fi.intel.com>
+In-Reply-To: <20180412095710.tqcpyix6sn772siw@paasikivi.fi.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 16 Apr 2018 04:30:46 +0000
+Message-ID: <CAAFQd5Dm6tNoC2VskAK6DDdm4WrRSe71XckmCtX7zFMpoTn_UQ@mail.gmail.com>
+Subject: Re: [RESEND PATCH v7 2/2] media: dw9807: Add dw9807 vcm driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: jacopo@jmondi.org, "Yeh, Andy" <andy.yeh@intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 08/21] media: davinci_vpfe: fix a typo for "default"
-Date: Fri,  6 Apr 2018 10:23:09 -0400
-Message-Id: <b0ed690171b1bc3d77d144271b06e7035da696aa.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1523024380.git.mchehab@s-opensource.com>
-References: <cover.1523024380.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-resizer_set_defualt_configuration -> resizer_set_default_configuration
+On Thu, Apr 12, 2018 at 6:57 PM Sakari Ailus <sakari.ailus@linux.intel.com>
+wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/davinci_vpfe/dm365_resizer.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Hi Jacopo,
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 1ee216d71d42..1e478755fe2f 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -794,7 +794,7 @@ resizer_configure_in_single_shot_mode(struct vpfe_resizer_device *resizer)
- }
- 
- static void
--resizer_set_defualt_configuration(struct vpfe_resizer_device *resizer)
-+resizer_set_default_configuration(struct vpfe_resizer_device *resizer)
- {
- #define  WIDTH_I 640
- #define  HEIGHT_I 480
-@@ -916,7 +916,7 @@ resizer_set_configuration(struct vpfe_resizer_device *resizer,
- 			  struct vpfe_rsz_config *chan_config)
- {
- 	if (!chan_config->config)
--		resizer_set_defualt_configuration(resizer);
-+		resizer_set_default_configuration(resizer);
- 	else
- 		if (copy_from_user(&resizer->config.user_config,
- 		    chan_config->config, sizeof(struct vpfe_rsz_config_params)))
--- 
-2.14.3
+> On Thu, Apr 12, 2018 at 10:57:01AM +0200, jacopo mondi wrote:
+> ...
+> > > +           if (MAX_RETRY == ++retry) {
+> > > +                   dev_err(&client->dev,
+> > > +                           "Cannot do the write operation because
+VCM is busy\n");
+> >
+> > Nit: this is over 80 cols, it's fine, but I think you can really
+> > shorten the error messag without losing context.
+
+> dev_warn() or dev_info() might be more appropriate actually. Or even
+> dev_dbg(). This isn't a grave problem; just a sign the user space is
+trying
+> to move the lens before it has reached its previous target position.
+
+On the other hand, we print this only if we reach MAX_RETRY, which probably
+means that the lens is stuck or some other unexpected failure.
+
+
+> >
+> > > +                   return -EIO;
+> > > +           }
+> > > +           usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US +
+10);
+> >
+> > mmm, I wonder if a sleep range of 10usecs is really a strict
+> > requirement. Have a look at Documentation/timers/timers-howto.txt.
+> > With such a small range you're likely fire some unrequired interrupt.
+
+> If the user is trying to tell where to move the lens next, no time should
+> be wasted on waiting. It'd perhaps rather make sense to return an error
+> (-EBUSY): the user application (as well as the application developer)
+would
+> know about the attempt to move the lens too fast and could take an
+informed
+> decision on what to do next. This could include changing the target
+> position, waiting more or changing the program to adjust the 3A loop
+> behaviour.
+
+Actually, shouldn't we wait for the lens to finish moving after we set the
+position? If we don't do it, we risk the userspace requesting a capture
+with the lens still moving.
+
+If "time wasted on waiting" is a concern here, userspace could as well just
+have a separate thread for controlling the lens (as something that is
+expected to take time due to physical limitations).
+
+Best regards,
+Tomasz
