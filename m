@@ -1,129 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:37869 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750836AbeDNECc (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:44194 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752630AbeDPCw1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 00:02:32 -0400
-Message-ID: <541987a06ae82e97fe2d405edba69b30@smtp-cloud8.xs4all.net>
-Date: Sat, 14 Apr 2018 06:02:27 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sun, 15 Apr 2018 22:52:27 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 05/10] media: ov772x: use generic names for reset and powerdown gpios
+Date: Mon, 16 Apr 2018 11:51:46 +0900
+Message-Id: <1523847111-12986-6-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The ov772x driver uses "rstb-gpios" and "pwdn-gpios" for reset and
+powerdown pins.  However, using generic names for thse gpios is preferred.
+("reset-gpios" and "powerdown-gpios" respectively)
 
-Results of the daily build of media_tree:
+There is only one mainline user for these gpios, so rename to generic
+names.
 
-date:			Sat Apr 14 05:00:14 CEST 2018
-media-tree git hash:	b284d4d5a6785f8cd07eda2646a95782373cd01e
-media_build git hash:	78d6ded165a133942a9615a80ca8e0d48749c592
-v4l-utils git hash:	47d43b130dc6e9e0edc900759fb37649208371e4
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.2-rc1
-smatch version:		v0.5.0-4419-g3b5bf5c9
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v2
+- New patch
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+ arch/sh/boards/mach-migor/setup.c | 5 +++--
+ drivers/media/i2c/ov772x.c        | 8 ++++----
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index 271dfc2..73b9ee4 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -351,8 +351,9 @@ static struct platform_device migor_ceu_device = {
+ static struct gpiod_lookup_table ov7725_gpios = {
+ 	.dev_id		= "0-0021",
+ 	.table		= {
+-		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
+-		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "powerdown",
++			    GPIO_ACTIVE_HIGH),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "reset", GPIO_ACTIVE_LOW),
+ 	},
+ };
+ 
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 0ae2a4f..88d1418a 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -837,10 +837,10 @@ static int ov772x_power_on(struct ov772x_priv *priv)
+ 	 * available to handle this cleanly, request the GPIO temporarily
+ 	 * to avoid conflicts.
+ 	 */
+-	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
++	priv->rstb_gpio = gpiod_get_optional(&client->dev, "reset",
+ 					     GPIOD_OUT_LOW);
+ 	if (IS_ERR(priv->rstb_gpio)) {
+-		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
++		dev_info(&client->dev, "Unable to get GPIO \"reset\"");
+ 		return PTR_ERR(priv->rstb_gpio);
+ 	}
+ 
+@@ -1309,10 +1309,10 @@ static int ov772x_probe(struct i2c_client *client,
+ 		goto error_ctrl_free;
+ 	}
+ 
+-	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
++	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "powerdown",
+ 					     GPIOD_OUT_LOW);
+ 	if (IS_ERR(priv->pwdn_gpio)) {
+-		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
++		dev_info(&client->dev, "Unable to get GPIO \"powerdown\"");
+ 		ret = PTR_ERR(priv->pwdn_gpio);
+ 		goto error_clk_put;
+ 	}
+-- 
+2.7.4
