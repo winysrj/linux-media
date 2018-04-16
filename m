@@ -1,80 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:59973 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752876AbeDSNi3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 09:38:29 -0400
-Message-ID: <1524145101.3416.7.camel@pengutronix.de>
-Subject: Re: [PATCH 07/15] media: staging/imx: add 10 bit bayer support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Date: Thu, 19 Apr 2018 15:38:21 +0200
-In-Reply-To: <20180419101812.30688-8-rui.silva@linaro.org>
-References: <20180419101812.30688-1-rui.silva@linaro.org>
-         <20180419101812.30688-8-rui.silva@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from osg.samsung.com ([64.30.133.232]:48544 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752786AbeDPSKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 14:10:08 -0400
+Date: Mon, 16 Apr 2018 15:09:56 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
+Message-ID: <20180416150956.22b5b021@vento.lan>
+In-Reply-To: <20180416150335.66f6ab12@vento.lan>
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        <20180416132121.46205-7-hverkuil@xs4all.nl>
+        <20180416150335.66f6ab12@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-04-19 at 11:18 +0100, Rui Miguel Silva wrote:
-> Some sensors can only output 10 bit bayer formats, like the OV2680. Add support
-> for that in imx-media.
+Em Mon, 16 Apr 2018 15:03:35 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+
+> Em Mon, 16 Apr 2018 15:21:18 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-> ---
->  drivers/staging/media/imx/imx-media-utils.c | 24 +++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+> > From: Hans Verkuil <hansverk@cisco.com>
+> > 
+> > The v2 pad structure never exposed the pad index, which made it impossible
+> > to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
+> > 
+> > It is really trivial to just expose this information, so implement this.  
 > 
-> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-> index fab98fc0d6a0..99527daba29a 100644
-> --- a/drivers/staging/media/imx/imx-media-utils.c
-> +++ b/drivers/staging/media/imx/imx-media-utils.c
-> @@ -118,6 +118,30 @@ static const struct imx_media_pixfmt rgb_formats[] = {
->  		.cs     = IPUV3_COLORSPACE_RGB,
->  		.bpp    = 8,
->  		.bayer  = true,
-> +	}, {
-> +		.fourcc = V4L2_PIX_FMT_SBGGR10,
-> +		.codes  = {MEDIA_BUS_FMT_SBGGR10_1X10},
-> +		.cs     = IPUV3_COLORSPACE_RGB,
-> +		.bpp    = 16,
-> +		.bayer  = true,
-> +	}, {
-> +		.fourcc = V4L2_PIX_FMT_SGBRG10,
-> +		.codes  = {MEDIA_BUS_FMT_SGBRG10_1X10},
-> +		.cs     = IPUV3_COLORSPACE_RGB,
-> +		.bpp    = 16,
-> +		.bayer  = true,
-> +	}, {
-> +		.fourcc = V4L2_PIX_FMT_SGRBG10,
-> +		.codes  = {MEDIA_BUS_FMT_SGRBG10_1X10},
-> +		.cs     = IPUV3_COLORSPACE_RGB,
-> +		.bpp    = 16,
-> +		.bayer  = true,
-> +	}, {
-> +		.fourcc = V4L2_PIX_FMT_SRGGB10,
-> +		.codes  = {MEDIA_BUS_FMT_SRGGB10_1X10},
-> +		.cs     = IPUV3_COLORSPACE_RGB,
-> +		.bpp    = 16,
-> +		.bayer  = true,
+> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-This will break 10-bit bayer formats on i.MX6, which currently stores
-them in memory expanded to 16-bit, as listed in the entries below:
+Err... I looked on it too fast... See my comments below.
 
->  	}, {
->  		.fourcc = V4L2_PIX_FMT_SBGGR16,
->  		.codes  = {
+The same applies to patch 8/9.
 
-regards
-Philipp
+> > 
+> > Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> > ---
+> >  drivers/media/media-device.c | 1 +
+> >  include/uapi/linux/media.h   | 7 ++++++-
+> >  2 files changed, 7 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index dca1e5a3e0f9..73ffea3e81c9 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
+> >  		kpad.id = pad->graph_obj.id;
+> >  		kpad.entity_id = pad->entity->graph_obj.id;
+> >  		kpad.flags = pad->flags;
+> > +		kpad.index = pad->index;
+> >  
+> >  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+> >  			ret = -EFAULT;
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index ac08acffdb65..15f7f432f808 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -310,11 +310,16 @@ struct media_v2_interface {
+> >  	};
+> >  } __attribute__ ((packed));
+> >  
+> > +/* Appeared in 4.18.0 */
+> > +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
+> > +	((media_version) >= 0x00041200)
+> > +
+
+I don't like this, for a couple of reasons:
+
+1) it has a magic number on it, with is actually a parsed
+   version of LINUX_VERSION() macro;
+
+2) it sounds really weird to ship a header file with a new
+   kernel version meant to provide backward compatibility with
+   older versions;
+
+3) this isn't any different than:
+
+	#define MEDIA_V2_PAD_HAS_INDEX -1
+
+I think we need to think a little bit more about that.
+
+
+> >  struct media_v2_pad {
+> >  	__u32 id;
+> >  	__u32 entity_id;
+> >  	__u32 flags;
+> > -	__u32 reserved[5];
+> > +	__u32 index;
+> > +	__u32 reserved[4];
+> >  } __attribute__ ((packed));
+> >  
+> >  struct media_v2_link {  
+> 
+> 
+> 
+> Thanks,
+> Mauro
+
+
+
+Thanks,
+Mauro
