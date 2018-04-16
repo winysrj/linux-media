@@ -1,144 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f43.google.com ([209.85.213.43]:34942 "EHLO
-        mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751329AbeDEIWJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 04:22:09 -0400
-Received: by mail-vk0-f43.google.com with SMTP id h134so13986917vke.2
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 01:22:09 -0700 (PDT)
-Received: from mail-vk0-f52.google.com (mail-vk0-f52.google.com. [209.85.213.52])
-        by smtp.gmail.com with ESMTPSA id d13sm3685221uan.6.2018.04.05.01.22.07
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 05 Apr 2018 01:22:07 -0700 (PDT)
-Received: by mail-vk0-f52.google.com with SMTP id b16so13969729vka.5
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2018 01:22:07 -0700 (PDT)
+Received: from osg.samsung.com ([64.30.133.232]:33158 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752417AbeDPSBR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 14:01:17 -0400
+Date: Mon, 16 Apr 2018 15:01:12 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCHv2 4/9] media: add function field to struct
+ media_entity_desc
+Message-ID: <20180416150112.5e813d33@vento.lan>
+In-Reply-To: <20180416132121.46205-5-hverkuil@xs4all.nl>
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        <20180416132121.46205-5-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-References: <1519402422-9595-1-git-send-email-andy.yeh@intel.com>
- <1519402422-9595-3-git-send-email-andy.yeh@intel.com> <CAL_JsqKd8dxF1eSkST1GyKCS_bkzALv2aGHC9TXHWfnrxx33SQ@mail.gmail.com>
- <20180228133126.cusxnid64xd5uawu@paasikivi.fi.intel.com> <20180302185900.cj4hpt5qqinhyvnt@rob-hp-laptop>
- <20180302201457.ia6egjlxa5zmuwmd@kekkonen.localdomain>
-In-Reply-To: <20180302201457.ia6egjlxa5zmuwmd@kekkonen.localdomain>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 05 Apr 2018 08:21:56 +0000
-Message-ID: <CAAFQd5AcWpkemhXDwqjvhAxKdBxK1B_XuNZmzDJvpAY_TtNuPw@mail.gmail.com>
-Subject: Re: [v5 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807
- voice coil
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Rob Herring <robh@kernel.org>, "Yeh, Andy" <andy.yeh@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 3, 2018 at 5:15 AM Sakari Ailus <sakari.ailus@linux.intel.com>
-wrote:
+Em Mon, 16 Apr 2018 15:21:16 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On Fri, Mar 02, 2018 at 12:59:00PM -0600, Rob Herring wrote:
-> > On Wed, Feb 28, 2018 at 03:31:26PM +0200, Sakari Ailus wrote:
-> > > Hi Rob,
-> > >
-> > > Thanks for the review.
-> > >
-> > > On Tue, Feb 27, 2018 at 04:10:31PM -0600, Rob Herring wrote:
-> > > > On Fri, Feb 23, 2018 at 10:13 AM, Andy Yeh <andy.yeh@intel.com>
-wrote:
-> > > > > From: Alan Chiang <alanx.chiang@intel.com>
-> > > > >
-> > > > > Dongwoon DW9807 is a voice coil lens driver.
-> > > > >
-> > > > > Also add a vendor prefix for Dongwoon for one did not exist
-previously.
-> > > >
-> > > > Where's that?
-> > >
-> > > Added by aece98a912d92444ea9da03b04269407d1308f1f . So that line isn't
-> > > relevant indeed and should be removed.
-> > >
-> > > >
-> > > > >
-> > > > > Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> > > > > ---
-> > > > >  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-| 9 +++++++++
-> > > >
-> > > > DACs generally go in bindings/iio/dac/
-> > >
-> > > We have quite a few lens voice coil drivers under bindings/media/i2c
-now. I
-> > > don't really object to putting this one to bindings/iio/dac but then
-the
-> > > rest should be moved as well.
-> > >
-> > > The camera LED flash drivers are under bindings/leds so this would
-actually
-> > > be analoguous to that. The lens voice coil drivers are perhaps still
-a bit
-> > > more bound to the domain (camera) than the LED flash drivers.
-> >
-> > The h/w is bound to that function or just the s/w?
+> From: Hans Verkuil <hansverk@cisco.com>
+> 
+> This adds support for 'proper' functions to the existing API.
+> This information was before only available through the new v2
+> API, with this change it's available to both.
+> 
+> Yes, the plan is to allow entities to expose multiple functions for
+> multi-function devices, but we do not support it anywhere so this
+> is still vaporware.
 
-> The hardware. I guess in principle you could use them for other purposes
-> --- most devices seem to be current sinks with configurable current ---
-but
-> I've never seen that.
+I'm not convinced about that. I would, instead, just keep it as-is
+and be sure that applications stop use the legacy calls.
 
-> The datasheet (dw9714) is here:
+> 
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> ---
+>  drivers/media/media-device.c | 1 +
+>  include/uapi/linux/media.h   | 7 ++++++-
+>  2 files changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 7c3ab37c258a..dca1e5a3e0f9 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -115,6 +115,7 @@ static long media_device_enum_entities(struct media_device *mdev,
+>  	if (ent->name)
+>  		strlcpy(entd->name, ent->name, sizeof(entd->name));
+>  	entd->type = ent->function;
+> +	entd->function = ent->function;
+>  	entd->revision = 0;		/* Unused */
 
-> <URL:http://www.datasheetspdf.com/datasheet/download.php?id=840322>
+I got confused here, until I went to the code and noticed that
+entd->type is actually touched after this.
 
-> >
-> > > I can send a patch if you think the existing bindings should be
-moved; let
-> > > me know.
-> >
-> > I'm okay if they are separate as long as we're not going to see the
-> > same device show up in both places. However, "i2c" is not the best
+If we're willing to do that, you should add a comment there explaining
+why we need to pass both type and function to userspace.
 
-> Ack. I wouldn't expect that. The datasheets of such devices clearly label
-> the devices voice coil module drivers.
+>  	entd->flags = ent->flags;
+>  	entd->group_id = 0;		/* Unused */
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 86c7dcc9cba3..ac08acffdb65 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -146,6 +146,10 @@ struct media_device_info {
+>  /* OR with the entity id value to find the next entity */
+>  #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+>  
+> +/* Appeared in 4.18.0 */
+> +#define MEDIA_ENTITY_DESC_HAS_FUNCTION(media_version) \
+> +	((media_version) >= 0x00041200)
+> +
+>  struct media_entity_desc {
+>  	__u32 id;
+>  	char name[32];
+> @@ -155,8 +159,9 @@ struct media_entity_desc {
+>  	__u32 group_id;
+>  	__u16 pads;
+>  	__u16 links;
+> +	__u32 function;
+>  
+> -	__u32 reserved[4];
+> +	__u32 reserved[3];
+>  
+>  	union {
+>  		/* Node specifications */
 
-> > directory choice. It should be by function, so we can find common
-> > properties.
 
-> I2c devices in the media subsystem tend to be peripherals that are always
-> used with another device with access to some system bus. Camera sensors,
-lens
-> devices and tuners can be found there currently. I don't know the original
-> reasoning but it most likely is related to that.
 
-> In terms of different kinds of devices we have currently at least the
-> following:
-
->          Camera ISPs and CSI-2 receivers
->          Video muxes
->          Video codecs
->          Camera sensors
->          Camera lens drivers (right now only voice coil modules?)
->          Tuners (DVB, radio, analogue TV, whatever)
->          Radio transmitters
->          HDMI CEC
->          Remote controllers
->          JPEG codecs
-
-> Cc Hans, too.
-
-Any updates here?
-
-To be honest, I'm not sure there is too much to be thinking about here.
-This particular hardware block is a lens driver, specifically designed to
-be used with cameras. Quoting maker's website [1]:
-
-   "Driver ICs for automatically focus on images of mobile cameras.
-    Dongwoon Anatech's AF driver ICs are optimized mobile cameras
-    with low power, low noise, smallest package, as well as include
-    various lens position control methodology."
-
-IMHO putting its bindings under the more general purpose iio/ directory
-doesn't make much sense and would be actually confusing.
-
-[1] http://www.dwanatech.com/eng/sub/sub02_01.php?cat_no=6
-
-Best regards,
-Tomasz
+Thanks,
+Mauro
