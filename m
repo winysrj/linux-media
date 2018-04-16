@@ -1,120 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:53951 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752275AbeDBO1Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:25 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
+Received: from osg.samsung.com ([64.30.133.232]:63299 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751398AbeDPRa4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 13:30:56 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org
-Subject: [PATCH 01/15] dmaengine: pxa: use a dma slave map
-Date: Mon,  2 Apr 2018 16:26:42 +0200
-Message-Id: <20180402142656.26815-2-robert.jarzmik@free.fr>
-In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Aishwarya Pant <aishpant@gmail.com>, devel@driverdev.osuosl.org
+Subject: [PATCH 8/9] media: atomisp-mt9m114: remove dead data
+Date: Mon, 16 Apr 2018 12:37:11 -0400
+Message-Id: <875091fd30e1db325d2a2ecaacd5a15b64d69b52.1523896259.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
+References: <cover.1523896259.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
+References: <cover.1523896259.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to remove the specific knowledge of the dma mapping from PXA
-drivers, add a default slave map for pxa architectures.
+It seems that, originally, the logic would allow selecting between
+fine and coarse integration. However, only coarse seems to be
+implemented.
 
-This won't impact MMP architecture, but is aimed only at all PXA boards.
+Get rid of this warning:
 
-This is the first step, and once all drivers are converted,
-pxad_filter_fn() will be made static, and the DMA resources removed from
-device.c.
+  drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c: In function 'mt9m114_s_exposure':
+  drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c:1003:6: warning: variable 'exposure_local' set but not used [-Wunused-but-set-variable]
+    u16 exposure_local[3];
+        ^~~~~~~~~~~~~~
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/dma/pxa_dma.c                 | 10 +++++++++-
- include/linux/platform_data/mmp_dma.h |  4 ++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/dma/pxa_dma.c b/drivers/dma/pxa_dma.c
-index b53fb618bbf6..9505334f9c6e 100644
---- a/drivers/dma/pxa_dma.c
-+++ b/drivers/dma/pxa_dma.c
-@@ -179,6 +179,8 @@ static unsigned int pxad_drcmr(unsigned int line)
- 	return 0x1000 + line * 4;
- }
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c b/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
+index 44db9f9f1fc5..454a5c31a206 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
+@@ -995,12 +995,10 @@ static long mt9m114_s_exposure(struct v4l2_subdev *sd,
+ 	struct mt9m114_device *dev = to_mt9m114_sensor(sd);
+ 	int ret = 0;
+ 	unsigned int coarse_integration = 0;
+-	unsigned int fine_integration = 0;
+ 	unsigned int FLines = 0;
+ 	unsigned int FrameLengthLines = 0; /* ExposureTime.FrameLengthLines; */
+ 	unsigned int AnalogGain, DigitalGain;
+ 	u32 AnalogGainToWrite = 0;
+-	u16 exposure_local[3];
  
-+bool pxad_filter_fn(struct dma_chan *chan, void *param);
-+
- /*
-  * Debug fs
-  */
-@@ -1396,9 +1398,10 @@ static int pxad_probe(struct platform_device *op)
- {
- 	struct pxad_device *pdev;
- 	const struct of_device_id *of_id;
-+	const struct dma_slave_map *slave_map = NULL;
- 	struct mmp_dma_platdata *pdata = dev_get_platdata(&op->dev);
- 	struct resource *iores;
--	int ret, dma_channels = 0, nb_requestors = 0;
-+	int ret, dma_channels = 0, nb_requestors = 0, slave_map_cnt = 0;
- 	const enum dma_slave_buswidth widths =
- 		DMA_SLAVE_BUSWIDTH_1_BYTE   | DMA_SLAVE_BUSWIDTH_2_BYTES |
- 		DMA_SLAVE_BUSWIDTH_4_BYTES;
-@@ -1429,6 +1432,8 @@ static int pxad_probe(struct platform_device *op)
- 	} else if (pdata && pdata->dma_channels) {
- 		dma_channels = pdata->dma_channels;
- 		nb_requestors = pdata->nb_requestors;
-+		slave_map = pdata->slave_map;
-+		slave_map_cnt = pdata->slave_map_cnt;
- 	} else {
- 		dma_channels = 32;	/* default 32 channel */
+ 	dev_dbg(&client->dev, "%s(0x%X 0x%X 0x%X)\n", __func__,
+ 		    exposure->integration_time[0], exposure->gain[0],
+@@ -1032,10 +1030,7 @@ static long mt9m114_s_exposure(struct v4l2_subdev *sd,
+ 		return -EINVAL;
  	}
-@@ -1440,6 +1445,9 @@ static int pxad_probe(struct platform_device *op)
- 	pdev->slave.device_prep_dma_memcpy = pxad_prep_memcpy;
- 	pdev->slave.device_prep_slave_sg = pxad_prep_slave_sg;
- 	pdev->slave.device_prep_dma_cyclic = pxad_prep_dma_cyclic;
-+	pdev->slave.filter.map = slave_map;
-+	pdev->slave.filter.mapcnt = slave_map_cnt;
-+	pdev->slave.filter.fn = pxad_filter_fn;
  
- 	pdev->slave.copy_align = PDMA_ALIGNMENT;
- 	pdev->slave.src_addr_widths = widths;
-diff --git a/include/linux/platform_data/mmp_dma.h b/include/linux/platform_data/mmp_dma.h
-index d1397c8ed94e..6397b9c8149a 100644
---- a/include/linux/platform_data/mmp_dma.h
-+++ b/include/linux/platform_data/mmp_dma.h
-@@ -12,9 +12,13 @@
- #ifndef MMP_DMA_H
- #define MMP_DMA_H
- 
-+struct dma_slave_map;
-+
- struct mmp_dma_platdata {
- 	int dma_channels;
- 	int nb_requestors;
-+	int slave_map_cnt;
-+	const struct dma_slave_map *slave_map;
- };
- 
- #endif /* MMP_DMA_H */
+-	/* set coarse/fine integration */
+-	exposure_local[0] = REG_EXPO_COARSE;
+-	exposure_local[1] = (u16)coarse_integration;
+-	exposure_local[2] = (u16)fine_integration;
++	/* set coarse integration */
+ 	/* 3A provide real exposure time.
+ 		should not translate to any value here. */
+ 	ret = mt9m114_write_reg(client, MISENSOR_16BIT,
 -- 
-2.11.0
+2.14.3
