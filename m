@@ -1,83 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:54439 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752176AbeDOJvy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Apr 2018 05:51:54 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org,
-        #@mess.org, v4.14-v4.15@mess.org
-Subject: [PATCH stable v4.14 1/2] Revert "media: lirc_zilog: driver only sends LIRCCODE"
-Date: Sun, 15 Apr 2018 10:51:50 +0100
-Message-Id: <c2664b59ff88989b4d9a6c7722a56cd8878caf28.1523785758.git.sean@mess.org>
-In-Reply-To: <cover.1523785758.git.sean@mess.org>
-References: <cover.1523785758.git.sean@mess.org>
-In-Reply-To: <cover.1523785758.git.sean@mess.org>
-References: <cover.1523785758.git.sean@mess.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36661 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752630AbeDPCwa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Apr 2018 22:52:30 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH v2 06/10] media: dt-bindings: ov772x: add device tree binding
+Date: Mon, 16 Apr 2018 11:51:47 +0900
+Message-Id: <1523847111-12986-7-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lirc config documented here
-https://www.blushingpenguin.com/mark/blog/?p=24 uses raw_codes for sending
-IR. Each key only has one pulse, which in fact is an index into the
-haup-ir-blaster.bin file. Changing the driver to LIRCCODE (although more
-accurate) breaks this configuration.
+This adds a device tree binding documentation for OV7720/OV7725 sensor.
 
-This code has been replaced completely in kernel v4.16 by a new driver,
-see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
-commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
-
-This reverts commit 89d8a2cc51d1f29ea24a0b44dde13253141190a0.
-
-Fixes: 615cd3fe6ccc ("[media] media: lirc_dev: make better use of file->private_data")
-
-Cc: stable@vger.kernel.org # v4.14-v4.15
-Reported-by: Warren Sturm <warren.sturm@gmail.com>
-Tested-by: Warren Sturm <warren.sturm@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/staging/media/lirc/lirc_zilog.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+* v2
+- Add "dt-bindings:" in the subject
+- Add a brief description of the sensor
+- Update the GPIO names
+- Indicate the GPIO active level
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 71af13bd0ebd..26dd32d5b5b2 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -288,7 +288,7 @@ static void release_ir_tx(struct kref *ref)
- 	struct IR_tx *tx = container_of(ref, struct IR_tx, ref);
- 	struct IR *ir = tx->ir;
+ .../devicetree/bindings/media/i2c/ov772x.txt       | 42 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 43 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov772x.txt b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+new file mode 100644
+index 0000000..b045503
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov772x.txt
+@@ -0,0 +1,42 @@
++* Omnivision OV7720/OV7725 CMOS sensor
++
++The Omnivision OV7720/OV7725 sensor supports multiple resolutions output,
++such as VGA, QVGA, and any size scaling down from CIF to 40x30. It also can
++support the YUV422, RGB565/555/444, GRB422 or raw RGB output formats.
++
++Required Properties:
++- compatible: shall be one of
++	"ovti,ov7720"
++	"ovti,ov7725"
++- clocks: reference to the xclk input clock.
++- clock-names: shall be "xclk".
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the RSTB pin which is
++  active low, if any.
++- powerdown-gpios: reference to the GPIO connected to the PWDN pin which is
++  active high, if any.
++
++The device node shall contain one 'port' child node with one child 'endpoint'
++subnode for its digital output video port, in accordance with the video
++interface bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt.
++
++Example:
++
++&i2c0 {
++	ov772x: camera@21 {
++		compatible = "ovti,ov7725";
++		reg = <0x21>;
++		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_LOW>;
++		clocks = <&xclk>;
++		clock-names = "xclk";
++
++		port {
++			ov772x_0: endpoint {
++				remote-endpoint = <&vcap1_in0>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0a1410d..f500953 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10344,6 +10344,7 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Odd fixes
+ F:	drivers/media/i2c/ov772x.c
+ F:	include/media/i2c/ov772x.h
++F:	Documentation/devicetree/bindings/media/i2c/ov772x.txt
  
--	ir->l.features &= ~LIRC_CAN_SEND_LIRCCODE;
-+	ir->l.features &= ~LIRC_CAN_SEND_PULSE;
- 	/* Don't put_ir_device(tx->ir) here, so our lock doesn't get freed */
- 	ir->tx = NULL;
- 	kfree(tx);
-@@ -1267,14 +1267,14 @@ static long ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
- 		if (!(features & LIRC_CAN_SEND_MASK))
- 			return -ENOTTY;
- 
--		result = put_user(LIRC_MODE_LIRCCODE, uptr);
-+		result = put_user(LIRC_MODE_PULSE, uptr);
- 		break;
- 	case LIRC_SET_SEND_MODE:
- 		if (!(features & LIRC_CAN_SEND_MASK))
- 			return -ENOTTY;
- 
- 		result = get_user(mode, uptr);
--		if (!result && mode != LIRC_MODE_LIRCCODE)
-+		if (!result && mode != LIRC_MODE_PULSE)
- 			return -EINVAL;
- 		break;
- 	default:
-@@ -1512,7 +1512,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		kref_init(&tx->ref);
- 		ir->tx = tx;
- 
--		ir->l.features |= LIRC_CAN_SEND_LIRCCODE;
-+		ir->l.features |= LIRC_CAN_SEND_PULSE;
- 		mutex_init(&tx->client_lock);
- 		tx->c = client;
- 		tx->need_boot = 1;
+ OMNIVISION OV7740 SENSOR DRIVER
+ M:	Wenyou Yang <wenyou.yang@microchip.com>
 -- 
-2.14.3
+2.7.4
