@@ -1,134 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50251 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753180AbeDJMre (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 08:47:34 -0400
-Date: Tue, 10 Apr 2018 09:47:28 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 13/29] v4l2-ctrls: use ref in helper instead of
- ctrl
-Message-ID: <20180410094728.71a58d86@vento.lan>
-In-Reply-To: <20180409142026.19369-14-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-14-hverkuil@xs4all.nl>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51600 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751210AbeDPT1G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 15:27:06 -0400
+Subject: Re: [PATCHv2 4/9] media: add function field to struct
+ media_entity_desc
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+ <20180416132121.46205-5-hverkuil@xs4all.nl>
+ <20180416150112.5e813d33@vento.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e0fc447d-25aa-744f-4630-894eff900023@xs4all.nl>
+Date: Mon, 16 Apr 2018 21:27:01 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180416150112.5e813d33@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:20:10 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/16/2018 08:01 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 16 Apr 2018 15:21:16 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> The next patch needs the reference to a control instead of the
-> control itself, so change struct v4l2_ctrl_helper accordingly.
+>> From: Hans Verkuil <hansverk@cisco.com>
+>>
+>> This adds support for 'proper' functions to the existing API.
+>> This information was before only available through the new v2
+>> API, with this change it's available to both.
+>>
+>> Yes, the plan is to allow entities to expose multiple functions for
+>> multi-function devices, but we do not support it anywhere so this
+>> is still vaporware.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
+> I'm not convinced about that. I would, instead, just keep it as-is
+> and be sure that applications stop use the legacy calls.
+
+You can't. First of all, since the new API does not provide the pad index
+(fixed in patch 6/9) it is impossible to use the new API with any driver
+that supports SETUP_LINK. So any such driver that uses any of the newer
+subdevs with a function that is mapped to MEDIA_ENT_T_DEVNODE_UNKNOWN
+is currently not reporting that correctly. A good example is the
+imx driver. But also others if they are combined with such newer subdevs.
+
+There is nothing wrong with the old API, except for not reporting the
+proper function value in field 'type' due to historical concerns.
+
+There is NO WAY we can suddenly prohibit applications from using the old
+API since the new API was never usable. And besides that, we have no method
+of knowing who uses the old API since such applications are likely custom
+for specific hardware.
+
+All that is really missing in the 'old' API (I hate the terms 'old' and
+'new', they are misleading) is a proper 'function' field. Let's just add it
+and make it consistent with the documentation about entity functions.
+
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 3c1b00baa8d0..da4cc1485dc4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -37,8 +37,8 @@
->  struct v4l2_ctrl_helper {
->  	/* Pointer to the control reference of the master control */
->  	struct v4l2_ctrl_ref *mref;
-> -	/* The control corresponding to the v4l2_ext_control ID field. */
-> -	struct v4l2_ctrl *ctrl;
+>>
+>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>> ---
+>>  drivers/media/media-device.c | 1 +
+>>  include/uapi/linux/media.h   | 7 ++++++-
+>>  2 files changed, 7 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>> index 7c3ab37c258a..dca1e5a3e0f9 100644
+>> --- a/drivers/media/media-device.c
+>> +++ b/drivers/media/media-device.c
+>> @@ -115,6 +115,7 @@ static long media_device_enum_entities(struct media_device *mdev,
+>>  	if (ent->name)
+>>  		strlcpy(entd->name, ent->name, sizeof(entd->name));
+>>  	entd->type = ent->function;
+>> +	entd->function = ent->function;
+>>  	entd->revision = 0;		/* Unused */
+> 
+> I got confused here, until I went to the code and noticed that
+> entd->type is actually touched after this.
+> 
+> If we're willing to do that, you should add a comment there explaining
+> why we need to pass both type and function to userspace.
 
-Why are you removing it in this patch? 
+True.
 
-I mean: if this is something that it is not used, it should be 
-removed on a separate one. Otherwise, please explain it at the
-patch description.
+Regards,
 
-> +	/* The control ref corresponding to the v4l2_ext_control ID field. */
-> +	struct v4l2_ctrl_ref *ref;
->  	/* v4l2_ext_control index of the next control belonging to the
->  	   same cluster, or 0 if there isn't any. */
->  	u32 next;
-> @@ -2887,6 +2887,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  		ref = find_ref_lock(hdl, id);
->  		if (ref == NULL)
->  			return -EINVAL;
-> +		h->ref = ref;
->  		ctrl = ref->ctrl;
->  		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
->  			return -EINVAL;
-> @@ -2909,7 +2910,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  		}
->  		/* Store the ref to the master control of the cluster */
->  		h->mref = ref;
-> -		h->ctrl = ctrl;
->  		/* Initially set next to 0, meaning that there is no other
->  		   control in this helper array belonging to the same
->  		   cluster */
-> @@ -2994,7 +2994,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  	cs->error_idx = cs->count;
->  
->  	for (i = 0; !ret && i < cs->count; i++)
-> -		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-> +		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+	Hans
 
-Shouldn't it be checking if ref is not NULL?
-
->  			ret = -EACCES;
->  
->  	for (i = 0; !ret && i < cs->count; i++) {
-> @@ -3029,7 +3029,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  
->  			do {
->  				ret = ctrl_to_user(cs->controls + idx,
-> -						   helpers[idx].ctrl);
-> +						   helpers[idx].ref->ctrl);
->  				idx = helpers[idx].next;
->  			} while (!ret && idx);
->  		}
-> @@ -3168,7 +3168,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
->  
->  	cs->error_idx = cs->count;
->  	for (i = 0; i < cs->count; i++) {
-> -		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-> +		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
->  		union v4l2_ctrl_ptr p_new;
->  
->  		cs->error_idx = i;
-> @@ -3280,7 +3280,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  			do {
->  				/* Check if the auto control is part of the
->  				   list, and remember the new value. */
-> -				if (helpers[tmp_idx].ctrl == master)
-> +				if (helpers[tmp_idx].ref->ctrl == master)
->  					new_auto_val = cs->controls[tmp_idx].value;
->  				tmp_idx = helpers[tmp_idx].next;
->  			} while (tmp_idx);
-> @@ -3293,7 +3293,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  		/* Copy the new caller-supplied control values.
->  		   user_to_new() sets 'is_new' to 1. */
->  		do {
-> -			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-> +			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
->  
->  			ret = user_to_new(cs->controls + idx, ctrl);
->  			if (!ret && ctrl->is_ptr)
-> @@ -3309,7 +3309,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  			idx = i;
->  			do {
->  				ret = new_to_user(cs->controls + idx,
-> -						helpers[idx].ctrl);
-> +						helpers[idx].ref->ctrl);
->  				idx = helpers[idx].next;
->  			} while (!ret && idx);
->  		}
-
-
-
-Thanks,
-Mauro
+> 
+>>  	entd->flags = ent->flags;
+>>  	entd->group_id = 0;		/* Unused */
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index 86c7dcc9cba3..ac08acffdb65 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -146,6 +146,10 @@ struct media_device_info {
+>>  /* OR with the entity id value to find the next entity */
+>>  #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+>>  
+>> +/* Appeared in 4.18.0 */
+>> +#define MEDIA_ENTITY_DESC_HAS_FUNCTION(media_version) \
+>> +	((media_version) >= 0x00041200)
+>> +
+>>  struct media_entity_desc {
+>>  	__u32 id;
+>>  	char name[32];
+>> @@ -155,8 +159,9 @@ struct media_entity_desc {
+>>  	__u32 group_id;
+>>  	__u16 pads;
+>>  	__u16 links;
+>> +	__u32 function;
+>>  
+>> -	__u32 reserved[4];
+>> +	__u32 reserved[3];
+>>  
+>>  	union {
+>>  		/* Node specifications */
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
