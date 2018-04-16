@@ -1,120 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:58110 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754638AbeDYOpK (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:39573 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752921AbeDPJaW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 10:45:10 -0400
-Date: Wed, 25 Apr 2018 11:45:05 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: mjs <mjstork@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick"
-Message-ID: <20180425114505.5f34ca05@vento.lan>
-In-Reply-To: <5ae0736a.46a7500a.f10d6.eeaf@mx.google.com>
-References: <5ae045df.ddf5500a.22ca5.10bb@mx.google.com>
-        <20180425061620.19037894@vento.lan>
-        <5ae0543f.cebe500a.d570c.a01a@mx.google.com>
-        <20180425081855.5ba4fc79@vento.lan>
-        <5ae0736a.46a7500a.f10d6.eeaf@mx.google.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 16 Apr 2018 05:30:22 -0400
+Message-ID: <1523871020.5918.4.camel@pengutronix.de>
+Subject: Re: imx-media: MT9P031 Capture issues on IMX6
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Date: Mon, 16 Apr 2018 11:30:20 +0200
+In-Reply-To: <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
+References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
+         <1523629085.3396.10.camel@pengutronix.de>
+         <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 25 Apr 2018 14:24:09 +0200
-mjs <mjstork@gmail.com> escreveu:
+On Mon, 2018-04-16 at 09:54 +0200, Ibtsam Ul-Haq wrote:
+[...]
+> This indeed looks the case. But then, is 'GR16' the FourCC for 'SGRBG16'?
 
-> Op Wed, 25 Apr 2018 08:18:55 -0300
-> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> schreef:
-> 
-> > Em Wed, 25 Apr 2018 12:11:10 +0200
-> > mjs <mjstork@gmail.com> escreveu:
-> >   
-> > > Op Wed, 25 Apr 2018 06:16:20 -0300
-> > > Mauro Carvalho Chehab <mchehab+samsung@kernel.org> schreef:
-> > >     
-> > > > Em Wed, 25 Apr 2018 11:09:50 +0200
-> > > > mjs <mjstork@gmail.com> escreveu:
-> > > >       
-> > > > > From 0a3355b47dc465c6372d30fa4a36d1c5db6c0fe2 Mon Sep 17 00:00:00 2001
-> > > > > From: Marcel Stork <mjstork@gmail.com>
-> > > > > Date: Wed, 25 Apr 2018 10:53:34 +0200
-> > > > > Subject: [PATCH] Add new dvb-t board ":Zolid Hybrid Tv Stick".
-> > > > > 
-> > > > > Extra code to be able to use this stick, only digital, not analog nor remote-control.
-> > > > > 
-> > > > > Changes to be committed:
-> > > > > 	modified:   em28xx-cards.c
-> > > > > 	modified:   em28xx-dvb.c
-> > > > > 	modified:   em28xx.h        
-> > > > 
-> > > > You forgot to add your Signed-off-by. That's mandatory for patches to
-> > > > be acepted.      
-> > > 
-> > > Ok, still learning
-> > >     
-> > > >       
-> > > > > 
-> > > > > ---
-> > > > >  em28xx-cards.c | 30 +++++++++++++++++++++++++++++-
-> > > > >  em28xx-dvb.c   |  1 +
-> > > > >  em28xx.h       |  1 +
-> > > > >  3 files changed, 31 insertions(+), 1 deletion(-)        
-> > > > 
-> > > > 
-> > > > use git diff against upstream tree. This should be using
-> > > > a different paths there, e.g. drivers/media/usb/em28xx/...      
-> > > 
-> > > This is actually against the upstream tree, in line with your advice in a previous mail.
-> > > After git clone... and ./build, I did not do "make install" but copy-paste out of the /media_build/linux/drivers/media/usb/em28xx
-> > > Reason, I do not have an experimental pc and some parts are experimental.
-> > > I did not want to take the risk to crash my working pc at this moment in time.
-> > > 
-> > > I will try to work around this problem.    
-> > 
-> > Upstream is actually this tree:
-> > 
-> > 	https://git.linuxtv.org/media_tree.git/
-> > 
-> > The media_build tree is what we call a "backport tree" :-)  
-> 
-> I started with "https://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches" in line with your advice in a previous mail.
+Yes, see Documentation/media/uapi/v4l/pixfmt-srggb16.rst:
+https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-srggb16.html
 
-The first line there at "Patch preparation" says:
+> To be honest, I had not seen GR16 as FourCC before.
+> And the Gstreamer debug logs (I used GST_DEBUG=5) also say that they
+> do not know this FourCC:
+> v4l2 gstv4l2object.c:1541:gst_v4l2_object_v4l2fourcc_to_bare_struct: [00m
+> Unsupported fourcc 0x36315247 GR16
 
-	"For Kernel media patches, they should be created against the Linux Kernel master linux_media git tree[1]"
+The GStreamer V4L2 elements currently only support 8-bit per component
+Bayer formats.
 
-[1] With links to: http://git.linuxtv.org/media_tree.git
+> Is there a way we can get by this?
 
-> Followed the text to "https://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device Drivers" basic approach.
+There's two ways to handle this correctly, IMHO. One would be adding
+SGRBG8_1X8 support to the mt9p031 driver. This is the correct way if the
+device tree is configured for 8-bit parallel and there are only 8 data
+lines connected between camera and SoC. As a quick hack, I think you
+could just:
 
-I see... here, information were indeed incomplete.
+  sed "s/MEDIA_BUS_FMT_SGRBG12_1X12/MEDIA_BUS_FMT_SGRBG8_1X8/" -i drivers/media/i2c/mt9p031.c
 
-I just updated it.
+The other would be to connect all 12 data lines, configure the device
+tree with 12 bit data width, and extend the imx-media CSI subdevice
+driver to allow setting SGRBG12_1X12 on the sink pad and SGRBG8_1X8 on
+the source pad at the same time (and then just internally configuring
+the hardware to 8-bit, ignoring the 4 LSB). That would be a bit more
+involved.
 
+Another possiblity would be to replace v4l2_subdev_link_validate() in
+drivers/media/v4l2-core/v4l2-subdev.c with a variant that allows
+source_fmt->format.code != sink_fmt->format.code in case the source
+format can be turned into the sink format by just dropping LSB for one
+of the links.
 
-> Also to "https://git.linuxtv.org/media_build.git/about/"
-> I have used "git clone --depth=1 git://linuxtv.org/media_build.git" followed by ./build and copy/paste files mentioned above.
-> This is not the required upstream tree ?
-
-There's a similar instruction at media_tree.git/about, with is the one you
-would be using instead.
-
-> 
-> Work around:
-> Added the path to all files manually.
-> This is acceptable ?
-
-An acceptable workaround would be to create another tree at the place
-it untars the driver's tarball (under linux dir), and do the
-diffs there.
-
-The ./build script actually does something similar to that, if used
-with the --main-git option, but, if you're willing to use it, be
-careful to do on a separate clone, as otherwise it may destroy your
-work, as it will setup a different environment, and you'll lose
-any changes you've made inside that media_build cloned tree.
-
-Thanks,
-Mauro
+regards
+Philipp
