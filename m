@@ -1,39 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:37969 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751334AbeDGKSX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 06:18:23 -0400
-MIME-Version: 1.0
-In-Reply-To: <65fe26f0-f2ce-2011-c497-270673041a80@xs4all.nl>
-References: <CAEk1YH75md=-v++Q8_sS9Q_3FS6xt0RMdRy8eBG=0NsUnCmk7Q@mail.gmail.com>
- <65fe26f0-f2ce-2011-c497-270673041a80@xs4all.nl>
-From: Damjan Georgievski <gdamjan@gmail.com>
-Date: Sat, 7 Apr 2018 12:18:21 +0200
-Message-ID: <CAEk1YH6a0rRd0vCok+rL5R0FW7c1bWMs1r6yoh9tmrMh0KA6xw@mail.gmail.com>
-Subject: Re: uvcvideo stopped working in 4.16
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:49791 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754953AbeDPNV1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 09:21:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 0/9] media/mc: fix inconsistencies
+Date: Mon, 16 Apr 2018 15:21:12 +0200
+Message-Id: <20180416132121.46205-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7 April 2018 at 11:11, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 06/04/18 18:54, Damjan Georgievski wrote:
->> Since the 4.16 kernel my uvcvideo webcam on Thinkpad X1 Carbon (5th
->> gen) stopped working with gst-launch-1.0, kamoso (kde webcam app),
->> Firefox and Chromium on sites like appear.in, talky.io, Google
->> Hangouts and meet.jit.si.
->
-> Do you see a /dev/v4l-touchX (X is probably 0) device? If so, then this
-> patch will probably fix the issue:
->
-> https://patchwork.linuxtv.org/patch/48417/
->
-> It will appear in a stable 4.16 release soon.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks Hans,
-that patch indeed fixes my issue
+This patch series is a follow-up to these two v1 series:
 
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg127943.html
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg127963.html
+
+Some of those patches have been merged for 4.17, so this v2 contains
+the remainder and has been updated/rebased for 4.18.
+
+The first two patches add the missing hsv_enc to struct v4l2_mbus_framefmt.
+The next patch removes the ugly and IMHO dangerous __NEED_MEDIA_LEGACY_API
+define from media.h.
+
+The remaining 6 patches add missing features to the 'old' and 'new' media
+controller API. Afterwards the two APIs are the same, except that the new
+API exposes interfaces (but that's reasonable since it is a superset of
+the 'old' API).
+
+While I am calling it 'old' and 'new' API, there is no reason why applications
+can't just pick which API to use, just like applications can choose whether
+to use QUERYCTRL or QUERY_EXT_CTRL. The latter ioctl is only required if you
+need the new functionality that it gives you.
+
+The one thing I did not add to the 'old' API is to expose the pad/link IDs.
+While there is room for it in the structs, there is no API that uses those
+IDs at the moment, and I think it would be confusing.
+
+Link IDs would most likely be used with a future S_TOPOLOGY ioctl and not
+with the old SETUP_LINK ioctl.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (9):
+  v4l2-mediabus.h: add hsv_enc
+  subdev-formats.rst: fix incorrect types
+  media.h: remove __NEED_MEDIA_LEGACY_API
+  media: add function field to struct media_entity_desc
+  media-ioc-enum-entities.rst: document new 'function' field
+  media: add 'index' to struct media_v2_pad
+  media-ioc-g-topology.rst: document new 'index' field
+  media: add flags field to struct media_v2_entity
+  media-ioc-g-topology.rst: document new 'flags' field
+
+ .../uapi/mediactl/media-ioc-enum-entities.rst      | 31 +++++++++++++++++-----
+ .../media/uapi/mediactl/media-ioc-g-topology.rst   | 25 +++++++++++++++--
+ Documentation/media/uapi/v4l/subdev-formats.rst    | 27 ++++++++++++++-----
+ drivers/media/media-device.c                       | 16 ++++++++---
+ include/uapi/linux/media.h                         | 23 +++++++++++++---
+ include/uapi/linux/v4l2-mediabus.h                 |  8 +++++-
+ 6 files changed, 108 insertions(+), 22 deletions(-)
 
 -- 
-damjan
+2.15.1
