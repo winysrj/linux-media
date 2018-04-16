@@ -1,127 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42651 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752813AbeDCVih (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:38:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v13 27/33] rcar-vin: add chsel information to rvin_info
-Date: Wed, 04 Apr 2018 00:38:45 +0300
-Message-ID: <4430383.ZA3TeIRKqE@avalon>
-In-Reply-To: <20180326214456.6655-28-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-28-niklas.soderlund+renesas@ragnatech.se>
+Received: from gofer.mess.org ([88.97.38.141]:41223 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752941AbeDPInr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 04:43:47 -0400
+Date: Mon, 16 Apr 2018 09:43:45 +0100
+From: Sean Young <sean@mess.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, Warren Sturm <warren.sturm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andy Walls <awalls.cx18@gmail.com>, stable@vger.kernel.org
+Subject: Re: [PATCH stable v4.15 1/3] media: staging: lirc_zilog: broken
+ reference counting
+Message-ID: <20180416084344.k4e3tx4jd5lswfh3@gofer.mess.org>
+References: <cover.1523785117.git.sean@mess.org>
+ <2bd4184fbea37ecdfcb0a334c6bef45786feb486.1523785117.git.sean@mess.org>
+ <20180416075228.GB2121@kroah.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180416075228.GB2121@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Mon, Apr 16, 2018 at 09:52:28AM +0200, Greg KH wrote:
+> On Sun, Apr 15, 2018 at 10:54:20AM +0100, Sean Young wrote:
+> > commit 615cd3fe6ccc ("[media] media: lirc_dev: make better use of
+> > file->private_data") removed the reference get from open, so on the first
+> > close the reference count hits zero and the lirc device is freed.
+> > 
+> > BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
+> > IP: lirc_thread+0x94/0x520 [lirc_zilog]
+> > PGD 22d69c067 P4D 22d69c067 PUD 22d69d067 PMD 0
+> > Oops: 0000 [#1] SMP NOPTI
+> > CPU: 2 PID: 701 Comm: zilog-rx-i2c-7 Tainted: P         C OE    4.15.14-300.fc27.x86_64 #1
+> > Hardware name: Gigabyte Technology Co., Ltd. GA-MA790FXT-UD5P/GA-MA790FXT-UD5P, BIOS F6 08/06/2009
+> > RIP: 0010:lirc_thread+0x94/0x520 [lirc_zilog]
+> > RSP: 0018:ffffb482c131be98 EFLAGS: 00010246
+> > RAX: 0000000000000000 RBX: ffff8fdabf056000 RCX: 0000000000000000
+> > RDX: 0000000000000000 RSI: 0000000000000246 RDI: 0000000000000246
+> > RBP: ffff8fdab740af00 R08: ffff8fdacfd214a0 R09: 0000000000000000
+> > R10: 0000000000000000 R11: 0000000000000040 R12: ffffb482c10dba48
+> > R13: ffff8fdabea89e00 R14: ffff8fdab740af00 R15: ffffffffc0b5e500
+> > FS:  0000000000000000(0000) GS:ffff8fdacfd00000(0000) knlGS:0000000000000000
+> > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > CR2: 0000000000000040 CR3: 00000002124c0000 CR4: 00000000000006e0
+> > Call Trace:
+> >  ? __schedule+0x247/0x880
+> >  ? get_ir_tx+0x40/0x40 [lirc_zilog]
+> >  kthread+0x113/0x130
+> >  ? kthread_create_worker_on_cpu+0x70/0x70
+> >  ? do_syscall_64+0x74/0x180
+> >  ? SyS_exit_group+0x10/0x10
+> >  ret_from_fork+0x22/0x40
+> > Code: 20 8b 85 80 00 00 00 85 c0 0f 84 a6 00 00 00 bf 04 01 00 00 e8 ee 34 d4 d7 e8 69 88 56 d7 84 c0 75 69 48 8b 45 18 c6 44 24 37 00 <48> 8b 58 40 4c 8d 6b 18 4c 89 ef e8 fc 4d d4 d7 4c 89 ef 48 89
+> > RIP: lirc_thread+0x94/0x520 [lirc_zilog] RSP: ffffb482c131be98
+> > CR2: 0000000000000040
+> > This code has been replaced completely in kernel v4.16 by a new driver,
+> > see commit acaa34bf06e9 ("media: rc: implement zilog transmitter"), and
+> > commit f95367a7b758 ("media: staging: remove lirc_zilog driver").
+> > 
+> > Fixes: 615cd3fe6ccc ("[media] media: lirc_dev: make better use of file->private_data")
+> > 
+> > Cc: stable@vger.kernel.org # v4.15
+> > Reported-by: Warren Sturm <warren.sturm@gmail.com>
+> > Tested-by: Warren Sturm <warren.sturm@gmail.com>
+> > Signed-off-by: Sean Young <sean@mess.org>
+> > ---
+> >  drivers/staging/media/lirc/lirc_zilog.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+> > index 6bd0717bf76e..bf6869e48a0f 100644
+> > --- a/drivers/staging/media/lirc/lirc_zilog.c
+> > +++ b/drivers/staging/media/lirc/lirc_zilog.c
+> > @@ -1291,6 +1291,7 @@ static int open(struct inode *node, struct file *filep)
+> >  
+> >  	lirc_init_pdata(node, filep);
+> >  	ir = lirc_get_pdata(filep);
+> > +	get_ir_device(ir, false);
+> >  
+> >  	atomic_inc(&ir->open_count);
+> >  
+> > -- 
+> > 2.14.3
+> 
+> What is the git commit id of this patch, and the other patches in this
+> series and the 4.14 patch series that you sent out?
 
-Thank you for the patch.
+lirc_zilog was dropped in v4.16, so this can't be patched upstream.
 
-On Tuesday, 27 March 2018 00:44:50 EEST Niklas S=F6derlund wrote:
-> Each Gen3 SoC has a limited set of predefined routing possibilities for
-> which CSI-2 device and channel can be routed to which VIN instance.
-> Prepare to store this information in the struct rvin_info.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Please read:
+>     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+> for how to do this in a way that I can pick them up.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+These patches have been tested with different types of hardware. Is there
+anything else I can do to get these patches included?
 
-> ---
->=20
-> * Changes since v11
-> - Fixed spelling.
-> - Reorderd filed order in struct rvin_group_route.
-> - Renamed chan to channel in struct rvin_group_route.
-> ---
->  drivers/media/platform/rcar-vin/rcar-vin.h | 42 ++++++++++++++++++++++++=
-+++
->  1 file changed, 42 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> cf5c467d45e10847..93eb40856b866117 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -43,6 +43,14 @@ enum model_id {
->  	RCAR_GEN3,
->  };
->=20
-> +enum rvin_csi_id {
-> +	RVIN_CSI20,
-> +	RVIN_CSI21,
-> +	RVIN_CSI40,
-> +	RVIN_CSI41,
-> +	RVIN_CSI_MAX,
-> +};
-> +
->  /**
->   * STOPPED  - No operation in progress
->   * RUNNING  - Operation in progress have buffers
-> @@ -79,12 +87,45 @@ struct rvin_graph_entity {
->  	unsigned int sink_pad;
->  };
->=20
-> +/**
-> + * struct rvin_group_route - describes a route from a channel of a
-> + *	CSI-2 receiver to a VIN
-> + *
-> + * @csi:	CSI-2 receiver ID.
-> + * @channel:	Output channel of the CSI-2 receiver.
-> + * @vin:	VIN ID.
-> + * @mask:	Bitmask of the different CHSEL register values that
-> + *		allow for a route from @csi + @chan to @vin.
-> + *
-> + * .. note::
-> + *	Each R-Car CSI-2 receiver has four output channels facing the VIN
-> + *	devices, each channel can carry one CSI-2 Virtual Channel (VC).
-> + *	There is no correlation between channel number and CSI-2 VC. It's
-> + *	up to the CSI-2 receiver driver to configure which VC is output
-> + *	on which channel, the VIN devices only care about output channels.
-> + *
-> + *	There are in some cases multiple CHSEL register settings which would
-> + *	allow for the same route from @csi + @channel to @vin. For example
-> + *	on R-Car H3 both the CHSEL values 0 and 3 allow for a route from
-> + *	CSI40/VC0 to VIN0. All possible CHSEL values for a route need to be
-> + *	recorded as a bitmask in @mask, in this example bit 0 and 3 should
-> + *	be set.
-> + */
-> +struct rvin_group_route {
-> +	enum rvin_csi_id csi;
-> +	unsigned int channel;
-> +	unsigned int vin;
-> +	unsigned int mask;
-> +};
-> +
->  /**
->   * struct rvin_info - Information about the particular VIN implementation
->   * @model:		VIN model
->   * @use_mc:		use media controller instead of controlling subdevice
->   * @max_width:		max input width the VIN supports
->   * @max_height:		max input height the VIN supports
-> + * @routes:		list of possible routes from the CSI-2 recivers to
-> + *			all VINs. The list mush be NULL terminated.
->   */
->  struct rvin_info {
->  	enum model_id model;
-> @@ -92,6 +133,7 @@ struct rvin_info {
->=20
->  	unsigned int max_width;
->  	unsigned int max_height;
-> +	const struct rvin_group_route *routes;
->  };
->=20
->  /**
+Thanks,
 
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+Sean
