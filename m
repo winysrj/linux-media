@@ -1,165 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:40632 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751272AbeDJQhY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 12:37:24 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180409065812.GT20945@w540>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
- <1523116090-13101-2-git-send-email-akinobu.mita@gmail.com> <20180409065812.GT20945@w540>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Wed, 11 Apr 2018 01:37:03 +0900
-Message-ID: <CAC5umyjUpMUoT+7ms0WjWmtd7NF-jbAQBHwahR8YnsQxrWfBFg@mail.gmail.com>
-Subject: Re: [PATCH 1/6] media: ov772x: allow i2c controllers without I2C_FUNC_PROTOCOL_MANGLING
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from osg.samsung.com ([64.30.133.232]:33319 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751060AbeDPQhU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 12:37:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 9/9] media: atomisp-mt9m114: comment out unused stuff
+Date: Mon, 16 Apr 2018 12:37:12 -0400
+Message-Id: <19ed5c24c1efe1dfb3867a9ed91f02b27c97317f.1523896259.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
+References: <cover.1523896259.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523896259.git.mchehab@s-opensource.com>
+References: <cover.1523896259.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-04-09 15:58 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
-> Hello Akinobu,
->     thank you for the patch.
->
-> On which platform have you tested the series (just curious) ?
+There are lots of data structs defined there but aren't used
+anywhere.
 
-I use Zynq-7000 development board with Xilinx Video IP driver and
-custom video pipeline design based on the example reference project.
+Comment them out. Gets rid of those warnings:
 
-> On Sun, Apr 08, 2018 at 12:48:05AM +0900, Akinobu Mita wrote:
->> The ov772x driver only works when the i2c controller have
->> I2C_FUNC_PROTOCOL_MANGLING.  However, many i2c controller drivers don't
->> support it.
->>
->> The reason that the ov772x requires I2C_FUNC_PROTOCOL_MANGLING is that
->> it doesn't support repeated starts.
->>
->> This change adds an alternative method for reading from ov772x register
->> which uses two separated i2c messages for the i2c controllers without
->> I2C_FUNC_PROTOCOL_MANGLING.
->
-> Actually, and please correct me if I'm wrong, what I see here is that
-> an i2c_master_send+i2c_master_recv sequence is equivalent to a mangled
-> smbus transaction:
->
-> i2c_smbus_read_byte_data | I2C_CLIENT_SCCB:
-> S Addr Wr [A] Comm [A] P S Addr Rd [A] [Data] NA P
->
-> i2c_master_send() + i2c_master_recv():
-> S Addr Wr [A] Data [A] P
-> S Addr Rd [A] [Data] NA P
->
-> I wonder if it is not worth to ditch the existing read() function in
-> favour of your new proposed one completely.
->
-> I have tested it on the Migo-R board where I have an ov772x installed
-> and it works fine.
+drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c:1808:45: warning: 'mt9m114_entity_ops' defined but not used [-Wunused-const-variable=]
+ static const struct media_entity_operations mt9m114_entity_ops = {
+                                             ^~~~~~~~~~~~~~~~~~
+In file included from drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c:35:0:
+drivers/staging/media/atomisp/i2c/mt9m114.h:805:34: warning: 'mt9m114_iq' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_iq[] = {
+                                  ^~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:797:34: warning: 'mt9m114_antiflicker_60hz' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_antiflicker_60hz[] = {
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:789:34: warning: 'mt9m114_antiflicker_50hz' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_antiflicker_50hz[] = {
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:682:34: warning: 'mt9m114_720_480P_init' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_720_480P_init[] = {
+                                  ^~~~~~~~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:533:34: warning: 'mt9m114_960P_init' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_960P_init[] = {
+                                  ^~~~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:518:34: warning: 'mt9m114_wakeup_reg' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_wakeup_reg[] = {
+                                  ^~~~~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:504:34: warning: 'mt9m114_streaming' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_streaming[] = {
+                                  ^~~~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:497:34: warning: 'mt9m114_suspend' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_suspend[] = {
+                                  ^~~~~~~~~~~~~~~
+drivers/staging/media/atomisp/i2c/mt9m114.h:393:34: warning: 'mt9m114_exitstandby' defined but not used [-Wunused-const-variable=]
+ static struct misensor_reg const mt9m114_exitstandby[] = {
+                                  ^~~~~~~~~~~~~~~~~~~
 
-I'll replace the read() function to the new implementation in the next
-version of this patchset. Although handling in the I2C core is fascinating,
-I feel the area of influence is a bit large.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c |  4 ----
+ drivers/staging/media/atomisp/i2c/mt9m114.h         | 13 ++++++++++++-
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-> Although I would like to have a confirmation this is fine by people
-> how has seen more i2c adapters in action than me :)
->
-> Thanks
->    j
->
->>
->> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> ---
->>  drivers/media/i2c/ov772x.c | 42 +++++++++++++++++++++++++++++++++---------
->>  1 file changed, 33 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
->> index b62860c..283ae2c 100644
->> --- a/drivers/media/i2c/ov772x.c
->> +++ b/drivers/media/i2c/ov772x.c
->> @@ -424,6 +424,7 @@ struct ov772x_priv {
->>       /* band_filter = COM8[5] ? 256 - BDBASE : 0 */
->>       unsigned short                    band_filter;
->>       unsigned int                      fps;
->> +     int (*reg_read)(struct i2c_client *client, u8 addr);
->>  };
->>
->>  /*
->> @@ -542,11 +543,34 @@ static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
->>       return container_of(sd, struct ov772x_priv, subdev);
->>  }
->>
->> -static inline int ov772x_read(struct i2c_client *client, u8 addr)
->> +static int ov772x_read(struct i2c_client *client, u8 addr)
->> +{
->> +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +     struct ov772x_priv *priv = to_ov772x(sd);
->> +
->> +     return priv->reg_read(client, addr);
->> +}
->> +
->> +static int ov772x_reg_read(struct i2c_client *client, u8 addr)
->>  {
->>       return i2c_smbus_read_byte_data(client, addr);
->>  }
->>
->> +static int ov772x_reg_read_fallback(struct i2c_client *client, u8 addr)
->> +{
->> +     int ret;
->> +     u8 val;
->> +
->> +     ret = i2c_master_send(client, &addr, 1);
->> +     if (ret < 0)
->> +             return ret;
->> +     ret = i2c_master_recv(client, &val, 1);
->> +     if (ret < 0)
->> +             return ret;
->> +
->> +     return val;
->> +}
->> +
->>  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
->>  {
->>       return i2c_smbus_write_byte_data(client, addr, value);
->> @@ -1255,20 +1279,20 @@ static int ov772x_probe(struct i2c_client *client,
->>               return -EINVAL;
->>       }
->>
->> -     if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
->> -                                           I2C_FUNC_PROTOCOL_MANGLING)) {
->> -             dev_err(&adapter->dev,
->> -                     "I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
->> -             return -EIO;
->> -     }
->> -     client->flags |= I2C_CLIENT_SCCB;
->> -
->>       priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
->>       if (!priv)
->>               return -ENOMEM;
->>
->>       priv->info = client->dev.platform_data;
->>
->> +     if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
->> +                                          I2C_FUNC_PROTOCOL_MANGLING))
->> +             priv->reg_read = ov772x_reg_read;
->> +     else
->> +             priv->reg_read = ov772x_reg_read_fallback;
->> +
->> +     client->flags |= I2C_CLIENT_SCCB;
->> +
->>       v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
->>       v4l2_ctrl_handler_init(&priv->hdl, 3);
->>       v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
->> --
->> 2.7.4
->>
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c b/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
+index 454a5c31a206..8e180f903335 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-mt9m114.c
+@@ -1805,10 +1805,6 @@ static const struct v4l2_subdev_ops mt9m114_ops = {
+ 	.sensor = &mt9m114_sensor_ops,
+ };
+ 
+-static const struct media_entity_operations mt9m114_entity_ops = {
+-	.link_setup = NULL,
+-};
+-
+ static int mt9m114_remove(struct i2c_client *client)
+ {
+ 	struct mt9m114_device *dev;
+diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.h b/drivers/staging/media/atomisp/i2c/mt9m114.h
+index 0af79d77a404..de39cc141308 100644
+--- a/drivers/staging/media/atomisp/i2c/mt9m114.h
++++ b/drivers/staging/media/atomisp/i2c/mt9m114.h
+@@ -390,6 +390,7 @@ static struct mt9m114_res_struct mt9m114_res[] = {
+ };
+ #define N_RES (ARRAY_SIZE(mt9m114_res))
+ 
++#if 0 /* Currently unused */
+ static struct misensor_reg const mt9m114_exitstandby[] = {
+ 	{MISENSOR_16BIT,  0x098E, 0xDC00},
+ 	/* exit-standby */
+@@ -397,6 +398,7 @@ static struct misensor_reg const mt9m114_exitstandby[] = {
+ 	{MISENSOR_16BIT,  0x0080, 0x8002},
+ 	{MISENSOR_TOK_TERM, 0, 0}
+ };
++#endif
+ 
+ static struct misensor_reg const mt9m114_exp_win[5][5] = {
+ 	{
+@@ -494,6 +496,7 @@ static struct misensor_reg const mt9m114_exp_center[] = {
+ 	{MISENSOR_TOK_TERM, 0, 0}
+ };
+ 
++#if 0 /* Currently unused */
+ static struct misensor_reg const mt9m114_suspend[] = {
+ 	 {MISENSOR_16BIT,  0x098E, 0xDC00},
+ 	 {MISENSOR_8BIT,  0xDC00, 0x40},
+@@ -507,6 +510,7 @@ static struct misensor_reg const mt9m114_streaming[] = {
+ 	 {MISENSOR_16BIT,  0x0080, 0x8002},
+ 	 {MISENSOR_TOK_TERM, 0, 0}
+ };
++#endif
+ 
+ static struct misensor_reg const mt9m114_standby_reg[] = {
+ 	 {MISENSOR_16BIT,  0x098E, 0xDC00},
+@@ -515,12 +519,14 @@ static struct misensor_reg const mt9m114_standby_reg[] = {
+ 	 {MISENSOR_TOK_TERM, 0, 0}
+ };
+ 
++#if 0 /* Currently unused */
+ static struct misensor_reg const mt9m114_wakeup_reg[] = {
+ 	 {MISENSOR_16BIT,  0x098E, 0xDC00},
+ 	 {MISENSOR_8BIT,  0xDC00, 0x54},
+ 	 {MISENSOR_16BIT,  0x0080, 0x8002},
+ 	 {MISENSOR_TOK_TERM, 0, 0}
+ };
++#endif
+ 
+ static struct misensor_reg const mt9m114_chgstat_reg[] = {
+ 	{MISENSOR_16BIT,  0x098E, 0xDC00},
+@@ -530,6 +536,7 @@ static struct misensor_reg const mt9m114_chgstat_reg[] = {
+ };
+ 
+ /* [1296x976_30fps] - Intel */
++#if 0
+ static struct misensor_reg const mt9m114_960P_init[] = {
+ 	{MISENSOR_16BIT, 0x098E, 0x1000},
+ 	{MISENSOR_8BIT, 0xC97E, 0x01},	  /* cam_sysctl_pll_enable = 1 */
+@@ -565,6 +572,7 @@ static struct misensor_reg const mt9m114_960P_init[] = {
+ 	{MISENSOR_16BIT, 0xC86A, 0x03C8}, /* cam_output_height = 960 */
+ 	{MISENSOR_TOK_TERM, 0, 0},
+ };
++#endif
+ 
+ /* [1296x976_30fps_768Mbps] */
+ static struct misensor_reg const mt9m114_976P_init[] = {
+@@ -679,6 +687,7 @@ static struct misensor_reg const mt9m114_736P_init[] = {
+ };
+ 
+ /* [736x496_30fps_768Mbps] */
++#if 0 /* Currently unused */
+ static struct misensor_reg const mt9m114_720_480P_init[] = {
+ 	{MISENSOR_16BIT, 0x98E, 0x1000},
+ 	{MISENSOR_8BIT, 0xC97E, 0x01},	  /* cam_sysctl_pll_enable = 1 */
+@@ -714,6 +723,7 @@ static struct misensor_reg const mt9m114_720_480P_init[] = {
+ 	{MISENSOR_8BIT, 0xC878, 0x00}, /* 0x0E //cam_aet_aemode = 0 */
+ 	{MISENSOR_TOK_TERM, 0, 0}
+ };
++#endif
+ 
+ static struct misensor_reg const mt9m114_common[] = {
+ 	/* reset */
+@@ -785,7 +795,7 @@ static struct misensor_reg const mt9m114_common[] = {
+ 	{MISENSOR_TOK_TERM, 0, 0},
+ 
+ };
+-
++#if 0 /* Currently unused */
+ static struct misensor_reg const mt9m114_antiflicker_50hz[] = {
+ 	 {MISENSOR_16BIT,  0x098E, 0xC88B},
+ 	 {MISENSOR_8BIT,  0xC88B, 0x32},
+@@ -1775,3 +1785,4 @@ static struct misensor_reg const mt9m114_iq[] = {
+ };
+ 
+ #endif
++#endif
+-- 
+2.14.3
