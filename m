@@ -1,136 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:35924 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932272AbeDWTRu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 15:17:50 -0400
-Date: Mon, 23 Apr 2018 16:17:42 -0300
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 01/11] media: tm6000: fix potential Spectre variant 1
-Message-ID: <20180423161742.66f939ba@vento.lan>
-In-Reply-To: <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
-References: <cover.1524499368.git.gustavo@embeddedor.com>
-        <3d4973141e218fb516422d3d831742d55aaa5c04.1524499368.git.gustavo@embeddedor.com>
-        <20180423152455.363d285c@vento.lan>
-        <3ab9c4c9-0656-a08e-740e-394e2e509ae9@embeddedor.com>
+Received: from osg.samsung.com ([64.30.133.232]:37324 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752652AbeDPRa6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 13:30:58 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        "Guillermo O. Freschi" <kedrot@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        devel@driverdev.osuosl.org,
+        Rene Hickersberger <renehickersberger@gmx.net>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Aishwarya Pant <aishpant@gmail.com>
+Subject: [PATCH 0/9] Do some atomisp cleanups
+Date: Mon, 16 Apr 2018 12:37:03 -0400
+Message-Id: <cover.1523896259.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Apr 2018 14:11:02 -0500
-"Gustavo A. R. Silva" <gustavo@embeddedor.com> escreveu:
+When I started building media subsystem with the atomisp driver,
+I ended by adding several hacks on their Makefiles, in order to
+get rid of thousands of warnings. I felt a little guty of hiding how
+broken is this driver, so I decided t remove two Makefile hacks that
+affect sensors and fix the warnings. 
 
-> On 04/23/2018 01:24 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 23 Apr 2018 12:38:03 -0500
-> > "Gustavo A. R. Silva" <gustavo@embeddedor.com> escreveu:
-> >   
-> >> f->index can be controlled by user-space, hence leading to a
-> >> potential exploitation of the Spectre variant 1 vulnerability.
-> >>
-> >> Smatch warning:
-> >> drivers/media/usb/tm6000/tm6000-video.c:879 vidioc_enum_fmt_vid_cap() warn: potential spectre issue 'format'
-> >>
-> >> Fix this by sanitizing f->index before using it to index
-> >> array _format_
-> >>
-> >> Notice that given that speculation windows are large, the policy is
-> >> to kill the speculation on the first load and not worry if it can be
-> >> completed with a dependent load/store [1].
-> >>
-> >> [1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
-> >>
-> >> Cc: stable@vger.kernel.org
-> >> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> >> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> >> ---
-> >>   drivers/media/usb/tm6000/tm6000-video.c | 2 ++
-> >>   1 file changed, 2 insertions(+)
-> >>
-> >> diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-> >> index b2399d4..d701027 100644
-> >> --- a/drivers/media/usb/tm6000/tm6000-video.c
-> >> +++ b/drivers/media/usb/tm6000/tm6000-video.c
-> >> @@ -26,6 +26,7 @@
-> >>   #include <linux/kthread.h>
-> >>   #include <linux/highmem.h>
-> >>   #include <linux/freezer.h>
-> >> +#include <linux/nospec.h>
-> >>   
-> >>   #include "tm6000-regs.h"
-> >>   #include "tm6000.h"
-> >> @@ -875,6 +876,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
-> >>   	if (f->index >= ARRAY_SIZE(format))
-> >>   		return -EINVAL;
-> >>   
-> >> +	f->index = array_index_nospec(f->index, ARRAY_SIZE(format));  
-> > 
-> > Please enlighten me: how do you think this could be exploited?
-> > 
-> > When an application calls VIDIOC_ENUM_FMT from a /dev/video0 device,
-> > it will just enumerate a hardware functionality, with is constant
-> > for a given hardware piece.
-> > 
-> > The way it works is that userspace do something like:
-> > 
-> > 	int ret = 0;
-> > 
-> > 	for (i = 0; ret == 0; i++) {
-> > 		ret = ioctl(VIDIOC_ENUM_FMT, ...);
-> > 	}
-> > 
-> > in order to read an entire const table.
-> > 
-> > Usually, it doesn't require any special privilege to call this ioctl,
-> > but, even if someone changes its permission to 0x400, a simple lsusb
-> > output is enough to know what hardware model is there. A lsmod
-> > or cat /proc/modules) also tells that the tm6000 module was loaded,
-> > with is a very good hint that the tm6000 is there or was there in the
-> > past.
-> > 
-> > In the specific case of tm6000, all hardware supports exactly the
-> > same formats, as this is usually defined per-driver. So, a quick look
-> > at the driver is enough to know exactly what the ioctl would answer.
-> > Also, the net is full of other resources that would allow anyone
-> > to get the supported formats for a piece of hardware.
-> > 
-> > Even assuming that the OS doesn't have lsusb, that /proc is not
-> > mounted, that /dev/video0 require special permissions, that the
-> > potential attacker doesn't have physical access to the equipment (in
-> > order to see if an USB board is plugged), etc... What possible harm
-> > he could do by identifying a hardware feature?
-> > 
-> > Similar notes for the other patches to drivers/media in this
-> > series: let's not just start adding bloatware where not needed.
-> > 
-> > Please notice that I'm fine if you want to submit potential
-> > Spectre variant 1 fixups, but if you're willing to do so,
-> > please provide an explanation about the potential threat scenarios
-> > that you're identifying at the code.
-> > 
-> > Dan,
-> > 
-> > It probably makes sense to have somewhere at smatch a place where
-> > we could explicitly mark the false-positives, in order to avoid
-> > use to receive patches that would just add an extra delay where
-> > it is not needed.
-> >   
-> I see I've missed some obvious things that you've pointed out here. I'll 
-> mark these warnings as False Positives and take your points into account 
-> for the analysis of the rest of the Spectre issues reported by Smatch.
+Yet, there's still one such hack at 
+drivers/staging/media/atomisp/pci/atomisp2/Makefile, with:
 
-Thanks, I 'll mark this series as rejected at patchwork.linuxtv.org. 
-Please feel free to resubmit any patch if they represent a real
-threat, adding a corresponding description about the threat scenario
-at the body of the e-mail.
+# HACK! While this driver is in bad shape, don't enable several warnings
+#       that would be otherwise enabled with W=1
+ccflags-y += $(call cc-disable-warning, implicit-fallthrough)
+ccflags-y += $(call cc-disable-warning, missing-prototypes)
+ccflags-y += $(call cc-disable-warning, missing-declarations)
+ccflags-y += $(call cc-disable-warning, suggest-attribute=format)
+ccflags-y += $(call cc-disable-warning, unused-const-variable)
+ccflags-y += $(call cc-disable-warning, unused-but-set-variable)
 
-> Sorry for the noise and thanks for the feedback.
+Getting his of those is a big task, as there are thousands of warnings
+hidden there. In order to seriously get rid of them, one should start
+getting rid of the several abstraction layers at the driver and have
+hardware for test.
 
-Anytime.
+As I don't have any hardware to test, nor any reason why
+dedicating myself to such task, I'll just leave this task for others
+to do.
 
-Thanks,
-Mauro
+Mauro Carvalho Chehab (9):
+  media: staging: atomisp: get rid of __KERNEL macros
+  media: staging: atomisp: reenable warnings for I2C
+  media: atomisp: ov2680.h: fix identation
+  media: staging: atomisp-gc2235: don't fill an unused var
+  media: staging: atomisp: Comment out several unused sensor resolutions
+  media: atomisp: ov2680: don't declare unused vars
+  media: atomisp-gc0310: return errors at gc0310_init()
+  media: atomisp-mt9m114: remove dead data
+  media: atomisp-mt9m114: comment out unused stuff
+
+ drivers/staging/media/atomisp/i2c/Makefile         |   7 -
+ drivers/staging/media/atomisp/i2c/atomisp-gc0310.c |   2 +-
+ drivers/staging/media/atomisp/i2c/atomisp-gc2235.c |   6 +-
+ .../staging/media/atomisp/i2c/atomisp-mt9m114.c    |  11 +-
+ drivers/staging/media/atomisp/i2c/atomisp-ov2680.c |   6 +-
+ drivers/staging/media/atomisp/i2c/gc2235.h         |   9 +-
+ drivers/staging/media/atomisp/i2c/mt9m114.h        |  13 +-
+ drivers/staging/media/atomisp/i2c/ov2680.h         | 900 +++++++++++----------
+ drivers/staging/media/atomisp/i2c/ov2722.h         |   6 +
+ drivers/staging/media/atomisp/i2c/ov5693/Makefile  |   7 -
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.h  |  18 +-
+ .../css_2401_csi2p_system/host/system_local.h      |  15 -
+ .../hive_isp_css_common/host/system_local.h        |  15 -
+ .../css2400/hive_isp_css_include/math_support.h    |   5 -
+ .../css2400/hive_isp_css_include/print_support.h   |   3 -
+ .../media/atomisp/pci/atomisp2/css2400/sh_css_sp.c |   4 -
+ 16 files changed, 503 insertions(+), 524 deletions(-)
+
+-- 
+2.14.3
