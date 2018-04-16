@@ -1,112 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:55573 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752990AbeDKNtm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 09:49:42 -0400
-Date: Wed, 11 Apr 2018 10:49:35 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180411104935.5f566f0f@vento.lan>
-In-Reply-To: <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-5-hverkuil@xs4all.nl>
-        <20180410073206.12d4c67d@vento.lan>
-        <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
-        <20180410115143.41178f68@vento.lan>
-        <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:35243 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751135AbeDPRcM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 13:32:12 -0400
+Received: by mail-ot0-f195.google.com with SMTP id f47-v6so18303200oth.2
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 10:32:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1523884614.5918.12.camel@pengutronix.de>
+References: <1520081790-3437-1-git-send-email-festevam@gmail.com> <1523884614.5918.12.camel@pengutronix.de>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Mon, 16 Apr 2018 14:32:11 -0300
+Message-ID: <CAOMZO5CANmvqVVw2=aooT1PxjdBaThY1OK9wStKsgqF8F3t37Q@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] media: imx-media-csi: Fix inconsistent IS_ERR and PTR_ERR
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 11 Apr 2018 16:21:16 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+On Mon, Apr 16, 2018 at 10:16 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
 
+> The second patch is applied now, but this part is still missing in
+> v4.17-rc1, causing the CSI subdev probe to fail:
+>
+>   imx-ipuv3-csi: probe of imx-ipuv3-csi.0 failed with error -1369528304
+>   imx-ipuv3-csi: probe of imx-ipuv3-csi.1 failed with error -1369528304
+>   imx-ipuv3-csi: probe of imx-ipuv3-csi.5 failed with error -1369528304
+>   imx-ipuv3-csi: probe of imx-ipuv3-csi.6 failed with error -1369528304
 
-> > > > Btw, this is a very good reason why you should define the ioctl to
-> > > > have an integer argument instead of a struct with a __s32 field
-> > > > on it, as per my comment to patch 02/29:
-> > > > 
-> > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> > > > 
-> > > > At 64 bit architectures, you're truncating the file descriptor!    
-> > > 
-> > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-> > > well.  
-> > 
-> > Hmm.. you're right. I was thinking that it could be 64 bits on some
-> > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
-> > according with:
-> > 
-> > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
-> > 
-> > This is not the case on gcc.  
-> 
-> Ok. The reasoning back then was that what "int" means varies across
-> compilers and languages. And the intent was to codify this to __s32 which
-> is what the kernel effectively uses.
+Yes, this original patch does not apply against 4.17-rc1 anymore, so I
+rebased and resend it.
 
-...
-
-> The rest of the kernel uses int rather liberally in the uAPI so I'm not
-> sure in the end whether something desirable was achieved. Perhaps it'd be
-> good to go back to the original discussion to find out for sure.
-> 
-> Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
-> due to that difference.
-> 
-> Well, I stop here for this begins to be off-topic. :-)
-
-Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
-about that :-)
-
-> > > > > +	get_task_comm(comm, current);
-> > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > > > > +		 comm, fd);    
-> > > > 
-> > > > Not sure if it is a good idea to store the task that allocated
-> > > > the request. While it makes sense for the dev_dbg() below, it
-> > > > may not make sense anymore on other dev_dbg() you would be
-> > > > using it.    
-> > > 
-> > > The lifetime of the file handle roughly matches that of the request. It's
-> > > for debug only anyway.
-> > > 
-> > > Better proposals are always welcome of course. But I think we should have
-> > > something here that helps debugging by meaningfully making the requests
-> > > identifiable from logs.  
-> > 
-> > What I meant to say is that one PID could be allocating the
-> > request, while some other one could be actually doing Q/DQ_BUF.
-> > On such scenario, the debug string could provide mislead prints.  
-> 
-> Um, yes, indeed it would no longer match the process. But the request is
-> still the same. That's actually a positive thing since it allows you to
-> identify the request.
-> 
-> With a global ID space this was trivial; you could just print the request
-> ID and that was all that was ever needed. (I'm not proposing to consider
-> that though.)
-> 
-
-IMO, a global ID number would work better than get_task_comm().
-
-Just add a static int monotonic counter and use it for the debug purposes,
-e. g.:
-
-{
-	static unsigned int req_count = 0;
-
-	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
-		req_count++, fd);    
-
-Ok, eventually, it will overflow, but, it will be unique within
-a reasonable timeframe to be good enough for debugging purposes.
-
-
-Thanks,
-Mauro
+Thanks
