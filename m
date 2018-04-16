@@ -1,124 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xavier.telenet-ops.be ([195.130.132.52]:54576 "EHLO
-        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753149AbeDQRuR (ORCPT
+Received: from mail-it0-f50.google.com ([209.85.214.50]:33382 "EHLO
+        mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752221AbeDPXDR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 13:50:17 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v3 20/20] usb: Remove depends on HAS_DMA in case of platform dependency
-Date: Tue, 17 Apr 2018 19:49:20 +0200
-Message-Id: <1523987360-18760-21-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
-References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+        Mon, 16 Apr 2018 19:03:17 -0400
+Received: by mail-it0-f50.google.com with SMTP id x144-v6so13091074itc.0
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 16:03:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <9b255c35-f163-7db9-a7a8-88c1ac2ceeb1@gmail.com>
+References: <CAFwsNOEF0rK+SeHQ618Rnuj2ZWaGZG2WY4keWmavqG_agSi+dw@mail.gmail.com>
+ <4d87c28b-4adb-86d6-986b-e1ffdceb3138@xs4all.nl> <9b255c35-f163-7db9-a7a8-88c1ac2ceeb1@gmail.com>
+From: Samuel Bobrowicz <sam@elite-embedded.com>
+Date: Mon, 16 Apr 2018 16:03:16 -0700
+Message-ID: <CAFwsNOE3bcGCmQ5VUYWMG28dxr9P9=cmi3VMrcXyb4gVTntA2A@mail.gmail.com>
+Subject: Re: OV5640 with 12MHz xclk
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
+Thanks all, that's what I was expecting. It clears some things up.
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
+I'm going to check out Maxime's recent patches and see if those do the
+trick, otherwise I'll get cracking on some patches myself.
 
-This simplifies the dependencies, and allows to improve compile-testing.
+Sam
+-----------------------
+Sam Bobrowicz
+Elite Embedded Consulting LLC
+elite-embedded.com
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com> [drivers/usb/gadget/]
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
-v3:
-  - Add Acked-by,
-  - Rebase to v4.17-rc1,
 
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/usb/gadget/udc/Kconfig | 4 ++--
- drivers/usb/mtu3/Kconfig       | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/usb/gadget/udc/Kconfig b/drivers/usb/gadget/udc/Kconfig
-index 0875d38476ee9395..9c3b4f86965e80c7 100644
---- a/drivers/usb/gadget/udc/Kconfig
-+++ b/drivers/usb/gadget/udc/Kconfig
-@@ -179,7 +179,7 @@ config USB_R8A66597
- 
- config USB_RENESAS_USBHS_UDC
- 	tristate 'Renesas USBHS controller'
--	depends on USB_RENESAS_USBHS && HAS_DMA
-+	depends on USB_RENESAS_USBHS
- 	help
- 	   Renesas USBHS is a discrete USB host and peripheral controller chip
- 	   that supports both full and high speed USB 2.0 data transfers.
-@@ -192,7 +192,7 @@ config USB_RENESAS_USBHS_UDC
- config USB_RENESAS_USB3
- 	tristate 'Renesas USB3.0 Peripheral controller'
- 	depends on ARCH_RENESAS || COMPILE_TEST
--	depends on EXTCON && HAS_DMA
-+	depends on EXTCON
- 	help
- 	   Renesas USB3.0 Peripheral controller is a USB peripheral controller
- 	   that supports super, high, and full speed USB 3.0 data transfers.
-diff --git a/drivers/usb/mtu3/Kconfig b/drivers/usb/mtu3/Kconfig
-index 25cd61947beea51e..c0c0eb88e5eafc74 100644
---- a/drivers/usb/mtu3/Kconfig
-+++ b/drivers/usb/mtu3/Kconfig
-@@ -2,7 +2,7 @@
- 
- config USB_MTU3
- 	tristate "MediaTek USB3 Dual Role controller"
--	depends on EXTCON && (USB || USB_GADGET) && HAS_DMA
-+	depends on EXTCON && (USB || USB_GADGET)
- 	depends on ARCH_MEDIATEK || COMPILE_TEST
- 	select USB_XHCI_MTK if USB_SUPPORT && USB_XHCI_HCD
- 	help
--- 
-2.7.4
+On Mon, Apr 16, 2018 at 11:44 AM, Steve Longerbeam
+<slongerbeam@gmail.com> wrote:
+> Hi Sam,
+>
+> On 04/16/2018 05:26 AM, Hans Verkuil wrote:
+>>
+>> On 04/16/2018 03:39 AM, Samuel Bobrowicz wrote:
+>>>
+>>> Can anyone verify if the OV5640 driver works with input clocks other
+>>> than the typical 24MHz? The driver suggests anything from 6MHz-24MHz
+>>> is acceptable, but I am running into issues while bringing up a module
+>>> that uses a 12MHz oscillator. I'd expect that different xclk's would
+>>> necessitate different register settings for the various resolutions
+>>> (PLL settings, PCLK width, etc.), however the driver does not seem to
+>>> modify nearly enough based on the frequency of xclk.
+>>>
+>>> Sam
+>>>
+>> I'm pretty sure it has never been tested with 12 MHz. The i.MX SabreLite
+>> seems to use 22 MHz, and I can't tell from the code what the SabreSD uses
+>> (probably 22 or 24 MHz). Steve will probably know.
+>
+>
+> On i.MX6, the sabrelite uses the PWM3 clock at 22MHz for the OV5640 xclk.
+> The SabreSD uses the i.MX6 CKO clock, which is default sourced from the
+> 24 MHz oscillator.
+>
+> I wouldn't be surprised that there are issues with a 12MHz xclk in the
+> ov5640 driver. There's probably some assumptions made about the
+> xclk range in the hardcoded values in those huge register tables. Sorry
+> I don't have the time to look into it more.
+>
+> Steve
+>
