@@ -1,89 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45567 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751494AbeDGNjO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2018 09:39:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] v4l: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
-Date: Sat, 07 Apr 2018 16:39:14 +0300
-Message-ID: <5623757.uGOQXyq7Q5@avalon>
-In-Reply-To: <20180407101657.5537b596@vento.lan>
-References: <20180407114008.6707-1-laurent.pinchart@ideasonboard.com> <20180407101657.5537b596@vento.lan>
+Received: from gofer.mess.org ([88.97.38.141]:43691 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751042AbeDPPKp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 11:10:45 -0400
+Date: Mon, 16 Apr 2018 16:10:44 +0100
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.18] rc changes
+Message-ID: <20180416151044.ozm4qnvdp6t7f2iq@gofer.mess.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Mauro,
 
-On Saturday, 7 April 2018 16:16:57 EEST Mauro Carvalho Chehab wrote:
-> Em Sat,  7 Apr 2018 14:40:08 +0300 Laurent Pinchart escreveu:
-> > The omap3isp driver can't be compiled on non-ARM platforms but has no
-> > compile-time dependency on OMAP. It however requires common clock
-> > framework support, which isn't provided by all ARM platforms.
-> > 
-> > Drop the OMAP dependency when COMPILE_TEST is set and add ARM and
-> > COMMON_CLK dependencies.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/platform/Kconfig | 5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> > 
-> > Hi Mauro,
-> > 
-> > While we continue the discussions on whether the ARM IOMMU functions
-> > should be stubbed in the omap3isp driver itself or not, I propose already
-> > merging this patch that will extend build coverage for the omap3isp
-> > driver. Extending compilation to non-ARM platforms can then be added on
-> > top, depending on the result of the discussion.
-> > 
-> > You might have noticed the 0-day build bot report reporting that the
-> > driver depends on the common clock framework (build failure on openrisc).
-> > The issue affects ARM as well as not all ARM platforms use the common
-> > clock framework. I've thus also added a dependency on COMMON_CLK. Note
-> > that this dependency can prevent compilation on x86 platforms. If you want
-> > to fix that, the definition of struct clk_hw in include/linux/clk-
-> > provider.h will need to be exposed even when CONFIG_COMMON_CLK isn't
-> > selected. I'll let you propose a fix for that issue to the clock
-> > maintainers if you think it should be addressed.
-> 
-> Weird, it built/linked fine on x86 without COMMON_CLK. Perhaps there are
-> some stubs there that aren't working properly for openrisc arch. I'll
-> take a look on it.
+These patches include the low latency changes, which do make IR more
+responsive. These patches could breaks things in subtle ways, so it
+would be great to have these changes in early in the cycle.
 
-It's not function stubs this time, but structure definitions. I haven't 
-checked why it might build on x86, but please note that some x86 platforms 
-enable COMMON_CLK, that might be why you got it to build with an allyesconfig 
-or allmodconfig configuration.
+Thanks,
+Sean
 
-Given that this patch extends compile-test coverage from ARCH_OMAP3 to ARM and 
-fixes a dependency issue that would affect other architectures as well, could 
-you consider taking it in your tree and base your compile-test coverage 
-expansion for omap3isp on top of it ?
+The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
 
-> > diff --git a/drivers/media/platform/Kconfig
-> > b/drivers/media/platform/Kconfig index c7a1cf8a1b01..58aa233d3cf9 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -62,7 +62,10 @@ config VIDEO_MUX
-> > 
-> >  config VIDEO_OMAP3
-> >  	tristate "OMAP 3 Camera support"
-> > -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> > +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> > +	depends on ARCH_OMAP3 || COMPILE_TEST
-> > +	depends on ARM
-> > +	depends on COMMON_CLK
-> >  	depends on HAS_DMA && OF
-> >  	depends on OMAP_IOMMU
-> >  	select ARM_DMA_USE_IOMMU
+  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
 
--- 
-Regards,
+are available in the Git repository at:
 
-Laurent Pinchart
+  git://linuxtv.org/syoung/media_tree.git for-v4.18a
+
+for you to fetch changes up to e3313098d94c3e6df414e72732bdb5ae9f581185:
+
+  media: rc: mtk-cir: use of_device_get_match_data() (2018-04-16 14:37:52 +0100)
+
+----------------------------------------------------------------
+Andi Shyti (1):
+      media: rc: ir-spi: update Andi's e-mail
+
+Ryder Lee (1):
+      media: rc: mtk-cir: use of_device_get_match_data()
+
+Sean Young (11):
+      media: rc: report receiver and transmitter type on device register
+      media: rc: set timeout to smallest value required by enabled protocols
+      media: rc: add ioctl to get the current timeout
+      media: rc: per-protocol repeat period and minimum keyup timer
+      media: rc: mce_kbd decoder: low timeout values cause double keydowns
+      media: rc: mce_kbd protocol encodes two scancodes
+      media: rc: mce_kbd decoder: fix stuck keys
+      media: rc: mce_kbd decoder: remove superfluous call to input_sync
+      media: rc: mce_kbd decoder: fix race condition
+      media: rc: mceusb: allow the timeout to be configurable
+      media: cx88: enable IR transmitter on HVR-1300
+
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     |  2 +-
+ Documentation/media/uapi/rc/lirc-func.rst          |  1 +
+ .../media/uapi/rc/lirc-set-rec-timeout.rst         | 14 +++--
+ drivers/media/cec/cec-core.c                       |  2 +-
+ drivers/media/pci/cx88/cx88-input.c                |  5 +-
+ drivers/media/rc/ir-imon-decoder.c                 |  1 +
+ drivers/media/rc/ir-jvc-decoder.c                  |  1 +
+ drivers/media/rc/ir-mce_kbd-decoder.c              | 58 +++++++++++-------
+ drivers/media/rc/ir-nec-decoder.c                  |  1 +
+ drivers/media/rc/ir-rc5-decoder.c                  |  1 +
+ drivers/media/rc/ir-rc6-decoder.c                  |  1 +
+ drivers/media/rc/ir-sanyo-decoder.c                |  1 +
+ drivers/media/rc/ir-sharp-decoder.c                |  1 +
+ drivers/media/rc/ir-sony-decoder.c                 |  1 +
+ drivers/media/rc/ir-spi.c                          |  4 +-
+ drivers/media/rc/ir-xmp-decoder.c                  |  1 +
+ drivers/media/rc/lirc_dev.c                        | 31 +++++++++-
+ drivers/media/rc/mceusb.c                          | 22 +++++++
+ drivers/media/rc/mtk-cir.c                         |  4 +-
+ drivers/media/rc/rc-core-priv.h                    |  3 +
+ drivers/media/rc/rc-ir-raw.c                       | 31 +++++++++-
+ drivers/media/rc/rc-main.c                         | 68 +++++++++++-----------
+ include/uapi/linux/lirc.h                          |  6 ++
+ 23 files changed, 188 insertions(+), 72 deletions(-)
