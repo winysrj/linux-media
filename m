@@ -1,55 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37480 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751093AbeDGJiy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 7 Apr 2018 05:38:54 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.17] cec: fix smatch error
-Message-ID: <c9927424-9467-cdec-60bc-10feaf518164@xs4all.nl>
-Date: Sat, 7 Apr 2018 11:38:52 +0200
+Received: from osg.samsung.com ([64.30.133.232]:57019 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752958AbeDPSMV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 14:12:21 -0400
+Date: Mon, 16 Apr 2018 15:12:14 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 1/9] v4l2-mediabus.h: add hsv_enc
+Message-ID: <20180416151214.77b46351@vento.lan>
+In-Reply-To: <20180416132121.46205-2-hverkuil@xs4all.nl>
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        <20180416132121.46205-2-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/cec/cec-pin-error-inj.c:231
-cec_pin_error_inj_parse_line() error: uninitialized symbol 'pos'.
+Em Mon, 16 Apr 2018 15:21:13 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-The tx-add-bytes command didn't check for the presence of an argument, and
-also didn't check that it was > 0.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Just like struct v4l2_pix_format add a hsv_enc field to describe
+> the HSV encoding. It is in a union with the ycbcr_enc, since it
+> is one or the other.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/uapi/linux/v4l2-mediabus.h | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index 123a231001a8..52fd6cc9d491 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -24,6 +24,7 @@
+>   * @field:	used interlacing type (from enum v4l2_field)
+>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+>   * @ycbcr_enc:	YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
+> + * @hsv_enc:	HSV encoding of the data (from enum v4l2_hsv_encoding)
+>   * @quantization: quantization of the data (from enum v4l2_quantization)
+>   * @xfer_func:  transfer function of the data (from enum v4l2_xfer_func)
+>   */
+> @@ -33,7 +34,12 @@ struct v4l2_mbus_framefmt {
+>  	__u32			code;
+>  	__u32			field;
+>  	__u32			colorspace;
+> -	__u16			ycbcr_enc;
+> +	union {
+> +		/* enum v4l2_ycbcr_encoding */
+> +		__u16		ycbcr_enc;
+> +		/* enum v4l2_hsv_encoding */
+> +		__u16		hsv_enc;
+> +	};
 
-This should fix this error.
+While I'm OK with that, it currently doesn't make sense to apply
+it, as no driver is currently using v4l2_mbus_framefmt.hsv_enc.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/cec/cec-pin-error-inj.c b/drivers/media/cec/cec-pin-error-inj.c
-index aaa899a175ce..7132a2758bd3 100644
---- a/drivers/media/cec/cec-pin-error-inj.c
-+++ b/drivers/media/cec/cec-pin-error-inj.c
-@@ -203,16 +203,18 @@ bool cec_pin_error_inj_parse_line(struct cec_adapter *adap, char *line)
- 		mode_mask = CEC_ERROR_INJ_MODE_MASK << mode_offset;
- 		arg_idx = cec_error_inj_cmds[i].arg_idx;
+>  	__u16			quantization;
+>  	__u16			xfer_func;
+>  	__u16			reserved[11];
 
--		if (mode_offset == CEC_ERROR_INJ_RX_ARB_LOST_OFFSET ||
--		    mode_offset == CEC_ERROR_INJ_TX_ADD_BYTES_OFFSET)
--			is_bit_pos = false;
--
- 		if (mode_offset == CEC_ERROR_INJ_RX_ARB_LOST_OFFSET) {
- 			if (has_op)
- 				return false;
- 			if (!has_pos)
- 				pos = 0x0f;
-+			is_bit_pos = false;
-+		} else if (mode_offset == CEC_ERROR_INJ_TX_ADD_BYTES_OFFSET) {
-+			if (!has_pos || !pos)
-+				return false;
-+			is_bit_pos = false;
- 		}
-+
- 		if (arg_idx >= 0 && is_bit_pos) {
- 			if (!has_pos || pos >= 160)
- 				return false;
+
+
+Thanks,
+Mauro
