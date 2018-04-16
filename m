@@ -1,346 +1,407 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36246 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751488AbeDGAan (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 20:30:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v7 0/8] vsp1: TLB optimisation and DL caching
-Date: Sat, 07 Apr 2018 03:30:42 +0300
-Message-ID: <1706399.6jG5Itdsid@avalon>
-In-Reply-To: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.636c1ee27fc6973cc312e0f25131a435872a0a35.1520466993.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.bootlin.com ([62.4.15.54]:53184 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753861AbeDPMhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 08:37:24 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v2 06/12] media: ov5640: Add horizontal and vertical totals
+Date: Mon, 16 Apr 2018 14:36:55 +0200
+Message-Id: <20180416123701.15901-7-maxime.ripard@bootlin.com>
+In-Reply-To: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+All the initialization arrays are changing the horizontal and vertical
+totals for some value.
 
-I've finished reviewing the series. For your convenience, I've rebased it on 
-top of the BRU/BRS dynamic allocation patches, and pushed the result to
+In order to clean up the driver, and since we're going to need that value
+later on, let's introduce in the ov5640_mode_info structure the horizontal
+and vertical total sizes, and move these out of the bytes array.
 
-	git://linuxtv.org/pinchartl/media.git v4l2/vsp1/tlb-optimise
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 156 +++++++++++++++++++++++--------------
+ 1 file changed, 97 insertions(+), 59 deletions(-)
 
-(Please note it has been compile-tested only)
-
-I have also taken the liberty to incorporate both my review comments and my 
-Reviewed-by line for the patches that have received a conditional Reviewed-by, 
-that is patches 1/8, 5/8 and 7/8. Patches 3/8, 4/8, 6/8 and 8/8 have open 
-questions so I haven't touched them.
-
-Please don't despair, v8 might well be the last version we will need :-)
-
-On Thursday, 8 March 2018 02:05:23 EEST Kieran Bingham wrote:
-> Each display list currently allocates an area of DMA memory to store
-> register settings for the VSP1 to process. Each of these allocations adds
-> pressure to the IPMMU TLB entries.
-> 
-> We can reduce the pressure by pre-allocating larger areas and dividing the
-> area across multiple bodies represented as a pool.
-> 
-> With this reconfiguration of bodies, we can adapt the configuration code to
-> separate out constant hardware configuration and cache it for re-use.
-> 
-> The patches provided in this series can be found at:
->   git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git 
-> tags/vsp1/tlb-optimise/v7
-> 
-> I hope that this series is at a stage where it could be integrated now.  It
-> has had some thorough testing and is already integrated in both
-> renesas-drivers and renesas-bsp. (except for the minor changes in v7 that
-> is...)
-> 
-> Please note that checkpatch complains on patch 6/8 in this series:
-> 
-> v7-0006-media-vsp1-Refactor-display-list-configure-operations.patch
-> ----------------------------------------------------------------------------
-> -------------------------- WARNING: function definition argument 'struct
-> vsp1_entity *' should also have an identifier name #290: FILE:
-> drivers/media/platform/vsp1/vsp1_entity.h:82:
-> +       void (*configure_stream)(struct vsp1_entity *, struct vsp1_pipeline
-> *,
-> 
-> However - this complaint is regarding pre-existing code. I have only renamed
-> the function pointers.  I do also disagree with checkpatch here - as there
-> is no need to provide an identifier name, and it does not improve
-> readability in this instance to state:
-> 	...(vsp1_entity *entity, struct vsp1_pipeline *pipe)
-> 
-> Thus - I have ignored these warnings.
-> 
-> 
-> Changelog:
-> ----------
-> 
-> v7:
->  - Rebased on to linux-media/master (v4.16-rc4)
->  - Clean up the formatting of the vsp1_dl_list_add_body()
->  - Fix formatting and white space
->  -  s/prepare/configure_stream/
->  -  s/configure/configure_frame/
-> 
-> v6:
->  - Rebased on to linux-media/master (v4.16-rc1)
->  - Removed DRM/UIF (DISCOM/ColorKey) updates
-> 
-> v5:
->  - Rebased on to renesas-drivers-2018-01-09-v4.15-rc7 to fix conflicts
->    with DRM and UIF updates on VSP1 driver
-> 
-> v4:
->  - Rebased to v4.14
->  * v4l: vsp1: Use reference counting for bodies
->    - Fix up reference handling comments
-> 
->  * v4l: vsp1: Provide a body pool
->    - Provide comment explaining extra allocation on body pool
->      highlighting area for optimisation later.
-> 
->  * v4l: vsp1: Refactor display list configure operations
->    - Fix up comment to describe yuv_mode caching rather than format
-> 
->  * vsp1: Adapt entities to configure into a body
->    - Rename vsp1_dl_list_get_body() to vsp1_dl_list_get_body0()
-> 
->  * v4l: vsp1: Move video configuration to a cached dlb
->    - Adjust pipe configured flag to be reset on resume rather than suspend
->    - rename dl_child, dl_next
-> 
-> Testing:
-> --------
-> The VSP unit tests have been run on this patch set with the following
-> results:
-> 
-> --- Test loop 1 ---
-> - vsp-unit-test-0000.sh
-> Test Conditions:
->   Platform          Renesas Salvator-X 2nd version board based on r8a7795
-> ES2.0+ Kernel release    4.16.0-rc4-arm64-renesas-01067-g397eb3811ec0
->   convert           /usr/bin/convert
->   compare           /usr/bin/compare
->   killall           /usr/bin/killall
->   raw2rgbpnm        /usr/bin/raw2rgbpnm
->   stress            /usr/bin/stress
->   yavta             /usr/bin/yavta
-> - vsp-unit-test-0001.sh
-> Testing WPF packing in RGB332: pass
-> Testing WPF packing in ARGB555: pass
-> Testing WPF packing in XRGB555: pass
-> Testing WPF packing in RGB565: pass
-> Testing WPF packing in BGR24: pass
-> Testing WPF packing in RGB24: pass
-> Testing WPF packing in ABGR32: pass
-> Testing WPF packing in ARGB32: pass
-> Testing WPF packing in XBGR32: pass
-> Testing WPF packing in XRGB32: pass
-> - vsp-unit-test-0002.sh
-> Testing WPF packing in NV12M: pass
-> Testing WPF packing in NV16M: pass
-> Testing WPF packing in NV21M: pass
-> Testing WPF packing in NV61M: pass
-> Testing WPF packing in UYVY: pass
-> Testing WPF packing in VYUY: skip
-> Testing WPF packing in YUV420M: pass
-> Testing WPF packing in YUV422M: pass
-> Testing WPF packing in YUV444M: pass
-> Testing WPF packing in YVU420M: pass
-> Testing WPF packing in YVU422M: pass
-> Testing WPF packing in YVU444M: pass
-> Testing WPF packing in YUYV: pass
-> Testing WPF packing in YVYU: pass
-> - vsp-unit-test-0003.sh
-> Testing scaling from 640x640 to 640x480 in RGB24: pass
-> Testing scaling from 1024x768 to 640x480 in RGB24: pass
-> Testing scaling from 640x480 to 1024x768 in RGB24: pass
-> Testing scaling from 640x640 to 640x480 in YUV444M: pass
-> Testing scaling from 1024x768 to 640x480 in YUV444M: pass
-> Testing scaling from 640x480 to 1024x768 in YUV444M: pass
-> - vsp-unit-test-0004.sh
-> Testing histogram in RGB24: pass
-> Testing histogram in YUV444M: pass
-> - vsp-unit-test-0005.sh
-> Testing RPF.0: pass
-> Testing RPF.1: pass
-> Testing RPF.2: pass
-> Testing RPF.3: pass
-> Testing RPF.4: pass
-> - vsp-unit-test-0006.sh
-> Testing invalid pipeline with no RPF: pass
-> Testing invalid pipeline with no WPF: pass
-> - vsp-unit-test-0007.sh
-> Testing BRU in RGB24 with 1 inputs: pass
-> Testing BRU in RGB24 with 2 inputs: pass
-> Testing BRU in RGB24 with 3 inputs: pass
-> Testing BRU in RGB24 with 4 inputs: pass
-> Testing BRU in RGB24 with 5 inputs: pass
-> Testing BRU in YUV444M with 1 inputs: pass
-> Testing BRU in YUV444M with 2 inputs: pass
-> Testing BRU in YUV444M with 3 inputs: pass
-> Testing BRU in YUV444M with 4 inputs: pass
-> Testing BRU in YUV444M with 5 inputs: pass
-> - vsp-unit-test-0008.sh
-> Test requires unavailable feature set `bru rpf.0 uds wpf.0': skipped
-> - vsp-unit-test-0009.sh
-> Test requires unavailable feature set `rpf.0 wpf.0 wpf.1': skipped
-> - vsp-unit-test-0010.sh
-> Testing CLU in RGB24 with zero configuration: pass
-> Testing CLU in RGB24 with identity configuration: pass
-> Testing CLU in RGB24 with wave configuration: pass
-> Testing CLU in YUV444M with zero configuration: pass
-> Testing CLU in YUV444M with identity configuration: pass
-> Testing CLU in YUV444M with wave configuration: pass
-> Testing LUT in RGB24 with zero configuration: pass
-> Testing LUT in RGB24 with identity configuration: pass
-> Testing LUT in RGB24 with gamma configuration: pass
-> Testing LUT in YUV444M with zero configuration: pass
-> Testing LUT in YUV444M with identity configuration: pass
-> Testing LUT in YUV444M with gamma configuration: pass
-> - vsp-unit-test-0011.sh
-> Testing  hflip=0 vflip=0 rotate=0: pass
-> Testing  hflip=1 vflip=0 rotate=0: pass
-> Testing  hflip=0 vflip=1 rotate=0: pass
-> Testing  hflip=1 vflip=1 rotate=0: pass
-> Testing  hflip=0 vflip=0 rotate=90: pass
-> Testing  hflip=1 vflip=0 rotate=90: pass
-> Testing  hflip=0 vflip=1 rotate=90: pass
-> Testing  hflip=1 vflip=1 rotate=90: pass
-> - vsp-unit-test-0012.sh
-> Testing hflip: pass
-> Testing vflip: pass
-> - vsp-unit-test-0013.sh
-> Testing RPF unpacking in RGB332: pass
-> Testing RPF unpacking in ARGB555: pass
-> Testing RPF unpacking in XRGB555: pass
-> Testing RPF unpacking in RGB565: pass
-> Testing RPF unpacking in BGR24: pass
-> Testing RPF unpacking in RGB24: pass
-> Testing RPF unpacking in ABGR32: pass
-> Testing RPF unpacking in ARGB32: pass
-> Testing RPF unpacking in XBGR32: pass
-> Testing RPF unpacking in XRGB32: pass
-> - vsp-unit-test-0014.sh
-> Testing RPF unpacking in NV12M: pass
-> Testing RPF unpacking in NV16M: pass
-> Testing RPF unpacking in NV21M: pass
-> Testing RPF unpacking in NV61M: pass
-> Testing RPF unpacking in UYVY: pass
-> Testing RPF unpacking in VYUY: skip
-> Testing RPF unpacking in YUV420M: pass
-> Testing RPF unpacking in YUV422M: pass
-> Testing RPF unpacking in YUV444M: pass
-> Testing RPF unpacking in YVU420M: pass
-> Testing RPF unpacking in YVU422M: pass
-> Testing RPF unpacking in YVU444M: pass
-> Testing RPF unpacking in YUYV: pass
-> Testing RPF unpacking in YVYU: pass
-> - vsp-unit-test-0015.sh
-> Testing SRU scaling from 1024x768 to 1024x768 in RGB24: pass
-> Testing SRU scaling from 1024x768 to 2048x1536 in RGB24: pass
-> Testing SRU scaling from 1024x768 to 1024x768 in YUV444M: pass
-> Testing SRU scaling from 1024x768 to 2048x1536 in YUV444M: pass
-> - vsp-unit-test-0016.sh
-> Testing  hflip=0 vflip=0 rotate=0 640x480 -> 640x480: pass
-> Testing  hflip=0 vflip=0 rotate=0 640x480 -> 1024x768: pass
-> Testing  hflip=0 vflip=0 rotate=0 1024x768 -> 640x480: pass
-> Testing  hflip=1 vflip=0 rotate=0 640x480 -> 640x480: pass
-> Testing  hflip=1 vflip=0 rotate=0 640x480 -> 1024x768: pass
-> Testing  hflip=1 vflip=0 rotate=0 1024x768 -> 640x480: pass
-> Testing  hflip=0 vflip=1 rotate=0 640x480 -> 640x480: pass
-> Testing  hflip=0 vflip=1 rotate=0 640x480 -> 1024x768: pass
-> Testing  hflip=0 vflip=1 rotate=0 1024x768 -> 640x480: pass
-> Testing  hflip=1 vflip=1 rotate=0 640x480 -> 640x480: pass
-> Testing  hflip=1 vflip=1 rotate=0 640x480 -> 1024x768: pass
-> Testing  hflip=1 vflip=1 rotate=0 1024x768 -> 640x480: pass
-> Testing  hflip=0 vflip=0 rotate=90 640x480 -> 640x480: pass
-> Testing  hflip=0 vflip=0 rotate=90 640x480 -> 1024x768: pass
-> Testing  hflip=0 vflip=0 rotate=90 1024x768 -> 640x480: pass
-> Testing  hflip=1 vflip=0 rotate=90 640x480 -> 640x480: pass
-> Testing  hflip=1 vflip=0 rotate=90 640x480 -> 1024x768: pass
-> Testing  hflip=1 vflip=0 rotate=90 1024x768 -> 640x480: pass
-> Testing  hflip=0 vflip=1 rotate=90 640x480 -> 640x480: pass
-> Testing  hflip=0 vflip=1 rotate=90 640x480 -> 1024x768: pass
-> Testing  hflip=0 vflip=1 rotate=90 1024x768 -> 640x480: pass
-> Testing  hflip=1 vflip=1 rotate=90 640x480 -> 640x480: pass
-> Testing  hflip=1 vflip=1 rotate=90 640x480 -> 1024x768: pass
-> Testing  hflip=1 vflip=1 rotate=90 1024x768 -> 640x480: pass
-> - vsp-unit-test-0017.sh
-> - vsp-unit-test-0018.sh
-> Testing RPF crop from (0,0)/512x384: pass
-> Testing RPF crop from (32,32)/512x384: pass
-> Testing RPF crop from (32,64)/512x384: pass
-> Testing RPF crop from (64,32)/512x384: pass
-> - vsp-unit-test-0019.sh
-> - vsp-unit-test-0020.sh
-> - vsp-unit-test-0021.sh
-> Testing WPF packing in RGB332 during stress testing: pass
-> Testing WPF packing in ARGB555 during stress testing: pass
-> Testing WPF packing in XRGB555 during stress testing: pass
-> Testing WPF packing in RGB565 during stress testing: pass
-> Testing WPF packing in BGR24 during stress testing: pass
-> Testing WPF packing in RGB24 during stress testing: pass
-> Testing WPF packing in ABGR32 during stress testing: pass
-> Testing WPF packing in ARGB32 during stress testing: pass
-> Testing WPF packing in XBGR32 during stress testing: pass
-> Testing WPF packing in XRGB32 during stress testing: pass
-> ./vsp-unit-test-0021.sh: line 34:  4489 Killed                  stress --cpu
-> 8 --io 4 --vm 2 --vm-bytes 128M - vsp-unit-test-0022.sh
-> Testing long duration pipelines under stress: pass
-> ./vsp-unit-test-0022.sh: line 38:  6457 Killed                  stress --cpu
-> 8 --io 4 --vm 2 --vm-bytes 128M - vsp-unit-test-0023.sh
-> Testing histogram HGT with hue areas
-> 0,255,255,255,255,255,255,255,255,255,255,255: pass Testing histogram HGT
-> with hue areas 0,40,40,80,80,120,120,160,160,200,200,255: pass Testing
-> histogram HGT with hue areas 220,40,40,80,80,120,120,160,160,200,200,220:
-> pass Testing histogram HGT with hue areas
-> 0,10,50,60,100,110,150,160,200,210,250,255: pass Testing histogram HGT with
-> hue areas 10,20,50,60,100,110,150,160,200,210,230,240: pass Testing
-> histogram HGT with hue areas 240,20,60,80,100,120,140,160,180,200,210,220:
-> pass - vsp-unit-test-0024.sh
-> Test requires unavailable feature set `rpf.0 rpf.1 brs wpf.0': skipped
-> 158 tests: 142 passed, 0 failed, 3 skipped
-> 
-> Kieran Bingham (8):
->   media: vsp1: Reword uses of 'fragment' as 'body'
->   media: vsp1: Protect bodies against overflow
->   media: vsp1: Provide a body pool
->   media: vsp1: Convert display lists to use new body pool
->   media: vsp1: Use reference counting for bodies
->   media: vsp1: Refactor display list configure operations
->   media: vsp1: Adapt entities to configure into a body
->   media: vsp1: Move video configuration to a cached dlb
-> 
->  drivers/media/platform/vsp1/vsp1_bru.c    |  32 +--
->  drivers/media/platform/vsp1/vsp1_clu.c    | 102 +++---
->  drivers/media/platform/vsp1/vsp1_clu.h    |   1 +-
->  drivers/media/platform/vsp1/vsp1_dl.c     | 393 +++++++++++++----------
->  drivers/media/platform/vsp1/vsp1_dl.h     |  19 +-
->  drivers/media/platform/vsp1/vsp1_drm.c    |  35 +--
->  drivers/media/platform/vsp1/vsp1_entity.c |  26 +-
->  drivers/media/platform/vsp1/vsp1_entity.h |  38 +-
->  drivers/media/platform/vsp1/vsp1_hgo.c    |  26 +--
->  drivers/media/platform/vsp1/vsp1_hgt.c    |  28 +--
->  drivers/media/platform/vsp1/vsp1_hsit.c   |  20 +-
->  drivers/media/platform/vsp1/vsp1_lif.c    |  25 +-
->  drivers/media/platform/vsp1/vsp1_lut.c    |  77 +++--
->  drivers/media/platform/vsp1/vsp1_lut.h    |   1 +-
->  drivers/media/platform/vsp1/vsp1_pipe.c   |  11 +-
->  drivers/media/platform/vsp1/vsp1_pipe.h   |   7 +-
->  drivers/media/platform/vsp1/vsp1_rpf.c    | 183 +++++------
->  drivers/media/platform/vsp1/vsp1_sru.c    |  24 +-
->  drivers/media/platform/vsp1/vsp1_uds.c    |  75 ++--
->  drivers/media/platform/vsp1/vsp1_uds.h    |   2 +-
->  drivers/media/platform/vsp1/vsp1_video.c  |  82 ++---
->  drivers/media/platform/vsp1/vsp1_video.h  |   2 +-
->  drivers/media/platform/vsp1/vsp1_wpf.c    | 327 +++++++++----------
->  23 files changed, 845 insertions(+), 691 deletions(-)
-> 
-> base-commit: 8514509ba5933f4e4ade0d5d81be117f18c1ebd2
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index a8158ea9da67..c90d5fd06563 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -170,7 +170,9 @@ struct ov5640_mode_info {
+ 	enum ov5640_mode_id id;
+ 	enum ov5640_downsize_mode dn_mode;
+ 	u32 hact;
++	u32 htot;
+ 	u32 vact;
++	u32 vtot;
+ 	const struct reg_value *reg_data;
+ 	u32 reg_data_size;
+ };
+@@ -272,8 +274,8 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -346,8 +348,8 @@ static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x04, 0, 0}, {0x380f, 0x38, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -367,8 +369,8 @@ static const struct reg_value ov5640_setting_15fps_VGA_640_480[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -388,8 +390,8 @@ static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x04, 0, 0}, {0x380f, 0x38, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -411,8 +413,8 @@ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -433,8 +435,8 @@ static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0xf0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xf0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -454,8 +456,8 @@ static const struct reg_value ov5640_setting_15fps_QVGA_320_240[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0xf0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xf0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -475,8 +477,8 @@ static const struct reg_value ov5640_setting_30fps_QCIF_176_144[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0x90, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x90, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -496,8 +498,8 @@ static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0x90, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x90, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -517,8 +519,8 @@ static const struct reg_value ov5640_setting_30fps_NTSC_720_480[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -538,8 +540,8 @@ static const struct reg_value ov5640_setting_15fps_NTSC_720_480[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xe0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -559,8 +561,8 @@ static const struct reg_value ov5640_setting_30fps_PAL_720_576[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0x40, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x40, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -580,8 +582,8 @@ static const struct reg_value ov5640_setting_15fps_PAL_720_576[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+ 	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0x40, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x68, 0, 0},
+-	{0x380e, 0x03, 0, 0}, {0x380f, 0xd8, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x40, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -602,8 +604,8 @@ static const struct reg_value ov5640_setting_30fps_720P_1280_720[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
+ 	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0xd0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x64, 0, 0},
+-	{0x380e, 0x02, 0, 0}, {0x380f, 0xe4, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xd0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x02, 0, 0},
+@@ -624,8 +626,8 @@ static const struct reg_value ov5640_setting_15fps_720P_1280_720[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
+ 	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0xd0, 0, 0}, {0x380c, 0x07, 0, 0}, {0x380d, 0x64, 0, 0},
+-	{0x380e, 0x02, 0, 0}, {0x380f, 0xe4, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0xd0, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3709, 0x52, 0, 0}, {0x370c, 0x03, 0, 0}, {0x3a02, 0x02, 0, 0},
+@@ -646,8 +648,8 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
+ 	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
+-	{0x380b, 0x98, 0, 0}, {0x380c, 0x0b, 0, 0}, {0x380d, 0x1c, 0, 0},
+-	{0x380e, 0x07, 0, 0}, {0x380f, 0xb0, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x98, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
+ 	{0x3709, 0x12, 0, 0}, {0x370c, 0x00, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -663,8 +665,7 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
+ 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
+ 	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
+ 	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
+-	{0x380c, 0x09, 0, 0}, {0x380d, 0xc4, 0, 0}, {0x380e, 0x04, 0, 0},
+-	{0x380f, 0x60, 0, 0}, {0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
+ 	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
+ 	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
+@@ -683,8 +684,8 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
+ 	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
+-	{0x380b, 0x98, 0, 0}, {0x380c, 0x0b, 0, 0}, {0x380d, 0x1c, 0, 0},
+-	{0x380e, 0x07, 0, 0}, {0x380f, 0xb0, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x98, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
+ 	{0x3709, 0x12, 0, 0}, {0x370c, 0x00, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -700,8 +701,7 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
+ 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
+ 	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
+ 	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
+-	{0x380c, 0x09, 0, 0}, {0x380d, 0xc4, 0, 0}, {0x380e, 0x04, 0, 0},
+-	{0x380f, 0x60, 0, 0}, {0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
++	{0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
+ 	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
+ 	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
+@@ -719,8 +719,8 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
+ 	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
+-	{0x380b, 0x98, 0, 0}, {0x380c, 0x0b, 0, 0}, {0x380d, 0x1c, 0, 0},
+-	{0x380e, 0x07, 0, 0}, {0x380f, 0xb0, 0, 0}, {0x3810, 0x00, 0, 0},
++	{0x380b, 0x98, 0, 0},
++	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
+ 	{0x3709, 0x12, 0, 0}, {0x370c, 0x00, 0, 0}, {0x3a02, 0x03, 0, 0},
+@@ -734,66 +734,84 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ 
+ /* power-on sensor init reg table */
+ static const struct ov5640_mode_info ov5640_mode_init_data = {
+-	0, SUBSAMPLING, 640, 480, ov5640_init_setting_30fps_VGA,
++	0, SUBSAMPLING, 640, 1896, 480, 984,
++	ov5640_init_setting_30fps_VGA,
+ 	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
+ };
+ 
+ static const struct ov5640_mode_info
+ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+ 	{
+-		{OV5640_MODE_QCIF_176_144, SUBSAMPLING, 176, 144,
++		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
++		 176, 1896, 144, 984,
+ 		 ov5640_setting_15fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
+-		{OV5640_MODE_QVGA_320_240, SUBSAMPLING, 320,  240,
++		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
++		 320, 1896, 240, 984,
+ 		 ov5640_setting_15fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
+-		{OV5640_MODE_VGA_640_480, SUBSAMPLING, 640,  480,
++		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
++		 640, 1896, 480, 1080,
+ 		 ov5640_setting_15fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
+-		{OV5640_MODE_NTSC_720_480, SUBSAMPLING, 720, 480,
++		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
++		 720, 1896, 480, 984,
+ 		 ov5640_setting_15fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
+-		{OV5640_MODE_PAL_720_576, SUBSAMPLING, 720, 576,
++		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
++		 720, 1896, 576, 984,
+ 		 ov5640_setting_15fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
+-		{OV5640_MODE_XGA_1024_768, SUBSAMPLING, 1024, 768,
++		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
++		 1024, 1896, 768, 1080,
+ 		 ov5640_setting_15fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
+-		{OV5640_MODE_720P_1280_720, SUBSAMPLING, 1280, 720,
++		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
++		 1280, 1892, 720, 740,
+ 		 ov5640_setting_15fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
+-		{OV5640_MODE_1080P_1920_1080, SCALING, 1920, 1080,
++		{OV5640_MODE_1080P_1920_1080, SCALING,
++		 1920, 2500, 1080, 1120,
+ 		 ov5640_setting_15fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
+-		{OV5640_MODE_QSXGA_2592_1944, SCALING, 2592, 1944,
++		{OV5640_MODE_QSXGA_2592_1944, SCALING,
++		 2592, 2844, 1944, 1968,
+ 		 ov5640_setting_15fps_QSXGA_2592_1944,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
+ 	}, {
+-		{OV5640_MODE_QCIF_176_144, SUBSAMPLING, 176, 144,
++		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
++		 176, 1896, 144, 984,
+ 		 ov5640_setting_30fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
+-		{OV5640_MODE_QVGA_320_240, SUBSAMPLING, 320,  240,
++		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
++		 320, 1896, 240, 984,
+ 		 ov5640_setting_30fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
+-		{OV5640_MODE_VGA_640_480, SUBSAMPLING, 640,  480,
++		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
++		 640, 1896, 480, 1080,
+ 		 ov5640_setting_30fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
+-		{OV5640_MODE_NTSC_720_480, SUBSAMPLING, 720, 480,
++		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
++		 720, 1896, 480, 984,
+ 		 ov5640_setting_30fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
+-		{OV5640_MODE_PAL_720_576, SUBSAMPLING, 720, 576,
++		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
++		 720, 1896, 576, 984,
+ 		 ov5640_setting_30fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
+-		{OV5640_MODE_XGA_1024_768, SUBSAMPLING, 1024, 768,
++		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
++		 1024, 1896, 768, 1080,
+ 		 ov5640_setting_30fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
+-		{OV5640_MODE_720P_1280_720, SUBSAMPLING, 1280, 720,
++		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
++		 1280, 1892, 720, 740,
+ 		 ov5640_setting_30fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
+-		{OV5640_MODE_1080P_1920_1080, SCALING, 1920, 1080,
++		{OV5640_MODE_1080P_1920_1080, SCALING,
++		 1920, 2500, 1080, 1120,
+ 		 ov5640_setting_30fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
+-		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, NULL, 0},
++		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, NULL, 0},
+ 	},
+ };
+ 
+@@ -1383,6 +1401,22 @@ static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
+ 	return ov5640_write_reg(sensor, OV5640_REG_DEBUG_MODE, temp);
+ }
+ 
++static int ov5640_set_timings(struct ov5640_dev *sensor,
++			      const struct ov5640_mode_info *mode)
++{
++	int ret;
++
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_HTS, mode->htot);
++	if (ret < 0)
++		return ret;
++
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_VTS, mode->vtot);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
+ static const struct ov5640_mode_info *
+ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
+ 		 int width, int height, bool nearest)
+@@ -1631,6 +1665,10 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 		ret = ov5640_set_mode_direct(sensor, mode, exposure);
+ 	}
+ 
++	if (ret < 0)
++		return ret;
++
++	ret = ov5640_set_timings(sensor, mode);
+ 	if (ret < 0)
+ 		return ret;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.17.0
