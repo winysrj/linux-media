@@ -1,209 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52530 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751609AbeDIOUc (ORCPT
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:44399 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751774AbeDPCwN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Apr 2018 10:20:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv11 PATCH 03/29] media-request: allocate media requests
-Date: Mon,  9 Apr 2018 16:20:00 +0200
-Message-Id: <20180409142026.19369-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-1-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
+        Sun, 15 Apr 2018 22:52:13 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: [PATCH v2 00/10] media: ov772x: support media controller, device tree probing, etc.
+Date: Mon, 16 Apr 2018 11:51:41 +0900
+Message-Id: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patchset includes support media controller, device tree probing and
+other miscellanuous changes for ov772x driver.
 
-Add support for allocating a new request. This is only supported
-if mdev->ops->req_queue is set, i.e. the driver indicates that it
-supports queueing requests.
+* v2 (thanks to Jacopo Mondi)
+- Replace the implementation of ov772x_read() instead of adding an
+  alternative method
+- Assign the ov772x_read() return value to pid and ver directly
+- Do the same for MIDH and MIDL
+- Move video_probe() before the entity initialization and remove the #ifdef
+  around the media_entity_cleanup()
+- Use generic names for reset and powerdown gpios (New)
+- Add "dt-bindings:" in the subject
+- Add a brief description of the sensor
+- Update the GPIO names
+- Indicate the GPIO active level
+- Add missing NULL checks for priv->info
+- Leave the check for the missing platform data if legacy platform data
+  probe is used.
+- Handle nested s_power() calls (New)
+- Reconstruct s_frame_interval() (New)
+- Avoid accessing registers under power saving mode (New)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/Makefile        |  3 ++-
- drivers/media/media-device.c  | 14 ++++++++++++++
- drivers/media/media-request.c | 23 +++++++++++++++++++++++
- include/media/media-device.h  | 13 +++++++++++++
- include/media/media-request.h | 22 ++++++++++++++++++++++
- 5 files changed, 74 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/media-request.c
- create mode 100644 include/media/media-request.h
+Akinobu Mita (10):
+  media: ov772x: allow i2c controllers without
+    I2C_FUNC_PROTOCOL_MANGLING
+  media: ov772x: add checks for register read errors
+  media: ov772x: create subdevice device node
+  media: ov772x: add media controller support
+  media: ov772x: use generic names for reset and powerdown gpios
+  media: dt-bindings: ov772x: add device tree binding
+  media: ov772x: support device tree probing
+  media: ov772x: handle nested s_power() calls
+  media: ov772x: reconstruct s_frame_interval()
+  media: ov772x: avoid accessing registers under power saving mode
 
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index 594b462ddf0e..985d35ec6b29 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -3,7 +3,8 @@
- # Makefile for the kernel multimedia device drivers.
- #
- 
--media-objs	:= media-device.o media-devnode.o media-entity.o
-+media-objs	:= media-device.o media-devnode.o media-entity.o \
-+		   media-request.o
- 
- #
- # I2C drivers should come before other drivers, otherwise they'll fail
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 35e81f7c0d2f..acb583c0eacd 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -32,6 +32,7 @@
- #include <media/media-device.h>
- #include <media/media-devnode.h>
- #include <media/media-entity.h>
-+#include <media/media-request.h>
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
-@@ -366,6 +367,15 @@ static long media_device_get_topology(struct media_device *mdev,
- 	return ret;
- }
- 
-+static long media_device_request_alloc(struct media_device *mdev,
-+				       struct media_request_alloc *alloc)
-+{
-+	if (!mdev->ops || !mdev->ops->req_queue)
-+		return -ENOTTY;
-+
-+	return media_request_alloc(mdev, alloc);
-+}
-+
- static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
- {
- 	/* All media IOCTLs are _IOWR() */
-@@ -414,6 +424,7 @@ static const struct media_ioctl_info ioctl_info[] = {
- 	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
- 	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
- 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
-+	MEDIA_IOC(REQUEST_ALLOC, media_device_request_alloc, 0),
- };
- 
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
-@@ -686,6 +697,9 @@ void media_device_init(struct media_device *mdev)
- 	INIT_LIST_HEAD(&mdev->pads);
- 	INIT_LIST_HEAD(&mdev->links);
- 	INIT_LIST_HEAD(&mdev->entity_notify);
-+
-+	spin_lock_init(&mdev->req_lock);
-+	mutex_init(&mdev->req_queue_mutex);
- 	mutex_init(&mdev->graph_mutex);
- 	ida_init(&mdev->entity_internal_idx);
- 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-new file mode 100644
-index 000000000000..ead78613fdbe
---- /dev/null
-+++ b/drivers/media/media-request.c
-@@ -0,0 +1,23 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Media device request objects
-+ *
-+ * Copyright (C) 2018 Intel Corporation
-+ * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-+ *
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ */
-+
-+#include <linux/anon_inodes.h>
-+#include <linux/file.h>
-+#include <linux/mm.h>
-+#include <linux/string.h>
-+
-+#include <media/media-device.h>
-+#include <media/media-request.h>
-+
-+int media_request_alloc(struct media_device *mdev,
-+			struct media_request_alloc *alloc)
-+{
-+	return -ENOMEM;
-+}
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index bcc6ec434f1f..07e323c57202 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -19,6 +19,7 @@
- #ifndef _MEDIA_DEVICE_H
- #define _MEDIA_DEVICE_H
- 
-+#include <linux/anon_inodes.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- 
-@@ -27,6 +28,7 @@
- 
- struct ida;
- struct device;
-+struct media_device;
- 
- /**
-  * struct media_entity_notify - Media Entity Notify
-@@ -50,10 +52,16 @@ struct media_entity_notify {
-  * struct media_device_ops - Media device operations
-  * @link_notify: Link state change notification callback. This callback is
-  *		 called with the graph_mutex held.
-+ * @req_alloc: Allocate a request
-+ * @req_free: Free a request
-+ * @req_queue: Queue a request
-  */
- struct media_device_ops {
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
-+	struct media_request *(*req_alloc)(struct media_device *mdev);
-+	void (*req_free)(struct media_request *req);
-+	int (*req_queue)(struct media_request *req);
- };
- 
- /**
-@@ -88,6 +96,8 @@ struct media_device_ops {
-  * @disable_source: Disable Source Handler function pointer
-  *
-  * @ops:	Operation handler callbacks
-+ * @req_lock:	Serialise access to requests
-+ * @req_queue_mutex: Serialise validating and queueing requests
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-  * access to entities and provides basic media device-level support. The
-@@ -158,6 +168,9 @@ struct media_device {
- 	void (*disable_source)(struct media_entity *entity);
- 
- 	const struct media_device_ops *ops;
-+
-+	spinlock_t req_lock;
-+	struct mutex req_queue_mutex;
- };
- 
- /* We don't need to include pci.h or usb.h here */
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-new file mode 100644
-index 000000000000..dae3eccd9aa7
---- /dev/null
-+++ b/include/media/media-request.h
-@@ -0,0 +1,22 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Media device request objects
-+ *
-+ * Copyright (C) 2018 Intel Corporation
-+ *
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ */
-+
-+#ifndef MEDIA_REQUEST_H
-+#define MEDIA_REQUEST_H
-+
-+#include <linux/list.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+
-+#include <media/media-device.h>
-+
-+int media_request_alloc(struct media_device *mdev,
-+			struct media_request_alloc *alloc);
-+
-+#endif
+ .../devicetree/bindings/media/i2c/ov772x.txt       |  42 ++++
+ MAINTAINERS                                        |   1 +
+ arch/sh/boards/mach-migor/setup.c                  |   5 +-
+ drivers/media/i2c/ov772x.c                         | 275 ++++++++++++++++-----
+ 4 files changed, 255 insertions(+), 68 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov772x.txt
+
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh+dt@kernel.org>
 -- 
-2.16.3
+2.7.4
