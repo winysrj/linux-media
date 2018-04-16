@@ -1,290 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42677 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753610AbeDCVne (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:43:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v13 22/33] rcar-vin: use different v4l2 operations in media controller mode
-Date: Wed, 04 Apr 2018 00:43:42 +0300
-Message-ID: <2098288.3zehE2cVqO@avalon>
-In-Reply-To: <20180326214456.6655-23-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-23-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:38628 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752915AbeDPHyz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 03:54:55 -0400
+Received: by mail-qk0-f171.google.com with SMTP id b39so10445767qkb.5
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 00:54:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <1523629085.3396.10.camel@pengutronix.de>
+References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
+ <1523629085.3396.10.camel@pengutronix.de>
+From: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>
+Date: Mon, 16 Apr 2018 09:54:53 +0200
+Message-ID: <CAPQseg29hJ+vdWxU3RkXtaeJki9209OjqvGOQQ-U45Z_vvjnnw@mail.gmail.com>
+Subject: Re: imx-media: MT9P031 Capture issues on IMX6
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Philipp,
 
-Thank you for the patch.
+Thanks a lot for your response.
 
-On Tuesday, 27 March 2018 00:44:45 EEST Niklas S=F6derlund wrote:
-> When the driver runs in media controller mode it should not directly
-> control the subdevice instead userspace will be responsible for
-> configuring the pipeline. To be able to run in this mode a different set
-> of v4l2 operations needs to be used.
->=20
-> Add a new set of v4l2 operations to support operation without directly
-> interacting with the source subdevice.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->=20
-> ---
->=20
-> * Changes since v11
-> - Fixed error labels name in rvin_mc_open().
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c  |   2 +-
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 161
-> +++++++++++++++++++++++++++- 2 files changed, 159 insertions(+), 4
-> deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> 1809f5c0190eafb6..a93772c10baaa003 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -627,7 +627,7 @@ static int rvin_setup(struct rvin_dev *vin)
->  		/* Default to TB */
->  		vnmc =3D VNMC_IM_FULL;
->  		/* Use BT if video standard can be read and is 60 Hz format */
-> -		if (vin->std & V4L2_STD_525_60)
-> +		if (!vin->info->use_mc && vin->std & V4L2_STD_525_60)
->  			vnmc =3D VNMC_IM_FULL | VNMC_FOC;
->  		break;
->  	case V4L2_FIELD_INTERLACED_TB:
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> dd835be0f9cbcc05..2280535ca981993f 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -18,12 +18,16 @@
->=20
->  #include <media/v4l2-event.h>
->  #include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-mc.h>
->  #include <media/v4l2-rect.h>
->=20
->  #include "rcar-vin.h"
->=20
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> +#define RVIN_DEFAULT_WIDTH	800
-> +#define RVIN_DEFAULT_HEIGHT	600
->  #define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
-> +#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
->=20
->  /*
-> -------------------------------------------------------------------------=
-=2D-
-> -- * Format Conversions
-> @@ -656,6 +660,74 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops =
-=3D {
->  	.vidioc_unsubscribe_event	=3D v4l2_event_unsubscribe,
->  };
->=20
-> +/*
-> -------------------------------------------------------------------------=
-=2D-
-> -- + * V4L2 Media Controller
-> + */
-> +
-> +static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
-> +				   struct v4l2_format *f)
-> +{
-> +	struct rvin_dev *vin =3D video_drvdata(file);
-> +
-> +	return rvin_format_align(vin, &f->fmt.pix);
-> +}
-> +
-> +static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
-> +				 struct v4l2_format *f)
-> +{
-> +	struct rvin_dev *vin =3D video_drvdata(file);
-> +	int ret;
-> +
-> +	if (vb2_is_busy(&vin->queue))
-> +		return -EBUSY;
-> +
-> +	ret =3D rvin_format_align(vin, &f->fmt.pix);
-> +	if (ret)
-> +		return ret;
-> +
-> +	vin->format =3D f->fmt.pix;
-> +
-> +	return 0;
-> +}
-> +
-> +static int rvin_mc_enum_input(struct file *file, void *priv,
-> +			      struct v4l2_input *i)
-> +{
-> +	if (i->index !=3D 0)
-> +		return -EINVAL;
-> +
-> +	i->type =3D V4L2_INPUT_TYPE_CAMERA;
-> +	strlcpy(i->name, "Camera", sizeof(i->name));
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops =3D {
-> +	.vidioc_querycap		=3D rvin_querycap,
-> +	.vidioc_try_fmt_vid_cap		=3D rvin_mc_try_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap		=3D rvin_g_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap		=3D rvin_mc_s_fmt_vid_cap,
-> +	.vidioc_enum_fmt_vid_cap	=3D rvin_enum_fmt_vid_cap,
-> +
-> +	.vidioc_enum_input		=3D rvin_mc_enum_input,
-> +	.vidioc_g_input			=3D rvin_g_input,
-> +	.vidioc_s_input			=3D rvin_s_input,
-> +
-> +	.vidioc_reqbufs			=3D vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs		=3D vb2_ioctl_create_bufs,
-> +	.vidioc_querybuf		=3D vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			=3D vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			=3D vb2_ioctl_dqbuf,
-> +	.vidioc_expbuf			=3D vb2_ioctl_expbuf,
-> +	.vidioc_prepare_buf		=3D vb2_ioctl_prepare_buf,
-> +	.vidioc_streamon		=3D vb2_ioctl_streamon,
-> +	.vidioc_streamoff		=3D vb2_ioctl_streamoff,
-> +
-> +	.vidioc_log_status		=3D v4l2_ctrl_log_status,
-> +	.vidioc_subscribe_event		=3D rvin_subscribe_event,
-> +	.vidioc_unsubscribe_event	=3D v4l2_event_unsubscribe,
-> +};
-> +
->  /*
-> -------------------------------------------------------------------------=
-=2D-
-> -- * File Operations
->   */
-> @@ -799,6 +871,74 @@ static const struct v4l2_file_operations rvin_fops =
-=3D {
->  	.read		=3D vb2_fop_read,
->  };
->=20
-> +/*
-> -------------------------------------------------------------------------=
-=2D-
-> -- + * Media controller file operations
-> + */
-> +
-> +static int rvin_mc_open(struct file *file)
-> +{
-> +	struct rvin_dev *vin =3D video_drvdata(file);
-> +	int ret;
-> +
-> +	ret =3D mutex_lock_interruptible(&vin->lock);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret =3D pm_runtime_get_sync(vin->dev);
-> +	if (ret < 0)
-> +		goto err_unlock;
-> +
-> +	ret =3D v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
-> +	if (ret < 0)
-> +		goto err_pm;
-> +
-> +	file->private_data =3D vin;
-> +
-> +	ret =3D v4l2_fh_open(file);
-> +	if (ret)
-> +		goto err_v4l2pm;
-> +
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return 0;
-> +err_v4l2pm:
-> +	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
-> +err_pm:
-> +	pm_runtime_put(vin->dev);
-> +err_unlock:
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int rvin_mc_release(struct file *file)
-> +{
-> +	struct rvin_dev *vin =3D video_drvdata(file);
-> +	int ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	/* the release helper will cleanup any on-going streaming. */
-> +	ret =3D _vb2_fop_release(file, NULL);
-> +
-> +	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
-> +	pm_runtime_put(vin->dev);
-> +
-> +	mutex_unlock(&vin->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_file_operations rvin_mc_fops =3D {
-> +	.owner		=3D THIS_MODULE,
-> +	.unlocked_ioctl	=3D video_ioctl2,
-> +	.open		=3D rvin_mc_open,
-> +	.release	=3D rvin_mc_release,
-> +	.poll		=3D vb2_fop_poll,
-> +	.mmap		=3D vb2_fop_mmap,
-> +	.read		=3D vb2_fop_read,
-> +};
-> +
->  void rvin_v4l2_unregister(struct rvin_dev *vin)
->  {
->  	if (!video_is_registered(&vin->vdev))
-> @@ -834,18 +974,33 @@ int rvin_v4l2_register(struct rvin_dev *vin)
->  	vin->v4l2_dev.notify =3D rvin_notify;
->=20
->  	/* video node */
-> -	vdev->fops =3D &rvin_fops;
->  	vdev->v4l2_dev =3D &vin->v4l2_dev;
->  	vdev->queue =3D &vin->queue;
->  	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
->  	vdev->release =3D video_device_release_empty;
-> -	vdev->ioctl_ops =3D &rvin_ioctl_ops;
->  	vdev->lock =3D &vin->lock;
->  	vdev->device_caps =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->  		V4L2_CAP_READWRITE;
->=20
-> +	/* Set a default format */
->  	vin->format.pixelformat	=3D RVIN_DEFAULT_FORMAT;
-> -	rvin_reset_format(vin);
-> +	vin->format.width =3D RVIN_DEFAULT_WIDTH;
-> +	vin->format.height =3D RVIN_DEFAULT_HEIGHT;
-> +	vin->format.field =3D RVIN_DEFAULT_FIELD;
-> +	vin->format.colorspace =3D RVIN_DEFAULT_COLORSPACE;
-> +
-> +	if (vin->info->use_mc) {
-> +		vdev->fops =3D &rvin_mc_fops;
-> +		vdev->ioctl_ops =3D &rvin_mc_ioctl_ops;
-> +	} else {
-> +		vdev->fops =3D &rvin_fops;
-> +		vdev->ioctl_ops =3D &rvin_ioctl_ops;
-> +		rvin_reset_format(vin);
-> +	}
-> +
-> +	ret =3D rvin_format_align(vin, &vin->format);
-> +	if (ret)
-> +		return ret;
->=20
->  	ret =3D video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
->  	if (ret) {
+On Fri, Apr 13, 2018 at 4:18 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi Ibtsam,
+>
+> On Thu, 2018-04-12 at 16:00 +0200, Ibtsam Ul-Haq wrote:
+>> Greetings everyone,
+>> I am using Linux 4.14.31 on an IMX6 platform, with an MT9P031 sensor
+>> attached to the ipu1_csi0 (parallel).
+>> My Gstreamer version is 1.14.0 and v4l-utils version is 1.14.2.
+>> The problem is that I am unable to set up a capture pipeline.
+>>
+>> Even the simplest capture pipeline such as:
+>>
+>> gst-launch-1.0 v4l2src device=/dev/video4 ! fakesink
+>>
+>> returns the following error:
+>> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+>> Internal data stream error.
+>> Additional debug info:
+>> ../../../../gstreamer-1.14.0/libs/gst/base/gstbasesrc.c(3055):
+>> gst_base_src_loop (): /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+>> streaming stopped, reason not-negotiated (-4)
+>> ERROR: pipeline doesn't want to preroll.
+>>
+>> I get the same error on any pipeline involving v4l2src.
+>>
+>> I have set up the media entity links using:
+>> media-ctl -l "'mt9p031 0-0048':0 -> 'ipu1_csi0_mux':1[1]"
+>> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
+>> media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+>>
+>> And I configure the pads using:
+>> media-ctl -V "'mt9p031 0-0048':0 [fmt:SGRBG8/640x480 field:none]"
+>> media-ctl -V "'ipu1_csi0_mux':2 [fmt:SGRBG8/640x480 field:none]"
+>> media-ctl -V "'ipu1_csi0':2 [fmt:SGRBG8/640x480 field:none]"
+>
+> What is the actual format that all pads are configured to? I found it
+> helpful to double check the whole pipeline after configuring pads (or
+> use media-ctl -v):
+>
+> media-ctl --get-v4l2 "'mt9p031 0-0048':0"
+> media-ctl --get-v4l2 "'ipu1_csi0_mux':1"
+> media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
+> media-ctl --get-v4l2 "'ipu1_csi0':0"
+> media-ctl --get-v4l2 "'ipu1_csi0':2"
+>
 
 
-=2D-=20
-Regards,
+Here is what I get after I have executed the commands to configure all
+the pads to SGRBG8/640x480:
 
-Laurent Pinchart
+:~# media-ctl --get-v4l2 "'mt9p031 0-0048':0"
+[fmt:SGRBG12_1X12/648x486 field:none colorspace:srgb
+
+:~# media-ctl --get-v4l2 "'ipu1_csi0_mux':1"
+[fmt:SGRBG12_1X12/648x486 field:none colorspace:srgb]
+
+:~# media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
+[fmt:SGRBG12_1X12/648x486 field:none colorspace:srgb]
+
+:~# media-ctl --get-v4l2 "'ipu1_csi0':0"
+[fmt:SGRBG12_1X12/656x486@1/30 field:none colorspace:srgb xfer:srgb
+ycbcr:601 quantization:full-range
+crop.bounds:(0,0)/656x486
+crop:(0,0)/656x486
+compose.bounds:(0,0)/656x486
+compose:(0,0)/656x486]
+
+:~# media-ctl --get-v4l2 "'ipu1_csi0':2"
+[fmt:SGRBG12_1X12/656x486@1/30 field:none colorspace:srgb xfer:srgb
+ycbcr:601 quantization:full-range]
+
+
+> I assume that because mt9p031 only supports SGRBG12_1X12, that's what
+> will be propagated down the pipeline to the CSI, which will then expand
+> it to SGRBG16.
+>
+
+
+This indeed looks the case. But then, is 'GR16' the FourCC for 'SGRBG16'?
+To be honest, I had not seen GR16 as FourCC before.
+And the Gstreamer debug logs (I used GST_DEBUG=5) also say that they
+do not know this FourCC:
+v4l2 gstv4l2object.c:1541:gst_v4l2_object_v4l2fourcc_to_bare_struct: [00m
+Unsupported fourcc 0x36315247 GR16
+
+Is there a way we can get by this?
+
+
+> I suppose we should allow, at least for parallel input, to let the CSI
+> 'convert' 12-bit input formats to 8-bit output formats by just ignoring
+> the LSBs.
+> Another possibility would be to just allow SGRBG12_1X12 -> SGRBG8_1X8
+> mbus codes in link_validate. Actually, does your hardware have 12 data
+> lines connected between sensor and i.MX6, or just 8 ?
+>
+
+Currently we have 8. Although we can populate extra resistors to
+connect the remaining 4.
+The device tree is set for 8 lines currently.
+
+
+>> And I do not get any errors from these commands.
+>
+> That's because of the way the V4L2 API works, unsupported formats are
+> adjusted by the drivers:
+>
+> https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-subdev-g-fmt.html#description
+>
+> [...]
+>> What confuses me here is that the Pixel Format shown by v4l2-ctl is
+>> 'GR16', which is not what I expected. And it seems like the media-ctl
+>> pad configuration commands are unable to change the Pixel Format, even
+>> though they do not return any errors.
+>
+> Whenever you media-ctl -V on a source pad, it will also try to set the
+> connected sink pad to the same format. And for subdevices with sink and
+> source pads, the source pads usually mirror (or somehow depend on) the
+> format of the sink pad. Due to the way the V4L2 APIs correct your input
+> to possible values, calling media-ctl -V on all source pads of the
+> pipeline in downstream direction essentially propagates the sensor
+> source pad format.
+>
+
+Thanks for the nice explanation. This is valuable learning for me as I
+am just a beginner in this stuff.
+
+> regards
+> Philipp
+
+Best regards,
+Ibtsam Haq
