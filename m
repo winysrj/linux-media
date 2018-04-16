@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33044 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755400AbeDWNsz (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:43469 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754945AbeDPNRA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:48:55 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z73-v6so41511329wrb.0
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:55 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v2 09/15] ARM: dts: imx7s: add mipi phy power domain
-Date: Mon, 23 Apr 2018 14:47:44 +0100
-Message-Id: <20180423134750.30403-10-rui.silva@linaro.org>
-In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
+        Mon, 16 Apr 2018 09:17:00 -0400
+Message-ID: <1523884614.5918.12.camel@pengutronix.de>
+Subject: Re: [PATCH v3 1/2] media: imx-media-csi: Fix inconsistent IS_ERR
+ and PTR_ERR
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>, mchehab@kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: slongerbeam@gmail.com, gustavo@embeddedor.com,
+        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>
+Date: Mon, 16 Apr 2018 15:16:54 +0200
+In-Reply-To: <1520081790-3437-1-git-send-email-festevam@gmail.com>
+References: <1520081790-3437-1-git-send-email-festevam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add power domain index 0 related with mipi-phy to imx7s.
+Hi,
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- arch/arm/boot/dts/imx7s.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Sat, 2018-03-03 at 09:56 -0300, Fabio Estevam wrote:
+> From: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> 
+> Fix inconsistent IS_ERR and PTR_ERR in imx_csi_probe.
+> The proper pointer to be passed as argument is pinctrl
+> instead of priv->vdev.
+> 
+> This issue was detected with the help of Coccinelle.
+> 
+> Fixes: 52e17089d185 ("media: imx: Don't initialize vars that won't be used")
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v2:
+> - None
+> Changes since v1:
+> - None
+> 
+>  drivers/staging/media/imx/imx-media-csi.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 5a195f8..4f290a0 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -1798,7 +1798,7 @@ static int imx_csi_probe(struct platform_device *pdev)
+>  	priv->dev->of_node = pdata->of_node;
+>  	pinctrl = devm_pinctrl_get_select_default(priv->dev);
+>  	if (IS_ERR(pinctrl)) {
+> -		ret = PTR_ERR(priv->vdev);
+> +		ret = PTR_ERR(pinctrl);
 
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 142ea709d296..d913c3f9c284 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -650,6 +650,12 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
- 
-+					pgc_mipi_phy: pgc-power-domain@0 {
-+						#power-domain-cells = <0>;
-+						reg = <0>;
-+						power-supply = <&reg_1p0d>;
-+					};
-+
- 					pgc_pcie_phy: pgc-power-domain@1 {
- 						#power-domain-cells = <0>;
- 						reg = <1>;
--- 
-2.17.0
+The second patch is applied now, but this part is still missing in
+v4.17-rc1, causing the CSI subdev probe to fail:
+
+  imx-ipuv3-csi: probe of imx-ipuv3-csi.0 failed with error -1369528304
+  imx-ipuv3-csi: probe of imx-ipuv3-csi.1 failed with error -1369528304
+  imx-ipuv3-csi: probe of imx-ipuv3-csi.5 failed with error -1369528304
+  imx-ipuv3-csi: probe of imx-ipuv3-csi.6 failed with error -1369528304
+
+regards
+Philipp
