@@ -1,203 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55903 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752580AbeDQMBL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 08:01:11 -0400
-Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
- <20180416132121.46205-7-hverkuil@xs4all.nl>
- <20180416150335.66f6ab12@vento.lan> <20180416150956.22b5b021@vento.lan>
- <b04f9c6a-78ef-3e22-be01-fa757823c13e@xs4all.nl>
- <a8a09731-76bb-8bd9-ad16-43640d3de8ed@xs4all.nl>
- <20180417085554.067d9168@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <dca4777d-e8c8-8ea5-ea64-54120997158d@xs4all.nl>
-Date: Tue, 17 Apr 2018 14:01:06 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180417085554.067d9168@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.bootlin.com ([62.4.15.54]:53211 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752911AbeDPMhZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 08:37:25 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v2 07/12] media: ov5640: Program the visible resolution
+Date: Mon, 16 Apr 2018 14:36:56 +0200
+Message-Id: <20180416123701.15901-8-maxime.ripard@bootlin.com>
+In-Reply-To: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/18 13:55, Mauro Carvalho Chehab wrote:
-> Em Tue, 17 Apr 2018 11:59:40 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 04/16/18 21:41, Hans Verkuil wrote:
->>> On 04/16/2018 08:09 PM, Mauro Carvalho Chehab wrote:  
->>>> Em Mon, 16 Apr 2018 15:03:35 -0300
->>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
->>>>  
->>>>> Em Mon, 16 Apr 2018 15:21:18 +0200
->>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>>  
->>>>>> From: Hans Verkuil <hansverk@cisco.com>
->>>>>>
->>>>>> The v2 pad structure never exposed the pad index, which made it impossible
->>>>>> to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
->>>>>>
->>>>>> It is really trivial to just expose this information, so implement this.    
->>>>>
->>>>> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
->>>>
->>>> Err... I looked on it too fast... See my comments below.
->>>>
->>>> The same applies to patch 8/9.
->>>>  
->>>>>>
->>>>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->>>>>> ---
->>>>>>  drivers/media/media-device.c | 1 +
->>>>>>  include/uapi/linux/media.h   | 7 ++++++-
->>>>>>  2 files changed, 7 insertions(+), 1 deletion(-)
->>>>>>
->>>>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->>>>>> index dca1e5a3e0f9..73ffea3e81c9 100644
->>>>>> --- a/drivers/media/media-device.c
->>>>>> +++ b/drivers/media/media-device.c
->>>>>> @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
->>>>>>  		kpad.id = pad->graph_obj.id;
->>>>>>  		kpad.entity_id = pad->entity->graph_obj.id;
->>>>>>  		kpad.flags = pad->flags;
->>>>>> +		kpad.index = pad->index;
->>>>>>  
->>>>>>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
->>>>>>  			ret = -EFAULT;
->>>>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->>>>>> index ac08acffdb65..15f7f432f808 100644
->>>>>> --- a/include/uapi/linux/media.h
->>>>>> +++ b/include/uapi/linux/media.h
->>>>>> @@ -310,11 +310,16 @@ struct media_v2_interface {
->>>>>>  	};
->>>>>>  } __attribute__ ((packed));
->>>>>>  
->>>>>> +/* Appeared in 4.18.0 */
->>>>>> +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
->>>>>> +	((media_version) >= 0x00041200)
->>>>>> +  
->>>>
->>>> I don't like this, for a couple of reasons:
->>>>
->>>> 1) it has a magic number on it, with is actually a parsed
->>>>    version of LINUX_VERSION() macro;  
->>>
->>> I can/should change that to KERNEL_VERSION().
-> 
-> I don't think so. The macro is not there at include/uapi.
-> 
->>>   
->>>>
->>>> 2) it sounds really weird to ship a header file with a new
->>>>    kernel version meant to provide backward compatibility with
->>>>    older versions;
->>>>
->>>> 3) this isn't any different than:
->>>>
->>>> 	#define MEDIA_V2_PAD_HAS_INDEX -1
->>>>
->>>> I think we need to think a little bit more about that.  
->>>
->>> What typically happens is that applications (like those in v4l-utils
->>> for example) copy the headers locally. So they are compiled with the headers
->>> of a specific kernel version, but they can run with very different kernels.
->>>
->>> This is normal for distros where you can install different kernel versions
->>> without needing to modify applications.
->>>
->>> In fact, we (Cisco) use the latest v4l-utils code on kernels ranging between
->>> 2.6.39 to 4.10 (I think that's the latest one in use).
-> 
-> Well, if you use a macro, the "compat" code at v4l-utils (or whatever other
-> app you use) will be assuming the specific Kernel version you used when you
-> built it, with is probably not what you want.
-> 
-> The way of checking if a feature is there or not is, instead, to ask for
-> the media version via MEDIA_IOC_DEVICE_INFO. It should provide the
-> media API version.
-> 
-> This is already filled with:
-> 	info->media_version = LINUX_VERSION_CODE;
-> 
-> So, all we need to do is to document that the new fields are available only
-> for such version or above and add such check at v4l-utils.
+The active frame size is set in the initialization arrays, but the value
+itself is also available in the struct ov5640_mode_info.
 
-Yes, and that's what you stick in the macro argument:
+Let's move these values out of the big bytes arrays, and program it with
+the value of the mode that we are given.
 
-	ioctl(fd, MEDIA_IOC_DEVICE_INFO, &info);
-	if (MEDIA_V2_PAD_HAS_INDEX(info.media_version)) {
-		// I can use the index field
-	}
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 58 +++++++++-----------------------------
+ 1 file changed, 14 insertions(+), 44 deletions(-)
 
-I think I did not document this clearly.
-
-Regards,
-
-	Hans
-
-> 
->>>
->>> The media version tells you whether or not the kernel supports this feature.
->>> I don't see another way of doing this.
->>>
->>> In most other cases we can just say that if the field value is 0, then it
->>> should not be used. Unfortunately, 0 is a valid value for the pad index, for
->>> the entity flags and for the entity function (some drivers set it to
->>> MEDIA_ENT_F_UNKNOWN, which has value 0). This last one is most unfortunate,
->>> since this should never have happened and would have been detected if we had
->>> proper compliance tools.  
->>
->> Actually, I think that if I first ensure that all drivers correctly set function
->> to a non-zero value, then there is no need for a test macro and I can just say
->> that if it is 0, then fall back to 'type'.
->>
->> It requires some analysis, but it's doable.
-> 
-> That is something that we want to do anyway.
->>
->> For the index and flags field there is no alternative that I can think of, though.
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Regards,
->>>
->>> 	Hans
->>>   
->>>>
->>>>  
->>>>>>  struct media_v2_pad {
->>>>>>  	__u32 id;
->>>>>>  	__u32 entity_id;
->>>>>>  	__u32 flags;
->>>>>> -	__u32 reserved[5];
->>>>>> +	__u32 index;
->>>>>> +	__u32 reserved[4];
->>>>>>  } __attribute__ ((packed));
->>>>>>  
->>>>>>  struct media_v2_link {    
->>>>>
->>>>>
->>>>>
->>>>> Thanks,
->>>>> Mauro  
->>>>
->>>>
->>>>
->>>> Thanks,
->>>> Mauro
->>>>  
->>>   
->>
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index c90d5fd06563..4608b8dc6495 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -60,6 +60,8 @@
+ #define OV5640_REG_AEC_PK_MANUAL	0x3503
+ #define OV5640_REG_AEC_PK_REAL_GAIN	0x350a
+ #define OV5640_REG_AEC_PK_VTS		0x350c
++#define OV5640_REG_TIMING_DVPHO		0x3808
++#define OV5640_REG_TIMING_DVPVO		0x380a
+ #define OV5640_REG_TIMING_HTS		0x380c
+ #define OV5640_REG_TIMING_VTS		0x380e
+ #define OV5640_REG_TIMING_TC_REG21	0x3821
+@@ -273,8 +275,6 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -347,8 +347,6 @@ static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -368,8 +366,6 @@ static const struct reg_value ov5640_setting_15fps_VGA_640_480[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -389,8 +385,6 @@ static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -401,8 +395,7 @@ static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
+ 	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+ 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+ 	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3503, 0x00, 0, 0},
+-	{0x3808, 0x04, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x03, 0, 0},
+-	{0x380b, 0x00, 0, 0}, {0x3035, 0x12, 0, 0},
++	{0x3035, 0x12, 0, 0},
+ };
+ 
+ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
+@@ -412,8 +405,6 @@ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0x80, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -423,8 +414,7 @@ static const struct reg_value ov5640_setting_15fps_XGA_1024_768[] = {
+ 	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+ 	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+ 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+-	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x3808, 0x04, 0, 0},
+-	{0x3809, 0x00, 0, 0}, {0x380a, 0x03, 0, 0}, {0x380b, 0x00, 0, 0},
++	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+ };
+ 
+ static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
+@@ -434,8 +424,6 @@ static const struct reg_value ov5640_setting_30fps_QVGA_320_240[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0xf0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -455,8 +443,6 @@ static const struct reg_value ov5640_setting_15fps_QVGA_320_240[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x01, 0, 0}, {0x3809, 0x40, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0xf0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -476,8 +462,6 @@ static const struct reg_value ov5640_setting_30fps_QCIF_176_144[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0x90, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -497,8 +481,6 @@ static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x00, 0, 0}, {0x3809, 0xb0, 0, 0}, {0x380a, 0x00, 0, 0},
+-	{0x380b, 0x90, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -518,8 +500,6 @@ static const struct reg_value ov5640_setting_30fps_NTSC_720_480[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -539,8 +519,6 @@ static const struct reg_value ov5640_setting_15fps_NTSC_720_480[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x01, 0, 0},
+-	{0x380b, 0xe0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x3c, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -560,8 +538,6 @@ static const struct reg_value ov5640_setting_30fps_PAL_720_576[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0x40, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -581,8 +557,6 @@ static const struct reg_value ov5640_setting_15fps_PAL_720_576[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x04, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9b, 0, 0},
+-	{0x3808, 0x02, 0, 0}, {0x3809, 0xd0, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0x40, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x38, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x06, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -603,8 +577,6 @@ static const struct reg_value ov5640_setting_30fps_720P_1280_720[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
+-	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0xd0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -625,8 +597,6 @@ static const struct reg_value ov5640_setting_15fps_720P_1280_720[] = {
+ 	{0x3815, 0x31, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0xfa, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x06, 0, 0}, {0x3807, 0xa9, 0, 0},
+-	{0x3808, 0x05, 0, 0}, {0x3809, 0x00, 0, 0}, {0x380a, 0x02, 0, 0},
+-	{0x380b, 0xd0, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x00, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x64, 0, 0},
+@@ -647,8 +617,6 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
+ 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
+-	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
+-	{0x380b, 0x98, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
+@@ -663,8 +631,7 @@ static const struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
+ 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
+ 	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
+ 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
+-	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
+-	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
++	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0},
+ 	{0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
+ 	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
+@@ -683,8 +650,6 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
+ 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
+-	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
+-	{0x380b, 0x98, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
+@@ -699,8 +664,7 @@ static const struct reg_value ov5640_setting_15fps_1080P_1920_1080[] = {
+ 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
+ 	{0x3800, 0x01, 0, 0}, {0x3801, 0x50, 0, 0}, {0x3802, 0x01, 0, 0},
+ 	{0x3803, 0xb2, 0, 0}, {0x3804, 0x08, 0, 0}, {0x3805, 0xef, 0, 0},
+-	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0}, {0x3808, 0x07, 0, 0},
+-	{0x3809, 0x80, 0, 0}, {0x380a, 0x04, 0, 0}, {0x380b, 0x38, 0, 0},
++	{0x3806, 0x05, 0, 0}, {0x3807, 0xf1, 0, 0},
+ 	{0x3612, 0x2b, 0, 0}, {0x3708, 0x64, 0, 0},
+ 	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
+ 	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
+@@ -718,8 +682,6 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+ 	{0x3802, 0x00, 0, 0}, {0x3803, 0x00, 0, 0}, {0x3804, 0x0a, 0, 0},
+ 	{0x3805, 0x3f, 0, 0}, {0x3806, 0x07, 0, 0}, {0x3807, 0x9f, 0, 0},
+-	{0x3808, 0x0a, 0, 0}, {0x3809, 0x20, 0, 0}, {0x380a, 0x07, 0, 0},
+-	{0x380b, 0x98, 0, 0},
+ 	{0x3810, 0x00, 0, 0},
+ 	{0x3811, 0x10, 0, 0}, {0x3812, 0x00, 0, 0}, {0x3813, 0x04, 0, 0},
+ 	{0x3618, 0x04, 0, 0}, {0x3612, 0x29, 0, 0}, {0x3708, 0x21, 0, 0},
+@@ -1406,6 +1368,14 @@ static int ov5640_set_timings(struct ov5640_dev *sensor,
+ {
+ 	int ret;
+ 
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPHO, mode->hact);
++	if (ret < 0)
++		return ret;
++
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPVO, mode->vact);
++	if (ret < 0)
++		return ret;
++
+ 	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_HTS, mode->htot);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+2.17.0
