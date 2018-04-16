@@ -1,87 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54206 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbeDEI0g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 04:26:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-Date: Thu, 05 Apr 2018 11:26:45 +0300
-Message-ID: <1571834.H8Xd6h4YlB@avalon>
-In-Reply-To: <CAMuHMdXoprxZNP6KuYjcYW5EYjzAAFqNn6orK24pv7k_fO+i4A@mail.gmail.com>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se> <2180075.m4Wkig6IL5@avalon> <CAMuHMdXoprxZNP6KuYjcYW5EYjzAAFqNn6orK24pv7k_fO+i4A@mail.gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:40782 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753070AbeDPSKx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 14:10:53 -0400
+Date: Mon, 16 Apr 2018 15:10:48 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 9/9] media-ioc-g-topology.rst: document new 'flags'
+ field
+Message-ID: <20180416151048.7fbe7144@vento.lan>
+In-Reply-To: <20180416132121.46205-10-hverkuil@xs4all.nl>
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+        <20180416132121.46205-10-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Em Mon, 16 Apr 2018 15:21:21 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Thursday, 5 April 2018 10:33:55 EEST Geert Uytterhoeven wrote:
-> On Wed, Apr 4, 2018 at 5:26 PM, Laurent Pinchart wrote:
-> > On Thursday, 29 March 2018 14:30:39 EEST Maxime Ripard wrote:
-> >> On Tue, Feb 13, 2018 at 12:01:32AM +0100, Niklas S=F6derlund wrote:
-> >> > +   switch (priv->lanes) {
-> >> > +   case 1:
-> >> > +           phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
-> >> > +           break;
-> >> > +   case 2:
-> >> > +           phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 |
-> >> > PHYCNT_ENABLE_0;
-> >> > +           break;
-> >> > +   case 4:
-> >> > +           phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 |
-> >> > PHYCNT_ENABLE_2 |
-> >> > +                   PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
-> >> > +           break;
-> >> > +   default:
-> >> > +           return -EINVAL;
-> >> > +   }
-> >>=20
-> >> I guess you could have a simpler construct here using this:
-> >>=20
-> >> phycnt =3D PHYCNT_ENABLECLK;
-> >>=20
-> >> switch (priv->lanes) {
-> >>=20
-> >> case 4:
-> >>       phycnt |=3D PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2;
-> >>=20
-> >> case 2:
-> >>       phycnt |=3D PHYCNT_ENABLE_1;
-> >>=20
-> >> case 1:
-> >>       phycnt |=3D PHYCNT_ENABLE_0;
-> >>       break;
-> >>=20
-> >> default:
-> >>       return -EINVAL;
-> >>=20
-> >> }
-> >>=20
-> >> But that's really up to you.
-> >=20
-> > Wouldn't Niklas' version generate simpler code as it uses direct
-> > assignments ?
-> Alternatively, you could check for a valid number of lanes, and use
-> knowledge about the internal lane bits:
->=20
->     phycnt =3D PHYCNT_ENABLECLK;
->     phycnt |=3D (1 << priv->lanes) - 1;
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document the new struct media_v2_entity 'flags' field.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> index 459818c3490c..6521ab7c9b58 100644
+> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> @@ -211,7 +211,18 @@ desired arrays with the media graph elements.
+>  
+>         -  __u32
+>  
+> -       -  ``reserved``\ [6]
+> +       -  ``flags``
+> +
+> +       -  Entity flags, see :ref:`media-entity-flag` for details.
+> +          Only valid if ``MEDIA_V2_ENTITY_HAS_FLAGS(media_version)``
+> +          returns true. The ``media_version`` is defined in struct
+> +	  :c:type:`media_device_info`.
+> +
+> +    -  .. row 5
 
-If Niklas is fine with that, I like it too.
+Same comment as before: let's not add new useless comments.
 
-=2D-=20
-Regards,
+> +
+> +       -  __u32
+> +
+> +       -  ``reserved``\ [5]
+>  
+>         -  Reserved for future extensions. Drivers and applications must set
+>  	  this array to zero.
 
-Laurent Pinchart
+
+
+Thanks,
+Mauro
