@@ -1,93 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:44215 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754253AbeDWI4L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 04:56:11 -0400
-Date: Mon, 23 Apr 2018 09:56:08 +0100
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Shawn Guo <shawn.guo@linaro.org>,
-        Ladislav Michl <ladis@linux-mips.org>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Andi Kleen <ak@linux.intel.com>, Mans Rullgard <mans@mansr.com>
-Subject: Re: [PATCH 3/7] media: rc: allow build pnp-dependent drivers with
- COMPILE_TEST
-Message-ID: <20180423085607.r6sz2dzxdwwa6sdj@gofer.mess.org>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
- <48bdabe5761d9b86b79b715be81686cee47d25dd.1524245455.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f169.google.com ([209.85.192.169]:35653 "EHLO
+        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753077AbeDPSo2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Apr 2018 14:44:28 -0400
+Received: by mail-pf0-f169.google.com with SMTP id j5so1422594pfh.2
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 11:44:27 -0700 (PDT)
+Subject: Re: OV5640 with 12MHz xclk
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        linux-media@vger.kernel.org
+References: <CAFwsNOEF0rK+SeHQ618Rnuj2ZWaGZG2WY4keWmavqG_agSi+dw@mail.gmail.com>
+ <4d87c28b-4adb-86d6-986b-e1ffdceb3138@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <9b255c35-f163-7db9-a7a8-88c1ac2ceeb1@gmail.com>
+Date: Mon, 16 Apr 2018 11:44:20 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <48bdabe5761d9b86b79b715be81686cee47d25dd.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <4d87c28b-4adb-86d6-986b-e1ffdceb3138@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2018 at 01:42:49PM -0400, Mauro Carvalho Chehab wrote:
-> The pnp header already provide enough stub to build those
-> drivers with COMPILE_TEST on non-x86 archs.
+Hi Sam,
 
-That's great, thanks.
+On 04/16/2018 05:26 AM, Hans Verkuil wrote:
+> On 04/16/2018 03:39 AM, Samuel Bobrowicz wrote:
+>> Can anyone verify if the OV5640 driver works with input clocks other
+>> than the typical 24MHz? The driver suggests anything from 6MHz-24MHz
+>> is acceptable, but I am running into issues while bringing up a module
+>> that uses a 12MHz oscillator. I'd expect that different xclk's would
+>> necessitate different register settings for the various resolutions
+>> (PLL settings, PCLK width, etc.), however the driver does not seem to
+>> modify nearly enough based on the frequency of xclk.
+>>
+>> Sam
+>>
+> I'm pretty sure it has never been tested with 12 MHz. The i.MX SabreLite
+> seems to use 22 MHz, and I can't tell from the code what the SabreSD uses
+> (probably 22 or 24 MHz). Steve will probably know.
 
-Acked-by: Sean Young <sean@mess.org>
+On i.MX6, the sabrelite uses the PWM3 clock at 22MHz for the OV5640 xclk.
+The SabreSD uses the i.MX6 CKO clock, which is default sourced from the
+24 MHz oscillator.
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/rc/Kconfig | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index eb2c3b6eca7f..9a3b66c6700c 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -149,7 +149,7 @@ config RC_ATI_REMOTE
->  
->  config IR_ENE
->  	tristate "ENE eHome Receiver/Transceiver (pnp id: ENE0100/ENE02xxx)"
-> -	depends on PNP
-> +	depends on PNP || COMPILE_TEST
->  	depends on RC_CORE
->  	---help---
->  	   Say Y here to enable support for integrated infrared receiver
-> @@ -210,7 +210,7 @@ config IR_MCEUSB
->  
->  config IR_ITE_CIR
->  	tristate "ITE Tech Inc. IT8712/IT8512 Consumer Infrared Transceiver"
-> -	depends on PNP
-> +	depends on PNP || COMPILE_TEST
->  	depends on RC_CORE
->  	---help---
->  	   Say Y here to enable support for integrated infrared receivers
-> @@ -223,7 +223,7 @@ config IR_ITE_CIR
->  
->  config IR_FINTEK
->  	tristate "Fintek Consumer Infrared Transceiver"
-> -	depends on PNP
-> +	depends on PNP || COMPILE_TEST
->  	depends on RC_CORE
->  	---help---
->  	   Say Y here to enable support for integrated infrared receiver
-> @@ -257,7 +257,7 @@ config IR_MTK
->  
->  config IR_NUVOTON
->  	tristate "Nuvoton w836x7hg Consumer Infrared Transceiver"
-> -	depends on PNP
-> +	depends on PNP || COMPILE_TEST
->  	depends on RC_CORE
->  	---help---
->  	   Say Y here to enable support for integrated infrared receiver
-> @@ -305,7 +305,7 @@ config IR_STREAMZAP
->  
->  config IR_WINBOND_CIR
->  	tristate "Winbond IR remote control"
-> -	depends on X86 && PNP
-> +	depends on (X86 && PNP) || COMPILE_TEST
->  	depends on RC_CORE
->  	select NEW_LEDS
->  	select LEDS_CLASS
-> -- 
-> 2.14.3
+I wouldn't be surprised that there are issues with a 12MHz xclk in the
+ov5640 driver. There's probably some assumptions made about the
+xclk range in the hardcoded values in those huge register tables. Sorry
+I don't have the time to look into it more.
+
+Steve
