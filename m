@@ -1,35 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:50543 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751848AbeDLKEC (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59660 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755073AbeDPNV1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 06:04:02 -0400
-Message-ID: <1523527441.3689.7.camel@pengutronix.de>
-Subject: Re: [PATCH] media: imx: Skip every second frame in VDIC DIRECT mode
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Marek Vasut <marex@denx.de>, linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 12 Apr 2018 12:04:01 +0200
-In-Reply-To: <20180407130440.24886-1-marex@denx.de>
-References: <20180407130440.24886-1-marex@denx.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Mon, 16 Apr 2018 09:21:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv2 3/9] media.h: remove __NEED_MEDIA_LEGACY_API
+Date: Mon, 16 Apr 2018 15:21:15 +0200
+Message-Id: <20180416132121.46205-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180416132121.46205-1-hverkuil@xs4all.nl>
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2018-04-07 at 15:04 +0200, Marek Vasut wrote:
-> In VDIC direct mode, the VDIC applies combing filter during and
-> doubles the framerate, that is, after the first two half-frames
-> are received and the first frame is emitted by the VDIC, every
-> subsequent half-frame is patched into the result and a full frame
-> is produced. The half-frame order in the full frames is as follows
-> 12 32 34 54 etc.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Is that true? We are only supporting full motion mode (VDI_MOT_SEL=2),
-so I was under the impression that only data from the current field
-makes it into the full frame. The missing lines should be purely
-estimated from the available field using the di_vfilt 4-tap filter.
+The __NEED_MEDIA_LEGACY_API define is 1) ugly and 2) dangerous
+since it is all too easy for drivers to define it to get hold of
+legacy defines. Instead just define what we need in media-device.c
+which is the only place where we need the legacy define
+(MEDIA_ENT_T_DEVNODE_UNKNOWN).
 
-regards
-Philipp
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/media-device.c | 13 ++++++++++---
+ include/uapi/linux/media.h   |  2 +-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 35e81f7c0d2f..7c3ab37c258a 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -16,9 +16,6 @@
+  * GNU General Public License for more details.
+  */
+ 
+-/* We need to access legacy defines from linux/media.h */
+-#define __NEED_MEDIA_LEGACY_API
+-
+ #include <linux/compat.h>
+ #include <linux/export.h>
+ #include <linux/idr.h>
+@@ -35,6 +32,16 @@
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 
++/*
++ * Legacy defines from linux/media.h. This is the only place we need this
++ * so we just define it here. The media.h header doesn't expose it to the
++ * kernel to prevent it from being used by drivers, but here (and only here!)
++ * we need it to handle the legacy behavior.
++ */
++#define MEDIA_ENT_SUBTYPE_MASK			0x0000ffff
++#define MEDIA_ENT_T_DEVNODE_UNKNOWN		(MEDIA_ENT_F_OLD_BASE | \
++						 MEDIA_ENT_SUBTYPE_MASK)
++
+ /* -----------------------------------------------------------------------------
+  * Userspace API
+  */
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index c7e9a5cba24e..86c7dcc9cba3 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -348,7 +348,7 @@ struct media_v2_topology {
+ #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+ #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+ 
+-#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
++#ifndef __KERNEL__
+ 
+ /*
+  * Legacy symbols used to avoid userspace compilation breakages.
+-- 
+2.15.1
