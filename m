@@ -1,251 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42634 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752813AbeDCVgg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:36:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v13 29/33] rcar-vin: add link notify for Gen3
-Date: Wed, 04 Apr 2018 00:36:45 +0300
-Message-ID: <3043167.HnJ2ITFFYu@avalon>
-In-Reply-To: <20180326214456.6655-30-niklas.soderlund+renesas@ragnatech.se>
-References: <20180326214456.6655-1-niklas.soderlund+renesas@ragnatech.se> <20180326214456.6655-30-niklas.soderlund+renesas@ragnatech.se>
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:14700 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752580AbeDQMTY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 08:19:24 -0400
+Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+References: <20180416132121.46205-1-hverkuil@xs4all.nl>
+ <20180416132121.46205-7-hverkuil@xs4all.nl>
+ <20180416150335.66f6ab12@vento.lan> <20180416150956.22b5b021@vento.lan>
+ <b04f9c6a-78ef-3e22-be01-fa757823c13e@xs4all.nl>
+ <a8a09731-76bb-8bd9-ad16-43640d3de8ed@xs4all.nl>
+ <20180417085554.067d9168@vento.lan>
+ <dca4777d-e8c8-8ea5-ea64-54120997158d@xs4all.nl>
+ <20180417091500.3f101620@vento.lan>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <d9a20108-94d1-e14b-630e-6d54f4a0e5ad@cisco.com>
+Date: Tue, 17 Apr 2018 14:19:21 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20180417091500.3f101620@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On 04/17/18 14:16, Mauro Carvalho Chehab wrote:
+> Em Tue, 17 Apr 2018 14:01:06 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 04/17/18 13:55, Mauro Carvalho Chehab wrote:
+>>> Em Tue, 17 Apr 2018 11:59:40 +0200
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>   
+>>>> On 04/16/18 21:41, Hans Verkuil wrote:  
+>>>>> On 04/16/2018 08:09 PM, Mauro Carvalho Chehab wrote:    
+>>>>>> Em Mon, 16 Apr 2018 15:03:35 -0300
+>>>>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+>>>>>>    
+>>>>>>> Em Mon, 16 Apr 2018 15:21:18 +0200
+>>>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>>>>    
+>>>>>>>> From: Hans Verkuil <hansverk@cisco.com>
+>>>>>>>>
+>>>>>>>> The v2 pad structure never exposed the pad index, which made it impossible
+>>>>>>>> to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
+>>>>>>>>
+>>>>>>>> It is really trivial to just expose this information, so implement this.      
+>>>>>>>
+>>>>>>> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>    
+>>>>>>
+>>>>>> Err... I looked on it too fast... See my comments below.
+>>>>>>
+>>>>>> The same applies to patch 8/9.
+>>>>>>    
+>>>>>>>>
+>>>>>>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>>>>>>>> ---
+>>>>>>>>  drivers/media/media-device.c | 1 +
+>>>>>>>>  include/uapi/linux/media.h   | 7 ++++++-
+>>>>>>>>  2 files changed, 7 insertions(+), 1 deletion(-)
+>>>>>>>>
+>>>>>>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>>>>>>>> index dca1e5a3e0f9..73ffea3e81c9 100644
+>>>>>>>> --- a/drivers/media/media-device.c
+>>>>>>>> +++ b/drivers/media/media-device.c
+>>>>>>>> @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
+>>>>>>>>  		kpad.id = pad->graph_obj.id;
+>>>>>>>>  		kpad.entity_id = pad->entity->graph_obj.id;
+>>>>>>>>  		kpad.flags = pad->flags;
+>>>>>>>> +		kpad.index = pad->index;
+>>>>>>>>  
+>>>>>>>>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+>>>>>>>>  			ret = -EFAULT;
+>>>>>>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>>>>>>>> index ac08acffdb65..15f7f432f808 100644
+>>>>>>>> --- a/include/uapi/linux/media.h
+>>>>>>>> +++ b/include/uapi/linux/media.h
+>>>>>>>> @@ -310,11 +310,16 @@ struct media_v2_interface {
+>>>>>>>>  	};
+>>>>>>>>  } __attribute__ ((packed));
+>>>>>>>>  
+>>>>>>>> +/* Appeared in 4.18.0 */
+>>>>>>>> +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
+>>>>>>>> +	((media_version) >= 0x00041200)
+>>>>>>>> +    
+>>>>>>
+>>>>>> I don't like this, for a couple of reasons:
+>>>>>>
+>>>>>> 1) it has a magic number on it, with is actually a parsed
+>>>>>>    version of LINUX_VERSION() macro;    
+>>>>>
+>>>>> I can/should change that to KERNEL_VERSION().  
+>>>
+>>> I don't think so. The macro is not there at include/uapi.
+>>>   
+>>>>>     
+>>>>>>
+>>>>>> 2) it sounds really weird to ship a header file with a new
+>>>>>>    kernel version meant to provide backward compatibility with
+>>>>>>    older versions;
+>>>>>>
+>>>>>> 3) this isn't any different than:
+>>>>>>
+>>>>>> 	#define MEDIA_V2_PAD_HAS_INDEX -1
+>>>>>>
+>>>>>> I think we need to think a little bit more about that.    
+>>>>>
+>>>>> What typically happens is that applications (like those in v4l-utils
+>>>>> for example) copy the headers locally. So they are compiled with the headers
+>>>>> of a specific kernel version, but they can run with very different kernels.
+>>>>>
+>>>>> This is normal for distros where you can install different kernel versions
+>>>>> without needing to modify applications.
+>>>>>
+>>>>> In fact, we (Cisco) use the latest v4l-utils code on kernels ranging between
+>>>>> 2.6.39 to 4.10 (I think that's the latest one in use).  
+>>>
+>>> Well, if you use a macro, the "compat" code at v4l-utils (or whatever other
+>>> app you use) will be assuming the specific Kernel version you used when you
+>>> built it, with is probably not what you want.
+>>>
+>>> The way of checking if a feature is there or not is, instead, to ask for
+>>> the media version via MEDIA_IOC_DEVICE_INFO. It should provide the
+>>> media API version.
+>>>
+>>> This is already filled with:
+>>> 	info->media_version = LINUX_VERSION_CODE;
+>>>
+>>> So, all we need to do is to document that the new fields are available only
+>>> for such version or above and add such check at v4l-utils.  
+>>
+>> Yes, and that's what you stick in the macro argument:
+>>
+>> 	ioctl(fd, MEDIA_IOC_DEVICE_INFO, &info);
+>> 	if (MEDIA_V2_PAD_HAS_INDEX(info.media_version)) {
+>> 		// I can use the index field
+>> 	}
+>>
+>> I think I did not document this clearly.
+> 
+> Ok, makes sense. It should be better documented, IMO.
+> 
+> Still have an issue with KERNEL_VERSION: this macro doesn't exist
+> anymore on any Kernel header files. It is produced dynamically
+> at /Makefile:
+> 
+> 	define filechk_version.h
+> 		(echo \#define LINUX_VERSION_CODE $(shell                         \
+> 		expr $(VERSION) \* 65536 + 0$(PATCHLEVEL) \* 256 + 0$(SUBLEVEL)); \
+> 		echo '#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))';)
+> 	endef
+> 
+> Btw, this likely means that this is already broken:
+> 
+> include/uapi/linux/media.h:#define MEDIA_API_VERSION                    KERNEL_VERSION(0, 1, 0)
+> 
+> as userspace won't be able to evaluate it.
+> 
+> We could hardcode its value, as you proposed, but, IMHO, that sucks.
 
-Thank you for the patch.
+This might be why I hardcoded it :-)
 
-On Tuesday, 27 March 2018 00:44:52 EEST Niklas S=F6derlund wrote:
-> Add the ability to process media device link change requests. Link
-> enabling is a bit complicated on Gen3, whether or not it's possible to
-> enable a link depends on what other links already are enabled. On Gen3
-> the 8 VINs are split into two subgroup's (VIN0-3 and VIN4-7) and from a
-> routing perspective these two groups are independent of each other.
-> Each subgroup's routing is controlled by the subgroup VIN master
-> instance (VIN0 and VIN4).
->=20
-> There are a limited number of possible route setups available for each
-> subgroup and the configuration of each setup is dictated by the
-> hardware. On H3 for example there are 6 possible route setups for each
-> subgroup to choose from.
->=20
-> This leads to the media device link notification code being rather large
-> since it will find the best routing configuration to try and accommodate
-> as many links as possible. When it's not possible to enable a new link
-> due to hardware constrains the link_notifier callback will return
-> -EMLINK.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+I personally don't have a problem with hardcoding it. In the end, it's just a number.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->=20
-> ---
->=20
-> * Changes since v11
-> - Fixed spelling
-> - Updated comment to clarify the intent that no link can be enabled if
-> any video node is open.
-> - Use container_of() instead of a loop to find struct vin_dev from the
-> video device.
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 147
-> ++++++++++++++++++++++++++++ 1 file changed, 147 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 99f6301a778046df..0cc76d73115e9277 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -24,6 +24,7 @@
->=20
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-mc.h>
->=20
->  #include "rcar-vin.h"
->=20
-> @@ -44,6 +45,151 @@
->   */
->  #define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
->=20
-> +/*
-> -------------------------------------------------------------------------=
-=2D-
-> -- + * Media Controller link notification
-> + */
-> +
-> +/* group lock should be held when calling this function. */
-> +static int rvin_group_entity_to_csi_id(struct rvin_group *group,
-> +				       struct media_entity *entity)
-> +{
-> +	struct v4l2_subdev *sd;
-> +	unsigned int i;
-> +
-> +	sd =3D media_entity_to_v4l2_subdev(entity);
-> +
-> +	for (i =3D 0; i < RVIN_CSI_MAX; i++)
-> +		if (group->csi[i].subdev =3D=3D sd)
-> +			return i;
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static unsigned int rvin_group_get_mask(struct rvin_dev *vin,
-> +					enum rvin_csi_id csi_id,
-> +					unsigned char channel)
-> +{
-> +	const struct rvin_group_route *route;
-> +	unsigned int mask =3D 0;
-> +
-> +	for (route =3D vin->info->routes; route->mask; route++) {
-> +		if (route->vin =3D=3D vin->id &&
-> +		    route->csi =3D=3D csi_id &&
-> +		    route->channel =3D=3D channel) {
-> +			vin_dbg(vin,
-> +				"Adding route: vin: %d csi: %d channel: %d\n",
-> +				route->vin, route->csi, route->channel);
-> +			mask |=3D route->mask;
-> +		}
-> +	}
-> +
-> +	return mask;
-> +}
-> +
-> +/*
-> + * Link setup for the links between a VIN and a CSI-2 receiver is a bit
-> + * complex. The reason for this is that the register controlling routing
-> + * is not present in each VIN instance. There are special VINs which
-> + * control routing for themselves and other VINs. There are not many
-> + * different possible links combinations that can be enabled at the same
-> + * time, therefor all already enabled links which are controlled by a
-> + * master VIN need to be taken into account when making the decision
-> + * if a new link can be enabled or not.
-> + *
-> + * 1. Find out which VIN the link the user tries to enable is connected =
-to.
-> + * 2. Lookup which master VIN controls the links for this VIN.
-> + * 3. Start with a bitmask with all bits set.
-> + * 4. For each previously enabled link from the master VIN bitwise AND i=
-ts
-> + *    route mask (see documentation for mask in struct rvin_group_route)
-> + *    with the bitmask.
-> + * 5. Bitwise AND the mask for the link the user tries to enable to the
-> bitmask. + * 6. If the bitmask is not empty at this point the new link can
-> be enabled + *    while keeping all previous links enabled. Update the
-> CHSEL value of the + *    master VIN and inform the user that the link
-> could be enabled. + *
-> + * Please note that no link can be enabled if any VIN in the group is
-> + * currently open.
-> + */
-> +static int rvin_group_link_notify(struct media_link *link, u32 flags,
-> +				  unsigned int notification)
-> +{
-> +	struct rvin_group *group =3D container_of(link->graph_obj.mdev,
-> +						struct rvin_group, mdev);
-> +	unsigned int master_id, channel, mask_new, i;
-> +	unsigned int mask =3D ~0;
-> +	struct media_entity *entity;
-> +	struct video_device *vdev;
-> +	struct media_pad *csi_pad;
-> +	struct rvin_dev *vin =3D NULL;
-> +	int csi_id, ret;
-> +
-> +	ret =3D v4l2_pipeline_link_notify(link, flags, notification);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Only care about link enablement for VIN nodes. */
-> +	if (!(flags & MEDIA_LNK_FL_ENABLED) ||
-> +	    !is_media_entity_v4l2_video_device(link->sink->entity))
-> +		return 0;
-> +
-> +	/* If any entity is in use don't allow link changes. */
-> +	media_device_for_each_entity(entity, &group->mdev)
-> +		if (entity->use_count)
-> +			return -EBUSY;
-> +
-> +	mutex_lock(&group->lock);
-> +
-> +	/* Find the master VIN that controls the routes. */
-> +	vdev =3D media_entity_to_video_device(link->sink->entity);
-> +	vin =3D container_of(vdev, struct rvin_dev, vdev);
-> +	master_id =3D rvin_group_id_to_master(vin->id);
-> +
-> +	if (WARN_ON(!group->vin[master_id])) {
-> +		ret =3D -ENODEV;
-> +		goto out;
-> +	}
-> +
-> +	/* Build a mask for already enabled links. */
-> +	for (i =3D master_id; i < master_id + 4; i++) {
-> +		if (!group->vin[i])
-> +			continue;
-> +
-> +		/* Get remote CSI-2, if any. */
-> +		csi_pad =3D media_entity_remote_pad(
-> +				&group->vin[i]->vdev.entity.pads[0]);
-> +		if (!csi_pad)
-> +			continue;
-> +
-> +		csi_id =3D rvin_group_entity_to_csi_id(group, csi_pad->entity);
-> +		channel =3D rvin_group_csi_pad_to_channel(csi_pad->index);
-> +
-> +		mask &=3D rvin_group_get_mask(group->vin[i], csi_id, channel);
-> +	}
-> +
-> +	/* Add the new link to the existing mask and check if it works. */
-> +	csi_id =3D rvin_group_entity_to_csi_id(group, link->source->entity);
-> +	channel =3D rvin_group_csi_pad_to_channel(link->source->index);
-> +	mask_new =3D mask & rvin_group_get_mask(vin, csi_id, channel);
-> +
-> +	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
-> +
-> +	if (!mask_new) {
-> +		ret =3D -EMLINK;
-> +		goto out;
-> +	}
-> +
-> +	/* New valid CHSEL found, set the new value. */
-> +	ret =3D rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new)=
-);
-> +out:
-> +	mutex_unlock(&group->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct media_device_ops rvin_media_ops =3D {
-> +	.link_notify =3D rvin_group_link_notify,
-> +};
-> +
->  /*
-> -------------------------------------------------------------------------=
-=2D-
-> -- * Gen3 CSI2 Group Allocator
->   */
-> @@ -85,6 +231,7 @@ static int rvin_group_init(struct rvin_group *group,
-> struct rvin_dev *vin) vin_dbg(vin, "found %u enabled VIN's in DT",
-> group->count);
->=20
->  	mdev->dev =3D vin->dev;
-> +	mdev->ops =3D &rvin_media_ops;
->=20
->  	match =3D of_match_node(vin->dev->driver->of_match_table,
->  			      vin->dev->of_node);
-
-
-=2D-=20
 Regards,
 
-Laurent Pinchart
+	Hans
