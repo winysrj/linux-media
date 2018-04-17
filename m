@@ -1,128 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63446 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751849AbeDJJyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 05:54:43 -0400
-Date: Tue, 10 Apr 2018 06:54:37 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
-Message-ID: <20180410065419.37d24e74@vento.lan>
-In-Reply-To: <CAAFQd5D4b2=cAM+64Oyt=8VEhxevyZ=rJjgZK7Eds_+du9uOEw@mail.gmail.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-4-hverkuil@xs4all.nl>
-        <CAAFQd5D4b2=cAM+64Oyt=8VEhxevyZ=rJjgZK7Eds_+du9uOEw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from xavier.telenet-ops.be ([195.130.132.52]:54576 "EHLO
+        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753149AbeDQRuR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 13:50:17 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 20/20] usb: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:20 +0200
+Message-Id: <1523987360-18760-21-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Apr 2018 05:35:37 +0000
-Tomasz Figa <tfiga@google.com> escreveu:
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-> Hi Hans,
-> 
-> On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> [snip]
-> > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> > new file mode 100644
-> > index 000000000000..ead78613fdbe
-> > --- /dev/null
-> > +++ b/drivers/media/media-request.c
-> > @@ -0,0 +1,23 @@
-> > +// SPDX-License-Identifier: GPL-2.0
-> > +/*
-> > + * Media device request objects
-> > + *
-> > + * Copyright (C) 2018 Intel Corporation
-> > + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.  
-> 
-> I'm not sure about the origin of this line, but it's not a correct
-> copyright for kernel code produced as a part of Chrome OS project. It would
-> normally be something like
-> 
-> Copyright (C) 2018 Google, Inc.
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Also, it sounds a lot of copyright for a file with just stub :-)
+This simplifies the dependencies, and allows to improve compile-testing.
 
-> 
-> > + *
-> > + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > + */
-> > +
-> > +#include <linux/anon_inodes.h>
-> > +#include <linux/file.h>
-> > +#include <linux/mm.h>
-> > +#include <linux/string.h>
-> > +
-> > +#include <media/media-device.h>
-> > +#include <media/media-request.h>
-> > +
-> > +int media_request_alloc(struct media_device *mdev,
-> > +                       struct media_request_alloc *alloc)
-> > +{
-> > +       return -ENOMEM;
-> > +}
-> > diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > index bcc6ec434f1f..07e323c57202 100644
-> > --- a/include/media/media-device.h
-> > +++ b/include/media/media-device.h
-> > @@ -19,6 +19,7 @@
-> >   #ifndef _MEDIA_DEVICE_H
-> >   #define _MEDIA_DEVICE_H  
-> 
-> > +#include <linux/anon_inodes.h>  
-> 
-> What is the need for anon_inodes in this header?
-> 
-> >   #include <linux/list.h>
-> >   #include <linux/mutex.h>  
-> 
-> > @@ -27,6 +28,7 @@  
-> 
-> >   struct ida;
-> >   struct device;
-> > +struct media_device;  
-> 
-> >   /**
-> >    * struct media_entity_notify - Media Entity Notify
-> > @@ -50,10 +52,16 @@ struct media_entity_notify {
-> >    * struct media_device_ops - Media device operations
-> >    * @link_notify: Link state change notification callback. This callback  
-> is
-> >    *              called with the graph_mutex held.
-> > + * @req_alloc: Allocate a request
-> > + * @req_free: Free a request
-> > + * @req_queue: Queue a request
-> >    */
-> >   struct media_device_ops {
-> >          int (*link_notify)(struct media_link *link, u32 flags,
-> >                             unsigned int notification);
-> > +       struct media_request *(*req_alloc)(struct media_device *mdev);
-> > +       void (*req_free)(struct media_request *req);
-> > +       int (*req_queue)(struct media_request *req);
-> >   };  
-> 
-> >   /**
-> > @@ -88,6 +96,8 @@ struct media_device_ops {
-> >    * @disable_source: Disable Source Handler function pointer
-> >    *
-> >    * @ops:       Operation handler callbacks
-> > + * @req_lock:  Serialise access to requests
-> > + * @req_queue_mutex: Serialise validating and queueing requests  
-> 
-> Let's bikeshed a bit! "access" sounds like a superset of "validating and
-> queuing" to me. Perhaps it could make sense to be a bit more specific on
-> what type of access the spinlock is used for?
-> 
-> Best regards,
-> Tomasz
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com> [drivers/usb/gadget/]
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/usb/gadget/udc/Kconfig | 4 ++--
+ drivers/usb/mtu3/Kconfig       | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-
-Thanks,
-Mauro
+diff --git a/drivers/usb/gadget/udc/Kconfig b/drivers/usb/gadget/udc/Kconfig
+index 0875d38476ee9395..9c3b4f86965e80c7 100644
+--- a/drivers/usb/gadget/udc/Kconfig
++++ b/drivers/usb/gadget/udc/Kconfig
+@@ -179,7 +179,7 @@ config USB_R8A66597
+ 
+ config USB_RENESAS_USBHS_UDC
+ 	tristate 'Renesas USBHS controller'
+-	depends on USB_RENESAS_USBHS && HAS_DMA
++	depends on USB_RENESAS_USBHS
+ 	help
+ 	   Renesas USBHS is a discrete USB host and peripheral controller chip
+ 	   that supports both full and high speed USB 2.0 data transfers.
+@@ -192,7 +192,7 @@ config USB_RENESAS_USBHS_UDC
+ config USB_RENESAS_USB3
+ 	tristate 'Renesas USB3.0 Peripheral controller'
+ 	depends on ARCH_RENESAS || COMPILE_TEST
+-	depends on EXTCON && HAS_DMA
++	depends on EXTCON
+ 	help
+ 	   Renesas USB3.0 Peripheral controller is a USB peripheral controller
+ 	   that supports super, high, and full speed USB 3.0 data transfers.
+diff --git a/drivers/usb/mtu3/Kconfig b/drivers/usb/mtu3/Kconfig
+index 25cd61947beea51e..c0c0eb88e5eafc74 100644
+--- a/drivers/usb/mtu3/Kconfig
++++ b/drivers/usb/mtu3/Kconfig
+@@ -2,7 +2,7 @@
+ 
+ config USB_MTU3
+ 	tristate "MediaTek USB3 Dual Role controller"
+-	depends on EXTCON && (USB || USB_GADGET) && HAS_DMA
++	depends on EXTCON && (USB || USB_GADGET)
+ 	depends on ARCH_MEDIATEK || COMPILE_TEST
+ 	select USB_XHCI_MTK if USB_SUPPORT && USB_XHCI_HCD
+ 	help
+-- 
+2.7.4
