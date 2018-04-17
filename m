@@ -1,187 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43652 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750949AbeDYHQY (ORCPT
+Received: from xavier.telenet-ops.be ([195.130.132.52]:41564 "EHLO
+        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753051AbeDQS5V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 03:16:24 -0400
-Subject: Re: [PATCH v4 5/5] drm: adv7511: Add support for
- i2c_new_secondary_device
-To: Kieran Bingham <kbingham@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
- <1518544137-2742-6-git-send-email-kbingham@kernel.org>
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <9d9acfa8-aa5d-c60f-3858-4847b80f1690@codeaurora.org>
-Date: Wed, 25 Apr 2018 12:46:17 +0530
-MIME-Version: 1.0
-In-Reply-To: <1518544137-2742-6-git-send-email-kbingham@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 17 Apr 2018 14:57:21 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 19/20] staging: vc04_services: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:19 +0200
+Message-Id: <1523987360-18760-20-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-On Tuesday 13 February 2018 11:18 PM, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> The ADV7511 has four 256-byte maps that can be accessed via the main I2C
-> ports. Each map has it own I2C address and acts as a standard slave
-> device on the I2C bus.
-> 
-> Allow a device tree node to override the default addresses so that
-> address conflicts with other devices on the same bus may be resolved at
-> the board description level.
+This simplifies the dependencies, and allows to improve compile-testing.
 
-Queued to drm-misc-next
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
-> v2:
->   - Update missing edid-i2c address setting
->   - Split out DT bindings
->   - Rename and move the I2C default addresses to their own section
-> 
-> v3:
->   - No change
-> 
-> v4:
->   - Change registration order of packet/cec to fix error path and
->     simplify code change.
->   - Collect Laurent's RB tag
-> 
->   drivers/gpu/drm/bridge/adv7511/adv7511.h     |  6 ++++
->   drivers/gpu/drm/bridge/adv7511/adv7511_drv.c | 42 ++++++++++++++++++----------
->   2 files changed, 33 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511.h b/drivers/gpu/drm/bridge/adv7511/adv7511.h
-> index d034b2cb5eee..73d8ccb97742 100644
-> --- a/drivers/gpu/drm/bridge/adv7511/adv7511.h
-> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511.h
-> @@ -93,6 +93,11 @@
->   #define ADV7511_REG_CHIP_ID_HIGH		0xf5
->   #define ADV7511_REG_CHIP_ID_LOW			0xf6
->   
-> +/* Hardware defined default addresses for I2C register maps */
-> +#define ADV7511_CEC_I2C_ADDR_DEFAULT		0x3c
-> +#define ADV7511_EDID_I2C_ADDR_DEFAULT		0x3f
-> +#define ADV7511_PACKET_I2C_ADDR_DEFAULT		0x38
-> +
->   #define ADV7511_CSC_ENABLE			BIT(7)
->   #define ADV7511_CSC_UPDATE_MODE			BIT(5)
->   
-> @@ -321,6 +326,7 @@ enum adv7511_type {
->   struct adv7511 {
->   	struct i2c_client *i2c_main;
->   	struct i2c_client *i2c_edid;
-> +	struct i2c_client *i2c_packet;
->   	struct i2c_client *i2c_cec;
->   
->   	struct regmap *regmap;
-> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
-> index efa29db5fc2b..802bc433f54a 100644
-> --- a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
-> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
-> @@ -586,7 +586,7 @@ static int adv7511_get_modes(struct adv7511 *adv7511,
->   	/* Reading the EDID only works if the device is powered */
->   	if (!adv7511->powered) {
->   		unsigned int edid_i2c_addr =
-> -					(adv7511->i2c_main->addr << 1) + 4;
-> +					(adv7511->i2c_edid->addr << 1);
->   
->   		__adv7511_power_on(adv7511);
->   
-> @@ -969,10 +969,10 @@ static int adv7511_init_cec_regmap(struct adv7511 *adv)
->   {
->   	int ret;
->   
-> -	adv->i2c_cec = i2c_new_dummy(adv->i2c_main->adapter,
-> -				     adv->i2c_main->addr - 1);
-> +	adv->i2c_cec = i2c_new_secondary_device(adv->i2c_main, "cec",
-> +					ADV7511_CEC_I2C_ADDR_DEFAULT);
->   	if (!adv->i2c_cec)
-> -		return -ENOMEM;
-> +		return -EINVAL;
->   	i2c_set_clientdata(adv->i2c_cec, adv);
->   
->   	adv->regmap_cec = devm_regmap_init_i2c(adv->i2c_cec,
-> @@ -1082,8 +1082,6 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->   	struct adv7511_link_config link_config;
->   	struct adv7511 *adv7511;
->   	struct device *dev = &i2c->dev;
-> -	unsigned int main_i2c_addr = i2c->addr << 1;
-> -	unsigned int edid_i2c_addr = main_i2c_addr + 4;
->   	unsigned int val;
->   	int ret;
->   
-> @@ -1153,23 +1151,34 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->   	if (ret)
->   		goto uninit_regulators;
->   
-> -	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR, edid_i2c_addr);
-> -	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
-> -		     main_i2c_addr - 0xa);
-> -	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
-> -		     main_i2c_addr - 2);
-> -
->   	adv7511_packet_disable(adv7511, 0xffff);
->   
-> -	adv7511->i2c_edid = i2c_new_dummy(i2c->adapter, edid_i2c_addr >> 1);
-> +	adv7511->i2c_edid = i2c_new_secondary_device(i2c, "edid",
-> +					ADV7511_EDID_I2C_ADDR_DEFAULT);
->   	if (!adv7511->i2c_edid) {
-> -		ret = -ENOMEM;
-> +		ret = -EINVAL;
->   		goto uninit_regulators;
->   	}
->   
-> +	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR,
-> +		     adv7511->i2c_edid->addr << 1);
-> +
-> +	adv7511->i2c_packet = i2c_new_secondary_device(i2c, "packet",
-> +					ADV7511_PACKET_I2C_ADDR_DEFAULT);
-> +	if (!adv7511->i2c_packet) {
-> +		ret = -EINVAL;
-> +		goto err_i2c_unregister_edid;
-> +	}
-> +
-> +	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
-> +		     adv7511->i2c_packet->addr << 1);
-> +
->   	ret = adv7511_init_cec_regmap(adv7511);
->   	if (ret)
-> -		goto err_i2c_unregister_edid;
-> +		goto err_i2c_unregister_packet;
-> +
-> +	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
-> +		     adv7511->i2c_cec->addr << 1);
->   
->   	INIT_WORK(&adv7511->hpd_work, adv7511_hpd_work);
->   
-> @@ -1207,6 +1216,8 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->   	i2c_unregister_device(adv7511->i2c_cec);
->   	if (adv7511->cec_clk)
->   		clk_disable_unprepare(adv7511->cec_clk);
-> +err_i2c_unregister_packet:
-> +	i2c_unregister_device(adv7511->i2c_packet);
->   err_i2c_unregister_edid:
->   	i2c_unregister_device(adv7511->i2c_edid);
->   uninit_regulators:
-> @@ -1233,6 +1244,7 @@ static int adv7511_remove(struct i2c_client *i2c)
->   
->   	cec_unregister_adapter(adv7511->cec_adap);
->   
-> +	i2c_unregister_device(adv7511->i2c_packet);
->   	i2c_unregister_device(adv7511->i2c_edid);
->   
->   	return 0;
-> 
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/staging/vc04_services/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/staging/vc04_services/Kconfig b/drivers/staging/vc04_services/Kconfig
+index f5aaf7d629f0fae9..98064ce2c2b47c7f 100644
+--- a/drivers/staging/vc04_services/Kconfig
++++ b/drivers/staging/vc04_services/Kconfig
+@@ -1,6 +1,5 @@
+ menuconfig BCM_VIDEOCORE
+ 	tristate "Broadcom VideoCore support"
+-	depends on HAS_DMA
+ 	depends on OF
+ 	depends on RASPBERRYPI_FIRMWARE || (COMPILE_TEST && !RASPBERRYPI_FIRMWARE)
+ 	default y
+-- 
+2.7.4
