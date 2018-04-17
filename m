@@ -1,120 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:37810 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753306AbeDIQsE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 12:48:04 -0400
-Received: by mail-wm0-f67.google.com with SMTP id r131so18033071wmb.2
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 09:48:03 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH v2 08/19] [media] ddbridge: add macros to handle IRQs in nibble and byte blocks
-Date: Mon,  9 Apr 2018 18:47:41 +0200
-Message-Id: <20180409164752.641-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20180409164752.641-1-d.scheller.oss@gmail.com>
-References: <20180409164752.641-1-d.scheller.oss@gmail.com>
+Received: from xavier.telenet-ops.be ([195.130.132.52]:59920 "EHLO
+        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752672AbeDQSRj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 14:17:39 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 16/20] remoteproc: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:16 +0200
+Message-Id: <1523987360-18760-17-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-Currently, each IRQ requires one IRQ_HANDLE() line to call each IRQ
-handler that was set up. Add a IRQ_HANDLE_NIBBLE() and IRQ_HANDLE_BYTE()
-macro to call all handlers in blocks of four (_NIBBLE) or eight (_BYTE)
-handlers at a time, to make this construct more compact.
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Picked up from the upstream dddvb-0.9.33 release.
+This simplifies the dependencies, and allows to improve compile-testing.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 67 ++++++++++++------------------
- 1 file changed, 27 insertions(+), 40 deletions(-)
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index be6935bd0cb5..5fbb0996a12c 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -2403,54 +2403,41 @@ void ddb_ports_release(struct ddb *dev)
- 		dev->link[0].irq[_nr].handler(dev->link[0].irq[_nr].data); } \
- 	while (0)
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/remoteproc/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index 027274008b086d6f..cd1c168fd18898dc 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -24,7 +24,6 @@ config IMX_REMOTEPROC
  
-+#define IRQ_HANDLE_NIBBLE(_shift) {		     \
-+	if (s & (0x0000000f << ((_shift) & 0x1f))) { \
-+		IRQ_HANDLE(0 + (_shift));	     \
-+		IRQ_HANDLE(1 + (_shift));	     \
-+		IRQ_HANDLE(2 + (_shift));	     \
-+		IRQ_HANDLE(3 + (_shift));	     \
-+	}					     \
-+}
-+
-+#define IRQ_HANDLE_BYTE(_shift) {		     \
-+	if (s & (0x000000ff << ((_shift) & 0x1f))) { \
-+		IRQ_HANDLE(0 + (_shift));	     \
-+		IRQ_HANDLE(1 + (_shift));	     \
-+		IRQ_HANDLE(2 + (_shift));	     \
-+		IRQ_HANDLE(3 + (_shift));	     \
-+		IRQ_HANDLE(4 + (_shift));	     \
-+		IRQ_HANDLE(5 + (_shift));	     \
-+		IRQ_HANDLE(6 + (_shift));	     \
-+		IRQ_HANDLE(7 + (_shift));	     \
-+	}					     \
-+}
-+
- static void irq_handle_msg(struct ddb *dev, u32 s)
- {
- 	dev->i2c_irq++;
--	IRQ_HANDLE(0);
--	IRQ_HANDLE(1);
--	IRQ_HANDLE(2);
--	IRQ_HANDLE(3);
-+	IRQ_HANDLE_NIBBLE(0);
- }
- 
- static void irq_handle_io(struct ddb *dev, u32 s)
- {
- 	dev->ts_irq++;
--	if ((s & 0x000000f0)) {
--		IRQ_HANDLE(4);
--		IRQ_HANDLE(5);
--		IRQ_HANDLE(6);
--		IRQ_HANDLE(7);
--	}
--	if ((s & 0x0000ff00)) {
--		IRQ_HANDLE(8);
--		IRQ_HANDLE(9);
--		IRQ_HANDLE(10);
--		IRQ_HANDLE(11);
--		IRQ_HANDLE(12);
--		IRQ_HANDLE(13);
--		IRQ_HANDLE(14);
--		IRQ_HANDLE(15);
--	}
--	if ((s & 0x00ff0000)) {
--		IRQ_HANDLE(16);
--		IRQ_HANDLE(17);
--		IRQ_HANDLE(18);
--		IRQ_HANDLE(19);
--		IRQ_HANDLE(20);
--		IRQ_HANDLE(21);
--		IRQ_HANDLE(22);
--		IRQ_HANDLE(23);
--	}
--	if ((s & 0xff000000)) {
--		IRQ_HANDLE(24);
--		IRQ_HANDLE(25);
--		IRQ_HANDLE(26);
--		IRQ_HANDLE(27);
--		IRQ_HANDLE(28);
--		IRQ_HANDLE(29);
--		IRQ_HANDLE(30);
--		IRQ_HANDLE(31);
--	}
-+	IRQ_HANDLE_NIBBLE(4);
-+	IRQ_HANDLE_BYTE(8);
-+	IRQ_HANDLE_BYTE(16);
-+	IRQ_HANDLE_BYTE(24);
- }
- 
- irqreturn_t ddb_irq_handler0(int irq, void *dev_id)
+ config OMAP_REMOTEPROC
+ 	tristate "OMAP remoteproc support"
+-	depends on HAS_DMA
+ 	depends on ARCH_OMAP4 || SOC_OMAP5
+ 	depends on OMAP_IOMMU
+ 	select MAILBOX
 -- 
-2.16.1
+2.7.4
