@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:46709 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753478AbeDCVQB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2018 17:16:01 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 5/5] media: docs: selection: fix misleading sentence about the CROP API
-Date: Tue,  3 Apr 2018 23:15:46 +0200
-Message-Id: <1522790146-16061-5-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
-References: <1522790146-16061-1-git-send-email-luca@lucaceresoli.net>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:51038 "EHLO
+        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755296AbeDQQkX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 12:40:23 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 0/9] cx231xx: House cleaning
+Date: Tue, 17 Apr 2018 11:39:46 -0500
+Message-Id: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The API limitation described here is about the CROP API, not about the
-entire V4L2.
+Included in this patch set is:
+- Bugfix for a device not working
+- Some clean up and value corrections
+- Conversion to new dvb i2c helpers
+- Update of device from old dvb attach to i2c device
+- Dependency fixes
+- Style fixes
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
----
- Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-index ba1064a244a0..e7455fb1e572 100644
---- a/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-+++ b/Documentation/media/uapi/v4l/selection-api-vs-crop-api.rst
-@@ -15,7 +15,7 @@ because the described operation is actually the composing. The
- selection API makes a clear distinction between composing and cropping
- operations by setting the appropriate targets.
- 
--The V4L2 API lacks any support for composing to and cropping from an
-+The CROP API lacks any support for composing to and cropping from an
- image inside a memory buffer. The application could configure a
- capture device to fill only a part of an image by abusing V4L2
- API. Cropping a smaller image from a larger one is achieved by setting
+Brad Love (9):
+  cx231xx: Fix several incorrect demod addresses
+  cx231xx: Use board profile values for addresses
+  cx231xx: Style fix for struct zero init
+  cx231xx: [bug] Ignore an i2c mux adapter
+  cx231xx: Switch to using new dvb i2c helpers
+  cx231xx: Update 955Q from dvb attach to i2c device
+  cx231xx: Remove unnecessary parameter clear
+  cx231xx: Remove RC_CORE dependency
+  cx231xx: Add I2C_MUX dependency
+
+ drivers/media/usb/cx231xx/Kconfig         |   1 -
+ drivers/media/usb/cx231xx/cx231xx-cards.c |   6 +-
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 365 ++++++++----------------------
+ 3 files changed, 94 insertions(+), 278 deletions(-)
+
 -- 
 2.7.4
