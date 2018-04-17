@@ -1,137 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48904 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751744AbeDJLHd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 07:07:33 -0400
-Date: Tue, 10 Apr 2018 08:07:27 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 07/29] media-request: add
- media_request_object_find
-Message-ID: <20180410080727.59e8fd7c@vento.lan>
-In-Reply-To: <20180409142026.19369-8-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-8-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from albert.telenet-ops.be ([195.130.137.90]:33230 "EHLO
+        albert.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752805AbeDQRuM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 13:50:12 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 09/20] iommu: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:09 +0200
+Message-Id: <1523987360-18760-10-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:20:04 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add media_request_object_find to find a request object inside a
-> request based on ops and/or priv values.
-> 
-> Objects of the same type (vb2 buffer, control handler) will have
-> the same ops value. And objects that refer to the same 'parent'
-> object (e.g. the v4l2_ctrl_handler that has the current driver
-> state) will have the same priv value.
-> 
-> The caller has to call media_request_object_put() for the returned
-> object since this function increments the refcount.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
->  include/media/media-request.h | 25 +++++++++++++++++++++++++
->  2 files changed, 51 insertions(+)
-> 
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index 02b620c81de5..415f7e31019d 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -322,6 +322,32 @@ static void media_request_object_release(struct kref *kref)
->  	obj->ops->release(obj);
->  }
->  
-> +struct media_request_object *
-> +media_request_object_find(struct media_request *req,
-> +			  const struct media_request_object_ops *ops,
-> +			  void *priv)
-> +{
-> +	struct media_request_object *obj;
-> +	struct media_request_object *found = NULL;
-> +	unsigned long flags;
-> +
-> +	if (!ops && !priv)
-> +		return NULL;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	list_for_each_entry(obj, &req->objects, list) {
-> +		if ((!ops || obj->ops == ops) &&
-> +		    (!priv || obj->priv == priv)) {
-> +			media_request_object_get(obj);
-> +			found = obj;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock_irqrestore(&req->lock, flags);
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Huh? The spin lock were used before only to protect the req->state,
-while the mutex is the one that protects the request itself.
+This simplifies the dependencies, and allows to improve compile-testing.
 
-So, here, it should be doing mutex_lock/unlock() instead.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Joerg Roedel <jroedel@suse.de>
+---
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
-> +	return found;
-> +}
-> +EXPORT_SYMBOL_GPL(media_request_object_find);
-> +
->  void media_request_object_put(struct media_request_object *obj)
->  {
->  	kref_put(&obj->kref, media_request_object_release);
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> index 033697d493cd..ea990c8f76bc 100644
-> --- a/include/media/media-request.h
-> +++ b/include/media/media-request.h
-> @@ -130,6 +130,23 @@ static inline void media_request_object_get(struct media_request_object *obj)
->   */
->  void media_request_object_put(struct media_request_object *obj);
->  
-> +/**
-> + * media_request_object_find - Find an object in a request
-> + *
-> + * @ops: Find an object with this ops value, may be NULL.
-> + * @priv: Find an object with this priv value, may be NULL.
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/iommu/Kconfig | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-@req ?
-
-> + *
-> + * At least one of @ops and @priv must be non-NULL. If one of
-> + * these is NULL, then skip checking for that field.
-> + *
-> + * Returns NULL if not found or the object (the refcount is increased
-> + * in that case).
-> + */
-> +struct media_request_object *
-> +media_request_object_find(struct media_request *req,
-> +			  const struct media_request_object_ops *ops,
-> +			  void *priv);
-> +
->  /**
->   * media_request_object_init - Initialise a media request object
->   *
-> @@ -162,6 +179,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
->  {
->  }
->  
-> +static inline struct media_request_object *
-> +media_request_object_find(struct media_request *req,
-> +			  const struct media_request_object_ops *ops,
-> +			  void *priv)
-> +{
-> +	return NULL;
-> +}
-> +
->  static inline void media_request_object_init(struct media_request_object *obj)
->  {
->  	obj->ops = NULL;
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index df171cb8582296b9..c76157e57f6ba4ba 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -23,7 +23,7 @@ config IOMMU_IO_PGTABLE
+ config IOMMU_IO_PGTABLE_LPAE
+ 	bool "ARMv7/v8 Long Descriptor Format"
+ 	select IOMMU_IO_PGTABLE
+-	depends on HAS_DMA && (ARM || ARM64 || (COMPILE_TEST && !GENERIC_ATOMIC64))
++	depends on ARM || ARM64 || (COMPILE_TEST && !GENERIC_ATOMIC64)
+ 	help
+ 	  Enable support for the ARM long descriptor pagetable format.
+ 	  This allocator supports 4K/2M/1G, 16K/32M and 64K/512M page
+@@ -42,7 +42,7 @@ config IOMMU_IO_PGTABLE_LPAE_SELFTEST
+ config IOMMU_IO_PGTABLE_ARMV7S
+ 	bool "ARMv7/v8 Short Descriptor Format"
+ 	select IOMMU_IO_PGTABLE
+-	depends on HAS_DMA && (ARM || ARM64 || COMPILE_TEST)
++	depends on ARM || ARM64 || COMPILE_TEST
+ 	help
+ 	  Enable support for the ARM Short-descriptor pagetable format.
+ 	  This supports 32-bit virtual and physical addresses mapped using
+@@ -376,7 +376,6 @@ config QCOM_IOMMU
+ 	# Note: iommu drivers cannot (yet?) be built as modules
+ 	bool "Qualcomm IOMMU Support"
+ 	depends on ARCH_QCOM || (COMPILE_TEST && !GENERIC_ATOMIC64)
+-	depends on HAS_DMA
+ 	select IOMMU_API
+ 	select IOMMU_IO_PGTABLE_LPAE
+ 	select ARM_DMA_USE_IOMMU
+-- 
+2.7.4
