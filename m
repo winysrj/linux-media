@@ -1,48 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:38624 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751204AbeDQOlN (ORCPT
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:38992 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751238AbeDQIo2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 10:41:13 -0400
-Date: Tue, 17 Apr 2018 20:13:06 +0530
-From: Souptick Joarder <jrdr.linux@gmail.com>
-To: mchehab@kernel.org, jack@suse.cz, dan.j.williams@intel.com,
-        akpm@linux-foundation.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        willy@infradead.org
-Subject: [PATCH] media: v4l2-core: Change return type to vm_fault_t
-Message-ID: <20180417144305.GA31337@jordon-HP-15-Notebook-PC>
+        Tue, 17 Apr 2018 04:44:28 -0400
+Received: by mail-ua0-f195.google.com with SMTP id g10so11938970ual.6
+        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 01:44:27 -0700 (PDT)
+Received: from mail-ua0-f170.google.com (mail-ua0-f170.google.com. [209.85.217.170])
+        by smtp.gmail.com with ESMTPSA id c187sm6060774vkf.46.2018.04.17.01.44.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 17 Apr 2018 01:44:25 -0700 (PDT)
+Received: by mail-ua0-f170.google.com with SMTP id d3so11614962uae.4
+        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 01:44:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20180308094807.9443-1-jacob-chen@iotwrt.com> <20180308094807.9443-9-jacob-chen@iotwrt.com>
+In-Reply-To: <20180308094807.9443-9-jacob-chen@iotwrt.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 17 Apr 2018 08:44:14 +0000
+Message-ID: <CAAFQd5CF9-T24sw9fPw050G=fPha46DnCb8g6m7V2wtNVx_=1A@mail.gmail.com>
+Subject: Re: [PATCH v6 08/17] media: rkisp1: add capture device driver
+To: Jacob Chen <jacob-chen@iotwrt.com>
+Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
+        Eddie Cai <eddie.cai.linux@gmail.com>,
+        Jeffy <jeffy.chen@rock-chips.com>, devicetree@vger.kernel.org,
+        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
+        Chen Jacob <jacob2.chen@rock-chips.com>,
+        =?UTF-8?B?6ZmI5Z+O?= <cc@rock-chips.com>,
+        Allon Huang <allon.huang@rock-chips.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use new return type vm_fault_t for fault handler. For
-now, this is just documenting that the function returns
-a VM_FAULT value rather than an errno. Once all instances
-are converted, vm_fault_t will become a distinct type.
+Hi Jacob,
 
-Reference id -> 1c8f422059ae ("mm: change return type to
-vm_fault_t")
+On Thu, Mar 8, 2018 at 6:49 PM Jacob Chen <jacob-chen@iotwrt.com> wrote:
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index f412429..54257ea 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -435,7 +435,7 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
-  * now ...).  Bounce buffers don't work very well for the data rates
-  * video capture has.
-  */
--static int videobuf_vm_fault(struct vm_fault *vmf)
-+static vm_fault_t videobuf_vm_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page;
---
-1.9.1
+> This is the capture device interface driver that provides the v4l2
+> user interface. Frames can be received from ISP1.
+
+Thanks for the patch. Please find my comment inline.
+
+[snip]
+> +static int
+> +rkisp1_start_streaming(struct vb2_queue *queue, unsigned int count)
+> +{
+> +       struct rkisp1_stream *stream = queue->drv_priv;
+> +       struct rkisp1_vdev_node *node = &stream->vnode;
+> +       struct rkisp1_device *dev = stream->ispdev;
+> +       struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
+> +       int ret;
+> +
+> +       if (WARN_ON(stream->state != RKISP1_STATE_READY))
+> +               goto return_queued_buf;
+
+We jump out with ret unitialized here. For reference, it triggers a
+compiler warning for me.
+
+Note that rather than initializing ret at its definition, I'd recommend
+adding an assignment before the goto statement. This will still let the
+compiler issue warnings, without assuming that the default value is correct.
+
+Best regards,
+Tomasz
