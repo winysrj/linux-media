@@ -1,149 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49056 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752901AbeDKPfQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 11:35:16 -0400
-Date: Wed, 11 Apr 2018 18:35:14 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180411153513.5r6foyfpzuipjfxw@valkosipuli.retiisi.org.uk>
+Received: from mail.bootlin.com ([62.4.15.54]:55508 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752332AbeDQLnx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 07:43:53 -0400
+Message-ID: <306cf219797f08bb854beab05ff1c4546c6c679e.camel@bootlin.com>
+Subject: Re: [RFCv11 PATCH 27/29] vim2m: support requests
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Tue, 17 Apr 2018 13:42:29 +0200
+In-Reply-To: <20180409142026.19369-28-hverkuil@xs4all.nl>
 References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-5-hverkuil@xs4all.nl>
- <20180410073206.12d4c67d@vento.lan>
- <20180410123234.ifo6v23wztsslmdp@valkosipuli.retiisi.org.uk>
- <20180410115143.41178f68@vento.lan>
- <20180411132116.lmirivlarpy5lcv4@valkosipuli.retiisi.org.uk>
- <20180411104935.5f566f0f@vento.lan>
- <20180411150219.iywopjmdpytamfgy@valkosipuli.retiisi.org.uk>
- <20180411121727.60133066@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180411121727.60133066@vento.lan>
+         <20180409142026.19369-28-hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-fnPFNmc3tyMMFZbUwAii"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 11, 2018 at 12:17:27PM -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 11 Apr 2018 18:02:19 +0300
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > On Wed, Apr 11, 2018 at 10:49:35AM -0300, Mauro Carvalho Chehab wrote:
-> > > Em Wed, 11 Apr 2018 16:21:16 +0300
-> > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > > 
-> > >   
-> > > > > > > Btw, this is a very good reason why you should define the ioctl to
-> > > > > > > have an integer argument instead of a struct with a __s32 field
-> > > > > > > on it, as per my comment to patch 02/29:
-> > > > > > > 
-> > > > > > > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, int)
-> > > > > > > 
-> > > > > > > At 64 bit architectures, you're truncating the file descriptor!      
-> > > > > > 
-> > > > > > I'm not quite sure what do you mean. int is 32 bits on 64-bit systems as
-> > > > > > well.    
-> > > > > 
-> > > > > Hmm.. you're right. I was thinking that it could be 64 bits on some
-> > > > > archs like sparc64 (Tru64 C compiler declares it with 64 bits), but,
-> > > > > according with:
-> > > > > 
-> > > > > 	https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html
-> > > > > 
-> > > > > This is not the case on gcc.    
-> > > > 
-> > > > Ok. The reasoning back then was that what "int" means varies across
-> > > > compilers and languages. And the intent was to codify this to __s32 which
-> > > > is what the kernel effectively uses.  
-> > > 
-> > > ...
-> > >   
-> > > > The rest of the kernel uses int rather liberally in the uAPI so I'm not
-> > > > sure in the end whether something desirable was achieved. Perhaps it'd be
-> > > > good to go back to the original discussion to find out for sure.
-> > > > 
-> > > > Still binaries compiled with Tru64 C compiler wouldn't work on Linux anyway
-> > > > due to that difference.
-> > > > 
-> > > > Well, I stop here for this begins to be off-topic. :-)  
-> > > 
-> > > Yes. Let's keep it as s32 as originally proposed. Just ignore my comments
-> > > about that :-)
-> > >   
-> > > > > > > > +	get_task_comm(comm, current);
-> > > > > > > > +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
-> > > > > > > > +		 comm, fd);      
-> > > > > > > 
-> > > > > > > Not sure if it is a good idea to store the task that allocated
-> > > > > > > the request. While it makes sense for the dev_dbg() below, it
-> > > > > > > may not make sense anymore on other dev_dbg() you would be
-> > > > > > > using it.      
-> > > > > > 
-> > > > > > The lifetime of the file handle roughly matches that of the request. It's
-> > > > > > for debug only anyway.
-> > > > > > 
-> > > > > > Better proposals are always welcome of course. But I think we should have
-> > > > > > something here that helps debugging by meaningfully making the requests
-> > > > > > identifiable from logs.    
-> > > > > 
-> > > > > What I meant to say is that one PID could be allocating the
-> > > > > request, while some other one could be actually doing Q/DQ_BUF.
-> > > > > On such scenario, the debug string could provide mislead prints.    
-> > > > 
-> > > > Um, yes, indeed it would no longer match the process. But the request is
-> > > > still the same. That's actually a positive thing since it allows you to
-> > > > identify the request.
-> > > > 
-> > > > With a global ID space this was trivial; you could just print the request
-> > > > ID and that was all that was ever needed. (I'm not proposing to consider
-> > > > that though.)
-> > > >   
-> > > 
-> > > IMO, a global ID number would work better than get_task_comm().
-> > > 
-> > > Just add a static int monotonic counter and use it for the debug purposes,
-> > > e. g.:
-> > > 
-> > > {
-> > > 	static unsigned int req_count = 0;
-> > > 
-> > > 	snprintf(req->debug_str, sizeof(req->debug_str), "%u:%d",
-> > > 		req_count++, fd);    
-> > > 
-> > > Ok, eventually, it will overflow, but, it will be unique within
-> > > a reasonable timeframe to be good enough for debugging purposes.  
-> > 
-> > Yes, but you can't figure out which process allocated it anymore, making
-> > associating kernel debug logs with user space process logs harder.
-> > 
-> > How about process id + file handle? That still doesn't tell which process
-> > operated on the request though, but I'm not sure whether that's really a
-> > crucial piece of information.
-> 
-> You don't need that. With dev_dbg() - and other *_dbg() macros - you can
-> enable process ID for all debug messages.
 
-With this, the problem again is that it does not uniquely identify the
-request: the request is the same request independently of which process
-would operate on it. Or whether it is being processed in an interrupt
-context.
+--=-fnPFNmc3tyMMFZbUwAii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-AFAICT, the allocator PID (or process name) + file handle are both required
-to match a request between user and kernel space logs.
+Hi,
 
-> 
-> Basically, if the user needs the PID, all it needs is to use "+pt",
-> e. g. something like:
-> 
-> 	echo "file drivers/media/* +pt" > /sys/kernel/debug/dynamic_debug/control
+On Mon, 2018-04-09 at 16:20 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> Add support for requests to vim2m.
 
-Thanks for the info. I didn't know this.
+Please find a nit below.
 
--- 
-Regards,
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/vim2m.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>=20
+> diff --git a/drivers/media/platform/vim2m.c
+> b/drivers/media/platform/vim2m.c
+> index 9b18b32c255d..2dcf0ea85705 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -387,8 +387,26 @@ static void device_run(void *priv)
+>  	src_buf =3D v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+>  	dst_buf =3D v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> =20
+> +	/* Apply request if needed */
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+This comment suggests that this is where request submission is handled.
+I suggest making it clear that this the place where the *controls*
+attached to the request are applied, instead.
+
+> +	if (src_buf->vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +	if (dst_buf->vb2_buf.req_obj.req &&
+> +	    dst_buf->vb2_buf.req_obj.req !=3D src_buf-
+> >vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_setup(dst_buf->vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +
+>  	device_process(ctx, src_buf, dst_buf);
+> =20
+> +	/* Complete request if needed */
+
+Ditto here.
+
+> +	if (src_buf->vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_complete(src_buf-
+> >vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +	if (dst_buf->vb2_buf.req_obj.req &&
+> +	    dst_buf->vb2_buf.req_obj.req !=3D src_buf-
+> >vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_complete(dst_buf-
+> >vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +
+>  	/* Run a timer, which simulates a hardware irq  */
+>  	schedule_irq(dev, ctx->transtime);
+>  }
+> @@ -823,6 +841,8 @@ static void vim2m_stop_streaming(struct vb2_queue
+> *q)
+>  			vbuf =3D v4l2_m2m_dst_buf_remove(ctx-
+> >fh.m2m_ctx);
+>  		if (vbuf =3D=3D NULL)
+>  			return;
+> +		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
+> +					   &ctx->hdl);
+>  		spin_lock_irqsave(&ctx->dev->irqlock, flags);
+>  		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+>  		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
+> @@ -1003,6 +1023,10 @@ static const struct v4l2_m2m_ops m2m_ops =3D {
+>  	.job_abort	=3D job_abort,
+>  };
+> =20
+> +static const struct media_device_ops m2m_media_ops =3D {
+> +	.req_queue =3D vb2_request_queue,
+> +};
+> +
+>  static int vim2m_probe(struct platform_device *pdev)
+>  {
+>  	struct vim2m_dev *dev;
+> @@ -1027,6 +1051,7 @@ static int vim2m_probe(struct platform_device
+> *pdev)
+>  	dev->mdev.dev =3D &pdev->dev;
+>  	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
+>  	media_device_init(&dev->mdev);
+> +	dev->mdev.ops =3D &m2m_media_ops;
+>  	dev->v4l2_dev.mdev =3D &dev->mdev;
+>  	dev->pad[0].flags =3D MEDIA_PAD_FL_SINK;
+>  	dev->pad[1].flags =3D MEDIA_PAD_FL_SOURCE;
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-fnPFNmc3tyMMFZbUwAii
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrV3aUACgkQ3cLmz3+f
+v9E4gQf/VUh1ax5935754EiwW694T1bkMp9Yjayh++VTIwvkYe/iR9KDa+k3XZBC
+dfJ1zVtrugc7Amp9bUfnUJheZwoAlomVrLg4z0/gDksKTGh0Ry1Ll7LIhp5jecxe
+Law/lOS24MsGEOwrjh1eE5Lb3kAJu6ez+Cx5CYk2Aid8V93KB/TYKOvy5a+8vkQ/
+6nQZdG+FtFYMERy+MTykdud2L88R9nGX37YfymVKaGYrbljhru4i+0qsLVibcKzQ
+YNMciXGqzmichTbyDFmv83DNo1hDiUwvnB8QY+Fl0yyfTIr6rSLbeoxsV8waQTxm
+ywhlSjgXh3DSHBqUGtL9J8OFAczVng==
+=mdSn
+-----END PGP SIGNATURE-----
+
+--=-fnPFNmc3tyMMFZbUwAii--
