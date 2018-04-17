@@ -1,248 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr30045.outbound.protection.outlook.com ([40.107.3.45]:37114
-        "EHLO EUR03-AM5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750807AbeDFG4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Apr 2018 02:56:06 -0400
-Subject: Re: [RfC PATCH] Add udmabuf misc device
-To: Matt Roper <matthew.d.roper@intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-        Dongwon Kim <dongwon.kim@intel.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        David Airlie <airlied@linux.ie>,
-        open list <linux-kernel@vger.kernel.org>,
-        qemu-devel@nongnu.org,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-References: <20180313154826.20436-1-kraxel@redhat.com>
- <20180313161035.GL4788@phenom.ffwll.local>
- <20180314080301.366zycak3whqvvqx@sirius.home.kraxel.org>
- <CAKMK7uGG6Z6XLc6GuKv7-3grCNg+EK2Lh6XWpavjsbZWF_L5Wg@mail.gmail.com>
- <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-Message-ID: <2411d2c1-33c0-2ba5-67ea-3bb9af5d5ec9@epam.com>
-Date: Fri, 6 Apr 2018 09:55:56 +0300
+Received: from osg.samsung.com ([64.30.133.232]:46213 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752915AbeDQNKQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 09:10:16 -0400
+Date: Tue, 17 Apr 2018 10:10:09 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Daniel Mentz <danielmentz@google.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 4/5] media: v4l2-compat-ioctl32: fix several __user
+ annotations
+Message-ID: <20180417101009.71d98c63@vento.lan>
+In-Reply-To: <20180417100131.3add7f67@vento.lan>
+References: <cover.1523960171.git.mchehab@s-opensource.com>
+        <510d0652872c612db21be8b846755f80e3cc4588.1523960171.git.mchehab@s-opensource.com>
+        <a150928f-c236-4751-b704-7ce71fd56bc2@cisco.com>
+        <20180417075358.61a878c8@vento.lan>
+        <b3ed6478-9cf5-478d-067b-5d325dfeaadd@cisco.com>
+        <20180417100131.3add7f67@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20180406001117.GD31612@mdroper-desk.amr.corp.intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/2018 03:11 AM, Matt Roper wrote:
-> On Thu, Apr 05, 2018 at 10:32:04PM +0200, Daniel Vetter wrote:
->> Pulling this out of the shadows again.
->>
->> We now also have xen-zcopy from Oleksandr and the hyper dmabuf stuff
->> from Matt and Dongwong.
->>
->> At least from the intel side there seems to be the idea to just have 1
->> special device that can handle cross-gues/host sharing for all kinds
->> of hypervisors, so I guess you all need to work together :-)
->>
->> Or we throw out the idea that hyper dmabuf will be cross-hypervisor
->> (not sure how useful/reasonable that is, someone please convince me
->> one way or the other).
->>
->> Cheers, Daniel
-> Dongwon (DW) is the one doing all the real work on hyper_dmabuf, but I'm
-> familiar with the use cases he's trying to address, and I think there
-> are a couple high-level goals of his work that are worth calling out as
-> we discuss the various options for sharing buffers produced in one VM
-> with a consumer running in another VM:
->
->   * We should try to keep the interface/usage separate from the
->     underlying hypervisor implementation details.  I.e., in DW's design
->     the sink/source drivers that handle the actual buffer passing in the
->     two VM's should provide a generic interface that does not depend on a
->     specific hypervisor.
-This is what we did for display, sound and multi-touch on Xen:
-we have implemented generic protocols which are OS agnostic.
-Have you started prototyping such a protocol for hyper-dmabuf yet?
+Em Tue, 17 Apr 2018 10:01:31 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
->   Behind the scenes there could be various
->     implementations for specific hypervisors (Xen, KVM, ACRN, etc.), and
->     some of those backends may have additional restrictions, but it would
->     be best if userspace didn't have to know the specific hypervisor
->     running on the system and could just query the general capabilities
->     available to it.  We've already got projects in flight that are
->     wanting this functionality on Xen and ACRN today.
-Should we add corresponding communities into discussion then?
+> > >> ->blocks is a u32, so this should be a u32 cast as well.    
+> > 
+> > Be aware that the unsigned char * cast is actually a bug: it will clamp the
+> > u32 'blocks' value to a u8.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> 
+> What about this approach (code untested)?
 
->
->   * The general interface should be able to express sharing from any
->     guest:guest, not just guest:host.  Arbitrary G:G sharing might be
->     something some hypervisors simply aren't able to support, but the
->     userspace API itself shouldn't make assumptions or restrict that.  I
->     think ideally the sharing API would include some kind of
->     query_targets interface that would return a list of VM's that your
->     current OS is allowed to share with; that list would be depend on the
->     policy established by the system integrator, but obviously wouldn't
->     include targets that the hypervisor itself wouldn't be capable of
->     handling.
-Can you give a use-case for this? I mean that the system integrator
-is the one who defines which guests/hosts talk to each other,
-but querying means that it is possible that VMs have some sort
-of discovery mechanism, so they can decide on their own whom
-to connect to.
->     
->   * A lot of the initial use cases are in the realm of graphics, but this
->     shouldn't be a graphics-specific API.  Buffers might contain other
->     types of content as well (e.g., audio).  Really the content producer
->     could potentially be any driver (or userspace) running in the VM that
->     knows how to import/export dma_buf's (or maybe just import given
->     danvet's suggestion that we should make the sink driver do all the
->     actual memory allocation for any buffers that may be shared).
->
->   * We need to be able to handle cross-VM coordination of buffer usage as
->     well, so I think we'd want to include fence forwarding support in the
->     API as well to signal back and forth about production/consumption
->     completion.  And of course document really well what should happen
->     if, for example, the entire VM you're sharing with/from dies.
->
->   * The sharing API could be used to share multiple kinds of content in a
->     single system.  The sharing sink driver running in the content
->     producer's VM should accept some additional metadata that will be
->     passed over to the target VM as well.  The sharing source driver
->     running in the content consumer's VM would then be able to use this
->     metadata to determine the purpose of a new buffer that arrives and
->     filter/dispatch it to the appropriate consumer.
->
->
-> For reference, the terminology I'm using is
->
->   /----------\  dma_buf   /------\ HV /--------\  dma_buf   /----------\
->   | Producer |----------->| Sink | HV | Source |----------->| Consumer |
->   \----------/   ioctls   \------/ HV \--------/  uevents   \----------/
->
->
->
-> In the realm of graphics, "Producer" could potentially be something like
-> an EGL client that sends the buffer at context setup and then signals
-> with fences on each SwapBuffers.  "Consumer" could be a Wayland client
-> that proxies the buffers into surfaces or dispatches them to other
-> userspace software that's waiting for buffers.
->
-> With the hyper_dmabuf approach, there's a lot of ABI details that need
-> to be worked out and really clearly documented before we worry too much
-> about the backend hypervisor-specific stuff.
->
-> I'm not super familiar with xen-zcopy
+Even better:
 
-Let me describe the rationale and some implementation details of the Xen
-zero-copy driver I posted recently [1].
+[PATCH] media: v4l2-compat-ioctl32: simplify casts
 
-The main requirement for us to implement such a helper driver was an ability
-to avoid memory copying for large buffers in display use-cases. This is why
-we only focused on DRM use-cases, not trying to implement something
-generic. This is why the driver is somewhat coupled with Xen 
-para-virtualized
-DRM driver [2] by Xen para-virtual display protocol [3] grant references
-sharing mechanism, e.g. backend receives an array of Xen grant references to
-frontend's buffer pages. These grant references are then used to construct a
-PRIME buffer. The same mechanism is used when backend shares a buffer 
-with the
-frontend, but in the other direction. More details on UAPI of the driver are
-available at [1].
+Making the cast right for get_user/put_user is not trivial, as
+it needs to ensure that the types are the correct ones.
 
-So, when discussing a possibility to share dma-bufs in a generic way I would
-also like to have the following considered:
+Improve it by using macros.
 
-1. We are targeting ARM and one of the major requirements for the buffer
-sharing is the ability to allocate physically contiguous buffers, which gets
-even more complicated for systems not backed with an IOMMU. So, for some
-use-cases it is enough to make the buffers contiguous in terms of IPA and
-sometimes those need to be contiguous in terms of PA.
-(The use-case is that you use Wayland-DRM/KMS or share the buffer with
-the driver implemented with DRM CMA helpers).
+PS.: Patch untested
 
-2. For Xen we would love to see UAPI to create a dma-buf from grant 
-references
-provided, so we can use this generic solution to implement zero-copying 
-without
-breaking the existing Xen protocols. This can probably be extended to other
-hypervizors as well.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Thank you,
-Oleksandr Andrushchenko
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8c05dd9660d3..d2f0268427c2 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -30,6 +30,24 @@
+ 	get_user(__assign_tmp, from) || put_user(__assign_tmp, to);	\
+ })
+ 
++#define get_user_cast(__x, __ptr)					\
++({									\
++	get_user(__x, (typeof(*__ptr) __user *)(__ptr));		\
++})
++
++#define put_user_force(__x, __ptr)					\
++({									\
++	put_user((typeof(*__x) __force *)(__x), __ptr);			\
++})
++
++#define assign_in_user_cast(to, from)					\
++({									\
++	typeof(*from) __assign_tmp;					\
++									\
++	get_user_cast(__assign_tmp, from) || put_user(__assign_tmp, to);\
++})
++
++
+ static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	long ret = -ENOIOCTLCMD;
+@@ -543,8 +561,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
+ 			return -EFAULT;
+ 
+ 		uplane = aux_buf;
+-		if (put_user((__force struct v4l2_plane *)uplane,
+-			     &p64->m.planes))
++		if (put_user_force(uplane, &p64->m.planes))
+ 			return -EFAULT;
+ 
+ 		while (num_planes--) {
+@@ -682,7 +699,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *p64,
+ 
+ 	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
+ 	    get_user(tmp, &p32->base) ||
+-	    put_user((void __force *)compat_ptr(tmp), &p64->base) ||
++	    put_user_force(compat_ptr(tmp), &p64->base) ||
+ 	    assign_in_user(&p64->capability, &p32->capability) ||
+ 	    assign_in_user(&p64->flags, &p32->flags) ||
+ 	    copy_in_user(&p64->fmt, &p32->fmt, sizeof(p64->fmt)))
+@@ -831,8 +848,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	if (aux_space < count * sizeof(*kcontrols))
+ 		return -EFAULT;
+ 	kcontrols = aux_buf;
+-	if (put_user((__force struct v4l2_ext_control *)kcontrols,
+-		     &p64->controls))
++	if (put_user_force(kcontrols, &p64->controls))
+ 		return -EFAULT;
+ 
+ 	for (n = 0; n < count; n++) {
+@@ -898,12 +914,11 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 		unsigned int size = sizeof(*ucontrols);
+ 		u32 id;
+ 
+-		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
++		if (get_user_cast(id, &kcontrols->id) ||
+ 		    put_user(id, &ucontrols->id) ||
+-		    assign_in_user(&ucontrols->size,
+-				   (unsigned int __user *)&kcontrols->size) ||
++		    assign_in_user_cast(&ucontrols->size, &kcontrols->size) ||
+ 		    copy_in_user(&ucontrols->reserved2,
+-				 (unsigned int __user *)&kcontrols->reserved2,
++				 (void __user *)&kcontrols->reserved2,
+ 				 sizeof(ucontrols->reserved2)))
+ 			return -EFAULT;
+ 
+@@ -916,7 +931,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 			size -= sizeof(ucontrols->value64);
+ 
+ 		if (copy_in_user(ucontrols,
+-			         (unsigned int __user *)kcontrols, size))
++			         (void __user *)kcontrols, size))
+ 			return -EFAULT;
+ 
+ 		ucontrols++;
+@@ -970,10 +985,9 @@ static int get_v4l2_edid32(struct v4l2_edid __user *p64,
+ 	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
+ 	    assign_in_user(&p64->pad, &p32->pad) ||
+ 	    assign_in_user(&p64->start_block, &p32->start_block) ||
+-	    assign_in_user(&p64->blocks,
+-			   (unsigned char __user *)&p32->blocks) ||
++	    assign_in_user_cast(&p64->blocks, &p32->blocks) ||
+ 	    get_user(tmp, &p32->edid) ||
+-	    put_user((void __force *)compat_ptr(tmp), &p64->edid) ||
++	    put_user_force(compat_ptr(tmp), &p64->edid) ||
+ 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
+ 	return 0;
 
 
->   and udmabuf, but it sounds like
-> they're approaching similar problems from slightly different directions,
-> so we should make sure we can come up with something that satisfies
-> everyone's requirements.
->
->
-> Matt
->
->> On Wed, Mar 14, 2018 at 9:03 AM, Gerd Hoffmann <kraxel@redhat.com> wrote:
->>>    Hi,
->>>
->>>> Either mlock account (because it's mlocked defacto), and get_user_pages
->>>> won't do that for you.
->>>>
->>>> Or you write the full-blown userptr implementation, including mmu_notifier
->>>> support (see i915 or amdgpu), but that also requires Christian Königs
->>>> latest ->invalidate_mapping RFC for dma-buf (since atm exporting userptr
->>>> buffers is a no-go).
->>> I guess I'll look at mlock accounting for starters then.  Easier for
->>> now, and leaves the door open to switch to userptr later as this should
->>> be transparent to userspace.
->>>
->>>>> Known issue:  Driver API isn't complete yet.  Need add some flags, for
->>>>> example to support read-only buffers.
->>>> dma-buf has no concept of read-only. I don't think we can even enforce
->>>> that (not many iommus can enforce this iirc), so pretty much need to
->>>> require r/w memory.
->>> Ah, ok.  Just saw the 'write' arg for get_user_pages_fast and figured we
->>> might support that, but if iommus can't handle that anyway it's
->>> pointless indeed.
->>>
->>>>> Cc: David Airlie <airlied@linux.ie>
->>>>> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->>>>> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
->>>> btw there's also the hyperdmabuf stuff from the xen folks, but imo their
->>>> solution of forwarding the entire dma-buf api is over the top. This here
->>>> looks _much_ better, pls cc all the hyperdmabuf people on your next
->>>> version.
->>> Fun fact: googling for "hyperdmabuf" found me your mail and nothing else :-o
->>> (Trying "hyper dmabuf" instead worked better then).
->>>
->>> Yes, will cc them on the next version.  Not sure it'll help much on xen
->>> though due to the memory management being very different.  Basically xen
->>> owns the memory, not the kernel of the control domain (dom0), so
->>> creating dmabufs for guest memory chunks isn't that simple ...
->>>
->>> Also it's not clear whenever they really need guest -> guest exports or
->>> guest -> dom0 exports.
->>>
->>>> Overall I like the idea, but too lazy to review.
->>> Cool.  General comments on the idea was all I was looking for for the
->>> moment.  Spare yor review cycles for the next version ;)
->>>
->>>> Oh, some kselftests for this stuff would be lovely.
->>> I'll look into it.
->>>
->>> thanks,
->>>    Gerd
->>>
->>> _______________________________________________
->>> dri-devel mailing list
->>> dri-devel@lists.freedesktop.org
->>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->>
->>
->> -- 
->> Daniel Vetter
->> Software Engineer, Intel Corporation
->> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-[1] https://patchwork.freedesktop.org/series/40880/
-[2] 
-https://cgit.freedesktop.org/drm/drm-misc/commit/?id=c575b7eeb89f94356997abd62d6d5a0590e259b7
-[3] 
-https://elixir.bootlin.com/linux/v4.16-rc7/source/include/xen/interface/io/displif.h
+Thanks,
+Mauro
