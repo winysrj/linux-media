@@ -1,151 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:14185 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751945AbeDJLKc (ORCPT
+Received: from leibniz.telenet-ops.be ([195.130.137.77]:33942 "EHLO
+        leibniz.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753205AbeDQRuU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 07:10:32 -0400
-Subject: Re: [RFCv11 PATCH 07/29] media-request: add media_request_object_find
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-8-hverkuil@xs4all.nl>
- <20180410080727.59e8fd7c@vento.lan>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <87616da3-0ab4-eae0-d0a8-7720e5da0ca5@cisco.com>
-Date: Tue, 10 Apr 2018 13:10:29 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180410080727.59e8fd7c@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 17 Apr 2018 13:50:20 -0400
+Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
+        by leibniz.telenet-ops.be (Postfix) with ESMTPS id 40QXpC3Hr5zMqjfw
+        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2018 19:50:11 +0200 (CEST)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 04/20] fbdev: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:04 +0200
+Message-Id: <1523987360-18760-5-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/18 13:07, Mauro Carvalho Chehab wrote:
-> Em Mon,  9 Apr 2018 16:20:04 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add media_request_object_find to find a request object inside a
->> request based on ops and/or priv values.
->>
->> Objects of the same type (vb2 buffer, control handler) will have
->> the same ops value. And objects that refer to the same 'parent'
->> object (e.g. the v4l2_ctrl_handler that has the current driver
->> state) will have the same priv value.
->>
->> The caller has to call media_request_object_put() for the returned
->> object since this function increments the refcount.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/media-request.c | 26 ++++++++++++++++++++++++++
->>  include/media/media-request.h | 25 +++++++++++++++++++++++++
->>  2 files changed, 51 insertions(+)
->>
->> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
->> index 02b620c81de5..415f7e31019d 100644
->> --- a/drivers/media/media-request.c
->> +++ b/drivers/media/media-request.c
->> @@ -322,6 +322,32 @@ static void media_request_object_release(struct kref *kref)
->>  	obj->ops->release(obj);
->>  }
->>  
->> +struct media_request_object *
->> +media_request_object_find(struct media_request *req,
->> +			  const struct media_request_object_ops *ops,
->> +			  void *priv)
->> +{
->> +	struct media_request_object *obj;
->> +	struct media_request_object *found = NULL;
->> +	unsigned long flags;
->> +
->> +	if (!ops && !priv)
->> +		return NULL;
->> +
->> +	spin_lock_irqsave(&req->lock, flags);
->> +	list_for_each_entry(obj, &req->objects, list) {
->> +		if ((!ops || obj->ops == ops) &&
->> +		    (!priv || obj->priv == priv)) {
->> +			media_request_object_get(obj);
->> +			found = obj;
->> +			break;
->> +		}
->> +	}
->> +	spin_unlock_irqrestore(&req->lock, flags);
-> 
-> Huh? The spin lock were used before only to protect the req->state,
-> while the mutex is the one that protects the request itself.
-> 
-> So, here, it should be doing mutex_lock/unlock() instead.
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-The mutex only serializes the actual queuing operation where you queue a
-request (and will likely have to sleep etc.). The spinlock is for the the
-other fields of the media_request struct.
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Regards,
+This simplifies the dependencies, and allows to improve compile-testing.
 
-	Hans
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+---
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
-> 
->> +	return found;
->> +}
->> +EXPORT_SYMBOL_GPL(media_request_object_find);
->> +
->>  void media_request_object_put(struct media_request_object *obj)
->>  {
->>  	kref_put(&obj->kref, media_request_object_release);
->> diff --git a/include/media/media-request.h b/include/media/media-request.h
->> index 033697d493cd..ea990c8f76bc 100644
->> --- a/include/media/media-request.h
->> +++ b/include/media/media-request.h
->> @@ -130,6 +130,23 @@ static inline void media_request_object_get(struct media_request_object *obj)
->>   */
->>  void media_request_object_put(struct media_request_object *obj);
->>  
->> +/**
->> + * media_request_object_find - Find an object in a request
->> + *
->> + * @ops: Find an object with this ops value, may be NULL.
->> + * @priv: Find an object with this priv value, may be NULL.
-> 
-> @req ?
-> 
->> + *
->> + * At least one of @ops and @priv must be non-NULL. If one of
->> + * these is NULL, then skip checking for that field.
->> + *
->> + * Returns NULL if not found or the object (the refcount is increased
->> + * in that case).
->> + */
->> +struct media_request_object *
->> +media_request_object_find(struct media_request *req,
->> +			  const struct media_request_object_ops *ops,
->> +			  void *priv);
->> +
->>  /**
->>   * media_request_object_init - Initialise a media request object
->>   *
->> @@ -162,6 +179,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
->>  {
->>  }
->>  
->> +static inline struct media_request_object *
->> +media_request_object_find(struct media_request *req,
->> +			  const struct media_request_object_ops *ops,
->> +			  void *priv)
->> +{
->> +	return NULL;
->> +}
->> +
->>  static inline void media_request_object_init(struct media_request_object *obj)
->>  {
->>  	obj->ops = NULL;
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/video/fbdev/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index d94254263ea5caa7..4f9853ec1721950f 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -2075,7 +2075,8 @@ config FB_XILINX
+ 
+ config FB_GOLDFISH
+ 	tristate "Goldfish Framebuffer"
+-	depends on FB && HAS_DMA && (GOLDFISH || COMPILE_TEST)
++	depends on FB
++	depends on GOLDFISH || COMPILE_TEST
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+-- 
+2.7.4
