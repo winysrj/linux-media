@@ -1,77 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:38194 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750788AbeDLIaJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 04:30:09 -0400
-Received: by mail-vk0-f67.google.com with SMTP id b16so2756274vka.5
-        for <linux-media@vger.kernel.org>; Thu, 12 Apr 2018 01:30:08 -0700 (PDT)
+Received: from mail.bootlin.com ([62.4.15.54]:37005 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753695AbeDQQBY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 12:01:24 -0400
+Date: Tue, 17 Apr 2018 18:01:22 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Samuel Bobrowicz <sam@elite-embedded.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: Re: [PATCH v2 00/12] media: ov5640: Misc cleanup and improvements
+Message-ID: <20180417160122.rfdlbdafmivgi5cd@flea>
+References: <20180416123701.15901-1-maxime.ripard@bootlin.com>
+ <CAFwsNOF6t-AAXr8gEBLnCx2OF-PjAWALhsJRVYHSdnaP9hswWA@mail.gmail.com>
 MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-23-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-23-hverkuil@xs4all.nl>
-From: Tomasz Figa <tfiga@google.com>
-Date: Thu, 12 Apr 2018 08:29:57 +0000
-Message-ID: <CAAFQd5Ckqhb2qEBdsBfG2iKTE4G76PFPep5KhEDJA=1m4wFA5Q@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 22/29] videobuf2-v4l2: add vb2_request_queue helper
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="nvduvdu2mhoyi34d"
+Content-Disposition: inline
+In-Reply-To: <CAFwsNOF6t-AAXr8gEBLnCx2OF-PjAWALhsJRVYHSdnaP9hswWA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+--nvduvdu2mhoyi34d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Generic helper function that checks if there are buffers in
-> the request and if so, prepares and queues all objects in the
-> request.
+On Mon, Apr 16, 2018 at 04:22:39PM -0700, Samuel Bobrowicz wrote:
+> I've been digging around the ov5640.c code for a few weeks now, these
+> look like some solid improvements. I'll give them a shot and let you
+> know how they work.
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->   drivers/media/common/videobuf2/videobuf2-v4l2.c | 39
-+++++++++++++++++++++++++
->   include/media/videobuf2-v4l2.h                  |  3 ++
->   2 files changed, 42 insertions(+)
+Great, thanks!
 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 73c1fd4da58a..3d0c74bb4220 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -1061,6 +1061,45 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
->   }
->   EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
+> On that note, I'm bringing up a module that uses dual lane MIPI with a
+> 12MHz fixed oscillator for xclk (Digilent's Pcam 5c). The mainline
+> version of the driver seems to only support xclk of 22MHz (or maybe
+> 24MHz), despite allowing xclk values from 6-24MHz. Will any of these
+> patches add support for a 12MHz xclk while in MIPI mode?
 
-> +int vb2_request_queue(struct media_request *req)
-> +{
-> +       struct media_request_object *obj;
-> +       struct media_request_object *failed_obj = NULL;
-> +       int ret = 0;
-> +
-> +       if (!vb2_core_request_has_buffers(req))
-> +               return -ENOENT;
-> +
-> +       list_for_each_entry(obj, &req->objects, list) {
-> +               if (!obj->ops->prepare)
-> +                       continue;
-> +
-> +               ret = obj->ops->prepare(obj);
-> +
-> +               if (ret) {
-> +                       failed_obj = obj;
-> +                       break;
-> +               }
-> +       }
-> +
-> +       if (ret) {
-> +               list_for_each_entry(obj, &req->objects, list) {
-> +                       if (obj == failed_obj)
-> +                               break;
+My setup has a 24MHz crystal, and work with a parallel bus so I
+haven't been able to test yours. However, yeah, I guess my patches
+will improve your situation a lot.
 
-nit: If we use list_for_each_entry_continue_reverse() here, we wouldn't
-need failed_obj.
+Maxime
 
-Best regards,
-Tomasz
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--nvduvdu2mhoyi34d
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrWGlEACgkQ0rTAlCFN
+r3Qapg//QmxLVwelJnlnpxqagmS11IN5GYQH84f8j2+GFVhz7qefYF+BN2v+y3nl
+tA6wivM9b4fIHnxHTxJr+FoQzg3T4y+anBcZ/4OBT6HSH2IdFkMKTmZ0jWJhV2b8
+eH05rB3wJldB3mQLgR+xf+8c3nyhisfqRhAyIKAiF3w2GYjqAdQu7rPZRj/ccvPU
+B1nn7Myl3VSvfd0UKw+gzi6QEyb/FyTSQbjZltu37rri8GrXhY0H+izYXfLtl8bL
+2qixdCJEwIm5C92K+fnze5I8r1Ix3kZNw119zTEJVSAEwJA0iXkQ7Taouc9LxaMp
+8CScmrAaBdAfVVKZ4zbHv89Cq2S2XcDaHI8Ry/gDNyojd8t611bpXoI6LAPwIn2/
+38GpezU4LqhJxWGD9qrMl2Maiv7dzW3qijiNGQYUyxJPT+VYAWiG8vPYjaf06IF6
+OHjdqVCrxfGAkHtirdgI/RYe0uPluqF+C4JPaimJUbGmL2DSATgwW6eyJjop+Ik5
+XHHRQM76XbHGUqCd91w7/BTRusq0/wqrWI2FMV7L8TAX0utIH0HuH/Qe0jxXiATV
+eRwJYpgZBJxR/hTiyDC+XePnOr8XaUngxwL1u0bdsFygmU15ZYtwU+6qVsXOy4sH
+Poy9D5co4n6IbVjFFPCbCzH2dDmb5XZIV3gksOSrphsJCv1PnDk=
+=gata
+-----END PGP SIGNATURE-----
+
+--nvduvdu2mhoyi34d--
