@@ -1,164 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41149 "EHLO osg.samsung.com"
+Received: from mga04.intel.com ([192.55.52.120]:22808 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752408AbeDJK6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 06:58:02 -0400
-Date: Tue, 10 Apr 2018 07:57:56 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
-Message-ID: <20180410075756.3975ed22@vento.lan>
-In-Reply-To: <20180409142026.19369-6-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-6-hverkuil@xs4all.nl>
+        id S1752327AbeDQUKZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 16:10:25 -0400
+Date: Tue, 17 Apr 2018 23:10:21 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] media: Add a driver for the ov7251 camera sensor
+Message-ID: <20180417201021.q6t4imtoaeh5vtsi@kekkonen.localdomain>
+References: <1521778460-8717-1-git-send-email-todor.tomov@linaro.org>
+ <1521778460-8717-3-git-send-email-todor.tomov@linaro.org>
+ <20180329115147.nai3dgverqpjympu@paasikivi.fi.intel.com>
+ <3b45d013-d9e7-04bf-22a3-06b858c2c7bd@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3b45d013-d9e7-04bf-22a3-06b858c2c7bd@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:20:02 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Todor,
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Apr 17, 2018 at 06:32:07PM +0300, Todor Tomov wrote:
+...
+> >> +static int ov7251_regulators_enable(struct ov7251 *ov7251)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	ret = regulator_enable(ov7251->io_regulator);
+> > 
+> > How about regulator_bulk_enable() here, and bulk_disable below?
 > 
-> Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
-> ioctls.
+> I'm not using the bulk API because usually there is a power up
+> sequence and intervals that must be followed. For this sensor
+> the only constraint is that core regulator must be enabled
+> after io regulator. But the bulk API doesn't guarantee the
+> order.
+
+Could you add a comment explaining this? Otherwise it won't take long until
+someone "fixes" the code.
+
+...
+
+> >> +static int ov7251_read_reg(struct ov7251 *ov7251, u16 reg, u8 *val)
+> >> +{
+> >> +	u8 regbuf[2];
+> >> +	int ret;
+> >> +
+> >> +	regbuf[0] = reg >> 8;
+> >> +	regbuf[1] = reg & 0xff;
+> >> +
+> >> +	ret = i2c_master_send(ov7251->i2c_client, regbuf, 2);
+> >> +	if (ret < 0) {
+> >> +		dev_err(ov7251->dev, "%s: write reg error %d: reg=%x\n",
+> >> +			__func__, ret, reg);
+> >> +		return ret;
+> >> +	}
+> >> +
+> >> +	ret = i2c_master_recv(ov7251->i2c_client, val, 1);
+> >> +	if (ret < 0) {
+> >> +		dev_err(ov7251->dev, "%s: read reg error %d: reg=%x\n",
+> >> +			__func__, ret, reg);
+> >> +		return ret;
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int ov7251_set_exposure(struct ov7251 *ov7251, s32 exposure)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_0,
+> >> +			       (exposure & 0xf000) >> 12);
+> >> +	if (ret < 0)
+> >> +		return ret;
+> >> +
+> >> +	ret = ov7251_write_reg(ov7251, OV7251_AEC_EXPO_1,
+> >> +			       (exposure & 0x0ff0) >> 4);
+> >> +	if (ret < 0)
+> >> +		return ret;
+> >> +
+> >> +	return ov7251_write_reg(ov7251, OV7251_AEC_EXPO_2,
+> >> +				(exposure & 0x000f) << 4);
+> > 
+> > It's not a good idea to access multi-octet registers separately. Depending
+> > on the hardware implementation, the hardware could latch the value in the
+> > middle of an update. This is only an issue during streaming in practice
+> > though.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/media-request.c | 80 +++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 78 insertions(+), 2 deletions(-)
+> Good point. The sensor has a group write functionality which can be used
+> to solve this but in general is intended
+> to apply a group of exposure and gain settings in the same frame. However
+> it seems to me that is not possible to use this functionality efficiently
+> with the currently available user controls. The group write is configured
+> using an id for a group of commands. So if we configure exposure and gain
+> separately (a group for each):
+> - if the driver uses same group id for exposure and gain, if both controls
+>   are received in one frame the second will overwrite the first (the
+>   first will not be applied);
+> - if the driver uses different group id for exposure and gain, it will not
+>   be possible for the user to change exposure and gain in the same frame
+>   (as some exposure algorithms do) and it will lead again to frames with
+>   "incorrect" brightness.
 > 
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index dffc290e4ada..27739ff7cb09 100644
-> --- a/drivers/media/media-request.c
-> +++ b/drivers/media/media-request.c
-> @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file *filp,
->  	return 0;
->  }
->  
-> +static long media_request_ioctl_queue(struct media_request *req)
-> +{
-> +	struct media_device *mdev = req->mdev;
-> +	unsigned long flags;
-> +	int ret = 0;
-> +
-> +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (req->state != MEDIA_REQUEST_STATE_IDLE) {
-> +		dev_dbg(mdev->dev,
-> +			"request: unable to queue %s, request in state %s\n",
-> +			req->debug_str, media_request_state_str(req->state));
-> +		spin_unlock_irqrestore(&req->lock, flags);
-> +		return -EINVAL;
-> +	}
-> +	req->state = MEDIA_REQUEST_STATE_QUEUEING;
-> +
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	/*
-> +	 * Ensure the request that is validated will be the one that gets queued
-> +	 * next by serialising the queueing process.
-> +	 */
-> +	mutex_lock(&mdev->req_queue_mutex);
+> To do this correctly we will have to extend the API to be able to apply
+> exposure and gain "atomically":
+> - a single user control which will set both exposure and gain and it will
+>   guarantee that they will be applied in the same frame;
+> - some kind of: begin, set exposure, set gain, end, launch -API
+> 
+> What do you think?
+> 
+> Actually, I'm a little bit surprised that I didn't find anything
+> like this already. And there are already a number of sensor drivers
+> which update more than one register to set exposure.
 
-The locking here seems really weird. IMHO, it should lock before
-touching state, as otherwise race conditions may happen.
+The latter of the two would be preferred as it isn't limited to exposure
+and gain only. Still, you could address the problem for this driver by
+simply writing the register in a single transaction.
 
-As I suggested before, I would use an atomic type for state, and get rid
-of the spin lock (as it seems that it is meant to be used just
-for state).
+...
 
-> +
-> +	ret = mdev->ops->req_queue(req);
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->state = ret ? MEDIA_REQUEST_STATE_IDLE : MEDIA_REQUEST_STATE_QUEUED;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +	mutex_unlock(&mdev->req_queue_mutex);
-> +
+> >> +static int ov7251_enum_mbus_code(struct v4l2_subdev *sd,
+> >> +				 struct v4l2_subdev_pad_config *cfg,
+> >> +				 struct v4l2_subdev_mbus_code_enum *code)
+> >> +{
+> >> +	if (code->index > 0)
+> >> +		return -EINVAL;
+> >> +
+> >> +	code->code = MEDIA_BUS_FMT_SBGGR10_1X10;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
+> >> +				  struct v4l2_subdev_pad_config *cfg,
+> >> +				  struct v4l2_subdev_frame_size_enum *fse)
+> >> +{
+> >> +	if (fse->code != MEDIA_BUS_FMT_SBGGR10_1X10)
+> > 
+> > Can the flip controls affect the media bus code? Either take this into
+> > account or remove flip controls.
+> 
+> This sensor is black and white (monochrome). I have used BGGR because I
+> didn't find any monochrome format amongst the Bayer formats. Looking
+> again at it now, probably we have to use MEDIA_BUS_FMT_Y10_1X10?
 
-Here, you have both mutex and spin locked. This is a strong indication
-that locks are not well designed, are you're using two different locks
-to protect the same data.
+:-) Yes, that's the right media bus code AFAICT.
 
-> +	if (ret) {
-> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-> +			req->debug_str, ret);
-> +	} else {
-> +		media_request_get(req);
-> +	}
-> +
-> +	return ret;
-> +}
+> 
+> However I cannot find a suitable pixel format too (to be used by the
+> platform driver) as the output is MIPI10 (same encoding as
+> V4L2_PIX_FMT_SBGGR10P but monochrome) and V4L2_PIX_FMT_Y10BPACK has
+> different encoding. So it seems to me that I will have to add another
+> pixel format, right?
 
-IMHO, the above construction hides the main code inside an if due
-to an error condition. Doing this makes it clearer that, under normal
-circumstances, you're doing a kref_get() call:
+Yes, please.
 
-	if (ret) {
-		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-			req->debug_str, ret);
-		return ret;
-	}
+-- 
+Kind regards,
 
-	kref_get(&req->kref);	// This is a way more easier to read than media_request_get(req);
-	return 0;
-}
-
-Another related issue: IMHO, kref_get() should be called here with the
-mutex hold. 
-
-> +static long media_request_ioctl_reinit(struct media_request *req)
-> +{
-> +	struct media_device *mdev = req->mdev;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (req->state != MEDIA_REQUEST_STATE_IDLE &&
-> +	    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
-> +		dev_dbg(mdev->dev,
-> +			"request: %s not in idle or complete state, cannot reinit\n",
-> +			req->debug_str);
-> +		spin_unlock_irqrestore(&req->lock, flags);
-> +		return -EINVAL;
-> +	}
-> +	req->state = MEDIA_REQUEST_STATE_CLEANING;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	media_request_clean(req);
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->state = MEDIA_REQUEST_STATE_IDLE;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-
-This code should be called with the mutex hold.
-
-> +	return 0;
-> +}
-> +
->  static long media_request_ioctl(struct file *filp, unsigned int cmd,
-> -				unsigned long __arg)
-> +				unsigned long arg)
->  {
-> -	return -ENOIOCTLCMD;
-> +	struct media_request *req = filp->private_data;
-> +
-> +	switch (cmd) {
-> +	case MEDIA_REQUEST_IOC_QUEUE:
-> +		return media_request_ioctl_queue(req);
-> +	case MEDIA_REQUEST_IOC_REINIT:
-> +		return media_request_ioctl_reinit(req);
-> +	default:
-> +		return -ENOIOCTLCMD;
-> +	}
->  }
->  
->  static const struct file_operations request_fops = {
-
-
-
-Thanks,
-Mauro
+Sakari Ailus
+sakari.ailus@linux.intel.com
