@@ -1,116 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:35213 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751595AbeDJFfs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 01:35:48 -0400
-Received: by mail-ua0-f193.google.com with SMTP id c3so6547430uae.2
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2018 22:35:48 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180409142026.19369-4-hverkuil@xs4all.nl>
-From: Tomasz Figa <tfiga@google.com>
-Date: Tue, 10 Apr 2018 05:35:37 +0000
-Message-ID: <CAAFQd5D4b2=cAM+64Oyt=8VEhxevyZ=rJjgZK7Eds_+du9uOEw@mail.gmail.com>
-Subject: Re: [RFCv11 PATCH 03/29] media-request: allocate media requests
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:33719 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751200AbeDQIwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 04:52:21 -0400
+Date: Tue, 17 Apr 2018 05:52:15 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 01/16] omap: omap-iommu.h: allow building drivers with
+ COMPILE_TEST
+Message-ID: <20180417055215.084ec137@vento.lan>
+In-Reply-To: <d732ddf4-db42-3549-15d1-90bfc8546a48@gentoo.org>
+References: <cover.1522949748.git.mchehab@s-opensource.com>
+        <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
+        <d732ddf4-db42-3549-15d1-90bfc8546a48@gentoo.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sun, 8 Apr 2018 12:12:17 +0200
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-On Mon, Apr 9, 2018 at 11:20 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-[snip]
-> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> new file mode 100644
-> index 000000000000..ead78613fdbe
-> --- /dev/null
-> +++ b/drivers/media/media-request.c
-> @@ -0,0 +1,23 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Media device request objects
-> + *
-> + * Copyright (C) 2018 Intel Corporation
-> + * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
+> Am 05.04.2018 um 19:54 schrieb Mauro Carvalho Chehab:
+> > Drivers that depend on omap-iommu.h (currently, just omap3isp)
+> > need a stub implementation in order to be built with COMPILE_TEST.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  include/linux/omap-iommu.h | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
+> > index c1aede46718b..0c21fc5b002e 100644
+> > --- a/include/linux/omap-iommu.h
+> > +++ b/include/linux/omap-iommu.h
+> > @@ -13,7 +13,12 @@
+> >  #ifndef _OMAP_IOMMU_H_
+> >  #define _OMAP_IOMMU_H_
+> >  
+> > +#ifdef CONFIG_OMAP_IOMMU
+> >  extern void omap_iommu_save_ctx(struct device *dev);
+> >  extern void omap_iommu_restore_ctx(struct device *dev);
+> > +#else
+> > +static inline void omap_iommu_save_ctx(struct device *dev) {};
+> > +static inline void omap_iommu_restore_ctx(struct device *dev) {};  
+> 
+> The semicolons at end of line are unnecessary.
+> 
+> > +#endif
+> >  
+> >  #endif
+> >   
 
-I'm not sure about the origin of this line, but it's not a correct
-copyright for kernel code produced as a part of Chrome OS project. It would
-normally be something like
+Hi Matthias,
 
-Copyright (C) 2018 Google, Inc.
+Somehow, I missed your comment.
 
-> + *
-> + * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-> + */
-> +
-> +#include <linux/anon_inodes.h>
-> +#include <linux/file.h>
-> +#include <linux/mm.h>
-> +#include <linux/string.h>
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-request.h>
-> +
-> +int media_request_alloc(struct media_device *mdev,
-> +                       struct media_request_alloc *alloc)
-> +{
-> +       return -ENOMEM;
-> +}
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index bcc6ec434f1f..07e323c57202 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -19,6 +19,7 @@
->   #ifndef _MEDIA_DEVICE_H
->   #define _MEDIA_DEVICE_H
+New version enclosed.
 
-> +#include <linux/anon_inodes.h>
 
-What is the need for anon_inodes in this header?
+Thanks,
+Mauro
 
->   #include <linux/list.h>
->   #include <linux/mutex.h>
 
-> @@ -27,6 +28,7 @@
+[PATCH v3] omap: omap-iommu.h: allow building drivers with COMPILE_TEST
 
->   struct ida;
->   struct device;
-> +struct media_device;
+Drivers that depend on omap-iommu.h (currently, just omap3isp)
+need a stub implementation in order to be built with COMPILE_TEST.
 
->   /**
->    * struct media_entity_notify - Media Entity Notify
-> @@ -50,10 +52,16 @@ struct media_entity_notify {
->    * struct media_device_ops - Media device operations
->    * @link_notify: Link state change notification callback. This callback
-is
->    *              called with the graph_mutex held.
-> + * @req_alloc: Allocate a request
-> + * @req_free: Free a request
-> + * @req_queue: Queue a request
->    */
->   struct media_device_ops {
->          int (*link_notify)(struct media_link *link, u32 flags,
->                             unsigned int notification);
-> +       struct media_request *(*req_alloc)(struct media_device *mdev);
-> +       void (*req_free)(struct media_request *req);
-> +       int (*req_queue)(struct media_request *req);
->   };
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/linux/omap-iommu.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
->   /**
-> @@ -88,6 +96,8 @@ struct media_device_ops {
->    * @disable_source: Disable Source Handler function pointer
->    *
->    * @ops:       Operation handler callbacks
-> + * @req_lock:  Serialise access to requests
-> + * @req_queue_mutex: Serialise validating and queueing requests
-
-Let's bikeshed a bit! "access" sounds like a superset of "validating and
-queuing" to me. Perhaps it could make sense to be a bit more specific on
-what type of access the spinlock is used for?
-
-Best regards,
-Tomasz
+diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
+index c1aede46718b..0c21fc5b002e 100644
+--- a/include/linux/omap-iommu.h
++++ b/include/linux/omap-iommu.h
+@@ -13,7 +13,12 @@
+ #ifndef _OMAP_IOMMU_H_
+ #define _OMAP_IOMMU_H_
+ 
++#ifdef CONFIG_OMAP_IOMMU
+ extern void omap_iommu_save_ctx(struct device *dev);
+ extern void omap_iommu_restore_ctx(struct device *dev);
++#else
++static inline void omap_iommu_save_ctx(struct device *dev) {} 
++static inline void omap_iommu_restore_ctx(struct device *dev) {} 
++#endif
+ 
+ #endif
