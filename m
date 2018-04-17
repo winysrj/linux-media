@@ -1,131 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56120 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751525AbeDZDrh (ORCPT
+Received: from michel.telenet-ops.be ([195.130.137.88]:59096 "EHLO
+        michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752792AbeDQRuM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 23:47:37 -0400
-Message-ID: <16ef679359db03e1090ddfacf22beb55@smtp-cloud8.xs4all.net>
-Date: Thu, 26 Apr 2018 05:47:31 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Tue, 17 Apr 2018 13:50:12 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 08/20] iio: adc: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:08 +0200
+Message-Id: <1523987360-18760-9-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
-Results of the daily build of media_tree:
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-date:			Thu Apr 26 05:00:13 CEST 2018
-media-tree git hash:	a2b2eff6ac2716f499defa590a6ec4ba379d765e
-media_build git hash:	f334f01f94f76ecff2816af5cc9e2ae2f54c06c8
-v4l-utils git hash:	4b93ba494c108a1ab73c261bb22e25d72750b09d
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		0.5.2-RC1
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.15.0-2-amd64
+This simplifies the dependencies, and allows to improve compile-testing.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.14.31-i686: OK
-linux-4.14.31-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16-i686: OK
-linux-4.16-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
-Detailed results are available here:
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/iio/adc/Kconfig | 2 --
+ 1 file changed, 2 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
+index 15606f237480dacb..88bbcd0e98632273 100644
+--- a/drivers/iio/adc/Kconfig
++++ b/drivers/iio/adc/Kconfig
+@@ -157,7 +157,6 @@ config AT91_SAMA5D2_ADC
+ 	tristate "Atmel AT91 SAMA5D2 ADC"
+ 	depends on ARCH_AT91 || COMPILE_TEST
+ 	depends on HAS_IOMEM
+-	depends on HAS_DMA
+ 	select IIO_TRIGGERED_BUFFER
+ 	help
+ 	  Say yes here to build support for Atmel SAMA5D2 ADC which is
+@@ -646,7 +645,6 @@ config SD_ADC_MODULATOR
+ config STM32_ADC_CORE
+ 	tristate "STMicroelectronics STM32 adc core"
+ 	depends on ARCH_STM32 || COMPILE_TEST
+-	depends on HAS_DMA
+ 	depends on OF
+ 	depends on REGULATOR
+ 	select IIO_BUFFER
+-- 
+2.7.4
