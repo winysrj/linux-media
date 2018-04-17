@@ -1,136 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:47253 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756739AbeDFOXp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 10:23:45 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hansverk@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] media: platform: fsl-viu: add __iomem annotations
-Date: Fri,  6 Apr 2018 16:23:18 +0200
-Message-Id: <20180406142336.2079928-1-arnd@arndb.de>
+Received: from osg.samsung.com ([64.30.133.232]:54994 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751211AbeDQKUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 06:20:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/5] omap: omap-iommu.h: allow building drivers with COMPILE_TEST
+Date: Tue, 17 Apr 2018 06:20:11 -0400
+Message-Id: <ff6b948447ad0bf3948d0f925254a4bc47881ef6.1523960171.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523960171.git.mchehab@s-opensource.com>
+References: <cover.1523960171.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1523960171.git.mchehab@s-opensource.com>
+References: <cover.1523960171.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This avoids countless sparse warnings like
+Drivers that depend on omap-iommu.h (currently, just omap3isp)
+need a stub implementation in order to be built with COMPILE_TEST.
 
-   drivers/media/platform/fsl-viu.c:1081:25: sparse: incorrect type in argument 2 (different address spaces)
-   drivers/media/platform/fsl-viu.c:1082:25: sparse: incorrect type in argument 2 (different address spaces)
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/fsl-viu.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ include/linux/omap-iommu.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 200c47c69a75..cc85620267f1 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -128,7 +128,7 @@ struct viu_dev {
- 	int			dma_done;
+diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
+index c1aede46718b..ce1b7c6283ee 100644
+--- a/include/linux/omap-iommu.h
++++ b/include/linux/omap-iommu.h
+@@ -13,7 +13,12 @@
+ #ifndef _OMAP_IOMMU_H_
+ #define _OMAP_IOMMU_H_
  
- 	/* Hardware register area */
--	struct viu_reg		*vr;
-+	struct viu_reg __iomem	*vr;
++#ifdef CONFIG_OMAP_IOMMU
+ extern void omap_iommu_save_ctx(struct device *dev);
+ extern void omap_iommu_restore_ctx(struct device *dev);
++#else
++static inline void omap_iommu_save_ctx(struct device *dev) {}
++static inline void omap_iommu_restore_ctx(struct device *dev) {}
++#endif
  
- 	/* Interrupt vector */
- 	int			irq;
-@@ -244,7 +244,7 @@ struct viu_fmt *format_by_fourcc(int fourcc)
- 
- void viu_start_dma(struct viu_dev *dev)
- {
--	struct viu_reg *vr = dev->vr;
-+	struct viu_reg __iomem *vr = dev->vr;
- 
- 	dev->field = 0;
- 
-@@ -255,7 +255,7 @@ void viu_start_dma(struct viu_dev *dev)
- 
- void viu_stop_dma(struct viu_dev *dev)
- {
--	struct viu_reg *vr = dev->vr;
-+	struct viu_reg __iomem *vr = dev->vr;
- 	int cnt = 100;
- 	u32 status_cfg;
- 
-@@ -395,7 +395,7 @@ static void free_buffer(struct videobuf_queue *vq, struct viu_buf *buf)
- 
- inline int buffer_activate(struct viu_dev *dev, struct viu_buf *buf)
- {
--	struct viu_reg *vr = dev->vr;
-+	struct viu_reg __iomem *vr = dev->vr;
- 	int bpp;
- 
- 	/* setup the DMA base address */
-@@ -703,9 +703,9 @@ static int verify_preview(struct viu_dev *dev, struct v4l2_window *win)
- 	return 0;
- }
- 
--inline void viu_activate_overlay(struct viu_reg *viu_reg)
-+inline void viu_activate_overlay(struct viu_reg __iomem *viu_reg)
- {
--	struct viu_reg *vr = viu_reg;
-+	struct viu_reg __iomem *vr = viu_reg;
- 
- 	out_be32(&vr->field_base_addr, reg_val.field_base_addr);
- 	out_be32(&vr->dma_inc, reg_val.dma_inc);
-@@ -985,9 +985,9 @@ inline void viu_activate_next_buf(struct viu_dev *dev,
- 	}
- }
- 
--inline void viu_default_settings(struct viu_reg *viu_reg)
-+inline void viu_default_settings(struct viu_reg __iomem *viu_reg)
- {
--	struct viu_reg *vr = viu_reg;
-+	struct viu_reg __iomem *vr = viu_reg;
- 
- 	out_be32(&vr->luminance, 0x9512A254);
- 	out_be32(&vr->chroma_r, 0x03310000);
-@@ -1001,7 +1001,7 @@ inline void viu_default_settings(struct viu_reg *viu_reg)
- 
- static void viu_overlay_intr(struct viu_dev *dev, u32 status)
- {
--	struct viu_reg *vr = dev->vr;
-+	struct viu_reg __iomem *vr = dev->vr;
- 
- 	if (status & INT_DMA_END_STATUS)
- 		dev->dma_done = 1;
-@@ -1032,7 +1032,7 @@ static void viu_overlay_intr(struct viu_dev *dev, u32 status)
- static void viu_capture_intr(struct viu_dev *dev, u32 status)
- {
- 	struct viu_dmaqueue *vidq = &dev->vidq;
--	struct viu_reg *vr = dev->vr;
-+	struct viu_reg __iomem *vr = dev->vr;
- 	struct viu_buf *buf;
- 	int field_num;
- 	int need_two;
-@@ -1104,7 +1104,7 @@ static void viu_capture_intr(struct viu_dev *dev, u32 status)
- static irqreturn_t viu_intr(int irq, void *dev_id)
- {
- 	struct viu_dev *dev  = (struct viu_dev *)dev_id;
--	struct viu_reg *vr = dev->vr;
-+	struct viu_reg __iomem *vr = dev->vr;
- 	u32 status;
- 	u32 error;
- 
-@@ -1169,7 +1169,7 @@ static int viu_open(struct file *file)
- 	struct video_device *vdev = video_devdata(file);
- 	struct viu_dev *dev = video_get_drvdata(vdev);
- 	struct viu_fh *fh;
--	struct viu_reg *vr;
-+	struct viu_reg __iomem *vr;
- 	int minor = vdev->minor;
- 	u32 status_cfg;
- 
-@@ -1305,7 +1305,7 @@ static int viu_release(struct file *file)
- 	return 0;
- }
- 
--void viu_reset(struct viu_reg *reg)
-+void viu_reset(struct viu_reg __iomem *reg)
- {
- 	out_be32(&reg->status_cfg, 0);
- 	out_be32(&reg->luminance, 0x9512a254);
+ #endif
 -- 
-2.9.0
+2.14.3
