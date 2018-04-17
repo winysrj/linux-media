@@ -1,59 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:38195 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751979AbeDEKBc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 06:01:32 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 2/2] libdvb5: Fix unused local variable warnings
-Date: Thu,  5 Apr 2018 13:00:40 +0300
-Message-Id: <1522922440-8622-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1522922440-8622-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1522922440-8622-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:51052 "EHLO
+        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754481AbeDQQk0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 12:40:26 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 7/8] cx231xx: Remove unnecessary parameter clear
+Date: Tue, 17 Apr 2018 11:39:53 -0500
+Message-Id: <1523983195-28691-8-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
+References: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some local variables are only needed conditionally depending on available
-system support for e.g. pthreads. Put these variables behind same #ifdefs
-so that no warnings are produced if these features aren't available.
+The default is now 0, no need to override
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- lib/libdvbv5/dvb-dev-local.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-dvb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
-index 7a76d65..7ebf2b6 100644
---- a/lib/libdvbv5/dvb-dev-local.c
-+++ b/lib/libdvbv5/dvb-dev-local.c
-@@ -296,7 +296,6 @@ static int dvb_local_find(struct dvb_device_priv *dvb,
- 	struct udev_enumerate *enumerate;
- 	struct udev_list_entry *devices, *dev_list_entry;
- 	struct udev_device *dev;
--	int ret;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index ac1d8e6..7fd096b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -1052,7 +1052,6 @@ static int dvb_init(struct cx231xx *dev)
+ 		lgdt3306a_config = hauppauge_955q_lgdt3306a_config;
+ 		lgdt3306a_config.fe = &dev->dvb->frontend[0];
+ 		lgdt3306a_config.i2c_adapter = &adapter;
+-		lgdt3306a_config.deny_i2c_rptr = 0;
  
- 	/* Free a previous list of devices */
- 	if (dvb->d.num_devices)
-@@ -346,6 +345,8 @@ static int dvb_local_find(struct dvb_device_priv *dvb,
- 	/* Begin monitoring udev events */
- #ifdef HAVE_PTHREAD
- 	if (priv->notify_dev_change) {
-+		int ret;
-+
- 		ret = pthread_create(&priv->dev_change_id, NULL,
- 				     monitor_device_changes, dvb);
- 		if (ret < 0) {
-@@ -364,9 +365,9 @@ static int dvb_local_find(struct dvb_device_priv *dvb,
- 
- static int dvb_local_stop_monitor(struct dvb_device_priv *dvb)
- {
-+#ifdef HAVE_PTHREAD
- 	struct dvb_dev_local_priv *priv = dvb->priv;
- 
--#ifdef HAVE_PTHREAD
- 	if (priv->notify_dev_change) {
- 		pthread_cancel(priv->dev_change_id);
- 		udev_unref(priv->udev);
+ 		/* perform tuner probe/init/attach */
+ 		client = dvb_module_probe("lgdt3306a", NULL, demod_i2c,
 -- 
 2.7.4
