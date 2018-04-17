@@ -1,144 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55222 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750730AbeDLHfG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Apr 2018 03:35:06 -0400
-Date: Thu, 12 Apr 2018 10:35:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 05/29] media-request: add request ioctls
-Message-ID: <20180412073504.5mggdps4os3vqv6r@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-6-hverkuil@xs4all.nl>
- <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
+Received: from mail.bootlin.com ([62.4.15.54]:58505 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752915AbeDQNKu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 09:10:50 -0400
+Date: Tue, 17 Apr 2018 15:10:24 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>
+Subject: Re: [PATCH v8 2/2] v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+Message-ID: <20180417131024.kc6smxh4mbd44nst@flea>
+References: <20180404122025.8726-1-maxime.ripard@bootlin.com>
+ <20180404122025.8726-3-maxime.ripard@bootlin.com>
+ <20180413121437.slsv2ef2j5k2aihw@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="fpsima7u2besgle5"
 Content-Disposition: inline
-In-Reply-To: <CAAFQd5ABOWjj9esLBxrOV_b8edv5_-VSCZNp6iZYTbUVeP9Xqw@mail.gmail.com>
+In-Reply-To: <20180413121437.slsv2ef2j5k2aihw@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
 
-On Tue, Apr 10, 2018 at 08:59:23AM +0000, Tomasz Figa wrote:
-> Hi Hans,
-> 
-> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> > Implement the MEDIA_REQUEST_IOC_QUEUE and MEDIA_REQUEST_IOC_REINIT
-> > ioctls.
-> 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >   drivers/media/media-request.c | 80
-> +++++++++++++++++++++++++++++++++++++++++--
-> >   1 file changed, 78 insertions(+), 2 deletions(-)
-> 
-> > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> > index dffc290e4ada..27739ff7cb09 100644
-> > --- a/drivers/media/media-request.c
-> > +++ b/drivers/media/media-request.c
-> > @@ -118,10 +118,86 @@ static unsigned int media_request_poll(struct file
-> *filp,
-> >          return 0;
-> >   }
-> 
-> > +static long media_request_ioctl_queue(struct media_request *req)
+--fpsima7u2besgle5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Sakari,
+
+On Fri, Apr 13, 2018 at 03:14:37PM +0300, Sakari Ailus wrote:
+> > +static int csi2tx_set_pad_format(struct v4l2_subdev *subdev,
+> > +				 struct v4l2_subdev_pad_config *cfg,
+> > +				 struct v4l2_subdev_format *fmt)
 > > +{
-> > +       struct media_device *mdev = req->mdev;
-> > +       unsigned long flags;
-> > +       int ret = 0;
+> > +	struct csi2tx_priv *csi2tx =3D v4l2_subdev_to_csi2tx(subdev);
 > > +
-> > +       dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
+> > +	if (fmt->pad >=3D CSI2TX_PAD_MAX)
+> > +		return -EINVAL;
 > > +
-> > +       spin_lock_irqsave(&req->lock, flags);
-> > +       if (req->state != MEDIA_REQUEST_STATE_IDLE) {
-> > +               dev_dbg(mdev->dev,
-> > +                       "request: unable to queue %s, request in state
-> %s\n",
-> > +                       req->debug_str,
-> media_request_state_str(req->state));
-> > +               spin_unlock_irqrestore(&req->lock, flags);
-> > +               return -EINVAL;
-> 
-> nit: Perhaps -EBUSY? (vb2 returns -EINVAL, though, but IMHO it doesn't
-> really represent the real error too closely.)
-> 
-> > +       }
-> > +       req->state = MEDIA_REQUEST_STATE_QUEUEING;
-> > +
-> > +       spin_unlock_irqrestore(&req->lock, flags);
-> > +
-> > +       /*
-> > +        * Ensure the request that is validated will be the one that gets
-> queued
-> > +        * next by serialising the queueing process.
-> > +        */
-> > +       mutex_lock(&mdev->req_queue_mutex);
-> > +
-> > +       ret = mdev->ops->req_queue(req);
-> > +       spin_lock_irqsave(&req->lock, flags);
-> > +       req->state = ret ? MEDIA_REQUEST_STATE_IDLE :
-> MEDIA_REQUEST_STATE_QUEUED;
-> > +       spin_unlock_irqrestore(&req->lock, flags);
-> > +       mutex_unlock(&mdev->req_queue_mutex);
-> > +
-> > +       if (ret) {
-> > +               dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-> > +                       req->debug_str, ret);
-> > +       } else {
-> > +               media_request_get(req);
-> 
-> I'm not convinced that this is the right place to take a reference. IMHO
-> whoever saves a pointer to the request in its own internal data (the
-> ->req_queue() callback?), should also grab a reference before doing so. Not
-> a strong objection, though, if we clearly document this, so that whoever
-> implements ->req_queue() callback can do the right thing.
+> > +	csi2tx->pad_fmts[fmt->pad] =3D fmt->format;
+>=20
+> Have I asked previously if there are any limitations with this?
+>=20
+> The CSI-2 TX link has multiple formats so I wouldn't support formats on
+> that pad in order to be compatible with the planned VC/data type support
+> patchset. Or do you see issues with that?
 
-The framework will also release that reference once the request is
-complete. In my opinion it's perfectly reasonable to do this in the
-framework; moving things to frameworks that do not need to be done in
-drivers generally reduces bugs and makes drivers more maintainable. Albeit
-this is a minor matter in this respect.
+It's not just about the CSI-2 link, but more about the input pads as
+well, that can be configured (and we need to know the format in order
+to configure the IP properly).
 
-Hans: the reference must be taken before the request is queued: otherwise
-it is possible that the driver completes the request before the reference
-is taken here. That would mean the request might have been already released
-by the time of getting a refenrece to it.
+Maybe we can simply prevent the format change on the CSI-2 pad, but
+not the others?
 
-> 
-> > +       }
-> > +
-> > +       return ret;
-> > +}
-> > +
-> > +static long media_request_ioctl_reinit(struct media_request *req)
-> > +{
-> > +       struct media_device *mdev = req->mdev;
-> > +       unsigned long flags;
-> > +
-> > +       spin_lock_irqsave(&req->lock, flags);
-> > +       if (req->state != MEDIA_REQUEST_STATE_IDLE &&
-> > +           req->state != MEDIA_REQUEST_STATE_COMPLETE) {
-> > +               dev_dbg(mdev->dev,
-> > +                       "request: %s not in idle or complete state,
-> cannot reinit\n",
-> > +                       req->debug_str);
-> > +               spin_unlock_irqrestore(&req->lock, flags);
-> > +               return -EINVAL;
-> 
-> nit: Perhaps -EBUSY? (Again vb2 would return -EINVAL...)
+Maxime
 
-I agree on both return values.
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
--- 
-Regards,
+--fpsima7u2besgle5
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlrV8j8ACgkQ0rTAlCFN
+r3TARA/+K32TEb7Ja/DpbaWx2/aVUlR/S4Zm21SGE/K81JriCEle8sBwZ6kpAxqj
+3KkiyjxnfPeHUErZ6pkF7QcOoZ2Ci/auMrZ5ty31QXqDYwIWUz12yN9vZQ6+QByT
+0ntZYHMpATINqb8Ot/vCFE2aImN6p0pIWBYHkgzJvdcPnCo8XTETw4i8CmZ8ByC+
+saYzTpRLiNCum0Yyqe1w1MZXj1klNNE4Nq9gR/0lBk4g+bPlbGx1+qgpGyqWNDQL
+2kSF72yAQzJVqxPTj0vDG/LRjOTEre5gzRNJAYR2+LIG1bKkeUUljxlYZxKQjKT3
+2HPLCC5azBPe0RXaKneN7r1Wcm88iQdFmRHOlCLKOdJJ5rigrIQlnMQAkOvnYGFI
+nWqPA+Oic2KvQn3oJU6coeoAYKEXwk3LJF/SIXmGqC50GxUB2PNGe+LOM36xsV5a
+FE2R54WsFwG5DrYKeY55k3WI5No3EB50GZ/k6dV7Bpa43QS8MIYdsbQYUqbpzEHf
+ru0VfdJT5vGN2M6azjAN51SBP1R4M8jIcibTYK9DUKOuRjFi9RoHA+JsZxrjUk93
+/OoKOo4/x882zktRpcqpjmGez5LbmYrPBPkz/eIL3zhP3l1T8WqtQVQrcE0uaTD7
+pLW/boyjEbsOjRigfkJus8vt+U14zf5q08+Xb0wnm2vfM5WK0do=
+=C2WO
+-----END PGP SIGNATURE-----
+
+--fpsima7u2besgle5--
