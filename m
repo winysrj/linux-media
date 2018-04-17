@@ -1,186 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:54932 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753539AbeDTHXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 03:23:46 -0400
-Message-ID: <5fa80b1e88ad2a215f51ea3a2b9b62274fa9b1ec.camel@bootlin.com>
-Subject: Re: [PATCH v2 08/10] dt-bindings: media: Document bindings for the
- Sunxi-Cedrus VPU driver
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Tomasz Figa <tfiga@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
-         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
-        Pawel Osciak <pawel@osciak.com>,
+Received: from albert.telenet-ops.be ([195.130.137.90]:49482 "EHLO
+        albert.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752310AbeDQTXs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 15:23:48 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Christoph Hellwig <hch@lst.de>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>
-Date: Fri, 20 Apr 2018 09:22:20 +0200
-In-Reply-To: <CAAFQd5DT_xjUbZzFOoKk7_duiSZ8Awb1J=0dPEhVTBk0P3gppA@mail.gmail.com>
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
-         <20180419154536.17846-4-paul.kocialkowski@bootlin.com>
-         <1524153860.3416.9.camel@pengutronix.de>
-         <CAAFQd5DT_xjUbZzFOoKk7_duiSZ8Awb1J=0dPEhVTBk0P3gppA@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-9FZvfMmIQIhuBv3NJwWK"
-Mime-Version: 1.0
+        Robin Murphy <robin.murphy@arm.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S . Miller" <davem@davemloft.net>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matias Bjorling <mb@lightnvm.io>,
+        Jassi Brar <jassisinghbrar@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Richard Weinberger <richard@nod.at>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Ohad Ben-Cohen <ohad@wizery.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Eric Anholt <eric@anholt.net>,
+        Stefan Wahren <stefan.wahren@i2se.com>
+Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
+        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH v3 17/20] serial: Remove depends on HAS_DMA in case of platform dependency
+Date: Tue, 17 Apr 2018 19:49:17 +0200
+Message-Id: <1523987360-18760-18-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
+symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
+In most cases this other symbol is an architecture or platform specific
+symbol, or PCI.
 
---=-9FZvfMmIQIhuBv3NJwWK
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Generic symbols and drivers without platform dependencies keep their
+dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
+cannot work anyway.
 
-Hi and thanks for the review,
+This simplifies the dependencies, and allows to improve compile-testing.
 
-On Fri, 2018-04-20 at 01:31 +0000, Tomasz Figa wrote:
-> Hi Paul, Philipp,
->=20
-> On Fri, Apr 20, 2018 at 1:04 AM Philipp Zabel <p.zabel@pengutronix.de>
-> wrote:
->=20
-> > Hi Paul,
-> > On Thu, 2018-04-19 at 17:45 +0200, Paul Kocialkowski wrote:
-> > > This adds a device-tree binding document that specifies the
-> > > properties
-> > > used by the Sunxi-Cedurs VPU driver, as well as examples.
-> > >=20
-> > > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > > ---
-> > >  .../devicetree/bindings/media/sunxi-cedrus.txt     | 50
->=20
-> ++++++++++++++++++++++
-> > >  1 file changed, 50 insertions(+)
-> > >  create mode 100644
->=20
-> Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > >=20
-> > > diff --git a/Documentation/devicetree/bindings/media/sunxi-
-> > > cedrus.txt
->=20
-> b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > > new file mode 100644
-> > > index 000000000000..71ad3f9c3352
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > > @@ -0,0 +1,50 @@
-> > > +Device-tree bindings for the VPU found in Allwinner SoCs,
-> > > referred to
->=20
-> as the
-> > > +Video Engine (VE) in Allwinner literature.
-> > > +
-> > > +The VPU can only access the first 256 MiB of DRAM, that are DMA-
-> > > mapped
->=20
-> starting
-> > > +from the DRAM base. This requires specific memory allocation and
->=20
-> handling.
->=20
-> And no IOMMU? Brings back memories.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: Robin Murphy <robin.murphy@arm.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+v3:
+  - Add Acked-by,
+  - Rebase to v4.17-rc1,
 
-Exactly, no IOMMU so we don't have much choice but cope with that
-hardware limitation...
+v2:
+  - Add Reviewed-by, Acked-by,
+  - Drop RFC state,
+  - Split per subsystem.
+---
+ drivers/tty/serial/Kconfig | 4 ----
+ 1 file changed, 4 deletions(-)
 
-> > > +
-> > > +Required properties:
-> > > +- compatible         : "allwinner,sun4i-a10-video-engine";
-> > > +- memory-region         : DMA pool for buffers allocation;
-> > > +- clocks             : list of clock specifiers, corresponding to
->=20
-> entries in
-> > > +                          the clock-names property;
-> > > +- clock-names                : should contain "ahb", "mod" and
-> > > "ram"
->=20
-> entries;
-> > > +- assigned-clocks       : list of clocks assigned to the VE;
-> > > +- assigned-clocks-rates : list of clock rates for the clocks
-> > > assigned
->=20
-> to the VE;
-> > > +- resets             : phandle for reset;
-> > > +- interrupts         : should contain VE interrupt number;
-> > > +- reg                        : should contain register base and
-> > > length
->=20
-> of VE.
-> > > +
-> > > +Example:
-> > > +
-> > > +reserved-memory {
-> > > +     #address-cells =3D <1>;
-> > > +     #size-cells =3D <1>;
-> > > +     ranges;
-> > > +
-> > > +     /* Address must be kept in the lower 256 MiBs of DRAM for
-> > > VE. */
-> > > +     ve_memory: cma@4a000000 {
-> > > +             compatible =3D "shared-dma-pool";
-> > > +             reg =3D <0x4a000000 0x6000000>;
-> > > +             no-map;
-> > > +             linux,cma-default;
-> > > +     };
-> > > +};
-> > > +
-> > > +video-engine@1c0e000 {
-> > This is not really required by any specification, and not as common
-> > as
-> > gpu@..., but could this reasonably be called "vpu@1c0e000" to follow
-> > somewhat-common practice?
->=20
-> AFAIR the name is supposed to be somewhat readable for someone that
-> doesn't know the hardware. To me, "video-engine" sounds more obvious
-> than "vpu", but we actually use "codec" already, in case of MFC and
-> JPEG codec on Exynos. If encode/decode is the only functionality of
-> this block, I'd personally go with "codec". If it can do other things,
-> e.g. scaling/rotation without encode/decode, I'd probably call it
-> "video-processor".
-
-I agree that the term VPU is more commonly associated with video
-decoding, while video engine could mean a number of things.
-
-The reason I went with "video-engine" here (while still presenting the
-driver as a VPU driver) is that Video Engine is the term used in
-Allwinner's litterature. Other nodes in Allwinner device-trees generally
-stick to these terms (for instance, we have "display-engine" nodes).
-This also makes it easier to find the matching parts in the
-documentation.
-
-Cheers,
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
---=-9FZvfMmIQIhuBv3NJwWK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrZlSwACgkQ3cLmz3+f
-v9Hy3ggAnk4HQUzPACB7k5/RwBMiSycikYulTkmhVcK+LnVj5b9Mq2z83uyPj0pp
-TdeyYi4zNHQYPrEFoK+s45leqrfJUaI4Nr24qJAVz5tia7zgFnKrW12KoPeOO2vI
-ijcAEy2dypRajYxjUxW3KqRwbomJcpTbNHAb0JQBP60FuWlq3hjfsaH/DRr66AzP
-gvCg/o2L9Cosd/mmWupmdwH92zWNMrS5r7f+XyouKaoxZuUm3QJXVttBtGxx/XXE
-hBtgj+2BFYgeN5shsXCO0kasjcJC3TkQyxhfd/BrrMxvbRDhOogeBJXGe/mlY1Xu
-JIjjIGANMCsARw9Uyeyh/Kc/ktwi5Q==
-=OpZH
------END PGP SIGNATURE-----
-
---=-9FZvfMmIQIhuBv3NJwWK--
+diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
+index 0f058df0b0701fe2..25b8c0a8a50397d6 100644
+--- a/drivers/tty/serial/Kconfig
++++ b/drivers/tty/serial/Kconfig
+@@ -115,7 +115,6 @@ config SERIAL_SB1250_DUART_CONSOLE
+ 
+ config SERIAL_ATMEL
+ 	bool "AT91 on-chip serial port support"
+-	depends on HAS_DMA
+ 	depends on ARCH_AT91 || COMPILE_TEST
+ 	select SERIAL_CORE
+ 	select SERIAL_MCTRL_GPIO if GPIOLIB
+@@ -500,7 +499,6 @@ config SERIAL_SA1100_CONSOLE
+ 
+ config SERIAL_IMX
+ 	tristate "IMX serial port support"
+-	depends on HAS_DMA
+ 	depends on ARCH_MXC || COMPILE_TEST
+ 	select SERIAL_CORE
+ 	select RATIONAL
+@@ -1262,7 +1260,6 @@ config SERIAL_PCH_UART_CONSOLE
+ 
+ config SERIAL_MXS_AUART
+ 	tristate "MXS AUART support"
+-	depends on HAS_DMA
+ 	depends on ARCH_MXS || MACH_ASM9260 || COMPILE_TEST
+ 	select SERIAL_CORE
+ 	select SERIAL_MCTRL_GPIO if GPIOLIB
+@@ -1473,7 +1470,6 @@ config SERIAL_SPRD_CONSOLE
+ config SERIAL_STM32
+ 	tristate "STMicroelectronics STM32 serial port support"
+ 	select SERIAL_CORE
+-	depends on HAS_DMA
+ 	depends on ARCH_STM32 || COMPILE_TEST
+ 	help
+ 	  This driver is for the on-chip Serial Controller on
+-- 
+2.7.4
