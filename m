@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:39589 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751027AbeDFPz5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 11:55:57 -0400
-Message-ID: <1523030155.32493.3.camel@pengutronix.de>
-Subject: Re: [PATCH] media: coda: do not try to propagate format if capture
- queue busy
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Ian Arkver <ian.arkver.dev@gmail.com>, linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de
-Date: Fri, 06 Apr 2018 17:55:55 +0200
-In-Reply-To: <47c0d3df-1632-c4fd-f9c0-699e89cd0d99@gmail.com>
-References: <20180328171243.28599-1-p.zabel@pengutronix.de>
-         <47c0d3df-1632-c4fd-f9c0-699e89cd0d99@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:38624 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751204AbeDQOlN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Apr 2018 10:41:13 -0400
+Date: Tue, 17 Apr 2018 20:13:06 +0530
+From: Souptick Joarder <jrdr.linux@gmail.com>
+To: mchehab@kernel.org, jack@suse.cz, dan.j.williams@intel.com,
+        akpm@linux-foundation.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        willy@infradead.org
+Subject: [PATCH] media: v4l2-core: Change return type to vm_fault_t
+Message-ID: <20180417144305.GA31337@jordon-HP-15-Notebook-PC>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ian,
+Use new return type vm_fault_t for fault handler. For
+now, this is just documenting that the function returns
+a VM_FAULT value rather than an errno. Once all instances
+are converted, vm_fault_t will become a distinct type.
 
-On Fri, 2018-04-06 at 09:40 +0100, Ian Arkver wrote: 
-> > -	ret = coda_try_fmt_vid_cap(file, priv, &f_cap);
-> > -	if (ret)
-> > -		return ret;
-> > -
-> > -	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> > -	r.left = 0;
-> > -	r.top = 0;
-> > -	r.width = q_data_src->width;
-> > -	r.height = q_data_src->height;
-> > -
-> > -	return coda_s_fmt(ctx, &f_cap, &r);
-> > +	return coda_s_fmt_vid_cap(file, priv, &f_cap);
-> 
-> Is this chunk (and removal of q_data_src above) part of the same patch? 
-> It doesn't seem covered by the subject line.
+Reference id -> 1c8f422059ae ("mm: change return type to
+vm_fault_t")
 
-You are right, I'll move this into a separate patch.
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-thanks
-Philipp
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index f412429..54257ea 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -435,7 +435,7 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+  * now ...).  Bounce buffers don't work very well for the data rates
+  * video capture has.
+  */
+-static int videobuf_vm_fault(struct vm_fault *vmf)
++static vm_fault_t videobuf_vm_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
+--
+1.9.1
