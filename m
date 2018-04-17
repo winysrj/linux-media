@@ -1,78 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39073 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750955AbeDMHct (ORCPT
+Received: from mail-it0-f65.google.com ([209.85.214.65]:52362 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752662AbeDQEeX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 03:32:49 -0400
-From: Patrice CHOTARD <patrice.chotard@st.com>
-To: Sean Young <sean@mess.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH 15/17] media: st_rc: Don't stay on an IRQ handler forever
-Date: Fri, 13 Apr 2018 07:32:08 +0000
-Message-ID: <eb6ed8db-2805-63f2-acb0-a262b07c76b7@st.com>
-References: <d20ab7176b2af82d6b679211edb5f151629d4033.1523546545.git.mchehab@s-opensource.com>
- <16b1993cde965edc096f0833091002dd05d4da7f.1523546545.git.mchehab@s-opensource.com>
- <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
-In-Reply-To: <20180412222132.z7g5enhin2uodbk7@gofer.mess.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <F24C0CB8B70ED3498AE099DDC014DB9B@st.com>
-Content-Transfer-Encoding: base64
+        Tue, 17 Apr 2018 00:34:23 -0400
+Received: by mail-it0-f65.google.com with SMTP id f6-v6so14270780ita.2
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:34:22 -0700 (PDT)
+Received: from mail-io0-f174.google.com (mail-io0-f174.google.com. [209.85.223.174])
+        by smtp.gmail.com with ESMTPSA id d184-v6sm5276813itd.44.2018.04.16.21.34.21
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 16 Apr 2018 21:34:22 -0700 (PDT)
+Received: by mail-io0-f174.google.com with SMTP id g9so2029685iob.11
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2018 21:34:21 -0700 (PDT)
 MIME-Version: 1.0
+References: <20180409142026.19369-1-hverkuil@xs4all.nl> <20180409142026.19369-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180409142026.19369-2-hverkuil@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Tue, 17 Apr 2018 04:34:10 +0000
+Message-ID: <CAPBb6MU39sR2LWdOc2x08w8RaFcoj5ry3mdiMmjMPBHEy=OE=g@mail.gmail.com>
+Subject: Re: [RFCv11 PATCH 01/29] v4l2-device.h: always expose mdev
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF1cm8sIFNlYW4NCg0KT24gMDQvMTMvMjAxOCAxMjoyMSBBTSwgU2VhbiBZb3VuZyB3cm90
-ZToNCj4gT24gVGh1LCBBcHIgMTIsIDIwMTggYXQgMTE6MjQ6MDdBTSAtMDQwMCwgTWF1cm8gQ2Fy
-dmFsaG8gQ2hlaGFiIHdyb3RlOg0KPj4gQXMgd2FybmVkIGJ5IHNtYXRjaDoNCj4+IAlkcml2ZXJz
-L21lZGlhL3JjL3N0X3JjLmM6MTEwIHN0X3JjX3J4X2ludGVycnVwdCgpIHdhcm46IHRoaXMgbG9v
-cCBkZXBlbmRzIG9uIHJlYWRsKCkgc3VjY2VlZGluZw0KPj4NCj4+IElmIHNvbWV0aGluZyBnb2Vz
-IHdyb25nIGF0IHJlYWRsKCksIHRoZSBsb2dpYyB3aWxsIHN0YXkgdGhlcmUNCj4+IGluc2lkZSBh
-biBJUlEgY29kZSBmb3JldmVyLiBUaGlzIGlzIG5vdCB0aGUgbmljZXN0IHRoaW5nIHRvDQo+PiBk
-byA6LSkNCj4+DQo+PiBTbywgYWRkIGEgdGltZW91dCB0aGVyZSwgcHJldmVudGluZyBzdGF5aW5n
-IGluc2lkZSB0aGUgSVJRDQo+PiBmb3IgbW9yZSB0aGFuIDEwbXMuDQo+IA0KPiBJZiB3ZSBrbmV3
-IGhvdyBsYXJnZSB0aGUgZmlmbyB3YXMsIHRoZW4gd2UgY291bGQgbGltaXQgdGhlIGxvb3AgdG8g
-dGhhdCBtYW55DQo+IGl0ZXJhdGlvbnMgKG1heWJlIGEgZmV3IGV4dHJhIGluIGNhc2UgSVIgYXJy
-aXZlcyB3aGlsZSB3ZSBhIHJlYWRpbmcsIGJ1dA0KPiBJUiBpcyBtdWNoIHNsb3dlciB0aGFuIGEg
-Y3B1IGV4ZWN1dGluZyB0aGlzIGxvb3Agb2YgY291cnNlKS4NCj4gDQo+IFBhdHJpY2UgaXMgc29t
-ZXRoaW5nIHlvdSBjb3VsZCBoZWxwIHdpdGg/DQoNClVuZm9ydHVuYXRlbHksIGkgd2lsbCBub3Qg
-YmUgYWJsZSB0byBnaXZlIHlvdSBhbiBhbnN3ZXIgcmVnYXJkaW5nIHRoZSBSeCANCmZpZm8gc2l6
-ZS4NCg0KRm9yIGluZm9ybWF0aW9uLCBjdXJyZW50bHksIG5vbmUgb2YgdXBzdHJlYW1lZCBTVCBi
-b2FyZHMgYXJlIHVzaW5nIHRoaXMgDQpkcml2ZXIuIEl0IHdhcyB1c2VkIGluIHRoZSBwYXN0IGlu
-dGVybmFsbHkgYW5kIGJ5IGN1c3RvbWVycy4NCg0KUmVnYXJkcw0KDQo+IA0KPiBUaGFua3MNCj4g
-DQo+IFNlYW4NCj4gDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogTWF1cm8gQ2FydmFsaG8gQ2hlaGFi
-IDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5jb20+DQo+PiAtLS0NCj4+ICAgZHJpdmVycy9tZWRpYS9y
-Yy9zdF9yYy5jIHwgMTYgKysrKysrKysrKy0tLS0tLQ0KPj4gICAxIGZpbGUgY2hhbmdlZCwgMTAg
-aW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9tZWRpYS9yYy9zdF9yYy5jIGIvZHJpdmVycy9tZWRpYS9yYy9zdF9yYy5jDQo+PiBpbmRleCBk
-MmVmZDdiMmMzYmMuLmM4NTViMTc3MTAzYyAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEv
-cmMvc3RfcmMuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9yYy9zdF9yYy5jDQo+PiBAQCAtOTYs
-MTkgKzk2LDI0IEBAIHN0YXRpYyB2b2lkIHN0X3JjX3NlbmRfbGlyY190aW1lb3V0KHN0cnVjdCBy
-Y19kZXYgKnJkZXYpDQo+PiAgIA0KPj4gICBzdGF0aWMgaXJxcmV0dXJuX3Qgc3RfcmNfcnhfaW50
-ZXJydXB0KGludCBpcnEsIHZvaWQgKmRhdGEpDQo+PiAgIHsNCj4+ICsJdW5zaWduZWQgbG9uZyB0
-aW1lb3V0Ow0KPj4gICAJdW5zaWduZWQgaW50IHN5bWJvbCwgbWFyayA9IDA7DQo+PiAgIAlzdHJ1
-Y3Qgc3RfcmNfZGV2aWNlICpkZXYgPSBkYXRhOw0KPj4gICAJaW50IGxhc3Rfc3ltYm9sID0gMDsN
-Cj4+IC0JdTMyIHN0YXR1czsNCj4+ICsJdTMyIHN0YXR1cywgaW50X3N0YXR1czsNCj4+ICAgCURF
-RklORV9JUl9SQVdfRVZFTlQoZXYpOw0KPj4gICANCj4+ICAgCWlmIChkZXYtPmlycV93YWtlKQ0K
-Pj4gICAJCXBtX3dha2V1cF9ldmVudChkZXYtPmRldiwgMCk7DQo+PiAgIA0KPj4gLQlzdGF0dXMg
-ID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX1NUQVRVUyk7DQo+PiArCS8qIEZJWE1FOiBp
-cyAxMG1zIGdvb2QgZW5vdWdoID8gKi8NCj4+ICsJdGltZW91dCA9IGppZmZpZXMgKyAgbXNlY3Nf
-dG9famlmZmllcygxMCk7DQo+PiArCWRvIHsNCj4+ICsJCXN0YXR1cyAgPSByZWFkbChkZXYtPnJ4
-X2Jhc2UgKyBJUkJfUlhfU1RBVFVTKTsNCj4+ICsJCWlmICghKHN0YXR1cyAmIChJUkJfRklGT19O
-T1RfRU1QVFkgfCBJUkJfT1ZFUkZMT1cpKSkNCj4+ICsJCQlicmVhazsNCj4+ICAgDQo+PiAtCXdo
-aWxlIChzdGF0dXMgJiAoSVJCX0ZJRk9fTk9UX0VNUFRZIHwgSVJCX09WRVJGTE9XKSkgew0KPj4g
-LQkJdTMyIGludF9zdGF0dXMgPSByZWFkbChkZXYtPnJ4X2Jhc2UgKyBJUkJfUlhfSU5UX1NUQVRV
-Uyk7DQo+PiArCQlpbnRfc3RhdHVzID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX0lOVF9T
-VEFUVVMpOw0KPj4gICAJCWlmICh1bmxpa2VseShpbnRfc3RhdHVzICYgSVJCX1JYX09WRVJSVU5f
-SU5UKSkgew0KPj4gICAJCQkvKiBkaXNjYXJkIHRoZSBlbnRpcmUgY29sbGVjdGlvbiBpbiBjYXNl
-IG9mIGVycm9ycyEgICovDQo+PiAgIAkJCWlyX3Jhd19ldmVudF9yZXNldChkZXYtPnJkZXYpOw0K
-Pj4gQEAgLTE0OCw4ICsxNTMsNyBAQCBzdGF0aWMgaXJxcmV0dXJuX3Qgc3RfcmNfcnhfaW50ZXJy
-dXB0KGludCBpcnEsIHZvaWQgKmRhdGEpDQo+PiAgIA0KPj4gICAJCX0NCj4+ICAgCQlsYXN0X3N5
-bWJvbCA9IDA7DQo+PiAtCQlzdGF0dXMgID0gcmVhZGwoZGV2LT5yeF9iYXNlICsgSVJCX1JYX1NU
-QVRVUyk7DQo+PiAtCX0NCj4+ICsJfSB3aGlsZSAodGltZV9pc19hZnRlcl9qaWZmaWVzKHRpbWVv
-dXQpKTsNCj4+ICAgDQo+PiAgIAl3cml0ZWwoSVJCX1JYX0lOVFMsIGRldi0+cnhfYmFzZSArIElS
-Ql9SWF9JTlRfQ0xFQVIpOw0KPj4gICANCj4+IC0tIA0KPj4gMi4xNC4z
+On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+
+> The mdev field is only present if CONFIG_MEDIA_CONTROLLER is set.
+> But since we will need to pass the media_device to vb2 snd the
+
+Typo: s/snd/and
+
+> control framework it is very convenient to just make this field
+> available all the time. If CONFIG_MEDIA_CONTROLLER is not set,
+> then it will just be NULL.
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>   include/media/v4l2-device.h | 4 +---
+>   1 file changed, 1 insertion(+), 3 deletions(-)
+
+> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+> index 0c9e4da55499..b330e4a08a6b 100644
+> --- a/include/media/v4l2-device.h
+> +++ b/include/media/v4l2-device.h
+> @@ -33,7 +33,7 @@ struct v4l2_ctrl_handler;
+>    * struct v4l2_device - main struct to for V4L2 device drivers
+>    *
+>    * @dev: pointer to struct device.
+> - * @mdev: pointer to struct media_device
+> + * @mdev: pointer to struct media_device, may be NULL.
+>    * @subdevs: used to keep track of the registered subdevs
+>    * @lock: lock this struct; can be used by the driver as well
+>    *     if this struct is embedded into a larger struct.
+> @@ -58,9 +58,7 @@ struct v4l2_ctrl_handler;
+>    */
+>   struct v4l2_device {
+>          struct device *dev;
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+>          struct media_device *mdev;
+> -#endif
+>          struct list_head subdevs;
+>          spinlock_t lock;
+>          char name[V4L2_DEVICE_NAME_SIZE];
+> --
+> 2.16.3
