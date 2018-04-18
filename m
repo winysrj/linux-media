@@ -1,79 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:58316 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753150AbeDUV3Q (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:37675 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753666AbeDRLsi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Apr 2018 17:29:16 -0400
-Subject: Re: [PATCH] media: imx: Skip every second frame in VDIC DIRECT mode
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Marek Vasut <marex@denx.de>, <linux-media@vger.kernel.org>
-References: <20180407130440.24886-1-marex@denx.de>
- <1523527441.3689.7.camel@pengutronix.de>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <e022d161-71c0-cdd2-7eb4-855dbe3a8e72@mentor.com>
-Date: Sat, 21 Apr 2018 14:29:10 -0700
+        Wed, 18 Apr 2018 07:48:38 -0400
+Date: Wed, 18 Apr 2018 13:48:33 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v2 07/10] media: ov772x: support device tree probing
+Message-ID: <20180418114833.GD20486@w540>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+ <1523847111-12986-8-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1523527441.3689.7.camel@pengutronix.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="cHMo6Wbp1wrKhbfi"
+Content-Disposition: inline
+In-Reply-To: <1523847111-12986-8-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--cHMo6Wbp1wrKhbfi
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On 04/12/2018 03:04 AM, Philipp Zabel wrote:
-> On Sat, 2018-04-07 at 15:04 +0200, Marek Vasut wrote:
->> In VDIC direct mode, the VDIC applies combing filter during and
->> doubles the framerate, that is, after the first two half-frames
->> are received and the first frame is emitted by the VDIC, every
->> subsequent half-frame is patched into the result and a full frame
->> is produced. The half-frame order in the full frames is as follows
->> 12 32 34 54 etc.
-> Is that true? We are only supporting full motion mode (VDI_MOT_SEL=2),
-> so I was under the impression that only data from the current field
-> makes it into the full frame. The missing lines should be purely
-> estimated from the available field using the di_vfilt 4-tap filter.
+Hi Akinobu,
 
-Yes, the reference manual states that the VDI_MOT_SEL field
-value 2 is "Full motion, only vertical filter is used". Which is
-clearly referring to the di_vfilt 4-tap filter.
+On Mon, Apr 16, 2018 at 11:51:48AM +0900, Akinobu Mita wrote:
+> The ov772x driver currently only supports legacy platform data probe.
+> This change enables device tree probing.
+>
+> Note that the platform data probe can select auto or manual edge control
+> mode, but the device tree probling can only select auto edge control mode
+> for now.
+>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+> * v2
+> - Add missing NULL checks for priv->info
+> - Leave the check for the missing platform data if legacy platform data
+>   probe is used.
+>
+>  drivers/media/i2c/ov772x.c | 61 ++++++++++++++++++++++++++++++++--------------
+>  1 file changed, 43 insertions(+), 18 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> index 88d1418a..4245a46 100644
+> --- a/drivers/media/i2c/ov772x.c
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -749,13 +749,13 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	case V4L2_CID_VFLIP:
+>  		val = ctrl->val ? VFLIP_IMG : 0x00;
+>  		priv->flag_vflip = ctrl->val;
+> -		if (priv->info->flags & OV772X_FLAG_VFLIP)
+> +		if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+>  			val ^= VFLIP_IMG;
+>  		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+>  	case V4L2_CID_HFLIP:
+>  		val = ctrl->val ? HFLIP_IMG : 0x00;
+>  		priv->flag_hflip = ctrl->val;
+> -		if (priv->info->flags & OV772X_FLAG_HFLIP)
+> +		if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+>  			val ^= HFLIP_IMG;
+>  		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+>  	case V4L2_CID_BAND_STOP_FILTER:
+> @@ -914,19 +914,14 @@ static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+>  	*win = ov772x_select_win(mf->width, mf->height);
+>  }
+>
+> -static int ov772x_set_params(struct ov772x_priv *priv,
+> -			     const struct ov772x_color_format *cfmt,
+> -			     const struct ov772x_win_size *win)
+> +static int ov772x_edgectrl(struct ov772x_priv *priv)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+> -	struct v4l2_fract tpf;
+>  	int ret;
+> -	u8  val;
+>
+> -	/* Reset hardware. */
+> -	ov772x_reset(client);
+> +	if (!priv->info)
+> +		return 0;
+>
+> -	/* Edge Ctrl. */
+>  	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+>  		/*
+>  		 * Manual Edge Control Mode.
+> @@ -937,19 +932,19 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+>
+>  		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+>  		if (ret < 0)
+> -			goto ov772x_set_fmt_error;
+> +			return ret;
+>
+>  		ret = ov772x_mask_set(client,
+>  				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+>  				      priv->info->edgectrl.threshold);
+>  		if (ret < 0)
+> -			goto ov772x_set_fmt_error;
+> +			return ret;
+>
+>  		ret = ov772x_mask_set(client,
+>  				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+>  				      priv->info->edgectrl.strength);
+>  		if (ret < 0)
+> -			goto ov772x_set_fmt_error;
+> +			return ret;
+>
+>  	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+>  		/*
+> @@ -961,15 +956,35 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+>  				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+>  				      priv->info->edgectrl.upper);
+>  		if (ret < 0)
+> -			goto ov772x_set_fmt_error;
+> +			return ret;
+>
+>  		ret = ov772x_mask_set(client,
+>  				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+>  				      priv->info->edgectrl.lower);
+>  		if (ret < 0)
+> -			goto ov772x_set_fmt_error;
+> +			return ret;
+>  	}
+>
+> +	return 0;
+> +}
+> +
+> +static int ov772x_set_params(struct ov772x_priv *priv,
+> +			     const struct ov772x_color_format *cfmt,
+> +			     const struct ov772x_win_size *win)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+> +	struct v4l2_fract tpf;
+> +	int ret;
+> +	u8  val;
+> +
+> +	/* Reset hardware. */
+> +	ov772x_reset(client);
+> +
+> +	/* Edge Ctrl. */
+> +	ret =  ov772x_edgectrl(priv);
+> +	if (ret < 0)
+> +		goto ov772x_set_fmt_error;
 
-There are still some questions about how full motion mode is
-supposed to work. For one thing, the di_vfilt only operates on four
-consecutive lines of a single field. It makes no sense that the VDIC
-can compensate for motion between fields when it is operating
-with only one field.
+You should return ret here, jumping to the ov772x_set_fmt_error label
+will only reset the sensor twice and return.
 
-Marek, where did you get the information that full motion mode
-applies some kind of combing filter? A combing filter would imply
-taking previous and/or future fields back into the result, which is
-exactly what the other motion modes do, but as I said the reference
-manual is clear that full motion mode uses only the (single field)
-vertical filter.
+> +
+>  	/* Format and window size. */
+>  	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+>  	if (ret < 0)
+> @@ -1020,9 +1035,9 @@ static int ov772x_set_params(struct ov772x_priv *priv,
+>
+>  	/* Set COM3. */
+>  	val = cfmt->com3;
+> -	if (priv->info->flags & OV772X_FLAG_VFLIP)
+> +	if (priv->info && (priv->info->flags & OV772X_FLAG_VFLIP))
+>  		val |= VFLIP_IMG;
+> -	if (priv->info->flags & OV772X_FLAG_HFLIP)
+> +	if (priv->info && (priv->info->flags & OV772X_FLAG_HFLIP))
+>  		val |= HFLIP_IMG;
+>  	if (priv->flag_vflip)
+>  		val ^= VFLIP_IMG;
+> @@ -1271,7 +1286,7 @@ static int ov772x_probe(struct i2c_client *client,
+>  	struct i2c_adapter	*adapter = client->adapter;
+>  	int			ret;
+>
+> -	if (!client->dev.platform_data) {
+> +	if (!client->dev.of_node && !client->dev.platform_data) {
+>  		dev_err(&client->dev, "Missing ov772x platform data\n");
 
-The manual also mentions regarding "real-time mode" which we are
-making use of (in which the VDIC FIFO1 receives field F(n-1) directly
-from the CSI rather than from DMA):
+Update the error message as well.
 
-"In addition IDMAC read the field from FIFO1 and store in external memory.
-Then stored frames are used as F(n) and F(n+1).".
+Apart from that:
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
 
-It is nowhere explicitly stated, but the assumption is that this is IDMAC
-channel 13 that stores the CSI field to memory. But many people have
-asked Freescale/NXP how this works in the past, and there has never
-been a satisfactory answer. And people have reported no success in
-getting this channel to work including myself.
+Thanks
+   j
 
-So the approach this driver takes is to use real-time mode to receive
-F(n-1) directly from CSI, in concert with full motion mode, so that
-the VDIC operates on F(n-1) only. Thus no DMA is necessary.
+>  		return -EINVAL;
+>  	}
+> @@ -1372,9 +1387,19 @@ static const struct i2c_device_id ov772x_id[] = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, ov772x_id);
+>
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id ov772x_of_match[] = {
+> +	{ .compatible = "ovti,ov7725", },
+> +	{ .compatible = "ovti,ov7720", },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, ov772x_of_match);
+> +#endif
+> +
+>  static struct i2c_driver ov772x_i2c_driver = {
+>  	.driver = {
+>  		.name = "ov772x",
+> +		.of_match_table = of_match_ptr(ov772x_of_match),
+>  	},
+>  	.probe    = ov772x_probe,
+>  	.remove   = ov772x_remove,
+> --
+> 2.7.4
+>
 
-Finally I have to say that the other modes are supported in this driver,
-but they require DMA transfer of all three fields, and there is no
-output device node written to make use of those modes yet. But
-from experience, the de-interlaced result is of much better quality
-than the real-time/full-motion output.
+--cHMo6Wbp1wrKhbfi
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Steve
+iQIcBAEBAgAGBQJa1zCRAAoJEHI0Bo8WoVY8MBAQAKSXJ6SEt3YFNQNDrcUSOLx2
+FOQdOnGXRDQODk9RM3fn3OTQrHUxXOl+v8X29hRkAfvzZ7GhcAJa8NpqaVDv2sPT
+wK7GVL2iOBMC5YGYgtEYT25PDmFBJ6kZoS8i+lILSe8ipPuc7Uh+MrnBiLmAHoGv
+3COU4a64ij5vaxwYx94JZJD+Pf3fMCZS3jKSbm1BnGYLLGtKJNC/MNCpYNJpyd1x
+rYqKCGMGzTA5zQu95yTxmRp1207izC8CdydMHxIgAHzpeKsrtRHfIPfogho73672
+wqEqiO9nddkBgy3a9MoLriGaEKiwya7fJJw7A1nBlgL6/KeVqhF2dgaUqbylOVyt
+7Ae81SoJzokbt0aZai5HqXJx6ygtSfN/rPT+nn/PyqCmmMq1c9LdOnmbRyHQRYPY
+qCMk+o8uk45g/AIVRT6n9pVNF2/z5h8nadTZ35y+mMtaM/Pr5mnzBy+DyTnThftM
+3UK+GBnFnn2vURTEuhzDB/SD8CVZH5L6B+t+a0ulskzXCwphBsL5QA5cpTlxCy65
+amrmrFAhRhklMy3JdTQBZjkhWPVlT3vzBMmQgIorrMulauFvtfv7r9yobjp1d5rC
+TGZBQwKUObYkM3XxkIdeiUBxg7vNkSH9ohuzTh4WcJ+gbhjJqYRcs+uHu6LHQz9R
+f94sLN9VD93YzvA8/7GA
+=AdWW
+-----END PGP SIGNATURE-----
+
+--cHMo6Wbp1wrKhbfi--
