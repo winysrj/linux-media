@@ -1,117 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:62053 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:56584 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755385AbeDWOWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 10:22:38 -0400
-Date: Mon, 23 Apr 2018 11:22:27 -0300
+        id S1750872AbeDRTR7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 15:17:59 -0400
+Date: Wed, 18 Apr 2018 16:17:53 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with
- COMPILE_TEST && DRM_OMAP
-Message-ID: <20180423112227.61fbc02b@vento.lan>
-In-Reply-To: <5379683.QunLsIS18Z@amdc3058>
-References: <cover.1524245455.git.mchehab@s-opensource.com>
-        <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
-        <2542100.cElVns0SR0@amdc3058>
-        <CGME20180423135655eucas1p1a935ce9c167e52cf1e76adcc0b4486e4@eucas1p1.samsung.com>
-        <5379683.QunLsIS18Z@amdc3058>
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Douglas Fischer <fischerdouglasc@gmail.com>, jasmin@anw.at
+Subject: Re: [PATCH v2 18/19] media: si470x: allow build both USB and I2C at
+ the same time
+Message-ID: <20180418161753.6814e941@vento.lan>
+In-Reply-To: <20180418210612.20bb8199@lt530>
+References: <9e596fe9e1fd9d2c27ae9abaeb900b2e0cd49011.1522959716.git.mchehab@s-opensource.com>
+        <201804062347.x9zW4zaa%fengguang.wu@intel.com>
+        <20180406134603.40d8d055@vento.lan>
+        <20180418190740.092c2344@perian.wuest.de>
+        <20180418155309.274fe735@vento.lan>
+        <20180418210612.20bb8199@lt530>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Apr 2018 15:56:53 +0200
-Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> escreveu:
+Em Wed, 18 Apr 2018 21:06:12 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-> On Monday, April 23, 2018 02:47:28 PM Bartlomiej Zolnierkiewicz wrote:
-> > On Friday, April 20, 2018 01:42:51 PM Mauro Carvalho Chehab wrote:  
-> > > Add stubs for omapfb_dss.h, in the case it is included by
-> > > some driver when CONFIG_FB_OMAP2 is not defined, with can
-> > > happen on ARM when DRM_OMAP is not 'n'.
+> Am Wed, 18 Apr 2018 15:53:09 -0300
+> schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> > Em Wed, 18 Apr 2018 19:07:40 +0200
+> > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+> >   
+> > > Am Fri, 6 Apr 2018 13:46:03 -0300
+> > > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> > >     
+> > > > Em Sat, 7 Apr 2018 00:21:07 +0800
+> > > > kbuild test robot <lkp@intel.com> escreveu:
+> > > >       
+> > > > > Hi Mauro,
+> > > > > 
+> > > > > I love your patch! Yet something to improve:
+> > > > > [...]      
+> > > > 
+> > > > Fixed patch enclosed.
+> > > > 
+> > > > Thanks,
+> > > > Mauro
+> > > > 
+> > > > [PATCH] media: si470x: allow build both USB and I2C at the same
+> > > > time
+> > > > 
+> > > > Currently, either USB or I2C is built. Change it to allow
+> > > > having both enabled at the same time.
+> > > > 
+> > > > The main reason is that COMPILE_TEST all[yes/mod]builds will
+> > > > now contain all drivers under drivers/media.
+> > > > 
+> > > > Signed-off-by: Mauro Carvalho Chehab
+> > > > <mchehab@s-opensource.com>      
 > > > 
-> > > That allows building such driver(s) with COMPILE_TEST.
+> > > FWIW, this patch (which seemingly is commit
+> > > 58757984ca3c73284a45dd53ac66f1414057cd09 in media_tree.git) seems
+> > > to break media_build in a way that on my systems only 20 drivers
+> > > and modules are built now, while it should be in the 650+ modules
+> > > range. Hans' automated daily testbuilds suffer from the same issue,
+> > > looking at todays daily build logs (Wednesday.tar.bz2). I
+> > > personally build against Kernel 4.16.2 on Gentoo.
 > > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> > > This specific commit/patch was found using
+> > > 
+> > >   # git bisect good v4.17-rc1
+> > >   # git bisect bad media_tree/master
+> > > 
+> > > And, "git revert 58767984..." makes all drivers being built again by
+> > > media_build.
+> > > 
+> > > Not sure if there's something other for which this patch acts as the
+> > > trigger of if this needs adaption in media_build, though I thought
+> > > reporting this doesn't hurt.
+> > > 
+> > > Best regards,
+> > > Daniel Scheller    
 > > 
-> > This patch should be dropped (together with patch #6/7) as it was
-> > superseded by a better solution suggested by Laurent:
+> > Please try this:
 > > 
-> > https://patchwork.kernel.org/patch/10325193/
-> > 
-> > ACK-ed by Tomi:
-> > 
-> > https://www.spinics.net/lists/dri-devel/msg171918.html
-> > 
-> > and already merged by you (commit 7378f1149884 "media: omap2:
-> > omapfb: allow building it with COMPILE_TEST")..  
+> > diff --git a/drivers/media/radio/si470x/Makefile
+> > b/drivers/media/radio/si470x/Makefile index
+> > 563500823e04..682b3146397e 100644 ---
+> > a/drivers/media/radio/si470x/Makefile +++
+> > b/drivers/media/radio/si470x/Makefile @@ -2,6 +2,6 @@
+> >  # Makefile for radios with Silicon Labs Si470x FM Radio Receivers
+> >  #
+> >  
+> > -obj-$(CONFIG_RADIO_SI470X) := radio-si470x-common.o
+> > +obj-$(CONFIG_RADIO_SI470X) += radio-si470x-common.o
+> >  obj-$(CONFIG_USB_SI470X) += radio-si470x-usb.o
+> >  obj-$(CONFIG_I2C_SI470X) += radio-si470x-i2c.o  
 > 
-> Hmm, I see now while this patch is still included:
-> 
-> menuconfig FB_OMAP2
->         tristate "OMAP2+ frame buffer support"
->         depends on FB
->         depends on DRM_OMAP = n
-> 
-> Ideally we should be able to build both drivers in the same kernel
-> (especially as modules).
-> 
-> I was hoping that it could be fixed easily but then I discovered
-> the root source of the problem:
-> 
-> drivers/gpu/drm/omapdrm/dss/display.o: In function `omapdss_unregister_display':
-> display.c:(.text+0x2c): multiple definition of `omapdss_unregister_display'
-> drivers/video/fbdev/omap2/omapfb/dss/display.o:display.c:(.text+0x198): first defined here
-> ...
+> That (ontop of media_tree.git HEAD) fixes it, back to 656 modules.
 
-Yes, and declared on two different places:
+Good! I'll merge this with a proper description and apply ASAP.
 
-drivers/gpu/drm/omapdrm/dss/omapdss.h:void omapdss_unregister_display(struct omap_dss_device *dssdev);
-include/video/omapfb_dss.h:void omapdss_unregister_display(struct omap_dss_device *dssdev);
-
-one alternative would be to give different names to it, and a common
-header for both.
-
-At such header, it could be doing something like:
-
-static inline void omapdss_unregister_display(struct omap_dss_device *dssdev)
-{
-#if enabled(CONFIG_DRM_OMAP)
-	omapdss_unregister_display_drm(struct omap_dss_device *dssdev);
-#else
-	omapdss_unregister_display_fb(struct omap_dss_device *dssdev);
-##endif
-}
-
-Yet, after a very quick check, it seems that nowadays only the
-media omap driver uses the symbols at FB_OMAP:
-
-$ git grep omapfb_dss.h
-drivers/media/platform/omap/omap_vout.c:#include <video/omapfb_dss.h>
-drivers/media/platform/omap/omap_voutdef.h:#include <video/omapfb_dss.h>
-drivers/media/platform/omap/omap_voutlib.c:#include <video/omapfb_dss.h>
-
-So, perhaps just renaming the common symbols and changing FB_OMAP2 to:
-
-	menuconfig FB_OMAP2
-	         tristate "OMAP2+ frame buffer support"
-	         depends on FB
-	         depends on (DRM_OMAP = n) || COMPILE_TEST
-
-would be enough to allow to build both on ARM.
-
-> I need some more time to think about this..
-> 
-> Best regards,
-> --
-> Bartlomiej Zolnierkiewicz
-> Samsung R&D Institute Poland
-> Samsung Electronics
-
-Thanks,
+Regards,
 Mauro
