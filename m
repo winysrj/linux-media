@@ -1,148 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:48297 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751874AbeDIIcp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2018 04:32:45 -0400
-Date: Mon, 9 Apr 2018 10:32:37 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 4/6] media: ov772x: add media controller support
-Message-ID: <20180409083237.GW20945@w540>
-References: <1523116090-13101-1-git-send-email-akinobu.mita@gmail.com>
- <1523116090-13101-5-git-send-email-akinobu.mita@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:62311 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751305AbeDRJmY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 05:42:24 -0400
+Date: Wed, 18 Apr 2018 06:42:13 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Daniel Mentz <danielmentz@google.com>
+Subject: Re: [PATCH] media: v4l2-compat-ioctl32: simplify casts
+Message-ID: <20180418064213.63e520e1@vento.lan>
+In-Reply-To: <20180418085713.3r7zihp2htdsiydn@paasikivi.fi.intel.com>
+References: <fab4b7e40757bd966d5f94a6f1845897366fd048.1523975132.git.mchehab@s-opensource.com>
+        <20180418085713.3r7zihp2htdsiydn@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EH85xkKza2NXtwkF"
-Content-Disposition: inline
-In-Reply-To: <1523116090-13101-5-git-send-email-akinobu.mita@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 18 Apr 2018 11:57:13 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
---EH85xkKza2NXtwkF
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+> Hi Mauro,
+> 
+> On Tue, Apr 17, 2018 at 10:25:37AM -0400, Mauro Carvalho Chehab wrote:
+> > Making the cast right for get_user/put_user is not trivial, as
+> > it needs to ensure that the types are the correct ones.
+> > 
+> > Improve it by using macros.
+> > 
+> > Tested with vivid with:
+> > 	$ sudo modprobe vivid no_error_inj=1
+> > 	$ v4l2-compliance-32bits -a -s10 >32bits && v4l2-compliance-64bits -a -s10 > 64bits && diff -U0 32bits 64bits
+> > 	--- 32bits	2018-04-17 11:18:29.141240772 -0300
+> > 	+++ 64bits	2018-04-17 11:18:40.635282341 -0300
+> > 	@@ -1 +1 @@
+> > 	-v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 32 bits
+> > 	+v4l2-compliance SHA   : bc71e4a67c6fbc5940062843bc41e7c8679634ce, 64 bits
+> > 
+> > Using the latest version of v4l-utils with this patch applied:
+> > 	https://patchwork.linuxtv.org/patch/48746/
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 40 ++++++++++++++++++---------
+> >  1 file changed, 27 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > index 8c05dd9660d3..d2f0268427c2 100644
+> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > @@ -30,6 +30,24 @@
+> >  	get_user(__assign_tmp, from) || put_user(__assign_tmp, to);	\
+> >  })
+> >  
+> > +#define get_user_cast(__x, __ptr)					\
+> > +({									\
+> > +	get_user(__x, (typeof(*__ptr) __user *)(__ptr));		\
+> > +})
+> > +
+> > +#define put_user_force(__x, __ptr)					\
+> > +({									\
+> > +	put_user((typeof(*__x) __force *)(__x), __ptr);			\
+> > +})
+> > +
+> > +#define assign_in_user_cast(to, from)					\
+> > +({									\
+> > +	typeof(*from) __assign_tmp;					\
+> > +									\
+> > +	get_user_cast(__assign_tmp, from) || put_user(__assign_tmp, to);\
+> > +})  
+> 
+> I must say I like the approach. This makes it harder to get things wrong as
+> the compiler still does type checking.
+> 
+> About the naming --- I understand the postfix comes from the modifier used
+> in the put_user case but in the others the same approach would lead to
+> names such as get_user_user() which would look a bit confusing.
 
-Hi Akinobu,
+Yes. That's why I used _cast for the version that does the __user cast.
 
-On Sun, Apr 08, 2018 at 12:48:08AM +0900, Akinobu Mita wrote:
-> Create a source pad and set the media controller type to the sensor.
->
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  drivers/media/i2c/ov772x.c | 22 ++++++++++++++++++++--
->  1 file changed, 20 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> index 4bb81ff..5e91fa1 100644
-> --- a/drivers/media/i2c/ov772x.c
-> +++ b/drivers/media/i2c/ov772x.c
-> @@ -425,6 +425,9 @@ struct ov772x_priv {
->  	unsigned short                    band_filter;
->  	unsigned int			  fps;
->  	int (*reg_read)(struct i2c_client *client, u8 addr);
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_pad pad;
-> +#endif
->  };
->
->  /*
-> @@ -1328,9 +1331,17 @@ static int ov772x_probe(struct i2c_client *client,
->  		goto error_clk_put;
->  	}
->
-> -	ret = ov772x_video_probe(priv);
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	priv->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> +	ret = media_entity_pads_init(&priv->subdev.entity, 1, &priv->pad);
->  	if (ret < 0)
->  		goto error_gpio_put;
-> +#endif
-> +
-> +	ret = ov772x_video_probe(priv);
-> +	if (ret < 0)
-> +		goto error_entity_cleanup;
+> 
+> I presume the patch depends on another patch from you. 
 
-If you remove the #ifdef around the media_entity_cleanup() below, I
-suggest moving video_probe() before the entity intialization so you
-don't have to #ifdef around the error_gpio_put: label, which otherwise
-the compiler complains for being defined but not used.
+Yes, it comes after the p32/p64 rename.
 
->
->  	priv->cfmt = &ov772x_cfmts[0];
->  	priv->win = &ov772x_win_sizes[0];
-> @@ -1338,11 +1349,15 @@ static int ov772x_probe(struct i2c_client *client,
->
->  	ret = v4l2_async_register_subdev(&priv->subdev);
->  	if (ret)
-> -		goto error_gpio_put;
-> +		goto error_entity_cleanup;
->
->  	return 0;
->
-> +error_entity_cleanup:
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	media_entity_cleanup(&priv->subdev.entity);
+> Hans had comments on
+> that one that I think affect this one as well; 
 
-media_entity_cleanup() resolves to a nop if CONFIG_MEDIA_CONTROLLER is
-not defined
+This patch was added to address Hans comments on patch 4/5. Due to
+the renaming, folding it with patch 4/5 is not possible without big
+efforts.
 
->  error_gpio_put:
-> +#endif
->  	if (priv->pwdn_gpio)
->  		gpiod_put(priv->pwdn_gpio);
->  error_clk_put:
-> @@ -1357,6 +1372,9 @@ static int ov772x_remove(struct i2c_client *client)
->  {
->  	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
->
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	media_entity_cleanup(&priv->subdev.entity);
+> could you add this one to
+> the same patchset?
 
-ditto
+My plan is to apply all those 3 patches together after being reviewed.
 
-Thanks
-   j
+The 3 omap3 patches + the 3 ioctl32 patches are altogether here:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=compile_test_v6b
 
-> +#endif
->  	clk_put(priv->clk);
->  	if (priv->pwdn_gpio)
->  		gpiod_put(priv->pwdn_gpio);
-> --
-> 2.7.4
->
+> 
+> > +
+> > +
+> >  static long native_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+> >  {
+> >  	long ret = -ENOIOCTLCMD;
+> > @@ -543,8 +561,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
+> >  			return -EFAULT;
+> >  
+> >  		uplane = aux_buf;
+> > -		if (put_user((__force struct v4l2_plane *)uplane,
+> > -			     &p64->m.planes))
+> > +		if (put_user_force(uplane, &p64->m.planes))
+> >  			return -EFAULT;
+> >  
+> >  		while (num_planes--) {
+> > @@ -682,7 +699,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *p64,
+> >  
+> >  	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
+> >  	    get_user(tmp, &p32->base) ||
+> > -	    put_user((void __force *)compat_ptr(tmp), &p64->base) ||
+> > +	    put_user_force(compat_ptr(tmp), &p64->base) ||
+> >  	    assign_in_user(&p64->capability, &p32->capability) ||
+> >  	    assign_in_user(&p64->flags, &p32->flags) ||
+> >  	    copy_in_user(&p64->fmt, &p32->fmt, sizeof(p64->fmt)))
+> > @@ -831,8 +848,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+> >  	if (aux_space < count * sizeof(*kcontrols))
+> >  		return -EFAULT;
+> >  	kcontrols = aux_buf;
+> > -	if (put_user((__force struct v4l2_ext_control *)kcontrols,
+> > -		     &p64->controls))
+> > +	if (put_user_force(kcontrols, &p64->controls))
+> >  		return -EFAULT;
+> >  
+> >  	for (n = 0; n < count; n++) {
+> > @@ -898,12 +914,11 @@ static int put_v4l2_ext_controls32(struct file *file,
+> >  		unsigned int size = sizeof(*ucontrols);
+> >  		u32 id;
+> >  
+> > -		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
+> > +		if (get_user_cast(id, &kcontrols->id) ||
+> >  		    put_user(id, &ucontrols->id) ||
+> > -		    assign_in_user(&ucontrols->size,
+> > -				   (unsigned int __user *)&kcontrols->size) ||
+> > +		    assign_in_user_cast(&ucontrols->size, &kcontrols->size) ||
+> >  		    copy_in_user(&ucontrols->reserved2,
+> > -				 (unsigned int __user *)&kcontrols->reserved2,
+> > +				 (void __user *)&kcontrols->reserved2,
+> >  				 sizeof(ucontrols->reserved2)))
+> >  			return -EFAULT;
+> >  
+> > @@ -916,7 +931,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+> >  			size -= sizeof(ucontrols->value64);
+> >  
+> >  		if (copy_in_user(ucontrols,
+> > -			         (unsigned int __user *)kcontrols, size))
+> > +			         (void __user *)kcontrols, size))
+> >  			return -EFAULT;
+> >  
+> >  		ucontrols++;
+> > @@ -970,10 +985,9 @@ static int get_v4l2_edid32(struct v4l2_edid __user *p64,
+> >  	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
+> >  	    assign_in_user(&p64->pad, &p32->pad) ||
+> >  	    assign_in_user(&p64->start_block, &p32->start_block) ||
+> > -	    assign_in_user(&p64->blocks,
+> > -			   (unsigned char __user *)&p32->blocks) ||
+> > +	    assign_in_user_cast(&p64->blocks, &p32->blocks) ||
+> >  	    get_user(tmp, &p32->edid) ||
+> > -	    put_user((void __force *)compat_ptr(tmp), &p64->edid) ||
+> > +	    put_user_force(compat_ptr(tmp), &p64->edid) ||
+> >  	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+> >  		return -EFAULT;
+> >  	return 0;
+> > -- 
+> > 2.14.3
+> >   
+> 
 
---EH85xkKza2NXtwkF
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJayyUlAAoJEHI0Bo8WoVY8jlcQAKBwJqYXY24CA3lxLRxy7hn9
-/CVMT4rj17gecGljaDiQMB02KHPweoNuxOoCghryS2PbXPhkEIGYsUuFuLn6fPwl
-RPRby07JKKNFwLqiyykz33eaESP8xkd3YDaW00LFOJhcSlKxQ21sQ6xl337YtHft
-VoFGrGQSeJ+MIFsBRmS0WkRj8RE2vGfGUAavMxdkIPOlZiWCqQvN/T946skNZfOu
-iTfCL5LbmOghx39oSemmE52nK8Bq7EHgrU+/l4M0flnYUklXV561i2bJbp0581Bw
-3L/8nkQjfVsRp9bNYRFGPDrNzkdosW7tX/DD+Tzkv3kNVOUDmT2nH2Y6k6ytGZjY
-er0I03vjEq6P22iSDra9OOzdnUh+sw/50GMi8dhN9QMAku6hwEgcdbWom8dxSli+
-EFn4nrS2gMo02ZcFNxMe3VyGKBeU3NsE/NkKPtQuogzGLJ72y2E7ps7aSxWUZ5Mh
-ftBUwKkY4tOKOEnYVX4fzfEgAss6fm6PwVLD5wos4FT+UrEXIGLhyXCPNdGD+u3i
-Wzud++yYRpFXIkahDdEcDU6HdZWuof+8/6/u0eCye8dsYQ8G5Dlh41SM9fgUwQsl
-I/D9n3Oc9ulaaxAJ8WsnXuvBB4GqykkWvw1O5AVJAO1XFqlUwyc79Hi5PrCrpFFJ
-Y7e8JmtQGPqi0lC+AQ7h
-=22ri
------END PGP SIGNATURE-----
-
---EH85xkKza2NXtwkF--
+Thanks,
+Mauro
