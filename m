@@ -1,99 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xavier.telenet-ops.be ([195.130.132.52]:59920 "EHLO
-        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752672AbeDQSRj (ORCPT
+Received: from gateway21.websitewelcome.com ([192.185.45.154]:27403 "EHLO
+        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753821AbeDRNNs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 14:17:39 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>, Tejun Heo <tj@kernel.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S . Miller" <davem@davemloft.net>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Alan Tull <atull@kernel.org>, Moritz Fischer <mdf@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Joerg Roedel <joro@8bytes.org>,
-        Matias Bjorling <mb@lightnvm.io>,
-        Jassi Brar <jassisinghbrar@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Richard Weinberger <richard@nod.at>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Eric Anholt <eric@anholt.net>,
-        Stefan Wahren <stefan.wahren@i2se.com>
-Cc: iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-ide@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux-spi@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v3 16/20] remoteproc: Remove depends on HAS_DMA in case of platform dependency
-Date: Tue, 17 Apr 2018 19:49:16 +0200
-Message-Id: <1523987360-18760-17-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
-References: <1523987360-18760-1-git-send-email-geert@linux-m68k.org>
+        Wed, 18 Apr 2018 09:13:48 -0400
+Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
+        by gateway21.websitewelcome.com (Postfix) with ESMTP id 7427B400CF2ED
+        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2018 07:50:18 -0500 (CDT)
+Date: Wed, 18 Apr 2018 07:50:16 -0500
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] staging: media: davinci_vpfe: fix spin_lock/unlock imbalance
+Message-ID: <20180418125016.GA25606@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dependencies on HAS_DMA where a Kconfig symbol depends on another
-symbol that implies HAS_DMA, and, optionally, on "|| COMPILE_TEST".
-In most cases this other symbol is an architecture or platform specific
-symbol, or PCI.
+It seems that this is a copy-paste error and that the proper
+variable to use in this particular case is video_out2 instead
+of video_out.
 
-Generic symbols and drivers without platform dependencies keep their
-dependencies on HAS_DMA, to prevent compiling subsystems or drivers that
-cannot work anyway.
-
-This simplifies the dependencies, and allows to improve compile-testing.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-Acked-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+Addresses-Coverity-ID: 1467961 ("Copy-paste error")
+Fixes: 45e46b3bbe18 ("[media] davinci: vpfe: dm365: resizer driver based on media framework")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
-v3:
-  - Add Acked-by,
-  - Rebase to v4.17-rc1,
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-v2:
-  - Add Reviewed-by, Acked-by,
-  - Drop RFC state,
-  - Split per subsystem.
----
- drivers/remoteproc/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index 027274008b086d6f..cd1c168fd18898dc 100644
---- a/drivers/remoteproc/Kconfig
-+++ b/drivers/remoteproc/Kconfig
-@@ -24,7 +24,6 @@ config IMX_REMOTEPROC
- 
- config OMAP_REMOTEPROC
- 	tristate "OMAP remoteproc support"
--	depends on HAS_DMA
- 	depends on ARCH_OMAP4 || SOC_OMAP5
- 	depends on OMAP_IOMMU
- 	select MAILBOX
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index df6d55e..2b79747 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -1060,7 +1060,7 @@ static void resizer_ss_isr(struct vpfe_resizer_device *resizer)
+ 	/* If resizer B is enabled */
+ 	if (pipe->output_num > 1 && resizer->resizer_b.output ==
+ 	    RESIZER_OUTPUT_MEMORY) {
+-		spin_lock(&video_out->dma_queue_lock);
++		spin_lock(&video_out2->dma_queue_lock);
+ 		vpfe_video_process_buffer_complete(video_out2);
+ 		video_out2->state = VPFE_VIDEO_BUFFER_NOT_QUEUED;
+ 		vpfe_video_schedule_next_buffer(video_out2);
 -- 
 2.7.4
