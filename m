@@ -1,101 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53458 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757867AbeDXMpc (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:46825 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752166AbeDRTGQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 08:45:32 -0400
-Received: by mail-wm0-f68.google.com with SMTP id 66so686226wmd.3
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2018 05:45:31 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 22/28] venus: helpers: add a helper to return opb buffer sizes
-Date: Tue, 24 Apr 2018 15:44:30 +0300
-Message-Id: <20180424124436.26955-23-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
-References: <20180424124436.26955-1-stanimir.varbanov@linaro.org>
+        Wed, 18 Apr 2018 15:06:16 -0400
+Received: by mail-wr0-f194.google.com with SMTP id d1-v6so7609944wrj.13
+        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2018 12:06:15 -0700 (PDT)
+Date: Wed, 18 Apr 2018 21:06:12 +0200
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Douglas Fischer <fischerdouglasc@gmail.com>, jasmin@anw.at
+Subject: Re: [PATCH v2 18/19] media: si470x: allow build both USB and I2C at
+ the same time
+Message-ID: <20180418210612.20bb8199@lt530>
+In-Reply-To: <20180418155309.274fe735@vento.lan>
+References: <9e596fe9e1fd9d2c27ae9abaeb900b2e0cd49011.1522959716.git.mchehab@s-opensource.com>
+        <201804062347.x9zW4zaa%fengguang.wu@intel.com>
+        <20180406134603.40d8d055@vento.lan>
+        <20180418190740.092c2344@perian.wuest.de>
+        <20180418155309.274fe735@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper function to return current output picture buffer size.
-OPB sizes can vary depending on the selected decoder output(s).
+Am Wed, 18 Apr 2018 15:53:09 -0300
+schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/platform/qcom/venus/core.h    | 10 ++++++++++
- drivers/media/platform/qcom/venus/helpers.c | 15 +++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  1 +
- 3 files changed, 26 insertions(+)
+> Em Wed, 18 Apr 2018 19:07:40 +0200
+> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+> 
+> > Am Fri, 6 Apr 2018 13:46:03 -0300
+> > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> >   
+> > > Em Sat, 7 Apr 2018 00:21:07 +0800
+> > > kbuild test robot <lkp@intel.com> escreveu:
+> > >     
+> > > > Hi Mauro,
+> > > > 
+> > > > I love your patch! Yet something to improve:
+> > > > [...]    
+> > > 
+> > > Fixed patch enclosed.
+> > > 
+> > > Thanks,
+> > > Mauro
+> > > 
+> > > [PATCH] media: si470x: allow build both USB and I2C at the same
+> > > time
+> > > 
+> > > Currently, either USB or I2C is built. Change it to allow
+> > > having both enabled at the same time.
+> > > 
+> > > The main reason is that COMPILE_TEST all[yes/mod]builds will
+> > > now contain all drivers under drivers/media.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab
+> > > <mchehab@s-opensource.com>    
+> > 
+> > FWIW, this patch (which seemingly is commit
+> > 58757984ca3c73284a45dd53ac66f1414057cd09 in media_tree.git) seems
+> > to break media_build in a way that on my systems only 20 drivers
+> > and modules are built now, while it should be in the 650+ modules
+> > range. Hans' automated daily testbuilds suffer from the same issue,
+> > looking at todays daily build logs (Wednesday.tar.bz2). I
+> > personally build against Kernel 4.16.2 on Gentoo.
+> > 
+> > This specific commit/patch was found using
+> > 
+> >   # git bisect good v4.17-rc1
+> >   # git bisect bad media_tree/master
+> > 
+> > And, "git revert 58767984..." makes all drivers being built again by
+> > media_build.
+> > 
+> > Not sure if there's something other for which this patch acts as the
+> > trigger of if this needs adaption in media_build, though I thought
+> > reporting this doesn't hurt.
+> > 
+> > Best regards,
+> > Daniel Scheller  
+> 
+> Please try this:
+> 
+> diff --git a/drivers/media/radio/si470x/Makefile
+> b/drivers/media/radio/si470x/Makefile index
+> 563500823e04..682b3146397e 100644 ---
+> a/drivers/media/radio/si470x/Makefile +++
+> b/drivers/media/radio/si470x/Makefile @@ -2,6 +2,6 @@
+>  # Makefile for radios with Silicon Labs Si470x FM Radio Receivers
+>  #
+>  
+> -obj-$(CONFIG_RADIO_SI470X) := radio-si470x-common.o
+> +obj-$(CONFIG_RADIO_SI470X) += radio-si470x-common.o
+>  obj-$(CONFIG_USB_SI470X) += radio-si470x-usb.o
+>  obj-$(CONFIG_I2C_SI470X) += radio-si470x-i2c.o
 
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index 255292899204..4d6c05f156c4 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -234,6 +234,11 @@ struct venus_buffer {
-  * @num_output_bufs:	holds number of output buffers
-  * @input_buf_size	holds input buffer size
-  * @output_buf_size:	holds output buffer size
-+ * @output2_buf_size:	holds secondary decoder output buffer size
-+ * @dpb_buftype:	decoded picture buffer type
-+ * @dpb_fmt:		decodec picture buffre raw format
-+ * @opb_buftype:	output picture buffer type
-+ * @opb_fmt:		output picture buffer raw format
-  * @reconfig:	a flag raised by decoder when the stream resolution changed
-  * @reconfig_width:	holds the new width
-  * @reconfig_height:	holds the new height
-@@ -282,6 +287,11 @@ struct venus_inst {
- 	unsigned int num_output_bufs;
- 	unsigned int input_buf_size;
- 	unsigned int output_buf_size;
-+	unsigned int output2_buf_size;
-+	u32 dpb_buftype;
-+	u32 dpb_fmt;
-+	u32 opb_buftype;
-+	u32 opb_fmt;
- 	bool reconfig;
- 	u32 reconfig_width;
- 	u32 reconfig_height;
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index f04d16953b3a..f0a0fca60c76 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -611,6 +611,21 @@ int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype)
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_bufsize);
- 
-+unsigned int venus_helper_get_opb_size(struct venus_inst *inst)
-+{
-+	/* the encoder has only one output */
-+	if (inst->session_type == VIDC_SESSION_TYPE_ENC)
-+		return inst->output_buf_size;
-+
-+	if (inst->opb_buftype == HFI_BUFFER_OUTPUT)
-+		return inst->output_buf_size;
-+	else if (inst->opb_buftype == HFI_BUFFER_OUTPUT2)
-+		return inst->output2_buf_size;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_get_opb_size);
-+
- static void delayed_process_buf_func(struct work_struct *work)
- {
- 	struct venus_buffer *buf, *n;
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 8ff4bd3ef958..92be45894a69 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -48,6 +48,7 @@ int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
- int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
-+unsigned int venus_helper_get_opb_size(struct venus_inst *inst);
- void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
- void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
- void venus_helper_init_instance(struct venus_inst *inst);
+That (ontop of media_tree.git HEAD) fixes it, back to 656 modules.
+
+Thanks!
+
+Best regards,
+Daniel Scheller
 -- 
-2.14.1
+https://github.com/herrnst
