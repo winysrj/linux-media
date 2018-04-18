@@ -1,217 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35414 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbeDFQQW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2018 12:16:22 -0400
-Subject: Re: [PATCH v2 09/15] v4l: vsp1: Move DRM pipeline output setup code
- to a function
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
- <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <00180617-deed-677b-8976-401316df791c@ideasonboard.com>
-Date: Fri, 6 Apr 2018 17:16:16 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180405091840.30728-10-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38905 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751942AbeDRKxt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 06:53:49 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4l-utils] media-ctl: add --get-dv option
+Date: Wed, 18 Apr 2018 12:53:39 +0200
+Message-Id: <20180418105339.24143-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Printing the queried and current DV timings is already supported as part
+of the --print-topology option. Add a --get-dv option to print DV
+timings of an individual entitiy, to complement --set-dv.
 
-Thanks for the updates
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ utils/media-ctl/media-ctl.c | 12 ++++++++++++
+ utils/media-ctl/options.c   |  7 +++++++
+ utils/media-ctl/options.h   |  1 +
+ 3 files changed, 20 insertions(+)
 
-On 05/04/18 10:18, Laurent Pinchart wrote:
-> In order to make the vsp1_du_setup_lif() easier to read, and for
-> symmetry with the DRM pipeline input setup, move the pipeline output
-> setup code to a separate function.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> --
-> Changes since v1:
-> 
-> - Rename vsp1_du_pipeline_setup_input() to
->   vsp1_du_pipeline_setup_inputs()
-
-Hrm ... I perhaps would have expected this to happen in
-
-[PATCH 06/15] v4l: vsp1: Move DRM atomic commit pipeline setup to separate function
-
-But I think that's being quite pedantic - so unless you have a need to respin, I
-wouldn't worry about it.
-
---
-Kieran
-
-
-> - Initialize format local variable to 0 in
->   vsp1_du_pipeline_setup_output()
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 114 ++++++++++++++++++---------------
->  1 file changed, 64 insertions(+), 50 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index 00ce99bd1605..a7cccc9b05ef 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -193,8 +193,8 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
->  }
->  
->  /* Setup the input side of the pipeline (RPFs and BRU). */
-> -static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
-> -					struct vsp1_pipeline *pipe)
-> +static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
-> +					 struct vsp1_pipeline *pipe)
->  {
->  	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
->  	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-> @@ -276,6 +276,65 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
->  	return 0;
->  }
->  
-> +/* Setup the output side of the pipeline (WPF and LIF). */
-> +static int vsp1_du_pipeline_setup_output(struct vsp1_device *vsp1,
-> +					 struct vsp1_pipeline *pipe)
-> +{
-> +	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
-> +	struct v4l2_subdev_format format = { 0, };
-> +	int ret;
-> +
-> +	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	format.pad = RWPF_PAD_SINK;
-> +	format.format.width = drm_pipe->width;
-> +	format.format.height = drm_pipe->height;
-> +	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> +	format.format.field = V4L2_FIELD_NONE;
-> +
-> +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
-> +			       &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
-> +		__func__, format.format.width, format.format.height,
-> +		format.format.code, pipe->output->entity.index);
-> +
-> +	format.pad = RWPF_PAD_SOURCE;
-> +	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
-> +			       &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
-> +		__func__, format.format.width, format.format.height,
-> +		format.format.code, pipe->output->entity.index);
-> +
-> +	format.pad = LIF_PAD_SINK;
-> +	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
-> +			       &format);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
-> +		__func__, format.format.width, format.format.height,
-> +		format.format.code, pipe->lif->index);
-> +
-> +	/*
-> +	 * Verify that the format at the output of the pipeline matches the
-> +	 * requested frame size and media bus code.
-> +	 */
-> +	if (format.format.width != drm_pipe->width ||
-> +	    format.format.height != drm_pipe->height ||
-> +	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
-> +		dev_dbg(vsp1->dev, "%s: format mismatch on LIF%u\n", __func__,
-> +			pipe->lif->index);
-> +		return -EPIPE;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  /* Configure all entities in the pipeline. */
->  static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
->  {
-> @@ -356,7 +415,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	struct vsp1_drm_pipeline *drm_pipe;
->  	struct vsp1_pipeline *pipe;
->  	struct vsp1_bru *bru;
-> -	struct v4l2_subdev_format format;
->  	unsigned long flags;
->  	unsigned int i;
->  	int ret;
-> @@ -413,58 +471,14 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  		__func__, pipe_index, cfg->width, cfg->height);
->  
->  	/* Setup formats through the pipeline. */
-> -	ret = vsp1_du_pipeline_setup_input(vsp1, pipe);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	memset(&format, 0, sizeof(format));
-> -	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> -	format.pad = RWPF_PAD_SINK;
-> -	format.format.width = cfg->width;
-> -	format.format.height = cfg->height;
-> -	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
-> -	format.format.field = V4L2_FIELD_NONE;
-> -
-> -	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
-> -			       &format);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF%u sink\n",
-> -		__func__, format.format.width, format.format.height,
-> -		format.format.code, pipe->output->entity.index);
-> -
-> -	format.pad = RWPF_PAD_SOURCE;
-> -	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, get_fmt, NULL,
-> -			       &format);
-> +	ret = vsp1_du_pipeline_setup_inputs(vsp1, pipe);
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF%u source\n",
-> -		__func__, format.format.width, format.format.height,
-> -		format.format.code, pipe->output->entity.index);
-> -
-> -	format.pad = LIF_PAD_SINK;
-> -	ret = v4l2_subdev_call(&pipe->lif->subdev, pad, set_fmt, NULL,
-> -			       &format);
-> +	ret = vsp1_du_pipeline_setup_output(vsp1, pipe);
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF%u sink\n",
-> -		__func__, format.format.width, format.format.height,
-> -		format.format.code, pipe_index);
-> -
-> -	/*
-> -	 * Verify that the format at the output of the pipeline matches the
-> -	 * requested frame size and media bus code.
-> -	 */
-> -	if (format.format.width != cfg->width ||
-> -	    format.format.height != cfg->height ||
-> -	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
-> -		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
-> -		return -EPIPE;
-> -	}
-> -
->  	/* Enable the VSP1. */
->  	ret = vsp1_device_get(vsp1);
->  	if (ret < 0)
-> @@ -612,7 +626,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
->  	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
->  
-> -	vsp1_du_pipeline_setup_input(vsp1, pipe);
-> +	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
->  	vsp1_du_pipeline_configure(pipe);
->  }
->  EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
-> 
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index a9417a3a..51da7f8a 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -604,6 +604,18 @@ int main(int argc, char **argv)
+ 					 V4L2_SUBDEV_FORMAT_ACTIVE);
+ 	}
+ 
++	if (media_opts.get_dv_pad) {
++		struct media_pad *pad;
++
++		pad = media_parse_pad(media, media_opts.get_dv_pad, NULL);
++		if (pad == NULL) {
++			printf("Pad '%s' not found\n", media_opts.get_dv_pad);
++			goto out;
++		}
++
++		v4l2_subdev_print_subdev_dv(pad->entity);
++	}
++
+ 	if (media_opts.dv_pad) {
+ 		struct v4l2_dv_timings timings;
+ 		struct media_pad *pad;
+diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+index 83ca1cac..16367857 100644
+--- a/utils/media-ctl/options.c
++++ b/utils/media-ctl/options.c
+@@ -46,6 +46,7 @@ static void usage(const char *argv0)
+ 	printf("-e, --entity name	Print the device name associated with the given entity\n");
+ 	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
+ 	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
++	printf("    --get-dv pad        Print detected and current DV timings on a given pad\n");
+ 	printf("    --set-dv pad	Configure DV timings on a given pad\n");
+ 	printf("-h, --help		Show verbose help and exit\n");
+ 	printf("-i, --interactive	Modify links interactively\n");
+@@ -117,6 +118,7 @@ static void usage(const char *argv0)
+ #define OPT_GET_FORMAT			257
+ #define OPT_SET_DV			258
+ #define OPT_LIST_KNOWN_MBUS_FMTS	259
++#define OPT_GET_DV			260
+ 
+ static struct option opts[] = {
+ 	{"device", 1, 0, 'd'},
+@@ -125,6 +127,7 @@ static struct option opts[] = {
+ 	{"set-v4l2", 1, 0, 'V'},
+ 	{"get-format", 1, 0, OPT_GET_FORMAT},
+ 	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
++	{"get-dv", 1, 0, OPT_GET_DV},
+ 	{"set-dv", 1, 0, OPT_SET_DV},
+ 	{"help", 0, 0, 'h'},
+ 	{"interactive", 0, 0, 'i'},
+@@ -222,6 +225,10 @@ int parse_cmdline(int argc, char **argv)
+ 			media_opts.fmt_pad = optarg;
+ 			break;
+ 
++		case OPT_GET_DV:
++			media_opts.get_dv_pad = optarg;
++			break;
++
+ 		case OPT_SET_DV:
+ 			media_opts.dv_pad = optarg;
+ 			break;
+diff --git a/utils/media-ctl/options.h b/utils/media-ctl/options.h
+index 9b5f314e..7e0556fc 100644
+--- a/utils/media-ctl/options.h
++++ b/utils/media-ctl/options.h
+@@ -34,6 +34,7 @@ struct media_options
+ 	const char *formats;
+ 	const char *links;
+ 	const char *fmt_pad;
++	const char *get_dv_pad;
+ 	const char *dv_pad;
+ };
+ 
+-- 
+2.16.3
