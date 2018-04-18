@@ -1,95 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:55327 "EHLO mout.gmx.net"
+Received: from mail.bootlin.com ([62.4.15.54]:55119 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753751AbeDKRGo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 13:06:44 -0400
-Date: Wed, 11 Apr 2018 19:06:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Edgar Thier <info@edgarthier.net>
-Subject: Re: a 4.16 kernel with Debian 9.4 "stretch" causes a log explosion
-In-Reply-To: <b33d611d-99ea-b350-9351-f5b8986e3fe9@ideasonboard.com>
-Message-ID: <alpine.DEB.2.20.1804111848320.25028@axis700.grange>
-References: <alpine.DEB.2.20.1804110911021.18053@axis700.grange> <e79738af-8d6d-a6b1-2539-d2dbdb07bb53@ideasonboard.com> <b33d611d-99ea-b350-9351-f5b8986e3fe9@ideasonboard.com>
+        id S1753157AbeDRIXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 04:23:11 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v9 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+Date: Wed, 18 Apr 2018 10:22:47 +0200
+Message-Id: <20180418082248.28406-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180418082248.28406-1-maxime.ripard@bootlin.com>
+References: <20180418082248.28406-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+video streams and can output on up to 4 CSI-2 lanes, depending on the
+hardware implementation.
 
-On Wed, 11 Apr 2018, Kieran Bingham wrote:
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-> Hi Guennadi,
-> 
-> On 11/04/18 17:17, Kieran Bingham wrote:
-> > Hi Guennadi,
-> > 
-> > On 11/04/18 10:56, Guennadi Liakhovetski wrote:
-> >> Hi Laurent,
-> >>
-> >> Not sure whether that's a kernel or a user-space problem, but UVC related 
-> >> anyway. I've got a UVC 1.5 (!) Logitech camera, that used to work fine 
-> >> with earlier kernels. I now installed "media 4.16" and saw, that the 
-> >> kernel log was filling with messages like
-> >>
-> >> uvcvideo: Failed to query (GET_MIN) UVC control 2 on unit 1: -32 (exp. 1).
-> >>
-> >> The expected /dev/video[01] nodes were not created correctly, and the 
-> >> hard-drive was getting full very quickly. The latter was happening because 
-> >> the the /var/log/uvcdynctrl-udev.log file was growing. A truncated sample 
-> >> is attached. At its bottom you see messages
-> >>
-> >> [libwebcam] Warning: The driver behind device video0 has a slightly buggy implementation
-> >>   of the V4L2_CTRL_FLAG_NEXT_CTRL flag. It does not return the next higher
-> >>   control ID if a control query fails. A workaround has been enabled.
-> >>
-> >> repeating, which continues even if the camera is unplugged. The kernel is 
-> >> the head of the master branch of git://linuxtv.org/media_tree.git
-> >>
-> >> Just figured out this commit
-> >>
-> >> From: Edgar Thier <info@edgarthier.net>
-> >> Date: Thu, 12 Oct 2017 03:54:17 -0400
-> >> Subject: [PATCH] media: uvcvideo: Apply flags from device to actual properties
-> >>
-> >> as the culprit. Without it everything is back to normal.
-> > 
-> > I've already investigated and fixed this:
-> > 
-> > Please apply:
-> > 	https://patchwork.kernel.org/patch/10299735/
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ .../devicetree/bindings/media/cdns,csi2tx.txt | 98 +++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
-Great, thanks! That seems to fix my problem.
-
-Regards
-Guennadi
-
-> > 
-> > You stated that this is showing up on a v4.16 kernel ... but as far as I'm aware
-> > - this feature shouldn't make it in until v4.17. Are you using linux-next or a
-> > media/master or such ?
-> 
-> Aha - never mind - I just re-read your message.
-> 
-> I expect the fix to make it into the media mainline when Mauro pulls from
-> Laurent? So I'm sure it will find its way soon.
-> 
-> --
-> Cheers
-> 
-> Kieran
-> 
-> 
-> > 
-> > Regards
-> > 
-> > Kieran
-> > 
-> >> Thanks
-> >> Guennadi
-> >>
-> 
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+new file mode 100644
+index 000000000000..459c6e332f52
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+@@ -0,0 +1,98 @@
++Cadence MIPI-CSI2 TX controller
++===============================
++
++The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
++4 CSI lanes in output, and up to 4 different pixel streams in input.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2tx"
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * esc_clk: escape mode clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties
++  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
++  - phy-names: must contain "dphy"
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes are numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 output
++           1    Stream 0 input
++           2    Stream 1 input
++           3    Stream 2 input
++           4    Stream 3 input
++
++           The stream input port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design. Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++Example:
++
++csi2tx: csi-bridge@0d0e1000 {
++	compatible = "cdns,csi2tx";
++	reg = <0x0d0e1000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>,
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "p_clk", "esc_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2tx_out: endpoint {
++				remote-endpoint = <&remote_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2tx_in_stream0: endpoint {
++				remote-endpoint = <&stream0_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2tx_in_stream1: endpoint {
++				remote-endpoint = <&stream1_out>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2tx_in_stream2: endpoint {
++				remote-endpoint = <&stream2_out>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2tx_in_stream3: endpoint {
++				remote-endpoint = <&stream3_out>;
++			};
++		};
++	};
++};
+-- 
+2.17.0
