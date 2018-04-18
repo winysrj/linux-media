@@ -1,99 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39196 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752587AbeDJNEN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 09:04:13 -0400
-Date: Tue, 10 Apr 2018 16:04:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 04/29] media-request: core request support
-Message-ID: <20180410130410.o4a2qdpnhent2kud@valkosipuli.retiisi.org.uk>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-5-hverkuil@xs4all.nl>
- <CAAFQd5AwZZ3EXbOdpOrVMupDY8ZvzL0j0sPYxgFCicAY3tn9mA@mail.gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:55725 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752738AbeDRSxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 14:53:18 -0400
+Date: Wed, 18 Apr 2018 15:53:09 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Douglas Fischer <fischerdouglasc@gmail.com>, jasmin@anw.at
+Subject: Re: [PATCH v2 18/19] media: si470x: allow build both USB and I2C at
+ the same time
+Message-ID: <20180418155309.274fe735@vento.lan>
+In-Reply-To: <20180418190740.092c2344@perian.wuest.de>
+References: <9e596fe9e1fd9d2c27ae9abaeb900b2e0cd49011.1522959716.git.mchehab@s-opensource.com>
+        <201804062347.x9zW4zaa%fengguang.wu@intel.com>
+        <20180406134603.40d8d055@vento.lan>
+        <20180418190740.092c2344@perian.wuest.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5AwZZ3EXbOdpOrVMupDY8ZvzL0j0sPYxgFCicAY3tn9mA@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz and Hans,
+Em Wed, 18 Apr 2018 19:07:40 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-On Tue, Apr 10, 2018 at 08:21:27AM +0000, Tomasz Figa wrote:
-> > +void media_request_cancel(struct media_request *req)
-> > +{
-> > +       struct media_request_object *obj, *obj_safe;
-> > +
-> > +       if (req->state != MEDIA_REQUEST_STATE_QUEUED)
-> > +               return;
+> Am Fri, 6 Apr 2018 13:46:03 -0300
+> schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
 > 
-> I can see that media_request_release() guards the state change with
-> req->lock. However we access the state here without holding the spinlock.
-
-The driver is supposed to own a queued request so any serialisation is the
-responsibility of the driver here. But I wouldn't mind taking a lock
-either, it's safer.
-
+> > Em Sat, 7 Apr 2018 00:21:07 +0800
+> > kbuild test robot <lkp@intel.com> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > I love your patch! Yet something to improve:
+> > > [...]  
+> > 
+> > Fixed patch enclosed.
+> > 
+> > Thanks,
+> > Mauro
+> > 
+> > [PATCH] media: si470x: allow build both USB and I2C at the same time
+> > 
+> > Currently, either USB or I2C is built. Change it to allow
+> > having both enabled at the same time.
+> > 
+> > The main reason is that COMPILE_TEST all[yes/mod]builds will
+> > now contain all drivers under drivers/media.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
 > 
-> Also, should we perhaps have MEDIA_REQUEST_STATE_CANCELLED (or maybe just
-> reset to MEDIA_REQUEST_STATE_IDLE?), so that we can guard against calling
-> this multiple times?
+> FWIW, this patch (which seemingly is commit
+> 58757984ca3c73284a45dd53ac66f1414057cd09 in media_tree.git) seems to break media_build in a way that on my systems only 20 drivers and modules are built now, while it should be in the 650+ modules range. Hans' automated daily testbuilds suffer from the same issue, looking at todays daily build logs (Wednesday.tar.bz2). I personally build against Kernel 4.16.2 on Gentoo.
 > 
-> Or perhaps we're expecting this to be called with req_queue_mutex held?
+> This specific commit/patch was found using
 > 
-> > +
-> > +       list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
-> > +               if (obj->ops->cancel)
-> > +                       obj->ops->cancel(obj);
-
-Hans: how is cancel different from simply unbinding the object? I guess
-we'll need precise definitions of what these ops mean.
-
-Same question; should the request return to IDLE state here as well? Or an
-error? I'd presume this is for a driver to cancel a request due to an error
-of some sort.
-
-...
-
-> > +       spin_lock_irqsave(&req->lock, flags);
-> > +       if (WARN_ON(req->state != MEDIA_REQUEST_STATE_IDLE))
-> > +               goto unlock;
-> > +       list_add_tail(&obj->list, &req->objects);
-> > +       req->num_incomplete_objects++;
-> > +unlock:
-> > +       spin_unlock_irqrestore(&req->lock, flags);
-> > +}
-> > +EXPORT_SYMBOL_GPL(media_request_object_bind);
-> > +
-> > +void media_request_object_unbind(struct media_request_object *obj)
-> > +{
-> > +       struct media_request *req = obj->req;
-> > +       unsigned long flags;
-> > +       bool completed = false;
-> > +
-> > +       if (!req)
-> > +               return;
+>   # git bisect good v4.17-rc1
+>   # git bisect bad media_tree/master
 > 
-> No need for any locking here?
+> And, "git revert 58767984..." makes all drivers being built again by
+> media_build.
+> 
+> Not sure if there's something other for which this patch acts as the
+> trigger of if this needs adaption in media_build, though I thought
+> reporting this doesn't hurt.
+> 
+> Best regards,
+> Daniel Scheller
 
-I wonder if WARN_ON() would be appropriate above.
+Please try this:
 
-Request objects, such as video buffers, can be bound and unbound multiple
-times over the lifetime of the object. Video buffer state in this case
-provides information whether the object is bound to a request (or not).
+diff --git a/drivers/media/radio/si470x/Makefile b/drivers/media/radio/si470x/Makefile
+index 563500823e04..682b3146397e 100644
+--- a/drivers/media/radio/si470x/Makefile
++++ b/drivers/media/radio/si470x/Makefile
+@@ -2,6 +2,6 @@
+ # Makefile for radios with Silicon Labs Si470x FM Radio Receivers
+ #
+ 
+-obj-$(CONFIG_RADIO_SI470X) := radio-si470x-common.o
++obj-$(CONFIG_RADIO_SI470X) += radio-si470x-common.o
+ obj-$(CONFIG_USB_SI470X) += radio-si470x-usb.o
+ obj-$(CONFIG_I2C_SI470X) += radio-si470x-i2c.o
 
-For objects the lifetime of which depends on the request only (controls?),
-the bound request won't change until the object is unbound. The caller must
-be aware of the state of the object, otherwise it could not meaningfully
-unbind the object from a request.
 
--- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+
+
+Thanks,
+Mauro
