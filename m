@@ -1,130 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:55099 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752592AbeDRIXB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 04:23:01 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:47879 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751305AbeDRKNR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 06:13:17 -0400
+Date: Wed, 18 Apr 2018 12:13:10 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v9 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
-Date: Wed, 18 Apr 2018 10:22:46 +0200
-Message-Id: <20180418082248.28406-1-maxime.ripard@bootlin.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v2 02/10] media: ov772x: add checks for register read
+ errors
+Message-ID: <20180418101310.GB17088@w540>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+ <1523847111-12986-3-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="EuxKj2iCbKjpUGkD"
+Content-Disposition: inline
+In-Reply-To: <1523847111-12986-3-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
+--EuxKj2iCbKjpUGkD
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-This IP block is able to receive 4 video streams and stream them over
-a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
-interfaces to controllers generating some video signals, like a camera
-or a pattern generator.
+Hi Akinobu,
 
-It is able to map input streams to CSI2 virtual channels and datatypes
-dynamically. The streaming devices choose their virtual channels
-through an additional signal that is transparent to the CSI2-TX. The
-datatypes however are yet another additional input signal, and can be
-mapped to any CSI2 datatypes.
+On Mon, Apr 16, 2018 at 11:51:43AM +0900, Akinobu Mita wrote:
+> This change adds checks for register read errors and returns correct
+> error code.
+>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-Since v4l2 doesn't really allow for that setup at the moment, this
-preliminary version is a rather dumb one in order to start the
-discussion on how to address this properly.
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
 
-Let me know what you think!
-Maxime
+> ---
+> * v2
+> - Assign the ov772x_read() return value to pid and ver directly
+> - Do the same for MIDH and MIDL
+>
+>  drivers/media/i2c/ov772x.c | 20 ++++++++++++++------
+>  1 file changed, 14 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> index 7e79da0..8badd6f 100644
+> --- a/drivers/media/i2c/ov772x.c
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -1146,7 +1146,7 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+>  static int ov772x_video_probe(struct ov772x_priv *priv)
+>  {
+>  	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
+> -	u8                  pid, ver;
+> +	int		    pid, ver, midh, midl;
+>  	const char         *devname;
+>  	int		    ret;
+>
+> @@ -1156,7 +1156,11 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+>
+>  	/* Check and show product ID and manufacturer ID. */
+>  	pid = ov772x_read(client, PID);
+> +	if (pid < 0)
+> +		return pid;
+>  	ver = ov772x_read(client, VER);
+> +	if (ver < 0)
+> +		return ver;
+>
+>  	switch (VERSION(pid, ver)) {
+>  	case OV7720:
+> @@ -1172,13 +1176,17 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
+>  		goto done;
+>  	}
+>
+> +	midh = ov772x_read(client, MIDH);
+> +	if (midh < 0)
+> +		return midh;
+> +	midl = ov772x_read(client, MIDL);
+> +	if (midl < 0)
+> +		return midl;
+> +
+>  	dev_info(&client->dev,
+>  		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
+> -		 devname,
+> -		 pid,
+> -		 ver,
+> -		 ov772x_read(client, MIDH),
+> -		 ov772x_read(client, MIDL));
+> +		 devname, pid, ver, midh, midl);
+> +
+>  	ret = v4l2_ctrl_handler_setup(&priv->hdl);
+>
+>  done:
+> --
+> 2.7.4
+>
 
-Changes from v8:
-  - Updated the copyright notice
-  - Used masks for the device config fields
-  - Used the mbus code directly in our format lookup function
-  - Removed the pad index check in pads get/set_format
-  - Prevent the format to be changed on the CSI2 pad
-  - Check for supported formats in set_format
-  - Rebased on 4.17-rc1
+--EuxKj2iCbKjpUGkD
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Changes from v7:
-  - Removed unused headers
-  - Fixed a function prefix inconsistency
-  - Added Niklas' Reviewed-by
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Changes from v6:
-  - Added Niklas Reviewed-by on the bindings
-  - Added MODULE_LICENSE, MODULE_DESCRIPTION and MODULE_AUTHOR
+iQIcBAEBAgAGBQJa1xo2AAoJEHI0Bo8WoVY8hesQAJelkn+j2a3Wez+EybhYpO3l
+qDc3Kgs67xBVT8c3OKmCe5P1ube6DnDsO3xZvAIOt59FqN/C/IfMkgvwqU2vp0Jw
+42WW8hYGNQzX9Uebt+0gEhU5ZC2cpUSPDKt9c/Pk1PF1vorzNsdRf1nDjDkKVmgS
+ncgiMe6XYMiwCz/1ck4JmcVcyhKtPVlKOyTej9lJ3WpKDNAU3N5w93q/RitlsCNO
+baT1iI/jCncCpikNQkd/2Z3rTTPmSAoG4qznke7SQ9r6dupMQv9aw1YH8ostjPrT
+nbGuBleCWAYOdTF+wu+kEzbKar730gvM3nE9Dh+gMpLfy0ZPp+RqSmCJIFSmiZ65
+qaCaz6qkmp8IyIUEOAC9YI5VikWFEklr6b0a4k2uZI1O4trWNkIyuots53ADjWWU
+DCIvedgqRIsOMfPA5rnux4HMNuiFr6dUKrMLs8/ScFYH0JTllUcK68Hqq2R/sFzK
+o2qaCNFh343kYCckKEptMNGFTyDpxiCXdwjgMkJpjrbO8Zdyy8eQV+re65o5klah
+5zF3TtrP9IYQBcMSFbcH3squaOqexMmaWN5lvquWJElfIuBv/SdAKFpBN2vTgAgI
+YzJQKch349JFLF9F3W3Leyng1xC/AyK7o7YjSC6KBiH/DmKSLwmwRRkRSYbxtvdV
+FqU/3f9dLjRi3lOr06of
+=FeLK
+-----END PGP SIGNATURE-----
 
-Changes from v5:
-  - Changed the return type to void for csi2tx_stop
-  - Checked for the pad index in get/set_pad_format
-  - Made a comment that the DPHY registers are for the DPHY *interface*
-    register
-
-Changes from v4:
-  - After playing a bit with the pad multiplexing patches, found that it
-    was making much more sense to have the subdev notifiers for the source
-    subdev rather for the sink that might even be outside of Linux control.
-    Removed the notifier for now.
-
-Changes from v3:
-  - Added a comment about entity links walk concurrency
-  - Changed the default resolution to 1280x720
-  - Changed usleep_range calls to udelay
-  - Reworked the reference counting mechanism to remove a race
-    condition by adding a mutex instead of an atomic count
-  - Changed the entity function to MEDIA_ENT_F_VID_IF_BRIDGE
-  - Changed the name of the reg variable in _get_resources to dev_cfg
-  - Removed the redundant error message in the devm_ioremap_resource
-    error path
-  - Moved the subdev s_stream call before enabling the TX bridge
-  - Changed some int types to unsigned
-  - Init'd the pad formats properly
-  - Fixed typo in the CSI2TX_LANES_MAX define name
-  - Added Sakari Acked-by
-
-Changes from v2:
-  - Use SPDX license header
-  - Use the lane mapping from DT
-
-Changes from v1:
-  - Add a subdev notifier and start our downstream subdevice in
-    s_stream  
-  - Based the decision to enable the stream or not on the link state
-    instead of whether a format was being set on the pad
-  - Put the controller back in reset when stopping the pipeline
-  - Clarified the enpoints number in the DT binding
-  - Added a default format for the pads
-  - Added some missing const
-  - Added more explicit comments
-  - Rebased on 4.15
-
-Maxime Ripard (2):
-  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-
- .../devicetree/bindings/media/cdns,csi2tx.txt |  98 ++++
- drivers/media/platform/cadence/Kconfig        |  11 +
- drivers/media/platform/cadence/Makefile       |   1 +
- drivers/media/platform/cadence/cdns-csi2tx.c  | 530 ++++++++++++++++++
- 4 files changed, 640 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
- create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
-
--- 
-2.17.0
+--EuxKj2iCbKjpUGkD--
