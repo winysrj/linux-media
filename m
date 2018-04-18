@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43650 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754324AbeDWIG6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 04:06:58 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 90DA6634C57
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 11:06:56 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1fAWUy-0000zN-BL
-        for linux-media@vger.kernel.org; Mon, 23 Apr 2018 11:06:56 +0300
-Date: Mon, 23 Apr 2018 11:06:56 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.18] ov7740 driver and tda1997x fixes, cleanups
- elsewhere
-Message-ID: <20180423080656.k3jcbk5qp5xyerpo@valkosipuli.retiisi.org.uk>
+Received: from mga07.intel.com ([134.134.136.100]:63968 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752116AbeDRL6U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Apr 2018 07:58:20 -0400
+Date: Wed, 18 Apr 2018 14:58:16 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v2 04/10] media: ov772x: add media controller support
+Message-ID: <20180418115816.4awh2xejtng6q2ui@paasikivi.fi.intel.com>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+ <1523847111-12986-5-git-send-email-akinobu.mita@gmail.com>
+ <20180418112814.GA20486@w540>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20180418112814.GA20486@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, Apr 18, 2018 at 01:28:14PM +0200, jacopo mondi wrote:
+> Hi Akinobu,
+> 
+> On Mon, Apr 16, 2018 at 11:51:45AM +0900, Akinobu Mita wrote:
+> > Create a source pad and set the media controller type to the sensor.
+> >
+> > Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> 
+> Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
+> 
+> Not strictly on this patch, but I'm a bit confused on the difference
+> between CONFIG_MEDIA_CONTROLLER and CONFIG_VIDEO_V4L2_SUBDEV_API...
+> Doesn't media controller support mandate implementing subdev APIs as
+> well?
 
-Here are fixes for the ov7740 and tda1997x drivers as well as a few
-cleanups to the omap3isp (making things const) and the fwnode framework
-(spelling).
-
-Please pull.
-
-
-The following changes since commit 1d338b86e17d87215cf57b1ad1d13b2afe582d33:
-
-  media: v4l2-compat-ioctl32: better document the code (2018-04-20 08:24:13 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.18-1
-
-for you to fetch changes up to 94927e3d6358d0012a6f3b0ae23a8811ee7353d8:
-
-  media: v4l: fwnode: Fix comment incorrectly mentioning v4l2_fwnode_parse_endpoint (2018-04-23 10:54:49 +0300)
-
-----------------------------------------------------------------
-Bhumika Goyal (2):
-      v4l: omap3isp: make v4l2_file_operations const
-      omap3isp: make omap3isp_prev_csc and omap3isp_prev_rgbtorgb const
-
-Leonard Crestez (1):
-      media: v4l: fwnode: Fix comment incorrectly mentioning v4l2_fwnode_parse_endpoint
-
-Sakari Ailus (5):
-      ov7740: Fix number of controls hint
-      ov7740: Check for possible NULL return value in control creation
-      ov7740: Fix control handler error at the end of control init
-      ov7740: Set subdev HAS_EVENT flag
-      tda1997x: Use bitwise or for setting subdev flags
-
- drivers/media/i2c/ov7740.c                   | 22 +++++++++++++++++-----
- drivers/media/i2c/tda1997x.c                 |  2 +-
- drivers/media/platform/omap3isp/isppreview.c |  4 ++--
- drivers/media/platform/omap3isp/ispvideo.c   |  2 +-
- include/media/v4l2-fwnode.h                  |  2 +-
- 5 files changed, 22 insertions(+), 10 deletions(-)
+The subdev uAPI depends on MC.
 
 -- 
-Kind regards,
-
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
