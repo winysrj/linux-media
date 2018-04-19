@@ -1,138 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:52969 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752027AbeDRLes (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:53169 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750990AbeDSJbg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 07:34:48 -0400
-Date: Wed, 18 Apr 2018 13:34:42 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH v2 05/10] media: ov772x: use generic names for reset and
- powerdown gpios
-Message-ID: <20180418113442.GB20486@w540>
-References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
- <1523847111-12986-6-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
-Content-Disposition: inline
-In-Reply-To: <1523847111-12986-6-git-send-email-akinobu.mita@gmail.com>
+        Thu, 19 Apr 2018 05:31:36 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: architt@codeaurora.org, a.hajda@samsung.com,
+        Laurent.pinchart@ideasonboard.com, airlied@linux.ie
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, daniel@ffwll.ch,
+        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 5/8] media: Add LE version of RGB LVDS formats
+Date: Thu, 19 Apr 2018 11:31:06 +0200
+Message-Id: <1524130269-32688-6-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Some LVDS controller can output swapped versions of LVDS RGB formats.
+Define and document them in the list of supported media bus formats
 
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ Documentation/media/uapi/v4l/subdev-formats.rst | 174 ++++++++++++++++++++++++
+ include/uapi/linux/media-bus-format.h           |   5 +-
+ 2 files changed, 178 insertions(+), 1 deletion(-)
 
-Hi Akinobu,
-
-On Mon, Apr 16, 2018 at 11:51:46AM +0900, Akinobu Mita wrote:
-> The ov772x driver uses "rstb-gpios" and "pwdn-gpios" for reset and
-> powerdown pins.  However, using generic names for thse gpios is preferred.
-
-nit: 'these gpios'
-
-> ("reset-gpios" and "powerdown-gpios" respectively)
->
-> There is only one mainline user for these gpios, so rename to generic
-> names.
->
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-
-Bindings update should come first.
-Not a big deal.
-
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-
-> ---
-> * v2
-> - New patch
->
->  arch/sh/boards/mach-migor/setup.c | 5 +++--
->  drivers/media/i2c/ov772x.c        | 8 ++++----
->  2 files changed, 7 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-> index 271dfc2..73b9ee4 100644
-> --- a/arch/sh/boards/mach-migor/setup.c
-> +++ b/arch/sh/boards/mach-migor/setup.c
-> @@ -351,8 +351,9 @@ static struct platform_device migor_ceu_device = {
->  static struct gpiod_lookup_table ov7725_gpios = {
->  	.dev_id		= "0-0021",
->  	.table		= {
-> -		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
-> -		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
-> +		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "powerdown",
-> +			    GPIO_ACTIVE_HIGH),
-> +		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "reset", GPIO_ACTIVE_LOW),
->  	},
->  };
->
-> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> index 0ae2a4f..88d1418a 100644
-> --- a/drivers/media/i2c/ov772x.c
-> +++ b/drivers/media/i2c/ov772x.c
-> @@ -837,10 +837,10 @@ static int ov772x_power_on(struct ov772x_priv *priv)
->  	 * available to handle this cleanly, request the GPIO temporarily
->  	 * to avoid conflicts.
->  	 */
-> -	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
-> +	priv->rstb_gpio = gpiod_get_optional(&client->dev, "reset",
->  					     GPIOD_OUT_LOW);
->  	if (IS_ERR(priv->rstb_gpio)) {
-> -		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
-> +		dev_info(&client->dev, "Unable to get GPIO \"reset\"");
->  		return PTR_ERR(priv->rstb_gpio);
->  	}
->
-> @@ -1309,10 +1309,10 @@ static int ov772x_probe(struct i2c_client *client,
->  		goto error_ctrl_free;
->  	}
->
-> -	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
-> +	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "powerdown",
->  					     GPIOD_OUT_LOW);
->  	if (IS_ERR(priv->pwdn_gpio)) {
-> -		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
-> +		dev_info(&client->dev, "Unable to get GPIO \"powerdown\"");
->  		ret = PTR_ERR(priv->pwdn_gpio);
->  		goto error_clk_put;
->  	}
-> --
-> 2.7.4
->
-
---FkmkrVfFsRoUs1wW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJa1y1SAAoJEHI0Bo8WoVY8SCIP/12HbzFFnFfVlQrnEchTO2js
-q001fvtPwmnInfQiVLpeSyYaZZSBUm7RYkCghXXczYUiiEu/iubbW5rAh7o1nya5
-n1mDPgvxrmee6NgNxLPyDLL50rhZOY3CbkVCVzvosekjOWva1DktBI6UzUBiuikf
-vqXAKrTz+mXBiUbEnoLtXX18RGxOlI+I5KEY6RwgIIq83jx7Bhu/Kgux6dlk2fsQ
-orJhTB9qXH6mbjeqRjqXDDuYhcxCrE0tDKdnwhhEngwPGP+osF6kBDTFj15AVbSu
-f0qslnEoHFKkfdi0+WkyXqRn5dz7u1oWCGaZoLpLqJhB+OXSdfAWf2djns1dFCj9
-omAag0viQRjoylMmkMyO7FFQOrProj69CUqXRx2zlityLrjD3lt2aFUrX/7iuqGF
-FiPC/QamHnsGaSiSt6yF02+6Ql2TUmskp7+p844Hl85mvDcATS2q77TN+xmED7Ly
-pX+iAxfeRLWXx+OvNQgr+YUADwmUj6z5NlCjR6H2ofPrWaZTy/jEvTkjTYsz7ujQ
-Fxf2cHqVbcovjsDD2clCGO8RsWaQ+X4Zju16L/hvbdcTZziAW6j8rQ0axWEePD7U
-Db3kEIFQWTcc2RFppZiLhMGFHfeL+X4yC0kZ4hM3NW37Ff1RlkKrDf3babhRc4jA
-4EvbkRJ+kXlBzk0duhMp
-=0o3G
------END PGP SIGNATURE-----
-
---FkmkrVfFsRoUs1wW--
+diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+index 9fcabe7..9a5263c 100644
+--- a/Documentation/media/uapi/v4l/subdev-formats.rst
++++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+@@ -1669,6 +1669,64 @@ JEIDA defined bit mapping will be named
+       - b\ :sub:`2`
+       - g\ :sub:`1`
+       - r\ :sub:`0`
++    * .. _MEDIA-BUS-FMT-RGB666-1X7X3-SPWG_LE:
++
++      - MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE
++      - 0x101b
++      - 0
++      -
++      -
++      - b\ :sub:`2`
++      - g\ :sub:`1`
++      - r\ :sub:`0`
++    * -
++      -
++      - 1
++      -
++      -
++      - b\ :sub:`3`
++      - g\ :sub:`2`
++      - r\ :sub:`1`
++    * -
++      -
++      - 2
++      -
++      -
++      - b\ :sub:`4`
++      - g\ :sub:`3`
++      - r\ :sub:`2`
++    * -
++      -
++      - 3
++      -
++      -
++      - b\ :sub:`5`
++      - g\ :sub:`4`
++      - r\ :sub:`3`
++    * -
++      -
++      - 4
++      -
++      -
++      - d
++      - g\ :sub:`5`
++      - r\ :sub:`4`
++    * -
++      -
++      - 5
++      -
++      -
++      - d
++      - b\ :sub:`0`
++      - r\ :sub:`5`
++    * -
++      -
++      - 6
++      -
++      -
++      - d
++      - b\ :sub:`1`
++      - g\ :sub:`0`
+     * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG:
+ 
+       - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG
+@@ -1727,6 +1785,64 @@ JEIDA defined bit mapping will be named
+       - b\ :sub:`2`
+       - g\ :sub:`1`
+       - r\ :sub:`0`
++    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG_LE:
++
++      - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE
++      - 0x101c
++      - 0
++      -
++      - r\ :sub:`6`
++      - b\ :sub:`2`
++      - g\ :sub:`1`
++      - r\ :sub:`0`
++    * -
++      -
++      - 1
++      -
++      - r\ :sub:`7`
++      - b\ :sub:`3`
++      - g\ :sub:`2`
++      - r\ :sub:`1`
++    * -
++      -
++      - 2
++      -
++      - g\ :sub:`6`
++      - b\ :sub:`4`
++      - g\ :sub:`3`
++      - r\ :sub:`2`
++    * -
++      -
++      - 3
++      -
++      - g\ :sub:`7`
++      - b\ :sub:`5`
++      - g\ :sub:`4`
++      - r\ :sub:`3`
++    * -
++      -
++      - 4
++      -
++      - b\ :sub:`6`
++      - d
++      - g\ :sub:`5`
++      - r\ :sub:`4`
++    * -
++      -
++      - 5
++      -
++      - b\ :sub:`7`
++      - d
++      - b\ :sub:`0`
++      - r\ :sub:`5`
++    * -
++      -
++      - 6
++      -
++      - d
++      - d
++      - b\ :sub:`1`
++      - g\ :sub:`0`
+     * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA:
+ 
+       - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA
+@@ -1785,6 +1901,64 @@ JEIDA defined bit mapping will be named
+       - b\ :sub:`4`
+       - g\ :sub:`3`
+       - r\ :sub:`2`
++    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA_LE:
++
++      - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE
++      - 0x101d
++      - 0
++      -
++      - r\ :sub:`0`
++      - b\ :sub:`4`
++      - g\ :sub:`3`
++      - r\ :sub:`2`
++    * -
++      -
++      - 1
++      -
++      - r\ :sub:`1`
++      - b\ :sub:`5`
++      - g\ :sub:`4`
++      - r\ :sub:`3`
++    * -
++      -
++      - 2
++      -
++      - g\ :sub:`0`
++      - b\ :sub:`6`
++      - g\ :sub:`5`
++      - r\ :sub:`4`
++    * -
++      -
++      - 3
++      -
++      - g\ :sub:`1`
++      - b\ :sub:`7`
++      - g\ :sub:`6`
++      - r\ :sub:`5`
++    * -
++      -
++      - 4
++      -
++      - b\ :sub:`0`
++      - d
++      - g\ :sub:`7`
++      - r\ :sub:`6`
++    * -
++      -
++      - 5
++      -
++      - b\ :sub:`1`
++      - d
++      - b\ :sub:`2`
++      - r\ :sub:`7`
++    * -
++      -
++      - 6
++      -
++      - d
++      - d
++      - b\ :sub:`3`
++      - g\ :sub:`2`
+ 
+ .. raw:: latex
+ 
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 9e35117..5bea7c0 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -34,7 +34,7 @@
+ 
+ #define MEDIA_BUS_FMT_FIXED			0x0001
+ 
+-/* RGB - next is	0x101b */
++/* RGB - next is	0x101f */
+ #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+ #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+@@ -49,13 +49,16 @@
+ #define MEDIA_BUS_FMT_RBG888_1X24		0x100e
+ #define MEDIA_BUS_FMT_RGB666_1X24_CPADHI	0x1015
+ #define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
++#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE	0x101b
+ #define MEDIA_BUS_FMT_BGR888_1X24		0x1013
+ #define MEDIA_BUS_FMT_GBR888_1X24		0x1014
+ #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
+ #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+ #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+ #define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
++#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE	0x101c
+ #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
++#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE	0x101d
+ #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+ #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+ #define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
+-- 
+2.7.4
