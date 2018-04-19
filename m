@@ -1,90 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46714 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752611AbeDDPfm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:35:42 -0400
-Subject: Re: [PATCH 01/15] v4l: vsp1: Don't start/stop media pipeline for DRM
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
- <20180226214516.11559-2-laurent.pinchart+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <be4ff146-2702-2493-3e4d-1998ce5ba96b@ideasonboard.com>
-Date: Wed, 4 Apr 2018 16:35:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180226214516.11559-2-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38691 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752414AbeDSKTC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 06:19:02 -0400
+Received: by mail-wr0-f195.google.com with SMTP id h3-v6so12531592wrh.5
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:19:01 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 12/15] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+Date: Thu, 19 Apr 2018 11:18:09 +0100
+Message-Id: <20180419101812.30688-13-rui.silva@linaro.org>
+In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch adds the device tree nodes for csi, video multiplexer and mipi-csi
+besides the graph connecting the necessary endpoints to make the media capture
+entities to work in imx7 Warp board.
 
-On 26/02/18 21:45, Laurent Pinchart wrote:
-> The DRM support code manages a pipeline of VSP entities, each backed by
-> a media entity. When starting or stopping the pipeline, it starts and
-> stops the media pipeline through the media API in order to store the
-> pipeline pointer in every entity.
-> 
-> The driver doesn't use the pipe pointer in media entities, neither does
-> it rely on the other effects of the media_pipeline_start() and
-> media_pipeline_stop() functions. Furthermore, as the media links for the
-> DRM pipeline are never set up correctly, and as the pipeline can be
-> modified dynamically when enabling or disabling planes, the current
-> implementation is not correct. Remove the incorrect and unneeded code.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Also add the pin control related with the mipi_csi in that board.
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ arch/arm/boot/dts/imx7s-warp.dts | 80 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++
+ 2 files changed, 107 insertions(+)
 
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 18 +++---------------
->  1 file changed, 3 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index b8fee1834253..e31fb371eaf9 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -109,8 +109,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  		if (ret == -ETIMEDOUT)
->  			dev_err(vsp1->dev, "DRM pipeline stop timeout\n");
->  
-> -		media_pipeline_stop(&pipe->output->entity.subdev.entity);
-> -
->  		for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
->  			struct vsp1_rwpf *rpf = pipe->inputs[i];
->  
-> @@ -224,11 +222,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	}
->  
->  	/*
-> -	 * Mark the pipeline as streaming and enable the VSP1. This will store
-> -	 * the pipeline pointer in all entities, which the s_stream handlers
-> -	 * will need. We don't start the entities themselves right at this point
-> -	 * as there's no plane configured yet, so we can't start processing
-> -	 * buffers.
-> +	 * Enable the VSP1. We don't start the entities themselves right at this
-> +	 * point as there's no plane configured yet, so we can't start
-> +	 * processing buffers.
->  	 */
->  	ret = vsp1_device_get(vsp1);
->  	if (ret < 0)
-> @@ -241,14 +237,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	drm_pipe->du_complete = cfg->callback;
->  	drm_pipe->du_private = cfg->callback_data;
->  
-> -	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
-> -					  &pipe->pipe);
-> -	if (ret < 0) {
-> -		dev_dbg(vsp1->dev, "%s: pipeline start failed\n", __func__);
-> -		vsp1_device_put(vsp1);
-> -		return ret;
-> -	}
-> -
->  	/* Disable the display interrupts. */
->  	vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
->  	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
-> 
+diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+index 8a30b148534d..91d06adf7c24 100644
+--- a/arch/arm/boot/dts/imx7s-warp.dts
++++ b/arch/arm/boot/dts/imx7s-warp.dts
+@@ -310,6 +310,79 @@
+ 	status = "okay";
+ };
+ 
++&gpr {
++	csi_mux {
++		compatible = "video-mux";
++		mux-controls = <&mux 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_csi_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi_mux_to_csi: endpoint {
++				remote-endpoint = <&csi_from_csi_mux>;
++			};
++		};
++	};
++};
++
++&csi {
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	port@0 {
++		reg = <0>;
++
++		csi_from_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_to_csi>;
++		};
++	};
++};
++
++&mipi_csi {
++	clock-frequency = <166000000>;
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	port@0 {
++		reg = <0>;
++
++		mipi_from_sensor: endpoint {
++			remote-endpoint = <&ov2680_to_mipi>;
++			data-lanes = <1>;
++			csis-hs-settle = <3>;
++			csis-clk-settle = <0>;
++			csis-wclk;
++		};
++	};
++
++	port@1 {
++		reg = <1>;
++
++		mipi_vc0_to_csi_mux: endpoint {
++			remote-endpoint = <&csi_mux_from_mipi_vc0>;
++		};
++	};
++};
++
+ &wdog1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_wdog>;
+@@ -357,6 +430,13 @@
+ 		>;
+ 	};
+ 
++	pinctrl_mipi_csi: mipi_csi {
++		fsl,pins = <
++			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
++			MX7D_PAD_ENET1_RGMII_TD0__GPIO7_IO6	0x14
++		>;
++	};
++
+ 	pinctrl_sai1: sai1grp {
+ 		fsl,pins = <
+ 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 3027d6a62021..6b49b73053f9 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -46,6 +46,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/reset/imx7-reset.h>
+ #include "imx7d-pinfunc.h"
+ 
+ / {
+@@ -753,6 +754,17 @@
+ 				status = "disabled";
+ 			};
+ 
++			csi: csi@30710000 {
++				compatible = "fsl,imx7-csi";
++				reg = <0x30710000 0x10000>;
++				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_CLK_DUMMY>,
++						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++						<&clks IMX7D_CLK_DUMMY>;
++				clock-names = "axi", "mclk", "dcic";
++				status = "disabled";
++			};
++
+ 			lcdif: lcdif@30730000 {
+ 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
+ 				reg = <0x30730000 0x10000>;
+@@ -762,6 +774,21 @@
+ 				clock-names = "pix", "axi";
+ 				status = "disabled";
+ 			};
++
++			mipi_csi: mipi-csi@30750000 {
++				compatible = "fsl,imx7-mipi-csi2";
++				reg = <0x30750000 0x10000>;
++				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++						<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++				clock-names = "mipi", "phy";
++				power-domains = <&pgc_mipi_phy>;
++				phy-supply = <&reg_1p0d>;
++				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++				reset-names = "mrst";
++				bus-width = <4>;
++				status = "disabled";
++			};
+ 		};
+ 
+ 		aips3: aips-bus@30800000 {
+-- 
+2.17.0
