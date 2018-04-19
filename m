@@ -1,71 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:51774 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751324AbeDWGXj (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34061 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751271AbeDSKSh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 02:23:39 -0400
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20180423062337euoutp0251f23de08a31a92bf08d85ffd2b027e6~n-H4UNCD90233102331euoutp02h
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:23:37 +0000 (GMT)
-Subject: Re: [PATCH] media: s5p-jpeg: don't return a value on a void
- function
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-ID: <732007af-de97-084d-8e3f-2c9b7de700f4@samsung.com>
-Date: Mon, 23 Apr 2018 08:23:33 +0200
-MIME-Version: 1.0
-In-Reply-To: <4376a97a-bb22-056b-4a63-8838c0c2d3f8@gmail.com>
-Content-Type: text/plain; charset="windows-1252"; format="flowed"
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-References: <180af45d9964a4d9855066b8f74a8629625acfa2.1524250913.git.mchehab@s-opensource.com>
-        <CGME20180420191157epcas1p2daac97ef3159bea632c90da23da8063f@epcas1p2.samsung.com>
-        <4376a97a-bb22-056b-4a63-8838c0c2d3f8@gmail.com>
+        Thu, 19 Apr 2018 06:18:37 -0400
+Received: by mail-wr0-f193.google.com with SMTP id d19-v6so12536896wre.1
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:18:37 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 03/15] clk: imx7d: fix mipi dphy div parent
+Date: Thu, 19 Apr 2018 11:18:00 +0100
+Message-Id: <20180419101812.30688-4-rui.silva@linaro.org>
+In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Fix the mipi dphy root divider to mipi_dphy_pre_div, this would remove a orphan
+clock and set the correct parent.
 
-W dniu 20.04.2018 o 21:10, Jacek Anaszewski pisze:
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On 04/20/2018 09:01 PM, Mauro Carvalho Chehab wrote:
->> Building this driver on arm64 gives this warning:
->> 	drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c:430:16: error: return expression in void function
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> ---
->>   drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c | 4 ++--
->>   1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
->> index 0974b9a7a584..0861842b2dfc 100644
->> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
->> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
->> @@ -425,9 +425,9 @@ unsigned int exynos3250_jpeg_get_int_status(void __iomem *regs)
->>   }
->>   
->>   void exynos3250_jpeg_clear_int_status(void __iomem *regs,
->> -						unsigned int value)
->> +				      unsigned int value)
->>   {
->> -	return writel(value, regs + EXYNOS3250_JPGINTST);
->> +	writel(value, regs + EXYNOS3250_JPGINTST);
->>   }
->>   
->>   unsigned int exynos3250_jpeg_operating(void __iomem *regs)
->>
-> 
-> Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-> 
+before:
+cat clk_orphan_summary
+                                 enable  prepare  protect
+   clock                          count    count    count        rate   accuracy   phase
+----------------------------------------------------------------------------------------
+ mipi_dphy_post_div                   1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
 
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+cat clk_dump | grep mipi_dphy
+mipi_dphy_post_div                    1        1        0           0          0 0
+    mipi_dphy_root_clk                1        1        0           0          0 0
+
+after:
+cat clk_dump | grep mipi_dphy
+   mipi_dphy_src                     1        1        0    24000000          0 0
+       mipi_dphy_cg                  1        1        0    24000000          0 0
+          mipi_dphy_pre_div          1        1        0    24000000          0 0
+             mipi_dphy_post_div      1        1        0    24000000          0 0
+                mipi_dphy_root_clk   1        1        0    24000000          0 0
+
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/clk/imx/clk-imx7d.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/imx/clk-imx7d.c b/drivers/clk/imx/clk-imx7d.c
+index 975a20d3cc94..f7f4db2e6fa6 100644
+--- a/drivers/clk/imx/clk-imx7d.c
++++ b/drivers/clk/imx/clk-imx7d.c
+@@ -729,7 +729,7 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
+ 	clks[IMX7D_LCDIF_PIXEL_ROOT_DIV] = imx_clk_divider2("lcdif_pixel_post_div", "lcdif_pixel_pre_div", base + 0xa300, 0, 6);
+ 	clks[IMX7D_MIPI_DSI_ROOT_DIV] = imx_clk_divider2("mipi_dsi_post_div", "mipi_dsi_pre_div", base + 0xa380, 0, 6);
+ 	clks[IMX7D_MIPI_CSI_ROOT_DIV] = imx_clk_divider2("mipi_csi_post_div", "mipi_csi_pre_div", base + 0xa400, 0, 6);
+-	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_csi_dphy_div", base + 0xa480, 0, 6);
++	clks[IMX7D_MIPI_DPHY_ROOT_DIV] = imx_clk_divider2("mipi_dphy_post_div", "mipi_dphy_pre_div", base + 0xa480, 0, 6);
+ 	clks[IMX7D_SAI1_ROOT_DIV] = imx_clk_divider2("sai1_post_div", "sai1_pre_div", base + 0xa500, 0, 6);
+ 	clks[IMX7D_SAI2_ROOT_DIV] = imx_clk_divider2("sai2_post_div", "sai2_pre_div", base + 0xa580, 0, 6);
+ 	clks[IMX7D_SAI3_ROOT_DIV] = imx_clk_divider2("sai3_post_div", "sai3_pre_div", base + 0xa600, 0, 6);
+-- 
+2.17.0
