@@ -1,69 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([46.23.86.59]:59866 "EHLO mail.bugwerft.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754485AbeDTJtz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 05:49:55 -0400
-From: Daniel Mack <daniel@zonque.org>
-To: linux-media@vger.kernel.org
-Cc: slongerbeam@gmail.com, mchehab@kernel.org,
-        Daniel Mack <daniel@zonque.org>
-Subject: [PATCH 3/3] media: ov5640: add support for xclk frequency control
-Date: Fri, 20 Apr 2018 11:44:19 +0200
-Message-Id: <20180420094419.11267-3-daniel@zonque.org>
-In-Reply-To: <20180420094419.11267-1-daniel@zonque.org>
-References: <20180420094419.11267-1-daniel@zonque.org>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:53547 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753692AbeDSQE0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 12:04:26 -0400
+Message-ID: <1524153860.3416.9.camel@pengutronix.de>
+Subject: Re: [PATCH v2 08/10] dt-bindings: media: Document bindings for the
+ Sunxi-Cedrus VPU driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 19 Apr 2018 18:04:20 +0200
+In-Reply-To: <20180419154536.17846-4-paul.kocialkowski@bootlin.com>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+         <20180419154536.17846-4-paul.kocialkowski@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow setting the xclk rate via an optional 'clock-frequency' property in
-the device tree node.
+Hi Paul,
 
-Signed-off-by: Daniel Mack <daniel@zonque.org>
----
- Documentation/devicetree/bindings/media/i2c/ov5640.txt |  2 ++
- drivers/media/i2c/ov5640.c                             | 10 ++++++++++
- 2 files changed, 12 insertions(+)
+On Thu, 2018-04-19 at 17:45 +0200, Paul Kocialkowski wrote:
+> This adds a device-tree binding document that specifies the properties
+> used by the Sunxi-Cedurs VPU driver, as well as examples.
+> 
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  .../devicetree/bindings/media/sunxi-cedrus.txt     | 50 ++++++++++++++++++++++
+>  1 file changed, 50 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+> new file mode 100644
+> index 000000000000..71ad3f9c3352
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+> @@ -0,0 +1,50 @@
+> +Device-tree bindings for the VPU found in Allwinner SoCs, referred to as the
+> +Video Engine (VE) in Allwinner literature.
+> +
+> +The VPU can only access the first 256 MiB of DRAM, that are DMA-mapped starting
+> +from the DRAM base. This requires specific memory allocation and handling.
+> +
+> +Required properties:
+> +- compatible	        : "allwinner,sun4i-a10-video-engine";
+> +- memory-region         : DMA pool for buffers allocation;
+> +- clocks	        : list of clock specifiers, corresponding to entries in
+> +                          the clock-names property;
+> +- clock-names	        : should contain "ahb", "mod" and "ram" entries;
+> +- assigned-clocks       : list of clocks assigned to the VE;
+> +- assigned-clocks-rates : list of clock rates for the clocks assigned to the VE;
+> +- resets	        : phandle for reset;
+> +- interrupts	        : should contain VE interrupt number;
+> +- reg		        : should contain register base and length of VE.
+> +
+> +Example:
+> +
+> +reserved-memory {
+> +	#address-cells = <1>;
+> +	#size-cells = <1>;
+> +	ranges;
+> +
+> +	/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
+> +	ve_memory: cma@4a000000 {
+> +		compatible = "shared-dma-pool";
+> +		reg = <0x4a000000 0x6000000>;
+> +		no-map;
+> +		linux,cma-default;
+> +	};
+> +};
+> +
+> +video-engine@1c0e000 {
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-index 8e36da0d8406..584bbc944978 100644
---- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-@@ -13,6 +13,8 @@ Optional Properties:
- 	       This is an active low signal to the OV5640.
- - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
- 		   if any. This is an active high signal to the OV5640.
-+- clock-frequency: frequency to set on the xclk input clock. The clock
-+		   is left untouched if this property is missing.
- 
- The device node must contain one 'port' child node for its digital output
- video port, in accordance with the video interface bindings defined in
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 78669ed386cd..2d94d6dbda5d 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2685,6 +2685,7 @@ static int ov5640_probe(struct i2c_client *client,
- 	struct fwnode_handle *endpoint;
- 	struct ov5640_dev *sensor;
- 	struct v4l2_mbus_framefmt *fmt;
-+	u32 freq;
- 	int ret;
- 
- 	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-@@ -2731,6 +2732,15 @@ static int ov5640_probe(struct i2c_client *client,
- 		return PTR_ERR(sensor->xclk);
- 	}
- 
-+	ret = of_property_read_u32(dev->of_node, "clock-frequency", &freq);
-+	if (ret == 0) {
-+		ret = clk_set_rate(sensor->xclk, freq);
-+		if (ret) {
-+			dev_err(dev, "could not set xclk frequency\n");
-+			return ret;
-+		}
-+	}
-+
- 	sensor->xclk_freq = clk_get_rate(sensor->xclk);
- 	if (sensor->xclk_freq < OV5640_XCLK_MIN ||
- 	    sensor->xclk_freq > OV5640_XCLK_MAX) {
--- 
-2.14.3
+This is not really required by any specification, and not as common as
+gpu@..., but could this reasonably be called "vpu@1c0e000" to follow
+somewhat-common practice?
+
+> +	compatible = "allwinner,sun4i-a10-video-engine";
+> +	reg = <0x01c0e000 0x1000>;
+> +	memory-region = <&ve_memory>;
+> +
+> +	clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
+> +		 <&ccu CLK_DRAM_VE>;
+> +	clock-names = "ahb", "mod", "ram";
+> +
+> +	assigned-clocks = <&ccu CLK_VE>;
+> +	assigned-clock-rates = <320000000>;
+> +
+> +	resets = <&ccu RST_VE>;
+> +
+> +	interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
+> +};
+
+regards
+Philipp
