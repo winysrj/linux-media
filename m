@@ -1,98 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:39783 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753254AbeDMOSG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Apr 2018 10:18:06 -0400
-Message-ID: <1523629085.3396.10.camel@pengutronix.de>
-Subject: Re: imx-media: MT9P031 Capture issues on IMX6
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Ibtsam Ul-Haq <ibtsam.haq.0x01@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>
-Date: Fri, 13 Apr 2018 16:18:05 +0200
-In-Reply-To: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
-References: <CAPQseg2t1-LgmeuQBW2YXSwN26WKcJWakN2KCLfCjKZ_wJeWGw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.bootlin.com ([62.4.15.54]:40623 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752192AbeDSO7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 10:59:33 -0400
+Message-ID: <d2df04bd29b040001577d3bb905c81b3aff8f594.camel@bootlin.com>
+Subject: Re: [PATCH 5/9] media: platform: Add Sunxi Cedrus decoder driver
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, Icenowy Zheng <icenowy@aosc.xyz>,
+        Florent Revest <revestflo@gmail.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas van Kleef <thomas@vitsch.nl>,
+        "Signed-off-by : Bob Ham" <rah@settrans.net>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>
+Date: Thu, 19 Apr 2018 16:58:18 +0200
+In-Reply-To: <20180309135702.pk4webt7xnj7lrza@flea>
+References: <20180309100933.15922-3-paul.kocialkowski@bootlin.com>
+         <20180309101445.16190-3-paul.kocialkowski@bootlin.com>
+         <20180309135702.pk4webt7xnj7lrza@flea>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-lYPRh0T5wzpLHC3is229"
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ibtsam,
 
-On Thu, 2018-04-12 at 16:00 +0200, Ibtsam Ul-Haq wrote:
-> Greetings everyone,
-> I am using Linux 4.14.31 on an IMX6 platform, with an MT9P031 sensor
-> attached to the ipu1_csi0 (parallel).
-> My Gstreamer version is 1.14.0 and v4l-utils version is 1.14.2.
-> The problem is that I am unable to set up a capture pipeline.
-> 
-> Even the simplest capture pipeline such as:
-> 
-> gst-launch-1.0 v4l2src device=/dev/video4 ! fakesink
-> 
-> returns the following error:
-> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> Internal data stream error.
-> Additional debug info:
-> ../../../../gstreamer-1.14.0/libs/gst/base/gstbasesrc.c(3055):
-> gst_base_src_loop (): /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> streaming stopped, reason not-negotiated (-4)
-> ERROR: pipeline doesn't want to preroll.
-> 
-> I get the same error on any pipeline involving v4l2src.
-> 
-> I have set up the media entity links using:
-> media-ctl -l "'mt9p031 0-0048':0 -> 'ipu1_csi0_mux':1[1]"
-> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
->
-> And I configure the pads using:
-> media-ctl -V "'mt9p031 0-0048':0 [fmt:SGRBG8/640x480 field:none]"
-> media-ctl -V "'ipu1_csi0_mux':2 [fmt:SGRBG8/640x480 field:none]"
-> media-ctl -V "'ipu1_csi0':2 [fmt:SGRBG8/640x480 field:none]"
+--=-lYPRh0T5wzpLHC3is229
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-What is the actual format that all pads are configured to? I found it
-helpful to double check the whole pipeline after configuring pads (or
-use media-ctl -v):
+Hi and thanks for the review,
 
-media-ctl --get-v4l2 "'mt9p031 0-0048':0"
-media-ctl --get-v4l2 "'ipu1_csi0_mux':1"
-media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
-media-ctl --get-v4l2 "'ipu1_csi0':0"
-media-ctl --get-v4l2 "'ipu1_csi0':2"
+On Fri, 2018-03-09 at 14:57 +0100, Maxime Ripard wrote:
+> On Fri, Mar 09, 2018 at 11:14:41AM +0100, Paul Kocialkowski wrote:
+> > +/*
+> > + * mem2mem callbacks
+> > + */
+> > +
+> > +void job_abort(void *priv)
+> > +{}
+>=20
+> Is that still needed?
 
-I assume that because mt9p031 only supports SGRBG12_1X12, that's what
-will be propagated down the pipeline to the CSI, which will then expand
-it to SGRBG16.
+v2 contains a proper implementation of job abortion, so yes :)
 
-I suppose we should allow, at least for parallel input, to let the CSI
-'convert' 12-bit input formats to 8-bit output formats by just ignoring
-the LSBs.
-Another possibility would be to just allow SGRBG12_1X12 -> SGRBG8_1X8
-mbus codes in link_validate. Actually, does your hardware have 12 data
-lines connected between sensor and i.MX6, or just 8 ?
+> > +/*
+> > + * device_run() - prepares and starts processing
+> > + */
+> > +void device_run(void *priv)
+> > +{
+>=20
+> This function (and the one above) should probably made static. Or at
+> least if you can't, they should have a much more specific name in
+> order not to conflict with anything from the core.
 
-> And I do not get any errors from these commands.
+Agreed, will fix in v2.
 
-That's because of the way the V4L2 API works, unsupported formats are
-adjusted by the drivers:
+> > +	/*
+> > +	 * The VPU is only able to handle bus addresses so we have
+> > to subtract
+> > +	 * the RAM offset to the physcal addresses
+> > +	 */
+> > +	in_buf     -=3D PHYS_OFFSET;
+> > +	out_luma   -=3D PHYS_OFFSET;
+> > +	out_chroma -=3D PHYS_OFFSET;
+>=20
+> You should take care of that by putting it in the dma_pfn_offset field
+> of the struct device (at least before we come up with something
+> better).
+>=20
+> You'll then be able to use the dma_addr_t directly without modifying
+> it.
 
-https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/vidioc-subdev-g-fmt.html#description
+Ditto.
 
-[...]
-> What confuses me here is that the Pixel Format shown by v4l2-ctl is
-> 'GR16', which is not what I expected. And it seems like the media-ctl
-> pad configuration commands are unable to change the Pixel Format, even
-> though they do not return any errors.
+> > +	vpu->syscon =3D syscon_regmap_lookup_by_phandle(vpu->dev-
+> > >of_node,
+> > +						      "syscon");
+> > +	if (IS_ERR(vpu->syscon)) {
+> > +		vpu->syscon =3D NULL;
+> > +	} else {
+> > +		regmap_write_bits(vpu->syscon,
+> > SYSCON_SRAM_CTRL_REG0,
+> > +				  SYSCON_SRAM_C1_MAP_VE,
+> > +				  SYSCON_SRAM_C1_MAP_VE);
+> > +	}
+>=20
+> This should be using our SRAM controller driver (and API), see
+> Documentation/devicetree/bindings/sram/sunxi-sram.txt
+> include/linux/soc/sunxi/sunxi_sram.h
 
-Whenever you media-ctl -V on a source pad, it will also try to set the
-connected sink pad to the same format. And for subdevices with sink and
-source pads, the source pads usually mirror (or somehow depend on) the
-format of the sink pad. Due to the way the V4L2 APIs correct your input
-to possible values, calling media-ctl -V on all source pads of the
-pipeline in downstream direction essentially propagates the sensor
-source pad format.
+This will require adding support for the VE (and the A33 along the way)
+in the SRAM driver, so a dedicated patch series will be sent in this
+direction eventually.
 
-regards
-Philipp
+> > +	ret =3D clk_prepare_enable(vpu->ahb_clk);
+> > +	if (ret) {
+> > +		dev_err(vpu->dev, "could not enable ahb clock\n");
+> > +		return -EFAULT;
+> > +	}
+> > +	ret =3D clk_prepare_enable(vpu->mod_clk);
+> > +	if (ret) {
+> > +		clk_disable_unprepare(vpu->ahb_clk);
+> > +		dev_err(vpu->dev, "could not enable mod clock\n");
+> > +		return -EFAULT;
+> > +	}
+> > +	ret =3D clk_prepare_enable(vpu->ram_clk);
+> > +	if (ret) {
+> > +		clk_disable_unprepare(vpu->mod_clk);
+> > +		clk_disable_unprepare(vpu->ahb_clk);
+> > +		dev_err(vpu->dev, "could not enable ram clock\n");
+> > +		return -EFAULT;
+> > +	}
+>=20
+> Ideally, this should be using runtime_pm to manage the device power
+> state, and disable it when not used.
+>=20
+> > +	reset_control_assert(vpu->rstc);
+> > +	reset_control_deassert(vpu->rstc);
+>=20
+> You can use reset_control_reset here
+
+Will do in v2.
+
+> > +	return 0;
+> > +}
+> > +
+> > +void sunxi_cedrus_hw_remove(struct sunxi_cedrus_dev *vpu)
+> > +{
+> > +	clk_disable_unprepare(vpu->ram_clk);
+> > +	clk_disable_unprepare(vpu->mod_clk);
+> > +	clk_disable_unprepare(vpu->ahb_clk);
+>=20
+> The device is not put back into reset here
+
+Good catch!
+
+Cheers,
+
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-lYPRh0T5wzpLHC3is229
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlrYrooACgkQ3cLmz3+f
+v9GPlwf5ATGUchrf3ZZN5vIYJiuJ+FEu4zhjGo33RJhpVGFWjQSf4Cag0M4O1S84
+AjWbFRdTrLglMRlxkqwybucQtLYMSXnm5AdMvXtkecKwCgmV6KzvSCVqUlxMIm/l
+R+dPM84HSzoB43q2M6OY7cfr4TGvofsd272AFW9c9F/FIicHGwFHie45g/6bX6zK
+dvw65KJY6vnpfI7OJ3d1xnleDfykU/IQfAt7qxtdHhEN8ZvG1QPsuDY9Jf7YXDB+
+0kDEjraPqG8w2j3rrj51vQj48Bqp0KqBv8SHGdCMch5vFMIlbfQTZkoW4Bz9Cqlo
+PxORRTZKwHG1/c2G76/2aAePKQYKzQ==
+=xvrY
+-----END PGP SIGNATURE-----
+
+--=-lYPRh0T5wzpLHC3is229--
