@@ -1,57 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:58126 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754074AbeDTIZa (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:43633 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752891AbeDSLBJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 04:25:30 -0400
-Received: from [10.47.79.81] ([10.47.79.81])
-        (authenticated bits=0)
-        by aer-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id w3K8PQv7008784
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 08:25:27 GMT
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [GIT FIXES FOR v4.17] New board, two fixes
-Message-ID: <85e67b02-cafd-ce35-e2e9-c72ea0fdf423@cisco.com>
-Date: Fri, 20 Apr 2018 10:25:26 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 19 Apr 2018 07:01:09 -0400
+Received: by mail-wr0-f193.google.com with SMTP id u4-v6so12826569wrg.10
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 04:01:09 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v5 1/2] media: ov2680: dt: Add bindings for OV2680
+Date: Thu, 19 Apr 2018 12:00:55 +0100
+Message-Id: <20180419110056.10342-2-rui.silva@linaro.org>
+In-Reply-To: <20180419110056.10342-1-rui.silva@linaro.org>
+References: <20180419110056.10342-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add device tree binding documentation for the OV2680 camera sensor.
 
-Three patches for 4.17: two are fixes, one add a new cx231xx board.
+Reviewed-by: Rob Herring <robh@kernel.org>
+CC: devicetree@vger.kernel.org
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ .../devicetree/bindings/media/i2c/ov2680.txt  | 40 +++++++++++++++++++
+ 1 file changed, 40 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2680.txt
 
-Regards,
-
-	Hans
-
-The following changes since commit 42a182282ea2426d56b2d63be634ee419194c45c:
-
-  media: si470x: fix a typo at the Makefile causing build issues (2018-04-18 15:21:41 -0400)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.17g
-
-for you to fetch changes up to 219744bbe295ed0369f1b1fa789ea46704cffd82:
-
-  media: rcar-vin: Fix image alignment for setting pre clipping (2018-04-20 10:14:08 +0200)
-
-----------------------------------------------------------------
-Colin Ian King (1):
-      media: cec: set ev rather than v with CEC_PIN_EVENT_FL_DROPPED bit
-
-Kai-Heng Feng (1):
-      media: cx231xx: Add support for AverMedia DVD EZMaker 7
-
-Koji Matsuoka (1):
-      media: rcar-vin: Fix image alignment for setting pre clipping
-
- drivers/media/cec/cec-pin.c                 | 2 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 4 ++--
- drivers/media/usb/cx231xx/cx231xx-cards.c   | 3 +++
- 3 files changed, 6 insertions(+), 3 deletions(-)
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2680.txt b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+new file mode 100644
+index 000000000000..0e29f1a113c0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+@@ -0,0 +1,40 @@
++* Omnivision OV2680 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: should be "ovti,ov2680".
++- clocks: reference to the xvclk input clock.
++- clock-names: should be "xvclk".
++
++Optional Properties:
++- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
++		     if any. This is an active high signal to the OV2680.
++
++The device node must contain one 'port' child node for its digital output
++video port, and this port must have a single endpoint in accordance with
++ the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Endpoint node required properties for CSI-2 connection are:
++- remote-endpoint: a phandle to the bus receiver's endpoint node.
++- clock-lanes: should be set to <0> (clock lane on hardware lane 0).
++- data-lanes: should be set to <1> (one CSI-2 lane supported).
++ 
++Example:
++
++&i2c2 {
++	ov2680: camera-sensor@36 {
++		compatible = "ovti,ov2680";
++		reg = <0x36>;
++		clocks = <&osc>;
++		clock-names = "xvclk";
++		powerdown-gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov2680_mipi_ep: endpoint {
++				remote-endpoint = <&mipi_sensor_ep>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++			};
++		};
++	};
++};
+-- 
+2.17.0
