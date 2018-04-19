@@ -1,86 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:38444 "EHLO
-        andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755019AbeDTN27 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:41793 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752160AbeDSKSz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Apr 2018 09:28:59 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        "David S . Miller" <davem@davemloft.net>,
+        Thu, 19 Apr 2018 06:18:55 -0400
+Received: by mail-wr0-f194.google.com with SMTP id v24-v6so12504030wra.8
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:18:54 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH/RFC 7/8] ARM: shmobile: Remove the ARCH_SHMOBILE Kconfig symbol
-Date: Fri, 20 Apr 2018 15:28:33 +0200
-Message-Id: <1524230914-10175-8-git-send-email-geert+renesas@glider.be>
-In-Reply-To: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
-References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 09/15] media: dt-bindings: add bindings for i.MX7 media driver
+Date: Thu, 19 Apr 2018 11:18:06 +0100
+Message-Id: <20180419101812.30688-10-rui.silva@linaro.org>
+In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All drivers for Renesas ARM SoCs have gained proper ARCH_RENESAS
-platform dependencies.  Hence finish the conversion from ARCH_SHMOBILE
-to ARCH_RENESAS for Renesas 32-bit ARM SoCs, as started by commit
-9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS").
+Add bindings documentation for i.MX7 media drivers.
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
-This depends on the previous patches in this series, hence the RFC.
+ .../devicetree/bindings/media/imx7.txt        | 158 ++++++++++++++++++
+ 1 file changed, 158 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx7.txt
 
-JFTR, after this, the following symbols for drivers supporting only
-Renesas SuperH "SH-Mobile" SoCs can no longer be selected:
-  - CONFIG_KEYBOARD_SH_KEYSC,
-  - CONFIG_VIDEO_SH_VOU,
-  - CONFIG_VIDEO_SH_MOBILE_CEU,
-  - CONFIG_DRM_SHMOBILE[*],
-  - CONFIG_FB_SH_MOBILE_MERAM.
-(changes for a shmobile_defconfig .config)
-
-[*] CONFIG_DRM_SHMOBILE has a dependency on ARM, but it was never wired
-    up.  From the use of sh_mobile_meram, I guess it was meant for
-    SH-Mobile AP4 on Mackerel or AP4EVB, which are long gone.
-    So the only remaining upstream platforms that could make use of it
-    are legacy SuperH SH-Mobile SoCs?
----
- arch/arm/mach-shmobile/Kconfig | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
-index 96672da02f5f17b9..d892c5b52b6f5627 100644
---- a/arch/arm/mach-shmobile/Kconfig
-+++ b/arch/arm/mach-shmobile/Kconfig
-@@ -1,6 +1,3 @@
--config ARCH_SHMOBILE
--	bool
--
- config PM_RMOBILE
- 	bool
- 	select PM
-@@ -30,7 +27,6 @@ menuconfig ARCH_RENESAS
- 	bool "Renesas ARM SoCs"
- 	depends on ARCH_MULTI_V7 && MMU
- 	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
--	select ARCH_SHMOBILE
- 	select ARM_GIC
- 	select GPIOLIB
- 	select HAVE_ARM_SCU if SMP
+diff --git a/Documentation/devicetree/bindings/media/imx7.txt b/Documentation/devicetree/bindings/media/imx7.txt
+new file mode 100644
+index 000000000000..7e058ea25102
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx7.txt
+@@ -0,0 +1,158 @@
++Freescale i.MX7 Media Video Device
++==================================
++
++Video Media Controller node
++---------------------------
++
++This is the media controller node for video capture support. It is a
++virtual device that lists the camera serial interface nodes that the
++media device will control.
++
++Required properties:
++- compatible : "fsl,imx7-capture-subsystem";
++- ports      : Should contain a list of phandles pointing to camera
++		sensor interface port of CSI
++
++example:
++
++capture-subsystem {
++	compatible = "fsl,imx7-capture-subsystem";
++	ports = <&csi>;
++};
++
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
++compatible with previous version of Samsung D-phy.
++
++Required properties:
++
++- compatible    : "fsl,imx7-mipi-csi2";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain MIPI CSIS interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "mipi" and "phy" entries, matching entries in the
++                  clock property;
++- power-domains : a phandle to the power domain, see
++          Documentation/devicetree/bindings/power/power_domain.txt for details.
++- reset-names   : should include following entry "mrst";
++- resets        : a list of phandle, should contain reset entry of
++                  reset-names;
++- phy-supply    : from the generic phy bindings, a phandle to a regulator that
++	          provides power to VBUS;
++- bus-width     : maximum number of data lanes supported (SoC specific);
++
++Optional properties:
++
++- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
++		    value when this property is not specified is 166 MHz;
++
++port node
++---------
++
++- reg		  : (required) can take the values 0 or 1, where 0 is the
++                     related sink port and port 1 should be the source one;
++
++endpoint node
++-------------
++
++- data-lanes    : (required) an array specifying active physical MIPI-CSI2
++		    data input lanes and their mapping to logical lanes; the
++		    array's content is unused, only its length is meaningful;
++
++- csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
++- csis-clk-settle : (optional) D-PHY control register;
++- csis-wclk     : CSI-2 wrapper clock selection. If this property is present
++		  external clock from CMU will be used, or the bus clock if
++		  if it's not specified.
++
++example:
++
++	mipi_csi: mipi-csi@30750000 {
++                clock-frequency = <166000000>;
++                status = "okay";
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++		compatible = "fsl,imx7-mipi-csi2";
++		reg = <0x30750000 0x10000>;
++		interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
++				<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
++		clock-names = "mipi", "phy";
++		power-domains = <&pgc_mipi_phy>;
++		phy-supply = <&reg_1p0d>;
++		resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
++		reset-names = "mrst";
++		bus-width = <4>;
++		status = "disabled";
++
++                port@0 {
++                        reg = <0>;
++
++                        mipi_from_sensor: endpoint {
++                                remote-endpoint = <&ov2680_to_mipi>;
++                                data-lanes = <1>;
++                                csis-hs-settle = <3>;
++                                csis-clk-settle = <0>;
++                                csis-wclk;
++                        };
++                };
++
++                port@1 {
++                        reg = <1>;
++
++                        mipi_vc0_to_csi_mux: endpoint {
++                                remote-endpoint = <&csi_mux_from_mipi_vc0>;
++                        };
++                };
++	};
++
++
++csi node
++--------
++
++This is device node for the CMOS Sensor Interface (CSI) which enables the chip
++to connect directly to external CMOS image sensors.
++
++Required properties:
++
++- compatible    : "fsl,imx7-csi";
++- reg           : base address and length of the register set for the device;
++- interrupts    : should contain CSI interrupt;
++- clocks        : list of clock specifiers, see
++        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
++- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
++                 entries in the clock property;
++
++port node
++---------
++
++- reg		  : (required) should be 0 for the sink port;
++
++example:
++
++		csi: csi@30710000 {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++			compatible = "fsl,imx7-csi";
++			reg = <0x30710000 0x10000>;
++			interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&clks IMX7D_CLK_DUMMY>,
++					<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
++					<&clks IMX7D_CLK_DUMMY>;
++			clock-names = "axi", "mclk", "dcic";
++			status = "disabled";
++
++                        port@0 {
++                                reg = <0>;
++
++                                csi_from_csi_mux: endpoint {
++                                        remote-endpoint = <&csi_mux_to_csi>;
++                                };
++                        };
++		};
 -- 
-2.7.4
+2.17.0
