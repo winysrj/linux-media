@@ -1,120 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39732 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753222AbeDCHZT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Apr 2018 03:25:19 -0400
-Subject: Re: V4l2 Sensor driver and V4l2 ctrls
-To: asadpt iqroot <asadptiqroot@gmail.com>
-Cc: linux-media@vger.kernel.org
-References: <CA+gCWtL1HiZjNaZ87RRET+tHrdzSaqor=-vQUssnaGN+6iFOdg@mail.gmail.com>
- <2c04f13c-48dc-a745-02fc-7bd8cd57e568@xs4all.nl>
- <CA+gCWtJgw9Efhug-SveBmSfu55NC2dbaUO2KPCjZE1fVwvah3A@mail.gmail.com>
- <7a63122c-cad6-44ee-0d2d-5ce2bd9e6f92@xs4all.nl>
- <CA+gCWtKmDps+NJvXGowBCJrdStV9_1D7kwWqxx8mnG9OswV0xQ@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <828efe4e-bb7b-6c5d-a0b1-9f84cf16d1bc@xs4all.nl>
-Date: Tue, 3 Apr 2018 09:25:16 +0200
-MIME-Version: 1.0
-In-Reply-To: <CA+gCWtKmDps+NJvXGowBCJrdStV9_1D7kwWqxx8mnG9OswV0xQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from sauhun.de ([88.99.104.3]:45342 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753088AbeDSOHB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 10:07:01 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: [PATCH 26/61] media: platform: exynos4-is: simplify getting .drvdata
+Date: Thu, 19 Apr 2018 16:05:56 +0200
+Message-Id: <20180419140641.27926-27-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/04/18 08:32, asadpt iqroot wrote:
-> Hi Hans,
-> 
-> Thanks for the reply.
-> 
-> In board, we have the HDMI connectors. Is it mandatory to use this ctrl
-> V4L2_CID_DV_RX_POWER_PRESENT. Based on this v4l2 ctrl, what v4l2 framework
-> will do? If I do not set any value to this ctrl, what will happen to
-> video streaming?
+We should get drvdata from struct device directly. Going via
+platform_device is an unneeded step back and forth.
 
-This control isn't for the kernel, it's to help userspace. Userspace can
-subscribe to this control and receive an event whenever it changes value
-(i.e. whenever the driver detects a change in the 5V HDMI line).
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
 
-It then knows that it looks like something has been connected to the receiver
-and it can start waiting for a stable signal, inform the user or just keep
-track of it internally for debug purposes.
+Build tested only. buildbot is happy. Please apply individually.
 
-What HDMI receivers do you use? Analog Devices? NXP? SoC-based?
+ drivers/media/platform/exynos4-is/media-dev.c | 6 ++----
+ drivers/media/platform/exynos4-is/mipi-csis.c | 6 ++----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-> 
-> For example, if I did not add this control in driver, what will
-> happen? Whether this will
-> affect the functionality of the video streaming? or not.
-
-No, it is just to inform userspace that something was connected or
-disconnected. And to aid in debugging problems.
-
-> Why do we have the standard v4l2 ctrl like this?
-
-See above.
-
-Note: if you plan on upstreaming your HDMI receiver driver, then this control
-must be present.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks for the inputs.
-> 
-> On 30 March 2018 at 12:58, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 30/03/18 09:23, asadpt iqroot wrote:
->>> Hi Hans,
->>>
->>> Thanks for the reply.
->>>
->>> In HDMI receivers, when we need to use this control. What scenario?
->>
->> https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/extended-controls.html#digital-video-control-reference
->>
->> "Detects whether the receiver receives power from the source (e.g. HDMI carries 5V on one of the pins)."
->>
->> Regards,
->>
->>         Hans
->>
->>>
->>> -Thanks.
->>>
->>>
->>> On 30 March 2018 at 12:13, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> On 30/03/18 08:16, asadpt iqroot wrote:
->>>>> Hi All,
->>>>>
->>>>> In reference sensor drivers, they used the
->>>>> V4L2_CID_DV_RX_POWER_PRESENT v4l2 ctrl.
->>>>> It is a standard ctrl and created using v4l2_ctrl_new_std().
->>>>>
->>>>> The doubts are:
->>>>>
->>>>> 1. Whether in our sensor driver, we need to create this Control Id or
->>>>> not. How to take the decision on this. Since this is the standard
->>>>> ctrl. When we need to use these standard ctrls??
->>>>
->>>> No. This control is for HDMI receivers, not for sensors.
->>>>
->>>> Regards,
->>>>
->>>>         Hans
->>>>
->>>>>
->>>>> 2. In Sensor driver, the ctrls creation is anything depends on the
->>>>> bridge driver.
->>>>> Based on bridge driver, whether we need to create any ctrls in Sensor driver.
->>>>>
->>>>> This question belongs to design of the sensor driver.
->>>>>
->>>>>
->>>>>
->>>>> Thanks & Regards
->>>>>
->>>>
->>
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 78b48a1fa26c..deb499f76412 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1201,8 +1201,7 @@ static const struct media_device_ops fimc_md_ops = {
+ static ssize_t fimc_md_sysfs_show(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct fimc_md *fmd = platform_get_drvdata(pdev);
++	struct fimc_md *fmd = dev_get_drvdata(dev);
+ 
+ 	if (fmd->user_subdev_api)
+ 		return strlcpy(buf, "Sub-device API (sub-dev)\n", PAGE_SIZE);
+@@ -1214,8 +1213,7 @@ static ssize_t fimc_md_sysfs_store(struct device *dev,
+ 				   struct device_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct fimc_md *fmd = platform_get_drvdata(pdev);
++	struct fimc_md *fmd = dev_get_drvdata(dev);
+ 	bool subdev_api;
+ 	int i;
+ 
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index cba46a656338..b4e28a299e26 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -891,8 +891,7 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 
+ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
+ 	struct csis_state *state = sd_to_csis_state(sd);
+ 	int ret = 0;
+ 
+@@ -921,8 +920,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+ 
+ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
+ 	struct csis_state *state = sd_to_csis_state(sd);
+ 	int ret = 0;
+ 
+-- 
+2.11.0
