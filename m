@@ -1,141 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54331 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751414AbeDEJSl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2018 05:18:41 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 07/15] v4l: vsp1: Setup BRU at atomic commit time
-Date: Thu,  5 Apr 2018 12:18:32 +0300
-Message-Id: <20180405091840.30728-8-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180405091840.30728-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from sauhun.de ([88.99.104.3]:45448 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753395AbeDSOHC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 10:07:02 -0400
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 27/61] media: platform: s5p-mfc: simplify getting .drvdata
+Date: Thu, 19 Apr 2018 16:05:57 +0200
+Message-Id: <20180419140641.27926-28-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
+References: <20180419140641.27926-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To implement fully dynamic plane assignment to pipelines, we need to
-reassign the BRU and BRS to the DRM pipelines in the atomic commit
-handler. In preparation for this setup factor out the BRU source pad
-code and call it both at LIF setup and atomic commit time.
+We should get drvdata from struct device directly. Going via
+platform_device is an unneeded step back and forth.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c | 56 +++++++++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_drm.h |  5 +++
- 2 files changed, 60 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 7bf697ba7969..6ad8aa6c8138 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -148,12 +148,51 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
- 	return 0;
- }
+Build tested only. buildbot is happy. Please apply individually.
+
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index a80251ed3143..9ca707cb2a42 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1449,8 +1449,7 @@ static int s5p_mfc_remove(struct platform_device *pdev)
  
-+/* Setup the BRU source pad. */
-+static int vsp1_du_pipeline_setup_bru(struct vsp1_device *vsp1,
-+				      struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
-+	struct v4l2_subdev_format format = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	/*
-+	 * Configure the format on the BRU source and verify that it matches the
-+	 * requested format. We don't set the media bus code as it is configured
-+	 * on the BRU sink pad 0 and propagated inside the entity, not on the
-+	 * source pad.
-+	 */
-+	format.pad = pipe->bru->source_pad;
-+	format.format.width = drm_pipe->width;
-+	format.format.height = drm_pipe->height;
-+	format.format.field = V4L2_FIELD_NONE;
-+
-+	ret = v4l2_subdev_call(&pipe->bru->subdev, pad, set_fmt, NULL,
-+			       &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
-+		__func__, format.format.width, format.format.height,
-+		format.format.code, BRU_NAME(pipe->bru), pipe->bru->source_pad);
-+
-+	if (format.format.width != drm_pipe->width ||
-+	    format.format.height != drm_pipe->height) {
-+		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
-+		return -EPIPE;
-+	}
-+
-+	return 0;
-+}
-+
- static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+ static int s5p_mfc_suspend(struct device *dev)
  {
- 	return vsp1->drm->inputs[rpf->entity.index].zpos;
- }
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct s5p_mfc_dev *m_dev = platform_get_drvdata(pdev);
++	struct s5p_mfc_dev *m_dev = dev_get_drvdata(dev);
+ 	int ret;
  
--/* Setup the input side of the pipeline (RPFs and BRU sink pads). */
-+/* Setup the input side of the pipeline (RPFs and BRU). */
- static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
- 					struct vsp1_pipeline *pipe)
+ 	if (m_dev->num_inst == 0)
+@@ -1484,8 +1483,7 @@ static int s5p_mfc_suspend(struct device *dev)
+ 
+ static int s5p_mfc_resume(struct device *dev)
  {
-@@ -191,6 +230,18 @@ static int vsp1_du_pipeline_setup_input(struct vsp1_device *vsp1,
- 		inputs[j] = rpf;
- 	}
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct s5p_mfc_dev *m_dev = platform_get_drvdata(pdev);
++	struct s5p_mfc_dev *m_dev = dev_get_drvdata(dev);
  
-+	/*
-+	 * Setup the BRU. This must be done before setting up the RPF input
-+	 * pipelines as the BRU sink compose rectangles depend on the BRU source
-+	 * format.
-+	 */
-+	ret = vsp1_du_pipeline_setup_bru(vsp1, pipe);
-+	if (ret < 0) {
-+		dev_err(vsp1->dev, "%s: failed to setup %s source\n", __func__,
-+			BRU_NAME(pipe->bru));
-+		return ret;
-+	}
-+
- 	/* Setup the RPF input pipeline for every enabled input. */
- 	for (i = 0; i < pipe->bru->source_pad; ++i) {
- 		struct vsp1_rwpf *rpf = inputs[i];
-@@ -355,6 +406,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+ 	if (m_dev->num_inst == 0)
  		return 0;
- 	}
- 
-+	drm_pipe->width = cfg->width;
-+	drm_pipe->height = cfg->height;
-+
- 	dev_dbg(vsp1->dev, "%s: configuring LIF%u with format %ux%u\n",
- 		__func__, pipe_index, cfg->width, cfg->height);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index 9aa19325cbe9..c8dd75ba01f6 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -20,12 +20,17 @@
- /**
-  * vsp1_drm_pipeline - State for the API exposed to the DRM driver
-  * @pipe: the VSP1 pipeline used for display
-+ * @width: output display width
-+ * @height: output display height
-  * @du_complete: frame completion callback for the DU driver (optional)
-  * @du_private: data to be passed to the du_complete callback
-  */
- struct vsp1_drm_pipeline {
- 	struct vsp1_pipeline pipe;
- 
-+	unsigned int width;
-+	unsigned int height;
-+
- 	/* Frame synchronisation */
- 	void (*du_complete)(void *, bool);
- 	void *du_private;
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
