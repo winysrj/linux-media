@@ -1,261 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:53169 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750990AbeDSJbg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 05:31:36 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: architt@codeaurora.org, a.hajda@samsung.com,
-        Laurent.pinchart@ideasonboard.com, airlied@linux.ie
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, daniel@ffwll.ch,
-        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/8] media: Add LE version of RGB LVDS formats
-Date: Thu, 19 Apr 2018 11:31:06 +0200
-Message-Id: <1524130269-32688-6-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail.bootlin.com ([62.4.15.54]:42891 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752679AbeDSPq5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 11:46:57 -0400
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Subject: [PATCH v2 05/10] media: v4l: Add definitions for MPEG2 frame format and header metadata
+Date: Thu, 19 Apr 2018 17:45:31 +0200
+Message-Id: <20180419154536.17846-1-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some LVDS controller can output swapped versions of LVDS RGB formats.
-Define and document them in the list of supported media bus formats
+Stateless video decoding engines require both the MPEG slices and
+associated metadata from the video stream in order to decode frames.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+This introduces definitions for a new pixel format, describing buffers
+with MPEG2 slice data, as well as a control structure for passing the
+frame header (metadata) to drivers.
+
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
 ---
- Documentation/media/uapi/v4l/subdev-formats.rst | 174 ++++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h           |   5 +-
- 2 files changed, 178 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 10 ++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
+ include/uapi/linux/v4l2-controls.h   | 26 ++++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h       |  3 +++
+ 4 files changed, 40 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index 9fcabe7..9a5263c 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -1669,6 +1669,64 @@ JEIDA defined bit mapping will be named
-       - b\ :sub:`2`
-       - g\ :sub:`1`
-       - r\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-RGB666-1X7X3-SPWG_LE:
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ba05a8b9a095..fcdc12b9a9e0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -761,6 +761,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
+ 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
+ 	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:		return "Force Key Frame";
++	case V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR:		return "MPEG2 Frame Header";
+ 
+ 	/* VPX controls */
+ 	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+@@ -1152,6 +1153,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_ALT_FREQS:
+ 		*type = V4L2_CTRL_TYPE_U32;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR:
++		*type = V4L2_CTRL_TYPE_MPEG2_FRAME_HDR;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -1472,6 +1476,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -ERANGE;
+ 		return 0;
+ 
++	case V4L2_CTRL_TYPE_MPEG2_FRAME_HDR:
++		return 0;
 +
-+      - MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE
-+      - 0x101b
-+      - 0
-+      -
-+      -
-+      - b\ :sub:`2`
-+      - g\ :sub:`1`
-+      - r\ :sub:`0`
-+    * -
-+      -
-+      - 1
-+      -
-+      -
-+      - b\ :sub:`3`
-+      - g\ :sub:`2`
-+      - r\ :sub:`1`
-+    * -
-+      -
-+      - 2
-+      -
-+      -
-+      - b\ :sub:`4`
-+      - g\ :sub:`3`
-+      - r\ :sub:`2`
-+    * -
-+      -
-+      - 3
-+      -
-+      -
-+      - b\ :sub:`5`
-+      - g\ :sub:`4`
-+      - r\ :sub:`3`
-+    * -
-+      -
-+      - 4
-+      -
-+      -
-+      - d
-+      - g\ :sub:`5`
-+      - r\ :sub:`4`
-+    * -
-+      -
-+      - 5
-+      -
-+      -
-+      - d
-+      - b\ :sub:`0`
-+      - r\ :sub:`5`
-+    * -
-+      -
-+      - 6
-+      -
-+      -
-+      - d
-+      - b\ :sub:`1`
-+      - g\ :sub:`0`
-     * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG:
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2046,6 +2053,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	case V4L2_CTRL_TYPE_U32:
+ 		elem_size = sizeof(u32);
+ 		break;
++	case V4L2_CTRL_TYPE_MPEG2_FRAME_HDR:
++		elem_size = sizeof(struct v4l2_ctrl_mpeg2_frame_hdr);
++		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+ 			elem_size = sizeof(s32);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 468c3c65362d..8070203da5d2 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1273,6 +1273,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+ 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
+ 		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
++		case V4L2_PIX_FMT_MPEG2_FRAME:	descr = "MPEG2 Frame"; break;
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index cbbb750d87d1..8431b2a540c7 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -557,6 +557,8 @@ enum v4l2_mpeg_video_mpeg4_profile {
+ };
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
  
-       - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG
-@@ -1727,6 +1785,64 @@ JEIDA defined bit mapping will be named
-       - b\ :sub:`2`
-       - g\ :sub:`1`
-       - r\ :sub:`0`
-+    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-SPWG_LE:
++#define V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR     (V4L2_CID_MPEG_BASE+450)
 +
-+      - MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE
-+      - 0x101c
-+      - 0
-+      -
-+      - r\ :sub:`6`
-+      - b\ :sub:`2`
-+      - g\ :sub:`1`
-+      - r\ :sub:`0`
-+    * -
-+      -
-+      - 1
-+      -
-+      - r\ :sub:`7`
-+      - b\ :sub:`3`
-+      - g\ :sub:`2`
-+      - r\ :sub:`1`
-+    * -
-+      -
-+      - 2
-+      -
-+      - g\ :sub:`6`
-+      - b\ :sub:`4`
-+      - g\ :sub:`3`
-+      - r\ :sub:`2`
-+    * -
-+      -
-+      - 3
-+      -
-+      - g\ :sub:`7`
-+      - b\ :sub:`5`
-+      - g\ :sub:`4`
-+      - r\ :sub:`3`
-+    * -
-+      -
-+      - 4
-+      -
-+      - b\ :sub:`6`
-+      - d
-+      - g\ :sub:`5`
-+      - r\ :sub:`4`
-+    * -
-+      -
-+      - 5
-+      -
-+      - b\ :sub:`7`
-+      - d
-+      - b\ :sub:`0`
-+      - r\ :sub:`5`
-+    * -
-+      -
-+      - 6
-+      -
-+      - d
-+      - d
-+      - b\ :sub:`1`
-+      - g\ :sub:`0`
-     * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA:
+ /*  Control IDs for VP8 streams
+  *  Although VP8 is not part of MPEG we add these controls to the MPEG class
+  *  as that class is already handling other video compression standards
+@@ -985,4 +987,28 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
  
-       - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA
-@@ -1785,6 +1901,64 @@ JEIDA defined bit mapping will be named
-       - b\ :sub:`4`
-       - g\ :sub:`3`
-       - r\ :sub:`2`
-+    * .. _MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA_LE:
++struct v4l2_ctrl_mpeg2_frame_hdr {
++	__u32 slice_len;
++	__u32 slice_pos;
++	enum { MPEG1, MPEG2 } type;
 +
-+      - MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE
-+      - 0x101d
-+      - 0
-+      -
-+      - r\ :sub:`0`
-+      - b\ :sub:`4`
-+      - g\ :sub:`3`
-+      - r\ :sub:`2`
-+    * -
-+      -
-+      - 1
-+      -
-+      - r\ :sub:`1`
-+      - b\ :sub:`5`
-+      - g\ :sub:`4`
-+      - r\ :sub:`3`
-+    * -
-+      -
-+      - 2
-+      -
-+      - g\ :sub:`0`
-+      - b\ :sub:`6`
-+      - g\ :sub:`5`
-+      - r\ :sub:`4`
-+    * -
-+      -
-+      - 3
-+      -
-+      - g\ :sub:`1`
-+      - b\ :sub:`7`
-+      - g\ :sub:`6`
-+      - r\ :sub:`5`
-+    * -
-+      -
-+      - 4
-+      -
-+      - b\ :sub:`0`
-+      - d
-+      - g\ :sub:`7`
-+      - r\ :sub:`6`
-+    * -
-+      -
-+      - 5
-+      -
-+      - b\ :sub:`1`
-+      - d
-+      - b\ :sub:`2`
-+      - r\ :sub:`7`
-+    * -
-+      -
-+      - 6
-+      -
-+      - d
-+      - d
-+      - b\ :sub:`3`
-+      - g\ :sub:`2`
++	__u16 width;
++	__u16 height;
++
++	enum { PCT_I = 1, PCT_P, PCT_B, PCT_D } picture_coding_type;
++	__u8 f_code[2][2];
++
++	__u8 intra_dc_precision;
++	__u8 picture_structure;
++	__u8 top_field_first;
++	__u8 frame_pred_frame_dct;
++	__u8 concealment_motion_vectors;
++	__u8 q_scale_type;
++	__u8 intra_vlc_format;
++	__u8 alternate_scan;
++
++	__u8 backward_ref_index;
++	__u8 forward_ref_index;
++};
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 31b5728b56e9..4b8336f7bcf0 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -635,6 +635,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+ #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+ #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
++#define V4L2_PIX_FMT_MPEG2_FRAME v4l2_fourcc('M', 'G', '2', 'F') /* MPEG2 frame */
  
- .. raw:: latex
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+@@ -1586,6 +1587,7 @@ struct v4l2_ext_control {
+ 		__u8 __user *p_u8;
+ 		__u16 __user *p_u16;
+ 		__u32 __user *p_u32;
++		struct v4l2_ctrl_mpeg2_frame_hdr __user *p_mpeg2_frame_hdr;
+ 		void __user *ptr;
+ 	};
+ } __attribute__ ((packed));
+@@ -1631,6 +1633,7 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++	V4L2_CTRL_TYPE_MPEG2_FRAME_HDR = 0x0109,
+ };
  
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 9e35117..5bea7c0 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -34,7 +34,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x101b */
-+/* RGB - next is	0x101f */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -49,13 +49,16 @@
- #define MEDIA_BUS_FMT_RBG888_1X24		0x100e
- #define MEDIA_BUS_FMT_RGB666_1X24_CPADHI	0x1015
- #define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
-+#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG_LE	0x101b
- #define MEDIA_BUS_FMT_BGR888_1X24		0x1013
- #define MEDIA_BUS_FMT_GBR888_1X24		0x1014
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
- #define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
-+#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG_LE	0x101c
- #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
-+#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA_LE	0x101d
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
- #define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
 -- 
-2.7.4
+2.16.3
