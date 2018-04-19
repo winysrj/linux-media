@@ -1,185 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63592 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:46061 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752546AbeDQL4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 07:56:06 -0400
-Date: Tue, 17 Apr 2018 08:55:54 -0300
+        id S1752306AbeDSLQL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 07:16:11 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
-Message-ID: <20180417085554.067d9168@vento.lan>
-In-Reply-To: <a8a09731-76bb-8bd9-ad16-43640d3de8ed@xs4all.nl>
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
-        <20180416132121.46205-7-hverkuil@xs4all.nl>
-        <20180416150335.66f6ab12@vento.lan>
-        <20180416150956.22b5b021@vento.lan>
-        <b04f9c6a-78ef-3e22-be01-fa757823c13e@xs4all.nl>
-        <a8a09731-76bb-8bd9-ad16-43640d3de8ed@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Daniel Mentz <danielmentz@google.com>
+Subject: [PATCH RESEND 4/6] media: v4l2-compat-ioctl32: fix several __user annotations
+Date: Thu, 19 Apr 2018 07:15:49 -0400
+Message-Id: <26ee885cc6b9581e6d4433e4248f8611f4c007c4.1524136402.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524136402.git.mchehab@s-opensource.com>
+References: <cover.1524136402.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524136402.git.mchehab@s-opensource.com>
+References: <cover.1524136402.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 17 Apr 2018 11:59:40 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Smatch report several issues with bad __user annotations:
 
-> On 04/16/18 21:41, Hans Verkuil wrote:
-> > On 04/16/2018 08:09 PM, Mauro Carvalho Chehab wrote:  
-> >> Em Mon, 16 Apr 2018 15:03:35 -0300
-> >> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> >>  
-> >>> Em Mon, 16 Apr 2018 15:21:18 +0200
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>  
-> >>>> From: Hans Verkuil <hansverk@cisco.com>
-> >>>>
-> >>>> The v2 pad structure never exposed the pad index, which made it impossible
-> >>>> to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
-> >>>>
-> >>>> It is really trivial to just expose this information, so implement this.    
-> >>>
-> >>> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
-> >>
-> >> Err... I looked on it too fast... See my comments below.
-> >>
-> >> The same applies to patch 8/9.
-> >>  
-> >>>>
-> >>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> >>>> ---
-> >>>>  drivers/media/media-device.c | 1 +
-> >>>>  include/uapi/linux/media.h   | 7 ++++++-
-> >>>>  2 files changed, 7 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> >>>> index dca1e5a3e0f9..73ffea3e81c9 100644
-> >>>> --- a/drivers/media/media-device.c
-> >>>> +++ b/drivers/media/media-device.c
-> >>>> @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
-> >>>>  		kpad.id = pad->graph_obj.id;
-> >>>>  		kpad.entity_id = pad->entity->graph_obj.id;
-> >>>>  		kpad.flags = pad->flags;
-> >>>> +		kpad.index = pad->index;
-> >>>>  
-> >>>>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
-> >>>>  			ret = -EFAULT;
-> >>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> >>>> index ac08acffdb65..15f7f432f808 100644
-> >>>> --- a/include/uapi/linux/media.h
-> >>>> +++ b/include/uapi/linux/media.h
-> >>>> @@ -310,11 +310,16 @@ struct media_v2_interface {
-> >>>>  	};
-> >>>>  } __attribute__ ((packed));
-> >>>>  
-> >>>> +/* Appeared in 4.18.0 */
-> >>>> +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-> >>>> +	((media_version) >= 0x00041200)
-> >>>> +  
-> >>
-> >> I don't like this, for a couple of reasons:
-> >>
-> >> 1) it has a magic number on it, with is actually a parsed
-> >>    version of LINUX_VERSION() macro;  
-> > 
-> > I can/should change that to KERNEL_VERSION().
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21: warning: incorrect type in argument 1 (different address spaces)
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    expected void [noderef] <asn:1>*uptr
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:447:21:    got void *<noident>
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21: warning: incorrect type in argument 1 (different address spaces)
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    expected void const volatile [noderef] <asn:1>*<noident>
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:621:21:    got struct v4l2_plane [noderef] <asn:1>**<noident>
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13: warning: incorrect type in argument 1 (different address spaces)
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    expected void [noderef] <asn:1>*uptr
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:693:13:    got void *[assigned] base
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13: warning: incorrect type in assignment (different address spaces)
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    expected struct v4l2_ext_control [noderef] <asn:1>*kcontrols
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:871:13:    got struct v4l2_ext_control *<noident>
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13: warning: incorrect type in assignment (different address spaces)
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    expected unsigned char [usertype] *__pu_val
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:957:13:    got void [noderef] <asn:1>*
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13: warning: incorrect type in argument 1 (different address spaces)
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    expected void [noderef] <asn:1>*uptr
+  drivers/media/v4l2-core/v4l2-compat-ioctl32.c:973:13:    got void *[assigned] edid
 
-I don't think so. The macro is not there at include/uapi.
+Fix them.
 
-> >   
-> >>
-> >> 2) it sounds really weird to ship a header file with a new
-> >>    kernel version meant to provide backward compatibility with
-> >>    older versions;
-> >>
-> >> 3) this isn't any different than:
-> >>
-> >> 	#define MEDIA_V2_PAD_HAS_INDEX -1
-> >>
-> >> I think we need to think a little bit more about that.  
-> > 
-> > What typically happens is that applications (like those in v4l-utils
-> > for example) copy the headers locally. So they are compiled with the headers
-> > of a specific kernel version, but they can run with very different kernels.
-> > 
-> > This is normal for distros where you can install different kernel versions
-> > without needing to modify applications.
-> > 
-> > In fact, we (Cisco) use the latest v4l-utils code on kernels ranging between
-> > 2.6.39 to 4.10 (I think that's the latest one in use).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 51 ++++++++++++++++++---------
+ 1 file changed, 35 insertions(+), 16 deletions(-)
 
-Well, if you use a macro, the "compat" code at v4l-utils (or whatever other
-app you use) will be assuming the specific Kernel version you used when you
-built it, with is probably not what you want.
-
-The way of checking if a feature is there or not is, instead, to ask for
-the media version via MEDIA_IOC_DEVICE_INFO. It should provide the
-media API version.
-
-This is already filled with:
-	info->media_version = LINUX_VERSION_CODE;
-
-So, all we need to do is to document that the new fields are available only
-for such version or above and add such check at v4l-utils.
-
-> > 
-> > The media version tells you whether or not the kernel supports this feature.
-> > I don't see another way of doing this.
-> > 
-> > In most other cases we can just say that if the field value is 0, then it
-> > should not be used. Unfortunately, 0 is a valid value for the pad index, for
-> > the entity flags and for the entity function (some drivers set it to
-> > MEDIA_ENT_F_UNKNOWN, which has value 0). This last one is most unfortunate,
-> > since this should never have happened and would have been detected if we had
-> > proper compliance tools.  
-> 
-> Actually, I think that if I first ensure that all drivers correctly set function
-> to a non-zero value, then there is no need for a test macro and I can just say
-> that if it is 0, then fall back to 'type'.
-> 
-> It requires some analysis, but it's doable.
-
-That is something that we want to do anyway.
-> 
-> For the index and flags field there is no alternative that I can think of, though.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> >   
-> >>
-> >>  
-> >>>>  struct media_v2_pad {
-> >>>>  	__u32 id;
-> >>>>  	__u32 entity_id;
-> >>>>  	__u32 flags;
-> >>>> -	__u32 reserved[5];
-> >>>> +	__u32 index;
-> >>>> +	__u32 reserved[4];
-> >>>>  } __attribute__ ((packed));
-> >>>>  
-> >>>>  struct media_v2_link {    
-> >>>
-> >>>
-> >>>
-> >>> Thanks,
-> >>> Mauro  
-> >>
-> >>
-> >>
-> >> Thanks,
-> >> Mauro
-> >>  
-> >   
-> 
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index d03a44d89649..c951ac3faf46 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -443,8 +443,8 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up,
+ 			return -EFAULT;
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+-		if (get_user(p, &up->m.userptr) ||
+-		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
++		if (get_user(p, &up->m.userptr)||
++		    put_user((compat_ulong_t)ptr_to_compat((void __user *)p),
+ 			     &up32->m.userptr))
+ 			return -EFAULT;
+ 		break;
+@@ -587,7 +587,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 	u32 length;
+ 	enum v4l2_memory memory;
+ 	struct v4l2_plane32 __user *uplane32;
+-	struct v4l2_plane __user *uplane;
++	struct v4l2_plane *uplane;
+ 	compat_caddr_t p;
+ 	int ret;
+ 
+@@ -617,15 +617,22 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *kp,
+ 
+ 		if (num_planes == 0)
+ 			return 0;
+-
+-		if (get_user(uplane, ((__force struct v4l2_plane __user **)&kp->m.planes)))
++		/* We need to define uplane without __user, even though
++		 * it does point to data in userspace here. The reason is
++		 * that v4l2-ioctl.c copies it from userspace to kernelspace,
++		 * so its definition in videodev2.h doesn't have a
++		 * __user markup. Defining uplane with __user causes
++		 * smatch warnings, so instead declare it without __user
++		 * and cast it as a userspace pointer to put_v4l2_plane32().
++		 */
++		if (get_user(uplane, &kp->m.planes))
+ 			return -EFAULT;
+ 		if (get_user(p, &up->m.planes))
+ 			return -EFAULT;
+ 		uplane32 = compat_ptr(p);
+ 
+ 		while (num_planes--) {
+-			ret = put_v4l2_plane32(uplane, uplane32, memory);
++			ret = put_v4l2_plane32((void __user *)uplane, uplane32, memory);
+ 			if (ret)
+ 				return ret;
+ 			++uplane;
+@@ -675,7 +682,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
+ 
+ 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    get_user(tmp, &up->base) ||
+-	    put_user((__force void *)compat_ptr(tmp), &kp->base) ||
++	    put_user((void __force *)compat_ptr(tmp), &kp->base) ||
+ 	    assign_in_user(&kp->capability, &up->capability) ||
+ 	    assign_in_user(&kp->flags, &up->flags) ||
+ 	    copy_in_user(&kp->fmt, &up->fmt, sizeof(kp->fmt)))
+@@ -690,7 +697,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer __user *kp,
+ 
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    get_user(base, &kp->base) ||
+-	    put_user(ptr_to_compat(base), &up->base) ||
++	    put_user(ptr_to_compat((void __user *)base), &up->base) ||
+ 	    assign_in_user(&up->capability, &kp->capability) ||
+ 	    assign_in_user(&up->flags, &kp->flags) ||
+ 	    copy_in_user(&up->fmt, &kp->fmt, sizeof(kp->fmt)))
+@@ -857,11 +864,19 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 				   struct v4l2_ext_controls32 __user *up)
+ {
+ 	struct v4l2_ext_control32 __user *ucontrols;
+-	struct v4l2_ext_control __user *kcontrols;
++	struct v4l2_ext_control *kcontrols;
+ 	u32 count;
+ 	u32 n;
+ 	compat_caddr_t p;
+ 
++	/*
++	 * We need to define kcontrols without __user, even though it does
++	 * point to data in userspace here. The reason is that v4l2-ioctl.c
++	 * copies it from userspace to kernelspace, so its definition in
++	 * videodev2.h doesn't have a __user markup. Defining kcontrols
++	 * with __user causes smatch warnings, so instead declare it
++	 * without __user and cast it as a userspace pointer where needed.
++	 */
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    assign_in_user(&up->which, &kp->which) ||
+ 	    get_user(count, &kp->count) ||
+@@ -883,10 +898,12 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 		unsigned int size = sizeof(*ucontrols);
+ 		u32 id;
+ 
+-		if (get_user(id, &kcontrols->id) ||
++		if (get_user(id, (unsigned int __user *)&kcontrols->id) ||
+ 		    put_user(id, &ucontrols->id) ||
+-		    assign_in_user(&ucontrols->size, &kcontrols->size) ||
+-		    copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
++		    assign_in_user(&ucontrols->size,
++				   (unsigned int __user *)&kcontrols->size) ||
++		    copy_in_user(&ucontrols->reserved2,
++				 (unsigned int __user *)&kcontrols->reserved2,
+ 				 sizeof(ucontrols->reserved2)))
+ 			return -EFAULT;
+ 
+@@ -898,7 +915,8 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 		if (ctrl_is_pointer(file, id))
+ 			size -= sizeof(ucontrols->value64);
+ 
+-		if (copy_in_user(ucontrols, kcontrols, size))
++		if (copy_in_user(ucontrols,
++			         (unsigned int __user *)kcontrols, size))
+ 			return -EFAULT;
+ 
+ 		ucontrols++;
+@@ -952,9 +970,10 @@ static int get_v4l2_edid32(struct v4l2_edid __user *kp,
+ 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    assign_in_user(&kp->pad, &up->pad) ||
+ 	    assign_in_user(&kp->start_block, &up->start_block) ||
+-	    assign_in_user(&kp->blocks, &up->blocks) ||
++	    assign_in_user(&kp->blocks,
++			   (unsigned char __user *)&up->blocks) ||
+ 	    get_user(tmp, &up->edid) ||
+-	    put_user(compat_ptr(tmp), &kp->edid) ||
++	    put_user((void __force *)compat_ptr(tmp), &kp->edid) ||
+ 	    copy_in_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+ 		return -EFAULT;
+ 	return 0;
+@@ -970,7 +989,7 @@ static int put_v4l2_edid32(struct v4l2_edid __user *kp,
+ 	    assign_in_user(&up->start_block, &kp->start_block) ||
+ 	    assign_in_user(&up->blocks, &kp->blocks) ||
+ 	    get_user(edid, &kp->edid) ||
+-	    put_user(ptr_to_compat(edid), &up->edid) ||
++	    put_user(ptr_to_compat((void __user *)edid), &up->edid) ||
+ 	    copy_in_user(up->reserved, kp->reserved, sizeof(up->reserved)))
+ 		return -EFAULT;
+ 	return 0;
+-- 
+2.14.3
