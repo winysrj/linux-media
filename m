@@ -1,85 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:58921 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754949AbeDWNOf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:14:35 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
-Subject: [PATCH] media: siano: be sure to not override devpath size
-Date: Mon, 23 Apr 2018 09:14:30 -0400
-Message-Id: <74e03b1c4caa132234039652646f8066fde865a5.1524489265.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40783 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751980AbeDSKSw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 06:18:52 -0400
+Received: by mail-wr0-f193.google.com with SMTP id v60-v6so12507293wrc.7
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:18:52 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 08/15] ARM: dts: increase default cma size to 40MB
+Date: Thu, 19 Apr 2018 11:18:05 +0100
+Message-Id: <20180419101812.30688-9-rui.silva@linaro.org>
+In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, at siano driver, all places where devpath is
-defined has sizeof(devpath) == 32. So, there's no practical
-risc of going past devpath array anywhere.
+To support camera in i.MX7 the cma heap is used to allocate frame buffers. The
+default size of CMA is 16MB which is not enough for higher resolutions (ex:
+1600x1200).
 
-Still, code changes might cause troubles. It also confuses
-Coverity:
-	CID 139059 (#1 of 1): Copy into fixed size buffer (STRING_OVERFLOW)
-	9. fixed_size_dest: You might overrun the 32-character
-	   fixed-size string entry->devpath by copying devpath
-	   without checking the length.
-	10. parameter_as_source: Note: This defect has an
-	    elevated risk because the source argument
-	    is a parameter of the current function.
+So, increase the default CMA size to 40MB.
 
-So, explicitly limit strcmp() and strcpy() to ensure that the
-devpath size (32) will be respected.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/media/common/siano/smscoreapi.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/imx7s.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index b5dcc6d1fe90..1c93258a2d47 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -415,8 +415,8 @@ EXPORT_SYMBOL_GPL(smscore_get_board_id);
+diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
+index 4d42335c0dee..142ea709d296 100644
+--- a/arch/arm/boot/dts/imx7s.dtsi
++++ b/arch/arm/boot/dts/imx7s.dtsi
+@@ -182,6 +182,20 @@
+ 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
+ 	};
  
- struct smscore_registry_entry_t {
- 	struct list_head entry;
--	char			devpath[32];
--	int				mode;
-+	char devpath[32];
-+	int mode;
- 	enum sms_device_type_st	type;
- };
- 
-@@ -442,7 +442,7 @@ static struct smscore_registry_entry_t *smscore_find_registry(char *devpath)
- 	     next != &g_smscore_registry;
- 	     next = next->next) {
- 		entry = (struct smscore_registry_entry_t *) next;
--		if (!strcmp(entry->devpath, devpath)) {
-+		if (!strncmp(entry->devpath, devpath, sizeof(entry->devpath))) {
- 			kmutex_unlock(&g_smscore_registrylock);
- 			return entry;
- 		}
-@@ -450,7 +450,7 @@ static struct smscore_registry_entry_t *smscore_find_registry(char *devpath)
- 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
- 	if (entry) {
- 		entry->mode = default_mode;
--		strcpy(entry->devpath, devpath);
-+		strlcpy(entry->devpath, devpath, sizeof(entry->devpath));
- 		list_add(&entry->entry, &g_smscore_registry);
- 	} else
- 		pr_err("failed to create smscore_registry.\n");
-@@ -733,7 +733,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
- 	dev->postload_handler = params->postload_handler;
- 
- 	dev->device_flags = params->flags;
--	strcpy(dev->devpath, params->devpath);
-+	strlcpy(dev->devpath, params->devpath, sizeof(dev->devpath));
- 
- 	smscore_registry_settype(dev->devpath, params->device_type);
- 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		/* global autoconfigured region for contiguous allocations */
++		linux,cma {
++			compatible = "shared-dma-pool";
++			reusable;
++			size = <0x2800000>;
++			linux,cma-default;
++		};
++	};
++
+ 	soc {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
 -- 
-2.14.3
+2.17.0
