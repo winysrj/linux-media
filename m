@@ -1,82 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:51052 "EHLO
-        homiemail-a48.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754697AbeDQQkY (ORCPT
+Received: from userp2130.oracle.com ([156.151.31.86]:38018 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753591AbeDSMpl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 12:40:24 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 3/9] cx231xx: Style fix for struct zero init
-Date: Tue, 17 Apr 2018 11:39:49 -0500
-Message-Id: <1523983195-28691-4-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
-References: <1523983195-28691-1-git-send-email-brad@nextdimension.cc>
+        Thu, 19 Apr 2018 08:45:41 -0400
+Date: Thu, 19 Apr 2018 15:45:15 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 05/15] media: staging/imx7: add MIPI CSI-2 receiver
+ subdev for i.MX7
+Message-ID: <20180419124515.r4336zu4ecsu3k6k@mwanda>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
+ <20180419101812.30688-6-rui.silva@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180419101812.30688-6-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace zero fill memset inits with
-equivalent {} in declaration
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+> +static int mipi_csis_clk_get(struct csi_state *state)
+> +{
+> +	struct device *dev = &state->pdev->dev;
+> +	int ret = true;
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 99f1a77..12f2dcc 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -787,10 +787,9 @@ static int dvb_init(struct cx231xx *dev)
- 	{
- 		struct i2c_client *client;
- 		struct i2c_board_info info;
--		struct si2165_platform_data si2165_pdata;
-+		struct si2165_platform_data si2165_pdata = {};
- 
- 		/* attach demod */
--		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
- 		si2165_pdata.fe = &dev->dvb->frontend[0];
- 		si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL;
- 		si2165_pdata.ref_freq_hz = 16000000;
-@@ -832,11 +831,10 @@ static int dvb_init(struct cx231xx *dev)
- 	{
- 		struct i2c_client *client;
- 		struct i2c_board_info info;
--		struct si2165_platform_data si2165_pdata;
--		struct si2157_config si2157_config;
-+		struct si2165_platform_data si2165_pdata = {};
-+		struct si2157_config si2157_config = {};
- 
- 		/* attach demod */
--		memset(&si2165_pdata, 0, sizeof(si2165_pdata));
- 		si2165_pdata.fe = &dev->dvb->frontend[0];
- 		si2165_pdata.chip_mode = SI2165_MODE_PLL_EXT;
- 		si2165_pdata.ref_freq_hz = 24000000;
-@@ -870,7 +868,6 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		/* attach tuner */
--		memset(&si2157_config, 0, sizeof(si2157_config));
- 		si2157_config.fe = dev->dvb->frontend[0];
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
- 		si2157_config.mdev = dev->media_dev;
-@@ -907,7 +904,7 @@ static int dvb_init(struct cx231xx *dev)
- 	{
- 		struct i2c_client *client;
- 		struct i2c_board_info info;
--		struct si2157_config si2157_config;
-+		struct si2157_config si2157_config = {};
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 
-@@ -929,7 +926,6 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
- 
- 		/* attach tuner */
--		memset(&si2157_config, 0, sizeof(si2157_config));
- 		si2157_config.fe = dev->dvb->frontend[0];
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
- 		si2157_config.mdev = dev->media_dev;
--- 
-2.7.4
+Better to leave ret unitialized.
+
+> +
+> +	state->mipi_clk = devm_clk_get(dev, "mipi");
+> +	if (IS_ERR(state->mipi_clk)) {
+> +		dev_err(dev, "Could not get mipi csi clock\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	state->phy_clk = devm_clk_get(dev, "phy");
+> +	if (IS_ERR(state->phy_clk)) {
+> +		dev_err(dev, "Could not get mipi phy clock\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	/* Set clock rate */
+> +	if (state->clk_frequency)
+> +		ret = clk_set_rate(state->mipi_clk, state->clk_frequency);
+> +	else
+> +		dev_warn(dev, "No clock frequency specified!\n");
+> +	if (ret < 0) {
+> +		dev_err(dev, "set rate=%d failed: %d\n", state->clk_frequency,
+> +			ret);
+> +		return -EINVAL;
+
+Preserve the error code.
+
+> +	}
+> +
+> +	return ret;
+
+This could be "return 0;" (let's not return true).  It might be nicer
+like:
+
+	if (!state->clk_frequency) {
+		dev_warn(dev, "No clock frequency specified!\n");
+		return 0;
+	}
+
+	ret = clk_set_rate(state->mipi_clk, state->clk_frequency);
+	if (ret < 0)
+		dev_err(dev, "set rate=%d failed: %d\n", state->clk_frequency,
+			ret);
+
+	return ret;
+
+
+> +}
+> +
+
+[ snip ]
+
+> +static irqreturn_t mipi_csis_irq_handler(int irq, void *dev_id)
+> +{
+> +	struct csi_state *state = dev_id;
+> +	unsigned long flags;
+> +	u32 status;
+> +	int i;
+> +
+> +	status = mipi_csis_read(state, MIPI_CSIS_INTSRC);
+> +
+> +	spin_lock_irqsave(&state->slock, flags);
+> +
+> +	/* Update the event/error counters */
+> +	if ((status & MIPI_CSIS_INTSRC_ERRORS) || 1) {
+                                                 ^^^
+Was this supposed to make it into the published code?
+
+> +		for (i = 0; i < MIPI_CSIS_NUM_EVENTS; i++) {
+> +			if (!(status & state->events[i].mask))
+> +				continue;
+> +			state->events[i].counter++;
+> +		}
+> +	}
+> +	spin_unlock_irqrestore(&state->slock, flags);
+> +
+> +	mipi_csis_write(state, MIPI_CSIS_INTSRC, status);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+
+regards,
+dan carpenter
