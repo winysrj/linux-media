@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:46506 "EHLO
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:43965 "EHLO
         mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751229AbeDXRVI (ORCPT
+        with ESMTP id S1752497AbeDSKTJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 13:21:08 -0400
-Date: Tue, 24 Apr 2018 19:21:04 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: stv0910: fix get_algo()'s return type
-Message-ID: <20180424192104.66802821@lt530>
-In-Reply-To: <20180424131938.6270-1-luc.vanoostenryck@gmail.com>
-References: <20180424131938.6270-1-luc.vanoostenryck@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 19 Apr 2018 06:19:09 -0400
+Received: by mail-wr0-f193.google.com with SMTP id u4-v6so12503160wrg.10
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:19:09 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 15/15] media: staging/imx: add i.MX7 entries to TODO file
+Date: Thu, 19 Apr 2018 11:18:12 +0100
+Message-Id: <20180419101812.30688-16-rui.silva@linaro.org>
+In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Tue, 24 Apr 2018 15:19:38 +0200
-schrieb Luc Van Oostenryck <luc.vanoostenryck@gmail.com>:
+Add some i.MX7 related entries to TODO file.
 
-> The method dvb_frontend_ops::get_frontend_algo() is defined as
-> returning an 'enum dvbfe_algo', but the implementation in this
-> driver returns an 'int'.
-> 
-> Fix this by returning 'enum dvbfe_algo' in this driver too.
-> 
-> Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-> ---
->  drivers/media/dvb-frontends/stv0910.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-> index 52355c14f..50234d311 100644
-> --- a/drivers/media/dvb-frontends/stv0910.c
-> +++ b/drivers/media/dvb-frontends/stv0910.c
-> @@ -1633,7 +1633,7 @@ static int tune(struct dvb_frontend *fe, bool re_tune,
->  	return 0;
->  }
->  
-> -static int get_algo(struct dvb_frontend *fe)
-> +static enum dvbfe_algo get_algo(struct dvb_frontend *fe)
->  {
->  	return DVBFE_ALGO_HW;
->  }
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/staging/media/imx/TODO | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Acked-by: Daniel Scheller <d.scheller@gmx.net>
-
-Best regards,
-Daniel Scheller
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index aeeb15494a49..6f29b5ca5324 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -45,3 +45,12 @@
+ 
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
++
++- i.MX7: all of the above, since it uses the imx media core
++
++- i.MX7: use Frame Interval Monitor
++
++- i.MX7: runtime testing with parallel sensor, links setup and streaming
++
++- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
++  is tested
 -- 
-https://github.com/herrnst
+2.17.0
