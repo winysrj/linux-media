@@ -1,75 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:60951 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751704AbeDEU37 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Apr 2018 16:29:59 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35939 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752710AbeDSOC0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 10:02:26 -0400
+Received: by mail-wr0-f196.google.com with SMTP id q13-v6so14400898wre.3
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 07:02:25 -0700 (PDT)
+References: <20180419101812.30688-1-rui.silva@linaro.org> <20180419101812.30688-2-rui.silva@linaro.org> <20180419120606.p32pl5at7wky7u3y@mwanda>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Geliang Tang <geliangtang@gmail.com>,
-        Kees Cook <keescook@chromium.org>
-Subject: [PATCH v2 05/19] media: fsl-viu: allow building it with COMPILE_TEST
-Date: Thu,  5 Apr 2018 16:29:32 -0400
-Message-Id: <c775f08a02056728cb6a8ecfa6c80b6610106a22.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1522959716.git.mchehab@s-opensource.com>
-References: <cover.1522959716.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Rob Herring <robh+dt@kernel.org>, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/15] media: staging/imx: add support to media dev for no IPU systems
+In-reply-to: <20180419120606.p32pl5at7wky7u3y@mwanda>
+Date: Thu, 19 Apr 2018 15:02:21 +0100
+Message-ID: <m3k1t39tw2.fsf@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There aren't many things that would be needed to allow it
-to build with compile test.
+Hi Dan,
+Thanks for this and the other reviews.
 
-Add the needed bits.
+On Thu 19 Apr 2018 at 12:06, Dan Carpenter wrote:
+> On Thu, Apr 19, 2018 at 11:17:58AM +0100, Rui Miguel Silva 
+> wrote:
+>> Some i.MX SoC do not have IPU, like the i.MX7, add to the the 
+>> media device
+>> infrastructure support to be used in this type of systems that 
+>> do not have
+>> internal subdevices besides the CSI.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  drivers/staging/media/imx/imx-media-dev.c        | 16 
+>>  +++++++++++-----
+>>  .../staging/media/imx/imx-media-internal-sd.c    |  3 +++
+>>  drivers/staging/media/imx/imx-media.h            |  3 +++
+>>  3 files changed, 17 insertions(+), 5 deletions(-)
+>> 
+>> diff --git a/drivers/staging/media/imx/imx-media-dev.c 
+>> b/drivers/staging/media/imx/imx-media-dev.c
+>> index f67ec8e27093..a8afe0ec4134 100644
+>> --- a/drivers/staging/media/imx/imx-media-dev.c
+>> +++ b/drivers/staging/media/imx/imx-media-dev.c
+>> @@ -92,6 +92,9 @@ static int imx_media_get_ipu(struct 
+>> imx_media_dev *imxmd,
+>>  	struct ipu_soc *ipu;
+>>  	int ipu_id;
+>>  
+>> +	if (imxmd->no_ipu_present)
+>
+> It's sort of nicer if variables don't have a negative built in 
+> because
+> otherwise you get confusing double negatives like "if (!no_ipu) 
+> {".
+> It's not hard to invert the varible in this case, because the 
+> only thing
+> we need to change is imx_media_probe() to set:
+>
+> +	imxmd->ipu_present = true;
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Yeah, my code was like this till last minute, and I also dislike 
+the
+double negatives... but since the logic that reset the variable 
+would
+only be done in a later patch I switched the logic.
+
+But You are right I could just had the initialization here to 
+true.
+Will take this in account in v2.
+
 ---
- drivers/media/platform/Kconfig   | 2 +-
- drivers/media/platform/fsl-viu.c | 8 ++++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 03c9dfeb7781..e6eb1eb776e1 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -42,7 +42,7 @@ config VIDEO_SH_VOU
- 
- config VIDEO_VIU
- 	tristate "Freescale VIU Video Driver"
--	depends on VIDEO_V4L2 && PPC_MPC512x
-+	depends on VIDEO_V4L2 && (PPC_MPC512x || COMPILE_TEST)
- 	select VIDEOBUF_DMA_CONTIG
- 	default y
- 	---help---
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 9abe79779659..466053e00378 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -36,6 +36,14 @@
- #define DRV_NAME		"fsl_viu"
- #define VIU_VERSION		"0.5.1"
- 
-+/* Allow building this driver with COMPILE_TEST */
-+#ifndef CONFIG_PPC_MPC512x
-+#define NO_IRQ   0
-+
-+#define out_be32(v, a)	writel(a, v)
-+#define in_be32(a) readl(a)
-+#endif
-+
- #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
- 
- #define	VIU_VID_MEM_LIMIT	4	/* Video memory limit, in Mb */
--- 
-2.14.3
+Cheers,
+	Rui
