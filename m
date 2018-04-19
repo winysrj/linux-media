@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:46414 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932163AbeDWU7e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 16:59:34 -0400
-Received: by mail-wr0-f194.google.com with SMTP id d1-v6so44895572wrj.13
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 13:59:33 -0700 (PDT)
+Received: from osg.samsung.com ([64.30.133.232]:35055 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751151AbeDSKmi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 06:42:38 -0400
+Date: Thu, 19 Apr 2018 07:42:28 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Remaining COMPILE_TEST and smatch cleanups
+Message-ID: <20180419074228.3c642240@vento.lan>
+In-Reply-To: <20180418090414.6h5q3zfm3udzscd7@valkosipuli.retiisi.org.uk>
+References: <cover.1523960171.git.mchehab@s-opensource.com>
+        <20180418090414.6h5q3zfm3udzscd7@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20180423165213.GL19834@sirena.org.uk>
-References: <87in8ibrql.wl%kuninori.morimoto.gx@renesas.com>
- <CAJ+vNU0mykhkMNNrN=Zsrj0_pv=XAkGiiQkXehQ4EWBkMDAv7w@mail.gmail.com> <20180423165213.GL19834@sirena.org.uk>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Mon, 23 Apr 2018 13:59:32 -0700
-Message-ID: <CAJ+vNU35TfSLRYnkEYMkMQVC9r+XHt_pa-=+s4Dro3b-VNGULA@mail.gmail.com>
-Subject: Re: [PATCH v3][RESEND] media: i2c: tda1997: replace codec to component
-To: Mark Brown <broonie@kernel.org>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux-ALSA <alsa-devel@alsa-project.org>,
-        linux-kernel@vger.kernel.org,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 23, 2018 at 9:52 AM, Mark Brown <broonie@kernel.org> wrote:
-> On Mon, Apr 23, 2018 at 09:44:17AM -0700, Tim Harvey wrote:
->
->> Could you add some detail to the commit explaining why we need to
->> replace codec to component? I don't really know what that means.
->> Please refer to a commit if the ASoC API is changing in some way we
->> need to catch up with.
->
-> This is a big transition in the ASoC API which is nearing completion -
-> this driver is one of the last users of the CODEC struct, we've (well,
-> mainly Morimoto-san) been migrating things away from it to the more
-> general purpose component.  There's no one commit to point at really as
-> the two have coexisted for a while and we won't be able to finally
-> remove the CODEC struct until all the drivers have transitioned away.
+Em Wed, 18 Apr 2018 12:04:14 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Mark,
+> On Tue, Apr 17, 2018 at 06:20:10AM -0400, Mauro Carvalho Chehab wrote:
+> > There were several interactions at the COMPILE_TEST and smatch
+> > patch series. While I applied most of them, there are 5 patches that
+> > I kept out of it. The omap3 patch that were in my tree was the old
+> > one. So, I'm re-posting it.
+> > 
+> > The ioctl32 patches are the latest version. Let's repost it to get some
+> > acks, as this patch touches at V4L2 core, so a careful review is
+> > always a good idea.
+> > 
+> > Arnd Bergmann (1):
+> >   media: omap3isp: allow it to build with COMPILE_TEST
+> > 
+> > Laurent Pinchart (1):
+> >   media: omap3isp: Enable driver compilation on ARM with COMPILE_TEST
+> > 
+> > Mauro Carvalho Chehab (3):
+> >   omap: omap-iommu.h: allow building drivers with COMPILE_TEST
+> >   media: v4l2-compat-ioctl32: fix several __user annotations
+> >   media: v4l2-compat-ioctl32: better name userspace pointers
+> > 
+> >  drivers/media/platform/Kconfig                |   7 +-
+> >  drivers/media/platform/omap3isp/isp.c         |   8 +
+> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 623 +++++++++++++-------------
+> >  include/linux/omap-iommu.h                    |   5 +
+> >  4 files changed, 338 insertions(+), 305 deletions(-)  
+> 
+> For patches 1 and 2:
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Ok - thanks for the explanation!
+What about patch 3?
 
-Kuninori,
+> 
+> I'd like to see a new versions of patches 4 and 5; I agree on the naming
+> change.
 
-Sorry this took so long to get to. Tested on a GW5404
+With what changes?
 
-Tested-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Tim Harvey <tharvey@gateworks.com>
+> Could you set the To: header to a valid value going forward? It's not a
+> valid e-mail address but still contains "<" character which causes trouble
+> when replying to the patches.
 
-Regards,
+I've no idea how to fix it. When I submit patches, I don't add any To:
+header (as the "to" is meant to be the one that will apply the patches...
+sending an e-mail to myself seems too mad for my taste). Somewhere
+between git-send-email, my SMTP local host or the SMTP smart gateway,
+or something afterwards, a "fake" To: gets introduced.
 
-Tim
+
+Thanks,
+Mauro
