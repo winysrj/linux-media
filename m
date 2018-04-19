@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49466 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753424AbeDKQ0Y (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:37083 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752028AbeDSKSr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Apr 2018 12:26:24 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 939B1634C50
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2018 19:26:22 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1f6IZi-00039F-9z
-        for linux-media@vger.kernel.org; Wed, 11 Apr 2018 19:26:22 +0300
-Date: Wed, 11 Apr 2018 19:26:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES for 4.17] omap3isp IOMMU error handling fix
-Message-ID: <20180411162621.jlfnlolicbwuev7j@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Thu, 19 Apr 2018 06:18:47 -0400
+Received: by mail-wr0-f193.google.com with SMTP id f14-v6so12520678wre.4
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 03:18:47 -0700 (PDT)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH 06/15] media: staging/imx: add imx7 capture subsystem
+Date: Thu, 19 Apr 2018 11:18:03 +0100
+Message-Id: <20180419101812.30688-7-rui.silva@linaro.org>
+In-Reply-To: <20180419101812.30688-1-rui.silva@linaro.org>
+References: <20180419101812.30688-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add imx7 capture subsystem to imx-media core to allow the use some of the
+existing modules for i.MX5/6 with i.MX7 SoC.
 
-Here's a fix for the omap3isp driver's IOMMU error handling in probe.
+Since i.MX7 does not have an IPU set the no_ipu_present flag to differentiate
+some runtime behaviors.
 
-Please pull.
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/staging/media/imx/imx-media-dev.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-
-The following changes since commit a95845ba184b854106972f5d8f50354c2d272c06:
-
-  media: v4l2-core: fix size of devnode_nums[] bitarray (2018-04-05 06:41:30 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git fixes-4.17-1
-
-for you to fetch changes up to d4e0f478573131d424b7116cdb63f91e65164963:
-
-  media: omap3isp: fix unbalanced dma_iommu_mapping (2018-04-11 18:07:37 +0300)
-
-----------------------------------------------------------------
-Suman Anna (1):
-      media: omap3isp: fix unbalanced dma_iommu_mapping
-
- drivers/media/platform/omap3isp/isp.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index a8afe0ec4134..967d172f1447 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -484,6 +484,9 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		goto notifier_cleanup;
+ 	}
+ 
++	if (of_device_is_compatible(node, "fsl,imx7-capture-subsystem"))
++		imxmd->no_ipu_present = true;
++
+ 	if (!imxmd->no_ipu_present) {
+ 		ret = imx_media_add_internal_subdevs(imxmd);
+ 		if (ret) {
+@@ -541,6 +544,7 @@ static int imx_media_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id imx_media_dt_ids[] = {
+ 	{ .compatible = "fsl,imx-capture-subsystem" },
++	{ .compatible = "fsl,imx7-capture-subsystem" },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(of, imx_media_dt_ids);
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.17.0
