@@ -1,171 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:14700 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752580AbeDQMTY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Apr 2018 08:19:24 -0400
-Subject: Re: [PATCHv2 6/9] media: add 'index' to struct media_v2_pad
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-References: <20180416132121.46205-1-hverkuil@xs4all.nl>
- <20180416132121.46205-7-hverkuil@xs4all.nl>
- <20180416150335.66f6ab12@vento.lan> <20180416150956.22b5b021@vento.lan>
- <b04f9c6a-78ef-3e22-be01-fa757823c13e@xs4all.nl>
- <a8a09731-76bb-8bd9-ad16-43640d3de8ed@xs4all.nl>
- <20180417085554.067d9168@vento.lan>
- <dca4777d-e8c8-8ea5-ea64-54120997158d@xs4all.nl>
- <20180417091500.3f101620@vento.lan>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <d9a20108-94d1-e14b-630e-6d54f4a0e5ad@cisco.com>
-Date: Tue, 17 Apr 2018 14:19:21 +0200
+Received: from mail.bootlin.com ([62.4.15.54]:35217 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752077AbeDSN2x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 09:28:53 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v10 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
+Date: Thu, 19 Apr 2018 15:28:48 +0200
+Message-Id: <20180419132850.20958-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <20180417091500.3f101620@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/18 14:16, Mauro Carvalho Chehab wrote:
-> Em Tue, 17 Apr 2018 14:01:06 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 04/17/18 13:55, Mauro Carvalho Chehab wrote:
->>> Em Tue, 17 Apr 2018 11:59:40 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>   
->>>> On 04/16/18 21:41, Hans Verkuil wrote:  
->>>>> On 04/16/2018 08:09 PM, Mauro Carvalho Chehab wrote:    
->>>>>> Em Mon, 16 Apr 2018 15:03:35 -0300
->>>>>> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
->>>>>>    
->>>>>>> Em Mon, 16 Apr 2018 15:21:18 +0200
->>>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>>>>    
->>>>>>>> From: Hans Verkuil <hansverk@cisco.com>
->>>>>>>>
->>>>>>>> The v2 pad structure never exposed the pad index, which made it impossible
->>>>>>>> to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
->>>>>>>>
->>>>>>>> It is really trivial to just expose this information, so implement this.      
->>>>>>>
->>>>>>> Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>    
->>>>>>
->>>>>> Err... I looked on it too fast... See my comments below.
->>>>>>
->>>>>> The same applies to patch 8/9.
->>>>>>    
->>>>>>>>
->>>>>>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->>>>>>>> ---
->>>>>>>>  drivers/media/media-device.c | 1 +
->>>>>>>>  include/uapi/linux/media.h   | 7 ++++++-
->>>>>>>>  2 files changed, 7 insertions(+), 1 deletion(-)
->>>>>>>>
->>>>>>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->>>>>>>> index dca1e5a3e0f9..73ffea3e81c9 100644
->>>>>>>> --- a/drivers/media/media-device.c
->>>>>>>> +++ b/drivers/media/media-device.c
->>>>>>>> @@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev,
->>>>>>>>  		kpad.id = pad->graph_obj.id;
->>>>>>>>  		kpad.entity_id = pad->entity->graph_obj.id;
->>>>>>>>  		kpad.flags = pad->flags;
->>>>>>>> +		kpad.index = pad->index;
->>>>>>>>  
->>>>>>>>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
->>>>>>>>  			ret = -EFAULT;
->>>>>>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->>>>>>>> index ac08acffdb65..15f7f432f808 100644
->>>>>>>> --- a/include/uapi/linux/media.h
->>>>>>>> +++ b/include/uapi/linux/media.h
->>>>>>>> @@ -310,11 +310,16 @@ struct media_v2_interface {
->>>>>>>>  	};
->>>>>>>>  } __attribute__ ((packed));
->>>>>>>>  
->>>>>>>> +/* Appeared in 4.18.0 */
->>>>>>>> +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
->>>>>>>> +	((media_version) >= 0x00041200)
->>>>>>>> +    
->>>>>>
->>>>>> I don't like this, for a couple of reasons:
->>>>>>
->>>>>> 1) it has a magic number on it, with is actually a parsed
->>>>>>    version of LINUX_VERSION() macro;    
->>>>>
->>>>> I can/should change that to KERNEL_VERSION().  
->>>
->>> I don't think so. The macro is not there at include/uapi.
->>>   
->>>>>     
->>>>>>
->>>>>> 2) it sounds really weird to ship a header file with a new
->>>>>>    kernel version meant to provide backward compatibility with
->>>>>>    older versions;
->>>>>>
->>>>>> 3) this isn't any different than:
->>>>>>
->>>>>> 	#define MEDIA_V2_PAD_HAS_INDEX -1
->>>>>>
->>>>>> I think we need to think a little bit more about that.    
->>>>>
->>>>> What typically happens is that applications (like those in v4l-utils
->>>>> for example) copy the headers locally. So they are compiled with the headers
->>>>> of a specific kernel version, but they can run with very different kernels.
->>>>>
->>>>> This is normal for distros where you can install different kernel versions
->>>>> without needing to modify applications.
->>>>>
->>>>> In fact, we (Cisco) use the latest v4l-utils code on kernels ranging between
->>>>> 2.6.39 to 4.10 (I think that's the latest one in use).  
->>>
->>> Well, if you use a macro, the "compat" code at v4l-utils (or whatever other
->>> app you use) will be assuming the specific Kernel version you used when you
->>> built it, with is probably not what you want.
->>>
->>> The way of checking if a feature is there or not is, instead, to ask for
->>> the media version via MEDIA_IOC_DEVICE_INFO. It should provide the
->>> media API version.
->>>
->>> This is already filled with:
->>> 	info->media_version = LINUX_VERSION_CODE;
->>>
->>> So, all we need to do is to document that the new fields are available only
->>> for such version or above and add such check at v4l-utils.  
->>
->> Yes, and that's what you stick in the macro argument:
->>
->> 	ioctl(fd, MEDIA_IOC_DEVICE_INFO, &info);
->> 	if (MEDIA_V2_PAD_HAS_INDEX(info.media_version)) {
->> 		// I can use the index field
->> 	}
->>
->> I think I did not document this clearly.
-> 
-> Ok, makes sense. It should be better documented, IMO.
-> 
-> Still have an issue with KERNEL_VERSION: this macro doesn't exist
-> anymore on any Kernel header files. It is produced dynamically
-> at /Makefile:
-> 
-> 	define filechk_version.h
-> 		(echo \#define LINUX_VERSION_CODE $(shell                         \
-> 		expr $(VERSION) \* 65536 + 0$(PATCHLEVEL) \* 256 + 0$(SUBLEVEL)); \
-> 		echo '#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))';)
-> 	endef
-> 
-> Btw, this likely means that this is already broken:
-> 
-> include/uapi/linux/media.h:#define MEDIA_API_VERSION                    KERNEL_VERSION(0, 1, 0)
-> 
-> as userspace won't be able to evaluate it.
-> 
-> We could hardcode its value, as you proposed, but, IMHO, that sucks.
+Hi,
 
-This might be why I hardcoded it :-)
+Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
 
-I personally don't have a problem with hardcoding it. In the end, it's just a number.
+This IP block is able to receive 4 video streams and stream them over
+a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
+interfaces to controllers generating some video signals, like a camera
+or a pattern generator.
 
-Regards,
+It is able to map input streams to CSI2 virtual channels and datatypes
+dynamically. The streaming devices choose their virtual channels
+through an additional signal that is transparent to the CSI2-TX. The
+datatypes however are yet another additional input signal, and can be
+mapped to any CSI2 datatypes.
 
-	Hans
+Since v4l2 doesn't really allow for that setup at the moment, this
+preliminary version is a rather dumb one in order to start the
+discussion on how to address this properly.
+
+Let me know what you think!
+Maxime
+
+Changes from v9:
+  - Prevent the format to be retrieved on the CSI2 pad
+  - Set the default format on the pads when the user tries to set an
+    unsupported format
+
+Changes from v8:
+  - Updated the copyright notice
+  - Used masks for the device config fields
+  - Used the mbus code directly in our format lookup function
+  - Removed the pad index check in pads get/set_format
+  - Prevent the format to be changed on the CSI2 pad
+  - Check for supported formats in set_format
+  - Rebased on 4.17-rc1
+
+Changes from v7:
+  - Removed unused headers
+  - Fixed a function prefix inconsistency
+  - Added Niklas' Reviewed-by
+
+Changes from v6:
+  - Added Niklas Reviewed-by on the bindings
+  - Added MODULE_LICENSE, MODULE_DESCRIPTION and MODULE_AUTHOR
+
+Changes from v5:
+  - Changed the return type to void for csi2tx_stop
+  - Checked for the pad index in get/set_pad_format
+  - Made a comment that the DPHY registers are for the DPHY *interface*
+    register
+
+Changes from v4:
+  - After playing a bit with the pad multiplexing patches, found that it
+    was making much more sense to have the subdev notifiers for the source
+    subdev rather for the sink that might even be outside of Linux control.
+    Removed the notifier for now.
+
+Changes from v3:
+  - Added a comment about entity links walk concurrency
+  - Changed the default resolution to 1280x720
+  - Changed usleep_range calls to udelay
+  - Reworked the reference counting mechanism to remove a race
+    condition by adding a mutex instead of an atomic count
+  - Changed the entity function to MEDIA_ENT_F_VID_IF_BRIDGE
+  - Changed the name of the reg variable in _get_resources to dev_cfg
+  - Removed the redundant error message in the devm_ioremap_resource
+    error path
+  - Moved the subdev s_stream call before enabling the TX bridge
+  - Changed some int types to unsigned
+  - Init'd the pad formats properly
+  - Fixed typo in the CSI2TX_LANES_MAX define name
+  - Added Sakari Acked-by
+
+Changes from v2:
+  - Use SPDX license header
+  - Use the lane mapping from DT
+
+Changes from v1:
+  - Add a subdev notifier and start our downstream subdevice in
+    s_stream  
+  - Based the decision to enable the stream or not on the link state
+    instead of whether a format was being set on the pad
+  - Put the controller back in reset when stopping the pipeline
+  - Clarified the enpoints number in the DT binding
+  - Added a default format for the pads
+  - Added some missing const
+  - Added more explicit comments
+  - Rebased on 4.15
+
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+
+ .../devicetree/bindings/media/cdns,csi2tx.txt |  98 ++++
+ drivers/media/platform/cadence/Kconfig        |  11 +
+ drivers/media/platform/cadence/Makefile       |   1 +
+ drivers/media/platform/cadence/cdns-csi2tx.c  | 541 ++++++++++++++++++
+ 4 files changed, 651 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+
+-- 
+2.17.0
