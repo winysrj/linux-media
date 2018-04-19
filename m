@@ -1,138 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46667 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbeDDP0I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2018 11:26:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v13 2/2] rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
-Date: Wed, 04 Apr 2018 18:26:17 +0300
-Message-ID: <2180075.m4Wkig6IL5@avalon>
-In-Reply-To: <20180329113039.4v5whquyrtgf5yaa@flea>
-References: <20180212230132.5402-1-niklas.soderlund+renesas@ragnatech.se> <20180212230132.5402-3-niklas.soderlund+renesas@ragnatech.se> <20180329113039.4v5whquyrtgf5yaa@flea>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:41206 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753692AbeDSQVq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 12:21:46 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20180418124119.GA3999@w540>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+ <1523847111-12986-9-git-send-email-akinobu.mita@gmail.com> <20180418124119.GA3999@w540>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Fri, 20 Apr 2018 01:21:25 +0900
+Message-ID: <CAC5umyiQOTpEqiRpVst2VtpwWCtACndVF_K6aqtHwzpF4JDW6Q@mail.gmail.com>
+Subject: Re: [PATCH v2 08/10] media: ov772x: handle nested s_power() calls
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+2018-04-18 21:41 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
+> Hi Akinobu,
+>
+> On Mon, Apr 16, 2018 at 11:51:49AM +0900, Akinobu Mita wrote:
+>> Depending on the v4l2 driver, calling s_power() could be nested.  So the
+>> actual transitions between power saving mode and normal operation mode
+>> should only happen at the first power on and the last power off.
+>
+> What do you mean with 'nested' ?
+>
+> My understanding is that:
+> - if a sensor driver is mc compliant, it's s_power is called from
+>   v4l2_mc.c pipeline_pm_power_one() only when the power state changes
+> - if a sensor driver is not mc compliant, the s_power routine is
+>   called from the platform driver, and it should not happen that it is
+>   called twice with the same power state
+> - if a sensor implements subdev's internal operations open and close
+>   it may call it's own s_power routines from there, and it can be
+>   opened more that once.
+>
+> My understanding is that this driver s_power routines are only called
+> from platform drivers, and they -should- be safe.
 
-On Thursday, 29 March 2018 14:30:39 EEST Maxime Ripard wrote:
-> On Tue, Feb 13, 2018 at 12:01:32AM +0100, Niklas S=F6derlund wrote:
-> > +	switch (priv->lanes) {
-> > +	case 1:
-> > +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
-> > +		break;
-> > +	case 2:
-> > +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
-> > +		break;
-> > +	case 4:
-> > +		phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2 |
-> > +			PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
-> > +		break;
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
->=20
-> I guess you could have a simpler construct here using this:
->=20
-> phycnt =3D PHYCNT_ENABLECLK;
->=20
-> switch (priv->lanes) {
-> case 4:
-> 	phycnt |=3D PHYCNT_ENABLE_3 | PHYCNT_ENABLE_2;
-> case 2:
-> 	phycnt |=3D PHYCNT_ENABLE_1;
-> case 1:
-> 	phycnt |=3D PHYCNT_ENABLE_0;
-> 	break;
->=20
-> default:
-> 	return -EINVAL;
-> }
->=20
-> But that's really up to you.
+For pxa_camera driver, if there are more than two openers for a video
+device at the same time, calling s_power() could be nested.  Because
+there is nothing to prevent from calling s_power() in
+pxac_fops_camera_open().
 
-Wouldn't Niklas' version generate simpler code as it uses direct assignment=
-s ?
+However, most of other V4L2 drivers use v4l2_fh_is_singular_file() to
+prevent from nested s_power() in their open operation.  So we can do
+the same for pxa_camera driver.
 
-> > +static int rcar_csi2_probe(struct platform_device *pdev)
-> > +{
-> > +	const struct soc_device_attribute *attr;
-> > +	struct rcar_csi2 *priv;
-> > +	unsigned int i;
-> > +	int ret;
-> > +
-> > +	priv =3D devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> > +	if (!priv)
-> > +		return -ENOMEM;
-> > +
-> > +	priv->info =3D of_device_get_match_data(&pdev->dev);
-> > +
-> > +	/* r8a7795 ES1.x behaves different then ES2.0+ but no own compat */
-> > +	attr =3D soc_device_match(r8a7795es1);
-> > +	if (attr)
-> > +		priv->info =3D attr->data;
-> > +
-> > +	priv->dev =3D &pdev->dev;
-> > +
-> > +	mutex_init(&priv->lock);
-> > +	priv->stream_count =3D 0;
-> > +
-> > +	ret =3D rcar_csi2_probe_resources(priv, pdev);
-> > +	if (ret) {
-> > +		dev_err(priv->dev, "Failed to get resources\n");
-> > +		return ret;
-> > +	}
-> > +
-> > +	platform_set_drvdata(pdev, priv);
-> > +
-> > +	ret =3D rcar_csi2_parse_dt(priv);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	priv->subdev.owner =3D THIS_MODULE;
-> > +	priv->subdev.dev =3D &pdev->dev;
-> > +	v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
-> > +	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
-> > +	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s %s",
-> > +		 KBUILD_MODNAME, dev_name(&pdev->dev));
-> > +	priv->subdev.flags =3D V4L2_SUBDEV_FL_HAS_DEVNODE;
-> > +
-> > +	priv->subdev.entity.function =3D MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATT=
-ER;
-> > +	priv->subdev.entity.ops =3D &rcar_csi2_entity_ops;
-> > +
-> > +	priv->pads[RCAR_CSI2_SINK].flags =3D MEDIA_PAD_FL_SINK;
-> > +	for (i =3D RCAR_CSI2_SOURCE_VC0; i < NR_OF_RCAR_CSI2_PAD; i++)
-> > +		priv->pads[i].flags =3D MEDIA_PAD_FL_SOURCE;
-> > +
-> > +	ret =3D media_entity_pads_init(&priv->subdev.entity, NR_OF_RCAR_CSI2_=
-PAD,
-> > +				     priv->pads);
-> > +	if (ret)
-> > +		goto error;
-> > +
-> > +	pm_runtime_enable(&pdev->dev);
->=20
-> Is CONFIG_PM mandatory on Renesas SoCs? If not, you end up with the
-> device uninitialised at probe, and pm_runtime_get_sync will not
-> initialise it either if CONFIG_PM is not enabled. I guess you could
-> call your runtime_resume function unconditionally, and mark the device
-> as active in runtime_pm using pm_runtime_set_active.
->=20
-> Looks good otherwise, once fixed (and if relevant):
-> Reviewed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> Although, I'm not against this protection completely. Others might be,
+> though.
+>
+>>
+>> This adds an s_power() nesting counter and updates the power state if the
+>> counter is modified from 0 to != 0 or from != 0 to 0.
+>>
+>> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+>> ---
+>> * v2
+>> - New patch
+>>
+>>  drivers/media/i2c/ov772x.c | 33 +++++++++++++++++++++++++++++----
+>>  1 file changed, 29 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+>> index 4245a46..2cd6e85 100644
+>> --- a/drivers/media/i2c/ov772x.c
+>> +++ b/drivers/media/i2c/ov772x.c
+>> @@ -424,6 +424,9 @@ struct ov772x_priv {
+>>       /* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+>>       unsigned short                    band_filter;
+>>       unsigned int                      fps;
+>> +     /* lock to protect power_count */
+>> +     struct mutex                      power_lock;
+>> +     int                               power_count;
+>>  #ifdef CONFIG_MEDIA_CONTROLLER
+>>       struct media_pad pad;
+>>  #endif
+>> @@ -871,9 +874,25 @@ static int ov772x_power_off(struct ov772x_priv *priv)
+>>  static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+>>  {
+>>       struct ov772x_priv *priv = to_ov772x(sd);
+>> +     int ret = 0;
+>> +
+>> +     mutex_lock(&priv->power_lock);
+>>
+>> -     return on ? ov772x_power_on(priv) :
+>> -                 ov772x_power_off(priv);
+>> +     /* If the power count is modified from 0 to != 0 or from != 0 to 0,
+>> +      * update the power state.
+>> +      */
+>> +     if (priv->power_count == !on)
+>> +             ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
+>
+> Just release the mutex and return 0 if (power_count == on)
+> The code will be more readable imho.
 
-=2D-=20
-Regards,
-
-Laurent Pinchart
+OK.  Actually, the change in this patch is used like boilerplate in
+many subdev drivers.  Also, it's better to print warning when nested
+s_power() call is detected as it should not be happened.
