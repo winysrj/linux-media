@@ -1,77 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:57193 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751399AbeDDT41 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Apr 2018 15:56:27 -0400
-Date: Wed, 4 Apr 2018 21:56:23 +0200
-From: Boris Brezillon <boris.brezillon@bootlin.com>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:42258 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753610AbeDSOUc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Apr 2018 10:20:32 -0400
+References: <20180419101812.30688-1-rui.silva@linaro.org> <20180419101812.30688-8-rui.silva@linaro.org> <1524145101.3416.7.camel@pengutronix.de>
+From: Rui Miguel Silva <rmfrfs@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        "linux-mmc\@vger.kernel.org" <linux-mmc@vger.kernel.org>,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        driverdevel <devel@driverdev.osuosl.org>,
-        alsa-devel@alsa-project.org
-Subject: Re: [PATCH 00/15] ARM: pxa: switch to DMA slave maps
-Message-ID: <20180404215623.2bf07406@bbrezillon>
-In-Reply-To: <874lkq4urd.fsf@belgarion.home>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
-        <CAPDyKFot9dAST2jQL5s8E4U=bCHxkio=uwpqPd6S0N4FWJRB-w@mail.gmail.com>
-        <874lkq4urd.fsf@belgarion.home>
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Shawn Guo <shawnguo@kernel.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/15] media: staging/imx: add 10 bit bayer support
+In-reply-to: <1524145101.3416.7.camel@pengutronix.de>
+Date: Thu, 19 Apr 2018 15:20:29 +0100
+Message-ID: <m3fu3r9t1u.fsf@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 04 Apr 2018 21:49:26 +0200
-Robert Jarzmik <robert.jarzmik@free.fr> wrote:
+Hi Philip,
+Thanks for the review.
 
-> Ulf Hansson <ulf.hansson@linaro.org> writes:
-> 
-> > On 2 April 2018 at 16:26, Robert Jarzmik <robert.jarzmik@free.fr> wrote:  
-> >> Hi,
-> >>
-> >> This serie is aimed at removing the dmaengine slave compat use, and transfer
-> >> knowledge of the DMA requestors into architecture code.
-> >> As this looks like a patch bomb, each maintainer expressing for his tree either
-> >> an Ack or "I want to take through my tree" will be spared in the next iterations
-> >> of this serie.  
-> >
-> > Perhaps an option is to send this hole series as PR for 3.17 rc1, that
-> > would removed some churns and make this faster/easier? Well, if you
-> > receive the needed acks of course.  
-> For 3.17-rc1 it looks a bit optimistic with the review time ... If I have all
+On Thu 19 Apr 2018 at 13:38, Philipp Zabel wrote:
+> On Thu, 2018-04-19 at 11:18 +0100, Rui Miguel Silva wrote:
+>> Some sensors can only output 10 bit bayer formats, like the 
+>> OV2680. Add support
+>> for that in imx-media.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  drivers/staging/media/imx/imx-media-utils.c | 24 
+>>  +++++++++++++++++++++
+>>  1 file changed, 24 insertions(+)
+>> 
+>> diff --git a/drivers/staging/media/imx/imx-media-utils.c 
+>> b/drivers/staging/media/imx/imx-media-utils.c
+>> index fab98fc0d6a0..99527daba29a 100644
+>> --- a/drivers/staging/media/imx/imx-media-utils.c
+>> +++ b/drivers/staging/media/imx/imx-media-utils.c
+>> @@ -118,6 +118,30 @@ static const struct imx_media_pixfmt 
+>> rgb_formats[] = {
+>>  		.cs     = IPUV3_COLORSPACE_RGB,
+>>  		.bpp    = 8,
+>>  		.bayer  = true,
+>> +	}, {
+>> +		.fourcc = V4L2_PIX_FMT_SBGGR10,
+>> +		.codes  = {MEDIA_BUS_FMT_SBGGR10_1X10},
+>> +		.cs     = IPUV3_COLORSPACE_RGB,
+>> +		.bpp    = 16,
+>> +		.bayer  = true,
+>> +	}, {
+>> +		.fourcc = V4L2_PIX_FMT_SGBRG10,
+>> +		.codes  = {MEDIA_BUS_FMT_SGBRG10_1X10},
+>> +		.cs     = IPUV3_COLORSPACE_RGB,
+>> +		.bpp    = 16,
+>> +		.bayer  = true,
+>> +	}, {
+>> +		.fourcc = V4L2_PIX_FMT_SGRBG10,
+>> +		.codes  = {MEDIA_BUS_FMT_SGRBG10_1X10},
+>> +		.cs     = IPUV3_COLORSPACE_RGB,
+>> +		.bpp    = 16,
+>> +		.bayer  = true,
+>> +	}, {
+>> +		.fourcc = V4L2_PIX_FMT_SRGGB10,
+>> +		.codes  = {MEDIA_BUS_FMT_SRGGB10_1X10},
+>> +		.cs     = IPUV3_COLORSPACE_RGB,
+>> +		.bpp    = 16,
+>> +		.bayer  = true,
+>
+> This will break 10-bit bayer formats on i.MX6, which currently 
+> stores
+> them in memory expanded to 16-bit, as listed in the entries 
+> below:
 
-Especially since 3.17-rc1 has been released more than 3 years ago :-),
-but I guess you meant 4.17-rc1.
+Oh, I see... i.MX7 also store it expanded, I will change my code 
+to use
+the format array as it is for i.MX6.
 
-> acks, I'll queue it into my pxa tree. If at least one maintainer withholds his
-> ack, the end of the serie (phase 3) won't be applied until it is sorted out.
-> 
-> Cheers.
-> 
-> --
-> Robert
+Thanks,
+---
+Cheers,
+	Rui
