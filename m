@@ -1,97 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:45832 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751133AbeDNMBZ (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:38837 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750990AbeDSJbZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Apr 2018 08:01:25 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v14 21/33] rcar-vin: add flag to switch to media controller mode
-Date: Sat, 14 Apr 2018 13:57:14 +0200
-Message-Id: <20180414115726.5075-22-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180414115726.5075-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 19 Apr 2018 05:31:25 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: architt@codeaurora.org, a.hajda@samsung.com,
+        Laurent.pinchart@ideasonboard.com, airlied@linux.ie
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, daniel@ffwll.ch,
+        peda@axentia.se, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/8] drm: bridge: Add support for static image formats
+Date: Thu, 19 Apr 2018 11:31:01 +0200
+Message-Id: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 a media controller API needs to be used to allow userspace to
-configure the subdevices in the pipeline instead of directly controlling
-a single source subdevice, which is and will continue to be the mode of
-operation on Gen2.
+Hello DRM list,
+  cc media-list for the mbus format extension
+  cc renesas-soc and devicetree for Eagle DTS patch
 
-Prepare for these two modes of operation by adding a flag to struct
-rvin_info which will control which mode to use.
+This series adds support for static image formats to DRM bridges, mimicking
+what display_info.bus_formats represents for DRM connectors.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 6 +++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 2 ++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+The main use case of this series is the R-Car DU LVDS encoder. This component
+can output LVDS streams compatible with JEIDA or SPWG specification, and so far
+it has only been possible to decide which one to output if the next component
+in the DRM pipeline was a panel, equipped with a DRM connector where to inspect
+the accepted input image format from.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 07a04d4bcc91b18b..c0e0412e2ecd9487 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -249,18 +249,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static const struct rvin_info rcar_info_h1 = {
- 	.model = RCAR_H1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.model = RCAR_M1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.model = RCAR_GEN2,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
-@@ -355,7 +358,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-+	if (!vin->info->use_mc)
-+		v4l2_ctrl_handler_free(&vin->ctrl_handler);
- 
- 	rvin_dma_unregister(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index c19ddc5e08cbbea4..e5668c1120a67899 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -75,11 +75,13 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @model:		VIN model
-+ * @use_mc:		use media controller instead of controlling subdevice
-  * @max_width:		max input width the VIN supports
-  * @max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum model_id model;
-+	bool use_mc;
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
--- 
-2.16.2
+With the introduction of the transparent THC63LVD1024 LVDS decoder driver, the
+next component in the pipeline is now a bridge, and the DU LVDS encoder needs
+to inspect which media bus image formats it accepts and set its LVDS output
+mode accordingly.
+
+The series implements -static- image format supports for bridges. As a result
+of the discussion on Peter Rosin's patch series:
+[PATCH v2 0/5] allow override of bus format in bridges
+https://lkml.org/lkml/2018/3/26/610
+my understanding is that the accepted image formats can be 'dynamic' (or
+'atomic') if depends on the configured DRM mode, or 'static' as in the
+THC63LVD1024 case, where an external pin configuration decides which LVDS
+mapping mode the encoder accepts (which implies it comes from DT, as in Peter's
+use case).
+
+For dynamic formats Daniel already suggested a possible implementation:
+https://lkml.org/lkml/2018/3/28/57
+while for static image formats I am proposing an implementation that
+copies what we have for connectors at the moment.
+
+One more detail: the DU LVDS encoder supports 'mirroring' of LVDS modes, and
+that was handled through a set of flags (DRM_BUS_FLAG_DATA_*) defined for
+connectors only, and added for that specific purpose, if I got this right.
+Instead of replicating the same flags for bridges, or moving them to some shared
+header which I had trouble to identify, I have introduced the _LE version of
+mbus formats used to describe LVDS streams. While 'little endian' is not
+*technically* exact for those mirrored formats, it is my opinion they represent
+a good description anyhow of the reversed component ordering.
+
+As a result, the connector specific DRM_BUS_FLAG_DATA_* have been removed as
+all their user have been ported to use the new _LE formats.
+
+The series depends on THC63LVD1024 support, implemented by the following
+in-review series:
+ [PATCH v9 0/2] drm: Add Thine THC63LVD1024 LVDS decoder bridge
+ [PATCH v3 0/5] V3M-Eagle HDMI output enablement
+
+available for the interested at:
+git://jmondi.org/linux lvds-bridge/linus-master/v9-eagle-v3
+
+Thanks for comments
+   j
+
+Jacopo Mondi (8):
+  drm: bridge: Add support for static image formats
+  dt-bindings: display: bridge: thc63lvd1024: Add lvds map property
+  drm: bridge: thc63lvd1024: Add support for LVDS mode map
+  arm64: dts: renesas: eagle: Add thc63 LVDS map
+  media: Add LE version of RGB LVDS formats
+  drm: rcar-du: rcar-lvds: Add bridge format support
+  drm: panel: Use _LE LVDS formats for data mirroring
+  drm: connector: Remove DRM_BUS_FLAG_DATA_* flags
+
+ .../bindings/display/bridge/thine,thc63lvd1024.txt |   3 +
+ Documentation/media/uapi/v4l/subdev-formats.rst    | 174 +++++++++++++++++++++
+ arch/arm64/boot/dts/renesas/r8a77970-eagle.dts     |   1 +
+ drivers/gpu/drm/bridge/thc63lvd1024.c              |  41 +++++
+ drivers/gpu/drm/drm_bridge.c                       |  30 ++++
+ drivers/gpu/drm/panel/panel-lvds.c                 |  21 +--
+ drivers/gpu/drm/rcar-du/rcar_lvds.c                |  64 +++++---
+ include/drm/drm_bridge.h                           |   8 +
+ include/drm/drm_connector.h                        |   4 -
+ include/uapi/linux/media-bus-format.h              |   5 +-
+ 10 files changed, 317 insertions(+), 34 deletions(-)
+
+--
+2.7.4
