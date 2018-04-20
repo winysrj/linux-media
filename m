@@ -1,104 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:38543 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756669AbeDXIYh (ORCPT
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:12066 "EHLO
+        hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752047AbeDTSvx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Apr 2018 04:24:37 -0400
-From: Luca Ceresoli <luca@lucaceresoli.net>
-To: linux-media@vger.kernel.org
-Cc: Luca Ceresoli <luca@lucaceresoli.net>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2 09/13] media: imx274: get rid of mode_index
-Date: Tue, 24 Apr 2018 10:24:14 +0200
-Message-Id: <1524558258-530-10-git-send-email-luca@lucaceresoli.net>
-In-Reply-To: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
-References: <1524558258-530-1-git-send-email-luca@lucaceresoli.net>
+        Fri, 20 Apr 2018 14:51:53 -0400
+From: Vladislav Zhurba <vzhurba@nvidia.com>
+To: <linux-kernel@vger.kernel.org>
+CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        Daniel Fu <danifu@nvidia.com>,
+        Vladislav Zhurba <vzhurba@nvidia.com>
+Subject: [PATCH 1/1] media: nec-decoder: remove trailer_space state
+Date: Fri, 20 Apr 2018 11:51:39 -0700
+Message-ID: <20180420185139.29238-1-vzhurba@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After restructuring struct imx274_frmfmt, the mode_index field is
-still in use only for two dev_dbg() calls in imx274_s_stream(). Let's
-remove it and avoid duplicated information.
+From: Daniel Fu <danifu@nvidia.com>
 
-Replacing the first usage requires a some rather annoying but trivial
-pointer math. The other one can be removed entirely since it would
-print the same value anyway.
+Remove STATE_TRAILER_SPACE from state machine.
+Causing 2 issue:
+- can not decode the keycode, if it didn't following with
+  another keycode/repeat code
+- will generate one more code in current logic.
+  i.e. key_right + repeat code + key_left + repeat code.
+  expect: key_right, key_left.
+  Result: key_right, key_right, key_right.
+  Reason: when receive repeat code of key_right, state machine will
+  stay in STATE_TRAILER_SPACE state, then wait for a new interrupt,
+  if an interrupt came after keyup_timer, then will generate another
+  fake key.
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+According to the NEC protocol, it don't need a trailer space. Remove it.
 
+Signed-off-by: Daniel Fu <danifu@nvidia.com>
+Signed-off-by: Vladislav Zhurba <vzhurba@nvidia.com>
 ---
-Changed v1 -> v2:
- - add "media: " prefix to commit message
- - fix dev_dbg() format mismatch warning
-   ("warning: format ‘%ld’ expects argument of type ‘long int’, but argument 6 has type ‘int’")
- - slightly improve commit message
----
- drivers/media/i2c/imx274.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/media/rc/ir-nec-decoder.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 2ec31ae4e60d..69fdc82d4214 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -553,8 +553,6 @@ struct imx274_ctrls {
-  * @reset_gpio: Pointer to reset gpio
-  * @lock: Mutex structure
-  * @mode: Parameters for the selected readout mode
-- *        (points to imx274_formats[mode_index])
-- * @mode_index: Resolution mode index
-  */
- struct stimx274 {
- 	struct v4l2_subdev sd;
-@@ -567,7 +565,6 @@ struct stimx274 {
- 	struct gpio_desc *reset_gpio;
- 	struct mutex lock; /* mutex lock for operations */
- 	const struct imx274_frmfmt *mode;
--	u32 mode_index;
- };
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 21647b809e6f..760b66affd1a 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -128,16 +128,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (!eq_margin(ev.duration, NEC_TRAILER_PULSE, NEC_UNIT / 2))
+ 			break;
  
- /*
-@@ -880,7 +877,6 @@ static int imx274_set_fmt(struct v4l2_subdev *sd,
- 		index = 0;
- 	}
- 
--	imx274->mode_index = index;
- 	imx274->mode = &imx274_formats[index];
- 
- 	if (fmt->width > IMX274_MAX_WIDTH)
-@@ -1029,7 +1025,8 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
- 	int ret = 0;
- 
- 	dev_dbg(&imx274->client->dev, "%s : %s, mode index = %d\n", __func__,
--		on ? "Stream Start" : "Stream Stop", imx274->mode_index);
-+		on ? "Stream Start" : "Stream Stop",
-+		imx274->mode - &imx274_formats[0]);
- 
- 	mutex_lock(&imx274->lock);
- 
-@@ -1068,8 +1065,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
- 	}
- 
- 	mutex_unlock(&imx274->lock);
--	dev_dbg(&imx274->client->dev,
--		"%s : Done: mode = %d\n", __func__, imx274->mode_index);
-+	dev_dbg(&imx274->client->dev, "%s : Done\n", __func__);
- 	return 0;
- 
- fail:
-@@ -1625,8 +1621,7 @@ static int imx274_probe(struct i2c_client *client,
- 	mutex_init(&imx274->lock);
- 
- 	/* initialize format */
--	imx274->mode_index = IMX274_MODE_3840X2160;
--	imx274->mode = &imx274_formats[imx274->mode_index];
-+	imx274->mode = &imx274_formats[IMX274_MODE_3840X2160];
- 	imx274->format.width = imx274->mode->size.width;
- 	imx274->format.height = imx274->mode->size.height;
- 	imx274->format.field = V4L2_FIELD_NONE;
+-		data->state = STATE_TRAILER_SPACE;
+-		return 0;
+-
+-	case STATE_TRAILER_SPACE:
+-		if (ev.pulse)
+-			break;
+-
+-		if (!geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2))
+-			break;
+-
+ 		if (data->count == NEC_NBITS) {
+ 			address     = bitrev8((data->bits >> 24) & 0xff);
+ 			not_address = bitrev8((data->bits >> 16) & 0xff);
 -- 
-2.7.4
+2.16.2
