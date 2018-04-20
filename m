@@ -1,110 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36086 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755207AbeDWNsS (ORCPT
+Received: from mail-pf0-f181.google.com ([209.85.192.181]:35834 "EHLO
+        mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750751AbeDTQgN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 09:48:18 -0400
-Received: by mail-wr0-f195.google.com with SMTP id u18-v6so14226388wrg.3
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2018 06:48:18 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shawn Guo <shawnguo@kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v2 01/15] media: staging/imx: add support to media dev for no IPU systems
-Date: Mon, 23 Apr 2018 14:47:36 +0100
-Message-Id: <20180423134750.30403-2-rui.silva@linaro.org>
-In-Reply-To: <20180423134750.30403-1-rui.silva@linaro.org>
-References: <20180423134750.30403-1-rui.silva@linaro.org>
+        Fri, 20 Apr 2018 12:36:13 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180418125536.GB3999@w540>
+References: <1523847111-12986-1-git-send-email-akinobu.mita@gmail.com>
+ <1523847111-12986-11-git-send-email-akinobu.mita@gmail.com> <20180418125536.GB3999@w540>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Sat, 21 Apr 2018 01:35:52 +0900
+Message-ID: <CAC5umyjj4RAxwBbtGEFwVo+TYH_H+Wv-NDE-_kqJLLzTf_mJ4Q@mail.gmail.com>
+Subject: Re: [PATCH v2 10/10] media: ov772x: avoid accessing registers under
+ power saving mode
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some i.MX SoC do not have IPU, like the i.MX7, add to the the media device
-infrastructure support to be used in this type of systems that do not have
-internal subdevices besides the CSI.
+2018-04-18 21:55 GMT+09:00 jacopo mondi <jacopo@jmondi.org>:
+>> @@ -898,8 +922,20 @@ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+>>       /* If the power count is modified from 0 to != 0 or from != 0 to 0,
+>>        * update the power state.
+>>        */
+>> -     if (priv->power_count == !on)
+>> -             ret = on ? ov772x_power_on(priv) : ov772x_power_off(priv);
+>> +     if (priv->power_count == !on) {
+>> +             if (on) {
+>> +                     ret = ov772x_power_on(priv);
+>> +                     /* Restore the controls */
+>> +                     if (!ret)
+>> +                             ret = ov772x_set_params(priv, priv->cfmt,
+>> +                                                     priv->win);
+>> +                     /* Restore the format and the frame rate */
+>> +                     if (!ret)
+>> +                             ret = __v4l2_ctrl_handler_setup(&priv->hdl);
+>
+> frame interval is not listed in the sensor control list, it won't be
+> restored if I'm not wrong...
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- drivers/staging/media/imx/imx-media-dev.c      | 18 +++++++++++++-----
- .../staging/media/imx/imx-media-internal-sd.c  |  3 +++
- drivers/staging/media/imx/imx-media.h          |  3 +++
- 3 files changed, 19 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index f67ec8e27093..c0f277adeebe 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -92,6 +92,9 @@ static int imx_media_get_ipu(struct imx_media_dev *imxmd,
- 	struct ipu_soc *ipu;
- 	int ipu_id;
- 
-+	if (!imxmd->ipu_present)
-+		return 0;
-+
- 	ipu = dev_get_drvdata(csi_sd->dev->parent);
- 	if (!ipu) {
- 		v4l2_err(&imxmd->v4l2_dev,
-@@ -481,16 +484,21 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto notifier_cleanup;
- 	}
- 
--	ret = imx_media_add_internal_subdevs(imxmd);
--	if (ret) {
--		v4l2_err(&imxmd->v4l2_dev,
--			 "add_internal_subdevs failed with %d\n", ret);
--		goto notifier_cleanup;
-+	imxmd->ipu_present = true;
-+
-+	if (imxmd->ipu_present) {
-+		ret = imx_media_add_internal_subdevs(imxmd);
-+		if (ret) {
-+			v4l2_err(&imxmd->v4l2_dev,
-+				 "add_internal_subdevs failed with %d\n", ret);
-+			goto notifier_cleanup;
-+		}
- 	}
- 
- 	/* no subdevs? just bail */
- 	if (imxmd->notifier.num_subdevs == 0) {
- 		ret = -ENODEV;
-+		v4l2_err(&imxmd->v4l2_dev, "no subdevs\n");
- 		goto notifier_cleanup;
- 	}
- 
-diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
-index 0fdc45dbfb76..2bcdc232369a 100644
---- a/drivers/staging/media/imx/imx-media-internal-sd.c
-+++ b/drivers/staging/media/imx/imx-media-internal-sd.c
-@@ -238,6 +238,9 @@ int imx_media_create_internal_links(struct imx_media_dev *imxmd,
- 	struct media_pad *pad;
- 	int i, j, ret;
- 
-+	if (!imxmd->ipu_present)
-+		return 0;
-+
- 	intsd = find_intsd_by_grp_id(sd->grp_id);
- 	if (!intsd)
- 		return -ENODEV;
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 44532cd5b812..d40538ecf176 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -147,6 +147,9 @@ struct imx_media_dev {
- 
- 	/* for async subdev registration */
- 	struct v4l2_async_notifier notifier;
-+
-+	/* indicator to if the system has IPU */
-+	bool ipu_present;
- };
- 
- enum codespace_sel {
--- 
-2.17.0
+The above two comments were swapped wrongly.  The ov772x_set_params()
+actually restores the format, the frame rate.  It restores COM3,
+COM8, and BDBASE registers, too.  So calling __v4l2_ctrl_handler_setup()
+here is not needed.
