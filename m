@@ -1,133 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:46677 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753761AbeDTBcN (ORCPT
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:16832 "EHLO
+        hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750858AbeDTSss (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Apr 2018 21:32:13 -0400
-Received: by mail-ua0-f196.google.com with SMTP id a17so4701642uaf.13
-        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 18:32:12 -0700 (PDT)
-Received: from mail-vk0-f41.google.com (mail-vk0-f41.google.com. [209.85.213.41])
-        by smtp.gmail.com with ESMTPSA id j125sm1912764vka.48.2018.04.19.18.32.10
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 19 Apr 2018 18:32:11 -0700 (PDT)
-Received: by mail-vk0-f41.google.com with SMTP id v205so4337421vkv.13
-        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2018 18:32:10 -0700 (PDT)
+        Fri, 20 Apr 2018 14:48:48 -0400
+From: Vladislav Zhurba <vzhurba@nvidia.com>
+To: <linux-kernel@vger.kernel.org>
+CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        Jun Yan <juyan@nvidia.com>, marting <marting@nvidia.com>,
+        Daniel Fu <danifu@nvidia.com>,
+        Vladislav Zhurba <vzhurba@nvidia.com>
+Subject: [PATCH 1/1] media: rc: Add NVIDIA IR keymapping
+Date: Fri, 20 Apr 2018 11:47:47 -0700
+Message-ID: <20180420184747.29022-2-vzhurba@nvidia.com>
+In-Reply-To: <20180420184747.29022-1-vzhurba@nvidia.com>
+References: <20180420184747.29022-1-vzhurba@nvidia.com>
 MIME-Version: 1.0
-References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
- <20180419154536.17846-4-paul.kocialkowski@bootlin.com> <1524153860.3416.9.camel@pengutronix.de>
-In-Reply-To: <1524153860.3416.9.camel@pengutronix.de>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 20 Apr 2018 01:31:59 +0000
-Message-ID: <CAAFQd5DT_xjUbZzFOoKk7_duiSZ8Awb1J=0dPEhVTBk0P3gppA@mail.gmail.com>
-Subject: Re: [PATCH v2 08/10] dt-bindings: media: Document bindings for the
- Sunxi-Cedrus VPU driver
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>, wens@csie.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul, Philipp,
+From: Jun Yan <juyan@nvidia.com>
 
-On Fri, Apr 20, 2018 at 1:04 AM Philipp Zabel <p.zabel@pengutronix.de>
-wrote:
+Add keymap with NEC and SONY12 protocol for NVIDIA IR
 
-> Hi Paul,
+Signed-off-by: Jun Yan <juyan@nvidia.com>
+Signed-off-by: marting <marting@nvidia.com>
+Signed-off-by: Daniel Fu <danifu@nvidia.com>
+Signed-off-by: Vladislav Zhurba <vzhurba@nvidia.com>
+---
+ drivers/media/rc/keymaps/Makefile        |  2 +
+ drivers/media/rc/keymaps/rc-nvidia-nec.c | 66 ++++++++++++++++++++++++
+ drivers/media/rc/keymaps/rc-nvidia.c     | 66 ++++++++++++++++++++++++
+ include/media/rc-map.h                   |  2 +
+ 4 files changed, 136 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-nvidia-nec.c
+ create mode 100644 drivers/media/rc/keymaps/rc-nvidia.c
 
-> On Thu, 2018-04-19 at 17:45 +0200, Paul Kocialkowski wrote:
-> > This adds a device-tree binding document that specifies the properties
-> > used by the Sunxi-Cedurs VPU driver, as well as examples.
-> >
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > ---
-> >  .../devicetree/bindings/media/sunxi-cedrus.txt     | 50
-++++++++++++++++++++++
-> >  1 file changed, 50 insertions(+)
-> >  create mode 100644
-Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > new file mode 100644
-> > index 000000000000..71ad3f9c3352
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/sunxi-cedrus.txt
-> > @@ -0,0 +1,50 @@
-> > +Device-tree bindings for the VPU found in Allwinner SoCs, referred to
-as the
-> > +Video Engine (VE) in Allwinner literature.
-> > +
-> > +The VPU can only access the first 256 MiB of DRAM, that are DMA-mapped
-starting
-> > +from the DRAM base. This requires specific memory allocation and
-handling.
-
-And no IOMMU? Brings back memories.
-
-> > +
-> > +Required properties:
-> > +- compatible         : "allwinner,sun4i-a10-video-engine";
-> > +- memory-region         : DMA pool for buffers allocation;
-> > +- clocks             : list of clock specifiers, corresponding to
-entries in
-> > +                          the clock-names property;
-> > +- clock-names                : should contain "ahb", "mod" and "ram"
-entries;
-> > +- assigned-clocks       : list of clocks assigned to the VE;
-> > +- assigned-clocks-rates : list of clock rates for the clocks assigned
-to the VE;
-> > +- resets             : phandle for reset;
-> > +- interrupts         : should contain VE interrupt number;
-> > +- reg                        : should contain register base and length
-of VE.
-> > +
-> > +Example:
-> > +
-> > +reserved-memory {
-> > +     #address-cells = <1>;
-> > +     #size-cells = <1>;
-> > +     ranges;
-> > +
-> > +     /* Address must be kept in the lower 256 MiBs of DRAM for VE. */
-> > +     ve_memory: cma@4a000000 {
-> > +             compatible = "shared-dma-pool";
-> > +             reg = <0x4a000000 0x6000000>;
-> > +             no-map;
-> > +             linux,cma-default;
-> > +     };
-> > +};
-> > +
-> > +video-engine@1c0e000 {
-
-> This is not really required by any specification, and not as common as
-> gpu@..., but could this reasonably be called "vpu@1c0e000" to follow
-> somewhat-common practice?
-
-AFAIR the name is supposed to be somewhat readable for someone that doesn't
-know the hardware. To me, "video-engine" sounds more obvious than "vpu",
-but we actually use "codec" already, in case of MFC and JPEG codec on
-Exynos. If encode/decode is the only functionality of this block, I'd
-personally go with "codec". If it can do other things, e.g.
-scaling/rotation without encode/decode, I'd probably call it
-"video-processor".
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index d6b913a3032d..1d08500462fd 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -75,6 +75,8 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-nec-terratec-cinergy-xs.o \
+ 			rc-norwood.o \
+ 			rc-npgtech.o \
++			rc-nvidia.o \
++			rc-nvidia-nec.o \
+ 			rc-pctv-sedna.o \
+ 			rc-pinnacle-color.o \
+ 			rc-pinnacle-grey.o \
+diff --git a/drivers/media/rc/keymaps/rc-nvidia-nec.c b/drivers/media/rc/keymaps/rc-nvidia-nec.c
+new file mode 100644
+index 000000000000..c910a2a683f6
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-nvidia-nec.c
+@@ -0,0 +1,66 @@
++/* Keytable for NVIDIA Remote Controller
++ *
++ * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++static struct rc_map_table foster_table[] = {
++	{ 0x807e12, KEY_VOLUMEUP },
++	{ 0x807e15, KEY_VOLUMEDOWN },
++	{ 0x807e0c, KEY_UP },
++	{ 0x807e0e, KEY_DOWN },
++	{ 0x807e0b, KEY_LEFT },
++	{ 0x807e0d, KEY_RIGHT },
++	{ 0x807e09, KEY_HOMEPAGE },
++	{ 0x807e06, KEY_POWER },
++	{ 0x807e03, KEY_SELECT },
++	{ 0x807e02, KEY_BACK },
++	{ 0x807e14, KEY_MUTE },
++	{ 0x807e20, KEY_PLAYPAUSE },
++	{ 0x807e11, KEY_PLAYCD },
++	{ 0x807e08, KEY_PAUSECD },
++	{ 0x807e07, KEY_STOP },
++	{ 0x807e0f, KEY_FASTFORWARD },
++	{ 0x807e0a, KEY_REWIND },
++	{ 0x807e41, KEY_SLEEP },
++	{ 0x807e45, KEY_WAKEUP },
++};
++
++static struct rc_map_list nvidia_map = {
++	.map = {
++			.scan = foster_table,
++			.size = ARRAY_SIZE(foster_table),
++			.rc_type = RC_TYPE_NEC,
++			.name = RC_MAP_NVIDIA_NEC,
++	}
++};
++
++static int __init init_rc_map_nvidia(void)
++{
++	return rc_map_register(&nvidia_map);
++}
++
++static void __exit exit_rc_map_nvidia(void)
++{
++	rc_map_unregister(&nvidia_map);
++}
++
++module_init(init_rc_map_nvidia);
++module_exit(exit_rc_map_nvidia);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Daniel Fu <danifu@nvidia.com>");
+diff --git a/drivers/media/rc/keymaps/rc-nvidia.c b/drivers/media/rc/keymaps/rc-nvidia.c
+new file mode 100644
+index 000000000000..9767d85a6c9e
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-nvidia.c
+@@ -0,0 +1,66 @@
++/* Keytable for NVIDIA Remote Controller
++ *
++ * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++static struct rc_map_table foster_table[] = {
++	{ 0x10009, KEY_0 },
++	{ 0x10000, KEY_1 },
++	{ 0x10001, KEY_2 },
++	{ 0x10002, KEY_3 },
++	{ 0x10003, KEY_4 },
++	{ 0x10004, KEY_5 },
++	{ 0x10005, KEY_6 },
++	{ 0x10006, KEY_7 },
++	{ 0x10007, KEY_8 },
++	{ 0x10008, KEY_9 },
++	{ 0x10012, KEY_VOLUMEUP },
++	{ 0x10013, KEY_VOLUMEDOWN },
++	{ 0x10010, KEY_CHANNELUP },
++	{ 0x10011, KEY_CHANNELDOWN },
++	{ 0x10074, KEY_UP },
++	{ 0x10075, KEY_DOWN },
++	{ 0x10034, KEY_LEFT },
++	{ 0x10033, KEY_RIGHT },
++	{ 0x10060, KEY_HOME },
++};
++
++static struct rc_map_list nvidia_map = {
++	.map = {
++			.scan = foster_table,
++			.size = ARRAY_SIZE(foster_table),
++			.rc_type = RC_TYPE_SONY12,
++			.name = RC_MAP_NVIDIA,
++	}
++};
++
++static int __init init_rc_map_nvidia(void)
++{
++	return rc_map_register(&nvidia_map);
++}
++
++static void __exit exit_rc_map_nvidia(void)
++{
++	rc_map_unregister(&nvidia_map);
++}
++
++module_init(init_rc_map_nvidia);
++module_exit(exit_rc_map_nvidia);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Jun Yan <juyan@nvidia.com>");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index bfa3017cecba..673d16eaabdf 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -235,6 +235,8 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_NEC_TERRATEC_CINERGY_XS   "rc-nec-terratec-cinergy-xs"
+ #define RC_MAP_NORWOOD                   "rc-norwood"
+ #define RC_MAP_NPGTECH                   "rc-npgtech"
++#define RC_MAP_NVIDIA                    "rc-nvidia"
++#define RC_MAP_NVIDIA_NEC                "rc-nvidia-nec"
+ #define RC_MAP_PCTV_SEDNA                "rc-pctv-sedna"
+ #define RC_MAP_PINNACLE_COLOR            "rc-pinnacle-color"
+ #define RC_MAP_PINNACLE_GREY             "rc-pinnacle-grey"
+-- 
+2.17.0
