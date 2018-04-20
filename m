@@ -1,56 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:55536 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751704AbeDHKMW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 8 Apr 2018 06:12:22 -0400
-Subject: Re: [PATCH 01/16] omap: omap-iommu.h: allow building drivers with
- COMPILE_TEST
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <cover.1522949748.git.mchehab@s-opensource.com>
- <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
-From: Matthias Schwarzott <zzam@gentoo.org>
-Message-ID: <d732ddf4-db42-3549-15d1-90bfc8546a48@gentoo.org>
-Date: Sun, 8 Apr 2018 12:12:17 +0200
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:38743 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755648AbeDTPWI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 11:22:08 -0400
+Received: by mail-lf0-f41.google.com with SMTP id z130-v6so5719467lff.5
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 08:22:07 -0700 (PDT)
+Subject: Re: [PATCH 4/8] sh_eth: Change platform check to CONFIG_ARCH_RENESAS
+To: Geert Uytterhoeven <geert+renesas@glider.be>,
+        Simon Horman <horms@verge.net.au>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vinod Koul <vinod.koul@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Arnd Bergmann <arnd@arndb.de>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org
+References: <1524230914-10175-1-git-send-email-geert+renesas@glider.be>
+ <1524230914-10175-5-git-send-email-geert+renesas@glider.be>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <b0e4bb99-f964-cf8a-dddc-621f599d35f0@cogentembedded.com>
+Date: Fri, 20 Apr 2018 18:22:03 +0300
 MIME-Version: 1.0
-In-Reply-To: <6741dd205de1e7d4e80a93386095db2a0c604bb5.1522949748.git.mchehab@s-opensource.com>
+In-Reply-To: <1524230914-10175-5-git-send-email-geert+renesas@glider.be>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-MW
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.04.2018 um 19:54 schrieb Mauro Carvalho Chehab:
-> Drivers that depend on omap-iommu.h (currently, just omap3isp)
-> need a stub implementation in order to be built with COMPILE_TEST.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/linux/omap-iommu.h | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
-> index c1aede46718b..0c21fc5b002e 100644
-> --- a/include/linux/omap-iommu.h
-> +++ b/include/linux/omap-iommu.h
-> @@ -13,7 +13,12 @@
->  #ifndef _OMAP_IOMMU_H_
->  #define _OMAP_IOMMU_H_
->  
-> +#ifdef CONFIG_OMAP_IOMMU
->  extern void omap_iommu_save_ctx(struct device *dev);
->  extern void omap_iommu_restore_ctx(struct device *dev);
-> +#else
-> +static inline void omap_iommu_save_ctx(struct device *dev) {};
-> +static inline void omap_iommu_restore_ctx(struct device *dev) {};
+On 04/20/2018 04:28 PM, Geert Uytterhoeven wrote:
 
-The semicolons at end of line are unnecessary.
-
-> +#endif
->  
->  #endif
+> Since commit 9b5ba0df4ea4f940 ("ARM: shmobile: Introduce ARCH_RENESAS")
+> is CONFIG_ARCH_RENESAS a more appropriate platform check than the legacy
+> CONFIG_ARCH_SHMOBILE, hence use the former.
 > 
+> Renesas SuperH SH-Mobile SoCs are still covered by the CONFIG_CPU_SH4
+> check.
+> 
+> This will allow to drop ARCH_SHMOBILE on ARM and ARM64 in the near
+> future.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+[...]
 
-Regards
-Matthias
+Acked-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+MBR, Sergei
