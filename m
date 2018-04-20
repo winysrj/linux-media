@@ -1,66 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:47685 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753943AbeDYLPg (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:52593 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755393AbeDTPNc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Apr 2018 07:15:36 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: geert@linux-m68k.org, horms@verge.net.au, robh+dt@kernel.org,
-        mark.rutland@arm.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] dt-bindings: media: renesas-ceu: Add R-Mobile R8A7740
-Date: Wed, 25 Apr 2018 13:15:19 +0200
-Message-Id: <1524654920-18749-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1524654920-18749-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1524654920-18749-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 20 Apr 2018 11:13:32 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20180420151330euoutp014d993dc684e47a443c54a1da15c7b7f8~nLaq4VmZR1131211312euoutp01R
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 15:13:30 +0000 (GMT)
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v2 15/19] omap2: omapfb: allow building it with
+ COMPILE_TEST
+Date: Fri, 20 Apr 2018 17:13:17 +0200
+Message-ID: <3329803.Cv7XkTmsQk@amdc3058>
+In-Reply-To: <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+References: <cover.1522959716.git.mchehab@s-opensource.com>
+        <CGME20180405202959epcas4p4eba19cc23d569d34223cc7d22a536753@epcas4p4.samsung.com>
+        <f0947227675df4a774949500b6ee4cac1485b494.1522959716.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add R-Mobile A1 R8A7740 SoC to the list of compatible values for the CEU
-unit.
+On Thursday, April 05, 2018 04:29:42 PM Mauro Carvalho Chehab wrote:
+> This driver builds cleanly with COMPILE_TEST, and it is
+> needed in order to allow building drivers/media omap2
+> driver.
+> 
+> So, change the logic there to allow building it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- Documentation/devicetree/bindings/media/renesas,ceu.txt | 7 ++++---
- drivers/media/platform/renesas-ceu.c                    | 1 +
- 2 files changed, 5 insertions(+), 3 deletions(-)
+This change has broken build on OF=n && COMPILE_TEST=y configs:
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-index 3fc66df..8a7a616 100644
---- a/Documentation/devicetree/bindings/media/renesas,ceu.txt
-+++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-@@ -2,14 +2,15 @@ Renesas Capture Engine Unit (CEU)
- ----------------------------------------------
- 
- The Capture Engine Unit is the image capture interface found in the Renesas
--SH Mobile and RZ SoCs.
-+SH Mobile, R-Mobile and RZ SoCs.
- 
- The interface supports a single parallel input with data bus width of 8 or 16
- bits.
- 
- Required properties:
--- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1H
--  and RZ/A1M SoCs.
-+- compatible: Shall be one of the following values:
-+	"renesas,r7s72100-ceu" for CEU units found in RZ/A1H and RZ/A1M SoCs
-+	"renesas,r8a7740-ceu" for CEU units found in R-Mobile A1 R8A7740 SoCs
- - reg: Registers address base and size.
- - interrupts: The interrupt specifier.
- 
-diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
-index 6599dba..c964a56 100644
---- a/drivers/media/platform/renesas-ceu.c
-+++ b/drivers/media/platform/renesas-ceu.c
-@@ -1545,6 +1545,7 @@ static const struct ceu_data ceu_data_sh4 = {
- #if IS_ENABLED(CONFIG_OF)
- static const struct of_device_id ceu_of_match[] = {
- 	{ .compatible = "renesas,r7s72100-ceu", .data = &ceu_data_rz },
-+	{ .compatible = "renesas,r8a7740-ceu", .data = &ceu_data_rz },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, ceu_of_match);
--- 
-2.7.4
+https://patchwork.kernel.org/patch/10352465/
+
+[ This is not a problem when compiling for OMAP2 because it depends
+  on ARM Multiplatform support which (indirectly) selects OF. ]
+
+Also I would really prefer that people won't merge fbdev related
+patches without my ACK and I see this patch in -next coming from
+one of your trees..
+
+> ---
+>  drivers/video/fbdev/omap2/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/video/fbdev/omap2/Kconfig b/drivers/video/fbdev/omap2/Kconfig
+> index 0921c4de8407..82008699d253 100644
+> --- a/drivers/video/fbdev/omap2/Kconfig
+> +++ b/drivers/video/fbdev/omap2/Kconfig
+> @@ -1,4 +1,4 @@
+> -if ARCH_OMAP2PLUS
+> +if ARCH_OMAP2PLUS || COMPILE_TEST
+>  
+>  source "drivers/video/fbdev/omap2/omapfb/Kconfig"
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
