@@ -1,98 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37767 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753042AbeDJN7Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Apr 2018 09:59:16 -0400
-Date: Tue, 10 Apr 2018 10:59:10 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv11 PATCH 23/29] videobuf2-v4l2: export request_fd
-Message-ID: <20180410105910.282d74f1@vento.lan>
-In-Reply-To: <20180409142026.19369-24-hverkuil@xs4all.nl>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
-        <20180409142026.19369-24-hverkuil@xs4all.nl>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40629 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754762AbeDTNZU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 09:25:20 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Dmitry Osipenko <digetx@gmail.com>,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.18] tegra-vde, video-i2c and usbtv patches
+Message-ID: <992fa6de-b315-2a83-d439-1c0a710743d0@xs4all.nl>
+Date: Fri, 20 Apr 2018 15:25:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  9 Apr 2018 16:20:20 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+The following changes since commit 1d338b86e17d87215cf57b1ad1d13b2afe582d33:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Requested by Sakari
+  media: v4l2-compat-ioctl32: better document the code (2018-04-20 08:24:13 -0400)
 
-Huh? What kind of description is that?
+are available in the git repository at:
 
-Why is it needed?
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.18a
 
-It is even harder to analyze this as documentation for the new
-field is not there.
+for you to fetch changes up to 548ea201716e4f81920f520e47d072f4615164d2:
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/common/videobuf2/videobuf2-v4l2.c | 6 ++++--
->  include/media/videobuf2-v4l2.h                  | 2 ++
->  2 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 3d0c74bb4220..7b79149b7fae 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -184,6 +184,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
->  		return -EINVAL;
->  	}
->  	vbuf->sequence = 0;
-> +	vbuf->request_fd = -1;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->  		switch (b->memory) {
-> @@ -391,6 +392,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
->  	}
->  
->  	*p_req = req;
-> +	vbuf->request_fd = b->request_fd;
->  
->  	return 0;
->  }
-> @@ -496,9 +498,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  
->  	if (vb2_buffer_in_use(q, vb))
->  		b->flags |= V4L2_BUF_FLAG_MAPPED;
-> -	if (vb->req_obj.req) {
-> +	if (vbuf->request_fd >= 0) {
->  		b->flags |= V4L2_BUF_FLAG_REQUEST_FD;
-> -		b->request_fd = -1;
-> +		b->request_fd = vbuf->request_fd;
->  	}
->  
->  	if (!q->is_output &&
-> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-> index 0baa3023d7ad..d3ee1f28e197 100644
-> --- a/include/media/videobuf2-v4l2.h
-> +++ b/include/media/videobuf2-v4l2.h
-> @@ -32,6 +32,7 @@
->   *		&enum v4l2_field.
->   * @timecode:	frame timecode.
->   * @sequence:	sequence count of this frame.
-> + * @request_fd:	the request_fd associated with this buffer
->   * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
->   *
->   * Should contain enough information to be able to cover all the fields
-> @@ -44,6 +45,7 @@ struct vb2_v4l2_buffer {
->  	__u32			field;
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
-> +	__s32			request_fd;
->  	struct vb2_plane	planes[VB2_MAX_PLANES];
->  };
->  
+  usbtv: Use the constant for supported standards (2018-04-20 14:53:18 +0200)
 
+----------------------------------------------------------------
+Dmitry Osipenko (5):
+      media: staging: tegra-vde: Align bitstream size to 16K
+      media: staging: tegra-vde: Silence some of checkpatch warnings
+      media: staging: tegra-vde: Correct minimum size of U/V planes
+      media: staging: tegra-vde: Do not handle spurious interrupts
+      media: staging: tegra-vde: Correct included header
 
+Hugo Grostabussiat (6):
+      usbtv: Use same decoder sequence as Windows driver
+      usbtv: Add SECAM support
+      usbtv: Use V4L2 defines to select capture resolution
+      usbtv: Keep norm parameter specific
+      usbtv: Enforce standard for color decoding
+      usbtv: Use the constant for supported standards
 
-Thanks,
-Mauro
+Matt Ranostay (2):
+      media: dt-bindings: Add bindings for panasonic,amg88xx
+      media: video-i2c: add video-i2c driver
+
+ Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt |  19 ++
+ MAINTAINERS                                                       |   6 +
+ drivers/media/i2c/Kconfig                                         |  13 +
+ drivers/media/i2c/Makefile                                        |   1 +
+ drivers/media/i2c/video-i2c.c                                     | 564 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/usb/usbtv/usbtv-video.c                             | 115 +++++++--
+ drivers/media/usb/usbtv/usbtv.h                                   |   2 +-
+ drivers/staging/media/tegra-vde/tegra-vde.c                       |  63 ++---
+ 8 files changed, 737 insertions(+), 46 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ create mode 100644 drivers/media/i2c/video-i2c.c
