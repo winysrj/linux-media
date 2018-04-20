@@ -1,96 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52675 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754710AbeDWLjZ (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:60805 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754989AbeDTNnm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 07:39:25 -0400
-Subject: Re: [RFCv11 PATCH 12/29] v4l2-ctrls: alloc memory for p_req
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180409142026.19369-1-hverkuil@xs4all.nl>
- <20180409142026.19369-13-hverkuil@xs4all.nl>
- <CAAFQd5BxsS4S_6sCKp=0hMvgrezVX80OJS9Bp+O+-i66GBDaAQ@mail.gmail.com>
+        Fri, 20 Apr 2018 09:43:42 -0400
+Subject: Re: [PATCH v2 03/10] videobuf2-core: Add helper to get buffer private
+ data from media request
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>
+References: <20180419154124.17512-1-paul.kocialkowski@bootlin.com>
+ <20180419154124.17512-4-paul.kocialkowski@bootlin.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <52380219-fe21-aa57-140e-9f9ce82de402@xs4all.nl>
-Date: Mon, 23 Apr 2018 13:39:20 +0200
+Message-ID: <581bb769-acad-1050-3060-f3f11802be89@xs4all.nl>
+Date: Fri, 20 Apr 2018 15:43:36 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5BxsS4S_6sCKp=0hMvgrezVX80OJS9Bp+O+-i66GBDaAQ@mail.gmail.com>
+In-Reply-To: <20180419154124.17512-4-paul.kocialkowski@bootlin.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2018 11:32 AM, Tomasz Figa wrote:
-> Hi Hans,
+On 04/19/18 17:41, Paul Kocialkowski wrote:
+> When calling media operation driver callbacks related to media requests,
+> only a pointer to the request itself is provided, which is insufficient
+> to retrieve the driver's context. Since the driver context is usually
+> set as vb2 queue private data and given that the core can determine
+> which objects attached to the request are buffers, it is possible to
+> extract the associated private data for the first buffer found.
 > 
-> On Mon, Apr 9, 2018 at 11:21 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> This is required in order to access the current m2m context from m2m
+> drivers' private data in the context of media request operation
+> callbacks. More specifically, this allows scheduling m2m device runs
+> from the newly-introduced request complete operation.
 > 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  drivers/media/common/videobuf2/videobuf2-core.c | 15 +++++++++++++++
+>  include/media/videobuf2-core.h                  |  1 +
+>  2 files changed, 16 insertions(+)
 > 
->> To store request data the handler_new_ref() allocates memory
->> for it if needed.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
->>   1 file changed, 16 insertions(+), 4 deletions(-)
-> 
->> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
-> b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index d09f49530d9e..3c1b00baa8d0 100644
->> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -1997,13 +1997,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
->>   /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
->>   static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
->>                             struct v4l2_ctrl *ctrl,
->> -                          bool from_other_dev)
->> +                          struct v4l2_ctrl_ref **ctrl_ref,
->> +                          bool from_other_dev, bool allocate_req)
->>   {
->>          struct v4l2_ctrl_ref *ref;
->>          struct v4l2_ctrl_ref *new_ref;
->>          u32 id = ctrl->id;
->>          u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
->>          int bucket = id % hdl->nr_of_buckets;   /* which bucket to use */
->> +       unsigned int sz_extra = 0;
->> +
->> +       if (ctrl_ref)
->> +               *ctrl_ref = NULL;
-> 
->>          /*
->>           * Automatically add the control class if it is not yet present
-> and
->> @@ -2017,11 +2022,16 @@ static int handler_new_ref(struct
-> v4l2_ctrl_handler *hdl,
->>          if (hdl->error)
->>                  return hdl->error;
-> 
->> -       new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
->> +       if (allocate_req)
->> +               sz_extra = ctrl->elems * ctrl->elem_size;
->> +       new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
-> 
-> I think we might want to use kvzalloc() here to cover allocation of big
-> elements and/or large arrays, without order>0 allocations killing the
-> systems.
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index 13c9d9e243dd..6fa46bfc620f 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1351,6 +1351,21 @@ bool vb2_core_request_has_buffers(struct media_request *req)
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_core_request_has_buffers);
+>  
+> +void *vb2_core_request_find_buffer_priv(struct media_request *req)
+> +{
+> +	struct media_request_object *obj;
+> +	struct vb2_buffer *vb;
+> +
+> +	obj = media_request_object_find(req, &vb2_core_req_ops, NULL);
 
-I don't want to touch that now. Perhaps something for the future.
+This increases the object refcount but it is never decreased here.
 
-> 
-> I'm actually also wondering if it wouldn't be cleaner to just allocate the
-> extra data separately, since we store a pointer in new_ref->p_req.p anyway.
+> +	if (!obj)
+> +		return NULL;
+> +
+> +	vb = container_of(obj, struct vb2_buffer, req_obj);
+> +
+> +	return vb2_get_drv_priv(vb->vb2_queue);
 
-It would give too much overhead since sz_extra is almost always 4. Controls that
-need more space are very rare. Calling kzalloc again for just 4 bytes is overkill.
+You need to add a media_request_object_put(obj); before returning here.
 
 Regards,
 
 	Hans
 
-> 
-> Best regards,
-> Tomasz
+> +}
+> +EXPORT_SYMBOL_GPL(vb2_core_request_find_buffer_priv);
+> +
+>  int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb,
+>  			 struct media_request *req)
+>  {
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 032bd1bec555..65c0cf6afb55 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -1153,4 +1153,5 @@ int vb2_verify_memory_type(struct vb2_queue *q,
+>  		enum vb2_memory memory, unsigned int type);
+>  
+>  bool vb2_core_request_has_buffers(struct media_request *req);
+> +void *vb2_core_request_find_buffer_priv(struct media_request *req);
+>  #endif /* _MEDIA_VIDEOBUF2_CORE_H */
 > 
