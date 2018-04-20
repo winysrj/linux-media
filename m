@@ -1,53 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:43303 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.17.22]:45819 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751444AbeDRIuB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Apr 2018 04:50:01 -0400
-Subject: Re: Regression: DVBSky S960 USB tuner doesn't work in 4.10 or newer
-To: Olli Salonen <olli.salonen@iki.fi>,
-        Peter Zijlstra <peterz@infradead.org>
-Cc: Nibble Max <nibble.max@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        wsa@the-dreams.de
-References: <CAAZRmGz8iTDSZ6S=05V0JKDXBnS47e43MBBSvnGtrVv-QioirA@mail.gmail.com>
- <20180409091441.GX4043@hirez.programming.kicks-ass.net>
- <CAAZRmGw9DTHX65cYch6ozjGejMnDNQx_aNF-RYPRo+E4COEoRA@mail.gmail.com>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <18b9e776-3558-30ed-f616-a0ba8e4d177d@iki.fi>
-Date: Wed, 18 Apr 2018 11:49:57 +0300
+        id S1751338AbeDTVye (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 17:54:34 -0400
+Received: from minime.bse ([77.22.125.85]) by mail.gmx.com (mrgmx102
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0M3d9B-1eJBpA1pnV-00rGAW for
+ <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 23:54:33 +0200
+Date: Fri, 20 Apr 2018 23:54:32 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: cx88 invalid video opcodes when VBI enabled
+Message-ID: <20180420215432.GA3747@minime.bse>
+References: <CAGoCfiw_oD6PLOoot55zkNBVaujeG7ReNQORiqUbLuh-=iwcyw@mail.gmail.com>
+ <20180417045300.GA7723@minime.bse>
+ <CAGoCfiwwCtp0entUfK74PhJDAubxAQeuAYgf6Jotw_EOT7+hSw@mail.gmail.com>
+ <CAGoCfizXy6j5rgzDghT3Lo3ZKvoUjLt7P3k7qo5wnX+xEE7m-g@mail.gmail.com>
+ <20180418182959.GA19152@minime.bse>
 MIME-Version: 1.0
-In-Reply-To: <CAAZRmGw9DTHX65cYch6ozjGejMnDNQx_aNF-RYPRo+E4COEoRA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180418182959.GA19152@minime.bse>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-On 04/18/2018 07:49 AM, Olli Salonen wrote:
-> Thank you for your response Peter!
+On Wed, Apr 18, 2018 at 08:29:59PM +0200, Daniel Glöckner wrote:
+> The VBI instruction queue read pointer points outside the VBI instruction
+> queue and into the video y/packed CMDS (to 0x180000+0x11*4). The values
+> next to the iq rd ptr look ok.
 > 
-> Indeed, it seems strange. dvbsky.c driver seems to use mutex_lock in
-> very much the same way as many other drivers. I've now confirmed that
-> I can get a 4.10 kernel with working DVBSky S960 by reverting the
-> following 4 patches:
-> 
-> 549bdd3 Revert "locking/mutex: Add lock handoff to avoid starvation"
-> 3210f31 Revert "locking/mutex: Restructure wait loop"
-> 418a170 Revert "locking/mutex: Simplify some ww_mutex code in
-> __mutex_lock_common()"
-> 0b1fb8f Revert "locking/mutex: Enable optimistic spinning of woken waiter"
-> c470abd Linux 4.10
+> We only initialize the iq rd ptr to zero in cx88_sram_channel_setup and
+> then never touch it again. The hardware takes care of updating it.
+> Maybe cx88_sram_channel_setup is sometimes called for channel 24 while the
+> VBI risc engine is still running?
 
-These kind of issues tend to be timing issues very often. Just add some 
-sleeps to i2c adapter algo / usb control messages and test.
+for some reason I feel like buffer_queue in cx88-vbi.c should not be
+calling cx8800_start_vbi_dma as it is also called a few lines further
+down in start_streaming.
 
-regards
-Antti
+Devin, can you check if it helps to remove that line and if VBI still
+works afterwards?
 
+Best regards,
 
-
-
--- 
-http://palosaari.fi/
+  Daniel
