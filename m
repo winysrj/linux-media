@@ -1,261 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46482 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753752AbeDVWea (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:42666 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755547AbeDTPVQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Apr 2018 18:34:30 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2 7/8] v4l: vsp1: Integrate DISCOM in display pipeline
-Date: Mon, 23 Apr 2018 01:34:29 +0300
-Message-Id: <20180422223430.16407-8-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180422223430.16407-1-laurent.pinchart+renesas@ideasonboard.com>
+        Fri, 20 Apr 2018 11:21:16 -0400
+Received: by mail-wr0-f193.google.com with SMTP id s18-v6so23983343wrg.9
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2018 08:21:15 -0700 (PDT)
+Date: Fri, 20 Apr 2018 17:21:11 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Jerome Glisse <jglisse@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/8] dma-buf: add peer2peer flag
+Message-ID: <20180420152111.GR31310@phenom.ffwll.local>
+References: <20180403170645.GB5935@redhat.com>
+ <20180403180832.GZ3881@phenom.ffwll.local>
+ <20180416123937.GA9073@infradead.org>
+ <CAKMK7uEFVOh-R2_4vs1M22_wDau0oNTgmCcTWDE+ScxL=92+2g@mail.gmail.com>
+ <20180419081657.GA16735@infradead.org>
+ <20180420071312.GF31310@phenom.ffwll.local>
+ <3e17afc5-7d6c-5795-07bd-f23e34cf8d4b@gmail.com>
+ <20180420101755.GA11400@infradead.org>
+ <f1100bd6-dd98-55a9-a92f-1cad919f235f@amd.com>
+ <20180420124625.GA31078@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180420124625.GA31078@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DISCOM is used to compute CRCs on display frames. Integrate it in
-the display pipeline at the output of the blending unit to process
-output frames.
+On Fri, Apr 20, 2018 at 05:46:25AM -0700, Christoph Hellwig wrote:
+> On Fri, Apr 20, 2018 at 12:44:01PM +0200, Christian König wrote:
+> > > > What we need is an sg_alloc_table_from_resources(dev, resources,
+> > > > num_resources) which does the handling common to all drivers.
+> > > A structure that contains
+> > > 
+> > > {page,offset,len} + {dma_addr+dma_len}
+> > > 
+> > > is not a good container for storing
+> > > 
+> > > {virt addr, dma_addr, len}
+> > > 
+> > > no matter what interface you build arond it.
+> > 
+> > Why not? I mean at least for my use case we actually don't need the virtual
+> > address.
+> 
+> If you don't need the virtual address you need scatterlist even list.
+> 
+> > What we need is {dma_addr+dma_len} in a consistent interface which can come
+> > from both {page,offset,len} as well as {resource, len}.
+> 
+> Ok.
+> 
+> > What I actually don't need is separate handling for system memory and
+> > resources, but that would we get exactly when we don't use sg_table.
+> 
+> At the very lowest level they will need to be handled differently for
+> many architectures, the questions is at what point we'll do the
+> branching out.
 
-Computing CRCs on input frames is possible by positioning the DISCOM at
-a different point in the pipeline. This use case isn't supported at the
-moment and could be implemented by extending the API between the VSP1
-and DU drivers if needed.
+Having at least struct page also in that list with (dma_addr_t, lenght)
+pairs has a bunch of benefits for drivers in unifying buffer handling
+code. You just pass that one single list around, use the dma_addr_t side
+for gpu access (generally bashing it into gpu ptes). And the struct page
+(if present) for cpu access, using kmap or vm_insert_*. We generally
+ignore virt, if we do need a full mapping then we construct a vmap for
+that buffer of our own.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 115 ++++++++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_drm.h |  12 ++++
- 2 files changed, 124 insertions(+), 3 deletions(-)
+If (and that would be serious amounts of work all over the tree, with lots
+of drivers) we come up with a new struct for gpu buffers, then I'd also
+add "force page alignement for everything" to the requirements list.
+That's another mismatch we have, since gpu buffer objects (and dma-buf)
+are always full pages. That mismatch motived the addition of the
+page-oriented sg iterators.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 5fc31578f9b0..7864b43a90e1 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -22,6 +22,7 @@
- #include "vsp1_lif.h"
- #include "vsp1_pipe.h"
- #include "vsp1_rwpf.h"
-+#include "vsp1_uif.h"
- 
- #define BRX_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
- 
-@@ -35,8 +36,13 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
- 	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
- 	bool complete = completion == VSP1_DL_FRAME_END_COMPLETED;
- 
--	if (drm_pipe->du_complete)
--		drm_pipe->du_complete(drm_pipe->du_private, complete, 0);
-+	if (drm_pipe->du_complete) {
-+		struct vsp1_entity *uif = drm_pipe->uif;
-+		u32 crc;
-+
-+		crc = uif ? vsp1_uif_get_crc(to_uif(&uif->subdev)) : 0;
-+		drm_pipe->du_complete(drm_pipe->du_private, complete, crc);
-+	}
- 
- 	if (completion & VSP1_DL_FRAME_END_INTERNAL) {
- 		drm_pipe->force_brx_release = false;
-@@ -48,10 +54,65 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
-  * Pipeline Configuration
-  */
- 
-+/*
-+ * Insert the UIF in the pipeline between the prev and next entities. If no UIF
-+ * is available connect the two entities directly.
-+ */
-+static int vsp1_du_insert_uif(struct vsp1_device *vsp1,
-+			      struct vsp1_pipeline *pipe,
-+			      struct vsp1_entity *uif,
-+			      struct vsp1_entity *prev, unsigned int prev_pad,
-+			      struct vsp1_entity *next, unsigned int next_pad)
-+{
-+	int ret;
-+
-+	if (uif) {
-+		struct v4l2_subdev_format format;
-+
-+		prev->sink = uif;
-+		prev->sink_pad = UIF_PAD_SINK;
-+
-+		memset(&format, 0, sizeof(format));
-+		format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		format.pad = prev_pad;
-+
-+		ret = v4l2_subdev_call(&prev->subdev, pad, get_fmt, NULL,
-+				       &format);
-+		if (ret < 0)
-+			return ret;
-+
-+		format.pad = UIF_PAD_SINK;
-+
-+		ret = v4l2_subdev_call(&uif->subdev, pad, set_fmt, NULL,
-+				       &format);
-+		if (ret < 0)
-+			return ret;
-+
-+		dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on UIF sink\n",
-+			__func__, format.format.width, format.format.height,
-+			format.format.code);
-+
-+		/*
-+		 * The UIF doesn't mangle the format between its sink and
-+		 * source pads, so there is no need to retrieve the format on
-+		 * its source pad.
-+		 */
-+
-+		uif->sink = next;
-+		uif->sink_pad = next_pad;
-+	} else {
-+		prev->sink = next;
-+		prev->sink_pad = next_pad;
-+	}
-+
-+	return 0;
-+}
-+
- /* Setup one RPF and the connected BRx sink pad. */
- static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
- 				      struct vsp1_pipeline *pipe,
- 				      struct vsp1_rwpf *rpf,
-+				      struct vsp1_entity *uif,
- 				      unsigned int brx_input)
- {
- 	struct v4l2_subdev_selection sel;
-@@ -122,6 +183,12 @@ static int vsp1_du_pipeline_setup_rpf(struct vsp1_device *vsp1,
- 	if (ret < 0)
- 		return ret;
- 
-+	/* Insert and configure the UIF if available. */
-+	ret = vsp1_du_insert_uif(vsp1, pipe, uif, &rpf->entity, RWPF_PAD_SOURCE,
-+				 pipe->brx, brx_input);
-+	if (ret < 0)
-+		return ret;
-+
- 	/* BRx sink, propagate the format from the RPF source. */
- 	format.pad = brx_input;
- 
-@@ -297,7 +364,10 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
- static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
- 					struct vsp1_pipeline *pipe)
- {
-+	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
-+	struct vsp1_entity *uif;
-+	bool use_uif = false;
- 	struct vsp1_brx *brx;
- 	unsigned int i;
- 	int ret;
-@@ -358,7 +428,11 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
- 		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
- 			__func__, rpf->entity.index, BRX_NAME(pipe->brx), i);
- 
--		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, i);
-+		uif = drm_pipe->crc.source == VSP1_DU_CRC_PLANE &&
-+		      drm_pipe->crc.index == i ? drm_pipe->uif : NULL;
-+		if (uif)
-+			use_uif = true;
-+		ret = vsp1_du_pipeline_setup_rpf(vsp1, pipe, rpf, uif, i);
- 		if (ret < 0) {
- 			dev_err(vsp1->dev,
- 				"%s: failed to setup RPF.%u\n",
-@@ -367,6 +441,31 @@ static int vsp1_du_pipeline_setup_inputs(struct vsp1_device *vsp1,
- 		}
- 	}
- 
-+	/* Insert and configure the UIF at the BRx output if available. */
-+	uif = drm_pipe->crc.source == VSP1_DU_CRC_OUTPUT ? drm_pipe->uif : NULL;
-+	if (uif)
-+		use_uif = true;
-+	ret = vsp1_du_insert_uif(vsp1, pipe, uif,
-+				 pipe->brx, pipe->brx->source_pad,
-+				 &pipe->output->entity, 0);
-+	if (ret < 0)
-+		dev_err(vsp1->dev, "%s: failed to setup UIF after %s\n",
-+			__func__, BRX_NAME(pipe->brx));
-+
-+	/*
-+	 * If the UIF is not in use schedule it for removal by setting its pipe
-+	 * pointer to NULL, vsp1_du_pipeline_configure() will remove it from the
-+	 * hardware pipeline and from the pipeline's list of entities. Otherwise
-+	 * make sure it is present in the pipeline's list of entities if it
-+	 * wasn't already.
-+	 */
-+	if (!use_uif) {
-+		drm_pipe->uif->pipe = NULL;
-+	} else if (!drm_pipe->uif->pipe) {
-+		drm_pipe->uif->pipe = pipe;
-+		list_add_tail(&drm_pipe->uif->list_pipe, &pipe->entities);
-+	}
-+
- 	return 0;
- }
- 
-@@ -748,6 +847,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
- 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
- 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
- 
-+	drm_pipe->crc.source = cfg->crc.source;
-+	drm_pipe->crc.index = cfg->crc.index;
-+
- 	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
- 	vsp1_du_pipeline_configure(pipe);
- 	mutex_unlock(&vsp1->drm->lock);
-@@ -816,6 +918,13 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- 
- 		pipe->lif->pipe = pipe;
- 		list_add_tail(&pipe->lif->list_pipe, &pipe->entities);
-+
-+		/*
-+		 * CRC computation is initially disabled, don't add the UIF to
-+		 * the pipeline.
-+		 */
-+		if (i < vsp1->info->uif_count)
-+			drm_pipe->uif = &vsp1->uif[i]->entity;
- 	}
- 
- 	/* Disable all RPFs initially. */
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index e5b88b28806c..1e7670955ef0 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -13,6 +13,8 @@
- #include <linux/videodev2.h>
- #include <linux/wait.h>
- 
-+#include <media/vsp1.h>
-+
- #include "vsp1_pipe.h"
- 
- /**
-@@ -22,6 +24,9 @@
-  * @height: output display height
-  * @force_brx_release: when set, release the BRx during the next reconfiguration
-  * @wait_queue: wait queue to wait for BRx release completion
-+ * @uif: UIF entity if available for the pipeline
-+ * @crc.source: source for CRC calculation
-+ * @crc.index: index of the CRC source plane (when crc.source is set to plane)
-  * @du_complete: frame completion callback for the DU driver (optional)
-  * @du_private: data to be passed to the du_complete callback
-  */
-@@ -34,6 +39,13 @@ struct vsp1_drm_pipeline {
- 	bool force_brx_release;
- 	wait_queue_head_t wait_queue;
- 
-+	struct vsp1_entity *uif;
-+
-+	struct {
-+		enum vsp1_du_crc_source source;
-+		unsigned int index;
-+	} crc;
-+
- 	/* Frame synchronisation */
- 	void (*du_complete)(void *data, bool completed, u32 crc);
- 	void *du_private;
+So maybe a list of (struct page *, dma_addr_t, num_pages) would suit best,
+with struct page * being optional (if it's a resource, or something else
+that the kernel core mm isn't aware of). But that only has benefits if we
+really roll it out everywhere, in all the subsystems and drivers, since if
+we don't we've made the struct pages ** <-> sgt conversion fun only worse
+by adding a 3 representation of gpu buffer object backing storage.
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
