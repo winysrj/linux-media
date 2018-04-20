@@ -1,85 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp06.smtpout.orange.fr ([80.12.242.128]:49957 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752475AbeDBO1o (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2018 10:27:44 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
+Received: from osg.samsung.com ([64.30.133.232]:51855 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753515AbeDTRnC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 13:43:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Tejun Heo <tj@kernel.org>, Vinod Koul <vinod.koul@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        Samuel Ortiz <samuel@sortiz.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ide@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        Robert Jarzmik <robert.jarzmik@renault.com>
-Subject: [PATCH 05/15] mtd: nand: pxa3xx: remove the dmaengine compat need
-Date: Mon,  2 Apr 2018 16:26:46 +0200
-Message-Id: <20180402142656.26815-6-robert.jarzmik@free.fr>
-In-Reply-To: <20180402142656.26815-1-robert.jarzmik@free.fr>
-References: <20180402142656.26815-1-robert.jarzmik@free.fr>
+        dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org
+Subject: [PATCH 5/7] omapfb: omapfb_dss.h: add stubs to build with COMPILE_TEST && DRM_OMAP
+Date: Fri, 20 Apr 2018 13:42:51 -0400
+Message-Id: <c6ef815da57085bf7e98753463e551905f5d2706.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1524245455.git.mchehab@s-opensource.com>
+References: <cover.1524245455.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Robert Jarzmik <robert.jarzmik@renault.com>
+Add stubs for omapfb_dss.h, in the case it is included by
+some driver when CONFIG_FB_OMAP2 is not defined, with can
+happen on ARM when DRM_OMAP is not 'n'.
 
-As the pxa architecture switched towards the dmaengine slave map, the
-old compatibility mechanism to acquire the dma requestor line number and
-priority are not needed anymore.
+That allows building such driver(s) with COMPILE_TEST.
 
-This patch simplifies the dma resource acquisition, using the more
-generic function dma_request_slave_channel().
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/mtd/nand/pxa3xx_nand.c | 10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ include/video/omapfb_dss.h | 54 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/nand/pxa3xx_nand.c b/drivers/mtd/nand/pxa3xx_nand.c
-index d1979c7dbe7e..4a56a0aef5b1 100644
---- a/drivers/mtd/nand/pxa3xx_nand.c
-+++ b/drivers/mtd/nand/pxa3xx_nand.c
-@@ -1518,8 +1518,6 @@ static int pxa3xx_nand_init_buff(struct pxa3xx_nand_info *info)
- {
- 	struct platform_device *pdev = info->pdev;
- 	struct dma_slave_config	config;
--	dma_cap_mask_t mask;
--	struct pxad_param param;
- 	int ret;
+diff --git a/include/video/omapfb_dss.h b/include/video/omapfb_dss.h
+index 1d38901d599d..e9775144ff3b 100644
+--- a/include/video/omapfb_dss.h
++++ b/include/video/omapfb_dss.h
+@@ -774,6 +774,12 @@ struct omap_dss_driver {
+ 		const struct hdmi_avi_infoframe *avi);
+ };
  
- 	info->data_buff = kmalloc(info->buf_size, GFP_KERNEL);
-@@ -1533,13 +1531,7 @@ static int pxa3xx_nand_init_buff(struct pxa3xx_nand_info *info)
- 		return ret;
++#define for_each_dss_dev(d) while ((d = omap_dss_get_next_device(d)) != NULL)
++
++typedef void (*omap_dispc_isr_t) (void *arg, u32 mask);
++
++#ifdef CONFIG_FB_OMAP2
++
+ enum omapdss_version omapdss_get_version(void);
+ bool omapdss_is_initialized(void);
  
- 	sg_init_one(&info->sg, info->data_buff, info->buf_size);
--	dma_cap_zero(mask);
--	dma_cap_set(DMA_SLAVE, mask);
--	param.prio = PXAD_PRIO_LOWEST;
--	param.drcmr = info->drcmr_dat;
--	info->dma_chan = dma_request_slave_channel_compat(mask, pxad_filter_fn,
--							  &param, &pdev->dev,
--							  "data");
-+	info->dma_chan = dma_request_slave_channel(&pdev->dev, "data");
- 	if (!info->dma_chan) {
- 		dev_err(&pdev->dev, "unable to request data dma channel\n");
- 		return -ENODEV;
+@@ -785,7 +791,6 @@ void omapdss_unregister_display(struct omap_dss_device *dssdev);
+ 
+ struct omap_dss_device *omap_dss_get_device(struct omap_dss_device *dssdev);
+ void omap_dss_put_device(struct omap_dss_device *dssdev);
+-#define for_each_dss_dev(d) while ((d = omap_dss_get_next_device(d)) != NULL)
+ struct omap_dss_device *omap_dss_get_next_device(struct omap_dss_device *from);
+ struct omap_dss_device *omap_dss_find_device(void *data,
+ 		int (*match)(struct omap_dss_device *dssdev, void *data));
+@@ -826,7 +831,6 @@ int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev);
+ void omapdss_default_get_timings(struct omap_dss_device *dssdev,
+ 		struct omap_video_timings *timings);
+ 
+-typedef void (*omap_dispc_isr_t) (void *arg, u32 mask);
+ int omap_dispc_register_isr(omap_dispc_isr_t isr, void *arg, u32 mask);
+ int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask);
+ 
+@@ -856,5 +860,51 @@ omapdss_of_get_first_endpoint(const struct device_node *parent);
+ 
+ struct omap_dss_device *
+ omapdss_of_find_source_for_first_ep(struct device_node *node);
++#else
++
++static inline enum omapdss_version omapdss_get_version(void)
++{ return OMAPDSS_VER_UNKNOWN; };
++
++static inline bool omapdss_is_initialized(void)
++{ return false; };
++
++static inline int omap_dispc_register_isr(omap_dispc_isr_t isr,
++					  void *arg, u32 mask)
++{ return 0; };
++
++static inline int omap_dispc_unregister_isr(omap_dispc_isr_t isr,
++					    void *arg, u32 mask)
++{ return 0; };
++
++static inline struct omap_dss_device
++*omap_dss_get_device(struct omap_dss_device *dssdev)
++{ return NULL; };
++
++static inline struct omap_dss_device
++*omap_dss_get_next_device(struct omap_dss_device *from)
++{return NULL; };
++
++static inline void omap_dss_put_device(struct omap_dss_device *dssdev) {};
++
++static inline int omapdss_compat_init(void)
++{ return 0; };
++
++static inline void omapdss_compat_uninit(void) {};
++
++static inline int omap_dss_get_num_overlay_managers(void)
++{ return 0; };
++
++static inline struct omap_overlay_manager *omap_dss_get_overlay_manager(int num)
++{ return NULL; };
++
++static inline int omap_dss_get_num_overlays(void)
++{ return 0; };
++
++static inline struct omap_overlay *omap_dss_get_overlay(int num)
++{ return NULL; };
++
++
++#endif /* FB_OMAP2 */
++
+ 
+ #endif /* __OMAPFB_DSS_H */
 -- 
-2.11.0
+2.14.3
