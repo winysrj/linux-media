@@ -1,100 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:52086 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754746AbeDWL73 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Apr 2018 07:59:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Peter Rosin <peda@axentia.se>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        architt@codeaurora.org, a.hajda@samsung.com, airlied@linux.ie,
-        daniel@ffwll.ch, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/8] dt-bindings: display: bridge: thc63lvd1024: Add lvds map property
-Date: Mon, 23 Apr 2018 14:59:40 +0300
-Message-ID: <4581508.09qg8X0yyC@avalon>
-In-Reply-To: <20180423073504.GN4235@w540>
-References: <1524130269-32688-1-git-send-email-jacopo+renesas@jmondi.org> <17d6f6b0-e657-4a5f-63a6-572cdf062bd3@axentia.se> <20180423073504.GN4235@w540>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.bugwerft.de ([46.23.86.59]:59866 "EHLO mail.bugwerft.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754485AbeDTJtz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Apr 2018 05:49:55 -0400
+From: Daniel Mack <daniel@zonque.org>
+To: linux-media@vger.kernel.org
+Cc: slongerbeam@gmail.com, mchehab@kernel.org,
+        Daniel Mack <daniel@zonque.org>
+Subject: [PATCH 3/3] media: ov5640: add support for xclk frequency control
+Date: Fri, 20 Apr 2018 11:44:19 +0200
+Message-Id: <20180420094419.11267-3-daniel@zonque.org>
+In-Reply-To: <20180420094419.11267-1-daniel@zonque.org>
+References: <20180420094419.11267-1-daniel@zonque.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Allow setting the xclk rate via an optional 'clock-frequency' property in
+the device tree node.
 
-On Monday, 23 April 2018 10:35:04 EEST jacopo mondi wrote:
-> On Sun, Apr 22, 2018 at 10:02:41PM +0200, Peter Rosin wrote:
-> > On 2018-04-19 11:31, Jacopo Mondi wrote:
-> >> The THC63LVD1024 LVDS to RGB bridge supports two different input mapping
-> >> modes, selectable by means of an external pin.
-> >> 
-> >> Describe the LVDS mode map through a newly defined mandatory property in
-> >> device tree bindings.
-> >> 
-> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/display/bridge/thine,thc63lvd1024.txt    | 3 +++
-> >>  1 file changed, 3 insertions(+)
-> >> 
-> >> diff --git
-> >> a/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
-> >> b/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
-> >> index 37f0c04..0937595 100644
-> >> ---
-> >> a/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
-> >> +++
-> >> b/Documentation/devicetree/bindings/display/bridge/thine,thc63lvd1024.txt
-> >> @@ -12,6 +12,8 @@ Required properties:
-> >>  - compatible: Shall be "thine,thc63lvd1024"
-> >>  - vcc-supply: Power supply for TTL output, TTL CLOCKOUT signal, LVDS
-> >>  input,
-> >>    PPL and digital circuitry
-> >> 
-> >> +- thine,map: LVDS mapping mode selection signal, pin name "MAP". Shall
-> >> be <1>
-> >> +  for mapping mode 1, <0> for mapping mode 2
-> > 
-> > Since the MAP pin is an input pin, I would expect there to be an optional
-> > gpio specifier like thine,map-gpios so that the driver can set it
-> > according to the value given in thine,map in case the HW has a line from
-> > some gpio output to the MAP pin (instead of hardwired hi/low which seem
-> > to be your thinking).
-> 
-> I see... As the only use case I had has the pin tied to vcc, I
-> thought about making it a binary property, and I wonder in how many
-> cases the chip 'MAP' pin would actually be GPIO controlled input and
-> not an hardwired one instead. I don't see the LVDS mapping mode to be
-> changed at runtime, but you are right, who knows....
-> 
-> Do you think we can add an options 'thine,map-gpios' property along
-> to the proposed ones?
+Signed-off-by: Daniel Mack <daniel@zonque.org>
+---
+ Documentation/devicetree/bindings/media/i2c/ov5640.txt |  2 ++
+ drivers/media/i2c/ov5640.c                             | 10 ++++++++++
+ 2 files changed, 12 insertions(+)
 
-If the MAP pin is connected to an SoC-controlled GPIO for a given platform 
-then we will likely need a thine,map-gpios property to control the pin. I 
-think we can leave it out for now and add it later if the need arises.
-
-The thine,map property serves a different purpose, it indicates the level of 
-the MAP pin for platforms where the pin is hardwired. If we later introduce a 
-thine,map-gpios property it should be mutually exclusive with the thine,map 
-property. The level of the MAP pin should be then software-controlled, not set 
-through DT.
-
-> >>  Optional properties:
-> >>  - powerdown-gpios: Power down GPIO signal, pin name "/PDWN". Active low
-> >> 
-> >> @@ -36,6 +38,7 @@ Example:
-> >>  		vcc-supply = <&reg_lvds_vcc>;
-> >>  		powerdown-gpios = <&gpio4 15 GPIO_ACTIVE_LOW>;
-> >> +		thine,map = <1>;
-> >> 
-> >>  		ports {
-> >>  			#address-cells = <1>;
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+index 8e36da0d8406..584bbc944978 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -13,6 +13,8 @@ Optional Properties:
+ 	       This is an active low signal to the OV5640.
+ - powerdown-gpios: reference to the GPIO connected to the powerdown pin,
+ 		   if any. This is an active high signal to the OV5640.
++- clock-frequency: frequency to set on the xclk input clock. The clock
++		   is left untouched if this property is missing.
+ 
+ The device node must contain one 'port' child node for its digital output
+ video port, in accordance with the video interface bindings defined in
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 78669ed386cd..2d94d6dbda5d 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -2685,6 +2685,7 @@ static int ov5640_probe(struct i2c_client *client,
+ 	struct fwnode_handle *endpoint;
+ 	struct ov5640_dev *sensor;
+ 	struct v4l2_mbus_framefmt *fmt;
++	u32 freq;
+ 	int ret;
+ 
+ 	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+@@ -2731,6 +2732,15 @@ static int ov5640_probe(struct i2c_client *client,
+ 		return PTR_ERR(sensor->xclk);
+ 	}
+ 
++	ret = of_property_read_u32(dev->of_node, "clock-frequency", &freq);
++	if (ret == 0) {
++		ret = clk_set_rate(sensor->xclk, freq);
++		if (ret) {
++			dev_err(dev, "could not set xclk frequency\n");
++			return ret;
++		}
++	}
++
+ 	sensor->xclk_freq = clk_get_rate(sensor->xclk);
+ 	if (sensor->xclk_freq < OV5640_XCLK_MIN ||
+ 	    sensor->xclk_freq > OV5640_XCLK_MAX) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
